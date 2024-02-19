@@ -110,6 +110,10 @@ margin-bottom: 40px;
                         <div style="margin-right: 6px; margin-left: 6px">
                             <a href="https://www.instagram.com/piano_with_arthur/" target="_blank"><i class="fa-brands fa-instagram fa-lg"></i></a>
                         </div>
+
+                        <div style="margin-right: 6px; margin-left: 6px">
+                            <a href="mailto:arthurvillar@gmail.com" target="_blank"><i class="fa-solid fa-envelope"></i></a>
+                        </div>
                     </div>
                 </div>
             </div>
