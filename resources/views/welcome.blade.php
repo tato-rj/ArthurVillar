@@ -112,7 +112,11 @@ margin-bottom: 40px;
                         </div>
 
                         <div style="margin-right: 6px; margin-left: 6px">
-                            <a href="mailto:arthurvillar@gmail.com" target="_blank"><i class="fa-solid fa-envelope"></i></a>
+                            <a href="https://www.facebook.com/arthur.villar.31" target="_blank"><i class="fa-brands fa-facebook fa-lg"></i></a>
+                        </div>
+
+                        <div style="margin-right: 6px; margin-left: 6px">
+                            <a href="mailto:arthurvillar@gmail.com" target="_blank"><i class="fa-solid fa-envelope-open-text"></i></a>
                         </div>
                     </div>
                 </div>
