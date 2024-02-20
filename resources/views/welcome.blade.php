@@ -88,7 +88,7 @@ margin-bottom: 40px;
                 <h1 class="m-0">👋</h1>
                 <h1 class="m-0">Hi, I'm Arthur Villar.</h1>
                 <h1 class="m-0">I'm a pianist based</h1>
-                <h1 class="m-0" style="margin-bottom: 8px;">in Jersey City, US.</h1>
+                <h1 class="m-0" style="margin-bottom: 8px;">in Jersey City, NJ.</h1>
                 <p class="m-0">Here's where you'll find me:</p>
                 <div style="margin-top: 28px">
                     <div class="button-wrapper">
