@@ -12,7 +12,7 @@
             @for($i=1;$i<=7;$i++)
             @php($book = "Book{$i}")
             <div>
-                <a href="{{route('recordings.show', ['book' => strtolower($book)])}}" class="button w-100 text-center">{{$book}}</a>
+                <a href="{{route('suzuki.book', ['book' => strtolower($book)])}}" class="button w-100 text-center">{{$book}}</a>
             </div>
             @endfor
         </div>

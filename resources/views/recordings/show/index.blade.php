@@ -21,7 +21,7 @@
         <div class="row">
             <div class="col-lg-4 col-md-6 col-10 mx-auto">
                 <div class="mb-3" style="font-size: 76%">
-                    <a href="{{route('recordings.index')}}">@fa(['icon' => 'long-arrow-left'])CHANGE BOOK</a>
+                    <a href="{{route('suzuki.index')}}">@fa(['icon' => 'long-arrow-left'])CHANGE BOOK</a>
                 </div>
 
                 <h1 class="text-center mb-4">{{$book->name}}</h1>

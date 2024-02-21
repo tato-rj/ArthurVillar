@@ -12,9 +12,9 @@ class RecordingsController extends Controller
         return view('recordings.index');
     }
 
-    public function show($bookname)
+    public function book($name)
     {
-        $book = (new Recordings)->book($bookname)->get();
+        $book = (new Recordings)->book($name)->get();
 
         return view('recordings.show.index', compact('book'));
     }

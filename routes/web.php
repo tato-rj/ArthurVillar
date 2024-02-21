@@ -20,5 +20,5 @@ Route::get('/', function () {
 Route::prefix('suzuki')->name('suzuki.')->group(function() {
     Route::get('', 'RecordingsController@index')->name('index');
 
-    Route::get('{book}', 'RecordingsController@show')->name('show');
+    Route::get('{book}', 'RecordingsController@book')->name('book');
 });
