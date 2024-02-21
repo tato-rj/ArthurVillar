@@ -1,0 +1,231 @@
+@import "bootstrap/setup";
+
+mark {
+    padding: 0;
+}
+
+.ql-toolbar {
+  @extend .rounded-top, .text-left;
+  border-color: #e9ebf0 !important;
+}
+
+.ql-container {
+  @extend .rounded-bottom;
+  border-color: #e9ebf0 !important;
+  font-size: inherit !important;
+  height: 200px !important;
+  cursor: text;
+}
+
+.link-none {
+    color: inherit;
+}
+.footer-link:hover {
+    opacity: .6 !important;
+}
+
+textarea.no-resize {
+  resize: none;
+}
+
+.post-row:hover {
+  @extend .bg-light;
+}
+
+.clamp-2 {
+   overflow: hidden;
+   text-overflow: ellipsis;
+   display: -webkit-box;
+   -webkit-line-clamp: 2; /* number of lines to show */
+           line-clamp: 2;
+   -webkit-box-orient: vertical;
+}
+ 
+.channel-control {
+  &.selected, &:hover {
+    @extend .bg-secondary-light, .t-2;
+    color: black;
+
+    span {
+      @extend .bg-primary;
+      opacity: 1;
+    }
+
+    .highlight {
+      @extend .text-primary;
+    }
+  }
+
+  span {
+    @extend .bg-grey-light, .t-2;
+
+    opacity: .6;
+  }
+}
+
+.bg-elementary {
+  color: #fff;
+  background: #30d158;
+}
+
+.bg-early-beginner {
+  color: #fff;
+  background: #ffd60a;
+}
+
+.bg-late-beginner {
+  color: #fff;
+  background: #ffd60a;
+}
+
+.bg-early-intermediate {
+  color: #fff;
+  background: #ff453a;
+}
+
+.bg-late-intermediate {
+  color: #fff;
+  background: #ff453a;
+}
+
+.bg-advanced {
+    color: #fff;
+    background: #bf5af2;
+}
+
+.sort-handle {
+  &:active {
+    cursor: grabbing;
+  }
+  
+  cursor: grab;
+}
+
+.hover-border {
+  border: 1px solid transparent;
+}
+
+.hover-border:hover {
+  @extend .border;
+}
+
+.piece-card {
+  transition: .2s;
+}
+
+.piece-card:hover {
+  transform: scale(1.04);
+}
+
+.blockquote {
+  font-size: 100%;
+}
+
+.score-box-model {
+  display: none;
+}
+
+.score-box-control button {
+  border-bottom-right-radius: 0 !important;
+  border-top-left-radius: 0 !important;
+}
+
+.btn-tag.selected {
+  @extend .bg-secondary;
+}
+
+.avatar-container canvas { width: 100% !important; }
+
+.tippy-content {
+  color: white !important;
+}
+
+#submit-carousel > div:not(:first-child) {
+  display: none;
+}
+
+.composer img {
+  border: 2px solid transparent;
+}
+
+.composer:hover img {
+    box-shadow: 0 12px 25px -2px rgba(0, 0, 0, 0.1) !important;
+}
+
+.check {
+  top: 10px;
+  right: 10px;
+  display: none;
+}
+
+.composer.selected .check {
+  display: block;
+}
+
+.composer.selected img {
+  border-color: lightgreen !important;
+  box-shadow: 0 12px 25px -2px rgba(0, 0, 0, 0.1) !important;
+}
+
+.composer.selected h5 {
+  text-decoration: underline;
+}
+
+.page-link.active, .active > .page-link {
+  &:hover {
+    color: white;
+  }
+  background-color: $primary-color;
+  border-color: $primary-color;
+}
+
+.page-link {
+  &:hover {
+    color: $primary-color;
+  }
+  color: $primary-color;
+}
+
+.page-link {
+  @extend .rounded, .mx-1, .border-0, .d-center;
+  width: 38px;
+  height: 38px;
+}
+
+.instrument-lg {
+  cursor: pointer;
+  transition: .2s;
+  width: 173px;
+  height: 173px;
+}
+
+.instrument-sm, .btn-tag {
+  @extend .px-3, .py-1;
+  cursor: pointer;
+  transition: .2s;
+}
+
+.instrument-lg .check {
+  top: 10px;
+  right: 10px;
+  display: none;
+}
+
+.instrument-sm .check {
+  top: -8px;
+  right: -8px;
+  display: none;
+}
+
+.instrument:hover {
+    box-shadow: 0 12px 25px -2px rgba(0, 0, 0, 0.1) !important;
+}
+
+.instrument.selected .check {
+  display: block;
+}
+
+.instrument.selected {
+  border-color: lightgreen !important;
+  box-shadow: 0 12px 25px -2px rgba(0, 0, 0, 0.1) !important;
+}

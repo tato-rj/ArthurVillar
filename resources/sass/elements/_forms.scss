@@ -1,0 +1,52 @@
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
+}
+
+form {
+	.form-group {
+		@extend .mb-#{map-get($form, gap)};
+	}
+
+	.form-control, .form-select {
+		@extend .rounded;
+		padding: map-get($form, padding-y) map-get($form, padding-x);
+		border-color: black;
+	}
+
+
+	.form-control:disabled, .form-control[readonly] {
+	    background-color: #e9ecef !important;
+	    opacity: 1 !important;
+	    cursor: default;
+	}
+
+	&.form-borderless {
+		input.form-control, textarea.form-control, input.form-check {
+			border: 0;
+		}
+
+		&.form-light {
+			input.form-control:not([readonly]), textarea.form-control:not([readonly]), input.form-check:not([readonly]) {
+				background: map-get($form, background);
+			}
+		}
+	}
+
+	// &.form-dark {
+	// 	input.form-control, textarea.form-control {
+	// 		background-color: white;
+	// 	}
+	// }
+}
+
+.form-check-input[type=checkbox] {
+    border-radius: $corner-radius;
+}
