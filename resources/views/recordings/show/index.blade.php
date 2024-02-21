@@ -24,6 +24,7 @@
                     <a href="{{route('suzuki.index')}}">@fa(['icon' => 'long-arrow-left'])CHANGE BOOK</a>
                 </div>
 
+                <p class="text-center m-0">Suzuki Piano Series</p>
                 <h1 class="text-center mb-4">{{$book->name}}</h1>
                 @include('recordings.show.controls')
             </div>
@@ -39,10 +40,11 @@
 
 @push('scripts')
 <script type="text/javascript">
-let audio;
+let audio, shuffle;
 
 $(document).ready(function() {
     $('#tracks-container').css({'margin-top': $('#header').outerHeight()});
+    window.scrollTo({top: 0});
 });
 
 $(window).scroll(function() {
@@ -57,6 +59,7 @@ $('[data-track]').click(function() {
     let isCurrentTrack = isPlaying(this);
 
     stop();
+    resetControls();
 
     if (! isCurrentTrack)
         play(this);
@@ -73,17 +76,26 @@ function isPlaying(button = null) {
 function play(button) {
     audio = new Audio($(button).data('track'));
     audio.play();
+
     audio.addEventListener("ended", function(){        
         unselectAll();
-        $(button).next().click();
+
+        if (shuffle) {
+            $button = $('[data-track]').random();
+            scrollToButton($button);
+        } else {
+            $button = $(button).next();
+        }
+
+        $button.click();
     });
 
     select(button);
-    $('#play-all').text('Stop');
 }
 
 function stop() {
     if (isPlaying()) {
+        shuffle = false;
         audio.pause();
         audio.currentTime = 0;
         audio = null;
@@ -100,37 +112,34 @@ function unselectAll() {
     $('[data-track]').removeClass('bg-primary').find('i').addClass('fa-circle-play').removeClass('fa-circle-pause');
 }
 
-$('#play-all').click(function() {
-    if (isPlaying()) {
-        stop();
-        $(this).text('Play all');
-    } else {
-        $('[data-track]').first().click();
-    }
+$(document).on('click', '#play-all[start]', function() {
+    stop();
+    resetControls();
+
+    $button = $('[data-track]').first();
+    scrollToButton($button);
+    play($button);
+    $(this).removeAttr('start').attr('stop', true).text('Stop').addClass('bg-primary');
 });
 
-$('#shuffle').click(function() {
-    var container = $('#tracks-container > div');
-    var elements = container.children();
+$(document).on('click', '#shuffle[start]', function() {
+    stop();
+    resetControls();
 
-    for (var i = elements.length; i > 0; i--) {
-        var randomIndex = Math.floor(Math.random() * i);
-        container.append(elements[randomIndex]);
-    }
-    // shuffle = true;
+    shuffle = true;
+    $button = $('[data-track]').random();
 
-    // $('#play-all').text('Stop');
-
-    // stop();
-
-    // $button = $('[data-track]').random();
-
-    // scrollTo($button);
-
-    // $button.click();
+    scrollToButton($button);
+    play($button);
+    $(this).removeAttr('start').attr('stop', true).text('Stop').addClass('bg-primary');
 });
 
-function scrollTo($button) {
+$(document).on('click', 'button[stop]', function() {
+    stop();
+    resetControls();
+});
+
+function scrollToButton($button) {
     var viewportHeight = $(window).height();
     var targetPosition = $button.offset().top;
     var targetHeight = $button.outerHeight();
@@ -140,8 +149,14 @@ function scrollTo($button) {
     $('html, body').animate({
         scrollTop: scrollToPosition
     }, {
-        duration: 200, // Adjust the duration (in milliseconds) as needed
+        duration: 200,
         easing: "linear"
+    });
+}
+
+function resetControls() {
+    $('button[stop]').each(function() {
+        $(this).removeAttr('stop').attr('start', true).text($(this).data('label')).removeClass('bg-primary');
     });
 }
 </script>

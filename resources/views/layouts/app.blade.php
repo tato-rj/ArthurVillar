@@ -13,7 +13,15 @@
         @stack('header')
     </head>
     <body class="antialiased">
-        
+
+        <div class="position-absolute top-0 right-0 p-4 z-10">
+            @auth
+            @include('layouts.menu')
+            @else
+            <a href="{{route('login')}}">Login</a>
+            @endauth
+        </div> 
+
         @yield('content')
 
         <script src="{{ mix('js/app.js') }}"></script>

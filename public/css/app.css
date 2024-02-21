@@ -28646,6 +28646,7 @@ input:checked + .slider:before {
 }
 
 .button, .btn {
+  border-radius: 0;
   display: inline-block;
   font-size: 16px;
   font-weight: 200;
@@ -28668,7 +28669,7 @@ input:checked + .slider:before {
   border: 1px solid black !important;
 }
 
-.button:after, .btn:after {
+.button:not(.no-effect):after, .btn:not(.no-effect):after {
   content: "";
   background-color: #ffe54c;
   width: 100%;
@@ -28680,7 +28681,7 @@ input:checked + .slider:before {
   transition: 0.2s;
 }
 
-.button:hover:after, .btn:hover:after {
+.button:not(.no-effect):hover:after, .btn:not(.no-effect):hover:after {
   top: 0px;
   left: 0px;
 }

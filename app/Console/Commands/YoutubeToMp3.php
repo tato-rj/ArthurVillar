@@ -29,12 +29,19 @@ class YoutubeToMp3 extends Command
     public function handle()
     {
         $process = new Process([
-            'youtube-dl -x --audio-format mp3', 
-            'https://youtu.be/5TbQftYOKms\?si\=_c342y1P3jKSi74u'
+            'youtube-dl',
+            '-x',
+            '--audio-format',
+            'mp3',
+            'https://youtu.be/5TbQftYOKms?si=_c342y1P3jKSi74u',
         ]);
 
         $process->run();
 
-        $this->info('Downloaded');
+        if ($process->isSuccessful()) {
+            $this->info('All good!');
+        } else {
+            $this->info('Ops...');
+        }
     }
 }

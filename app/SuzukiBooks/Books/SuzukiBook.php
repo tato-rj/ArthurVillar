@@ -23,7 +23,7 @@ abstract class SuzukiBook
 
 	public function name()
 	{
-		return 'Suzuki ' . preg_replace('/(\p{L})(\p{N})/u', '$1 $2', $this->name);
+		return preg_replace('/(\p{L})(\p{N})/u', '$1 $2', $this->name);
 	}
 
 	public function tracks()

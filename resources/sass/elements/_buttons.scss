@@ -1,5 +1,7 @@
 .button {
     @extend .mb-3;
+
+    border-radius: 0;
     display: inline-block;
     font-size: 16px;
     font-weight: 200;
@@ -21,7 +23,7 @@
     border: 1px solid black !important;
 }
 
-.button:after {
+.button:not(.no-effect):after {
     content: "";
     background-color: #ffe54c;
     width: 100%;
@@ -33,7 +35,7 @@
     transition: 0.2s;
 }
 
-.button:hover:after {
+.button:not(.no-effect):hover:after {
     top: 0px;
     left: 0px;
 }
