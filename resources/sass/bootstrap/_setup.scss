@@ -2,7 +2,7 @@
 @import "colors";
 @import "../variables";
 
-$colors: prepend($colors, (primary: (white, $primary-color)));
+$colors: prepend($colors, (primary: (black, $primary-color)));
 $colors: prepend($colors, (secondary: (white, $secondary-color)));
 $colors: prepend($colors, (light: (dark, $light-color)));
 $colors: prepend($colors, (dark: (white, $dark-color)));

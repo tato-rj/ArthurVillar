@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.app', ['noMenu' => true])
 
 @push('header')
 @endpush
@@ -12,13 +12,13 @@
 
         <div class="mb-4">
             <div>
-                <a href="https://bkcm.org/suzuki-faculty/" target="_blank" class="btn btn-primary">Brooklyn Conservatory of Music</a>
+                <a href="https://bkcm.org/suzuki-faculty/" target="_blank" class="btn-fancy mb-3">Brooklyn Conservatory of Music</a>
             </div>
             <div>
-                <a href="https://pianolessonsinjerseycity.com/" target="_blank" class="btn btn-primary">Private piano studio</a>
+                <a href="https://pianolessonsinjerseycity.com/" target="_blank" class="btn-fancy mb-3">Private piano studio</a>
             </div>
             <div>
-                <a href="https://pianolit.com/" target="_blank" class="btn btn-primary">PianoLIT</a>
+                <a href="https://pianolit.com/" target="_blank" class="btn-fancy mb-3">PianoLIT</a>
             </div>
         </div>
 

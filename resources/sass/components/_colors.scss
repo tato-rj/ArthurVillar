@@ -4,7 +4,7 @@
 
 .bg-primary {
 	background: $primary-color !important;
-	color: white;
+	color: black;
 }
 
 .bg-secondary {
@@ -68,30 +68,30 @@
 		&-#{$name} {
 			color: nth($color, 1) !important;
 			background-color: nth($color, 2);
-			border-color: nth($color, 2);
+			border-color: black;
 			border-radius: $corner-radius !important;
 
 			&:hover {
 				color: nth($color, 1) !important;
 				background-color: lighten(nth($color, 2), 4%);
-				border-color: lighten(nth($color, 2), 4%);
+				// border-color: lighten(nth($color, 2), 4%);
 			}
 
 			&:active {
 				// WHILE CLICKING
 				background-color: darken(nth($color, 2), 8%) !important;
-				border-color: darken(nth($color, 2), 8%) !important;
+				// border-color: darken(nth($color, 2), 8%) !important;
 			}
 
 			&:focus {
 				// AFTER CLICK
 				background-color: nth($color, 2);
-				border-color: nth($color, 2);
+				// border-color: nth($color, 2);
 			}
 
 			&:disabled {
 				background-color: lighten(nth($color, 2), 10%) !important;
-				border-color: lighten(nth($color, 2), 10%) !important;
+				border-color: lighten(black, 10%) !important;
 			}
 		}
 
@@ -102,14 +102,14 @@
 			border-radius: $corner-radius !important;
 
 			&:hover {
-				color: white;
+				color: nth($color, 2);
 				background-color: nth($color, 2);
 				border-color: nth($color, 2);
 			}
 
 			&:active {
 				// WHILE CLICKING
-				color: white !important;
+				color: nth($color, 2) !important;
 				background-color: darken(nth($color, 2), 2%) !important;
 				border-color: darken(nth($color, 2), 2%) !important;
 			}

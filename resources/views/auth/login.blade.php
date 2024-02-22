@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.app', ['noMenu' => true])
 
 @push('header')
 @endpush
