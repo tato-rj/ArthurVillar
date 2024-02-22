@@ -38,7 +38,11 @@
                     <div class="d-inline-block mb-1 bg-light rounded-pill small fw-bold border px-2 text-muted">Suzuki Piano Series</div>
                     
                     <h1 class="m-0">{{$book->name}}</h1>
-                    <p class="small mb-2">{{$book->tracks_count}} {{str_plural('piece', $book->tracks_count)}}</p>
+                    <p class="small text-muted mb-2">
+                        @fa(['icon' => 'clock', 'mr' => 1, 'fa_type' => 'r']){{$book->duration()}} total
+                        <br>
+                        {{$book->tracks_count}} {{str_plural('piece', $book->tracks_count)}}
+                    </p>
                 </div>
 
                 @auth

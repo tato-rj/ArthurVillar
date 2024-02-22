@@ -21,7 +21,8 @@ return new class extends Migration
             $table->unsignedInteger('order')->nullable();
             $table->unsignedInteger('listen_count')->default(0);
             $table->unsignedInteger('duration')->nullable();
-            $table->string('audio_path');
+            $table->unsignedInteger('size')->nullable();
+            $table->string('audio_path')->nullable();
             $table->timestamps();
         });
     }

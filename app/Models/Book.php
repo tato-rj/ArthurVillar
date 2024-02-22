@@ -14,4 +14,16 @@ class Book extends BaseModel
     {
         return $this->hasMany(Track::class)->orderBy('order');
     }
+
+    public function size()
+    {
+        return formatBytes($this->tracks->sum('size'));
+    }
+
+    public function duration()
+    {
+        $total = $this->tracks->sum('duration');
+
+        return sprintf("%d:%02d", floor($total / 60), $total % 60);
+    }
 }

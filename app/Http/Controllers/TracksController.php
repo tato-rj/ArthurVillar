@@ -9,12 +9,13 @@ class TracksController extends Controller
 {
     public function store(Request $request, Book $book)
     {
-        $book->tracks()->create([
+        $track = $book->tracks()->create([
             'name' => $request->name,
             'composer' => $request->composer,
-            'audio_path' => $request->audio_path,
             'order' => $book->tracks_count
         ]);
+
+        $track->saveAudio($request->audio_path);
 
         return back()->with('success', 'The track was successully created');
     }
@@ -30,7 +31,7 @@ class TracksController extends Controller
             if (\Storage::disk('public')->exists($track->audio_path))
                 \Storage::disk('public')->delete($track->audio_path);
 
-            $track->update(['audio_path' => $request->audio_path]);
+            $track->saveAudio($request->audio_path);
         }
 
         return back()->with('success', 'The track was successully updated');
