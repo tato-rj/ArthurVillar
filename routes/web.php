@@ -31,7 +31,11 @@ Route::domain('listening.'.config('app.url'))->name('listening.')->group(functio
 
                 Route::post('youtube', 'TracksController@youtube')->name('youtube');
 
+                Route::patch('reorder', 'TracksController@reorder')->name('reorder');
+
                 Route::prefix('{track}')->group(function() {
+                    Route::post('', 'TracksController@listen')->name('listen');
+
                     Route::patch('', 'TracksController@update')->name('update');
 
                     Route::delete('', 'TracksController@destroy')->name('destroy');

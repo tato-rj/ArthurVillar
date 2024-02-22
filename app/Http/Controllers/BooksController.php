@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\SuzukiBooks\Recordings;
 use Symfony\Component\Process\Process;
-use App\Models\Book;
+use App\Models\{Book, Track};
 
 class BooksController extends Controller
 {
@@ -18,7 +18,9 @@ class BooksController extends Controller
 
     public function show(Book $book)
     {
-        return view('listening.books.show', compact('book'));
+        $composers = Track::whereNotNull('composer')->distinct()->pluck('composer');
+
+        return view('listening.books.show', compact(['book', 'composers']));
     }
 
     public function store(Request $request)

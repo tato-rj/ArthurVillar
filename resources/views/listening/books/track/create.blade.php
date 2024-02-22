@@ -6,7 +6,9 @@
 	
 	@input(['placeholder' => 'Name', 'name' => 'name', 'required' => true, 'value' => old('name')])
 	
-	@input(['placeholder' => 'Composer', 'name' => 'composer', 'value' => old('composer')])
+	<div class="autocomplete w-100"> 
+		@input(['id' => 'composer-input','placeholder' => 'Composer\'s full name', 'name' => 'composer', 'value' => old('composer')])
+	</div>
 
 	@input(['placeholder' => 'Youtube url', 'name' => 'youtube_url', 'required' => true, 'value' => old('youtube_url')])
 

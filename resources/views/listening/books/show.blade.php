@@ -13,25 +13,32 @@
     width: 100%;*/
 }
 </style>
+
+<script>
+    window.app = <?php echo json_encode([
+        'composers' => $composers
+    ]); ?>
+</script>
 @endpush
 
 @section('content')
 <section class="container mb-4">
     <div id="header" class="bg-white">
         <div class="row">
-            <div class="col-lg-4 col-md-6 col-10 mx-auto">
+            <div class="col-lg-5 col-md-7 col-11 mx-auto">
                 <div class="py-4">
                     <a class="nav-link" href="{{route('listening.index')}}">@fa(['icon' => 'long-arrow-left'])All books</a>
                 </div>
                 
-                <div class="text-center">
-                    <img id="book-cover" src="{{asset($book->cover_path)}}" style="width: 100px" class="mb-2">
+                <div class="mx-auto" style="width: 100px;">
+                    @include('components.books.cover')
                 </div>
 
                 <div class="text-center">
-                    <p class="m-0">Suzuki Piano Series</p>
+                    <div class="d-inline-block mb-1 bg-light rounded-pill small fw-bold border px-2 text-muted">Suzuki Piano Series</div>
                     
-                    <h1 class="">{{$book->name}}</h1>
+                    <h1 class="m-0">{{$book->name}}</h1>
+                    <p class="small mb-2">{{$book->tracks_count}} {{str_plural('piece', $book->tracks_count)}}</p>
                 </div>
 
                 @auth
@@ -46,7 +53,7 @@
         </div>
     </div>
     <div id="tracks-container" class="row -3">
-        <div class="col-lg-4 col-md-6 col-10 mx-auto">
+        <div class="col-lg-5 col-md-7 col-11 mx-auto" data-url="{{route('listening.books.tracks.reorder', $book)}}">
             @foreach($book->tracks as $track)
             @include('listening.books.track.button')
             @endforeach
@@ -59,31 +66,34 @@
 @endsection
 
 @push('scripts')
+<script type="text/javascript" src="{{asset('js/vendor/jquery-ui.min.js')}}"></script>
+<script type="text/javascript">
+autocomplete(document.getElementById("composer-input"), app.composers);
+
+$('#tracks-container > div').each(function() {
+  let $tab = $(this);
+
+  $tab.sortable({
+    handle: '.sort-handle',
+    update: function(element) {
+      let url = $tab.attr('data-url');
+      let ids = $tab.find('.ordered').attrToArray('data-id');
+
+      axios.patch(url, {ids: ids})
+           .then()
+           .catch(function(error) {
+                alert('Something went wrong...');
+                log(error);
+            });
+    }
+  });
+});
+</script>
 <script type="text/javascript">
 let audio, shuffle;
 
 $(document).ready(function() {
-    // $('#tracks-container').css({'margin-top': $('#header').outerHeight()});
     window.scrollTo({top: 0});
-});
-
-$(window).scroll(function() {
-    // let scroll = $(this).scrollTop();
-    // let opacity = scroll > 0 ? (10/scroll).toFixed(2) : 1;
-    // let $cover = $('#book-cover');
-    // let coverPos = $cover.offset().top + $cover.outerHeight();
-
-    // $cover.css({opacity: opacity});
-
-    // if (scroll >= coverPos) {
-    //     $('#header').css({position: 'fixed'});
-    //     $cover.hide();
-    // }
-    // if ($(this).scrollTop()) {
-    //     $('#controls').addClass('border-bottom');
-    // } else {
-    //     $('#controls').removeClass('border-bottom');
-    // }
 });
 
 $('[data-track]').click(function() {
@@ -105,8 +115,24 @@ function isPlaying(button = null) {
 }
 
 function play(button) {
+    let playedForTenSeconds = false;
+    let listenUrl = $(button).data('listen');
+
     audio = new Audio($(button).data('track'));
     audio.play();
+
+    audio.addEventListener("timeupdate", function() {
+        if (audio) {
+          var currentTime = audio.currentTime;
+          
+          if (currentTime >= 10 && !playedForTenSeconds) {
+            log('Record listening');
+            playedForTenSeconds = true;
+
+            axios.post(listenUrl);
+          }
+        }
+    });
 
     audio.addEventListener("ended", function(){        
         unselectAll();

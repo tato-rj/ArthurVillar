@@ -18,6 +18,9 @@ return new class extends Migration
             $table->unsignedInteger('book_id');
             $table->string('name');
             $table->string('composer')->nullable();
+            $table->unsignedInteger('order')->nullable();
+            $table->unsignedInteger('listen_count')->default(0);
+            $table->unsignedInteger('duration')->nullable();
             $table->string('audio_path');
             $table->timestamps();
         });

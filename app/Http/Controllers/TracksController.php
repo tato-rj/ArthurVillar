@@ -11,9 +11,9 @@ class TracksController extends Controller
     {
         $book->tracks()->create([
             'name' => $request->name,
-            'slug' => str_slug($request->name),
             'composer' => $request->composer,
-            'audio_path' => $request->audio_path
+            'audio_path' => $request->audio_path,
+            'order' => $book->tracks_count
         ]);
 
         return back()->with('success', 'The track was successully created');
@@ -23,7 +23,6 @@ class TracksController extends Controller
     {
         $track->update([
             'name' => $request->name,
-            'slug' => str_slug($request->name),
             'composer' => $request->composer
         ]);
 
@@ -37,14 +36,20 @@ class TracksController extends Controller
         return back()->with('success', 'The track was successully updated');
     }
 
-    public function destroy(Request $request, Book $book, Track $track)
+    public function listen(Book $book, Track $track)
     {
-        $track->delete();
-        
-        if (\Storage::disk('public')->exists($track->audio_path))
-            \Storage::disk('public')->delete($track->audio_path);
+        $track->increment('listen_count');
 
-        return back()->with('success', 'The track was successully removed');
+        return response(200);
+    }
+
+    public function reorder(Request $request, Book $book)
+    {
+        foreach ($request->ids as $index => $id) {
+            Track::findOrFail($id)->update(['order' => $index]);
+        }
+
+        return response(200);
     }
 
     public function youtube(Request $request, Book $book)
@@ -63,6 +68,16 @@ class TracksController extends Controller
             'feedback' => 'All set!',
             'path' => $response
         ]);
+    }
+    
+    public function destroy(Request $request, Book $book, Track $track)
+    {
+        $track->delete();
+        
+        if (\Storage::disk('public')->exists($track->audio_path))
+            \Storage::disk('public')->delete($track->audio_path);
+
+        return back()->with('success', 'The track was successully removed');
     }
 }
 
