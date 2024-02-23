@@ -10,6 +10,11 @@ class Book extends BaseModel
 
     protected $withCount = ['tracks'];
 
+    public function method()
+    {
+        return $this->belongsTo(Method::class);
+    }
+
     public function tracks()
     {
         return $this->hasMany(Track::class)->orderBy('order');

@@ -3,7 +3,7 @@
 @push('header')
 <script>
     window.app = <?php echo json_encode([
-        'series' => $books->pluck('series')->unique()->sort()
+        'methods' => $methods
     ]); ?>
 </script>
 @endpush
@@ -11,7 +11,7 @@
 @section('content')
 <section class="container py-5">
     <div class="row">
-        <h1 class="text-center">Select the book below</h1>
+        <h1 class="text-center">Select the method below</h1>
 
         @auth
         <div class="text-center">
@@ -34,6 +34,6 @@
 
 @push('scripts')
 <script type="text/javascript">
-autocomplete(document.getElementById("series-input"), app.series);
+autocomplete(document.getElementById("method-input"), app.methods);
 </script>
 @endpush

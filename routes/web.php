@@ -16,6 +16,14 @@ use Illuminate\Support\Facades\Route;
 Route::domain('listening.'.config('app.url'))->name('listening.')->group(function() {
     Route::get('', 'BooksController@index')->name('index');
 
+    Route::prefix('methods')->name('methods.')->group(function() {
+        Route::post('', 'MethodsController@store')->name('store');
+
+        Route::patch('', 'MethodsController@update')->name('update');
+
+        Route::delete('', 'MethodsController@destroy')->name('destroy');
+    });
+
     Route::prefix('books')->name('books.')->group(function() {
         Route::post('', 'BooksController@store')->name('store');
 

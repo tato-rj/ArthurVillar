@@ -35,9 +35,9 @@
                 </div>
 
                 <div class="text-center">
-                    <div class="d-inline-block mb-1 bg-light rounded-pill small fw-bold border px-2 text-muted">Suzuki Piano Series</div>
+                    <div class="d-inline-block small fw-bold">{{$book->method->name}}</div>
                     
-                    <h1 class="m-0">{{$book->name}}</h1>
+                    <h1 class="mb-1">{{$book->name}}</h1>
                     <p class="small text-muted mb-2">
                         @fa(['icon' => 'clock', 'mr' => 1, 'fa_type' => 'r']){{$book->duration()}} total
                         <br>

@@ -5,7 +5,7 @@
 	@input(['placeholder' => 'Name', 'name' => 'name', 'required' => true, 'value' => old('name')])
 	
 	<div class="autocomplete w-100"> 
-		@input(['id' => 'series-input', 'placeholder' => 'Series', 'name' => 'series', 'value' => old('series')])
+		@input(['id' => 'method-input', 'placeholder' => 'Method', 'name' => 'method', 'value' => old('method')])
 	</div>
 
 	<label class="input-file cursor-pointer w-100 form-group">

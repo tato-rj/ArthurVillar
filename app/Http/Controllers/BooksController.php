@@ -5,15 +5,16 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\SuzukiBooks\Recordings;
 use Symfony\Component\Process\Process;
-use App\Models\{Book, Track};
+use App\Models\{Book, Track, Method};
 
 class BooksController extends Controller
 {
     public function index()
     {
+        $methods = Method::pluck('name');
         $books = Book::all();
 
-        return view('listening.books.index', compact('books'));
+        return view('listening.books.index', compact(['books', 'methods']));
     }
 
     public function show(Book $book)
@@ -25,8 +26,13 @@ class BooksController extends Controller
 
     public function store(Request $request)
     {
+        $method = Method::byName($request->method)->firstOrCreate([
+            'name' => $request->method,
+            'slug' => str_slug($request->method)
+        ]);
+
         Book::create([
-            'series' => $request->series,
+            'method_id' => $method->id,
             'name' => $request->name,
             'slug' => str_slug($request->name),
             'cover_path' => $request->file('cover')->store('covers', 'public')
@@ -37,8 +43,12 @@ class BooksController extends Controller
 
     public function update(Request $request, Book $book)
     {
+        $method = Method::byName($request->method)->firstOrCreate([
+            'slug' => str_slug($request->name)
+        ]);
+
         $book->update([
-            'series' => $request->series,
+            'method_id' => $method->id,
             'name' => $request->name,
             'slug' => str_slug($request->name)
         ]);
