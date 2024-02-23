@@ -44,7 +44,8 @@ class BooksController extends Controller
     public function update(Request $request, Book $book)
     {
         $method = Method::byName($request->method)->firstOrCreate([
-            'slug' => str_slug($request->name)
+            'name' => $request->method,
+            'slug' => str_slug($request->method)
         ]);
 
         $book->update([
