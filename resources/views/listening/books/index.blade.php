@@ -11,7 +11,7 @@
 @section('content')
 <section class="container py-5">
     <div class="row">
-        <h1 class="text-center">Select the method below</h1>
+        <h1 class="text-center">Select the book below</h1>
 
         @auth
         <div class="text-center">

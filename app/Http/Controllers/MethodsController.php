@@ -16,14 +16,30 @@ class MethodsController extends Controller
 
     public function store(Request $request)
     {
-        Method::create(['name' => $request->name]);
+        $request->validate([
+            'name' => 'required'
+        ]);
+
+        Method::create([
+            'name' => $request->name,
+            'slug' => str_slug($request->name),
+            'description' => $request->description
+        ]);
 
         return back()->with('success', 'The method was successully created');
     }
 
     public function update(Request $request, Method $method)
     {
-        $method->update(['name' => $request->name]);
+        $request->validate([
+            'name' => 'required'
+        ]);
+        
+        $method->update([
+            'name' => $request->name,
+            'slug' => str_slug($request->name),
+            'description' => $request->description
+        ]);
 
         return back()->with('success', 'The method was successully updated');
     }

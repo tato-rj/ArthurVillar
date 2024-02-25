@@ -7,6 +7,13 @@ use App\Models\{Book, Track};
 
 class TracksController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth', [
+            'except' => ['listen']
+        ]);
+    }
+
     public function store(Request $request, Book $book)
     {
         $track = $book->tracks()->create([

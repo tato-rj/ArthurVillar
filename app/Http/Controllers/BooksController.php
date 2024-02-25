@@ -9,6 +9,13 @@ use App\Models\{Book, Track, Method};
 
 class BooksController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth', [
+            'only' => ['store', 'update', 'destroy']
+        ]);
+    }
+
     public function index()
     {
         $methods = Method::pluck('name');
@@ -26,6 +33,12 @@ class BooksController extends Controller
 
     public function store(Request $request)
     {
+        $request->validate([
+            'method' => 'required',
+            'name' => 'required',
+            'cover' => 'required|mimes:jpg,jpeg,png|max:500'
+        ]);
+
         $method = Method::byName($request->method)->firstOrCreate([
             'name' => $request->method,
             'slug' => str_slug($request->method)

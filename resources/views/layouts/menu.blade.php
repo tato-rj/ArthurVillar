@@ -1,5 +1,5 @@
-@include('auth.logout')
-{{-- <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-label="Toggle navigation">Menu</button>
+{{-- @include('auth.logout') --}}
+<button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-label="Toggle navigation">Menu</button>
 
 <div class="offcanvas border-0 offcanvas-end" style="width: auto; min-width: 220px;" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
   <div class="offcanvas-header">
@@ -9,8 +9,13 @@
     <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
 
       <li class="nav-item">
-        <a class="nav-link" href="{{route('listening.index')}}">Listening</a>
+        <a class="nav-link" href="{{route('listening.methods.index')}}">Methods</a>
       </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{route('listening.index')}}">Books</a>
+      </li>
+
+      <hr>
 
       <li class="nav-item">
         @include('auth.logout')
@@ -19,4 +24,3 @@
     </ul>
   </div>
 </div>
- --}}

@@ -1,6 +1,6 @@
 <div class="d-flex align-items-center mb-3 ordered" data-id="{{$track->id}}">
     @auth
-    <div class="pr-2 sort-handle d-center">
+    <div class="pr-2 pl-1 mr-1 sort-handle d-center">
       <i class="fas fa-sort"></i>
     </div>
     @endauth
