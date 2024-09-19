@@ -7,7 +7,7 @@
 <div class="h-100vh d-center">
     <div>
         <h1 class="m-0">👋</h1>
-        <h1>Hi, I'm Arthur Villar.<br>I'm a pianist based<br>in Jersey City, NJ.</h1>
+        {{-- <h1>Hi, I'm Arthur Villar.<br>I'm a pianist based<br>in Jersey City, NJ.</h1> --}}
         <p class="opacity-5">Here's where you'll find me:</p>
 
         <div class="mb-4">
