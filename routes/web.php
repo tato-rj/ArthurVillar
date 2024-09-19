@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::domain('admin.')->name('listening.')->group(function() {
+Route::domain('admin.'.config('app.url'))->name('listening.')->group(function() {
     Route::get('', 'BooksController@index')->name('index');
 
     Route::middleware('auth')->prefix('methods')->name('methods.')->group(function() {

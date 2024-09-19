@@ -18,6 +18,7 @@ class BooksController extends Controller
 
     public function index()
     {
+        dd('here');
         $methods = Method::pluck('name');
         $books = Book::all();
 
