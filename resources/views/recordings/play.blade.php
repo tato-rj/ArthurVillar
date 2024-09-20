@@ -16,10 +16,12 @@ img {
   border-radius: 12px !important;
 }
 
-#options .btn:not(:last-of-type) {
+#options .btn {
   margin-right: .5rem;
 }
-
+#options .btn:last-of-type {
+  margin-right: 0; /* Remove margin from the last button */
+}
 </style>
 @endpush
 
