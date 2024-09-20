@@ -34,7 +34,7 @@ class YoutubeToMp3 extends Command
         $end = $this->argument('end');
 
         $arguments = [
-            '/opt/homebrew/bin/yt-dlp',
+            env('YT_PATH'),
             '--ffmpeg-location', '/opt/homebrew/opt/ffmpeg@5/bin/ffmpeg',
             '-x',
             '--audio-format', 'mp3',
