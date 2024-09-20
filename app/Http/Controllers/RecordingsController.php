@@ -44,6 +44,7 @@ class RecordingsController extends Controller
             'composer' => $request->composer,
             'artist' => $request->artist,
             'composed_in' => $request->composed_in,
+            'source_url' => $request->source_url,
             'audio_path' => $request->file('audio')->store('recordings/audio', 'public')
         ]);
 
@@ -75,6 +76,7 @@ class RecordingsController extends Controller
             'composer' => $request->composer,
             'artist' => $request->artist,
             'composed_in' => $request->composed_in,
+            'source_url' => $request->source_url,
         ]);
 
         if ($file = $request->file('audio'))
