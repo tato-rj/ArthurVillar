@@ -36,10 +36,13 @@ img {
       </audio>
     </div>
     <div class="d-flex">
+      <button data-bs-toggle="modal" data-bs-target="#recording-{{$recording->id}}-info-modal" class="btn btn-sm btn-outline-secondary">Info</button>
       <a href="{{$recording->source_url}}" target="_blank" class="btn btn-sm btn-outline-secondary">Source</a>
     </div>
   </div>
 </section>
+
+@include('recordings.info')
 @endsection
 
 @push('scripts')
