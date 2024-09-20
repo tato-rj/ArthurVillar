@@ -20,9 +20,9 @@ img {
 
 @section('content')
 <section class="d-center h-100vh w-100">
-  <div id="player-container" class="animate__animated animate__fadeIn animate__slower" style="max-width: 360px; display: none;">
+  <div id="player-container" class="animate__animated animate__fadeIn animate__slower" style="max-width: 460px; display: none;">
     <div class="mb-3 p-1 w-100">
-      <img class="shadow-lg mb-3 w-100" src="{{asset($recording->cover_path)}}">
+      {{-- <img class="shadow-lg mb-3 w-100" src="{{asset($recording->cover_path)}}"> --}}
       <h2 class="mb-2 lh-1">{{$recording->name}}</h2>
       <h6 class="mb-1">{{$recording->composer}}</h6>
       <h6 class="opacity-4">{{$recording->artist}}</h6>
