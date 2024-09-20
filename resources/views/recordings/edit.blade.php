@@ -8,7 +8,9 @@
 <section class="container py-5">
     <div class="row mb-4">
         @pagetitle(['label' => 'Edit recording'])
-        <a class="btn btn-sm btn-secondary" href="{{route('recordings.play', $recording)}}" target="_blank">@fa(['icon' => 'play'])Play recording</a>
+        <div>
+            <a class="btn btn-sm btn-secondary" href="{{route('recordings.play', $recording)}}" target="_blank">@fa(['icon' => 'play'])Play recording</a>
+        </div>
     </div>
     <div id="tracks-container" class="row">
         <div class="col-lg-6 col-md-8 col-10 mx-auto">
