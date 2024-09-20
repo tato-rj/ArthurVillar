@@ -27,6 +27,7 @@
             	</div>
             	@textarea(['label' => 'Description', 'name' => 'description', 'value' => $recording->description])
 
+                @input(['label' => 'Source URL', 'name' => 'source_url', 'value' => $recording->source_url])
                 <label class="input-file cursor-pointer w-100 form-group">
                     <input style="display: none" name="audio" data-accept="mp3" type="file">
                     <div class="form-control">

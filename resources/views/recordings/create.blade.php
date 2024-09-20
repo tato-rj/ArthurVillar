@@ -14,6 +14,7 @@
 	</div>
 	@textarea(['placeholder' => 'Description', 'name' => 'description', 'value' => old('description')])
 
+	@input(['placeholder' => 'Source URL', 'name' => 'source_url', 'value' => old('source_url')])
 	<label class="input-file cursor-pointer w-100 form-group">
 		<input style="display: none" name="audio" data-accept="mp3" type="file">
 		<div class="form-control">
