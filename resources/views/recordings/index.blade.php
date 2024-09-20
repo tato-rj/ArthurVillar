@@ -91,17 +91,13 @@ function convertYoutube(button) {
 
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.4.3/cropper.min.js"></script>
 <script type="text/javascript">
-$('.upload-box').each(function() {
-    // log($(this).find('.image-input'));
-    (new SimpleCropper({
-      ratio: 4/3,
-      container: this
-      // imageInput: 'input#image-input',
-      // uploadButton: '#upload-button',
-      // confirmButton: '#confirm-button',
-      // cancelButton: '#cancel-button',
-      // submitButton: 'button[type="submit"]'
-    })).create();
-});
+(new SimpleCropper({
+  ratio: 4/3,
+  imageInput: 'input#image-input',
+  uploadButton: '#upload-button',
+  confirmButton: '#confirm-button',
+  cancelButton: '#cancel-button',
+  submitButton: 'button[type="submit"]'
+})).create();
 </script>
 @endpush

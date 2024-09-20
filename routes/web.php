@@ -27,7 +27,11 @@ Route::middleware('auth')->domain('admin.'.config('app.url'))->name('admin.recor
     Route::post('listen', 'RecordingsController@listen')->name('listen');
 
     Route::prefix('{recording}')->group(function() {
+        Route::get('', 'RecordingsController@edit')->name('edit');
+
         Route::get('qrcode', 'RecordingsController@qrcode')->name('qrcode');
+
+        Route::patch('', 'RecordingsController@update')->name('update');
 
         Route::delete('', 'RecordingsController@destroy')->name('destroy');
     });

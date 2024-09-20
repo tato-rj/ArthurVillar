@@ -3,13 +3,13 @@ class SimpleCropper
 	constructor(params) {
 		this.params = params;
 
-		this.$imageInput = $(params.container).find('.image-input');
+		this.$imageInput = $(params.imageInput);
 		this.$image = $(this.$imageInput.attr('data-target'));
 		this.$placeholder = $(this.$imageInput.attr('data-placeholder'));
-		this.$uploadButton = $(params.container).find('.upload-button');
-		this.$confirmButton = $(params.container).find('.confirm-button');
-		this.$cancelButton = $(params.container).find('.cancel-button');
-		this.$submitButton = $(params.container).find('.submit-button');
+		this.$uploadButton = $(params.uploadButton);
+		this.$confirmButton = $(params.confirmButton);
+		this.$cancelButton = $(params.cancelButton);
+		this.$submitButton = $(params.submitButton);
 		this.defaultImage = this.$image.attr('src');
 		this.ratio = params.hasOwnProperty('ratio') ? params.ratio : 16/9;
 

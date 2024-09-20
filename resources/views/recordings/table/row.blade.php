@@ -9,9 +9,8 @@
     @break
 
   @case('actions')
-      @include('recordings.edit')
       @component('components.table.actions', [
-        'edit' => ['modal' => '#edit-recording-'.$recording->id.'-modal'],
+        'edit' => ['href' => route('admin.recordings.edit', $recording)],
       ])
 
       {{-- <a href="{{route('admin.recordings.qrcode', $recording)}}" class="btn btn-sm btn-secondary">@fa(['icon' => 'qrcode', 'mr' => 0])</a> --}}

@@ -77,6 +77,11 @@ class RecordingsController extends Controller
         ]);
     }
 
+    public function edit(Recording $recording)
+    {
+        return view('recordings.edit', compact('recording'));
+    }
+
     public function destroy(Recording $recording)
     {
         $recording->delete();
