@@ -19,7 +19,7 @@ img {
 @endpush
 
 @section('content')
-<section class="d-center h-100vh w-100">
+<section class="d-center w-100" style="height: 80vh;">
   <div id="player-container" class="animate__animated animate__fadeIn animate__slower p-5" style="max-width: 600px; display: none;">
     <div class="mb-3 p-1 w-100">
       {{-- <img class="shadow-lg mb-3 w-100" src="{{asset($recording->cover_path)}}"> --}}
