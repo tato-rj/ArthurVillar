@@ -7,8 +7,11 @@
 	@cropper
 
 	@input(['placeholder' => 'Name', 'name' => 'name', 'required' => true, 'value' => old('name')])
-	@input(['placeholder' => 'Composer', 'name' => 'composer', 'required' => true, 'value' => old('composer')])
-	@input(['placeholder' => 'Artist', 'name' => 'artist', 'value' => old('artist')])
+	<div class="row"> 
+		@input(['placeholder' => 'Composer', 'grid' => 'col', 'name' => 'composer', 'required' => true, 'value' => old('composer')])
+		@input(['placeholder' => 'Artist', 'grid' => 'col', 'name' => 'artist', 'value' => old('artist')])
+		@input(['placeholder' => 'Year', 'grid' => 'col', 'name' => 'composed_in', 'value' => old('composed_in')])
+	</div>
 	@textarea(['placeholder' => 'Description', 'name' => 'description', 'value' => old('description')])
 
 	<label class="input-file cursor-pointer w-100 form-group">

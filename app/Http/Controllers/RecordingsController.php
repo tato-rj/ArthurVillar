@@ -43,6 +43,7 @@ class RecordingsController extends Controller
             'name' => $request->name,
             'composer' => $request->composer,
             'artist' => $request->artist,
+            'composed_in' => $request->composed_in,
             'audio_path' => $request->file('audio')->store('recordings/audio', 'public')
         ]);
 
@@ -72,7 +73,8 @@ class RecordingsController extends Controller
         $recording->update([
             'name' => $request->name,
             'composer' => $request->composer,
-            'artist' => $request->artist
+            'artist' => $request->artist,
+            'composed_in' => $request->composed_in,
         ]);
 
         if ($file = $request->file('audio'))

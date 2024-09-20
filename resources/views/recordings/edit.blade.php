@@ -23,6 +23,7 @@
             	<div class="row"> 
             		@input(['label' => 'Composer', 'grid' => 'col', 'name' => 'composer', 'required' => true, 'value' => $recording->composer])
             		@input(['label' => 'Artist', 'grid' => 'col', 'name' => 'artist', 'value' => $recording->artist])
+                    @input(['placeholder' => 'Year', 'grid' => 'col', 'name' => 'composed_in', 'value' => $recording->composed_in])
             	</div>
             	@textarea(['label' => 'Description', 'name' => 'description', 'value' => $recording->description])
 
