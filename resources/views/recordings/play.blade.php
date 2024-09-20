@@ -16,12 +16,8 @@ img {
   border-radius: 12px !important;
 }
 
-#options .btn {
-  margin-right: .5rem;
-  display: inline-block;
-}
-#options .btn:last-of-type {
-  margin-right: 0; /* Remove margin from the last button */
+#options {
+
 }
 </style>
 @endpush
@@ -43,8 +39,8 @@ img {
         <source src="{{$recording->file('audio_path')}}" type="audio/mp3" />
       </audio>
     </div>
-    <div id="options" class="d-flex">
-      <button data-bs-toggle="modal" data-bs-target="#recording-{{$recording->id}}-info-modal" class="btn btn-sm btn-outline-secondary">Info</button>
+    <div class="d-flex">
+      <button data-bs-toggle="modal" data-bs-target="#recording-{{$recording->id}}-info-modal" class="btn btn-sm btn-outline-secondary mr-2">Info</button>
       <a href="{{$recording->source_url}}" target="_blank" class="btn btn-sm btn-outline-secondary">Source</a>
     </div>
   </div>
