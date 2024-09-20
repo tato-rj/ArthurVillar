@@ -18,6 +18,7 @@ img {
 
 #options .btn {
   margin-right: .5rem;
+  display: inline-block;
 }
 #options .btn:last-of-type {
   margin-right: 0; /* Remove margin from the last button */
