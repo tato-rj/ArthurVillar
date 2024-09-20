@@ -102,21 +102,21 @@
 			border-radius: $corner-radius !important;
 
 			&:hover {
-				color: nth($color, 2);
+				color: white;
 				background-color: nth($color, 2);
 				border-color: nth($color, 2);
 			}
 
 			&:active {
 				// WHILE CLICKING
-				color: nth($color, 2) !important;
+				color: white !important;
 				background-color: darken(nth($color, 2), 2%) !important;
 				border-color: darken(nth($color, 2), 2%) !important;
 			}
 
 			&:focus {
 				// AFTER CLICK
-				color: nth($color, 2);
+				color: white;
 				background-color: transparent;
 				border-color: nth($color, 2);
 			}

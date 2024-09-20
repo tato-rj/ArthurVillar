@@ -30,7 +30,7 @@ img {
       <h6 class="mb-1">{{$recording->composer}}</h6>
       <h6 class="opacity-4">{{$recording->artist}}</h6>
     </div>
-    <audio id="player" controls class="mb-3">
+    <audio id="player" controls class="mb-4">
       <source src="{{$recording->file('audio_path')}}" type="audio/mp3" />
     </audio>
     <div class="d-flex">
