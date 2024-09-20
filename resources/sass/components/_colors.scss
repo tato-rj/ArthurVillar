@@ -116,7 +116,7 @@
 
 			&:focus {
 				// AFTER CLICK
-				color: white;
+				color: nth($color, 2);
 				background-color: transparent;
 				border-color: nth($color, 2);
 			}
