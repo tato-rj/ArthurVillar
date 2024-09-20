@@ -7,12 +7,14 @@
     "require": {
         "php": "^8.0.2",
         "guzzlehttp/guzzle": "^7.2",
+        "intervention/image": "^2.6",
         "james-heinrich/getid3": "^1.9",
         "laravel/fortify": "^1.19",
         "laravel/framework": "^9.19",
         "laravel/helpers": "^1.7",
         "laravel/sanctum": "^3.0",
         "laravel/tinker": "^2.7",
+        "simplesoftwareio/simple-qrcode": "~4",
         "symfony/process": "^6.0"
     },
     "require-dev": {

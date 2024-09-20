@@ -9,16 +9,8 @@ use App\Models\{Book, Track, Method};
 
 class BooksController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth', [
-            'only' => ['store', 'update', 'destroy']
-        ]);
-    }
-
     public function index()
     {
-        dd('here');
         $methods = Method::pluck('name');
         $books = Book::all();
 

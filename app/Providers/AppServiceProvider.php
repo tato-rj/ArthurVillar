@@ -39,7 +39,10 @@ class AppServiceProvider extends ServiceProvider
         \Blade::include('components.core.forms.label');
         \Blade::include('components.core.forms.feedback');
         \Blade::include('components.core.forms.password');
+        \Blade::include('components.table.layout', 'table');
 
         \Blade::include('components.delete');
+        \Blade::include('components.pagetitle');
+        \Blade::include('components.cropper');
     }
 }

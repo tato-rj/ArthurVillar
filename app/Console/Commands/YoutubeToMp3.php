@@ -13,7 +13,7 @@ class YoutubeToMp3 extends Command
      *
      * @var string
      */
-    protected $signature = 'youtube:mp3 {url} {folder}';
+    protected $signature = 'youtube:mp3 {url} {folder} {start} {end}';
 
     /**
      * The console command description.
@@ -30,15 +30,25 @@ class YoutubeToMp3 extends Command
     public function handle()
     {
         $filename = $this->filename();
+        $start = $this->argument('start');
+        $end = $this->argument('end');
 
-        $process = new Process([
-            '/opt/homebrew/bin/youtube-dl',
+        $arguments = [
+            '/opt/homebrew/bin/yt-dlp',
             '--ffmpeg-location', '/opt/homebrew/opt/ffmpeg@5/bin/ffmpeg',
             '-x',
             '--audio-format', 'mp3',
             '-o', $filename,
             $this->url(),
-        ]);
+        ];
+
+        if ($start && $end) {
+            $section = '*'.$start.'-'.$end;
+            $arguments[] = '--download-sections';
+            $arguments[] = $section;
+        }
+
+        $process = new Process($arguments);
 
         $process->setWorkingDirectory($this->directory());
 

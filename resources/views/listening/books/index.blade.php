@@ -15,6 +15,9 @@
 
         @auth
         <div class="text-center">
+            <div>
+                <a href="{{route('listening.methods.index')}}" class="btn btn-primary">Methods</a>
+            </div>
             <button data-bs-toggle="modal" data-bs-target="#create-book-modal" class="btn-raw">@fa(['icon' => 'plus'])Add book</button>
         </div>
         @endauth

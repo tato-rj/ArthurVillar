@@ -23,7 +23,7 @@ class MethodsController extends Controller
         Method::create([
             'name' => $request->name,
             'slug' => str_slug($request->name),
-            'description' => $request->description
+            // 'description' => $request->description
         ]);
 
         return back()->with('success', 'The method was successully created');
@@ -38,7 +38,7 @@ class MethodsController extends Controller
         $method->update([
             'name' => $request->name,
             'slug' => str_slug($request->name),
-            'description' => $request->description
+            // 'description' => $request->description
         ]);
 
         return back()->with('success', 'The method was successully updated');

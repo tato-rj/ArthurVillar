@@ -13,15 +13,16 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('tracks', function (Blueprint $table) {
+        Schema::create('recordings', function (Blueprint $table) {
             $table->id();
-            $table->unsignedInteger('book_id');
             $table->string('name');
             $table->string('composer')->nullable();
-            $table->unsignedInteger('order')->nullable();
+            $table->string('artist')->nullable();
+            $table->string('description')->nullable();
             $table->unsignedInteger('listen_count')->default(0);
             $table->unsignedInteger('duration')->nullable();
             $table->unsignedInteger('size')->nullable();
+            $table->string('cover_path')->nullable();
             $table->string('audio_path')->nullable();
             $table->timestamps();
         });
@@ -34,6 +35,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('tracks');
+        Schema::dropIfExists('recordings');
     }
 };

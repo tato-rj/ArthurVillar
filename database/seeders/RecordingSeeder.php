@@ -4,9 +4,9 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use App\Models\{Track, Book};
+use App\Models\Recording;
 
-class TrackSeeder extends Seeder
+class RecordingSeeder extends Seeder
 {
     /**
      * Run the database seeds.

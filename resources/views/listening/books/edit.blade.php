@@ -5,7 +5,7 @@
 	
 	@input(['label' => 'Name', 'name' => 'name', 'required' => true, 'value' => $book->name])
 
-	@input(['label' => 'Series', 'name' => 'series', 'value' => $book->series])
+	@input(['label' => 'Series', 'name' => 'series', 'value' => $book->method->name])
 
 	@label(['label' => 'Cover image'])
 	<label class="input-file cursor-pointer w-100 form-group">

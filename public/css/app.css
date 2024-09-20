@@ -22567,11 +22567,6 @@ h1, .h1 {
 }
 
 /* This changes all the animations globally */
-:root {
-  --animate-duration: 300ms;
-  --animate-delay: 0.9s;
-}
-
 .t-2, .channel-control span, .channel-control.selected, .channel-control:hover, .dropzone .dz-preview {
   transition: 0.2s;
 }
