@@ -28,7 +28,7 @@ img {
       <h6 class="opacity-4">{{$recording->artist}}</h6>
     </div>
     <audio id="player" controls>
-      <source src="{{$recording->audio()}}" type="audio/mp3" />
+      <source src="{{$recording->file('audio_path')}}" type="audio/mp3" />
     </audio>
   </div>
 </section>

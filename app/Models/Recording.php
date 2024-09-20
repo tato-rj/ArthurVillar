@@ -41,12 +41,12 @@ class Recording extends BaseModel
         ]);
     }
 
-    public function audio()
+    public function file($file)
     {
         if (production())
-            return asset('storage/'.$this->audio_path);
+            return asset('storage/'.$this->$file);
 
-        return asset($this->audio_path);
+        return asset($this->$file);
     }
 
     public function getNameWithComposerAttribute()
