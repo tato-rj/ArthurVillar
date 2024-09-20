@@ -7,7 +7,7 @@
     <div class="position-relative mx-auto" style="width: 200px">
       <div>
         @isset($recording)
-        <img class="w-100 rounded" id="image" src="{{$recording->file('cover')}}">
+        <img class="w-100 rounded" id="image" src="{{$recording->file('cover_path')}}">
         @else
         <img class="w-100" id="image" style="display: none;">
         <div class="w-100 rounded" id="placeholder" style="height: 200px; background: rgba(0,0,0,0.04)"></div>
