@@ -17,7 +17,7 @@ img {
 }
 
 #options .btn:not(:last-of-type) {
-  margin-right: .5rem;
+  margin-right: .5rem !important;
 }
 </style>
 @endpush
