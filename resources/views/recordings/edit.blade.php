@@ -6,7 +6,7 @@
 
 @section('content')
 <section class="container py-5">
-    <div class="row mb-4">
+    <div class="row mb-4 text-center">
         @pagetitle(['label' => 'Edit recording'])
         <div>
             <a class="btn btn-sm btn-secondary" href="{{route('recordings.play', $recording)}}" target="_blank">@fa(['icon' => 'play'])Play recording</a>
