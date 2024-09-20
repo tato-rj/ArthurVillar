@@ -35,14 +35,15 @@ class RecordingsController extends Controller
     {
         $request->validate([
             'name' => 'required',
-            'cover' => 'sometimes|mimes:jpg,jpeg,png|max:500'
+            'cover' => 'sometimes|mimes:jpg,jpeg,png|max:500',
+            'audio' => 'required|mimes:mp3'
         ]);
 
         $recording = Recording::create([
             'name' => $request->name,
             'composer' => $request->composer,
             'artist' => $request->artist,
-            // 'cover_path' => $request->file('cover')->store('covers', 'public')
+            'audio_path' => $request->file('audio')->store('recordings/audio', 'public')
         ]);
 
         if ($file = $request->file('cover'))
@@ -52,29 +53,7 @@ class RecordingsController extends Controller
                                                        ->cropped()
                                                        ->upload()]);
 
-        $recording->saveAudio($request->audio_path);
-
         return back()->with('success', 'The recording was successully uploaded');
-    }
-
-    public function youtubeToAudio(Request $request)
-    {
-        $code = \Artisan::call('youtube:mp3', [
-            'url' => $request->youtubeUrl,
-            'folder' => 'recordings',
-            'start' => $request->start,
-            'end' => $request->end
-        ]);
-
-        $response = \Artisan::output();
-        
-        if ($code > 0)
-            return response($response, 500);
-        
-        return response()->json([
-            'feedback' => 'All set!',
-            'path' => $response
-        ]);
     }
 
     public function edit(Recording $recording)
@@ -82,10 +61,39 @@ class RecordingsController extends Controller
         return view('recordings.edit', compact('recording'));
     }
 
+    public function update(Request $request, Recording $recording)
+    {
+        $request->validate([
+            'name' => 'required',
+            'cover' => 'sometimes|mimes:jpg,jpeg,png|max:500',
+            'audio' => 'sometimes|mimes:mp3'
+        ]);
+
+        $recording->update([
+            'name' => $request->name,
+            'composer' => $request->composer,
+            'artist' => $request->artist
+        ]);
+
+        if ($file = $request->file('audio'))
+            $recording->update([
+                'audio_path' => $request->file('audio')->store('recordings/audio', 'public')
+            ]);
+
+        if ($file = $request->file('cover'))
+            $recording->update(['cover_path' => (new ImageUpload($request))->take('cover')
+                                                       ->model($recording)
+                                                       ->folder('recordings/covers')
+                                                       ->cropped()
+                                                       ->upload()]);
+
+        return back()->with('success', 'The recording was successully updated');
+    }
+
     public function destroy(Recording $recording)
     {
         $recording->delete();
 
-        return back()->with('success', 'The recording was successfully deleted');
+        return redirect(route('admin.recordings.index'))->with('success', 'The recording was successfully deleted');
     }
 }

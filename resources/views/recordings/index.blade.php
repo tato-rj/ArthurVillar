@@ -53,40 +53,7 @@
 // autocomplete(document.getElementById("method-input"), app.methods);
 </script>
 <script>
-$('#create-track button[type=submit]').click(function(e) {
-    e.preventDefault();
-    $(this).disable();
 
-    convertYoutube(this);
-});
-
-function convertYoutube(button) {
-    let $form = $(button).closest('form');
-    let youtubeUrl = $form.find('input[name="youtube_url"]').val();
-    let start = $form.find('input[name="start_time"]').val();
-    let end = $form.find('input[name="end_time"]').val();
-
-    $('#overlay').fadeIn('fast');
-
-    axios.post("{{route('admin.recordings.youtubeToAudio')}}", {youtubeUrl: youtubeUrl, start: start, end: end})
-         .then(function(response) {
-            $('#overlay-spinner').hide();
-            $('#overlay-success').show();
-            $('#overlay-feedback').text(response.data.feedback);
-
-            $form.find('input[name="audio_path"]').val(response.data.path);
-
-            setTimeout(function() {
-                $form.submit();
-            }, 1000);
-         })
-         .catch(function(error) {
-            log(error.response.data);
-            $('#overlay').fadeOut('fast', function() {
-                alert(error.response.data);
-            });
-         });
-}
 </script>
 
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.4.3/cropper.min.js"></script>

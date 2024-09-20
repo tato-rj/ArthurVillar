@@ -7,7 +7,11 @@
   </div>
   <div class="offcanvas-body">
     <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
-
+      @if(local())
+      <li class="nav-item">
+        <a class="nav-link" href="{{route('admin.youtube.create')}}">Youtube to mp3</a>
+      </li>
+      @endif
       <li class="nav-item">
         <a class="nav-link" href="{{route('admin.recordings.index')}}">Recordings</a>
       </li>

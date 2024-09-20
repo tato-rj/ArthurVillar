@@ -24,7 +24,7 @@
 		value="{{$value ?? null}}"
 		@endif
 
-		autocomplete="off"
+		{{-- autocomplete="off" --}}
 
 		@isset($id)id="{{$id}}"@endisset
 

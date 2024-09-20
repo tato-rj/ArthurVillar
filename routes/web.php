@@ -17,12 +17,18 @@ Route::domain(config('app.url'))->prefix('play/{recording}')->name('recordings.'
     Route::get('', 'RecordingsController@play')->name('play');
 });
 
+Route::middleware('auth')->domain('admin.'.config('app.url'))->prefix('youtube')->name('admin.youtube.')->group(function() {
+    Route::get('', 'YoutubeController@create')->name('create');
+
+    Route::get('download', 'YoutubeController@download')->name('download');
+
+    Route::post('', 'YoutubeController@convert')->name('convert');
+});
+
 Route::middleware('auth')->domain('admin.'.config('app.url'))->name('admin.recordings.')->group(function() {
     Route::get('', 'RecordingsController@index')->name('index');
 
     Route::post('', 'RecordingsController@store')->name('store');
-
-    Route::post('youtube-to-audio', 'RecordingsController@youtubeToAudio')->name('youtubeToAudio');
 
     Route::post('listen', 'RecordingsController@listen')->name('listen');
 

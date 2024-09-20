@@ -9,7 +9,7 @@
       <div id="overlay-spinner" class="spinner-border text-secondary mb-3" style="width: 3rem; height: 3rem;" role="status">
         <span class="visually-hidden">Loading...</span>
       </div>
-      <h5 id="overlay-feedback">Downloading and converting the video</h5>
+      <h5 id="overlay-feedback" data-default="Converting the video"></h5>
     </div>
   </div>
 </div>

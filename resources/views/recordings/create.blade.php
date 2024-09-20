@@ -11,12 +11,15 @@
 	@input(['placeholder' => 'Artist', 'name' => 'artist', 'value' => old('artist')])
 	@textarea(['placeholder' => 'Description', 'name' => 'description', 'value' => old('description')])
 
-	@input(['placeholder' => 'Youtube url', 'name' => 'youtube_url', 'required' => true, 'value' => old('youtube_url')])
-
-	<div class="row">
-		@input(['placeholder' => 'Start', 'grid' => 'col', 'name' => 'start_time', 'value' => old('start_time')])
-		@input(['placeholder' => 'End', 'grid' => 'col', 'name' => 'end_time', 'value' => old('end_time')])
-	</div> 
+	<label class="input-file cursor-pointer w-100 form-group">
+		<input style="display: none" name="audio" data-accept="mp3" type="file">
+		<div class="form-control">
+			<span class="filename"></span>
+			<span class="default">
+				@fa(['icon' => 'cloud-arrow-up'])<small>Select mp3</small>
+			</span>
+		</div>
+	</label>
 
 	@submit(['label' => 'Submit', 'theme' => 'primary'])
 </form>
