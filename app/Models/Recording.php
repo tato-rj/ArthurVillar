@@ -20,6 +20,11 @@ class Recording extends BaseModel
         });
     }
 
+    public function period()
+    {
+        return $this->belongsTo(Period::class);
+    }
+
     public function duration()
     {
         return sprintf("%d:%02d", floor($this->duration / 60), $this->duration % 60);
