@@ -58,32 +58,56 @@ img {
 </script>
 
 <script type="text/javascript">
-$(document).ready(function() {
   $('#player-container').show();
+document.addEventListener('DOMContentLoaded', () => {
+    const player = new Plyr('#player'); // Initialize your Plyr instance
 
-  const player = new Plyr('#player', {
-    title: 'Example Title',
-    controls: ['play', 'progress', 'current-time', 'airplay']
-  });
+    // Function to fade out the audio
+    function fadeOutAudio(duration) {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const source = audioContext.createMediaElementSource(player.source); // Use player.source
+        const gainNode = audioContext.createGain();
 
-  player.on('ended', (event) => {
-    fadeOutAudio(2)
-  });
+        source.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        gainNode.gain.setValueAtTime(1, audioContext.currentTime); // Start at full volume
+        gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + duration); // Fade out to 0
+
+        player.play(); // Ensure playback starts
+    }
+
+    // Use the media element's 'ended' event
+    player.source.addEventListener('ended', () => fadeOutAudio(2)); // Fade out over 2 seconds
 });
 
-function fadeOutAudio(duration) {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const source = audioContext.createMediaElementSource(player.media);
-    const gainNode = audioContext.createGain();
+// $(document).ready(function() {
+//   $('#player-container').show();
+
+//   const player = new Plyr('#player', {
+//     title: 'Example Title',
+//     controls: ['play', 'progress', 'current-time', 'airplay']
+//   });
+
+//   player.on('ended', (event) => {
+//     fadeOutAudio(2)
+//   });
+// });
+
+// function fadeOutAudio(duration) {
+//     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+//     const source = audioContext.createMediaElementSource(player.media);
+//     const gainNode = audioContext.createGain();
     
-    source.connect(gainNode);
-    gainNode.connect(audioContext.destination);
+//     source.connect(gainNode);
+//     gainNode.connect(audioContext.destination);
 
-    gainNode.gain.setValueAtTime(1, audioContext.currentTime); // Start at full volume
-    gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + duration); // Fade out to 0
+//     gainNode.gain.setValueAtTime(1, audioContext.currentTime); // Start at full volume
+//     gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + duration); // Fade out to 0
 
-    player.play(); // Ensure playback starts
-}
+//     player.play(); // Ensure playback starts
+// }
+
 
 </script>
 @endpush
