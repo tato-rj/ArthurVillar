@@ -63,7 +63,7 @@ $(document).ready(function() {
 
   const player = new Plyr('#player', {
     title: '{{$recording->name}}',
-    controls: ['play', 'progress', 'current-time', 'airplay']
+    controls: ['play', 'progress', 'current-time', 'airplay', 'volume']
   });
 
     player.on('timeupdate', function() {
