@@ -9,7 +9,7 @@
     <div class="row mb-4">
         @pagetitle(['label' => 'Recordings'])
         <div class="text-center">
-            <button data-bs-toggle="modal" data-bs-target="#create-book-modal" class="btn btn-outline-primary">@fa(['icon' => 'plus'])Upload</button>
+            <button data-bs-toggle="modal" data-bs-target="#create-book-modal" class="btn btn-outline-secondary">@fa(['icon' => 'plus'])Upload</button>
         </div>
 
     </div>
