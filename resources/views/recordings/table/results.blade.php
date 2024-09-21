@@ -13,6 +13,10 @@
 			'label' => 'Period',
 			'width' => 'auto'
 		],
+		'composed_in*' => [
+			'label' => 'Year',
+			'width' => 'auto'
+		],
 		// 'country.name*' => [
 		// 	'label' => 'Country',
 		// 	'width' => 'auto'

@@ -12,6 +12,10 @@
     {{$recording->period->name}}
     @break
 
+  @case('composed_in')
+    {{$recording->composed_in}}
+    @break
+
   @case('actions')
       @component('components.table.actions', [
         'edit' => ['href' => route('admin.recordings.edit', $recording)],
