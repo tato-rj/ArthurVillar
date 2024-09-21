@@ -1,4 +1,4 @@
-<div class="mb-4">
+<div class="mb-4 text-center">
 	<h1 class="text-center mb-0">{{$label}}</h1>
 
 	@isset($href)
