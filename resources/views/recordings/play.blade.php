@@ -27,10 +27,12 @@ img {
   <div id="player-container" class="animate__animated animate__fadeIn animate__slower p-5" style="width: 600px; display: none;">
     <div class="mb-3 p-1 w-100">
       {{-- <img class="shadow-lg mb-3 w-100" src="{{asset($recording->cover_path)}}"> --}}
-      @include('components.period', ['period' => $recording->period])
-      @if($recording->composed_in)
-      <h6 class="small">Composed in {{$recording->composed_in}}</h6>
-      @endif
+      <div class="d-apart mb-1">
+        @include('components.period', ['period' => $recording->period])
+        @if($recording->composed_in)
+        <h6 class="small m-0 opacity-4">Composed in {{$recording->composed_in}}</h6>
+        @endif
+      </div>
       <h2 class="mb-2 lh-1">{{$recording->name}}</h2>
       <h6 class="mb-1">{{$recording->composer}}</h6>
       <h6 class="opacity-4">{{$recording->artist}}</h6>
