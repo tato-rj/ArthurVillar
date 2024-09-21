@@ -7,7 +7,7 @@
 		],
 		'composer*' => [
 			'label' => 'Composer',
-			'width' => '1%'
+			'width' => 'auto'
 		],
 		'period*' => [
 			'label' => 'Period',
