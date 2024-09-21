@@ -66,9 +66,17 @@ $(document).ready(function() {
     controls: ['play', 'progress', 'current-time', 'airplay']
   });
 
-  player.on('ended', function(e) {
-    
-  });
+    player.on('timeupdate', function() {
+        const currentTime = player.currentTime; // Get the current playback time
+        const duration = player.duration; // Get the total duration of the media
+
+        // Check if we are 3 seconds before the end
+        if (duration - currentTime <= 3) {
+            // Your code here, for example, fade out the audio or trigger any event
+            console.log('3 seconds before the end!');
+            // You can also stop further checks if needed by removing the event listener
+        }
+    });
 });
 </script>
 @endpush
