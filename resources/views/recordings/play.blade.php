@@ -65,6 +65,10 @@ $(document).ready(function() {
     title: 'Example Title',
     controls: ['play', 'progress', 'current-time', 'airplay']
   });
+
+  player.on('ended', (event) => {
+    fadeOutAudio(2)
+  });
 });
 
 function fadeOutAudio(duration) {
@@ -81,8 +85,5 @@ function fadeOutAudio(duration) {
     player.play(); // Ensure playback starts
 }
 
-player.on('ended', (event) => {
-  // fadeOutAudio(2)
-});
 </script>
 @endpush
