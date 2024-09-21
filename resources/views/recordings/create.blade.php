@@ -1,4 +1,4 @@
-@modal(['title' => 'New book', 'id' => 'create-book-modal'])
+@modal(['title' => 'New book', 'id' => 'create-recording-modal'])
 <form id="create-track" method="POST" action="{{route('admin.recordings.store')}}" enctype="multipart/form-data">
 	@csrf
 	
