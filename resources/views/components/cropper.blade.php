@@ -1,4 +1,4 @@
-<div class="form-group">
+<div class="form-group mb-4">
   <div id="upload-box">
     <input type="file" data-target="#image" data-placeholder="#placeholder" id="image-input" name="cover" style="display:none;" />
 
