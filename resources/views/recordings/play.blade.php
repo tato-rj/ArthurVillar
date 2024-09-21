@@ -63,7 +63,7 @@ $(document).ready(function() {
 
   const player = new Plyr('#player', {
     title: '{{$recording->name}}',
-    controls: ['play', 'progress', 'current-time', 'airplay', 'volume']
+    controls: ['play', 'progress', 'current-time', 'airplay']
   });
 
   player.decreaseVolume(1);
