@@ -10,7 +10,7 @@
         <form method="POST" action="{{route('login')}}">
             @csrf
             <div class="form-group">
-                <input required placeholder="Email" type="email" name="email" class="form-control">
+                <input required placeholder="Email" value="{{old('email')}}" type="email" name="email" class="form-control">
             </div>
             <div class="form-group">
                 <input required placeholder="Password" type="password" name="password" class="form-control">
