@@ -23,7 +23,7 @@
             	@csrf
             	@method('PATCH')
             	
-            	@cropper
+            	{{-- @cropper --}}
 
                 <div class="row"> 
                 	@input(['label' => 'Name', 'grid' => 'col', 'name' => 'name', 'required' => true, 'value' => $recording->name])

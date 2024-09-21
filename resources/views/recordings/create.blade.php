@@ -1,10 +1,8 @@
 @modal(['title' => 'New book', 'id' => 'create-book-modal'])
 <form id="create-track" method="POST" action="{{route('admin.recordings.store')}}" enctype="multipart/form-data">
 	@csrf
-
-	<input type="hidden" name="audio_path" required>
 	
-	@cropper
+	{{-- @cropper --}}
 
 	<div class="row"> 
 		@input(['placeholder' => 'Name', 'grid' => 'col', 'name' => 'name', 'required' => true, 'value' => old('name')])
