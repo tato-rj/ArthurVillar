@@ -66,7 +66,7 @@ $(document).ready(function() {
     controls: ['play', 'progress', 'current-time', 'airplay']
   });
 
-  player.on('timeupdate', function(e) {
+  player.on('ended', function(e) {
     log(e);
   });
 });
