@@ -9,10 +9,10 @@
 			'label' => 'Composer',
 			'width' => 'auto'
 		],
-		// 'pieces_count*' => [
-		// 	'label' => 'Pieces',
-		// 	'width' => 'auto'
-		// ],
+		'period*' => [
+			'label' => 'Period',
+			'width' => 'auto'
+		],
 		// 'country.name*' => [
 		// 	'label' => 'Country',
 		// 	'width' => 'auto'

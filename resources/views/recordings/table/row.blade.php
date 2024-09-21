@@ -7,6 +7,10 @@
   @case('composer')
     {{$recording->composer}}
     @break
+  
+  @case('period')
+    {{$recording->period->name}}
+    @break
 
   @case('actions')
       @component('components.table.actions', [
