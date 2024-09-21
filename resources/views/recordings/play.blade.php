@@ -27,6 +27,7 @@ img {
   <div id="player-container" class="animate__animated animate__fadeIn animate__slower p-5" style="width: 600px; display: none;">
     <div class="mb-3 p-1 w-100">
       {{-- <img class="shadow-lg mb-3 w-100" src="{{asset($recording->cover_path)}}"> --}}
+      @include('period', ['period' => $recording->period])
       @if($recording->composed_in)
       <h6 class="small">Composed in {{$recording->composed_in}}</h6>
       @endif
