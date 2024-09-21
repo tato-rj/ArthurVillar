@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Recording;
+use App\Models\{Recording, Period};
 use App\Tools\Cropper\ImageUpload;
 
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
@@ -12,9 +12,10 @@ class RecordingsController extends Controller
 {
     public function index()
     {
+        $periods = Period::orderBy('starts_in')->get();
         $recordings = Recording::all();
 
-        return view('recordings.index', compact('recordings'));
+        return view('recordings.index', compact(['recordings', 'periods']));
     }
 
     public function play(Recording $recording)
@@ -36,7 +37,8 @@ class RecordingsController extends Controller
         $request->validate([
             'name' => 'required',
             'cover' => 'sometimes|mimes:jpg,jpeg,png|max:500',
-            'audio' => 'required|mimes:mp3'
+            'audio' => 'required|mimes:mp3',
+            'period_id' => 'required'
         ]);
 
         $recording = Recording::create([
@@ -46,6 +48,7 @@ class RecordingsController extends Controller
             'composed_in' => $request->composed_in,
             'source_url' => $request->source_url,
             'description' => $request->description,
+            'period_id' => $request->period_id,
             'audio_path' => $request->file('audio')->store('recordings/audio', 'public')
         ]);
 
@@ -69,7 +72,8 @@ class RecordingsController extends Controller
         $request->validate([
             'name' => 'required',
             'cover' => 'sometimes|mimes:jpg,jpeg,png|max:500',
-            'audio' => 'sometimes|mimes:mp3'
+            'audio' => 'sometimes|mimes:mp3',
+            'period_id' => 'required'
         ]);
 
         $recording->update([
@@ -79,6 +83,7 @@ class RecordingsController extends Controller
             'composed_in' => $request->composed_in,
             'source_url' => $request->source_url,
             'description' => $request->description,
+            'period_id' => $request->period_id,
         ]);
 
         if ($file = $request->file('audio'))
