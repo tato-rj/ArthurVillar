@@ -19,7 +19,7 @@
 
       {{-- <a href="{{route('admin.recordings.qrcode', $recording)}}" class="btn btn-sm btn-secondary">@fa(['icon' => 'qrcode', 'mr' => 0])</a> --}}
 
-      <a class="btn btn-sm btn-secondary" href="{{route('recordings.play', $recording)}}" target="_blank">@fa(['icon' => 'play', 'mr' => 0])</a>
+      <a class="btn btn-sm btn-secondary" href="{{route('recordings.play', $recording), ['token' => env('APP_TOKEN')]}}" target="_blank">@fa(['icon' => 'play', 'mr' => 0])</a>
 
       @endcomponent
       @break
