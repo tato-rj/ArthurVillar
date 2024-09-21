@@ -67,8 +67,8 @@ $(document).ready(function() {
   });
 
     player.on('timeupdate', function() {
-        if (player.duration - player.currentTime <= 4)
-          player.decreaseVolume(4/10);
+        if (player.duration - player.currentTime <= 6)
+          player.decreaseVolume(6/10);
     });
 });
 </script>
