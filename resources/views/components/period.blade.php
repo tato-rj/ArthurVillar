@@ -1,1 +1,1 @@
-<div class="badge bg-{{$period->color}} rounded-pill py-0 mb-2">{{$period->name}}</div>
+<div class="badge bg-{{$period->color}} rounded-pill py-0 mb-1">{{$period->name}}</div>
