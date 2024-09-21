@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
         gainNode.gain.setValueAtTime(1, audioContext.currentTime); // Start at full volume
         gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + duration); // Fade out to 0
 
-        player.play(); // Ensure playback starts
+        player.play(); // Ensure playback continues
     }
 
     // Use the media element's 'ended' event
@@ -87,15 +87,21 @@ document.addEventListener('DOMContentLoaded', () => {
         fadeOutAudio(2); // Fade out over 2 seconds
     });
 
-    // Reset the flag when the audio finishes fading out
+    // Reset the flag when the audio is finished playing or if the user pauses
     player.media.addEventListener('pause', () => {
         isFadingOut = false; // Reset flag when paused
     });
 
-    player.media.addEventListener('ended', () => {
-        isFadingOut = false; // Reset flag when the track ends
+    // Optional: If you're allowing the user to replay, reset on manual play
+    player.media.addEventListener('play', () => {
+        if (isFadingOut) {
+            // Stop the fade-out if it's still in progress
+            player.media.currentTime = player.media.duration; // Move to end if fading out
+            isFadingOut = false; // Reset flag
+        }
     });
 });
+
 
 
 
