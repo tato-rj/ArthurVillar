@@ -1,7 +1,7 @@
 @php($recording = $row)
 @switch((new \Table)->getFieldname($field))
   @case('name')
-    <span style="width: 12px; height: 12px;" class="mr-1 d-inline-block rounded-circle bg-{{$recording->period->color}}"></span>{{$recording->name}}
+    <span style="width: 12px; height: 12px;" class="mr-2 d-inline-block rounded-circle bg-{{$recording->period->color}}"></span>{{$recording->name}}
     @break
   
   @case('composer')
