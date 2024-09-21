@@ -13,10 +13,13 @@
       </li>
       @endif
       <li class="nav-item">
-        <a class="nav-link" href="{{route('admin.recordings.index')}}">Recordings</a>
+        <a class="nav-link" href="{{route('admin.composers.index')}}">@fa(['icon' => 'user'])Composers</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="{{route('admin.recordings.index')}}">Playlists</a>
+        <a class="nav-link" href="{{route('admin.recordings.index')}}">@fa(['icon' => 'mic'])Recordings</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{route('admin.recordings.index')}}">@fa(['icon' => 'list'])Playlists</a>
       </li>
 {{--       <li class="nav-item">
         <a class="nav-link" href="{{route('listening.index')}}">Books</a>
