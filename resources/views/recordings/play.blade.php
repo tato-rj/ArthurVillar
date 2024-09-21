@@ -62,12 +62,12 @@ $(document).ready(function() {
   $('#player-container').show();
 
   const player = new Plyr('#player', {
-    title: 'Example Title',
+    title: '{{$recording->name}}',
     controls: ['play', 'progress', 'current-time', 'airplay']
   });
 
   player.on('ended', function(e) {
-    log(e);
+    
   });
 });
 </script>
