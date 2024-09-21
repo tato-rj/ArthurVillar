@@ -19,6 +19,7 @@ class MustHaveValidToken
         if (request()->token == env('APP_TOKEN'))
             return $next($request);
 
+dd('here');
         return route('home');
     }
 }
