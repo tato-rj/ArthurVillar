@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.app', ['title' => 'Youtube Converter'])
 
 @push('header')
 @endpush
@@ -6,7 +6,7 @@
 @section('content')
 <section class="container py-5">
     <div class="row mb-4">
-        @pagetitle(['label' => 'Youtube'])
+        @pagetitle(['label' => 'Youtube Converter'])
 
         <div class="col-lg-6 col-md-8 col-10 mx-auto">
             <form id="create-track" method="POST" action="{{route('admin.youtube.convert')}}">
