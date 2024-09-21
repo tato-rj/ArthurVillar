@@ -46,6 +46,11 @@ class Recording extends BaseModel
         ]);
     }
 
+    public function playUrl()
+    {
+        return route('recordings.play', ['recording' => $this, 'token' => env('APP_TOKEN')]);
+    }
+
     public function file($file)
     {
         if (production())
