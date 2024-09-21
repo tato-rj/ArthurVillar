@@ -25,19 +25,20 @@
             	
             	@cropper
 
-            	@input(['label' => 'Name', 'name' => 'name', 'required' => true, 'value' => $recording->name])
+                <div class="row"> 
+                	@input(['label' => 'Name', 'grid' => 'col', 'name' => 'name', 'required' => true, 'value' => $recording->name])
+                    @select(['label' => 'Period', 'grid' => 'col', 'name' => 'period_id'])
+                        @foreach($periods as $period)
+                            @option(['name' => 'period_id', 'label' => $period->name, 'value' => $period->id, 'selected' => $recording->period_id == $period->id])
+                        @endforeach
+                    @endselect
+                </div>
 
             	<div class="row"> 
             		@input(['label' => 'Composer', 'grid' => 'col', 'name' => 'composer', 'required' => true, 'value' => $recording->composer])
             		@input(['label' => 'Artist', 'grid' => 'col', 'name' => 'artist', 'value' => $recording->artist])
                     @input(['label' => 'Year', 'grid' => 'col', 'name' => 'composed_in', 'value' => $recording->composed_in])
             	</div>
-
-                @select(['label' => 'Period', 'name' => 'period_id'])
-                    @foreach($periods as $period)
-                        @option(['name' => 'period_id', 'label' => $period->name, 'value' => $period->id, 'selected' => $recording->period_id == $period->id])
-                    @endforeach
-                @endselect
 
             	@textarea(['label' => 'Description', 'name' => 'description', 'value' => $recording->description])
 

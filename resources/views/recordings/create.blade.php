@@ -6,19 +6,20 @@
 	
 	@cropper
 
-	@input(['placeholder' => 'Name', 'name' => 'name', 'required' => true, 'value' => old('name')])
+	<div class="row"> 
+		@input(['placeholder' => 'Name', 'grid' => 'col', 'name' => 'name', 'required' => true, 'value' => old('name')])
+		@select(['placeholder' => 'Period', 'grid' => 'col', 'name' => 'period_id'])
+			@foreach($periods as $period)
+				@option(['name' => 'period_id', 'label' => $period->name, 'value' => $period->id, 'selected' => old('period_id') == $period->id])
+			@endforeach
+		@endselect
+	</div>
 	<div class="row"> 
 		@input(['placeholder' => 'Composer', 'grid' => 'col', 'name' => 'composer', 'required' => true, 'value' => old('composer')])
 		@input(['placeholder' => 'Artist', 'grid' => 'col', 'name' => 'artist', 'value' => old('artist')])
 		@input(['placeholder' => 'Year', 'grid' => 'col', 'name' => 'composed_in', 'value' => old('composed_in')])
 	</div>
 
-	@select(['placeholder' => 'Period', 'name' => 'period_id'])
-		@foreach($periods as $period)
-			@option(['name' => 'period_id', 'label' => $period->name, 'value' => $period->id, 'selected' => old('period_id') == $period->id])
-		@endforeach
-	@endselect
-	
 	@textarea(['placeholder' => 'Description', 'name' => 'description', 'value' => old('description')])
 
 	@input(['placeholder' => 'Source URL', 'name' => 'source_url', 'value' => old('source_url')])

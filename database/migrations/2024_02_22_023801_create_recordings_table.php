@@ -16,6 +16,7 @@ return new class extends Migration
         Schema::create('recordings', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->string('period_id');
             $table->string('composer')->nullable();
             $table->string('artist')->nullable();
             $table->text('description')->nullable();
