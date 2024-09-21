@@ -16,9 +16,9 @@ class MustHaveValidToken
      */
     public function handle(Request $request, Closure $next)
     {
-        if (request()->token != env('AUTH_TOKEN'))
-            return route('home');
-        
-        return $next($request);
+        if (request()->token == env('AUTH_TOKEN'))
+            return $next($request);
+
+        return route('home');
     }
 }
