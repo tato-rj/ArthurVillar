@@ -11,11 +11,11 @@
 		],
 		'period*' => [
 			'label' => 'Period',
-			'width' => 'auto'
+			'width' => '1%'
 		],
 		'composed_in*' => [
 			'label' => 'Year',
-			'width' => 'auto'
+			'width' => '1%'
 		],
 		// 'country.name*' => [
 		// 	'label' => 'Country',
