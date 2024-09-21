@@ -25,62 +25,40 @@ Route::middleware('auth')->domain('admin.'.config('app.url'))->prefix('youtube')
     Route::post('', 'YoutubeController@convert')->name('convert');
 });
 
-Route::middleware('auth')->domain('admin.'.config('app.url'))->name('admin.recordings.')->group(function() {
+Route::middleware('auth')->domain('admin.'.config('app.url'))->name('admin.')->group(function() {
     Route::get('', 'RecordingsController@index')->name('index');
+    
+    Route::prefix('recordings')->name('recordings.')->group(function() {
+        Route::get('', 'RecordingsController@index')->name('index');
 
-    Route::post('', 'RecordingsController@store')->name('store');
+        Route::post('', 'RecordingsController@store')->name('store');
 
-    Route::post('listen', 'RecordingsController@listen')->name('listen');
+        Route::post('listen', 'RecordingsController@listen')->name('listen');
 
-    Route::prefix('{recording}')->group(function() {
-        Route::get('', 'RecordingsController@edit')->name('edit');
+        Route::prefix('{recording}')->group(function() {
+            Route::get('', 'RecordingsController@edit')->name('edit');
 
-        Route::get('qrcode', 'RecordingsController@qrcode')->name('qrcode');
+            Route::get('qrcode', 'RecordingsController@qrcode')->name('qrcode');
 
-        Route::patch('', 'RecordingsController@update')->name('update');
+            Route::patch('', 'RecordingsController@update')->name('update');
 
-        Route::delete('', 'RecordingsController@destroy')->name('destroy');
+            Route::delete('', 'RecordingsController@destroy')->name('destroy');
+        });
     });
 
-    // Route::prefix('methods')->name('methods.')->group(function() {
-    //     Route::get('', 'MethodsController@index')->name('index');
+    Route::prefix('composers')->name('composers.')->group(function() {
+        Route::get('', 'ComposersController@index')->name('index');
 
-    //     Route::post('', 'MethodsController@store')->name('store');
+        Route::post('', 'ComposersController@store')->name('store');
 
-    //     Route::prefix('{method}')->group(function() {
-    //         Route::patch('', 'MethodsController@update')->name('update');
+        Route::prefix('{composer}')->group(function() {
+            Route::get('', 'ComposersController@edit')->name('edit');
 
-    //         Route::delete('', 'MethodsController@destroy')->name('destroy');
-    //     });
-    // });
+            Route::patch('', 'ComposersController@update')->name('update');
 
-    // Route::prefix('books')->name('books.')->group(function() {
-    //     Route::post('', 'BooksController@store')->name('store');
-
-    //     Route::prefix('{book}')->group(function() {
-    //         Route::get('', 'BooksController@show')->name('show');
-
-    //         Route::patch('', 'BooksController@update')->name('update');
-
-    //         Route::delete('', 'BooksController@destroy')->name('destroy');
-
-    //         Route::prefix('tracks')->name('tracks.')->group(function() {
-    //             Route::post('', 'TracksController@store')->name('store');
-
-    //             Route::post('youtube', 'TracksController@youtube')->name('youtube');
-
-    //             Route::patch('reorder', 'TracksController@reorder')->name('reorder');
-
-    //             Route::prefix('{track}')->group(function() {
-    //                 Route::post('', 'TracksController@listen')->name('listen');
-
-    //                 Route::patch('', 'TracksController@update')->name('update');
-
-    //                 Route::delete('', 'TracksController@destroy')->name('destroy');
-    //             });
-    //         });
-    //     });
-    // });
+            Route::delete('', 'ComposersController@destroy')->name('destroy');
+        });
+    });
 });
 
 Route::get('', function () {
