@@ -7,11 +7,14 @@
 @section('content')
 <section class="container py-5">
     <div class="row mb-4">
-        @pagetitle(['label' => 'Recordings'])
-        <div class="text-center">
-            <button data-bs-toggle="modal" data-bs-target="#create-book-modal" class="btn btn-outline-secondary">@fa(['icon' => 'plus'])Upload</button>
-        </div>
-
+        @pagetitle([
+            'label' => 'Recordings',
+            'modal' => [
+                'target' => '#create-recording-modal',
+                'icon' => 'plus',
+                'label' => 'New recording'
+            ]
+        ])
     </div>
     <div id="tracks-container" class="row">
         <div class="col-lg-8 col-md-10 col-12 mx-auto">
