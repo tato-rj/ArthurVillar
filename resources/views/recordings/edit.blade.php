@@ -10,7 +10,7 @@
         @pagetitle([
             'label' => 'Edit recording',
             'href' => [
-                'url' => route('recordings.play', $recording),
+                'url' => $recording->playUrl(),
                 'label' => 'Play recording',
                 'icon' => 'play'
             ]
