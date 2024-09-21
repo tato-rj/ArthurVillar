@@ -67,10 +67,9 @@ $(document).ready(function() {
   });
 });
 
-// Function to fade out the audio
 function fadeOutAudio(duration) {
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const source = audioContext.createMediaElementSource(player.source); // Use player.source
+    const source = audioContext.createMediaElementSource(player.media);
     const gainNode = audioContext.createGain();
     
     source.connect(gainNode);
@@ -82,7 +81,8 @@ function fadeOutAudio(duration) {
     player.play(); // Ensure playback starts
 }
 
-// Use the media element's 'ended' event
-player.source.addEventListener('ended', () => fadeOutAudio(2)); // Fade out over 2 seconds
+player.on('ended', (event) => {
+  fadeOutAudio(2)
+});
 </script>
 @endpush
