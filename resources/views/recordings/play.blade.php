@@ -68,7 +68,7 @@ $(document).ready(function() {
 
     player.on('timeupdate', function() {
         if (player.duration - player.currentTime <= 4)
-          player.decreaseVolume(10/4);
+          player.decreaseVolume(4/10);
     });
 });
 </script>
