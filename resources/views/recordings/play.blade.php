@@ -66,8 +66,8 @@ $(document).ready(function() {
     controls: ['play', 'progress', 'current-time', 'airplay']
   });
 
-  player.on('timeupdate', function() {
-    log('here');
+  player.on('timeupdate', function(e) {
+    log(e);
   });
 });
 </script>
