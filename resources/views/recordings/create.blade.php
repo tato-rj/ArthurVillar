@@ -18,6 +18,7 @@
 			@option(['name' => 'period_id', 'label' => $period->name, 'value' => $period->id, 'selected' => old('period_id') == $period->id])
 		@endforeach
 	@endselect
+	
 	@textarea(['placeholder' => 'Description', 'name' => 'description', 'value' => old('description')])
 
 	@input(['placeholder' => 'Source URL', 'name' => 'source_url', 'value' => old('source_url')])

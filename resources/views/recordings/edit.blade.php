@@ -32,6 +32,13 @@
             		@input(['label' => 'Artist', 'grid' => 'col', 'name' => 'artist', 'value' => $recording->artist])
                     @input(['label' => 'Year', 'grid' => 'col', 'name' => 'composed_in', 'value' => $recording->composed_in])
             	</div>
+
+                @select(['label' => 'Period', 'name' => 'period_id'])
+                    @foreach($periods as $period)
+                        @option(['name' => 'period_id', 'label' => $period->name, 'value' => $period->id, 'selected' => $recording->period_id == $period->id])
+                    @endforeach
+                @endselect
+
             	@textarea(['label' => 'Description', 'name' => 'description', 'value' => $recording->description])
 
                 @input(['label' => 'Source URL', 'name' => 'source_url', 'value' => $recording->source_url])
