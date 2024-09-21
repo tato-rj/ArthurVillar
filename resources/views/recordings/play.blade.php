@@ -59,11 +59,16 @@ img {
 
 <script type="text/javascript">
   $('#player-container').show();
+
 document.addEventListener('DOMContentLoaded', () => {
     const player = new Plyr('#player'); // Initialize your Plyr instance
+    let isFadingOut = false; // Flag to track if a fade-out is in progress
 
     // Function to fade out the audio
     function fadeOutAudio(duration) {
+        if (isFadingOut) return; // Prevent multiple fade-outs
+        isFadingOut = true; // Set flag to indicate fade-out is in progress
+
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         const source = audioContext.createMediaElementSource(player.media); // Use player.media directly
         const gainNode = audioContext.createGain();
@@ -78,8 +83,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Use the media element's 'ended' event
-    player.media.addEventListener('ended', () => fadeOutAudio(2)); // Fade out over 2 seconds
+    player.media.addEventListener('ended', () => {
+        fadeOutAudio(2); // Fade out over 2 seconds
+    });
+
+    // Reset the flag when the audio finishes fading out
+    player.media.addEventListener('pause', () => {
+        isFadingOut = false; // Reset flag when paused
+    });
+
+    player.media.addEventListener('ended', () => {
+        isFadingOut = false; // Reset flag when the track ends
+    });
 });
+
 
 
 // $(document).ready(function() {
