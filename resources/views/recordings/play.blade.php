@@ -82,7 +82,7 @@ function fadeOutAudio(duration) {
 }
 
 player.on('ended', (event) => {
-  fadeOutAudio(2)
+  // fadeOutAudio(2)
 });
 </script>
 @endpush
