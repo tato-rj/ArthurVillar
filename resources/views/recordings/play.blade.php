@@ -70,7 +70,7 @@ $(document).ready(function() {
 
   player.on('timeupdate', function() {
       if (player.currentTime <= 2 && player.volume <= 1)
-          player.increaseVolume(0.1);
+          player.increaseVolume(.2);
 
       if (player.duration - player.currentTime <= 4)
         player.decreaseVolume(.2);
