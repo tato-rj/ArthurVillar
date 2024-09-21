@@ -66,6 +66,8 @@ $(document).ready(function() {
     controls: ['play', 'progress', 'current-time', 'airplay', 'volume']
   });
 
+  player.decreaseVolume(1);
+
   player.on('timeupdate', function() {
       if (player.duration - player.currentTime <= 4)
         player.decreaseVolume(.2);
@@ -73,6 +75,10 @@ $(document).ready(function() {
 
   player.on('ended', function() {
     player.increaseVolume(1);
+  });
+
+  player.on('play', function() {
+    // player.increaseVolume(1);
   });
 });
 </script>
