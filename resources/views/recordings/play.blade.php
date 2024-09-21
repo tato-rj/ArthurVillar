@@ -58,80 +58,13 @@ img {
 </script>
 
 <script type="text/javascript">
+$(document).ready(function() {
   $('#player-container').show();
 
-document.addEventListener('DOMContentLoaded', () => {
-    const player = new Plyr('#player'); // Initialize your Plyr instance
-    let isFadingOut = false; // Flag to track if a fade-out is in progress
-
-    // Function to fade out the audio
-    function fadeOutAudio(duration) {
-        if (isFadingOut) return; // Prevent multiple fade-outs
-        isFadingOut = true; // Set flag to indicate fade-out is in progress
-
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const source = audioContext.createMediaElementSource(player.media); // Use player.media directly
-        const gainNode = audioContext.createGain();
-
-        source.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-
-        gainNode.gain.setValueAtTime(1, audioContext.currentTime); // Start at full volume
-        gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + duration); // Fade out to 0
-
-        player.play(); // Ensure playback continues
-    }
-
-    // Use the media element's 'ended' event
-    player.media.addEventListener('ended', () => {
-        fadeOutAudio(2); // Fade out over 2 seconds
-    });
-
-    // Reset the flag when the audio is finished playing or if the user pauses
-    player.media.addEventListener('pause', () => {
-        isFadingOut = false; // Reset flag when paused
-    });
-
-    // Optional: If you're allowing the user to replay, reset on manual play
-    player.media.addEventListener('play', () => {
-        if (isFadingOut) {
-            // Stop the fade-out if it's still in progress
-            player.media.currentTime = player.media.duration; // Move to end if fading out
-            isFadingOut = false; // Reset flag
-        }
-    });
+  const player = new Plyr('#player', {
+    title: 'Example Title',
+    controls: ['play', 'progress', 'current-time', 'airplay']
+  });
 });
-
-
-
-
-// $(document).ready(function() {
-//   $('#player-container').show();
-
-//   const player = new Plyr('#player', {
-//     title: 'Example Title',
-//     controls: ['play', 'progress', 'current-time', 'airplay']
-//   });
-
-//   player.on('ended', (event) => {
-//     fadeOutAudio(2)
-//   });
-// });
-
-// function fadeOutAudio(duration) {
-//     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-//     const source = audioContext.createMediaElementSource(player.media);
-//     const gainNode = audioContext.createGain();
-    
-//     source.connect(gainNode);
-//     gainNode.connect(audioContext.destination);
-
-//     gainNode.gain.setValueAtTime(1, audioContext.currentTime); // Start at full volume
-//     gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + duration); // Fade out to 0
-
-//     player.play(); // Ensure playback starts
-// }
-
-
 </script>
 @endpush
