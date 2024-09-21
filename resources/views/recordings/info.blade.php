@@ -1,3 +1,3 @@
 @modal(['title' => 'Info', 'id' => 'recording-'.$recording->id.'-info-modal'])
-<p style="white-space: pre-wrap;">{{$recording->description}}</p>
+<p class="m-0" style="white-space: pre-wrap;">{{$recording->description}}</p>
 @endmodal
