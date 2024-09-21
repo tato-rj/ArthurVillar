@@ -71,7 +71,7 @@ $(document).ready(function() {
   player.on('timeupdate', function(e) {
       if (player.currentTime <= 2 && player.volume <= 1)
           player.increaseVolume(.2);
-log(e);
+
       if (player.duration - player.currentTime <= 4)
         player.decreaseVolume(.2);
   });
