@@ -65,8 +65,8 @@ class RecordingsController extends Controller
     public function edit(Recording $recording)
     {
         $periods = Period::orderBy('starts_in')->get();
-        
-        return view('recordings.edit', compact('recording'));
+
+        return view('recordings.edit', compact(['recording', 'periods']));
     }
 
     public function update(Request $request, Recording $recording)
