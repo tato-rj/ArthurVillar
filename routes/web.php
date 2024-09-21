@@ -85,4 +85,4 @@ Route::middleware('auth')->domain('admin.'.config('app.url'))->name('admin.recor
 
 Route::get('', function () {
     return view('welcome');
-});
+})->name('home');
