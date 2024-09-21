@@ -8,11 +8,11 @@ class Period extends BaseModel
     {
         switch ($this->name) {
             case 'Renaissance':
-                'red';
+                return 'red';
                 break;
             
             default:
-                'blue';
+                return 'blue';
                 break;
         }
     }
