@@ -66,10 +66,14 @@ $(document).ready(function() {
     controls: ['play', 'progress', 'current-time', 'airplay', 'volume']
   });
 
-    player.on('timeupdate', function() {
-        if (player.duration - player.currentTime <= 6)
-          player.decreaseVolume(6/10);
-    });
+  player.on('timeupdate', function() {
+      if (player.duration - player.currentTime <= 6)
+        player.decreaseVolume(6/10);
+  });
+
+  player.on('ended', function() {
+    player.increaseVolume(1);
+  });
 });
 </script>
 @endpush
