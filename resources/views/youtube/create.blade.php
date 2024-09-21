@@ -25,8 +25,6 @@
     </div>
 
 </section>
-
-@include('recordings.create')
 @endsection
 
 @push('scripts')
@@ -75,7 +73,7 @@ function convertYoutube(button) {
          .catch(function(error) {
             // log(error);
             $('#overlay').fadeOut('fast', function() {
-                alert(error.response.data);
+                log(error.response.data);
             });
          });
 }

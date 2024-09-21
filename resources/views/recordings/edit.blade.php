@@ -19,7 +19,7 @@
     </div>
     <div id="tracks-container" class="row">
         <div class="col-lg-6 col-md-8 col-10 mx-auto">
-            <form method="POST" action="{{route('admin.recordings.update', $recording)}}" enctype="multipart/form-data">
+            <form method="POST" action="{{route('admin.recordings.update', $recording)}}" enctype="multipart/form-data" disable-on-submit>
             	@csrf
             	@method('PATCH')
             	
