@@ -66,5 +66,23 @@ $(document).ready(function() {
     controls: ['play', 'progress', 'current-time', 'airplay']
   });
 });
+
+function fadeOutAudio(duration) {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const source = audioContext.createMediaElementSource(player.media);
+    const gainNode = audioContext.createGain();
+    
+    source.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    gainNode.gain.setValueAtTime(1, audioContext.currentTime); // Start at full volume
+    gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + duration); // Fade out to 0
+
+    player.play(); // Ensure playback starts
+}
+
+// Example: Call fadeOutAudio() when the video ends
+player.on('ended', () => fadeOutAudio(2)); // Fade out over 2 seconds
+
 </script>
 @endpush
