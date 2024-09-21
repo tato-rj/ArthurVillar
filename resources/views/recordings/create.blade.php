@@ -17,7 +17,7 @@
 	<div class="row"> 
 		@input(['placeholder' => 'Composer', 'grid' => 'col', 'name' => 'composer', 'required' => true, 'value' => old('composer')])
 		@input(['placeholder' => 'Artist', 'grid' => 'col', 'name' => 'artist', 'value' => old('artist')])
-		@input(['placeholder' => 'Year', 'grid' => 'col', 'name' => 'composed_in', 'value' => old('composed_in')])
+		@input(['placeholder' => 'Year', 'type' => 'number', 'min' => 1400, 'grid' => 'col', 'name' => 'composed_in', 'value' => old('composed_in')])
 	</div>
 
 	@textarea(['placeholder' => 'Description', 'name' => 'description', 'value' => old('description')])
