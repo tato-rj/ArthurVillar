@@ -65,10 +65,10 @@ $(document).ready(function() {
     title: 'Example Title',
     controls: ['play', 'progress', 'current-time', 'airplay']
   });
-});
 
-player.on('timeupdate', function() {
-  log('here');
+  player.on('timeupdate', function() {
+    log('here');
+  });
 });
 </script>
 @endpush
