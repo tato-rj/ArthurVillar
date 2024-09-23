@@ -13,6 +13,9 @@
       </li>
       @endif
       <li class="nav-item">
+        <a class="nav-link" href="{{route('admin.index')}}">@fa(['icon' => 'home'])Dashboard</a>
+      </li>
+      <li class="nav-item">
         <a class="nav-link" href="{{route('admin.composers.index')}}">@fa(['icon' => 'user'])Composers</a>
       </li>
       <li class="nav-item">
