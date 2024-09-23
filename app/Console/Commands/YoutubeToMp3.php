@@ -42,7 +42,6 @@ class YoutubeToMp3 extends Command
             '-o', $filepath,
             '--cache-dir', storage_path('app/cache'),
             '--cookies', base_path('yt_cookies.txt'),
-            '--cookies-from-browser', 'chrome',
             $this->url(),
         ];
 
