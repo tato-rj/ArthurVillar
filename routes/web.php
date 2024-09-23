@@ -59,6 +59,20 @@ Route::middleware('auth')->domain('admin.'.config('app.url'))->name('admin.')->g
             Route::delete('', 'ComposersController@destroy')->name('destroy');
         });
     });
+
+    Route::prefix('playlists')->name('playlists.')->group(function() {
+        Route::get('', 'PlaylistsController@index')->name('index');
+
+        Route::post('', 'PlaylistsController@store')->name('store');
+
+        Route::prefix('{playlist}')->group(function() {
+            Route::get('', 'PlaylistsController@edit')->name('edit');
+
+            Route::patch('', 'PlaylistsController@update')->name('update');
+
+            Route::delete('', 'PlaylistsController@destroy')->name('destroy');
+        });
+    });
 });
 
 Route::get('', function () {

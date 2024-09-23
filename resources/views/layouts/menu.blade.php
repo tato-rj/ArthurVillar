@@ -19,7 +19,7 @@
         <a class="nav-link" href="{{route('admin.recordings.index')}}">@fa(['icon' => 'microphone'])Recordings</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="{{route('admin.recordings.index')}}">@fa(['icon' => 'list'])Playlists</a>
+        <a class="nav-link" href="{{route('admin.playlists.index')}}">@fa(['icon' => 'list'])Playlists</a>
       </li>
 {{--       <li class="nav-item">
         <a class="nav-link" href="{{route('listening.index')}}">Books</a>

@@ -10,7 +10,7 @@
         @pagetitle([
             'label' => 'Composers',
             'modal' => [
-                'target' => '#dd-composer-modal',
+                'target' => '#add-composer-modal',
                 'icon' => 'plus',
                 'label' => 'New composer'
             ]
