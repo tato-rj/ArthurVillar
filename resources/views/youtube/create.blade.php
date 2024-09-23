@@ -62,13 +62,13 @@ function convertYoutube(button) {
             $('#overlay-spinner').hide();
             $('#overlay-success').show();
             $('#overlay-feedback').text(response.data.feedback);
-
-            setTimeout(function() {
-                window.location = response.data.downloadUrl;
-                $('#overlay').fadeOut();
-                $('input').val('');
-                $('button').enable();
-            }, 1000);
+            log(response.data);
+            // setTimeout(function() {
+            //     window.location = response.data.downloadUrl;
+            //     $('#overlay').fadeOut();
+            //     $('input').val('');
+            //     $('button').enable();
+            // }, 1000);
          })
          .catch(function(error) {
             // log(error);
