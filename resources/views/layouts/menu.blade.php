@@ -12,9 +12,9 @@
         <a class="btn btn-sm btn-outline-secondary" href="{{route('admin.youtube.create')}}">@fa(['icon' => 'youtube', 'fa_type' => 'b'])Youtube to mp3</a>
       </li>
       @endif
-      <li class="nav-item">
+{{--       <li class="nav-item">
         <a class="nav-link" href="{{route('admin.index')}}">@fa(['icon' => 'home'])Dashboard</a>
-      </li>
+      </li> --}}
       <li class="nav-item">
         <a class="nav-link" href="{{route('admin.composers.index')}}">@fa(['icon' => 'user'])Composers</a>
       </li>
