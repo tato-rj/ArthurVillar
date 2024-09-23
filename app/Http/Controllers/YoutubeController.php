@@ -21,10 +21,10 @@ class YoutubeController extends Controller
     public function convert(Request $request)
     {
         $code = \Artisan::call('youtube:mp3', [
-            'url' => $request->youtubeUrl,
+            'url' => 'https://www.youtube.com/watch?v=452nsCCzIJs',//$request->youtubeUrl,
             'folder' => 'recordings',
-            'start' => $request->start,
-            'end' => $request->end
+            'start' => '00:00:09',//$request->start,
+            'end' => '00:01:00'//$request->end
         ]);
 
         $response = \Artisan::output();
