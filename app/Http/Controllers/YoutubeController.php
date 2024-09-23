@@ -29,6 +29,7 @@ class YoutubeController extends Controller
             '-x',
             '--audio-format', 'mp3',
             '-o', $filename,
+            '--cookies', base_path('yt_cookies.txt'),
             $this->url($request->youtubeUrl),
         ];
 
@@ -48,8 +49,6 @@ class YoutubeController extends Controller
                 'feedback' => 'All set!',
                 'downloadUrl' => route('admin.youtube.download', ['filepath' => $filepath])
             ]);
-            // Return the file for download
-            // return response()->download($filepath)->deleteFileAfterSend(true);
         } catch (ProcessFailedException $exception) {
             return response()->json(['error' => $exception->getMessage()]);
         }

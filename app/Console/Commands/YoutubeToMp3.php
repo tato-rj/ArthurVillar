@@ -39,6 +39,7 @@ class YoutubeToMp3 extends Command
             '-x',
             '--audio-format', 'mp3',
             '-o', $filename,
+            '--cookies', base_path('yt_cookies.txt'),
             $this->url(),
         ];
 
