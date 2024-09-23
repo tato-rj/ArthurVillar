@@ -30,6 +30,7 @@ class YoutubeToMp3 extends Command
     public function handle()
     {
         $filename = $this->filename();
+        $filepath = storage_path('app/public/recordings') . '/' . $filename;
         $start = $this->argument('start');
         $end = $this->argument('end');
 
@@ -38,7 +39,7 @@ class YoutubeToMp3 extends Command
             '--ffmpeg-location', env('FFMPEG_PATH'),
             '-x',
             '--audio-format', 'mp3',
-            '-o', $filename,
+            '-o', $filepath,
             '--cookies', base_path('yt_cookies.txt'),
             $this->url(),
         ];
