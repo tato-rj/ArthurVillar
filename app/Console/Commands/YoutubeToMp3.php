@@ -29,41 +29,43 @@ class YoutubeToMp3 extends Command
      */
     public function handle()
     {
-        $filename = $this->filename();
-        $filepath = storage_path('app/public/recordings') . '/' . $filename;
-        $start = $this->argument('start');
-        $end = $this->argument('end');
+$this->info('Cookies path: ' . base_path('yt_cookies.txt'));
 
-        $arguments = [
-            env('YT_PATH'),
-            '--ffmpeg-location', env('FFMPEG_PATH'),
-            '-x',
-            '--audio-format', 'mp3',
-            '-o', $filepath,
-            '--cache-dir', storage_path('app/cache'),
-            '--cookies', base_path('yt_cookies.txt'),
-            $this->url(),
-        ];
+        // $filename = $this->filename();
+        // $filepath = storage_path('app/public/recordings') . '/' . $filename;
+        // $start = $this->argument('start');
+        // $end = $this->argument('end');
 
-        if ($start && $end) {
-            $section = '*'.$start.'-'.$end;
-            $arguments[] = '--download-sections';
-            $arguments[] = $section;
-        }
+        // $arguments = [
+        //     env('YT_PATH'),
+        //     '--ffmpeg-location', env('FFMPEG_PATH'),
+        //     '-x',
+        //     '--audio-format', 'mp3',
+        //     '-o', $filepath,
+        //     '--cache-dir', storage_path('app/cache'),
+        //     '--cookies', base_path('yt_cookies.txt'),
+        //     $this->url(),
+        // ];
 
-        $process = new Process($arguments);
+        // if ($start && $end) {
+        //     $section = '*'.$start.'-'.$end;
+        //     $arguments[] = '--download-sections';
+        //     $arguments[] = $section;
+        // }
 
-        $process->setWorkingDirectory($this->directory());
+        // $process = new Process($arguments);
 
-        try {
-            $process->mustRun();
+        // $process->setWorkingDirectory($this->directory());
 
-            return $this->info($this->argument('folder') . '/' . $filename);
-        } catch (ProcessFailedException $exception) {
-            $this->error($exception->getMessage());
+        // try {
+        //     $process->mustRun();
+
+        //     return $this->info($this->argument('folder') . '/' . $filename);
+        // } catch (ProcessFailedException $exception) {
+        //     $this->error($exception->getMessage());
             
-            return 1;
-        }
+        //     return 1;
+        // }
     }
 
     public function filename()
