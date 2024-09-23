@@ -29,6 +29,7 @@ class YoutubeController extends Controller
             '-x',
             '--audio-format', 'mp3',
             '-o', $filename,
+            '--cache-dir', storage_path('app/cache'),
             '--cookies', base_path('yt_cookies.txt'),
             $this->url($request->youtubeUrl),
         ];
