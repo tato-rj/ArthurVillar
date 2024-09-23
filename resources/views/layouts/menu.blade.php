@@ -8,8 +8,8 @@
   <div class="offcanvas-body">
     <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
       @if(local())
-      <li class="nav-item">
-        <a class="nav-link" href="{{route('admin.youtube.create')}}">Youtube to mp3</a>
+      <li class="nav-item mb-2">
+        <a class="btn btn-sm btn-outline-secondary" href="{{route('admin.youtube.create')}}">@fa(['icon' => 'youtube', 'fa_type' => 'b'])Youtube to mp3</a>
       </li>
       @endif
       <li class="nav-item">

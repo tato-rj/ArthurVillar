@@ -8,6 +8,12 @@ use Symfony\Component\Process\Exception\ProcessFailedException;
 
 class YoutubeController extends Controller
 {
+    public function __construct()
+    {
+        if (production())
+            abort(404);
+    }
+
     public function create()
     {
         return view('youtube.create');
@@ -15,16 +21,19 @@ class YoutubeController extends Controller
 
     public function download(Request $request)
     {
-        return response()->download($request->filepath)->deleteFileAfterSend(true);
+        if (!\Storage::disk('public')->exists($request->filepath))
+            abort(404);
+
+        return response()->download(\Storage::disk('public')->path($request->filepath))->deleteFileAfterSend(true);
     }
 
     public function convert(Request $request)
     {
         $code = \Artisan::call('youtube:mp3', [
-            'url' => 'https://www.youtube.com/watch?v=452nsCCzIJs',//$request->youtubeUrl,
+            'url' => $request->youtubeUrl,
             'folder' => 'recordings',
-            'start' => '00:00:09',//$request->start,
-            'end' => '00:01:00'//$request->end
+            'start' => $request->start,
+            'end' => $request->end
         ]);
 
         $response = \Artisan::output();

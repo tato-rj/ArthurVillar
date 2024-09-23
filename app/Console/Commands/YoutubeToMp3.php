@@ -40,8 +40,6 @@ class YoutubeToMp3 extends Command
             '-x',
             '--audio-format', 'mp3',
             '-o', $filepath,
-            '--cache-dir', storage_path('app/cache'),
-            '--cookies', base_path('yt_cookies.txt'),
             $this->url(),
         ];
 
@@ -54,6 +52,8 @@ class YoutubeToMp3 extends Command
         $process = new Process($arguments);
 
         $process->setWorkingDirectory($this->directory());
+
+        $process->setTimeout(600);
 
         try {
             $process->mustRun();
