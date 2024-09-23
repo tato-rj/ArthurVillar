@@ -20,39 +20,60 @@ class YoutubeController extends Controller
 
     public function convert(Request $request)
     {
-        $filename = \Str::uuid()->toString() . '.mp3';
-        $filepath = $this->directory() . '/' . $filename;
+        $code = \Artisan::call('youtube:mp3', [
+            'url' => $request->youtubeUrl,
+            'folder' => 'recordings',
+            'start' => $request->start,
+            'end' => $request->end
+        ]);
 
-        $arguments = [
-            env('YT_PATH'),
-            '--ffmpeg-location', env('FFMPEG_PATH'),
-            '-x',
-            '--audio-format', 'mp3',
-            '-o', $filename,
-            '--cache-dir', storage_path('app/cache'),
-            '--cookies', base_path('yt_cookies.txt'),
-            $this->url($request->youtubeUrl),
-        ];
+        $response = \Artisan::output();
+        
+        if ($code > 0)
+            return response($response, 500);
+        
+        // return response()->json([
+        //     'feedback' => 'All set!',
+        //     'path' => $response
+        // ]);
+        return response()->json([
+            'feedback' => 'All set!',
+            'downloadUrl' => route('admin.youtube.download', ['filepath' => $response])
+        ]);
 
-        if ($request->start && $request->end) {
-            $section = '*' . $request->start . '-' . $request->end;
-            $arguments[] = '--download-sections';
-            $arguments[] = $section;
-        }
+        // $filename = \Str::uuid()->toString() . '.mp3';
+        // $filepath = $this->directory() . '/' . $filename;
 
-        $process = new Process($arguments);
-        $process->setWorkingDirectory($this->directory());
+        // $arguments = [
+        //     env('YT_PATH'),
+        //     '--ffmpeg-location', env('FFMPEG_PATH'),
+        //     '-x',
+        //     '--audio-format', 'mp3',
+        //     '-o', $filename,
+        //     '--cache-dir', storage_path('app/cache'),
+        //     '--cookies', base_path('yt_cookies.txt'),
+        //     $this->url($request->youtubeUrl),
+        // ];
 
-        try {
-            $process->mustRun();
+        // if ($request->start && $request->end) {
+        //     $section = '*' . $request->start . '-' . $request->end;
+        //     $arguments[] = '--download-sections';
+        //     $arguments[] = $section;
+        // }
+
+        // $process = new Process($arguments);
+        // $process->setWorkingDirectory($this->directory());
+
+        // try {
+        //     $process->mustRun();
             
-            return response()->json([
-                'feedback' => 'All set!',
-                'downloadUrl' => route('admin.youtube.download', ['filepath' => $filepath])
-            ]);
-        } catch (ProcessFailedException $exception) {
-            return response()->json(['error' => $exception->getMessage()]);
-        }
+        //     return response()->json([
+        //         'feedback' => 'All set!',
+        //         'downloadUrl' => route('admin.youtube.download', ['filepath' => $filepath])
+        //     ]);
+        // } catch (ProcessFailedException $exception) {
+        //     return response()->json(['error' => $exception->getMessage()]);
+        // }
     }
 
 
