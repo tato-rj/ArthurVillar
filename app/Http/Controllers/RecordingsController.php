@@ -14,7 +14,7 @@ class RecordingsController extends Controller
     {
         $periods = Period::orderBy('starts_in')->get();
         $recordings = Recording::orderBy('composed_in')->get();
-
+return $recordings;
         return view('recordings.index', compact(['recordings', 'periods']));
     }
 
