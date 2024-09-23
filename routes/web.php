@@ -26,7 +26,7 @@ Route::middleware('auth')->domain('admin.'.config('app.url'))->prefix('youtube')
 });
 
 Route::middleware('auth')->domain('admin.'.config('app.url'))->name('admin.')->group(function() {
-    Route::get('', 'RecordingsController@index')->name('index');
+    Route::get('', 'AdminController@index')->name('index');
     
     Route::prefix('recordings')->name('recordings.')->group(function() {
         Route::get('', 'RecordingsController@index')->name('index');
