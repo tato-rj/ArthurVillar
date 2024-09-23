@@ -9,7 +9,9 @@ class ComposersController extends Controller
 {
     public function index()
     {
-        
+        $composers = Composer::orderBy('period_id');
+
+        return view('composers.index', compact('composers'));
     }
 
     public function store(Request $request)
