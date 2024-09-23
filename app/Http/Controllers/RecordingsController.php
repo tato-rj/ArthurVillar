@@ -14,10 +14,7 @@ class RecordingsController extends Controller
     {
         $periods = Period::orderBy('starts_in')->get();
         $recordings = Recording::orderBy('composed_in')->get();
-foreach ($recordings as $recording) {
-    if ($recording->cover_path && \Storage::disk('public')->exists($recording->cover_path))
-        \Storage::disk('public')->delete($recording->cover_path);
-}
+
         return view('recordings.index', compact(['recordings', 'periods']));
     }
 
