@@ -73,6 +73,7 @@ function convertYoutube(button) {
          .catch(function(error) {
             // log(error);
             $('#overlay').fadeOut('fast', function() {
+                alert('Sorry, something went wrong :/');
                 log(error.response.data);
             });
          });
