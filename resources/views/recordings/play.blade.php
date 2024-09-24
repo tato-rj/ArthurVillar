@@ -71,32 +71,50 @@ $(document).ready(function() {
   // Set initial volume to 0 for fade-in
   player.volume = 0;
 
-  // Function to gradually adjust the volume
-  function fadeVolume(targetVolume, duration) {
-    const steps = 200; // Increase the number of steps for a smoother transition
-    const stepDuration = duration / steps; // Time for each step
-    const volumeStep = (targetVolume - player.volume) / steps; // Calculate volume change per step
+  // Function to gradually adjust the volume with increasing fade-out speed
+  function fadeVolumeWithAcceleration(targetVolume, duration) {
+    const steps = 100; // Total number of steps
+    const stepDuration = duration / steps; // Time for each step in seconds
+    const initialVolume = player.volume;
+    
+    let currentStep = 0;
 
     const fade = setInterval(function() {
-      if (Math.abs(player.volume - targetVolume) <= Math.abs(volumeStep)) {
-        player.volume = targetVolume; // Set to target volume when close
+      const timeRemaining = player.duration - player.currentTime;
+
+      // Calculate acceleration (increases the rate of fade over time)
+      let accelerationFactor = 1;
+      if (timeRemaining <= 5) {
+        accelerationFactor = 4; // Last 5 seconds: 4x speed
+      } else if (timeRemaining <= 7) {
+        accelerationFactor = 3; // 7-5 seconds remaining: 3x speed
+      } else if (timeRemaining <= 9) {
+        accelerationFactor = 2; // 9-7 seconds remaining: 2x speed
+      }
+      
+      // Calculate volume step with acceleration
+      const volumeStep = (initialVolume - targetVolume) / steps * accelerationFactor;
+      
+      if (currentStep >= steps || player.volume <= targetVolume) {
+        player.volume = targetVolume;
         clearInterval(fade); // Stop fading when target is reached
       } else {
-        player.volume = player.volume + volumeStep; // Adjust volume gradually
+        player.volume = player.volume - volumeStep; // Decrease volume gradually
+        currentStep++;
       }
-    }, stepDuration * 1000); // Convert to milliseconds
+    }, stepDuration * 1000); // Convert step duration to milliseconds
   }
 
   // Fade in the volume when audio starts
   player.on('play', function() {
-    fadeVolume(1, 5);  // Fade in to full volume over 5 seconds
+    fadeVolumeWithAcceleration(1, 5);  // Fade in to full volume over 5 seconds
   });
 
-  // Fade out the volume gradually when approaching the end
+  // Start fade-out with acceleration when approaching the end
   player.on('timeupdate', function(e) {
-    // Start fading out when there are 15 seconds left
-    if (player.duration - player.currentTime <= 15) {
-      fadeVolume(0, 15);  // Fade out to 0 volume over the last 15 seconds
+    // Start fading out when there are 10 seconds left
+    if (player.duration - player.currentTime <= 10 && player.volume > 0) {
+      fadeVolumeWithAcceleration(0, 10);  // Fade out to 0 volume over 10 seconds with acceleration
     }
   });
 
