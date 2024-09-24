@@ -93,7 +93,7 @@ $(document).ready(function() {
   // Fade out the volume when approaching the end
   player.on('timeupdate', function(e) {
     if (player.duration - player.currentTime <= 10) {
-      fadeVolume(0, 0.05, 100);  // Fade out to 0 volume, 5% every 100ms
+      fadeVolume(0, 0.01, 100);  // Fade out to 0 volume, 5% every 100ms
     }
   });
 
