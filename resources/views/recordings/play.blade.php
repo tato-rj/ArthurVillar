@@ -85,11 +85,11 @@ $(document).ready(function() {
       // Calculate acceleration (increases the rate of fade over time)
       let accelerationFactor = 1;
       if (timeRemaining <= 5) {
-        accelerationFactor = 4; // Last 5 seconds: 4x speed
+        accelerationFactor = 1.25; // Last 5 seconds: 4x speed
       } else if (timeRemaining <= 7) {
-        accelerationFactor = 3; // 7-5 seconds remaining: 3x speed
+        accelerationFactor = 1.5; // 7-5 seconds remaining: 3x speed
       } else if (timeRemaining <= 9) {
-        accelerationFactor = 2; // 9-7 seconds remaining: 2x speed
+        accelerationFactor = 1.75; // 9-7 seconds remaining: 2x speed
       }
       
       // Calculate volume step with acceleration
