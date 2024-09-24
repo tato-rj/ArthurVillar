@@ -68,19 +68,40 @@ $(document).ready(function() {
     controls: ['play', 'progress', 'current-time', 'airplay']
   });
 
-  player.decreaseVolume(1);
+  // Set initial volume to 0 for fade-in
+  player.volume = 0;
 
-  player.on('timeupdate', function(e) {
-      if (player.currentTime <= 2 && player.volume <= 1)
-          player.increaseVolume(.2);
+  // Function to gradually adjust the volume
+  function fadeVolume(targetVolume, step, interval) {
+    const fade = setInterval(function() {
+      if (Math.abs(player.volume - targetVolume) <= step) {
+        player.volume = targetVolume;
+        clearInterval(fade);
+      } else if (player.volume < targetVolume) {
+        player.volume = Math.min(player.volume + step, targetVolume);
+      } else if (player.volume > targetVolume) {
+        player.volume = Math.max(player.volume - step, targetVolume);
+      }
+    }, interval);
+  }
 
-      if (player.duration - player.currentTime <= 4)
-        player.decreaseVolume(.2);
+  // Fade in the volume when audio starts
+  player.on('play', function() {
+    fadeVolume(1, 0.05, 100);  // Fade in to full volume, 5% every 100ms
   });
 
+  // Fade out the volume when approaching the end
+  player.on('timeupdate', function(e) {
+    if (player.duration - player.currentTime <= 4) {
+      fadeVolume(0, 0.05, 100);  // Fade out to 0 volume, 5% every 100ms
+    }
+  });
+
+  // Reset volume when track ends
   player.on('ended', function() {
-    player.increaseVolume(1);
+    player.volume = 1; // Reset volume to full after the audio ends
   });
 });
+
 </script>
 @endpush
