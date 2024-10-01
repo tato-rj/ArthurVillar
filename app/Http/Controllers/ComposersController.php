@@ -29,6 +29,7 @@ class ComposersController extends Controller
         $composer = Composer::create([
             'name' => $request->name,
             'biography' => $request->biography,
+            'curiosity' => $request->curiosity,
             'period_id' => $request->period_id,
             'country_id' => $request->country_id,
             'born_in' => $request->born_in,
@@ -70,6 +71,7 @@ class ComposersController extends Controller
         $composer->update([
             'name' => $request->name,
             'biography' => $request->biography,
+            'curiosity' => $request->curiosity,
             'period_id' => $request->period_id,
             'country_id' => $request->country_id,
             'born_in' => $request->born_in,

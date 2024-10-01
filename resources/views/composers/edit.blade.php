@@ -47,6 +47,7 @@
                 </div>
 
                 @textarea(['placeholder' => 'Biography', 'name' => 'biography', 'value' => $composer->biography])
+                @textarea(['placeholder' => 'Curiosity', 'name' => 'curiosity', 'rows' => 2, 'value' => $composer->curiosity])
 
                 @submit(['label' => 'Save changes', 'theme' => 'primary'])
             </form>

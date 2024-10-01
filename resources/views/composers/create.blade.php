@@ -28,6 +28,7 @@
 	</div>
 
 	@textarea(['placeholder' => 'Biography', 'name' => 'biography', 'value' => old('biography')])
+	@textarea(['placeholder' => 'Curiosity', 'name' => 'curiosity', 'rows' => 2, 'value' => old('curiosity')])
 
 	@submit(['label' => 'Submit', 'theme' => 'primary'])
 </form>

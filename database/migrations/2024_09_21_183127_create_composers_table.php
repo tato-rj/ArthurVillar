@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('cover_path')->nullable();
             $table->text('biography');
+            $table->text('curiosity')->nullable();
             $table->string('born_in');
             $table->string('died_in');
             $table->timestamps();
