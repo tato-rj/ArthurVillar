@@ -57,7 +57,7 @@ img {
 
 @section('content')
 <section class="d-center w-100" style="height: 80vh;">
-  <div id="player-container" class="animate__animated animate__fadeIn animate__slower p-5" style="width: 600px; display: none;">
+  <div id="player-container" class="animate__animated animate__fadeIn animate__slower p-4" style="width: 600px; display: none;">
     <div class="mb-3 p-1 w-100">
       <div class="d-apart mb-1">
         @include('components.period', ['period' => $recording->period])
