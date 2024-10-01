@@ -4,7 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Collection;
-use App\Models\{Composer, Country};
+use App\Models\{Period, Country};
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -17,7 +17,7 @@ class AppServiceProvider extends ServiceProvider
     {
         \View::composer(['recordings.create', 'recordings.edit.index'], function($view) {
             $view->with([
-                'composers' => Composer::orderBy('name')->get()
+                'periods' => Period::with('composers')->orderBy('starts_in')->get()
             ]);
         });
 

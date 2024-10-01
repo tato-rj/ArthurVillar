@@ -4,6 +4,11 @@ namespace App\Models;
 
 class Period extends BaseModel
 {
+    public function composers()
+    {
+        return $this->hasMany(Composer::class)->orderBy('name');    
+    }
+
     public function getColorAttribute()
     {
         switch ($this->name) {

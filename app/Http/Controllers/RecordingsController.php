@@ -12,11 +12,10 @@ class RecordingsController extends Controller
 {
     public function index()
     {
-        $periods = Period::orderBy('starts_in')->get();
         $recordings = Recording::orderBy('composed_in')->get();
         $playlists = Playlist::latest()->get();
-
-        return view('recordings.index', compact(['recordings', 'periods', 'playlists']));
+        
+        return view('recordings.index', compact(['recordings', 'playlists']));
     }
 
     public function play(Recording $recording)

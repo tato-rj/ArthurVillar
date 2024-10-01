@@ -37,8 +37,12 @@
 
             	<div class="row"> 
                     @select(['label' => 'Composer', 'grid' => 'col', 'name' => 'composer_id'])
-                        @foreach($composers as $composer)
+                        @foreach($periods as $period)
+                        <optgroup label="{{$period->name}}">
+                            @foreach($period->composers as $composer)
                             @option(['name' => 'composer_id', 'label' => $composer->name, 'value' => $composer->id, 'selected' => $recording->composer_id == $composer->id])
+                            @endforeach
+                        </optgroup>
                         @endforeach
                     @endselect
             		@input(['label' => 'Artist', 'grid' => 'col', 'name' => 'artist', 'value' => $recording->artist])
