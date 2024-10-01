@@ -1,8 +1,4 @@
-<button data-bs-toggle="modal" data-bs-target="#recording-{{$recording->id}}-composer-modal" class="btn btn-sm btn-outline-secondary mr-2">Composer</button>
-
 @modal(['title' => 'About the composer', 'id' => 'recording-'.$recording->id.'-composer-modal'])
-{{-- <p class="m-0" style="white-space: pre-wrap;">{{$recording->description}}</p> --}}
-
 <div class="d-flex align-items-center mb-3">
 	<img src="{{$recording->composer->storage('cover_path')}}" class="rounded-circle mr-3 shadow-lg" style="width: 80px">
 	<div>
