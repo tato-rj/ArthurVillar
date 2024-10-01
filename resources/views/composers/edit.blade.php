@@ -23,10 +23,10 @@
                 
                 @cropper(['model' => $composer])
 
-                @input(['placeholder' => 'Name', 'name' => 'name', 'required' => true, 'value' => $composer->name])
+                @input(['label' => 'Name', 'name' => 'name', 'required' => true, 'value' => $composer->name])
 
                 <div class="row">
-                    @select(['placeholder' => 'Country', 'grid' => 'col', 'name' => 'country_id'])
+                    @select(['label' => 'Country', 'grid' => 'col', 'name' => 'country_id'])
                         @foreach($countries as $letter => $list)
                         <optgroup label="{{strtoupper($letter)}}">
                             @foreach($list as $country)
@@ -35,19 +35,19 @@
                         </optgroup>
                         @endforeach
                     @endselect
-                    @select(['placeholder' => 'Period', 'grid' => 'col', 'name' => 'period_id'])
+                    @select(['label' => 'Period', 'grid' => 'col', 'name' => 'period_id'])
                         @foreach($periods as $period)
                             @option(['name' => 'period_id', 'label' => $period->name, 'value' => $period->id, 'selected' => $composer->period_id == $period->id])
                         @endforeach
                     @endselect
                 </div>
                 <div class="row"> 
-                    @input(['placeholder' => 'Born in', 'grid' => 'col', 'name' => 'born_in', 'value' => $composer->formatDate('born_in', 'm/d/Y')])
-                    @input(['placeholder' => 'Died in', 'grid' => 'col', 'name' => 'died_in', 'value' => $composer->formatDate('died_in', 'm/d/Y')])
+                    @input(['label' => 'Born in', 'grid' => 'col', 'name' => 'born_in', 'value' => $composer->formatDate('born_in', 'm/d/Y')])
+                    @input(['label' => 'Died in', 'grid' => 'col', 'name' => 'died_in', 'value' => $composer->formatDate('died_in', 'm/d/Y')])
                 </div>
 
-                @textarea(['placeholder' => 'Biography', 'name' => 'biography', 'value' => $composer->biography])
-                @textarea(['placeholder' => 'Curiosity', 'name' => 'curiosity', 'rows' => 2, 'value' => $composer->curiosity])
+                @textarea(['label' => 'Biography', 'name' => 'biography', 'value' => $composer->biography])
+                @textarea(['label' => 'Curiosity', 'name' => 'curiosity', 'rows' => 2, 'value' => $composer->curiosity])
 
                 @submit(['label' => 'Save changes', 'theme' => 'primary'])
             </form>
