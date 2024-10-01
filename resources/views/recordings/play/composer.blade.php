@@ -1,4 +1,6 @@
-@modal(['title' => 'About the composer', 'id' => 'recording-'.$recording->id.'-info-modal'])
+<button data-bs-toggle="modal" data-bs-target="#recording-{{$recording->id}}-composer-modal" class="btn btn-sm btn-outline-secondary mr-2">Composer</button>
+
+@modal(['title' => 'About the composer', 'id' => 'recording-'.$recording->id.'-composer-modal'])
 {{-- <p class="m-0" style="white-space: pre-wrap;">{{$recording->description}}</p> --}}
 
 <div class="d-flex align-items-center mb-3">
