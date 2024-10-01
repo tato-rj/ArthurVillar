@@ -10,5 +10,7 @@
 	</div>
 </div>
 
+<div class="mb-3 p-3 border bg-light"><strong>Did you know?</strong> {{$recording->composer->curiosity}}</div>
+
 <p class="m-0" style="white-space: pre-wrap;">{{$recording->composer->biography}}</p>
 @endmodal
