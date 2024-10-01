@@ -79,12 +79,8 @@ img {
 @include('recordings.play.about')
 
 @isset($playlist)
-@include('recordings.play.playlist')
+@include('playlists.show.index')
 @endisset
-
-@if($recording->playlists()->exists())
-@include('playlists.show')
-@endif
 @endsection
 
 @push('scripts')

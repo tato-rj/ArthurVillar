@@ -43,6 +43,11 @@ class Recording extends BaseModel
         return sprintf("%d:%02d", floor($this->duration / 60), $this->duration % 60);
     }
 
+    public function getPeriodNameAttribute()
+    {
+        return $this->period->name;
+    }
+
     public function size()
     {
         return formatBytes($this->size);
