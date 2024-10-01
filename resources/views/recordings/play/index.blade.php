@@ -131,7 +131,7 @@ $(document).ready(function() {
   // Fade in the volume when audio starts
   player.on('play', function() {
     setTimeout(function() {
-      fadeVolume(1, 0.05, 100);  // Fade in to full volume, 5% every 100ms
+      fadeVolume(1, 0.05, 200);  // Fade in to full volume, 5% every 100ms
     }, 1000); 
   });
 
