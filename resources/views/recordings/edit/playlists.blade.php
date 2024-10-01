@@ -4,7 +4,7 @@
 	@csrf
 
 	@foreach($playlists as $playlist)
-	<div class="form-check text-left">
+	<div class="form-check text-left mb-2">
 	  <input class="form-check-input" name="playlists[]" {{$recording->playlists->contains($playlist) ? 'checked' : null}} type="checkbox" value="{{$playlist->id}}" id="playlist-{{$playlist->id}}-{{$recording->id}}">
 	  <label class="form-check-label" for="playlist-{{$playlist->id}}-{{$recording->id}}">{{$playlist->name}}</label>
 	</div>
