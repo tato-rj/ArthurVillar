@@ -110,44 +110,6 @@ $(document).ready(function() {
     title: '{{$recording->name}}',
     controls: ['play', 'progress', 'current-time', 'airplay']
   });
-
-  // Set initial volume to 0 for fade-in
-  player.volume = 0;
-  player.muted = true;
-
-  // Function to gradually adjust the volume
-  function fadeVolume(targetVolume, step, interval) {
-    const fade = setInterval(function() {
-      if (Math.abs(player.volume - targetVolume) <= step) {
-        player.volume = targetVolume;
-        clearInterval(fade);
-      } else if (player.volume < targetVolume) {
-        player.volume = Math.min(player.volume + step, targetVolume);
-      } else if (player.volume > targetVolume) {
-        player.volume = Math.max(player.volume - step, targetVolume);
-      }
-    }, interval);
-  }
-
-  // Fade in the volume when audio starts
-  player.on('play', function() {
-    setTimeout(function() {
-      player.muted = false;
-      fadeVolume(1, 0.05, 200);  // Fade in to full volume, 5% every 100ms
-    }, 1000); 
-  });
-
-  // Fade out the volume when approaching the end
-  player.on('timeupdate', function(e) {
-    if (player.duration - player.currentTime <= 10) {
-      fadeVolume(0, 0.001, 100);  // Fade out to 0 volume, 5% every 100ms
-    }
-  });
-
-  // Reset volume when track ends
-  player.on('ended', function() {
-    player.volume = 1; // Reset volume to full after the audio ends
-  });
 });
 
 </script>
