@@ -18,7 +18,7 @@ class UserSeeder extends Seeder
         User::factory()->create([
             'name' => 'Arthur',
             'email' => 'arthurvillar@gmail.com',
-            'password' => \Hash::make('maiden')
+            'password' => '$2y$10$JyVLTCENCpzgI85JERAdBehQ.iuR9l/dnRzGgSG.g2IjbRT3B0Gh6'
         ]);
     }
 }
