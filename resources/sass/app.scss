@@ -1,5 +1,9 @@
 @import "bootstrap/setup";
 
+.form-check-input {
+  margin-top: 0.12em;
+}
+
 .autocomplete {
   /*the container must be positioned relative:*/
   position: relative;

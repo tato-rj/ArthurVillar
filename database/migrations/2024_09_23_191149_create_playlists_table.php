@@ -19,6 +19,13 @@ return new class extends Migration
             $table->string('description');
             $table->timestamps();
         });
+
+        Schema::create('playlist_recording', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedInteger('playlist_id');
+            $table->unsignedInteger('recording_id');
+            $table->timestamps();
+        });
     }
 
     /**
@@ -29,5 +36,6 @@ return new class extends Migration
     public function down()
     {
         Schema::dropIfExists('playlists');
+        Schema::dropIfExists('playlist_recording');
     }
 };

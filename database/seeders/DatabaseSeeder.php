@@ -18,6 +18,8 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             PeriodSeeder::class,
             RecordingSeeder::class,
+            ContinentSeeder::class,
+            CountrySeeder::class
         ]);
     }
 }

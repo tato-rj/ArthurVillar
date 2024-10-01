@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-
-class Playlist extends Model
+class Playlist extends BaseModel
 {
-    use HasFactory;
+    public function recordings()
+    {
+        return $this->belongsToMany(Recording::class)->orderBy('period_id');
+    }
 }

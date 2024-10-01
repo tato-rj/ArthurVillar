@@ -1,4 +1,4 @@
-@modal(['title' => 'New book', 'id' => 'create-recording-modal'])
+@modal(['title' => 'New recording', 'id' => 'create-recording-modal'])
 <form id="create-track" method="POST" action="{{route('admin.recordings.store')}}" enctype="multipart/form-data">
 	@csrf
 	
@@ -13,7 +13,11 @@
 		@endselect
 	</div>
 	<div class="row"> 
-		@input(['placeholder' => 'Composer', 'grid' => 'col', 'name' => 'composer', 'required' => true, 'value' => old('composer')])
+		@select(['placeholder' => 'Composer', 'grid' => 'col', 'name' => 'composer_id'])
+			@foreach($composers as $composer)
+				@option(['name' => 'composer_id', 'label' => $composer->name, 'value' => $composer->id, 'selected' => old('composer_id') == $composer->id])
+			@endforeach
+		@endselect
 		@input(['placeholder' => 'Artist', 'grid' => 'col', 'name' => 'artist', 'value' => old('artist')])
 		@input(['placeholder' => 'Year', 'type' => 'number', 'min' => 1400, 'grid' => 'col', 'name' => 'composed_in', 'value' => old('composed_in')])
 	</div>

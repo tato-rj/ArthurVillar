@@ -28,7 +28,7 @@
     "dependencies": {
         "animate.css": "^4.1.1",
         "dragscroll": "0.0.8",
-        "flag-icons": "^6.14.0",
+        "flag-icons": "^6.15.0",
         "inputmask": "^5.0.8"
     }
 }

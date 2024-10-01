@@ -11,4 +11,15 @@ class BaseModel extends Model
     use HasFactory, CanPreventDeletion;
 
     protected $guarded = [];
+
+    public function formatDate($attr, $format)
+    {
+        if (! $this->$attr)
+            return null;
+
+        if (method_exists($this->$attr, $format))
+            return $this->$attr->$format();
+
+        return $this->$attr->format($format);
+    }
 }

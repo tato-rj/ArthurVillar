@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Collection;
+use App\Models\{Composer, Country};
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -13,7 +15,17 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        //
+        \View::composer(['recordings.create', 'recordings.edit.index'], function($view) {
+            $view->with([
+                'composers' => Composer::orderBy('name')->get()
+            ]);
+        });
+
+        \View::composer(['composers.create', 'composers.edit'], function($view) {
+            $view->with([
+                'countries' => Country::orderBy('name')->get()->groupByFirstLetter('name')
+            ]);
+        });
     }
 
     /**
@@ -23,6 +35,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        Collection::macro('groupByFirstLetter', function ($column) {
+            return $this->groupBy(function($item,$key) use ($column) {
+                return $item->$column[0];
+            })->sortBy(function($item,$key) {
+                return $key;
+            });
+        });
+
         \Blade::include('components.core.alert');
         \Blade::include('components.core.btn');
         \Blade::include('components.core.fontawesome', 'fa');
@@ -40,6 +60,7 @@ class AppServiceProvider extends ServiceProvider
         \Blade::include('components.core.forms.feedback');
         \Blade::include('components.core.forms.password');
         \Blade::include('components.table.layout', 'table');
+        \Blade::include('components.flag');
 
         \Blade::include('components.delete');
         \Blade::include('components.pagetitle');

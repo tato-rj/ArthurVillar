@@ -5,7 +5,7 @@
     @break
   
   @case('composer')
-    {{$recording->composer}}
+    {{$recording->composer->name}}
     @break
   
   @case('period')
@@ -22,9 +22,14 @@
       ])
 
       {{-- <a href="{{route('admin.recordings.qrcode', $recording)}}" class="btn btn-sm btn-secondary">@fa(['icon' => 'qrcode', 'mr' => 0])</a> --}}
+      {{-- <a class="btn btn-sm btn-secondary" href="{{$recording->playUrl()}}" target="_blank">@fa(['icon' => 'play', 'mr' => 0])</a> --}}
+      
+      @include('recordings.play.modal')
+      <button class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#play-{{$recording->id}}-modal">@fa(['icon' => 'play', 'mr' => 0])</button>
 
-      <a class="btn btn-sm btn-secondary" href="{{$recording->playUrl()}}" target="_blank">@fa(['icon' => 'play', 'mr' => 0])</a>
-
+      @include('recordings.edit.playlists')
+      <button class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#addto-playlist-{{$recording->id}}-modal">@fa(['icon' => 'list', 'mr' => 0])</button>
+      
       @endcomponent
       @break
 @endswitch

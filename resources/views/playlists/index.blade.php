@@ -16,6 +16,12 @@
         ])
     </div>
 
+    <div id="playlists-container" class="row">
+        <div class="col-lg-8 col-md-10 col-12 mx-auto">
+            @include('playlists.table.results')
+        </div>
+    </div>
+@include('playlists.create')
 @endsection
 
 @push('scripts')

@@ -1,0 +1,1 @@
+<img class="{{$classes ?? null}}" title="{{$country->name}}" width="{{$width}}" height="{{$height}}" style="border-radius: 4px;" src="{{asset('/images/vendor/flag-icons/flags/4x3/'.$country->iso.'.svg')}}">

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\{Recording, Period};
+use App\Models\{Recording, Period, Composer, Playlist};
 use App\Tools\Cropper\ImageUpload;
 
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
@@ -14,13 +14,16 @@ class RecordingsController extends Controller
     {
         $periods = Period::orderBy('starts_in')->get();
         $recordings = Recording::orderBy('composed_in')->get();
+        $playlists = Playlist::latest()->get();
 
-        return view('recordings.index', compact(['recordings', 'periods']));
+        return view('recordings.index', compact(['recordings', 'periods', 'playlists']));
     }
 
     public function play(Recording $recording)
     {
-        return view('recordings.play', compact('recording'));
+        return $recording;
+        return $recording->playUrl();
+        // return view('recordings.play.index', compact('recording'));
     }
 
     public function qrcode(Recording $recording)
@@ -38,12 +41,13 @@ class RecordingsController extends Controller
             'name' => 'required',
             'cover' => 'sometimes|mimes:jpg,jpeg,png|max:500',
             'audio' => 'required|mimes:mp3',
-            'period_id' => 'required'
+            'period_id' => 'required',
+            'composer_id' => 'required'
         ]);
 
         $recording = Recording::create([
             'name' => $request->name,
-            'composer' => $request->composer,
+            'composer_id' => $request->composer_id,
             'artist' => $request->artist,
             'composed_in' => $request->composed_in,
             'source_url' => $request->source_url,
@@ -66,7 +70,7 @@ class RecordingsController extends Controller
     {
         $periods = Period::orderBy('starts_in')->get();
 
-        return view('recordings.edit', compact(['recording', 'periods']));
+        return view('recordings.edit.index', compact(['recording', 'periods']));
     }
 
     public function update(Request $request, Recording $recording)
@@ -75,12 +79,13 @@ class RecordingsController extends Controller
             'name' => 'required',
             'cover' => 'sometimes|mimes:jpg,jpeg,png|max:500',
             'audio' => 'sometimes|mimes:mp3',
-            'period_id' => 'required'
+            'period_id' => 'required',
+            'composer_id' => 'required'
         ]);
 
         $recording->update([
             'name' => $request->name,
-            'composer' => $request->composer,
+            'composer_id' => $request->composer_id,
             'artist' => $request->artist,
             'composed_in' => $request->composed_in,
             'source_url' => $request->source_url,
@@ -100,6 +105,13 @@ class RecordingsController extends Controller
                                                        ->cropped()
                                                        ->upload()]);
 
+        return back()->with('success', 'The recording was successully updated');
+    }
+
+    public function playlists(Request $request, Recording $recording)
+    {
+        $recording->playlists()->sync($request->playlists);
+        
         return back()->with('success', 'The recording was successully updated');
     }
 

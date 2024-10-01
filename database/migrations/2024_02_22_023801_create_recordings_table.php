@@ -17,7 +17,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('period_id');
-            $table->string('composer')->nullable();
+            $table->string('composer_id');
             $table->string('artist')->nullable();
             $table->text('description')->nullable();
             $table->string('composed_in')->nullable();

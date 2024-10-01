@@ -4,18 +4,21 @@ namespace App\Models;
 
 use getID3 as AudioAnalyzer;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use App\Models\Traits\HasFilesInStorage;
 
 class Recording extends BaseModel
 {
+    use HasFilesInStorage;
+    
     protected static function boot()
     {
         parent::boot();
 
         self::deleting(function($recording) {
-            if (\Storage::disk('public')->exists($recording->cover_path))
+            if ($recording->cover_path && \Storage::disk('public')->exists($recording->cover_path))
                 \Storage::disk('public')->delete($recording->cover_path);
             
-            if (\Storage::disk('public')->exists($recording->audio_path))
+            if ($recording->audio_path && \Storage::disk('public')->exists($recording->audio_path))
                 \Storage::disk('public')->delete($recording->audio_path);
         });
     }
@@ -23,6 +26,16 @@ class Recording extends BaseModel
     public function period()
     {
         return $this->belongsTo(Period::class);
+    }
+
+    public function composer()
+    {
+        return $this->belongsTo(Composer::class);
+    }
+
+    public function playlists()
+    {
+        return $this->belongsToMany(Playlist::class);
     }
 
     public function duration()
@@ -46,22 +59,14 @@ class Recording extends BaseModel
         ]);
     }
 
-    public function playUrl()
-    {
-        return route('recordings.play', ['recording' => $this, 'token' => env('APP_TOKEN')]);
-    }
-
-    public function file($file)
-    {
-        if (production())
-            return asset('storage/'.$this->$file);
-
-        return asset($this->$file);
-    }
+    // public function playUrl()
+    // {
+    //     return route('recordings.play', ['recording' => $this, 'token' => env('APP_TOKEN')]);
+    // }
 
     public function getNameWithComposerAttribute()
     {
-        return $this->name . ' by ' . $this->composer;
+        return $this->name . ' by ' . $this->composer->name;
     }
 
     public function qrcode($format = null)
