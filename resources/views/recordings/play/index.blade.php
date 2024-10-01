@@ -9,22 +9,15 @@
     --bs-offcanvas-height: auto;
 }
 
-.playing-bars span {
-  display: inline-block;
-  background: black;
-  width: 4px;
-  height: 14px;
+.wave-animation span {
   animation: wave 1s infinite ease-in-out;
+  background: black !important;
 }
 
-.playing-bars span:nth-child(1) {
-  animation-delay: .2s;
-}
-.playing-bars span:nth-child(2) {
-  animation-delay: .4s;
-}
-.playing-bars span:nth-child(3) {
-  animation-delay: .6s;
+.playing-bars span {
+  display: inline-block;
+  background: lightgrey;
+  width: 4px;
 }
 
 @keyframes wave {
@@ -32,7 +25,7 @@
     height: 4px;
   }
   50% {
-    height: 14px;
+    height: 20px;
   }
 }
 
@@ -109,6 +102,17 @@ $(document).ready(function() {
   const player = new Plyr('#player', {
     title: '{{$recording->name}}',
     controls: ['play', 'progress', 'current-time', 'airplay']
+  });
+
+  // Fade in the volume when audio starts
+  player.on('play', function() {
+    $('.playing-bars').addClass('wave-animation');
+  });
+
+
+  // Reset volume when track ends
+  player.on('ended pause', function() {
+    $('.playing-bars').removeClass('wave-animation');
   });
 });
 

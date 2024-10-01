@@ -24,11 +24,10 @@
 
 		    	@if($recording->is($playingRecording))
 		    	<div class="playing-bars mx-2">
-		    		<span></span>
-		    		<span></span>
-		    		<span></span>
+		    		@for($x=0;$x<6;$x++)
+		    		<span style="height: {{rand(8,20)}}px; animation-delay: {{rand(1,10)/10}}s;"></span>
+		    		@endfor
 		    	</div>
-		    	{{-- <button class="btn btn-secondary btn-sm" disabled type="button">Playing</button> --}}
 		    	@else
 		    	<form method="POST" action="{{route('recordings.url', [
 			    		'play_token' => request()->play_token,
