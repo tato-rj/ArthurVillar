@@ -8,6 +8,6 @@
 		@endforeach
 	@endselect
 
-	@submit(['label' => 'Generate URL', 'theme' => 'primary'])
+	@submit(['label' => 'Go to player', 'theme' => 'primary'])
 </form>
 @endmodal

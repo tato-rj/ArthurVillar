@@ -9,12 +9,13 @@
     <div class="row mb-4 text-center">
         @pagetitle([
             'label' => 'Edit recording',
-            'href' => [
-                'url' => $recording->playUrl(),
-                'label' => 'Preview recording',
-                'icon' => 'play'
+            'modal' => [
+                'target' => '#play-'.$recording->id.'-modal',
+                'icon' => 'play',
+                'label' => 'Preview player'
             ]
         ])
+      @include('recordings.play.modal')
 
     </div>
     <div id="tracks-container" class="row">
