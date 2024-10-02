@@ -13,10 +13,6 @@
 			'label' => 'Period',
 			'width' => '1%'
 		],
-		'composed_in*' => [
-			'label' => 'Year',
-			'width' => '1%'
-		],
 		'playlists_count*' => [
 			'label' => 'Playlists',
 			'width' => '1%'
@@ -31,7 +27,7 @@
 		// ],
 		'actions' => [
 			'label' => '',
-			'width' => '1%'
+			'width' => 'auto'
 		]],
 	'view' => 'recordings.table.row'
 ])

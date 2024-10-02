@@ -12,10 +12,6 @@
     {{$recording->period->name}}
     @break
 
-  @case('composed_in')
-    {{$recording->composed_in}}
-    @break
-
   @case('playlists_count')
     {{$recording->playlists_count}}
     @break
