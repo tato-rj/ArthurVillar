@@ -36,7 +36,7 @@ class Composer extends BaseModel
     }
 
     function shortName() {
-        $namesArray = explode(' ', $fullName);
+        $namesArray = explode(' ', $this->name);
 
         $initials = '';
         $lastName = array_pop($namesArray); // Get the last name
