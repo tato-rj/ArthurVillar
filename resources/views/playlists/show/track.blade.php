@@ -1,6 +1,6 @@
 <div class="d-apart {{$loop->last ? null : 'border-bottom mb-2 pb-2'}}">
-	<div>
-    	<h6 class="m-0">{{$recording->name}} {{$recording->name}} {{$recording->name}}</h6>
+	<div class="text-truncate mr-2">
+    	<h6 class="m-0 text-truncate">{{$recording->name}} {{$recording->name}} {{$recording->name}}</h6>
     	<p class="m-0 opacity-4 small">by {{$recording->composer->name}} in {{$recording->composed_in}}</p>
     </div>
 
@@ -17,7 +17,7 @@
     		'recording' => $recording->id
     	])}}">
     	@csrf
-    	<button class="btn btn-secondary btn-sm" type="submit">@fa(['icon' => 'play'])Play</button>
+    	<button class="btn btn-secondary btn-sm text-nowrap" type="submit">@fa(['icon' => 'play'])Play</button>
 	</form>
 	@endif
 </div>
