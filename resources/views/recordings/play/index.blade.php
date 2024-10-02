@@ -5,7 +5,7 @@
 <style type="text/css">
 .offcanvas-bottom {
     min-height: 25vh;
-    max-height: 80vh !important;
+    max-height: 70vh !important;
     --bs-offcanvas-height: auto;
 }
 

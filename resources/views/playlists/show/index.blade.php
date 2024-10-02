@@ -11,7 +11,7 @@
     <h5 class="offcanvas-title text-center" id="offcanvasBottomLabel"></h5>
     <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
   </div>
-  <div class="offcanvas-body px-0 pt-0 pb-5">
+  <div class="offcanvas-body pt-0 pb-5">
   	<div class="row"> 
   		<div class="col-lg-6 col-md-8 col-10 mx-auto"> 
   			<h5 class="offcanvas-title mb-4">@fa(['icon' => 'list']){{$playlist->name}}</h5>
