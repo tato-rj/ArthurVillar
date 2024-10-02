@@ -12,8 +12,8 @@
     {{$playlist->description}}
     @break
 
-  @case('pieces_count')
-    {{$playlist->pieces_count}}
+  @case('recordings_count')
+    {{$playlist->recordings_count}}
     @break
 
   @case('actions')

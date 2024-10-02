@@ -13,8 +13,8 @@
 			'label' => 'Description',
 			'width' => 'auto'
 		],
-		'pieces_count*' => [
-			'label' => 'Pieces',
+		'recordings_count*' => [
+			'label' => 'Recordings',
 			'width' => 'auto'
 		],
 		'actions' => [
