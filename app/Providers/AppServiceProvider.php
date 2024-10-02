@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Pagination\Paginator;
 use App\Models\{Period, Country};
 
 class AppServiceProvider extends ServiceProvider
@@ -35,6 +37,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        Paginator::useBootstrapFive();
+        Model::unguard();
+        
         Collection::macro('groupByFirstLetter', function ($column) {
             return $this->groupBy(function($item,$key) use ($column) {
                 return $item->$column[0];
