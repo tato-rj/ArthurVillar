@@ -55,9 +55,9 @@
 
                 <div class="d-flex align-items-center form-group">
                     @if($url = $recording->storage('audio_path'))
-                    <div class="mr-2">
+{{--                     <div class="mr-2">
                         <a href="{{$url}}" class="btn btn-primary form-control" download>@fa(['icon' => 'download', 'mr' => 0])</a>
-                    </div>
+                    </div> --}}
                     @endif
                     <label class="input-file cursor-pointer w-100">
                         <input style="display: none" name="audio" data-accept="mp3" type="file">
