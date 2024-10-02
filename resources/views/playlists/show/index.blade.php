@@ -1,5 +1,5 @@
 @php($playingRecording = $recording)
-<div id="playlist-container" style="display: none;" class="animate__animated animate__bounceInUp animate__slower text-center position-fixed bottom-0 left-0 w-100 border-top">
+<div id="playlist-container" style="display: none;" class="animate__animated animate__bounceInUp animate__slower text-center position-fixed bottom-0 left-0 w-100 border-top bg-white">
 	<button class="btn-raw px-3 pb-3 pt-2 w-100 text-dark" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasBottom" aria-controls="offcanvasBottom">
 			@fa(['icon' => 'chevron-up', 'mr' => 0])
 			<div class="fw-bold lh-1">Show playlist</div>
