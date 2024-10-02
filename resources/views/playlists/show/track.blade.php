@@ -6,7 +6,7 @@
 	@csrf
 
 	<div {{$recording->is($playingRecording) ? null : 'submit'}} class="track-container d-apart {{$loop->last ? null : 'border-bottom mb-2 pb-2'}}">
-		<div class="d-flex align-items-center">
+		<div class="d-flex align-items-center text-truncate">
 			<h5 class="mr-2 ml-1 mb-0">{{$loop->iteration}}</h5>
 			<div class="text-truncate mr-3">
 		    	<h6 class="m-0 text-truncate">{{$recording->name}}</h6>
