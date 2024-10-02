@@ -14,6 +14,10 @@
   background: black !important;
 }
 
+.playing-bars {
+  margin-top: 4px;
+}
+
 .playing-bars span {
   display: inline-block;
   background: lightgrey;
