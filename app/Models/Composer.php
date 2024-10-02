@@ -36,14 +36,16 @@ class Composer extends BaseModel
     }
 
     function shortName() {
-        $parts = explode(' ', $this->name);
-        
-        if (count($parts) >= 2) {
-            $initials = strtoupper($parts[0][0]) . '.' . strtoupper($parts[1][0]) . '.';
-            $lastName = array_pop($parts); // Get the last name
-            return $initials . ' ' . $lastName;
+        $namesArray = explode(' ', $this->name);
+
+        $initials = '';
+
+        $lastName = array_pop($namesArray);
+
+        foreach ($namesArray as $name) {
+            $initials .= $name[0].'.';
         }
-        
-        return $this->name;
+
+        return "$initials $lastName";
     }
 }
