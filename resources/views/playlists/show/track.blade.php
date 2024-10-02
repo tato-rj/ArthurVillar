@@ -1,6 +1,6 @@
 <div class="d-apart {{$loop->last ? null : 'border-bottom mb-2 pb-2'}}">
-	<div class="text-truncate mr-2">
-    	<h6 class="m-0 text-truncate">{{$recording->name}} {{$recording->name}} {{$recording->name}}</h6>
+	<div class="text-truncate mr-3">
+    	<h6 class="m-0 text-truncate">{{$recording->name}}</h6>
     	<p class="m-0 opacity-4 small">by {{$recording->composer->name}} in {{$recording->composed_in}}</p>
     </div>
 
