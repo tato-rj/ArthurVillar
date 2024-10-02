@@ -10,7 +10,7 @@ class PlaylistsController extends Controller
     public function index()
     {
         $playlists = Playlist::get();
-
+return $playlists;
         return view('playlists.index', compact('playlists'));
     }
 
