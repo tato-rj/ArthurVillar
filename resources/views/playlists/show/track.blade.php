@@ -1,7 +1,7 @@
 <div class="d-apart {{$loop->last ? null : 'border-bottom mb-2 pb-2'}}">
 	<div>
     	<h6 class="m-0">{{$recording->name}}</h6>
-    	<p class="m-0 opacity-4 small">by {{$recording->composer->name}}</p>
+    	<p class="m-0 opacity-4 small">by {{$recording->composer->name}} in {{$recording->composed_in}}</p>
     </div>
 
 	@if($recording->is($playingRecording))
