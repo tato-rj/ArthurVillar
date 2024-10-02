@@ -6,6 +6,6 @@ class Playlist extends BaseModel
 {
     public function recordings()
     {
-        return $this->belongsToMany(Recording::class)->orderBy('period_id');
+        return $this->belongsToMany(Recording::class)->orderBy('composed_in');
     }
 }
