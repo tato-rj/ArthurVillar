@@ -36,14 +36,16 @@ class Composer extends BaseModel
     }
 
     function shortName() {
-        $namesArray = explode(' ', $this->name);
+        $namesArray = explode(' ', $fullName);
 
         $initials = '';
-
-        $lastName = array_pop($namesArray);
+        $lastName = array_pop($namesArray); // Get the last name
 
         foreach ($namesArray as $name) {
-            $initials .= $name[0].'.';
+            // Only add the initial if the first letter is uppercase
+            if (ctype_upper($name[0])) {
+                $initials .= strtoupper($name[0]) . '.';
+            }
         }
 
         return "$initials $lastName";
