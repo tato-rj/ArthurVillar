@@ -13,6 +13,10 @@
 			'label' => 'Description',
 			'width' => 'auto'
 		],
+		'pieces_count*' => [
+			'label' => 'Pieces',
+			'width' => 'auto'
+		],
 		'actions' => [
 			'label' => '',
 			'width' => '1%'

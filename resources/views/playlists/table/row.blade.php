@@ -12,6 +12,10 @@
     {{$playlist->description}}
     @break
 
+  @case('pieces_count')
+    {{$playlist->pieces_count}}
+    @break
+
   @case('actions')
       @include('components.table.actions', [
         'edit' => ['modal' => '#edit-playlist-'.$playlist->id.'-modal'],
