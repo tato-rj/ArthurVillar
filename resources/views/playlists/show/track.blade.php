@@ -1,7 +1,7 @@
 <div class="d-apart {{$loop->last ? null : 'border-bottom mb-2 pb-2'}}">
 	<div class="text-truncate mr-3">
     	<h6 class="m-0 text-truncate">{{$recording->name}}</h6>
-    	<p class="m-0 opacity-4 small text-truncate">by {{$recording->composer->name}} in {{$recording->composed_in}}</p>
+    	<p class="m-0 opacity-4 small text-truncate">by {{$recording->composer->shortName()}} in {{$recording->composed_in}}</p>
     </div>
 
 	@if($recording->is($playingRecording))

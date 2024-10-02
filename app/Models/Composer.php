@@ -34,4 +34,16 @@ class Composer extends BaseModel
     {
         return $this->hasMany(Recording::class);
     }
+
+    function shortName($fullName) {
+        $parts = explode(' ', $fullName);
+        
+        if (count($parts) >= 2) {
+            $initials = strtoupper($parts[0][0]) . '.' . strtoupper($parts[1][0]) . '.';
+            $lastName = array_pop($parts); // Get the last name
+            return $initials . ' ' . $lastName;
+        }
+        
+        return $fullName; // If the input isn't in expected format
+    }
 }
