@@ -11,7 +11,7 @@ class ComposersController extends Controller
     public function index()
     {
         $periods = Period::orderBy('starts_in')->get();
-        $composers = Composer::orderBy('period_id')->get();
+        $composers = Composer::orderBy('period_id')->paginate(8);
 
         return view('composers.index', compact(['composers', 'periods']));
     }
