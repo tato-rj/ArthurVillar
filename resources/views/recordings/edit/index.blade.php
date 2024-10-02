@@ -52,15 +52,22 @@
             	@textarea(['label' => 'Description', 'name' => 'description', 'value' => $recording->description])
 
                 @input(['label' => 'Source URL', 'name' => 'source_url', 'value' => $recording->source_url])
-                <label class="input-file cursor-pointer w-100 form-group">
-                    <input style="display: none" name="audio" data-accept="mp3" type="file">
-                    <div class="form-control">
-                        <span class="filename"></span>
-                        <span class="default">
-                            @fa(['icon' => 'cloud-arrow-up'])<small>Select mp3</small>
-                        </span>
+
+                <div class="d-flex align-items-center form-group">
+                    @if($url = $recording->storage('audio_path'))
+                    <div class="mr-2">
+                        <a href="{{$url}}" class="btn btn-primary form-control" download>@fa(['icon' => 'download', 'mr' => 0])</a>
                     </div>
-                </label>
+                    @endif
+                    <label class="input-file cursor-pointer w-100">
+                        <input style="display: none" name="audio" data-accept="mp3" type="file">
+                        <div class="form-control text-truncate">
+                            <span class="default text-truncate">
+                                @fa(['icon' => 'cloud-arrow-up'])<small>{{$recording->audio_path ?? 'Select mp3'}}</small>
+                            </span>
+                        </div>
+                    </label>
+                </div>
 
             	@submit(['label' => 'Save changes', 'theme' => 'primary'])
             </form>

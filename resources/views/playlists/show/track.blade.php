@@ -1,23 +1,24 @@
-<div class="d-apart {{$loop->last ? null : 'border-bottom mb-2 pb-2'}}">
-	<div class="text-truncate mr-3">
-    	<h6 class="m-0 text-truncate">{{$recording->name}}</h6>
-    	<p class="m-0 opacity-4 small text-truncate">by {{$recording->composer->shortName()}} in {{$recording->composed_in}}</p>
-    </div>
+<form method="POST" action="{{route('recordings.url', [
+		'play_token' => request()->play_token,
+		'playlist_id' => request()->playlist_id,
+		'recording' => $recording->id
+	])}}">
+	@csrf
 
-	@if($recording->is($playingRecording))
-	<div class="playing-bars mx-2 text-nowrap">
-		@for($x=0;$x<6;$x++)
-		<span style="height: {{rand(8,20)}}px; animation-delay: {{rand(1,10)/10}}s;"></span>
-		@endfor
+	<div {{$recording->is($playingRecording) ? null : 'submit'}} class="track-container d-apart {{$loop->last ? null : 'border-bottom mb-2 pb-2'}}">
+		<div class="text-truncate mr-3">
+	    	<h6 class="m-0 text-truncate">{{$recording->name}}</h6>
+	    	<p class="m-0 opacity-4 small text-truncate">by {{$recording->composer->shortName()}} in {{$recording->composed_in}}</p>
+	    </div>
+		@if($recording->is($playingRecording))
+		<div class="playing-bars mx-2 text-nowrap">
+			@for($x=0;$x<6;$x++)
+			<span style="height: {{rand(8,20)}}px; animation-delay: {{rand(1,100)/100}}s;"></span>
+			@endfor
+		</div>
+		@else
+    	<button class="btn btn-secondary btn-sm text-nowrap" type="button">@fa(['icon' => 'play'])Play</button>
+    	@endif
 	</div>
-	@else
-	<form method="POST" action="{{route('recordings.url', [
-    		'play_token' => request()->play_token,
-    		'playlist_id' => request()->playlist_id,
-    		'recording' => $recording->id
-    	])}}">
-    	@csrf
-    	<button class="btn btn-secondary btn-sm text-nowrap" type="submit">@fa(['icon' => 'play'])Play</button>
-	</form>
-	@endif
-</div>
+</form>
+

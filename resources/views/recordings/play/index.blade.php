@@ -3,6 +3,10 @@
 @push('header')
 <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
 <style type="text/css">
+.track-container[submit] {
+  cursor: pointer;
+}
+
 .offcanvas-bottom {
     min-height: 25vh;
     max-height: 70vh !important;
@@ -90,14 +94,14 @@ img {
 @push('scripts')
 <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
 
-<script>
-
-</script>
-
 <script type="text/javascript">
 $(document).ready(function() {
   $('#player-container').show();
   $('#playlist-container').show();
+
+  $('.track-container[submit]').click(function() {
+    $(this).closest('form').submit();
+  });
 
   const player = new Plyr('#player', {
     title: '{{$recording->name}}',
@@ -115,6 +119,5 @@ $(document).ready(function() {
     $('.playing-bars').removeClass('wave-animation');
   });
 });
-
 </script>
 @endpush

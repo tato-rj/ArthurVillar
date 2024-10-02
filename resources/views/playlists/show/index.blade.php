@@ -13,7 +13,7 @@
   </div>
   <div class="offcanvas-body pt-0 pb-5">
   	<div class="row"> 
-  		<div class="col-lg-6 col-md-8 col-10 mx-auto"> 
+  		<div class="col-lg-6 col-md-8 col-11 mx-auto"> 
   			<h5 class="offcanvas-title mb-4">@fa(['icon' => 'list']){{$playlist->name}}</h5>
 		    @foreach($playlist->recordings as $recording)
 					@include('playlists.show.track')
