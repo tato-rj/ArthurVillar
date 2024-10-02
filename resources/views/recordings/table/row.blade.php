@@ -16,6 +16,10 @@
     {{$recording->composed_in}}
     @break
 
+  @case('playlists_count')
+    {{$recording->playlists_count}}
+    @break
+
   @case('actions')
       @component('components.table.actions', [
         'edit' => ['href' => route('admin.recordings.edit', $recording)],

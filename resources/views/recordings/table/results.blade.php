@@ -17,6 +17,10 @@
 			'label' => 'Year',
 			'width' => '1%'
 		],
+		'playlists_count*' => [
+			'label' => 'Playlists',
+			'width' => '1%'
+		],
 		// 'country.name*' => [
 		// 	'label' => 'Country',
 		// 	'width' => 'auto'

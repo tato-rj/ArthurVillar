@@ -9,6 +9,8 @@ use App\Models\Traits\HasFilesInStorage;
 class Recording extends BaseModel
 {
     use HasFilesInStorage;
+
+    protected $withCount = ['playlists'];
     
     protected static function boot()
     {
