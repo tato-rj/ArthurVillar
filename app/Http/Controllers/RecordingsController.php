@@ -12,7 +12,7 @@ class RecordingsController extends Controller
 {
     public function index()
     {
-        $recordings = Recording::orderBy('composed_in')->get();
+        $recordings = Recording::orderBy('composed_in')->paginate(8);
         $playlists = Playlist::latest()->get();
         
         return view('recordings.index', compact(['recordings', 'playlists']));
