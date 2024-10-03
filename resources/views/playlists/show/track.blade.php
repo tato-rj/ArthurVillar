@@ -14,7 +14,7 @@
 		    </div>
 		</div>
 		@if($recording->is($playingRecording))
-		<div class="playing-bars mx-2 text-nowrap">
+		<div class="playing-bars text-nowrap">
 			@for($x=0;$x<6;$x++)
 			<span style="height: {{rand(8,20)}}px; animation-delay: {{rand(1,100)/100}}s;"></span>
 			@endfor

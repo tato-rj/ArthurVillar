@@ -20,6 +20,8 @@
 
 .playing-bars {
   margin-top: 4px;
+  width: 64.05px;
+  text-align: center;
 }
 
 .playing-bars span {
