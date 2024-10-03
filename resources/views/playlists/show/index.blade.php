@@ -7,7 +7,7 @@
 </div>
 
 <div class="offcanvas offcanvas-bottom border-0" tabindex="-1" id="offcanvasBottom" aria-labelledby="offcanvasBottomLabel">
-  <div class="offcanvas-header pb-0">
+  <div class="offcanvas-header pb0">
     <h5 class="offcanvas-title text-center" id="offcanvasBottomLabel"></h5>
     <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
   </div>
