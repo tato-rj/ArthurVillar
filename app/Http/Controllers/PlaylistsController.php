@@ -14,11 +14,11 @@ class PlaylistsController extends Controller
         return view('playlists.index', compact('playlists'));
     }
 
-    public function edit(Playlist $playlist)
+    public function recordings(Playlist $playlist)
     {
         $playlists = Playlist::all();
 
-        return view('playlists.edit.index', compact(['playlist', 'playlists']));
+        return view('playlists.recordings.index', compact(['playlist', 'playlists']));
     }
 
     public function store(Request $request)

@@ -42,7 +42,7 @@
 						'label' => '',
 						'width' => 'auto'
 					]],
-				'view' => 'playlists.edit.recording'
+				'view' => 'playlists.recordings.row'
 			])
 
 		    <div class="mt-4">
