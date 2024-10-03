@@ -17,7 +17,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        \View::composer(['recordings.create', 'recordings.edit.index'], function($view) {
+        \View::composer(['recordings.create', 'recordings.edit.index', 'playlists.edit.index'], function($view) {
             $ensembles = ['solo', 'opera', 'vocal', 'choir', 'orchestral', 'chamber', 'concerto'];
             sort($ensembles);
 
@@ -69,6 +69,7 @@ class AppServiceProvider extends ServiceProvider
         \Blade::include('components.core.forms.feedback');
         \Blade::include('components.core.forms.password');
         \Blade::include('components.table.layout', 'table');
+        \Blade::include('components.table.filters');
         \Blade::include('components.flag');
 
         \Blade::include('components.delete');

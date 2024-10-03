@@ -18,11 +18,8 @@
 
   @case('actions')
       @component('components.table.actions', [
-        'edit' => ['modal' => '#edit-playlist-'.$playlist->id.'-modal'],
+        'edit' => ['href' => route('admin.playlists.edit', $playlist)],
       ])
-      @include('playlists.edit', $playlist)
-
-      <a class="btn btn-sm btn-secondary" href="{{route('admin.playlists.charts', $playlist)}}">@fa(['icon' => 'chart-pie', 'mr' => 0])</a>
       @endcomponent
       @break
 @endswitch

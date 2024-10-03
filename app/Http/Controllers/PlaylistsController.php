@@ -14,9 +14,11 @@ class PlaylistsController extends Controller
         return view('playlists.index', compact('playlists'));
     }
 
-    public function charts(Playlist $playlist)
+    public function edit(Playlist $playlist)
     {
-        return view('playlists.charts', compact('playlist'));
+        $playlists = Playlist::all();
+
+        return view('playlists.edit.index', compact(['playlist', 'playlists']));
     }
 
     public function store(Request $request)

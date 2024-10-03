@@ -1,10 +1,10 @@
-<div class="{{$mb ?? 'form-group'}} text-left {{$grid ?? null}}">
+<div class="{{$mb ?? 'form-group'}} text-left {{$grid ?? null}} {{$classes ?? null}}">
   @isset($label)
     @label
   @endisset
 
   <select 
-    class="form-select form-select-{{$size ?? null}} {{$classes ?? null}}" 
+    class="form-select form-select-{{$size ?? null}}" 
     name="{{$name}}" 
     @isset($id)id="{{$id}}"@endisset 
     {{iftrue($required ?? null, 'required data-required')}}

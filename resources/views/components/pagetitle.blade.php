@@ -1,6 +1,10 @@
 <div class="mb-{{$mb ?? 4}} text-center">
 	<h1 class="text-center mb-0">{{$label}}</h1>
 
+	@isset($subtitle)
+	<p class="mb-0 mt-2">{{$subtitle}}</p>
+	@endisset
+
 	@isset($href)
         <div class="mt-2">
             <a class="btn btn-sm btn-outline-secondary" href="{{$href['url']}}" target="_blank">@fa(['icon' => $href['icon']]){{$href['label']}}</a>

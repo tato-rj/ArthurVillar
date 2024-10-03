@@ -38,6 +38,31 @@
 
         <script src="{{ mix('js/app.js') }}"></script>
     
+    <script type="text/javascript">
+$('select[name="item-filter"]').on('change', function() {
+  $('#filters-container select').not(this).each(function() {
+    $(this).find('option:first').prop("selected", true);
+  });
+
+  let item = $(this).val();
+    $('table tbody tr').each(function() {
+        if ($(this).find('td').filter(function() {
+            return $(this).text().trim().toLowerCase() === item.toLowerCase();
+        }).length > 0 || item === '') {
+            $(this).show();
+        } else {
+            $(this).hide();
+        }
+    });
+});
+
+$('#clear-filters').click(function() {
+    $('table tbody tr').show();
+    $('#filters-container select').each(function() {
+      $(this).find('option:first').prop("selected", true);
+    });
+});
+    </script>
       <script>
 function autocomplete(inp, arr) {
   /*the autocomplete function takes two arguments,
