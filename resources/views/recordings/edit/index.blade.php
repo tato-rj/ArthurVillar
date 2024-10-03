@@ -12,7 +12,7 @@
             'modal' => [
                 'target' => '#play-'.$recording->id.'-modal',
                 'icon' => 'play',
-                'label' => 'Player'
+                'label' => 'Play'
             ]
         ])
       @include('recordings.play.modal')

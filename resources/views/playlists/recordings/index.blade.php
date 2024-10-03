@@ -10,6 +10,7 @@
             'label' => $playlist->name,
             'subtitle' => $playlist->recordings()->count() . ' ' . str_plural('recording', $playlist->recordings()->count())
         ])
+
     </div>
 
     <div id="recordings-container" class="row">
