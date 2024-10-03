@@ -18,9 +18,12 @@ class AppServiceProvider extends ServiceProvider
     public function register()
     {
         \View::composer(['recordings.create', 'recordings.edit.index'], function($view) {
+            $ensembles = ['solo', 'vocal', 'orchestral', 'chamber', 'concerto', 'string quartet'];
+            sort($ensembles);
+
             $view->with([
                 'periods' => Period::with('composers')->orderBy('starts_in')->get(),
-                'ensembles' => sort(['solo', 'vocal', 'orchestral', 'chamber', 'concerto', 'string quartet'])
+                'ensembles' => $ensembles
             ]);
         });
 
