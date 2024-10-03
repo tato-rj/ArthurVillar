@@ -13,14 +13,6 @@
 			'label' => 'Ensemble',
 			'width' => '1%'
 		],
-		// 'country.name*' => [
-		// 	'label' => 'Country',
-		// 	'width' => 'auto'
-		// ],
-		// 'ethnicity.name*' => [
-		// 	'label' => 'Ethnicity',
-		// 	'width' => 'auto'
-		// ],
 		'actions' => [
 			'label' => '',
 			'width' => 'auto'

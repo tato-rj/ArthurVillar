@@ -70,6 +70,8 @@ Route::middleware('auth')->domain('admin.'.config('app.url'))->name('admin.')->g
         Route::post('', 'PlaylistsController@store')->name('store');
 
         Route::prefix('{playlist}')->group(function() {
+            Route::get('charts', 'PlaylistsController@charts')->name('charts');
+
             Route::get('', 'PlaylistsController@edit')->name('edit');
 
             Route::patch('', 'PlaylistsController@update')->name('update');
