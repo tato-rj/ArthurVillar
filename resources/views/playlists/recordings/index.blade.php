@@ -44,19 +44,6 @@
 					]],
 				'view' => 'playlists.recordings.row'
 			])
-
-		    <div class="mt-4">
-				<form method="POST" action="{{route('admin.playlists.update', $playlist)}}">
-					@csrf
-					@method('PATCH')
-
-					@input(['placeholder' => 'Name', 'name' => 'name', 'required' => true, 'value' => $playlist->name])
-
-					@textarea(['placeholder' => 'Description', 'name' => 'description', 'value' => $playlist->description])
-
-					@submit(['label' => 'Save changes', 'theme' => 'primary'])
-				</form>    	
-		    </div>
         </div>
     </div>
 
