@@ -9,10 +9,6 @@
 			'label' => 'Composer',
 			'width' => 'auto'
 		],
-		'period*' => [
-			'label' => 'Period',
-			'width' => '1%'
-		],
 		'playlists_count*' => [
 			'label' => 'Playlists',
 			'width' => '1%'

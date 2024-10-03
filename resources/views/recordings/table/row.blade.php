@@ -7,10 +7,6 @@
   @case('composer')
     {{$recording->composer->name}}
     @break
-  
-  @case('period')
-    {{$recording->period->name}}
-    @break
 
   @case('playlists_count')
     {{$recording->playlists_count}}
