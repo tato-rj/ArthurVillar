@@ -20,7 +20,7 @@
 			@endfor
 		</div>
 		@else
-    	<button class="btn btn-secondary btn-sm text-nowrap" type="button">@fa(['icon' => 'play', 'mr' => 0])</button>
+    	<button class="btn btn-secondary btn-sm text-nowrap" type="button">@fa(['icon' => 'play'])Play</button>
     	@endif
 	</div>
 </form>
