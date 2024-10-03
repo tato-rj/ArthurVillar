@@ -51,6 +51,7 @@ class RecordingsController extends Controller
             'composed_in' => $request->composed_in,
             'source_url' => $request->source_url,
             'description' => $request->description,
+            'ensemble_type' => $request->ensemble_type,
             'period_id' => $request->period_id,
             'audio_path' => $request->file('audio')->store('recordings/audio', 'public')
         ]);
@@ -89,6 +90,7 @@ class RecordingsController extends Controller
             'composed_in' => $request->composed_in,
             'source_url' => $request->source_url,
             'description' => $request->description,
+            'ensemble_type' => $request->ensemble_type,
             'period_id' => $request->period_id,
         ]);
 

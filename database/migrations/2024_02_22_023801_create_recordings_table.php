@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('artist')->nullable();
             $table->text('description')->nullable();
             $table->string('composed_in')->nullable();
+            $table->string('ensemble_type')->nullable();
             $table->string('source_url')->nullable();
             $table->unsignedInteger('listen_count')->default(0);
             $table->unsignedInteger('duration')->nullable();

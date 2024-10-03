@@ -12,7 +12,7 @@
             'modal' => [
                 'target' => '#play-'.$recording->id.'-modal',
                 'icon' => 'play',
-                'label' => 'Preview player'
+                'label' => 'Player'
             ]
         ])
       @include('recordings.play.modal')
@@ -24,18 +24,14 @@
             	@csrf
             	@method('PATCH')
             	
-            	{{-- @cropper --}}
+                @input(['label' => 'Name', 'name' => 'name', 'required' => true, 'value' => $recording->name])
 
                 <div class="row"> 
-                	@input(['label' => 'Name', 'grid' => 'col', 'name' => 'name', 'required' => true, 'value' => $recording->name])
-                    @select(['label' => 'Period', 'grid' => 'col', 'name' => 'period_id'])
-                        @foreach($periods as $period)
-                            @option(['name' => 'period_id', 'label' => $period->name, 'value' => $period->id, 'selected' => $recording->period_id == $period->id])
+                    @select(['placeholder' => 'Ensemble type', 'grid' => 'col', 'name' => 'ensemble_type'])
+                        @foreach($ensembles as $ensemble)
+                            @option(['name' => 'ensemble_type', 'label' => ucfirst($ensemble), 'value' => $ensemble, 'selected' => $recording->ensemble_type == $ensemble])
                         @endforeach
                     @endselect
-                </div>
-
-            	<div class="row"> 
                     @select(['label' => 'Composer', 'grid' => 'col', 'name' => 'composer_id'])
                         @foreach($periods as $period)
                         <optgroup label="{{$period->name}}">
@@ -43,6 +39,14 @@
                             @option(['name' => 'composer_id', 'label' => $composer->name, 'value' => $composer->id, 'selected' => $recording->composer_id == $composer->id])
                             @endforeach
                         </optgroup>
+                        @endforeach
+                    @endselect
+                </div>
+
+            	<div class="row"> 
+                    @select(['label' => 'Period', 'grid' => 'col', 'name' => 'period_id'])
+                        @foreach($periods as $period)
+                            @option(['name' => 'period_id', 'label' => $period->name, 'value' => $period->id, 'selected' => $recording->period_id == $period->id])
                         @endforeach
                     @endselect
             		@input(['label' => 'Artist', 'grid' => 'col', 'name' => 'artist', 'value' => $recording->artist])

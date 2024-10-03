@@ -19,7 +19,8 @@ class AppServiceProvider extends ServiceProvider
     {
         \View::composer(['recordings.create', 'recordings.edit.index'], function($view) {
             $view->with([
-                'periods' => Period::with('composers')->orderBy('starts_in')->get()
+                'periods' => Period::with('composers')->orderBy('starts_in')->get(),
+                'ensembles' => ['solo', 'vocal', 'orchestral', 'chamber']
             ]);
         });
 
