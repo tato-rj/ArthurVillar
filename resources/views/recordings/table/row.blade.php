@@ -8,8 +8,8 @@
     {{$recording->composer->name}}
     @break
 
-  @case('playlists_count')
-    {{$recording->playlists_count}}
+  @case('ensemble_type')
+    {{$recording->ensemble_type}}
     @break
 
   @case('actions')

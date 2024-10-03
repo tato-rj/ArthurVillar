@@ -9,8 +9,8 @@
 			'label' => 'Composer',
 			'width' => 'auto'
 		],
-		'playlists_count*' => [
-			'label' => 'Playlists',
+		'ensemble_type*' => [
+			'label' => 'Ensemble',
 			'width' => '1%'
 		],
 		// 'country.name*' => [
