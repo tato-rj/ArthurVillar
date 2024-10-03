@@ -9,7 +9,7 @@
     @break
 
   @case('ensemble_type')
-    {{$recording->ensemble_type}}
+    {{ucfirst($recording->ensemble_type)}}
     @break
 
   @case('actions')
