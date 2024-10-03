@@ -27,7 +27,7 @@
                 @input(['label' => 'Name', 'name' => 'name', 'required' => true, 'value' => $recording->name])
 
                 <div class="row"> 
-                    @select(['placeholder' => 'Ensemble type', 'grid' => 'col', 'name' => 'ensemble_type'])
+                    @select(['label' => 'Ensemble type', 'placeholder' => '', 'grid' => 'col', 'name' => 'ensemble_type'])
                         @foreach($ensembles as $ensemble)
                             @option(['name' => 'ensemble_type', 'label' => ucfirst($ensemble), 'value' => $ensemble, 'selected' => $recording->ensemble_type == $ensemble])
                         @endforeach
