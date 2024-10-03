@@ -7,18 +7,17 @@
 </div>
 
 <div class="offcanvas offcanvas-bottom border-0" tabindex="-1" id="offcanvasBottom" aria-labelledby="offcanvasBottomLabel">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title text-center" id="offcanvasBottomLabel"></h5>
+    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
   <div class="offcanvas-body pt-0 pb-5">
   	<div class="row"> 
-  		<div class="col-lg-6 col-md-8 col-12 mx-auto position-relative"> 
-  			<div class="d-apart py-4 position-absolute bg-white w-100 z-10">
-	  			<h5 class="offcanvas-title mb-0 mr-3 text-truncate">@fa(['icon' => 'list']){{$playlist->name}}</h5>
-	  			<button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-	  		</div>
-	  		<div>
-			    @foreach($playlist->recordings as $recording)
-						@include('playlists.show.track')
-			    @endforeach
-			  </div>
+  		<div class="col-lg-6 col-md-8 col-12 mx-auto"> 
+  			<h5 class="offcanvas-title mb-4">@fa(['icon' => 'list']){{$playlist->name}}</h5>
+		    @foreach($playlist->recordings as $recording)
+					@include('playlists.show.track')
+		    @endforeach
 		</div>
 	</div>
   </div>
