@@ -16,7 +16,7 @@
   		<div class="col-lg-6 col-md-8 col-12 mx-auto">
   			<div class="offcanvas-title d-apart mb-4">
 	  			<h5 class="mb-0 mr-3 text-truncate">@fa(['icon' => 'list']){{$playlist->name}}</h5>
-	  			<h5 class="mb-0 text-nowrap">{{str_plural('piece', $playlist->recordings->count())}}</h5>
+	  			<h5 class="mb-0 text-nowrap opacity-6">{{str_plural('piece', $playlist->recordings()->count())}}</h5>
 	  		</div>
 		    @foreach($playlist->recordings as $recording)
 					@include('playlists.show.track')
