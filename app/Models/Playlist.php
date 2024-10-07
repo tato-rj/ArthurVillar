@@ -4,8 +4,22 @@ namespace App\Models;
 
 class Playlist extends BaseModel
 {
+    protected static function boot()
+    {
+        parent::boot();
+
+        self::created(function($playlist) {
+            $playlist->newToken();
+        });
+    }
+
     public function recordings()
     {
         return $this->belongsToMany(Recording::class)->orderBy('composed_in');
+    }
+
+    public function newToken()
+    {
+        $this->update(['token' => uuid()]);   
     }
 }

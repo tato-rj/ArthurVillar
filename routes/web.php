@@ -72,6 +72,8 @@ Route::middleware('auth')->domain('admin.'.config('app.url'))->name('admin.')->g
         Route::prefix('{playlist}')->group(function() {
             Route::get('recordings', 'PlaylistsController@recordings')->name('recordings');
 
+            Route::patch('token', 'PlaylistsController@token')->name('token');
+
             Route::patch('', 'PlaylistsController@update')->name('update');
 
             Route::delete('', 'PlaylistsController@destroy')->name('destroy');
