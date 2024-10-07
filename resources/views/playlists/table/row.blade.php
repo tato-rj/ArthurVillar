@@ -29,7 +29,7 @@
         <button class="btn btn-sm btn-secondary" type="submit">@fa(['icon' => 'play', 'mr' => 0])</button>
       </form>
 
-      <a class="btn btn-sm btn-secondary" href="{{route('admin.playlists.recordings', $playlist)}}">@fa(['icon' => 'list', 'mr' => 0])</a>
+      {{-- <a class="btn btn-sm btn-secondary" href="{{route('admin.playlists.recordings', $playlist)}}">@fa(['icon' => 'list', 'mr' => 0])</a> --}}
       @endcomponent
       @include('playlists.edit', $playlist)
       @break
