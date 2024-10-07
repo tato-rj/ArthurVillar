@@ -15,8 +15,8 @@
   	<div class="row"> 
   		<div class="col-lg-6 col-md-8 col-12 mx-auto">
   			<div class="offcanvas-title mb-4">
-	  			<h5 class="mb-0 mr-2 text-truncate">@fa(['icon' => 'list']){{$playlist->name}}</h5>
-	  			<div class="small">{{$playlist->recordings->count()}} pieces</div>
+	  			<h5 class="mb-0 mr-2 text-truncate">{{$playlist->name}}</h5>
+	  			<div class="small fw-bold opacity-6">{{$playlist->recordings->count()}} pieces</div>
 	  		</div>
 		    @foreach($playlist->recordings as $recording)
 					@include('playlists.show.track')
