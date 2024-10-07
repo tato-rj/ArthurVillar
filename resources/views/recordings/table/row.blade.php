@@ -11,6 +11,10 @@
   @case('ensemble_type')
     {{ucfirst($recording->ensemble_type)}}
     @break
+  
+  @case('playlists_count')
+    {{$recording->playlists_count}}
+    @break
 
   @case('actions')
       @component('components.table.actions', [
