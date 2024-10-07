@@ -80,7 +80,7 @@ img {
     <div class="d-flex">
       <button data-bs-toggle="modal" data-bs-target="#recording-{{$recording->id}}-about-modal" class="btn btn-sm btn-outline-secondary mr-2">About</button>
       <button data-bs-toggle="modal" data-bs-target="#recording-{{$recording->id}}-composer-modal" class="btn btn-sm btn-outline-secondary mr-2">Composer</button>
-      <a href="{{$recording->source_url}}" target="_blank" class="btn btn-sm btn-outline-secondary">Source</a>
+      <a href="{{$recording->source_url}}" target="_blank" class="btn btn-sm btn-outline-secondary">Youtube</a>
     </div>
   </div>
 </section>
