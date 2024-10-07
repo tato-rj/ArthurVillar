@@ -19,7 +19,7 @@
 
 		@input(['label' => 'Token', 'disabled' => true, 'value' => $playlist->token])
 
-		@submit(['label' => 'Change token', 'theme' => 'primary'])
+		@submit(['label' => 'Renew token', 'theme' => 'primary'])
 	</form>
 </div>
 @endmodal
