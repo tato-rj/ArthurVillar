@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use App\Token\Token;
 
 class MustHaveValidPlayToken
 {
@@ -16,7 +17,9 @@ class MustHaveValidPlayToken
      */
     public function handle(Request $request, Closure $next)
     {
-        if ($request->play_token == env('APP_TOKEN'))
+        $data = Token::read($request->token);
+
+        if ($data && $data['play_token'] == env('APP_TOKEN'))
             return $next($request);
 
         abort(404);

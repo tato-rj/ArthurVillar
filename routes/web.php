@@ -13,10 +13,10 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::prefix('play/{recording}')->name('recordings.')->group(function() {
-    Route::post('url', 'PlayerController@url')->name('url');
+Route::prefix('play')->name('recordings.')->group(function() {
+    Route::post('url/{recording}', 'PlayerController@url')->name('url');
 
-    Route::domain(config('app.url'))->middleware('token.play')->get('', 'PlayerController@show')->name('show');
+    Route::domain(config('app.url'))->middleware('token.play')->get('{token}', 'PlayerController@show')->name('show');
 });
 
 Route::middleware('auth')->domain('admin.'.config('app.url'))->prefix('youtube')->name('admin.youtube.')->group(function() {

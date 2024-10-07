@@ -14,7 +14,11 @@ class RecordingsController extends Controller
     {
         $recordings = Recording::latest()->paginate(12);
         $playlists = Playlist::latest()->get();
-        
+
+        // $array = ['key1' => 'value1', 'key2' => 'value2'];
+        // $encodedArray = base64_encode(json_encode($array));
+
+        // return $encodedArray;
         return view('recordings.index', compact(['recordings', 'playlists']));
     }
 

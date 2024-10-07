@@ -1,10 +1,6 @@
-<form method="POST" action="{{route('recordings.url', [
-		'play_token' => request()->play_token,
-		'playlist_id' => request()->playlist_id,
-		'recording' => $recording->id
-	])}}">
+<form method="POST" action="{{route('recordings.url', $recording)}}">
 	@csrf
-
+	<input type="hidden" name="play_token" value="{{request()->token}}">
 	<div {{$recording->is($playingRecording) ? null : 'submit'}} class="track-container d-apart {{$loop->last ? null : 'border-bottom mb-2 pb-2'}}">
 		<div class="d-flex align-ites-center text-truncate">
 			<h6 class="mr-2 ml-1 mb-0 text-{{$recording->period->color}}">{{sprintf('%02d', $loop->iteration)}}</h6>
