@@ -13,7 +13,7 @@
     @break
 
   @case('recordings_count')
-    {{$playlist->recordings_count}}
+    {{$playlist->recordings->count()}}
     @break
 
   @case('actions')

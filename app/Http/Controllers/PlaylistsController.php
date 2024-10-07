@@ -9,7 +9,7 @@ class PlaylistsController extends Controller
 {
     public function index()
     {
-        $playlists = Playlist::withCount('recordings')->paginate(8);
+        $playlists = Playlist::paginate(8);
 
         return view('playlists.index', compact('playlists'));
     }
