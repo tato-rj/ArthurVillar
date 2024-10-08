@@ -30,8 +30,8 @@ class RecordingsController extends Controller
 
     public function qrcode(Request $request, Recording $recording)
     {
-    return response(QrCode::size(500)
-        ->format('png')
+    return response(QrCode::format('png')
+        ->size(500)
         ->margin(1)
         ->errorCorrection('M')
         ->generate($request->url), 200)
