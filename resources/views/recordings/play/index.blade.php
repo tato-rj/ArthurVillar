@@ -61,7 +61,7 @@ img {
 @section('content')
 
 @if(request()->qrcode)
-<div class="position-absolute top-o left-0 w-100 mt-4 animate__animated animate__fadeInLeft animate__slower">
+<div class="position-absolute top-o left-0 w-100 mt-4 animate__animated animate__fadeInLeft">
   <div class="mb-2">
     <a href="{{route('admin.recordings.qrcode', ['recording' => $recording, 'url' => url()->current()])}}" class="btn btn-sm btn-secondary">@fa(['icon' => 'qrcode'])Make QRCode</a>
   </div>
