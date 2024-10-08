@@ -27,14 +27,6 @@ class PlayerController extends Controller
 
         $token = Token::generate($recording->id, $playlist_id);
 
-        $filename = str_slug($recording->nameWithComposer).'.png';
-
-        $url = route('recordings.show', $token);
-        return response()->streamDownload(function () use ($url) {
-            $qrcode = QrCode::size(500)->format('png')->margin(1)->errorCorrection('M');
-
-            echo $qrcode->generate($url);
-        }, $filename, ['Content-Type' => 'image/png']);
         return redirect(route('recordings.show', $token));
     }
 
@@ -63,7 +55,7 @@ class PlayerController extends Controller
     {
         $filename = str_slug($recording->nameWithComposer).'.png';
 
-        return response()->streamDownload(function () use ($request) {
+        return response()->streamDownload(function () {
             $qrcode = QrCode::size(500)->format('png')->margin(1)->errorCorrection('M');
 
             echo $qrcode->generate(url()->full());
