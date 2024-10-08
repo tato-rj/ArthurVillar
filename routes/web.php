@@ -42,7 +42,7 @@ Route::middleware('auth')->domain('admin.'.config('app.url'))->name('admin.')->g
         Route::prefix('{recording}')->group(function() {
             Route::get('', 'RecordingsController@edit')->name('edit');
 
-            // Route::get('qrcode', 'RecordingsController@qrcode')->name('qrcode');
+            Route::get('qrcode', 'RecordingsController@qrcode')->name('qrcode');
 
             Route::patch('playlists', 'RecordingsController@playlists')->name('playlists');
 
