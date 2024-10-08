@@ -59,7 +59,7 @@ class PlayerController extends Controller
             $qrcode = QrCode::size(500)->format('png')->margin(1)->errorCorrection('M');
 
             echo $qrcode->generate($request->url);
-        }, 'qrcode', ['Content-Type' => 'image/png']);
+        }, 'qrcode.png', ['Content-Type' => 'image/png']);
     }
 
     // public function show(Request $request, Recording $recording)
