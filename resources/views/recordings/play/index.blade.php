@@ -67,7 +67,7 @@ img {
   </div>
 
   <div>
-    <a href="{{url()->current()}}" class="btn btn-sm btn-secondary">@fa(['icon' => 'link'])Public link</a>
+    <a href="{{url()->current()}}" target="_blank" class="btn btn-sm btn-secondary">@fa(['icon' => 'link'])Public link</a>
   </div>
 </div>
 @endif
