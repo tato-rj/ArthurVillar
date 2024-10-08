@@ -33,10 +33,9 @@ class RecordingsController extends Controller
         $filename = str_slug($recording->nameWithComposer).'.png';
 
         return response()->streamDownload(function () use ($request) {
-            $qrcode = QrCode::size(500)->format('png')->margin(1);
+            $qrcode = QrCode::size(500)->format('png')->margin(1)->errorCorrection('M');
 
-            return $qrcode->errorCorrection('M')
-                   ->generate($request->url);
+            echo $qrcode->generate($request->url);
         }, $filename, ['Content-Type' => 'image/png']);
     }
 
