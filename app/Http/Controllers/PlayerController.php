@@ -27,7 +27,7 @@ class PlayerController extends Controller
 
         $token = Token::generate($recording->id, $playlist_id);
 
-        if (str_contains(url()->previous(), 'admin.arthurvillar'))
+        // if (str_contains(url()->previous(), 'admin.arthurvillar'))
             session()->flash('qrcode', 'true');
 
         return redirect(route('recordings.show', $token));
