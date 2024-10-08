@@ -16,7 +16,11 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('play')->name('recordings.')->group(function() {
     Route::post('url/{recording}', 'PlayerController@url')->name('url');
 
-    Route::domain(config('app.url'))->middleware('token.play')->get('{token}', 'PlayerController@show')->name('show');
+    Route::domain(config('app.url'))->middleware('token.play')->prefix('{token}')->group(function() {
+        Route::get('', 'PlayerController@show')->name('show');
+
+        Route::get('qrcode', 'PlayerController@qrcode')->name('qrcode');
+    });
 });
 
 Route::middleware('auth')->domain('admin.'.config('app.url'))->prefix('youtube')->name('admin.youtube.')->group(function() {
@@ -40,7 +44,7 @@ Route::middleware('auth')->domain('admin.'.config('app.url'))->name('admin.')->g
         Route::prefix('{recording}')->group(function() {
             Route::get('', 'RecordingsController@edit')->name('edit');
 
-            Route::get('qrcode', 'RecordingsController@qrcode')->name('qrcode');
+            // Route::get('qrcode', 'RecordingsController@qrcode')->name('qrcode');
 
             Route::patch('playlists', 'RecordingsController@playlists')->name('playlists');
 

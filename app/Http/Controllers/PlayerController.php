@@ -27,6 +27,8 @@ class PlayerController extends Controller
 
         $token = Token::generate($recording->id, $playlist_id);
 
+        return redirect(route('recordings.qrdcode', ['url' => route('recordings.show', $token)]));
+
         return redirect(route('recordings.show', $token));
     }
 
@@ -49,6 +51,15 @@ class PlayerController extends Controller
         $playlist = Playlist::find($request['playlist_id'] ?? null);
 
         return view('recordings.play.index', compact(['recording', 'playlist']));
+    }
+
+    public function qrcode($url)
+    {
+        return response()->streamDownload(function () use ($url) {
+            $qrcode = QrCode::size(500)->format('png')->margin(1)->errorCorrection('M');
+
+            echo $qrcode->generate($url);
+        }, 'qrcode', ['Content-Type' => 'image/png']);
     }
 
     // public function show(Request $request, Recording $recording)
