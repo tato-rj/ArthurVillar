@@ -27,17 +27,12 @@ class PlayerController extends Controller
         }
 
         $referrer = $request->headers->get('referer');
+        $params = ['token' => Token::generate($recording->id, $playlist_id)];
 
-        if ($referrer && Str::contains($referrer, 'admin.arthurvillar')) {
-            return 'ADMIN';
-        } else {
-            return 'NOT ADMIN';
-        }
+        if ($referrer && Str::contains($referrer, 'admin.arthurvillar'))
+            $params['qrcode'] = true;
 
-        return redirect(route('recordings.show', [
-            'token' => Token::generate($recording->id, $playlist_id),
-            'qrcode' => true
-        ]));
+        return redirect(route('recordings.show', $params));
     }
 
     public function show($token)
