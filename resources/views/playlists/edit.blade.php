@@ -13,13 +13,13 @@
 </div>
 
 <div>
-	<form id="create-track" method="POST" action="{{route('admin.playlists.token', $playlist)}}">
+	<form id="create-track" method="POST" action="{{route('admin.playlists.secret', $playlist)}}">
 		@method('PATCH')
 		@csrf
 
-		@input(['label' => 'Token', 'disabled' => true, 'value' => $playlist->token])
+		@input(['label' => 'Secret', 'disabled' => true, 'value' => $playlist->secret])
 
-		@submit(['label' => 'Renew token', 'theme' => 'primary'])
+		@submit(['label' => 'Renew secret', 'theme' => 'primary'])
 	</form>
 </div>
 @endmodal

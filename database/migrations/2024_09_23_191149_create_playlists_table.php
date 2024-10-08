@@ -17,7 +17,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('description');
-            $table->string('token', 64)->nullable();
+            $table->string('secret', 64)->nullable();
             $table->timestamps();
         });
 

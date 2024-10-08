@@ -16,8 +16,8 @@ class PlayerController extends Controller
 
         $playlist_id = $request->playlist_id;
 
-        if ($request->has('play_token')) {
-            $data = Token::read($request->play_token);
+        if ($request->has('token')) {
+            $data = Token::read($request->token);
 
             if (! $data)
                 abort(404);
@@ -27,11 +27,7 @@ class PlayerController extends Controller
 
         $token = Token::generate($recording->id, $playlist_id);
 
-        // $data = $recording->readToken($token);
-
-        $url = route('recordings.show', $token);
-
-        return redirect($url);
+        return redirect(route('recordings.show', $token));
     }
 
     // public function url(Request $request, Recording $recording)

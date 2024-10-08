@@ -56,11 +56,11 @@ class PlaylistsController extends Controller
         return back()->with('success', 'The playlist was successully updated');
     }
 
-    public function token(Request $request, Playlist $playlist)
+    public function secret(Request $request, Playlist $playlist)
     {
-        $playlist->newToken();
+        $playlist->renewSecret();
 
-        return back()->with('success', 'The token successully updated');
+        return back()->with('success', 'The secret was successully updated');
     }
 
     public function destroy(Playlist $playlist)

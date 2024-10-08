@@ -9,7 +9,7 @@ class Playlist extends BaseModel
         parent::boot();
 
         self::created(function($playlist) {
-            $playlist->newToken();
+            $playlist->renewSecret();
         });
     }
 
@@ -18,8 +18,8 @@ class Playlist extends BaseModel
         return $this->belongsToMany(Recording::class)->orderBy('composed_in');
     }
 
-    public function newToken()
+    public function renewSecret()
     {
-        $this->update(['token' => uuid()]);   
+        $this->update(['secret' => uuid()]);   
     }
 }

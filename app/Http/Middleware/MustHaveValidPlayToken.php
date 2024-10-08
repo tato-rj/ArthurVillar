@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use App\Token\Token;
+use App\Models\Playlist;
 
 class MustHaveValidPlayToken
 {
@@ -18,8 +19,11 @@ class MustHaveValidPlayToken
     public function handle(Request $request, Closure $next)
     {
         $data = Token::read($request->token);
+        $playlist = Playlist::find($data['playlist_id'] ?? null);
 
-        if ($data && $data['play_token'] == env('APP_TOKEN'))
+        $secret = $playlist ? $playlist->secret : env('APP_TOKEN');
+
+        if ($data && $data['secret'] == $secret)
             return $next($request);
 
         abort(404);
