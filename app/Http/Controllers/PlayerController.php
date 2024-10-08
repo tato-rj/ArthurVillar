@@ -55,7 +55,6 @@ class PlayerController extends Controller
 
     public function qrcode(Request $request)
     {
-        return $request->all();
         return response()->streamDownload(function () use ($request) {
             $qrcode = QrCode::size(500)->format('png')->margin(1)->errorCorrection('M');
 
