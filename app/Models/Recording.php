@@ -65,11 +65,6 @@ class Recording extends BaseModel
         ]);
     }
 
-    // public function playUrl()
-    // {
-    //     return route('recordings.play', ['recording' => $this, 'token' => env('APP_TOKEN')]);
-    // }
-
     public function getNameWithComposerAttribute()
     {
         return $this->name . ' by ' . $this->composer->name;
