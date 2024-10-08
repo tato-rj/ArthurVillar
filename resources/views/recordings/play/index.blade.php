@@ -62,7 +62,7 @@ img {
 
 @if(request()->has('qrcode'))
 <div class="position-absolute top-o left-0 w-100 mt-4">
-    <a href="{{route('admin.recordings.qrcode', ['recording' => $recording, 'url' => url()->full()])}}" class="btn btn-sm btn-secondary">@fa(['icon' => 'qrcode', 'mr' => 0])</a>
+    <a href="{{route('admin.recordings.qrcode', ['recording' => $recording, 'url' => url()->current()])}}" class="btn btn-sm btn-secondary">@fa(['icon' => 'qrcode', 'mr' => 0])</a>
 </div>
 @endif
 
