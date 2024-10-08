@@ -31,17 +31,6 @@ class PlayerController extends Controller
         ]));
     }
 
-    // public function url(Request $request, Recording $recording)
-    // {
-    //     $url = route('recordings.show', [
-    //         'recording' => $recording, 
-    //         'playlist_id' => $request->playlist_id,
-    //         'play_token' => env('APP_TOKEN')
-    //     ]);
-
-    //     return redirect($url);
-    // }
-
     public function show($token)
     {
         $request = Token::read($token);
@@ -52,21 +41,14 @@ class PlayerController extends Controller
         return view('recordings.play.index', compact(['recording', 'playlist']));
     }
 
-    public function qrcode(Recording $recording)
-    {
-        $filename = str_slug($recording->nameWithComposer).'.png';
-
-        return response()->streamDownload(function () {
-            $qrcode = QrCode::size(500)->format('png')->margin(1)->errorCorrection('M');
-
-            echo $qrcode->generate(url()->full());
-        }, $filename, ['Content-Type' => 'image/png']);
-    }
-
-    // public function show(Request $request, Recording $recording)
+    // public function qrcode(Recording $recording)
     // {
-    //     $playlist = Playlist::find($request->playlist_id);
+    //     $filename = str_slug($recording->nameWithComposer).'.png';
 
-    //     return view('recordings.play.index', compact(['recording', 'playlist']));
+    //     return response()->streamDownload(function () {
+    //         $qrcode = QrCode::size(500)->format('png')->margin(1)->errorCorrection('M');
+
+    //         echo $qrcode->generate(url()->full());
+    //     }, $filename, ['Content-Type' => 'image/png']);
     // }
 }

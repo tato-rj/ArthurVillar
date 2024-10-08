@@ -17,13 +17,6 @@ class RecordingsController extends Controller
         return view('recordings.index', compact(['recordings', 'playlists']));
     }
 
-    // public function play(Recording $recording)
-    // {
-    //     return $recording;
-    //     return $recording->playUrl();
-    //     // return view('recordings.play.index', compact('recording'));
-    // }
-
     public function qrcode(Request $request, Recording $recording)
     {
         $filename = str_slug($recording->nameWithComposer).'.png';
