@@ -28,9 +28,9 @@ class RecordingsController extends Controller
         // return view('recordings.play.index', compact('recording'));
     }
 
-    public function qrcode(Recording $recording)
+    public function qrcode(Request $request, Recording $recording)
     {
-        return url()->previous();
+        return $request->url;
         $filename = str_slug($recording->nameWithComposer).'.png';
 
         return response()->streamDownload(function () use ($recording) {
