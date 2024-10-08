@@ -60,11 +60,11 @@ img {
 
 @section('content')
 
-{{-- @if(request()->has('qrcode')) --}}
+@if(request()->has('qrcode'))
 <div class="position-absolute top-o left-0 w-100 mt-4">
     <a href="{{route('admin.recordings.qrcode', ['recording' => $recording, 'url' => url()->full()])}}" class="btn btn-sm btn-secondary">@fa(['icon' => 'qrcode', 'mr' => 0])</a>
 </div>
-{{-- @endif --}}
+@endif
 
 <section class="d-center w-100" style="height: 80vh;">
   <div id="player-container" class="animate__animated animate__fadeIn animate__slower p-4" style="width: 600px; display: none;">
