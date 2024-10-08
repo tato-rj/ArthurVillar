@@ -11,6 +11,10 @@ class Playlist extends BaseModel
         self::created(function($playlist) {
             $playlist->renewSecret();
         });
+
+        self::deleting(function($playlist) {
+            $playlist->recordings()->sync([]);
+        });
     }
 
     public function recordings()

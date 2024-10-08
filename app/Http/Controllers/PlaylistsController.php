@@ -65,6 +65,8 @@ class PlaylistsController extends Controller
 
     public function destroy(Playlist $playlist)
     {
-        
+        $playlist->delete();
+
+        return back()->with('success', 'The playlist was successully deleted');
     }
 }

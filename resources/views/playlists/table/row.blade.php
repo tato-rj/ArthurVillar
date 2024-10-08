@@ -21,6 +21,7 @@
         'edit' => ['modal' => '#edit-playlist-'.$playlist->id.'-modal'],
       ])
 
+      @if($playlist->recordings()->exists())
       <form class="d-inline-block" method="POST" target="_blank" action="{{route('recordings.url', $playlist->recordings->first())}}">
         @csrf
 
@@ -28,6 +29,7 @@
 
         <button class="btn btn-sm btn-secondary" type="submit">@fa(['icon' => 'play', 'mr' => 0])</button>
       </form>
+      @endif
 
       <a class="btn btn-sm btn-secondary" href="{{route('admin.playlists.recordings', $playlist)}}">@fa(['icon' => 'list', 'mr' => 0])</a>
       @endcomponent

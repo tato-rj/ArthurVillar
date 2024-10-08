@@ -22,4 +22,8 @@
 		@submit(['label' => 'Renew secret', 'theme' => 'primary'])
 	</form>
 </div>
+
+<div class="text-center mt-4"> 
+	@delete(['action' => route('admin.playlists.destroy', $playlist), 'label' => 'Delete this playlist'])
+</div>
 @endmodal
