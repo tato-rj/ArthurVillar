@@ -10,6 +10,7 @@ class PlayerController extends Controller
 {
     public function url(Request $request, Recording $recording)
     {
+        return url()->previous();
         $request->validate([
             'playlist_id' => 'sometimes|exists:playlists,id'
         ]);
