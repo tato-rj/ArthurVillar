@@ -16,11 +16,9 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('play')->name('recordings.')->group(function() {
     Route::post('url/{recording}', 'PlayerController@url')->name('url');
 
-    Route::domain(config('app.url'))->middleware('token.play')->group(function() {
-        Route::get('qrcode', 'PlayerController@qrcode')->name('qrcode');
-        
-        Route::get('{token}', 'PlayerController@show')->name('show');
-    });
+    Route::get('qrcode', 'PlayerController@qrcode')->name('qrcode');
+    
+    Route::domain(config('app.url'))->middleware('token.play')->get('{token}', 'PlayerController@show')->name('show');
 });
 
 Route::middleware('auth')->domain('admin.'.config('app.url'))->prefix('youtube')->name('admin.youtube.')->group(function() {
