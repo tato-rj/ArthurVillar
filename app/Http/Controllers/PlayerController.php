@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\{Recording, Playlist};
 use App\Token\Token;
+use Illuminate\Support\Str;
 
 class PlayerController extends Controller
 {
@@ -25,6 +26,14 @@ class PlayerController extends Controller
             $playlist_id = $data['playlist_id'] ?? null;
         }
 
+        $referrer = $request->headers->get('referer');
+
+        if ($referrer && Str::contains($referrer, 'admin.arthurvillar')) {
+            return 'ADMIN';
+        } else {
+            return 'NOT ADMIN';
+        }
+
         return redirect(route('recordings.show', [
             'token' => Token::generate($recording->id, $playlist_id),
             'qrcode' => true
@@ -40,15 +49,4 @@ class PlayerController extends Controller
 
         return view('recordings.play.index', compact(['recording', 'playlist']));
     }
-
-    // public function qrcode(Recording $recording)
-    // {
-    //     $filename = str_slug($recording->nameWithComposer).'.png';
-
-    //     return response()->streamDownload(function () {
-    //         $qrcode = QrCode::size(500)->format('png')->margin(1)->errorCorrection('M');
-
-    //         echo $qrcode->generate(url()->full());
-    //     }, $filename, ['Content-Type' => 'image/png']);
-    // }
 }
