@@ -30,7 +30,7 @@ class RecordingsController extends Controller
 
     public function qrcode(Recording $recording)
     {
-        return url()->full();
+        return url()->previous();
         $filename = str_slug($recording->nameWithComposer).'.png';
 
         return response()->streamDownload(function () use ($recording) {
