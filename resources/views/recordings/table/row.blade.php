@@ -20,8 +20,6 @@
       @component('components.table.actions', [
         'edit' => ['href' => route('admin.recordings.edit', $recording)],
       ])
-      
-      <a href="{{route('admin.recordings.qrcode', $recording)}}" class="btn btn-sm btn-secondary">@fa(['icon' => 'qrcode', 'mr' => 0])</a>
 
       <button class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#play-{{$recording->id}}-modal">@fa(['icon' => 'play', 'mr' => 0])</button>
       

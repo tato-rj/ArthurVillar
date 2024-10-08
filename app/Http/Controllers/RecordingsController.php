@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\{Recording, Period, Composer, Playlist};
 use App\Tools\Cropper\ImageUpload;
-
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class RecordingsController extends Controller
@@ -31,10 +30,14 @@ class RecordingsController extends Controller
 
     public function qrcode(Recording $recording)
     {
+        return url()->full();
         $filename = str_slug($recording->nameWithComposer).'.png';
 
         return response()->streamDownload(function () use ($recording) {
-            echo $recording->qrcode('png');
+            $qrcode = QrCode::size(500)->format('png')->margin(1);
+
+            return $qrcode->errorCorrection('M')
+                   ->generate(url()->full());
         }, $filename, ['Content-Type' => 'image/png']);
     }
 

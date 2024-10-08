@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use getID3 as AudioAnalyzer;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use App\Models\Traits\HasFilesInStorage;
 
 class Recording extends BaseModel
@@ -74,16 +73,5 @@ class Recording extends BaseModel
     public function getNameWithComposerAttribute()
     {
         return $this->name . ' by ' . $this->composer->name;
-    }
-
-    public function qrcode($format = null)
-    {
-        $qrcode = QrCode::size(500)->margin(1);
-        
-        if ($format)
-            $qrcode->format($format);
-
-        return $qrcode->errorCorrection('M')
-               ->generate(route('recordings.play', $this));
     }
 }
