@@ -27,7 +27,7 @@ class PlayerController extends Controller
 
         $token = Token::generate($recording->id, $playlist_id);
 
-        return redirect(route('recordings.qrdcode', ['url' => route('recordings.show', $token)]));
+        return redirect(route('recordings.qrcode', ['url' => route('recordings.show', $token)]));
 
         return redirect(route('recordings.show', $token));
     }
