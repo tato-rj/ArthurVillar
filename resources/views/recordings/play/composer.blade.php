@@ -10,5 +10,8 @@
 
 <p id="bio" class="m-0" style="white-space: pre-wrap;">{{$recording->composer->biography}}</p>
 
-<div class="mt-4 pt-4 border-{{$recording->period->color}}" style="border-top: 6px dotted"><strong>Did you know?</strong> {{$recording->composer->curiosity}}</div>
+<div class="mt-4 pt-4 border-{{$recording->period->color}}" style="border-top: 6px dotted">
+	<h6 class="fw-bold text-center">Did you know?</h6>
+	<div>{{$recording->composer->curiosity}}</div>
+</div>
 @endmodal
