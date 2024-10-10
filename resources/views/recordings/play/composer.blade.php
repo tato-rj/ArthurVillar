@@ -8,7 +8,7 @@
 	</div>
 </div>
 
-<div class="mb-3 p-3 border bg-light"><strong>Did you know?</strong> {{$recording->composer->curiosity}}</div>
-
 <p id="bio" class="m-0" style="white-space: pre-wrap;">{{$recording->composer->biography}}</p>
+
+<div class="mt-3 pt-3" style="border-top: 8px dotted lightgrey"><strong>Did you know?</strong> {{$recording->composer->curiosity}}</div>
 @endmodal
