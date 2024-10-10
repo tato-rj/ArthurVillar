@@ -7,6 +7,10 @@
 .ql-container, .ql-toolbar {
   border-color: #212529 !important;
 }
+
+.quill-editor p {
+  margin-bottom: .5rem !important;
+}
 </style>
 @endpush
 
