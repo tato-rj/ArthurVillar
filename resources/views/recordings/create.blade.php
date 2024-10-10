@@ -30,7 +30,10 @@
 		@input(['placeholder' => 'Year', 'type' => 'number', 'min' => 1400, 'grid' => 'col', 'name' => 'composed_in', 'value' => old('composed_in')])
 	</div>
 
-	@textarea(['placeholder' => 'Description', 'name' => 'description', 'value' => old('description')])
+    <div id="quill-event-edit" data-name="description" class="mb-4 form-control">
+        {!!old('description')!!}
+    </div>
+    <textarea style="display: none" name="description">{!!old('description')!!}</textarea>
 
 	@input(['placeholder' => 'Source URL', 'name' => 'source_url', 'value' => old('source_url')])
 	<label class="input-file cursor-pointer w-100 form-group">

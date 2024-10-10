@@ -27,7 +27,11 @@
 		@input(['placeholder' => 'Died in', 'grid' => 'col', 'name' => 'died_in', 'value' => old('died_in')])
 	</div>
 
-	@textarea(['placeholder' => 'Biography', 'name' => 'biography', 'value' => old('biography')])
+    <div id="quill-event-edit" data-name="biography" class="mb-4 form-control">
+        {!!old('biography')!!}
+    </div>
+    <textarea style="display: none" name="biography">{!!old('biography')!!}</textarea>
+
 	@textarea(['placeholder' => 'Curiosity', 'name' => 'curiosity', 'rows' => 2, 'value' => old('curiosity')])
 
 	@submit(['label' => 'Submit', 'theme' => 'primary'])

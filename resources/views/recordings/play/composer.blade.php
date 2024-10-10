@@ -8,7 +8,7 @@
 	</div>
 </div>
 
-<p id="bio" class="m-0" style="white-space: pre-wrap;">{{$recording->composer->biography}}</p>
+<p id="bio" class="m-0" style="white-space: pre-wrap;">{!!$recording->composer->biography!!}</p>
 
 <div class="mt-4 pt-3" style="border-top: lightgrey 6px dotted">
 	<h6 class="fw-bold text-center">Did you know?</h6>
