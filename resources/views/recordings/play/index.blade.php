@@ -120,7 +120,6 @@ $(document).ready(function() {
 
   const player = new Plyr('#player', {
     title: '{{$recording->name}}',
-    autoplay: true,
     controls: ['play', 'progress', 'current-time', 'airplay']
   });
 
