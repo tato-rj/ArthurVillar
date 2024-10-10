@@ -13,10 +13,6 @@
 			'label' => 'Ensemble',
 			'width' => '1%'
 		],
-		'playlists_count*' => [
-			'label' => 'Playlists',
-			'width' => '1%'
-		],
 		'actions' => [
 			'label' => '',
 			'width' => 'auto'
