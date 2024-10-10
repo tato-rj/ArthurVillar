@@ -8,7 +8,7 @@
   border-color: #212529 !important;
 }
 
-.quill-editor p {
+.ql-editor p {
   margin-bottom: .5rem !important;
 }
 </style>
