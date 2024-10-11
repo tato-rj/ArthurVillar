@@ -76,7 +76,7 @@
                         <a href="{{$audioUrl}}" class="btn btn-primary form-control" download>@fa(['icon' => 'download', 'mr' => 0])</a>
                     </div>
                     @endif
-                    <label class="input-file cursor-pointer w-100">
+                    <label class="input-file cursor-pointer w-100 text-truncate">
                         <input style="display: none" name="audio" data-accept="mp3" type="file">
                         <div class="form-control text-truncate">
                             <span class="default text-truncate">
