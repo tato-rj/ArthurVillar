@@ -1,15 +1,7 @@
 @import "bootstrap/setup";
 
-.quill-text p {
-  margin: 0 !important;
-}
-
 .quill-text ul li {
-  margin-bottom: 4px !important;
-}
-
-.quill-text > *:last-child {
-    margin-bottom: 0;
+  margin-bottom: .5rem !important;
 }
 
 .form-check-input {

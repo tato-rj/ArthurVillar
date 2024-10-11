@@ -56,10 +56,11 @@
                     @input(['label' => 'Died in', 'grid' => 'col', 'name' => 'died_in', 'value' => $composer->formatDate('died_in', 'm/d/Y')])
                 </div>
 
-                <div id="quill-event-edit" data-name="description" class="mb-4 form-control">
-                    {!!$composer->description!!}
+                <div id="quill-event-edit" data-name="biography" class="mb-4 form-control">
+                    {!!$composer->biography!!}
                 </div>
-                <textarea style="display: none" name="description">{!!$composer->description!!}</textarea>
+                <textarea style="display: none" name="biography">{!!$composer->biography!!}</textarea>
+                
                 @textarea(['label' => 'Curiosity', 'name' => 'curiosity', 'rows' => 2, 'value' => $composer->curiosity])
 
                 @submit(['label' => 'Save changes', 'theme' => 'primary'])
