@@ -4,6 +4,10 @@
   margin-bottom: .5rem !important;
 }
 
+.quill-text a {
+  @extend .text-red;
+}
+
 .form-check-input {
   margin-top: 0.12em;
 }
