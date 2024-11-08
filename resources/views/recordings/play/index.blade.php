@@ -1,4 +1,4 @@
-@extends('layouts.app', ['noMenu' => true, 'title' => $recording->name_with_composer])
+@extends('layouts.app', ['noMenu' => true, 'title' => isset($playlist) ? $playlist->name : $recording->name_with_composer])
 
 @push('header')
 <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
