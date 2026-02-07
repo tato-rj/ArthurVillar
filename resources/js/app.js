@@ -4,6 +4,8 @@ require('./extensions');
 require('./components');
 require('./utilities');
 
+document.addEventListener("touchstart", () => {}, { passive: true });
+
 $(document).on('click', 'form[confirm] button[type="submit"]', function(e) {
     if (! confirm('⚠️ Are you sure?\nThis action cannot be undone'))
         return e.preventDefault();

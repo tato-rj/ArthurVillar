@@ -3032,6 +3032,9 @@ __webpack_require__(/*! ./helpers */ "./resources/js/helpers/index.js");
 __webpack_require__(/*! ./extensions */ "./resources/js/extensions/index.js");
 __webpack_require__(/*! ./components */ "./resources/js/components/index.js");
 __webpack_require__(/*! ./utilities */ "./resources/js/utilities/index.js");
+document.addEventListener("touchstart", function () {}, {
+  passive: true
+});
 $(document).on('click', 'form[confirm] button[type="submit"]', function (e) {
   if (!confirm('⚠️ Are you sure?\nThis action cannot be undone')) return e.preventDefault();
 });
