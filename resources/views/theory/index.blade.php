@@ -4,39 +4,39 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 
-<style>
+<style>  
   :root{
     /* Staff box */
     --staff-width: 300px;
-    --staff-height: 160px;
+    --staff-height: 280px;
     --staff-radius: 1rem;
 
     /* Staff lines */
     --staff-padding-x: 20px;   /* horizontal inset from left/right */
-    --staff-line-gap: 16px;    /* distance between staff lines */
-    --staff-line-thickness: 3px;
+    --staff-line-gap: 25px;    /* distance between staff lines */
+    --staff-line-thickness: 5px;
 
     /* Note head */
-    --note-width: 16px;
-    --note-height: 13px;
+    --note-width: 28px;
+    --note-height: 22px;
     --note-rotate: -18deg;
     --note-center-x: calc(var(--note-width) / 2);
-    --note-center-y: 5px; /* optical center; tweak freely */
+    --note-center-y: 8.5px; /* optical center; tweak freely */
 
     /* Ledger */
-    --ledger-width: 22px;
-    --ledger-thickness: 3px;
+    --ledger-width: 38px;
+    --ledger-thickness: 5px;
     --ledger-center-x: calc(var(--ledger-width) / 2);
     --ledger-center-y: 0px;
 
     /* Clef */
-    --clef-width: 100px;
+    --clef-width: 140px;
     --clef-height: calc(var(--staff-line-gap) * 6);
-    --clef-top: 34px;
-    --clef-left-nudge: 6px; /* subtract from padding-x */
+    --clef-top: 72px;
+    --clef-left-nudge: 21px; /* subtract from padding-x */
 
     /* Adjacent-note collision */
-    --note-overlap-gap: -6px; /* negative = touch/overlap */
+    --note-overlap-gap: -9px; /* negative = touch/overlap */
 
     /* Colors */
     --ink: #111;
@@ -101,6 +101,7 @@
     margin-left: calc(var(--ledger-center-x) * -1);
     margin-top: var(--ledger-center-y);
     pointer-events: none;
+    border-radius: 999px;
   }
 
   /* Ghost / preview */
@@ -119,9 +120,9 @@
 <div class="h-100vh w-100 d-center">
   <div class="text-center">
     <div id="staff"></div>
-    <div class="btn-floating">
+{{--     <div class="btn-floating">
       <button id="clear" class="btn btn-primary">Reset</button>
-    </div>
+    </div> --}}
   </div>
 </div>
 @endsection
