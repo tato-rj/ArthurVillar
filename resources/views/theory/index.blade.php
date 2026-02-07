@@ -2,102 +2,117 @@
 
 @push('header')
 <style>
-    /* Staff container */
-    #staff {
-      position: relative;
-      height: 160px;
-      width: 300px;
-      border-radius: 1rem;
-      background: #fff;
-      overflow: hidden;
-      user-select: none;
-    }
-#staff, #staff .note {
-  touch-action: none;
-}
-    /* 5 staff lines */
-    .staff-line {
-      position: absolute;
-      left: 1.25rem;
-      right: 1.25rem;
-      height: 2px;
-      background: #111;
-      opacity: .9;
-      border-radius: 20px;
-    }
+  :root{
+    /* =========================
+       Single place to scale UI
+       ========================= */
+    --staff-w: 360px;
+    --staff-h: 220px;
 
-    /* Notehead (simple filled ellipse) */
-    .note {
-      position: absolute;
-      width: 16px;
-      height: 13px;
-      border-radius: 50%;
-      background: #111;
-      transform: rotate(-18deg);
-      margin-left: -8px; /* center on x */
-      margin-top: -5px;  /* center on y */
-      {{-- cursor: pointer; --}}
-    }
+    --line-gap: 22px;            /* distance between staff lines */
+    --line-thickness: 3px;
 
-    /* Ledger line */
-    .ledger {
-      position: absolute;
-      width: 22px;
-      height: 3px;
-      background: #111;
-      opacity: .9;
-      margin-left: -11px; /* center on x */
-      margin-top: 0px;
-      pointer-events: none;
-    }
+    --note-w: 22px;
+    --note-h: 18px;
+    --note-rotate: -18deg;
 
-/* Ghost / preview */
-.note.preview { background: #90D5FF; opacity: .5; pointer-events: none; }
-.ledger.preview { background: #90D5FF; opacity: .5; pointer-events: none; }
+    --ledger-w: 30px;
+    --ledger-thickness: 3px;
 
-/* While dragging an existing note: make note + its ledgers ghosty */
-.note.dragging { background: #90D5FF; opacity: .5; }
-.ledger.dragging { background: #90D5FF; opacity: .5; }
+    --staff-pad-x: 26px;
 
+    --ghost-color: #90D5FF;
+    --ink: #111;
+  }
+
+  /* Staff container */
+  #staff{
+    position: relative;
+    width: var(--staff-w);
+    height: var(--staff-h);
+    border-radius: 1rem;
+    background: #fff;
+    overflow: hidden;
+    user-select: none;
+    touch-action: none; /* mobile drag */
+  }
+
+  /* 5 staff lines */
+  .staff-line{
+    position: absolute;
+    left: var(--staff-pad-x);
+    right: var(--staff-pad-x);
+    height: var(--line-thickness);
+    background: var(--ink);
+    opacity: .9;
+    border-radius: 999px;
+  }
+
+  /* Notehead */
+  .note{
+    position: absolute;
+    width: var(--note-w);
+    height: var(--note-h);
+    border-radius: 50%;
+    background: var(--ink);
+    transform: rotate(var(--note-rotate));
+    margin-left: calc(var(--note-w) / -2);     /* center on x */
+    margin-top:  calc(var(--note-h) / -2);     /* center on y */
+    touch-action: none; /* mobile drag */
+  }
+
+  /* Ledger */
+  .ledger{
+    position: absolute;
+    width: var(--ledger-w);
+    height: var(--ledger-thickness);
+    background: var(--ink);
+    opacity: .9;
+    margin-left: calc(var(--ledger-w) / -2);
+    margin-top:  calc(var(--ledger-thickness) / -2);
+    pointer-events: none;
+  }
+
+  /* Ghost / preview + dragging */
+  .note.preview, .ledger.preview,
+  .note.dragging, .ledger.dragging{
+    background: var(--ghost-color);
+    opacity: .5;
+    pointer-events: none;
+  }
 </style>
 @endpush
 
 @section('content')
-{{-- <section class="container">
-	<div class="row">
-		<div class="col-lg-6 col-md-8 col-11 mx-auto">
-			
-		</div>
-	</div>
-</section> --}}
-
 <div class="h-100vh w-100 d-center">
-	<div class="text-center">
-		<div id="staff"></div>
-		<div class="btn-floating">
-			<button id="clear" class="btn btn-primary">Reset</button>
-		</div>
-	</div>
+  <div class="text-center">
+    <div id="staff"></div>
+    <div class="btn-floating">
+      <button id="clear" class="btn btn-primary">Reset</button>
+    </div>
+  </div>
 </div>
 @endsection
 
 @push('scripts')
 <script>
 (function ($) {
-
-  // ============================================================
-  // Staff
-  // ============================================================
   function Staff($el, opts) {
     this.$el = $el;
 
-    this.opts = $.extend({
-      paddingX: 20,
-      lineGap: 16,
-      lineThickness: 3,
-      noteIdPrefix: 'n',
+    var css = getComputedStyle(document.documentElement);
+    var cssNum = function (name, fallback) {
+      var v = parseFloat(css.getPropertyValue(name));
+      return Number.isFinite(v) ? v : fallback;
+    };
 
-      clefUrl: "{{asset('images/clefs/treble-clef.svg')}}",
+    this.opts = $.extend({
+      paddingX: cssNum('--staff-pad-x', 20),
+      lineGap: cssNum('--line-gap', 16),
+      lineThickness: cssNum('--line-thickness', 3),
+
+      noteIdPrefix: 'n',
+      clefUrl: "{{ asset('images/clefs/treble-clef.svg') }}",
       clefWidth: 100,
       clefTop: 34,
 
@@ -112,17 +127,17 @@
     this._idCounter = 1;
 
     this._drag = {
+      thresholdPx: 5,
       isDragging: false,
       movedPx: 0,
       startPageY: 0,
       noteId: null,
-      thresholdPx: 5,
       swallowClick: false,
-
       startStep: null,
       lastTargetStep: null,
       dropOnOccupied: false,
-      outOfRange: false
+      outOfRange: false,
+      pointerId: null
     };
 
     this._previewState = { active: false, step: null };
@@ -133,9 +148,9 @@
     this._drawLines();
   }
 
-  // ============================================================
+  // -------------------------
   // Layout + drawing
-  // ============================================================
+  // -------------------------
   Staff.prototype._computeLayout = function () {
     var h = this.$el.height();
     var staffHeight = this.opts.lineGap * 4;
@@ -145,7 +160,6 @@
 
   Staff.prototype._drawLines = function () {
     this.$el.empty();
-
     for (var i = 0; i < 5; i++) {
       var y = this.opts.bottomLineY - (4 - i) * this.opts.lineGap;
       $('<div class="staff-line"></div>')
@@ -157,7 +171,6 @@
         })
         .appendTo(this.$el);
     }
-
     this._drawClef();
   };
 
@@ -183,9 +196,9 @@
     this._drawLines();
   };
 
-  // ============================================================
+  // -------------------------
   // Coordinates + range
-  // ============================================================
+  // -------------------------
   Staff.prototype.centerX = function () { return this.$el.width() / 2; };
   Staff.prototype.stepToY  = function (step) { return this.opts.bottomLineY - (step * this.opts.stepSize); };
   Staff.prototype.yToStep  = function (y) { return Math.round((this.opts.bottomLineY - y) / this.opts.stepSize); };
@@ -195,20 +208,25 @@
   Staff.prototype.maxStepAllowed = function () { return 8 + (this.opts.maxLedgerAbove * 2); };
   Staff.prototype._isStepAllowed = function (step) { return step >= this.minStepAllowed() && step <= this.maxStepAllowed(); };
 
-  // ============================================================
+  function getPageY(e) {
+    var oe = e.originalEvent || e;
+    if (oe.touches && oe.touches.length) return oe.touches[0].pageY;
+    if (oe.changedTouches && oe.changedTouches.length) return oe.changedTouches[0].pageY;
+    return oe.pageY;
+  }
+
+  // -------------------------
   // Ledgers
-  // ============================================================
+  // -------------------------
   Staff.prototype._ledgerStepsFor = function (step) {
     var ledgers = [];
     var topMost = 8 + (this.opts.maxLedgerAbove * 2);
     var bottomMost = 0 - (this.opts.maxLedgerBelow * 2);
 
     if (step > 8) {
-      var capped = Math.min(step, topMost);
-      for (var s = 10; s <= capped; s += 2) ledgers.push(s);
+      for (var s = 10; s <= Math.min(step, topMost); s += 2) ledgers.push(s);
     } else if (step < 0) {
-      var capped2 = Math.max(step, bottomMost);
-      for (var s2 = -2; s2 >= capped2; s2 -= 2) ledgers.push(s2);
+      for (var s2 = -2; s2 >= Math.max(step, bottomMost); s2 -= 2) ledgers.push(s2);
     }
     return ledgers;
   };
@@ -230,16 +248,11 @@
   };
 
   // Preview ledgers
-  Staff.prototype._previewLedgersClear = function () {
-    this.$el.find('.ledger.preview').remove();
-  };
-
+  Staff.prototype._previewLedgersClear = function () { this.$el.find('.ledger.preview').remove(); };
   Staff.prototype._previewLedgersSet = function (step) {
     this._previewLedgersClear();
-
     var x = this.centerX();
     var steps = this._ledgerStepsFor(step);
-
     for (var i = 0; i < steps.length; i++) {
       $('<div class="ledger preview"></div>')
         .css({ left: x + 'px', top: this.stepToY(steps[i]) + 'px' })
@@ -247,9 +260,9 @@
     }
   };
 
-  // ============================================================
+  // -------------------------
   // Occupancy helpers
-  // ============================================================
+  // -------------------------
   Staff.prototype._stepOfNoteEl = function (el) {
     var topStr = el.style.top || window.getComputedStyle(el).top;
     return this.yToStep(parseFloat(topStr));
@@ -259,11 +272,8 @@
     var nodes = this.$el.find('.note').toArray();
     for (var i = 0; i < nodes.length; i++) {
       var el = nodes[i];
-      if (!el) continue;
-
       var id = el.getAttribute('data-note-id');
       if (excludeId && id === excludeId) continue;
-
       if (this._stepOfNoteEl(el) === step) return true;
     }
     return false;
@@ -273,11 +283,8 @@
     var nodes = this.$el.find('.note').toArray();
     for (var i = 0; i < nodes.length; i++) {
       var el = nodes[i];
-      if (!el) continue;
-
       var id = el.getAttribute('data-note-id');
       if (excludeId && id === excludeId) continue;
-
       if (this._stepOfNoteEl(el) === step) return id;
     }
     return null;
@@ -289,17 +296,13 @@
     return Math.abs(parseFloat($n.css('left')) - this.centerX()) <= 0.5;
   };
 
-  // ============================================================
-  // Notes
-  // ============================================================
-
+  // -------------------------
+  // Notes (name logging)
+  // -------------------------
   Staff.prototype._stepToNoteNameTreble = function (step) {
-    // With your mapping: step 2 = second line = G
-    // Each step is a diatonic move (line/space)
     var names = ['C','D','E','F','G','A','B'];
-    var baseStep = 2;      // second line from bottom
-    var baseIndex = 4;     // 'G' in names
-
+    var baseStep = 2;   // second line from bottom
+    var baseIndex = 4;  // G
     var diatonic = step - baseStep;
     var idx = ((baseIndex + diatonic) % 7 + 7) % 7;
     return names[idx];
@@ -311,10 +314,10 @@
 
   Staff.prototype.clearNotes = function () {
     this.$el.find('.note, .ledger').remove();
+    this._previewClear();
   };
 
   Staff.prototype.removeNote = function (id) {
-    // IMPORTANT: never create notes here; only remove and re-layout
     this.$el.find('.note[data-note-id="' + id + '"]').remove();
     this.$el.find('.ledger[data-for-note-id="' + id + '"]').remove();
     this._resolveNoteOverlaps();
@@ -322,28 +325,23 @@
 
   Staff.prototype.addNote = function (cfg) {
     cfg = cfg || {};
-
     var step = Number.isFinite(cfg.step) ? Number(cfg.step) : null;
 
-    // Range clamp: never create outside ledger limit
     if (Number.isFinite(step) && !this._isStepAllowed(step)) return null;
+    if (Number.isFinite(step) && this._isStepOccupied(step, null)) return null;
 
+    var x = Number.isFinite(cfg.x) ? Number(cfg.x) : this.centerX();
     var y = Number.isFinite(cfg.y) ? Number(cfg.y)
           : Number.isFinite(step) ? this.stepToY(step)
           : null;
     if (!Number.isFinite(y)) throw new Error('addNote: provide either y or step');
 
-    if (Number.isFinite(step) && this._isStepOccupied(step, null)) return null;
-
-    var x = Number.isFinite(cfg.x) ? Number(cfg.x) : this.centerX();
     var id = cfg.id || (this.opts.noteIdPrefix + (this._idCounter++));
-
     var $note = $('<div class="note"></div>')
       .attr('data-note-id', id)
       .css({ left: x + 'px', top: y + 'px' });
 
     if (cfg.className) $note.addClass(cfg.className);
-
     this.$el.append($note);
 
     if ((cfg.ledger === true) || (cfg.ledger !== false && Number.isFinite(step))) {
@@ -351,9 +349,7 @@
     }
 
     this._resolveNoteOverlaps();
-
     if (Number.isFinite(step)) this._logCreatedNote(step);
-
     return id;
   };
 
@@ -380,9 +376,9 @@
     }
   };
 
-  // ============================================================
+  // -------------------------
   // Ghost / preview note
-  // ============================================================
+  // -------------------------
   Staff.prototype._previewSet = function (step) {
     if (!this._preview) this._preview = $('<div class="note preview"></div>').appendTo(this.$el);
     this._preview.css({ left: this.centerX() + 'px', top: this.stepToY(step) + 'px' });
@@ -399,9 +395,9 @@
     this._previewLedgersClear();
   };
 
-  // ============================================================
+  // -------------------------
   // Overlap resolution (adjacent steps only)
-  // ============================================================
+  // -------------------------
   Staff.prototype._rectsOverlap = function (a, b) {
     return !(a.right <= b.left || a.left >= b.right || a.bottom <= b.top || a.top >= b.bottom);
   };
@@ -457,8 +453,7 @@
       centerAll(list);
 
       var stepMap = noteByStep(list);
-      var steps = Object.keys(stepMap)
-        .map(function (s) { return parseInt(s, 10); })
+      var steps = Object.keys(stepMap).map(function (s) { return parseInt(s, 10); })
         .sort(function (a, b) { return a - b; });
 
       var changed = false;
@@ -480,9 +475,9 @@
     }
   };
 
-  // ============================================================
+  // -------------------------
   // Drag visuals + adjacency X while dragging
-  // ============================================================
+  // -------------------------
   Staff.prototype._setDraggingVisual = function (noteId, on) {
     var $note = this.$el.find('.note[data-note-id="' + noteId + '"]');
     var $ledgers = this.$el.find('.ledger[data-for-note-id="' + noteId + '"]');
@@ -498,13 +493,10 @@
     var center = this.centerX();
     var gap = this.opts.noteOverlapGap;
 
-    // default center
     this.moveNote(dragId, { x: center });
 
     var lowerId = this._getNoteIdAtStep(dragStep - 1, dragId);
     if (!lowerId) return;
-
-    // alternation: if lower is shifted, keep dragged centered
     if (!this._isCenteredX(lowerId)) return;
 
     var $lower = this.$el.find('.note[data-note-id="' + lowerId + '"]');
@@ -512,204 +504,176 @@
 
     var upperRect = $drag[0].getBoundingClientRect();
     var lowerRect = $lower[0].getBoundingClientRect();
-
     if (!this._rectsOverlap(upperRect, lowerRect)) return;
 
     var dx = (lowerRect.right - upperRect.left) + gap;
     this.moveNote(dragId, { x: center + dx });
   };
 
-  // ============================================================
-  // Interaction
-  // ============================================================
-Staff.prototype.enableGhostClickCreate = function () {
-  var self = this;
+  // -------------------------
+  // Interaction (Pointer Events)
+  // -------------------------
+  Staff.prototype.enableGhostClickCreate = function () {
+    var self = this;
 
-  this.$el.off('.previewCreate');
-  $(window).off('blur.previewCreate');
+    this.$el.off('.previewCreate');
+    $(window).off('blur.previewCreate');
 
-  function getPageY(e) {
-    var oe = e.originalEvent || e;
-    if (oe.touches && oe.touches.length) return oe.touches[0].pageY;
-    if (oe.changedTouches && oe.changedTouches.length) return oe.changedTouches[0].pageY;
-    return oe.pageY;
-  }
+    this.$el.on('pointerdown.previewCreate', function (e) {
+      if ($(e.target).closest('.note').length) return;
+      e.preventDefault();
 
-  this.$el.on('pointerdown.previewCreate', function (e) {
-    // only empty staff (not on notes)
-    if ($(e.target).closest('.note').length) return;
+      var initialStep = self.yToStep(self._pageYToLocalY(getPageY(e)));
+      if (!self._isStepAllowed(initialStep)) return;
 
-    e.preventDefault();
+      self._previewState.active = true;
+      self._previewState.step = initialStep;
+      self._previewSet(initialStep);
 
-    var pageY = getPageY(e);
-    var initialStep = self.yToStep(self._pageYToLocalY(pageY));
-    if (!self._isStepAllowed(initialStep)) return;
+      this.setPointerCapture && this.setPointerCapture(e.originalEvent.pointerId);
 
-    self._previewState.active = true;
-    self._previewState.step = initialStep;
-    self._previewSet(initialStep);
-
-    // capture pointer so moves still arrive even if finger leaves element
-    this.setPointerCapture && this.setPointerCapture(e.originalEvent.pointerId);
-
-    self.$el.off('pointermove.previewCreate').on('pointermove.previewCreate', function (ev) {
-      if (!self._previewState.active) return;
-
-      var py = getPageY(ev);
-      var s = self.yToStep(self._pageYToLocalY(py));
-      if (!self._isStepAllowed(s)) return;
-
-      self._previewState.step = s;
-      self._previewSet(s);
-    });
-
-    self.$el.off('pointerup.previewCreate pointercancel.previewCreate')
-      .on('pointerup.previewCreate pointercancel.previewCreate', function (ev2) {
+      self.$el.off('pointermove.previewCreate').on('pointermove.previewCreate', function (ev) {
         if (!self._previewState.active) return;
-
-        self._previewState.active = false;
-
-        var finalStep = self._previewState.step;
-        self._previewClear();
-
-        self.$el.off('pointermove.previewCreate pointerup.previewCreate pointercancel.previewCreate');
-
-        if (!self._isStepAllowed(finalStep)) return;
-        if (!self._isStepOccupied(finalStep, null)) self.addNote({ step: finalStep });
+        var s = self.yToStep(self._pageYToLocalY(getPageY(ev)));
+        if (!self._isStepAllowed(s)) return;
+        self._previewState.step = s;
+        self._previewSet(s);
       });
-  });
 
-  $(window).on('blur.previewCreate', function () {
-    if (!self._previewState.active) return;
-    self._previewState.active = false;
-    self._previewClear();
-    self.$el.off('pointermove.previewCreate pointerup.previewCreate pointercancel.previewCreate');
-  });
-};
+      self.$el.off('pointerup.previewCreate pointercancel.previewCreate')
+        .on('pointerup.previewCreate pointercancel.previewCreate', function () {
+          if (!self._previewState.active) return;
 
+          self._previewState.active = false;
 
-Staff.prototype.enableNoteDragAndClickDelete = function () {
-  var self = this;
-  var d = this._drag;
+          var finalStep = self._previewState.step;
+          self._previewClear();
 
-  this.$el.off('.noteDrag');
+          self.$el.off('pointermove.previewCreate pointerup.previewCreate pointercancel.previewCreate');
 
-  function getPageY(e) {
-    var oe = e.originalEvent || e;
-    if (oe.touches && oe.touches.length) return oe.touches[0].pageY;
-    if (oe.changedTouches && oe.changedTouches.length) return oe.changedTouches[0].pageY;
-    return oe.pageY;
-  }
-
-  this.$el.on('pointerdown.noteDrag', '.note', function (e) {
-    e.preventDefault();
-    e.stopPropagation();
-
-    var $note = $(this);
-    var pointerId = e.originalEvent.pointerId;
-
-    d.isDragging = false;
-    d.movedPx = 0;
-    d.startPageY = getPageY(e);
-    d.noteId = $note.attr('data-note-id');
-
-    d.startStep = self.yToStep(parseFloat($note.css('top')));
-    d.lastTargetStep = d.startStep;
-    d.dropOnOccupied = false;
-    d.outOfRange = false;
-
-    self._setDraggingVisual(d.noteId, true);
-
-    // capture pointer so we keep getting move/up reliably on mobile
-    this.setPointerCapture && this.setPointerCapture(pointerId);
-
-    self.$el.off('pointermove.noteDrag').on('pointermove.noteDrag', function (ev) {
-      // only track same pointer
-      if ((ev.originalEvent.pointerId || pointerId) !== pointerId) return;
-
-      var py = getPageY(ev);
-      var dy = py - d.startPageY;
-      d.movedPx = Math.max(d.movedPx, Math.abs(dy));
-
-      if (!d.isDragging && d.movedPx >= d.thresholdPx) d.isDragging = true;
-      if (!d.isDragging) return;
-
-      var targetStep = self.yToStep(self._pageYToLocalY(py));
-
-      if (!self._isStepAllowed(targetStep)) {
-        d.outOfRange = true;
-        return;
-      }
-      d.outOfRange = false;
-
-      d.lastTargetStep = targetStep;
-
-      self.moveNote(d.noteId, { step: targetStep });
-
-      d.dropOnOccupied = self._isStepOccupied(targetStep, d.noteId);
-
-      self._applyDraggedAdjacencyX(d.noteId);
+          if (!self._isStepAllowed(finalStep)) return;
+          if (!self._isStepOccupied(finalStep, null)) self.addNote({ step: finalStep });
+        });
     });
 
-    self.$el.off('pointerup.noteDrag pointercancel.noteDrag')
-      .on('pointerup.noteDrag pointercancel.noteDrag', function (ev2) {
-        if ((ev2.originalEvent.pointerId || pointerId) !== pointerId) return;
+    $(window).on('blur.previewCreate', function () {
+      if (!self._previewState.active) return;
+      self._previewState.active = false;
+      self._previewClear();
+      self.$el.off('pointermove.previewCreate pointerup.previewCreate pointercancel.previewCreate');
+    });
+  };
 
-        self.$el.off('pointermove.noteDrag pointerup.noteDrag pointercancel.noteDrag');
+  Staff.prototype.enableNoteDragAndClickDelete = function () {
+    var self = this;
+    var d = this._drag;
 
-        d.swallowClick = d.isDragging;
+    this.$el.off('.noteDrag');
 
-        self._setDraggingVisual(d.noteId, false);
-
-        if (d.outOfRange || d.dropOnOccupied) {
-          self.removeNote(d.noteId);
-        } else {
-          self.moveNote(d.noteId, { step: d.lastTargetStep });
-          self._logCreatedNote(d.lastTargetStep);
-          self._resolveNoteOverlaps();
-        }
-
-        d.noteId = null;
-        d.isDragging = false;
-        d.movedPx = 0;
-        d.startStep = null;
-        d.lastTargetStep = null;
-        d.dropOnOccupied = false;
-        d.outOfRange = false;
-      });
-  });
-
-  // click/tap delete (only if not just dragged)
-  this.$el.on('click.noteDrag', '.note', function (e) {
-    if (d.swallowClick) {
+    this.$el.on('pointerdown.noteDrag', '.note', function (e) {
       e.preventDefault();
       e.stopPropagation();
-      d.swallowClick = false;
-      return;
-    }
-    self.removeNote($(this).attr('data-note-id'));
-  });
-};
+
+      var $note = $(this);
+      var pid = e.originalEvent.pointerId;
+      d.pointerId = pid;
+
+      d.isDragging = false;
+      d.movedPx = 0;
+      d.startPageY = getPageY(e);
+      d.noteId = $note.attr('data-note-id');
+
+      d.startStep = self.yToStep(parseFloat($note.css('top')));
+      d.lastTargetStep = d.startStep;
+      d.dropOnOccupied = false;
+      d.outOfRange = false;
+
+      self._setDraggingVisual(d.noteId, true);
+
+      this.setPointerCapture && this.setPointerCapture(pid);
+
+      self.$el.off('pointermove.noteDrag').on('pointermove.noteDrag', function (ev) {
+        if ((ev.originalEvent.pointerId || pid) !== pid) return;
+
+        var py = getPageY(ev);
+        var dy = py - d.startPageY;
+        d.movedPx = Math.max(d.movedPx, Math.abs(dy));
+
+        if (!d.isDragging && d.movedPx >= d.thresholdPx) d.isDragging = true;
+        if (!d.isDragging) return;
+
+        var targetStep = self.yToStep(self._pageYToLocalY(py));
+
+        if (!self._isStepAllowed(targetStep)) { d.outOfRange = true; return; }
+        d.outOfRange = false;
+
+        d.lastTargetStep = targetStep;
+
+        self.moveNote(d.noteId, { step: targetStep });
+        d.dropOnOccupied = self._isStepOccupied(targetStep, d.noteId);
+        self._applyDraggedAdjacencyX(d.noteId);
+      });
+
+      self.$el.off('pointerup.noteDrag pointercancel.noteDrag')
+        .on('pointerup.noteDrag pointercancel.noteDrag', function (ev2) {
+          if ((ev2.originalEvent.pointerId || pid) !== pid) return;
+
+          self.$el.off('pointermove.noteDrag pointerup.noteDrag pointercancel.noteDrag');
+
+          d.swallowClick = d.isDragging;
+
+          self._setDraggingVisual(d.noteId, false);
+
+          if (d.outOfRange || d.dropOnOccupied) {
+            self.removeNote(d.noteId);
+          } else {
+            self.moveNote(d.noteId, { step: d.lastTargetStep });
+            self._logCreatedNote(d.lastTargetStep);
+            self._resolveNoteOverlaps();
+          }
+
+          d.noteId = null;
+          d.isDragging = false;
+          d.movedPx = 0;
+          d.startStep = null;
+          d.lastTargetStep = null;
+          d.dropOnOccupied = false;
+          d.outOfRange = false;
+          d.pointerId = null;
+        });
+    });
+
+    this.$el.on('click.noteDrag', '.note', function (e) {
+      if (d.swallowClick) {
+        e.preventDefault();
+        e.stopPropagation();
+        d.swallowClick = false;
+        return;
+      }
+      self.removeNote($(this).attr('data-note-id'));
+    });
+  };
 
   window.Staff = Staff;
 })(jQuery);
 
-// ============================================================
+// -------------------------
 // Usage
-// ============================================================
-const staff = new Staff($('#staff'), { lineGap: 16 });
+// -------------------------
+$(function () {
+  var staff = new Staff($('#staff'), {
+    // You can override any sizing here if needed:
+    // lineGap: 24,
+    // paddingX: 28,
+    // lineThickness: 4,
+  });
 
-staff.enableNoteDragAndClickDelete();
-staff.enableGhostClickCreate();
+  staff.enableNoteDragAndClickDelete();
+  staff.enableGhostClickCreate();
 
-$('#addRandom').on('click', function () {
-  staff.addNote({ step: Math.round(-4 + Math.random() * 18) });
-});
-
-$('#clear').on('click', function () {
-  staff.clearNotes();
+  $('#clear').on('click', function () {
+    staff.clearNotes();
+  });
 });
 </script>
-
-
 @endpush
