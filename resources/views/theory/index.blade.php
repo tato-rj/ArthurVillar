@@ -125,6 +125,10 @@
 
 @push('scripts')
 <script>
+document.addEventListener("touchstart", () => {}, { passive: true });
+
+</script>
+<script>
 (function ($) {
   function Staff($el, opts) {
     this.$el = $el;
