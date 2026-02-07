@@ -12,7 +12,9 @@
       overflow: hidden;
       user-select: none;
     }
-
+#staff, #staff .note {
+  touch-action: none;
+}
     /* 5 staff lines */
     .staff-line {
       position: absolute;
@@ -520,122 +522,145 @@
   // ============================================================
   // Interaction
   // ============================================================
-  Staff.prototype.enableGhostClickCreate = function () {
-    var self = this;
+Staff.prototype.enableGhostClickCreate = function () {
+  var self = this;
 
-    this.$el.off('.previewCreate');
-    $(document).off('.previewCreateDoc');
-    $(window).off('blur.previewCreate');
+  this.$el.off('.previewCreate');
+  $(window).off('blur.previewCreate');
 
-    this.$el.on('mousedown.previewCreate', function (e) {
-      if ($(e.target).closest('.note').length) return;
-      e.preventDefault();
+  function getPageY(e) {
+    var oe = e.originalEvent || e;
+    if (oe.touches && oe.touches.length) return oe.touches[0].pageY;
+    if (oe.changedTouches && oe.changedTouches.length) return oe.changedTouches[0].pageY;
+    return oe.pageY;
+  }
 
-      self._previewState.active = true;
-      var initialStep = self.yToStep(self._pageYToLocalY(e.pageY));
-      if (!self._isStepAllowed(initialStep)) return;
+  this.$el.on('pointerdown.previewCreate', function (e) {
+    // only empty staff (not on notes)
+    if ($(e.target).closest('.note').length) return;
 
-      self._previewState.step = initialStep;
-      self._previewSet(initialStep);
+    e.preventDefault();
 
-      $(document).off('.previewCreateDoc');
+    var pageY = getPageY(e);
+    var initialStep = self.yToStep(self._pageYToLocalY(pageY));
+    if (!self._isStepAllowed(initialStep)) return;
 
-      $(document).on('mousemove.previewCreateDoc', function (ev) {
+    self._previewState.active = true;
+    self._previewState.step = initialStep;
+    self._previewSet(initialStep);
+
+    // capture pointer so moves still arrive even if finger leaves element
+    this.setPointerCapture && this.setPointerCapture(e.originalEvent.pointerId);
+
+    self.$el.off('pointermove.previewCreate').on('pointermove.previewCreate', function (ev) {
+      if (!self._previewState.active) return;
+
+      var py = getPageY(ev);
+      var s = self.yToStep(self._pageYToLocalY(py));
+      if (!self._isStepAllowed(s)) return;
+
+      self._previewState.step = s;
+      self._previewSet(s);
+    });
+
+    self.$el.off('pointerup.previewCreate pointercancel.previewCreate')
+      .on('pointerup.previewCreate pointercancel.previewCreate', function (ev2) {
         if (!self._previewState.active) return;
 
-        var s = self.yToStep(self._pageYToLocalY(ev.pageY));
-        if (!self._isStepAllowed(s)) return;
-
-        self._previewState.step = s;
-        self._previewSet(s);
-      });
-
-      $(document).on('mouseup.previewCreateDoc', function () {
-        if (!self._previewState.active) return;
-
-        $(document).off('.previewCreateDoc');
-
-        var finalStep = self._previewState.step;
         self._previewState.active = false;
 
+        var finalStep = self._previewState.step;
         self._previewClear();
+
+        self.$el.off('pointermove.previewCreate pointerup.previewCreate pointercancel.previewCreate');
 
         if (!self._isStepAllowed(finalStep)) return;
         if (!self._isStepOccupied(finalStep, null)) self.addNote({ step: finalStep });
       });
-    });
+  });
 
-    $(window).on('blur.previewCreate', function () {
-      if (!self._previewState.active) return;
-      self._previewState.active = false;
-      self._previewClear();
-      $(document).off('.previewCreateDoc');
-    });
-  };
+  $(window).on('blur.previewCreate', function () {
+    if (!self._previewState.active) return;
+    self._previewState.active = false;
+    self._previewClear();
+    self.$el.off('pointermove.previewCreate pointerup.previewCreate pointercancel.previewCreate');
+  });
+};
 
-  Staff.prototype.enableNoteDragAndClickDelete = function () {
-    var self = this;
-    var d = this._drag;
 
-    this.$el.off('dragstart.noteDrag').on('dragstart.noteDrag', '.note', function (e) { e.preventDefault(); });
+Staff.prototype.enableNoteDragAndClickDelete = function () {
+  var self = this;
+  var d = this._drag;
 
-    this.$el.off('mousedown.noteDrag').on('mousedown.noteDrag', '.note', function (e) {
-      e.preventDefault();
-      e.stopPropagation();
+  this.$el.off('.noteDrag');
 
-      var $note = $(this);
+  function getPageY(e) {
+    var oe = e.originalEvent || e;
+    if (oe.touches && oe.touches.length) return oe.touches[0].pageY;
+    if (oe.changedTouches && oe.changedTouches.length) return oe.changedTouches[0].pageY;
+    return oe.pageY;
+  }
 
-      d.isDragging = false;
-      d.movedPx = 0;
-      d.startPageY = e.pageY;
-      d.noteId = $note.attr('data-note-id');
+  this.$el.on('pointerdown.noteDrag', '.note', function (e) {
+    e.preventDefault();
+    e.stopPropagation();
 
-      d.startStep = self.yToStep(parseFloat($note.css('top')));
-      d.lastTargetStep = d.startStep;
-      d.dropOnOccupied = false;
+    var $note = $(this);
+    var pointerId = e.originalEvent.pointerId;
+
+    d.isDragging = false;
+    d.movedPx = 0;
+    d.startPageY = getPageY(e);
+    d.noteId = $note.attr('data-note-id');
+
+    d.startStep = self.yToStep(parseFloat($note.css('top')));
+    d.lastTargetStep = d.startStep;
+    d.dropOnOccupied = false;
+    d.outOfRange = false;
+
+    self._setDraggingVisual(d.noteId, true);
+
+    // capture pointer so we keep getting move/up reliably on mobile
+    this.setPointerCapture && this.setPointerCapture(pointerId);
+
+    self.$el.off('pointermove.noteDrag').on('pointermove.noteDrag', function (ev) {
+      // only track same pointer
+      if ((ev.originalEvent.pointerId || pointerId) !== pointerId) return;
+
+      var py = getPageY(ev);
+      var dy = py - d.startPageY;
+      d.movedPx = Math.max(d.movedPx, Math.abs(dy));
+
+      if (!d.isDragging && d.movedPx >= d.thresholdPx) d.isDragging = true;
+      if (!d.isDragging) return;
+
+      var targetStep = self.yToStep(self._pageYToLocalY(py));
+
+      if (!self._isStepAllowed(targetStep)) {
+        d.outOfRange = true;
+        return;
+      }
       d.outOfRange = false;
 
-      self._setDraggingVisual(d.noteId, true);
+      d.lastTargetStep = targetStep;
 
-      $(document).off('.noteDragDoc');
+      self.moveNote(d.noteId, { step: targetStep });
 
-      $(document).on('mousemove.noteDragDoc', function (ev) {
-        var dy = ev.pageY - d.startPageY;
-        d.movedPx = Math.max(d.movedPx, Math.abs(dy));
+      d.dropOnOccupied = self._isStepOccupied(targetStep, d.noteId);
 
-        if (!d.isDragging && d.movedPx >= d.thresholdPx) d.isDragging = true;
-        if (!d.isDragging) return;
+      self._applyDraggedAdjacencyX(d.noteId);
+    });
 
-        var targetStep = self.yToStep(self._pageYToLocalY(ev.pageY));
+    self.$el.off('pointerup.noteDrag pointercancel.noteDrag')
+      .on('pointerup.noteDrag pointercancel.noteDrag', function (ev2) {
+        if ((ev2.originalEvent.pointerId || pointerId) !== pointerId) return;
 
-        // Range limit: ignore motion, but remember out-of-range
-        if (!self._isStepAllowed(targetStep)) {
-          d.outOfRange = true;
-          return;
-        }
-        d.outOfRange = false;
-
-        d.lastTargetStep = targetStep;
-
-        // move dragged note freely (even onto occupied)
-        self.moveNote(d.noteId, { step: targetStep });
-
-        // if occupied (excluding itself), mark it
-        d.dropOnOccupied = self._isStepOccupied(targetStep, d.noteId);
-
-        // only adjust dragged note X (do not move others)
-        self._applyDraggedAdjacencyX(d.noteId);
-      });
-
-      $(document).on('mouseup.noteDragDoc', function () {
-        $(document).off('.noteDragDoc');
+        self.$el.off('pointermove.noteDrag pointerup.noteDrag pointercancel.noteDrag');
 
         d.swallowClick = d.isDragging;
 
-        // stop ghosting
         self._setDraggingVisual(d.noteId, false);
 
-        // If released out of range OR dropped onto occupied step: delete dragged note
         if (d.outOfRange || d.dropOnOccupied) {
           self.removeNote(d.noteId);
         } else {
@@ -652,19 +677,19 @@
         d.dropOnOccupied = false;
         d.outOfRange = false;
       });
-    });
+  });
 
-    this.$el.off('click.noteDelete').on('click.noteDelete', '.note', function (e) {
-      // prevent click-delete right after a drag
-      if (d.swallowClick) {
-        e.preventDefault();
-        e.stopPropagation();
-        d.swallowClick = false;
-        return;
-      }
-      self.removeNote($(this).attr('data-note-id'));
-    });
-  };
+  // click/tap delete (only if not just dragged)
+  this.$el.on('click.noteDrag', '.note', function (e) {
+    if (d.swallowClick) {
+      e.preventDefault();
+      e.stopPropagation();
+      d.swallowClick = false;
+      return;
+    }
+    self.removeNote($(this).attr('data-note-id'));
+  });
+};
 
   window.Staff = Staff;
 })(jQuery);
