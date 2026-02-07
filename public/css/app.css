@@ -30799,9 +30799,23 @@ input:checked + .slider:before {
   transition: transform 0.1s ease;
 }
 
+/* pressed */
 .btn-floating .btn:active {
-  /* Push the button downwards when pressed */
   transform: translateY(0);
+}
+
+/* disabled looks the same */
+.btn-floating .btn:disabled {
+  opacity: 1;
+  transform: translateY(-0.25em);
+  filter: none;
+  box-shadow: inherit;
+  cursor: default;
+}
+
+/* prevent any visual change on click when disabled */
+.btn-floating .btn:disabled:active {
+  transform: translateY(-0.25em);
 }
 
 .btn-floating {

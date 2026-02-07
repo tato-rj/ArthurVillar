@@ -7,9 +7,13 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Music&display=swap" rel="stylesheet">
 
 <style>
+.animate__animated {
+  --animate-duration: .8s;
+}
+
   :root{
     --staff-width: 300px;
-    --staff-height: 280px;
+    --staff-height: 240px;
     --staff-radius: 1rem;
 
     --staff-padding-x: 20px;
@@ -29,7 +33,7 @@
 
     --clef-width: 140px;
     --clef-height: calc(var(--staff-line-gap) * 6);
-    --clef-top: 72px;
+    --clef-top: 54px;
     --clef-left-nudge: 21px;
 
     --note-overlap-gap: -9px;
@@ -69,7 +73,13 @@
     user-select: none;
     touch-action: none;
   }
+
   #staff .note{ touch-action: none; }
+
+  #interval {
+    font-size: 3rem;
+    font-weight: bold;
+  }
 
   .staff-line{
     position: absolute;
@@ -102,6 +112,8 @@
     margin-top: calc(var(--note-center-y) * -1);
   }
 
+  .note.fixed{ pointer-events: none; }
+
   .ledger{
     position: absolute;
     width: var(--ledger-width);
@@ -114,6 +126,7 @@
     border-radius: 999px;
   }
 
+  /* Note + ledger ghost */
   .note.preview,
   .ledger.preview,
   .note.dragging,
@@ -123,21 +136,28 @@
     pointer-events: none;
   }
 
+  #feedback-success {
+    font-size: 2rem;
+    display: none;
+  }
+
+  #accidentals > div {
+    margin-top: -24px;
+  }
   #accidentals .accidental-tool{
-    display: inline-block;
     cursor: grab;
     user-select: none;
     touch-action: none;
-    margin: 0 1rem;
   }
   #accidentals .accidental-tool:active{ cursor: grabbing; }
 
-#accidentals .accidental-tool.dragging,
-.ui-draggable-dragging.accidental-tool{
-  color: var(--ghost);
-  opacity: var(--ghost-opacity);
-}
+  #accidentals .accidental-tool.dragging,
+  .ui-draggable-dragging.accidental-tool{
+    color: var(--ghost);
+    opacity: var(--ghost-opacity);
+  }
 
+  /* Attached accidental */
   .accidental{
     position: absolute;
     line-height: 1;
@@ -151,41 +171,34 @@
     color: var(--ghost);
     opacity: var(--ghost-opacity);
   }
-
-{{--   #accidentals label {
-    border: 1px solid grey;
-    padding: 4px;
-    border-radius: 50%;
-    width: 60px;
-    height: 60px;
-  }
-   --}}
-{{--   label.music-font::before {
-    position: relative;
-  }
-
-  #accidentals label.music-font::before {
-    position: absolute;
-  } --}}
 </style>
 @endpush
 
 @section('content')
 <div class="h-100vh w-100 d-center">
   <div class="text-center">
-    <div id="accidentals" class="mb-2">
-      <label class="music-font music-font__sharp"></label>
-      <label class="music-font music-font__doublesharp"></label>
-      <label class="music-font music-font__flat"></label>
-      <label class="music-font music-font__doubleflat"></label>
-      <label class="music-font music-font__natural"></label>
+    <div id="accidentals">
+      <label class="small opacity-6">Drag and drop to apply accidentals</label>
+      <div  class="d-flex justify-content-between">
+        <label class="music-font music-font__sharp"></label>
+        <label class="music-font music-font__doublesharp"></label>
+        <label class="music-font music-font__flat"></label>
+        <label class="music-font music-font__doubleflat"></label>
+        <label class="music-font music-font__natural"></label>
+      </div>
+    </div>
+
+    <div id="feedback-success" class="text-green fw-bold text-center">
+      @fa(['icon' => 'check-circle', 'fa_size' => 'sm'])Awesome!
     </div>
 
     <div id="staff"></div>
 
+    <div id="interval" class="mb-4 text-blue">M3</div>
+
     <div class="d-center">
       <div class="btn-floating">
-        <button id="clear" class="btn btn-primary">Reset</button>
+        <button id="check" class="btn btn-primary">Check</button>
       </div>
     </div>
   </div>
@@ -195,17 +208,24 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.js"></script>
 <script type="text/javascript" src="{{ asset('js/vendor/jquery-ui.min.js') }}"></script>
+
 <script>
 (function ($) {
+
+  // =========================================================
+  // Staff
+  // =========================================================
   function Staff($el, opts) {
     this.$el = $el;
 
+    // ---- Read CSS vars
     var css = getComputedStyle($el[0]);
     function px(v, fallback) {
       var n = parseFloat(v);
       return Number.isFinite(n) ? n : fallback;
     }
 
+    // ---- Options
     this.opts = $.extend({
       paddingX: px(css.getPropertyValue('--staff-padding-x'), 20),
       lineGap: px(css.getPropertyValue('--staff-line-gap'), 16),
@@ -224,9 +244,9 @@
     this.opts.stepSize = this.opts.lineGap / 2;
 
     this.$el.css('position', 'relative');
-
     this._idCounter = 1;
 
+    // ---- Drag state (notes)
     this._drag = {
       isDragging: false,
       movedPx: 0,
@@ -236,19 +256,30 @@
       swallowClick: false,
       startStep: null,
       lastTargetStep: null,
+      lastSoundStep: null,
       dropOnOccupied: false,
       outOfRange: false
     };
 
+    // ---- Preview state (click-create)
     this._previewState = { active: false, step: null };
     this._preview = null;
     this._previewStep = null;
+
+    // ---- Audio state
+    this._audioReady = false;
+    this._synth = null;
+
+    // ---- Accidental drag sound state
+    this._accDragSound = { noteId: null, accCls: null, step: null };
 
     this._computeLayout();
     this._drawLines();
   }
 
-  // ---- Layout ----
+  // =========================================================
+  // Layout
+  // =========================================================
   Staff.prototype._computeLayout = function () {
     var h = this.$el.height();
     var staffHeight = this.opts.lineGap * 4;
@@ -282,7 +313,9 @@
     this._repositionAllAccidentals();
   };
 
-  // ---- Coordinates + range ----
+  // =========================================================
+  // Coordinates + range
+  // =========================================================
   Staff.prototype.centerX = function () { return this.$el.width() / 2; };
   Staff.prototype.stepToY = function (step) { return this.opts.bottomLineY - (step * this.opts.stepSize); };
   Staff.prototype.yToStep = function (y) { return Math.round((this.opts.bottomLineY - y) / this.opts.stepSize); };
@@ -294,7 +327,9 @@
     return step >= this.minStepAllowed() && step <= this.maxStepAllowed();
   };
 
-  // ---- Ledgers ----
+  // =========================================================
+  // Ledgers
+  // =========================================================
   Staff.prototype._ledgerStepsFor = function (step) {
     var ledgers = [];
     var topMost = 8 + (this.opts.maxLedgerAbove * 2);
@@ -343,7 +378,9 @@
     }
   };
 
-  // ---- Notes lookup ----
+  // =========================================================
+  // Notes lookup
+  // =========================================================
   Staff.prototype._stepOfNoteEl = function (el) {
     var topStr = el.style.top || window.getComputedStyle(el).top;
     return this.yToStep(parseFloat(topStr));
@@ -383,14 +420,16 @@
     return Math.abs(parseFloat($n.css('left')) - this.centerX()) <= 0.5;
   };
 
-  // ---- Accidentals ----
+  // =========================================================
+  // Accidentals
+  // =========================================================
   Staff.prototype._removeAccidentalForNote = function (noteId) {
     this.$el.find('.accidental[data-for-note-id="' + noteId + '"]').remove();
   };
 
   Staff.prototype._positionAccidentalForNote = function (noteId) {
     var $note = this.$el.find('.note[data-note-id="' + noteId + '"]');
-    var $acc = this.$el.find('.accidental[data-for-note-id="' + noteId + '"]');
+    var $acc  = this.$el.find('.accidental[data-for-note-id="' + noteId + '"]');
     if (!$note.length || !$acc.length) return;
 
     var noteLeft = parseFloat($note.css('left'));
@@ -422,88 +461,6 @@
     this.$el.append($acc);
     this._positionAccidentalForNote(noteId);
   };
-
-Staff.prototype.enableAccidentalDrag = function ($toolEls) {
-  var self = this;
-
-  $toolEls.addClass('accidental-tool');
-
-  function classToAccidentalByEl($el) {
-    var classes = [
-      'music-font__sharp',
-      'music-font__doublesharp',
-      'music-font__flat',
-      'music-font__doubleflat',
-      'music-font__natural'
-    ];
-    for (var i = 0; i < classes.length; i++) {
-      if ($el.hasClass(classes[i])) return classes[i];
-    }
-    return null;
-  }
-
-  // Track last "preview" so it doesn't retrigger constantly
-  self._accDragSound = { noteId: null, accCls: null, step: null };
-
-  $toolEls.draggable({
-    helper: 'clone',
-    appendTo: 'body',
-    zIndex: 9999,
-    revert: 'invalid',
-    scroll: false,
-
-    start: function (event, ui) {
-      ui.helper.addClass('dragging accidental-tool');
-      self._ensureAudio();
-      self._accDragSound.noteId = null;
-      self._accDragSound.accCls = classToAccidentalByEl($(this));
-      self._accDragSound.step = null;
-    },
-
-    drag: function (event, ui) {
-      var accCls = self._accDragSound.accCls;
-      if (!accCls) return;
-
-      // pointer position
-      var pageX = event.pageX, pageY = event.pageY;
-      if (!Number.isFinite(pageY) && event.originalEvent) pageY = event.originalEvent.pageY;
-      if (!Number.isFinite(pageX) && event.originalEvent) pageX = event.originalEvent.pageX;
-
-      // inside staff?
-      var off = self.$el.offset();
-      var x = pageX - off.left;
-      var y = pageY - off.top;
-      if (x < 0 || y < 0 || x > self.$el.width() || y > self.$el.height()) {
-        self._accDragSound.noteId = null;
-        self._accDragSound.step = null;
-        return;
-      }
-
-      var step = self.yToStep(y);
-      if (!self._isStepAllowed(step)) return;
-
-      var noteId = self._getNoteIdAtStep(step, null);
-      if (!noteId) return;
-
-      // only play if the "target" changed
-      if (noteId === self._accDragSound.noteId && step === self._accDragSound.step) return;
-
-      self._accDragSound.noteId = noteId;
-      self._accDragSound.step = step;
-
-      // play "new" pitch with dragged accidental (preview)
-      var accOff = self._accidentalClassToOffset(accCls);
-      self._playStep(step, accOff);
-    },
-
-    stop: function (event, ui) {
-      ui.helper.removeClass('dragging');
-      // no sound on drop/stop
-      self._accDragSound.noteId = null;
-      self._accDragSound.step = null;
-    }
-  });
-};
 
   Staff.prototype.enableAccidentalDropOnStaff = function () {
     var self = this;
@@ -546,7 +503,35 @@ Staff.prototype.enableAccidentalDrag = function ($toolEls) {
     });
   };
 
-  // ---- Notes lifecycle ----
+  // =========================================================
+  // Notes lifecycle
+  // =========================================================
+
+  Staff.prototype.setNoteFixed = function (noteId, fixed) {
+  var on = !!fixed;
+  this.$el.find('.note[data-note-id="' + noteId + '"]').toggleClass('fixed', on);
+  this.$el.find('.ledger[data-for-note-id="' + noteId + '"]').toggleClass('fixed', on);
+  this.$el.find('.accidental[data-for-note-id="' + noteId + '"]').toggleClass('fixed', on);
+};
+
+// Create a fixed note programmatically (optionally with an accidental)
+Staff.prototype.addFixedNote = function (cfg) {
+  cfg = cfg || {};
+  cfg.className = (cfg.className ? (cfg.className + ' ') : '') + 'fixed';
+
+  var id = this.addNote(cfg);
+  if (!id) return null;
+
+  // optional: attach accidental
+  if (cfg.accidentalClass) {
+    this.attachAccidentalToNote(id, cfg.accidentalClass);
+  }
+
+  // ensure fixed state for any ledgers/accidental
+  this.setNoteFixed(id, true);
+  return id;
+};
+
   Staff.prototype.clearNotes = function () {
     this.$el.find('.note, .ledger, .accidental').remove();
     this._previewClear();
@@ -571,7 +556,7 @@ Staff.prototype.enableAccidentalDrag = function ($toolEls) {
           : null;
     if (!Number.isFinite(y)) throw new Error('addNote: provide either y or step');
 
-    var x = Number.isFinite(cfg.x) ? Number(cfg.x) : this.centerX();
+    var x  = Number.isFinite(cfg.x) ? Number(cfg.x) : this.centerX();
     var id = cfg.id || (this.opts.noteIdPrefix + (this._idCounter++));
 
     var $note = $('<div class="note"></div>')
@@ -597,7 +582,6 @@ Staff.prototype.enableAccidentalDrag = function ($toolEls) {
 
     var x = Number.isFinite(pos.x) ? Number(pos.x) : null;
     var step = Number.isFinite(pos.step) ? Number(pos.step) : null;
-
     if (Number.isFinite(step) && !this._isStepAllowed(step)) return;
 
     var y = Number.isFinite(pos.y) ? Number(pos.y)
@@ -615,7 +599,9 @@ Staff.prototype.enableAccidentalDrag = function ($toolEls) {
     this._positionAccidentalForNote(id);
   };
 
-  // ---- Preview ----
+  // =========================================================
+  // Preview
+  // =========================================================
   Staff.prototype._previewSet = function (step) {
     if (!this._preview) this._preview = $('<div class="note preview"></div>').appendTo(this.$el);
     this._preview.css({ left: this.centerX() + 'px', top: this.stepToY(step) + 'px' });
@@ -632,7 +618,9 @@ Staff.prototype.enableAccidentalDrag = function ($toolEls) {
     this._previewLedgersClear();
   };
 
-  // ---- Overlap resolution (adjacent steps only) ----
+  // =========================================================
+  // Overlap resolution (adjacent steps only)
+  // =========================================================
   Staff.prototype._rectsOverlap = function (a, b) {
     return !(a.right <= b.left || a.left >= b.right || a.bottom <= b.top || a.top >= b.bottom);
   };
@@ -711,18 +699,18 @@ Staff.prototype.enableAccidentalDrag = function ($toolEls) {
     }
   };
 
-  // ---- Drag visuals + adjacency X while dragging ----
-Staff.prototype._setDraggingVisual = function (noteId, on) {
-  var $note = this.$el.find('.note[data-note-id="' + noteId + '"]');
-  var $ledgers = this.$el.find('.ledger[data-for-note-id="' + noteId + '"]');
-  var $acc = this.$el.find('.accidental[data-for-note-id="' + noteId + '"]');
+  // =========================================================
+  // Drag visuals + adjacency X while dragging
+  // =========================================================
+  Staff.prototype._setDraggingVisual = function (noteId, on) {
+    var $note = this.$el.find('.note[data-note-id="' + noteId + '"]');
+    var $ledgers = this.$el.find('.ledger[data-for-note-id="' + noteId + '"]');
+    var $acc = this.$el.find('.accidental[data-for-note-id="' + noteId + '"]');
 
-  $note.toggleClass('dragging', !!on);
-  $ledgers.toggleClass('dragging', !!on);
-
-  // ghost the attached accidental with the note
-  $acc.toggleClass('dragging', !!on);
-};
+    $note.toggleClass('dragging', !!on);
+    $ledgers.toggleClass('dragging', !!on);
+    $acc.toggleClass('dragging', !!on);
+  };
 
   Staff.prototype._applyDraggedAdjacencyX = function (dragId) {
     var $drag = this.$el.find('.note[data-note-id="' + dragId + '"]');
@@ -736,7 +724,6 @@ Staff.prototype._setDraggingVisual = function (noteId, on) {
 
     var lowerId = this._getNoteIdAtStep(dragStep - 1, dragId);
     if (!lowerId) return;
-
     if (!this._isCenteredX(lowerId)) return;
 
     var $lower = this.$el.find('.note[data-note-id="' + lowerId + '"]');
@@ -744,299 +731,365 @@ Staff.prototype._setDraggingVisual = function (noteId, on) {
 
     var upperRect = $drag[0].getBoundingClientRect();
     var lowerRect = $lower[0].getBoundingClientRect();
-
     if (!this._rectsOverlap(upperRect, lowerRect)) return;
 
     var dx = (lowerRect.right - upperRect.left) + gap;
     this.moveNote(dragId, { x: center + dx });
   };
 
-// --- Sound helpers ---
-Staff.prototype._ensureAudio = async function () {
-  if (this._audioReady) return;
-  if (!window.Tone) return;
+  // =========================================================
+  // Sound (Tone.js)
+  // =========================================================
+  Staff.prototype._ensureAudio = async function () {
+    if (this._audioReady) return;
+    if (!window.Tone) return;
 
-  // Must be called from a user gesture (pointerdown/drag start/drag move)
-  await Tone.start();
+    await Tone.start();
 
-  // Simple, low-latency synth
-this._synth = new Tone.PolySynth(Tone.Synth, {
-  oscillator: { type: "sine" },
-  envelope: {
-    attack: 0.02,
-    decay: 0.2,
-    sustain: 0.8,
-    release: 1.2
-  }
-}).toDestination();
+    this._synth = new Tone.PolySynth(Tone.Synth, {
+      oscillator: { type: "sine" },
+      envelope: {
+        attack: 0.02,
+        decay: 0.2,
+        sustain: 0.8,
+        release: 1.2
+      }
+    }).toDestination();
 
-  this._audioReady = true;
-};
+    this._audioReady = true;
+  };
 
-Staff.prototype._stepToMidi = function(step) {
-  // Treble clef starting on E4
-  const diatonic = [0,2,4,5,7,9,11]; // C D E F G A B
+  // Treble staff mapping (bottom line = E4)
+  Staff.prototype._stepToMidi = function (step) {
+    var diatonic = [0, 2, 4, 5, 7, 9, 11]; // C D E F G A B
+    var baseIndex = 2 + step;              // E is index 2
+    var octaveShift = Math.floor(baseIndex / 7);
+    var noteIndex = (baseIndex % 7 + 7) % 7;
+    return 60 + diatonic[noteIndex] + (octaveShift * 12);
+  };
 
-  // E is index 2 in diatonic scale
-  let baseIndex = 2 + step;
-  let octaveShift = Math.floor(baseIndex / 7);
-  let noteIndex = (baseIndex % 7 + 7) % 7;
+  Staff.prototype._accidentalClassToOffset = function (cls) {
+    if (!cls) return 0;
+    if (cls.indexOf('music-font__doublesharp') >= 0) return +2;
+    if (cls.indexOf('music-font__sharp') >= 0)       return +1;
+    if (cls.indexOf('music-font__doubleflat') >= 0)  return -2;
+    if (cls.indexOf('music-font__flat') >= 0)        return -1;
+    if (cls.indexOf('music-font__natural') >= 0)     return 0;
+    return 0;
+  };
 
-  return 60 + diatonic[noteIndex] + octaveShift*12;
-};
+  Staff.prototype._getAttachedAccidentalClass = function (noteId) {
+    var $acc = this.$el.find('.accidental[data-for-note-id="' + noteId + '"]');
+    if (!$acc.length) return null;
 
+    var classes = [
+      'music-font__sharp',
+      'music-font__doublesharp',
+      'music-font__flat',
+      'music-font__doubleflat',
+      'music-font__natural'
+    ];
+    for (var i = 0; i < classes.length; i++) {
+      if ($acc.hasClass(classes[i])) return classes[i];
+    }
+    return null;
+  };
 
-Staff.prototype._accidentalClassToOffset = function (cls) {
-  if (!cls) return 0;
-  if (cls.indexOf('music-font__doublesharp') >= 0) return +2;
-  if (cls.indexOf('music-font__sharp') >= 0)       return +1;
-  if (cls.indexOf('music-font__doubleflat') >= 0)  return -2;
-  if (cls.indexOf('music-font__flat') >= 0)        return -1;
-  if (cls.indexOf('music-font__natural') >= 0)     return 0;
-  return 0;
-};
+  Staff.prototype._playStep = async function (step, accidentalOffset) {
+    if (!Number.isFinite(step)) return;
 
-Staff.prototype._getAttachedAccidentalClass = function (noteId) {
-  var $acc = this.$el.find('.accidental[data-for-note-id="' + noteId + '"]');
-  if (!$acc.length) return null;
+    await this._ensureAudio();
+    if (!this._synth) return;
 
-  // return whichever accidental class it has
-  var classes = [
-    'music-font__sharp',
-    'music-font__doublesharp',
-    'music-font__flat',
-    'music-font__doubleflat',
-    'music-font__natural'
-  ];
-  for (var i = 0; i < classes.length; i++) {
-    if ($acc.hasClass(classes[i])) return classes[i];
-  }
-  return null;
-};
+    var offset = accidentalOffset || 0;
+    var midi = this._stepToMidi(step) + offset;
 
-Staff.prototype._playStep = async function (step, accidentalOffset) {
-  if (!Number.isFinite(step)) return;
+    var noteName = Tone.Frequency(midi, "midi").toNote();
+    console.log("Playing:", noteName);
 
-  await this._ensureAudio();
-  if (!this._synth) return;
+    var freq = Tone.Frequency(midi, "midi");
+    this._synth.triggerAttackRelease(freq, 0.5);
+  };
 
-  var offset = accidentalOffset || 0;
+  // =========================================================
+  // Interaction (Pointer Events)
+  // =========================================================
+  Staff.prototype.enableGhostClickCreate = function () {
+    var self = this;
 
-  // MIDI from your mapping (bottom line E4 = 64)
-  var midi = this._stepToMidi(step) + offset;
+    this.$el.off('.previewCreate');
+    $(window).off('blur.previewCreate');
 
-  // Convert to note name
-  var noteName = Tone.Frequency(midi, "midi").toNote();
+    function getPageY(e) {
+      var oe = e.originalEvent || e;
+      if (oe.touches && oe.touches.length) return oe.touches[0].pageY;
+      if (oe.changedTouches && oe.changedTouches.length) return oe.changedTouches[0].pageY;
+      return oe.pageY;
+    }
 
-  console.log("Playing:", noteName);
+    this.$el.on('pointerdown.previewCreate', function (e) {
+      if ($(e.target).closest('.note').length) return;
+      e.preventDefault();
 
-  var freq = Tone.Frequency(midi, "midi");
-  this._synth.triggerAttackRelease(freq, 0.5);
-};
+      var initialStep = self.yToStep(self._pageYToLocalY(getPageY(e)));
+      if (!self._isStepAllowed(initialStep)) return;
 
+      self._previewState.active = true;
+      self._previewState.step = initialStep;
+      self._previewSet(initialStep);
 
-  // ---- Interaction (Pointer Events) ----
-Staff.prototype.enableGhostClickCreate = function () {
-  var self = this;
+      self._ensureAudio();
 
-  this.$el.off('.previewCreate');
-  $(window).off('blur.previewCreate');
+      this.setPointerCapture && this.setPointerCapture(e.originalEvent.pointerId);
 
-  function getPageY(e) {
-    var oe = e.originalEvent || e;
-    if (oe.touches && oe.touches.length) return oe.touches[0].pageY;
-    if (oe.changedTouches && oe.changedTouches.length) return oe.changedTouches[0].pageY;
-    return oe.pageY;
-  }
-
-  this.$el.on('pointerdown.previewCreate', function (e) {
-    if ($(e.target).closest('.note').length) return;
-    e.preventDefault();
-
-    var initialStep = self.yToStep(self._pageYToLocalY(getPageY(e)));
-    if (!self._isStepAllowed(initialStep)) return;
-
-    self._previewState.active = true;
-    self._previewState.step = initialStep;
-    self._previewSet(initialStep);
-
-    // make audio available immediately on first gesture
-    self._ensureAudio();
-
-    this.setPointerCapture && this.setPointerCapture(e.originalEvent.pointerId);
-
-    self.$el.off('pointermove.previewCreate').on('pointermove.previewCreate', function (ev) {
-      if (!self._previewState.active) return;
-
-      var s = self.yToStep(self._pageYToLocalY(getPageY(ev)));
-      if (!self._isStepAllowed(s)) return;
-
-      self._previewState.step = s;
-      self._previewSet(s);
-    });
-
-    self.$el.off('pointerup.previewCreate pointercancel.previewCreate')
-      .on('pointerup.previewCreate pointercancel.previewCreate', function () {
+      self.$el.off('pointermove.previewCreate').on('pointermove.previewCreate', function (ev) {
         if (!self._previewState.active) return;
 
-        self._previewState.active = false;
+        var s = self.yToStep(self._pageYToLocalY(getPageY(ev)));
+        if (!self._isStepAllowed(s)) return;
 
-        var finalStep = self._previewState.step;
-        self._previewClear();
-
-        self.$el.off('pointermove.previewCreate pointerup.previewCreate pointercancel.previewCreate');
-
-        if (!self._isStepAllowed(finalStep)) return;
-        if (!self._isStepOccupied(finalStep, null)) {
-          self.addNote({ step: finalStep });
-          // play on add
-          self._playStep(finalStep, 0);
-        }
+        self._previewState.step = s;
+        self._previewSet(s);
       });
-  });
 
-  $(window).on('blur.previewCreate', function () {
-    if (!self._previewState.active) return;
-    self._previewState.active = false;
-    self._previewClear();
-    self.$el.off('pointermove.previewCreate pointerup.previewCreate pointercancel.previewCreate');
-  });
-};
+      self.$el.off('pointerup.previewCreate pointercancel.previewCreate')
+        .on('pointerup.previewCreate pointercancel.previewCreate', function () {
+          if (!self._previewState.active) return;
 
-Staff.prototype.enableNoteDragAndClickDelete = function () {
-  var self = this;
-  var d = this._drag;
+          self._previewState.active = false;
+          var finalStep = self._previewState.step;
 
-  this.$el.off('.noteDrag');
+          self._previewClear();
+          self.$el.off('pointermove.previewCreate pointerup.previewCreate pointercancel.previewCreate');
 
-  function getPageY(e) {
-    var oe = e.originalEvent || e;
-    if (oe.touches && oe.touches.length) return oe.touches[0].pageY;
-    if (oe.changedTouches && oe.changedTouches.length) return oe.changedTouches[0].pageY;
-    return oe.pageY;
-  }
+          if (!self._isStepAllowed(finalStep)) return;
+          if (self._isStepOccupied(finalStep, null)) return;
 
-  function startDragFromNoteEl(noteEl, e) {
-    e.preventDefault();
-    if (e.stopImmediatePropagation) e.stopImmediatePropagation();
-    else e.stopPropagation();
-
-    var pointerId = e.originalEvent.pointerId;
-    var $note = $(noteEl);
-
-    d.isDragging = false;
-    d.movedPx = 0;
-    d.startPageY = getPageY(e);
-    d.noteId = $note.attr('data-note-id');
-
-    d.startStep = self.yToStep(parseFloat($note.css('top')));
-    d.lastTargetStep = d.startStep;
-    d.lastSoundStep = d.startStep;          // NEW
-    d.dropOnOccupied = false;
-    d.outOfRange = false;
-
-    self._setDraggingVisual(d.noteId, true);
-
-    // make audio available on first drag gesture
-    self._ensureAudio();
-
-    var capEl = (e.currentTarget && e.currentTarget.setPointerCapture) ? e.currentTarget : null;
-    if (capEl && pointerId != null) capEl.setPointerCapture(pointerId);
-
-    self.$el.off('pointermove.noteDrag').on('pointermove.noteDrag', function (ev) {
-      if ((ev.originalEvent.pointerId || pointerId) !== pointerId) return;
-
-      var py = getPageY(ev);
-      var dy = py - d.startPageY;
-      d.movedPx = Math.max(d.movedPx, Math.abs(dy));
-
-      if (!d.isDragging && d.movedPx >= d.thresholdPx) d.isDragging = true;
-      if (!d.isDragging) return;
-
-      var targetStep = self.yToStep(self._pageYToLocalY(py));
-
-      if (!self._isStepAllowed(targetStep)) {
-        d.outOfRange = true;
-        return;
-      }
-      d.outOfRange = false;
-
-      d.lastTargetStep = targetStep;
-
-      self.moveNote(d.noteId, { step: targetStep });
-      d.dropOnOccupied = self._isStepOccupied(targetStep, d.noteId);
-      self._applyDraggedAdjacencyX(d.noteId);
-
-      // play only when step changes (NOT on drop)
-      if (targetStep !== d.lastSoundStep) {
-        d.lastSoundStep = targetStep;
-        var accCls = self._getAttachedAccidentalClass(d.noteId);
-        var accOff = self._accidentalClassToOffset(accCls);
-        self._playStep(targetStep, accOff);
-      }
+          self.addNote({ step: finalStep });
+          self._playStep(finalStep, 0);
+        });
     });
 
-    self.$el.off('pointerup.noteDrag pointercancel.noteDrag')
-      .on('pointerup.noteDrag pointercancel.noteDrag', function (ev2) {
-        if ((ev2.originalEvent.pointerId || pointerId) !== pointerId) return;
+    $(window).on('blur.previewCreate', function () {
+      if (!self._previewState.active) return;
+      self._previewState.active = false;
+      self._previewClear();
+      self.$el.off('pointermove.previewCreate pointerup.previewCreate pointercancel.previewCreate');
+    });
+  };
 
-        self.$el.off('pointermove.noteDrag pointerup.noteDrag pointercancel.noteDrag');
+  Staff.prototype.enableNoteDragAndClickDelete = function () {
+    var self = this;
+    var d = this._drag;
 
-        d.swallowClick = d.isDragging;
-        self._setDraggingVisual(d.noteId, false);
+    this.$el.off('.noteDrag');
 
-        // no sound here (drop)
+    function getPageY(e) {
+      var oe = e.originalEvent || e;
+      if (oe.touches && oe.touches.length) return oe.touches[0].pageY;
+      if (oe.changedTouches && oe.changedTouches.length) return oe.changedTouches[0].pageY;
+      return oe.pageY;
+    }
 
-        if (d.outOfRange || d.dropOnOccupied) {
-          self.removeNote(d.noteId);
-        } else {
-          self.moveNote(d.noteId, { step: d.lastTargetStep });
-          self._resolveNoteOverlaps();
+    function startDragFromNoteEl(noteEl, e) {
+      e.preventDefault();
+      if ($(noteEl).hasClass('fixed')) return;
+      if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+      else e.stopPropagation();
+
+      var pointerId = e.originalEvent.pointerId;
+      var $note = $(noteEl);
+
+      d.isDragging = false;
+      d.movedPx = 0;
+      d.startPageY = getPageY(e);
+      d.noteId = $note.attr('data-note-id');
+
+      d.startStep = self.yToStep(parseFloat($note.css('top')));
+      d.lastTargetStep = d.startStep;
+      d.lastSoundStep = d.startStep;
+      d.dropOnOccupied = false;
+      d.outOfRange = false;
+
+      self._setDraggingVisual(d.noteId, true);
+      self._ensureAudio();
+
+      var capEl = (e.currentTarget && e.currentTarget.setPointerCapture) ? e.currentTarget : null;
+      if (capEl && pointerId != null) capEl.setPointerCapture(pointerId);
+
+      self.$el.off('pointermove.noteDrag').on('pointermove.noteDrag', function (ev) {
+        if ((ev.originalEvent.pointerId || pointerId) !== pointerId) return;
+
+        var py = getPageY(ev);
+        var dy = py - d.startPageY;
+        d.movedPx = Math.max(d.movedPx, Math.abs(dy));
+
+        if (!d.isDragging && d.movedPx >= d.thresholdPx) d.isDragging = true;
+        if (!d.isDragging) return;
+
+        var targetStep = self.yToStep(self._pageYToLocalY(py));
+
+        if (!self._isStepAllowed(targetStep)) {
+          d.outOfRange = true;
+          return;
+        }
+        d.outOfRange = false;
+
+        d.lastTargetStep = targetStep;
+
+        self.moveNote(d.noteId, { step: targetStep });
+        d.dropOnOccupied = self._isStepOccupied(targetStep, d.noteId);
+        self._applyDraggedAdjacencyX(d.noteId);
+
+        if (targetStep !== d.lastSoundStep) {
+          d.lastSoundStep = targetStep;
+
+          var accCls = self._getAttachedAccidentalClass(d.noteId);
+          var accOff = self._accidentalClassToOffset(accCls);
+
+          self._playStep(targetStep, accOff);
+        }
+      });
+
+      self.$el.off('pointerup.noteDrag pointercancel.noteDrag')
+        .on('pointerup.noteDrag pointercancel.noteDrag', function (ev2) {
+          if ((ev2.originalEvent.pointerId || pointerId) !== pointerId) return;
+
+          self.$el.off('pointermove.noteDrag pointerup.noteDrag pointercancel.noteDrag');
+
+          d.swallowClick = d.isDragging;
+          self._setDraggingVisual(d.noteId, false);
+
+          if (d.outOfRange || d.dropOnOccupied) {
+            self.removeNote(d.noteId);
+          } else {
+            self.moveNote(d.noteId, { step: d.lastTargetStep });
+            self._resolveNoteOverlaps();
+          }
+
+          d.noteId = null;
+          d.isDragging = false;
+          d.movedPx = 0;
+          d.startStep = null;
+          d.lastTargetStep = null;
+          d.lastSoundStep = null;
+          d.dropOnOccupied = false;
+          d.outOfRange = false;
+        });
+    }
+
+    this.$el.on('pointerdown.noteDrag', '.note', function (e) {
+      startDragFromNoteEl(this, e);
+    });
+
+    this.$el.on('pointerdown.noteDrag', function (e) {
+      if ($(e.target).closest('.note').length) return;
+
+      var step = self.yToStep(self._pageYToLocalY(getPageY(e)));
+      var idAtStep = self._getNoteIdAtStep(step, null);
+      if (!idAtStep) return;
+
+      var noteEl = self.$el.find('.note[data-note-id="' + idAtStep + '"]')[0];
+      if (!noteEl) return;
+
+      startDragFromNoteEl(noteEl, e);
+    });
+
+    this.$el.on('click.noteDrag', '.note', function (e) {
+      if (d.swallowClick) {
+        e.preventDefault();
+        e.stopPropagation();
+        d.swallowClick = false;
+        return;
+      }
+      self.removeNote($(this).attr('data-note-id'));
+    });
+  };
+
+  // =========================================================
+  // Accidentals (drag + sound preview)
+  // =========================================================
+  Staff.prototype.enableAccidentalDrag = function ($toolEls) {
+    var self = this;
+    $toolEls.addClass('accidental-tool');
+
+    function classToAccidentalByEl($el) {
+      var classes = [
+        'music-font__sharp',
+        'music-font__doublesharp',
+        'music-font__flat',
+        'music-font__doubleflat',
+        'music-font__natural'
+      ];
+      for (var i = 0; i < classes.length; i++) {
+        if ($el.hasClass(classes[i])) return classes[i];
+      }
+      return null;
+    }
+
+    $toolEls.draggable({
+      helper: 'clone',
+      appendTo: 'body',
+      zIndex: 9999,
+      revert: 'invalid',
+      scroll: false,
+
+      start: function (event, ui) {
+        ui.helper.addClass('dragging accidental-tool');
+        self._ensureAudio();
+
+        self._accDragSound.noteId = null;
+        self._accDragSound.accCls = classToAccidentalByEl($(this));
+        self._accDragSound.step = null;
+      },
+
+      drag: function (event) {
+        var accCls = self._accDragSound.accCls;
+        if (!accCls) return;
+
+        var pageX = event.pageX, pageY = event.pageY;
+        if (!Number.isFinite(pageY) && event.originalEvent) pageY = event.originalEvent.pageY;
+        if (!Number.isFinite(pageX) && event.originalEvent) pageX = event.originalEvent.pageX;
+
+        var off = self.$el.offset();
+        var x = pageX - off.left;
+        var y = pageY - off.top;
+
+        if (x < 0 || y < 0 || x > self.$el.width() || y > self.$el.height()) {
+          self._accDragSound.noteId = null;
+          self._accDragSound.step = null;
+          return;
         }
 
-        d.noteId = null;
-        d.isDragging = false;
-        d.movedPx = 0;
-        d.startStep = null;
-        d.lastTargetStep = null;
-        d.lastSoundStep = null; // NEW
-        d.dropOnOccupied = false;
-        d.outOfRange = false;
-      });
-  }
+        var step = self.yToStep(y);
+        if (!self._isStepAllowed(step)) return;
 
-  this.$el.on('pointerdown.noteDrag', '.note', function (e) {
-    startDragFromNoteEl(this, e);
-  });
+        var noteId = self._getNoteIdAtStep(step, null);
+        if (!noteId) return;
 
-  this.$el.on('pointerdown.noteDrag', function (e) {
-    if ($(e.target).closest('.note').length) return;
+        if (noteId === self._accDragSound.noteId && step === self._accDragSound.step) return;
 
-    var step = self.yToStep(self._pageYToLocalY(getPageY(e)));
-    var idAtStep = self._getNoteIdAtStep(step, null);
-    if (!idAtStep) return;
+        self._accDragSound.noteId = noteId;
+        self._accDragSound.step = step;
 
-    var noteEl = self.$el.find('.note[data-note-id="' + idAtStep + '"]')[0];
-    if (!noteEl) return;
+        var accOff = self._accidentalClassToOffset(accCls);
+        self._playStep(step, accOff);
+      },
 
-    startDragFromNoteEl(noteEl, e);
-  });
-
-  this.$el.on('click.noteDrag', '.note', function (e) {
-    if (d.swallowClick) {
-      e.preventDefault();
-      e.stopPropagation();
-      d.swallowClick = false;
-      return;
-    }
-    self.removeNote($(this).attr('data-note-id'));
-  });
-};
+      stop: function (event, ui) {
+        ui.helper.removeClass('dragging');
+        self._accDragSound.noteId = null;
+        self._accDragSound.step = null;
+      }
+    });
+  };
 
   window.Staff = Staff;
 })(jQuery);
 
-// ---- Usage ----
+// =========================================================
+// Usage
+// =========================================================
 const staff = new Staff($('#staff'));
 staff.enableNoteDragAndClickDelete();
 staff.enableGhostClickCreate();
@@ -1047,5 +1100,142 @@ staff.enableAccidentalDropOnStaff();
 $('#clear').on('click', function () {
   staff.clearNotes();
 });
+
+// 4) Example usage (after you create staff)
+const lockedId = staff.addFixedNote({
+  step: 2, // G4 on your treble mapping (bottom line E4 => step 2 = G4)
+  accidentalClass: null//'music-font__sharp' // optional
+});
+
+// You can also later lock/unlock an existing note:
+{{-- staff.setNoteFixed(lockedId, true);   // lock --}}
+{{-- staff.setNoteFixed(lockedId, false);  // unlock --}}
+
+// ---------- Interval helpers ----------
+function _notesOnStaffOrdered() {
+  // Only real notes (exclude preview/ghost)
+  const $notes = $('#staff .note').not('.preview');
+  const notes = $notes.toArray().map(el => {
+    const id = el.getAttribute('data-note-id');
+    const step = staff._stepOfNoteEl(el); // uses Staff method already in your code
+    const accCls = staff._getAttachedAccidentalClass(id);
+    const accOff = staff._accidentalClassToOffset(accCls);
+    return { id, step, accOff };
+  });
+
+  // Sort bottom->top (so interval name is consistent)
+  notes.sort((a, b) => a.step - b.step);
+  return notes;
+}
+
+function _diatonicNumberFromSteps(stepLow, stepHigh) {
+  // Each step is a diatonic staff move (line/space). 0 steps => unison (1)
+  return Math.abs(stepHigh - stepLow) + 1;
+}
+
+function _qualityFor(simpleNum, semitones) {
+  // simpleNum is within 1..8 (reduce compounds by octave)
+  const isPerfectClass = (simpleNum === 1 || simpleNum === 4 || simpleNum === 5 || simpleNum === 8);
+
+  // Expected semitones for MAJOR/PERFECT within an octave (unison..octave)
+  const expectedMajorOrPerfect = {
+    1: 0, 2: 2, 3: 4, 4: 5, 5: 7, 6: 9, 7: 11, 8: 12
+  }[simpleNum];
+
+  const delta = semitones - expectedMajorOrPerfect;
+
+  if (isPerfectClass) {
+    if (delta === 0) return 'P';
+    if (delta === 1) return 'A';
+    if (delta === -1) return 'd';
+    if (delta > 1) return 'A'.repeat(delta);
+    if (delta < -1) return 'd'.repeat(-delta);
+  } else {
+    if (delta === 0) return 'M';
+    if (delta === -1) return 'm';
+    if (delta === 1) return 'A';
+    if (delta === -2) return 'd';
+    if (delta > 1) return 'A'.repeat(delta);
+    if (delta < -2) return 'd'.repeat((-delta) - 1);
+  }
+
+  return '?';
+}
+
+function _intervalNameBetween(noteA, noteB) {
+  const stepLow = noteA.step;
+  const stepHigh = noteB.step;
+
+  // Chromatic distance (include accidentals)
+  const midiLow = staff._stepToMidi(stepLow) + (noteA.accOff || 0);
+  const midiHigh = staff._stepToMidi(stepHigh) + (noteB.accOff || 0);
+  const semitones = Math.abs(midiHigh - midiLow);
+
+  // Diatonic number (can be compound)
+  const diatonicNum = _diatonicNumberFromSteps(stepLow, stepHigh);
+
+  // Reduce to simple interval (1..8) for quality
+  const simpleNum = ((diatonicNum - 1) % 7) + 1;
+  const octaves = Math.floor((diatonicNum - 1) / 7);
+  const semitonesReduced = semitones - (12 * octaves);
+
+  const q = _qualityFor(simpleNum, semitonesReduced);
+  return q + diatonicNum;
+}
+
+// ---------- Button handler ----------
+$('#check').on('click', function () {
+  _successAnimation();
+  return;
+
+  const $button = $(this);          // the real button
+  const $wrap   = $button.parent(); // element that shakes
+  const notes = _notesOnStaffOrdered();
+  const $interval = $('#interval');
+
+  // disable immediately
+  $button.disable();
+
+  if (notes.length !== 2) {
+    // restart animation
+    $wrap.removeClass('animate__animated animate__shakeX');
+    void $wrap[0].offsetWidth; // reflow
+    $wrap.addClass('animate__animated animate__shakeX');
+
+    // when shake ends: cleanup + enable
+    $wrap.one('animationend webkitAnimationEnd oAnimationEnd MSAnimationEnd', function () {
+      $wrap.removeClass('animate__animated animate__shakeX');
+      $button.enable();
+    });
+
+    this.blur();
+    return;
+  }
+
+  const name = _intervalNameBetween(notes[0], notes[1]);
+  
+  if (name == $interval.text()) {
+    _successAnimation();
+  } else {
+    alert('Wrong interval');
+  }
+
+  // valid case → re-enable right away
+  $button.enable();
+});
+
+function _successAnimation() {
+  const $label = $('#interval');
+  const $accidentals = $('#accidentals');
+  const $feedback = $('#feedback-success');
+
+  $feedback.removeClass('animate__animated animate__tada');
+  void $feedback[0].offsetWidth; // reflow
+  $feedback.addClass('animate__animated animate__tada');
+
+  $accidentals.hide();
+  $feedback.show();
+}
+
 </script>
 @endpush
