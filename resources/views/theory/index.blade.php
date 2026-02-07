@@ -120,9 +120,9 @@
 <div class="h-100vh w-100 d-center">
   <div class="text-center">
     <div id="staff"></div>
-{{--     <div class="btn-floating">
+    <div class="btn-floating">
       <button id="clear" class="btn btn-primary">Reset</button>
-    </div> --}}
+    </div>
   </div>
 </div>
 @endsection
