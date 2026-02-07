@@ -587,101 +587,127 @@ document.addEventListener("touchstart", () => {}, { passive: true });
     });
   };
 
-  Staff.prototype.enableNoteDragAndClickDelete = function () {
-    var self = this;
-    var d = this._drag;
+Staff.prototype.enableNoteDragAndClickDelete = function () {
+  var self = this;
+  var d = this._drag;
 
-    this.$el.off('.noteDrag');
+  this.$el.off('.noteDrag');
 
-    function getPageY(e) {
-      var oe = e.originalEvent || e;
-      if (oe.touches && oe.touches.length) return oe.touches[0].pageY;
-      if (oe.changedTouches && oe.changedTouches.length) return oe.changedTouches[0].pageY;
-      return oe.pageY;
-    }
+  function getPageY(e) {
+    var oe = e.originalEvent || e;
+    if (oe.touches && oe.touches.length) return oe.touches[0].pageY;
+    if (oe.changedTouches && oe.changedTouches.length) return oe.changedTouches[0].pageY;
+    return oe.pageY;
+  }
 
-    this.$el.on('pointerdown.noteDrag', '.note', function (e) {
-      e.preventDefault();
-      e.stopPropagation();
+function startDragFromNoteEl(noteEl, e) {
+  e.preventDefault();
 
-      var pointerId = e.originalEvent.pointerId;
-      var $note = $(this);
+  // IMPORTANT: prevent the staff's previewCreate handler (ghost note) from also starting
+  if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+  else e.stopPropagation();
 
-      d.isDragging = false;
-      d.movedPx = 0;
-      d.startPageY = getPageY(e);
-      d.noteId = $note.attr('data-note-id');
+  var pointerId = e.originalEvent.pointerId;
+  var $note = $(noteEl);
 
-      d.startStep = self.yToStep(parseFloat($note.css('top')));
-      d.lastTargetStep = d.startStep;
-      d.dropOnOccupied = false;
-      d.outOfRange = false;
+  d.isDragging = false;
+  d.movedPx = 0;
+  d.startPageY = getPageY(e);
+  d.noteId = $note.attr('data-note-id');
 
-      self._setDraggingVisual(d.noteId, true);
-      this.setPointerCapture && this.setPointerCapture(pointerId);
+  d.startStep = self.yToStep(parseFloat($note.css('top')));
+  d.lastTargetStep = d.startStep;
+  d.dropOnOccupied = false;
+  d.outOfRange = false;
 
-      self.$el.off('pointermove.noteDrag').on('pointermove.noteDrag', function (ev) {
-        if ((ev.originalEvent.pointerId || pointerId) !== pointerId) return;
+  self._setDraggingVisual(d.noteId, true);
 
-        var py = getPageY(ev);
-        var dy = py - d.startPageY;
-        d.movedPx = Math.max(d.movedPx, Math.abs(dy));
+  var capEl = (e.currentTarget && e.currentTarget.setPointerCapture) ? e.currentTarget : null;
+  if (capEl && pointerId != null) capEl.setPointerCapture(pointerId);
 
-        if (!d.isDragging && d.movedPx >= d.thresholdPx) d.isDragging = true;
-        if (!d.isDragging) return;
+    self.$el.off('pointermove.noteDrag').on('pointermove.noteDrag', function (ev) {
+      if ((ev.originalEvent.pointerId || pointerId) !== pointerId) return;
 
-        var targetStep = self.yToStep(self._pageYToLocalY(py));
+      var py = getPageY(ev);
+      var dy = py - d.startPageY;
+      d.movedPx = Math.max(d.movedPx, Math.abs(dy));
 
-        if (!self._isStepAllowed(targetStep)) {
-          d.outOfRange = true;
-          return;
-        }
-        d.outOfRange = false;
+      if (!d.isDragging && d.movedPx >= d.thresholdPx) d.isDragging = true;
+      if (!d.isDragging) return;
 
-        d.lastTargetStep = targetStep;
+      var targetStep = self.yToStep(self._pageYToLocalY(py));
 
-        self.moveNote(d.noteId, { step: targetStep });
-        d.dropOnOccupied = self._isStepOccupied(targetStep, d.noteId);
-        self._applyDraggedAdjacencyX(d.noteId);
-      });
-
-      self.$el.off('pointerup.noteDrag pointercancel.noteDrag')
-        .on('pointerup.noteDrag pointercancel.noteDrag', function (ev2) {
-          if ((ev2.originalEvent.pointerId || pointerId) !== pointerId) return;
-
-          self.$el.off('pointermove.noteDrag pointerup.noteDrag pointercancel.noteDrag');
-
-          d.swallowClick = d.isDragging;
-          self._setDraggingVisual(d.noteId, false);
-
-          if (d.outOfRange || d.dropOnOccupied) {
-            self.removeNote(d.noteId);
-          } else {
-            self.moveNote(d.noteId, { step: d.lastTargetStep });
-            self._logCreatedNote(d.lastTargetStep);
-            self._resolveNoteOverlaps();
-          }
-
-          d.noteId = null;
-          d.isDragging = false;
-          d.movedPx = 0;
-          d.startStep = null;
-          d.lastTargetStep = null;
-          d.dropOnOccupied = false;
-          d.outOfRange = false;
-        });
-    });
-
-    this.$el.on('click.noteDrag', '.note', function (e) {
-      if (d.swallowClick) {
-        e.preventDefault();
-        e.stopPropagation();
-        d.swallowClick = false;
+      if (!self._isStepAllowed(targetStep)) {
+        d.outOfRange = true;
         return;
       }
-      self.removeNote($(this).attr('data-note-id'));
+      d.outOfRange = false;
+
+      d.lastTargetStep = targetStep;
+
+      self.moveNote(d.noteId, { step: targetStep });
+      d.dropOnOccupied = self._isStepOccupied(targetStep, d.noteId);
+      self._applyDraggedAdjacencyX(d.noteId);
     });
-  };
+
+    self.$el.off('pointerup.noteDrag pointercancel.noteDrag')
+      .on('pointerup.noteDrag pointercancel.noteDrag', function (ev2) {
+        if ((ev2.originalEvent.pointerId || pointerId) !== pointerId) return;
+
+        self.$el.off('pointermove.noteDrag pointerup.noteDrag pointercancel.noteDrag');
+
+        d.swallowClick = d.isDragging;
+        self._setDraggingVisual(d.noteId, false);
+
+        if (d.outOfRange || d.dropOnOccupied) {
+          self.removeNote(d.noteId);
+        } else {
+          self.moveNote(d.noteId, { step: d.lastTargetStep });
+          self._logCreatedNote(d.lastTargetStep);
+          self._resolveNoteOverlaps();
+        }
+
+        d.noteId = null;
+        d.isDragging = false;
+        d.movedPx = 0;
+        d.startStep = null;
+        d.lastTargetStep = null;
+        d.dropOnOccupied = false;
+        d.outOfRange = false;
+      });
+  }
+
+  // Drag start when clicking directly on a note (same as before)
+  this.$el.on('pointerdown.noteDrag', '.note', function (e) {
+    startDragFromNoteEl(this, e);
+  });
+
+  // NEW: Drag start when clicking anywhere on the same line/space as an existing note
+this.$el.on('pointerdown.noteDrag', function (e) {
+  if ($(e.target).closest('.note').length) return;
+
+  var step = self.yToStep(self._pageYToLocalY(getPageY(e)));
+  var idAtStep = self._getNoteIdAtStep(step, null);
+  if (!idAtStep) return; // let ghost-create handle it
+
+  var noteEl = self.$el.find('.note[data-note-id="' + idAtStep + '"]')[0];
+  if (!noteEl) return;
+
+  startDragFromNoteEl(noteEl, e);
+});
+
+  // Click delete still requires clicking on the note itself (unchanged)
+  this.$el.on('click.noteDrag', '.note', function (e) {
+    if (d.swallowClick) {
+      e.preventDefault();
+      e.stopPropagation();
+      d.swallowClick = false;
+      return;
+    }
+    self.removeNote($(this).attr('data-note-id'));
+  });
+};
+
 
   window.Staff = Staff;
 })(jQuery);
