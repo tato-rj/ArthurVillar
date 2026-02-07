@@ -38,6 +38,21 @@
     left: 0px;
 }
 
+.btn-floating .btn {
+  transform: translateY(-0.25em);
+  transition: transform 0.1s ease;
+}
+
+.btn-floating .btn:active {
+  /* Push the button downwards when pressed */
+  transform: translateY(0);
+}
+
+.btn-floating {
+    display: inline-block;
+    background: darken($primary-color, 40%);
+}
+
 @media (min-width: 768px) {
     .btn-fancy {
       padding: 13px 50px 13px;
