@@ -1,4 +1,4 @@
-<div class="mb-4 d-flex align-items-center">
+<div class="mb-2 d-flex align-items-center">
 	<button class="btn-raw text-grey" style="margin-top: 2px;">@fa(['icon' => 'times', 'fa_size' => 'lg'])</button>
 	<div class="w-100">
 		<div class="progress">

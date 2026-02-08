@@ -169,6 +169,12 @@
     color: var(--ghost);
     opacity: var(--ghost-opacity);
   }
+
+  #level {
+    font-size: 70%;
+    z-index: 10;
+    position: relative;
+  }
 </style>
 @endpush
 
@@ -176,6 +182,7 @@
 <section class="d-center py-5">
   <div class="text-center">
     @include('theory.components.counter')
+    @include('theory.components.level')
     @include('theory.components.accidentals')
     @include('theory.components.feedback')
 

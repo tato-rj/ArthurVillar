@@ -1,4 +1,4 @@
-    <div id="accidentals">
+    <div id="accidentals" class="mt-2">
       <label class="small opacity-6">Drag and drop to apply accidentals</label>
       <div  class="d-flex justify-content-between">
         <label class="music-font music-font__sharp"></label>
