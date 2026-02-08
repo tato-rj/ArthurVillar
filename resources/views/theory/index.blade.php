@@ -7,9 +7,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Music&display=swap" rel="stylesheet">
 
 <style>
-.animate__animated {
-  --animate-duration: .8s;
-}
+  /* animate.css (keep global but scoped duration) */
+  .animate__animated { --animate-duration: .8s; }
 
   :root{
     --staff-width: 300px;
@@ -76,7 +75,7 @@
 
   #staff .note{ touch-action: none; }
 
-  #interval {
+  #interval{
     font-size: 3rem;
     font-weight: bold;
   }
@@ -91,7 +90,7 @@
     border-radius: 999px;
   }
 
-  .treble-clef {
+  .treble-clef{
     position: absolute;
     left: calc(var(--staff-padding-x) - var(--clef-left-nudge));
     top: var(--clef-top);
@@ -101,7 +100,7 @@
     user-select: none;
   }
 
-  .note {
+  .note{
     position: absolute;
     width: var(--note-width);
     height: var(--note-height);
@@ -136,30 +135,13 @@
     pointer-events: none;
   }
 
-  #feedback-success {
+  #feedback-success{
     font-size: 2rem;
     display: none;
   }
 
-{{--   #counter {
-    width: 100%;
-    height: 20px;
-    border-radius: 20px;
-    position: relative;
-  }
+  #accidentals > div{ margin-top: -24px; }
 
-  #counter > span {
-    position: absolute;
-    left: 0;
-    top: 0;
-    height: 100%;
-    width: 10%;
-    overflow: none;
-  } --}}
-
-  #accidentals > div {
-    margin-top: -24px;
-  }
   #accidentals .accidental-tool{
     cursor: grab;
     user-select: none;
@@ -318,8 +300,8 @@
   // Coordinates + range
   // =========================================================
   Staff.prototype.centerX = function () { return this.$el.width() / 2; };
-  Staff.prototype.stepToY = function (step) { return this.opts.bottomLineY - (step * this.opts.stepSize); };
-  Staff.prototype.yToStep = function (y) { return Math.round((this.opts.bottomLineY - y) / this.opts.stepSize); };
+  Staff.prototype.stepToY  = function (step) { return this.opts.bottomLineY - (step * this.opts.stepSize); };
+  Staff.prototype.yToStep  = function (y)    { return Math.round((this.opts.bottomLineY - y) / this.opts.stepSize); };
   Staff.prototype._pageYToLocalY = function (pageY) { return pageY - this.$el.offset().top; };
 
   Staff.prototype.minStepAllowed = function () { return 0 - (this.opts.maxLedgerBelow * 2); };
@@ -507,31 +489,24 @@
   // =========================================================
   // Notes lifecycle
   // =========================================================
-
   Staff.prototype.setNoteFixed = function (noteId, fixed) {
-  var on = !!fixed;
-  this.$el.find('.note[data-note-id="' + noteId + '"]').toggleClass('fixed', on);
-  this.$el.find('.ledger[data-for-note-id="' + noteId + '"]').toggleClass('fixed', on);
-  this.$el.find('.accidental[data-for-note-id="' + noteId + '"]').toggleClass('fixed', on);
-};
+    var on = !!fixed;
+    this.$el.find('.note[data-note-id="' + noteId + '"]').toggleClass('fixed', on);
+    this.$el.find('.ledger[data-for-note-id="' + noteId + '"]').toggleClass('fixed', on);
+    this.$el.find('.accidental[data-for-note-id="' + noteId + '"]').toggleClass('fixed', on);
+  };
 
-// Create a fixed note programmatically (optionally with an accidental)
-Staff.prototype.addFixedNote = function (cfg) {
-  cfg = cfg || {};
-  cfg.className = (cfg.className ? (cfg.className + ' ') : '') + 'fixed';
+  Staff.prototype.addFixedNote = function (cfg) {
+    cfg = cfg || {};
+    cfg.className = (cfg.className ? (cfg.className + ' ') : '') + 'fixed';
 
-  var id = this.addNote(cfg);
-  if (!id) return null;
+    var id = this.addNote(cfg);
+    if (!id) return null;
 
-  // optional: attach accidental
-  if (cfg.accidentalClass) {
-    this.attachAccidentalToNote(id, cfg.accidentalClass);
-  }
-
-  // ensure fixed state for any ledgers/accidental
-  this.setNoteFixed(id, true);
-  return id;
-};
+    if (cfg.accidentalClass) this.attachAccidentalToNote(id, cfg.accidentalClass);
+    this.setNoteFixed(id, true);
+    return id;
+  };
 
   Staff.prototype.clearNotes = function () {
     this.$el.find('.note, .ledger, .accidental').remove();
@@ -749,12 +724,7 @@ Staff.prototype.addFixedNote = function (cfg) {
 
     this._synth = new Tone.PolySynth(Tone.Synth, {
       oscillator: { type: "sine" },
-      envelope: {
-        attack: 0.02,
-        decay: 0.2,
-        sustain: 0.8,
-        release: 1.2
-      }
+      envelope: { attack: 0.02, decay: 0.2, sustain: 0.8, release: 1.2 }
     }).toDestination();
 
     this._audioReady = true;
@@ -805,8 +775,8 @@ Staff.prototype.addFixedNote = function (cfg) {
     var offset = accidentalOffset || 0;
     var midi = this._stepToMidi(step) + offset;
 
-    var noteName = Tone.Frequency(midi, "midi").toNote();
-    console.log("Playing:", noteName);
+    // Avoid spamming console on every drag if you don't want it:
+    // console.log("Playing:", Tone.Frequency(midi, "midi").toNote());
 
     var freq = Tone.Frequency(midi, "midi");
     this._synth.triggerAttackRelease(freq, 0.5);
@@ -895,6 +865,7 @@ Staff.prototype.addFixedNote = function (cfg) {
     function startDragFromNoteEl(noteEl, e) {
       e.preventDefault();
       if ($(noteEl).hasClass('fixed')) return;
+
       if (e.stopImmediatePropagation) e.stopImmediatePropagation();
       else e.stopPropagation();
 
@@ -1089,9 +1060,22 @@ Staff.prototype.addFixedNote = function (cfg) {
 })(jQuery);
 
 // =========================================================
-// Usage
+// App glue
 // =========================================================
-const staff = new Staff($('#staff'));
+
+// --- small utility: safe log (your code called log())
+function log() { if (window.console && console.log) console.log.apply(console, arguments); }
+
+// --- cache selectors once
+const $staffEl = $('#staff');
+const $accidentals = $('#accidentals');
+const $feedback = $('#feedback-success');
+const $interval = $('#interval');
+const $check = $('#check');
+const $checkWrap = $check.parent();
+const $progressBar = $('#progress-bar');
+
+const staff = new Staff($staffEl);
 staff.enableNoteDragAndClickDelete();
 staff.enableGhostClickCreate();
 
@@ -1102,57 +1086,55 @@ $('#clear').on('click', function () {
   staff.clearNotes();
 });
 
-function _createNewIntervalChallenge() {
-  let randomPos = Math.random() * (7 - 0) + 0;
-  let intervals = ['m2', 'M2', 'm3', 'M3', 'P4', 'A4', 'D5', 'P5', 'm6', 'M6', 'm7', 'M7'];
+// =========================================================
+// Challenge
+// =========================================================
+const INTERVALS = ['m2', 'M2', 'm3', 'M3', 'P4', 'A4', 'd5', 'P5', 'm6', 'M6', 'm7', 'M7'];
 
+function _randomInt(min, maxInclusive) {
+  return Math.floor(Math.random() * (maxInclusive - min + 1)) + min;
+}
+
+function _createNewIntervalChallenge() {
+  // steps are discrete in your staff, so choose discrete steps
+  const randomStep = _randomInt(0, 7);
 
   staff.clearNotes();
-  $('#accidentals').show();
-  $('#feedback-success').hide();
-  $('#interval').text(intervals[Math.floor(Math.random()*intervals.length)]);
+  $accidentals.show();
+  $feedback.hide();
 
-  const lockedId = staff.addFixedNote({
-    step: randomPos, // G4 on your treble mapping (bottom line E4 => step 2 = G4)
-    accidentalClass: null//'music-font__sharp' // optional
+  $interval.text(INTERVALS[Math.floor(Math.random() * INTERVALS.length)]);
+
+  staff.addFixedNote({
+    step: randomStep,
+    accidentalClass: null
   });
 }
 
-// You can also later lock/unlock an existing note:
-{{-- staff.setNoteFixed(lockedId, true);   // lock --}}
-{{-- staff.setNoteFixed(lockedId, false);  // unlock --}}
-
-// ---------- Interval helpers ----------
+// =========================================================
+// Interval helpers
+// =========================================================
 function _notesOnStaffOrdered() {
-  // Only real notes (exclude preview/ghost)
-  const $notes = $('#staff .note').not('.preview');
+  const $notes = $staffEl.find('.note').not('.preview');
   const notes = $notes.toArray().map(el => {
     const id = el.getAttribute('data-note-id');
-    const step = staff._stepOfNoteEl(el); // uses Staff method already in your code
+    const step = staff._stepOfNoteEl(el);
     const accCls = staff._getAttachedAccidentalClass(id);
     const accOff = staff._accidentalClassToOffset(accCls);
     return { id, step, accOff };
   });
 
-  // Sort bottom->top (so interval name is consistent)
   notes.sort((a, b) => a.step - b.step);
   return notes;
 }
 
 function _diatonicNumberFromSteps(stepLow, stepHigh) {
-  // Each step is a diatonic staff move (line/space). 0 steps => unison (1)
   return Math.abs(stepHigh - stepLow) + 1;
 }
 
 function _qualityFor(simpleNum, semitones) {
-  // simpleNum is within 1..8 (reduce compounds by octave)
   const isPerfectClass = (simpleNum === 1 || simpleNum === 4 || simpleNum === 5 || simpleNum === 8);
-
-  // Expected semitones for MAJOR/PERFECT within an octave (unison..octave)
-  const expectedMajorOrPerfect = {
-    1: 0, 2: 2, 3: 4, 4: 5, 5: 7, 6: 9, 7: 11, 8: 12
-  }[simpleNum];
-
+  const expectedMajorOrPerfect = { 1:0, 2:2, 3:4, 4:5, 5:7, 6:9, 7:11, 8:12 }[simpleNum];
   const delta = semitones - expectedMajorOrPerfect;
 
   if (isPerfectClass) {
@@ -1169,7 +1151,6 @@ function _qualityFor(simpleNum, semitones) {
     if (delta > 1) return 'A'.repeat(delta);
     if (delta < -2) return 'd'.repeat((-delta) - 1);
   }
-
   return '?';
 }
 
@@ -1177,15 +1158,12 @@ function _intervalNameBetween(noteA, noteB) {
   const stepLow = noteA.step;
   const stepHigh = noteB.step;
 
-  // Chromatic distance (include accidentals)
   const midiLow = staff._stepToMidi(stepLow) + (noteA.accOff || 0);
   const midiHigh = staff._stepToMidi(stepHigh) + (noteB.accOff || 0);
-  const semitones = Math.abs(midiHigh - midiLow);
 
-  // Diatonic number (can be compound)
+  const semitones = Math.abs(midiHigh - midiLow);
   const diatonicNum = _diatonicNumberFromSteps(stepLow, stepHigh);
 
-  // Reduce to simple interval (1..8) for quality
   const simpleNum = ((diatonicNum - 1) % 7) + 1;
   const octaves = Math.floor((diatonicNum - 1) / 7);
   const semitonesReduced = semitones - (12 * octaves);
@@ -1194,48 +1172,13 @@ function _intervalNameBetween(noteA, noteB) {
   return q + diatonicNum;
 }
 
-// ---------- Button handler ----------
-$('#check').on('click', function () {
-  const $button = $(this);          // the real button
-  const notes = _notesOnStaffOrdered();
-  const $interval = $('#interval');
-
-  // disable immediately
-  $button.disable();
-
-  if (notes.length !== 2) {
-    _failAnimation();
-
-    this.blur();
-    return;
-  }
-
-  const name = _intervalNameBetween(notes[0], notes[1]);
-  log(name);
-  if (name == $interval.text()) {
-    _successAnimation();
-
-    if (_updateProgressBar() >= 100) {
-      setTimeout(function() {
-        alert('Done!');
-      }, 2000);
-    } else {
-      setTimeout(_createNewIntervalChallenge, 2000);
-      $button.enable();
-    }
-
-  } else {
-    _failAnimation();
-    $button.enable();
-  }
-});
-
+// =========================================================
+// UI animations / progress
+// =========================================================
 function _successAnimation() {
-  const $accidentals = $('#accidentals');
-  const $feedback = $('#feedback-success');
-
+  // restart animation cleanly
   $feedback.removeClass('animate__animated animate__tada');
-  void $feedback[0].offsetWidth; // reflow
+  void $feedback[0].offsetWidth;
   $feedback.addClass('animate__animated animate__tada');
 
   $accidentals.hide();
@@ -1243,15 +1186,10 @@ function _successAnimation() {
 }
 
 function _updateProgressBar(steps = 4) {
-  const $progressBar = $('#progress-bar');
   const increment = 100 / steps;
-
-  // read current width (percent) or start at 0
   let current = parseFloat($progressBar.data('progress')) || 0;
 
   current = Math.min(100, current + increment);
-
-  // store and apply
   $progressBar.data('progress', current);
   $progressBar.css({ width: current + '%' });
 
@@ -1259,23 +1197,56 @@ function _updateProgressBar(steps = 4) {
 }
 
 function _failAnimation() {
-  const $button = $('#check');
-  const $wrap = $button.parent();
-  const $label = $('#interval');
+  $interval.removeClass('text-blue').addClass('text-red');
 
-  $label.removeClass('text-blue').addClass('text-red');
+  $checkWrap.removeClass('animate__animated animate__shakeX');
+  void $checkWrap[0].offsetWidth;
+  $checkWrap.addClass('animate__animated animate__shakeX');
 
-  $wrap.removeClass('animate__animated animate__shakeX');
-  void $wrap[0].offsetWidth; // reflow
-  $wrap.addClass('animate__animated animate__shakeX');
-
-  // when shake ends: cleanup + enable
-  $wrap.one('animationend webkitAnimationEnd oAnimationEnd MSAnimationEnd', function () {
-    $wrap.removeClass('animate__animated animate__shakeX');
-    $label.removeClass('text-red').addClass('text-blue');
-    $button.enable();
-  });
+  // ensure only one handler attached
+  $checkWrap.off('animationend._fail webkitAnimationEnd._fail oAnimationEnd._fail MSAnimationEnd._fail')
+    .one('animationend._fail webkitAnimationEnd._fail oAnimationEnd._fail MSAnimationEnd._fail', function () {
+      $checkWrap.removeClass('animate__animated animate__shakeX');
+      $interval.removeClass('text-red').addClass('text-blue');
+      $check.enable();
+    });
 }
+
+// =========================================================
+// Button handler
+// =========================================================
+$check.on('click', function () {
+  const notes = _notesOnStaffOrdered();
+
+  $check.disable();
+
+  if (notes.length !== 2) {
+    _failAnimation();
+    this.blur();
+    return;
+  }
+
+  const name = _intervalNameBetween(notes[0], notes[1]);
+  log(name);
+
+  if (name === $interval.text()) {
+    _successAnimation();
+
+    if (_updateProgressBar() >= 100) {
+      setTimeout(function () {
+        alert('Done!');
+        $check.enable();
+      }, 2000);
+    } else {
+      setTimeout(function () {
+        _createNewIntervalChallenge();
+        $check.enable();
+      }, 2000);
+    }
+  } else {
+    _failAnimation();
+  }
+});
 
 _createNewIntervalChallenge();
 </script>
