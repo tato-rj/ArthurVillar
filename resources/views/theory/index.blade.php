@@ -205,26 +205,54 @@
 
 <script>
 (function ($) {
+  "use strict";
 
-  // =========================================================
+  // ---------------------------------------------------------------------------
+  // Constants
+  // ---------------------------------------------------------------------------
+  const ACCIDENTAL_CLASSES = [
+    'music-font__sharp',
+    'music-font__doublesharp',
+    'music-font__flat',
+    'music-font__doubleflat',
+    'music-font__natural'
+  ];
+
+  function pxFromCss(css, varName, fallback) {
+    const v = css.getPropertyValue(varName);
+    const n = parseFloat(v);
+    return Number.isFinite(n) ? n : fallback;
+  }
+
+  function getPointerPageXY(e) {
+    const oe = e.originalEvent || e;
+    if (oe.touches && oe.touches.length) return { x: oe.touches[0].pageX, y: oe.touches[0].pageY };
+    if (oe.changedTouches && oe.changedTouches.length) return { x: oe.changedTouches[0].pageX, y: oe.changedTouches[0].pageY };
+    return { x: oe.pageX, y: oe.pageY };
+  }
+
+  function getPointerId(e) {
+    const oe = e.originalEvent || e;
+    return oe.pointerId;
+  }
+
+  function safeLog() {
+    if (window.console && console.log) console.log.apply(console, arguments);
+  }
+
+  // ===========================================================================
   // Staff
-  // =========================================================
+  // ===========================================================================
   function Staff($el, opts) {
     this.$el = $el;
 
-    // ---- Read CSS vars
-    var css = getComputedStyle($el[0]);
-    function px(v, fallback) {
-      var n = parseFloat(v);
-      return Number.isFinite(n) ? n : fallback;
-    }
+    const css = getComputedStyle($el[0]);
 
-    // ---- Options
     this.opts = $.extend({
-      paddingX: px(css.getPropertyValue('--staff-padding-x'), 20),
-      lineGap: px(css.getPropertyValue('--staff-line-gap'), 16),
-      lineThickness: px(css.getPropertyValue('--staff-line-thickness'), 3),
-      noteOverlapGap: px(css.getPropertyValue('--note-overlap-gap'), -6),
+      paddingX: pxFromCss(css, '--staff-padding-x', 20),
+      lineGap: pxFromCss(css, '--staff-line-gap', 16),
+      lineThickness: pxFromCss(css, '--staff-line-thickness', 3),
+      noteOverlapGap: pxFromCss(css, '--note-overlap-gap', -6),
 
       noteIdPrefix: 'n',
       clefUrl: "{{ asset('images/clefs/treble-clef.svg') }}",
@@ -240,7 +268,6 @@
     this.$el.css('position', 'relative');
     this._idCounter = 1;
 
-    // ---- Drag state (notes)
     this._drag = {
       isDragging: false,
       movedPx: 0,
@@ -255,37 +282,36 @@
       outOfRange: false
     };
 
-    // ---- Preview state (click-create)
     this._previewState = { active: false, step: null };
     this._preview = null;
     this._previewStep = null;
 
-    // ---- Audio state
     this._audioReady = false;
     this._synth = null;
 
-    // ---- Accidental drag sound state
     this._accDragSound = { noteId: null, accCls: null, step: null };
+
+    this._suppressNextClick = { noteId: null, until: 0 };
 
     this._computeLayout();
     this._drawLines();
   }
 
-  // =========================================================
+  // ---------------------------------------------------------------------------
   // Layout
-  // =========================================================
+  // ---------------------------------------------------------------------------
   Staff.prototype._computeLayout = function () {
-    var h = this.$el.height();
-    var staffHeight = this.opts.lineGap * 4;
-    var topLineY = Math.round((h - staffHeight) / 2);
+    const h = this.$el.height();
+    const staffHeight = this.opts.lineGap * 4;
+    const topLineY = Math.round((h - staffHeight) / 2);
     this.opts.bottomLineY = topLineY + staffHeight;
   };
 
   Staff.prototype._drawLines = function () {
     this.$el.empty();
 
-    for (var i = 0; i < 5; i++) {
-      var y = this.opts.bottomLineY - (4 - i) * this.opts.lineGap;
+    for (let i = 0; i < 5; i++) {
+      const y = this.opts.bottomLineY - (4 - i) * this.opts.lineGap;
       $('<div class="staff-line"></div>').css({ top: y + 'px' }).appendTo(this.$el);
     }
 
@@ -294,10 +320,7 @@
 
   Staff.prototype._drawClef = function () {
     if (!this.opts.clefUrl) return;
-
-    $('<img class="treble-clef" alt="">')
-      .attr('src', this.opts.clefUrl)
-      .appendTo(this.$el);
+    $('<img class="treble-clef" alt="">').attr('src', this.opts.clefUrl).appendTo(this.$el);
   };
 
   Staff.prototype.relayout = function () {
@@ -307,12 +330,12 @@
     this._repositionAllAccidentals();
   };
 
-  // =========================================================
+  // ---------------------------------------------------------------------------
   // Coordinates + range
-  // =========================================================
+  // ---------------------------------------------------------------------------
   Staff.prototype.centerX = function () { return this.$el.width() / 2; };
   Staff.prototype.stepToY  = function (step) { return this.opts.bottomLineY - (step * this.opts.stepSize); };
-  Staff.prototype.yToStep  = function (y)    { return Math.round((this.opts.bottomLineY - y) / this.opts.stepSize); };
+  Staff.prototype.yToStep  = function (y) { return Math.round((this.opts.bottomLineY - y) / this.opts.stepSize); };
   Staff.prototype._pageYToLocalY = function (pageY) { return pageY - this.$el.offset().top; };
 
   Staff.prototype.minStepAllowed = function () { return 0 - (this.opts.maxLedgerBelow * 2); };
@@ -321,20 +344,20 @@
     return step >= this.minStepAllowed() && step <= this.maxStepAllowed();
   };
 
-  // =========================================================
+  // ---------------------------------------------------------------------------
   // Ledgers
-  // =========================================================
+  // ---------------------------------------------------------------------------
   Staff.prototype._ledgerStepsFor = function (step) {
-    var ledgers = [];
-    var topMost = 8 + (this.opts.maxLedgerAbove * 2);
-    var bottomMost = 0 - (this.opts.maxLedgerBelow * 2);
+    const ledgers = [];
+    const topMost = 8 + (this.opts.maxLedgerAbove * 2);
+    const bottomMost = 0 - (this.opts.maxLedgerBelow * 2);
 
     if (step > 8) {
-      var capped = Math.min(step, topMost);
-      for (var s = 10; s <= capped; s += 2) ledgers.push(s);
+      const capped = Math.min(step, topMost);
+      for (let s = 10; s <= capped; s += 2) ledgers.push(s);
     } else if (step < 0) {
-      var capped2 = Math.max(step, bottomMost);
-      for (var s2 = -2; s2 >= capped2; s2 -= 2) ledgers.push(s2);
+      const capped = Math.max(step, bottomMost);
+      for (let s = -2; s >= capped; s -= 2) ledgers.push(s);
     }
     return ledgers;
   };
@@ -342,11 +365,11 @@
   Staff.prototype._renderLedgers = function (id, x, step) {
     this.$el.find('.ledger[data-for-note-id="' + id + '"]').remove();
 
-    var isDragging = this.$el.find('.note[data-note-id="' + id + '"]').hasClass('dragging');
-    var steps = this._ledgerStepsFor(step);
+    const isDragging = this.$el.find('.note[data-note-id="' + id + '"]').hasClass('dragging');
+    const steps = this._ledgerStepsFor(step);
 
-    for (var i = 0; i < steps.length; i++) {
-      var $l = $('<div class="ledger"></div>')
+    for (let i = 0; i < steps.length; i++) {
+      const $l = $('<div class="ledger"></div>')
         .attr('data-for-note-id', id)
         .css({ left: x + 'px', top: this.stepToY(steps[i]) + 'px' });
 
@@ -362,72 +385,73 @@
   Staff.prototype._previewLedgersSet = function (step) {
     this._previewLedgersClear();
 
-    var x = this.centerX();
-    var steps = this._ledgerStepsFor(step);
+    const x = this.centerX();
+    const steps = this._ledgerStepsFor(step);
 
-    for (var i = 0; i < steps.length; i++) {
+    for (let i = 0; i < steps.length; i++) {
       $('<div class="ledger preview"></div>')
         .css({ left: x + 'px', top: this.stepToY(steps[i]) + 'px' })
         .appendTo(this.$el);
     }
   };
 
-  // =========================================================
+  // ---------------------------------------------------------------------------
   // Notes lookup
-  // =========================================================
+  // ---------------------------------------------------------------------------
   Staff.prototype._stepOfNoteEl = function (el) {
-    var topStr = el.style.top || window.getComputedStyle(el).top;
+    const topStr = el.style.top || window.getComputedStyle(el).top;
     return this.yToStep(parseFloat(topStr));
   };
 
   Staff.prototype._isStepOccupied = function (step, excludeId) {
-    var nodes = this.$el.find('.note').toArray();
-    for (var i = 0; i < nodes.length; i++) {
-      var el = nodes[i];
+    const nodes = this.$el.find('.note').toArray();
+    for (let i = 0; i < nodes.length; i++) {
+      const el = nodes[i];
       if (!el) continue;
-
-      var id = el.getAttribute('data-note-id');
+      const id = el.getAttribute('data-note-id');
       if (excludeId && id === excludeId) continue;
-
       if (this._stepOfNoteEl(el) === step) return true;
     }
     return false;
   };
 
   Staff.prototype._getNoteIdAtStep = function (step, excludeId) {
-    var nodes = this.$el.find('.note').toArray();
-    for (var i = 0; i < nodes.length; i++) {
-      var el = nodes[i];
+    const nodes = this.$el.find('.note').toArray();
+    for (let i = 0; i < nodes.length; i++) {
+      const el = nodes[i];
       if (!el) continue;
-
-      var id = el.getAttribute('data-note-id');
+      const id = el.getAttribute('data-note-id');
       if (excludeId && id === excludeId) continue;
-
       if (this._stepOfNoteEl(el) === step) return id;
     }
     return null;
   };
 
   Staff.prototype._isCenteredX = function (noteId) {
-    var $n = this.$el.find('.note[data-note-id="' + noteId + '"]');
+    const $n = this.$el.find('.note[data-note-id="' + noteId + '"]');
     if (!$n.length) return true;
     return Math.abs(parseFloat($n.css('left')) - this.centerX()) <= 0.5;
   };
 
-  // =========================================================
+  Staff.prototype.isNoteFixed = function (noteId) {
+    const $note = this.$el.find('.note[data-note-id="' + noteId + '"]');
+    return $note.length ? $note.hasClass('fixed') : false;
+  };
+
+  // ---------------------------------------------------------------------------
   // Accidentals
-  // =========================================================
+  // ---------------------------------------------------------------------------
   Staff.prototype._removeAccidentalForNote = function (noteId) {
     this.$el.find('.accidental[data-for-note-id="' + noteId + '"]').remove();
   };
 
   Staff.prototype._positionAccidentalForNote = function (noteId) {
-    var $note = this.$el.find('.note[data-note-id="' + noteId + '"]');
-    var $acc  = this.$el.find('.accidental[data-for-note-id="' + noteId + '"]');
+    const $note = this.$el.find('.note[data-note-id="' + noteId + '"]');
+    const $acc  = this.$el.find('.accidental[data-for-note-id="' + noteId + '"]');
     if (!$note.length || !$acc.length) return;
 
-    var noteLeft = parseFloat($note.css('left'));
-    var noteTop  = parseFloat($note.css('top'));
+    const noteLeft = parseFloat($note.css('left'));
+    const noteTop  = parseFloat($note.css('top'));
 
     $acc.css({
       left: (noteLeft - this.opts.accidentalGapPx) + 'px',
@@ -436,19 +460,20 @@
   };
 
   Staff.prototype._repositionAllAccidentals = function () {
-    var self = this;
+    const self = this;
     this.$el.find('.accidental').each(function () {
-      var id = this.getAttribute('data-for-note-id');
+      const id = this.getAttribute('data-for-note-id');
       if (id) self._positionAccidentalForNote(id);
     });
   };
 
   Staff.prototype.attachAccidentalToNote = function (noteId, accidentalClass) {
     if (!noteId) return;
+    if (this.isNoteFixed(noteId)) return;
 
     this._removeAccidentalForNote(noteId);
 
-    var $acc = $('<div class="accidental music-font"></div>')
+    const $acc = $('<div class="accidental music-font"></div>')
       .addClass(accidentalClass)
       .attr('data-for-note-id', noteId);
 
@@ -457,19 +482,12 @@
   };
 
   Staff.prototype.enableAccidentalDropOnStaff = function () {
-    var self = this;
+    const self = this;
 
-    function classToAccidental(ui) {
-      var classes = [
-        'music-font__sharp',
-        'music-font__doublesharp',
-        'music-font__flat',
-        'music-font__doubleflat',
-        'music-font__natural'
-      ];
-
-      for (var i = 0; i < classes.length; i++) {
-        if (ui.draggable.hasClass(classes[i])) return classes[i];
+    function classFromDraggable(ui) {
+      for (let i = 0; i < ACCIDENTAL_CLASSES.length; i++) {
+        const cls = ACCIDENTAL_CLASSES[i];
+        if (ui.draggable.hasClass(cls)) return cls;
       }
       return null;
     }
@@ -478,18 +496,18 @@
       accept: '.accidental-tool',
       tolerance: 'pointer',
       drop: function (event, ui) {
-        var pageY = event.pageY;
+        let pageY = event.pageY;
         if (!Number.isFinite(pageY) && event.originalEvent) pageY = event.originalEvent.pageY;
 
-        var localY = self._pageYToLocalY(pageY);
-        var step = self.yToStep(localY);
-
+        const localY = self._pageYToLocalY(pageY);
+        const step = self.yToStep(localY);
         if (!self._isStepAllowed(step)) return;
 
-        var noteId = self._getNoteIdAtStep(step, null);
+        const noteId = self._getNoteIdAtStep(step, null);
         if (!noteId) return;
+        if (self.isNoteFixed(noteId)) return;
 
-        var accClass = classToAccidental(ui);
+        const accClass = classFromDraggable(ui);
         if (!accClass) return;
 
         self.attachAccidentalToNote(noteId, accClass);
@@ -497,11 +515,11 @@
     });
   };
 
-  // =========================================================
+  // ---------------------------------------------------------------------------
   // Notes lifecycle
-  // =========================================================
+  // ---------------------------------------------------------------------------
   Staff.prototype.setNoteFixed = function (noteId, fixed) {
-    var on = !!fixed;
+    const on = !!fixed;
     this.$el.find('.note[data-note-id="' + noteId + '"]').toggleClass('fixed', on);
     this.$el.find('.ledger[data-for-note-id="' + noteId + '"]').toggleClass('fixed', on);
     this.$el.find('.accidental[data-for-note-id="' + noteId + '"]').toggleClass('fixed', on);
@@ -511,7 +529,7 @@
     cfg = cfg || {};
     cfg.className = (cfg.className ? (cfg.className + ' ') : '') + 'fixed';
 
-    var id = this.addNote(cfg);
+    const id = this.addNote(cfg);
     if (!id) return null;
 
     if (cfg.accidentalClass) this.attachAccidentalToNote(id, cfg.accidentalClass);
@@ -533,20 +551,21 @@
 
   Staff.prototype.addNote = function (cfg) {
     cfg = cfg || {};
-    var step = Number.isFinite(cfg.step) ? Number(cfg.step) : null;
+    const step = Number.isFinite(cfg.step) ? Number(cfg.step) : null;
 
     if (Number.isFinite(step) && !this._isStepAllowed(step)) return null;
     if (Number.isFinite(step) && this._isStepOccupied(step, null)) return null;
 
-    var y = Number.isFinite(cfg.y) ? Number(cfg.y)
+    const y = Number.isFinite(cfg.y) ? Number(cfg.y)
           : Number.isFinite(step) ? this.stepToY(step)
           : null;
+
     if (!Number.isFinite(y)) throw new Error('addNote: provide either y or step');
 
-    var x  = Number.isFinite(cfg.x) ? Number(cfg.x) : this.centerX();
-    var id = cfg.id || (this.opts.noteIdPrefix + (this._idCounter++));
+    const x  = Number.isFinite(cfg.x) ? Number(cfg.x) : this.centerX();
+    const id = cfg.id || (this.opts.noteIdPrefix + (this._idCounter++));
 
-    var $note = $('<div class="note"></div>')
+    const $note = $('<div class="note"></div>')
       .attr('data-note-id', id)
       .css({ left: x + 'px', top: y + 'px' });
 
@@ -564,14 +583,14 @@
 
   Staff.prototype.moveNote = function (id, pos) {
     pos = pos || {};
-    var $note = this.$el.find('.note[data-note-id="' + id + '"]');
+    const $note = this.$el.find('.note[data-note-id="' + id + '"]');
     if (!$note.length) return;
 
-    var x = Number.isFinite(pos.x) ? Number(pos.x) : null;
-    var step = Number.isFinite(pos.step) ? Number(pos.step) : null;
+    const x = Number.isFinite(pos.x) ? Number(pos.x) : null;
+    const step = Number.isFinite(pos.step) ? Number(pos.step) : null;
     if (Number.isFinite(step) && !this._isStepAllowed(step)) return;
 
-    var y = Number.isFinite(pos.y) ? Number(pos.y)
+    const y = Number.isFinite(pos.y) ? Number(pos.y)
           : Number.isFinite(step) ? this.stepToY(step)
           : null;
 
@@ -579,16 +598,16 @@
     if (Number.isFinite(y)) $note.css('top', y + 'px');
 
     if (Number.isFinite(step)) {
-      var noteX = Number.isFinite(x) ? x : parseFloat($note.css('left'));
+      const noteX = Number.isFinite(x) ? x : parseFloat($note.css('left'));
       this._renderLedgers(id, noteX, step);
     }
 
     this._positionAccidentalForNote(id);
   };
 
-  // =========================================================
+  // ---------------------------------------------------------------------------
   // Preview
-  // =========================================================
+  // ---------------------------------------------------------------------------
   Staff.prototype._previewSet = function (step) {
     if (!this._preview) this._preview = $('<div class="note preview"></div>').appendTo(this.$el);
     this._preview.css({ left: this.centerX() + 'px', top: this.stepToY(step) + 'px' });
@@ -605,76 +624,76 @@
     this._previewLedgersClear();
   };
 
-  // =========================================================
+  // ---------------------------------------------------------------------------
   // Overlap resolution (adjacent steps only)
-  // =========================================================
+  // ---------------------------------------------------------------------------
   Staff.prototype._rectsOverlap = function (a, b) {
     return !(a.right <= b.left || a.left >= b.right || a.bottom <= b.top || a.top >= b.bottom);
   };
 
   Staff.prototype._resolveNoteOverlaps = function () {
-    var self = this;
-    var GAP = this.opts.noteOverlapGap;
-    var MAX_ITERS = 20;
+    const self = this;
+    const GAP = this.opts.noteOverlapGap;
+    const MAX_ITERS = 20;
 
     function notesArray() {
       return self.$el.find('.note').toArray().map(function (el) {
-        var $el = $(el);
+        const $el = $(el);
         return { el: el, $el: $el, step: self.yToStep(parseFloat($el.css('top'))) };
       });
     }
 
     function noteByStep(list) {
-      var map = {};
-      for (var i = 0; i < list.length; i++) {
-        var s = list[i].step;
+      const map = {};
+      for (let i = 0; i < list.length; i++) {
+        const s = list[i].step;
         (map[s] || (map[s] = [])).push(list[i]);
       }
       return map;
     }
 
     function centerAll(list) {
-      var cx = self.centerX();
-      for (var i = 0; i < list.length; i++) {
-        var id = list[i].$el.attr('data-note-id');
+      const cx = self.centerX();
+      for (let i = 0; i < list.length; i++) {
+        const id = list[i].$el.attr('data-note-id');
         self.moveNote(id, { x: cx, step: list[i].step });
         list[i]._shifted = false;
       }
     }
 
     function shiftUpperToTouch(upper, stepMap) {
-      var upperRect = upper.el.getBoundingClientRect();
-      var lowerEls = stepMap[upper.step - 1];
+      const upperRect = upper.el.getBoundingClientRect();
+      const lowerEls = stepMap[upper.step - 1];
       if (!lowerEls || !lowerEls.length) return false;
 
-      var lowerRect = lowerEls[0].el.getBoundingClientRect();
+      const lowerRect = lowerEls[0].el.getBoundingClientRect();
       if (!self._rectsOverlap(upperRect, lowerRect)) return false;
 
-      var dx = (lowerRect.right - upperRect.left) + GAP;
-      var id = upper.$el.attr('data-note-id');
+      const dx = (lowerRect.right - upperRect.left) + GAP;
+      const id = upper.$el.attr('data-note-id');
       self.moveNote(id, { x: parseFloat(upper.$el.css('left')) + dx, step: upper.step });
       return true;
     }
 
-    for (var iter = 0; iter < MAX_ITERS; iter++) {
-      var list = notesArray();
+    for (let iter = 0; iter < MAX_ITERS; iter++) {
+      const list = notesArray();
       if (!list.length) return;
 
       centerAll(list);
 
-      var stepMap = noteByStep(list);
-      var steps = Object.keys(stepMap)
-        .map(function (s) { return parseInt(s, 10); })
-        .sort(function (a, b) { return a - b; });
+      const stepMap = noteByStep(list);
+      const steps = Object.keys(stepMap)
+        .map(s => parseInt(s, 10))
+        .sort((a, b) => a - b);
 
-      var changed = false;
+      let changed = false;
 
-      for (var i = 0; i < steps.length; i++) {
-        var s = steps[i];
+      for (let i = 0; i < steps.length; i++) {
+        const s = steps[i];
         if (!stepMap[s] || !stepMap[s + 1]) continue;
 
-        var lower = stepMap[s][0];
-        var upper = stepMap[s + 1][0];
+        const lower = stepMap[s][0];
+        const upper = stepMap[s + 1][0];
 
         if (!lower._shifted) {
           if (shiftUpperToTouch(upper, stepMap)) changed = true;
@@ -686,13 +705,13 @@
     }
   };
 
-  // =========================================================
+  // ---------------------------------------------------------------------------
   // Drag visuals + adjacency X while dragging
-  // =========================================================
+  // ---------------------------------------------------------------------------
   Staff.prototype._setDraggingVisual = function (noteId, on) {
-    var $note = this.$el.find('.note[data-note-id="' + noteId + '"]');
-    var $ledgers = this.$el.find('.ledger[data-for-note-id="' + noteId + '"]');
-    var $acc = this.$el.find('.accidental[data-for-note-id="' + noteId + '"]');
+    const $note = this.$el.find('.note[data-note-id="' + noteId + '"]');
+    const $ledgers = this.$el.find('.ledger[data-for-note-id="' + noteId + '"]');
+    const $acc = this.$el.find('.accidental[data-for-note-id="' + noteId + '"]');
 
     $note.toggleClass('dragging', !!on);
     $ledgers.toggleClass('dragging', !!on);
@@ -700,33 +719,33 @@
   };
 
   Staff.prototype._applyDraggedAdjacencyX = function (dragId) {
-    var $drag = this.$el.find('.note[data-note-id="' + dragId + '"]');
+    const $drag = this.$el.find('.note[data-note-id="' + dragId + '"]');
     if (!$drag.length) return;
 
-    var dragStep = this.yToStep(parseFloat($drag.css('top')));
-    var center = this.centerX();
-    var gap = this.opts.noteOverlapGap;
+    const dragStep = this.yToStep(parseFloat($drag.css('top')));
+    const center = this.centerX();
+    const gap = this.opts.noteOverlapGap;
 
     this.moveNote(dragId, { x: center });
 
-    var lowerId = this._getNoteIdAtStep(dragStep - 1, dragId);
+    const lowerId = this._getNoteIdAtStep(dragStep - 1, dragId);
     if (!lowerId) return;
     if (!this._isCenteredX(lowerId)) return;
 
-    var $lower = this.$el.find('.note[data-note-id="' + lowerId + '"]');
+    const $lower = this.$el.find('.note[data-note-id="' + lowerId + '"]');
     if (!$lower.length) return;
 
-    var upperRect = $drag[0].getBoundingClientRect();
-    var lowerRect = $lower[0].getBoundingClientRect();
+    const upperRect = $drag[0].getBoundingClientRect();
+    const lowerRect = $lower[0].getBoundingClientRect();
     if (!this._rectsOverlap(upperRect, lowerRect)) return;
 
-    var dx = (lowerRect.right - upperRect.left) + gap;
+    const dx = (lowerRect.right - upperRect.left) + gap;
     this.moveNote(dragId, { x: center + dx });
   };
 
-  // =========================================================
+  // ---------------------------------------------------------------------------
   // Sound (Tone.js)
-  // =========================================================
+  // ---------------------------------------------------------------------------
   Staff.prototype._ensureAudio = async function () {
     if (this._audioReady) return;
     if (!window.Tone) return;
@@ -743,10 +762,10 @@
 
   // Treble staff mapping (bottom line = E4)
   Staff.prototype._stepToMidi = function (step) {
-    var diatonic = [0, 2, 4, 5, 7, 9, 11]; // C D E F G A B
-    var baseIndex = 2 + step;              // E is index 2
-    var octaveShift = Math.floor(baseIndex / 7);
-    var noteIndex = (baseIndex % 7 + 7) % 7;
+    const diatonic = [0, 2, 4, 5, 7, 9, 11]; // C D E F G A B
+    const baseIndex = 2 + step;              // E is index 2
+    const octaveShift = Math.floor(baseIndex / 7);
+    const noteIndex = (baseIndex % 7 + 7) % 7;
     return 60 + diatonic[noteIndex] + (octaveShift * 12);
   };
 
@@ -761,18 +780,12 @@
   };
 
   Staff.prototype._getAttachedAccidentalClass = function (noteId) {
-    var $acc = this.$el.find('.accidental[data-for-note-id="' + noteId + '"]');
+    const $acc = this.$el.find('.accidental[data-for-note-id="' + noteId + '"]');
     if (!$acc.length) return null;
 
-    var classes = [
-      'music-font__sharp',
-      'music-font__doublesharp',
-      'music-font__flat',
-      'music-font__doubleflat',
-      'music-font__natural'
-    ];
-    for (var i = 0; i < classes.length; i++) {
-      if ($acc.hasClass(classes[i])) return classes[i];
+    for (let i = 0; i < ACCIDENTAL_CLASSES.length; i++) {
+      const cls = ACCIDENTAL_CLASSES[i];
+      if ($acc.hasClass(cls)) return cls;
     }
     return null;
   };
@@ -783,37 +796,27 @@
     await this._ensureAudio();
     if (!this._synth) return;
 
-    var offset = accidentalOffset || 0;
-    var midi = this._stepToMidi(step) + offset;
-
-    // Avoid spamming console on every drag if you don't want it:
-    // console.log("Playing:", Tone.Frequency(midi, "midi").toNote());
-
-    var freq = Tone.Frequency(midi, "midi");
+    const offset = accidentalOffset || 0;
+    const midi = this._stepToMidi(step) + offset;
+    const freq = Tone.Frequency(midi, "midi");
     this._synth.triggerAttackRelease(freq, 0.5);
   };
 
-  // =========================================================
-  // Interaction (Pointer Events)
-  // =========================================================
+  // ---------------------------------------------------------------------------
+  // Interaction (Pointer Events) - ghost click create
+  // ---------------------------------------------------------------------------
   Staff.prototype.enableGhostClickCreate = function () {
-    var self = this;
+    const self = this;
 
     this.$el.off('.previewCreate');
     $(window).off('blur.previewCreate');
-
-    function getPageY(e) {
-      var oe = e.originalEvent || e;
-      if (oe.touches && oe.touches.length) return oe.touches[0].pageY;
-      if (oe.changedTouches && oe.changedTouches.length) return oe.changedTouches[0].pageY;
-      return oe.pageY;
-    }
 
     this.$el.on('pointerdown.previewCreate', function (e) {
       if ($(e.target).closest('.note').length) return;
       e.preventDefault();
 
-      var initialStep = self.yToStep(self._pageYToLocalY(getPageY(e)));
+      const { y: pageY } = getPointerPageXY(e);
+      const initialStep = self.yToStep(self._pageYToLocalY(pageY));
       if (!self._isStepAllowed(initialStep)) return;
 
       self._previewState.active = true;
@@ -822,12 +825,14 @@
 
       self._ensureAudio();
 
-      this.setPointerCapture && this.setPointerCapture(e.originalEvent.pointerId);
+      const pointerId = getPointerId(e);
+      if (this.setPointerCapture && pointerId != null) this.setPointerCapture(pointerId);
 
       self.$el.off('pointermove.previewCreate').on('pointermove.previewCreate', function (ev) {
         if (!self._previewState.active) return;
 
-        var s = self.yToStep(self._pageYToLocalY(getPageY(ev)));
+        const { y: py } = getPointerPageXY(ev);
+        const s = self.yToStep(self._pageYToLocalY(py));
         if (!self._isStepAllowed(s)) return;
 
         self._previewState.step = s;
@@ -839,7 +844,7 @@
           if (!self._previewState.active) return;
 
           self._previewState.active = false;
-          var finalStep = self._previewState.step;
+          const finalStep = self._previewState.step;
 
           self._previewClear();
           self.$el.off('pointermove.previewCreate pointerup.previewCreate pointercancel.previewCreate');
@@ -847,8 +852,13 @@
           if (!self._isStepAllowed(finalStep)) return;
           if (self._isStepOccupied(finalStep, null)) return;
 
-          self.addNote({ step: finalStep });
-          self._playStep(finalStep, 0);
+          var createdId = self.addNote({ step: finalStep });
+          if (createdId) {
+            // Swallow the synthetic click that follows this tap (mobile)
+            self._suppressNextClick.noteId = createdId;
+            self._suppressNextClick.until = Date.now() + 700; // ms window
+            self._playStep(finalStep, 0);
+          }
         });
     });
 
@@ -860,18 +870,14 @@
     });
   };
 
+  // ---------------------------------------------------------------------------
+  // Interaction - note drag + click delete
+  // ---------------------------------------------------------------------------
   Staff.prototype.enableNoteDragAndClickDelete = function () {
-    var self = this;
-    var d = this._drag;
+    const self = this;
+    const d = this._drag;
 
     this.$el.off('.noteDrag');
-
-    function getPageY(e) {
-      var oe = e.originalEvent || e;
-      if (oe.touches && oe.touches.length) return oe.touches[0].pageY;
-      if (oe.changedTouches && oe.changedTouches.length) return oe.changedTouches[0].pageY;
-      return oe.pageY;
-    }
 
     function startDragFromNoteEl(noteEl, e) {
       e.preventDefault();
@@ -880,12 +886,12 @@
       if (e.stopImmediatePropagation) e.stopImmediatePropagation();
       else e.stopPropagation();
 
-      var pointerId = e.originalEvent.pointerId;
-      var $note = $(noteEl);
+      const pointerId = getPointerId(e);
+      const $note = $(noteEl);
 
       d.isDragging = false;
       d.movedPx = 0;
-      d.startPageY = getPageY(e);
+      d.startPageY = getPointerPageXY(e).y;
       d.noteId = $note.attr('data-note-id');
 
       d.startStep = self.yToStep(parseFloat($note.css('top')));
@@ -897,20 +903,21 @@
       self._setDraggingVisual(d.noteId, true);
       self._ensureAudio();
 
-      var capEl = (e.currentTarget && e.currentTarget.setPointerCapture) ? e.currentTarget : null;
+      const capEl = (e.currentTarget && e.currentTarget.setPointerCapture) ? e.currentTarget : null;
       if (capEl && pointerId != null) capEl.setPointerCapture(pointerId);
 
       self.$el.off('pointermove.noteDrag').on('pointermove.noteDrag', function (ev) {
-        if ((ev.originalEvent.pointerId || pointerId) !== pointerId) return;
+        const evPointerId = getPointerId(ev);
+        if (pointerId != null && evPointerId != null && evPointerId !== pointerId) return;
 
-        var py = getPageY(ev);
-        var dy = py - d.startPageY;
+        const py = getPointerPageXY(ev).y;
+        const dy = py - d.startPageY;
         d.movedPx = Math.max(d.movedPx, Math.abs(dy));
 
         if (!d.isDragging && d.movedPx >= d.thresholdPx) d.isDragging = true;
         if (!d.isDragging) return;
 
-        var targetStep = self.yToStep(self._pageYToLocalY(py));
+        const targetStep = self.yToStep(self._pageYToLocalY(py));
 
         if (!self._isStepAllowed(targetStep)) {
           d.outOfRange = true;
@@ -927,8 +934,8 @@
         if (targetStep !== d.lastSoundStep) {
           d.lastSoundStep = targetStep;
 
-          var accCls = self._getAttachedAccidentalClass(d.noteId);
-          var accOff = self._accidentalClassToOffset(accCls);
+          const accCls = self._getAttachedAccidentalClass(d.noteId);
+          const accOff = self._accidentalClassToOffset(accCls);
 
           self._playStep(targetStep, accOff);
         }
@@ -936,7 +943,8 @@
 
       self.$el.off('pointerup.noteDrag pointercancel.noteDrag')
         .on('pointerup.noteDrag pointercancel.noteDrag', function (ev2) {
-          if ((ev2.originalEvent.pointerId || pointerId) !== pointerId) return;
+          const evPointerId = getPointerId(ev2);
+          if (pointerId != null && evPointerId != null && evPointerId !== pointerId) return;
 
           self.$el.off('pointermove.noteDrag pointerup.noteDrag pointercancel.noteDrag');
 
@@ -968,17 +976,32 @@
     this.$el.on('pointerdown.noteDrag', function (e) {
       if ($(e.target).closest('.note').length) return;
 
-      var step = self.yToStep(self._pageYToLocalY(getPageY(e)));
-      var idAtStep = self._getNoteIdAtStep(step, null);
+      const { y: pageY } = getPointerPageXY(e);
+      const step = self.yToStep(self._pageYToLocalY(pageY));
+      const idAtStep = self._getNoteIdAtStep(step, null);
       if (!idAtStep) return;
 
-      var noteEl = self.$el.find('.note[data-note-id="' + idAtStep + '"]')[0];
+      const noteEl = self.$el.find('.note[data-note-id="' + idAtStep + '"]')[0];
       if (!noteEl) return;
 
       startDragFromNoteEl(noteEl, e);
     });
 
     this.$el.on('click.noteDrag', '.note', function (e) {
+      var clickedId = $(this).attr('data-note-id');
+      if (
+        self._suppressNextClick.noteId &&
+        clickedId === self._suppressNextClick.noteId &&
+        Date.now() < self._suppressNextClick.until
+      ) {
+        // This click is the "after tap" click from creating the note. Ignore it once.
+        self._suppressNextClick.noteId = null;
+        self._suppressNextClick.until = 0;
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+      
       if (d.swallowClick) {
         e.preventDefault();
         e.stopPropagation();
@@ -989,23 +1012,17 @@
     });
   };
 
-  // =========================================================
+  // ---------------------------------------------------------------------------
   // Accidentals (drag + sound preview)
-  // =========================================================
+  // ---------------------------------------------------------------------------
   Staff.prototype.enableAccidentalDrag = function ($toolEls) {
-    var self = this;
+    const self = this;
     $toolEls.addClass('accidental-tool');
 
-    function classToAccidentalByEl($el) {
-      var classes = [
-        'music-font__sharp',
-        'music-font__doublesharp',
-        'music-font__flat',
-        'music-font__doubleflat',
-        'music-font__natural'
-      ];
-      for (var i = 0; i < classes.length; i++) {
-        if ($el.hasClass(classes[i])) return classes[i];
+    function classFromTool($el) {
+      for (let i = 0; i < ACCIDENTAL_CLASSES.length; i++) {
+        const cls = ACCIDENTAL_CLASSES[i];
+        if ($el.hasClass(cls)) return cls;
       }
       return null;
     }
@@ -1022,21 +1039,21 @@
         self._ensureAudio();
 
         self._accDragSound.noteId = null;
-        self._accDragSound.accCls = classToAccidentalByEl($(this));
+        self._accDragSound.accCls = classFromTool($(this));
         self._accDragSound.step = null;
       },
 
       drag: function (event) {
-        var accCls = self._accDragSound.accCls;
+        const accCls = self._accDragSound.accCls;
         if (!accCls) return;
 
-        var pageX = event.pageX, pageY = event.pageY;
+        let pageX = event.pageX, pageY = event.pageY;
         if (!Number.isFinite(pageY) && event.originalEvent) pageY = event.originalEvent.pageY;
         if (!Number.isFinite(pageX) && event.originalEvent) pageX = event.originalEvent.pageX;
 
-        var off = self.$el.offset();
-        var x = pageX - off.left;
-        var y = pageY - off.top;
+        const off = self.$el.offset();
+        const x = pageX - off.left;
+        const y = pageY - off.top;
 
         if (x < 0 || y < 0 || x > self.$el.width() || y > self.$el.height()) {
           self._accDragSound.noteId = null;
@@ -1044,18 +1061,24 @@
           return;
         }
 
-        var step = self.yToStep(y);
+        const step = self.yToStep(y);
         if (!self._isStepAllowed(step)) return;
 
-        var noteId = self._getNoteIdAtStep(step, null);
+        const noteId = self._getNoteIdAtStep(step, null);
         if (!noteId) return;
+
+        if (self.isNoteFixed(noteId)) {
+          self._accDragSound.noteId = null;
+          self._accDragSound.step = null;
+          return;
+        }
 
         if (noteId === self._accDragSound.noteId && step === self._accDragSound.step) return;
 
         self._accDragSound.noteId = noteId;
         self._accDragSound.step = step;
 
-        var accOff = self._accidentalClassToOffset(accCls);
+        const accOff = self._accidentalClassToOffset(accCls);
         self._playStep(step, accOff);
       },
 
@@ -1068,205 +1091,194 @@
   };
 
   window.Staff = Staff;
-})(jQuery);
 
-// =========================================================
-// App glue
-// =========================================================
+  // ===========================================================================
+  // App glue
+  // ===========================================================================
+  const $staffEl = $('#staff');
+  const $accidentals = $('#accidentals');
+  const $feedback = $('#feedback-success');
+  const $interval = $('#interval');
+  const $check = $('#check');
+  const $checkWrap = $check.parent();
+  const $progressBar = $('#progress-bar');
+  const $level = $('#level');
 
-// --- small utility: safe log (your code called log())
-function log() { if (window.console && console.log) console.log.apply(console, arguments); }
+  const staff = new Staff($staffEl);
+  staff.enableNoteDragAndClickDelete();
+  staff.enableGhostClickCreate();
 
-// --- cache selectors once
-const $staffEl = $('#staff');
-const $accidentals = $('#accidentals');
-const $feedback = $('#feedback-success');
-const $interval = $('#interval');
-const $check = $('#check');
-const $checkWrap = $check.parent();
-const $progressBar = $('#progress-bar');
+  staff.enableAccidentalDrag($('#accidentals .music-font__sharp, #accidentals .music-font__doublesharp, #accidentals .music-font__flat, #accidentals .music-font__doubleflat, #accidentals .music-font__natural'));
+  staff.enableAccidentalDropOnStaff();
 
-const staff = new Staff($staffEl);
-staff.enableNoteDragAndClickDelete();
-staff.enableGhostClickCreate();
-
-staff.enableAccidentalDrag($('#accidentals .music-font__sharp, #accidentals .music-font__doublesharp, #accidentals .music-font__flat, #accidentals .music-font__doubleflat, #accidentals .music-font__natural'));
-staff.enableAccidentalDropOnStaff();
-
-$('#clear').on('click', function () {
-  staff.clearNotes();
-});
-
-// =========================================================
-// Challenge
-// =========================================================
-const INTERVALS = ['m2', 'M2', 'm3', 'M3', 'P4', 'A4', 'd5', 'P5', 'm6', 'M6', 'm7', 'M7'];
-const HARDINTERVALS = ['A4', 'd5', 'm6', 'm7', 'M7'];
-
-function _randomInt(min, maxInclusive) {
-  return Math.floor(Math.random() * (maxInclusive - min + 1)) + min;
-}
-
-function _createNewIntervalChallenge() {
-  // steps are discrete in your staff, so choose discrete steps
-  const randomStep = _randomInt(0, 7);
-  const randomInterval = INTERVALS[Math.floor(Math.random() * INTERVALS.length)];
-  let $level = $("#level");
-
-  staff.clearNotes();
-  $accidentals.removeClass('invisible');
-  $feedback.hide();
-
-  $interval.text(randomInterval);
-
-  $level.addClass('invisible');
-
-  if (HARDINTERVALS.includes(randomInterval))
-    $level.removeClass('invisible');
-
-  staff.addFixedNote({
-    step: randomStep,
-    accidentalClass: null
-  });
-}
-
-// =========================================================
-// Interval helpers
-// =========================================================
-function _notesOnStaffOrdered() {
-  const $notes = $staffEl.find('.note').not('.preview');
-  const notes = $notes.toArray().map(el => {
-    const id = el.getAttribute('data-note-id');
-    const step = staff._stepOfNoteEl(el);
-    const accCls = staff._getAttachedAccidentalClass(id);
-    const accOff = staff._accidentalClassToOffset(accCls);
-    return { id, step, accOff };
+  $('#clear').on('click', function () {
+    staff.clearNotes();
   });
 
-  notes.sort((a, b) => a.step - b.step);
-  return notes;
-}
+  // ===========================================================================
+  // Challenge
+  // ===========================================================================
+  const INTERVALS = ['m2', 'M2', 'm3', 'M3', 'P4', 'A4', 'd5', 'P5', 'm6', 'M6', 'm7', 'M7'];
+  const HARDINTERVALS = ['A4', 'd5', 'm6', 'm7', 'M7'];
 
-function _diatonicNumberFromSteps(stepLow, stepHigh) {
-  return Math.abs(stepHigh - stepLow) + 1;
-}
-
-function _qualityFor(simpleNum, semitones) {
-  const isPerfectClass = (simpleNum === 1 || simpleNum === 4 || simpleNum === 5 || simpleNum === 8);
-  const expectedMajorOrPerfect = { 1:0, 2:2, 3:4, 4:5, 5:7, 6:9, 7:11, 8:12 }[simpleNum];
-  const delta = semitones - expectedMajorOrPerfect;
-
-  if (isPerfectClass) {
-    if (delta === 0) return 'P';
-    if (delta === 1) return 'A';
-    if (delta === -1) return 'd';
-    if (delta > 1) return 'A'.repeat(delta);
-    if (delta < -1) return 'd'.repeat(-delta);
-  } else {
-    if (delta === 0) return 'M';
-    if (delta === -1) return 'm';
-    if (delta === 1) return 'A';
-    if (delta === -2) return 'd';
-    if (delta > 1) return 'A'.repeat(delta);
-    if (delta < -2) return 'd'.repeat((-delta) - 1);
+  function randomInt(min, maxInclusive) {
+    return Math.floor(Math.random() * (maxInclusive - min + 1)) + min;
   }
-  return '?';
-}
 
-function _intervalNameBetween(noteA, noteB) {
-  const stepLow = noteA.step;
-  const stepHigh = noteB.step;
+  function createNewIntervalChallenge() {
+    const randomStep = randomInt(0, 7);
+    const randomInterval = INTERVALS[Math.floor(Math.random() * INTERVALS.length)];
 
-  const midiLow = staff._stepToMidi(stepLow) + (noteA.accOff || 0);
-  const midiHigh = staff._stepToMidi(stepHigh) + (noteB.accOff || 0);
+    staff.clearNotes();
+    $accidentals.removeClass('invisible');
+    $feedback.hide();
 
-  const semitones = Math.abs(midiHigh - midiLow);
-  const diatonicNum = _diatonicNumberFromSteps(stepLow, stepHigh);
+    $interval.text(randomInterval);
 
-  const simpleNum = ((diatonicNum - 1) % 7) + 1;
-  const octaves = Math.floor((diatonicNum - 1) / 7);
-  const semitonesReduced = semitones - (12 * octaves);
+    $level.addClass('invisible');
+    if (HARDINTERVALS.includes(randomInterval)) $level.removeClass('invisible');
 
-  const q = _qualityFor(simpleNum, semitonesReduced);
-  return q + diatonicNum;
-}
+    staff.addFixedNote({ step: randomStep, accidentalClass: null });
+  }
 
-// =========================================================
-// UI animations / progress
-// =========================================================
-function _successAnimation() {
-  // restart animation cleanly
-  $feedback.removeClass('animate__animated animate__tada');
-  void $feedback[0].offsetWidth;
-  $feedback.addClass('animate__animated animate__tada');
-
-  $accidentals.addClass('invisible');
-  $feedback.fadeIn('fast');
-}
-
-function _updateProgressBar(steps = 4) {
-  const increment = 100 / steps;
-  let current = parseFloat($progressBar.data('progress')) || 0;
-
-  current = Math.min(100, current + increment);
-  $progressBar.data('progress', current);
-  $progressBar.css({ width: current + '%' });
-
-  return current;
-}
-
-function _failAnimation() {
-  $interval.removeClass('text-blue').addClass('text-red');
-
-  $checkWrap.removeClass('animate__animated animate__shakeX');
-  void $checkWrap[0].offsetWidth;
-  $checkWrap.addClass('animate__animated animate__shakeX');
-
-  // ensure only one handler attached
-  $checkWrap.off('animationend._fail webkitAnimationEnd._fail oAnimationEnd._fail MSAnimationEnd._fail')
-    .one('animationend._fail webkitAnimationEnd._fail oAnimationEnd._fail MSAnimationEnd._fail', function () {
-      $checkWrap.removeClass('animate__animated animate__shakeX');
-      $interval.removeClass('text-red').addClass('text-blue');
-      $check.enable();
+  // ===========================================================================
+  // Interval helpers
+  // ===========================================================================
+  function notesOnStaffOrdered() {
+    const $notes = $staffEl.find('.note').not('.preview');
+    const notes = $notes.toArray().map(el => {
+      const id = el.getAttribute('data-note-id');
+      const step = staff._stepOfNoteEl(el);
+      const accCls = staff._getAttachedAccidentalClass(id);
+      const accOff = staff._accidentalClassToOffset(accCls);
+      return { id, step, accOff };
     });
-}
 
-// =========================================================
-// Button handler
-// =========================================================
-$check.on('click', function () {
-  const notes = _notesOnStaffOrdered();
-
-  $check.disable();
-
-  if (notes.length !== 2) {
-    _failAnimation();
-    this.blur();
-    return;
+    notes.sort((a, b) => a.step - b.step);
+    return notes;
   }
 
-  const name = _intervalNameBetween(notes[0], notes[1]);
-  log(name);
+  function diatonicNumberFromSteps(stepLow, stepHigh) {
+    return Math.abs(stepHigh - stepLow) + 1;
+  }
 
-  if (name === $interval.text()) {
-    _successAnimation();
+  function qualityFor(simpleNum, semitones) {
+    const isPerfectClass = (simpleNum === 1 || simpleNum === 4 || simpleNum === 5 || simpleNum === 8);
+    const expectedMajorOrPerfect = { 1:0, 2:2, 3:4, 4:5, 5:7, 6:9, 7:11, 8:12 }[simpleNum];
+    const delta = semitones - expectedMajorOrPerfect;
 
-    if (_updateProgressBar() >= 100) {
-      setTimeout(function () {
-        alert('Done!');
-        $check.enable();
-      }, 2000);
+    if (isPerfectClass) {
+      if (delta === 0) return 'P';
+      if (delta === 1) return 'A';
+      if (delta === -1) return 'd';
+      if (delta > 1) return 'A'.repeat(delta);
+      if (delta < -1) return 'd'.repeat(-delta);
     } else {
-      setTimeout(function () {
-        _createNewIntervalChallenge();
-        $check.enable();
-      }, 2000);
+      if (delta === 0) return 'M';
+      if (delta === -1) return 'm';
+      if (delta === 1) return 'A';
+      if (delta === -2) return 'd';
+      if (delta > 1) return 'A'.repeat(delta);
+      if (delta < -2) return 'd'.repeat((-delta) - 1);
     }
-  } else {
-    _failAnimation();
+    return '?';
   }
-});
 
-_createNewIntervalChallenge();
+  function intervalNameBetween(noteA, noteB) {
+    const stepLow = noteA.step;
+    const stepHigh = noteB.step;
+
+    const midiLow = staff._stepToMidi(stepLow) + (noteA.accOff || 0);
+    const midiHigh = staff._stepToMidi(stepHigh) + (noteB.accOff || 0);
+
+    const semitones = Math.abs(midiHigh - midiLow);
+    const diatonicNum = diatonicNumberFromSteps(stepLow, stepHigh);
+
+    const simpleNum = ((diatonicNum - 1) % 7) + 1;
+    const octaves = Math.floor((diatonicNum - 1) / 7);
+    const semitonesReduced = semitones - (12 * octaves);
+
+    const q = qualityFor(simpleNum, semitonesReduced);
+    return q + diatonicNum;
+  }
+
+  // ===========================================================================
+  // UI animations / progress
+  // ===========================================================================
+  function successAnimation() {
+    $feedback.removeClass('animate__animated animate__tada');
+    void $feedback[0].offsetWidth;
+    $feedback.addClass('animate__animated animate__tada');
+
+    $accidentals.addClass('invisible');
+    $feedback.fadeIn('fast');
+  }
+
+  function updateProgressBar(steps = 4) {
+    const increment = 100 / steps;
+    let current = parseFloat($progressBar.data('progress')) || 0;
+
+    current = Math.min(100, current + increment);
+    $progressBar.data('progress', current);
+    $progressBar.css({ width: current + '%' });
+
+    return current;
+  }
+
+  function failAnimation() {
+    $interval.removeClass('text-blue').addClass('text-red');
+
+    $checkWrap.removeClass('animate__animated animate__shakeX');
+    void $checkWrap[0].offsetWidth;
+    $checkWrap.addClass('animate__animated animate__shakeX');
+
+    $checkWrap
+      .off('animationend._fail webkitAnimationEnd._fail oAnimationEnd._fail MSAnimationEnd._fail')
+      .one('animationend._fail webkitAnimationEnd._fail oAnimationEnd._fail MSAnimationEnd._fail', function () {
+        $checkWrap.removeClass('animate__animated animate__shakeX');
+        $interval.removeClass('text-red').addClass('text-blue');
+        $check.enable();
+      });
+  }
+
+  // ===========================================================================
+  // Button handler
+  // ===========================================================================
+  $check.on('click', function () {
+    const notes = notesOnStaffOrdered();
+
+    $check.disable();
+
+    if (notes.length !== 2) {
+      failAnimation();
+      this.blur();
+      return;
+    }
+
+    const name = intervalNameBetween(notes[0], notes[1]);
+    safeLog(name);
+
+    if (name === $interval.text()) {
+      successAnimation();
+
+      if (updateProgressBar() >= 100) {
+        setTimeout(function () {
+          alert('Done!');
+          $check.enable();
+        }, 2000);
+      } else {
+        setTimeout(function () {
+          createNewIntervalChallenge();
+          $check.enable();
+        }, 2000);
+      }
+    } else {
+      failAnimation();
+    }
+  });
+
+  createNewIntervalChallenge();
+})(jQuery);
 </script>
 @endpush
+
