@@ -136,7 +136,8 @@
   }
 
   #feedback-success{
-    font-size: 2rem;
+    font-size: 2.5rem;
+    top: 30%;
     display: none;
   }
 
@@ -183,8 +184,11 @@
   <div class="text-center">
     @include('theory.components.counter')
     @include('theory.components.level')
-    @include('theory.components.accidentals')
-    @include('theory.components.feedback')
+
+    <div class="position-relative">
+      @include('theory.components.accidentals')
+      @include('theory.components.feedback')
+    </div>
 
     <div id="staff"></div>
 
@@ -1097,6 +1101,7 @@ $('#clear').on('click', function () {
 // Challenge
 // =========================================================
 const INTERVALS = ['m2', 'M2', 'm3', 'M3', 'P4', 'A4', 'd5', 'P5', 'm6', 'M6', 'm7', 'M7'];
+const HARDINTERVALS = ['A4', 'd5', 'm6', 'm7', 'M7'];
 
 function _randomInt(min, maxInclusive) {
   return Math.floor(Math.random() * (maxInclusive - min + 1)) + min;
@@ -1105,12 +1110,19 @@ function _randomInt(min, maxInclusive) {
 function _createNewIntervalChallenge() {
   // steps are discrete in your staff, so choose discrete steps
   const randomStep = _randomInt(0, 7);
+  const randomInterval = INTERVALS[Math.floor(Math.random() * INTERVALS.length)];
+  let $level = $("#level");
 
   staff.clearNotes();
-  $accidentals.show();
+  $accidentals.removeClass('invisible');
   $feedback.hide();
 
-  $interval.text(INTERVALS[Math.floor(Math.random() * INTERVALS.length)]);
+  $interval.text(randomInterval);
+
+  $level.addClass('invisible');
+
+  if (HARDINTERVALS.includes(randomInterval))
+    $level.removeClass('invisible');
 
   staff.addFixedNote({
     step: randomStep,
@@ -1188,8 +1200,8 @@ function _successAnimation() {
   void $feedback[0].offsetWidth;
   $feedback.addClass('animate__animated animate__tada');
 
-  $accidentals.hide();
-  $feedback.show();
+  $accidentals.addClass('invisible');
+  $feedback.fadeIn('fast');
 }
 
 function _updateProgressBar(steps = 4) {

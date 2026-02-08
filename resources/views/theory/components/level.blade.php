@@ -1,1 +1,1 @@
-<div id="level" class="fw-bold text-red text-center">@fa(['icon' => 'dumbbell'])HARD EXERCISE</div>
+<div id="level" class="fw-bold text-red text-center invisible">@fa(['icon' => 'dumbbell'])HARD EXERCISE</div>
