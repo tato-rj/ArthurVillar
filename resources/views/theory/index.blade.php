@@ -91,7 +91,7 @@
     border-radius: 999px;
   }
 
-  .treble-clef{
+  .treble-clef {
     position: absolute;
     left: calc(var(--staff-padding-x) - var(--clef-left-nudge));
     top: var(--clef-top);
@@ -101,7 +101,7 @@
     user-select: none;
   }
 
-  .note{
+  .note {
     position: absolute;
     width: var(--note-width);
     height: var(--note-height);
@@ -141,6 +141,22 @@
     display: none;
   }
 
+{{--   #counter {
+    width: 100%;
+    height: 20px;
+    border-radius: 20px;
+    position: relative;
+  }
+
+  #counter > span {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 10%;
+    overflow: none;
+  } --}}
+
   #accidentals > div {
     margin-top: -24px;
   }
@@ -175,34 +191,19 @@
 @endpush
 
 @section('content')
-<div class="h-100vh w-100 d-center">
+<section class="d-center py-5">
   <div class="text-center">
-    <div id="accidentals">
-      <label class="small opacity-6">Drag and drop to apply accidentals</label>
-      <div  class="d-flex justify-content-between">
-        <label class="music-font music-font__sharp"></label>
-        <label class="music-font music-font__doublesharp"></label>
-        <label class="music-font music-font__flat"></label>
-        <label class="music-font music-font__doubleflat"></label>
-        <label class="music-font music-font__natural"></label>
-      </div>
-    </div>
-
-    <div id="feedback-success" class="text-green fw-bold text-center">
-      @fa(['icon' => 'check-circle', 'fa_size' => 'sm'])Awesome!
-    </div>
+    @include('theory.components.counter')
+    @include('theory.components.accidentals')
+    @include('theory.components.feedback')
 
     <div id="staff"></div>
 
     <div id="interval" class="mb-4 text-blue">M3</div>
 
-    <div class="d-center">
-      <div class="btn-floating">
-        <button id="check" class="btn btn-primary">Check</button>
-      </div>
-    </div>
+    @include('theory.components.controls')
   </div>
-</div>
+</section>
 @endsection
 
 @push('scripts')
@@ -1101,11 +1102,21 @@ $('#clear').on('click', function () {
   staff.clearNotes();
 });
 
-// 4) Example usage (after you create staff)
-const lockedId = staff.addFixedNote({
-  step: 2, // G4 on your treble mapping (bottom line E4 => step 2 = G4)
-  accidentalClass: null//'music-font__sharp' // optional
-});
+function _createNewIntervalChallenge() {
+  let randomPos = Math.random() * (7 - 0) + 0;
+  let intervals = ['m2', 'M2', 'm3', 'M3', 'P4', 'A4', 'D5', 'P5', 'm6', 'M6', 'm7', 'M7'];
+
+
+  staff.clearNotes();
+  $('#accidentals').show();
+  $('#feedback-success').hide();
+  $('#interval').text(intervals[Math.floor(Math.random()*intervals.length)]);
+
+  const lockedId = staff.addFixedNote({
+    step: randomPos, // G4 on your treble mapping (bottom line E4 => step 2 = G4)
+    accidentalClass: null//'music-font__sharp' // optional
+  });
+}
 
 // You can also later lock/unlock an existing note:
 {{-- staff.setNoteFixed(lockedId, true);   // lock --}}
@@ -1185,11 +1196,7 @@ function _intervalNameBetween(noteA, noteB) {
 
 // ---------- Button handler ----------
 $('#check').on('click', function () {
-  _successAnimation();
-  return;
-
   const $button = $(this);          // the real button
-  const $wrap   = $button.parent(); // element that shakes
   const notes = _notesOnStaffOrdered();
   const $interval = $('#interval');
 
@@ -1197,35 +1204,33 @@ $('#check').on('click', function () {
   $button.disable();
 
   if (notes.length !== 2) {
-    // restart animation
-    $wrap.removeClass('animate__animated animate__shakeX');
-    void $wrap[0].offsetWidth; // reflow
-    $wrap.addClass('animate__animated animate__shakeX');
-
-    // when shake ends: cleanup + enable
-    $wrap.one('animationend webkitAnimationEnd oAnimationEnd MSAnimationEnd', function () {
-      $wrap.removeClass('animate__animated animate__shakeX');
-      $button.enable();
-    });
+    _failAnimation();
 
     this.blur();
     return;
   }
 
   const name = _intervalNameBetween(notes[0], notes[1]);
-  
+  log(name);
   if (name == $interval.text()) {
     _successAnimation();
-  } else {
-    alert('Wrong interval');
-  }
 
-  // valid case → re-enable right away
-  $button.enable();
+    if (_updateProgressBar() >= 100) {
+      setTimeout(function() {
+        alert('Done!');
+      }, 2000);
+    } else {
+      setTimeout(_createNewIntervalChallenge, 2000);
+      $button.enable();
+    }
+
+  } else {
+    _failAnimation();
+    $button.enable();
+  }
 });
 
 function _successAnimation() {
-  const $label = $('#interval');
   const $accidentals = $('#accidentals');
   const $feedback = $('#feedback-success');
 
@@ -1237,5 +1242,41 @@ function _successAnimation() {
   $feedback.show();
 }
 
+function _updateProgressBar(steps = 4) {
+  const $progressBar = $('#progress-bar');
+  const increment = 100 / steps;
+
+  // read current width (percent) or start at 0
+  let current = parseFloat($progressBar.data('progress')) || 0;
+
+  current = Math.min(100, current + increment);
+
+  // store and apply
+  $progressBar.data('progress', current);
+  $progressBar.css({ width: current + '%' });
+
+  return current;
+}
+
+function _failAnimation() {
+  const $button = $('#check');
+  const $wrap = $button.parent();
+  const $label = $('#interval');
+
+  $label.removeClass('text-blue').addClass('text-red');
+
+  $wrap.removeClass('animate__animated animate__shakeX');
+  void $wrap[0].offsetWidth; // reflow
+  $wrap.addClass('animate__animated animate__shakeX');
+
+  // when shake ends: cleanup + enable
+  $wrap.one('animationend webkitAnimationEnd oAnimationEnd MSAnimationEnd', function () {
+    $wrap.removeClass('animate__animated animate__shakeX');
+    $label.removeClass('text-red').addClass('text-blue');
+    $button.enable();
+  });
+}
+
+_createNewIntervalChallenge();
 </script>
 @endpush
