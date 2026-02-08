@@ -68,7 +68,7 @@
 		&-#{$name} {
 			color: nth($color, 1) !important;
 			background-color: nth($color, 2);
-			border-color: black;
+			border-color: black !important;
 			border-radius: $corner-radius !important;
 
 			&:hover {

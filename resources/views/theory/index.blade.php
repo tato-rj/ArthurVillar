@@ -297,6 +297,15 @@
     this._drawLines();
   }
 
+  Staff.prototype._maxUserNotes = function () {
+    const v = window.currentMaxUserNotes;
+    return Number.isFinite(v) ? v : Infinity;
+  };
+
+  Staff.prototype._userNoteCount = function () {
+    return this.$el.find('.note').not('.fixed').not('.preview').length;
+  };
+
   // ---------------------------------------------------------------------------
   // Layout
   // ---------------------------------------------------------------------------
@@ -813,6 +822,10 @@
 
     this.$el.on('pointerdown.previewCreate', function (e) {
       if ($(e.target).closest('.note').length) return;
+
+      // NEW: if user notes at limit, do not start preview at all
+      if (self._userNoteCount() >= self._maxUserNotes()) return;
+
       e.preventDefault();
 
       const { y: pageY } = getPointerPageXY(e);
@@ -830,6 +843,14 @@
 
       self.$el.off('pointermove.previewCreate').on('pointermove.previewCreate', function (ev) {
         if (!self._previewState.active) return;
+
+        // NEW: if limit reached mid-gesture, cancel preview
+        if (self._userNoteCount() >= self._maxUserNotes()) {
+          self._previewState.active = false;
+          self._previewClear();
+          self.$el.off('pointermove.previewCreate pointerup.previewCreate pointercancel.previewCreate');
+          return;
+        }
 
         const { y: py } = getPointerPageXY(ev);
         const s = self.yToStep(self._pageYToLocalY(py));
@@ -852,7 +873,19 @@
           if (!self._isStepAllowed(finalStep)) return;
           if (self._isStepOccupied(finalStep, null)) return;
 
+          // Enforce max user notes (fixed notes don't count)
+          var max = window.currentMaxUserNotes; // set by your app glue
+          if (Number.isFinite(max) && max >= 0) {
+            var userCount = self.$el.find('.note').not('.fixed').not('.preview').length;
+            if (userCount >= max) {
+              return; // at limit: do nothing (optionally flash UI)
+            }
+          }
+
+          if (self._userNoteCount() >= self._maxUserNotes()) return;
+
           var createdId = self.addNote({ step: finalStep });
+
           if (createdId) {
             // Swallow the synthetic click that follows this tap (mobile)
             self._suppressNextClick.noteId = createdId;
@@ -1001,7 +1034,7 @@
         e.stopPropagation();
         return;
       }
-      
+
       if (d.swallowClick) {
         e.preventDefault();
         e.stopPropagation();
@@ -1099,12 +1132,13 @@
   const $accidentals = $('#accidentals');
   const $feedback = $('#feedback-success');
   const $interval = $('#interval');
-  const $check = $('#check');
+  const $check = $('#check button');
   const $checkWrap = $check.parent();
   const $progressBar = $('#progress-bar');
   const $level = $('#level');
 
   const staff = new Staff($staffEl);
+
   staff.enableNoteDragAndClickDelete();
   staff.enableGhostClickCreate();
 
@@ -1114,6 +1148,14 @@
   $('#clear').on('click', function () {
     staff.clearNotes();
   });
+
+  let currentMaxUserNotes = 1; // default
+  window.currentMaxUserNotes = currentMaxUserNotes;
+
+  function userNoteCount() {
+    // counts only user notes (not fixed, not preview)
+    return $('#staff .note').not('.fixed').not('.preview').length;
+  }
 
   // ===========================================================================
   // Challenge
@@ -1125,21 +1167,28 @@
     return Math.floor(Math.random() * (maxInclusive - min + 1)) + min;
   }
 
-  function createNewIntervalChallenge() {
-    const randomStep = randomInt(0, 7);
-    const randomInterval = INTERVALS[Math.floor(Math.random() * INTERVALS.length)];
+function createNewIntervalChallenge(maxNumberOfNotes = 1) {
+  currentMaxUserNotes = maxNumberOfNotes;
+  window.currentMaxUserNotes = currentMaxUserNotes;
 
-    staff.clearNotes();
-    $accidentals.removeClass('invisible');
-    $feedback.hide();
+  const randomStep = randomInt(0, 7);
+  const randomInterval = INTERVALS[Math.floor(Math.random() * INTERVALS.length)];
 
-    $interval.text(randomInterval);
+  staff.clearNotes();
+  $accidentals.removeClass('invisible');
+  $feedback.hide();
 
-    $level.addClass('invisible');
-    if (HARDINTERVALS.includes(randomInterval)) $level.removeClass('invisible');
+  $interval.text(randomInterval);
 
-    staff.addFixedNote({ step: randomStep, accidentalClass: null });
-  }
+  $level.addClass('invisible');
+  if (HARDINTERVALS.includes(randomInterval)) $level.removeClass('invisible');
+
+  staff.addFixedNote({ step: randomStep, accidentalClass: null });
+
+  $('#check').show();
+  $('#continue').hide();
+}
+
 
   // ===========================================================================
   // Interval helpers
@@ -1267,17 +1316,19 @@
           $check.enable();
         }, 2000);
       } else {
-        setTimeout(function () {
-          createNewIntervalChallenge();
+        $('#check').hide();
+        $('#continue').show();
+        $('#continue button').on('click', function() {
+          createNewIntervalChallenge(1);
           $check.enable();
-        }, 2000);
+        });
       }
     } else {
       failAnimation();
     }
   });
 
-  createNewIntervalChallenge();
+  createNewIntervalChallenge(1);
 })(jQuery);
 </script>
 @endpush

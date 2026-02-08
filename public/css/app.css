@@ -25521,7 +25521,7 @@ h1, .h1 {
 .btn-dark {
   color: white !important;
   background-color: #374151;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-dark:hover {
@@ -25589,7 +25589,7 @@ h1, .h1 {
 .btn-light {
   color: dark !important;
   background-color: #b9bec7;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-light:hover {
@@ -25657,7 +25657,7 @@ h1, .h1 {
 .btn-secondary {
   color: white !important;
   background-color: #262626;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-secondary:hover {
@@ -25725,7 +25725,7 @@ h1, .h1 {
 .btn-primary {
   color: black !important;
   background-color: #ffe54c;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-primary:hover {
@@ -25793,7 +25793,7 @@ h1, .h1 {
 .btn-slate {
   color: white !important;
   background-color: #475569;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-slate:hover {
@@ -25861,7 +25861,7 @@ h1, .h1 {
 .btn-grey {
   color: white !important;
   background-color: #6b7280;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-grey:hover {
@@ -25929,7 +25929,7 @@ h1, .h1 {
 .btn-stone {
   color: white !important;
   background-color: #78716c;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-stone:hover {
@@ -25997,7 +25997,7 @@ h1, .h1 {
 .btn-red {
   color: white !important;
   background-color: #dc2626;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-red:hover {
@@ -26065,7 +26065,7 @@ h1, .h1 {
 .btn-orange {
   color: white !important;
   background-color: #f97316;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-orange:hover {
@@ -26133,7 +26133,7 @@ h1, .h1 {
 .btn-yellow {
   color: white !important;
   background-color: #facc15;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-yellow:hover {
@@ -26201,7 +26201,7 @@ h1, .h1 {
 .btn-green {
   color: white !important;
   background-color: #22c55e;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-green:hover {
@@ -26269,7 +26269,7 @@ h1, .h1 {
 .btn-teal {
   color: white !important;
   background-color: #14b8a6;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-teal:hover {
@@ -26337,7 +26337,7 @@ h1, .h1 {
 .btn-blue {
   color: white !important;
   background-color: #0ea5e9;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-blue:hover {
@@ -26405,7 +26405,7 @@ h1, .h1 {
 .btn-indigo {
   color: white !important;
   background-color: #6366f1;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-indigo:hover {
@@ -26473,7 +26473,7 @@ h1, .h1 {
 .btn-purple {
   color: white !important;
   background-color: #a855f7;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-purple:hover {
@@ -26541,7 +26541,7 @@ h1, .h1 {
 .btn-fuchsia {
   color: white !important;
   background-color: #d946ef;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-fuchsia:hover {
@@ -26609,7 +26609,7 @@ h1, .h1 {
 .btn-pink {
   color: white !important;
   background-color: #ec4899;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-pink:hover {
@@ -26677,7 +26677,7 @@ h1, .h1 {
 .btn-slate-lighter {
   color: dark !important;
   background-color: #f8fafc;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-slate-lighter:hover {
@@ -26745,7 +26745,7 @@ h1, .h1 {
 .btn-slate-light {
   color: dark !important;
   background-color: #e2e8f0;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-slate-light:hover {
@@ -26813,7 +26813,7 @@ h1, .h1 {
 .btn-slate-dark {
   color: white !important;
   background-color: #1e293b;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-slate-dark:hover {
@@ -26881,7 +26881,7 @@ h1, .h1 {
 .btn-grey-lighter {
   color: dark !important;
   background-color: #f9fafb;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-grey-lighter:hover {
@@ -26949,7 +26949,7 @@ h1, .h1 {
 .btn-grey-light {
   color: dark !important;
   background-color: #b9bec7;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-grey-light:hover {
@@ -27017,7 +27017,7 @@ h1, .h1 {
 .btn-grey-dark {
   color: white !important;
   background-color: #374151;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-grey-dark:hover {
@@ -27085,7 +27085,7 @@ h1, .h1 {
 .btn-stone-lighter {
   color: dark !important;
   background-color: #fafaf9;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-stone-lighter:hover {
@@ -27153,7 +27153,7 @@ h1, .h1 {
 .btn-stone-light {
   color: dark !important;
   background-color: #e7e5e4;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-stone-light:hover {
@@ -27221,7 +27221,7 @@ h1, .h1 {
 .btn-stone-dark {
   color: white !important;
   background-color: #44403c;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-stone-dark:hover {
@@ -27289,7 +27289,7 @@ h1, .h1 {
 .btn-red-lighter {
   color: dark !important;
   background-color: #fef2f2;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-red-lighter:hover {
@@ -27357,7 +27357,7 @@ h1, .h1 {
 .btn-red-light {
   color: dark !important;
   background-color: #fca5a5;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-red-light:hover {
@@ -27425,7 +27425,7 @@ h1, .h1 {
 .btn-red-dark {
   color: white !important;
   background-color: #991b1b;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-red-dark:hover {
@@ -27493,7 +27493,7 @@ h1, .h1 {
 .btn-orange-lighter {
   color: dark !important;
   background-color: #fff7ed;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-orange-lighter:hover {
@@ -27561,7 +27561,7 @@ h1, .h1 {
 .btn-orange-light {
   color: dark !important;
   background-color: #fed7aa;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-orange-light:hover {
@@ -27629,7 +27629,7 @@ h1, .h1 {
 .btn-orange-dark {
   color: white !important;
   background-color: #9a3412;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-orange-dark:hover {
@@ -27697,7 +27697,7 @@ h1, .h1 {
 .btn-yellow-lighter {
   color: dark !important;
   background-color: #fefce8;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-yellow-lighter:hover {
@@ -27765,7 +27765,7 @@ h1, .h1 {
 .btn-yellow-light {
   color: dark !important;
   background-color: #fef08a;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-yellow-light:hover {
@@ -27833,7 +27833,7 @@ h1, .h1 {
 .btn-yellow-dark {
   color: white !important;
   background-color: #a16207;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-yellow-dark:hover {
@@ -27901,7 +27901,7 @@ h1, .h1 {
 .btn-green-lighter {
   color: dark !important;
   background-color: #f0fdf4;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-green-lighter:hover {
@@ -27969,7 +27969,7 @@ h1, .h1 {
 .btn-green-light {
   color: dark !important;
   background-color: #bbf7d0;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-green-light:hover {
@@ -28037,7 +28037,7 @@ h1, .h1 {
 .btn-green-dark {
   color: white !important;
   background-color: #166534;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-green-dark:hover {
@@ -28105,7 +28105,7 @@ h1, .h1 {
 .btn-teal-lighter {
   color: dark !important;
   background-color: #f0fdfa;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-teal-lighter:hover {
@@ -28173,7 +28173,7 @@ h1, .h1 {
 .btn-teal-light {
   color: dark !important;
   background-color: #99f6e4;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-teal-light:hover {
@@ -28241,7 +28241,7 @@ h1, .h1 {
 .btn-teal-dark {
   color: white !important;
   background-color: #115e59;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-teal-dark:hover {
@@ -28309,7 +28309,7 @@ h1, .h1 {
 .btn-blue-lighter {
   color: dark !important;
   background-color: #eff6ff;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-blue-lighter:hover {
@@ -28377,7 +28377,7 @@ h1, .h1 {
 .btn-blue-light {
   color: dark !important;
   background-color: #bae6fd;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-blue-light:hover {
@@ -28445,7 +28445,7 @@ h1, .h1 {
 .btn-blue-dark {
   color: white !important;
   background-color: #075985;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-blue-dark:hover {
@@ -28513,7 +28513,7 @@ h1, .h1 {
 .btn-indigo-lighter {
   color: dark !important;
   background-color: #eef2ff;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-indigo-lighter:hover {
@@ -28581,7 +28581,7 @@ h1, .h1 {
 .btn-indigo-light {
   color: dark !important;
   background-color: #c7d2fe;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-indigo-light:hover {
@@ -28649,7 +28649,7 @@ h1, .h1 {
 .btn-indigo-dark {
   color: white !important;
   background-color: #3730a3;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-indigo-dark:hover {
@@ -28717,7 +28717,7 @@ h1, .h1 {
 .btn-purple-lighter {
   color: dark !important;
   background-color: #faf5ff;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-purple-lighter:hover {
@@ -28785,7 +28785,7 @@ h1, .h1 {
 .btn-purple-light {
   color: dark !important;
   background-color: #d8b4fe;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-purple-light:hover {
@@ -28853,7 +28853,7 @@ h1, .h1 {
 .btn-purple-dark {
   color: white !important;
   background-color: #6b21a8;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-purple-dark:hover {
@@ -28921,7 +28921,7 @@ h1, .h1 {
 .btn-fuchsia-lighter {
   color: dark !important;
   background-color: #fdf4ff;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-fuchsia-lighter:hover {
@@ -28989,7 +28989,7 @@ h1, .h1 {
 .btn-fuchsia-light {
   color: dark !important;
   background-color: #f5d0fe;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-fuchsia-light:hover {
@@ -29057,7 +29057,7 @@ h1, .h1 {
 .btn-fuchsia-dark {
   color: white !important;
   background-color: #86198f;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-fuchsia-dark:hover {
@@ -29125,7 +29125,7 @@ h1, .h1 {
 .btn-pink-lighter {
   color: dark !important;
   background-color: #fdf2f8;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-pink-lighter:hover {
@@ -29193,7 +29193,7 @@ h1, .h1 {
 .btn-pink-light {
   color: dark !important;
   background-color: #fbcfe8;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-pink-light:hover {
@@ -29261,7 +29261,7 @@ h1, .h1 {
 .btn-pink-dark {
   color: white !important;
   background-color: #9d174d;
-  border-color: black;
+  border-color: black !important;
   border-radius: 0 !important;
 }
 .btn-pink-dark:hover {
