@@ -19,7 +19,7 @@
 
         @stack('header')
     </head>
-    <body class="antialiased">
+    <body class="antialiased" data-barba="wrapper">
         @include('layouts.overlay')
 
         @if(! isset($noMenu))
@@ -32,13 +32,18 @@
         </div>
         @endif
 
+        <main  data-barba="container" data-barba-namespace="home">
         @yield('content')
+      </main>
 
         @include('layouts.alerts')
 
         <script src="{{ mix('js/app.js') }}"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@barba/core"></script>
     
     <script type="text/javascript">
+
+
 $('select[name="item-filter"]').on('change', function() {
   $('#filters-container select').not(this).each(function() {
     $(this).find('option:first').prop("selected", true);

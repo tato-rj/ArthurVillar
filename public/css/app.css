@@ -30671,7 +30671,7 @@ a.link-secondary:hover {
   position: relative;
   display: inline-block;
   width: 60px;
-  height: 34px;
+  height: 25px;
 }
 
 /* Hide default HTML checkbox */
@@ -30696,7 +30696,7 @@ a.link-secondary:hover {
 .slider:before {
   position: absolute;
   content: "";
-  height: 26px;
+  height: 17px;
   width: 26px;
   left: 4px;
   bottom: 4px;
@@ -30820,7 +30820,7 @@ input:checked + .slider:before {
 
 .btn-floating {
   display: inline-block;
-  background: rgb(127, 108.5530726257, 0);
+  background: rgba(0, 0, 0, 0.2);
 }
 
 @media (min-width: 768px) {
@@ -30842,6 +30842,13 @@ input:checked + .slider:before {
   border: none;
   padding: 0;
   -webkit-text-stroke: 0;
+}
+
+.btn-white {
+  color: black;
+  background-color: white !important;
+  border-color: black !important;
+  border-radius: 0 !important;
 }
 
 .btn-transparent:hover {

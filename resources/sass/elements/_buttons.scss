@@ -64,7 +64,7 @@
 
 .btn-floating {
   display: inline-block;
-  background: darken($primary-color, 40%);
+  background: rgba(0, 0, 0, 0.2);
 }
 
 @media (min-width: 768px) {
@@ -100,6 +100,15 @@
 
 .btn-float:active {
     @extend .shadow-none;
+}
+
+.btn-white {
+    color: black;
+    background-color: white !important;
+    border-color: black !important;
+    border-radius: $corner-radius !important;
+
+
 }
 
 .btn-transparent {

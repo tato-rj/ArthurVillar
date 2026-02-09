@@ -3,7 +3,7 @@
   position: relative;
   display: inline-block;
   width: 60px;
-  height: 34px;
+  height: 25px;
 }
 
 /* Hide default HTML checkbox */
@@ -29,7 +29,7 @@
 .slider:before {
   position: absolute;
   content: "";
-  height: 26px;
+  height: 17px;
   width: 26px;
   left: 4px;
   bottom: 4px;
