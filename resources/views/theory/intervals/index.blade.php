@@ -109,7 +109,7 @@
     margin-left: calc(var(--note-center-x) * -1);
     margin-top: calc(var(--note-center-y) * -1);
     z-index: 2;
-    box-shadow: 0 5px 0px 0px rgba(0, 0, 0, 0.2);
+    {{-- box-shadow: 0 5px 0px 0px rgba(0, 0, 0, 0.2); --}}
   }
 
   .note.fixed{ pointer-events: none; }
