@@ -67,7 +67,7 @@
     height: var(--staff-height);
     border-radius: var(--staff-radius);
     background: #fff;
-    overflow: hidden;
+    overflow: visible;
     user-select: none;
     touch-action: none;
   }
@@ -138,18 +138,33 @@
 
   #feedback-success{
     font-size: 2.3rem;
-    top: 30%;
+    top: 0;
     display: none;
   }
 
-  #accidentals > div { margin-top: -24px; }
+  #accidentals {
+    position: absolute;
+    top: 0;
+    right: 40px;
+    z-index: 1;
+  }
+
+  #accidentals > div { margin-top: -20px; }
 
   #accidentals .accidental-tool{
     cursor: grab;
     user-select: none;
     touch-action: none;
+    font-size: 2.5rem;
+    position: absolute;
   }
-  #accidentals .accidental-tool:active{ cursor: grabbing; }
+
+  #accidentals .music-font__sharp {
+    top: -4px;
+    right: 0;
+  }
+
+  #accidentals .accidental-tool:active { cursor: grabbing; }
 
   #accidentals .accidental-tool.dragging,
   .ui-draggable-dragging.accidental-tool{
@@ -190,11 +205,12 @@
     <div class="position-relative">
       @include('theory.intervals.components.accidentals')
       @include('theory.intervals.components.feedback')
+      <div id="staff"></div>
     </div>
 
-    <div id="staff"></div>
+    
 
-    <div id="interval" class="mb-4 text-blue">M3</div>
+    <div id="interval" class="mb-3 text-blue">M3</div>
 
     @include('theory.intervals.components.controls')
   </div>
