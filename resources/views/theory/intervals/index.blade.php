@@ -1657,8 +1657,8 @@
   const challenge = new IntervalChallenge({
     {{-- clef: "treble", --}}
     maxUserNotes: 1,
-    numOfChallenges: 2,
-    intervals: ["m2", "M3", "P5"],
+    numOfChallenges: 4,
+    {{-- intervals: ["m2", "M3", "P5"], --}}
     sound: false,
     {{-- fixedNotes: ["E4", "G4"] --}}
   });
@@ -1668,7 +1668,7 @@
   window.challenge = challenge;
 
 
-  $('input[name="sound"]').prop('checked', challenge.sound);
+  $('input[name="sound"]').prop('checked', challenge.isSoundEnabled());
 
   $('input[name="sound"]').off('change.intervalChallengeSound').on('change.intervalChallengeSound', function() {
     challenge.setSoundEnabled(this.checked);
