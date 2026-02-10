@@ -6,18 +6,19 @@
 			<h6 class="text-muted px-4">It's not about getting the most points, but if it was...</h6>
 		</div>
 
-		<div class="row w-100 mb-6">
-			<div class="col-lg-4 col-md-8 col-12 mx-auto container">
-			<div class="row mb-5"> 
+		<div class="row mb-5">
+			<div class="col-lg-4 col-md-8 col-12 mx-auto row justify-content-center"> 
 				@include('theory.overlays.components.box', ['title' => 'TOTAL PTS', 'color' => 'purple', 'icon' => 'bolt', 'value' => '30'])
 				@include('theory.overlays.components.box', ['title' => 'ACCURACY', 'color' => 'green', 'icon' => 'bullseye', 'value' => '92%'])
 				@include('theory.overlays.components.box', ['title' => 'TIME', 'color' => 'blue', 'icon' => 'clock', 'value' => '12:34'])
 			</div>
-
-		<div>
-			<a href="{{route('theory.intervals.index')}}" class="btn btn-primary mb-2 w-100">Start a new challenge</a>
-			<a href="{{route('theory.index')}}" class="btn btn-white w-100">Back to the main menu</a>
 		</div>
+		<div class="row">
+			<div class="col-lg-4 col-md-8 col-12 mx-auto"> 
+				<div>
+					<a href="{{route('theory.intervals.index')}}" class="btn btn-primary mb-2 w-100">Start a new challenge</a>
+					<a href="{{route('theory.index')}}" class="btn btn-white w-100">Back to the main menu</a>
+				</div>
 			</div>
 		</div>
 	</div>
