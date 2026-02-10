@@ -41,6 +41,9 @@
     --ghost-opacity: .5;
   }
 
+
+html, body {margin: 0; height: 100%; overflow: hidden}
+
   #overlay {
     background: rgba(255,255,255,0.96);
   }
