@@ -7,7 +7,7 @@
 		</div>
 
 		<div class="row w-100 mb-6">
-			<div class="col-lg-4 col-md-8 col-12 mx-auto">
+			<div class="col-lg-4 col-md-8 col-12 mx-auto container">
 			<div class="row mb-5"> 
 				@include('theory.overlays.components.box', ['title' => 'TOTAL PTS', 'color' => 'purple', 'icon' => 'bolt', 'value' => '30'])
 				@include('theory.overlays.components.box', ['title' => 'ACCURACY', 'color' => 'green', 'icon' => 'bullseye', 'value' => '92%'])
