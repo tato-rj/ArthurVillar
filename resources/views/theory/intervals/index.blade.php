@@ -1370,31 +1370,36 @@
 
   window.Staff = Staff;
 
-  class IntervalChallenge {
-    constructor(options) {
-      const defaults = {
-        staffEl: "#staff",
-        maxUserNotes: 1,
-        numOfChallenges: 4,
-        intervals: ["m2", "M2", "m3", "M3", "P4", "A4", "d5", "P5", "m6", "M6", "m7", "M7"],
-        hardIntervals: ["A4", "d5", "m6", "m7", "M7"],
-        fixedNotes: null,
-        sound: true,
+class IntervalChallenge {
+  constructor(options) {
+    const defaults = {
+      staffEl: "#staff",
+      maxUserNotes: 1,
+      numOfChallenges: 4,
+      intervals: ["m2", "M2", "m3", "M3", "P4", "A4", "d5", "P5", "m6", "M6", "m7", "M7"],
+      hardIntervals: ["A4", "d5", "m6", "m7", "M7"],
+      fixedNotes: null,
+      levelName: 'beginner',
+      sound: true,
+      accidentalWeights: { natural: 8, sharp: 1, flat: 1 },
+      basePoints: 1,
+      firstTryBonus: 2
+    };
 
-        // NEW: tweak these when constructing IntervalChallenge()
-        // Probability is proportional to weight (0 disables).
-        // "natural" means no accidental.
-        accidentalWeights: {
-          natural: 8,
-          sharp: 1,
-          flat: 1
-        },
+    options = options || {};
 
-        basePoints: 1,
-        firstTryBonus: 2
-      };
-
-      this.opts = $.extend(true, {}, defaults, options || {});
+    this.opts = {
+      ...defaults,
+      ...options,
+      // ensure these nested objects are merged (not replaced unless you want)
+      accidentalWeights: {
+        ...defaults.accidentalWeights,
+        ...(options.accidentalWeights || {})
+      },
+      // ensure arrays are REPLACED (not deep-merged)
+      intervals: Array.isArray(options.intervals) ? options.intervals.slice() : defaults.intervals.slice(),
+      hardIntervals: Array.isArray(options.hardIntervals) ? options.hardIntervals.slice() : defaults.hardIntervals.slice()
+    };
       this._clefLocked = Object.prototype.hasOwnProperty.call(this.opts, "clef") && this.opts.clef != null;
       this.opts.clef = this._clefLocked ? normalizeClef(this.opts.clef) : null;
 
@@ -1410,11 +1415,11 @@
       this.$checkWrap = this.$checkBtn.parent();
       this.$progressBar = $("#progress-bar");
       this.$level = $("#level");
-      this.successPhrases = ["Awesome", "Nicely done", "Well done", "Great job", "Hooray", "Bravo", "Fantastic", "Nice work", "Looks good", "Good one"];
+      this.successPhrases = ["Awesome", "Nicely done", "Well done", "Great job", "Hooray", "Fantastic", "Nice work", "Looks good", "Good one"];
 
       this.maxUserNotes = Number.isFinite(this.opts.maxUserNotes) ? this.opts.maxUserNotes : 1;
       this.numOfChallenges = Number.isFinite(this.opts.numOfChallenges) ? this.opts.numOfChallenges : 4;
-
+      this.levelName = this.opts.levelName;
       this.points = 0;
       this._madeMistakeThisRound = false;
       this._continueBound = false;
@@ -1786,24 +1791,56 @@
 
   window.IntervalChallenge = IntervalChallenge;
 
-  const challenge = new IntervalChallenge({
+  let levels = {
+    beginner: {
+      intervals: ["M2", "m3", "M3", "P5"],
+      hardIntervals: ["m3", "M3"],
+      accidentalWeights: {
+        natural: 20,
+        sharp: 0,
+        flat: 0
+      }
+    },
+    intermediate: {
+      intervals: ["m2", "M2", "m3", "M3", "P4", "P5", "m6", "M6", "m7", "M7"],
+      hardIntervals: ["m7", "M7"],
+      accidentalWeights: {
+        natural: 12,
+        sharp: 4,
+        flat: 4
+      }
+    },
+    advanced: {
+      hardIntervals: ["A4", "d5"],
+      accidentalWeights: {
+        natural: 8,
+        sharp: 6,
+        flat: 6
+      }
+    }
+  }
+
+  let baseOptions = {
     {{-- clef: "treble", --}}
     maxUserNotes: 1,
-    numOfChallenges: 2,
+    numOfChallenges: 4,
+    levelName: 'advanced',
     sound: false,
     basePoints: 1,
-    firstTryBonus: 3,
-    accidentalWeights: {
-      natural: 10,
-      sharp: 5,
-      flat: 5
-    }
-  });
+    firstTryBonus: 3
+  };
+
+  let options = Object.assign(baseOptions, levels[baseOptions.levelName]);
+
+  const challenge = new IntervalChallenge(options);
 
   challenge.start();
   window.challenge = challenge;
 
+  $('select[name="level"] option[value="'+challenge.levelName+'"]').prop('selected', true);
+  $('select[name="rounds"] option[value="'+challenge.numOfChallenges+'"]').prop('selected', true);
   $('input[name="sound"]').prop("checked", challenge.isSoundEnabled());
+
   $('input[name="sound"]').off("change.intervalChallengeSound").on("change.intervalChallengeSound", function () {
     challenge.setSoundEnabled(this.checked);
   });

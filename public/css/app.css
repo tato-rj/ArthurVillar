@@ -31153,6 +31153,10 @@ form.form-borderless.form-light input.form-control:not([readonly]), form.form-bo
     flex-wrap: wrap !important;
   }
 }
+.nowrap {
+  white-space: nowrap;
+}
+
 .quill-text ul li, .quill-text ol li {
   margin-bottom: 0.5rem !important;
 }

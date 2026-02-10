@@ -1,5 +1,9 @@
 @import "bootstrap/setup";
 
+.nowrap {
+  white-space: nowrap;
+}
+
 .quill-text ul li, .quill-text ol li {
   margin-bottom: .5rem !important;
 }
