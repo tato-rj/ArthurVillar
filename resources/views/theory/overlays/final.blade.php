@@ -7,13 +7,18 @@
 		</div>
 
 		<div class="row w-100 mb-6">
-			<div class="col-lg-4 col-md-8 col-12 mx-auto row"> 
+			<div class="col-lg-4 col-md-8 col-12 mx-auto">
+			<div class="row mb-5"> 
 				@include('theory.overlays.components.box', ['title' => 'TOTAL PTS', 'color' => 'purple', 'icon' => 'bolt', 'value' => '30'])
 				@include('theory.overlays.components.box', ['title' => 'ACCURACY', 'color' => 'green', 'icon' => 'bullseye', 'value' => '92%'])
 				@include('theory.overlays.components.box', ['title' => 'TIME', 'color' => 'blue', 'icon' => 'clock', 'value' => '12:34'])
 			</div>
-		</div>
 
-		<a href="{{route('theory.index')}}" class="btn btn-primary ">Start a new challenge</a>
+		<div>
+			<a href="{{route('theory.intervals.index')}}" class="btn btn-primary mb-2 w-100">Start a new challenge</a>
+			<a href="{{route('theory.index')}}" class="btn btn-white w-100">Back to the main menu</a>
+		</div>
+			</div>
+		</div>
 	</div>
 </div>
