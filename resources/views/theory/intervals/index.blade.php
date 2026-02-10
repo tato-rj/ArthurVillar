@@ -67,6 +67,10 @@
   .music-font__doubleflat::before{ content: "\01D12B"; }
   .music-font__doublesharp::before{ content: "\01D12A"; }
 
+  #staff-wrapper {
+    width: var(--staff-width);
+  }
+
   #staff{
     position: relative;
     width: var(--staff-width);
@@ -213,23 +217,23 @@
 @endpush
 
 @section('content')
-<section id="page-wrapper">
-  <div class="d-center py-5">
-    <div class="text-center">
+<section id="page-wrapper" class="container">
+  <div class="row py-5">
+    <div class="col-lg-6 col-md-8 col-11 mx-auto text-center">
       @include('theory.intervals.components.counter')
       @include('theory.intervals.components.level')
       @include('theory.intervals.components.title')
+    </div>
 
-      <div class="position-relative">
+    <div class="col-11 mx-auto mb-3">
+      <div id="staff-wrapper" class="text-center mx-auto position-relative">
         @include('theory.intervals.components.accidentals')
         <div id="staff"></div>
-      </div>
-
-      <div class="mb-3 text-center">
         @include('theory.intervals.components.feedback')
         @include('theory.intervals.components.interval')
       </div>
-
+    </div>
+    <div class="col-lg-6 col-md-8 col-11 mx-auto">
       @include('theory.intervals.components.controls')
     </div>
   </div>
