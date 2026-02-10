@@ -3,7 +3,7 @@
 		<img src="{{asset('images/badge.png')}}" width="140" class="animate__animated animate__zoomInDown mb-4">
 		<div class="text-center animate__animated animate__fadeInUp animate__faster mb-4">
 			<h1 class="text-">Great job!</h1>
-			<h6 class="text-muted px-4">It's not about getting the most points, but if it was...</h6>
+			<h6 class="text-muted px-5">It's not about getting the most points, but if it was...</h6>
 		</div>
 
 		<div class="row mb-5">
