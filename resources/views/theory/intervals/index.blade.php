@@ -1784,7 +1784,7 @@
   const challenge = new IntervalChallenge({
     {{-- clef: "treble", --}}
     maxUserNotes: 1,
-    numOfChallenges: 2,
+    numOfChallenges: 8,
     sound: false,
     basePoints: 1,
     firstTryBonus: 3,
