@@ -41,6 +41,10 @@
     --ghost-opacity: .5;
   }
 
+  #overlay {
+    background: rgba(255,255,255,0.96);
+  }
+
   .music-font{
     font-family: "Noto Music", sans-serif;
     font-weight: 400;
@@ -72,9 +76,12 @@
     touch-action: none;
   }
 
+  #page-wrapper { display: none; }
+
   #staff .note{ touch-action: none; }
 
   #interval{
+    height: 62.4px;
     font-size: 3rem;
     font-weight: bold;
   }
@@ -109,7 +116,6 @@
     margin-left: calc(var(--note-center-x) * -1);
     margin-top: calc(var(--note-center-y) * -1);
     z-index: 2;
-    {{-- box-shadow: 0 5px 0px 0px rgba(0, 0, 0, 0.2); --}}
   }
 
   .note.fixed{ pointer-events: none; }
@@ -136,9 +142,19 @@
     pointer-events: none;
   }
 
-  #feedback-success{
-    font-size: 2.3rem;
-    top: 0;
+  #feedback-success .message {
+    font-size: 2rem;
+    height: 62.4px;
+  }
+
+  #feedback-success .bonus-wrapper {
+    top: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+  }  
+
+  #feedback-success .bonus {
+    font-size: 64%;
     display: none;
   }
 
@@ -159,10 +175,7 @@
     position: absolute;
   }
 
-  #accidentals .music-font__sharp {
-    top: -4px;
-    right: 0;
-  }
+  #accidentals .music-font__sharp { top: -4px; right: 0; }
 
   #accidentals .accidental-tool:active { cursor: grabbing; }
 
@@ -192,29 +205,36 @@
     z-index: 10;
     position: relative;
   }
+
+  /* Score increment bubble: hidden by default */
+  #increment{ display: none; white-space: nowrap; }
 </style>
 @endpush
 
 @section('content')
-<section class="d-center py-5">
-  <div class="text-center">
-    @include('theory.intervals.components.counter')
-    @include('theory.intervals.components.level')
-    @include('theory.intervals.components.title')
+<section id="page-wrapper">
+  <div class="d-center py-5">
+    <div class="text-center">
+      @include('theory.intervals.components.counter')
+      @include('theory.intervals.components.level')
+      @include('theory.intervals.components.title')
 
-    <div class="position-relative">
-      @include('theory.intervals.components.accidentals')
-      @include('theory.intervals.components.feedback')
-      <div id="staff"></div>
+      <div class="position-relative">
+        @include('theory.intervals.components.accidentals')
+        <div id="staff"></div>
+      </div>
+
+      <div class="mb-3 text-center">
+        @include('theory.intervals.components.feedback')
+        @include('theory.intervals.components.interval')
+      </div>
+
+      @include('theory.intervals.components.controls')
     </div>
-
-    
-
-    <div id="interval" class="mb-3 text-blue">M3</div>
-
-    @include('theory.intervals.components.controls')
   </div>
 </section>
+
+@include('theory.overlays.final')
 @endsection
 
 @push('scripts')
@@ -224,6 +244,61 @@
 <script>
 (function ($) {
   "use strict";
+
+  // ===========================================================================
+  // jQuery animateCSS helper (Promise-based, robust)
+  // ===========================================================================
+  (function(){
+    if ($.fn.animateCSS) return;
+
+    $.fn.animateCSS = function(animation, opts) {
+      const $el = this;
+      const options = (typeof opts === "object" && opts) ? opts : {};
+      const speed = options.speed || null;
+      const prefix = options.prefix || "animate__";
+      const removeExisting = options.removeExisting !== false;
+
+      const animationName = animation.startsWith(prefix) ? animation.slice(prefix.length) : animation;
+
+      return new Promise((resolve) => {
+        if (!$el || !$el.length) return resolve();
+
+        const el = $el[0];
+        const classes = [
+          prefix + "animated",
+          (speed ? prefix + speed : null),
+          prefix + animationName
+        ].filter(Boolean).join(" ");
+
+        if (removeExisting) {
+          $el.removeClass(function(idx, className) {
+            if (!className) return "";
+            return className.split(/\s+/).filter(c => c.indexOf(prefix) === 0).join(" ");
+          });
+        } else {
+          $el.removeClass(prefix + "animated " + prefix + animationName + (speed ? " " + prefix + speed : ""));
+        }
+
+        void el.offsetWidth;
+
+        const endEvents = "animationend webkitAnimationEnd oAnimationEnd MSAnimationEnd";
+        $el.off(endEvents + "._animateCSS")
+          .one(endEvents + "._animateCSS", function() {
+            $el.removeClass(classes);
+            resolve();
+          });
+
+        $el.addClass(classes);
+
+        const fallbackMs = options.fallbackMs || 900;
+        setTimeout(() => {
+          $el.off(endEvents + "._animateCSS");
+          $el.removeClass(classes);
+          resolve();
+        }, fallbackMs);
+      });
+    };
+  })();
 
   // ---------------------------------------------------------------------------
   // Constants + small utils
@@ -329,7 +404,7 @@
   }
 
   // ===========================================================================
-  // Staff
+  // Staff (unchanged from prior; kept for copy/paste)
   // ===========================================================================
   function Staff($el, opts) {
     this.$el = $el;
@@ -440,9 +515,6 @@
     return this.$el.find(".note").not(".fixed").not(".preview").length;
   };
 
-  // ---------------------------------------------------------------------------
-  // Layout
-  // ---------------------------------------------------------------------------
   Staff.prototype._computeLayout = function () {
     const h = this.$el.height();
     const staffHeight = this.opts.lineGap * 4;
@@ -452,12 +524,10 @@
 
   Staff.prototype._drawLines = function () {
     this.$el.find(".staff-line, .treble-clef").remove();
-
     for (let i = 0; i < 5; i++) {
       const y = this.opts.bottomLineY - (4 - i) * this.opts.lineGap;
       $('<div class="staff-line"></div>').css({ top: y + "px" }).appendTo(this.$el);
     }
-
     this._drawClef();
   };
 
@@ -473,9 +543,6 @@
     this._repositionAllAccidentals();
   };
 
-  // ---------------------------------------------------------------------------
-  // Coordinates + range
-  // ---------------------------------------------------------------------------
   Staff.prototype.centerX = function () { return this.$el.width() / 2; };
   Staff.prototype.stepToY = function (step) { return this.opts.bottomLineY - (step * this.opts.stepSize); };
   Staff.prototype.yToStep = function (y) { return Math.round((this.opts.bottomLineY - y) / this.opts.stepSize); };
@@ -487,9 +554,6 @@
     return step >= this.minStepAllowed() && step <= this.maxStepAllowed();
   };
 
-  // ---------------------------------------------------------------------------
-  // Ledgers
-  // ---------------------------------------------------------------------------
   Staff.prototype._ledgerStepsFor = function (step) {
     const ledgers = [];
     const topMost = 8 + (this.opts.maxLedgerAbove * 2);
@@ -507,7 +571,6 @@
 
   Staff.prototype._renderLedgers = function (id, x, step) {
     this.$el.find('.ledger[data-for-note-id="' + id + '"]').remove();
-
     const isDragging = this.$el.find('.note[data-note-id="' + id + '"]').hasClass("dragging");
     const steps = this._ledgerStepsFor(step);
 
@@ -521,16 +584,12 @@
     }
   };
 
-  Staff.prototype._previewLedgersClear = function () {
-    this.$el.find(".ledger.preview").remove();
-  };
+  Staff.prototype._previewLedgersClear = function () { this.$el.find(".ledger.preview").remove(); };
 
   Staff.prototype._previewLedgersSet = function (step) {
     this._previewLedgersClear();
-
     const x = this.centerX();
     const steps = this._ledgerStepsFor(step);
-
     for (let i = 0; i < steps.length; i++) {
       $('<div class="ledger preview"></div>')
         .css({ left: x + "px", top: this.stepToY(steps[i]) + "px" })
@@ -538,9 +597,6 @@
     }
   };
 
-  // ---------------------------------------------------------------------------
-  // Notes lookup + snapping
-  // ---------------------------------------------------------------------------
   Staff.prototype._stepOfNoteEl = function (el) {
     const topStr = el.style.top || window.getComputedStyle(el).top;
     return this.yToStep(parseFloat(topStr));
@@ -594,7 +650,6 @@
 
       const top = parseFloat(el.style.top || window.getComputedStyle(el).top);
       const d = Math.abs(top - localY);
-
       if (best == null || d < best.dist) best = { noteId: id, dist: d };
     }
 
@@ -602,9 +657,6 @@
     return best;
   };
 
-  // ---------------------------------------------------------------------------
-  // Accidentals
-  // ---------------------------------------------------------------------------
   Staff.prototype._removeAccidentalForNote = function (noteId) {
     this.$el.find('.accidental[data-for-note-id="' + noteId + '"]').remove();
   };
@@ -634,7 +686,6 @@
   Staff.prototype._getAttachedAccidentalClass = function (noteId) {
     const $acc = this.$el.find('.accidental[data-for-note-id="' + noteId + '"]');
     if (!$acc.length) return null;
-
     for (let i = 0; i < ACCIDENTAL_CLASSES.length; i++) {
       const cls = ACCIDENTAL_CLASSES[i];
       if ($acc.hasClass(cls)) return cls;
@@ -644,7 +695,6 @@
 
   Staff.prototype.attachAccidentalToNote = function (noteId, accidentalClass) {
     if (!noteId || this.isNoteFixed(noteId)) return;
-
     this._removeAccidentalForNote(noteId);
 
     const $acc = $('<div class="accidental music-font"></div>')
@@ -663,8 +713,7 @@
     void $note[0].offsetWidth;
     $note.addClass("animate__animated animate__headShake");
 
-    $note
-      .off("animationend._hint webkitAnimationEnd._hint oAnimationEnd._hint MSAnimationEnd._hint")
+    $note.off("animationend._hint webkitAnimationEnd._hint oAnimationEnd._hint MSAnimationEnd._hint")
       .one("animationend._hint webkitAnimationEnd._hint oAnimationEnd._hint MSAnimationEnd._hint", function () {
         $note.removeClass("animate__animated animate__headShake");
       });
@@ -681,7 +730,6 @@
     }
 
     const nextCls = nextAccidentalClass(currentCls, toolType);
-
     if (toolType === "natural" && currentCls === "music-font__natural") return false;
     if (nextCls === currentCls) return false;
 
@@ -689,21 +737,16 @@
     return true;
   };
 
-  // ---------------------------------------------------------------------------
-  // Sound (Tone.js)
-  // ---------------------------------------------------------------------------
   Staff.prototype._ensureAudio = async function () {
     if (!this._soundEnabled()) return;
     if (this._audioReady) return;
     if (!window.Tone) return;
 
     await Tone.start();
-
     this._synth = new Tone.PolySynth(Tone.Synth, {
       oscillator: { type: "sine" },
       envelope: { attack: 0.02, decay: 0.2, sustain: 0.8, release: 1.2 }
     }).toDestination();
-
     this._audioReady = true;
   };
 
@@ -735,17 +778,12 @@
 
   Staff.prototype._playStep = async function (step, accidentalOffset) {
     if (!this._soundEnabled() || !Number.isFinite(step)) return;
-
     await this._ensureAudio();
     if (!this._synth) return;
-
     const midi = this._stepToMidi(step) + (accidentalOffset || 0);
     this._synth.triggerAttackRelease(Tone.Frequency(midi, "midi"), 0.5);
   };
 
-  // ---------------------------------------------------------------------------
-  // Notes lifecycle
-  // ---------------------------------------------------------------------------
   Staff.prototype.setNoteFixed = function (noteId, fixed) {
     const on = !!fixed;
     this.$el.find('.note[data-note-id="' + noteId + '"]').toggleClass("fixed", on);
@@ -756,10 +794,8 @@
   Staff.prototype.addFixedNote = function (cfg) {
     cfg = cfg || {};
     cfg.className = (cfg.className ? cfg.className + " " : "") + "fixed";
-
     const id = this.addNote(cfg);
     if (!id) return null;
-
     if (cfg.accidentalClass) this.attachAccidentalToNote(id, cfg.accidentalClass);
     this.setNoteFixed(id, true);
     return id;
@@ -837,9 +873,6 @@
     this._positionAccidentalForNote(id);
   };
 
-  // ---------------------------------------------------------------------------
-  // Preview
-  // ---------------------------------------------------------------------------
   Staff.prototype._previewSet = function (step) {
     if (!this._preview) this._preview = $('<div class="note preview"></div>').appendTo(this.$el);
     this._preview.css({ left: this.centerX() + "px", top: this.stepToY(step) + "px" });
@@ -856,9 +889,6 @@
     this._previewLedgersClear();
   };
 
-  // ---------------------------------------------------------------------------
-  // Overlap resolution (adjacent steps only)
-  // ---------------------------------------------------------------------------
   Staff.prototype._rectsOverlap = function (a, b) {
     return !(a.right <= b.left || a.left >= b.right || a.bottom <= b.top || a.top >= b.bottom);
   };
@@ -914,9 +944,7 @@
       centerAll(list);
 
       const stepMap = noteByStep(list);
-      const steps = Object.keys(stepMap)
-        .map(s => parseInt(s, 10))
-        .sort((a, b) => a - b);
+      const steps = Object.keys(stepMap).map(s => parseInt(s, 10)).sort((a, b) => a - b);
 
       let changed = false;
 
@@ -937,14 +965,10 @@
     }
   };
 
-  // ---------------------------------------------------------------------------
-  // Drag visuals + adjacency X while dragging
-  // ---------------------------------------------------------------------------
   Staff.prototype._setDraggingVisual = function (noteId, on) {
     const $note = this.$el.find('.note[data-note-id="' + noteId + '"]');
     const $ledgers = this.$el.find('.ledger[data-for-note-id="' + noteId + '"]');
     const $acc = this.$el.find('.accidental[data-for-note-id="' + noteId + '"]');
-
     $note.toggleClass("dragging", !!on);
     $ledgers.toggleClass("dragging", !!on);
     $acc.toggleClass("dragging", !!on);
@@ -975,9 +999,6 @@
     this.moveNote(dragId, { x: center + dx });
   };
 
-  // ---------------------------------------------------------------------------
-  // Interaction - ghost click create + note drag/delete + accidental remove
-  // ---------------------------------------------------------------------------
   Staff.prototype.enableGhostClickCreate = function () {
     const self = this;
 
@@ -1111,10 +1132,8 @@
 
         if (self._soundEnabled() && targetStep !== d.lastSoundStep) {
           d.lastSoundStep = targetStep;
-
           const accCls = self._getAttachedAccidentalClass(d.noteId);
           const accOff = self._accidentalClassToOffset(accCls);
-
           self._playStep(targetStep, accOff);
         }
       });
@@ -1147,13 +1166,8 @@
         });
     }
 
-    this.$el.on("pointerdown.noteDrag", ".accidental", function (e) {
-      e.stopPropagation();
-    });
-
-    this.$el.on("pointerdown.noteDrag", ".note", function (e) {
-      startDragFromNoteEl(this, e);
-    });
+    this.$el.on("pointerdown.noteDrag", ".accidental", function (e) { e.stopPropagation(); });
+    this.$el.on("pointerdown.noteDrag", ".note", function (e) { startDragFromNoteEl(this, e); });
 
     this.$el.on("pointerdown.noteDrag", function (e) {
       if ($(e.target).closest(".accidental").length) return;
@@ -1173,11 +1187,9 @@
     this.$el.on("click.noteDrag", ".accidental", function (e) {
       e.preventDefault();
       e.stopPropagation();
-
       const noteId = this.getAttribute("data-for-note-id");
       if (!noteId) return;
       if (self.isNoteFixed(noteId)) return;
-
       self._removeAccidentalForNote(noteId);
     });
 
@@ -1207,9 +1219,6 @@
     });
   };
 
-  // ---------------------------------------------------------------------------
-  // Accidentals (drag + sound preview) — SNAP to nearest editable note
-  // ---------------------------------------------------------------------------
   function resetAccDrag(self) {
     self._accDragSound.noteId = null;
     self._accDragSound.step = null;
@@ -1254,7 +1263,7 @@
 
         if (x < 0 || y < 0 || x > self.$el.width() || y > self.$el.height()) {
           resetAccDrag(self);
-          self._accDragSound.toolType = toolType; // keep tool
+          self._accDragSound.toolType = toolType;
           return;
         }
 
@@ -1304,9 +1313,7 @@
         }
       },
 
-      stop: function () {
-        resetAccDrag(self);
-      }
+      stop: function () { resetAccDrag(self); }
     });
   };
 
@@ -1321,7 +1328,6 @@
         if (!toolType) return;
 
         let localY = null;
-
         if (self._accSnap && self._accSnap.localY != null) {
           localY = self._accSnap.localY;
         } else {
@@ -1341,47 +1347,57 @@
   window.Staff = Staff;
 
   // ===========================================================================
-  // IntervalChallenge
+  // IntervalChallenge (UPDATED: bonus badge handling)
   // ===========================================================================
   class IntervalChallenge {
     constructor(options) {
       const defaults = {
-        // IMPORTANT: if clef is NOT provided, we randomize each new challenge
-        // clef: "treble" | "bass"  (optional)
         staffEl: "#staff",
         maxUserNotes: 1,
         numOfChallenges: 4,
         intervals: ["m2", "M2", "m3", "M3", "P4", "A4", "d5", "P5", "m6", "M6", "m7", "M7"],
         hardIntervals: ["A4", "d5", "m6", "m7", "M7"],
         fixedNotes: null,
-        sound: true
+        sound: true,
+
+        basePoints: 1,
+        firstTryBonus: 2 // so first-try total = 3 (matches your "+3 BONUS")
       };
 
       this.opts = $.extend({}, defaults, options || {});
       this._clefLocked = Object.prototype.hasOwnProperty.call(this.opts, "clef") && this.opts.clef != null;
-      this.opts.clef = this._clefLocked ? normalizeClef(this.opts.clef) : null; // null = random per challenge
+      this.opts.clef = this._clefLocked ? normalizeClef(this.opts.clef) : null;
 
       this.$staffEl = $(this.opts.staffEl);
       this.$accidentals = $("#accidentals");
       this.$feedback = $("#feedback-success");
+      this.$bonusBadge = this.$feedback.find(".bonus"); // NEW
+      this.$points = $("#points");
+      this.$increment = $("#increment");
       this.$interval = $("#interval");
       this.$checkBtn = $("#check button");
       this.$checkWrap = this.$checkBtn.parent();
       this.$progressBar = $("#progress-bar");
       this.$level = $("#level");
+      this.successPhrases = ['Awesome', 'Nicely done', 'Well done', 'Great job', 'Hooray', 'Bravo', 'Fantastic', 'Nice work', 'Looks good', 'Good one'];
 
       this.maxUserNotes = Number.isFinite(this.opts.maxUserNotes) ? this.opts.maxUserNotes : 1;
       this.numOfChallenges = Number.isFinite(this.opts.numOfChallenges) ? this.opts.numOfChallenges : 4;
 
+      this.points = 0;
+      this._madeMistakeThisRound = false;
       this._continueBound = false;
 
-      // Build staff once; if clef is random, we start treble and then switch per challenge.
       this.staff = new Staff(this.$staffEl, {
         clef: this.opts.clef || "treble",
-        clefUrl: null, // Staff resolves from clef
+        clefUrl: null,
         getMaxUserNotes: () => this.maxUserNotes,
         sound: !!this.opts.sound
       });
+
+      this.$increment.hide();
+      this.$bonusBadge.hide();
+      this.$points.text(String(this.points));
     }
 
     start() {
@@ -1390,6 +1406,7 @@
       this._wireControls();
       this._resetProgress();
       this.newChallenge();
+      $('#page-wrapper').fadeIn('fast');
     }
 
     setSoundEnabled(enabled) {
@@ -1397,14 +1414,7 @@
       this.staff.setSoundEnabled(!!enabled);
       return this;
     }
-
-    toggleSound() {
-      return this.setSoundEnabled(!this.staff.isSoundEnabled());
-    }
-
-    isSoundEnabled() {
-      return this.staff.isSoundEnabled();
-    }
+    isSoundEnabled() { return this.staff.isSoundEnabled(); }
 
     _wireAccidentalPalette() {
       $("#accidentals .music-font__doublesharp, #accidentals .music-font__doubleflat").addClass("d-none");
@@ -1413,7 +1423,6 @@
     _wireStaffTools() {
       this.staff.enableNoteDragAndClickDelete();
       this.staff.enableGhostClickCreate();
-
       this.staff.enableAccidentalDrag(
         $("#accidentals .music-font__sharp, #accidentals .music-font__flat, #accidentals .music-font__natural")
       );
@@ -1450,11 +1459,13 @@
     }
 
     newChallenge() {
-      // NEW: random clef per challenge unless locked
       const clef = this._currentClefForChallenge();
-      if (clef && clef !== this.staff.getClef()) {
-        this.staff.setClef(clef);
-      }
+      if (clef && clef !== this.staff.getClef()) this.staff.setClef(clef);
+
+      this._madeMistakeThisRound = false;
+
+      // hide bonus badge whenever a new round starts
+      this.$bonusBadge.hide();
 
       const interval = this._pickInterval();
       const fixed = this._pickFixedNote();
@@ -1463,16 +1474,13 @@
       this.$accidentals.removeClass("invisible");
       this.$feedback.hide();
 
-      this.$interval.text(interval);
+      this.$interval.show().text(interval);
 
       this.$level.addClass("invisible");
       if (this.opts.hardIntervals.includes(interval)) this.$level.removeClass("invisible");
 
       if (fixed) {
-        this.staff.addFixedNote({
-          step: fixed.step,
-          accidentalClass: fixed.accidentalClass || null
-        });
+        this.staff.addFixedNote({ step: fixed.step, accidentalClass: fixed.accidentalClass || null });
       }
 
       $("#check").show();
@@ -1480,22 +1488,17 @@
     }
 
     _pickInterval() {
-      const pool = Array.isArray(this.opts.intervals) && this.opts.intervals.length
-        ? this.opts.intervals
-        : ["M3"];
+      const pool = Array.isArray(this.opts.intervals) && this.opts.intervals.length ? this.opts.intervals : ["M3"];
       return pool[Math.floor(Math.random() * pool.length)];
     }
 
     _pickFixedNote() {
       const fixedList = toArrayMaybe(this.opts.fixedNotes).filter(Boolean);
-
       if (fixedList.length) {
         const chosen = pickOne(fixedList);
         return this._fixedNoteToStaffPosition(chosen);
       }
-
-      const step = randomInt(0, 7);
-      return { step, accidentalClass: null };
+      return { step: randomInt(0, 7), accidentalClass: null };
     }
 
     _notesOnStaffOrdered() {
@@ -1548,12 +1551,62 @@
     }
 
     _successAnimation() {
-      this.$feedback.removeClass("animate__animated animate__tada");
-      void this.$feedback[0].offsetWidth;
-      this.$feedback.addClass("animate__animated animate__tada");
-
+      // no animate__tada on the container anymore
       this.$accidentals.addClass("invisible");
-      this.$feedback.fadeIn("fast");
+      this.$feedback.find('.message span').text(pickOne(this.successPhrases));
+      // show success
+      this.$feedback.stop(true, true).fadeIn("fast");
+      this.$interval.hide();
+    }
+
+    _showIncrement(earned) {
+      const $inc = this.$increment;
+      if (!$inc || !$inc.length) return;
+
+      $inc.stop(true, true);
+      $inc.text("+" + earned).show();
+
+      if ($inc.animateCSS) {
+        $inc.animateCSS("fadeOutUp").then(() => $inc.hide());
+      } else {
+        setTimeout(() => $inc.hide(), 800);
+      }
+    }
+
+    // NEW: show/hide/animate the success bonus badge
+_showBonusBadge(bonusAmount) {
+  if (!this.$bonusBadge || !this.$bonusBadge.length) return;
+
+  if (!bonusAmount || bonusAmount <= 0) {
+    this.$bonusBadge.hide();
+    return;
+  }
+
+  this.$bonusBadge.text("+" + bonusAmount + " BONUS").show();
+
+  // tada ONLY on the badge
+  if (this.$bonusBadge.animateCSS) {
+    this.$bonusBadge.animateCSS("tada");
+  }
+}
+
+
+    _awardPointsForCorrect() {
+      const firstTry = !this._madeMistakeThisRound;
+
+      const base = Number.isFinite(this.opts.basePoints) ? this.opts.basePoints : 1;
+      const bonus = Number.isFinite(this.opts.firstTryBonus) ? this.opts.firstTryBonus : 0;
+
+      const earned = firstTry ? (base + bonus) : base;
+      const bonusEarned = firstTry ? bonus : 0;
+
+      this.points += earned;
+      this.$points.text(String(this.points));
+
+      // badge in success feedback
+      this._showBonusBadge(bonusEarned);
+
+      return { earned, firstTry, bonusEarned };
     }
 
     _updateProgressBar() {
@@ -1605,6 +1658,11 @@
       if (name === this.$interval.text()) {
         this._successAnimation();
 
+        const { earned } = this._awardPointsForCorrect();
+
+        $("#score").animateCSS && $("#score").animateCSS("heartBeat");
+        this._showIncrement(earned);
+
         if (this._updateProgressBar() >= 100) {
           setTimeout(() => {
             alert("Done!");
@@ -1616,6 +1674,7 @@
         }
       } else {
         this._failAnimation();
+        this._madeMistakeThisRound = true;
       }
     }
 
@@ -1666,26 +1725,22 @@
   window.IntervalChallenge = IntervalChallenge;
 
   // ===========================================================================
-  // Instantiate (example)
-  //  - If you OMIT clef: randomizes each newChallenge()
-  //  - If you pass clef: "treble" or "bass": stays fixed
+  // Instantiate
   // ===========================================================================
   const challenge = new IntervalChallenge({
     {{-- clef: "treble", --}}
     maxUserNotes: 1,
     numOfChallenges: 4,
-    {{-- intervals: ["m2", "M3", "P5"], --}}
     sound: false,
-    {{-- fixedNotes: ["E4", "G4"] --}}
+    basePoints: 1,
+    firstTryBonus: 3 // will display "+2 BONUS" on badge, unless you change badge text elsewhere
   });
 
   challenge.start();
-
   window.challenge = challenge;
 
-
+  // sound toggle initial state + binding
   $('input[name="sound"]').prop('checked', challenge.isSoundEnabled());
-
   $('input[name="sound"]').off('change.intervalChallengeSound').on('change.intervalChallengeSound', function() {
     challenge.setSoundEnabled(this.checked);
   });
