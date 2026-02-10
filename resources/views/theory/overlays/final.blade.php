@@ -6,8 +6,9 @@
 			<h6 class="text-muted px-5">It's not about getting the most points, but if it was...</h6>
 		</div>
 
-		<div class="row mb-5">
+		<div class="row mb-4">
 			<div class="col-lg-4 col-md-8 col-12 mx-auto row justify-content-center" id="metrics-boxes"> 
+				@include('theory.overlays.components.box', ['name' => 'rounds', 'title' => 'ROUNDS', 'color' => 'orange', 'icon' => 'gamepad'])
 				@include('theory.overlays.components.box', ['name' => 'score', 'title' => 'SCORE', 'color' => 'purple', 'icon' => 'bolt'])
 				@include('theory.overlays.components.box', ['name' => 'accuracy', 'title' => 'ACCURACY', 'color' => 'green', 'icon' => 'bullseye'])
 				@include('theory.overlays.components.box', ['name' => 'duration', 'title' => 'TIME', 'color' => 'blue', 'icon' => 'clock'])
@@ -16,10 +17,13 @@
 		<div class="row">
 			<div class="col-lg-4 col-md-8 col-12 mx-auto"> 
 				<div class="px-3">
-					<a href="{{route('theory.intervals.index')}}" class="btn btn-primary mb-2 w-100">Start a new challenge</a>
+					<a href="{{route('theory.intervals.index')}}" class="btn btn-primary mb-2 w-100">@fa(['icon' => 'star'])Start a new challenge</a>
+					<button data-bs-toggle="modal" data-bs-target="#share-modal" class="btn btn-white mb-2 w-100">@fa(['icon' => 'envelope'])Share my results</button>
 					<a href="{{route('theory.index')}}" class="btn btn-white w-100">Back to the main menu</a>
 				</div>
 			</div>
 		</div>
 	</div>
 </div>
+
+@include('theory.intervals.modals.share')

@@ -1728,6 +1728,7 @@
       const ss = String(totalSeconds % 60).padStart(2, "0");
       const duration = `${mm}:${ss}`;
 
+      this.$finalOverlay.find('span[name="rounds"]').text(this.numOfChallenges);
       this.$finalOverlay.find('span[name="score"]').text(this.points);
       this.$finalOverlay.find('span[name="accuracy"]').text(accuracy + "%");
       this.$finalOverlay.find('span[name="duration"]').text(duration);
@@ -1784,7 +1785,7 @@
   const challenge = new IntervalChallenge({
     {{-- clef: "treble", --}}
     maxUserNotes: 1,
-    numOfChallenges: 8,
+    numOfChallenges: 2,
     sound: false,
     basePoints: 1,
     firstTryBonus: 3,
