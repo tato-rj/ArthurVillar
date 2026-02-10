@@ -14,7 +14,7 @@
 				@include('theory.overlays.components.box', ['name' => 'duration', 'title' => 'TIME', 'color' => 'blue', 'icon' => 'clock'])
 			</div>
 		</div>
-		<div class="row">
+		<div class="row mb-4">
 			<div class="col-lg-4 col-md-8 col-12 mx-auto"> 
 				<div class="px-3">
 					<a href="{{route('theory.intervals.index')}}" class="btn btn-primary mb-2 w-100">@fa(['icon' => 'star'])Start a new challenge</a>
