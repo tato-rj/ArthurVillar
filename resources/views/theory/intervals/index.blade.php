@@ -41,11 +41,10 @@
     --ghost-opacity: .5;
   }
 
-
-html, body {margin: 0; height: 100%; overflow: hidden}
-
-  #overlay {
+  #final-overlay {
     background: rgba(255,255,255,0.96);
+    display: none;
+    z-index: 1000;
   }
 
   .music-font{
@@ -65,8 +64,8 @@ html, body {margin: 0; height: 100%; overflow: hidden}
   .music-font__sharp::before{ content: "\266F"; }
   .music-font__flat::before{ content: "\266D"; }
   .music-font__natural::before{ content: "\266E"; }
-  .music-font__doubleflat::before{ content: "\1D12B"; }
-  .music-font__doublesharp::before{ content: "\1D12A"; }
+  .music-font__doubleflat::before{ content: "\01D12B"; }
+  .music-font__doublesharp::before{ content: "\01D12A"; }
 
   #staff{
     position: relative;
@@ -154,7 +153,7 @@ html, body {margin: 0; height: 100%; overflow: hidden}
     top: -18px;
     left: 50%;
     transform: translateX(-50%);
-  }  
+  }
 
   #feedback-success .bonus {
     font-size: 64%;
@@ -209,7 +208,6 @@ html, body {margin: 0; height: 100%; overflow: hidden}
     position: relative;
   }
 
-  /* Score increment bubble: hidden by default */
   #increment{ display: none; white-space: nowrap; }
 </style>
 @endpush
@@ -248,64 +246,8 @@ html, body {margin: 0; height: 100%; overflow: hidden}
 (function ($) {
   "use strict";
 
-  // ===========================================================================
-  // jQuery animateCSS helper (Promise-based, robust)
-  // ===========================================================================
-  (function(){
-    if ($.fn.animateCSS) return;
+  const PAGE_OPENED_AT_MS = Date.now();
 
-    $.fn.animateCSS = function(animation, opts) {
-      const $el = this;
-      const options = (typeof opts === "object" && opts) ? opts : {};
-      const speed = options.speed || null;
-      const prefix = options.prefix || "animate__";
-      const removeExisting = options.removeExisting !== false;
-
-      const animationName = animation.startsWith(prefix) ? animation.slice(prefix.length) : animation;
-
-      return new Promise((resolve) => {
-        if (!$el || !$el.length) return resolve();
-
-        const el = $el[0];
-        const classes = [
-          prefix + "animated",
-          (speed ? prefix + speed : null),
-          prefix + animationName
-        ].filter(Boolean).join(" ");
-
-        if (removeExisting) {
-          $el.removeClass(function(idx, className) {
-            if (!className) return "";
-            return className.split(/\s+/).filter(c => c.indexOf(prefix) === 0).join(" ");
-          });
-        } else {
-          $el.removeClass(prefix + "animated " + prefix + animationName + (speed ? " " + prefix + speed : ""));
-        }
-
-        void el.offsetWidth;
-
-        const endEvents = "animationend webkitAnimationEnd oAnimationEnd MSAnimationEnd";
-        $el.off(endEvents + "._animateCSS")
-          .one(endEvents + "._animateCSS", function() {
-            $el.removeClass(classes);
-            resolve();
-          });
-
-        $el.addClass(classes);
-
-        const fallbackMs = options.fallbackMs || 900;
-        setTimeout(() => {
-          $el.off(endEvents + "._animateCSS");
-          $el.removeClass(classes);
-          resolve();
-        }, fallbackMs);
-      });
-    };
-  })();
-
-  // ---------------------------------------------------------------------------
-  // Constants + small utils
-  // ---------------------------------------------------------------------------
   const ACCIDENTAL_CLASSES = [
     "music-font__sharp",
     "music-font__doublesharp",
@@ -319,13 +261,13 @@ html, body {margin: 0; height: 100%; overflow: hidden}
       "--clef-width": "140px",
       "--clef-height": "calc(var(--staff-line-gap) * 6)",
       "--clef-top": "54px",
-      "--clef-left-nudge": "21px"
+      "--clef-left-nudge": "28px"
     },
     bass: {
       "--clef-width": "76px",
       "--clef-height": "calc(var(--staff-line-gap) * 6)",
       "--clef-top": "35px",
-      "--clef-left-nudge": "-16px"
+      "--clef-left-nudge": "-12px"
     }
   };
 
@@ -347,10 +289,6 @@ html, body {margin: 0; height: 100%; overflow: hidden}
     return oe.pointerId;
   }
 
-  function safeLog() {
-    if (window.console && console.log) console.log.apply(console, arguments);
-  }
-
   if (!$.fn.disable) $.fn.disable = function () { return this.prop("disabled", true).addClass("disabled"); };
   if (!$.fn.enable) $.fn.enable = function () { return this.prop("disabled", false).removeClass("disabled"); };
 
@@ -361,6 +299,21 @@ html, body {margin: 0; height: 100%; overflow: hidden}
   function pickOne(arr) {
     if (!Array.isArray(arr) || !arr.length) return null;
     return arr[Math.floor(Math.random() * arr.length)];
+  }
+
+  function pickWeighted(items) {
+    // items: [{ value, weight }]
+    const list = Array.isArray(items) ? items.filter(x => x && Number.isFinite(x.weight) && x.weight > 0) : [];
+    if (!list.length) return null;
+
+    const total = list.reduce((sum, x) => sum + x.weight, 0);
+    let r = Math.random() * total;
+
+    for (let i = 0; i < list.length; i++) {
+      r -= list[i].weight;
+      if (r <= 0) return list[i].value;
+    }
+    return list[list.length - 1].value;
   }
 
   function toArrayMaybe(v) {
@@ -406,9 +359,6 @@ html, body {margin: 0; height: 100%; overflow: hidden}
     );
   }
 
-  // ===========================================================================
-  // Staff (unchanged from prior; kept for copy/paste)
-  // ===========================================================================
   function Staff($el, opts) {
     this.$el = $el;
     const css = getComputedStyle($el[0]);
@@ -664,6 +614,14 @@ html, body {margin: 0; height: 100%; overflow: hidden}
     this.$el.find('.accidental[data-for-note-id="' + noteId + '"]').remove();
   };
 
+  Staff.prototype._accidentalAnchorXForNote = function (noteLeftPx) {
+    const cx = this.centerX();
+    const EPS = 0.5;
+    // If the note was shifted to the right due to adjacency, keep accidental at the "normal" (center) x.
+    if (Number.isFinite(noteLeftPx) && noteLeftPx > (cx + EPS)) return cx;
+    return noteLeftPx;
+  };
+
   Staff.prototype._positionAccidentalForNote = function (noteId) {
     const $note = this.$el.find('.note[data-note-id="' + noteId + '"]');
     const $acc = this.$el.find('.accidental[data-for-note-id="' + noteId + '"]');
@@ -672,18 +630,60 @@ html, body {margin: 0; height: 100%; overflow: hidden}
     const noteLeft = parseFloat($note.css("left"));
     const noteTop = parseFloat($note.css("top"));
 
+    const anchorX = this._accidentalAnchorXForNote(noteLeft);
+
     $acc.css({
-      left: (noteLeft - this.opts.accidentalGapPx) + "px",
+      left: (anchorX - this.opts.accidentalGapPx) + "px",
       top: (noteTop - this.opts.accidentalTopPx) + "px"
     });
   };
 
+  Staff.prototype._rectsOverlap = function (a, b) {
+    return !(a.right <= b.left || a.left >= b.right || a.bottom <= b.top || a.top >= b.bottom);
+  };
+
   Staff.prototype._repositionAllAccidentals = function () {
     const self = this;
+
+    // Pass 1: base positioning (with "keep accidental normal if note shifted right")
     this.$el.find(".accidental").each(function () {
       const id = this.getAttribute("data-for-note-id");
       if (id) self._positionAccidentalForNote(id);
     });
+
+    // Pass 2: if both adjacent notes have accidentals, push the upper accidental left to avoid overlap
+    const noteEls = this.$el.find(".note").not(".preview").toArray();
+    const stepToNoteId = {};
+    for (let i = 0; i < noteEls.length; i++) {
+      const el = noteEls[i];
+      const id = el.getAttribute("data-note-id");
+      if (!id) continue;
+      stepToNoteId[this._stepOfNoteEl(el)] = id;
+    }
+
+    const steps = Object.keys(stepToNoteId).map(s => parseInt(s, 10)).sort((a, b) => a - b);
+    for (let i = 0; i < steps.length; i++) {
+      const lowerStep = steps[i];
+      const upperStep = lowerStep + 1;
+      const lowerId = stepToNoteId[lowerStep];
+      const upperId = stepToNoteId[upperStep];
+      if (!lowerId || !upperId) continue;
+
+      const $lowerAcc = this.$el.find('.accidental[data-for-note-id="' + lowerId + '"]');
+      const $upperAcc = this.$el.find('.accidental[data-for-note-id="' + upperId + '"]');
+      if (!$lowerAcc.length || !$upperAcc.length) continue;
+
+      const lowerRect = $lowerAcc[0].getBoundingClientRect();
+      const upperRect = $upperAcc[0].getBoundingClientRect();
+      if (!this._rectsOverlap(lowerRect, upperRect)) continue;
+
+      const overlapPx = Math.max(0, upperRect.right - lowerRect.left);
+      const padPx = -6;
+      const curLeft = parseFloat($upperAcc.css("left"));
+      if (!Number.isFinite(curLeft)) continue;
+
+      $upperAcc.css("left", (curLeft - (overlapPx + padPx)) + "px");
+    }
   };
 
   Staff.prototype._getAttachedAccidentalClass = function (noteId) {
@@ -705,7 +705,7 @@ html, body {margin: 0; height: 100%; overflow: hidden}
       .attr("data-for-note-id", noteId);
 
     this.$el.append($acc);
-    this._positionAccidentalForNote(noteId);
+    this._repositionAllAccidentals();
   };
 
   Staff.prototype._hintIgnoredAccidental = function (noteId) {
@@ -796,10 +796,24 @@ html, body {margin: 0; height: 100%; overflow: hidden}
 
   Staff.prototype.addFixedNote = function (cfg) {
     cfg = cfg || {};
-    cfg.className = (cfg.className ? cfg.className + " " : "") + "fixed";
-    const id = this.addNote(cfg);
+
+    // IMPORTANT: don't add "fixed" class until AFTER accidental is attached,
+    // because attachAccidentalToNote() blocks fixed notes.
+    const className = cfg.className || "";
+
+    const id = this.addNote({
+      step: cfg.step,
+      y: cfg.y,
+      x: cfg.x,
+      id: cfg.id,
+      ledger: cfg.ledger,
+      className
+    });
+
     if (!id) return null;
+
     if (cfg.accidentalClass) this.attachAccidentalToNote(id, cfg.accidentalClass);
+
     this.setNoteFixed(id, true);
     return id;
   };
@@ -873,7 +887,8 @@ html, body {margin: 0; height: 100%; overflow: hidden}
       this._renderLedgers(id, noteX, step);
     }
 
-    this._positionAccidentalForNote(id);
+    // Reposition all so adjacency accidental-overlap logic stays correct during drags too.
+    this._repositionAllAccidentals();
   };
 
   Staff.prototype._previewSet = function (step) {
@@ -890,10 +905,6 @@ html, body {margin: 0; height: 100%; overflow: hidden}
       this._previewStep = null;
     }
     this._previewLedgersClear();
-  };
-
-  Staff.prototype._rectsOverlap = function (a, b) {
-    return !(a.right <= b.left || a.left >= b.right || a.bottom <= b.top || a.top >= b.bottom);
   };
 
   Staff.prototype._resolveNoteOverlaps = function () {
@@ -964,8 +975,13 @@ html, body {margin: 0; height: 100%; overflow: hidden}
         }
       }
 
-      if (!changed) return;
+      if (!changed) {
+        self._repositionAllAccidentals();
+        return;
+      }
     }
+
+    self._repositionAllAccidentals();
   };
 
   Staff.prototype._setDraggingVisual = function (noteId, on) {
@@ -1194,6 +1210,7 @@ html, body {margin: 0; height: 100%; overflow: hidden}
       if (!noteId) return;
       if (self.isNoteFixed(noteId)) return;
       self._removeAccidentalForNote(noteId);
+      self._repositionAllAccidentals();
     });
 
     this.$el.on("click.noteDrag", ".note", function (e) {
@@ -1349,9 +1366,6 @@ html, body {margin: 0; height: 100%; overflow: hidden}
 
   window.Staff = Staff;
 
-  // ===========================================================================
-  // IntervalChallenge (UPDATED: bonus badge handling)
-  // ===========================================================================
   class IntervalChallenge {
     constructor(options) {
       const defaults = {
@@ -1363,26 +1377,36 @@ html, body {margin: 0; height: 100%; overflow: hidden}
         fixedNotes: null,
         sound: true,
 
+        // NEW: tweak these when constructing IntervalChallenge()
+        // Probability is proportional to weight (0 disables).
+        // "natural" means no accidental.
+        accidentalWeights: {
+          natural: 8,
+          sharp: 1,
+          flat: 1
+        },
+
         basePoints: 1,
-        firstTryBonus: 2 // so first-try total = 3 (matches your "+3 BONUS")
+        firstTryBonus: 2
       };
 
-      this.opts = $.extend({}, defaults, options || {});
+      this.opts = $.extend(true, {}, defaults, options || {});
       this._clefLocked = Object.prototype.hasOwnProperty.call(this.opts, "clef") && this.opts.clef != null;
       this.opts.clef = this._clefLocked ? normalizeClef(this.opts.clef) : null;
 
       this.$staffEl = $(this.opts.staffEl);
       this.$accidentals = $("#accidentals");
       this.$feedback = $("#feedback-success");
-      this.$bonusBadge = this.$feedback.find(".bonus"); // NEW
+      this.$bonusBadge = this.$feedback.find(".bonus");
       this.$points = $("#points");
       this.$increment = $("#increment");
       this.$interval = $("#interval");
       this.$checkBtn = $("#check button");
+      this.$finalOverlay = $("#final-overlay");
       this.$checkWrap = this.$checkBtn.parent();
       this.$progressBar = $("#progress-bar");
       this.$level = $("#level");
-      this.successPhrases = ['Awesome', 'Nicely done', 'Well done', 'Great job', 'Hooray', 'Bravo', 'Fantastic', 'Nice work', 'Looks good', 'Good one'];
+      this.successPhrases = ["Awesome", "Nicely done", "Well done", "Great job", "Hooray", "Bravo", "Fantastic", "Nice work", "Looks good", "Good one"];
 
       this.maxUserNotes = Number.isFinite(this.opts.maxUserNotes) ? this.opts.maxUserNotes : 1;
       this.numOfChallenges = Number.isFinite(this.opts.numOfChallenges) ? this.opts.numOfChallenges : 4;
@@ -1390,6 +1414,12 @@ html, body {margin: 0; height: 100%; overflow: hidden}
       this.points = 0;
       this._madeMistakeThisRound = false;
       this._continueBound = false;
+
+      this._stats = {
+        checksTotal: 0,
+        checksCorrect: 0,
+        finishedAtMs: null
+      };
 
       this.staff = new Staff(this.$staffEl, {
         clef: this.opts.clef || "treble",
@@ -1409,7 +1439,7 @@ html, body {margin: 0; height: 100%; overflow: hidden}
       this._wireControls();
       this._resetProgress();
       this.newChallenge();
-      $('#page-wrapper').fadeIn('fast');
+      $("#page-wrapper").fadeIn("fast");
     }
 
     setSoundEnabled(enabled) {
@@ -1466,8 +1496,6 @@ html, body {margin: 0; height: 100%; overflow: hidden}
       if (clef && clef !== this.staff.getClef()) this.staff.setClef(clef);
 
       this._madeMistakeThisRound = false;
-
-      // hide bonus badge whenever a new round starts
       this.$bonusBadge.hide();
 
       const interval = this._pickInterval();
@@ -1501,7 +1529,15 @@ html, body {margin: 0; height: 100%; overflow: hidden}
         const chosen = pickOne(fixedList);
         return this._fixedNoteToStaffPosition(chosen);
       }
-      return { step: randomInt(0, 7), accidentalClass: null };
+
+      const w = this.opts.accidentalWeights || {};
+      const accidentalClass = pickWeighted([
+        { value: null,               weight: Number(w.natural) || 0 },
+        { value: "music-font__sharp", weight: Number(w.sharp) || 0 },
+        { value: "music-font__flat",  weight: Number(w.flat) || 0 }
+      ]);
+
+      return { step: randomInt(0, 7), accidentalClass };
     }
 
     _notesOnStaffOrdered() {
@@ -1554,10 +1590,8 @@ html, body {margin: 0; height: 100%; overflow: hidden}
     }
 
     _successAnimation() {
-      // no animate__tada on the container anymore
       this.$accidentals.addClass("invisible");
-      this.$feedback.find('.message span').text(pickOne(this.successPhrases));
-      // show success
+      this.$feedback.find(".message span").text(pickOne(this.successPhrases));
       this.$feedback.stop(true, true).fadeIn("fast");
       this.$interval.hide();
     }
@@ -1576,23 +1610,20 @@ html, body {margin: 0; height: 100%; overflow: hidden}
       }
     }
 
-    // NEW: show/hide/animate the success bonus badge
-_showBonusBadge(bonusAmount) {
-  if (!this.$bonusBadge || !this.$bonusBadge.length) return;
+    _showBonusBadge(bonusAmount) {
+      if (!this.$bonusBadge || !this.$bonusBadge.length) return;
 
-  if (!bonusAmount || bonusAmount <= 0) {
-    this.$bonusBadge.hide();
-    return;
-  }
+      if (!bonusAmount || bonusAmount <= 0) {
+        this.$bonusBadge.hide();
+        return;
+      }
 
-  this.$bonusBadge.text("+" + bonusAmount + " BONUS").show();
+      this.$bonusBadge.text("+" + bonusAmount + " BONUS").show();
 
-  // tada ONLY on the badge
-  if (this.$bonusBadge.animateCSS) {
-    this.$bonusBadge.animateCSS("tada");
-  }
-}
-
+      if (this.$bonusBadge.animateCSS) {
+        this.$bonusBadge.animateCSS("tada");
+      }
+    }
 
     _awardPointsForCorrect() {
       const firstTry = !this._madeMistakeThisRound;
@@ -1606,7 +1637,6 @@ _showBonusBadge(bonusAmount) {
       this.points += earned;
       this.$points.text(String(this.points));
 
-      // badge in success feedback
       this._showBonusBadge(bonusEarned);
 
       return { earned, firstTry, bonusEarned };
@@ -1649,6 +1679,8 @@ _showBonusBadge(bonusAmount) {
       const notes = this._notesOnStaffOrdered();
       this.$checkBtn.disable();
 
+      this._stats.checksTotal += 1;
+
       if (notes.length !== 2) {
         this._failAnimation();
         this.$checkBtn[0] && this.$checkBtn[0].blur && this.$checkBtn[0].blur();
@@ -1656,9 +1688,10 @@ _showBonusBadge(bonusAmount) {
       }
 
       const name = this._intervalNameBetween(notes[0], notes[1]);
-      safeLog(name);
 
       if (name === this.$interval.text()) {
+        this._stats.checksCorrect += 1;
+
         this._successAnimation();
 
         const { earned } = this._awardPointsForCorrect();
@@ -1667,9 +1700,10 @@ _showBonusBadge(bonusAmount) {
         this._showIncrement(earned);
 
         if (this._updateProgressBar() >= 100) {
+          this._stats.finishedAtMs = Date.now();
+
           setTimeout(() => {
-            alert("Done!");
-            this.$checkBtn.enable();
+            this._showFinalResults();
           }, 2000);
         } else {
           $("#check").hide();
@@ -1679,6 +1713,26 @@ _showBonusBadge(bonusAmount) {
         this._failAnimation();
         this._madeMistakeThisRound = true;
       }
+    }
+
+    _showFinalResults() {
+      const total = Math.max(0, this._stats.checksTotal || 0);
+      const correct = Math.max(0, this._stats.checksCorrect || 0);
+      const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
+
+      const endMs = (this._stats.finishedAtMs != null) ? this._stats.finishedAtMs : Date.now();
+      const elapsedMs = Math.max(0, endMs - PAGE_OPENED_AT_MS);
+
+      const totalSeconds = Math.floor(elapsedMs / 1000);
+      const mm = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
+      const ss = String(totalSeconds % 60).padStart(2, "0");
+      const duration = `${mm}:${ss}`;
+
+      this.$finalOverlay.find('span[name="score"]').text(this.points);
+      this.$finalOverlay.find('span[name="accuracy"]').text(accuracy + "%");
+      this.$finalOverlay.find('span[name="duration"]').text(duration);
+
+      this.$finalOverlay.show();
     }
 
     _fixedNoteToStaffPosition(noteStr) {
@@ -1727,24 +1781,25 @@ _showBonusBadge(bonusAmount) {
 
   window.IntervalChallenge = IntervalChallenge;
 
-  // ===========================================================================
-  // Instantiate
-  // ===========================================================================
   const challenge = new IntervalChallenge({
     {{-- clef: "treble", --}}
     maxUserNotes: 1,
-    numOfChallenges: 4,
+    numOfChallenges: 2,
     sound: false,
     basePoints: 1,
-    firstTryBonus: 3 // will display "+2 BONUS" on badge, unless you change badge text elsewhere
+    firstTryBonus: 3,
+    accidentalWeights: {
+      natural: 10,
+      sharp: 5,
+      flat: 5
+    }
   });
 
   challenge.start();
   window.challenge = challenge;
 
-  // sound toggle initial state + binding
-  $('input[name="sound"]').prop('checked', challenge.isSoundEnabled());
-  $('input[name="sound"]').off('change.intervalChallengeSound').on('change.intervalChallengeSound', function() {
+  $('input[name="sound"]').prop("checked", challenge.isSoundEnabled());
+  $('input[name="sound"]').off("change.intervalChallengeSound").on("change.intervalChallengeSound", function () {
     challenge.setSoundEnabled(this.checked);
   });
 

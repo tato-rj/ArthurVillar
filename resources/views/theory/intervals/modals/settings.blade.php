@@ -1,5 +1,10 @@
 @modal(['title' => 'Settings', 'id' => 'settings-modal', 'size' => 'sm'])
 <div>
+{{-- 	<div class="d-apart mb-3">
+		<label>Practice mode</label>
+		@toggle(['name' => 'practice_mode', 'on' => true])
+	</div> --}}
+
 	<div class="d-apart mb-3">
 		<label>Sound effects</label>
 		@toggle(['name' => 'sound', 'on' => true])

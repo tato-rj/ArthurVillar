@@ -9,7 +9,7 @@
 
   <div class="d-flex mt-3">
     <div class="btn-floating mr-1 w-100">
-      <button class="btn btn-white w-100">@fa(['icon' => 'question-circle'])Help</button>
+      <button data-bs-toggle="modal" data-bs-target="#help-modal" class="btn btn-white w-100">@fa(['icon' => 'question-circle'])Help</button>
     </div>
 
     <div class="btn-floating ml-1 w-100">
@@ -19,3 +19,4 @@
 </div>
 
 @include('theory.intervals.modals.settings')
+@include('theory.intervals.modals.help')
