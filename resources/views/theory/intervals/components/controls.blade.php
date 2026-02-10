@@ -1,6 +1,6 @@
 <div class="d-flex flex-column">
   <div id="check" class="btn-floating w-100">
-    <button class="btn btn-primary w-100">Check</button>
+    <button class="btn btn-primary w-100">Check my answer</button>
   </div>
 
   <div id="continue" class="btn-floating w-100" style="display: none;">
