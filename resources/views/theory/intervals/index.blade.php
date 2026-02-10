@@ -1458,6 +1458,10 @@ class IntervalChallenge {
     }
     isSoundEnabled() { return this.staff.isSoundEnabled(); }
 
+    getLevel() { return this.opts.levelName }
+
+    getRounds() { return this.numOfChallenges }
+
     _wireAccidentalPalette() {
       $("#accidentals .music-font__doublesharp, #accidentals .music-font__doubleflat").addClass("d-none");
     }
@@ -1791,10 +1795,15 @@ class IntervalChallenge {
 
   window.IntervalChallenge = IntervalChallenge;
 
+function getUrlParam(param, defaultValue) {
+  const v = new URLSearchParams(location.search).get(param);
+  return v == null ? defaultValue : (/^[+-]?\d+$/.test(v) ? Number(v) : v);
+}
+
+
   let levels = {
     beginner: {
       intervals: ["M2", "m3", "M3", "P5"],
-      hardIntervals: ["m3", "M3"],
       accidentalWeights: {
         natural: 20,
         sharp: 0,
@@ -1823,9 +1832,9 @@ class IntervalChallenge {
   let baseOptions = {
     {{-- clef: "treble", --}}
     maxUserNotes: 1,
-    numOfChallenges: 4,
-    levelName: 'advanced',
-    sound: false,
+    numOfChallenges: getUrlParam('rounds', 4),
+    levelName: getUrlParam('level', 'beginner'),
+    sound: getUrlParam('sound', null),
     basePoints: 1,
     firstTryBonus: 3
   };
@@ -1837,8 +1846,8 @@ class IntervalChallenge {
   challenge.start();
   window.challenge = challenge;
 
-  $('select[name="level"] option[value="'+challenge.levelName+'"]').prop('selected', true);
-  $('select[name="rounds"] option[value="'+challenge.numOfChallenges+'"]').prop('selected', true);
+  $('select[name="level"] option[value="'+challenge.getLevel()+'"]').prop('selected', true);
+  $('select[name="rounds"] option[value="'+challenge.getRounds()+'"]').prop('selected', true);
   $('input[name="sound"]').prop("checked", challenge.isSoundEnabled());
 
   $('input[name="sound"]').off("change.intervalChallengeSound").on("change.intervalChallengeSound", function () {

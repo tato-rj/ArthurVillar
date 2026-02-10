@@ -1,5 +1,5 @@
 @modal(['title' => 'Settings', 'id' => 'settings-modal', 'size' => 'sm'])
-<div>
+<form>
 {{-- 	<div class="d-apart mb-3">
 		<label>Practice mode</label>
 		@toggle(['name' => 'practice_mode', 'on' => true])
@@ -28,9 +28,13 @@
 		@toggle(['name' => 'sound', 'on' => true])
 	</div>
 
-	<div class="d-apart">
+	<div class="d-apart mb-3">
 		<label>Time limit</label>
 		@toggle(['name' => 'time_limit', 'on' => false])
 	</div>
-</div>
+
+	<div>
+		<button type="submit" class="btn btn-primary w-100">Apply changes</button>
+	</div>
+</form>
 @endmodal
