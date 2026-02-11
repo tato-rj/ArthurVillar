@@ -210,6 +210,7 @@
 .accidental-tool.dragging {
   font-size: 8rem !important;
   line-height: 1 !important;
+  transform: translate(-100%, -50%);
 }
 
   #level {
