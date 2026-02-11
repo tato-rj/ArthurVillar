@@ -1426,6 +1426,10 @@ class IntervalChallenge {
     this._clefLocked = Object.prototype.hasOwnProperty.call(this.opts, "clef") && this.opts.clef != null;
     this.opts.clef = this._clefLocked ? normalizeClef(this.opts.clef) : null;
 
+    this._uiSfxReady = false;
+    this._uiSfxSynth = null;
+    this._uiSfxNoise = null;
+
     this.$staffEl = $(this.opts.staffEl);
     this.$accidentals = $("#accidentals");
     this.$feedback = $("#feedback-success");
@@ -1499,6 +1503,60 @@ class IntervalChallenge {
     if (this.$intervalFull && this.$intervalFull.length) this.$intervalFull.text(this._fullNameForInterval(abbr));
   }
 
+// --- UI SFX (Tone.js) -------------------------------------------------
+
+async _ensureUiSfxAudio() {
+  if (!this.isSoundEnabled()) return;
+  if (this._uiSfxReady) return;
+  if (!window.Tone) return;
+
+  await Tone.start();
+
+  this._uiSfxSynth = new Tone.PolySynth(Tone.Synth, {
+    oscillator: { type: "triangle" },
+    envelope: { attack: 0.005, decay: 0.12, sustain: 0.0, release: 0.25 }
+  }).toDestination();
+
+  this._uiSfxNoise = new Tone.NoiseSynth({
+    noise: { type: "pink" },
+    envelope: { attack: 0.001, decay: 0.08, sustain: 0.0, release: 0.06 }
+  }).toDestination();
+
+  this._uiSfxReady = true;
+}
+
+_playSuccessSfx() {
+  if (!this.isSoundEnabled() || !window.Tone) return;
+
+  this._ensureUiSfxAudio().then(() => {
+    if (!this._uiSfxSynth) return;
+
+    const now = Tone.now();
+    const notes = ["C6", "E6", "G6", "C7"]; // quick bright arpeggio
+    notes.forEach((n, i) => {
+      this._uiSfxSynth.triggerAttackRelease(n, 0.08, now + i * 0.06, 0.9);
+    });
+  });
+}
+
+_playFailSfx() {
+  if (!this.isSoundEnabled() || !window.Tone) return;
+
+  this._ensureUiSfxAudio().then(() => {
+    const now = Tone.now();
+
+    if (this._uiSfxNoise) {
+      this._uiSfxNoise.triggerAttackRelease(0.06, now, 0.8);
+    }
+    if (this._uiSfxSynth) {
+      // short low “blip”
+      this._uiSfxSynth.triggerAttackRelease("A2", 0.10, now + 0.01, 4);
+      this._uiSfxSynth.triggerAttackRelease("G2", 0.12, now + 0.08, 4);
+    }
+  });
+}
+
+
   start() {
     $("#instructions").show();
     $("#check").addClass("invisible");
@@ -1516,11 +1574,24 @@ class IntervalChallenge {
     $("#page-wrapper").fadeIn("fast");
   }
 
-  setSoundEnabled(enabled) {
-    this.opts.sound = !!enabled;
-    this.staff.setSoundEnabled(!!enabled);
-    return this;
+setSoundEnabled(enabled) {
+  this.opts.sound = !!enabled;
+  this.staff.setSoundEnabled(!!enabled);
+
+  if (!this.opts.sound && window.Tone) {
+    try { this._uiSfxSynth && this._uiSfxSynth.releaseAll && this._uiSfxSynth.releaseAll(); } catch (_) {}
+    try { this._uiSfxSynth && this._uiSfxSynth.dispose && this._uiSfxSynth.dispose(); } catch (_) {}
+    try { this._uiSfxNoise && this._uiSfxNoise.dispose && this._uiSfxNoise.dispose(); } catch (_) {}
+    this._uiSfxSynth = null;
+    this._uiSfxNoise = null;
+    this._uiSfxReady = false;
+
+    try { Tone.context && Tone.context.suspend && Tone.context.suspend(); } catch (_) {}
   }
+
+  return this;
+}
+
   isSoundEnabled() { return this.staff.isSoundEnabled(); }
 
   getLevel() { return this.opts.levelName; }
@@ -1669,6 +1740,7 @@ class IntervalChallenge {
   }
 
   _successAnimation() {
+    this._playSuccessSfx();
     this.$accidentals.addClass("invisible");
     this.$feedback.find(".message span").text(pickOne(this.successPhrases));
     this.$feedback.stop(true, true).fadeIn("fast");
@@ -1734,6 +1806,8 @@ class IntervalChallenge {
   }
 
   _failAnimation() {
+    this._playFailSfx();
+
     this.$interval.removeClass("text-blue").addClass("text-red");
 
     this.$interval.removeClass("animate__animated animate__bounce");
