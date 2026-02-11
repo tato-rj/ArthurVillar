@@ -1550,8 +1550,8 @@ _playFailSfx() {
     }
     if (this._uiSfxSynth) {
       // short low “blip”
-      this._uiSfxSynth.triggerAttackRelease("A2", 0.10, now + 0.01, 4);
-      this._uiSfxSynth.triggerAttackRelease("G2", 0.12, now + 0.08, 4);
+      this._uiSfxSynth.triggerAttackRelease("A2", 0.10, now + 0.01, 2);
+      this._uiSfxSynth.triggerAttackRelease("G2", 0.12, now + 0.08, 2);
     }
   });
 }
