@@ -11,7 +11,7 @@
 
 	<div class="d-apart mb-3">
 		<label class="nowrap">Number of rounds</label>
-		<input type="number" name="rounds" max="12" min="2" class="form-control form-control-sm py-1" style="width: 80px;">
+		<input type="number" name="rounds" max="12" min="2" pattern="[0-9]{2,12)" class="form-control form-control-sm py-1" style="width: 80px;">
 {{-- 		<select style="width: fit-content;" name="rounds" class="form-select form-select-sm py-1">
 			@for($i=2; $i<=12; $i++)
 			<option value="{{$i}}">{{$i}} </option>
