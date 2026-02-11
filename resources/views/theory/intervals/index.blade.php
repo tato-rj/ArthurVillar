@@ -1907,12 +1907,15 @@ function getUrlParam(param, defaultValue) {
   window.challenge = challenge;
 
   $('select[name="level"] option[value="'+challenge.getLevel()+'"]').prop('selected', true);
-  $('select[name="rounds"] option[value="'+challenge.getRounds()+'"]').prop('selected', true);
+  $('input[name="rounds"]').val(challenge.getRounds());
   $('input[name="sound"]').prop("checked", challenge.isSoundEnabled());
 
   $('input[name="sound"]').off("change.intervalChallengeSound").on("change.intervalChallengeSound", function () {
     challenge.setSoundEnabled(this.checked);
   });
+
+
+
 
 })(jQuery);
 </script>

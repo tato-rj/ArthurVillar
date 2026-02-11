@@ -22,8 +22,13 @@ form {
 	}
 
 
-	.form-control:disabled, .form-control[readonly] {
+	.form-control:disabled {
 	    background-color: #e9ecef !important;
+	    opacity: 1 !important;
+	    cursor: default;
+	}
+
+	.form-control[readonly] {
 	    opacity: 1 !important;
 	    cursor: default;
 	}

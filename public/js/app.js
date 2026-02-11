@@ -3035,6 +3035,15 @@ __webpack_require__(/*! ./utilities */ "./resources/js/utilities/index.js");
 document.addEventListener("touchstart", function () {}, {
   passive: true
 });
+$('.form-number button').on('click', function () {
+  var $input = $(this).siblings('input');
+  var current = parseInt($input.val(), 10) || 0;
+  if ($(this).data('direction') === 'down' && current > $input.attr('min')) {
+    $input.val(current - 1);
+  } else if ($(this).data('direction') === 'up' && current < $input.attr('max')) {
+    $input.val(current + 1);
+  }
+});
 $(document).on('click', 'button[data-form]', function () {
   var formID = $(this).data('form');
   $('form' + formID).submit();

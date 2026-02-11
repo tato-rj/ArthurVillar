@@ -6,6 +6,17 @@ require('./utilities');
 
 document.addEventListener("touchstart", () => {}, { passive: true });
 
+$('.form-number button').on('click', function () {
+  const $input = $(this).siblings('input');
+  const current = parseInt($input.val(), 10) || 0;
+
+  if ($(this).data('direction') === 'down' && current > $input.attr('min')) {
+    $input.val(current - 1);
+  } else if ($(this).data('direction') === 'up' && current < $input.attr('max')) {
+    $input.val(current + 1);
+  }
+});
+
 $(document).on('click', 'button[data-form]', function() {
     let formID = $(this).data('form');
     $('form'+formID).submit();

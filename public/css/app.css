@@ -31129,8 +31129,12 @@ form .form-control, form .form-select {
   padding: 0.65rem 1rem;
   border-color: black;
 }
-form .form-control:disabled, form .form-control[readonly] {
+form .form-control:disabled {
   background-color: #e9ecef !important;
+  opacity: 1 !important;
+  cursor: default;
+}
+form .form-control[readonly] {
   opacity: 1 !important;
   cursor: default;
 }
