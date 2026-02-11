@@ -1445,7 +1445,7 @@ class IntervalChallenge {
     this.$finalOverlay = $("#final-overlay");
     this.$checkWrap = this.$checkBtn.parent();
     this.$progressBar = $("#progress-bar");
-    this.$level = $("#level");
+    {{-- this.$level = $("#level"); --}}
 
     this.successPhrases = ["Awesome", "Nicely done", "Well done", "Great job", "Hooray", "Fantastic", "Nice work", "Looks good", "Good one"];
 
@@ -1556,6 +1556,46 @@ _playFailSfx() {
   });
 }
 
+_playFinalSfx() {
+  if (!this.isSoundEnabled() || !window.Tone) return;
+
+  this._ensureUiSfxAudio().then(() => {
+    if (!this._uiSfxSynth) return;
+
+    // Temporary "pad-like" settings for the ending (then restore)
+    const oldEnv = { ...this._uiSfxSynth.get().envelope };
+    const oldOsc = this._uiSfxSynth.get().oscillator?.type;
+
+    this._uiSfxSynth.set({
+      oscillator: { type: "sine" },
+      envelope: { attack: 0.02, decay: 0.25, sustain: 0.35, release: 0.9 }
+    });
+
+    const now = Tone.now();
+
+    // Big resolved ending chord (I–V–I-ish feel)
+    const chord1 = ["C4", "G4", "C5", "E5"];
+    chord1.forEach(n => this._uiSfxSynth.triggerAttackRelease(n, 0.9, now, 0.6));
+
+    // Gentle “sparkle” run up (gliss-like)
+    const run = ["G5", "A5", "B5", "C6", "D6", "E6", "G6"];
+    run.forEach((n, i) => {
+      this._uiSfxSynth.triggerAttackRelease(n, 0.08, now + 0.25 + i * 0.06, 0.35);
+    });
+
+    // Restore original synth feel shortly after
+    setTimeout(() => {
+      try {
+        this._uiSfxSynth.set({
+          oscillator: { type: oldOsc || "triangle" },
+          envelope: oldEnv
+        });
+      } catch (_) {}
+    }, 1400);
+  });
+}
+
+
 
   start() {
     $("#instructions").show();
@@ -1657,8 +1697,8 @@ setSoundEnabled(enabled) {
     this.$interval.show();
     this._setIntervalUI(interval);
 
-    this.$level.addClass("invisible");
-    if (this.opts.hardIntervals.includes(interval)) this.$level.removeClass("invisible");
+    {{-- this.$level.addClass("invisible"); --}}
+    {{-- if (this.opts.hardIntervals.includes(interval)) this.$level.removeClass("invisible"); --}}
 
     if (fixed) {
       this.staff.addFixedNote({ step: fixed.step, accidentalClass: fixed.accidentalClass || null });
@@ -1857,7 +1897,7 @@ setSoundEnabled(enabled) {
 
         setTimeout(() => {
           this._showFinalResults();
-        }, 2000);
+        }, 1200);
       } else {
         $("#check").hide();
         $("#continue").show();
@@ -1886,6 +1926,8 @@ setSoundEnabled(enabled) {
     this.$finalOverlay.find('span[name="accuracy"]').text(accuracy + "%");
     this.$finalOverlay.find('span[name="duration"]').text(duration);
 
+    this._playFinalSfx();
+    
     this.$finalOverlay.show();
   }
 
