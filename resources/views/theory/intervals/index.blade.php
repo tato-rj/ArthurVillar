@@ -206,6 +206,12 @@
     opacity: var(--ghost-opacity);
   }
 
+.ui-draggable-dragging.accidental-tool,
+.accidental-tool.dragging {
+  font-size: 8rem !important;
+  line-height: 1 !important;
+}
+
   #level {
     font-size: 70%;
     z-index: 10;
