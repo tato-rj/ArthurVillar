@@ -3035,6 +3035,10 @@ __webpack_require__(/*! ./utilities */ "./resources/js/utilities/index.js");
 document.addEventListener("touchstart", function () {}, {
   passive: true
 });
+$(document).on('click', 'button[data-form]', function () {
+  var formID = $(this).data('form');
+  $('form' + formID).submit();
+});
 $(document).on('click', 'form[confirm] button[type="submit"]', function (e) {
   if (!confirm('⚠️ Are you sure?\nThis action cannot be undone')) return e.preventDefault();
 });

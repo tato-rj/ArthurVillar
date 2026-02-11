@@ -1,6 +1,11 @@
 <div class="d-flex flex-column">
-  <div id="check" class="btn-floating w-100">
-    <button class="btn btn-primary w-100">Check my answer</button>
+  <div class="position-relative">
+    <div id="instructions" class="fw-bold position-absolute top-0 left-0 w-100 h-100 d-center">
+      <h6 class="m-0 text-red">Add the new note above or below 👆</h6>
+    </div>
+    <div id="check" class="btn-floating w-100 invisible">
+      <button class="btn btn-primary w-100">Check my answer</button>
+    </div>
   </div>
 
   <div id="continue" class="btn-floating w-100" style="display: none;">
@@ -18,5 +23,5 @@
   </div>
 </div>
 
-@include('theory.intervals.modals.settings')
+@include('theory.intervals.modals.settings', ['btnLabel' => 'Restart game'])
 @include('theory.intervals.modals.help')
