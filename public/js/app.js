@@ -3044,6 +3044,11 @@ $('.form-number button').on('click', function () {
     $input.val(current + 1);
   }
 });
+$(document).off("change.settingsToggles").on("change.settingsToggles", 'input[name="intervals[]"], input[name="clefs[]"]', function () {
+  var $label = $(this).siblings("label");
+  $label.removeClass("btn-white btn-secondary");
+  $label.addClass(this.checked ? "btn-secondary" : "btn-white");
+});
 $(document).on('click', 'button[data-form]', function () {
   var formID = $(this).data('form');
   $('form' + formID).submit();

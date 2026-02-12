@@ -2129,12 +2129,6 @@ const challenge = new IntervalChallenge(options);
 
 challenge.start();
 
-$(document).off("change.settingsToggles").on("change.settingsToggles", 'input[name="intervals[]"], input[name="clefs[]"]', function () {
-  const $label = $(this).siblings("label");
-  $label.removeClass("btn-white btn-secondary");
-  $label.addClass(this.checked ? "btn-secondary" : "btn-white");
-});
-
 })(jQuery);
 </script>
 @endpush
