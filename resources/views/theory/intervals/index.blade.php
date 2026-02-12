@@ -1554,6 +1554,7 @@ html, body, * {
       this.$checkWrap = this.$checkBtn.parent();
       this.$progressBar = $("#progress-bar");
       this.$progressCounter = $("#progress-counter");
+      this.$help = $("#help");
 
       this.successPhrases = ["Awesome", "Nicely done", "Well done", "Great job", "Hooray", "Fantastic", "Nice work", "Looks good", "Good one"];
 
@@ -1825,6 +1826,8 @@ html, body, * {
     }
 
     newChallenge() {
+      this.$help.hide(); 
+      
       const clef = this._currentClefForChallenge();
       if (clef && clef !== this.staff.getClef()) this.staff.setClef(clef);
 
@@ -1927,6 +1930,7 @@ html, body, * {
 
     _successAnimation() {
       this._playSuccessSfx();
+      this.$help.hide(); 
       this.$accidentals.addClass("invisible");
       this.$feedback.find(".message span").text(pickOne(this.successPhrases));
       this.$feedback.stop(true, true).fadeIn("fast");
@@ -2028,6 +2032,7 @@ html, body, * {
       if (notes.length !== 2) {
         this._failAnimation();
         this.$checkBtn[0] && this.$checkBtn[0].blur && this.$checkBtn[0].blur();
+        this.$help.show();
         return;
       }
 
@@ -2056,6 +2061,7 @@ html, body, * {
       } else {
         this._failAnimation();
         this._madeMistakeThisRound = true;
+        this.$help.show();
       }
     }
 

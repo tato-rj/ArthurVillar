@@ -1,4 +1,4 @@
-@modal(['title' => 'Game settings', 'id' => 'intervals-settings-modal'])
+@modal(['title' => fa('gear').' Game settings', 'id' => 'intervals-settings-modal'])
 <form id="intervals-settings" method="GET" action="{{ route('theory.intervals.play') }}">
   <div class="d-apart mb-3">
     <label class="nowrap">Number of rounds</label>
