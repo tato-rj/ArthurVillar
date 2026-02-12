@@ -1,4 +1,4 @@
-@modal(['title' => 'Help', 'id' => 'help-modal'])
+@modal(['title' => 'Instructions', 'id' => 'instructions-modal'])
 <p>Each round shows an interval name (like M3 or P5) and gives you a starting note on either the treble or bass clef.</p> 
 
 <div class="mb-4">
