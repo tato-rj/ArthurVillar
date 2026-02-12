@@ -102,7 +102,7 @@
     border-radius: 999px;
   }
 
-  .treble-clef{
+  .staff-clef{
     position: absolute;
     left: calc(var(--staff-padding-x) - var(--clef-left-nudge));
     top: var(--clef-top);
@@ -254,6 +254,18 @@
 <script type="text/javascript" src="{{ asset('js/vendor/jquery-ui.min.js') }}"></script>
 
 <script>
+$('.settings-menu button').click(function() {
+  let $otherButton = $(this).siblings('button');
+
+  $(this).removeClass('btn-outline-secondary').addClass('btn-secondary');
+  $otherButton.addClass('btn-outline-secondary').removeClass('btn-secondary');
+
+  $($(this).data('target')).show();
+  $($otherButton.data('target')).hide();
+});
+</script>
+
+<script>
 (function ($) {
   "use strict";
 
@@ -279,6 +291,18 @@
       "--clef-height": "calc(var(--staff-line-gap) * 6)",
       "--clef-top": "35px",
       "--clef-left-nudge": "-12px"
+    },
+    alto: {
+      "--clef-width": "88px",
+      "--clef-height": "calc(var(--staff-line-gap) * 6)",
+      "--clef-top": "47.5px",
+      "--clef-left-nudge": "-10px"
+    },
+    tenor: {
+      "--clef-width": "88px",
+      "--clef-height": "calc(var(--staff-line-gap) * 6)",
+      "--clef-top": "22.5px",
+      "--clef-left-nudge": "-10px"
     }
   };
 
@@ -332,14 +356,14 @@
     return Array.isArray(v) ? v : [v];
   }
 
-  function normalizeClef(clef) {
-    const c = String(clef || "treble").toLowerCase();
-    return (c === "bass") ? "bass" : "treble";
-  }
+function normalizeClef(clef) {
+  const c = String(clef || "treble").toLowerCase();
+  if (c === "bass") return "bass";
+  if (c === "alto") return "alto";
+  if (c === "tenor") return "tenor";
+  return "treble";
+}
 
-  function randomClef() {
-    return Math.random() < 0.5 ? "treble" : "bass";
-  }
 
   function toolTypeFromEl($el) {
     if ($el.hasClass("music-font__sharp")) return "sharp";
@@ -437,11 +461,16 @@
     this._drawLines();
   }
 
-  Staff.prototype._clefUrlFor = function (clef) {
-    return clef === "bass"
-      ? "{{ asset('images/clefs/bass-clef.svg') }}"
-      : "{{ asset('images/clefs/treble-clef.svg') }}";
-  };
+Staff.prototype._clefUrlFor = function (clef) {
+  clef = normalizeClef(clef);
+
+  if (clef === "bass")  return "{{ asset('images/clefs/bass-clef.svg') }}";
+  if (clef === "alto")  return "{{ asset('images/clefs/alto-clef.svg') }}";
+  if (clef === "tenor") return "{{ asset('images/clefs/tenor-clef.svg') }}";
+
+  return "{{ asset('images/clefs/treble-clef.svg') }}";
+};
+
 
   Staff.prototype.setSoundEnabled = function (enabled) {
     this.opts.sound = !!enabled;
@@ -487,7 +516,7 @@
   };
 
   Staff.prototype._drawLines = function () {
-    this.$el.find(".staff-line, .treble-clef").remove();
+    this.$el.find(".staff-line, .staff-clef").remove();
     for (let i = 0; i < 5; i++) {
       const y = this.opts.bottomLineY - (4 - i) * this.opts.lineGap;
       $('<div class="staff-line"></div>').css({ top: y + "px" }).appendTo(this.$el);
@@ -495,10 +524,16 @@
     this._drawClef();
   };
 
-  Staff.prototype._drawClef = function () {
-    if (!this.opts.clefUrl) return;
-    $('<img class="treble-clef" alt="">').attr("src", this.opts.clefUrl).appendTo(this.$el);
-  };
+Staff.prototype._drawClef = function () {
+  if (!this.opts.clefUrl) return;
+
+  const clef = normalizeClef(this.opts.clef);
+  $('<img alt="">')
+    .addClass("staff-clef")
+    .addClass(clef + "-clef") // optional: "bass-clef", "alto-clef", etc.
+    .attr("src", this.opts.clefUrl)
+    .appendTo(this.$el);
+};
 
   Staff.prototype.relayout = function () {
     this._computeLayout();
@@ -748,6 +783,8 @@
     if (nextCls === currentCls) return false;
 
     this.attachAccidentalToNote(noteId, nextCls);
+    this._emitUserNoteState(noteId, "staff:userNoteState");
+
     return true;
   };
 
@@ -764,22 +801,50 @@
     this._audioReady = true;
   };
 
-  Staff.prototype._stepToMidi = function (step) {
-    const diatonic = [0, 2, 4, 5, 7, 9, 11];
+Staff.prototype._stepToMidi = function (step) {
+  const diatonic = [0, 2, 4, 5, 7, 9, 11]; // C D E F G A B (semitones from C)
 
-    if (this.opts.clef === "bass") {
-      const gBasedIndex = 4 + step;
-      const octaveShift = Math.floor(gBasedIndex / 7);
-      const noteIndex = (gBasedIndex % 7 + 7) % 7;
-      const c2 = 36;
-      return c2 + diatonic[noteIndex] + octaveShift * 12;
-    }
+  // For each clef:
+  // - baseC: the MIDI note number for the "C" of the base octave we anchor to
+  // - baseIndex: which diatonic degree step 0 (bottom line) is, relative to that C
+  //
+  // step increases by 1 per staff "position" (line/space), i.e. diatonic steps.
+  let baseC, baseIndex;
 
-    const eBasedIndex = 2 + step;
-    const octaveShift = Math.floor(eBasedIndex / 7);
-    const noteIndex = (eBasedIndex % 7 + 7) % 7;
-    return 60 + diatonic[noteIndex] + octaveShift * 12;
-  };
+  switch (this.opts.clef) {
+    case "bass":
+      // bottom line = G2
+      baseC = 36;   // C2
+      baseIndex = 4; // G
+      break;
+
+    case "alto":
+      // bottom line = F3, and C4 is on 3rd line (step 4)
+      baseC = 48;   // C3
+      baseIndex = 3; // F
+      break;
+
+    case "tenor":
+      // bottom line = D3, and C4 is on 4th line (step 6)
+      baseC = 48;   // C3
+      baseIndex = 1; // D
+      break;
+
+    case "treble":
+    default:
+      // bottom line = E4
+      baseC = 60;   // C4
+      baseIndex = 2; // E
+      break;
+  }
+
+  const idx = baseIndex + step;
+  const octaveShift = Math.floor(idx / 7);
+  const noteIndex = ((idx % 7) + 7) % 7;
+
+  return baseC + diatonic[noteIndex] + (octaveShift * 12);
+};
+
 
   Staff.prototype._accidentalClassToOffset = function (cls) {
     if (!cls) return 0;
@@ -789,6 +854,23 @@
     if (cls.indexOf("music-font__flat") >= 0) return -1;
     return 0;
   };
+
+Staff.prototype._emitUserNoteState = function(noteId, eventName) {
+  const $note = this.$el.find('.note[data-note-id="' + noteId + '"]');
+  if (!$note.length) return;
+
+  const step = this.yToStep(parseFloat($note.css("top")));
+  const accCls = this._getAttachedAccidentalClass(noteId);
+  const accOff = this._accidentalClassToOffset(accCls);
+  const midi = this._stepToMidi(step) + accOff;
+
+  this.$el.trigger(eventName || "staff:userNoteState", {
+    noteId,
+    step,
+    accidentalClass: accCls,
+    midi
+  });
+};
 
   Staff.prototype._playStep = async function (step, accidentalOffset) {
     if (!this._soundEnabled() || !Number.isFinite(step)) return;
@@ -1089,6 +1171,7 @@
           const createdId = self.addNote({ step: finalStep });
           if (createdId) {
             self.$el.trigger("staff:userNoteAdded", { noteId: createdId, step: finalStep });
+            self._emitUserNoteState(createdId, "staff:userNoteState");
             self._suppressNextClick.noteId = createdId;
             self._suppressNextClick.until = Date.now() + 700;
             self._playStep(finalStep, 0);
@@ -1184,6 +1267,7 @@
           } else {
             self.moveNote(d.noteId, { step: d.lastTargetStep });
             self._resolveNoteOverlaps();
+            self._emitUserNoteState(d.noteId, "staff:userNoteState");
           }
 
           d.noteId = null;
@@ -1223,6 +1307,7 @@
       if (self.isNoteFixed(noteId)) return;
       self._removeAccidentalForNote(noteId);
       self._repositionAllAccidentals();
+      self._emitUserNoteState(noteId, "staff:userNoteState");
     });
 
     this.$el.on("click.noteDrag", ".note", function (e) {
@@ -1378,6 +1463,69 @@
 
   window.Staff = Staff;
 
+function accidentalClassToText(cls) {
+  if (!cls) return ""; // no accidental shown
+  if (cls.indexOf("music-font__doublesharp") >= 0) return "##";
+  if (cls.indexOf("music-font__sharp") >= 0) return "#";
+  if (cls.indexOf("music-font__doubleflat") >= 0) return "bb";
+  if (cls.indexOf("music-font__flat") >= 0) return "b";
+  // natural: usually you *don't* want to print "♮" in the name, just the letter
+  return "";
+}
+
+// Returns { letter: "E", octave: 4 } for the *diatonic* note at a step in the current clef.
+function stepToLetterOctave(staff, step) {
+  const letters = ["C","D","E","F","G","A","B"];
+
+  // Must match your Staff.prototype._stepToMidi anchoring logic:
+  let baseC, baseIndex;
+  switch (staff.getClef()) {
+    case "bass":
+      baseC = 36;  baseIndex = 4; break; // bottom line = G2 (C2 base)
+    case "alto":
+      baseC = 48;  baseIndex = 3; break; // bottom line = F3 (C3 base)
+    case "tenor":
+      baseC = 48;  baseIndex = 1; break; // bottom line = D3 (C3 base)
+    case "treble":
+    default:
+      baseC = 60;  baseIndex = 2; break; // bottom line = E4 (C4 base)
+  }
+
+  const idx = baseIndex + step;
+  const octaveShift = Math.floor(idx / 7);
+  const letterIndex = ((idx % 7) + 7) % 7;
+
+  // baseC is a C of some octave; add octaveShift to that octave.
+  const baseOctave = Math.floor(baseC / 12) - 1; // MIDI->octave for C
+  const octave = baseOctave + octaveShift;
+
+  return { letter: letters[letterIndex], octave };
+}
+
+function spellNoteFromState(staff, step, accidentalClass) {
+  const { letter, octave } = stepToLetterOctave(staff, step);
+  const acc = accidentalClassToText(accidentalClass);
+  return `${letter}${acc}${octave}`;
+}
+
+
+function midiToNoteName(midi) {
+  const names = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+  const n = Math.round(midi);
+  const name = names[((n % 12) + 12) % 12];
+  const octave = Math.floor(n / 12) - 1;
+  return `${name}${octave}`;
+}
+
+function accidentalClassToOffset(cls) {
+  if (!cls) return 0;
+  if (cls.indexOf("music-font__doublesharp") >= 0) return +2;
+  if (cls.indexOf("music-font__sharp") >= 0) return +1;
+  if (cls.indexOf("music-font__doubleflat") >= 0) return -2;
+  if (cls.indexOf("music-font__flat") >= 0) return -1;
+  return 0;
+}
+
 class IntervalChallenge {
   static INTERVAL_FULL_NAME_MAP = {
     m2: "minor 2nd",
@@ -1400,7 +1548,6 @@ class IntervalChallenge {
       staffEl: "#staff",
       maxUserNotes: 1,
       numOfChallenges: 4,
-      {{-- intervals: ["m2", "M2", "m3", "M3", "P4", "A4", "d5", "P5", "m6", "M6", "m7", "M7", "P8"], --}}
       hardIntervals: ["A4", "d5"],
       fixedNotes: null,
       levelName: "beginner",
@@ -1423,8 +1570,9 @@ class IntervalChallenge {
       hardIntervals: Array.isArray(options.hardIntervals) ? options.hardIntervals.slice() : defaults.hardIntervals.slice()
     };
 
-    this._clefLocked = Object.prototype.hasOwnProperty.call(this.opts, "clef") && this.opts.clef != null;
-    this.opts.clef = this._clefLocked ? normalizeClef(this.opts.clef) : null;
+this._clefPool = this._normalizeClefPool(
+  this.opts.clefs != null ? this.opts.clefs : this.opts.clef
+);
 
     this._uiSfxReady = false;
     this._uiSfxSynth = null;
@@ -1463,7 +1611,7 @@ class IntervalChallenge {
     };
 
     this.staff = new Staff(this.$staffEl, {
-      clef: this.opts.clef || "treble",
+      clef: (this._clefPool && this._clefPool[0]) ? this._clefPool[0] : "treble",
       clefUrl: null,
       getMaxUserNotes: () => this.maxUserNotes,
       sound: !!this.opts.sound
@@ -1614,6 +1762,33 @@ _playFinalSfx() {
     $("#page-wrapper").fadeIn("fast");
   }
 
+_normalizeClefPool(clefsOrSingle) {
+  const raw = Array.isArray(clefsOrSingle)
+    ? clefsOrSingle
+    : clefsOrSingle != null
+      ? [clefsOrSingle]
+      : ["treble", "bass"]; // default behavior (random treble/bass)
+
+  const normalized = raw
+    .map(c => normalizeClef(c))
+    .filter(Boolean);
+
+  // unique + preserve order
+  const uniq = [];
+  for (let i = 0; i < normalized.length; i++) {
+    if (!uniq.includes(normalized[i])) uniq.push(normalized[i]);
+  }
+
+  return uniq.length ? uniq : ["treble", "bass"];
+}
+
+_currentClefForChallenge() {
+  const pool = this._clefPool || ["treble", "bass"];
+  if (pool.length === 1) return pool[0];
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+
 setSoundEnabled(enabled) {
   this.opts.sound = !!enabled;
   this.staff.setSoundEnabled(!!enabled);
@@ -1649,6 +1824,16 @@ setSoundEnabled(enabled) {
       $("#accidentals .music-font__sharp, #accidentals .music-font__flat, #accidentals .music-font__natural")
     );
     this.staff.enableAccidentalDropOnStaff();
+
+this.$staffEl
+  .off("staff:userNoteState._log")
+  .on("staff:userNoteState._log", (e, data) => {
+    console.log(
+      "User note state:",
+      spellNoteFromState(this.staff, data.step, data.accidentalClass),
+      { midi: data.midi, noteId: data.noteId, step: data.step, clef: this.staff.getClef() }
+    );
+  });
   }
 
   _wireControls() {
@@ -1674,10 +1859,6 @@ setSoundEnabled(enabled) {
   _resetProgress() {
     this.$progressBar.data("progress", 0);
     this.$progressBar.css({ width: "0%" });
-  }
-
-  _currentClefForChallenge() {
-    return this._clefLocked ? this.opts.clef : randomClef();
   }
 
   newChallenge() {
@@ -1978,11 +2159,10 @@ setSoundEnabled(enabled) {
 
   window.IntervalChallenge = IntervalChallenge;
 
-function getUrlParam(param, defaultValue) {
-  const v = new URLSearchParams(location.search).get(param);
-  return v == null ? defaultValue : (/^[+-]?\d+$/.test(v) ? Number(v) : v);
-}
-
+  function getUrlParam(param, defaultValue) {
+    const v = new URLSearchParams(location.search).get(param);
+    return v == null ? defaultValue : (/^[+-]?\d+$/.test(v) ? Number(v) : v);
+  }
 
   let levels = {
     beginner: {
@@ -2013,7 +2193,7 @@ function getUrlParam(param, defaultValue) {
   }
 
   let baseOptions = {
-    {{-- clef: "treble", --}}
+    {{-- clefs: ["tenor"], --}}
     maxUserNotes: 1,
     numOfChallenges: getUrlParam('rounds', 4),
     levelName: getUrlParam('level', 'beginner'),
@@ -2036,9 +2216,6 @@ function getUrlParam(param, defaultValue) {
   $('input[name="sound"]').off("change.intervalChallengeSound").on("change.intervalChallengeSound", function () {
     challenge.setSoundEnabled(this.checked);
   });
-
-
-
 
 })(jQuery);
 </script>
