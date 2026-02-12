@@ -7,9 +7,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Music&display=swap" rel="stylesheet">
 
 <style>
-  html, body {
-    touch-action: manipulation;
-  }
+html, body, * {
+  touch-action: manipulation;
+}
+
 
   .animate__animated { --animate-duration: .8s; }
 
