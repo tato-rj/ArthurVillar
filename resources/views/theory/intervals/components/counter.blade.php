@@ -3,7 +3,9 @@
 
 	<div class="w-100 mr-2">
 		<div class="progress">
-		  <div class="progress-bar bg-green" id="progress-bar" style="width: 0%;"></div>
+		  <div class="progress-bar bg-green" id="progress-bar" style="width: 0%;">
+		  	<span id="progress-counter" class="fw-bold"></span>
+		  </div>
 		</div>
 	</div>
 

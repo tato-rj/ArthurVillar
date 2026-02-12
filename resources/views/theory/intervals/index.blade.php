@@ -67,9 +67,7 @@
   .music-font__doubleflat::before{ content: "\01D12B"; }
   .music-font__doublesharp::before{ content: "\01D12A"; }
 
-  #staff-wrapper {
-    width: var(--staff-width);
-  }
+  #staff-wrapper { width: var(--staff-width); }
 
   #staff{
     position: relative;
@@ -122,6 +120,22 @@
     margin-left: calc(var(--note-center-x) * -1);
     margin-top: calc(var(--note-center-y) * -1);
     z-index: 2;
+  }
+
+  #staff.show-letternames .note .lettername { display: block; }
+
+  .note .lettername {
+    display: none;
+    color: white;
+    transform: rotate(calc(-1 * var(--note-rotate)));
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: var(--note-width);
+    height: var(--note-height);
+    font-size: .8rem;
+    line-height: 1.7;
+    text-align: center;
   }
 
   .note.fixed{ pointer-events: none; }
@@ -206,12 +220,12 @@
     opacity: var(--ghost-opacity);
   }
 
-.ui-draggable-dragging.accidental-tool,
-.accidental-tool.dragging {
-  font-size: 8rem !important;
-  line-height: 1 !important;
-  transform: translate(-100%, -50%);
-}
+  .ui-draggable-dragging.accidental-tool,
+  .accidental-tool.dragging {
+    font-size: 8rem !important;
+    line-height: 1 !important;
+    transform: translate(-100%, -50%);
+  }
 
   #level {
     font-size: 70%;
@@ -224,8 +238,12 @@
 @endpush
 
 @section('content')
-<section id="page-wrapper" class="container">
-  <div class="row py-5">
+<section id="page-wrapper" class="container py-5">
+  <div class="text-center mb-4">
+    <h3 class="mb-1">Intervals Challenge</h3>
+    <p class="m-0">Add the note that forms the indicated interval</p>
+  </div>
+  <div class="row">
     <div class="col-lg-6 col-md-8 col-11 mx-auto text-center">
       @include('theory.intervals.components.counter')
       @include('theory.intervals.components.level')
@@ -240,8 +258,10 @@
         @include('theory.intervals.components.interval')
       </div>
     </div>
+
     <div class="col-lg-6 col-md-8 col-11 mx-auto">
       @include('theory.intervals.components.controls')
+      @include('theory.intervals.components.preferences')
     </div>
   </div>
 </section>
@@ -254,31 +274,12 @@
 <script type="text/javascript" src="{{ asset('js/vendor/jquery-ui.min.js') }}"></script>
 
 <script>
-$('.settings-menu button').click(function() {
-  let $otherButton = $(this).siblings('button');
-
-  $(this).removeClass('btn-outline-secondary').addClass('btn-secondary');
-  $otherButton.addClass('btn-outline-secondary').removeClass('btn-secondary');
-
-  $('#'+$(this).data('mode')).show();
-  $('#'+$otherButton.data('mode')).hide();
-});
-
-$(document).on('change', 'input[name="intervals[]"], input[name="clefs[]"]', function() {
-  let $label = $(this).siblings('label');
-
-  $label.removeClass('btn-white btn-secondary');
-  if (this.checked) {
-    $label.addClass('btn-secondary');
-  } else {
-    $label.addClass('btn-white');
-  }
-});
-</script>
-
-<script>
 (function ($) {
   "use strict";
+
+  // ===========================================================================
+  // Small utilities
+  // ===========================================================================
 
   const PAGE_OPENED_AT_MS = Date.now();
 
@@ -332,7 +333,7 @@ $(document).on('change', 'input[name="intervals[]"], input[name="clefs[]"]', fun
 
   function getPointerId(e) {
     const oe = e.originalEvent || e;
-    return oe.pointerId;
+    return oe && oe.pointerId != null ? oe.pointerId : null;
   }
 
   if (!$.fn.disable) $.fn.disable = function () { return this.prop("disabled", true).addClass("disabled"); };
@@ -348,8 +349,9 @@ $(document).on('change', 'input[name="intervals[]"], input[name="clefs[]"]', fun
   }
 
   function pickWeighted(items) {
-    // items: [{ value, weight }]
-    const list = Array.isArray(items) ? items.filter(x => x && Number.isFinite(x.weight) && x.weight > 0) : [];
+    const list = Array.isArray(items)
+      ? items.filter(x => x && Number.isFinite(x.weight) && x.weight > 0)
+      : [];
     if (!list.length) return null;
 
     const total = list.reduce((sum, x) => sum + x.weight, 0);
@@ -367,14 +369,13 @@ $(document).on('change', 'input[name="intervals[]"], input[name="clefs[]"]', fun
     return Array.isArray(v) ? v : [v];
   }
 
-function normalizeClef(clef) {
-  const c = String(clef || "treble").toLowerCase();
-  if (c === "bass") return "bass";
-  if (c === "alto") return "alto";
-  if (c === "tenor") return "tenor";
-  return "treble";
-}
-
+  function normalizeClef(clef) {
+    const c = String(clef || "treble").toLowerCase();
+    if (c === "bass") return "bass";
+    if (c === "alto") return "alto";
+    if (c === "tenor") return "tenor";
+    return "treble";
+  }
 
   function toolTypeFromEl($el) {
     if ($el.hasClass("music-font__sharp")) return "sharp";
@@ -404,6 +405,48 @@ function normalizeClef(clef) {
       (toolType === "flat" && currentCls === "music-font__doubleflat")
     );
   }
+
+  function accidentalClassToText(cls) {
+    if (!cls) return "";
+    if (cls.indexOf("music-font__doublesharp") >= 0) return "##";
+    if (cls.indexOf("music-font__sharp") >= 0) return "#";
+    if (cls.indexOf("music-font__doubleflat") >= 0) return "bb";
+    if (cls.indexOf("music-font__flat") >= 0) return "b";
+    return "";
+  }
+
+  // Returns { letter: "E", octave: 4 } for the diatonic note at a step in the current clef.
+  function stepToLetterOctave(staff, step) {
+    const letters = ["C","D","E","F","G","A","B"];
+
+    let baseC, baseIndex;
+    switch (staff.getClef()) {
+      case "bass":   baseC = 36; baseIndex = 4; break; // bottom line = G2
+      case "alto":   baseC = 48; baseIndex = 3; break; // bottom line = F3
+      case "tenor":  baseC = 48; baseIndex = 1; break; // bottom line = D3
+      case "treble":
+      default:       baseC = 60; baseIndex = 2; break; // bottom line = E4
+    }
+
+    const idx = baseIndex + step;
+    const octaveShift = Math.floor(idx / 7);
+    const letterIndex = ((idx % 7) + 7) % 7;
+
+    const baseOctave = Math.floor(baseC / 12) - 1;
+    const octave = baseOctave + octaveShift;
+
+    return { letter: letters[letterIndex], octave };
+  }
+
+  function spellNoteFromState(staff, step, accidentalClass) {
+    const { letter, octave } = stepToLetterOctave(staff, step);
+    const acc = accidentalClassToText(accidentalClass);
+    return `${letter}${acc}${octave}`;
+  }
+
+  // ===========================================================================
+  // Staff (drawing + interactions)
+  // ===========================================================================
 
   function Staff($el, opts) {
     this.$el = $el;
@@ -472,16 +515,15 @@ function normalizeClef(clef) {
     this._drawLines();
   }
 
-Staff.prototype._clefUrlFor = function (clef) {
-  clef = normalizeClef(clef);
+  Staff.prototype._clefUrlFor = function (clef) {
+    clef = normalizeClef(clef);
 
-  if (clef === "bass")  return "{{ asset('images/clefs/bass-clef.svg') }}";
-  if (clef === "alto")  return "{{ asset('images/clefs/alto-clef.svg') }}";
-  if (clef === "tenor") return "{{ asset('images/clefs/tenor-clef.svg') }}";
+    if (clef === "bass")  return "{{ asset('images/clefs/bass-clef.svg') }}";
+    if (clef === "alto")  return "{{ asset('images/clefs/alto-clef.svg') }}";
+    if (clef === "tenor") return "{{ asset('images/clefs/tenor-clef.svg') }}";
 
-  return "{{ asset('images/clefs/treble-clef.svg') }}";
-};
-
+    return "{{ asset('images/clefs/treble-clef.svg') }}";
+  };
 
   Staff.prototype.setSoundEnabled = function (enabled) {
     this.opts.sound = !!enabled;
@@ -491,6 +533,7 @@ Staff.prototype._clefUrlFor = function (clef) {
       try { this._synth && this._synth.releaseAll && this._synth.releaseAll(); } catch (_) {}
     }
   };
+
   Staff.prototype.isSoundEnabled = function () { return !!this.opts.sound; };
   Staff.prototype._soundEnabled = function () { return !!this.opts.sound; };
 
@@ -535,16 +578,16 @@ Staff.prototype._clefUrlFor = function (clef) {
     this._drawClef();
   };
 
-Staff.prototype._drawClef = function () {
-  if (!this.opts.clefUrl) return;
+  Staff.prototype._drawClef = function () {
+    if (!this.opts.clefUrl) return;
 
-  const clef = normalizeClef(this.opts.clef);
-  $('<img alt="">')
-    .addClass("staff-clef")
-    .addClass(clef + "-clef") // optional: "bass-clef", "alto-clef", etc.
-    .attr("src", this.opts.clefUrl)
-    .appendTo(this.$el);
-};
+    const clef = normalizeClef(this.opts.clef);
+    $('<img alt="">')
+      .addClass("staff-clef")
+      .addClass(clef + "-clef")
+      .attr("src", this.opts.clefUrl)
+      .appendTo(this.$el);
+  };
 
   Staff.prototype.relayout = function () {
     this._computeLayout();
@@ -674,7 +717,6 @@ Staff.prototype._drawClef = function () {
   Staff.prototype._accidentalAnchorXForNote = function (noteLeftPx) {
     const cx = this.centerX();
     const EPS = 0.5;
-    // If the note was shifted to the right due to adjacency, keep accidental at the "normal" (center) x.
     if (Number.isFinite(noteLeftPx) && noteLeftPx > (cx + EPS)) return cx;
     return noteLeftPx;
   };
@@ -702,13 +744,11 @@ Staff.prototype._drawClef = function () {
   Staff.prototype._repositionAllAccidentals = function () {
     const self = this;
 
-    // Pass 1: base positioning (with "keep accidental normal if note shifted right")
     this.$el.find(".accidental").each(function () {
       const id = this.getAttribute("data-for-note-id");
       if (id) self._positionAccidentalForNote(id);
     });
 
-    // Pass 2: if both adjacent notes have accidentals, push the upper accidental left to avoid overlap
     const noteEls = this.$el.find(".note").not(".preview").toArray();
     const stepToNoteId = {};
     for (let i = 0; i < noteEls.length; i++) {
@@ -794,8 +834,7 @@ Staff.prototype._drawClef = function () {
     if (nextCls === currentCls) return false;
 
     this.attachAccidentalToNote(noteId, nextCls);
-    this._emitUserNoteState(noteId, "staff:userNoteState");
-
+    this._emitNoteState(noteId, "user");
     return true;
   };
 
@@ -812,50 +851,24 @@ Staff.prototype._drawClef = function () {
     this._audioReady = true;
   };
 
-Staff.prototype._stepToMidi = function (step) {
-  const diatonic = [0, 2, 4, 5, 7, 9, 11]; // C D E F G A B (semitones from C)
+  Staff.prototype._stepToMidi = function (step) {
+    const diatonic = [0, 2, 4, 5, 7, 9, 11]; // C D E F G A B
 
-  // For each clef:
-  // - baseC: the MIDI note number for the "C" of the base octave we anchor to
-  // - baseIndex: which diatonic degree step 0 (bottom line) is, relative to that C
-  //
-  // step increases by 1 per staff "position" (line/space), i.e. diatonic steps.
-  let baseC, baseIndex;
+    let baseC, baseIndex;
+    switch (this.opts.clef) {
+      case "bass":   baseC = 36; baseIndex = 4; break; // bottom line = G2
+      case "alto":   baseC = 48; baseIndex = 3; break; // bottom line = F3
+      case "tenor":  baseC = 48; baseIndex = 1; break; // bottom line = D3
+      case "treble":
+      default:       baseC = 60; baseIndex = 2; break; // bottom line = E4
+    }
 
-  switch (this.opts.clef) {
-    case "bass":
-      // bottom line = G2
-      baseC = 36;   // C2
-      baseIndex = 4; // G
-      break;
+    const idx = baseIndex + step;
+    const octaveShift = Math.floor(idx / 7);
+    const noteIndex = ((idx % 7) + 7) % 7;
 
-    case "alto":
-      // bottom line = F3, and C4 is on 3rd line (step 4)
-      baseC = 48;   // C3
-      baseIndex = 3; // F
-      break;
-
-    case "tenor":
-      // bottom line = D3, and C4 is on 4th line (step 6)
-      baseC = 48;   // C3
-      baseIndex = 1; // D
-      break;
-
-    case "treble":
-    default:
-      // bottom line = E4
-      baseC = 60;   // C4
-      baseIndex = 2; // E
-      break;
-  }
-
-  const idx = baseIndex + step;
-  const octaveShift = Math.floor(idx / 7);
-  const noteIndex = ((idx % 7) + 7) % 7;
-
-  return baseC + diatonic[noteIndex] + (octaveShift * 12);
-};
-
+    return baseC + diatonic[noteIndex] + (octaveShift * 12);
+  };
 
   Staff.prototype._accidentalClassToOffset = function (cls) {
     if (!cls) return 0;
@@ -866,22 +879,23 @@ Staff.prototype._stepToMidi = function (step) {
     return 0;
   };
 
-Staff.prototype._emitUserNoteState = function(noteId, eventName) {
-  const $note = this.$el.find('.note[data-note-id="' + noteId + '"]');
-  if (!$note.length) return;
+  Staff.prototype._emitNoteState = function(noteId, source) {
+    const $note = this.$el.find('.note[data-note-id="' + noteId + '"]');
+    if (!$note.length) return;
 
-  const step = this.yToStep(parseFloat($note.css("top")));
-  const accCls = this._getAttachedAccidentalClass(noteId);
-  const accOff = this._accidentalClassToOffset(accCls);
-  const midi = this._stepToMidi(step) + accOff;
+    const step = this.yToStep(parseFloat($note.css("top")));
+    const accCls = this._getAttachedAccidentalClass(noteId);
+    const accOff = this._accidentalClassToOffset(accCls);
+    const midi = this._stepToMidi(step) + accOff;
 
-  this.$el.trigger(eventName || "staff:userNoteState", {
-    noteId,
-    step,
-    accidentalClass: accCls,
-    midi
-  });
-};
+    this.$el.trigger("staff:noteState", {
+      noteId,
+      step,
+      accidentalClass: accCls,
+      midi,
+      source: source || "unknown"
+    });
+  };
 
   Staff.prototype._playStep = async function (step, accidentalOffset) {
     if (!this._soundEnabled() || !Number.isFinite(step)) return;
@@ -900,9 +914,6 @@ Staff.prototype._emitUserNoteState = function(noteId, eventName) {
 
   Staff.prototype.addFixedNote = function (cfg) {
     cfg = cfg || {};
-
-    // IMPORTANT: don't add "fixed" class until AFTER accidental is attached,
-    // because attachAccidentalToNote() blocks fixed notes.
     const className = cfg.className || "";
 
     const id = this.addNote({
@@ -917,7 +928,6 @@ Staff.prototype._emitUserNoteState = function(noteId, eventName) {
     if (!id) return null;
 
     if (cfg.accidentalClass) this.attachAccidentalToNote(id, cfg.accidentalClass);
-
     this.setNoteFixed(id, true);
     return id;
   };
@@ -952,7 +962,7 @@ Staff.prototype._emitUserNoteState = function(noteId, eventName) {
     const x = Number.isFinite(cfg.x) ? Number(cfg.x) : this.centerX();
     const id = cfg.id || (this.opts.noteIdPrefix + (this._idCounter++));
 
-    const $note = $('<div class="note"></div>')
+    const $note = $('<div class="note"><span class="lettername"></span></div>')
       .attr("data-note-id", id)
       .css({ left: x + "px", top: y + "px" });
 
@@ -991,7 +1001,6 @@ Staff.prototype._emitUserNoteState = function(noteId, eventName) {
       this._renderLedgers(id, noteX, step);
     }
 
-    // Reposition all so adjacency accidental-overlap logic stays correct during drags too.
     this._repositionAllAccidentals();
   };
 
@@ -1182,7 +1191,7 @@ Staff.prototype._emitUserNoteState = function(noteId, eventName) {
           const createdId = self.addNote({ step: finalStep });
           if (createdId) {
             self.$el.trigger("staff:userNoteAdded", { noteId: createdId, step: finalStep });
-            self._emitUserNoteState(createdId, "staff:userNoteState");
+            self._emitNoteState(createdId, "user");
             self._suppressNextClick.noteId = createdId;
             self._suppressNextClick.until = Date.now() + 700;
             self._playStep(finalStep, 0);
@@ -1278,7 +1287,7 @@ Staff.prototype._emitUserNoteState = function(noteId, eventName) {
           } else {
             self.moveNote(d.noteId, { step: d.lastTargetStep });
             self._resolveNoteOverlaps();
-            self._emitUserNoteState(d.noteId, "staff:userNoteState");
+            self._emitNoteState(d.noteId, "user");
           }
 
           d.noteId = null;
@@ -1318,7 +1327,7 @@ Staff.prototype._emitUserNoteState = function(noteId, eventName) {
       if (self.isNoteFixed(noteId)) return;
       self._removeAccidentalForNote(noteId);
       self._repositionAllAccidentals();
-      self._emitUserNoteState(noteId, "staff:userNoteState");
+      self._emitNoteState(noteId, "user");
     });
 
     this.$el.on("click.noteDrag", ".note", function (e) {
@@ -1474,759 +1483,657 @@ Staff.prototype._emitUserNoteState = function(noteId, eventName) {
 
   window.Staff = Staff;
 
-function accidentalClassToText(cls) {
-  if (!cls) return ""; // no accidental shown
-  if (cls.indexOf("music-font__doublesharp") >= 0) return "##";
-  if (cls.indexOf("music-font__sharp") >= 0) return "#";
-  if (cls.indexOf("music-font__doubleflat") >= 0) return "bb";
-  if (cls.indexOf("music-font__flat") >= 0) return "b";
-  // natural: usually you *don't* want to print "♮" in the name, just the letter
-  return "";
-}
+  // ===========================================================================
+  // IntervalChallenge (game logic)
+  // ===========================================================================
 
-// Returns { letter: "E", octave: 4 } for the *diatonic* note at a step in the current clef.
-function stepToLetterOctave(staff, step) {
-  const letters = ["C","D","E","F","G","A","B"];
-
-  // Must match your Staff.prototype._stepToMidi anchoring logic:
-  let baseC, baseIndex;
-  switch (staff.getClef()) {
-    case "bass":
-      baseC = 36;  baseIndex = 4; break; // bottom line = G2 (C2 base)
-    case "alto":
-      baseC = 48;  baseIndex = 3; break; // bottom line = F3 (C3 base)
-    case "tenor":
-      baseC = 48;  baseIndex = 1; break; // bottom line = D3 (C3 base)
-    case "treble":
-    default:
-      baseC = 60;  baseIndex = 2; break; // bottom line = E4 (C4 base)
-  }
-
-  const idx = baseIndex + step;
-  const octaveShift = Math.floor(idx / 7);
-  const letterIndex = ((idx % 7) + 7) % 7;
-
-  // baseC is a C of some octave; add octaveShift to that octave.
-  const baseOctave = Math.floor(baseC / 12) - 1; // MIDI->octave for C
-  const octave = baseOctave + octaveShift;
-
-  return { letter: letters[letterIndex], octave };
-}
-
-function spellNoteFromState(staff, step, accidentalClass) {
-  const { letter, octave } = stepToLetterOctave(staff, step);
-  const acc = accidentalClassToText(accidentalClass);
-  return `${letter}${acc}${octave}`;
-}
-
-
-function midiToNoteName(midi) {
-  const names = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
-  const n = Math.round(midi);
-  const name = names[((n % 12) + 12) % 12];
-  const octave = Math.floor(n / 12) - 1;
-  return `${name}${octave}`;
-}
-
-function accidentalClassToOffset(cls) {
-  if (!cls) return 0;
-  if (cls.indexOf("music-font__doublesharp") >= 0) return +2;
-  if (cls.indexOf("music-font__sharp") >= 0) return +1;
-  if (cls.indexOf("music-font__doubleflat") >= 0) return -2;
-  if (cls.indexOf("music-font__flat") >= 0) return -1;
-  return 0;
-}
-
-class IntervalChallenge {
-  static INTERVAL_FULL_NAME_MAP = {
-    m2: "minor 2nd",
-    M2: "major 2nd",
-    m3: "minor 3rd",
-    M3: "major 3rd",
-    P4: "perfect 4th",
-    A4: "augmented 4th",
-    d5: "diminished 5th",
-    P5: "perfect 5th",
-    m6: "minor 6th",
-    M6: "major 6th",
-    m7: "minor 7th",
-    M7: "major 7th",
-    P8: "perfect 8th"
-  };
-
-  constructor(options) {
-    const defaults = {
-      staffEl: "#staff",
-      maxUserNotes: 1,
-      numOfChallenges: 4,
-      hardIntervals: ["A4", "d5"],
-      fixedNotes: null,
-      levelName: "beginner",
-      sound: true,
-      accidentalWeights: { natural: 8, sharp: 1, flat: 1 },
-      basePoints: 1,
-      firstTryBonus: 2
+  class IntervalChallenge {
+    static INTERVAL_FULL_NAME_MAP = {
+      m2: "minor 2nd",
+      M2: "major 2nd",
+      m3: "minor 3rd",
+      M3: "major 3rd",
+      P4: "perfect 4th",
+      A4: "augmented 4th",
+      d5: "diminished 5th",
+      P5: "perfect 5th",
+      m6: "minor 6th",
+      M6: "major 6th",
+      m7: "minor 7th",
+      M7: "major 7th",
+      P8: "perfect 8th"
     };
 
-    options = options || {};
+    constructor(options) {
+      const defaults = {
+        staffEl: "#staff",
+        basePoints: 1,
+        firstTryBonus: 2
+      };
 
-    this.opts = {
-      ...defaults,
-      ...options,
-      accidentalWeights: {
-        ...defaults.accidentalWeights,
-        ...(options.accidentalWeights || {})
-      },
-      intervals: Array.isArray(options.intervals) ? options.intervals.slice() : Object.keys(IntervalChallenge.INTERVAL_FULL_NAME_MAP),
-      hardIntervals: Array.isArray(options.hardIntervals) ? options.hardIntervals.slice() : defaults.hardIntervals.slice()
-    };
+      options = options || {};
 
-this._clefPool = this._normalizeClefPool(
-  this.opts.clefs != null ? this.opts.clefs : this.opts.clef
-);
+      this.opts = {
+        ...defaults,
+        ...options,
+        accidentalWeights: {
+          ...defaults.accidentalWeights,
+          ...(options.accidentalWeights || {})
+        },
+        intervals: Array.isArray(options.intervals)
+          ? options.intervals.slice()
+          : Object.keys(IntervalChallenge.INTERVAL_FULL_NAME_MAP)
+      };
 
-    this._uiSfxReady = false;
-    this._uiSfxSynth = null;
-    this._uiSfxNoise = null;
+      this._clefPool = this._normalizeClefPool(
+        this.opts.clefs != null ? this.opts.clefs : this.opts.clef
+      );
 
-    this.$staffEl = $(this.opts.staffEl);
-    this.$accidentals = $("#accidentals");
-    this.$feedback = $("#feedback-success");
-    this.$bonusBadge = this.$feedback.find(".bonus");
-    this.$points = $("#points");
-    this.$increment = $("#increment");
+      this._uiSfxReady = false;
+      this._uiSfxSynth = null;
+      this._uiSfxNoise = null;
 
-    this.$interval = $("#interval");
-    this.$intervalLabel = this.$interval.find("label");
-    this.$intervalFull = this.$interval.find("div");
+      this.$staffEl = $(this.opts.staffEl);
+      this.$accidentals = $("#accidentals");
+      this.$feedback = $("#feedback-success");
+      this.$bonusBadge = this.$feedback.find(".bonus");
+      this.$points = $("#points");
+      this.$increment = $("#increment");
 
-    this.$checkBtn = $("#check button");
-    this.$finalOverlay = $("#final-overlay");
-    this.$checkWrap = this.$checkBtn.parent();
-    this.$progressBar = $("#progress-bar");
-    {{-- this.$level = $("#level"); --}}
+      this.$interval = $("#interval");
+      this.$intervalLabel = this.$interval.find("label");
+      this.$intervalFull = this.$interval.find("div");
 
-    this.successPhrases = ["Awesome", "Nicely done", "Well done", "Great job", "Hooray", "Fantastic", "Nice work", "Looks good", "Good one"];
+      this.$checkBtn = $("#check button");
+      this.$finalOverlay = $("#final-overlay");
+      this.$checkWrap = this.$checkBtn.parent();
+      this.$progressBar = $("#progress-bar");
+      this.$progressCounter = $("#progress-counter");
 
-    this.maxUserNotes = Number.isFinite(this.opts.maxUserNotes) ? this.opts.maxUserNotes : 1;
-    this.numOfChallenges = Number.isFinite(this.opts.numOfChallenges) ? this.opts.numOfChallenges : 4;
-    this.levelName = this.opts.levelName;
-    this.points = 0;
-    this._madeMistakeThisRound = false;
-    this._continueBound = false;
+      this.successPhrases = ["Awesome", "Nicely done", "Well done", "Great job", "Hooray", "Fantastic", "Nice work", "Looks good", "Good one"];
 
-    this._stats = {
-      checksTotal: 0,
-      checksCorrect: 0,
-      finishedAtMs: null
-    };
+      this.maxUserNotes = this.opts.maxUserNotes;
+      this.numOfChallenges = this.opts.numOfChallenges;
+      this.levelName = this.opts.levelName;
+      this.points = 0;
+      this._madeMistakeThisRound = false;
+      this._continueBound = false;
 
-    this.staff = new Staff(this.$staffEl, {
-      clef: (this._clefPool && this._clefPool[0]) ? this._clefPool[0] : "treble",
-      clefUrl: null,
-      getMaxUserNotes: () => this.maxUserNotes,
-      sound: !!this.opts.sound
-    });
+      this._stats = {
+        checksTotal: 0,
+        checksCorrect: 0,
+        finishedAtMs: null
+      };
 
-    this.$increment.hide();
-    this.$bonusBadge.hide();
-    this.$points.text(String(this.points));
-  }
-
-  _deriveFullNameFromAbbr(abbr) {
-    const m = String(abbr || "").trim().match(/^([PMAmd])(\d+)$/);
-    if (!m) return abbr;
-
-    const q = m[1];
-    const n = m[2];
-
-    const qWord =
-      q === "m" ? "minor" :
-      q === "M" ? "major" :
-      q === "P" ? "perfect" :
-      q === "A" ? "augmented" :
-      q === "d" ? "diminished" :
-      q;
-
-    return `${qWord} ${n}`;
-  }
-
-  _fullNameForInterval(abbr) {
-    const key = String(abbr || "").trim();
-    return IntervalChallenge.INTERVAL_FULL_NAME_MAP[key] || this._deriveFullNameFromAbbr(key);
-  }
-
-  _setIntervalUI(intervalAbbr) {
-    const abbr = String(intervalAbbr || "").trim();
-    if (this.$intervalLabel && this.$intervalLabel.length) this.$intervalLabel.text(abbr);
-    if (this.$intervalFull && this.$intervalFull.length) this.$intervalFull.text(this._fullNameForInterval(abbr));
-  }
-
-// --- UI SFX (Tone.js) -------------------------------------------------
-
-async _ensureUiSfxAudio() {
-  if (!this.isSoundEnabled()) return;
-  if (this._uiSfxReady) return;
-  if (!window.Tone) return;
-
-  await Tone.start();
-
-  this._uiSfxSynth = new Tone.PolySynth(Tone.Synth, {
-    oscillator: { type: "triangle" },
-    envelope: { attack: 0.005, decay: 0.12, sustain: 0.0, release: 0.25 }
-  }).toDestination();
-
-  this._uiSfxNoise = new Tone.NoiseSynth({
-    noise: { type: "pink" },
-    envelope: { attack: 0.001, decay: 0.08, sustain: 0.0, release: 0.06 }
-  }).toDestination();
-
-  this._uiSfxReady = true;
-}
-
-_playSuccessSfx() {
-  if (!this.isSoundEnabled() || !window.Tone) return;
-
-  this._ensureUiSfxAudio().then(() => {
-    if (!this._uiSfxSynth) return;
-
-    const now = Tone.now();
-    const notes = ["C6", "E6", "G6", "C7"]; // quick bright arpeggio
-    notes.forEach((n, i) => {
-      this._uiSfxSynth.triggerAttackRelease(n, 0.08, now + i * 0.06, 0.9);
-    });
-  });
-}
-
-_playFailSfx() {
-  if (!this.isSoundEnabled() || !window.Tone) return;
-
-  this._ensureUiSfxAudio().then(() => {
-    const now = Tone.now();
-
-    if (this._uiSfxNoise) {
-      this._uiSfxNoise.triggerAttackRelease(0.06, now, 0.8);
-    }
-    if (this._uiSfxSynth) {
-      // short low “blip”
-      this._uiSfxSynth.triggerAttackRelease("A2", 0.10, now + 0.01, 4);
-      this._uiSfxSynth.triggerAttackRelease("G2", 0.12, now + 0.08, 4);
-    }
-  });
-}
-
-_playFinalSfx() {
-  if (!this.isSoundEnabled() || !window.Tone) return;
-
-  this._ensureUiSfxAudio().then(() => {
-    if (!this._uiSfxSynth) return;
-
-    // Temporary "pad-like" settings for the ending (then restore)
-    const oldEnv = { ...this._uiSfxSynth.get().envelope };
-    const oldOsc = this._uiSfxSynth.get().oscillator?.type;
-
-    this._uiSfxSynth.set({
-      oscillator: { type: "sine" },
-      envelope: { attack: 0.02, decay: 0.25, sustain: 0.35, release: 0.9 }
-    });
-
-    const now = Tone.now();
-
-    // Big resolved ending chord (I–V–I-ish feel)
-    const chord1 = ["C4", "G4", "C5", "E5"];
-    chord1.forEach(n => this._uiSfxSynth.triggerAttackRelease(n, 0.9, now, 0.6));
-
-    // Gentle “sparkle” run up (gliss-like)
-    const run = ["G5", "A5", "B5", "C6", "D6", "E6", "G6"];
-    run.forEach((n, i) => {
-      this._uiSfxSynth.triggerAttackRelease(n, 0.08, now + 0.25 + i * 0.06, 0.35);
-    });
-
-    // Restore original synth feel shortly after
-    setTimeout(() => {
-      try {
-        this._uiSfxSynth.set({
-          oscillator: { type: oldOsc || "triangle" },
-          envelope: oldEnv
-        });
-      } catch (_) {}
-    }, 1400);
-  });
-}
-
-
-
-  start() {
-    $("#instructions").show();
-    $("#check").addClass("invisible");
-
-    this.$staffEl.off("staff:userNoteAdded._gate").one("staff:userNoteAdded._gate", () => {
-      $("#instructions").remove();
-      $("#check").removeClass("invisible");
-    });
-
-    this._wireAccidentalPalette();
-    this._wireStaffTools();
-    this._wireControls();
-    this._resetProgress();
-    this.newChallenge();
-    $("#page-wrapper").fadeIn("fast");
-  }
-
-_normalizeClefPool(clefsOrSingle) {
-  const raw = Array.isArray(clefsOrSingle)
-    ? clefsOrSingle
-    : clefsOrSingle != null
-      ? [clefsOrSingle]
-      : ["treble", "bass"]; // default behavior (random treble/bass)
-
-  const normalized = raw
-    .map(c => normalizeClef(c))
-    .filter(Boolean);
-
-  // unique + preserve order
-  const uniq = [];
-  for (let i = 0; i < normalized.length; i++) {
-    if (!uniq.includes(normalized[i])) uniq.push(normalized[i]);
-  }
-
-  return uniq.length ? uniq : ["treble", "bass"];
-}
-
-_currentClefForChallenge() {
-  const pool = this._clefPool || ["treble", "bass"];
-  if (pool.length === 1) return pool[0];
-  return pool[Math.floor(Math.random() * pool.length)];
-}
-
-
-setSoundEnabled(enabled) {
-  this.opts.sound = !!enabled;
-  this.staff.setSoundEnabled(!!enabled);
-
-  if (!this.opts.sound && window.Tone) {
-    try { this._uiSfxSynth && this._uiSfxSynth.releaseAll && this._uiSfxSynth.releaseAll(); } catch (_) {}
-    try { this._uiSfxSynth && this._uiSfxSynth.dispose && this._uiSfxSynth.dispose(); } catch (_) {}
-    try { this._uiSfxNoise && this._uiSfxNoise.dispose && this._uiSfxNoise.dispose(); } catch (_) {}
-    this._uiSfxSynth = null;
-    this._uiSfxNoise = null;
-    this._uiSfxReady = false;
-
-    try { Tone.context && Tone.context.suspend && Tone.context.suspend(); } catch (_) {}
-  }
-
-  return this;
-}
-
-  isSoundEnabled() { return this.staff.isSoundEnabled(); }
-
-  getLevel() { return this.opts.levelName; }
-
-  getRounds() { return this.numOfChallenges; }
-
-  _wireAccidentalPalette() {
-    $("#accidentals .music-font__doublesharp, #accidentals .music-font__doubleflat").addClass("d-none");
-  }
-
-  _wireStaffTools() {
-    this.staff.enableNoteDragAndClickDelete();
-    this.staff.enableGhostClickCreate();
-    this.staff.enableAccidentalDrag(
-      $("#accidentals .music-font__sharp, #accidentals .music-font__flat, #accidentals .music-font__natural")
-    );
-    this.staff.enableAccidentalDropOnStaff();
-
-this.$staffEl
-  .off("staff:userNoteState._log")
-  .on("staff:userNoteState._log", (e, data) => {
-    console.log(
-      "User note state:",
-      spellNoteFromState(this.staff, data.step, data.accidentalClass),
-      { midi: data.midi, noteId: data.noteId, step: data.step, clef: this.staff.getClef() }
-    );
-  });
-  }
-
-  _wireControls() {
-    $("#clear").off("click.intervalChallenge").on("click.intervalChallenge", () => {
-      this.staff.clearNotes();
-    });
-
-    this.$checkBtn.off("click.intervalChallenge").on("click.intervalChallenge", () => {
-      this._onCheck();
-    });
-
-    if (!this._continueBound) {
-      this._continueBound = true;
-      $("#continue button").off("click.intervalChallenge").on("click.intervalChallenge", () => {
-        $("#check").show();
-        $("#continue").hide();
-        this.newChallenge();
-        this.$checkBtn.enable();
+      this.staff = new Staff(this.$staffEl, {
+        clef: (this._clefPool && this._clefPool[0]) ? this._clefPool[0] : "treble",
+        clefUrl: null,
+        getMaxUserNotes: () => this.maxUserNotes,
+        sound: !!this.opts.sound
       });
-    }
-  }
 
-  _resetProgress() {
-    this.$progressBar.data("progress", 0);
-    this.$progressBar.css({ width: "0%" });
-  }
+      this.showLetterNames = !!this.opts.showLetterNames;
+      this.$staffEl.toggleClass("show-letternames", this.showLetterNames);
 
-  newChallenge() {
-    const clef = this._currentClefForChallenge();
-    if (clef && clef !== this.staff.getClef()) this.staff.setClef(clef);
-
-    this._madeMistakeThisRound = false;
-    this.$bonusBadge.hide();
-
-    const interval = this._pickInterval();
-    const fixed = this._pickFixedNote();
-
-    this.staff.clearNotes();
-    this.$accidentals.removeClass("invisible");
-    this.$feedback.hide();
-
-    this.$interval.show();
-    this._setIntervalUI(interval);
-
-    {{-- this.$level.addClass("invisible"); --}}
-    {{-- if (this.opts.hardIntervals.includes(interval)) this.$level.removeClass("invisible"); --}}
-
-    if (fixed) {
-      this.staff.addFixedNote({ step: fixed.step, accidentalClass: fixed.accidentalClass || null });
-    }
-
-    $("#check").show();
-    $("#continue").hide();
-  }
-
-  _pickInterval() {
-    const pool = Array.isArray(this.opts.intervals) && this.opts.intervals.length ? this.opts.intervals : ["M3"];
-    return pool[Math.floor(Math.random() * pool.length)];
-  }
-
-  _pickFixedNote() {
-    const fixedList = toArrayMaybe(this.opts.fixedNotes).filter(Boolean);
-    if (fixedList.length) {
-      const chosen = pickOne(fixedList);
-      return this._fixedNoteToStaffPosition(chosen);
-    }
-
-    const w = this.opts.accidentalWeights || {};
-    const accidentalClass = pickWeighted([
-      { value: null,                weight: Number(w.natural) || 0 },
-      { value: "music-font__sharp", weight: Number(w.sharp) || 0 },
-      { value: "music-font__flat",  weight: Number(w.flat) || 0 }
-    ]);
-
-    return { step: randomInt(0, 7), accidentalClass };
-  }
-
-  _notesOnStaffOrdered() {
-    const $notes = this.$staffEl.find(".note").not(".preview");
-    const notes = $notes.toArray().map(el => {
-      const id = el.getAttribute("data-note-id");
-      const step = this.staff._stepOfNoteEl(el);
-      const accCls = this.staff._getAttachedAccidentalClass(id);
-      const accOff = this.staff._accidentalClassToOffset(accCls);
-      return { id, step, accOff };
-    });
-    notes.sort((a, b) => a.step - b.step);
-    return notes;
-  }
-
-  _qualityFor(simpleNum, semitones) {
-    const isPerfectClass = (simpleNum === 1 || simpleNum === 4 || simpleNum === 5 || simpleNum === 8);
-    const expectedMajorOrPerfect = { 1:0, 2:2, 3:4, 4:5, 5:7, 6:9, 7:11, 8:12 }[simpleNum];
-    const delta = semitones - expectedMajorOrPerfect;
-
-    if (isPerfectClass) {
-      if (delta === 0) return "P";
-      if (delta === 1) return "A";
-      if (delta === -1) return "d";
-      if (delta > 1) return "A".repeat(delta);
-      if (delta < -1) return "d".repeat(-delta);
-    } else {
-      if (delta === 0) return "M";
-      if (delta === -1) return "m";
-      if (delta === 1) return "A";
-      if (delta === -2) return "d";
-      if (delta > 1) return "A".repeat(delta);
-      if (delta < -2) return "d".repeat((-delta) - 1);
-    }
-    return "?";
-  }
-
-  _intervalNameBetween(noteA, noteB) {
-    const midiLow = this.staff._stepToMidi(noteA.step) + (noteA.accOff || 0);
-    const midiHigh = this.staff._stepToMidi(noteB.step) + (noteB.accOff || 0);
-
-    const semitones = Math.abs(midiHigh - midiLow);
-    const diatonicNum = Math.abs(noteB.step - noteA.step) + 1;
-
-    const simpleNum = ((diatonicNum - 1) % 7) + 1;
-    const octaves = Math.floor((diatonicNum - 1) / 7);
-    const semitonesReduced = semitones - (12 * octaves);
-
-    return this._qualityFor(simpleNum, semitonesReduced) + diatonicNum;
-  }
-
-  _successAnimation() {
-    this._playSuccessSfx();
-    this.$accidentals.addClass("invisible");
-    this.$feedback.find(".message span").text(pickOne(this.successPhrases));
-    this.$feedback.stop(true, true).fadeIn("fast");
-    this.$interval.hide();
-  }
-
-  _showIncrement(earned) {
-    const $inc = this.$increment;
-    if (!$inc || !$inc.length) return;
-
-    $inc.stop(true, true);
-    $inc.text("+" + earned).show();
-
-    if ($inc.animateCSS) {
-      $inc.animateCSS("fadeOutUp").then(() => $inc.hide());
-    } else {
-      setTimeout(() => $inc.hide(), 800);
-    }
-  }
-
-  _showBonusBadge(bonusAmount) {
-    if (!this.$bonusBadge || !this.$bonusBadge.length) return;
-
-    if (!bonusAmount || bonusAmount <= 0) {
+      this.$increment.hide();
       this.$bonusBadge.hide();
-      return;
+      this.$points.text(String(this.points));
     }
 
-    this.$bonusBadge.text("+" + bonusAmount + " BONUS").show();
+    _deriveFullNameFromAbbr(abbr) {
+      const m = String(abbr || "").trim().match(/^([PMAmd])(\d+)$/);
+      if (!m) return abbr;
 
-    if (this.$bonusBadge.animateCSS) {
-      this.$bonusBadge.animateCSS("tada");
+      const q = m[1];
+      const n = m[2];
+
+      const qWord =
+        q === "m" ? "minor" :
+        q === "M" ? "major" :
+        q === "P" ? "perfect" :
+        q === "A" ? "augmented" :
+        q === "d" ? "diminished" :
+        q;
+
+      return `${qWord} ${n}`;
     }
-  }
 
-  _awardPointsForCorrect() {
-    const firstTry = !this._madeMistakeThisRound;
+    _fullNameForInterval(abbr) {
+      const key = String(abbr || "").trim();
+      return IntervalChallenge.INTERVAL_FULL_NAME_MAP[key] || this._deriveFullNameFromAbbr(key);
+    }
 
-    const base = Number.isFinite(this.opts.basePoints) ? this.opts.basePoints : 1;
-    const bonus = Number.isFinite(this.opts.firstTryBonus) ? this.opts.firstTryBonus : 0;
+    _setIntervalUI(intervalAbbr) {
+      const abbr = String(intervalAbbr || "").trim();
+      if (this.$intervalLabel && this.$intervalLabel.length) this.$intervalLabel.text(abbr);
+      if (this.$intervalFull && this.$intervalFull.length) this.$intervalFull.text(this._fullNameForInterval(abbr));
+    }
 
-    const earned = firstTry ? (base + bonus) : base;
-    const bonusEarned = firstTry ? bonus : 0;
+    // --- UI SFX (Tone.js) ----------------------------------------------------
 
-    this.points += earned;
-    this.$points.text(String(this.points));
+    async _ensureUiSfxAudio() {
+      if (!this.isSoundEnabled()) return;
+      if (this._uiSfxReady) return;
+      if (!window.Tone) return;
 
-    this._showBonusBadge(bonusEarned);
+      await Tone.start();
 
-    return { earned, firstTry, bonusEarned };
-  }
+      this._uiSfxSynth = new Tone.PolySynth(Tone.Synth, {
+        oscillator: { type: "triangle" },
+        envelope: { attack: 0.005, decay: 0.12, sustain: 0.0, release: 0.25 }
+      }).toDestination();
 
-  _updateProgressBar() {
-    const steps = Math.max(1, this.numOfChallenges || 1);
-    const increment = 100 / steps;
-    let current = parseFloat(this.$progressBar.data("progress")) || 0;
+      this._uiSfxNoise = new Tone.NoiseSynth({
+        noise: { type: "pink" },
+        envelope: { attack: 0.001, decay: 0.08, sustain: 0.0, release: 0.06 }
+      }).toDestination();
 
-    current = Math.min(100, current + increment);
-    this.$progressBar.data("progress", current);
-    this.$progressBar.css({ width: current + "%" });
+      this._uiSfxReady = true;
+    }
 
-    return current;
-  }
+    _playSuccessSfx() {
+      if (!this.isSoundEnabled() || !window.Tone) return;
 
-  _failAnimation() {
-    this._playFailSfx();
+      this._ensureUiSfxAudio().then(() => {
+        if (!this._uiSfxSynth) return;
 
-    this.$interval.removeClass("text-blue").addClass("text-red");
-
-    this.$interval.removeClass("animate__animated animate__bounce");
-    void this.$interval[0].offsetWidth;
-    this.$interval.addClass("animate__animated animate__bounce");
-
-    this.$checkWrap.removeClass("animate__animated animate__shakeX");
-    void this.$checkWrap[0].offsetWidth;
-    this.$checkWrap.addClass("animate__animated animate__shakeX");
-
-    this.$checkWrap
-      .off("animationend._fail webkitAnimationEnd._fail oAnimationEnd._fail MSAnimationEnd._fail")
-      .one("animationend._fail webkitAnimationEnd._fail oAnimationEnd._fail MSAnimationEnd._fail", () => {
-        this.$checkWrap.removeClass("animate__animated animate__shakeX");
-        this.$interval.removeClass("animate__animated animate__bounce");
-        this.$interval.removeClass("text-red").addClass("text-blue");
-        this.$checkBtn.enable();
+        const now = Tone.now();
+        const notes = ["C6", "E6", "G6", "C7"];
+        notes.forEach((n, i) => {
+          this._uiSfxSynth.triggerAttackRelease(n, 0.08, now + i * 0.06, 0.9);
+        });
       });
-  }
-
-  _onCheck() {
-    const notes = this._notesOnStaffOrdered();
-    this.$checkBtn.disable();
-
-    this._stats.checksTotal += 1;
-
-    if (notes.length !== 2) {
-      this._failAnimation();
-      this.$checkBtn[0] && this.$checkBtn[0].blur && this.$checkBtn[0].blur();
-      return;
     }
 
-    const name = this._intervalNameBetween(notes[0], notes[1]);
+    _playFailSfx() {
+      if (!this.isSoundEnabled() || !window.Tone) return;
 
-    if (name === this.$intervalLabel.text()) {
-      this._stats.checksCorrect += 1;
+      this._ensureUiSfxAudio().then(() => {
+        const now = Tone.now();
 
-      this._successAnimation();
+        if (this._uiSfxNoise) {
+          this._uiSfxNoise.triggerAttackRelease(0.06, now, 0.8);
+        }
+        if (this._uiSfxSynth) {
+          this._uiSfxSynth.triggerAttackRelease("A2", 0.10, now + 0.01, 4);
+          this._uiSfxSynth.triggerAttackRelease("G2", 0.12, now + 0.08, 4);
+        }
+      });
+    }
 
-      const { earned } = this._awardPointsForCorrect();
+    _playFinalSfx() {
+      if (!this.isSoundEnabled() || !window.Tone) return;
 
-      $("#score").animateCSS && $("#score").animateCSS("heartBeat");
-      this._showIncrement(earned);
+      this._ensureUiSfxAudio().then(() => {
+        if (!this._uiSfxSynth) return;
 
-      if (this._updateProgressBar() >= 100) {
-        this._stats.finishedAtMs = Date.now();
+        const oldEnv = { ...this._uiSfxSynth.get().envelope };
+        const oldOsc = this._uiSfxSynth.get().oscillator?.type;
+
+        this._uiSfxSynth.set({
+          oscillator: { type: "sine" },
+          envelope: { attack: 0.02, decay: 0.25, sustain: 0.35, release: 0.9 }
+        });
+
+        const now = Tone.now();
+
+        const chord1 = ["C4", "G4", "C5", "E5"];
+        chord1.forEach(n => this._uiSfxSynth.triggerAttackRelease(n, 0.9, now, 0.6));
+
+        const run = ["G5", "A5", "B5", "C6", "D6", "E6", "G6"];
+        run.forEach((n, i) => {
+          this._uiSfxSynth.triggerAttackRelease(n, 0.08, now + 0.25 + i * 0.06, 0.35);
+        });
 
         setTimeout(() => {
-          this._showFinalResults();
-        }, 1200);
-      } else {
-        $("#check").hide();
-        $("#continue").show();
+          try {
+            this._uiSfxSynth.set({
+              oscillator: { type: oldOsc || "triangle" },
+              envelope: oldEnv
+            });
+          } catch (_) {}
+        }, 1400);
+      });
+    }
+
+    start() {
+      $("#instructions").show();
+      $("#check").addClass("invisible");
+
+      this.$staffEl.off("staff:userNoteAdded._gate").one("staff:userNoteAdded._gate", () => {
+        $("#instructions").remove();
+        $("#check").removeClass("invisible");
+      });
+
+      this._wireAccidentalPalette();
+      this._wireStaffTools();
+      this._wireControls();
+      this._resetProgress();
+      this.newChallenge();
+      $("#page-wrapper").fadeIn("fast");
+    }
+
+    _normalizeClefPool(clefsOrSingle) {
+      const raw = Array.isArray(clefsOrSingle)
+        ? clefsOrSingle
+        : clefsOrSingle != null
+          ? [clefsOrSingle]
+          : ["treble", "bass"];
+
+      const normalized = raw
+        .map(c => normalizeClef(c))
+        .filter(Boolean);
+
+      const uniq = [];
+      for (let i = 0; i < normalized.length; i++) {
+        if (!uniq.includes(normalized[i])) uniq.push(normalized[i]);
       }
-    } else {
-      this._failAnimation();
-      this._madeMistakeThisRound = true;
-    }
-  }
 
-  _showFinalResults() {
-    const total = Math.max(0, this._stats.checksTotal || 0);
-    const correct = Math.max(0, this._stats.checksCorrect || 0);
-    const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
-
-    const endMs = (this._stats.finishedAtMs != null) ? this._stats.finishedAtMs : Date.now();
-    const elapsedMs = Math.max(0, endMs - PAGE_OPENED_AT_MS);
-
-    const totalSeconds = Math.floor(elapsedMs / 1000);
-    const mm = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
-    const ss = String(totalSeconds % 60).padStart(2, "0");
-    const duration = `${mm}:${ss}`;
-
-    this.$finalOverlay.find('span[name="rounds"]').text(this.numOfChallenges);
-    this.$finalOverlay.find('span[name="score"]').text(this.points);
-    this.$finalOverlay.find('span[name="accuracy"]').text(accuracy + "%");
-    this.$finalOverlay.find('span[name="duration"]').text(duration);
-
-    this._playFinalSfx();
-    
-    this.$finalOverlay.show();
-  }
-
-  _fixedNoteToStaffPosition(noteStr) {
-    const parsed = this._parsePitch(noteStr);
-    if (!parsed) return null;
-
-    const { midi, accOffset, accidentalClass } = parsed;
-
-    for (let step = this.staff.minStepAllowed(); step <= this.staff.maxStepAllowed(); step++) {
-      const baseMidi = this.staff._stepToMidi(step);
-      if (baseMidi + accOffset === midi) return { step, accidentalClass };
+      return uniq.length ? uniq : ["treble", "bass"];
     }
 
-    let best = null;
-    for (let step = this.staff.minStepAllowed(); step <= this.staff.maxStepAllowed(); step++) {
-      const baseMidi = this.staff._stepToMidi(step);
-      const dist = Math.abs((baseMidi + accOffset) - midi);
-      if (!best || dist < best.dist) best = { step, dist };
+    _currentClefForChallenge() {
+      const pool = this._clefPool || ["treble", "bass"];
+      if (pool.length === 1) return pool[0];
+      return pool[Math.floor(Math.random() * pool.length)];
     }
-    return best ? { step: best.step, accidentalClass } : null;
+
+    setSoundEnabled(enabled) {
+      this.opts.sound = !!enabled;
+      this.staff.setSoundEnabled(!!enabled);
+
+      if (!this.opts.sound && window.Tone) {
+        try { this._uiSfxSynth && this._uiSfxSynth.releaseAll && this._uiSfxSynth.releaseAll(); } catch (_) {}
+        try { this._uiSfxSynth && this._uiSfxSynth.dispose && this._uiSfxSynth.dispose(); } catch (_) {}
+        try { this._uiSfxNoise && this._uiSfxNoise.dispose && this._uiSfxNoise.dispose(); } catch (_) {}
+        this._uiSfxSynth = null;
+        this._uiSfxNoise = null;
+        this._uiSfxReady = false;
+
+        try { Tone.context && Tone.context.suspend && Tone.context.suspend(); } catch (_) {}
+      }
+
+      return this;
+    }
+
+    isSoundEnabled() { return this.staff.isSoundEnabled(); }
+    getLevel() { return this.opts.levelName; }
+    getRounds() { return this.numOfChallenges; }
+    getIntervals() { return this.opts.intervals; }
+
+    _wireAccidentalPalette() {
+      $("#accidentals .music-font__doublesharp, #accidentals .music-font__doubleflat").addClass("d-none");
+    }
+
+    _wireStaffTools() {
+      this.staff.enableNoteDragAndClickDelete();
+      this.staff.enableGhostClickCreate();
+      this.staff.enableAccidentalDrag(
+        $("#accidentals .music-font__sharp, #accidentals .music-font__flat, #accidentals .music-font__natural")
+      );
+      this.staff.enableAccidentalDropOnStaff();
+
+      this.$staffEl
+        .off("staff:noteState._log")
+        .on("staff:noteState._log", (e, data) => {
+          const full = spellNoteFromState(this.staff, data.step, data.accidentalClass);
+          const letterOnly = full.replace(/\d+$/, "");
+
+          if (this.showLetterNames) {
+            this.$staffEl
+              .find('.note[data-note-id="' + data.noteId + '"] .lettername')
+              .text(letterOnly);
+          }
+
+          console.log(
+            (data.source === "fixed" ? "Fixed note:" : "User note:"),
+            full,
+            { midi: data.midi, noteId: data.noteId, step: data.step, clef: this.staff.getClef() }
+          );
+        });
+    }
+
+    _wireControls() {
+      $("#clear").off("click.intervalChallenge").on("click.intervalChallenge", () => {
+        this.staff.clearNotes();
+      });
+
+      this.$checkBtn.off("click.intervalChallenge").on("click.intervalChallenge", () => {
+        this._onCheck();
+      });
+
+      if (!this._continueBound) {
+        this._continueBound = true;
+        $("#continue button").off("click.intervalChallenge").on("click.intervalChallenge", () => {
+          $("#check").show();
+          $("#continue").hide();
+          this.newChallenge();
+          this.$checkBtn.enable();
+        });
+      }
+    }
+
+    _resetProgress() {
+      this.$progressBar.data("progress", 0);
+      this.$progressBar.css({ width: "0%" });
+      this.$progressCounter.text('');
+    }
+
+    newChallenge() {
+      const clef = this._currentClefForChallenge();
+      if (clef && clef !== this.staff.getClef()) this.staff.setClef(clef);
+
+      this._madeMistakeThisRound = false;
+      this.$bonusBadge.hide();
+
+      const interval = this._pickInterval();
+      const fixed = this._pickFixedNote();
+
+      this.staff.clearNotes();
+      this.$accidentals.removeClass("invisible");
+      this.$feedback.hide();
+
+      this.$interval.show();
+      this._setIntervalUI(interval);
+
+      if (fixed) {
+        const fixedId = this.staff.addFixedNote({
+          step: fixed.step,
+          accidentalClass: fixed.accidentalClass || null
+        });
+
+        if (fixedId) this.staff._emitNoteState(fixedId, "fixed");
+      }
+
+      $("#check").show();
+      $("#continue").hide();
+    }
+
+    _pickInterval() {
+      const pool = Array.isArray(this.opts.intervals) && this.opts.intervals.length ? this.opts.intervals : ["M3"];
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    _pickFixedNote() {
+      const fixedList = toArrayMaybe(this.opts.fixedNotes).filter(Boolean);
+      if (fixedList.length) {
+        const chosen = pickOne(fixedList);
+        return this._fixedNoteToStaffPosition(chosen);
+      }
+
+      const w = this.opts.accidentalWeights || {};
+      const accidentalClass = pickWeighted([
+        { value: null,                weight: Number(w.natural) || 0 },
+        { value: "music-font__sharp", weight: Number(w.sharp) || 0 },
+        { value: "music-font__flat",  weight: Number(w.flat) || 0 }
+      ]);
+
+      return { step: randomInt(0, 7), accidentalClass };
+    }
+
+    _notesOnStaffOrdered() {
+      const $notes = this.$staffEl.find(".note").not(".preview");
+      const notes = $notes.toArray().map(el => {
+        const id = el.getAttribute("data-note-id");
+        const step = this.staff._stepOfNoteEl(el);
+        const accCls = this.staff._getAttachedAccidentalClass(id);
+        const accOff = this.staff._accidentalClassToOffset(accCls);
+        return { id, step, accOff };
+      });
+      notes.sort((a, b) => a.step - b.step);
+      return notes;
+    }
+
+    _qualityFor(simpleNum, semitones) {
+      const isPerfectClass = (simpleNum === 1 || simpleNum === 4 || simpleNum === 5 || simpleNum === 8);
+      const expectedMajorOrPerfect = { 1:0, 2:2, 3:4, 4:5, 5:7, 6:9, 7:11, 8:12 }[simpleNum];
+      const delta = semitones - expectedMajorOrPerfect;
+
+      if (isPerfectClass) {
+        if (delta === 0) return "P";
+        if (delta === 1) return "A";
+        if (delta === -1) return "d";
+        if (delta > 1) return "A".repeat(delta);
+        if (delta < -1) return "d".repeat(-delta);
+      } else {
+        if (delta === 0) return "M";
+        if (delta === -1) return "m";
+        if (delta === 1) return "A";
+        if (delta === -2) return "d";
+        if (delta > 1) return "A".repeat(delta);
+        if (delta < -2) return "d".repeat((-delta) - 1);
+      }
+      return "?";
+    }
+
+    _intervalNameBetween(noteA, noteB) {
+      const midiLow = this.staff._stepToMidi(noteA.step) + (noteA.accOff || 0);
+      const midiHigh = this.staff._stepToMidi(noteB.step) + (noteB.accOff || 0);
+
+      const semitones = Math.abs(midiHigh - midiLow);
+      const diatonicNum = Math.abs(noteB.step - noteA.step) + 1;
+
+      const simpleNum = ((diatonicNum - 1) % 7) + 1;
+      const octaves = Math.floor((diatonicNum - 1) / 7);
+      const semitonesReduced = semitones - (12 * octaves);
+
+      return this._qualityFor(simpleNum, semitonesReduced) + diatonicNum;
+    }
+
+    _successAnimation() {
+      this._playSuccessSfx();
+      this.$accidentals.addClass("invisible");
+      this.$feedback.find(".message span").text(pickOne(this.successPhrases));
+      this.$feedback.stop(true, true).fadeIn("fast");
+      this.$interval.hide();
+    }
+
+    _showIncrement(earned) {
+      const $inc = this.$increment;
+      if (!$inc || !$inc.length) return;
+
+      $inc.stop(true, true);
+      $inc.text("+" + earned).show();
+
+      if ($inc.animateCSS) {
+        $inc.animateCSS("fadeOutUp").then(() => $inc.hide());
+      } else {
+        setTimeout(() => $inc.hide(), 800);
+      }
+    }
+
+    _showBonusBadge(bonusAmount) {
+      if (!this.$bonusBadge || !this.$bonusBadge.length) return;
+
+      if (!bonusAmount || bonusAmount <= 0) {
+        this.$bonusBadge.hide();
+        return;
+      }
+
+      this.$bonusBadge.text("+" + bonusAmount + " BONUS").show();
+
+      if (this.$bonusBadge.animateCSS) {
+        this.$bonusBadge.animateCSS("tada");
+      }
+    }
+
+    _awardPointsForCorrect() {
+      const firstTry = !this._madeMistakeThisRound;
+
+      const base = Number.isFinite(this.opts.basePoints) ? this.opts.basePoints : 1;
+      const bonus = Number.isFinite(this.opts.firstTryBonus) ? this.opts.firstTryBonus : 0;
+
+      const earned = firstTry ? (base + bonus) : base;
+      const bonusEarned = firstTry ? bonus : 0;
+
+      this.points += earned;
+      this.$points.text(String(this.points));
+
+      this._showBonusBadge(bonusEarned);
+
+      return { earned, firstTry, bonusEarned };
+    }
+
+    _updateProgressBar() {
+      const steps = Math.max(1, this.numOfChallenges || 1);
+      const increment = 100 / steps;
+      let current = parseFloat(this.$progressBar.data("progress")) || 0;
+
+      current = Math.min(100, current + increment);
+
+      this.$progressBar.data("progress", current);
+      this.$progressBar.css({ width: current + "%" });
+
+      const completed = Math.min(steps, Math.max(0, Math.round(current / increment)));
+      this.$progressCounter.text(completed + " of " + steps);
+
+      return current;
+    }
+
+
+    _failAnimation() {
+      this._playFailSfx();
+
+      this.$interval.removeClass("text-blue").addClass("text-red");
+
+      this.$interval.removeClass("animate__animated animate__bounce");
+      void this.$interval[0].offsetWidth;
+      this.$interval.addClass("animate__animated animate__bounce");
+
+      this.$checkWrap.removeClass("animate__animated animate__shakeX");
+      void this.$checkWrap[0].offsetWidth;
+      this.$checkWrap.addClass("animate__animated animate__shakeX");
+
+      this.$checkWrap
+        .off("animationend._fail webkitAnimationEnd._fail oAnimationEnd._fail MSAnimationEnd._fail")
+        .one("animationend._fail webkitAnimationEnd._fail oAnimationEnd._fail MSAnimationEnd._fail", () => {
+          this.$checkWrap.removeClass("animate__animated animate__shakeX");
+          this.$interval.removeClass("animate__animated animate__bounce");
+          this.$interval.removeClass("text-red").addClass("text-blue");
+          this.$checkBtn.enable();
+        });
+    }
+
+    _onCheck() {
+      const notes = this._notesOnStaffOrdered();
+      this.$checkBtn.disable();
+
+      this._stats.checksTotal += 1;
+
+      if (notes.length !== 2) {
+        this._failAnimation();
+        this.$checkBtn[0] && this.$checkBtn[0].blur && this.$checkBtn[0].blur();
+        return;
+      }
+
+      const name = this._intervalNameBetween(notes[0], notes[1]);
+
+      if (name === this.$intervalLabel.text()) {
+        this._stats.checksCorrect += 1;
+
+        this._successAnimation();
+
+        const { earned } = this._awardPointsForCorrect();
+
+        $("#score").animateCSS && $("#score").animateCSS("heartBeat");
+        this._showIncrement(earned);
+
+        if (this._updateProgressBar() >= 100) {
+          this._stats.finishedAtMs = Date.now();
+
+          setTimeout(() => {
+            this._showFinalResults();
+          }, 1200);
+        } else {
+          $("#check").hide();
+          $("#continue").show();
+        }
+      } else {
+        this._failAnimation();
+        this._madeMistakeThisRound = true;
+      }
+    }
+
+    _showFinalResults() {
+      const total = Math.max(0, this._stats.checksTotal || 0);
+      const correct = Math.max(0, this._stats.checksCorrect || 0);
+      const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
+
+      const endMs = (this._stats.finishedAtMs != null) ? this._stats.finishedAtMs : Date.now();
+      const elapsedMs = Math.max(0, endMs - PAGE_OPENED_AT_MS);
+
+      const totalSeconds = Math.floor(elapsedMs / 1000);
+      const mm = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
+      const ss = String(totalSeconds % 60).padStart(2, "0");
+      const duration = `${mm}:${ss}`;
+
+      this.$finalOverlay.find('span[name="rounds"]').text(this.numOfChallenges);
+      this.$finalOverlay.find('span[name="score"]').text(this.points);
+      this.$finalOverlay.find('span[name="accuracy"]').text(accuracy + "%");
+      this.$finalOverlay.find('span[name="duration"]').text(duration);
+
+      this._playFinalSfx();
+      this.$finalOverlay.show();
+    }
+
+    _fixedNoteToStaffPosition(noteStr) {
+      const parsed = this._parsePitch(noteStr);
+      if (!parsed) return null;
+
+      const { midi, accOffset, accidentalClass } = parsed;
+
+      for (let step = this.staff.minStepAllowed(); step <= this.staff.maxStepAllowed(); step++) {
+        const baseMidi = this.staff._stepToMidi(step);
+        if (baseMidi + accOffset === midi) return { step, accidentalClass };
+      }
+
+      let best = null;
+      for (let step = this.staff.minStepAllowed(); step <= this.staff.maxStepAllowed(); step++) {
+        const baseMidi = this.staff._stepToMidi(step);
+        const dist = Math.abs((baseMidi + accOffset) - midi);
+        if (!best || dist < best.dist) best = { step, dist };
+      }
+      return best ? { step: best.step, accidentalClass } : null;
+    }
+
+    _parsePitch(pitch) {
+      const s = String(pitch || "").trim();
+      const m = s.match(/^([A-Ga-g])((?:#{1,2})|(?:b{1,2})|)?(\d+)$/);
+      if (!m) return null;
+
+      const letter = m[1].toUpperCase();
+      const acc = m[2] || "";
+      const octave = parseInt(m[3], 10);
+
+      const baseSemitoneFromC = { C:0, D:2, E:4, F:5, G:7, A:9, B:11 }[letter];
+      const accOffset = acc === "##" ? 2 : acc === "#" ? 1 : acc === "bb" ? -2 : acc === "b" ? -1 : 0;
+
+      const accidentalClass =
+        accOffset === 2 ? "music-font__doublesharp" :
+        accOffset === 1 ? "music-font__sharp" :
+        accOffset === -1 ? "music-font__flat" :
+        accOffset === -2 ? "music-font__doubleflat" :
+        "music-font__natural";
+
+      const midi = 12 * (octave + 1) + baseSemitoneFromC + accOffset;
+      return { midi, accOffset, accidentalClass };
+    }
   }
-
-  _parsePitch(pitch) {
-    const s = String(pitch || "").trim();
-    const m = s.match(/^([A-Ga-g])((?:#{1,2})|(?:b{1,2})|)?(\d+)$/);
-    if (!m) return null;
-
-    const letter = m[1].toUpperCase();
-    const acc = m[2] || "";
-    const octave = parseInt(m[3], 10);
-
-    const baseSemitoneFromC = { C:0, D:2, E:4, F:5, G:7, A:9, B:11 }[letter];
-    const accOffset = acc === "##" ? 2 : acc === "#" ? 1 : acc === "bb" ? -2 : acc === "b" ? -1 : 0;
-
-    const accidentalClass =
-      accOffset === 2 ? "music-font__doublesharp" :
-      accOffset === 1 ? "music-font__sharp" :
-      accOffset === -1 ? "music-font__flat" :
-      accOffset === -2 ? "music-font__doubleflat" :
-      "music-font__natural";
-
-    const midi = 12 * (octave + 1) + baseSemitoneFromC + accOffset;
-    return { midi, accOffset, accidentalClass };
-  }
-}
-
 
   window.IntervalChallenge = IntervalChallenge;
 
-  function getUrlParam(param, defaultValue) {
-    const v = new URLSearchParams(location.search).get(param);
-    return v == null ? defaultValue : (/^[+-]?\d+$/.test(v) ? Number(v) : v);
-  }
 
-  let levels = {
-    beginner: {
-      intervals: ["M2", "m3", "M3", "P5", 'P8'],
-      hardIntervals: ["m3"],
-      accidentalWeights: {
-        natural: 20,
-        sharp: 0,
-        flat: 0
-      }
-    },
-    intermediate: {
-      intervals: ["m2", "M2", "m3", "M3", "P4", "P5", "m6", "M6", "m7", "M7", 'P8'],
-      hardIntervals: ["m7", "M7"],
-      accidentalWeights: {
-        natural: 12,
-        sharp: 4,
-        flat: 4
-      }
-    },
-    advanced: {
-      accidentalWeights: {
-        natural: 8,
-        sharp: 6,
-        flat: 6
-      }
-    }
-  }
+const options = @json($challenge->options());
 
-  let baseOptions = {
-    {{-- clefs: ["tenor"], --}}
-    maxUserNotes: 1,
-    numOfChallenges: getUrlParam('rounds', 4),
-    levelName: getUrlParam('level', 'beginner'),
-    sound: getUrlParam('sound', null),
-    basePoints: 1,
-    firstTryBonus: 3
-  };
+const challenge = new IntervalChallenge(options);
 
-  let options = Object.assign(baseOptions, levels[baseOptions.levelName]);
+challenge.start();
 
-  const challenge = new IntervalChallenge(options);
-
-  challenge.start();
-  window.challenge = challenge;
-
-  $('select[name="level"] option[value="'+challenge.getLevel()+'"]').prop('selected', true);
-  $('input[name="rounds"]').val(challenge.getRounds());
-  $('input[name="sound"]').prop("checked", challenge.isSoundEnabled());
-
-  $('input[name="sound"]').off("change.intervalChallengeSound").on("change.intervalChallengeSound", function () {
-    challenge.setSoundEnabled(this.checked);
-  });
+$(document).off("change.settingsToggles").on("change.settingsToggles", 'input[name="intervals[]"], input[name="clefs[]"]', function () {
+  const $label = $(this).siblings("label");
+  $label.removeClass("btn-white btn-secondary");
+  $label.addClass(this.checked ? "btn-secondary" : "btn-white");
+});
 
 })(jQuery);
 </script>
