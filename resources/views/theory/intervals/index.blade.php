@@ -260,8 +260,19 @@ $('.settings-menu button').click(function() {
   $(this).removeClass('btn-outline-secondary').addClass('btn-secondary');
   $otherButton.addClass('btn-outline-secondary').removeClass('btn-secondary');
 
-  $($(this).data('target')).show();
-  $($otherButton.data('target')).hide();
+  $('#'+$(this).data('mode')).show();
+  $('#'+$otherButton.data('mode')).hide();
+});
+
+$(document).on('change', 'input[name="intervals[]"], input[name="clefs[]"]', function() {
+  let $label = $(this).siblings('label');
+
+  $label.removeClass('btn-white btn-secondary');
+  if (this.checked) {
+    $label.addClass('btn-secondary');
+  } else {
+    $label.addClass('btn-white');
+  }
 });
 </script>
 
