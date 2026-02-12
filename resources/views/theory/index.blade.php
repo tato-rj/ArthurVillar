@@ -7,7 +7,7 @@
 <section class="container py-5">
     <h1 class="text-center mb-4">Music Theory Challenges</h1>
     <div class="row">
-        <div class="col-lg-6 col-md-8 col-12 mx-auto">
+        <div class="col-lg-6 col-md-8 col-10 mx-auto">
             <div class="mb-5">
                 <h3>Intervals</h3>
                 <p>A fast, engaging music game that sharpens your note reading and musical thinking. Short challenges, instant feedback, and a score that pushes you to improve each time. Perfect for quick practice that actually builds real skills.</p>
