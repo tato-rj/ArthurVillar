@@ -124,7 +124,7 @@ html, body, * {
     transform: rotate(var(--note-rotate));
     margin-left: calc(var(--note-center-x) * -1);
     margin-top: calc(var(--note-center-y) * -1);
-    z-index: 2;
+    z-index: 10;
   }
 
   #staff.show-letternames .note .lettername { display: block; }
@@ -1555,6 +1555,9 @@ html, body, * {
       this.$progressBar = $("#progress-bar");
       this.$progressCounter = $("#progress-counter");
       this.$help = $("#help");
+      this.$helpModal = $("#help-modal");
+      this._currentIntervalAbbr = null;
+      this._fixedNote = { letterWithAcc: "?", letterOnly: "?" };
 
       this.successPhrases = ["Awesome", "Nicely done", "Well done", "Great job", "Hooray", "Fantastic", "Nice work", "Looks good", "Good one"];
 
@@ -1611,6 +1614,8 @@ html, body, * {
 
     _setIntervalUI(intervalAbbr) {
       const abbr = String(intervalAbbr || "").trim();
+      this._currentIntervalAbbr = abbr;
+
       if (this.$intervalLabel && this.$intervalLabel.length) this.$intervalLabel.text(abbr);
       if (this.$intervalFull && this.$intervalFull.length) this.$intervalFull.text(this._fullNameForInterval(abbr));
     }
@@ -1791,6 +1796,13 @@ html, body, * {
               .text(letterOnly);
           }
 
+          if (data.source === "fixed") {
+            this._fixedNote = {
+              letterWithAcc: letterOnly,                   // "Eb"
+              letterOnly: letterOnly.replace(/[#b]+$/, "") // "E"
+            };
+          }
+
           console.log(
             (data.source === "fixed" ? "Fixed note:" : "User note:"),
             full,
@@ -1819,6 +1831,27 @@ html, body, * {
       }
     }
 
+_populateHelpText() {
+  if (!this.$helpModal || !this.$helpModal.length) return;
+
+  const abbr = this._currentIntervalAbbr || (this.$intervalLabel && this.$intervalLabel.text()) || "";
+  const full = this._fullNameForInterval(abbr);
+  const m = String(abbr).match(/(\d+)$/);
+  const n = m ? parseInt(m[1], 10) : null;
+
+  const initial = (this._fixedNote && this._fixedNote.letterWithAcc) ? this._fixedNote.letterWithAcc : "?";
+  const baseLetter = (this._fixedNote && this._fixedNote.letterOnly) ? this._fixedNote.letterOnly : "?";
+
+  const letters = ["C","D","E","F","G","A","B"];
+  const idx = letters.indexOf(String(baseLetter).toUpperCase());
+  const newLetter = (idx >= 0 && n != null) ? letters[(idx + (n - 1)) % 7] : "?";
+
+  this.$helpModal.find("strong[full-interval]").text(full);
+  this.$helpModal.find("strong[short-interval]").text(n != null ? String(n) : "?");
+  this.$helpModal.find("strong[initial-note]").text(initial);
+  this.$helpModal.find("strong[new-note]").text(newLetter);
+}
+
     _resetProgress() {
       this.$progressBar.data("progress", 0);
       this.$progressBar.css({ width: "0%" });
@@ -1827,7 +1860,7 @@ html, body, * {
 
     newChallenge() {
       this.$help.hide(); 
-      
+
       const clef = this._currentClefForChallenge();
       if (clef && clef !== this.staff.getClef()) this.staff.setClef(clef);
 
@@ -2033,6 +2066,7 @@ html, body, * {
         this._failAnimation();
         this.$checkBtn[0] && this.$checkBtn[0].blur && this.$checkBtn[0].blur();
         this.$help.show();
+        this._populateHelpText();
         return;
       }
 
@@ -2062,6 +2096,7 @@ html, body, * {
         this._failAnimation();
         this._madeMistakeThisRound = true;
         this.$help.show();
+        this._populateHelpText();
       }
     }
 

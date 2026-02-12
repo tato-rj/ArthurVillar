@@ -6,7 +6,7 @@
     <div id="check" class="btn-floating w-100 invisible">
       <button class="btn btn-primary w-100">Check my answer</button>
     </div>
-    <div id="help" class="btn-floating w-100 mt-3" style="display: none">
+    <div id="help" data-bs-toggle="modal" data-bs-target="#help-modal" class="btn-floating w-100 mt-3" style="display: none">
       <button class="btn btn-blue w-100">@fa(['icon' => 'question-circle'])Need help?</button>
     </div>
   </div>
@@ -28,3 +28,4 @@
 
 @include('theory.intervals.modals.settings')
 @include('theory.intervals.modals.instructions')
+@include('theory.intervals.modals.help')
