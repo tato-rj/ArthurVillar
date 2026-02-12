@@ -238,7 +238,7 @@
 @endpush
 
 @section('content')
-<section id="page-wrapper" class="container py-5">
+<section id="page-wrapper" class="container py-4">
   <div class="text-center mb-4">
     <h3 class="mb-1">Intervals Challenge</h3>
     <p class="m-0">Add the note that forms the indicated interval</p>
