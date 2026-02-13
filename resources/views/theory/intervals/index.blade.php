@@ -1667,7 +1667,7 @@ shorten(window.location.href)
         const now = Tone.now();
         const notes = ["C6", "E6", "G6", "C7"];
         notes.forEach((n, i) => {
-          this._uiSfxSynth.triggerAttackRelease(n, 0.08, now + i * 0.06, 0.1);
+          this._uiSfxSynth.triggerAttackRelease(n, 0.08, now + i * 0.06, 0.2);
         });
       });
     }
