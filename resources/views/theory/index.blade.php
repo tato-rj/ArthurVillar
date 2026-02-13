@@ -4,7 +4,7 @@
 @endpush
 
 @section('content')
-<section class="container py-5">
+<section class="container py-4">
     <div class="row">
         <div class="col-lg-6 col-md-8 col-10 mx-auto">
             <h1 class="text-center mb-4">Music Theory Challenges</h1>
