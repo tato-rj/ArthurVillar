@@ -167,13 +167,17 @@ html, body, * {
     pointer-events: none;
   }
 
-  #feedback-success .message {
-    font-size: 2rem;
+  #feedback-success {
     height: 66.4px;
   }
 
+  #feedback-success .message {
+    font-size: 2rem;
+    
+  }
+
   #feedback-success .bonus-wrapper {
-    top: -18px;
+    top: -4px;
     left: 50%;
     transform: translateX(-50%);
   }
