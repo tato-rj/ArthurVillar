@@ -1683,11 +1683,11 @@ shorten(window.location.href)
         const now = Tone.now();
 
         if (this._uiSfxNoise) {
-          this._uiSfxNoise.triggerAttackRelease(0.06, now, 0.4);
+          this._uiSfxNoise.triggerAttackRelease(0.06, now, 0.2);
         }
         if (this._uiSfxSynth) {
-          this._uiSfxSynth.triggerAttackRelease("A2", 0.10, now + 0.01, 0.4);
-          this._uiSfxSynth.triggerAttackRelease("G2", 0.12, now + 0.08, 10.4);
+          this._uiSfxSynth.triggerAttackRelease("A2", 0.10, now + 0.01, 0.2);
+          this._uiSfxSynth.triggerAttackRelease("G2", 0.12, now + 0.08, 10.2);
         }
       });
     }
