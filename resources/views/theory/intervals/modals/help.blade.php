@@ -7,7 +7,7 @@
 <h6 class="bg-blue text-white px-2 py-1 small">Step 1</h6>
 <p class="">If we count <strong short-interval class="text-blue">7</strong> <u>letters up</u> from <strong initial-note>E</strong>: we arrive at <strong new-note class="text-green">D</strong>.</p>
 
-<p class="m-0">Feel free to count down instead! The new note will be different.</p>
+<p class="m-0">Feel free to count down instead! The new note may be different.</p>
 </div>
 
 <div class="bg-light border p-2">

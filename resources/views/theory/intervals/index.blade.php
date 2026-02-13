@@ -1,4 +1,4 @@
-@extends('layouts.app', ['noMenu' => true])
+@extends('layouts.app', ['title' => 'Intervals Challenge', 'noMenu' => true])
 
 @push('header')
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
@@ -277,6 +277,22 @@ html, body, * {
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.js"></script>
 <script type="text/javascript" src="{{ asset('js/vendor/jquery-ui.min.js') }}"></script>
+
+<script>
+// Node 18+ (has fetch)
+async function shorten(longUrl) {
+  const res = await fetch(
+    `https://tinyurl.com/api-create.php?url=${encodeURIComponent(longUrl)}`
+  );
+  if (!res.ok) throw new Error(`TinyURL error: ${res.status}`);
+  return await res.text(); // returns the short URL as plain text
+}
+
+shorten(window.location.href)
+  .then(console.log)
+  .catch(console.error);
+
+</script>
 
 <script>
 (function ($) {
@@ -1651,7 +1667,7 @@ html, body, * {
         const now = Tone.now();
         const notes = ["C6", "E6", "G6", "C7"];
         notes.forEach((n, i) => {
-          this._uiSfxSynth.triggerAttackRelease(n, 0.08, now + i * 0.06, 0.9);
+          this._uiSfxSynth.triggerAttackRelease(n, 0.08, now + i * 0.06, 0.4);
         });
       });
     }
