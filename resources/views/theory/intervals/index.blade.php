@@ -46,6 +46,28 @@ html, body, * {
     --ghost-opacity: .5;
   }
 
+/* Hint note + ledgers (temporary answer reveal) */
+.note.hint,
+.ledger.hint {
+  background: rgba(255, 215, 0, 0.65); /* transparent yellow */
+  opacity: 1; /* override ledger default opacity */
+  pointer-events: none;
+}
+
+/* Blink 3 times (note + ledgers together) */
+.note.hint.blink,
+.ledger.hint.blink,
+.accidental.hint.blink {
+  animation: hintBlink 0.35s ease-in-out 0s 3;
+}
+
+@keyframes hintBlink {
+  0%   { opacity: 1; }
+  50%  { opacity: 0.15; }
+  100% { opacity: 1; }
+}
+
+
   #final-overlay {
     background: rgba(255,255,255,0.96);
     display: none;
@@ -157,6 +179,15 @@ html, body, * {
     border-radius: 999px;
     z-index: 2;
   }
+/* Hint accidental should match ghost yellow */
+.accidental.hint {
+  color: rgba(255, 215, 0, 0.65);
+}
+
+.note.hint { z-index: 60; }
+.ledger.hint { z-index: 55; }
+.accidental.hint { z-index: 65; }
+
 
   .note.preview,
   .ledger.preview,
@@ -583,9 +614,10 @@ shorten(window.location.href)
     return Number.isFinite(v) ? v : Infinity;
   };
 
-  Staff.prototype._userNoteCount = function () {
-    return this.$el.find(".note").not(".fixed").not(".preview").length;
-  };
+Staff.prototype._userNoteCount = function () {
+  return this.$el.find(".note").not(".fixed").not(".preview").not(".hint").length;
+};
+
 
   Staff.prototype._computeLayout = function () {
     const h = this.$el.height();
@@ -974,7 +1006,8 @@ shorten(window.location.href)
     const step = Number.isFinite(cfg.step) ? Number(cfg.step) : null;
 
     if (Number.isFinite(step) && !this._isStepAllowed(step)) return null;
-    if (Number.isFinite(step) && this._isStepOccupied(step, null)) return null;
+    if (Number.isFinite(step) && !cfg.allowOccupied && this._isStepOccupied(step, null)) return null;
+
 
     const y = Number.isFinite(cfg.y)
       ? Number(cfg.y)
@@ -999,8 +1032,14 @@ shorten(window.location.href)
       this._renderLedgers(id, x, step);
     }
 
-    this._resolveNoteOverlaps();
-    return id;
+if (!cfg.skipResolve) {
+  this._resolveNoteOverlaps();
+} else {
+  // Keep layout stable; still keep accidentals aligned
+  this._repositionAllAccidentals();
+}
+return id;
+
   };
 
   Staff.prototype.moveNote = function (id, pos) {
@@ -1574,10 +1613,10 @@ shorten(window.location.href)
       this.$checkWrap = this.$checkBtn.parent();
       this.$progressBar = $("#progress-bar");
       this.$progressCounter = $("#progress-counter");
-      this.$help = $("#help");
-      this.$helpModal = $("#help-modal");
+      this.$helpBtn = $("#help");
       this._currentIntervalAbbr = null;
       this._fixedNote = { letterWithAcc: "?", letterOnly: "?" };
+      this._fixedState = null;
 
       this.successPhrases = ["Awesome", "Nicely done", "Well done", "Great job", "Hooray", "Fantastic", "Nice work", "Looks good", "Good one"];
 
@@ -1587,6 +1626,7 @@ shorten(window.location.href)
       this.points = 0;
       this._madeMistakeThisRound = false;
       this._continueBound = false;
+      this._usedHintThisRound = false;
 
       this._stats = {
         checksTotal: 0,
@@ -1816,12 +1856,19 @@ shorten(window.location.href)
               .text(letterOnly);
           }
 
-          if (data.source === "fixed") {
-            this._fixedNote = {
-              letterWithAcc: letterOnly,                   // "Eb"
-              letterOnly: letterOnly.replace(/[#b]+$/, "") // "E"
-            };
-          }
+if (data.source === "fixed") {
+  this._fixedNote = {
+    letterWithAcc: letterOnly,
+    letterOnly: letterOnly.replace(/[#b]+$/, "")
+  };
+
+  // ✅ store exact fixed state for hint calculation
+  this._fixedState = {
+    step: data.step,
+    accidentalClass: data.accidentalClass || null,
+    midi: data.midi
+  };
+}
 
           console.log(
             (data.source === "fixed" ? "Fixed note:" : "User note:"),
@@ -1831,6 +1878,61 @@ shorten(window.location.href)
         });
     }
 
+_showHintNote() {
+  // Remove any previous hint
+  this.staff.removeNote("hint");
+
+  // Try real computed answer
+  const ans = this._computeHintAnswer();
+
+  // Fallback to any note if something is missing (should be rare)
+  let step = ans ? ans.step : null;
+  let accidentalClass = ans ? ans.accidentalClass : null;
+
+  if (step == null) {
+    const min = this.staff.minStepAllowed();
+    const max = this.staff.maxStepAllowed();
+    for (let tries = 0; tries < 50; tries++) {
+      const s = randomInt(min, max);
+      if (!this.staff._isStepOccupied(s, null)) { step = s; break; }
+    }
+  }
+
+  if (step == null) return;
+
+const id = this.staff.addNote({
+  id: "hint",
+  step: step,
+  className: "hint blink",
+  allowOccupied: true, // ✅ allow overlay on top of user note
+  skipResolve: true    // ✅ don't shove notes around
+});
+
+  if (!id) return;
+
+  // Attach accidental (if any)
+  if (accidentalClass) {
+    this.staff.attachAccidentalToNote("hint", accidentalClass);
+    // Also style accidental as hint+blink
+    this.$staffEl.find('.accidental[data-for-note-id="hint"]').addClass("hint blink");
+  }
+
+  // Make ledger lines match hint color (+ blink)
+  this.$staffEl.find('.ledger[data-for-note-id="hint"]').addClass("hint blink");
+
+  // Remove after blink ends
+  const $note = this.$staffEl.find('.note[data-note-id="hint"]');
+  if ($note.length) {
+    $note.off("animationend.hint webkitAnimationEnd.hint")
+      .one("animationend.hint webkitAnimationEnd.hint", () => {
+        this.staff.removeNote("hint");
+      });
+  }
+}
+
+
+
+
     _wireControls() {
       $("#clear").off("click.intervalChallenge").on("click.intervalChallenge", () => {
         this.staff.clearNotes();
@@ -1838,6 +1940,11 @@ shorten(window.location.href)
 
       this.$checkBtn.off("click.intervalChallenge").on("click.intervalChallenge", () => {
         this._onCheck();
+      });
+
+      this.$helpBtn.off("click.intervalChallengeHelp").on("click.intervalChallengeHelp", () => {
+        this._usedHintThisRound = true;
+        this._showHintNote();
       });
 
       if (!this._continueBound) {
@@ -1851,27 +1958,6 @@ shorten(window.location.href)
       }
     }
 
-_populateHelpText() {
-  if (!this.$helpModal || !this.$helpModal.length) return;
-
-  const abbr = this._currentIntervalAbbr || (this.$intervalLabel && this.$intervalLabel.text()) || "";
-  const full = this._fullNameForInterval(abbr);
-  const m = String(abbr).match(/(\d+)$/);
-  const n = m ? parseInt(m[1], 10) : null;
-
-  const initial = (this._fixedNote && this._fixedNote.letterWithAcc) ? this._fixedNote.letterWithAcc : "?";
-  const baseLetter = (this._fixedNote && this._fixedNote.letterOnly) ? this._fixedNote.letterOnly : "?";
-
-  const letters = ["C","D","E","F","G","A","B"];
-  const idx = letters.indexOf(String(baseLetter).toUpperCase());
-  const newLetter = (idx >= 0 && n != null) ? letters[(idx + (n - 1)) % 7] : "?";
-
-  this.$helpModal.find("strong[full-interval]").text(full);
-  this.$helpModal.find("strong[short-interval]").text(n != null ? String(n) : "?");
-  this.$helpModal.find("strong[initial-note]").text(initial);
-  this.$helpModal.find("strong[new-note]").text(newLetter);
-}
-
     _resetProgress() {
       this.$progressBar.data("progress", 0);
       this.$progressBar.css({ width: "0%" });
@@ -1879,12 +1965,14 @@ _populateHelpText() {
     }
 
     newChallenge() {
-      this.$help.hide(); 
+      this.$helpBtn.hide(); 
+      this._fixedState = null;
 
       const clef = this._currentClefForChallenge();
       if (clef && clef !== this.staff.getClef()) this.staff.setClef(clef);
 
       this._madeMistakeThisRound = false;
+      this._usedHintThisRound = false;
       this.$bonusBadge.hide();
 
       const interval = this._pickInterval();
@@ -1932,18 +2020,108 @@ _populateHelpText() {
       return { step: randomInt(0, 7), accidentalClass };
     }
 
-    _notesOnStaffOrdered() {
-      const $notes = this.$staffEl.find(".note").not(".preview");
-      const notes = $notes.toArray().map(el => {
-        const id = el.getAttribute("data-note-id");
-        const step = this.staff._stepOfNoteEl(el);
-        const accCls = this.staff._getAttachedAccidentalClass(id);
-        const accOff = this.staff._accidentalClassToOffset(accCls);
-        return { id, step, accOff };
-      });
-      notes.sort((a, b) => a.step - b.step);
-      return notes;
-    }
+_parseIntervalAbbr(abbr) {
+  const s = String(abbr || "").trim();
+  const m = s.match(/^([PMAmd]+)(\d+)$/);
+  if (!m) return null;
+
+  return {
+    quality: m[1],          // "M", "m", "P", "A", "d", or repeats like "AA"
+    number: parseInt(m[2], 10)
+  };
+}
+
+_intervalSemitones(quality, simpleNum) {
+  const baseMajorPerfect = { 1:0, 2:2, 3:4, 4:5, 5:7, 6:9, 7:11, 8:12 }[simpleNum];
+  if (baseMajorPerfect == null) return null;
+
+  const isPerfectClass = (simpleNum === 1 || simpleNum === 4 || simpleNum === 5 || simpleNum === 8);
+
+  // Normalize multi-char qualities like "AA" or "dd"
+  const q = String(quality || "").trim();
+
+  if (isPerfectClass) {
+    if (q === "P") return baseMajorPerfect;
+    if (/^A+$/.test(q)) return baseMajorPerfect + q.length;
+    if (/^d+$/.test(q)) return baseMajorPerfect - q.length; // P -> d is -1
+    return null;
+  }
+
+  // Major/minor class
+  if (q === "M") return baseMajorPerfect;
+  if (q === "m") return baseMajorPerfect - 1;
+  if (/^A+$/.test(q)) return baseMajorPerfect + q.length;
+  if (/^d+$/.test(q)) return baseMajorPerfect - (q.length + 1); // M -> d is -2
+  return null;
+}
+
+_accidentalClassFromOffset(off) {
+  if (off === 2) return "music-font__doublesharp";
+  if (off === 1) return "music-font__sharp";
+  if (off === 0) return "music-font__natural";
+  if (off === -1) return "music-font__flat";
+  if (off === -2) return "music-font__doubleflat";
+  return null;
+}
+
+_computeHintAnswer() {
+  if (!this._fixedState) return null;
+
+  const abbr = this._currentIntervalAbbr || (this.$intervalLabel && this.$intervalLabel.text()) || "";
+  const parsed = this._parseIntervalAbbr(abbr);
+  if (!parsed || !Number.isFinite(parsed.number) || parsed.number < 1) return null;
+
+  const diatonicSteps = parsed.number - 1;
+
+  const simpleNum = ((parsed.number - 1) % 7) + 1;
+  const octaves = Math.floor((parsed.number - 1) / 7);
+
+  const baseSemiSimple = this._intervalSemitones(parsed.quality, simpleNum);
+  if (baseSemiSimple == null) return null;
+
+  const semitones = baseSemiSimple + (12 * octaves);
+
+  const fixedStep = this._fixedState.step;
+  const fixedMidi = this._fixedState.midi;
+
+  const minStep = this.staff.minStepAllowed();
+  const maxStep = this.staff.maxStepAllowed();
+
+  const tryDir = (dir) => {
+    const targetStep = fixedStep + (dir * diatonicSteps);
+    if (targetStep < minStep || targetStep > maxStep) return null;
+
+    const targetMidi = fixedMidi + (dir * semitones);
+    const naturalTargetMidi = this.staff._stepToMidi(targetStep);
+    const off = targetMidi - naturalTargetMidi;
+
+    // only support bb..## for now
+    if (off < -2 || off > 2) return null;
+
+    const accidentalClass = this._accidentalClassFromOffset(off);
+    if (!accidentalClass) return null;
+
+    return { step: targetStep, accidentalClass };
+  };
+
+  // Prefer UP if possible, otherwise DOWN.
+  return tryDir(+1) || tryDir(-1);
+}
+
+
+_notesOnStaffOrdered() {
+  const $notes = this.$staffEl.find(".note").not(".preview").not(".hint");
+  const notes = $notes.toArray().map(el => {
+    const id = el.getAttribute("data-note-id");
+    const step = this.staff._stepOfNoteEl(el);
+    const accCls = this.staff._getAttachedAccidentalClass(id);
+    const accOff = this.staff._accidentalClassToOffset(accCls);
+    return { id, step, accOff };
+  });
+  notes.sort((a, b) => a.step - b.step);
+  return notes;
+}
+
 
     _qualityFor(simpleNum, semitones) {
       const isPerfectClass = (simpleNum === 1 || simpleNum === 4 || simpleNum === 5 || simpleNum === 8);
@@ -1983,7 +2161,7 @@ _populateHelpText() {
 
     _successAnimation() {
       this._playSuccessSfx();
-      this.$help.hide(); 
+      this.$helpBtn.hide(); 
       this.$accidentals.addClass("invisible");
       this.$feedback.find(".message span").text(pickOne(this.successPhrases));
       this.$feedback.stop(true, true).fadeIn("fast");
@@ -2019,22 +2197,28 @@ _populateHelpText() {
       }
     }
 
-    _awardPointsForCorrect() {
-      const firstTry = !this._madeMistakeThisRound;
+_awardPointsForCorrect() {
+  if (this._usedHintThisRound) {
+    this._showBonusBadge(0);
+    return { earned: 0, firstTry: false, bonusEarned: 0 };
+  }
 
-      const base = Number.isFinite(this.opts.basePoints) ? this.opts.basePoints : 1;
-      const bonus = Number.isFinite(this.opts.firstTryBonus) ? this.opts.firstTryBonus : 0;
+  const firstTry = !this._madeMistakeThisRound;
 
-      const earned = firstTry ? (base + bonus) : base;
-      const bonusEarned = firstTry ? bonus : 0;
+  const base = Number.isFinite(this.opts.basePoints) ? this.opts.basePoints : 1;
+  const bonus = Number.isFinite(this.opts.firstTryBonus) ? this.opts.firstTryBonus : 0;
 
-      this.points += earned;
-      this.$points.text(String(this.points));
+  const earned = firstTry ? (base + bonus) : base;
+  const bonusEarned = firstTry ? bonus : 0;
 
-      this._showBonusBadge(bonusEarned);
+  this.points += earned;
+  this.$points.text(String(this.points));
 
-      return { earned, firstTry, bonusEarned };
-    }
+  this._showBonusBadge(bonusEarned);
+
+  return { earned, firstTry, bonusEarned };
+}
+
 
     _updateProgressBar() {
       const steps = Math.max(1, this.numOfChallenges || 1);
@@ -2085,8 +2269,7 @@ _populateHelpText() {
       if (notes.length !== 2) {
         this._failAnimation();
         this.$checkBtn[0] && this.$checkBtn[0].blur && this.$checkBtn[0].blur();
-        this.$help.show();
-        this._populateHelpText();
+        this.$helpBtn.show();
         return;
       }
 
@@ -2100,14 +2283,15 @@ _populateHelpText() {
         const { earned } = this._awardPointsForCorrect();
 
         $("#score").animateCSS && $("#score").animateCSS("heartBeat");
-        this._showIncrement(earned);
+
+        if (earned > 0) this._showIncrement(earned);
 
         if (this._updateProgressBar() >= 100) {
           this._stats.finishedAtMs = Date.now();
 
           setTimeout(() => {
             this._showFinalResults();
-          }, 1200);
+          }, 1600);
         } else {
           $("#check").hide();
           $("#continue").show();
@@ -2115,8 +2299,7 @@ _populateHelpText() {
       } else {
         this._failAnimation();
         this._madeMistakeThisRound = true;
-        this.$help.show();
-        this._populateHelpText();
+        this.$helpBtn.show();
       }
     }
 
