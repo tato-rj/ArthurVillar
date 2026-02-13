@@ -1682,8 +1682,8 @@ shorten(window.location.href)
           this._uiSfxNoise.triggerAttackRelease(0.06, now, 0.8);
         }
         if (this._uiSfxSynth) {
-          this._uiSfxSynth.triggerAttackRelease("A2", 0.10, now + 0.01, 4);
-          this._uiSfxSynth.triggerAttackRelease("G2", 0.12, now + 0.08, 4);
+          this._uiSfxSynth.triggerAttackRelease("A2", 0.10, now + 0.01, 1);
+          this._uiSfxSynth.triggerAttackRelease("G2", 0.12, now + 0.08, 1);
         }
       });
     }
