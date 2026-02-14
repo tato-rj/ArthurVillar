@@ -18,8 +18,8 @@
 </script>
 
 <style>
-  #staff, #staff-wrapper, .accidental-tool, #accidentals {
-  touch-action: none; /* allow JS to handle touch drag */
+#accidentals, .accidental-tool, #staff {
+  touch-action: none;
 }
 </style>
 @endpush
