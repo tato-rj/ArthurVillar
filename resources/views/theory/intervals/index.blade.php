@@ -22,17 +22,6 @@
   touch-action: none;
 }
 
-#staff {
-  .note.fixed {
-    background-color: #48494B !important;
-  }
-
-  .ledger.fixed,
-  .accidental.fixed {
-    background-color: #48494B !important;
-  }
-}
-
 #metrics-boxes .col-6:nth-child(1) { animation-delay: 0s; }
 #metrics-boxes .col-6:nth-child(2) { animation-delay: 0.1s; }
 #metrics-boxes .col-6:nth-child(3) { animation-delay: 0.2s; }
