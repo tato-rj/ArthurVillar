@@ -16,6 +16,12 @@
     tenor:  "{{ asset('images/clefs/tenor-clef.svg') }}",
   };
 </script>
+
+<style>
+  #staff, #staff-wrapper, .accidental-tool, #accidentals {
+  touch-action: none; /* allow JS to handle touch drag */
+}
+</style>
 @endpush
 
 @section('content')
