@@ -815,19 +815,45 @@ var IntervalChallenge = /*#__PURE__*/function () {
   }, {
     key: "_showFinalResults",
     value: function _showFinalResults() {
-      var total = Math.max(0, this._stats.checksTotal || 0);
-      var correct = Math.max(0, this._stats.checksCorrect || 0);
-      var accuracy = total > 0 ? Math.round(correct / total * 100) : 0;
-      var endMs = this._stats.finishedAtMs != null ? this._stats.finishedAtMs : Date.now();
-      var elapsedMs = Math.max(0, endMs - PAGE_OPENED_AT_MS);
-      var totalSeconds = Math.floor(elapsedMs / 1000);
-      var mm = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
-      var ss = String(totalSeconds % 60).padStart(2, "0");
-      var duration = "".concat(mm, ":").concat(ss);
-      this.$finalOverlay.find('span[name="rounds"]').text(this.numOfChallenges);
-      this.$finalOverlay.find('span[name="score"]').text(this.points);
-      this.$finalOverlay.find('span[name="accuracy"]').text(accuracy + "%");
-      this.$finalOverlay.find('span[name="duration"]').text(duration);
+      var _this$_stats$checksTo,
+        _this$_stats$checksCo,
+        _this$_stats$finished,
+        _window,
+        _this10 = this;
+      var total = Math.max(0, (_this$_stats$checksTo = this._stats.checksTotal) !== null && _this$_stats$checksTo !== void 0 ? _this$_stats$checksTo : 0);
+      var correct = Math.max(0, (_this$_stats$checksCo = this._stats.checksCorrect) !== null && _this$_stats$checksCo !== void 0 ? _this$_stats$checksCo : 0);
+      var accuracy = total ? Math.round(correct / total * 100) : 0;
+      var endMs = (_this$_stats$finished = this._stats.finishedAtMs) !== null && _this$_stats$finished !== void 0 ? _this$_stats$finished : Date.now();
+      var totalSeconds = Math.max(0, Math.floor((endMs - PAGE_OPENED_AT_MS) / 1000));
+      var CountUpCtor = (_window = window) === null || _window === void 0 || (_window = _window.CountUp) === null || _window === void 0 ? void 0 : _window.CountUp;
+      var DURATION = 3.5;
+      var mmss = function mmss(secs) {
+        var v = Math.max(0, Math.floor(secs));
+        var mm = String(Math.floor(v / 60)).padStart(2, "0");
+        var ss = String(v % 60).padStart(2, "0");
+        return "".concat(mm, ":").concat(ss);
+      };
+      var countTo = function countTo(selector, endVal) {
+        var opts = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+        var el = _this10.$finalOverlay.find(selector)[0];
+        if (!el) return;
+        if (!CountUpCtor) {
+          el.textContent = String(opts.formattingFn ? opts.formattingFn(endVal) : endVal) + (opts.suffix || "");
+          return;
+        }
+        var c = new CountUpCtor(el, endVal, _objectSpread({
+          duration: DURATION
+        }, opts));
+        if (!c.error) c.start();
+      };
+      countTo('span[name="rounds"]', this.numOfChallenges);
+      countTo('span[name="score"]', this.points);
+      countTo('span[name="accuracy"]', accuracy, {
+        suffix: "%"
+      });
+      countTo('span[name="duration"]', totalSeconds, {
+        formattingFn: mmss
+      });
       this._playFinalSfx();
       this.$finalOverlay.show();
     }

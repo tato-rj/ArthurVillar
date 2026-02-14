@@ -766,27 +766,47 @@ _onCheck() {
     }
   }
 
+
   _showFinalResults() {
-    const total = Math.max(0, this._stats.checksTotal || 0);
-    const correct = Math.max(0, this._stats.checksCorrect || 0);
-    const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
+    const total = Math.max(0, this._stats.checksTotal ?? 0);
+    const correct = Math.max(0, this._stats.checksCorrect ?? 0);
+    const accuracy = total ? Math.round((correct / total) * 100) : 0;
 
-    const endMs = (this._stats.finishedAtMs != null) ? this._stats.finishedAtMs : Date.now();
-    const elapsedMs = Math.max(0, endMs - PAGE_OPENED_AT_MS);
+    const endMs = this._stats.finishedAtMs ?? Date.now();
+    const totalSeconds = Math.max(0, Math.floor((endMs - PAGE_OPENED_AT_MS) / 1000));
 
-    const totalSeconds = Math.floor(elapsedMs / 1000);
-    const mm = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
-    const ss = String(totalSeconds % 60).padStart(2, "0");
-    const duration = `${mm}:${ss}`;
+    const CountUpCtor = window?.CountUp?.CountUp;
+    const DURATION = 3.5;
 
-    this.$finalOverlay.find('span[name="rounds"]').text(this.numOfChallenges);
-    this.$finalOverlay.find('span[name="score"]').text(this.points);
-    this.$finalOverlay.find('span[name="accuracy"]').text(accuracy + "%");
-    this.$finalOverlay.find('span[name="duration"]').text(duration);
+    const mmss = (secs) => {
+      const v = Math.max(0, Math.floor(secs));
+      const mm = String(Math.floor(v / 60)).padStart(2, "0");
+      const ss = String(v % 60).padStart(2, "0");
+      return `${mm}:${ss}`;
+    };
+
+    const countTo = (selector, endVal, opts = {}) => {
+      const el = this.$finalOverlay.find(selector)[0];
+      if (!el) return;
+
+      if (!CountUpCtor) {
+        el.textContent = String(opts.formattingFn ? opts.formattingFn(endVal) : endVal) + (opts.suffix || "");
+        return;
+      }
+
+      const c = new CountUpCtor(el, endVal, { duration: DURATION, ...opts });
+      if (!c.error) c.start();
+    };
+
+    countTo('span[name="rounds"]', this.numOfChallenges);
+    countTo('span[name="score"]', this.points);
+    countTo('span[name="accuracy"]', accuracy, { suffix: "%" });
+    countTo('span[name="duration"]', totalSeconds, { formattingFn: mmss });
 
     this._playFinalSfx();
     this.$finalOverlay.show();
   }
+
 
   _fixedNoteToStaffPosition(noteStr) {
     const parsed = this._parsePitch(noteStr);
