@@ -22,10 +22,6 @@
   touch-action: none;
 }
 </style>
-<script
-  src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.8.11/dist/dotlottie-wc.js"
-  type="module"
-></script>
 @endpush
 
 @section('content')
