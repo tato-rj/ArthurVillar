@@ -1,6 +1,6 @@
 @modal(['title' => fa('gear').' Game settings', 'id' => 'intervals-settings-modal'])
 <form id="intervals-settings" method="GET" action="{{ route('theory.intervals.play') }}">
-  <div class="d-apart mb-3">
+  <div class="d-apart mb-4">
     <label class="nowrap">Number of rounds</label>
     <div class="d-center form-number">
       <button style="touch-action: manipulation;" type="button" data-direction="down" class="btn-raw text-dark">@fa(['icon' => 'minus', 'mr' => 0, 'fa_size' => 'xl'])</button>
@@ -9,7 +9,7 @@
     </div>
   </div>
 
-  <div class="mb-3">
+  <div class="mb-4">
     <label class="nowrap">Intervals</label>
     <div class="d-flex flex-wrap">
       @foreach($challenge->getIntervals() as $interval)
@@ -21,7 +21,7 @@
     </div>
   </div>
 
-  <div class="mb-3">
+  <div class="mb-4">
     <label class="nowrap">Clefs</label>
     <div class="d-flex flex-wrap">
       @foreach($challenge->getClefs() as $clef)
@@ -33,23 +33,21 @@
     </div>
   </div>
 
-  <div class="d-apart mb-3">
+  <div class="d-apart mb-4">
     <label>Sound effects</label>
     @toggle(['name' => 'sound', 'on' => $challenge->options('sound')])
   </div>
 
-  <div class="d-apart mb-3">
+  <div class="d-apart mb-4">
     <label>Show letter names</label>
     @toggle(['name' => 'showLetterNames', 'on' => $challenge->options('showLetterNames')])
   </div>
 
-  <div class="d-apart mb-3">
+  <div class="d-apart mb-4">
     <label>Accidentals on the initial note</label>
     @toggle(['name' => 'allowInitialAccidentals', 'on' => $challenge->options('allowInitialAccidentals')])
   </div>
 
-  <div class="mt-4">
-    <button type="submit" class="btn btn-primary w-100">Start new game</button>
-  </div>
+  <button type="submit" class="btn btn-primary w-100">Start new game</button>
 </form>
 @endmodal

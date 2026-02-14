@@ -1,13 +1,19 @@
 @modal(['title' => fa('book').' Instructions', 'id' => 'instructions-modal'])
-<p>Each round shows an interval name (like M3 or P5) and gives you a starting note on the staff.</p>
-<p>You have to add a new note, above or below, following the indicated interval.</p>
+<p>Each round shows an <strong>interval</strong> (like M3 or P5) and a <strong>starting note</strong> on the staff.</p>
+<p>Add a <strong>new note above or below</strong> the initial note to match the interval.</p>
 
-<h6>How to add a note?</h6>
-<p class="mb-5"><strong>Tap</strong> the staff to place your note and <strong>drag</strong> it to adjust.</p>
+<div class="bg-yellow-lighter border p-3 mb-3">
+	<h6><u>How to add a note?</u></h6>
+	<p class="m-0"><strong>Tap</strong> the staff to place a note, then <strong>drag</strong> to adjust it.</p>
+</div>
 
-<h6>How do I add accidentals?</h6>
-<p class="mb-5"><strong>Drag and drop</strong> sharps/flats/naturals on the note when needed. For double sharps or double flats, just drag and drop twice.</p>
+<div class="bg-green-lighter border p-3 mb-3">
+	<h6><u>How to add accidentals?</u></h6>
+	<p class="m-0"><strong>Drag and drop</strong> sharps, flats, or naturals onto the note. For double sharps or flats, drag and drop twice.</p>
+</div>
 
-<h6>What do I do if I’m stuck?</h6>
-<p>If you make a mistake, a <strong>help button</strong> appears. Click it to see the answer. Ps: using help gives you no points for that round.</p>
+<div class="bg-red-lighter border p-3">
+	<h6><u>What do I do if I’m stuck?</u></h6>
+	<p class="m-0">If you make a mistake, a <strong>help button</strong> appears. Click it to see the answer. Using help gives no points for that round.</p>
+</div>
 @endmodal

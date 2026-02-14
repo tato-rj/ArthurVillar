@@ -6,29 +6,32 @@ use App\Games\GameFactory;
 
 class IntervalChallenge extends GameFactory
 {
-	protected $options = [];
-    protected $defaults = [
-        	'maxUserNotes' => 1,
-        	'numOfChallenges' => 4,
-        	'intervals' => ['M2', 'm3', 'M3', 'P5', 'P8'],
-        	'clefs' => ['treble', 'bass'],
-        	'fixedNotes' => [],
-        	'sound' => true,
-        	'showLetterNames' => false,
-        	'allowInitialAccidentals' => false
-        ];
-
-    public function __construct(array $request = [])
+    protected function requiredToggleKeys(): array
     {
-    	$this->options = array_replace($this->defaults, $request);
+        return ['sound', 'showLetterNames', 'allowInitialAccidentals'];
+    }
+
+    protected function defaults(): array
+    {
+        return [
+            'maxUserNotes' => 1,
+            'numOfChallenges' => 4,
+            'intervals' => ['M2', 'm3', 'M3', 'P5', 'P8'],
+            'clefs' => ['treble', 'bass'],
+            'fixedNotes' => [],
+            'sound' => true,
+            'showLetterNames' => false,
+            'allowInitialAccidentals' => false,
+        ];
     }
 
     public function options($key = null)
     {
-        $weights = $this->getAccidentalWeights()[(bool) $this->options['allowInitialAccidentals']];
+        $options = $this->applyUserPreferences();
 
-    	$array = array_merge($this->options, ['accidentalWeights' => $weights]);
+        $weights = $this->getAccidentalWeights()[(bool) $options['allowInitialAccidentals']];
+        $array = array_merge($options, ['accidentalWeights' => $weights]);
 
-		return $key ? $array[$key] : $array;
+        return $key ? $array[$key] : $array;
     }
 }

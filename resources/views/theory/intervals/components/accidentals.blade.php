@@ -1,4 +1,4 @@
-    <div id="accidentals" class="mt-">
+    <div id="accidentals" class="invisible">
       {{-- <label class="opacity-6" style="font-size: 70%;">Drag and drop</label> --}}
       {{-- <div  class="d-center"> --}}
         <label class="music-font music-font__sharp p-2"></label>

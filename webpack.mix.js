@@ -12,7 +12,9 @@ const mix = require('laravel-mix');
  */
 
 mix.js('resources/js/app.js', 'public/js')
+    .js('resources/js/music/games/index.js', 'public/js/music')
     .sass('resources/sass/app.scss', 'public/css')
+    .sass('resources/sass/musicgames.scss', 'public/css')
     .copyDirectory('resources/js/vendor', 'public/js/vendor')
     .copyDirectory('resources/images', 'public/images')
     .version();

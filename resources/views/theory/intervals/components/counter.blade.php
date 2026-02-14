@@ -1,5 +1,5 @@
 <div class="mb-2 d-flex align-items-center">
-	<a href="{{route('theory.index')}}" class="btn-raw text-grey" style="margin-top: 2px;">@fa(['icon' => 'times', 'fa_size' => 'xl'])</a>
+	<a href="{{route('theory.index')}}" class="btn-raw" style="margin-top: 2px;">@fa(['icon' => 'times', 'fa_size' => 'xl'])</a>
 
 	<div class="w-100 mr-2">
 		<div class="progress">
