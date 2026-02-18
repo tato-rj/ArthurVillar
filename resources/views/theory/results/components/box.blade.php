@@ -1,5 +1,14 @@
 <div class="col-6 animate__animated animate__bounceIn">
-	<div class="w-100 bg-light border border-dark {{$color}} rounded p-1 mb-3" style="border-radius: 8px !important;">
+	<div class="w-100 bg-light border border-dark {{$color}} position-relative rounded p-1 mb-3" style="border-radius: 8px !important;">
+		@if($name == 'score')
+		<div id="double-points">
+			<div class="d-center bg-primary animate__animated animate__tada">
+				<div class="d-center double-points__innerring">
+					<span class="fw-bold">2x</span>
+				</div>
+			</div>
+		</div>
+		@endif
 		<div class="pb-1 text-center fw-bold" style="font-size: 70%">{{$title}}</div>
 		<div class="text-{{$color}} border border-dark bg-white rounded fw-bold d-center px-2 py-3 h5 m-0" style="border-radius: 8px !important;">
 			@fa <span name="{{$name}}"></span>

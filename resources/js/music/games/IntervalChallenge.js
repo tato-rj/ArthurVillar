@@ -70,6 +70,7 @@ export class IntervalChallenge {
 
     this.$checkBtn = $("#check button");
     this.$finalOverlay = $("#final-overlay");
+    this.$doublePoints = $("#double-points");
     this.$checkWrap = this.$checkBtn.parent();
     this.$progressBar = $("#progress-bar");
     this.$progressCounter = $("#progress-counter");
@@ -85,6 +86,7 @@ export class IntervalChallenge {
     this.levelName = this.opts.levelName;
     this.points = 0;
     this._madeMistakeThisRound = false;
+    this._madeAnyMistake = false;
     this._continueBound = false;
     this._usedHintThisRound = false;
 
@@ -163,19 +165,62 @@ export class IntervalChallenge {
     this._uiSfxReady = true;
   }
 
-  _playSuccessSfx() {
-    if (!this.isSoundEnabled() || !window.Tone) return;
+_playSuccessSfxBasic() {
+  if (!this.isSoundEnabled() || !window.Tone) return;
 
-    this._ensureUiSfxAudio().then(() => {
-      if (!this._uiSfxSynth) return;
+  this._ensureUiSfxAudio().then(() => {
+    if (!this._uiSfxSynth) return;
 
-      const now = Tone.now();
-      const notes = ["C6", "E6", "G6", "C7"];
-      notes.forEach((n, i) => {
-        this._uiSfxSynth.triggerAttackRelease(n, 0.08, now + i * 0.06, 0.1);
-      });
+    const now = Tone.now();
+    const notes = ["C6", "E6", "G6"];
+    notes.forEach((n, i) => {
+      this._uiSfxSynth.triggerAttackRelease(n, 0.07, now + i * 0.05, 0.42);
     });
-  }
+  });
+}
+
+_playSuccessSfxBonus() {
+  if (!this.isSoundEnabled() || !window.Tone) return;
+
+  this._ensureUiSfxAudio().then(() => {
+    if (!this._uiSfxSynth) return;
+
+    const now = Tone.now();
+
+    // Temporarily brighten the synth for a more "win" feel
+    const oldEnv = { ...this._uiSfxSynth.get().envelope };
+    const oldOsc = this._uiSfxSynth.get().oscillator?.type;
+
+    try {
+      this._uiSfxSynth.set({
+        oscillator: { type: "sine" },
+        envelope: { attack: 0.004, decay: 0.12, sustain: 0.15, release: 0.65 },
+      });
+    } catch (_) {}
+
+    // Sparkly arpeggio + small lift
+    const arp = ["C6", "E6", "G6", "B6", "C7"];
+    arp.forEach((n, i) => {
+      this._uiSfxSynth.triggerAttackRelease(n, 0.06, now + i * 0.045, 0.45);
+    });
+
+    // Little "burst" chord on top
+    const chord = ["C6", "G6", "C7", "E7"];
+    chord.forEach((n) => {
+      this._uiSfxSynth.triggerAttackRelease(n, 0.12, now + 0.26, 0.30);
+    });
+
+    // Restore synth settings shortly after
+    setTimeout(() => {
+      try {
+        this._uiSfxSynth.set({
+          oscillator: { type: oldOsc || "triangle" },
+          envelope: oldEnv,
+        });
+      } catch (_) {}
+    }, 600);
+  });
+}
 
   _playFailSfx() {
     if (!this.isSoundEnabled() || !window.Tone) return;
@@ -229,6 +274,7 @@ export class IntervalChallenge {
   }
 
   start() {
+    this._madeAnyMistake = false;
     $("#instructions").show();
     $("#controls").show();
     $("#check").addClass("invisible");
@@ -422,6 +468,7 @@ export class IntervalChallenge {
   }
 
   _resetProgress() {
+    this._madeAnyMistake = false;
     this.$progressBar.data("progress", 0);
     this.$progressBar.css({ width: "0%" });
     this.$progressCounter.text('');
@@ -622,9 +669,11 @@ _intervalNameBetween(noteA, noteB) {
   return this._qualityFor(simpleNum, semitonesReduced) + diatonicNum;
 }
 
-_successAnimation() {
-  this._playSuccessSfx();
-  this.$helpBtn.hide(); 
+_successAnimation({ isBonus } = {}) {
+  if (isBonus) this._playSuccessSfxBonus();
+  else this._playSuccessSfxBasic();
+
+  this.$helpBtn.hide();
   this.$accidentals.addClass("invisible");
   this.$feedback.find(".message span").text(pickOne(this.successPhrases));
   this.$feedback.stop(true, true).fadeIn("fast");
@@ -724,47 +773,47 @@ _failAnimation() {
 }
 
 _onCheck() {
-    const notes = this._notesOnStaffOrdered();
-    this.$checkBtn.disable();
+  const notes = this._notesOnStaffOrdered();
+  this.$checkBtn.disable();
 
-    this._stats.checksTotal += 1;
+  this._stats.checksTotal += 1;
 
-    if (notes.length !== 2) {
-      this._failAnimation();
-      this.$checkBtn[0] && this.$checkBtn[0].blur && this.$checkBtn[0].blur();
-      this.$helpBtn.show();
-      return;
-    }
-
-    const name = this._intervalNameBetween(notes[0], notes[1]);
-
-    if (name === this.$intervalLabel.text()) {
-      this._stats.checksCorrect += 1;
-
-      this._successAnimation();
-
-      const { earned } = this._awardPointsForCorrect();
-
-      $("#score").animateCSS && $("#score").animateCSS("heartBeat");
-
-      if (earned > 0) this._showIncrement(earned);
-
-      if (this._updateProgressBar() >= 100) {
-        this._stats.finishedAtMs = Date.now();
-
-        setTimeout(() => {
-          this._showFinalResults();
-        }, 1600);
-      } else {
-        $("#check").hide();
-        $("#continue").show();
-      }
-    } else {
-      this._failAnimation();
-      this._madeMistakeThisRound = true;
-      this.$helpBtn.show();
-    }
+  if (notes.length !== 2) {
+    this._madeAnyMistake = true;
+    this._madeMistakeThisRound = true;
+    this._failAnimation();
+    this.$checkBtn[0] && this.$checkBtn[0].blur && this.$checkBtn[0].blur();
+    this.$helpBtn.show();
+    return;
   }
+
+  const name = this._intervalNameBetween(notes[0], notes[1]);
+
+  if (name === this.$intervalLabel.text()) {
+    this._stats.checksCorrect += 1;
+
+    const { earned, bonusEarned } = this._awardPointsForCorrect();
+
+    this._successAnimation({ isBonus: bonusEarned > 0 });
+
+    $("#score").animateCSS && $("#score").animateCSS("heartBeat");
+    if (earned > 0) this._showIncrement(earned);
+
+    if (this._updateProgressBar() >= 100) {
+      this._stats.finishedAtMs = Date.now();
+      setTimeout(() => this._showFinalResults(), 1600);
+    } else {
+      $("#check").hide();
+      $("#continue").show();
+    }
+  } else {
+    this._madeAnyMistake = true;
+    this._failAnimation();
+    this._madeMistakeThisRound = true;
+    this.$helpBtn.show();
+  }
+}
+
 
 
   _showFinalResults() {
@@ -774,6 +823,26 @@ _onCheck() {
 
     const endMs = this._stats.finishedAtMs ?? Date.now();
     const totalSeconds = Math.max(0, Math.floor((endMs - PAGE_OPENED_AT_MS) / 1000));
+
+    const perfectGame = total > 0 && !this._madeAnyMistake;
+    const finalPoints = perfectGame ? (this.points * 2) : this.points;
+
+  if (perfectGame) {
+    let $doublePoints = this.$doublePoints;
+    setTimeout(function () {
+      $doublePoints.show();
+    }, 1000);
+    console.log("[IntervalChallenge] Perfect game! 2x bonus applied.", {
+      basePoints: this.points,
+      finalPoints,
+    });
+  } else {
+    console.log("[IntervalChallenge] No perfect-game bonus.", {
+      basePoints: this.points,
+      finalPoints,
+      madeAnyMistake: this._madeAnyMistake,
+    });
+  }
 
     const CountUpCtor = window?.CountUp?.CountUp;
     const DURATION = 3.5;
@@ -799,7 +868,7 @@ _onCheck() {
     };
 
     countTo('span[name="rounds"]', this.numOfChallenges);
-    countTo('span[name="score"]', this.points);
+    countTo('span[name="score"]', finalPoints);
     countTo('span[name="accuracy"]', accuracy, { suffix: "%" });
     countTo('span[name="duration"]', totalSeconds, { formattingFn: mmss });
 
