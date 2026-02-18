@@ -12,8 +12,8 @@
                 @include('theory.intervals.modals.settings')
             @endcomponent
 
-            @component('theory.card', ['disabled' => true, 'title' => 'Chords', 'description' => 'Train chord recognition and harmony. Identify triads and 7th chords, get instant feedback, and build theory skills with short tasks.'])
-                {{-- @include('theory.intervals.modals.settings') --}}
+            @component('theory.card', ['disabled' => production(), 'title' => 'Chords', 'description' => 'Train chord recognition and harmony. Identify triads and 7th chords, get instant feedback, and build theory skills with short tasks.'])
+                @include('theory.chords.modals.settings')
             @endcomponent
 
             @component('theory.card', ['disabled' => true, 'title' => 'Ear Traning', 'description' => 'Practice melody and chord dictation. Listen, write what you hear, and get instant feedback to sharpen your ear.'])

@@ -14,4 +14,18 @@ class TheoryController extends Controller
 
         return view('theory.index', compact('challenge'));
     }
+
+    public function intervals(Request $request)
+    {
+        $challenge = new IntervalChallenge($request->all());
+
+        return view('theory.intervals.index', compact('challenge'));
+    }
+
+    public function chords(Request $request)
+    {
+        $challenge = new IntervalChallenge($request->all());
+
+        return view('theory.chords.index', compact('challenge'));
+    }
 }

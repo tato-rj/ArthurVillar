@@ -1,4 +1,4 @@
-import { IntervalChallenge } from "./IntervalChallenge.js";
+import { IntervalChallenge } from "./interval/IntervalChallenge.js";
 
 function readGlobal(name) {
   return typeof window !== "undefined" ? window[name] : undefined;
