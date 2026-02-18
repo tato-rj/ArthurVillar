@@ -273,6 +273,43 @@ _playSuccessSfxBonus() {
     });
   }
 
+_playPerfectGameBonusSfx() {
+  if (!this.isSoundEnabled() || !window.Tone) return;
+
+  this._ensureUiSfxAudio().then(() => {
+    if (!this._uiSfxSynth) return;
+
+    const oldEnv = { ...this._uiSfxSynth.get().envelope };
+    const oldOsc = this._uiSfxSynth.get().oscillator?.type;
+
+    try {
+      this._uiSfxSynth.set({
+        oscillator: { type: "triangle" },
+        envelope: { attack: 0.01, decay: 0.18, sustain: 0.25, release: 0.8 }
+      });
+    } catch (_) {}
+
+    const now = Tone.now();
+
+    const fanfare = ["C5", "E5", "G5", "C6", "E6", "G6", "C7"];
+    fanfare.forEach((n, i) => {
+      this._uiSfxSynth.triggerAttackRelease(n, 0.09, now + i * 0.06, 0.62);
+    });
+
+    const hit = ["C6", "G6", "C7", "E7"];
+    hit.forEach((n) => this._uiSfxSynth.triggerAttackRelease(n, 0.35, now + 0.48, 0.46));
+
+    setTimeout(() => {
+      try {
+        this._uiSfxSynth.set({
+          oscillator: { type: oldOsc || "triangle" },
+          envelope: oldEnv
+        });
+      } catch (_) {}
+    }, 1400);
+  });
+}
+
   start() {
     this._madeAnyMistake = false;
     $("#instructions").show();
@@ -828,10 +865,10 @@ _onCheck() {
     const finalPoints = perfectGame ? (this.points * 2) : this.points;
 
   if (perfectGame) {
-    let $doublePoints = this.$doublePoints;
-    setTimeout(function () {
-      $doublePoints.show();
-    }, 1000);
+    setTimeout(() => {
+      this.$doublePoints.show();
+      this._playPerfectGameBonusSfx();
+    }, 1750);
     console.log("[IntervalChallenge] Perfect game! 2x bonus applied.", {
       basePoints: this.points,
       finalPoints,

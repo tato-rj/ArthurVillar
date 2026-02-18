@@ -2,9 +2,9 @@
 	<div class="w-100 bg-light border border-dark {{$color}} position-relative rounded p-1 mb-3" style="border-radius: 8px !important;">
 		@if($name == 'score')
 		<div id="double-points">
-			<div class="d-center bg-primary animate__animated animate__tada">
+			<div class="d-center bg-primary animate__animated animate__tada border border-black">
 				<div class="d-center double-points__innerring">
-					<span class="fw-bold">2x</span>
+					<span class="fw-bold d-center border border-black">2x</span>
 				</div>
 			</div>
 		</div>
