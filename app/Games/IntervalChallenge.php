@@ -1,8 +1,6 @@
 <?php
 
-namespace App\Games\Intervals;
-
-use App\Games\GameFactory;
+namespace App\Games;
 
 class IntervalChallenge extends GameFactory
 {

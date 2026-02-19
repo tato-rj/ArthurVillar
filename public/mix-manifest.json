@@ -1,6 +1,7 @@
 {
     "/js/app.js": "/js/app.js?id=b2537892e43cd68e2c68acca8ec2696a",
-    "/js/music/index.js": "/js/music/index.js?id=bb404a8351b7a189c21d4593678b62d0",
+    "/js/music/intervals.js": "/js/music/intervals.js?id=25459afca7e63a844ca3f2666331b6c3",
+    "/js/music/chords.js": "/js/music/chords.js?id=5fe7c00852d50f46a6b0b05f0d4c64d8",
     "/css/app.css": "/css/app.css?id=3d15a76769daa7d9caad0d650c386064",
     "/fonts/vendor/@fortawesome/fontawesome-free/webfa-brands-400.woff2?c210719e60948b211a1260f79812efe5": "/fonts/vendor/@fortawesome/fontawesome-free/webfa-brands-400.woff2?c210719e60948b211a1260f79812efe5?id=552e767fb6056f7f34a4783c2933556e",
     "/fonts/vendor/@fortawesome/fontawesome-free/webfa-brands-400.ttf?1815e00441357e01619e5793e1caa78a": "/fonts/vendor/@fortawesome/fontawesome-free/webfa-brands-400.ttf?1815e00441357e01619e5793e1caa78a?id=7c8d1eaa468e8de72642d3fc43ee5ed2",

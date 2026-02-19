@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Theory;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Games\Intervals\IntervalChallenge;
+use App\Games\{IntervalChallenge, ChordsChallenge};
 
 class TheoryController extends Controller
 {
@@ -24,7 +24,7 @@ class TheoryController extends Controller
 
     public function chords(Request $request)
     {
-        $challenge = new IntervalChallenge($request->all());
+        $challenge = new ChordsChallenge($request->all());
 
         return view('theory.chords.index', compact('challenge'));
     }

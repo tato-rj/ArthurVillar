@@ -63,5 +63,5 @@
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.js"></script>
-<script src="{{ mix('js/music/index.js') }}"></script>
+<script src="{{ mix('js/music/intervals.js') }}"></script>
 @endpush

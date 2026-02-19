@@ -69,7 +69,10 @@ var BaseStaffGame = /*#__PURE__*/function () {
       levelName: "",
       successPhrases: ["Awesome", "Nicely done", "Well done", "Great job", "Hooray", "Fantastic", "Nice work", "Looks good", "Good one"],
       // namespace for jQuery event handlers (avoid collisions if multiple games exist)
-      namespace: "staffGame"
+      namespace: "staffGame",
+      // UI gating: how many USER notes before removing instructions / enabling Check
+      instructionsAfterUserNotes: 1,
+      checkAfterUserNotes: 1
     };
     this.opts = _objectSpread(_objectSpread({}, defaults), options || {});
     this.ns = this.opts.namespace || "staffGame";
@@ -397,16 +400,15 @@ var BaseStaffGame = /*#__PURE__*/function () {
       this._madeAnyMistake = false;
       $("#instructions").show();
       $("#controls").show();
-      $("#check").addClass("invisible");
-      this.$staffEl.off("staff:userNoteAdded._gate.".concat(this.ns)).one("staff:userNoteAdded._gate.".concat(this.ns), function () {
-        $("#instructions").remove();
-        $("#check").removeClass("invisible");
-      });
+      this._instructionsRemoved = false;
       this._wireAccidentalPalette();
       this._wireStaffTools();
       this._wireControls();
       this._resetProgress();
       this.newChallenge();
+      this._armUiGates({
+        resetInstructions: true
+      });
       $("#page-wrapper").fadeIn("fast");
     }
 
@@ -485,58 +487,147 @@ var BaseStaffGame = /*#__PURE__*/function () {
       if (!this._continueBound) {
         this._continueBound = true;
         $("#continue button").off("click.".concat(this.ns)).on("click.".concat(this.ns), function () {
-          $("#check").show();
           $("#continue").hide();
           _this8.newChallenge();
+          _this8._armUiGates({
+            resetInstructions: false
+          });
           _this8.$checkBtn.enable();
         });
       }
     }
 
+    // ------------------------ UI gating ------------------------
+  }, {
+    key: "_instructionsAfterUserNotes",
+    value: function _instructionsAfterUserNotes() {
+      var v = Number(this.opts.instructionsAfterUserNotes);
+      return Number.isFinite(v) && v >= 0 ? Math.floor(v) : 1;
+    }
+  }, {
+    key: "_checkAfterUserNotes",
+    value: function _checkAfterUserNotes() {
+      var v = Number(this.opts.checkAfterUserNotes);
+      return Number.isFinite(v) && v >= 0 ? Math.floor(v) : 1;
+    }
+  }, {
+    key: "_armUiGates",
+    value: function _armUiGates() {
+      var _this9 = this;
+      var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+        resetInstructions = _ref.resetInstructions;
+      var needForInstructions = this._instructionsAfterUserNotes();
+      var needForCheck = this._checkAfterUserNotes();
+      if (resetInstructions) this._instructionsRemoved = false;
+
+      // Ensure the check control occupies layout but is not visible until the gate opens.
+      $("#check").show().addClass("invisible");
+      this._userNotesSinceGate = 0;
+      this.$staffEl.off("staff:userNoteAdded._uiGate.".concat(this.ns)).on("staff:userNoteAdded._uiGate.".concat(this.ns), function () {
+        _this9._userNotesSinceGate += 1;
+        if (!_this9._instructionsRemoved && _this9._userNotesSinceGate >= needForInstructions) {
+          $("#instructions").remove();
+          _this9._instructionsRemoved = true;
+        }
+        if (_this9._userNotesSinceGate >= needForCheck) {
+          $("#check").removeClass("invisible");
+          _this9.$staffEl.off("staff:userNoteAdded._uiGate.".concat(_this9.ns));
+        }
+      });
+    }
+
     // ------------------------ hints ------------------------
+
+    /**
+     * Compute one hint note (legacy API).
+     *
+     * @returns {{step:number, accidentalClass?:string}|null}
+     */
   }, {
     key: "_computeHintAnswer",
     value: function _computeHintAnswer() {
       return null; // subclasses override
     }
+
+    /**
+     * Compute one or more hint notes.
+     *
+     * Subclasses can override this to return multiple notes (e.g. triads).
+     *
+     * @returns {Array<{id?:string, step:number|null, accidentalClass?:string|null}>}
+     */
+  }, {
+    key: "_computeHintAnswers",
+    value: function _computeHintAnswers() {
+      var single = this._computeHintAnswer();
+      return single ? [single] : [];
+    }
+  }, {
+    key: "_removeAllHintNotes",
+    value: function _removeAllHintNotes() {
+      var _this0 = this;
+      var ids = Array.isArray(this._activeHintIds) ? this._activeHintIds : [];
+      ids.forEach(function (id) {
+        return _this0.staff.removeNote(id);
+      });
+      this._activeHintIds = [];
+    }
+  }, {
+    key: "_randomFreeStep",
+    value: function _randomFreeStep() {
+      var min = this.staff.minStepAllowed();
+      var max = this.staff.maxStepAllowed();
+      for (var tries = 0; tries < 50; tries++) {
+        var step = Math.floor(Math.random() * (max - min + 1)) + min;
+        if (!this.staff._isStepOccupied(step, null)) return step;
+      }
+      return null;
+    }
+  }, {
+    key: "_attachHintBlinkRemoval",
+    value: function _attachHintBlinkRemoval(noteId) {
+      var _this1 = this;
+      var $note = this.$staffEl.find(".note[data-note-id=\"".concat(noteId, "\"]"));
+      if (!$note.length) return;
+      $note.off("animationend.hint.".concat(noteId, " webkitAnimationEnd.hint.").concat(noteId)).one("animationend.hint.".concat(noteId, " webkitAnimationEnd.hint.").concat(noteId), function () {
+        _this1.staff.removeNote(noteId);
+        _this1._activeHintIds = (_this1._activeHintIds || []).filter(function (x) {
+          return x !== noteId;
+        });
+      });
+    }
   }, {
     key: "_showHintNote",
     value: function _showHintNote() {
-      var _this9 = this;
-      this.staff.removeNote("hint");
-      var ans = this._computeHintAnswer();
-      var step = ans ? ans.step : null;
-      var accidentalClass = ans ? ans.accidentalClass : null;
-      if (step == null) {
-        var min = this.staff.minStepAllowed();
-        var max = this.staff.maxStepAllowed();
-        for (var tries = 0; tries < 50; tries++) {
-          var s = Math.floor(Math.random() * (max - min + 1)) + min;
-          if (!this.staff._isStepOccupied(s, null)) {
-            step = s;
-            break;
-          }
-        }
-      }
-      if (step == null) return;
-      var id = this.staff.addNote({
-        id: "hint",
-        step: step,
-        className: "hint blink",
-        allowOccupied: true,
-        skipResolve: true
-      });
-      if (!id) return;
-      if (accidentalClass) {
-        this.staff.attachAccidentalToNote("hint", accidentalClass);
-        this.$staffEl.find('.accidental[data-for-note-id="hint"]').addClass("hint blink");
-      }
-      this.$staffEl.find('.ledger[data-for-note-id="hint"]').addClass("hint blink");
-      var $note = this.$staffEl.find('.note[data-note-id="hint"]');
-      if ($note.length) {
-        $note.off("animationend.hint webkitAnimationEnd.hint").one("animationend.hint webkitAnimationEnd.hint", function () {
-          return _this9.staff.removeNote("hint");
+      this._removeAllHintNotes();
+      var answers = this._computeHintAnswers();
+      var specs = Array.isArray(answers) && answers.length ? answers : [{
+        step: null,
+        accidentalClass: null
+      }];
+      this._activeHintIds = [];
+      for (var i = 0; i < specs.length; i++) {
+        var ans = specs[i] || {};
+        var id = ans.id || (specs.length === 1 ? "hint" : "hint".concat(i + 1));
+        var step = Number.isFinite(ans.step) ? Number(ans.step) : null;
+        var accidentalClass = ans.accidentalClass || null;
+        if (step == null) step = this._randomFreeStep();
+        if (step == null) continue;
+        var createdId = this.staff.addNote({
+          id: id,
+          step: step,
+          className: "hint blink",
+          allowOccupied: true,
+          skipResolve: true
         });
+        if (!createdId) continue;
+        this._activeHintIds.push(id);
+        if (accidentalClass) {
+          this.staff.attachAccidentalToNote(id, accidentalClass);
+          this.$staffEl.find(".accidental[data-for-note-id=\"".concat(id, "\"]")).addClass("hint blink");
+        }
+        this.$staffEl.find(".ledger[data-for-note-id=\"".concat(id, "\"]")).addClass("hint blink");
+        this._attachHintBlinkRemoval(id);
       }
     }
 
@@ -544,8 +635,8 @@ var BaseStaffGame = /*#__PURE__*/function () {
   }, {
     key: "_successAnimation",
     value: function _successAnimation() {
-      var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
-        isBonus = _ref.isBonus;
+      var _ref2 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+        isBonus = _ref2.isBonus;
       if (isBonus) this._playSuccessSfxBonus();else this._playSuccessSfxBasic();
       this.$helpBtn.hide();
       this.$accidentals.addClass("invisible");
@@ -635,7 +726,7 @@ var BaseStaffGame = /*#__PURE__*/function () {
   }, {
     key: "_failAnimation",
     value: function _failAnimation($shakeTarget) {
-      var _this0 = this;
+      var _this10 = this;
       this._playFailSfx();
       var $target = $shakeTarget || this.$checkWrap;
       $target.removeClass("animate__animated animate__shakeX");
@@ -644,7 +735,7 @@ var BaseStaffGame = /*#__PURE__*/function () {
       $target.addClass("animate__animated animate__shakeX");
       $target.off("animationend._fail.".concat(this.ns, " webkitAnimationEnd._fail.").concat(this.ns, " oAnimationEnd._fail.").concat(this.ns, " MSAnimationEnd._fail.").concat(this.ns)).one("animationend._fail.".concat(this.ns, " webkitAnimationEnd._fail.").concat(this.ns, " oAnimationEnd._fail.").concat(this.ns, " MSAnimationEnd._fail.").concat(this.ns), function () {
         $target.removeClass("animate__animated animate__shakeX");
-        _this0.$checkBtn.enable();
+        _this10.$checkBtn.enable();
       });
     }
   }, {
@@ -653,7 +744,7 @@ var BaseStaffGame = /*#__PURE__*/function () {
       var _this$_stats$checksTo,
         _this$_stats$checksCo,
         _this$_stats$finished,
-        _this1 = this,
+        _this11 = this,
         _window;
       var total = Math.max(0, (_this$_stats$checksTo = this._stats.checksTotal) !== null && _this$_stats$checksTo !== void 0 ? _this$_stats$checksTo : 0);
       var correct = Math.max(0, (_this$_stats$checksCo = this._stats.checksCorrect) !== null && _this$_stats$checksCo !== void 0 ? _this$_stats$checksCo : 0);
@@ -664,9 +755,9 @@ var BaseStaffGame = /*#__PURE__*/function () {
       var finalPoints = perfectGame ? this.points * 2 : this.points;
       if (perfectGame) {
         setTimeout(function () {
-          var _this1$$doublePoints, _this1$$doublePoints$;
-          (_this1$$doublePoints = _this1.$doublePoints) === null || _this1$$doublePoints === void 0 || (_this1$$doublePoints$ = _this1$$doublePoints.show) === null || _this1$$doublePoints$ === void 0 || _this1$$doublePoints$.call(_this1$$doublePoints);
-          _this1._playPerfectGameBonusSfx();
+          var _this11$$doublePoints, _this11$$doublePoints2;
+          (_this11$$doublePoints = _this11.$doublePoints) === null || _this11$$doublePoints === void 0 || (_this11$$doublePoints2 = _this11$$doublePoints.show) === null || _this11$$doublePoints2 === void 0 || _this11$$doublePoints2.call(_this11$$doublePoints);
+          _this11._playPerfectGameBonusSfx();
         }, 1750);
 
         // eslint-disable-next-line no-console
@@ -692,7 +783,7 @@ var BaseStaffGame = /*#__PURE__*/function () {
       };
       var countTo = function countTo(selector, endVal) {
         var opts = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-        var el = _this1.$finalOverlay.find(selector)[0];
+        var el = _this11.$finalOverlay.find(selector)[0];
         if (!el) return;
         if (!CountUpCtor) {
           el.textContent = String(opts.formattingFn ? opts.formattingFn(endVal) : endVal) + (opts.suffix || "");
@@ -2547,9 +2638,9 @@ function spellNoteFromState(staff, step, accidentalClass) {
 var __webpack_exports__ = {};
 // This entry needs to be wrapped in an IIFE because it needs to be isolated against other modules in the chunk.
 (() => {
-/*!*******************************************!*\
-  !*** ./resources/js/music/games/index.js ***!
-  \*******************************************/
+/*!********************************************!*\
+  !*** ./resources/js/music/games/chords.js ***!
+  \********************************************/
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _interval_IntervalChallenge_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./interval/IntervalChallenge.js */ "./resources/js/music/games/interval/IntervalChallenge.js");
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }

@@ -26,6 +26,10 @@
 #metrics-boxes .col-6:nth-child(2) { animation-delay: 0.1s; }
 #metrics-boxes .col-6:nth-child(3) { animation-delay: 0.2s; }
 #metrics-boxes .col-6:nth-child(4) { animation-delay: 0.3s; }
+
+#interval label {
+  top: 0px !important;
+}
 </style>
 @endpush
 
@@ -63,5 +67,6 @@
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.js"></script>
-<script src="{{ mix('js/music/index.js') }}"></script>
+<script type="module" src="{{ asset('js/dev-music/games/chords.js') }}"></script>
+
 @endpush
