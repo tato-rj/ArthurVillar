@@ -12,16 +12,28 @@
                 <p>Interactive games for practicing core music theory skills</p>
             </div>
 
-            @component('theory.card', ['title' => 'Intervals', 'description' => 'Practice the most common chromatic intervals in different clefs.'])
+            @component('theory.card', [
+                'color' => 'green',
+                'title' => 'Intervals', 
+                'description' => 'Practice the most common chromatic intervals in different clefs.'])
+
                 @include('theory.intervals.modals.settings', ['challenge' => $intervalsChallenge, 'modalID' => 'intervals-settings-modal'])
             @endcomponent
 
-            @component('theory.card', ['title' => 'Chords', 'description' => 'Practice the four fundamental triads as well as 7th chords.'])
+            @component('theory.card', [
+                'color' => 'red',
+                'title' => 'Chords', 
+                'description' => 'Practice the four fundamental triads as well as 7th chords.'])
+
                 @include('theory.chords.modals.settings', ['challenge' => $chordsChallenge, 'modalID' => 'chords-settings-modal'])
             @endcomponent
 
-            @component('theory.card', ['disabled' => true, 'title' => 'Ear Traning', 'description' => 'Practice harmonic, melodic, or rhythmic dictation.'])
-                {{-- @include('theory.intervals.modals.settings') --}}
+            @component('theory.card', [
+                'color' => 'grey',
+                'disabled' => true, 
+                'title' => 'Ear Traning', 
+                'description' => 'Practice harmonic, melodic, or rhythmic dictation.'])
+
             @endcomponent
         </div>
     </div>
