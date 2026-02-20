@@ -424,9 +424,9 @@ export class Staff {
     if (!window.Tone) return;
 
     await Tone.start();
-    this._synth = new Tone.PolySynth(Tone.Synth, {
+    this._synth = new Tone.Synth({
       oscillator: { type: "sine" },
-      envelope: { attack: 0.02, decay: 0.2, sustain: 0.8, release: 1.2 },
+      envelope: { attack: 0.01, decay: 0.08, sustain: 0.6, release: 0.12 },
     }).toDestination();
     this._audioReady = true;
   }
@@ -488,6 +488,7 @@ export class Staff {
     await this._ensureAudio();
     if (!this._synth) return;
     const midi = this._stepToMidi(step) + (accidentalOffset || 0);
+    if (this._synth.triggerRelease) this._synth.triggerRelease();
     this._synth.triggerAttackRelease(Tone.Frequency(midi, "midi"), 0.5);
   }
 

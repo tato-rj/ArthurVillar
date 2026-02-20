@@ -1765,15 +1765,15 @@ var Staff = /*#__PURE__*/function () {
               _context.n = 4;
               return Tone.start();
             case 4:
-              this._synth = new Tone.PolySynth(Tone.Synth, {
+              this._synth = new Tone.Synth({
                 oscillator: {
                   type: "sine"
                 },
                 envelope: {
-                  attack: 0.02,
-                  decay: 0.2,
-                  sustain: 0.8,
-                  release: 1.2
+                  attack: 0.01,
+                  decay: 0.08,
+                  sustain: 0.6,
+                  release: 0.12
                 }
               }).toDestination();
               this._audioReady = true;
@@ -1868,6 +1868,7 @@ var Staff = /*#__PURE__*/function () {
               return _context2.a(2);
             case 3:
               midi = this._stepToMidi(step) + (accidentalOffset || 0);
+              if (this._synth.triggerRelease) this._synth.triggerRelease();
               this._synth.triggerAttackRelease(Tone.Frequency(midi, "midi"), 0.5);
             case 4:
               return _context2.a(2);
