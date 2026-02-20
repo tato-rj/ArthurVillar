@@ -33,8 +33,9 @@ export class ChordChallenge extends BaseStaffGame {
       // BaseStaffGame UI gating: triads need 2 user notes before Check/instructions
       instructionsAfterUserNotes: 2,
       checkAfterUserNotes: 2,
-      initialRoot: true,
-    };
+      allowInversions: false,
+          initialRoot: true,
+};
 
     const merged = {
       ...defaults,
@@ -66,6 +67,8 @@ export class ChordChallenge extends BaseStaffGame {
     this.$intervalFull = this.$interval.find("div");
 
     this._currentTriadQuality = null;
+    this._currentSeventhType = null; // null | '7' | 'maj7' | 'dim7'
+    this._requiredUserNotesThisRound = 2;
 
     // Triad context per round
     this._triadRootState = null; // {step, accidentalClass, midi}
@@ -75,24 +78,75 @@ export class ChordChallenge extends BaseStaffGame {
 
   // ------------------------ UI labels ------------------------
 
-  _setTriadUI(quality) {
+  _setTriadUI(quality, seventhType = null) {
     this._currentTriadQuality = String(quality || "").trim();
+    this._currentSeventhType = seventhType ? String(seventhType).trim() : null;
     this.$interval.removeClass("text-red").addClass("text-blue");
     this._refreshTriadUILabels();
   }
 
-  _triadShortName(root, quality) {
+_escapeHtml(s) {
+  return String(s)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+}
+
+/**
+ * Converts chord symbols in the SHORT label to superscripts:
+ * - Aø7  -> A<sup>ø</sup>7
+ * - Ao   -> A<sup>o</sup>
+ * - Ao7  -> A<sup>o</sup>7
+ *
+ * Only superscripts 'o' when it is the diminished marker after the root.
+ */
+_formatShortLabelHtml(shortLabel) {
+  const safe = this._escapeHtml(shortLabel);
+
+  // Always superscript ø wherever it appears (it's only used as a symbol).
+  const withOslash = safe.replaceAll("ø", "<sup>ø</sup>");
+
+  // Superscript 'o' only when it's used as the diminished marker:
+  // root = A-G + optional accidentals (b, bb, #, ##), then 'o', then optional digits/end.
+  return withOslash.replace(
+    /(^[A-G](?:bb|b|##|#)?)o(?=\d|$)/,
+    "$1<sup>o</sup>",
+  );
+}
+
+
+  _triadShortName(root, quality, seventhType = null) {
     const r = String(root || "").trim();
     const q = String(quality || "").trim();
+
+    // Special diminished 7th naming:
+    // - half diminished (dim triad + m7): Aø7
+    // - fully diminished (dim triad + dim7): A°7
+    if (q === "diminished" && seventhType) {
+      if (seventhType === "dim7") return `${r}°`;
+      // default diminished 7th is half-diminished
+      return `${r}ø`;
+    }
+
     const suffix = ChordChallenge.TRIAD_QUALITY_SHORT_SUFFIX_MAP[q] ?? "";
-    return `${r}${suffix}`;
+    const base = `${r}${suffix}`;
+    if (!seventhType) return base;
+    return seventhType === "maj7" ? `${base}maj7` : `${base}7`;
   }
 
-  _triadFullName(root, quality) {
+  _triadFullName(root, quality, seventhType = null) {
     const r = String(root || "").trim();
     const q = String(quality || "").trim();
     const qWord = ChordChallenge.TRIAD_QUALITY_FULL_NAME_MAP[q] || q;
-    return `${r} ${qWord}`.trim();
+
+    // Special diminished 7th naming:
+    if (q === "diminished" && seventhType) {
+      return `${r} ${seventhType === "dim7" ? "fully diminished" : "half diminished"}`.trim();
+    }
+
+    if (!seventhType) return `${r} ${qWord}`.trim();
+    const seventhLabel = seventhType === "maj7" ? "M7" : "m7";
+    return `${r} ${qWord} with a ${seventhLabel}`.trim();
   }
 
   _refreshTriadUILabels() {
@@ -106,12 +160,12 @@ export class ChordChallenge extends BaseStaffGame {
         ? this._fixedNote.letterWithAcc
         : null);
 
-    const shortLabel = root ? this._triadShortName(root, q) : q;
+    const shortLabel = root ? this._triadShortName(root, q, this._currentSeventhType) : q;
     const fullLabel = root
-      ? this._triadFullName(root, q)
+      ? this._triadFullName(root, q, this._currentSeventhType)
       : (ChordChallenge.TRIAD_QUALITY_FULL_NAME_MAP[q] || q);
 
-    if (this.$intervalLabel?.length) this.$intervalLabel.text(shortLabel);
+    if (this.$intervalLabel?.length) this.$intervalLabel.html(this._formatShortLabelHtml(shortLabel));
     if (this.$intervalFull?.length) this.$intervalFull.text(fullLabel);
   }
 
@@ -154,15 +208,48 @@ export class ChordChallenge extends BaseStaffGame {
     this._triadRootLetterWithAcc = null;
   }
 
-  _triadExpectedSemisForQuality(quality) {
+  _triadExpectedSemisForQuality(quality, seventhType = null) {
     const q = String(quality || "").trim();
-    const map = {
+    // Returns chord tones ABOVE root: [3rd, 5th] for triads, [3rd, 5th, 7th] for 7ths.
+    if (!seventhType) {
+      const triads = {
+        major: [4, 7],
+        minor: [3, 7],
+        augmented: [4, 8],
+        diminished: [3, 6],
+      };
+      return triads[q] || null;
+    }
+
+    // 7th-chord rules:
+    // - '7' means m7 above root
+    // - 'maj7' means M7 above root (major triads only)
+    // - 'dim7' means diminished 7th above root (diminished triads only)
+    // - Minor and diminished can pair with m7; diminished can also pair with dim7
+    // - Augmented can pair with m7 only (aug7)
+    if (q === "augmented") {
+      if (seventhType !== "7") return null;
+      return [4, 8, 10];
+    }
+
+    if (seventhType === "maj7" && q !== "major") return null;
+    if (seventhType === "dim7" && q !== "diminished") return null;
+
+    const seventh =
+      seventhType === "maj7" ? 11 :
+      seventhType === "dim7" ? 9 :
+      10; // default: m7
+
+    const base = {
       major: [4, 7],
       minor: [3, 7],
-      augmented: [4, 8],
       diminished: [3, 6],
     };
-    return map[q] || null;
+    const triad = base[q];
+    if (!triad) return null;
+
+    // Never mix minor triad with M7; never add 7ths to augmented (handled above).
+    return [triad[0], triad[1], seventh];
   }
 
   _toneAccidentalClass(rootMidi, targetStep, targetSemis) {
@@ -183,18 +270,19 @@ export class ChordChallenge extends BaseStaffGame {
     return s;
   }
 
-  _pickRootAndBassForTriad(quality) {
-    const expected = this._triadExpectedSemisForQuality(quality);
+  _pickRootAndBassForTriad(quality, seventhType = null) {
+    const expected = this._triadExpectedSemisForQuality(quality, seventhType);
     if (!expected) return null;
 
     const min = this.staff.minStepAllowed();
     const max = this.staff.maxStepAllowed();
 
-    const initialRoot = !this.opts.initialRoot;
+    const initialRoot = this.opts.initialRoot !== undefined ? !!this.opts.initialRoot : true;
+    const allowInv = !!this.opts.allowInversions || !initialRoot;
 
     // If fixedNotes are provided, treat them as the given bass note and fit a triad around them.
     const fixedList = toArrayMaybe(this.opts.fixedNotes).filter(Boolean);
-    if (initialRoot && fixedList.length) {
+    if (allowInv && fixedList.length) {
       const bass = this._pickFixedNote(); // respects fixedNotes list + parsing
       if (!bass) return null;
 
@@ -205,6 +293,7 @@ export class ChordChallenge extends BaseStaffGame {
         { rootStep: bass.step, roleSemis: 0 },
         { rootStep: bass.step - 2, roleSemis: expected[0] },
         { rootStep: bass.step - 4, roleSemis: expected[1] },
+        ...(expected.length === 3 ? [{ rootStep: bass.step - 6, roleSemis: expected[2] }] : []),
       ].filter((c) => c.rootStep >= min && c.rootStep <= max);
 
       const viable = [];
@@ -216,12 +305,16 @@ export class ChordChallenge extends BaseStaffGame {
 
         const thirdStep = c.rootStep + 2;
         const fifthStep = c.rootStep + 4;
+        const seventhStep = expected.length === 3 ? c.rootStep + 6 : null;
         if (thirdStep < min || thirdStep > max) continue;
         if (fifthStep < min || fifthStep > max) continue;
+        if (seventhStep != null && (seventhStep < min || seventhStep > max)) continue;
 
         const thirdAcc = this._toneAccidentalClass(rootMidi, thirdStep, expected[0]);
         const fifthAcc = this._toneAccidentalClass(rootMidi, fifthStep, expected[1]);
+        const seventhAcc = seventhStep != null ? this._toneAccidentalClass(rootMidi, seventhStep, expected[2]) : null;
         if (thirdAcc == null || fifthAcc == null) continue;
+        if (seventhStep != null && seventhAcc == null) continue;
 
         viable.push({
           root: { step: c.rootStep, accidentalClass: rootAccClass },
@@ -234,7 +327,8 @@ export class ChordChallenge extends BaseStaffGame {
     }
 
     // Standard: choose a root that fits on staff for root/third/fifth spelling.
-    const rootStep = randomInt(min, Math.max(min, max - 4));
+    const span = expected.length === 3 ? 6 : 4;
+    const rootStep = randomInt(min, Math.max(min, max - span));
 
     const w = this.opts.accidentalWeights || {};
     const rootAccClass = pickWeighted([
@@ -248,16 +342,30 @@ export class ChordChallenge extends BaseStaffGame {
 
     const thirdStep = rootStep + 2;
     const fifthStep = rootStep + 4;
+    const seventhStep = expected.length === 3 ? rootStep + 6 : null;
 
     const thirdAcc = this._toneAccidentalClass(rootMidi, thirdStep, expected[0]);
     const fifthAcc = this._toneAccidentalClass(rootMidi, fifthStep, expected[1]);
+    const seventhAcc = seventhStep != null ? this._toneAccidentalClass(rootMidi, seventhStep, expected[2]) : null;
     if (thirdAcc == null || fifthAcc == null) return null;
+    if (seventhStep != null && seventhAcc == null) return null;
 
     let bassRole = 0;
-    if (initialRoot) bassRole = pickOne([0, 1, 2]); // root / third / fifth
+    if (allowInv) {
+      const roles = expected.length === 3 ? [0, 1, 2, 3] : [0, 1, 2];
+      bassRole = pickOne(roles); // root / third / fifth (/ seventh)
+    }
 
-    const bassStep = bassRole === 0 ? rootStep : bassRole === 1 ? thirdStep : fifthStep;
-    const bassSemis = bassRole === 0 ? 0 : bassRole === 1 ? expected[0] : expected[1];
+    const bassStep =
+      bassRole === 0 ? rootStep :
+      bassRole === 1 ? thirdStep :
+      bassRole === 2 ? fifthStep :
+      seventhStep;
+    const bassSemis =
+      bassRole === 0 ? 0 :
+      bassRole === 1 ? expected[0] :
+      bassRole === 2 ? expected[1] :
+      expected[2];
     const bassAcc = this._toneAccidentalClass(rootMidi, bassStep, bassSemis);
     if (bassAcc == null && bassSemis !== 0) return null;
 
@@ -282,17 +390,56 @@ export class ChordChallenge extends BaseStaffGame {
     this.$bonusBadge.hide();
     this.$doublePoints?.hide?.();
 
-    const quality = this._pickTriadQuality();
+    let quality = null;
+    let seventhType = null;
+    let setup = null;
+
+    // Some spellings can be invalid for our accidental system; retry instead of starting an empty round.
+    for (let i = 0; i < 40; i += 1) {
+      const chord = this._pickChordSpec();
+      quality = chord.quality;
+      seventhType = chord.seventhType;
+
+      setup = this._pickRootAndBassForTriad(quality, seventhType);
+      if (!setup) continue;
+
+      // Fully diminished (dim7) is disallowed for flat roots (would often require triple-flats).
+      if (
+        quality === "diminished" &&
+        seventhType === "dim7" &&
+        (setup.root.accidentalClass === "music-font__flat" ||
+          setup.root.accidentalClass === "music-font__doubleflat")
+      ) {
+        seventhType = "7"; // half diminished instead
+        setup = this._pickRootAndBassForTriad(quality, seventhType);
+        if (!setup) continue;
+      }
+
+      break;
+    }
+
+    // Hard fallback: keep the round playable.
+    if (!setup) {
+      quality = "major";
+      seventhType = null;
+      setup = this._pickRootAndBassForTriad(quality, seventhType);
+      if (!setup) return;
+    }
+
+    this._requiredUserNotesThisRound = this._requiredUserNotesForChord(seventhType);
+    // Let BaseStaffGame gate instructions/#check per round (triad vs 7th).
+    this.opts.instructionsAfterUserNotes = this._requiredUserNotesThisRound;
+    this.opts.checkAfterUserNotes = this._requiredUserNotesThisRound;
+    this.opts.maxUserNotes = this._requiredUserNotesThisRound;
 
     this.staff.clearNotes();
     this.$accidentals.removeClass("invisible");
     this.$feedback.hide();
 
     this.$interval.show();
-    this._setTriadUI(quality);
+    this._setTriadUI(quality, seventhType);
 
-    const setup = this._pickRootAndBassForTriad(quality);
-    if (setup) {
+    {
       const rootMidi =
         this.staff._stepToMidi(setup.root.step) +
         this.staff._accidentalClassToOffset(setup.root.accidentalClass);
@@ -329,6 +476,45 @@ export class ChordChallenge extends BaseStaffGame {
 
     $("#continue").hide();
   }
+
+
+_pickChordSpec() {
+  const only7thChords = !!this.opts.only7thChords;
+
+  // If not in 7th-chords-only mode, behave like a triad game.
+  if (!only7thChords) {
+    return { quality: this._pickTriadQuality(), seventhType: null };
+  }
+
+  // 7th-chords-only mode:
+  // - Major: either dominant 7 (m7) written as "7" or major 7 written as "maj7".
+  // - Minor: only m7 written as "7".
+  // - Diminished: either m7 (half diminished, "7") or dim7 (fully diminished, "dim7").
+  // - Augmented: only m7 written as "7" (aug7).
+  const poolRaw =
+    Array.isArray(this.opts.triadQualities) && this.opts.triadQualities.length
+      ? this.opts.triadQualities
+      : Object.keys(ChordChallenge.TRIAD_QUALITY_FULL_NAME_MAP);
+
+  const pool = poolRaw.length ? poolRaw : ["major", "minor", "diminished", "augmented"];
+
+  const quality = pool[Math.floor(Math.random() * pool.length)];
+
+  if (quality === "major") return { quality, seventhType: pickOne(["7", "maj7"]) };
+  if (quality === "minor") return { quality, seventhType: "7" };
+  if (quality === "diminished") return { quality, seventhType: pickOne(["7", "dim7"]) };
+  if (quality === "augmented") return { quality, seventhType: "7" };
+
+  // Fallback: treat anything unexpected as a triad.
+  return { quality, seventhType: null };
+}
+
+
+_requiredUserNotesForChord(seventhType) {
+  // Triad: fixed note + 2 user notes. 7th chord: fixed note + 3 user notes.
+  return seventhType ? 3 : 2;
+}
+
 
   _pickTriadQuality() {
     const pool =
@@ -380,7 +566,11 @@ export class ChordChallenge extends BaseStaffGame {
 
     this._stats.checksTotal += 1;
 
-    if (notes.length !== 3) {
+    const expected = this._triadExpectedSemisForQuality(this._currentTriadQuality, this._currentSeventhType);
+    const rootState = this._triadRootState;
+
+    const expectedTotalNotes = this._requiredUserNotesThisRound + 1;
+    if (notes.length !== expectedTotalNotes) {
       this._madeAnyMistake = true;
       this._madeMistakeThisRound = true;
 
@@ -392,8 +582,6 @@ export class ChordChallenge extends BaseStaffGame {
       return;
     }
 
-    const expected = this._triadExpectedSemisForQuality(this._currentTriadQuality);
-    const rootState = this._triadRootState;
 
     if (!expected || !rootState) {
       this._madeAnyMistake = true;
@@ -405,13 +593,17 @@ export class ChordChallenge extends BaseStaffGame {
     const rootStep = rootState.step;
     const rootMidi = rootState.midi;
 
-    const roleToSemis = { 0: 0, 2: expected[0], 4: expected[1] };
+    const roleToSemis = expected.length === 3
+      ? { 0: 0, 2: expected[0], 4: expected[1], 6: expected[2] }
+      : { 0: 0, 2: expected[0], 4: expected[1] };
     const seenRoles = new Set();
 
     let ok = true;
     for (const n of notes) {
       const diatonic = ((n.step - rootStep) % 7 + 7) % 7;
-      if (diatonic !== 0 && diatonic !== 2 && diatonic !== 4) { ok = false; break; }
+      const allowed = expected.length === 3 ? (diatonic === 0 || diatonic === 2 || diatonic === 4 || diatonic === 6)
+        : (diatonic === 0 || diatonic === 2 || diatonic === 4);
+      if (!allowed) { ok = false; break; }
       if (seenRoles.has(diatonic)) { ok = false; break; }
       seenRoles.add(diatonic);
 
@@ -472,7 +664,7 @@ export class ChordChallenge extends BaseStaffGame {
     const notes = this._notesOnStaffOrdered();
     if (notes.length < 1) return [];
 
-    const expected = this._triadExpectedSemisForQuality(this._currentTriadQuality);
+    const expected = this._triadExpectedSemisForQuality(this._currentTriadQuality, this._currentSeventhType);
     const rootState = this._triadRootState;
     const bassState = this._triadBassState;
 
@@ -485,12 +677,18 @@ export class ChordChallenge extends BaseStaffGame {
     const presentRoles = new Set();
     for (const n of notes) {
       const diatonic = ((n.step - rootStep) % 7 + 7) % 7;
-      if (diatonic === 0 || diatonic === 2 || diatonic === 4) {
+      const allowed = expected.length === 3 ? (diatonic === 0 || diatonic === 2 || diatonic === 4 || diatonic === 6)
+        : (diatonic === 0 || diatonic === 2 || diatonic === 4);
+      if (allowed) {
         const midi = this.staff._stepToMidi(n.step) + (n.accOff || 0);
         let d = (midi - rootMidi) % 12;
         if (d < 0) d += 12;
 
-        const want = diatonic === 0 ? 0 : diatonic === 2 ? expected[0] : expected[1];
+        const want =
+          diatonic === 0 ? 0 :
+          diatonic === 2 ? expected[0] :
+          diatonic === 4 ? expected[1] :
+          expected[2];
         if (d === want) presentRoles.add(diatonic);
       }
     }
@@ -509,6 +707,7 @@ export class ChordChallenge extends BaseStaffGame {
       { role: 0, id: "hintR", baseStep: rootStep, semis: 0 },
       { role: 2, id: "hint3", baseStep: rootStep + 2, semis: expected[0] },
       { role: 4, id: "hint5", baseStep: rootStep + 4, semis: expected[1] },
+      ...(expected.length === 3 ? [{ role: 6, id: "hint7", baseStep: rootStep + 6, semis: expected[2] }] : []),
     ];
 
     const hints = [];
@@ -522,7 +721,7 @@ export class ChordChallenge extends BaseStaffGame {
       if (h) hints.push(h);
     }
 
-    return hints.slice(0, 2);
+    return hints.slice(0, this._requiredUserNotesThisRound);
   }
 
   // ------------------------ pitch parsing (for fixedNotes option) ------------------------

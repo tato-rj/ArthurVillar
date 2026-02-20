@@ -53,6 +53,11 @@
     @toggle(['name' => 'initialRoot', 'on' => $challenge->options('initialRoot')])
   </div>
 
+  <div class="d-apart mb-4">
+    <label>Play with 7th chords</label>
+    @toggle(['name' => 'only7thChords', 'on' => $challenge->options('only7thChords')])
+  </div>
+
   <button type="submit" class="btn btn-primary w-100">Start new game</button>
 </form>
 @endmodal
