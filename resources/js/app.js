@@ -17,7 +17,7 @@ $('.form-number button').on('click', function () {
   }
 });
 
-$(document).off("change.settingsToggles").on("change.settingsToggles", 'input[name="intervals[]"], input[name="clefs[]"]', function () {
+$(document).off("change.settingsToggles").on("change.settingsToggles", 'input[name="intervals[]"], input[name="clefs[]"], input[name="triadQualities[]"]', function () {
   const $label = $(this).siblings("label");
   $label.removeClass("btn-white btn-secondary");
   $label.addClass(this.checked ? "btn-secondary" : "btn-white");

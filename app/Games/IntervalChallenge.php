@@ -3,7 +3,7 @@
 namespace App\Games;
 
 class IntervalChallenge extends GameFactory
-{
+{   
     protected function requiredToggleKeys(): array
     {
         return ['sound', 'showLetterNames', 'allowInitialAccidentals'];

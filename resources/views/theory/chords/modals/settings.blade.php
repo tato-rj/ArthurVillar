@@ -1,5 +1,5 @@
-@modal(['title' => fa('gear').' Game settings', 'id' => 'chords-settings-modal'])
-<form id="intervals-settings" method="GET" action="{{ route('theory.chords.play') }}">
+@modal(['title' => fa('gear').' Game settings', 'id' => $modalID ?? 'settings-modal'])
+<form id="chords-settings" method="GET" action="{{ route('theory.chords.play') }}">
   <div class="d-apart mb-4">
     <label class="nowrap">Number of rounds</label>
     <div class="d-center form-number">
@@ -10,12 +10,12 @@
   </div>
 
   <div class="mb-4">
-    <label class="nowrap">Intervals</label>
+    <label class="nowrap">Triads</label>
     <div class="d-flex flex-wrap">
-      @foreach($challenge->getIntervals() as $interval)
+      @foreach($challenge->getTriadQualities() as $quality)
       <div class="m-1 position-relative">
-        <input name="intervals[]" type="checkbox" value="{{$interval}}" class="invisible position-absolute top-0 left-0" id="{{$interval}}" {{in_array($interval, $challenge->options('intervals')) ? 'checked' : null}} autocomplete="off">
-        <label class="btn btn-{{in_array($interval, $challenge->options('intervals')) ? 'secondary' : 'white'}}" for="{{$interval}}">{{$interval}}</label>
+        <input name="triadQualities[]" type="checkbox" value="{{$quality}}" class="invisible position-absolute top-0 left-0" id="{{$quality}}-triad" {{in_array($quality, $challenge->options('triadQualities')) ? 'checked' : null}} autocomplete="off">
+        <label class="btn btn-{{in_array($quality, $challenge->options('triadQualities')) ? 'secondary' : 'white'}}" for="{{$quality}}-triad">{{ucFirst($quality)}}</label>
       </div>
       @endforeach
     </div>
@@ -46,6 +46,11 @@
   <div class="d-apart mb-4">
     <label>Accidentals on the initial note</label>
     @toggle(['name' => 'allowInitialAccidentals', 'on' => $challenge->options('allowInitialAccidentals')])
+  </div>
+
+  <div class="d-apart mb-4">
+    <label>Initial note is always the root</label>
+    @toggle(['name' => 'initialRoot', 'on' => $challenge->options('initialRoot')])
   </div>
 
   <button type="submit" class="btn btn-primary w-100">Start new game</button>

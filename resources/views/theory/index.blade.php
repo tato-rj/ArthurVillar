@@ -9,11 +9,11 @@
         <div class="col-lg-6 col-md-8 col-10 mx-auto">
             <h1 class="text-center mb-4">Music Theory Challenges</h1>
             @component('theory.card', ['title' => 'Intervals', 'description' => 'Fast game for note reading and musical thinking. Quick challenges, instant feedback, and scoring to track improvement.'])
-                @include('theory.intervals.modals.settings')
+                @include('theory.intervals.modals.settings', ['challenge' => $intervalsChallenge, 'modalID' => 'intervals-settings-modal'])
             @endcomponent
 
-            @component('theory.card', ['disabled' => production(), 'title' => 'Chords', 'description' => 'Train chord recognition and harmony. Identify triads and 7th chords, get instant feedback, and build theory skills with short tasks.'])
-                @include('theory.chords.modals.settings')
+            @component('theory.card', ['title' => 'Chords', 'description' => 'Train chord recognition and harmony. Identify triads and 7th chords, get instant feedback, and build theory skills with short tasks.'])
+                @include('theory.chords.modals.settings', ['challenge' => $chordsChallenge, 'modalID' => 'chords-settings-modal'])
             @endcomponent
 
             @component('theory.card', ['disabled' => true, 'title' => 'Ear Traning', 'description' => 'Practice melody and chord dictation. Listen, write what you hear, and get instant feedback to sharpen your ear.'])

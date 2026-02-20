@@ -10,9 +10,10 @@ class TheoryController extends Controller
 {
     public function index()
     {
-        $challenge = new IntervalChallenge;
+        $intervalsChallenge = new IntervalChallenge;
+        $chordsChallenge = new ChordsChallenge;
 
-        return view('theory.index', compact('challenge'));
+        return view('theory.index', compact('intervalsChallenge', 'chordsChallenge'));
     }
 
     public function intervals(Request $request)
@@ -25,7 +26,7 @@ class TheoryController extends Controller
     public function chords(Request $request)
     {
         $challenge = new ChordsChallenge($request->all());
-
+// return $challenge->options();
         return view('theory.chords.index', compact('challenge'));
     }
 }

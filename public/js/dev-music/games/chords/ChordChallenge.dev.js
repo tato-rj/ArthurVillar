@@ -6,6 +6,7 @@ import {
   pickWeighted,
   randomInt,
   toArrayMaybe,
+  spellNoteFromState,
 } from "../../staff/staffUtils.js";
 
 export class ChordChallenge extends BaseStaffGame {
@@ -32,6 +33,7 @@ export class ChordChallenge extends BaseStaffGame {
       // BaseStaffGame UI gating: triads need 2 user notes before Check/instructions
       instructionsAfterUserNotes: 2,
       checkAfterUserNotes: 2,
+      initialRoot: true,
     };
 
     const merged = {
@@ -41,9 +43,10 @@ export class ChordChallenge extends BaseStaffGame {
         ...(defaults.accidentalWeights || {}),
         ...(options.accidentalWeights || {}),
       },
-      triadQualities: Array.isArray(options.triadQualities) && options.triadQualities.length
-        ? options.triadQualities.slice()
-        : Object.keys(ChordChallenge.TRIAD_QUALITY_FULL_NAME_MAP),
+      triadQualities:
+        Array.isArray(options.triadQualities) && options.triadQualities.length
+          ? options.triadQualities.slice()
+          : Object.keys(ChordChallenge.TRIAD_QUALITY_FULL_NAME_MAP),
     };
 
     const clefPool = ChordChallenge._normalizeClefPoolStatic(
@@ -52,87 +55,73 @@ export class ChordChallenge extends BaseStaffGame {
 
     super({
       ...merged,
-      initialClef: (clefPool && clefPool[0]) ? clefPool[0] : "treble",
+      initialClef: clefPool && clefPool[0] ? clefPool[0] : "treble",
     });
 
     this._clefPool = clefPool;
 
-    // interval UI
+    // UI (re-using #interval container)
     this.$interval = $("#interval");
     this.$intervalLabel = this.$interval.find("label");
     this.$intervalFull = this.$interval.find("div");
 
-    this._currentIntervalAbbr = null;
+    this._currentTriadQuality = null;
+
+    // Triad context per round
+    this._triadRootState = null; // {step, accidentalClass, midi}
+    this._triadBassState = null; // {step, accidentalClass, midi} - fixed note (given)
+    this._triadRootLetterWithAcc = null;
   }
 
+  // ------------------------ UI labels ------------------------
 
-  // ------------------------ interval UI ------------------------
-
-  _deriveFullNameFromAbbr(abbr) {
-    const m = String(abbr || "").trim().match(/^([PMAmd])(\d+)$/);
-    if (!m) return abbr;
-
-    const q = m[1];
-    const n = m[2];
-
-    const qWord =
-      q === "m" ? "minor" :
-      q === "M" ? "major" :
-      q === "P" ? "perfect" :
-      q === "A" ? "augmented" :
-      q === "d" ? "diminished" :
-      q;
-
-    return `${qWord} ${n}`;
+  _setTriadUI(quality) {
+    this._currentTriadQuality = String(quality || "").trim();
+    this.$interval.removeClass("text-red").addClass("text-blue");
+    this._refreshTriadUILabels();
   }
 
-  _fullNameForInterval(abbr) {
-    const key = String(abbr || "").trim();
-    return ChordChallenge.TRIAD_QUALITY_FULL_NAME_MAP[key] || this._deriveFullNameFromAbbr(key);
+  _triadShortName(root, quality) {
+    const r = String(root || "").trim();
+    const q = String(quality || "").trim();
+    const suffix = ChordChallenge.TRIAD_QUALITY_SHORT_SUFFIX_MAP[q] ?? "";
+    return `${r}${suffix}`;
   }
 
+  _triadFullName(root, quality) {
+    const r = String(root || "").trim();
+    const q = String(quality || "").trim();
+    const qWord = ChordChallenge.TRIAD_QUALITY_FULL_NAME_MAP[q] || q;
+    return `${r} ${qWord}`.trim();
+  }
 
-_setTriadUI(quality) {
-  this._currentTriadQuality = String(quality || "").trim();
-  this.$interval.removeClass("text-red").addClass("text-blue");
-  this._refreshTriadUILabels();
-}
+  _refreshTriadUILabels() {
+    const q = this._currentTriadQuality;
 
-_triadShortName(root, quality) {
-  const r = String(root || "").trim();
-  const q = String(quality || "").trim();
-  const suffix = ChordChallenge.TRIAD_QUALITY_SHORT_SUFFIX_MAP[q] ?? "";
-  return `${r}${suffix}`;
-}
+    const root =
+      this._triadRootLetterWithAcc ||
+      (this._fixedNote &&
+      this._fixedNote.letterWithAcc &&
+      this._fixedNote.letterWithAcc !== "?"
+        ? this._fixedNote.letterWithAcc
+        : null);
 
-_triadFullName(root, quality) {
-  const r = String(root || "").trim();
-  const q = String(quality || "").trim();
-  const qWord = ChordChallenge.TRIAD_QUALITY_FULL_NAME_MAP[q] || q;
-  return `${r} ${qWord}`.trim();
-}
+    const shortLabel = root ? this._triadShortName(root, q) : q;
+    const fullLabel = root
+      ? this._triadFullName(root, q)
+      : (ChordChallenge.TRIAD_QUALITY_FULL_NAME_MAP[q] || q);
 
-_refreshTriadUILabels() {
-  const q = this._currentTriadQuality;
-  const root =
-    this._fixedNote && this._fixedNote.letterWithAcc && this._fixedNote.letterWithAcc !== "?"
-      ? this._fixedNote.letterWithAcc
-      : null;
+    if (this.$intervalLabel?.length) this.$intervalLabel.text(shortLabel);
+    if (this.$intervalFull?.length) this.$intervalFull.text(fullLabel);
+  }
 
-  const shortLabel = root ? this._triadShortName(root, q) : q;
-  const fullLabel = root ? this._triadFullName(root, q) : (ChordChallenge.TRIAD_QUALITY_FULL_NAME_MAP[q] || q);
+  _onFixedNoteState() {
+    // BaseStaffGame updates this._fixedNote before calling this hook.
+    // For inversions, we label from _triadRootLetterWithAcc; otherwise fixed note is the root.
+    this._refreshTriadUILabels();
+  }
 
-  if (this.$intervalLabel?.length) this.$intervalLabel.text(shortLabel);
-  if (this.$intervalFull?.length) this.$intervalFull.text(fullLabel);
-}
-
-_onFixedNoteState() {
-  // BaseStaffGame updates this._fixedNote before calling this hook.
-  this._refreshTriadUILabels();
-}
-
-
-
+  // ------------------------ clef selection ------------------------
 
   static _normalizeClefPoolStatic(clefsOrSingle) {
     const raw = Array.isArray(clefsOrSingle)
@@ -157,53 +146,199 @@ _onFixedNoteState() {
     return pool[Math.floor(Math.random() * pool.length)];
   }
 
-  // ------------------------ game flow ------------------------
+  // ------------------------ triad math helpers ------------------------
 
-
-newChallenge() {
-  this.$helpBtn.hide();
-  this._fixedState = null;
-
-  const clef = this._currentClefForChallenge();
-  if (clef && clef !== this.staff.getClef()) this.staff.setClef(clef);
-
-  this._madeMistakeThisRound = false;
-  this._usedHintThisRound = false;
-  this.$bonusBadge.hide();
-  this.$doublePoints?.hide?.();
-
-  const quality = this._pickTriadQuality();
-  const fixed = this._pickFixedNote();
-
-  this.staff.clearNotes();
-  this.$accidentals.removeClass("invisible");
-  this.$feedback.hide();
-
-  this.$interval.show();
-  this._setTriadUI(quality);
-
-  if (fixed) {
-    const fixedId = this.staff.addFixedNote({
-      step: fixed.step,
-      accidentalClass: fixed.accidentalClass || null,
-    });
-
-    if (fixedId) this.staff._emitNoteState(fixedId, "fixed");
+  _resetTriadContext() {
+    this._triadRootState = null;
+    this._triadBassState = null;
+    this._triadRootLetterWithAcc = null;
   }
 
-  $("#continue").hide();
-}
+  _triadExpectedSemisForQuality(quality) {
+    const q = String(quality || "").trim();
+    const map = {
+      major: [4, 7],
+      minor: [3, 7],
+      augmented: [4, 8],
+      diminished: [3, 6],
+    };
+    return map[q] || null;
+  }
 
+  _toneAccidentalClass(rootMidi, targetStep, targetSemis) {
+    const naturalMidi = this.staff._stepToMidi(targetStep);
+    let offset = (rootMidi + targetSemis) - naturalMidi;
 
+    while (offset > 6) offset -= 12;
+    while (offset < -6) offset += 12;
 
-_pickTriadQuality() {
-  const pool =
-    Array.isArray(this.opts.triadQualities) && this.opts.triadQualities.length
-      ? this.opts.triadQualities
-      : ["major"];
-  return pool[Math.floor(Math.random() * pool.length)];
-}
+    const accClass = this._accidentalClassFromOffset(offset);
+    if (accClass == null && offset !== 0) return null;
+    return accClass;
+  }
 
+  _stepAboveBass(step, bassStep) {
+    let s = step;
+    while (s <= bassStep) s += 7;
+    return s;
+  }
+
+  _pickRootAndBassForTriad(quality) {
+    const expected = this._triadExpectedSemisForQuality(quality);
+    if (!expected) return null;
+
+    const min = this.staff.minStepAllowed();
+    const max = this.staff.maxStepAllowed();
+
+    const initialRoot = !this.opts.initialRoot;
+
+    // If fixedNotes are provided, treat them as the given bass note and fit a triad around them.
+    const fixedList = toArrayMaybe(this.opts.fixedNotes).filter(Boolean);
+    if (initialRoot && fixedList.length) {
+      const bass = this._pickFixedNote(); // respects fixedNotes list + parsing
+      if (!bass) return null;
+
+      const bassAccOff = this.staff._accidentalClassToOffset(bass.accidentalClass);
+      const bassMidi = this.staff._stepToMidi(bass.step) + bassAccOff;
+
+      const candidates = [
+        { rootStep: bass.step, roleSemis: 0 },
+        { rootStep: bass.step - 2, roleSemis: expected[0] },
+        { rootStep: bass.step - 4, roleSemis: expected[1] },
+      ].filter((c) => c.rootStep >= min && c.rootStep <= max);
+
+      const viable = [];
+      for (const c of candidates) {
+        const rootMidi = bassMidi - c.roleSemis;
+        const rootOff = rootMidi - this.staff._stepToMidi(c.rootStep);
+        const rootAccClass = this._accidentalClassFromOffset(rootOff);
+        if (rootAccClass == null && rootOff !== 0) continue;
+
+        const thirdStep = c.rootStep + 2;
+        const fifthStep = c.rootStep + 4;
+        if (thirdStep < min || thirdStep > max) continue;
+        if (fifthStep < min || fifthStep > max) continue;
+
+        const thirdAcc = this._toneAccidentalClass(rootMidi, thirdStep, expected[0]);
+        const fifthAcc = this._toneAccidentalClass(rootMidi, fifthStep, expected[1]);
+        if (thirdAcc == null || fifthAcc == null) continue;
+
+        viable.push({
+          root: { step: c.rootStep, accidentalClass: rootAccClass },
+          bass: { step: bass.step, accidentalClass: bass.accidentalClass || null },
+        });
+      }
+
+      if (viable.length) return pickOne(viable);
+      // fall through to standard path
+    }
+
+    // Standard: choose a root that fits on staff for root/third/fifth spelling.
+    const rootStep = randomInt(min, Math.max(min, max - 4));
+
+    const w = this.opts.accidentalWeights || {};
+    const rootAccClass = pickWeighted([
+      { value: null, weight: Number(w.natural) || 0 },
+      { value: "music-font__sharp", weight: Number(w.sharp) || 0 },
+      { value: "music-font__flat", weight: Number(w.flat) || 0 },
+    ]);
+
+    const rootMidi =
+      this.staff._stepToMidi(rootStep) + this.staff._accidentalClassToOffset(rootAccClass);
+
+    const thirdStep = rootStep + 2;
+    const fifthStep = rootStep + 4;
+
+    const thirdAcc = this._toneAccidentalClass(rootMidi, thirdStep, expected[0]);
+    const fifthAcc = this._toneAccidentalClass(rootMidi, fifthStep, expected[1]);
+    if (thirdAcc == null || fifthAcc == null) return null;
+
+    let bassRole = 0;
+    if (initialRoot) bassRole = pickOne([0, 1, 2]); // root / third / fifth
+
+    const bassStep = bassRole === 0 ? rootStep : bassRole === 1 ? thirdStep : fifthStep;
+    const bassSemis = bassRole === 0 ? 0 : bassRole === 1 ? expected[0] : expected[1];
+    const bassAcc = this._toneAccidentalClass(rootMidi, bassStep, bassSemis);
+    if (bassAcc == null && bassSemis !== 0) return null;
+
+    return {
+      root: { step: rootStep, accidentalClass: rootAccClass },
+      bass: { step: bassStep, accidentalClass: bassAcc },
+    };
+  }
+
+  // ------------------------ game flow ------------------------
+
+  newChallenge() {
+    this.$helpBtn.hide();
+    this._fixedState = null;
+    this._resetTriadContext();
+
+    const clef = this._currentClefForChallenge();
+    if (clef && clef !== this.staff.getClef()) this.staff.setClef(clef);
+
+    this._madeMistakeThisRound = false;
+    this._usedHintThisRound = false;
+    this.$bonusBadge.hide();
+    this.$doublePoints?.hide?.();
+
+    const quality = this._pickTriadQuality();
+
+    this.staff.clearNotes();
+    this.$accidentals.removeClass("invisible");
+    this.$feedback.hide();
+
+    this.$interval.show();
+    this._setTriadUI(quality);
+
+    const setup = this._pickRootAndBassForTriad(quality);
+    if (setup) {
+      const rootMidi =
+        this.staff._stepToMidi(setup.root.step) +
+        this.staff._accidentalClassToOffset(setup.root.accidentalClass);
+
+      this._triadRootState = {
+        step: setup.root.step,
+        accidentalClass: setup.root.accidentalClass || null,
+        midi: rootMidi,
+      };
+
+      this._triadBassState = {
+        step: setup.bass.step,
+        accidentalClass: setup.bass.accidentalClass || null,
+        midi:
+          this.staff._stepToMidi(setup.bass.step) +
+          this.staff._accidentalClassToOffset(setup.bass.accidentalClass),
+      };
+
+      const rootFull = spellNoteFromState(this.staff, setup.root.step, setup.root.accidentalClass);
+      this._triadRootLetterWithAcc = String(rootFull || "").replace(/\d+$/, "") || null;
+
+      const fixedAcc =
+        setup.bass.accidentalClass === "music-font__natural"
+          ? null
+          : (setup.bass.accidentalClass || null);
+
+      const fixedId = this.staff.addFixedNote({
+        step: setup.bass.step,
+        accidentalClass: fixedAcc,
+      });
+
+      if (fixedId) this.staff._emitNoteState(fixedId, "fixed");
+    }
+
+    $("#continue").hide();
+  }
+
+  _pickTriadQuality() {
+    const pool =
+      Array.isArray(this.opts.triadQualities) && this.opts.triadQualities.length
+        ? this.opts.triadQualities
+        : ["major"];
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  // ------------------------ fixed note selection ------------------------
 
   _pickFixedNote() {
     const fixedList = toArrayMaybe(this.opts.fixedNotes).filter(Boolean);
@@ -224,168 +359,105 @@ _pickTriadQuality() {
 
   // ------------------------ evaluation ------------------------
 
+  _notesOnStaffOrdered() {
+    const $notes = this.$staffEl.find(".note").not(".preview").not(".hint");
+    const notes = $notes.toArray().map((el) => {
+      const id = el.getAttribute("data-note-id");
+      const step = this.staff._stepOfNoteEl(el);
+      const accCls = this.staff._getAttachedAccidentalClass(id);
+      const accOff = this.staff._accidentalClassToOffset(accCls);
+      const fixed = el.classList.contains("fixed");
+      return { id, step, accOff, fixed };
+    });
 
-_notesOnStaffOrdered() {
-  const $notes = this.$staffEl.find(".note").not(".preview").not(".hint");
-  const notes = $notes.toArray().map((el) => {
-    const id = el.getAttribute("data-note-id");
-    const step = this.staff._stepOfNoteEl(el);
-    const accCls = this.staff._getAttachedAccidentalClass(id);
-    const accOff = this.staff._accidentalClassToOffset(accCls);
-    const fixed = el.classList.contains("fixed");
-    return { id, step, accOff, fixed };
-  });
+    notes.sort((a, b) => a.step - b.step);
+    return notes;
+  }
 
-  notes.sort((a, b) => a.step - b.step);
-  return notes;
-}
+  _onCheck() {
+    const notes = this._notesOnStaffOrdered();
+    this.$checkBtn.disable();
 
+    this._stats.checksTotal += 1;
 
-  _qualityFor(simpleNum, semitones) {
-    const isPerfectClass = (simpleNum === 1 || simpleNum === 4 || simpleNum === 5 || simpleNum === 8);
-    const expectedMajorOrPerfect = { 1:0, 2:2, 3:4, 4:5, 5:7, 6:9, 7:11, 8:12 }[simpleNum];
-    const delta = semitones - expectedMajorOrPerfect;
+    if (notes.length !== 3) {
+      this._madeAnyMistake = true;
+      this._madeMistakeThisRound = true;
 
-    if (isPerfectClass) {
-      if (delta === 0) return "P";
-      if (delta === 1) return "A";
-      if (delta === -1) return "d";
-      if (delta > 1) return "A".repeat(delta);
-      if (delta < -1) return "d".repeat(-delta);
-    } else {
-      if (delta === 0) return "M";
-      if (delta === -1) return "m";
-      if (delta === 1) return "A";
-      if (delta === -2) return "d";
-      if (delta > 1) return "A".repeat(delta);
-      if (delta < -2) return "d".repeat((-delta) - 1);
+      this.$interval.removeClass("text-blue").addClass("text-red");
+      this._failAnimation(this.$checkWrap);
+
+      this.$checkBtn[0] && this.$checkBtn[0].blur && this.$checkBtn[0].blur();
+      this.$helpBtn.show();
+      return;
     }
-    return "?";
-  }
 
-  _intervalNameBetween(noteA, noteB) {
-    const midiLow = this.staff._stepToMidi(noteA.step) + (noteA.accOff || 0);
-    const midiHigh = this.staff._stepToMidi(noteB.step) + (noteB.accOff || 0);
+    const expected = this._triadExpectedSemisForQuality(this._currentTriadQuality);
+    const rootState = this._triadRootState;
 
-    const semitones = Math.abs(midiHigh - midiLow);
-    const diatonicNum = Math.abs(noteB.step - noteA.step) + 1;
+    if (!expected || !rootState) {
+      this._madeAnyMistake = true;
+      this._madeMistakeThisRound = true;
+      this.$helpBtn.show();
+      return;
+    }
 
-    const simpleNum = ((diatonicNum - 1) % 7) + 1;
-    const octaves = Math.floor((diatonicNum - 1) / 7);
-    const semitonesReduced = semitones - (12 * octaves);
+    const rootStep = rootState.step;
+    const rootMidi = rootState.midi;
 
-    return this._qualityFor(simpleNum, semitonesReduced) + diatonicNum;
-  }
+    const roleToSemis = { 0: 0, 2: expected[0], 4: expected[1] };
+    const seenRoles = new Set();
 
+    let ok = true;
+    for (const n of notes) {
+      const diatonic = ((n.step - rootStep) % 7 + 7) % 7;
+      if (diatonic !== 0 && diatonic !== 2 && diatonic !== 4) { ok = false; break; }
+      if (seenRoles.has(diatonic)) { ok = false; break; }
+      seenRoles.add(diatonic);
 
-_onCheck() {
-  const notes = this._notesOnStaffOrdered();
-  this.$checkBtn.disable();
-
-  this._stats.checksTotal += 1;
-
-  if (notes.length !== 3) {
-    this._madeAnyMistake = true;
-    this._madeMistakeThisRound = true;
-
-    this.$interval.removeClass("text-blue").addClass("text-red");
-    this._failAnimation(this.$checkWrap);
-
-    this.$checkBtn[0] && this.$checkBtn[0].blur && this.$checkBtn[0].blur();
-    this.$helpBtn.show();
-    return;
-  }
-
-  const root = notes.find((n) => n.fixed) || notes[0];
-  const others = notes.filter((n) => n.id !== root.id);
-
-  const rootMidi = this.staff._stepToMidi(root.step) + (root.accOff || 0);
-  const intervals = others
-    .map((n) => {
       const midi = this.staff._stepToMidi(n.step) + (n.accOff || 0);
       let d = (midi - rootMidi) % 12;
       if (d < 0) d += 12;
-      return d;
-    })
-    .filter((d) => d !== 0)
-    .sort((a, b) => a - b);
 
-  const expectedByQuality = {
-    major: [4, 7],
-    minor: [3, 7],
-    augmented: [4, 8],
-    diminished: [3, 6],
-  };
+      if (d !== roleToSemis[diatonic]) { ok = false; break; }
+    }
 
-  const expected = expectedByQuality[this._currentTriadQuality] || null;
-  const ok = expected && intervals.length === 2 && intervals[0] === expected[0] && intervals[1] === expected[1];
+    if (ok) {
+      this._stats.checksCorrect += 1;
 
-  if (ok) {
-    this._stats.checksCorrect += 1;
+      const { earned, bonusEarned } = this._awardPointsForCorrect();
 
-    const { earned, bonusEarned } = this._awardPointsForCorrect();
+      this._successAnimation({ isBonus: bonusEarned > 0 });
+      this.$interval.hide();
 
-    this._successAnimation({ isBonus: bonusEarned > 0 });
-    this.$interval.hide();
+      $("#score").animateCSS && $("#score").animateCSS("heartBeat");
+      if (earned > 0) this._showIncrement(earned);
 
-    $("#score").animateCSS && $("#score").animateCSS("heartBeat");
-    if (earned > 0) this._showIncrement(earned);
-
-    if (this._updateProgressBar() >= 100) {
-      this._stats.finishedAtMs = Date.now();
-      setTimeout(() => this._showFinalResults(), 1600);
+      if (this._updateProgressBar() >= 100) {
+        this._stats.finishedAtMs = Date.now();
+        setTimeout(() => this._showFinalResults(), 1600);
+      } else {
+        $("#check").hide();
+        $("#continue").show();
+      }
     } else {
-      $("#check").hide();
-      $("#continue").show();
+      this._madeAnyMistake = true;
+      this._madeMistakeThisRound = true;
+
+      this.$interval.removeClass("text-blue").addClass("text-red");
+      this._failAnimation(this.$checkWrap);
+
+      this.$checkWrap
+        .off(`animationend._failRestore.${this.ns} webkitAnimationEnd._failRestore.${this.ns}`)
+        .one(`animationend._failRestore.${this.ns} webkitAnimationEnd._failRestore.${this.ns}`, () => {
+          this.$interval.removeClass("text-red").addClass("text-blue");
+        });
+
+      this.$helpBtn.show();
     }
-  } else {
-    this._madeAnyMistake = true;
-    this._madeMistakeThisRound = true;
-
-    this.$interval.removeClass("text-blue").addClass("text-red");
-    this._failAnimation(this.$checkWrap);
-
-    this.$checkWrap
-      .off(`animationend._failRestore.${this.ns} webkitAnimationEnd._failRestore.${this.ns}`)
-      .one(`animationend._failRestore.${this.ns} webkitAnimationEnd._failRestore.${this.ns}`, () => {
-        this.$interval.removeClass("text-red").addClass("text-blue");
-      });
-
-    this.$helpBtn.show();
-  }
-}
-
-
-  // ------------------------ hint math (interval-specific) ------------------------
-
-  _parseIntervalAbbr(abbr) {
-    const s = String(abbr || "").trim();
-    const m = s.match(/^([PMAmd]+)(\d+)$/);
-    if (!m) return null;
-
-    return { quality: m[1], number: parseInt(m[2], 10) };
   }
 
-  _intervalSemitones(quality, simpleNum) {
-    const baseMajorPerfect = { 1:0, 2:2, 3:4, 4:5, 5:7, 6:9, 7:11, 8:12 }[simpleNum];
-    if (baseMajorPerfect == null) return null;
-
-    const isPerfectClass = (simpleNum === 1 || simpleNum === 4 || simpleNum === 5 || simpleNum === 8);
-    const q = String(quality || "").trim();
-
-    if (isPerfectClass) {
-      if (q === "P") return baseMajorPerfect;
-      if (/^A+$/.test(q)) return baseMajorPerfect + q.length;
-      if (/^d+$/.test(q)) return baseMajorPerfect - q.length;
-      return null;
-    }
-
-    if (q === "M") return baseMajorPerfect;
-    if (q === "m") return baseMajorPerfect - 1;
-    if (/^A+$/.test(q)) return baseMajorPerfect + q.length;
-    if (/^d+$/.test(q)) return baseMajorPerfect - (q.length + 1);
-    return null;
-  }
+  // ------------------------ hints ------------------------
 
   _accidentalClassFromOffset(off) {
     if (off === 2) return "music-font__doublesharp";
@@ -396,140 +468,62 @@ _onCheck() {
     return null;
   }
 
+  _computeHintAnswers() {
+    const notes = this._notesOnStaffOrdered();
+    if (notes.length < 1) return [];
 
-_computeHintAnswer() {
-  const notes = this._notesOnStaffOrdered();
-  if (notes.length < 1) return null;
+    const expected = this._triadExpectedSemisForQuality(this._currentTriadQuality);
+    const rootState = this._triadRootState;
+    const bassState = this._triadBassState;
 
-  const root = notes.find((n) => n.fixed) || notes[0];
-  const rootMidi = this.staff._stepToMidi(root.step) + (root.accOff || 0);
+    if (!expected || !rootState || !bassState) return [];
 
-  const expectedByQuality = {
-    major: [4, 7],
-    minor: [3, 7],
-    augmented: [4, 8],
-    diminished: [3, 6],
-  };
-  const expected = expectedByQuality[this._currentTriadQuality] || null;
-  if (!expected) return null;
+    const rootStep = rootState.step;
+    const rootMidi = rootState.midi;
+    const bassStep = bassState.step;
 
-  const present = new Set(
-    notes
-      .filter((n) => n.id !== root.id)
-      .map((n) => {
+    const presentRoles = new Set();
+    for (const n of notes) {
+      const diatonic = ((n.step - rootStep) % 7 + 7) % 7;
+      if (diatonic === 0 || diatonic === 2 || diatonic === 4) {
         const midi = this.staff._stepToMidi(n.step) + (n.accOff || 0);
         let d = (midi - rootMidi) % 12;
         if (d < 0) d += 12;
-        return d;
-      }),
-  );
 
-  const missing = expected.filter((d) => !present.has(d));
-  if (!missing.length) return null;
+        const want = diatonic === 0 ? 0 : diatonic === 2 ? expected[0] : expected[1];
+        if (d === want) presentRoles.add(diatonic);
+      }
+    }
 
-  const target = pickOne(missing);
-  // Choose the closest staff step to root+target that is within bounds.
-  const min = this.staff.minStepAllowed();
-  const max = this.staff.maxStepAllowed();
+    const min = this.staff.minStepAllowed();
+    const max = this.staff.maxStepAllowed();
 
-  let best = null;
-  for (let step = min; step <= max; step++) {
-    if (this.staff._isStepOccupied(step, null)) continue;
-    const midi = this.staff._stepToMidi(step);
-    let d = (midi - rootMidi) % 12;
-    if (d < 0) d += 12;
+    const buildHintAtStep = (id, step, targetSemis) => {
+      if (step < min || step > max) return null;
+      const accClass = this._toneAccidentalClass(rootMidi, step, targetSemis);
+      if (accClass == null && targetSemis !== 0) return null;
+      return { id, step, accidentalClass: accClass };
+    };
 
-    const neededOffset = (target - d + 12) % 12;
-    const offset = neededOffset > 6 ? neededOffset - 12 : neededOffset;
+    const targets = [
+      { role: 0, id: "hintR", baseStep: rootStep, semis: 0 },
+      { role: 2, id: "hint3", baseStep: rootStep + 2, semis: expected[0] },
+      { role: 4, id: "hint5", baseStep: rootStep + 4, semis: expected[1] },
+    ];
 
-    const accClass = this._accidentalClassFromOffset(offset);
-    if (accClass == null && offset !== 0) continue;
+    const hints = [];
+    for (const t of targets) {
+      if (presentRoles.has(t.role)) continue;
 
-    const cost = Math.abs(midi + offset - (rootMidi + target));
-    if (!best || cost < best.cost) best = { step, accidentalClass: accClass, cost };
+      let step = this._stepAboveBass(t.baseStep, bassStep);
+      if (step > max) step = t.baseStep;
+
+      const h = buildHintAtStep(t.id, step, t.semis);
+      if (h) hints.push(h);
+    }
+
+    return hints.slice(0, 2);
   }
-
-  
-  return best ? { step: best.step, accidentalClass: best.accidentalClass } : null;
-}
-
-/**
- * ChordChallenge.dev.js
- * Override for BaseStaffGame multi-hint support.
- */
-_computeHintAnswers() {
-  const notes = this._notesOnStaffOrdered();
-  if (notes.length < 1) return [];
-
-  const root = notes.find((n) => n.fixed) || notes[0];
-  const rootMidi = this.staff._stepToMidi(root.step) + (root.accOff || 0);
-
-  const expectedByQuality = {
-    major: [4, 7],
-    minor: [3, 7],
-    augmented: [4, 8],
-    diminished: [3, 6],
-  };
-  const expected = expectedByQuality[this._currentTriadQuality];
-  if (!expected) return [];
-
-  const presentPCs = new Set(
-    notes
-      .filter((n) => n.id !== root.id)
-      .map((n) => {
-        const midi = this.staff._stepToMidi(n.step) + (n.accOff || 0);
-        let d = (midi - rootMidi) % 12;
-        if (d < 0) d += 12;
-        return d;
-      }),
-  );
-
-  const min = this.staff.minStepAllowed();
-  const max = this.staff.maxStepAllowed();
-
-  const buildHintAtStep = (id, step, targetSemis) => {
-    if (step < min || step > max) return null;
-
-    const naturalMidi = this.staff._stepToMidi(step);
-    let offset = (rootMidi + targetSemis) - naturalMidi;
-
-    // Keep offsets reasonable (supports double-flats/sharps if your CSS supports them)
-    while (offset > 6) offset -= 12;
-    while (offset < -6) offset += 12;
-
-    const accClass = this._accidentalClassFromOffset(offset);
-    if (accClass == null && offset !== 0) return null;
-
-    return { id, step, accidentalClass: accClass };
-  };
-
-  const thirdStep = root.step + 2;
-  const fifthStep = root.step + 4;
-
-  const thirdSemis = expected[0];
-  const fifthSemis = expected[1];
-
-  const hints = [];
-
-  // If you want "Show answer" to ALWAYS show both notes, remove these two `if` checks.
-  if (!presentPCs.has(thirdSemis)) {
-    const h3 = buildHintAtStep("hint3", thirdStep, thirdSemis);
-    if (h3) hints.push(h3);
-  }
-  if (!presentPCs.has(fifthSemis)) {
-    const h5 = buildHintAtStep("hint5", fifthStep, fifthSemis);
-    if (h5) hints.push(h5);
-  }
-
-  return hints;
-}
-
-
-
-
-
-
-
 
   // ------------------------ pitch parsing (for fixedNotes option) ------------------------
 
@@ -563,7 +557,12 @@ _computeHintAnswers() {
     const octave = parseInt(m[3], 10);
 
     const baseSemitoneFromC = { C:0, D:2, E:4, F:5, G:7, A:9, B:11 }[letter];
-    const accOffset = acc === "##" ? 2 : acc === "#" ? 1 : acc === "bb" ? -2 : acc === "b" ? -1 : 0;
+    const accOffset =
+      acc === "##" ? 2 :
+      acc === "#" ? 1 :
+      acc === "bb" ? -2 :
+      acc === "b" ? -1 :
+      0;
 
     const accidentalClass =
       accOffset === 2 ? "music-font__doublesharp" :

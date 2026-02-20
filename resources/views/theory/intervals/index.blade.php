@@ -37,23 +37,25 @@
   </div>
   <div class="row">
     <div class="col-lg-6 col-md-8 col-11 mx-auto text-center">
-      @include('theory.intervals.components.counter')
-      @include('theory.intervals.components.level')
-      @include('theory.intervals.components.title')
+      @include('theory.components.counter')
+      @include('theory.components.level')
+      @include('theory.components.title')
     </div>
 
     <div class="col-11 mx-auto mb-3">
       <div id="staff-wrapper" class="text-center mx-auto position-relative">
-        @include('theory.intervals.components.accidentals')
+        @include('theory.components.accidentals')
         <div id="staff"></div>
-        @include('theory.intervals.components.feedback')
-        @include('theory.intervals.components.interval')
+        @include('theory.components.feedback')
+        @include('theory.components.interval')
       </div>
     </div>
 
     <div class="col-lg-6 col-md-8 col-11 mx-auto">
-      @include('theory.intervals.components.controls')
-      @include('theory.intervals.components.preferences')
+      @include('theory.components.controls')
+      @include('theory.intervals.modals.settings')
+      @include('theory.intervals.modals.instructions')
+      @include('theory.components.preferences')
     </div>
   </div>
 </section>

@@ -6,7 +6,7 @@ class ChordsChallenge extends GameFactory
 {
     protected function requiredToggleKeys(): array
     {
-        return ['sound', 'showLetterNames', 'allowInitialAccidentals'];
+        return ['sound', 'showLetterNames', 'allowInitialAccidentals', 'initialRoot'];
     }
 
     protected function defaults(): array
@@ -14,13 +14,13 @@ class ChordsChallenge extends GameFactory
         return [
             'maxUserNotes' => 2,
             'numOfChallenges' => 4,
-            'intervals' => ['M2', 'm3', 'M3', 'P5', 'P8'],
             'triadQualities' => ['major', 'minor'],
             'clefs' => ['treble', 'bass'],
             'fixedNotes' => [],
             'sound' => true,
             'showLetterNames' => false,
             'allowInitialAccidentals' => false,
+            'initialRoot' => true,
         ];
     }
 
