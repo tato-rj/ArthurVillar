@@ -13,7 +13,7 @@
             </div>
 
             @component('theory.card', [
-                'color' => 'green',
+                'challenge' => $intervalsChallenge,
                 'title' => 'Intervals', 
                 'description' => 'Practice the most common chromatic intervals in different clefs.'])
 
@@ -21,7 +21,7 @@
             @endcomponent
 
             @component('theory.card', [
-                'color' => 'red',
+                'challenge' => $chordsChallenge,
                 'title' => 'Chords', 
                 'description' => 'Practice the four fundamental triads as well as 7th chords.'])
 
@@ -29,7 +29,6 @@
             @endcomponent
 
             @component('theory.card', [
-                'color' => 'grey',
                 'disabled' => true, 
                 'title' => 'Ear Traning', 
                 'description' => 'Practice harmonic, melodic, or rhythmic dictation.'])

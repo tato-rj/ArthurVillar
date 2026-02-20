@@ -30,11 +30,11 @@
 @endpush
 
 @section('content')
-<section id="page-wrapper" class="container py-4">
-  <div class="text-center mb-4">
-    <h3 class="mb-1">Intervals Challenge</h3>
-    <p class="m-0">Add the note that forms the indicated interval</p>
-  </div>
+@include('theory.components.pagetitle', [
+  'title' => 'Intervals Challenge', 
+  'description' => 'Add the note that forms the indicated interval'])
+
+<section id="page-wrapper" class="container">
   <div class="row">
     <div class="col-lg-6 col-md-8 col-11 mx-auto text-center">
       @include('theory.components.counter')
