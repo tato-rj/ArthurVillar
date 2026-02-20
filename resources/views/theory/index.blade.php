@@ -4,10 +4,11 @@
 @endpush
 
 @section('content')
-<section class="container py-4">
+<section class="container py-5">
     <div class="row">
-        <div class="col-lg-6 col-md-8 col-10 mx-auto">
-            <h1 class="text-center mb-4">Music Theory Challenges</h1>
+        <div class="col-lg-6 col-md-8 col-11 mx-auto">
+            <h1 class="text-center mb-5">Music Theory Challenges</h1>
+
             @component('theory.card', ['title' => 'Intervals', 'description' => 'Fast game for note reading and musical thinking. Quick challenges, instant feedback, and scoring to track improvement.'])
                 @include('theory.intervals.modals.settings', ['challenge' => $intervalsChallenge, 'modalID' => 'intervals-settings-modal'])
             @endcomponent

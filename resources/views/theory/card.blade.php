@@ -1,4 +1,4 @@
-<div class="mb-5">
+<div class="mb-4 bg-light p-3 border">
     <h3>{{$title}}</h3>
     <p>{{$description}}</p>
 
