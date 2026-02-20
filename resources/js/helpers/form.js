@@ -15,3 +15,7 @@ window.popup = function(type, message) {
 
     $popup.appendTo('body').show();
 }
+
+window.readGlobal = function(name) {
+  return typeof window !== "undefined" ? window[name] : undefined;
+}

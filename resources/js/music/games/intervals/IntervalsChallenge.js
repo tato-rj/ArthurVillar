@@ -1,4 +1,3 @@
-// resources/js/music/games/interval/IntervalChallenge.js
 import { BaseStaffGame } from "../base/BaseStaffGame.js";
 import {
   normalizeClef,
@@ -8,7 +7,7 @@ import {
   toArrayMaybe,
 } from "../../staff/staffUtils.js";
 
-export class IntervalChallenge extends BaseStaffGame {
+export class IntervalsChallenge extends BaseStaffGame {
   static INTERVAL_FULL_NAME_MAP = {
     m2: "minor 2nd",
     M2: "major 2nd",
@@ -30,7 +29,7 @@ export class IntervalChallenge extends BaseStaffGame {
       staffEl: "#staff",
       basePoints: 1,
       firstTryBonus: 2,
-      namespace: "intervalChallenge",
+      namespace: "intervalsChallenge",
     };
 
     const merged = {
@@ -42,10 +41,10 @@ export class IntervalChallenge extends BaseStaffGame {
       },
       intervals: Array.isArray(options.intervals)
         ? options.intervals.slice()
-        : Object.keys(IntervalChallenge.INTERVAL_FULL_NAME_MAP),
+        : Object.keys(IntervalsChallenge.INTERVAL_FULL_NAME_MAP),
     };
 
-    const clefPool = IntervalChallenge._normalizeClefPoolStatic(
+    const clefPool = IntervalsChallenge._normalizeClefPoolStatic(
       merged.clefs != null ? merged.clefs : merged.clef,
     );
 
@@ -86,7 +85,7 @@ export class IntervalChallenge extends BaseStaffGame {
 
   _fullNameForInterval(abbr) {
     const key = String(abbr || "").trim();
-    return IntervalChallenge.INTERVAL_FULL_NAME_MAP[key] || this._deriveFullNameFromAbbr(key);
+    return IntervalsChallenge.INTERVAL_FULL_NAME_MAP[key] || this._deriveFullNameFromAbbr(key);
   }
 
   _setIntervalUI(intervalAbbr) {

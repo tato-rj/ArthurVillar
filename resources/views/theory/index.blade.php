@@ -7,17 +7,20 @@
 <section class="container py-5">
     <div class="row">
         <div class="col-lg-6 col-md-8 col-11 mx-auto">
-            <h1 class="text-center mb-5">Music Theory Challenges</h1>
+            <div class="text-center mb-4">
+                <h1 class="text-center">Music Theory Challenges</h1>
+                <p>Interactive games for practicing core music theory skills</p>
+            </div>
 
-            @component('theory.card', ['title' => 'Intervals', 'description' => 'Fast game for note reading and musical thinking. Quick challenges, instant feedback, and scoring to track improvement.'])
+            @component('theory.card', ['title' => 'Intervals', 'description' => 'Practice the most common chromatic intervals in different clefs.'])
                 @include('theory.intervals.modals.settings', ['challenge' => $intervalsChallenge, 'modalID' => 'intervals-settings-modal'])
             @endcomponent
 
-            @component('theory.card', ['title' => 'Chords', 'description' => 'Train chord recognition and harmony. Identify triads and 7th chords, get instant feedback, and build theory skills with short tasks.'])
+            @component('theory.card', ['title' => 'Chords', 'description' => 'Practice the four fundamental triads as well as 7th chords.'])
                 @include('theory.chords.modals.settings', ['challenge' => $chordsChallenge, 'modalID' => 'chords-settings-modal'])
             @endcomponent
 
-            @component('theory.card', ['disabled' => true, 'title' => 'Ear Traning', 'description' => 'Practice melody and chord dictation. Listen, write what you hear, and get instant feedback to sharpen your ear.'])
+            @component('theory.card', ['disabled' => true, 'title' => 'Ear Traning', 'description' => 'Practice harmonic, melodic, or rhythmic dictation.'])
                 {{-- @include('theory.intervals.modals.settings') --}}
             @endcomponent
         </div>

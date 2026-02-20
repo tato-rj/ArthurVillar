@@ -1,13 +1,9 @@
-import { IntervalChallenge } from "./interval/IntervalChallenge.js";
-
-function readGlobal(name) {
-  return typeof window !== "undefined" ? window[name] : undefined;
-}
+import { ChordsChallenge } from "./chords/ChordsChallenge.js";
 
 const options = readGlobal("__challengeOptions") || {};
 const clefUrls = readGlobal("__clefUrls") || null;
 
-const game = new IntervalChallenge({
+const game = new ChordsChallenge({
   ...options,
   clefUrls,
 });

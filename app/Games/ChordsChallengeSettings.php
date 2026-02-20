@@ -2,7 +2,7 @@
 
 namespace App\Games;
 
-class ChordsChallenge extends GameFactory
+class ChordsChallengeSettings extends GameFactory
 {
     protected function requiredToggleKeys(): array
     {

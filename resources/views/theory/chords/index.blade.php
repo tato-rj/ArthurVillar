@@ -37,7 +37,7 @@
 <section id="page-wrapper" class="container py-4">
   <div class="text-center mb-4">
     <h3 class="mb-1">Chords Challenge</h3>
-    <p class="m-0">Complete the chords below</p>
+    <p class="m-0">Add the notes to complete the chords below</p>
   </div>
   <div class="row">
     <div class="col-lg-6 col-md-8 col-11 mx-auto text-center">
@@ -69,6 +69,6 @@
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.js"></script>
-<script type="module" src="{{ asset('js/dev-music/games/chords.js') }}"></script>
-
+<script src="{{ mix('js/music/chords.js') }}"></script>
+{{-- <script type="module" src="{{ asset('js/dev-music/games/chords.js') }}"></script> --}}
 @endpush
