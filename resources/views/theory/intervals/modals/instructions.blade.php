@@ -14,6 +14,6 @@
 
 <div class="bg-red-lighter border p-3">
 	<h6><u>What do I do if I’m stuck?</u></h6>
-	<p class="m-0">If you make a mistake, a <strong>help button</strong> appears. Click it to see the answer. Using help gives no points for that round.</p>
+	<p class="m-0">If you make a mistake, a <strong>help button</strong> appears. Click it to see the answer. <u>Using help will make the round be worth 0 points</u>.</p>
 </div>
 @endmodal
