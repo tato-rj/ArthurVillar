@@ -22,7 +22,7 @@ class ChordsSettings extends GameFactory
             'allowInitialAccidentals' => false,
             'initialRoot' => true,
             'only7thChords' => false,
-            'initialNoteRange' => 1,
+            'initialNoteRange' => 0,
         ];
     }
 

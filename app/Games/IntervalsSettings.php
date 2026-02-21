@@ -20,7 +20,7 @@ class IntervalsSettings extends GameFactory
             'sound' => true,
             'showLetterNames' => false,
             'allowInitialAccidentals' => false,
-            'initialNoteRange' => 1,
+            'initialNoteRange' => 0,
         ];
     }
 

@@ -20,7 +20,7 @@ class DictationSettings extends GameFactory
             'sound' => false,
             'showLetterNames' => false,
             'allowInitialAccidentals' => false,
-            'initialNoteRange' => 1,
+            'initialNoteRange' => 0,
         ];
     }
 
