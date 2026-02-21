@@ -18,12 +18,9 @@
 			<div class="col-lg-4 col-md-8 col-12 mx-auto"> 
 				<div class="px-3">
 					<button onclick="location.reload();" class="btn btn-primary mb-2 w-100">@fa(['icon' => 'star'])Start a new challenge</button>
-					{{-- <button data-bs-toggle="modal" data-bs-target="#share-modal" class="btn btn-white mb-2 w-100">@fa(['icon' => 'envelope'])Share my results</button> --}}
 					<a href="{{route('theory.index')}}" class="btn btn-white w-100">Back to the main menu</a>
 				</div>
 			</div>
 		</div>
 	</div>
 </div>
-
-@include('theory.intervals.modals.share')

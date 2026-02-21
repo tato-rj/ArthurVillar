@@ -8,7 +8,7 @@
 <link href="{{ mix('css/musicgames.css') }}" rel="stylesheet">
 
 <script>
-  window.__challengeOptions = @json($challenge->options());
+  window.__challengeOptions = @json($settings->options());
   window.__clefUrls = {
     treble: "{{ asset('images/clefs/treble-clef.svg') }}",
     bass:   "{{ asset('images/clefs/bass-clef.svg') }}",
@@ -66,4 +66,11 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.js"></script>
 <script src="{{ mix('js/music/intervals.js') }}"></script>
+<script>
+  /**
+   * Toggle "text-black" on the label matching the range value, reset others to "text-light".
+   * Works with multiple sliders if each slider points at its own labels container via data-range-labels.
+   */
+
+</script>
 @endpush

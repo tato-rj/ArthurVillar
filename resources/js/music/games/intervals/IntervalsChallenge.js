@@ -3,7 +3,6 @@ import {
   normalizeClef,
   pickOne,
   pickWeighted,
-  randomInt,
   toArrayMaybe,
 } from "../../staff/staffUtils.js";
 
@@ -178,7 +177,7 @@ export class IntervalsChallenge extends BaseStaffGame {
       { value: "music-font__flat", weight: Number(w.flat) || 0 },
     ]);
 
-    return { step: randomInt(0, 7), accidentalClass };
+    return { step: this._randomInitialFixedStep(), accidentalClass };
   }
 
   // ------------------------ evaluation ------------------------

@@ -8,4 +8,6 @@ Route::prefix('theory')->name('theory.')->group(function() {
 	Route::get('intervals', 'TheoryController@intervals')->name('intervals.play');
 
 	Route::get('chords', 'TheoryController@chords')->name('chords.play');
+
+	Route::get('dictation', 'TheoryController@dictation')->name('dictation.play');
 });

@@ -4,29 +4,37 @@ namespace App\Http\Controllers\Theory;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Games\{IntervalsChallengeSettings, ChordsChallengeSettings};
+use App\Games\{IntervalsSettings, ChordsSettings, DictationSettings};
 
 class TheoryController extends Controller
 {
     public function index()
     {
-        $intervalsChallenge = new IntervalsChallengeSettings;
-        $chordsChallenge = new ChordsChallengeSettings;
+        $intervalsSettings = new IntervalsSettings;
+        $chordsSettings = new ChordsSettings;
+        $dictationSettings = new DictationSettings;
 
-        return view('theory.index', compact('intervalsChallenge', 'chordsChallenge'));
+        return view('theory.index', compact('intervalsSettings', 'chordsSettings', 'dictationSettings'));
     }
 
     public function intervals(Request $request)
     {
-        $challenge = new IntervalsChallengeSettings($request->all());
+        $settings = new IntervalsSettings($request->all());
 
-        return view('theory.intervals.index', compact('challenge'));
+        return view('theory.intervals.index', compact('settings'));
     }
 
     public function chords(Request $request)
     {
-        $challenge = new ChordsChallengeSettings($request->all());
-// return $challenge->options();
-        return view('theory.chords.index', compact('challenge'));
+        $settings = new ChordsSettings($request->all());
+
+        return view('theory.chords.index', compact('settings'));
+    }
+
+    public function dictation(Request $request)
+    {
+        $settings = new DictationSettings($request->all());
+
+        return view('theory.dictation.index', compact('settings'));
     }
 }

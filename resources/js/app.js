@@ -6,6 +6,34 @@ require('./utilities');
 
 document.addEventListener("touchstart", () => {}, { passive: true });
 
+document.addEventListener("DOMContentLoaded", () => {
+  const ranges = document.querySelectorAll('input[type="range"][name="initialNoteRange"]');
+
+  for (const range of ranges) {
+    const wrap = range.closest(".mb-4") ?? range.parentElement;
+    const labelsWrap = wrap?.querySelector("#initialNoteRangeLabels") 
+      ?? range.nextElementSibling?.id === "initialNoteRangeLabels"
+      ? range.nextElementSibling
+      : null;
+
+    if (!labelsWrap) continue;
+
+    const labels = Array.from(labelsWrap.querySelectorAll("label"));
+
+    const updateLabels = () => {
+      const idx = Number(range.value);
+      labels.forEach((label, i) => {
+        label.classList.toggle("text-black", i === idx);
+        label.classList.toggle("text-light", i !== idx);
+      });
+    };
+
+    updateLabels();
+    range.addEventListener("input", updateLabels);
+    range.addEventListener("change", updateLabels);
+  }
+});
+  
 $('.form-number button').on('click', function () {
   const $input = $(this).siblings('input');
   const current = parseInt($input.val(), 10) || 0;

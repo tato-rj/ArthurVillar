@@ -325,10 +325,56 @@ _formatShortLabelHtml(shortLabel) {
       // fall through to standard path
     }
 
-    // Standard: choose a root that fits on staff for root/third/fifth spelling.
+    // Standard: choose a root that fits on staff for root/third/fifth(/seventh) spelling,
+    // while keeping the *given* (fixed) note within the configured initialNoteRange.
     const span = expected.length === 3 ? 6 : 4;
-    const rootStep = randomInt(min, Math.max(min, max - span));
 
+    const rootMin = min;
+    const rootMax = Math.max(min, max - span);
+    if (rootMax < rootMin) return null;
+
+    const range = this._initialFixedStepBounds(); // {min,max} for the given note
+
+    let rootStep = null;
+    let bassRole = 0;
+
+    if (!allowInv) {
+      // No inversions: the fixed note is the root, so constrain the root directly.
+      const a = Math.max(rootMin, range.min);
+      const b = Math.min(rootMax, range.max);
+      if (b < a) return null;
+      rootStep = randomInt(a, b);
+    } else {
+      // Inversions allowed: the fixed note can be root/3rd/5th(/7th). Constrain the chosen bass.
+      const roles = expected.length === 3 ? [0, 1, 2, 3] : [0, 1, 2];
+
+      for (let tries = 0; tries < 80; tries += 1) {
+        const candidateRoot = randomInt(rootMin, rootMax);
+        const role = pickOne(roles);
+
+        const third = candidateRoot + 2;
+        const fifth = candidateRoot + 4;
+        const seventh = expected.length === 3 ? candidateRoot + 6 : null;
+
+        const candidateBass =
+          role === 0 ? candidateRoot :
+          role === 1 ? third :
+          role === 2 ? fifth :
+          seventh;
+
+        if (this._isStepInInitialFixedRange(candidateBass)) {
+          rootStep = candidateRoot;
+          bassRole = role;
+          break;
+        }
+      }
+
+      if (rootStep == null) {
+        // Fallback: keep the round playable even if constraints are too tight.
+        rootStep = randomInt(rootMin, rootMax);
+        bassRole = pickOne(roles);
+      }
+    }
     const w = this.opts.accidentalWeights || {};
     const rootAccClass = pickWeighted([
       { value: null, weight: Number(w.natural) || 0 },
@@ -348,12 +394,6 @@ _formatShortLabelHtml(shortLabel) {
     const seventhAcc = seventhStep != null ? this._toneAccidentalClass(rootMidi, seventhStep, expected[2]) : null;
     if (thirdAcc == null || fifthAcc == null) return null;
     if (seventhStep != null && seventhAcc == null) return null;
-
-    let bassRole = 0;
-    if (allowInv) {
-      const roles = expected.length === 3 ? [0, 1, 2, 3] : [0, 1, 2];
-      bassRole = pickOne(roles); // root / third / fifth (/ seventh)
-    }
 
     const bassStep =
       bassRole === 0 ? rootStep :
@@ -539,7 +579,7 @@ _requiredUserNotesForChord(seventhType) {
       { value: "music-font__flat", weight: Number(w.flat) || 0 },
     ]);
 
-    return { step: randomInt(0, 7), accidentalClass };
+    return { step: this._randomInitialFixedStep(), accidentalClass };
   }
 
   // ------------------------ evaluation ------------------------

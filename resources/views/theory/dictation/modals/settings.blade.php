@@ -1,5 +1,5 @@
 @modal(['title' => fa('gear').' Game settings', 'id' => $modalID ?? 'settings-modal'])
-<form id="intervals-settings" method="GET" action="{{ route('theory.intervals.play') }}">
+<form id="intervals-settings" method="GET" action="{{ route('theory.dictation.play') }}">
   <div class="d-apart mb-4">
     <label class="nowrap">Number of rounds</label>
     <div class="d-center form-number">

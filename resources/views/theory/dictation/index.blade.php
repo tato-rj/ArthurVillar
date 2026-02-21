@@ -1,4 +1,4 @@
-@extends('layouts.app', ['title' => 'Chords Challenge', 'noMenu' => true])
+@extends('layouts.app', ['title' => 'Dictation Challenge', 'noMenu' => true])
 
 @push('header')
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
@@ -27,16 +27,24 @@
 #metrics-boxes .col-6:nth-child(3) { animation-delay: 0.2s; }
 #metrics-boxes .col-6:nth-child(4) { animation-delay: 0.3s; }
 
+#interval {
+  display: none;
+}
+
 #interval label {
   top: -4px !important;
+}
+
+#play {
+  height: 66.4px;
 }
 </style>
 @endpush
 
 @section('content')
 @include('theory.components.pagetitle', [
-  'title' => 'Chords Challenge', 
-  'description' => 'Add the notes to complete the chords below'])
+  'title' => 'Dictation Challenge', 
+  'description' => 'Add the notes to match what you hear'])
 <section id="page-wrapper" class="container">
   <div class="row">
     <div class="col-lg-6 col-md-8 col-11 mx-auto text-center">
@@ -50,14 +58,14 @@
         @include('theory.components.accidentals')
         <div id="staff"></div>
         @include('theory.components.feedback')
-        @include('theory.components.interval')
+        @include('theory.components.play')
       </div>
     </div>
 
     <div class="col-lg-6 col-md-8 col-11 mx-auto">
       @include('theory.components.controls')
-      @include('theory.chords.modals.settings')
-      @include('theory.chords.modals.instructions')
+      @include('theory.dictation.modals.settings')
+      @include('theory.dictation.modals.instructions')
       @include('theory.components.preferences')
     </div>
   </div>
@@ -68,6 +76,6 @@
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.js"></script>
-<script src="{{ mix('js/music/chords.js') }}"></script>
-{{-- <script type="module" src="{{ asset('js/dev-music/games/chords.js') }}"></script> --}}
+{{-- <script src="{{ mix('js/music/dictation.js') }}"></script> --}}
+<script type="module" src="{{ asset('js/dev-music/games/dictation.js') }}"></script>
 @endpush

@@ -464,7 +464,106 @@ export class BaseStaffGame {
       });
   }
 
+  // ------------------------ initial note range ------------------------
+
+  /**
+   * Resolve the configured range index for the randomly-generated *given* note.
+   *
+   * Supported inputs:
+   * - number or numeric string: 0=narrow, 1=wide, 2=full
+   *
+   * There is intentionally NO default here; the backend must always provide it.
+   *
+   * @returns {0|1|2}
+   */
+
+  _initialNoteRangeIndex() {
+    const raw =
+      this.opts.initialNoteRange != null
+        ? this.opts.initialNoteRange
+        : (this.opts.range != null ? this.opts.range : undefined);
+
+    if (raw == null) {
+      throw new Error("[BaseStaffGame] Missing required option: initialNoteRange (0=narrow, 1=wide, 2=full).");
+    }
+
+    const n = Number(raw);
+    if (!Number.isFinite(n)) {
+      throw new Error(`[BaseStaffGame] initialNoteRange must be a number (0, 1, or 2). Got: ${String(raw)}`);
+    }
+
+    const idx = Math.trunc(n);
+
+    if (idx === 0 || idx === 1 || idx === 2) {
+      return /** @type {0|1|2} */ (idx);
+    }
+
+    // Out-of-range values default to FULL (2) instead of crashing.
+    // eslint-disable-next-line no-console
+    console.warn("[BaseStaffGame] initialNoteRange out of range; defaulting to 2 (full).", { value: raw });
+
+    return 2;
+  }
+
+
+  /**
+   * Staff "step" for the clef's reference line:
+   * - treble: G line (2nd line from bottom) => step 2
+   * - bass:   F line (2nd line from top)    => step 6
+   * - alto:   C line (middle line)          => step 4
+   * - tenor:  C line (2nd line from top)    => step 6
+   */
+  _clefMainLineStep(clef) {
+    switch (String(clef || "").trim().toLowerCase()) {
+      case "bass":
+        return 6;
+      case "alto":
+        return 4;
+      case "tenor":
+        return 6;
+      case "treble":
+      default:
+        return 2;
+    }
+  }
+
+  /**
+   * Allowed bounds for the randomly-generated *given* note, based on the current clef.
+   * @returns {{min:number, max:number}}
+   */
+  _initialFixedStepBounds() {
+    const minAllowed = this.staff.minStepAllowed();
+    const maxAllowed = this.staff.maxStepAllowed();
+
+    const idx = this._initialNoteRangeIndex();
+    if (idx === 2) return { min: minAllowed, max: maxAllowed };
+
+    const center = this._clefMainLineStep(this.staff.getClef());
+    const lineSpan = idx === 0 ? 1 : 2;
+    const spanSteps = lineSpan * 2; // 1 staff line = 2 "steps"
+
+    const min = Math.max(minAllowed, center - spanSteps);
+    const max = Math.min(maxAllowed, center + spanSteps);
+    return { min, max };
+  }
+
+  _isStepInInitialFixedRange(step) {
+    if (!Number.isFinite(step)) return false;
+    const { min, max } = this._initialFixedStepBounds();
+    return step >= min && step <= max;
+  }
+
+  /**
+   * Pick a random step for the *given* note (fixed note) that respects the selected range.
+   * @returns {number}
+   */
+  _randomInitialFixedStep() {
+    const { min, max } = this._initialFixedStepBounds();
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
   // ------------------------ hints ------------------------
+
 
   /**
    * Compute one hint note (legacy API).

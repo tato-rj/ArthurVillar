@@ -13,26 +13,27 @@
             </div>
 
             @component('theory.card', [
-                'challenge' => $intervalsChallenge,
+                'settings' => $intervalsSettings,
                 'title' => 'Intervals', 
                 'description' => 'Practice the most common chromatic intervals in different clefs.'])
 
-                @include('theory.intervals.modals.settings', ['challenge' => $intervalsChallenge, 'modalID' => 'intervals-settings-modal'])
+                @include('theory.intervals.modals.settings', ['settings' => $intervalsSettings, 'modalID' => 'intervals-settings-modal'])
             @endcomponent
 
             @component('theory.card', [
-                'challenge' => $chordsChallenge,
+                'settings' => $chordsSettings,
                 'title' => 'Chords', 
                 'description' => 'Practice the four fundamental triads as well as 7th chords.'])
 
-                @include('theory.chords.modals.settings', ['challenge' => $chordsChallenge, 'modalID' => 'chords-settings-modal'])
+                @include('theory.chords.modals.settings', ['settings' => $chordsSettings, 'modalID' => 'chords-settings-modal'])
             @endcomponent
 
             @component('theory.card', [
-                'disabled' => true, 
-                'title' => 'Ear Traning', 
+                'disabled' => production(), 
+                'title' => 'Dictation', 
                 'description' => 'Practice harmonic, melodic, or rhythmic dictation.'])
 
+                @include('theory.dictation.modals.settings', ['settings' => $dictationSettings, 'modalID' => 'dictation-settings-modal'])
             @endcomponent
         </div>
     </div>
