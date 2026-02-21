@@ -28,7 +28,7 @@
 #metrics-boxes .col-6:nth-child(4) { animation-delay: 0.3s; }
 
 #interval label {
-  top: 0px !important;
+  top: -4px !important;
 }
 </style>
 @endpush
