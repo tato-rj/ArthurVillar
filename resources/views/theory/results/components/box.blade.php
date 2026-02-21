@@ -1,5 +1,5 @@
 <div class="col-6 animate__animated animate__bounceIn">
-	<div class="w-100 bg-light shadow border border-dark {{$color}} position-relative rounded p-1 mb-3" style="border-radius: 8px !important;">
+	<div class="w-100 bg-light border border-dark {{$color}} position-relative rounded p-1 mb-3" style="border-radius: 8px !important;">
 		@if($name == 'score')
 		<div id="double-points">
 			<div class="d-center bg-primary animate__animated animate__tada border border-black position-relative">
