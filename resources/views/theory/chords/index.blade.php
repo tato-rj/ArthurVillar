@@ -46,7 +46,7 @@
     </div>
 
     <div class="col-11 mx-auto mb-3">
-      <div id="staff-wrapper" class="text-center mx-auto position-relative">
+      <div id="staff-wrapper" class="text-center mx-auto position-relative prevent-select">
         @include('theory.components.accidentals')
         <div id="staff"></div>
         @include('theory.components.feedback')
