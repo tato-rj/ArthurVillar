@@ -4,8 +4,6 @@ namespace App\Games;
 
 class ChordsChallengeSettings extends GameFactory
 {
-    public $theme = 'red';
-
     protected function requiredToggleKeys(): array
     {
         return ['sound', 'showLetterNames', 'allowInitialAccidentals', 'initialRoot', 'only7thChords'];

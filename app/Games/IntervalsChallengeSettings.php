@@ -4,8 +4,6 @@ namespace App\Games;
 
 class IntervalsChallengeSettings extends GameFactory
 {   
-    public $theme = 'green';
-
     protected function requiredToggleKeys(): array
     {
         return ['sound', 'showLetterNames', 'allowInitialAccidentals'];
