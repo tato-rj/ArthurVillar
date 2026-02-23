@@ -1,6 +1,9 @@
 @extends('layouts.app', ['title' => 'Music Theory Challenges', 'noMenu' => true])
 
 @push('header')
+<style>
+
+</style>
 @endpush
 
 @section('content')

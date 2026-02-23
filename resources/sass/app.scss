@@ -1,5 +1,19 @@
 @import "bootstrap/setup";
 
+input[type="range"].big-thumb { -webkit-appearance: none; }
+
+input[type="range"].big-thumb::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  width:24px;
+  height:24px;
+  margin-top:-8px; /* center on ~6px track: (6-24)/2 = -9 */
+}
+
+input[type="range"].big-thumb::-moz-range-thumb{
+  width:24px;
+  height:24px;
+}
+
 .nowrap {
   white-space: nowrap;
 }
