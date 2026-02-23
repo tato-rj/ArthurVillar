@@ -34,12 +34,12 @@
                     @fa(['icon' => 'instagram', 'fa_type' => 'b', 'fa_size' => 'lg', 'mr' => 0])
                 </a>
             </div> --}}
-
+{{-- 
             <div class="mx-2">
                 <a href="https://www.facebook.com/arthur.villar.31" target="_blank">
                     @fa(['icon' => 'facebook', 'fa_type' => 'b', 'fa_size' => 'lg', 'mr' => 0])
                 </a>
-            </div>
+            </div> --}}
 
             <div class="mx-2">
                 <a href="mailto:arthurvillar@gmail.com" target="_blank">
