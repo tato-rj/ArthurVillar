@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Listening;
 
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 use App\Models\Playlist;
 
 class PlaylistsController extends Controller
@@ -11,14 +12,14 @@ class PlaylistsController extends Controller
     {
         $playlists = Playlist::paginate(8);
 
-        return view('playlists.index', compact('playlists'));
+        return view('admin.listening.playlists.index', compact('playlists'));
     }
 
     public function recordings(Playlist $playlist)
     {
         $playlists = Playlist::all();
 
-        return view('playlists.recordings.index', compact(['playlist', 'playlists']));
+        return view('admin.listening.playlists.recordings.index', compact(['playlist', 'playlists']));
     }
 
     public function store(Request $request)

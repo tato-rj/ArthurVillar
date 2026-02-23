@@ -25,7 +25,7 @@
                 'label' => 'Play'
             ]
         ])
-      @include('recordings.play.modal')
+      @include('admin.listening.recordings.play.modal')
 
     </div>
     <div id="tracks-container" class="row">

@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Listening;
 
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 
@@ -16,7 +17,7 @@ class YoutubeController extends Controller
 
     public function create()
     {
-        return view('youtube.create');
+        return view('admin.listening.youtube.create');
     }
 
     public function download(Request $request)

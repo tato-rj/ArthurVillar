@@ -8,22 +8,16 @@
     {{$recording->composer->name}}
     @break
 
+  @case('period')
+    {{$recording->period->name}}
+    @break
+
   @case('ensemble_type')
     {{ucfirst($recording->ensemble_type)}}
     @break
 
   @case('actions')
-      @component('components.table.actions', [
-        'edit' => ['href' => route('admin.recordings.edit', $recording)],
-      ])
-
-      <button class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#play-{{$recording->id}}-modal">@fa(['icon' => 'play', 'mr' => 0])</button>
-      
+      @include('admin.listening.recordings.edit.playlists')
       <button class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#addto-playlist-{{$recording->id}}-modal">@fa(['icon' => 'list', 'mr' => 0])</button>
-      
-      @endcomponent
-
-      @include('recordings.edit.playlists')
-      @include('recordings.play.modal')
       @break
 @endswitch

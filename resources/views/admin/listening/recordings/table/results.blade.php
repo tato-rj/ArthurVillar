@@ -17,5 +17,5 @@
 			'label' => '',
 			'width' => 'auto'
 		]],
-	'view' => 'recordings.table.row'
+	'view' => 'admin.listening.recordings.table.row'
 ])

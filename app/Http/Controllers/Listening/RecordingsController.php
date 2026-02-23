@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Listening;
 
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 use App\Models\{Recording, Period, Composer, Playlist};
 use App\Tools\Cropper\ImageUpload;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
@@ -14,7 +15,7 @@ class RecordingsController extends Controller
         $recordings = Recording::paginate(12);
         $playlists = Playlist::latest()->get();
 
-        return view('recordings.index', compact(['recordings', 'playlists']));
+        return view('admin.listening.recordings.index', compact(['recordings', 'playlists']));
     }
 
     public function qrcode(Request $request, Recording $recording)
@@ -64,7 +65,7 @@ class RecordingsController extends Controller
     {
         $periods = Period::orderBy('starts_in')->get();
 
-        return view('recordings.edit.index', compact(['recording', 'periods']));
+        return view('admin.listening.recordings.edit.index', compact(['recording', 'periods']));
     }
 
     public function update(Request $request, Recording $recording)

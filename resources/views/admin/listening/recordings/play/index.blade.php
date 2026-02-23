@@ -98,11 +98,11 @@ img {
   </div>
 </section>
 
-@include('recordings.play.composer')
-@include('recordings.play.about')
+@include('admin.listening.recordings.play.composer')
+@include('admin.listening.recordings.play.about')
 
 @isset($playlist)
-@include('playlists.show.index')
+@include('admin.listening.playlists.show.index')
 @endisset
 @endsection
 

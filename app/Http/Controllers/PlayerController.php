@@ -42,6 +42,6 @@ class PlayerController extends Controller
         $recording = Recording::find($request['recording_id']);
         $playlist = Playlist::find($request['playlist_id'] ?? null);
 
-        return view('recordings.play.index', compact(['recording', 'playlist']));
+        return view('admin.listening.recordings.play.index', compact(['recording', 'playlist']));
     }
 }

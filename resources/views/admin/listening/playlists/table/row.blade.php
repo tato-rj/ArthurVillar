@@ -33,6 +33,6 @@
 
       <a class="btn btn-sm btn-secondary" href="{{route('admin.playlists.recordings', $playlist)}}">@fa(['icon' => 'list', 'mr' => 0])</a>
       @endcomponent
-      @include('playlists.edit', $playlist)
+      @include('admin.listening.playlists.edit', $playlist)
       @break
 @endswitch

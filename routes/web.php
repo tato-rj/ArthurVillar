@@ -13,14 +13,6 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth')->domain('admin.'.config('app.url'))->prefix('youtube')->name('admin.youtube.')->group(function() {
-    Route::get('', 'YoutubeController@create')->name('create');
-
-    Route::get('download', 'YoutubeController@download')->name('download');
-
-    Route::post('', 'YoutubeController@convert')->name('convert');
-});
-
 Route::get('', function () {
     return view('welcome');
 })->name('home');

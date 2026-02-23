@@ -21,5 +21,5 @@
 			'label' => '',
 			'width' => '1%'
 		]],
-	'view' => 'playlists.table.row'
+	'view' => 'admin.listening.playlists.table.row'
 ])

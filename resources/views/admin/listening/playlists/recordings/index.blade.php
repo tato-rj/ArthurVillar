@@ -43,7 +43,7 @@
 						'label' => '',
 						'width' => 'auto'
 					]],
-				'view' => 'playlists.recordings.row'
+				'view' => 'admin.listening.playlists.recordings.row'
 			])
         </div>
     </div>

@@ -17,7 +17,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        \View::composer(['recordings.create', 'recordings.edit.index', 'playlists.recordings.index'], function($view) {
+        \View::composer(['admin.listening.recordings.create', 'admin.listening.recordings.edit.index', 'admin.listening.playlists.recordings.index'], function($view) {
             $ensembles = ['solo', 'opera', 'vocal', 'choir', 'orchestral', 'chamber', 'concerto'];
             sort($ensembles);
 
@@ -27,7 +27,7 @@ class AppServiceProvider extends ServiceProvider
             ]);
         });
 
-        \View::composer(['composers.create', 'composers.edit'], function($view) {
+        \View::composer(['admin.listening.composers.create', 'admin.listening.composers.edit'], function($view) {
             $view->with([
                 'countries' => Country::orderBy('name')->get()->groupByFirstLetter('name')
             ]);

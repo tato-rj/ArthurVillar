@@ -7,28 +7,41 @@
   </div>
   <div class="offcanvas-body">
     <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
-{{--       <li class="nav-item">
-        <a class="nav-link" href="{{route('admin.index')}}">@fa(['icon' => 'home'])Dashboard</a>
-      </li> --}}
       <li class="nav-item">
-        <a class="nav-link" href="{{route('admin.recordings.index')}}">@fa(['icon' => 'microphone'])Recordings</a>
+        <a class="nav-link" href="{{route('admin.index')}}">Home</a>
       </li>
-      <li class="nav-item">
-        <a class="nav-link" href="{{route('admin.composers.index')}}">@fa(['icon' => 'user'])Composers</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="{{route('admin.playlists.index')}}">@fa(['icon' => 'list'])Playlists</a>
-      </li>
-{{--       <li class="nav-item">
-        <a class="nav-link" href="{{route('listening.index')}}">Books</a>
-      </li> --}}
 
       <hr>
-      @if(local())
-      <li class="nav-item">
-        <a class="nav-link" href="{{route('admin.youtube.create')}}">Youtube to mp3</a>
-      </li>
-      @endif
+      <label class="opacity-4 mb-2 fw-bold" style="font-size: 75%;">LISTENING</label>
+      <div class="ml-1">
+        <li class="nav-item">
+          <a class="nav-link" href="{{route('admin.recordings.index')}}">Recordings</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{route('admin.composers.index')}}">Composers</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{route('admin.playlists.index')}}">Playlists</a>
+        </li>
+        @if(local())
+        <li class="nav-item">
+          <a class="nav-link" href="{{route('admin.youtube.create')}}">Youtube to mp3</a>
+        </li>
+        @endif
+      </div>
+
+      <hr>
+      <label class="opacity-4 mb-2 fw-bold" style="font-size: 75%;">THEORY</label>
+      <div class="ml-1">
+        <li class="nav-item">
+          <a class="nav-link" href="{{route('admin.recordings.index')}}">Tournaments</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{route('admin.composers.index')}}">Stats</a>
+        </li>
+      </div>
+
+      <hr>
       <li class="nav-item">
         @include('auth.logout')
       </li>
