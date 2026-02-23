@@ -17,7 +17,7 @@ class DictationSettings extends GameFactory
             'intervals' => ['M2', 'm3', 'M3', 'P5', 'P8'],
             'clefs' => ['treble', 'bass'],
             'fixedNotes' => [],
-            'sound' => false,
+            'sound' => true,
             'showLetterNames' => false,
             'allowInitialAccidentals' => false,
             'initialNoteRange' => 0,
