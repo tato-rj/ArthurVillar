@@ -1,6 +1,6 @@
 <div id="final-overlay" class="position-absolute w-100 top-0 left-0">
 	<div class="text-center container" style="margin-top: 2rem;">
-		<img src="{{asset('images/badge.png')}}" width="140" class="animate__animated animate__zoomInDown mb-4">
+		<img src="{{asset('images/badges/badge-'.random_int(1, 6).'.png')}}" width="140" class="animate__animated animate__zoomInDown mb-4">
 		<div class="text-center animate__animated animate__fadeInUp animate__faster mb-4">
 			<h1 class="text-">Great job!</h1>
 			<h6 class="text-muted px-5">It's not about getting the most points, but if it was...</h6>

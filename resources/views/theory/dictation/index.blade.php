@@ -76,6 +76,5 @@
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.js"></script>
-{{-- <script src="{{ mix('js/music/dictation.js') }}"></script> --}}
-<script type="module" src="{{ asset('js/dev-music/games/dictation.js') }}"></script>
+<script src="{{ mix('js/music/dictation.js') }}"></script>
 @endpush

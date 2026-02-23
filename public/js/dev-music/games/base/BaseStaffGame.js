@@ -78,7 +78,7 @@ export class BaseStaffGame {
 
     // Game state
     this.successPhrases = this.opts.successPhrases;
-    this.maxUserNotes = this.opts.maxUserNotes;
+    this.maxUserNotes = Number(this.opts.maxUserNotes);
     this.numOfChallenges = this.opts.numOfChallenges;
     this.levelName = this.opts.levelName;
 

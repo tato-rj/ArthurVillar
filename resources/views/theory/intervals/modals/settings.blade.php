@@ -2,18 +2,7 @@
 <form id="intervals-settings" method="GET" action="{{ route('theory.intervals.play') }}">
   @include('theory.components.settings.rounds')
   @include('theory.components.settings.range')
-
-  <div class="mb-4">
-    <label class="nowrap">Intervals</label>
-    <div class="d-flex flex-wrap">
-      @foreach($settings->getIntervals() as $interval)
-      <div class="m-1 position-relative">
-        <input name="intervals[]" type="checkbox" value="{{$interval}}" class="invisible position-absolute top-0 left-0" id="{{$interval}}" {{in_array($interval, $settings->options('intervals')) ? 'checked' : null}} autocomplete="off">
-        <label class="btn btn-{{in_array($interval, $settings->options('intervals')) ? 'secondary' : 'white'}}" for="{{$interval}}">{{$interval}}</label>
-      </div>
-      @endforeach
-    </div>
-  </div>
+  @include('theory.components.settings.intervals')
 
   <div class="mb-4">
     <label class="nowrap">Clefs</label>

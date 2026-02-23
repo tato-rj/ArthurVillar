@@ -30,7 +30,7 @@
             @endcomponent
 
             @component('theory.card', [
-                'disabled' => production(), 
+                'settings' => $dictationSettings,
                 'title' => 'Dictation', 
                 'description' => 'Practice harmonic, melodic, or rhythmic dictation.'])
 

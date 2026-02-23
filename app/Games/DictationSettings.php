@@ -28,8 +28,6 @@ class DictationSettings extends GameFactory
     {
         $options = $this->applyUserPreferences();
 
-        $options['maxUserNotes'] = !empty($options['only7thChords']) ? 3 : 2;
-
         $weights = $this->getAccidentalWeights()[(bool) $options['allowInitialAccidentals']];
         $array = array_merge($options, ['accidentalWeights' => $weights]);
 
