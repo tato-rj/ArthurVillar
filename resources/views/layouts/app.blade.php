@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
+        @if(!request()->cookie('exclude_analytics'))
         <!-- Google tag (gtag.js) -->
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-N2M3B7QD0K"></script>
         <script>
@@ -10,6 +11,7 @@
 
           gtag('config', 'G-N2M3B7QD0K');
         </script>
+        @endif
 
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
