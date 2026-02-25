@@ -666,6 +666,7 @@ _requiredUserNotesForChord(seventhType) {
 
       if (this._updateProgressBar() >= 100) {
         this._stats.finishedAtMs = Date.now();
+        this.$checkBtn.text('Final results, let\'s see…');
         setTimeout(() => this._showFinalResults(), 1600);
       } else {
         $("#check").hide();

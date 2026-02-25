@@ -18,7 +18,9 @@
                 'title' => 'Intervals', 
                 'description' => 'Practice the most common chromatic intervals in different clefs.'])
 
-                @include('theory.intervals.modals.settings', ['settings' => $intervalsSettings, 'modalID' => 'intervals-settings-modal'])
+                @include('theory.intervals.modals.settings', [
+                    'settings' => $intervalsSettings, 
+                    'modalID' => 'intervals-settings-modal'])
             @endcomponent
 
             @component('theory.card', [
@@ -26,7 +28,9 @@
                 'title' => 'Chords', 
                 'description' => 'Practice the four fundamental triads as well as 7th chords.'])
 
-                @include('theory.chords.modals.settings', ['settings' => $chordsSettings, 'modalID' => 'chords-settings-modal'])
+                @include('theory.chords.modals.settings', [
+                    'settings' => $chordsSettings, 
+                    'modalID' => 'chords-settings-modal'])
             @endcomponent
 
             @component('theory.card', [
@@ -34,7 +38,9 @@
                 'title' => 'Dictation', 
                 'description' => 'Practice harmonic, melodic, or rhythmic dictation.'])
 
-                @include('theory.dictation.modals.settings', ['settings' => $dictationSettings, 'modalID' => 'dictation-settings-modal'])
+                @include('theory.dictation.modals.settings', [
+                    'settings' => $dictationSettings, 
+                    'modalID' => 'dictation-settings-modal'])
             @endcomponent
         </div>
     </div>

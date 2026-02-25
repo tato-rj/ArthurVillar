@@ -4,6 +4,6 @@
   </h6>
   <label class="switch">
     <input name="{{$name}}" data-url="{{$url ?? null}}" type="checkbox" {{$on ? 'checked' : null}}>
-    <span class="slider round"></span>
+    <span class="slider"></span>
   </label>
 </div>

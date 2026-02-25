@@ -65,6 +65,7 @@
 .btn-floating {
   display: inline-block;
   background: rgba(0, 0, 0, 0.2);
+  border-radius: $corner-radius;
 }
 
 @media (min-width: 768px) {

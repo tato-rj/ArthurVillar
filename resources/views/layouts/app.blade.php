@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
-        @if(!request()->cookie('exclude_analytics'))
+        @if(production() && !request()->cookie('exclude_analytics'))
         <!-- Google tag (gtag.js) -->
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-N2M3B7QD0K"></script>
         <script>

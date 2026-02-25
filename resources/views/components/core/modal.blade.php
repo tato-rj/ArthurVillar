@@ -6,7 +6,7 @@
   @endisset
  id="{{$id}}" style="white-space: initial; cursor: default;">
   <div class="modal-dialog modal-{{$size ?? null}}">
-    <div class="modal-content rounded border-0">
+    <div class="modal-content rounded border-0 p-2">
 
       @isset($header)
       <div class="modal-header border-0 p-4 align-items-start">
