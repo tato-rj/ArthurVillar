@@ -1,8 +1,8 @@
 <div class="mb-{{$mb ?? 4}} text-center prevent-select">
-	<h1 class="text-center mb-0">{{$label}}</h1>
+	<h1 class="text-center mb-0 prevent-select">{{$label}}</h1>
 
 	@isset($subtitle)
-	<p class="mb-0 mt-2">{{$subtitle}}</p>
+	<p class="mb-0 mt-2 prevent-select">{{$subtitle}}</p>
 	@endisset
 
 	@isset($href)
