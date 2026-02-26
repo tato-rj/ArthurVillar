@@ -1,5 +1,5 @@
 <div id="final-overlay" class="position-absolute w-100 top-0 left-0">
-	<div class="text-center container" style="margin-top: 2rem;">
+	<div class="text-center container">
 		<img src="{{asset('images/badges/trophy.svg')}}" width="220" class="animate__animated animate__rubberBand mb-">
 		<div class="text-center animate__animated animate__fadeInUp animate__faster mb-4">
 			<h1 class="text-">Great job!</h1>
