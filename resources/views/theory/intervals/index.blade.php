@@ -34,7 +34,7 @@
   'title' => 'Intervals Challenge', 
   'description' => 'Add the note that forms the indicated interval'])
 
-<section id="page-wrapper" class="container">
+<section id="page-wrapper" class="container prevent-select">
   <div class="row">
     <div class="col-lg-6 col-md-8 col-11 mx-auto text-center">
       @include('theory.components.counter')

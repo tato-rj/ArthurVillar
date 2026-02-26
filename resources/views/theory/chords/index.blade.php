@@ -37,7 +37,8 @@
 @include('theory.components.pagetitle', [
   'title' => 'Chords Challenge', 
   'description' => 'Add the notes to complete the chords below'])
-<section id="page-wrapper" class="container">
+
+<section id="page-wrapper" class="container prevent-select">
   <div class="row">
     <div class="col-lg-6 col-md-8 col-11 mx-auto text-center">
       @include('theory.components.counter')
