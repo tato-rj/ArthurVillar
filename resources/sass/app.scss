@@ -1,19 +1,55 @@
 @import "bootstrap/setup";
 
-input[type="range"].big-thumb { -webkit-appearance: none; }
-
-input[type="range"].big-thumb::-webkit-slider-thumb{
-  -webkit-appearance:none;
-  width:24px;
-  height:24px;
-  margin-top:-8px; /* center on ~6px track: (6-24)/2 = -9 */
-  // border: 2px solid grey;
-  background: black;
+/* Base reset */
+input[type="range"].big-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent; /* important on iOS to avoid odd rendering */
+  outline: none;
 }
 
-input[type="range"].big-thumb::-moz-range-thumb{
-  width:24px;
-  height:24px;
+/* WebKit thumb */
+input[type="range"].big-thumb::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 34px;
+  height: 25px;
+  margin-top: -9px; /* (6 - 24) / 2 */
+  background: #000;
+  border: 0;
+  border-radius: 9999px; /* if you want a circle */
+  box-shadow: none; /* kill any UA/default shadow */
+}
+
+/* Firefox thumb */
+input[type="range"].big-thumb::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  background: #000;
+  border: 0;
+  border-radius: 9999px;
+  box-shadow: none;
+}
+
+/* Remove focus ring/halo */
+input[type="range"].big-thumb:focus,
+input[type="range"].big-thumb:active {
+  outline: none;
+}
+
+input[type="range"].big-thumb:focus::-webkit-slider-thumb,
+input[type="range"].big-thumb:active::-webkit-slider-thumb {
+  box-shadow: none;
+}
+
+input[type="range"].big-thumb:focus::-moz-range-thumb,
+input[type="range"].big-thumb:active::-moz-range-thumb {
+  box-shadow: none;
+}
+
+/* Optional: remove iOS tap highlight */
+input[type="range"].big-thumb {
+  -webkit-tap-highlight-color: transparent;
 }
 
 .nowrap {
