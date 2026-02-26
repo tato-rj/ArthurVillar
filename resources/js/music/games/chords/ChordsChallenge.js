@@ -1,12 +1,17 @@
 import { BaseStaffGame } from "../base/BaseStaffGame.js";
 import {
-  normalizeClef,
   pickOne,
   pickWeighted,
   randomInt,
   toArrayMaybe,
   spellNoteFromState,
 } from "../../staff/staffUtils.js";
+import {
+  accidentalClassFromOffset,
+  fixedNoteToStaffPosition,
+  normalizeClefPool,
+  pickChallengeClef,
+} from "../shared/challengeUtils.js";
 
 export class ChordsChallenge extends BaseStaffGame {
   static TRIAD_QUALITY_FULL_NAME_MAP = {
@@ -49,7 +54,7 @@ export class ChordsChallenge extends BaseStaffGame {
           : Object.keys(ChordsChallenge.TRIAD_QUALITY_FULL_NAME_MAP),
     };
 
-    const clefPool = ChordsChallenge._normalizeClefPoolStatic(
+    const clefPool = normalizeClefPool(
       merged.clefs != null ? merged.clefs : merged.clef,
     );
 
@@ -174,31 +179,6 @@ _formatShortLabelHtml(shortLabel) {
     this._refreshTriadUILabels();
   }
 
-  // ------------------------ clef selection ------------------------
-
-  static _normalizeClefPoolStatic(clefsOrSingle) {
-    const raw = Array.isArray(clefsOrSingle)
-      ? clefsOrSingle
-      : clefsOrSingle != null
-        ? [clefsOrSingle]
-        : ["treble", "bass"];
-
-    const normalized = raw.map((c) => normalizeClef(c)).filter(Boolean);
-
-    const uniq = [];
-    for (let i = 0; i < normalized.length; i++) {
-      if (!uniq.includes(normalized[i])) uniq.push(normalized[i]);
-    }
-
-    return uniq.length ? uniq : ["treble", "bass"];
-  }
-
-  _currentClefForChallenge() {
-    const pool = this._clefPool || ["treble", "bass"];
-    if (pool.length === 1) return pool[0];
-    return pool[Math.floor(Math.random() * pool.length)];
-  }
-
   // ------------------------ triad math helpers ------------------------
 
   _resetTriadContext() {
@@ -258,7 +238,7 @@ _formatShortLabelHtml(shortLabel) {
     while (offset > 6) offset -= 12;
     while (offset < -6) offset += 12;
 
-    const accClass = this._accidentalClassFromOffset(offset);
+    const accClass = accidentalClassFromOffset(offset);
     if (accClass == null && offset !== 0) return null;
     return accClass;
   }
@@ -299,7 +279,7 @@ _formatShortLabelHtml(shortLabel) {
       for (const c of candidates) {
         const rootMidi = bassMidi - c.roleSemis;
         const rootOff = rootMidi - this.staff._stepToMidi(c.rootStep);
-        const rootAccClass = this._accidentalClassFromOffset(rootOff);
+        const rootAccClass = accidentalClassFromOffset(rootOff);
         if (rootAccClass == null && rootOff !== 0) continue;
 
         const thirdStep = c.rootStep + 2;
@@ -421,7 +401,7 @@ _formatShortLabelHtml(shortLabel) {
     this._fixedState = null;
     this._resetTriadContext();
 
-    const clef = this._currentClefForChallenge();
+    const clef = pickChallengeClef(this._clefPool);
     if (clef && clef !== this.staff.getClef()) this.staff.setClef(clef);
 
     this._madeMistakeThisRound = false;
@@ -569,7 +549,7 @@ _requiredUserNotesForChord(seventhType) {
     const fixedList = toArrayMaybe(this.opts.fixedNotes).filter(Boolean);
     if (fixedList.length) {
       const chosen = pickOne(fixedList);
-      return this._fixedNoteToStaffPosition(chosen);
+      return fixedNoteToStaffPosition(this.staff, chosen);
     }
 
     const w = this.opts.accidentalWeights || {};
@@ -691,15 +671,6 @@ _requiredUserNotesForChord(seventhType) {
 
   // ------------------------ hints ------------------------
 
-  _accidentalClassFromOffset(off) {
-    if (off === 2) return "music-font__doublesharp";
-    if (off === 1) return "music-font__sharp";
-    if (off === 0) return "music-font__natural";
-    if (off === -1) return "music-font__flat";
-    if (off === -2) return "music-font__doubleflat";
-    return null;
-  }
-
   _computeHintAnswers() {
     const notes = this._notesOnStaffOrdered();
     if (notes.length < 1) return [];
@@ -764,53 +735,4 @@ _requiredUserNotesForChord(seventhType) {
     return hints.slice(0, this._requiredUserNotesThisRound);
   }
 
-  // ------------------------ pitch parsing (for fixedNotes option) ------------------------
-
-  _fixedNoteToStaffPosition(noteStr) {
-    const parsed = this._parsePitch(noteStr);
-    if (!parsed) return null;
-
-    const { midi, accOffset, accidentalClass } = parsed;
-
-    for (let step = this.staff.minStepAllowed(); step <= this.staff.maxStepAllowed(); step++) {
-      const baseMidi = this.staff._stepToMidi(step);
-      if (baseMidi + accOffset === midi) return { step, accidentalClass };
-    }
-
-    let best = null;
-    for (let step = this.staff.minStepAllowed(); step <= this.staff.maxStepAllowed(); step++) {
-      const baseMidi = this.staff._stepToMidi(step);
-      const dist = Math.abs((baseMidi + accOffset) - midi);
-      if (!best || dist < best.dist) best = { step, dist };
-    }
-    return best ? { step: best.step, accidentalClass } : null;
-  }
-
-  _parsePitch(pitch) {
-    const s = String(pitch || "").trim();
-    const m = s.match(/^([A-Ga-g])((?:#{1,2})|(?:b{1,2})|)?(\d+)$/);
-    if (!m) return null;
-
-    const letter = m[1].toUpperCase();
-    const acc = m[2] || "";
-    const octave = parseInt(m[3], 10);
-
-    const baseSemitoneFromC = { C:0, D:2, E:4, F:5, G:7, A:9, B:11 }[letter];
-    const accOffset =
-      acc === "##" ? 2 :
-      acc === "#" ? 1 :
-      acc === "bb" ? -2 :
-      acc === "b" ? -1 :
-      0;
-
-    const accidentalClass =
-      accOffset === 2 ? "music-font__doublesharp" :
-      accOffset === 1 ? "music-font__sharp" :
-      accOffset === -1 ? "music-font__flat" :
-      accOffset === -2 ? "music-font__doubleflat" :
-      "music-font__natural";
-
-    const midi = 12 * (octave + 1) + baseSemitoneFromC + accOffset;
-    return { midi, accOffset, accidentalClass };
-  }
 }

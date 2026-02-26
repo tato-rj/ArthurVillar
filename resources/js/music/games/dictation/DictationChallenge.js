@@ -1,11 +1,17 @@
 // resources/js/music/games/dictation/DictationChallenge.dev.js
 import { BaseStaffGame } from "../base/BaseStaffGame.js";
 import {
-  normalizeClef,
   pickOne,
   pickWeighted,
   toArrayMaybe,
 } from "../../staff/staffUtils.js";
+import {
+  accidentalClassFromOffset,
+  fixedNoteToStaffPosition,
+  normalizeClefPool,
+  parseIntervalAbbr,
+  pickChallengeClef,
+} from "../shared/challengeUtils.js";
 
 /**
  * Interval Dictation (dev)
@@ -48,7 +54,7 @@ export class DictationChallenge extends BaseStaffGame {
           : DictationChallenge.INTERVALS_DEFAULT.slice(),
     };
 
-    const clefPool = DictationChallenge._normalizeClefPoolStatic(
+    const clefPool = normalizeClefPool(
       merged.clefs != null ? merged.clefs : merged.clef,
     );
 
@@ -60,7 +66,6 @@ export class DictationChallenge extends BaseStaffGame {
     this._clefPool = clefPool;
 
     // Dictation state
-    this._currentIntervalAbbr = null;
     this._expectedFirst = null; // { step, accidentalClass }
     this._expectedSecond = null; // { step, accidentalClass, accOff, midi }
 
@@ -113,31 +118,6 @@ export class DictationChallenge extends BaseStaffGame {
       });
 
     this._setPlayButtons(false);
-  }
-
-  // ------------------------ clef selection ------------------------
-
-  static _normalizeClefPoolStatic(clefsOrSingle) {
-    const raw = Array.isArray(clefsOrSingle)
-      ? clefsOrSingle
-      : clefsOrSingle != null
-        ? [clefsOrSingle]
-        : ["treble", "bass"];
-
-    const normalized = raw.map((c) => normalizeClef(c)).filter(Boolean);
-
-    const uniq = [];
-    for (let i = 0; i < normalized.length; i += 1) {
-      if (!uniq.includes(normalized[i])) uniq.push(normalized[i]);
-    }
-
-    return uniq.length ? uniq : ["treble", "bass"];
-  }
-
-  _currentClefForChallenge() {
-    const pool = this._clefPool || ["treble", "bass"];
-    if (pool.length === 1) return pool[0];
-    return pool[Math.floor(Math.random() * pool.length)];
   }
 
   // ------------------------ play/stop UI ------------------------
@@ -237,7 +217,7 @@ export class DictationChallenge extends BaseStaffGame {
     const fixedList = toArrayMaybe(this.opts.fixedNotes).filter(Boolean);
     if (fixedList.length) {
       const chosen = pickOne(fixedList);
-      return this._fixedNoteToStaffPosition(chosen);
+      return fixedNoteToStaffPosition(this.staff, chosen);
     }
 
     const w = this.opts.accidentalWeights || {};
@@ -251,13 +231,6 @@ export class DictationChallenge extends BaseStaffGame {
   }
 
   // ------------------------ interval math ------------------------
-
-  _parseIntervalAbbr(abbr) {
-    const s = String(abbr || "").trim();
-    const m = s.match(/^([PMAmd]+)(\d+)$/);
-    if (!m) return null;
-    return { quality: m[1], number: parseInt(m[2], 10) };
-  }
 
   _intervalSemitones(quality, simpleNum) {
     const baseMajorPerfect = { 1:0, 2:2, 3:4, 4:5, 5:7, 6:9, 7:11, 8:12 }[
@@ -283,17 +256,8 @@ export class DictationChallenge extends BaseStaffGame {
     return null;
   }
 
-  _accidentalClassFromOffset(off) {
-    if (off === 2) return "music-font__doublesharp";
-    if (off === 1) return "music-font__sharp";
-    if (off === 0) return "music-font__natural";
-    if (off === -1) return "music-font__flat";
-    if (off === -2) return "music-font__doubleflat";
-    return null;
-  }
-
   _computeSecondFromFixed(intervalAbbr, fixedStep, fixedMidi) {
-    const parsed = this._parseIntervalAbbr(intervalAbbr);
+    const parsed = parseIntervalAbbr(intervalAbbr);
     if (!parsed || !Number.isFinite(parsed.number) || parsed.number < 1) return null;
 
     const diatonicSteps = parsed.number - 1;
@@ -319,7 +283,7 @@ export class DictationChallenge extends BaseStaffGame {
       // Limit to supported accidentals.
       if (off < -2 || off > 2) return null;
 
-      const accidentalClass = this._accidentalClassFromOffset(off);
+      const accidentalClass = accidentalClassFromOffset(off);
       if (!accidentalClass) return null;
 
       return { step: targetStep, accidentalClass, accOff: off, midi: targetMidi };
@@ -343,7 +307,7 @@ export class DictationChallenge extends BaseStaffGame {
     this._expectedFirst = null;
     this._expectedSecond = null;
 
-    const clef = this._currentClefForChallenge();
+    const clef = pickChallengeClef(this._clefPool);
     if (clef && clef !== this.staff.getClef()) this.staff.setClef(clef);
 
     this._madeMistakeThisRound = false;
@@ -369,8 +333,6 @@ export class DictationChallenge extends BaseStaffGame {
     }
 
     if (!fixed || !second) return;
-
-    this._currentIntervalAbbr = String(interval || "").trim();
 
     this.staff.clearNotes();
     this.$accidentals.removeClass("invisible");
