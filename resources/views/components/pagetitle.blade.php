@@ -1,4 +1,4 @@
-<div class="mb-{{$mb ?? 4}} text-center">
+<div class="mb-{{$mb ?? 4}} text-center prevent-select">
 	<h1 class="text-center mb-0">{{$label}}</h1>
 
 	@isset($subtitle)
