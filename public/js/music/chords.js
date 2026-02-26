@@ -837,6 +837,12 @@ var BaseStaffGame = /*#__PURE__*/function () {
 
     // ------------------------ scoring / progress ------------------------
   }, {
+    key: "_isPracticeMode",
+    value: function _isPracticeMode() {
+      var rounds = Number(this.numOfChallenges);
+      return Number.isFinite(rounds) && rounds <= 0;
+    }
+  }, {
     key: "_successAnimation",
     value: function _successAnimation() {
       var _ref2 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
@@ -880,6 +886,15 @@ var BaseStaffGame = /*#__PURE__*/function () {
   }, {
     key: "_awardPointsForCorrect",
     value: function _awardPointsForCorrect() {
+      if (this._isPracticeMode()) {
+        this.$points.text("0");
+        this._showBonusBadge(0);
+        return {
+          earned: 0,
+          firstTry: false,
+          bonusEarned: 0
+        };
+      }
       if (this._usedHintThisRound) {
         this._showBonusBadge(0);
         return {
@@ -910,11 +925,19 @@ var BaseStaffGame = /*#__PURE__*/function () {
       this.$progressBar.css({
         width: "0%"
       });
-      this.$progressCounter.text("");
+      if (this._isPracticeMode()) this.$progressCounter.text("Practice");else this.$progressCounter.text("");
     }
   }, {
     key: "_updateProgressBar",
     value: function _updateProgressBar() {
+      if (this._isPracticeMode()) {
+        this.$progressBar.data("progress", 0);
+        this.$progressBar.css({
+          width: "0%"
+        });
+        this.$progressCounter.text("Practice");
+        return 0;
+      }
       var steps = Math.max(1, this.numOfChallenges || 1);
       var increment = 100 / steps;
       var current = parseFloat(this.$progressBar.data("progress")) || 0;
@@ -950,6 +973,7 @@ var BaseStaffGame = /*#__PURE__*/function () {
         _this$_stats$finished,
         _this11 = this,
         _window;
+      if (this._isPracticeMode()) return;
       var total = Math.max(0, (_this$_stats$checksTo = this._stats.checksTotal) !== null && _this$_stats$checksTo !== void 0 ? _this$_stats$checksTo : 0);
       var correct = Math.max(0, (_this$_stats$checksCo = this._stats.checksCorrect) !== null && _this$_stats$checksCo !== void 0 ? _this$_stats$checksCo : 0);
       var accuracy = total ? Math.round(correct / total * 100) : 0;

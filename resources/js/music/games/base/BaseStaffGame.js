@@ -756,6 +756,11 @@ export class BaseStaffGame {
 
   // ------------------------ scoring / progress ------------------------
 
+  _isPracticeMode() {
+    const rounds = Number(this.numOfChallenges);
+    return Number.isFinite(rounds) && rounds <= 0;
+  }
+
   _successAnimation({ isBonus } = {}) {
     if (isBonus) this._playSuccessSfxBonus();
     else this._playSuccessSfxBasic();
@@ -796,6 +801,12 @@ export class BaseStaffGame {
   }
 
   _awardPointsForCorrect() {
+    if (this._isPracticeMode()) {
+      this.$points.text("0");
+      this._showBonusBadge(0);
+      return { earned: 0, firstTry: false, bonusEarned: 0 };
+    }
+
     if (this._usedHintThisRound) {
       this._showBonusBadge(0);
       return { earned: 0, firstTry: false, bonusEarned: 0 };
@@ -819,10 +830,18 @@ export class BaseStaffGame {
     this._madeAnyMistake = false;
     this.$progressBar.data("progress", 0);
     this.$progressBar.css({ width: "0%" });
-    this.$progressCounter.text("");
+    if (this._isPracticeMode()) this.$progressCounter.text("Practice");
+    else this.$progressCounter.text("");
   }
 
   _updateProgressBar() {
+    if (this._isPracticeMode()) {
+      this.$progressBar.data("progress", 0);
+      this.$progressBar.css({ width: "0%" });
+      this.$progressCounter.text("Practice");
+      return 0;
+    }
+
     const steps = Math.max(1, this.numOfChallenges || 1);
     const increment = 100 / steps;
     let current = parseFloat(this.$progressBar.data("progress")) || 0;
@@ -857,6 +876,8 @@ export class BaseStaffGame {
   }
 
   _showFinalResults() {
+    if (this._isPracticeMode()) return;
+
     const total = Math.max(0, this._stats.checksTotal ?? 0);
     const correct = Math.max(0, this._stats.checksCorrect ?? 0);
     const accuracy = total ? Math.round((correct / total) * 100) : 0;
