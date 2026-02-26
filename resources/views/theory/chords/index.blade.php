@@ -34,16 +34,13 @@
 @endpush
 
 @section('content')
-{{-- @include('theory.components.pagetitle', [
-  'title' => 'Chords Challenge', 
-  'description' => 'Add the notes to complete the chords below']) --}}
+@include('theory.components.title', ['label' => 'CHORDS BUILDER'])
 
-<section id="page-wrapper" class="container prevent-select mt-4">
+<section id="page-wrapper" class="container prevent-select">
   <div class="row">
     <div class="col-lg-6 col-md-8 col-11 mx-auto text-center">
       @include('theory.components.counter')
       @include('theory.components.level')
-      @include('theory.components.title')
     </div>
 
     <div class="col-11 mx-auto mb-3">
