@@ -13,6 +13,7 @@ class IntervalsSettings extends GameFactory
     {
         return [
             'practiceMode' => false,
+            'timer' => false,
             'maxUserNotes' => 1,
             'numOfChallenges' => 4,
             'intervals' => ['M2', 'm3', 'M3', 'P5', 'P8'],

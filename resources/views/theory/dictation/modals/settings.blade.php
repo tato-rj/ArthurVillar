@@ -8,11 +8,7 @@
   @include('theory.components.settings.sound')
   @include('theory.components.settings.lettername')
   @include('theory.components.settings.accidentals')
-
-  <div class="d-apart mb-4">
-    <label>Accidentals on the initial note</label>
-    @toggle(['name' => 'allowInitialAccidentals', 'on' => $settings->options('allowInitialAccidentals')])
-  </div>
+  @include('theory.components.settings.timer')
 
   <button type="submit" class="btn btn-primary w-100">Start new game</button>
 </form>

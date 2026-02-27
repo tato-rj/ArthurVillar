@@ -17,9 +17,6 @@
 
   @include('theory.components.settings.clefs')
   @include('theory.components.settings.practice')
-  @include('theory.components.settings.sound')
-  @include('theory.components.settings.lettername')
-  @include('theory.components.settings.accidentals')
 
   <div class="d-apart mb-4">
     <label>Initial note is always the root</label>
@@ -30,6 +27,11 @@
     <label>Play with 7th chords</label>
     @toggle(['name' => 'only7thChords', 'on' => $settings->options('only7thChords')])
   </div>
+  
+  @include('theory.components.settings.sound')
+  @include('theory.components.settings.lettername')
+  @include('theory.components.settings.accidentals')
+  @include('theory.components.settings.timer')
 
   <button type="submit" class="btn btn-primary w-100">Start new game</button>
 </form>

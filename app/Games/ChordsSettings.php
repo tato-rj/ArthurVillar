@@ -13,6 +13,7 @@ class ChordsSettings extends GameFactory
     {
         return [
             'practiceMode' => false,
+            'timer' => false,
             'maxUserNotes' => 2,
             'numOfChallenges' => 4,
             'triadQualities' => ['major', 'minor'],

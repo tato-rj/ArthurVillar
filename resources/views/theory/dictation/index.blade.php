@@ -48,7 +48,7 @@
   <div class="row">
     <div class="col-lg-6 col-md-8 col-11 mx-auto text-center">
       @include('theory.components.counter')
-      @include('theory.components.level')
+      @include('theory.components.timer')
     </div>
 
     <div class="col-11 mx-auto mb-3">

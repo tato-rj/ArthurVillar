@@ -8,6 +8,7 @@
   @include('theory.components.settings.sound')
   @include('theory.components.settings.lettername')
   @include('theory.components.settings.accidentals')
+  @include('theory.components.settings.timer')
 
   <button type="submit" class="btn btn-primary w-100">Start new game</button>
 </form>
