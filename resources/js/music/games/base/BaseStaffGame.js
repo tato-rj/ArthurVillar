@@ -252,8 +252,21 @@ export class BaseStaffGame {
       if (!this._uiSfxSynth) return;
 
       const now = Tone.now();
-      const notes = ["C6", "E6", "G6"];
-      notes.forEach((n, i) => {
+      const variants = [
+        ["C6", "E6", "G6"],
+        ["D6", "F#6", "A6"],
+        ["E6", "G6", "B6"],
+        ["G5", "B5", "D6", "G6"],
+        ["A5", "C6", "E6", "A6"],
+        ["C6", "D6", "G6"],
+        ["F5", "A5", "C6", "F6"],
+        ["E6", "A6", "C7"],
+        ["B5", "D6", "G6"],
+        ["C6", "G6", "E7"],
+      ];
+
+      const picked = variants[Math.floor(Math.random() * variants.length)];
+      picked.forEach((n, i) => {
         this._uiSfxSynth.triggerAttackRelease(n, 0.07, now + i * 0.05, 0.42);
       });
     });
