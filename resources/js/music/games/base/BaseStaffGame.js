@@ -289,13 +289,24 @@ export class BaseStaffGame {
         });
       } catch (_) {}
 
-      const arp = ["C6", "E6", "G6", "B6", "C7"];
-      arp.forEach((n, i) => {
+      const variants = [
+        { arp: ["C6", "E6", "G6", "B6", "C7"], hit: ["C6", "G6", "C7", "E7"] },
+        { arp: ["D6", "F#6", "A6", "C7", "D7"], hit: ["D6", "A6", "D7", "F#7"] },
+        { arp: ["E6", "G6", "B6", "D7", "E7"], hit: ["E6", "B6", "E7", "G7"] },
+        { arp: ["G5", "B5", "D6", "F#6", "G6"], hit: ["G5", "D6", "G6", "B6"] },
+        { arp: ["A5", "C6", "E6", "G6", "A6"], hit: ["A5", "E6", "A6", "C7"] },
+        { arp: ["F6", "A6", "C7", "E7", "F7"], hit: ["F6", "C7", "F7", "A7"] },
+        { arp: ["C6", "D6", "E6", "G6", "A6"], hit: ["C6", "E6", "A6", "C7"] },
+        { arp: ["B5", "D6", "F#6", "A6", "B6"], hit: ["B5", "F#6", "B6", "D7"] },
+        { arp: ["E6", "F#6", "A6", "B6", "D7"], hit: ["E6", "A6", "D7", "F#7"] },
+        { arp: ["C6", "G6", "A6", "B6", "E7"], hit: ["C6", "G6", "E7", "A7"] },
+      ];
+
+      const picked = variants[Math.floor(Math.random() * variants.length)];
+      picked.arp.forEach((n, i) => {
         this._uiSfxSynth.triggerAttackRelease(n, 0.06, now + i * 0.045, 0.45);
       });
-
-      const chord = ["C6", "G6", "C7", "E7"];
-      chord.forEach((n) => {
+      picked.hit.forEach((n) => {
         this._uiSfxSynth.triggerAttackRelease(n, 0.12, now + 0.26, 0.30);
       });
 
