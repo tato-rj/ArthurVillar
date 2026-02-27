@@ -36,6 +36,7 @@ export class BaseStaffGame {
       maxUserNotes: Infinity,
       numOfChallenges: 10,
       practiceMode: false,
+      timer: false,
       levelName: "",
       successPhrases: [
         "Awesome",
@@ -76,6 +77,7 @@ export class BaseStaffGame {
     this._uiSfxReady = false;
     this._uiSfxSynth = null;
     this._uiSfxNoise = null;
+    this._uiTimerSfxSynth = null;
 
     // DOM refs
     this.$staffEl = $(this.opts.staffEl);
@@ -93,6 +95,9 @@ export class BaseStaffGame {
     this.$progressBar = $("#progress-bar");
     this.$progressCounter = $("#progress-counter");
     this.$helpBtn = $("#help");
+    this.$timer = $("#timer");
+    this.$timerBox = this.$timer.children("div").first();
+    this.$timerText = this.$timer.find("span");
 
     // Game state
     this.successPhrases = this.opts.successPhrases;
@@ -111,6 +116,11 @@ export class BaseStaffGame {
       checksCorrect: 0,
       finishedAtMs: null,
     };
+
+    this._timerTimeoutId = null;
+    this._timerRemainingSec = 0;
+    this._audioUnlockArmed = false;
+    this._timerEndsAtMs = 0;
 
     // Staff
     this.staff = new Staff(this.$staffEl, {
@@ -164,9 +174,13 @@ export class BaseStaffGame {
       try {
         this._uiSfxNoise && this._uiSfxNoise.dispose && this._uiSfxNoise.dispose();
       } catch (_) {}
+      try {
+        this._uiTimerSfxSynth && this._uiTimerSfxSynth.dispose && this._uiTimerSfxSynth.dispose();
+      } catch (_) {}
 
       this._uiSfxSynth = null;
       this._uiSfxNoise = null;
+      this._uiTimerSfxSynth = null;
       this._uiSfxReady = false;
 
       try {
@@ -186,7 +200,12 @@ export class BaseStaffGame {
     if (this._uiSfxReady) return;
     if (!window.Tone) return;
 
-    await Tone.start();
+    try {
+      await Tone.start();
+    } catch (_) {
+      // Browser may block audio start until a user gesture.
+      return;
+    }
 
     this._uiSfxSynth = new Tone.PolySynth(Tone.Synth, {
       oscillator: { type: "triangle" },
@@ -198,7 +217,29 @@ export class BaseStaffGame {
       envelope: { attack: 0.001, decay: 0.08, sustain: 0.0, release: 0.06 },
     }).toDestination();
 
+    this._uiTimerSfxSynth = new Tone.Synth({
+      oscillator: { type: "square" },
+      envelope: { attack: 0.001, decay: 0.03, sustain: 0.0, release: 0.06 },
+    }).toDestination();
+
     this._uiSfxReady = true;
+  }
+
+  _armUiSfxOnFirstGesture() {
+    if (this._audioUnlockArmed) return;
+    if (!this.isSoundEnabled() || !window.Tone) return;
+
+    this._audioUnlockArmed = true;
+    const ns = `.uiSfxUnlock.${this.ns}`;
+    const unlock = () => {
+      this._ensureUiSfxAudio().finally(() => {
+        $(document).off(ns);
+      });
+    };
+
+    $(document)
+      .off(ns)
+      .one(`pointerdown${ns} keydown${ns} touchstart${ns}`, unlock);
   }
 
   _playSuccessSfxBasic() {
@@ -442,6 +483,115 @@ export class BaseStaffGame {
 
   // ------------------------ lifecycle ------------------------
 
+  _isTimerEnabled() {
+    const v = this.opts.timer;
+    const s = String(v || "").trim().toLowerCase();
+    return v === true || s === "true" || s === "on";
+  }
+
+  _formatTimerDisplay(totalSec) {
+    const sec = Math.max(0, Math.floor(Number(totalSec) || 0));
+    const mm = String(Math.floor(sec / 60)).padStart(2, "0");
+    const ss = String(sec % 60).padStart(2, "0");
+    return `${mm}:${ss}`;
+  }
+
+  _renderTimerDisplay() {
+    if (!this.$timerText?.length) return;
+    this.$timerText.text(this._formatTimerDisplay(this._timerRemainingSec));
+    this._syncTimerWarningStyle();
+  }
+
+  _syncTimerWarningStyle() {
+    if (!this.$timerBox?.length) return;
+    const warning = this._timerRemainingSec <= 5;
+    this.$timerBox.toggleClass("bg-red", warning);
+    this.$timerBox.toggleClass("bg-primary", !warning);
+  }
+
+  _pulseTimerWarning() {
+    if (!this.$timer?.length) return;
+    this.$timer.removeClass("animate__animated animate__pulse");
+    // eslint-disable-next-line no-unused-expressions
+    this.$timer[0] && this.$timer[0].offsetWidth;
+    this.$timer.addClass("animate__animated animate__pulse");
+  }
+
+  _playTimerWarningBeep() {
+    if (!this.isSoundEnabled() || !window.Tone) return;
+    if (!this._uiSfxReady || !this._uiTimerSfxSynth) return;
+    const now = Tone.now();
+    this._uiTimerSfxSynth.triggerAttackRelease("C6", 0.06, now, 0.5);
+  }
+
+  _playTimerTimeUpSfx() {
+    if (!this.isSoundEnabled() || !window.Tone) return;
+    if (!this._uiSfxReady || !this._uiTimerSfxSynth) return;
+    const now = Tone.now();
+    if (this._uiSfxNoise) {
+      this._uiSfxNoise.triggerAttackRelease(0.12, now, 0.2);
+    }
+    this._uiTimerSfxSynth.triggerAttackRelease("G4", 0.11, now, 0.72);
+    this._uiTimerSfxSynth.triggerAttackRelease("E4", 0.13, now + 0.10, 0.76);
+    this._uiTimerSfxSynth.triggerAttackRelease("C4", 0.18, now + 0.22, 0.82);
+  }
+
+  _stopGameTimer() {
+    if (this._timerTimeoutId != null) {
+      clearTimeout(this._timerTimeoutId);
+      this._timerTimeoutId = null;
+    }
+    this._timerEndsAtMs = 0;
+    this._timerRemainingSec = 0;
+    this._syncTimerWarningStyle();
+    this.$timer?.removeClass?.("animate__animated animate__pulse");
+  }
+
+  _runGameTimerTick() {
+    if (!this._timerEndsAtMs) return;
+
+    const prev = this._timerRemainingSec;
+    const msLeft = this._timerEndsAtMs - Date.now();
+    const next = Math.max(0, Math.ceil(msLeft / 1000));
+
+    this._timerRemainingSec = next;
+    this._renderTimerDisplay();
+
+    if (next > 0 && next <= 5 && next !== prev) {
+      this._pulseTimerWarning();
+      this._playTimerWarningBeep();
+    } else if (next === 0 && prev !== 0) {
+      this._pulseTimerWarning();
+      this._playTimerTimeUpSfx();
+    }
+
+    if (next <= 0) {
+      this._stopGameTimer();
+      return;
+    }
+
+    const nextChangeAt = this._timerEndsAtMs - ((next - 1) * 1000);
+    const delay = Math.max(16, nextChangeAt - Date.now());
+    this._timerTimeoutId = setTimeout(() => this._runGameTimerTick(), delay);
+  }
+
+  _startGameTimer(startSec = 10) {
+    this._stopGameTimer();
+    const total = Math.max(0, Math.floor(Number(startSec) || 0));
+    this._timerEndsAtMs = Date.now() + (total * 1000);
+    this._timerRemainingSec = total;
+    this._renderTimerDisplay();
+    this._runGameTimerTick();
+  }
+
+  _timerLimitSeconds() {
+    const raw = Number(
+      this.opts.timeLimit != null ? this.opts.timeLimit : this.opts.timerLimit,
+    );
+    if (!Number.isFinite(raw)) return 10;
+    return Math.max(0, Math.floor(raw));
+  }
+
   start() {
     this._madeAnyMistake = false;
 
@@ -454,6 +604,15 @@ export class BaseStaffGame {
     this._wireStaffTools();
     this._wireControls();
     this._resetProgress();
+
+    if (this._isTimerEnabled()) {
+      this.$timer.show();
+      this._armUiSfxOnFirstGesture();
+      this._startGameTimer(this._timerLimitSeconds());
+    } else {
+      this._stopGameTimer();
+      this.$timer.hide();
+    }
 
     this.newChallenge();
     this._armUiGates({ resetInstructions: true });

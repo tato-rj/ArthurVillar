@@ -12,6 +12,7 @@ class DictationSettings extends GameFactory
     protected function defaults(): array
     {
         return [
+            'timerLimit' => 15,
             'practiceMode' => false,
             'timer' => false,
             'maxUserNotes' => 1,

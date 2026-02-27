@@ -20,14 +20,14 @@ class TheoryController extends Controller
     public function intervals(Request $request)
     {
         $settings = new IntervalsSettings($request->all());
-
+// return $settings->options();
         return view('theory.intervals.index', compact('settings'));
     }
 
     public function chords(Request $request)
     {
         $settings = new ChordsSettings($request->all());
-// return $settings->options();
+
         return view('theory.chords.index', compact('settings'));
     }
 
