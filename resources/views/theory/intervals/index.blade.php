@@ -43,7 +43,7 @@
       @include('theory.components.timer')
     </div>
 
-    <div class="col-11 mx-auto mb-3">
+    <div class="col-11 mx-auto mb-3 position-relative">
       <div id="staff-wrapper" class="text-center mx-auto position-relative">
         @include('theory.components.accidentals')
         <div id="staff"></div>

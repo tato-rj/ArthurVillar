@@ -89,12 +89,15 @@ export class BaseStaffGame {
     this.$increment = $("#increment");
 
     this.$checkBtn = $("#check button");
+    this.$skipWrap = $("#skip");
+    this.$skipBtn = this.$skipWrap.find("button");
     this.$finalOverlay = $("#final-overlay");
     this.$doublePoints = $("#double-points");
     this.$checkWrap = this.$checkBtn.parent();
     this.$progressBar = $("#progress-bar");
     this.$progressCounter = $("#progress-counter");
     this.$helpBtn = $("#help");
+    this.$timeupMessage = $("#timeup-message");
     this.$timer = $("#timer");
     this.$timerBox = this.$timer.children("div").first();
     this.$timerText = this.$timer.find("span");
@@ -509,6 +512,91 @@ export class BaseStaffGame {
     this.$timerBox.toggleClass("bg-primary", !warning);
   }
 
+  _setTimedOutInteractivityDisabled(disabled) {
+    const on = !!disabled;
+    const $staff = $("#staff");
+    const $staffWrapper = $("#staff-wrapper");
+    const $accidentals = $("#accidentals");
+
+    if (on) {
+      $staff.attr("disabled", "disabled");
+      $staffWrapper.attr("disabled", "disabled");
+      $accidentals.attr("disabled", "disabled");
+      $staff.attr("aria-disabled", "true");
+      $staffWrapper.attr("aria-disabled", "true");
+      $accidentals.attr("aria-disabled", "true");
+      $staff.css("pointer-events", "none");
+      $staffWrapper.css("pointer-events", "none");
+      $accidentals.css("pointer-events", "none");
+    } else {
+      $staff.removeAttr("disabled");
+      $staffWrapper.removeAttr("disabled");
+      $accidentals.removeAttr("disabled");
+      $staff.removeAttr("aria-disabled");
+      $staffWrapper.removeAttr("aria-disabled");
+      $accidentals.removeAttr("aria-disabled");
+      $staff.css("pointer-events", "");
+      $staffWrapper.css("pointer-events", "");
+      $accidentals.css("pointer-events", "");
+    }
+  }
+
+  _showSkipRoundButton() {
+    if (!this.$skipWrap?.length) return;
+    this.$skipWrap.show();
+  }
+
+  _hideSkipRoundButton() {
+    if (!this.$skipWrap?.length) return;
+    this.$skipWrap.hide();
+  }
+
+  _hideTimeUpMessage() {
+    if (!this.$timeupMessage?.length) return;
+    this.$timeupMessage
+      .removeClass("animate__animated animate__flash")
+      .hide();
+  }
+
+  _showTimeUpMessage() {
+    if (!this.$timeupMessage?.length) return;
+    this.$timeupMessage
+      .removeClass("animate__animated animate__flash")
+      .show();
+    // eslint-disable-next-line no-unused-expressions
+    this.$timeupMessage[0] && this.$timeupMessage[0].offsetWidth;
+    this.$timeupMessage.addClass("animate__animated animate__flash");
+  }
+
+  _wouldReachLastRoundAfterAdvance() {
+    if (this._isPracticeMode()) return false;
+    const steps = Math.max(1, this.numOfChallenges || 1);
+    const increment = 100 / steps;
+    const current = parseFloat(this.$progressBar.data("progress")) || 0;
+    return (current + increment) >= 100;
+  }
+
+  _finishRoundAsTimedOut() {
+    this._madeAnyMistake = true;
+    this._madeMistakeThisRound = true;
+    this._stats.checksTotal += 1;
+
+    const reachedEnd = this._updateProgressBar() >= 100;
+    if (reachedEnd && !this._isPracticeMode()) {
+      this._stats.finishedAtMs = Date.now();
+      this.$checkBtn.text('Final results, let\'s see…');
+      setTimeout(() => this._showFinalResults(), 1600);
+      return;
+    }
+
+    this._setTimedOutInteractivityDisabled(false);
+    this._hideTimeUpMessage();
+    this._hideSkipRoundButton();
+    this.newChallenge();
+    this._armUiGates({ resetInstructions: false });
+    this.$checkBtn.enable();
+  }
+
   _pulseTimerWarning() {
     if (!this.$timer?.length) return;
     this.$timer.removeClass("animate__animated animate__pulse");
@@ -561,8 +649,19 @@ export class BaseStaffGame {
       this._pulseTimerWarning();
       this._playTimerWarningBeep();
     } else if (next === 0 && prev !== 0) {
+      $("#check").hide();
+      this._setTimedOutInteractivityDisabled(true);
       this._pulseTimerWarning();
       this._playTimerTimeUpSfx();
+      this._showTimeUpMessage();
+      this.$checkBtn.disable();
+
+      if (this._wouldReachLastRoundAfterAdvance()) {
+        this._hideSkipRoundButton();
+        this._finishRoundAsTimedOut();
+      } else {
+        this._showSkipRoundButton();
+      }
     }
 
     if (next <= 0) {
@@ -604,6 +703,9 @@ export class BaseStaffGame {
     this._wireStaffTools();
     this._wireControls();
     this._resetProgress();
+    this._setTimedOutInteractivityDisabled(false);
+    this._hideTimeUpMessage();
+    this._hideSkipRoundButton();
 
     if (this._isTimerEnabled()) {
       this.$timer.show();
@@ -698,12 +800,22 @@ export class BaseStaffGame {
         this._showHintNote();
       });
 
+    this.$skipBtn
+      .off(`click.${this.ns}Skip`)
+      .on(`click.${this.ns}Skip`, (e) => {
+        e.preventDefault();
+        this._finishRoundAsTimedOut();
+      });
+
     if (!this._continueBound) {
       this._continueBound = true;
       $("#continue button")
         .off(`click.${this.ns}`)
         .on(`click.${this.ns}`, () => {
           $("#continue").hide();
+          this._hideSkipRoundButton();
+          this._hideTimeUpMessage();
+          this._setTimedOutInteractivityDisabled(false);
           this.newChallenge();
           this._armUiGates({ resetInstructions: false });
           this.$checkBtn.enable();

@@ -4,4 +4,6 @@
 			@fa(['icon' => 'clock'])<span></span>
 		</div>
 	</div>
+
+	<div id="timeup-message" class="text-red fw-bold small text-center mt-2" style="display: none">TIME'S UP!</div>
 </div>

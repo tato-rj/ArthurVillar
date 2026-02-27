@@ -10,6 +10,9 @@
       <div id="help" class="btn-floating w-100 mt-3" style="display: none">
         <button class="btn btn-blue w-100">@fa(['icon' => 'wand-magic-sparkles'])See answer</button>
       </div>
+      <div id="skip" class="btn-floating w-100" style="display: none;">
+        <button class="btn btn-red w-100">Next round</button>
+      </div>
     </div>
 
     <div id="continue" class="btn-floating w-100" style="display: none;">
