@@ -592,6 +592,7 @@ export class BaseStaffGame {
     this._setTimedOutInteractivityDisabled(false);
     this._hideTimeUpMessage();
     this._hideSkipRoundButton();
+    this._resetRoundTimerIfEnabled();
     this.newChallenge();
     this._armUiGates({ resetInstructions: false });
     this.$checkBtn.enable();
@@ -691,6 +692,12 @@ export class BaseStaffGame {
     return Math.max(0, Math.floor(raw));
   }
 
+  _resetRoundTimerIfEnabled() {
+    if (!this._isTimerEnabled()) return;
+    this.$timer.show();
+    this._startGameTimer(this._timerLimitSeconds());
+  }
+
   start() {
     this._madeAnyMistake = false;
 
@@ -710,7 +717,7 @@ export class BaseStaffGame {
     if (this._isTimerEnabled()) {
       this.$timer.show();
       this._armUiSfxOnFirstGesture();
-      this._startGameTimer(this._timerLimitSeconds());
+      this._resetRoundTimerIfEnabled();
     } else {
       this._stopGameTimer();
       this.$timer.hide();
@@ -816,6 +823,7 @@ export class BaseStaffGame {
           this._hideSkipRoundButton();
           this._hideTimeUpMessage();
           this._setTimedOutInteractivityDisabled(false);
+          this._resetRoundTimerIfEnabled();
           this.newChallenge();
           this._armUiGates({ resetInstructions: false });
           this.$checkBtn.enable();
