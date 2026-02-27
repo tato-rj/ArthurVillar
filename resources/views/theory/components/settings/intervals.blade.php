@@ -1,4 +1,4 @@
-  <div class="mb-4">
+  <div class="mb-2">
     <label class="nowrap">Intervals</label>
     <div class="d-flex flex-wrap">
       @foreach($settings->getIntervals() as $interval)

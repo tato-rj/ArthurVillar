@@ -1,4 +1,4 @@
-  <div class="mb-4">
+  <div class="mb-2">
     <label class="nowrap">Clefs</label>
     <div class="d-flex flex-wrap">
       @foreach($settings->getClefs() as $clef)

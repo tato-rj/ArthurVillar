@@ -1,4 +1,4 @@
-@modal(['title' => fa('book').' Instructions', 'id' => 'instructions-modal'])
+@modal(['title' => 'Instructions', 'id' => 'instructions-modal'])
 <div class="p-3 mb-3 bg-light rounded border">
 <p>Each round plays <strong>two notes</strong> in sequence.</p>
 <p class="m-0">Listen carefully and <strong>write the second note you hear</strong> on the staff, above or below the given note.</p>

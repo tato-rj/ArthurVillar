@@ -1,4 +1,4 @@
-@modal(['title' => fa('book').' Instructions', 'id' => 'instructions-modal'])
+@modal(['title' => 'Instructions', 'id' => 'instructions-modal'])
 <div class="p-3 mb-3 bg-light rounded border">
 	<p>Each round shows a <strong>chord</strong> (like Am or E) and a <strong>starting note</strong> on the staff.</p>
 	<p class="m-0">Add the <strong>new notes above or below</strong> to complete the chord. You can write the chord in root position or any inversion.</p>

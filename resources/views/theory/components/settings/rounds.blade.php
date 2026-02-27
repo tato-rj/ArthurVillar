@@ -1,4 +1,4 @@
-<div class="d-apart mb-4">
+<div class="d-apart mb-2">
   <label class="nowrap">Number of rounds</label>
   <div class="d-center form-number">
     <button style="touch-action: manipulation;" type="button" data-direction="down" class="btn-raw text-dark">@fa(['icon' => 'minus', 'mr' => 0, 'fa_size' => 'xl'])</button>

@@ -1,37 +1,25 @@
-@modal(['title' => fa('gear').' Game settings', 'id' => $modalID ?? 'settings-modal'])
+@modal(['title' => 'Game settings', 'id' => $modalID ?? 'settings-modal'])
 <form id="chords-settings" method="GET" action="{{ route('theory.chords.play') }}">
-  @include('theory.components.settings.rounds')
-  @include('theory.components.settings.range')
-  
-  <div class="mb-4">
-    <label class="nowrap">Triads</label>
-    <div class="d-flex flex-wrap">
-      @foreach($settings->getTriadQualities() as $quality)
-      <div class="m-1 position-relative">
-        <input name="triadQualities[]" type="checkbox" value="{{$quality}}" class="invisible position-absolute top-0 left-0" id="{{$quality}}-triad" {{in_array($quality, $settings->options('triadQualities')) ? 'checked' : null}} autocomplete="off">
-        <label class="btn btn-{{in_array($quality, $settings->options('triadQualities')) ? 'secondary' : 'white'}}" for="{{$quality}}-triad">{{ucFirst($quality)}}</label>
-      </div>
-      @endforeach
-    </div>
-  </div>
+  @component('theory.components.settings.section', ['title' => 'SETUP'])
+    @include('theory.components.settings.rounds')
+    @include('theory.components.settings.timer')
+    @include('theory.components.settings.practice')
+  @endcomponent
 
-  @include('theory.components.settings.clefs')
-  @include('theory.components.settings.practice')
+  @component('theory.components.settings.section', ['title' => 'MATERIAL'])
+    @include('theory.components.settings.range')
+    @include('theory.components.settings.triads')
+    @include('theory.components.settings.clefs')
+    <hr>
+    @include('theory.components.settings.accidentals')
+    @include('theory.components.settings.rootnote')
+    @include('theory.components.settings.7thchords')
+  @endcomponent
 
-  <div class="d-apart mb-4">
-    <label>Initial note is always the root</label>
-    @toggle(['name' => 'initialRoot', 'on' => $settings->options('initialRoot')])
-  </div>
-
-  <div class="d-apart mb-4">
-    <label>Play with 7th chords</label>
-    @toggle(['name' => 'only7thChords', 'on' => $settings->options('only7thChords')])
-  </div>
-  
-  @include('theory.components.settings.sound')
-  @include('theory.components.settings.lettername')
-  @include('theory.components.settings.accidentals')
-  @include('theory.components.settings.timer')
+  @component('theory.components.settings.section', ['title' => 'PREFERENCES'])
+    @include('theory.components.settings.sound')
+    @include('theory.components.settings.lettername')
+  @endcomponent
 
   <button type="submit" class="btn btn-primary w-100">Start new game</button>
 </form>
