@@ -12,6 +12,7 @@ class ChordsSettings extends GameFactory
     protected function defaults(): array
     {
         return [
+            'practiceMode' => false,
             'maxUserNotes' => 2,
             'numOfChallenges' => 4,
             'triadQualities' => ['major', 'minor'],

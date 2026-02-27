@@ -9,6 +9,7 @@ abstract class GameFactory
     protected $triadQualities = ['major', 'minor', 'diminished', 'augmented'];
     protected $initialNoteRanges = ['Few notes', 'More notes', 'All notes'];
     protected $clefs = ['treble', 'bass', 'alto', 'tenor'];
+    protected $numOfChallenges = [0,2,4,6,8,10,12];
     protected $accidentalWeights = [
         	['natural' => 20, 'sharp' => 0, 'flat' => 0],
         	['natural' => 8, 'sharp' => 6, 'flat' => 6]
@@ -52,6 +53,11 @@ abstract class GameFactory
     public function getTriadQualities()
     {
         return $this->triadQualities;
+    }
+
+    public function getNumOfChallenges()
+    {
+        return $this->numOfChallenges;
     }
 
     public function getInitialNoteRanges()

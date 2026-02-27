@@ -12,6 +12,7 @@ class IntervalsSettings extends GameFactory
     protected function defaults(): array
     {
         return [
+            'practiceMode' => false,
             'maxUserNotes' => 1,
             'numOfChallenges' => 4,
             'intervals' => ['M2', 'm3', 'M3', 'P5', 'P8'],

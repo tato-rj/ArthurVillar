@@ -761,6 +761,19 @@ export class BaseStaffGame {
     return Number.isFinite(rounds) && rounds <= 0;
   }
 
+  _syncPracticeUi() {
+    const practice = this._isPracticeMode();
+    const $score = $("#score");
+
+    if (practice) {
+      $score.hide();
+      this.$progressBar.parent().addClass("opacity-1");
+    } else {
+      $score.show();
+      this.$progressBar.parent().removeClass("opacity-1");
+    }
+  }
+
   _successAnimation({ isBonus } = {}) {
     if (isBonus) this._playSuccessSfxBonus();
     else this._playSuccessSfxBasic();
@@ -827,6 +840,7 @@ export class BaseStaffGame {
   }
 
   _resetProgress() {
+    this._syncPracticeUi();
     this._madeAnyMistake = false;
     this.$progressBar.data("progress", 0);
     this.$progressBar.css({ width: "0%" });

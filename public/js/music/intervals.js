@@ -843,6 +843,19 @@ var BaseStaffGame = /*#__PURE__*/function () {
       return Number.isFinite(rounds) && rounds <= 0;
     }
   }, {
+    key: "_syncPracticeUi",
+    value: function _syncPracticeUi() {
+      var practice = this._isPracticeMode();
+      var $score = $("#score");
+      if (practice) {
+        $score.hide();
+        this.$progressBar.parent().addClass("opacity-1");
+      } else {
+        $score.show();
+        this.$progressBar.parent().removeClass("opacity-1");
+      }
+    }
+  }, {
     key: "_successAnimation",
     value: function _successAnimation() {
       var _ref2 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
@@ -920,6 +933,7 @@ var BaseStaffGame = /*#__PURE__*/function () {
   }, {
     key: "_resetProgress",
     value: function _resetProgress() {
+      this._syncPracticeUi();
       this._madeAnyMistake = false;
       this.$progressBar.data("progress", 0);
       this.$progressBar.css({
