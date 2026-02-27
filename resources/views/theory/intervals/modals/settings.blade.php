@@ -1,6 +1,6 @@
 @modal(['title' => fa('gear').' Game settings', 'id' => $modalID ?? 'settings-modal'])
 <form id="intervals-settings" method="GET" action="{{ route('theory.intervals.play') }}">
-  TYPE OF GAME!! MAKE A SWITCH TO TOGGLE BETWEEN EACH OPTION
+  {{-- TYPE OF GAME!! MAKE A SWITCH TO TOGGLE BETWEEN EACH OPTION --}}
   @include('theory.components.settings.rounds')
   @include('theory.components.settings.timer')
   @include('theory.components.settings.practice')
