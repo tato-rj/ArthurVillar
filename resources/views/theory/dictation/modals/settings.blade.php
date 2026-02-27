@@ -4,16 +4,10 @@
   @include('theory.components.settings.range')
   @include('theory.components.settings.intervals')
   @include('theory.components.settings.clefs')
-
-  <div class="d-apart mb-4">
-    <label>Sound effects</label>
-    @toggle(['name' => 'sound', 'on' => $settings->options('sound')])
-  </div>
-
-  <div class="d-apart mb-4">
-    <label>Show letter names</label>
-    @toggle(['name' => 'showLetterNames', 'on' => $settings->options('showLetterNames')])
-  </div>
+  @include('theory.components.settings.practice')
+  @include('theory.components.settings.sound')
+  @include('theory.components.settings.lettername')
+  @include('theory.components.settings.accidentals')
 
   <div class="d-apart mb-4">
     <label>Accidentals on the initial note</label>

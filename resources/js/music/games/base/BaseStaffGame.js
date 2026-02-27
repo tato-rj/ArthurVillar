@@ -32,6 +32,7 @@ export class BaseStaffGame {
       initialClef: "treble",
       maxUserNotes: Infinity,
       numOfChallenges: 10,
+      practiceMode: false,
       levelName: "",
       successPhrases: [
         "Awesome",
@@ -757,8 +758,8 @@ export class BaseStaffGame {
   // ------------------------ scoring / progress ------------------------
 
   _isPracticeMode() {
-    const rounds = Number(this.numOfChallenges);
-    return Number.isFinite(rounds) && rounds <= 0;
+    const v = this.opts.practiceMode;
+    return v === true || String(v || "").trim().toLowerCase() === "on";
   }
 
   _syncPracticeUi() {
