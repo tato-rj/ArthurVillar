@@ -21,6 +21,9 @@ export const PAGE_OPENED_AT_MS = Date.now();
  * - _onFixedNoteState()
  */
 export class BaseStaffGame {
+  static MIN_CHALLENGES = 2;
+  static MAX_CHALLENGES = 12;
+
   constructor(options = {}) {
     const defaults = {
       staffEl: "#staff",
@@ -67,6 +70,7 @@ export class BaseStaffGame {
 
     this.opts = { ...defaults, ...(options || {}) };
     this.ns = this.opts.namespace || "staffGame";
+    this.opts.numOfChallenges = this._normalizeNumOfChallenges(this.opts.numOfChallenges);
 
     // UI SFX
     this._uiSfxReady = false;
@@ -130,6 +134,18 @@ export class BaseStaffGame {
     this.$bonusBadge.hide();
     this.$doublePoints?.hide?.();
     this.$points.text(String(this.points));
+  }
+
+  _normalizeNumOfChallenges(raw) {
+    const n = Number(raw);
+    const fallback = Number(this.opts?.numOfChallenges ?? 10);
+    const safe = Number.isFinite(n) ? Math.trunc(n) : (Number.isFinite(fallback) ? Math.trunc(fallback) : 10);
+    const min = BaseStaffGame.MIN_CHALLENGES;
+    const max = BaseStaffGame.MAX_CHALLENGES;
+
+    if (safe < min) return min;
+    if (safe > max) return max;
+    return safe;
   }
 
   // ------------------------ sound controls ------------------------
