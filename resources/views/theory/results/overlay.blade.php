@@ -1,7 +1,7 @@
 <div id="final-overlay" class="position-absolute w-100 top-0 left-0">
 	<div class="text-center container">
 		<img src="{{asset('images/badges/trophy.svg')}}" width="220" class="animate__animated animate__rubberBand mb-">
-		<div class="text-center animate__animated animate__fadeInUp animate__faster mb-4">
+		<div id="result-greeting" class="text-center animate__animated animate__fadeInUp animate__faster mb-4">
 			<h1 class="text-">Great job!</h1>
 			<h6 class="text-muted px-5">It's not about getting the most points, but if it was...</h6>
 		</div>

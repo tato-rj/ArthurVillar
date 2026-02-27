@@ -237,6 +237,7 @@ export class IntervalsChallenge extends BaseStaffGame {
 
     if (name === this.$intervalLabel.text()) {
       this._stats.checksCorrect += 1;
+      this._pauseGameTimer();
 
       const { earned, bonusEarned } = this._awardPointsForCorrect();
 

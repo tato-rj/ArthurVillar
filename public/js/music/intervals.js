@@ -677,6 +677,7 @@ var BaseStaffGame = /*#__PURE__*/function () {
       this._setTimedOutInteractivityDisabled(false);
       this._hideTimeUpMessage();
       this._hideSkipRoundButton();
+      $("#interval").removeClass("text-red").addClass("text-blue");
       this._resetRoundTimerIfEnabled();
       this.newChallenge();
       this._armUiGates({
@@ -729,6 +730,17 @@ var BaseStaffGame = /*#__PURE__*/function () {
       (_this$$timer2 = this.$timer) === null || _this$$timer2 === void 0 || (_this$$timer2$removeC = _this$$timer2.removeClass) === null || _this$$timer2$removeC === void 0 || _this$$timer2$removeC.call(_this$$timer2, "animate__animated animate__pulse");
     }
   }, {
+    key: "_pauseGameTimer",
+    value: function _pauseGameTimer() {
+      var _this$$timer3, _this$$timer3$removeC;
+      if (this._timerTimeoutId != null) {
+        clearTimeout(this._timerTimeoutId);
+        this._timerTimeoutId = null;
+      }
+      this._timerEndsAtMs = 0;
+      (_this$$timer3 = this.$timer) === null || _this$$timer3 === void 0 || (_this$$timer3$removeC = _this$$timer3.removeClass) === null || _this$$timer3$removeC === void 0 || _this$$timer3$removeC.call(_this$$timer3, "animate__animated animate__pulse");
+    }
+  }, {
     key: "_runGameTimerTick",
     value: function _runGameTimerTick() {
       var _this9 = this;
@@ -743,6 +755,7 @@ var BaseStaffGame = /*#__PURE__*/function () {
         this._playTimerWarningBeep();
       } else if (next === 0 && prev !== 0) {
         $("#check").hide();
+        this.$helpBtn.hide();
         this._setTimedOutInteractivityDisabled(true);
         this._pulseTimerWarning();
         this._playTimerTimeUpSfx();
@@ -1362,6 +1375,18 @@ var BaseStaffGame = /*#__PURE__*/function () {
       countTo('span[name="duration"]', totalSeconds, {
         formattingFn: mmss
       });
+      var $greeting = this.$finalOverlay.find("#result-greeting");
+      var $greetingTitle = $greeting.find("h1");
+      var $greetingSubtitle = $greeting.find("h6");
+      var defaultTitle = "Great job!";
+      var defaultSubtitle = "It's not about getting the most points, but if it was...";
+      if (accuracy < 50) {
+        $greetingTitle.text("Keep going!");
+        $greetingSubtitle.text("That round was tough, but your next one can be much better.");
+      } else {
+        $greetingTitle.text(defaultTitle);
+        $greetingSubtitle.text(defaultSubtitle);
+      }
       this._playFinalSfx();
       this.$finalOverlay.show();
     }
@@ -1606,6 +1631,7 @@ var IntervalsChallenge = /*#__PURE__*/function (_BaseStaffGame) {
       var name = this._intervalNameBetween(notes[0], notes[1]);
       if (name === this.$intervalLabel.text()) {
         this._stats.checksCorrect += 1;
+        this._pauseGameTimer();
         var _this$_awardPointsFor = this._awardPointsForCorrect(),
           earned = _this$_awardPointsFor.earned,
           bonusEarned = _this$_awardPointsFor.bonusEarned;

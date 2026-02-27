@@ -416,6 +416,7 @@ export class DictationChallenge extends BaseStaffGame {
 
     if (ok) {
       this._stats.checksCorrect += 1;
+      this._pauseGameTimer();
 
       const { earned, bonusEarned } = this._awardPointsForCorrect();
       this._successAnimation({ isBonus: bonusEarned > 0 });

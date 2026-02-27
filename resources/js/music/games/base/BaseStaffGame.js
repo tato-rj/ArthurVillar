@@ -592,6 +592,7 @@ export class BaseStaffGame {
     this._setTimedOutInteractivityDisabled(false);
     this._hideTimeUpMessage();
     this._hideSkipRoundButton();
+    $("#interval").removeClass("text-red").addClass("text-blue");
     this._resetRoundTimerIfEnabled();
     this.newChallenge();
     this._armUiGates({ resetInstructions: false });
@@ -636,6 +637,15 @@ export class BaseStaffGame {
     this.$timer?.removeClass?.("animate__animated animate__pulse");
   }
 
+  _pauseGameTimer() {
+    if (this._timerTimeoutId != null) {
+      clearTimeout(this._timerTimeoutId);
+      this._timerTimeoutId = null;
+    }
+    this._timerEndsAtMs = 0;
+    this.$timer?.removeClass?.("animate__animated animate__pulse");
+  }
+
   _runGameTimerTick() {
     if (!this._timerEndsAtMs) return;
 
@@ -651,6 +661,7 @@ export class BaseStaffGame {
       this._playTimerWarningBeep();
     } else if (next === 0 && prev !== 0) {
       $("#check").hide();
+      this.$helpBtn.hide();
       this._setTimedOutInteractivityDisabled(true);
       this._pulseTimerWarning();
       this._playTimerTimeUpSfx();
@@ -1259,6 +1270,20 @@ export class BaseStaffGame {
     countTo('span[name="score"]', finalPoints);
     countTo('span[name="accuracy"]', accuracy, { suffix: "%" });
     countTo('span[name="duration"]', totalSeconds, { formattingFn: mmss });
+
+    const $greeting = this.$finalOverlay.find("#result-greeting");
+    const $greetingTitle = $greeting.find("h1");
+    const $greetingSubtitle = $greeting.find("h6");
+    const defaultTitle = "Great job!";
+    const defaultSubtitle = "It's not about getting the most points, but if it was...";
+
+    if (accuracy < 50) {
+      $greetingTitle.text("Keep going!");
+      $greetingSubtitle.text("That round was tough, but your next one can be much better.");
+    } else {
+      $greetingTitle.text(defaultTitle);
+      $greetingSubtitle.text(defaultSubtitle);
+    }
 
     this._playFinalSfx();
     this.$finalOverlay.show();
