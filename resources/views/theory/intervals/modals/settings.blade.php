@@ -10,7 +10,7 @@
     @include('theory.components.settings.range')
     @include('theory.components.settings.intervals')
     @include('theory.components.settings.clefs')
-    <hr>
+    <hr class="opacity-1">
     @include('theory.components.settings.accidentals')
   @endcomponent
 

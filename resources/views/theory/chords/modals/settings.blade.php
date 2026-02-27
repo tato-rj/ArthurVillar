@@ -10,7 +10,7 @@
     @include('theory.components.settings.range')
     @include('theory.components.settings.triads')
     @include('theory.components.settings.clefs')
-    <hr>
+    <hr class="opacity-1">
     @include('theory.components.settings.accidentals')
     @include('theory.components.settings.rootnote')
     @include('theory.components.settings.7thchords')
