@@ -196,6 +196,36 @@ body,
 /* ==========================================================================
    Staff Elements
    ========================================================================== */
+#hand-pointer {
+  font-size: 5rem;
+  position: absolute;
+  right: 0;
+  opacity: .8;
+  top: 25%;
+  animation: handPointerTap 1.2s ease-in-out infinite ;
+  will-change: top;
+}
+
+@keyframes handPointerTap {
+  0%,
+  15% {
+    top: 25%;
+    opacity: .8;
+  }
+  60% {
+    top: 45%;
+    opacity: .4;
+  }
+  100% {
+    top: 45%;
+    opacity: 0;
+  }
+}
+
+#hand-pointer > div {
+  transform: rotate(-40deg);
+}
+
 .staff-line {
   background: var(--ink);
   border-radius: 999px;

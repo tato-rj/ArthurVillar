@@ -98,6 +98,7 @@ export class BaseStaffGame {
     this.$progressCounter = $("#progress-counter");
     this.$helpBtn = $("#help");
     this.$timeupMessage = $("#timeup-message");
+    this.$handPointer = $("#hand-pointer");
     this.$timer = $("#timer");
     this.$timerBox = this.$timer.children("div").first();
     this.$timerText = this.$timer.find("span");
@@ -125,6 +126,8 @@ export class BaseStaffGame {
     this._timerRemainingSec = 0;
     this._audioUnlockArmed = false;
     this._timerEndsAtMs = 0;
+    this._finalMetricsSfxTimeouts = [];
+    this._finalCountupTimeouts = [];
 
     // Staff
     this.staff = new Staff(this.$staffEl, {
@@ -466,6 +469,58 @@ export class BaseStaffGame {
     });
   }
 
+  _clearFinalMetricsSfxTimers() {
+    if (!Array.isArray(this._finalMetricsSfxTimeouts)) {
+      this._finalMetricsSfxTimeouts = [];
+      return;
+    }
+    this._finalMetricsSfxTimeouts.forEach((id) => clearTimeout(id));
+    this._finalMetricsSfxTimeouts = [];
+  }
+
+  _clearFinalCountupTimers() {
+    if (!Array.isArray(this._finalCountupTimeouts)) {
+      this._finalCountupTimeouts = [];
+      return;
+    }
+    this._finalCountupTimeouts.forEach((id) => clearTimeout(id));
+    this._finalCountupTimeouts = [];
+  }
+
+  _playFinalMetricPopSfx(index) {
+    if (!this.isSoundEnabled() || !window.Tone) return;
+    if (!this._uiSfxReady) return;
+
+    const now = Tone.now();
+    const safeIdx = Math.max(0, Number(index) || 0);
+    const midi = Math.min(96, 67 + safeIdx * 2); // rises as each box appears
+    const synth = this._uiTimerSfxSynth || this._uiSfxSynth;
+    if (!synth) return;
+
+    synth.triggerAttackRelease(Tone.Frequency(midi, "midi"), 0.055, now, 0.44);
+    synth.triggerAttackRelease(Tone.Frequency(midi + 5, "midi"), 0.045, now + 0.03, 0.34);
+  }
+
+  _animateFinalMetricsWithSfx() {
+    const $boxes = this.$finalOverlay.find("#metrics-boxes > div");
+    if (!$boxes.length) return;
+
+    const BASE_DELAY_MS = 260;
+    const STEP_DELAY_MS = 260; // wider spacing between boxes
+
+    this._clearFinalMetricsSfxTimers();
+
+    $boxes.each((i, el) => {
+      const delayMs = BASE_DELAY_MS + (i * STEP_DELAY_MS);
+      el.style.animationDelay = `${delayMs}ms`;
+
+      const tid = setTimeout(() => {
+        this._playFinalMetricPopSfx(i);
+      }, delayMs);
+      this._finalMetricsSfxTimeouts.push(tid);
+    });
+  }
+
   _playPerfectGameBonusSfx() {
     if (!this.isSoundEnabled() || !window.Tone) return;
 
@@ -739,11 +794,13 @@ export class BaseStaffGame {
 
     this._wireAccidentalPalette();
     this._wireStaffTools();
+    this._wireFirstNoteLearningTracker();
     this._wireControls();
     this._resetProgress();
     this._setTimedOutInteractivityDisabled(false);
     this._hideTimeUpMessage();
     this._hideSkipRoundButton();
+    this._syncHandPointerVisibility();
 
     if (this._isTimerEnabled()) {
       this.$timer.show();
@@ -819,6 +876,59 @@ export class BaseStaffGame {
           step: data.step,
           clef: this.staff.getClef(),
         });
+      });
+  }
+
+  _firstNoteCookieName() {
+    const base = String(this.ns || "staffGame")
+      .trim()
+      .replace(/[^a-zA-Z0-9_-]/g, "_");
+    return `music_first_note_learned_${base}`;
+  }
+
+  _getCookie(name) {
+    const key = `${name}=`;
+    const parts = String(document.cookie || "").split("; ");
+    for (let i = 0; i < parts.length; i += 1) {
+      if (parts[i].startsWith(key)) return decodeURIComponent(parts[i].slice(key.length));
+    }
+    return null;
+  }
+
+  _setCookie(name, value, days = 3650) {
+    const d = new Date();
+    d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
+    const expires = `expires=${d.toUTCString()}`;
+    document.cookie = `${name}=${encodeURIComponent(String(value))}; ${expires}; path=/; SameSite=Lax`;
+  }
+
+  _hasLearnedFirstNote() {
+    return this._getCookie(this._firstNoteCookieName()) === "1";
+  }
+
+  _markLearnedFirstNote() {
+    this._setCookie(this._firstNoteCookieName(), "1");
+  }
+
+  _syncHandPointerVisibility() {
+    if (!this.$handPointer?.length) return;
+    if (this._hasLearnedFirstNote()) this.$handPointer.hide();
+    else this.$handPointer.show();
+  }
+
+  _wireFirstNoteLearningTracker() {
+    this.$staffEl
+      .off(`staff:userNoteAdded._learn.${this.ns}`)
+      .on(`staff:userNoteAdded._learn.${this.ns}`, () => {
+        if (this._hasLearnedFirstNote()) {
+          this.$handPointer?.hide?.();
+          this.$staffEl.off(`staff:userNoteAdded._learn.${this.ns}`);
+          return;
+        }
+
+        this._markLearnedFirstNote();
+        this.$handPointer?.hide?.();
+        this.$staffEl.off(`staff:userNoteAdded._learn.${this.ns}`);
       });
   }
 
@@ -1292,36 +1402,63 @@ export class BaseStaffGame {
       const el = this.$finalOverlay.find(selector)[0];
       if (!el) return;
 
-      if (!CountUpCtor) {
-        el.textContent =
-          String(opts.formattingFn ? opts.formattingFn(endVal) : endVal) + (opts.suffix || "");
+      const startCount = () => {
+        if (!CountUpCtor) {
+          el.textContent =
+            String(opts.formattingFn ? opts.formattingFn(endVal) : endVal) + (opts.suffix || "");
+          return;
+        }
+
+        const c = new CountUpCtor(el, endVal, { duration: DURATION, ...opts });
+        if (!c.error) c.start();
+      };
+
+      const $box = $(el).closest("#metrics-boxes > div");
+      const rawDelay = $box.length ? parseFloat($box[0].style.animationDelay || "0") : 0;
+      const delayMs = Number.isFinite(rawDelay) ? Math.max(0, rawDelay) : 0;
+      if (delayMs <= 0) {
+        startCount();
         return;
       }
 
-      const c = new CountUpCtor(el, endVal, { duration: DURATION, ...opts });
-      if (!c.error) c.start();
+      const tid = setTimeout(startCount, delayMs + 40);
+      this._finalCountupTimeouts.push(tid);
     };
-
-    countTo('span[name="rounds"]', this.numOfChallenges);
-    countTo('span[name="score"]', finalPoints);
-    countTo('span[name="accuracy"]', accuracy, { suffix: "%" });
-    countTo('span[name="duration"]', totalSeconds, { formattingFn: mmss });
 
     const $greeting = this.$finalOverlay.find("#result-greeting");
     const $greetingTitle = $greeting.find("h1");
     const $greetingSubtitle = $greeting.find("h6");
+    const $resultImg = this.$finalOverlay.find("img").first();
     const defaultTitle = "Great job!";
     const defaultSubtitle = "It's not about getting the most points, but if it was...";
 
     if (accuracy < 50) {
       $greetingTitle.text("Keep going!");
       $greetingSubtitle.text("That round was tough, but your next one can be much better.");
+      if ($resultImg.length) {
+        const cur = String($resultImg.attr("src") || "");
+        if (cur.includes("trophy.svg")) {
+          $resultImg.attr("src", cur.replace("trophy.svg", "plant.svg"));
+        }
+      }
     } else {
       $greetingTitle.text(defaultTitle);
       $greetingSubtitle.text(defaultSubtitle);
+      if ($resultImg.length) {
+        const cur = String($resultImg.attr("src") || "");
+        if (cur.includes("plant.svg")) {
+          $resultImg.attr("src", cur.replace("plant.svg", "trophy.svg"));
+        }
+      }
     }
 
-    this._playFinalSfx();
     this.$finalOverlay.show();
+    this._animateFinalMetricsWithSfx();
+    this._clearFinalCountupTimers();
+    countTo('span[name="rounds"]', this.numOfChallenges);
+    countTo('span[name="score"]', finalPoints);
+    countTo('span[name="accuracy"]', accuracy, { suffix: "%" });
+    countTo('span[name="duration"]', totalSeconds, { formattingFn: mmss });
+    this._playFinalSfx();
   }
 }
