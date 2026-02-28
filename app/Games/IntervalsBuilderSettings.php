@@ -12,7 +12,7 @@ class IntervalsBuilderSettings extends GameFactory
     protected function defaults(): array
     {
         return [
-            'timeLimit' => 15,
+            'timeLimit' => 20,
             'practiceMode' => false,
             'timer' => false,
             'maxUserNotes' => 1,

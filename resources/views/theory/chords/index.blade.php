@@ -18,18 +18,7 @@
 </script>
 
 <style>
-#accidentals, .accidental-tool, #staff {
-  touch-action: none;
-}
 
-#metrics-boxes .col-6:nth-child(1) { animation-delay: 0s; }
-#metrics-boxes .col-6:nth-child(2) { animation-delay: 0.1s; }
-#metrics-boxes .col-6:nth-child(3) { animation-delay: 0.2s; }
-#metrics-boxes .col-6:nth-child(4) { animation-delay: 0.3s; }
-
-#interval label {
-  top: -4px !important;
-}
 </style>
 @endpush
 

@@ -1,4 +1,4 @@
-@extends('layouts.app', ['title' => 'Dictation Challenge', 'noMenu' => true])
+@extends('layouts.app', ['title' => 'Blocks Challenge', 'noMenu' => true])
 
 @push('header')
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
@@ -9,31 +9,23 @@
 
 <script>
   window.__challengeOptions = @json($settings->options());
-  window.__clefUrls = {
-    treble: "{{ asset('images/clefs/treble-clef.svg') }}",
-    bass:   "{{ asset('images/clefs/bass-clef.svg') }}",
-    alto:   "{{ asset('images/clefs/alto-clef.svg') }}",
-    tenor:  "{{ asset('images/clefs/tenor-clef.svg') }}",
-  };
 </script>
 
 <style>
-#interval {
-  display: none;
-}
-
-#interval label {
-  top: -4px !important;
-}
-
-#play {
-  height: 66.4px;
+.block {
+  border: 1px solid black;
+  width: 60px;
+  height: 60px;
 }
 </style>
 @endpush
 
 @section('content')
-@include('theory.components.title', ['label' => 'INTERVALS DICTATION'])
+{{-- @include('theory.components.pagetitle', [
+  'title' => 'Intervals Challenge', 
+  'description' => 'Add the note that forms the indicated interval']) --}}
+
+@include('theory.components.title', ['label' => 'BLOCKS CHALLENGE'])
 
 <section id="page-wrapper" class="container prevent-select">
   <div class="row">
@@ -42,19 +34,22 @@
       @include('theory.components.timer')
     </div>
 
-    <div class="col-11 mx-auto mb-3">
-      <div id="staff-wrapper" class="text-center mx-auto position-relative prevent-select">
+    <div class="col-11 mx-auto mb-3 position-relative">
+      <div id="blocks-wrapper" class="text-center mx-auto position-relative">
         @include('theory.components.accidentals')
-        <div id="staff"></div>
+        <div id="blocks">
+          @include('theory.blocks.block')
+        </div>
         @include('theory.components.feedback')
-        @include('theory.components.play')
+        @include('theory.components.interval')
+        @include('theory.components.hand')
       </div>
     </div>
 
     <div class="col-lg-6 col-md-8 col-11 mx-auto">
       @include('theory.components.controls')
-      @include('theory.dictation.modals.settings')
-      @include('theory.dictation.modals.instructions')
+      @include('theory.blocks.modals.settings')
+      @include('theory.blocks.modals.instructions')
       @include('theory.components.preferences')
     </div>
   </div>
@@ -65,5 +60,12 @@
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.js"></script>
-<script src="{{ mix('js/music/dictation.js') }}"></script>
+{{-- <script src="{{ mix('js/music/intervals.js') }}"></script> --}}
+<script>
+  /**
+   * Toggle "text-black" on the label matching the range value, reset others to "text-light".
+   * Works with multiple sliders if each slider points at its own labels container via data-range-labels.
+   */
+
+</script>
 @endpush

@@ -24,6 +24,13 @@ class TheoryController extends Controller
         return view('theory.intervals.index', compact('settings'));
     }
 
+    public function blocks(Request $request)
+    {
+        $settings = new IntervalsBuilderSettings($request->all());
+
+        return view('theory.blocks.index', compact('settings'));
+    }
+
     public function chords(Request $request)
     {
         $settings = new ChordsBuilderSettings($request->all());

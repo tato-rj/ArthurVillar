@@ -12,7 +12,7 @@ class IntervalsDictationSettings extends GameFactory
     protected function defaults(): array
     {
         return [
-            'timerLimit' => 15,
+            'timerLimit' => 20,
             'practiceMode' => false,
             'timer' => false,
             'maxUserNotes' => 1,
