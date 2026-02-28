@@ -80,6 +80,7 @@ export class Staff {
 
     this._audioReady = false;
     this._synth = null;
+    this._fxNoise = null;
 
     this._accDragSound = { noteId: null, step: null, toolType: null, prospectiveCls: null };
     this._accSnap = { noteId: null, dist: null, localY: null };
@@ -112,6 +113,9 @@ export class Staff {
       try { Tone.Transport && Tone.Transport.stop(); } catch (_) {}
       try { Tone.context && Tone.context.suspend && Tone.context.suspend(); } catch (_) {}
       try { this._synth && this._synth.releaseAll && this._synth.releaseAll(); } catch (_) {}
+      try { this._fxNoise && this._fxNoise.dispose && this._fxNoise.dispose(); } catch (_) {}
+      this._fxNoise = null;
+      this._audioReady = false;
     }
   }
 
@@ -428,7 +432,19 @@ export class Staff {
       oscillator: { type: "sine" },
       envelope: { attack: 0.01, decay: 0.08, sustain: 0.6, release: 0.12 },
     }).toDestination();
+    this._fxNoise = new Tone.NoiseSynth({
+      noise: { type: "white" },
+      envelope: { attack: 0.001, decay: 0.03, sustain: 0.0, release: 0.02 },
+    }).toDestination();
     this._audioReady = true;
+  }
+
+  _playAccidentalGrabSfx() {
+    if (!this._soundEnabled() || !window.Tone) return;
+    this._ensureAudio().then(() => {
+      if (!this._fxNoise) return;
+      this._fxNoise.triggerAttackRelease(0.03, Tone.now(), 0.16);
+    });
   }
 
   _stepToMidi(step) {
@@ -967,6 +983,7 @@ export class Staff {
       start: function (_event, ui) {
         ui.helper.addClass("dragging accidental-tool");
         if (self._soundEnabled()) self._ensureAudio();
+        self._playAccidentalGrabSfx();
         resetAccDrag();
         self._accDragSound.toolType = toolTypeFromEl($(this));
       },

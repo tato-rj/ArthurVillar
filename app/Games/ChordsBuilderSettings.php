@@ -2,7 +2,7 @@
 
 namespace App\Games;
 
-class ChordsSettings extends GameFactory
+class ChordsBuilderSettings extends GameFactory
 {
     protected function requiredToggleKeys(): array
     {

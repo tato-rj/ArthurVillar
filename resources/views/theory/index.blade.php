@@ -16,32 +16,32 @@
             </div>
 
             @component('theory.card', [
-                'settings' => $intervalsSettings,
+                'settings' => $intervalsBuilderSettings,
                 'title' => 'Intervals Builder', 
                 'description' => 'Practice the most common chromatic intervals in different clefs.'])
 
                 @include('theory.intervals.modals.settings', [
-                    'settings' => $intervalsSettings, 
+                    'settings' => $intervalsBuilderSettings, 
                     'modalID' => 'intervals-builder-settings-modal'])
             @endcomponent
 
             @component('theory.card', [
-                'settings' => $dictationSettings,
+                'settings' => $intervalsDictationSettings,
                 'title' => 'Intervals Dictation', 
                 'description' => 'Practice intervals dictation in different clefs.'])
 
                 @include('theory.dictation.modals.settings', [
-                    'settings' => $dictationSettings, 
+                    'settings' => $intervalsDictationSettings, 
                     'modalID' => 'intervals-dictation-settings-modal'])
             @endcomponent
 
             @component('theory.card', [
-                'settings' => $chordsSettings,
+                'settings' => $chordsBuilderSettings,
                 'title' => 'Chords Builder', 
                 'description' => 'Practice the four fundamental triads as well as 7th chords.'])
 
                 @include('theory.chords.modals.settings', [
-                    'settings' => $chordsSettings, 
+                    'settings' => $chordsBuilderSettings, 
                     'modalID' => 'chords-builder-settings-modal'])
             @endcomponent
         </div>

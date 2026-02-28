@@ -2,7 +2,7 @@
 
 namespace App\Games;
 
-class DictationSettings extends GameFactory
+class IntervalsDictationSettings extends GameFactory
 {
     protected function requiredToggleKeys(): array
     {

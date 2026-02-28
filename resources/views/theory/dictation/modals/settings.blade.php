@@ -7,7 +7,6 @@
   @endcomponent
 
   @component('theory.components.settings.section', ['title' => 'MATERIAL'])
-    @include('theory.components.settings.range')
     @include('theory.components.settings.intervals')
     @include('theory.components.settings.clefs')
     <hr class="opacity-1">
@@ -17,6 +16,7 @@
   @component('theory.components.settings.section', ['title' => 'PREFERENCES'])
     @include('theory.components.settings.sound')
     @include('theory.components.settings.lettername')
+    @include('theory.components.settings.range')
   @endcomponent
 
   <button type="submit" class="btn btn-primary w-100">Start new game</button>

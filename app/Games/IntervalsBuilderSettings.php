@@ -2,7 +2,7 @@
 
 namespace App\Games;
 
-class IntervalsSettings extends GameFactory
+class IntervalsBuilderSettings extends GameFactory
 {   
     protected function requiredToggleKeys(): array
     {
