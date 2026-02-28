@@ -194,7 +194,7 @@ body,
   font-size: 5rem;
   position: absolute;
   right: 0;
-  opacity: 0.8;
+  opacity: 0;
   top: 25%;
   animation: handPointerTap 1.2s ease-in-out infinite;
   will-change: top;
