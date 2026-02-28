@@ -9,7 +9,7 @@
 		<div class="row mb-4">
 			<div class="col-lg-4 col-md-8 col-12 mx-auto row justify-content-center" id="metrics-boxes"> 
 				@include('theory.results.components.box', ['name' => 'rounds', 'title' => 'ROUNDS', 'color' => 'orange', 'icon' => 'gamepad'])
-				@include('theory.results.components.box', ['name' => 'score', 'title' => 'SCORE', 'color' => 'purple', 'icon' => 'bolt'])
+				@include('theory.results.components.box', ['name' => 'score', 'title' => 'TOTAL XP', 'color' => 'purple', 'icon' => 'bolt'])
 				@include('theory.results.components.box', ['name' => 'accuracy', 'title' => 'ACCURACY', 'color' => 'green', 'icon' => 'bullseye'])
 				@include('theory.results.components.box', ['name' => 'duration', 'title' => 'TIME', 'color' => 'blue', 'icon' => 'clock'])
 			</div>

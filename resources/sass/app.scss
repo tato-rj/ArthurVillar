@@ -8,6 +8,20 @@ input[type="range"].big-thumb {
   outline: none;
 }
 
+.btn-group .btn:first-of-type {
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+}
+
+.btn-group .btn:last-of-type {
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+}
+
+.btn-group .btn:not(:first-of-type):not(:last-of-type) {
+    border-radius: 0 !important;
+}
+
 /* WebKit thumb */
 input[type="range"].big-thumb::-webkit-slider-thumb {
   -webkit-appearance: none;

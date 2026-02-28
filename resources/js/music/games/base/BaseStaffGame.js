@@ -113,6 +113,7 @@ export class BaseStaffGame {
     this._madeAnyMistake = false;
     this._continueBound = false;
     this._usedHintThisRound = false;
+    this._correctStreak = 0;
 
     this._stats = {
       checksTotal: 0,
@@ -289,24 +290,18 @@ export class BaseStaffGame {
         });
       } catch (_) {}
 
-      const variants = [
-        { arp: ["C6", "E6", "G6", "B6", "C7"], hit: ["C6", "G6", "C7", "E7"] },
-        { arp: ["D6", "F#6", "A6", "C7", "D7"], hit: ["D6", "A6", "D7", "F#7"] },
-        { arp: ["E6", "G6", "B6", "D7", "E7"], hit: ["E6", "B6", "E7", "G7"] },
-        { arp: ["G5", "B5", "D6", "F#6", "G6"], hit: ["G5", "D6", "G6", "B6"] },
-        { arp: ["A5", "C6", "E6", "G6", "A6"], hit: ["A5", "E6", "A6", "C7"] },
-        { arp: ["F6", "A6", "C7", "E7", "F7"], hit: ["F6", "C7", "F7", "A7"] },
-        { arp: ["C6", "D6", "E6", "G6", "A6"], hit: ["C6", "E6", "A6", "C7"] },
-        { arp: ["B5", "D6", "F#6", "A6", "B6"], hit: ["B5", "F#6", "B6", "D7"] },
-        { arp: ["E6", "F#6", "A6", "B6", "D7"], hit: ["E6", "A6", "D7", "F#7"] },
-        { arp: ["C6", "G6", "A6", "B6", "E7"], hit: ["C6", "G6", "E7", "A7"] },
-      ];
+      const streakLevel = Math.max(1, Math.min(24, Number(this._correctStreak) || 1));
+      const semitoneShift = streakLevel - 1;
+      const toNote = (midi) => Tone.Frequency(midi, "midi").toNote();
 
-      const picked = variants[Math.floor(Math.random() * variants.length)];
-      picked.arp.forEach((n, i) => {
+      // Start slightly higher (D4 root) and climb one semitone per streak level up to 24.
+      const arp = [62, 66, 69, 73, 74].map((m) => toNote(m + semitoneShift));
+      const hit = [62, 69, 74, 78].map((m) => toNote(m + semitoneShift));
+
+      arp.forEach((n, i) => {
         this._uiSfxSynth.triggerAttackRelease(n, 0.06, now + i * 0.045, 0.45);
       });
-      picked.hit.forEach((n) => {
+      hit.forEach((n) => {
         this._uiSfxSynth.triggerAttackRelease(n, 0.12, now + 0.26, 0.30);
       });
 
@@ -601,6 +596,7 @@ export class BaseStaffGame {
   }
 
   _finishRoundAsTimedOut() {
+    this._correctStreak = 0;
     this._madeAnyMistake = true;
     this._madeMistakeThisRound = true;
     this._stats.checksTotal += 1;
@@ -1175,6 +1171,16 @@ export class BaseStaffGame {
 
     const earned = firstTry ? base + bonus : base;
     const bonusEarned = firstTry ? bonus : 0;
+    if (firstTry) {
+      this._correctStreak += 1;
+      if (this._correctStreak <= 1) {
+        // eslint-disable-next-line no-console
+        console.log("[BaseStaffGame] Correct answer. No streak yet.");
+      } else {
+        // eslint-disable-next-line no-console
+        console.log(`[BaseStaffGame] Streak ${this._correctStreak}x`);
+      }
+    }
 
     this.points += earned;
     this.$points.text(String(this.points));
@@ -1183,8 +1189,13 @@ export class BaseStaffGame {
     return { earned, firstTry, bonusEarned };
   }
 
+  getCorrectStreak() {
+    return Math.max(0, Number(this._correctStreak) || 0);
+  }
+
   _resetProgress() {
     this._syncPracticeUi();
+    this._correctStreak = 0;
     this._madeAnyMistake = false;
     this.$progressBar.data("progress", 0);
     this.$progressBar.css({ width: "0%" });
@@ -1216,6 +1227,7 @@ export class BaseStaffGame {
   }
 
   _failAnimation($shakeTarget) {
+    this._correctStreak = 0;
     this._playFailSfx();
 
     const $target = $shakeTarget || this.$checkWrap;

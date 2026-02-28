@@ -1,7 +1,9 @@
 @extends('layouts.app', ['title' => 'Music Theory Challenges', 'noMenu' => true])
 
 @push('header')
+<style>
 
+</style>
 @endpush
 
 @section('content')
@@ -48,4 +50,13 @@
 @endsection
 
 @push('scripts')
+<script>
+$('.mode-menu button').on('click', function () {
+  const $btns = $(this).siblings().addBack();
+  $btns.removeClass('btn-secondary').addClass('btn-outline-secondary')
+       .each((_, b) => $($(b).data('target')).hide());
+  $(this).removeClass('btn-outline-secondary').addClass('btn-secondary');
+  $($(this).data('target')).show();
+});
+</script>
 @endpush

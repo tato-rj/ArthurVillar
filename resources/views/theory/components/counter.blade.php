@@ -12,9 +12,12 @@
 	<div id="score">
 		<div class="d-center"> 
 			@fa(['icon' => 'bolt', 'mr' => 1, 'fa_color' => 'primary'])
-			<div class="position-relative h4 m-0">
-				<span id="points" class="fw-bold text-primary">0</span>
-				<span id="increment" class="position-absolute right-0 fw-bold text-light">+1</span>
+			<div class="d-flex align-items-baseline">
+				<div class="position-relative h4 m-0">
+					<span id="points" class="fw-bold text-primary">0</span>
+					<span id="increment" class="position-absolute right-0 fw-bold text-light opacity-4">+1</span>
+				</div>
+				<span class="text-primary fw-bold" style="font-size: 75%; margin-left: 0.15rem;">XP</span>
 			</div>
 		</div>
 	</div>
