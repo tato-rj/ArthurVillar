@@ -2,7 +2,7 @@
   <div class="d-flex flex-column">
     <div class="position-relative">
       <div id="instructions" class="fw-bold position-absolute top-0 left-0 w-100 h-100 d-center">
-        <h6 class="m-0 text-red">Tap on the staff to add a note 👆</h6>
+        <h6 class="m-0 text-red">{{$instructions ?? 'Tap on the staff to add a note'}} 👆</h6>
       </div>
       <div id="check" class="btn-floating w-100 invisible">
         <button class="btn btn-primary w-100">Check my answer</button>
