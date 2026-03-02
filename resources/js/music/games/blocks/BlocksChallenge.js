@@ -261,7 +261,11 @@ export class BlocksChallenge {
       .on(`click.${this.ns}Cell`, "td.block", (e) => {
         const $cell = $(e.currentTarget);
         const $input = $cell.find('input[name="note"]').first();
-        if (!$input.length || $input.prop("disabled")) return;
+        if (!$input.length) return;
+        if ($input.prop("disabled")) {
+          this._clearActiveBlockInput();
+          return;
+        }
         this._setActiveBlockInput($input);
         $input.trigger("focus");
         this._showMusicKeyboard();

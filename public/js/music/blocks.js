@@ -270,7 +270,11 @@ var BlocksChallenge = /*#__PURE__*/function () {
       this.$table.off("click.".concat(this.ns, "Cell"), "td.block").on("click.".concat(this.ns, "Cell"), "td.block", function (e) {
         var $cell = $(e.currentTarget);
         var $input = $cell.find('input[name="note"]').first();
-        if (!$input.length || $input.prop("disabled")) return;
+        if (!$input.length) return;
+        if ($input.prop("disabled")) {
+          _this3._clearActiveBlockInput();
+          return;
+        }
         _this3._setActiveBlockInput($input);
         $input.trigger("focus");
         _this3._showMusicKeyboard();
