@@ -14,6 +14,7 @@
 <style>
 .table {
   width: 380px;
+  max-width: 100%;
 }
 td {
   height: 94.75px;
@@ -74,7 +75,7 @@ td {
   border: none;
   text-align: center;
   background: transparent;
-  color: black;
+  color: black !important;
   font-weight: bold;
   font-size: 2rem;
   z-index: 2;

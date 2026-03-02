@@ -1,2 +1,3465 @@
-/*! For license information please see intervals.js.LICENSE.txt */
-(()=>{"use strict";var t=["music-font__sharp","music-font__doublesharp","music-font__flat","music-font__doubleflat","music-font__natural"],e={treble:{"--clef-width":"140px","--clef-height":"calc(var(--staff-line-gap) * 6)","--clef-top":"54px","--clef-left-nudge":"28px"},bass:{"--clef-width":"76px","--clef-height":"calc(var(--staff-line-gap) * 6)","--clef-top":"35px","--clef-left-nudge":"-12px"},alto:{"--clef-width":"88px","--clef-height":"calc(var(--staff-line-gap) * 6)","--clef-top":"47.5px","--clef-left-nudge":"-10px"},tenor:{"--clef-width":"88px","--clef-height":"calc(var(--staff-line-gap) * 6)","--clef-top":"22.5px","--clef-left-nudge":"-10px"}};function i(t,e,i){var n=t.getPropertyValue(e),a=parseFloat(n);return Number.isFinite(a)?a:i}function n(t){var e=t.originalEvent||t;return e.touches&&e.touches.length?{x:e.touches[0].pageX,y:e.touches[0].pageY}:e.changedTouches&&e.changedTouches.length?{x:e.changedTouches[0].pageX,y:e.changedTouches[0].pageY}:{x:e.pageX,y:e.pageY}}function a(t){var e=t.originalEvent||t;return e&&null!=e.pointerId?e.pointerId:null}function r(t){return Array.isArray(t)&&t.length?t[Math.floor(Math.random()*t.length)]:null}function s(t){if(null==t)return null;var e=String(t||"treble").toLowerCase();return"bass"===e?"bass":"alto"===e?"alto":"tenor"===e?"tenor":"treble"}function o(t){return t.hasClass("music-font__sharp")?"sharp":t.hasClass("music-font__flat")?"flat":t.hasClass("music-font__natural")?"natural":null}function l(t,e){return"sharp"===e?"music-font__doublesharp"===t||"music-font__sharp"===t?"music-font__doublesharp":"music-font__sharp":"flat"===e?"music-font__doubleflat"===t||"music-font__flat"===t?"music-font__doubleflat":"music-font__flat":"natural"===e?"music-font__natural":t||null}function c(t,e){return"sharp"===e&&"music-font__doublesharp"===t||"flat"===e&&"music-font__doubleflat"===t}function u(t,e,i){var n,a=function(t,e){var i,n;switch(t.getClef()){case"bass":i=36,n=4;break;case"alto":i=48,n=3;break;case"tenor":i=48,n=1;break;default:i=60,n=2}var a=n+e,r=Math.floor(a/7),s=(a%7+7)%7,o=Math.floor(i/12)-1;return{letter:["C","D","E","F","G","A","B"][s],octave:o+r}}(t,e),r=a.letter,s=a.octave,o=(n=i)?n.includes("music-font__doublesharp")?"##":n.includes("music-font__sharp")?"#":n.includes("music-font__doubleflat")?"bb":n.includes("music-font__flat")?"b":"":"";return"".concat(r).concat(o).concat(s)}function f(t){return f="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(t){return typeof t}:function(t){return t&&"function"==typeof Symbol&&t.constructor===Symbol&&t!==Symbol.prototype?"symbol":typeof t},f(t)}function h(){var t,e,i="function"==typeof Symbol?Symbol:{},n=i.iterator||"@@iterator",a=i.toStringTag||"@@toStringTag";function r(i,n,a,r){var l=n&&n.prototype instanceof o?n:o,c=Object.create(l.prototype);return d(c,"_invoke",function(i,n,a){var r,o,l,c=0,u=a||[],f=!1,h={p:0,n:0,v:t,a:d,f:d.bind(t,4),d:function(e,i){return r=e,o=0,l=t,h.n=i,s}};function d(i,n){for(o=i,l=n,e=0;!f&&c&&!a&&e<u.length;e++){var a,r=u[e],d=h.p,p=r[2];i>3?(a=p===n)&&(l=r[(o=r[4])?5:(o=3,3)],r[4]=r[5]=t):r[0]<=d&&((a=i<2&&d<r[1])?(o=0,h.v=n,h.n=r[1]):d<p&&(a=i<3||r[0]>n||n>p)&&(r[4]=i,r[5]=n,h.n=p,o=0))}if(a||i>1)return s;throw f=!0,n}return function(a,u,p){if(c>1)throw TypeError("Generator is already running");for(f&&1===u&&d(u,p),o=u,l=p;(e=o<2?t:l)||!f;){r||(o?o<3?(o>1&&(h.n=-1),d(o,l)):h.n=l:h.v=l);try{if(c=2,r){if(o||(a="next"),e=r[a]){if(!(e=e.call(r,l)))throw TypeError("iterator result is not an object");if(!e.done)return e;l=e.value,o<2&&(o=0)}else 1===o&&(e=r.return)&&e.call(r),o<2&&(l=TypeError("The iterator does not provide a '"+a+"' method"),o=1);r=t}else if((e=(f=h.n<0)?l:i.call(n,h))!==s)break}catch(e){r=t,o=1,l=e}finally{c=1}}return{value:e,done:f}}}(i,a,r),!0),c}var s={};function o(){}function l(){}function c(){}e=Object.getPrototypeOf;var u=[][n]?e(e([][n]())):(d(e={},n,function(){return this}),e),f=c.prototype=o.prototype=Object.create(u);function p(t){return Object.setPrototypeOf?Object.setPrototypeOf(t,c):(t.__proto__=c,d(t,a,"GeneratorFunction")),t.prototype=Object.create(f),t}return l.prototype=c,d(f,"constructor",c),d(c,"constructor",l),l.displayName="GeneratorFunction",d(c,a,"GeneratorFunction"),d(f),d(f,a,"Generator"),d(f,n,function(){return this}),d(f,"toString",function(){return"[object Generator]"}),(h=function(){return{w:r,m:p}})()}function d(t,e,i,n){var a=Object.defineProperty;try{a({},"",{})}catch(t){a=0}d=function(t,e,i,n){function r(e,i){d(t,e,function(t){return this._invoke(e,i,t)})}e?a?a(t,e,{value:i,enumerable:!n,configurable:!n,writable:!n}):t[e]=i:(r("next",0),r("throw",1),r("return",2))},d(t,e,i,n)}function p(t,e,i,n,a,r,s){try{var o=t[r](s),l=o.value}catch(t){return void i(t)}o.done?e(l):Promise.resolve(l).then(n,a)}function v(t){return function(){var e=this,i=arguments;return new Promise(function(n,a){var r=t.apply(e,i);function s(t){p(r,n,a,s,o,"next",t)}function o(t){p(r,n,a,s,o,"throw",t)}s(void 0)})}}function _(t,e){for(var i=0;i<e.length;i++){var n=e[i];n.enumerable=n.enumerable||!1,n.configurable=!0,"value"in n&&(n.writable=!0),Object.defineProperty(t,m(n.key),n)}}function m(t){var e=function(t,e){if("object"!=f(t)||!t)return t;var i=t[Symbol.toPrimitive];if(void 0!==i){var n=i.call(t,e||"default");if("object"!=f(n))return n;throw new TypeError("@@toPrimitive must return a primitive value.")}return("string"===e?String:Number)(t)}(t,"string");return"symbol"==f(e)?e:e+""}var g=function(){return r=function t(e,n){!function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,t),this.$el=e;var a=getComputedStyle(e[0]);this.opts=$.extend({paddingX:i(a,"--staff-padding-x",20),lineGap:i(a,"--staff-line-gap",16),lineThickness:i(a,"--staff-line-thickness",3),noteOverlapGap:i(a,"--note-overlap-gap",-6),noteIdPrefix:"n",clefUrls:null,clef:null,clefUrl:null,autoClef:!0,maxLedgerAbove:2,maxLedgerBelow:2,accidentalTopPx:20,accidentalGapPx:16,getMaxUserNotes:function(){return 1/0},sound:!0,accSnapMaxPx:1.2*i(a,"--staff-line-gap",25)},n||{}),this.opts.clef=null==this.opts.clef?null:s(this.opts.clef),this.opts.clef&&!this.opts.clefUrl&&(this.opts.clefUrl=this._clefUrlFor(this.opts.clef)),this.opts.stepSize=this.opts.lineGap/2,this.$el.css("position","relative"),this._idCounter=1,this._drag={isDragging:!1,movedPx:0,startPageY:0,noteId:null,thresholdPx:5,swallowClick:!1,startStep:null,lastTargetStep:null,lastSoundStep:null,dropOnOccupied:!1,outOfRange:!1},this._previewState={active:!1,step:null},this._preview=null,this._previewStep=null,this._audioReady=!1,this._synth=null,this._fxNoise=null,this._accDragSound={noteId:null,step:null,toolType:null,prospectiveCls:null},this._accSnap={noteId:null,dist:null,localY:null},this._suppressNextClick={noteId:null,until:0},this._applyClefCssVars(this.opts.clef),this._computeLayout(),this._drawLines(),this.opts.autoClef&&!this.opts.clef?this.setClef("treble"):this.opts.clef&&(this._applyClefCssVars(this.opts.clef),this.relayout())},u=[{key:"_clefUrlFor",value:function(t){var e=s(t);if(!e)return null;var i=this.opts.clefUrls||{};return i[e]||i.treble||null}},{key:"setSoundEnabled",value:function(t){if(this.opts.sound=!!t,!this.opts.sound&&window.Tone){try{Tone.Transport&&Tone.Transport.stop()}catch(t){}try{Tone.context&&Tone.context.suspend&&Tone.context.suspend()}catch(t){}try{this._synth&&this._synth.releaseAll&&this._synth.releaseAll()}catch(t){}try{this._fxNoise&&this._fxNoise.dispose&&this._fxNoise.dispose()}catch(t){}this._fxNoise=null,this._audioReady=!1}}},{key:"isSoundEnabled",value:function(){return!!this.opts.sound}},{key:"_soundEnabled",value:function(){return!!this.opts.sound}},{key:"_applyClefCssVars",value:function(t){var i=s(t),n=e[i]||e.treble,a=this.$el[0];Object.keys(n).forEach(function(t){return a.style.setProperty(t,n[t])})}},{key:"setClef",value:function(t){this.opts.clef=s(t),this.opts.clefUrl=this._clefUrlFor(this.opts.clef),this._applyClefCssVars(this.opts.clef),this.relayout()}},{key:"getClef",value:function(){return this.opts.clef||"treble"}},{key:"_maxUserNotes",value:function(){var t=this.opts.getMaxUserNotes?this.opts.getMaxUserNotes():1/0;return Number.isFinite(t)?t:1/0}},{key:"_userNoteCount",value:function(){return this.$el.find(".note").not(".fixed").not(".preview").not(".hint").length}},{key:"_computeLayout",value:function(){var t=this.$el.height(),e=4*this.opts.lineGap,i=Math.round((t-e)/2);this.opts.bottomLineY=i+e}},{key:"_drawLines",value:function(){this.$el.find(".staff-line, .staff-clef").remove();for(var t=0;t<5;t++){var e=this.opts.bottomLineY-(4-t)*this.opts.lineGap;$('<div class="staff-line"></div>').css({top:"".concat(e,"px")}).appendTo(this.$el)}this._drawClef()}},{key:"_drawClef",value:function(){if(this.opts.clefUrl){var t=s(this.opts.clef);$('<img alt="">').addClass("staff-clef").addClass("".concat(t,"-clef")).attr("src",this.opts.clefUrl).appendTo(this.$el)}}},{key:"relayout",value:function(){this._computeLayout(),this._drawLines(),this._resolveNoteOverlaps(),this._repositionAllAccidentals()}},{key:"centerX",value:function(){return this.$el.width()/2}},{key:"stepToY",value:function(t){return this.opts.bottomLineY-t*this.opts.stepSize}},{key:"yToStep",value:function(t){return Math.round((this.opts.bottomLineY-t)/this.opts.stepSize)}},{key:"_pageYToLocalY",value:function(t){return t-this.$el.offset().top}},{key:"minStepAllowed",value:function(){return 0-2*this.opts.maxLedgerBelow}},{key:"maxStepAllowed",value:function(){return 8+2*this.opts.maxLedgerAbove}},{key:"_isStepAllowed",value:function(t){return t>=this.minStepAllowed()&&t<=this.maxStepAllowed()}},{key:"_ledgerStepsFor",value:function(t){var e=[],i=8+2*this.opts.maxLedgerAbove,n=0-2*this.opts.maxLedgerBelow;if(t>8)for(var a=Math.min(t,i),r=10;r<=a;r+=2)e.push(r);else if(t<0)for(var s=Math.max(t,n),o=-2;o>=s;o-=2)e.push(o);return e}},{key:"_renderLedgers",value:function(t,e,i){this.$el.find('.ledger[data-for-note-id="'.concat(t,'"]')).remove();for(var n=this.$el.find('.note[data-note-id="'.concat(t,'"]')).hasClass("dragging"),a=this._ledgerStepsFor(i),r=0;r<a.length;r++){var s=$('<div class="ledger"></div>').attr("data-for-note-id",t).css({left:"".concat(e,"px"),top:"".concat(this.stepToY(a[r]),"px")});n&&s.addClass("dragging"),s.appendTo(this.$el)}}},{key:"_previewLedgersClear",value:function(){this.$el.find(".ledger.preview").remove()}},{key:"_previewLedgersSet",value:function(t){this._previewLedgersClear();for(var e=this.centerX(),i=this._ledgerStepsFor(t),n=0;n<i.length;n++)$('<div class="ledger preview"></div>').css({left:"".concat(e,"px"),top:"".concat(this.stepToY(i[n]),"px")}).appendTo(this.$el)}},{key:"_stepOfNoteEl",value:function(t){var e=t.style.top||window.getComputedStyle(t).top;return this.yToStep(parseFloat(e))}},{key:"_isStepOccupied",value:function(t,e){for(var i=this.$el.find(".note").toArray(),n=0;n<i.length;n++){var a=i[n];if(a){var r=a.getAttribute("data-note-id");if((!e||r!==e)&&this._stepOfNoteEl(a)===t)return!0}}return!1}},{key:"_getNoteIdAtStep",value:function(t,e){for(var i=this.$el.find(".note").toArray(),n=0;n<i.length;n++){var a=i[n];if(a){var r=a.getAttribute("data-note-id");if((!e||r!==e)&&this._stepOfNoteEl(a)===t)return r}}return null}},{key:"_isCenteredX",value:function(t){var e=this.$el.find('.note[data-note-id="'.concat(t,'"]'));return!e.length||Math.abs(parseFloat(e.css("left"))-this.centerX())<=.5}},{key:"isNoteFixed",value:function(t){var e=this.$el.find('.note[data-note-id="'.concat(t,'"]'));return!!e.length&&e.hasClass("fixed")}},{key:"_nearestEditableNoteByLocalY",value:function(t){for(var e=Number.isFinite(this.opts.accSnapMaxPx)?this.opts.accSnapMaxPx:1.2*this.opts.lineGap,i=null,n=this.$el.find(".note").not(".preview").toArray(),a=0;a<n.length;a++){var r=n[a],s=r.getAttribute("data-note-id");if(s&&!$(r).hasClass("fixed")){var o=parseFloat(r.style.top||window.getComputedStyle(r).top),l=Math.abs(o-t);(null==i||l<i.dist)&&(i={noteId:s,dist:l})}}return!i||i.dist>e?null:i}},{key:"_removeAccidentalForNote",value:function(t){this.$el.find('.accidental[data-for-note-id="'.concat(t,'"]')).remove()}},{key:"_accidentalAnchorXForNote",value:function(t){var e=this.centerX();return Number.isFinite(t)&&t>e+.5?e:t}},{key:"_positionAccidentalForNote",value:function(t){var e=this.$el.find('.note[data-note-id="'.concat(t,'"]')),i=this.$el.find('.accidental[data-for-note-id="'.concat(t,'"]'));if(e.length&&i.length){var n=parseFloat(e.css("left")),a=parseFloat(e.css("top")),r=this._accidentalAnchorXForNote(n);i.css({left:"".concat(r-this.opts.accidentalGapPx,"px"),top:"".concat(a-this.opts.accidentalTopPx,"px")})}}},{key:"_rectsOverlap",value:function(t,e){return!(t.right<=e.left||t.left>=e.right||t.bottom<=e.top||t.top>=e.bottom)}},{key:"_repositionAllAccidentals",value:function(){var t=this;this.$el.find(".accidental").each(function(e,i){var n=i.getAttribute("data-for-note-id");n&&t._positionAccidentalForNote(n)});for(var e=this.$el.find(".note").not(".preview").toArray(),i={},n=0;n<e.length;n++){var a=e[n],r=a.getAttribute("data-note-id");r&&(i[this._stepOfNoteEl(a)]=r)}for(var s=Object.keys(i).map(function(t){return parseInt(t,10)}).sort(function(t,e){return t-e}),o=0;o<s.length;o++){var l=s[o],c=l+1,u=i[l],f=i[c];if(u&&f){var h=this.$el.find('.accidental[data-for-note-id="'.concat(u,'"]')),d=this.$el.find('.accidental[data-for-note-id="'.concat(f,'"]'));if(h.length&&d.length){var p=h[0].getBoundingClientRect(),v=d[0].getBoundingClientRect();if(this._rectsOverlap(p,v)){var _=Math.max(0,v.right-p.left),m=parseFloat(d.css("left"));Number.isFinite(m)&&d.css("left","".concat(m-(_+-6),"px"))}}}}}},{key:"_getAttachedAccidentalClass",value:function(e){var i=this.$el.find('.accidental[data-for-note-id="'.concat(e,'"]'));if(!i.length)return null;for(var n=0;n<t.length;n++){var a=t[n];if(i.hasClass(a))return a}return null}},{key:"attachAccidentalToNote",value:function(t,e){if(t&&!this.isNoteFixed(t)){this._removeAccidentalForNote(t);var i=$('<div class="accidental music-font"></div>').addClass(e).attr("data-for-note-id",t);this.$el.append(i),this._repositionAllAccidentals()}}},{key:"_hintIgnoredAccidental",value:function(t){var e=this.$el.find('.note[data-note-id="'.concat(t,'"]'));e.length&&(e.removeClass("animate__animated animate__headShake"),e[0].offsetWidth,e.addClass("animate__animated animate__headShake"),e.off("animationend._hint webkitAnimationEnd._hint oAnimationEnd._hint MSAnimationEnd._hint").one("animationend._hint webkitAnimationEnd._hint oAnimationEnd._hint MSAnimationEnd._hint",function(){e.removeClass("animate__animated animate__headShake")}))}},{key:"applyAccidentalToolToNote",value:function(t,e){if(!t||this.isNoteFixed(t))return!1;var i=this._getAttachedAccidentalClass(t);if(c(i,e))return this._hintIgnoredAccidental(t),!1;var n=l(i,e);return("natural"!==e||"music-font__natural"!==i)&&n!==i&&(this.attachAccidentalToNote(t,n),this._emitNoteState(t,"user"),!0)}},{key:"_ensureAudio",value:(p=v(h().m(function t(){return h().w(function(t){for(;;)switch(t.n){case 0:if(this._soundEnabled()){t.n=1;break}return t.a(2);case 1:if(!this._audioReady){t.n=2;break}return t.a(2);case 2:if(window.Tone){t.n=3;break}return t.a(2);case 3:return t.n=4,Tone.start();case 4:this._synth=new Tone.Synth({oscillator:{type:"sine"},envelope:{attack:.01,decay:.08,sustain:.6,release:.12}}).toDestination(),this._fxNoise=new Tone.NoiseSynth({noise:{type:"white"},envelope:{attack:.001,decay:.03,sustain:0,release:.02}}).toDestination(),this._audioReady=!0;case 5:return t.a(2)}},t,this)})),function(){return p.apply(this,arguments)})},{key:"_playAccidentalGrabSfx",value:function(){var t=this;this._soundEnabled()&&window.Tone&&this._ensureAudio().then(function(){t._fxNoise&&t._fxNoise.triggerAttackRelease(.03,Tone.now(),.16)})}},{key:"_stepToMidi",value:function(t){var e,i;switch(this.opts.clef){case"bass":e=36,i=4;break;case"alto":e=48,i=3;break;case"tenor":e=48,i=1;break;default:e=60,i=2}var n=i+t,a=Math.floor(n/7);return e+[0,2,4,5,7,9,11][(n%7+7)%7]+12*a}},{key:"_accidentalClassToOffset",value:function(t){return t?t.includes("music-font__doublesharp")?2:t.includes("music-font__sharp")?1:t.includes("music-font__doubleflat")?-2:t.includes("music-font__flat")?-1:0:0}},{key:"_emitNoteState",value:function(t,e){var i=this.$el.find('.note[data-note-id="'.concat(t,'"]'));if(i.length){var n=this.yToStep(parseFloat(i.css("top"))),a=this._getAttachedAccidentalClass(t),r=this._accidentalClassToOffset(a),s=this._stepToMidi(n)+r;this.$el.trigger("staff:noteState",{noteId:t,step:n,accidentalClass:a,midi:s,source:e||"unknown"})}}},{key:"_playStep",value:(d=v(h().m(function t(e,i){var n;return h().w(function(t){for(;;)switch(t.n){case 0:if(this._soundEnabled()&&Number.isFinite(e)){t.n=1;break}return t.a(2);case 1:return t.n=2,this._ensureAudio();case 2:if(this._synth){t.n=3;break}return t.a(2);case 3:n=this._stepToMidi(e)+(i||0),this._synth.triggerRelease&&this._synth.triggerRelease(),this._synth.triggerAttackRelease(Tone.Frequency(n,"midi"),.5);case 4:return t.a(2)}},t,this)})),function(t,e){return d.apply(this,arguments)})},{key:"setNoteFixed",value:function(t,e){var i=!!e;this.$el.find('.note[data-note-id="'.concat(t,'"]')).toggleClass("fixed",i),this.$el.find('.ledger[data-for-note-id="'.concat(t,'"]')).toggleClass("fixed",i),this.$el.find('.accidental[data-for-note-id="'.concat(t,'"]')).toggleClass("fixed",i)}},{key:"addFixedNote",value:function(t){var e=t||{},i=this.addNote({step:e.step,y:e.y,x:e.x,id:e.id,ledger:e.ledger,className:e.className||""});return i?(e.accidentalClass&&this.attachAccidentalToNote(i,e.accidentalClass),this.setNoteFixed(i,!0),i):null}},{key:"clearNotes",value:function(){this.$el.find(".note, .ledger, .accidental").remove(),this._previewClear()}},{key:"removeNote",value:function(t){this.$el.find('.note[data-note-id="'.concat(t,'"]')).remove(),this.$el.find('.ledger[data-for-note-id="'.concat(t,'"]')).remove(),this._removeAccidentalForNote(t),this._resolveNoteOverlaps()}},{key:"addNote",value:function(t){var e=t||{},i=Number.isFinite(e.step)?Number(e.step):null;if(Number.isFinite(i)&&!this._isStepAllowed(i))return null;if(Number.isFinite(i)&&!e.allowOccupied&&this._isStepOccupied(i,null))return null;var n=Number.isFinite(e.y)?Number(e.y):Number.isFinite(i)?this.stepToY(i):null;if(!Number.isFinite(n))throw new Error("addNote: provide either y or step");var a=Number.isFinite(e.x)?Number(e.x):this.centerX(),r=e.id||"".concat(this.opts.noteIdPrefix).concat(this._idCounter++),s=$('<div class="note"><span class="lettername"></span></div>').attr("data-note-id",r).css({left:"".concat(a,"px"),top:"".concat(n,"px")});return e.className&&s.addClass(e.className),this.$el.append(s),(!0===e.ledger||!1!==e.ledger&&Number.isFinite(i))&&this._renderLedgers(r,a,i),e.skipResolve?this._repositionAllAccidentals():this._resolveNoteOverlaps(),r}},{key:"moveNote",value:function(t,e){var i=e||{},n=this.$el.find('.note[data-note-id="'.concat(t,'"]'));if(n.length){var a=Number.isFinite(i.x)?Number(i.x):null,r=Number.isFinite(i.step)?Number(i.step):null;if(!Number.isFinite(r)||this._isStepAllowed(r)){var s=Number.isFinite(i.y)?Number(i.y):Number.isFinite(r)?this.stepToY(r):null;if(Number.isFinite(a)&&n.css("left","".concat(a,"px")),Number.isFinite(s)&&n.css("top","".concat(s,"px")),Number.isFinite(r)){var o=Number.isFinite(a)?a:parseFloat(n.css("left"));this._renderLedgers(t,o,r)}this._repositionAllAccidentals()}}}},{key:"_previewSet",value:function(t){this._preview||(this._preview=$('<div class="note preview"></div>').appendTo(this.$el)),this._preview.css({left:"".concat(this.centerX(),"px"),top:"".concat(this.stepToY(t),"px")}),this._previewStep=t,this._previewLedgersSet(t)}},{key:"_previewClear",value:function(){this._preview&&(this._preview.remove(),this._preview=null,this._previewStep=null),this._previewLedgersClear()}},{key:"_resolveNoteOverlaps",value:function(){var t=this,e=this.opts.noteOverlapGap;function i(){return t.$el.find(".note").toArray().map(function(e){var i=$(e);return{el:e,$el:i,step:t.yToStep(parseFloat(i.css("top")))}})}function n(t){for(var e={},i=0;i<t.length;i++){var n=t[i].step;(e[n]||(e[n]=[])).push(t[i])}return e}function a(e){for(var i=t.centerX(),n=0;n<e.length;n++){var a=e[n].$el.attr("data-note-id");t.moveNote(a,{x:i,step:e[n].step}),e[n]._shifted=!1}}function r(i,n){var a=i.el.getBoundingClientRect(),r=n[i.step-1];if(!r||!r.length)return!1;var s=r[0].el.getBoundingClientRect();if(!t._rectsOverlap(a,s))return!1;var o=s.right-a.left+e,l=i.$el.attr("data-note-id");return t.moveNote(l,{x:parseFloat(i.$el.css("left"))+o,step:i.step}),!0}for(var s=0;s<20;s++){var o=i();if(!o.length)return;a(o);for(var l=n(o),c=Object.keys(l).map(function(t){return parseInt(t,10)}).sort(function(t,e){return t-e}),u=!1,f=0;f<c.length;f++){var h=c[f];if(l[h]&&l[h+1]){var d=l[h][0],p=l[h+1][0];d._shifted||(r(p,l)&&(u=!0),p._shifted=!0)}}if(!u)return void t._repositionAllAccidentals()}t._repositionAllAccidentals()}},{key:"_setDraggingVisual",value:function(t,e){var i=this.$el.find('.note[data-note-id="'.concat(t,'"]')),n=this.$el.find('.ledger[data-for-note-id="'.concat(t,'"]')),a=this.$el.find('.accidental[data-for-note-id="'.concat(t,'"]'));i.toggleClass("dragging",!!e),n.toggleClass("dragging",!!e),a.toggleClass("dragging",!!e)}},{key:"_applyDraggedAdjacencyX",value:function(t){var e=this.$el.find('.note[data-note-id="'.concat(t,'"]'));if(e.length){var i=this.yToStep(parseFloat(e.css("top"))),n=this.centerX(),a=this.opts.noteOverlapGap;this.moveNote(t,{x:n});var r=this._getNoteIdAtStep(i-1,t);if(r&&this._isCenteredX(r)){var s=this.$el.find('.note[data-note-id="'.concat(r,'"]'));if(s.length){var o=e[0].getBoundingClientRect(),l=s[0].getBoundingClientRect();if(this._rectsOverlap(o,l)){var c=l.right-o.left+a;this.moveNote(t,{x:n+c})}}}}}},{key:"enableGhostClickCreate",value:function(){var t=this;this.$el.off(".previewCreate"),$(window).off("blur.previewCreate"),this.$el.on("pointerdown.previewCreate",function(e){if(!($(e.target).closest(".note, .accidental").length||t._userNoteCount()>=t._maxUserNotes())){e.preventDefault();var i=n(e).y,r=t.yToStep(t._pageYToLocalY(i));if(t._isStepAllowed(r)){t._previewState.active=!0,t._previewState.step=r,t._previewSet(r),t._soundEnabled()&&t._ensureAudio();var s=a(e);this.setPointerCapture&&null!=s&&this.setPointerCapture(s),t.$el.off("pointermove.previewCreate").on("pointermove.previewCreate",function(e){if(t._previewState.active){if(t._userNoteCount()>=t._maxUserNotes())return t._previewState.active=!1,t._previewClear(),void t.$el.off("pointermove.previewCreate pointerup.previewCreate pointercancel.previewCreate");var i=n(e).y,a=t.yToStep(t._pageYToLocalY(i));t._isStepAllowed(a)&&(t._previewState.step=a,t._previewSet(a))}}),t.$el.off("pointerup.previewCreate pointercancel.previewCreate").on("pointerup.previewCreate pointercancel.previewCreate",function(){if(t._previewState.active){t._previewState.active=!1;var e=t._previewState.step;if(t._previewClear(),t.$el.off("pointermove.previewCreate pointerup.previewCreate pointercancel.previewCreate"),t._isStepAllowed(e)&&!(t._isStepOccupied(e,null)||t._userNoteCount()>=t._maxUserNotes())){var i=t.addNote({step:e});i&&(t.$el.trigger("staff:userNoteAdded",{noteId:i,step:e}),t._emitNoteState(i,"user"),t._suppressNextClick.noteId=i,t._suppressNextClick.until=Date.now()+700,t._playStep(e,0))}}})}}}),$(window).on("blur.previewCreate",function(){t._previewState.active&&(t._previewState.active=!1,t._previewClear(),t.$el.off("pointermove.previewCreate pointerup.previewCreate pointercancel.previewCreate"))})}},{key:"enableNoteDragAndClickDelete",value:function(){var t=this,e=this._drag;function i(i,r){if(r.preventDefault(),!$(i).hasClass("fixed")){r.stopImmediatePropagation?r.stopImmediatePropagation():r.stopPropagation();var s=a(r),o=$(i);e.isDragging=!1,e.movedPx=0,e.startPageY=n(r).y,e.noteId=o.attr("data-note-id"),e.startStep=t.yToStep(parseFloat(o.css("top"))),e.lastTargetStep=e.startStep,e.lastSoundStep=e.startStep,e.dropOnOccupied=!1,e.outOfRange=!1,t._setDraggingVisual(e.noteId,!0),t._soundEnabled()&&t._ensureAudio();var l=r.currentTarget&&r.currentTarget.setPointerCapture?r.currentTarget:null;l&&null!=s&&l.setPointerCapture(s),t.$el.off("pointermove.noteDrag").on("pointermove.noteDrag",function(i){var r=a(i);if(null==s||null==r||r===s){var o=n(i).y,l=o-e.startPageY;if(e.movedPx=Math.max(e.movedPx,Math.abs(l)),!e.isDragging&&e.movedPx>=e.thresholdPx&&(e.isDragging=!0),e.isDragging){var c=t.yToStep(t._pageYToLocalY(o));if(t._isStepAllowed(c)){if(e.outOfRange=!1,e.lastTargetStep=c,t.moveNote(e.noteId,{step:c}),e.dropOnOccupied=t._isStepOccupied(c,e.noteId),t._applyDraggedAdjacencyX(e.noteId),t._soundEnabled()&&c!==e.lastSoundStep){e.lastSoundStep=c;var u=t._getAttachedAccidentalClass(e.noteId),f=t._accidentalClassToOffset(u);t._playStep(c,f)}}else e.outOfRange=!0}}}),t.$el.off("pointerup.noteDrag pointercancel.noteDrag").on("pointerup.noteDrag pointercancel.noteDrag",function(i){var n=a(i);null!=s&&null!=n&&n!==s||(t.$el.off("pointermove.noteDrag pointerup.noteDrag pointercancel.noteDrag"),e.swallowClick=e.isDragging,t._setDraggingVisual(e.noteId,!1),e.outOfRange||e.dropOnOccupied?t.removeNote(e.noteId):(t.moveNote(e.noteId,{step:e.lastTargetStep}),t._resolveNoteOverlaps(),t._emitNoteState(e.noteId,"user")),e.noteId=null,e.isDragging=!1,e.movedPx=0,e.startStep=null,e.lastTargetStep=null,e.lastSoundStep=null,e.dropOnOccupied=!1,e.outOfRange=!1)})}}this.$el.off(".noteDrag"),this.$el.on("pointerdown.noteDrag",".accidental",function(t){t.stopPropagation()}),this.$el.on("pointerdown.noteDrag",".note",function(t){i(this,t)}),this.$el.on("pointerdown.noteDrag",function(e){if(!$(e.target).closest(".accidental").length&&!$(e.target).closest(".note").length){var a=n(e).y,r=t.yToStep(t._pageYToLocalY(a)),s=t._getNoteIdAtStep(r,null);if(s){var o=t.$el.find('.note[data-note-id="'.concat(s,'"]'))[0];o&&i(o,e)}}}),this.$el.on("click.noteDrag",".accidental",function(e){e.preventDefault(),e.stopPropagation();var i=this.getAttribute("data-for-note-id");i&&(t.isNoteFixed(i)||(t._removeAccidentalForNote(i),t._repositionAllAccidentals(),t._emitNoteState(i,"user")))}),this.$el.on("click.noteDrag",".note",function(i){var n=$(this).attr("data-note-id");return t._suppressNextClick.noteId&&n===t._suppressNextClick.noteId&&Date.now()<t._suppressNextClick.until?(t._suppressNextClick.noteId=null,t._suppressNextClick.until=0,i.preventDefault(),void i.stopPropagation()):e.swallowClick?(i.preventDefault(),i.stopPropagation(),void(e.swallowClick=!1)):void t.removeNote(n)})}},{key:"enableAccidentalDrag",value:function(t){var e=this;function i(){e._accDragSound.noteId=null,e._accDragSound.step=null,e._accDragSound.toolType=null,e._accDragSound.prospectiveCls=null,e._accSnap.noteId=null,e._accSnap.dist=null,e._accSnap.localY=null}t.addClass("accidental-tool"),t.draggable({helper:"clone",appendTo:"body",zIndex:9999,revert:"invalid",scroll:!1,start:function(t,n){n.helper.addClass("dragging accidental-tool"),e._soundEnabled()&&e._ensureAudio(),e._playAccidentalGrabSfx(),i(),e._accDragSound.toolType=o($(this))},drag:function(t){var n=e._accDragSound.toolType;if(n){var a=t.pageX,r=t.pageY;!Number.isFinite(r)&&t.originalEvent&&(r=t.originalEvent.pageY),!Number.isFinite(a)&&t.originalEvent&&(a=t.originalEvent.pageX);var s=e.$el.offset(),o=a-s.left,u=r-s.top;if(e._accSnap.localY=u,o<0||u<0||o>e.$el.width()||u>e.$el.height())return i(),void(e._accDragSound.toolType=n);var f=e._nearestEditableNoteByLocalY(u);if(!f)return e._accSnap.noteId=null,e._accSnap.dist=null,e._accDragSound.noteId=null,e._accDragSound.step=null,void(e._accDragSound.prospectiveCls=null);var h=f.noteId;e._accSnap.noteId=h,e._accSnap.dist=f.dist;var d=e.$el.find('.note[data-note-id="'.concat(h,'"]'));if(d.length){var p=e.yToStep(parseFloat(d.css("top")));if(e._isStepAllowed(p)){var v=e._getAttachedAccidentalClass(h),_=l(v,n);if(c(v,n))return e._accDragSound.noteId=null,e._accDragSound.step=null,void(e._accDragSound.prospectiveCls=null);if((h!==e._accDragSound.noteId||p!==e._accDragSound.step||_!==e._accDragSound.prospectiveCls)&&(e._accDragSound.noteId=h,e._accDragSound.step=p,e._accDragSound.prospectiveCls=_,e._soundEnabled())){var m=e._accidentalClassToOffset(_);e._playStep(p,m)}}}}},stop:function(){i()}})}},{key:"enableAccidentalDropOnStaff",value:function(){var t=this;this.$el.droppable({accept:".accidental-tool",tolerance:"pointer",drop:function(e,i){var n=o(i.draggable);if(n){var a;if(t._accSnap&&null!=t._accSnap.localY)a=t._accSnap.localY;else{var r=e.pageY;!Number.isFinite(r)&&e.originalEvent&&(r=e.originalEvent.pageY),a=t._pageYToLocalY(r)}var s=t._nearestEditableNoteByLocalY(a);s&&t.applyAccidentalToolToNote(s.noteId,n)}}})}}],u&&_(r.prototype,u),f&&_(r,f),Object.defineProperty(r,"prototype",{writable:!1}),r;var r,u,f,d,p}();function y(t){return y="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(t){return typeof t}:function(t){return t&&"function"==typeof Symbol&&t.constructor===Symbol&&t!==Symbol.prototype?"symbol":typeof t},y(t)}function S(){var t,e,i="function"==typeof Symbol?Symbol:{},n=i.iterator||"@@iterator",a=i.toStringTag||"@@toStringTag";function r(i,n,a,r){var l=n&&n.prototype instanceof o?n:o,c=Object.create(l.prototype);return b(c,"_invoke",function(i,n,a){var r,o,l,c=0,u=a||[],f=!1,h={p:0,n:0,v:t,a:d,f:d.bind(t,4),d:function(e,i){return r=e,o=0,l=t,h.n=i,s}};function d(i,n){for(o=i,l=n,e=0;!f&&c&&!a&&e<u.length;e++){var a,r=u[e],d=h.p,p=r[2];i>3?(a=p===n)&&(l=r[(o=r[4])?5:(o=3,3)],r[4]=r[5]=t):r[0]<=d&&((a=i<2&&d<r[1])?(o=0,h.v=n,h.n=r[1]):d<p&&(a=i<3||r[0]>n||n>p)&&(r[4]=i,r[5]=n,h.n=p,o=0))}if(a||i>1)return s;throw f=!0,n}return function(a,u,p){if(c>1)throw TypeError("Generator is already running");for(f&&1===u&&d(u,p),o=u,l=p;(e=o<2?t:l)||!f;){r||(o?o<3?(o>1&&(h.n=-1),d(o,l)):h.n=l:h.v=l);try{if(c=2,r){if(o||(a="next"),e=r[a]){if(!(e=e.call(r,l)))throw TypeError("iterator result is not an object");if(!e.done)return e;l=e.value,o<2&&(o=0)}else 1===o&&(e=r.return)&&e.call(r),o<2&&(l=TypeError("The iterator does not provide a '"+a+"' method"),o=1);r=t}else if((e=(f=h.n<0)?l:i.call(n,h))!==s)break}catch(e){r=t,o=1,l=e}finally{c=1}}return{value:e,done:f}}}(i,a,r),!0),c}var s={};function o(){}function l(){}function c(){}e=Object.getPrototypeOf;var u=[][n]?e(e([][n]())):(b(e={},n,function(){return this}),e),f=c.prototype=o.prototype=Object.create(u);function h(t){return Object.setPrototypeOf?Object.setPrototypeOf(t,c):(t.__proto__=c,b(t,a,"GeneratorFunction")),t.prototype=Object.create(f),t}return l.prototype=c,b(f,"constructor",c),b(c,"constructor",l),l.displayName="GeneratorFunction",b(c,a,"GeneratorFunction"),b(f),b(f,a,"Generator"),b(f,n,function(){return this}),b(f,"toString",function(){return"[object Generator]"}),(S=function(){return{w:r,m:h}})()}function b(t,e,i,n){var a=Object.defineProperty;try{a({},"",{})}catch(t){a=0}b=function(t,e,i,n){function r(e,i){b(t,e,function(t){return this._invoke(e,i,t)})}e?a?a(t,e,{value:i,enumerable:!n,configurable:!n,writable:!n}):t[e]=i:(r("next",0),r("throw",1),r("return",2))},b(t,e,i,n)}function k(t,e,i,n,a,r,s){try{var o=t[r](s),l=o.value}catch(t){return void i(t)}o.done?e(l):Promise.resolve(l).then(n,a)}function w(t,e){var i=Object.keys(t);if(Object.getOwnPropertySymbols){var n=Object.getOwnPropertySymbols(t);e&&(n=n.filter(function(e){return Object.getOwnPropertyDescriptor(t,e).enumerable})),i.push.apply(i,n)}return i}function x(t){for(var e=1;e<arguments.length;e++){var i=null!=arguments[e]?arguments[e]:{};e%2?w(Object(i),!0).forEach(function(e){C(t,e,i[e])}):Object.getOwnPropertyDescriptors?Object.defineProperties(t,Object.getOwnPropertyDescriptors(i)):w(Object(i)).forEach(function(e){Object.defineProperty(t,e,Object.getOwnPropertyDescriptor(i,e))})}return t}function A(t,e){for(var i=0;i<e.length;i++){var n=e[i];n.enumerable=n.enumerable||!1,n.configurable=!0,"value"in n&&(n.writable=!0),Object.defineProperty(t,T(n.key),n)}}function C(t,e,i){return(e=T(e))in t?Object.defineProperty(t,e,{value:i,enumerable:!0,configurable:!0,writable:!0}):t[e]=i,t}function T(t){var e=function(t,e){if("object"!=y(t)||!t)return t;var i=t[Symbol.toPrimitive];if(void 0!==i){var n=i.call(t,e||"default");if("object"!=y(n))return n;throw new TypeError("@@toPrimitive must return a primitive value.")}return("string"===e?String:Number)(t)}(t,"string");return"symbol"==y(e)?e:e+""}var N=Date.now(),E=function(){function t(){var e,i,n=this,a=arguments.length>0&&void 0!==arguments[0]?arguments[0]:{};!function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,t);var r={staffEl:"#staff",basePoints:1,firstTryBonus:2,sound:!0,showLetterNames:!1,clefUrls:null,initialClef:"treble",maxUserNotes:1/0,numOfChallenges:10,practiceMode:!1,timer:!1,levelName:"",successPhrases:["Awesome","Nicely done","Well done","Great job","Hooray","Fantastic","Nice work","Looks good","Good one","Splendid","Way to go","Nailed it","Brilliant","Excellent","Superb","Right on","You got it","Perfect","Spot on","Impressive","Top notch","That’s it"],namespace:"staffGame",instructionsAfterUserNotes:1,checkAfterUserNotes:1};this.opts=x(x({},r),a||{}),this.ns=this.opts.namespace||"staffGame",this.opts.numOfChallenges=this._normalizeNumOfChallenges(this.opts.numOfChallenges),this._uiSfxReady=!1,this._uiSfxSynth=null,this._uiSfxNoise=null,this._uiTimerSfxSynth=null,this.$staffEl=$(this.opts.staffEl),this.$accidentals=$("#accidentals"),this.$controls=$("#controls"),this.$feedback=$("#feedback-success"),this.$bonusBadge=this.$feedback.find(".bonus"),this.$points=$("#points"),this.$increment=$("#increment"),this.$checkBtn=$("#check button"),this.$skipWrap=$("#skip"),this.$skipBtn=this.$skipWrap.find("button"),this.$finalOverlay=$("#final-overlay"),this.$doublePoints=$("#double-points"),this.$checkWrap=this.$checkBtn.parent(),this.$progressBar=$("#progress-bar"),this.$progressCounter=$("#progress-counter"),this.$helpBtn=$("#help"),this.$timeupMessage=$("#timeup-message"),this.$handPointer=$("#hand-pointer"),this.$timer=$("#timer"),this.$timerBox=this.$timer.children("div").first(),this.$timerText=this.$timer.find("span"),this.successPhrases=this.opts.successPhrases,this.maxUserNotes=Number(this.opts.maxUserNotes),this.numOfChallenges=this.opts.numOfChallenges,this.levelName=this.opts.levelName,this.points=0,this._madeMistakeThisRound=!1,this._madeAnyMistake=!1,this._continueBound=!1,this._usedHintThisRound=!1,this._correctStreak=0,this._stats={checksTotal:0,checksCorrect:0,finishedAtMs:null},this._timerTimeoutId=null,this._timerRemainingSec=0,this._audioUnlockArmed=!1,this._timerEndsAtMs=0,this._finalMetricsSfxTimeouts=[],this._finalCountupTimeouts=[],this.staff=new g(this.$staffEl,{clef:this.opts.initialClef||"treble",clefUrls:this.opts.clefUrls||window.__clefUrls,autoClef:!1,getMaxUserNotes:function(){return Number.isFinite(n.maxUserNotes)?n.maxUserNotes:1/0},sound:!!this.opts.sound}),this.showLetterNames=!!this.opts.showLetterNames,this.$staffEl.toggleClass("show-letternames",this.showLetterNames),this._fixedNote={letterWithAcc:"?",letterOnly:"?"},this._fixedState=null,this.$increment.hide(),this.$bonusBadge.hide(),null===(e=this.$doublePoints)||void 0===e||null===(i=e.hide)||void 0===i||i.call(e),this.$points.text(String(this.points))}return e=t,i=[{key:"_normalizeNumOfChallenges",value:function(e){var i,n,a=Number(e),r=Number(null!==(i=null===(n=this.opts)||void 0===n?void 0:n.numOfChallenges)&&void 0!==i?i:10),s=Number.isFinite(a)?Math.trunc(a):Number.isFinite(r)?Math.trunc(r):10,o=t.MIN_CHALLENGES,l=t.MAX_CHALLENGES;return s<o?o:s>l?l:s}},{key:"setSoundEnabled",value:function(t){if(this.opts.sound=!!t,this.staff.setSoundEnabled(!!t),!this.opts.sound&&window.Tone){try{this._uiSfxSynth&&this._uiSfxSynth.releaseAll&&this._uiSfxSynth.releaseAll()}catch(t){}try{this._uiSfxSynth&&this._uiSfxSynth.dispose&&this._uiSfxSynth.dispose()}catch(t){}try{this._uiSfxNoise&&this._uiSfxNoise.dispose&&this._uiSfxNoise.dispose()}catch(t){}try{this._uiTimerSfxSynth&&this._uiTimerSfxSynth.dispose&&this._uiTimerSfxSynth.dispose()}catch(t){}this._uiSfxSynth=null,this._uiSfxNoise=null,this._uiTimerSfxSynth=null,this._uiSfxReady=!1;try{Tone.context&&Tone.context.suspend&&Tone.context.suspend()}catch(t){}}return this}},{key:"isSoundEnabled",value:function(){return this.staff.isSoundEnabled()}},{key:"_ensureUiSfxAudio",value:(a=S().m(function t(){return S().w(function(t){for(;;)switch(t.p=t.n){case 0:if(this.isSoundEnabled()){t.n=1;break}return t.a(2);case 1:if(!this._uiSfxReady){t.n=2;break}return t.a(2);case 2:if(window.Tone){t.n=3;break}return t.a(2);case 3:return t.p=3,t.n=4,Tone.start();case 4:t.n=6;break;case 5:return t.p=5,t.v,t.a(2);case 6:this._uiSfxSynth=new Tone.PolySynth(Tone.Synth,{oscillator:{type:"triangle"},envelope:{attack:.005,decay:.12,sustain:0,release:.25}}).toDestination(),this._uiSfxNoise=new Tone.NoiseSynth({noise:{type:"pink"},envelope:{attack:.001,decay:.08,sustain:0,release:.06}}).toDestination(),this._uiTimerSfxSynth=new Tone.Synth({oscillator:{type:"square"},envelope:{attack:.001,decay:.03,sustain:0,release:.06}}).toDestination(),this._uiSfxReady=!0;case 7:return t.a(2)}},t,this,[[3,5]])}),s=function(){var t=this,e=arguments;return new Promise(function(i,n){var r=a.apply(t,e);function s(t){k(r,i,n,s,o,"next",t)}function o(t){k(r,i,n,s,o,"throw",t)}s(void 0)})},function(){return s.apply(this,arguments)})},{key:"_armUiSfxOnFirstGesture",value:function(){var t=this;if(!this._audioUnlockArmed&&this.isSoundEnabled()&&window.Tone){this._audioUnlockArmed=!0;var e=".uiSfxUnlock.".concat(this.ns);$(document).off(e).one("pointerdown".concat(e," keydown").concat(e," touchstart").concat(e),function(){t._ensureUiSfxAudio().finally(function(){$(document).off(e)})})}}},{key:"_playSuccessSfxBasic",value:function(){var t=this;this.isSoundEnabled()&&window.Tone&&this._ensureUiSfxAudio().then(function(){if(t._uiSfxSynth){var e=Tone.now(),i=[["C6","E6","G6"],["D6","F#6","A6"],["E6","G6","B6"],["G5","B5","D6","G6"],["A5","C6","E6","A6"],["C6","D6","G6"],["F5","A5","C6","F6"],["E6","A6","C7"],["B5","D6","G6"],["C6","G6","E7"]];i[Math.floor(Math.random()*i.length)].forEach(function(i,n){t._uiSfxSynth.triggerAttackRelease(i,.07,e+.05*n,.42)})}})}},{key:"_playSuccessSfxBonus",value:function(){var t=this;this.isSoundEnabled()&&window.Tone&&this._ensureUiSfxAudio().then(function(){var e;if(t._uiSfxSynth){var i=Tone.now(),n=x({},t._uiSfxSynth.get().envelope),a=null===(e=t._uiSfxSynth.get().oscillator)||void 0===e?void 0:e.type;try{t._uiSfxSynth.set({oscillator:{type:"sine"},envelope:{attack:.004,decay:.12,sustain:.15,release:.65}})}catch(t){}var r=Math.max(1,Math.min(24,Number(t._correctStreak)||1))-1,s=function(t){return Tone.Frequency(t,"midi").toNote()},o=[62,66,69,73,74].map(function(t){return s(t+r)}),l=[62,69,74,78].map(function(t){return s(t+r)});o.forEach(function(e,n){t._uiSfxSynth.triggerAttackRelease(e,.06,i+.045*n,.45)}),l.forEach(function(e){t._uiSfxSynth.triggerAttackRelease(e,.12,i+.26,.3)}),setTimeout(function(){try{t._uiSfxSynth.set({oscillator:{type:a||"triangle"},envelope:n})}catch(t){}},600)}})}},{key:"_playFailSfx",value:function(){var t=this;this.isSoundEnabled()&&window.Tone&&this._ensureUiSfxAudio().then(function(){var e=Tone.now();t._uiSfxNoise&&t._uiSfxNoise.triggerAttackRelease(.06,e,.1),t._uiSfxSynth&&(t._uiSfxSynth.triggerAttackRelease("A2",.1,e+.01,.1),t._uiSfxSynth.triggerAttackRelease("G2",.12,e+.08,10.1))})}},{key:"_playFinalSfx",value:function(){var t=this;this.isSoundEnabled()&&window.Tone&&this._ensureUiSfxAudio().then(function(){var e;if(t._uiSfxSynth){var i=x({},t._uiSfxSynth.get().envelope),n=null===(e=t._uiSfxSynth.get().oscillator)||void 0===e?void 0:e.type;t._uiSfxSynth.set({oscillator:{type:"sine"},envelope:{attack:.02,decay:.25,sustain:.35,release:.9}});var a=Tone.now(),r=[function(){["C4","G4","C5","E5"].forEach(function(e){return t._uiSfxSynth.triggerAttackRelease(e,.9,a,.6)}),["G5","A5","B5","C6","D6","E6","G6"].forEach(function(e,i){t._uiSfxSynth.triggerAttackRelease(e,.08,a+.25+.06*i,.35)})},function(){["C5","E5","G5","B5","D6","G6"].forEach(function(e,i){t._uiSfxSynth.triggerAttackRelease(e,.11,a+.08*i,.44)}),["C6","E6","G6"].forEach(function(e){return t._uiSfxSynth.triggerAttackRelease(e,.28,a+.62,.5)})},function(){["A3","E4","A4","C5"].forEach(function(e){return t._uiSfxSynth.triggerAttackRelease(e,.45,a,.45)}),["F4","A4","C5","F5"].forEach(function(e){return t._uiSfxSynth.triggerAttackRelease(e,.52,a+.35,.48)}),["C5","F5","A5"].forEach(function(e){return t._uiSfxSynth.triggerAttackRelease(e,.24,a+.78,.4)})},function(){["E5","G5","A5","B5","D6","E6","G6","A6"].forEach(function(e,i){t._uiSfxSynth.triggerAttackRelease(e,.075,a+.055*i,.34)}),["A5","A6","C7"].forEach(function(e){return t._uiSfxSynth.triggerAttackRelease(e,.2,a+.52,.42)})},function(){["D4","A4","D5","F#5"].forEach(function(e){return t._uiSfxSynth.triggerAttackRelease(e,.36,a,.45)}),["D5","F#5","A5","D6","F#6"].forEach(function(e,i){t._uiSfxSynth.triggerAttackRelease(e,.095,a+.2+.065*i,.4)})},function(){["G3","D4","G4","B4"].forEach(function(e){return t._uiSfxSynth.triggerAttackRelease(e,.4,a,.4)}),["C4","E4","G4","C5"].forEach(function(e){return t._uiSfxSynth.triggerAttackRelease(e,.44,a+.32,.46)}),["E5","G5","C6"].forEach(function(e){return t._uiSfxSynth.triggerAttackRelease(e,.22,a+.72,.4)})},function(){["C6","D6","E6","G6","A6","G6","E6","C7"].forEach(function(e,i){t._uiSfxSynth.triggerAttackRelease(e,.06,a+.048*i,.3)}),["G6","C7"].forEach(function(e){return t._uiSfxSynth.triggerAttackRelease(e,.2,a+.48,.38)})},function(){["F4","C5","A5"].forEach(function(e,i){t._uiSfxSynth.triggerAttackRelease(e,.16,a+.06*i,.45)}),["G4","D5","B5"].forEach(function(e,i){t._uiSfxSynth.triggerAttackRelease(e,.16,a+.28+.06*i,.48)}),["C5","E5","G5","C6"].forEach(function(e){return t._uiSfxSynth.triggerAttackRelease(e,.26,a+.54,.44)})},function(){["A6","G6","E6","D6","C6"].forEach(function(e,i){t._uiSfxSynth.triggerAttackRelease(e,.08,a+.06*i,.34)}),["E6","G6","C7"].forEach(function(e){return t._uiSfxSynth.triggerAttackRelease(e,.24,a+.4,.42)})},function(){["C4","E4","G4","C5"].forEach(function(e){return t._uiSfxSynth.triggerAttackRelease(e,.34,a,.48)}),["E5","G5","B5","D6","E6"].forEach(function(e,i){t._uiSfxSynth.triggerAttackRelease(e,.09,a+.18+.055*i,.38)}),["C6","E6","G6","C7"].forEach(function(e){return t._uiSfxSynth.triggerAttackRelease(e,.3,a+.58,.5)})}];(0,r[Math.floor(Math.random()*r.length)])(),setTimeout(function(){try{t._uiSfxSynth.set({oscillator:{type:n||"triangle"},envelope:i})}catch(t){}},1700)}})}},{key:"_clearFinalMetricsSfxTimers",value:function(){Array.isArray(this._finalMetricsSfxTimeouts)?(this._finalMetricsSfxTimeouts.forEach(function(t){return clearTimeout(t)}),this._finalMetricsSfxTimeouts=[]):this._finalMetricsSfxTimeouts=[]}},{key:"_clearFinalCountupTimers",value:function(){Array.isArray(this._finalCountupTimeouts)?(this._finalCountupTimeouts.forEach(function(t){return clearTimeout(t)}),this._finalCountupTimeouts=[]):this._finalCountupTimeouts=[]}},{key:"_playFinalMetricPopSfx",value:function(t){if(this.isSoundEnabled()&&window.Tone&&this._uiSfxReady){var e=Tone.now(),i=Math.max(0,Number(t)||0),n=Math.min(96,67+2*i),a=this._uiTimerSfxSynth||this._uiSfxSynth;a&&(a.triggerAttackRelease(Tone.Frequency(n,"midi"),.055,e,.44),a.triggerAttackRelease(Tone.Frequency(n+5,"midi"),.045,e+.03,.34))}}},{key:"_animateFinalMetricsWithSfx",value:function(){var t=this,e=this.$finalOverlay.find("#metrics-boxes > div");e.length&&(this._clearFinalMetricsSfxTimers(),e.each(function(e,i){var n=260+260*e;i.style.animationDelay="".concat(n,"ms");var a=setTimeout(function(){t._playFinalMetricPopSfx(e)},n);t._finalMetricsSfxTimeouts.push(a)}))}},{key:"_playPerfectGameBonusSfx",value:function(){var t=this;this.isSoundEnabled()&&window.Tone&&this._ensureUiSfxAudio().then(function(){var e;if(t._uiSfxSynth){var i=x({},t._uiSfxSynth.get().envelope),n=null===(e=t._uiSfxSynth.get().oscillator)||void 0===e?void 0:e.type;try{t._uiSfxSynth.set({oscillator:{type:"triangle"},envelope:{attack:.01,decay:.18,sustain:.25,release:.8}})}catch(t){}var a=Tone.now();["C5","E5","G5","C6","E6","G6","C7"].forEach(function(e,i){t._uiSfxSynth.triggerAttackRelease(e,.09,a+.06*i,.62)}),["C6","G6","C7","E7"].forEach(function(e){return t._uiSfxSynth.triggerAttackRelease(e,.35,a+.48,.46)}),setTimeout(function(){try{t._uiSfxSynth.set({oscillator:{type:n||"triangle"},envelope:i})}catch(t){}},1400)}})}},{key:"_isTimerEnabled",value:function(){var t=this.opts.timer,e=String(t||"").trim().toLowerCase();return!0===t||"true"===e||"on"===e}},{key:"_formatTimerDisplay",value:function(t){var e=Math.max(0,Math.floor(Number(t)||0)),i=String(Math.floor(e/60)).padStart(2,"0"),n=String(e%60).padStart(2,"0");return"".concat(i,":").concat(n)}},{key:"_renderTimerDisplay",value:function(){var t;null!==(t=this.$timerText)&&void 0!==t&&t.length&&(this.$timerText.text(this._formatTimerDisplay(this._timerRemainingSec)),this._syncTimerWarningStyle())}},{key:"_syncTimerWarningStyle",value:function(){var t;if(null!==(t=this.$timerBox)&&void 0!==t&&t.length){var e=this._timerRemainingSec<=5;this.$timerBox.toggleClass("bg-red",e),this.$timerBox.toggleClass("bg-primary",!e)}}},{key:"_setTimedOutInteractivityDisabled",value:function(t){var e=!!t,i=$("#staff"),n=$("#staff-wrapper"),a=$("#accidentals");e?(i.attr("disabled","disabled"),n.attr("disabled","disabled"),a.attr("disabled","disabled"),i.attr("aria-disabled","true"),n.attr("aria-disabled","true"),a.attr("aria-disabled","true"),i.css("pointer-events","none"),n.css("pointer-events","none"),a.css("pointer-events","none")):(i.removeAttr("disabled"),n.removeAttr("disabled"),a.removeAttr("disabled"),i.removeAttr("aria-disabled"),n.removeAttr("aria-disabled"),a.removeAttr("aria-disabled"),i.css("pointer-events",""),n.css("pointer-events",""),a.css("pointer-events",""))}},{key:"_showSkipRoundButton",value:function(){var t;null!==(t=this.$skipWrap)&&void 0!==t&&t.length&&this.$skipWrap.show()}},{key:"_hideSkipRoundButton",value:function(){var t;null!==(t=this.$skipWrap)&&void 0!==t&&t.length&&this.$skipWrap.hide()}},{key:"_hideTimeUpMessage",value:function(){var t;null!==(t=this.$timeupMessage)&&void 0!==t&&t.length&&this.$timeupMessage.removeClass("animate__animated animate__flash").hide()}},{key:"_showTimeUpMessage",value:function(){var t;null!==(t=this.$timeupMessage)&&void 0!==t&&t.length&&(this.$timeupMessage.removeClass("animate__animated animate__flash").show(),this.$timeupMessage[0]&&this.$timeupMessage[0].offsetWidth,this.$timeupMessage.addClass("animate__animated animate__flash"))}},{key:"_wouldReachLastRoundAfterAdvance",value:function(){if(this._isPracticeMode())return!1;var t=100/Math.max(1,this.numOfChallenges||1);return(parseFloat(this.$progressBar.data("progress"))||0)+t>=100}},{key:"_finishRoundAsTimedOut",value:function(){var t=this;if(this._correctStreak=0,this._madeAnyMistake=!0,this._madeMistakeThisRound=!0,this._stats.checksTotal+=1,this._updateProgressBar()>=100&&!this._isPracticeMode())return this._stats.finishedAtMs=Date.now(),this.$checkBtn.text("Final results, let's see…"),void setTimeout(function(){return t._showFinalResults()},1600);this._setTimedOutInteractivityDisabled(!1),this._hideTimeUpMessage(),this._hideSkipRoundButton(),$("#interval").removeClass("text-red").addClass("text-blue"),this._resetRoundTimerIfEnabled(),this.newChallenge(),this._armUiGates({resetInstructions:!1}),this.$checkBtn.enable()}},{key:"_pulseTimerWarning",value:function(){var t;null!==(t=this.$timer)&&void 0!==t&&t.length&&(this.$timer.removeClass("animate__animated animate__pulse"),this.$timer[0]&&this.$timer[0].offsetWidth,this.$timer.addClass("animate__animated animate__pulse"))}},{key:"_playTimerWarningBeep",value:function(){if(this.isSoundEnabled()&&window.Tone&&this._uiSfxReady&&this._uiTimerSfxSynth){var t=Tone.now();this._uiTimerSfxSynth.triggerAttackRelease("C6",.06,t,.5)}}},{key:"_playTimerTimeUpSfx",value:function(){if(this.isSoundEnabled()&&window.Tone&&this._uiSfxReady&&this._uiTimerSfxSynth){var t=Tone.now();this._uiSfxNoise&&this._uiSfxNoise.triggerAttackRelease(.12,t,.2),this._uiTimerSfxSynth.triggerAttackRelease("G4",.11,t,.72),this._uiTimerSfxSynth.triggerAttackRelease("E4",.13,t+.1,.76),this._uiTimerSfxSynth.triggerAttackRelease("C4",.18,t+.22,.82)}}},{key:"_stopGameTimer",value:function(){var t,e;null!=this._timerTimeoutId&&(clearTimeout(this._timerTimeoutId),this._timerTimeoutId=null),this._timerEndsAtMs=0,this._timerRemainingSec=0,this._syncTimerWarningStyle(),null===(t=this.$timer)||void 0===t||null===(e=t.removeClass)||void 0===e||e.call(t,"animate__animated animate__pulse")}},{key:"_pauseGameTimer",value:function(){var t,e;null!=this._timerTimeoutId&&(clearTimeout(this._timerTimeoutId),this._timerTimeoutId=null),this._timerEndsAtMs=0,null===(t=this.$timer)||void 0===t||null===(e=t.removeClass)||void 0===e||e.call(t,"animate__animated animate__pulse")}},{key:"_runGameTimerTick",value:function(){var t=this;if(this._timerEndsAtMs){var e=this._timerRemainingSec,i=this._timerEndsAtMs-Date.now(),n=Math.max(0,Math.ceil(i/1e3));if(this._timerRemainingSec=n,this._renderTimerDisplay(),n>0&&n<=5&&n!==e?(this._pulseTimerWarning(),this._playTimerWarningBeep()):0===n&&0!==e&&($("#check").hide(),this.$helpBtn.hide(),this._setTimedOutInteractivityDisabled(!0),this._pulseTimerWarning(),this._playTimerTimeUpSfx(),this._showTimeUpMessage(),this.$checkBtn.disable(),this._wouldReachLastRoundAfterAdvance()?(this._hideSkipRoundButton(),this._finishRoundAsTimedOut()):this._showSkipRoundButton()),n<=0)this._stopGameTimer();else{var a=this._timerEndsAtMs-1e3*(n-1),r=Math.max(16,a-Date.now());this._timerTimeoutId=setTimeout(function(){return t._runGameTimerTick()},r)}}}},{key:"_startGameTimer",value:function(){var t=arguments.length>0&&void 0!==arguments[0]?arguments[0]:10;this._stopGameTimer();var e=Math.max(0,Math.floor(Number(t)||0));this._timerEndsAtMs=Date.now()+1e3*e,this._timerRemainingSec=e,this._renderTimerDisplay(),this._runGameTimerTick()}},{key:"_timerLimitSeconds",value:function(){var t=Number(null!=this.opts.timeLimit?this.opts.timeLimit:this.opts.timerLimit);return Number.isFinite(t)?Math.max(0,Math.floor(t)):10}},{key:"_resetRoundTimerIfEnabled",value:function(){this._isTimerEnabled()&&(this.$timer.show(),this._startGameTimer(this._timerLimitSeconds()))}},{key:"start",value:function(){this._madeAnyMistake=!1,$("#instructions").show(),$("#controls").show(),this._instructionsRemoved=!1,this._wireAccidentalPalette(),this._wireStaffTools(),this._wireFirstNoteLearningTracker(),this._wireControls(),this._resetProgress(),this._setTimedOutInteractivityDisabled(!1),this._hideTimeUpMessage(),this._hideSkipRoundButton(),this._syncHandPointerVisibility(),this._isTimerEnabled()?(this.$timer.show(),this._armUiSfxOnFirstGesture(),this._resetRoundTimerIfEnabled()):(this._stopGameTimer(),this.$timer.hide()),this.newChallenge(),this._armUiGates({resetInstructions:!0}),$("#page-wrapper").fadeIn("fast")}},{key:"newChallenge",value:function(){throw new Error("newChallenge() not implemented")}},{key:"_onCheck",value:function(){throw new Error("_onCheck() not implemented")}},{key:"_wireAccidentalPalette",value:function(){$("#accidentals .music-font__doublesharp, #accidentals .music-font__doubleflat").addClass("d-none")}},{key:"_wireStaffTools",value:function(){var t=this;this.staff.enableNoteDragAndClickDelete(),this.staff.enableGhostClickCreate(),this.staff.enableAccidentalDrag($("#accidentals .music-font__sharp, #accidentals .music-font__flat, #accidentals .music-font__natural")),this.staff.enableAccidentalDropOnStaff(),this.$staffEl.off("staff:noteState._log.".concat(this.ns)).on("staff:noteState._log.".concat(this.ns),function(e,i){var n,a=u(t.staff,i.step,i.accidentalClass),r=a.replace(/\d+$/,"");t.showLetterNames&&t.$staffEl.find('.note[data-note-id="'.concat(i.noteId,'"] .lettername')).text(r),"fixed"===i.source&&(t._fixedNote={letterWithAcc:r,letterOnly:r.replace(/[#b]+$/,"")},t._fixedState={step:i.step,accidentalClass:i.accidentalClass||null,midi:i.midi},null===(n=t._onFixedNoteState)||void 0===n||n.call(t,i,a,r)),console.log("fixed"===i.source?"Fixed note:":"User note:",a,{midi:i.midi,noteId:i.noteId,step:i.step,clef:t.staff.getClef()})})}},{key:"_firstNoteCookieName",value:function(){var t=String(this.ns||"staffGame").trim().replace(/[^a-zA-Z0-9_-]/g,"_");return"music_first_note_learned_".concat(t)}},{key:"_getCookie",value:function(t){for(var e="".concat(t,"="),i=String(document.cookie||"").split("; "),n=0;n<i.length;n+=1)if(i[n].startsWith(e))return decodeURIComponent(i[n].slice(e.length));return null}},{key:"_setCookie",value:function(t,e){var i=arguments.length>2&&void 0!==arguments[2]?arguments[2]:3650,n=new Date;n.setTime(n.getTime()+24*i*60*60*1e3);var a="expires=".concat(n.toUTCString());document.cookie="".concat(t,"=").concat(encodeURIComponent(String(e)),"; ").concat(a,"; path=/; SameSite=Lax")}},{key:"_hasLearnedFirstNote",value:function(){return"1"===this._getCookie(this._firstNoteCookieName())}},{key:"_markLearnedFirstNote",value:function(){this._setCookie(this._firstNoteCookieName(),"1")}},{key:"_syncHandPointerVisibility",value:function(){var t;null!==(t=this.$handPointer)&&void 0!==t&&t.length&&(this._hasLearnedFirstNote()?this.$handPointer.hide():this.$handPointer.show())}},{key:"_wireFirstNoteLearningTracker",value:function(){var t=this;this.$staffEl.off("staff:userNoteAdded._learn.".concat(this.ns)).on("staff:userNoteAdded._learn.".concat(this.ns),function(){var e,i,n,a;if(t._hasLearnedFirstNote())return null===(n=t.$handPointer)||void 0===n||null===(a=n.hide)||void 0===a||a.call(n),void t.$staffEl.off("staff:userNoteAdded._learn.".concat(t.ns));t._markLearnedFirstNote(),null===(e=t.$handPointer)||void 0===e||null===(i=e.hide)||void 0===i||i.call(e),t.$staffEl.off("staff:userNoteAdded._learn.".concat(t.ns))})}},{key:"_wireControls",value:function(){var t=this;$("#clear").off("click.".concat(this.ns)).on("click.".concat(this.ns),function(){return t.staff.clearNotes()}),this.$checkBtn.off("click.".concat(this.ns)).on("click.".concat(this.ns),function(){return t._onCheck()}),this.$helpBtn.off("click.".concat(this.ns,"Help")).on("click.".concat(this.ns,"Help"),function(){t._usedHintThisRound=!0,t._showHintNote()}),this.$skipBtn.off("click.".concat(this.ns,"Skip")).on("click.".concat(this.ns,"Skip"),function(e){e.preventDefault(),t._finishRoundAsTimedOut()}),this._continueBound||(this._continueBound=!0,$("#continue button").off("click.".concat(this.ns)).on("click.".concat(this.ns),function(){$("#continue").hide(),t._hideSkipRoundButton(),t._hideTimeUpMessage(),t._setTimedOutInteractivityDisabled(!1),t._resetRoundTimerIfEnabled(),t.newChallenge(),t._armUiGates({resetInstructions:!1}),t.$checkBtn.enable()}))}},{key:"_instructionsAfterUserNotes",value:function(){var t=Number(this.opts.instructionsAfterUserNotes);return Number.isFinite(t)&&t>=0?Math.floor(t):1}},{key:"_checkAfterUserNotes",value:function(){var t=Number(this.opts.checkAfterUserNotes);return Number.isFinite(t)&&t>=0?Math.floor(t):1}},{key:"_armUiGates",value:function(){var t=this,e=(arguments.length>0&&void 0!==arguments[0]?arguments[0]:{}).resetInstructions,i=this._instructionsAfterUserNotes(),n=this._checkAfterUserNotes();e&&(this._instructionsRemoved=!1),$("#check").show().addClass("invisible"),this._userNotesSinceGate=0,this.$staffEl.off("staff:userNoteAdded._uiGate.".concat(this.ns)).on("staff:userNoteAdded._uiGate.".concat(this.ns),function(){t._userNotesSinceGate+=1,!t._instructionsRemoved&&t._userNotesSinceGate>=i&&($("#instructions").remove(),t._instructionsRemoved=!0),t._userNotesSinceGate>=n&&($("#check").removeClass("invisible"),t.$staffEl.off("staff:userNoteAdded._uiGate.".concat(t.ns)))})}},{key:"_initialNoteRangeIndex",value:function(){var t=null!=this.opts.initialNoteRange?this.opts.initialNoteRange:null!=this.opts.range?this.opts.range:void 0;if(null==t)throw new Error("[BaseStaffGame] Missing required option: initialNoteRange (0=narrow, 1=wide, 2=full).");var e=Number(t);if(!Number.isFinite(e))throw new Error("[BaseStaffGame] initialNoteRange must be a number (0, 1, or 2). Got: ".concat(String(t)));var i=Math.trunc(e);return 0===i||1===i||2===i?i:(console.warn("[BaseStaffGame] initialNoteRange out of range; defaulting to 2 (full).",{value:t}),2)}},{key:"_clefMainLineStep",value:function(t){switch(String(t||"").trim().toLowerCase()){case"bass":case"tenor":return 6;case"alto":return 4;default:return 2}}},{key:"_initialFixedStepBounds",value:function(){var t=this.staff.minStepAllowed(),e=this.staff.maxStepAllowed(),i=this._initialNoteRangeIndex();if(2===i)return{min:t,max:e};var n=this._clefMainLineStep(this.staff.getClef()),a=2*(0===i?1:2);return{min:Math.max(t,n-a),max:Math.min(e,n+a)}}},{key:"_isStepInInitialFixedRange",value:function(t){if(!Number.isFinite(t))return!1;var e=this._initialFixedStepBounds(),i=e.min,n=e.max;return t>=i&&t<=n}},{key:"_randomInitialFixedStep",value:function(){var t=this._initialFixedStepBounds(),e=t.min,i=t.max;return Math.floor(Math.random()*(i-e+1))+e}},{key:"_computeHintAnswer",value:function(){return null}},{key:"_computeHintAnswers",value:function(){var t=this._computeHintAnswer();return t?[t]:[]}},{key:"_removeAllHintNotes",value:function(){var t=this;(Array.isArray(this._activeHintIds)?this._activeHintIds:[]).forEach(function(e){return t.staff.removeNote(e)}),this._activeHintIds=[]}},{key:"_randomFreeStep",value:function(){for(var t=this.staff.minStepAllowed(),e=this.staff.maxStepAllowed(),i=0;i<50;i++){var n=Math.floor(Math.random()*(e-t+1))+t;if(!this.staff._isStepOccupied(n,null))return n}return null}},{key:"_attachHintBlinkRemoval",value:function(t){var e=this,i=this.$staffEl.find('.note[data-note-id="'.concat(t,'"]'));i.length&&i.off("animationend.hint.".concat(t," webkitAnimationEnd.hint.").concat(t)).one("animationend.hint.".concat(t," webkitAnimationEnd.hint.").concat(t),function(){e.staff.removeNote(t),e._activeHintIds=(e._activeHintIds||[]).filter(function(e){return e!==t})})}},{key:"_showHintNote",value:function(){this._removeAllHintNotes();var t=this._computeHintAnswers(),e=Array.isArray(t)&&t.length?t:[{step:null,accidentalClass:null}];this._activeHintIds=[];for(var i=0;i<e.length;i++){var n=e[i]||{},a=n.id||(1===e.length?"hint":"hint".concat(i+1)),r=Number.isFinite(n.step)?Number(n.step):null,s=n.accidentalClass||null;null==r&&(r=this._randomFreeStep()),null!=r&&this.staff.addNote({id:a,step:r,className:"hint blink",allowOccupied:!0,skipResolve:!0})&&(this._activeHintIds.push(a),s&&(this.staff.attachAccidentalToNote(a,s),this.$staffEl.find('.accidental[data-for-note-id="'.concat(a,'"]')).addClass("hint blink")),this.$staffEl.find('.ledger[data-for-note-id="'.concat(a,'"]')).addClass("hint blink"),this._attachHintBlinkRemoval(a))}}},{key:"_isPracticeMode",value:function(){var t=this.opts.practiceMode;return!0===t||"on"===String(t||"").trim().toLowerCase()}},{key:"_syncPracticeUi",value:function(){var t=this._isPracticeMode(),e=$("#score");t?(e.hide(),this.$progressBar.parent().addClass("opacity-1")):(e.show(),this.$progressBar.parent().removeClass("opacity-1"))}},{key:"_successAnimation",value:function(){(arguments.length>0&&void 0!==arguments[0]?arguments[0]:{}).isBonus?this._playSuccessSfxBonus():this._playSuccessSfxBasic(),this.$helpBtn.hide(),this.$accidentals.addClass("invisible"),this.$feedback.find(".message span").text(r(this.successPhrases)),this.$feedback.stop(!0,!0).fadeIn("fast")}},{key:"_showIncrement",value:function(t){var e=this.$increment;e&&e.length&&(e.stop(!0,!0),e.text("+".concat(t)).show(),e.animateCSS?e.animateCSS("fadeOutUp").then(function(){return e.hide()}):setTimeout(function(){return e.hide()},800))}},{key:"_showBonusBadge",value:function(t){this.$bonusBadge&&this.$bonusBadge.length&&(!t||t<=0?this.$bonusBadge.hide():(this.$bonusBadge.text("+".concat(t," BONUS")).show(),this.$bonusBadge.animateCSS&&this.$bonusBadge.animateCSS("tada")))}},{key:"_awardPointsForCorrect",value:function(){if(this._isPracticeMode())return this.$points.text("0"),this._showBonusBadge(0),{earned:0,firstTry:!1,bonusEarned:0};if(this._usedHintThisRound)return this._showBonusBadge(0),{earned:0,firstTry:!1,bonusEarned:0};var t=!this._madeMistakeThisRound,e=Number.isFinite(this.opts.basePoints)?this.opts.basePoints:1,i=Number.isFinite(this.opts.firstTryBonus)?this.opts.firstTryBonus:0,n=t?e+i:e,a=t?i:0;return t&&(this._correctStreak+=1,this._correctStreak<=1?console.log("[BaseStaffGame] Correct answer. No streak yet."):console.log("[BaseStaffGame] Streak ".concat(this._correctStreak,"x"))),this.points+=n,this.$points.text(String(this.points)),this._showBonusBadge(a),{earned:n,firstTry:t,bonusEarned:a}}},{key:"getCorrectStreak",value:function(){return Math.max(0,Number(this._correctStreak)||0)}},{key:"_resetProgress",value:function(){this._syncPracticeUi(),this._correctStreak=0,this._madeAnyMistake=!1,this.$progressBar.data("progress",0),this.$progressBar.css({width:"0%"}),this._isPracticeMode()?this.$progressCounter.text("Practice"):this.$progressCounter.text("")}},{key:"_updateProgressBar",value:function(){if(this._isPracticeMode())return this.$progressBar.data("progress",0),this.$progressBar.css({width:"0%"}),this.$progressCounter.text("Practice"),0;var t=Math.max(1,this.numOfChallenges||1),e=100/t,i=parseFloat(this.$progressBar.data("progress"))||0;i=Math.min(100,i+e),this.$progressBar.data("progress",i),this.$progressBar.css({width:"".concat(i,"%")});var n=Math.min(t,Math.max(0,Math.round(i/e)));return this.$progressCounter.text("".concat(n," of ").concat(t)),i}},{key:"_failAnimation",value:function(t){var e=this;this._correctStreak=0,this._playFailSfx();var i=t||this.$checkWrap;i.removeClass("animate__animated animate__shakeX"),i[0]&&i[0].offsetWidth,i.addClass("animate__animated animate__shakeX"),i.off("animationend._fail.".concat(this.ns," webkitAnimationEnd._fail.").concat(this.ns," oAnimationEnd._fail.").concat(this.ns," MSAnimationEnd._fail.").concat(this.ns)).one("animationend._fail.".concat(this.ns," webkitAnimationEnd._fail.").concat(this.ns," oAnimationEnd._fail.").concat(this.ns," MSAnimationEnd._fail.").concat(this.ns),function(){i.removeClass("animate__animated animate__shakeX"),e.$checkBtn.enable()})}},{key:"_showFinalResults",value:function(){var t,e,i,n,a=this;if(!this._isPracticeMode()){var r=Math.max(0,null!==(t=this._stats.checksTotal)&&void 0!==t?t:0),s=Math.max(0,null!==(e=this._stats.checksCorrect)&&void 0!==e?e:0),o=r?Math.round(s/r*100):0,l=null!==(i=this._stats.finishedAtMs)&&void 0!==i?i:Date.now(),c=Math.max(0,Math.floor((l-N)/1e3)),u=r>0&&!this._madeAnyMistake,f=u?2*this.points:this.points;u?(setTimeout(function(){var t,e;null===(t=a.$doublePoints)||void 0===t||null===(e=t.show)||void 0===e||e.call(t),a._playPerfectGameBonusSfx()},1750),console.log("[BaseStaffGame] Perfect game! 2x bonus applied.",{basePoints:this.points,finalPoints:f})):console.log("[BaseStaffGame] No perfect-game bonus.",{basePoints:this.points,finalPoints:f,madeAnyMistake:this._madeAnyMistake});var h=null===(n=window)||void 0===n||null===(n=n.CountUp)||void 0===n?void 0:n.CountUp,d=function(t,e){var i=arguments.length>2&&void 0!==arguments[2]?arguments[2]:{},n=a.$finalOverlay.find(t)[0];if(n){var r=function(){if(h){var t=new h(n,e,x({duration:3.5},i));t.error||t.start()}else n.textContent=String(i.formattingFn?i.formattingFn(e):e)+(i.suffix||"")},s=$(n).closest("#metrics-boxes > div"),o=s.length?parseFloat(s[0].style.animationDelay||"0"):0,l=Number.isFinite(o)?Math.max(0,o):0;if(l<=0)r();else{var c=setTimeout(r,l+40);a._finalCountupTimeouts.push(c)}}},p=this.$finalOverlay.find("#result-greeting"),v=p.find("h1"),_=p.find("h6"),m=this.$finalOverlay.find("img").first();if(o<50){if(v.text("Keep going!"),_.text("That round was tough, but your next one can be much better."),m.length){var g=String(m.attr("src")||"");g.includes("trophy.svg")&&m.attr("src",g.replace("trophy.svg","plant.svg"))}}else if(v.text("Great job!"),_.text("It's not about getting the most points, but if it was..."),m.length){var y=String(m.attr("src")||"");y.includes("plant.svg")&&m.attr("src",y.replace("plant.svg","trophy.svg"))}this.$finalOverlay.show(),this._animateFinalMetricsWithSfx(),this._clearFinalCountupTimers(),d('span[name="rounds"]',this.numOfChallenges),d('span[name="score"]',f),d('span[name="accuracy"]',o,{suffix:"%"}),d('span[name="duration"]',c,{formattingFn:function(t){var e=Math.max(0,Math.floor(t)),i=String(Math.floor(e/60)).padStart(2,"0"),n=String(e%60).padStart(2,"0");return"".concat(i,":").concat(n)}}),this._playFinalSfx()}}}],i&&A(e.prototype,i),n&&A(e,n),Object.defineProperty(e,"prototype",{writable:!1}),e;var e,i,n,a,s}();function O(t){return 2===t?"music-font__doublesharp":1===t?"music-font__sharp":0===t?"music-font__natural":-1===t?"music-font__flat":-2===t?"music-font__doubleflat":null}function M(t,e){var i=function(t){var e=String(t||"").trim().match(/^([A-Ga-g])((?:#{1,2})|(?:b{1,2})|)?(\d+)$/);if(!e)return null;var i=e[1].toUpperCase(),n=e[2]||"",a="##"===n?2:"#"===n?1:"bb"===n?-2:"b"===n?-1:0;return{midi:12*(parseInt(e[3],10)+1)+{C:0,D:2,E:4,F:5,G:7,A:9,B:11}[i]+a,accOffset:a,accidentalClass:O(a)}}(e);if(!i)return null;for(var n=i.midi,a=i.accOffset,r=i.accidentalClass,s=t.minStepAllowed();s<=t.maxStepAllowed();s+=1){if(t._stepToMidi(s)+a===n)return{step:s,accidentalClass:r}}for(var o=null,l=t.minStepAllowed();l<=t.maxStepAllowed();l+=1){var c=t._stepToMidi(l),u=Math.abs(c+a-n);(!o||u<o.dist)&&(o={step:l,dist:u})}return o?{step:o.step,accidentalClass:r}:null}function F(t){return F="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(t){return typeof t}:function(t){return t&&"function"==typeof Symbol&&t.constructor===Symbol&&t!==Symbol.prototype?"symbol":typeof t},F(t)}function P(t,e){var i=Object.keys(t);if(Object.getOwnPropertySymbols){var n=Object.getOwnPropertySymbols(t);e&&(n=n.filter(function(e){return Object.getOwnPropertyDescriptor(t,e).enumerable})),i.push.apply(i,n)}return i}function R(t){for(var e=1;e<arguments.length;e++){var i=null!=arguments[e]?arguments[e]:{};e%2?P(Object(i),!0).forEach(function(e){L(t,e,i[e])}):Object.getOwnPropertyDescriptors?Object.defineProperties(t,Object.getOwnPropertyDescriptors(i)):P(Object(i)).forEach(function(e){Object.defineProperty(t,e,Object.getOwnPropertyDescriptor(i,e))})}return t}function B(t,e){for(var i=0;i<e.length;i++){var n=e[i];n.enumerable=n.enumerable||!1,n.configurable=!0,"value"in n&&(n.writable=!0),Object.defineProperty(t,U(n.key),n)}}function D(t,e,i){return e=I(e),function(t,e){if(e&&("object"==F(e)||"function"==typeof e))return e;if(void 0!==e)throw new TypeError("Derived constructors may only return object or undefined");return function(t){if(void 0===t)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return t}(t)}(t,G()?Reflect.construct(e,i||[],I(t).constructor):e.apply(t,i))}function G(){try{var t=!Boolean.prototype.valueOf.call(Reflect.construct(Boolean,[],function(){}))}catch(t){}return(G=function(){return!!t})()}function I(t){return I=Object.setPrototypeOf?Object.getPrototypeOf.bind():function(t){return t.__proto__||Object.getPrototypeOf(t)},I(t)}function j(t,e){return j=Object.setPrototypeOf?Object.setPrototypeOf.bind():function(t,e){return t.__proto__=e,t},j(t,e)}function L(t,e,i){return(e=U(e))in t?Object.defineProperty(t,e,{value:i,enumerable:!0,configurable:!0,writable:!0}):t[e]=i,t}function U(t){var e=function(t,e){if("object"!=F(t)||!t)return t;var i=t[Symbol.toPrimitive];if(void 0!==i){var n=i.call(t,e||"default");if("object"!=F(n))return n;throw new TypeError("@@toPrimitive must return a primitive value.")}return("string"===e?String:Number)(t)}(t,"string");return"symbol"==F(e)?e:e+""}C(E,"MIN_CHALLENGES",2),C(E,"MAX_CHALLENGES",12);var Y=function(t){function e(){var t,i=arguments.length>0&&void 0!==arguments[0]?arguments[0]:{};!function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,e);var n={staffEl:"#staff",basePoints:1,firstTryBonus:2,namespace:"intervalsChallenge"},a=R(R(R({},n),i),{},{accidentalWeights:R(R({},n.accidentalWeights||{}),i.accidentalWeights||{}),intervals:Array.isArray(i.intervals)?i.intervals.slice():Object.keys(e.INTERVAL_FULL_NAME_MAP)}),r=function(t){for(var e=(Array.isArray(t)?t:null!=t?[t]:["treble","bass"]).map(function(t){return s(t)}).filter(Boolean),i=[],n=0;n<e.length;n+=1)i.includes(e[n])||i.push(e[n]);return i.length?i:["treble","bass"]}(null!=a.clefs?a.clefs:a.clef);return(t=D(this,e,[R(R({},a),{},{initialClef:r&&r[0]?r[0]:"treble"})]))._clefPool=r,t.$interval=$("#interval"),t.$intervalLabel=t.$interval.find("label"),t.$intervalFull=t.$interval.find("div"),t._currentIntervalAbbr=null,t}return function(t,e){if("function"!=typeof e&&null!==e)throw new TypeError("Super expression must either be null or a function");t.prototype=Object.create(e&&e.prototype,{constructor:{value:t,writable:!0,configurable:!0}}),Object.defineProperty(t,"prototype",{writable:!1}),e&&j(t,e)}(e,t),i=e,(n=[{key:"_deriveFullNameFromAbbr",value:function(t){var e=String(t||"").trim().match(/^([PMAmd])(\d+)$/);if(!e)return t;var i=e[1],n=e[2];return"".concat("m"===i?"minor":"M"===i?"major":"P"===i?"perfect":"A"===i?"augmented":"d"===i?"diminished":i," ").concat(n)}},{key:"_fullNameForInterval",value:function(t){var i=String(t||"").trim();return e.INTERVAL_FULL_NAME_MAP[i]||this._deriveFullNameFromAbbr(i)}},{key:"_setIntervalUI",value:function(t){var e,i,n=String(t||"").trim();this._currentIntervalAbbr=n,null!==(e=this.$intervalLabel)&&void 0!==e&&e.length&&this.$intervalLabel.text(n),null!==(i=this.$intervalFull)&&void 0!==i&&i.length&&this.$intervalFull.text(this._fullNameForInterval(n))}},{key:"newChallenge",value:function(){var t,e;this.$helpBtn.hide(),this._fixedState=null;var i,n,a=(i=this._clefPool,1===(n=Array.isArray(i)&&i.length?i:["treble","bass"]).length?n[0]:n[Math.floor(Math.random()*n.length)]);a&&a!==this.staff.getClef()&&this.staff.setClef(a),this._madeMistakeThisRound=!1,this._usedHintThisRound=!1,this.$bonusBadge.hide(),null===(t=this.$doublePoints)||void 0===t||null===(e=t.hide)||void 0===e||e.call(t);var r=this._pickInterval(),s=this._pickFixedNote();if(this.staff.clearNotes(),this.$accidentals.removeClass("invisible"),this.$feedback.hide(),this.$interval.show(),this._setIntervalUI(r),s){var o=this.staff.addFixedNote({step:s.step,accidentalClass:s.accidentalClass||null});o&&this.staff._emitNoteState(o,"fixed")}$("#check").show(),$("#continue").hide()}},{key:"_pickInterval",value:function(){var t=Array.isArray(this.opts.intervals)&&this.opts.intervals.length?this.opts.intervals:["M3"];return t[Math.floor(Math.random()*t.length)]}},{key:"_pickFixedNote",value:function(){var t,e=(t=this.opts.fixedNotes,null==t?[]:Array.isArray(t)?t:[t]).filter(Boolean);if(e.length){var i=r(e);return M(this.staff,i)}var n=this.opts.accidentalWeights||{},a=function(t){var e=Array.isArray(t)?t.filter(function(t){return t&&Number.isFinite(t.weight)&&t.weight>0}):[];if(!e.length)return null;for(var i=e.reduce(function(t,e){return t+e.weight},0),n=Math.random()*i,a=0;a<e.length;a++)if((n-=e[a].weight)<=0)return e[a].value;return e[e.length-1].value}([{value:null,weight:Number(n.natural)||0},{value:"music-font__sharp",weight:Number(n.sharp)||0},{value:"music-font__flat",weight:Number(n.flat)||0}]);return{step:this._randomInitialFixedStep(),accidentalClass:a}}},{key:"_notesOnStaffOrdered",value:function(){var t=this,e=this.$staffEl.find(".note").not(".preview").not(".hint").toArray().map(function(e){var i=e.getAttribute("data-note-id"),n=t.staff._stepOfNoteEl(e),a=t.staff._getAttachedAccidentalClass(i);return{id:i,step:n,accOff:t.staff._accidentalClassToOffset(a)}});return e.sort(function(t,e){return t.step-e.step}),e}},{key:"_qualityFor",value:function(t,e){var i=e-{1:0,2:2,3:4,4:5,5:7,6:9,7:11,8:12}[t];if(1===t||4===t||5===t||8===t){if(0===i)return"P";if(1===i)return"A";if(-1===i)return"d";if(i>1)return"A".repeat(i);if(i<-1)return"d".repeat(-i)}else{if(0===i)return"M";if(-1===i)return"m";if(1===i)return"A";if(-2===i)return"d";if(i>1)return"A".repeat(i);if(i<-2)return"d".repeat(-i-1)}return"?"}},{key:"_intervalNameBetween",value:function(t,e){var i=this.staff._stepToMidi(t.step)+(t.accOff||0),n=this.staff._stepToMidi(e.step)+(e.accOff||0),a=Math.abs(n-i),r=Math.abs(e.step-t.step)+1,s=(r-1)%7+1,o=a-12*Math.floor((r-1)/7);return this._qualityFor(s,o)+r}},{key:"_onCheck",value:function(){var t=this,e=this._notesOnStaffOrdered();if(this.$checkBtn.disable(),this._stats.checksTotal+=1,2!==e.length)return this._madeAnyMistake=!0,this._madeMistakeThisRound=!0,this.$interval.removeClass("text-blue").addClass("text-red"),this._failAnimation(this.$checkWrap),this.$checkBtn[0]&&this.$checkBtn[0].blur&&this.$checkBtn[0].blur(),void this.$helpBtn.show();if(this._intervalNameBetween(e[0],e[1])===this.$intervalLabel.text()){this._stats.checksCorrect+=1,this._pauseGameTimer();var i=this._awardPointsForCorrect(),n=i.earned,a=i.bonusEarned;this._successAnimation({isBonus:a>0}),this.$interval.hide(),$("#score").animateCSS&&$("#score").animateCSS("heartBeat"),n>0&&this._showIncrement(n),this._updateProgressBar()>=100?(this._stats.finishedAtMs=Date.now(),this.$checkBtn.text("Final results, let's see…"),setTimeout(function(){return t._showFinalResults()},1600)):($("#check").hide(),$("#continue").show())}else this._madeAnyMistake=!0,this._madeMistakeThisRound=!0,this.$interval.removeClass("text-blue").addClass("text-red"),this._failAnimation(this.$checkWrap),this.$checkWrap.off("animationend._failRestore.".concat(this.ns," webkitAnimationEnd._failRestore.").concat(this.ns)).one("animationend._failRestore.".concat(this.ns," webkitAnimationEnd._failRestore.").concat(this.ns),function(){t.$interval.removeClass("text-red").addClass("text-blue")}),this.$helpBtn.show()}},{key:"_intervalSemitones",value:function(t,e){var i={1:0,2:2,3:4,4:5,5:7,6:9,7:11,8:12}[e];if(null==i)return null;var n=1===e||4===e||5===e||8===e,a=String(t||"").trim();return n?"P"===a?i:/^A+$/.test(a)?i+a.length:/^d+$/.test(a)?i-a.length:null:"M"===a?i:"m"===a?i-1:/^A+$/.test(a)?i+a.length:/^d+$/.test(a)?i-(a.length+1):null}},{key:"_computeHintAnswer",value:function(){var t=this;if(!this._fixedState)return null;var e=function(t){var e=String(t||"").trim().match(/^([PMAmd]+)(\d+)$/);return e?{quality:e[1],number:parseInt(e[2],10)}:null}(this._currentIntervalAbbr||this.$intervalLabel&&this.$intervalLabel.text()||"");if(!e||!Number.isFinite(e.number)||e.number<1)return null;var i=e.number-1,n=(e.number-1)%7+1,a=Math.floor((e.number-1)/7),r=this._intervalSemitones(e.quality,n);if(null==r)return null;var s=r+12*a,o=this._fixedState.step,l=this._fixedState.midi,c=this.staff.minStepAllowed(),u=this.staff.maxStepAllowed(),f=function(e){var n=o+e*i;if(n<c||n>u)return null;var a=l+e*s-t.staff._stepToMidi(n);if(a<-2||a>2)return null;var r=O(a);return r?{step:n,accidentalClass:r}:null};return f(1)||f(-1)}}])&&B(i.prototype,n),a&&B(i,a),Object.defineProperty(i,"prototype",{writable:!1}),i;var i,n,a}(E);function W(t){return W="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(t){return typeof t}:function(t){return t&&"function"==typeof Symbol&&t.constructor===Symbol&&t!==Symbol.prototype?"symbol":typeof t},W(t)}function H(t,e){var i=Object.keys(t);if(Object.getOwnPropertySymbols){var n=Object.getOwnPropertySymbols(t);e&&(n=n.filter(function(e){return Object.getOwnPropertyDescriptor(t,e).enumerable})),i.push.apply(i,n)}return i}function X(t){for(var e=1;e<arguments.length;e++){var i=null!=arguments[e]?arguments[e]:{};e%2?H(Object(i),!0).forEach(function(e){V(t,e,i[e])}):Object.getOwnPropertyDescriptors?Object.defineProperties(t,Object.getOwnPropertyDescriptors(i)):H(Object(i)).forEach(function(e){Object.defineProperty(t,e,Object.getOwnPropertyDescriptor(i,e))})}return t}function V(t,e,i){return(e=function(t){var e=function(t,e){if("object"!=W(t)||!t)return t;var i=t[Symbol.toPrimitive];if(void 0!==i){var n=i.call(t,e||"default");if("object"!=W(n))return n;throw new TypeError("@@toPrimitive must return a primitive value.")}return("string"===e?String:Number)(t)}(t,"string");return"symbol"==W(e)?e:e+""}(e))in t?Object.defineProperty(t,e,{value:i,enumerable:!0,configurable:!0,writable:!0}):t[e]=i,t}L(Y,"INTERVAL_FULL_NAME_MAP",{m2:"minor 2nd",M2:"major 2nd",m3:"minor 3rd",M3:"major 3rd",P4:"perfect 4th",A4:"augmented 4th",d5:"diminished 5th",P5:"perfect 5th",m6:"minor 6th",M6:"major 6th",m7:"minor 7th",M7:"major 7th",P8:"perfect 8th"});var q=readGlobal("__challengeOptions")||{},z=readGlobal("__clefUrls")||null;new Y(X(X({},q),{},{clefUrls:z})).start()})();
+/******/ (() => { // webpackBootstrap
+/******/ 	"use strict";
+/******/ 	var __webpack_modules__ = ({
+
+/***/ "./resources/js/music/games/base/BaseStaffGame.js"
+/*!********************************************************!*\
+  !*** ./resources/js/music/games/base/BaseStaffGame.js ***!
+  \********************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   BaseStaffGame: () => (/* binding */ BaseStaffGame),
+/* harmony export */   PAGE_OPENED_AT_MS: () => (/* binding */ PAGE_OPENED_AT_MS)
+/* harmony export */ });
+/* harmony import */ var _staff_Staff_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../staff/Staff.js */ "./resources/js/music/staff/Staff.js");
+/* harmony import */ var _staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../staff/staffUtils.js */ "./resources/js/music/staff/staffUtils.js");
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
+function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+function _classCallCheck(a, n) { if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function"); }
+function _defineProperties(e, r) { for (var t = 0; t < r.length; t++) { var o = r[t]; o.enumerable = o.enumerable || !1, o.configurable = !0, "value" in o && (o.writable = !0), Object.defineProperty(e, _toPropertyKey(o.key), o); } }
+function _createClass(e, r, t) { return r && _defineProperties(e.prototype, r), t && _defineProperties(e, t), Object.defineProperty(e, "prototype", { writable: !1 }), e; }
+function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+// resources/js/music/games/base/BaseStaffGame.js
+
+
+var PAGE_OPENED_AT_MS = Date.now();
+
+/**
+ * BaseStaffGame
+ * Shared runtime for staff-based games:
+ * - Staff wiring (notes, accidentals, noteState events)
+ * - Controls wiring (clear/check/help/continue)
+ * - Scoring, progress, final overlay (CountUp), 2x perfect-game bonus
+ * - UI SFX (Tone.js) + success/fail/final/perfect-game sounds
+ *
+ * Subclasses must implement:
+ * - newChallenge()
+ * - _onCheck()
+ * Optionally override:
+ * - _computeHintAnswer()
+ * - _wireAccidentalPalette()
+ * - _onFixedNoteState()
+ */
+var BaseStaffGame = /*#__PURE__*/function () {
+  function BaseStaffGame() {
+    var _this = this,
+      _this$$doublePoints,
+      _this$$doublePoints$h;
+    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    _classCallCheck(this, BaseStaffGame);
+    var defaults = {
+      staffEl: "#staff",
+      basePoints: 1,
+      firstTryBonus: 2,
+      sound: true,
+      showLetterNames: false,
+      clefUrls: null,
+      initialClef: "treble",
+      maxUserNotes: Infinity,
+      numOfChallenges: 10,
+      practiceMode: false,
+      timer: false,
+      levelName: "",
+      successPhrases: ["Awesome", "Nicely done", "Well done", "Great job", "Hooray", "Fantastic", "Nice work", "Looks good", "Good one", "Splendid", "Way to go", "Nailed it", "Brilliant", "Excellent", "Superb", "Right on", "You got it", "Perfect", "Spot on", "Impressive", "Top notch", "That’s it"],
+      // namespace for jQuery event handlers (avoid collisions if multiple games exist)
+      namespace: "staffGame",
+      // UI gating: how many USER notes before removing instructions / enabling Check
+      instructionsAfterUserNotes: 1,
+      checkAfterUserNotes: 1
+    };
+    this.opts = _objectSpread(_objectSpread({}, defaults), options || {});
+    this.ns = this.opts.namespace || "staffGame";
+    this.opts.numOfChallenges = this._normalizeNumOfChallenges(this.opts.numOfChallenges);
+
+    // UI SFX
+    this._uiSfxReady = false;
+    this._uiSfxSynth = null;
+    this._uiSfxNoise = null;
+    this._uiTimerSfxSynth = null;
+
+    // DOM refs
+    this.$staffEl = $(this.opts.staffEl);
+    this.$accidentals = $("#accidentals");
+    this.$controls = $("#controls");
+    this.$feedback = $("#feedback-success");
+    this.$bonusBadge = this.$feedback.find(".bonus");
+    this.$points = $("#points");
+    this.$increment = $("#increment");
+    this.$checkBtn = $("#check button");
+    this.$skipWrap = $("#skip");
+    this.$skipBtn = this.$skipWrap.find("button");
+    this.$finalOverlay = $("#final-overlay");
+    this.$doublePoints = $("#double-points");
+    this.$checkWrap = this.$checkBtn.parent();
+    this.$progressBar = $("#progress-bar");
+    this.$progressCounter = $("#progress-counter");
+    this.$helpBtn = $("#help");
+    this.$timeupMessage = $("#timeup-message");
+    this.$handPointer = $("#hand-pointer");
+    this.$timer = $("#timer");
+    this.$timerBox = this.$timer.children("div").first();
+    this.$timerText = this.$timer.find("span");
+
+    // Game state
+    this.successPhrases = this.opts.successPhrases;
+    this.maxUserNotes = Number(this.opts.maxUserNotes);
+    this.numOfChallenges = this.opts.numOfChallenges;
+    this.levelName = this.opts.levelName;
+    this.points = 0;
+    this._madeMistakeThisRound = false;
+    this._madeAnyMistake = false;
+    this._continueBound = false;
+    this._usedHintThisRound = false;
+    this._correctStreak = 0;
+    this._stats = {
+      checksTotal: 0,
+      checksCorrect: 0,
+      finishedAtMs: null
+    };
+    this._timerTimeoutId = null;
+    this._timerRemainingSec = 0;
+    this._audioUnlockArmed = false;
+    this._timerEndsAtMs = 0;
+    this._finalMetricsSfxTimeouts = [];
+    this._finalCountupTimeouts = [];
+
+    // Staff
+    this.staff = new _staff_Staff_js__WEBPACK_IMPORTED_MODULE_0__.Staff(this.$staffEl, {
+      clef: this.opts.initialClef || "treble",
+      clefUrls: this.opts.clefUrls || window.__clefUrls,
+      autoClef: false,
+      getMaxUserNotes: function getMaxUserNotes() {
+        return Number.isFinite(_this.maxUserNotes) ? _this.maxUserNotes : Infinity;
+      },
+      sound: !!this.opts.sound
+    });
+    this.showLetterNames = !!this.opts.showLetterNames;
+    this.$staffEl.toggleClass("show-letternames", this.showLetterNames);
+
+    // Fixed note state (for hints)
+    this._fixedNote = {
+      letterWithAcc: "?",
+      letterOnly: "?"
+    };
+    this._fixedState = null;
+
+    // init UI
+    this.$increment.hide();
+    this.$bonusBadge.hide();
+    (_this$$doublePoints = this.$doublePoints) === null || _this$$doublePoints === void 0 || (_this$$doublePoints$h = _this$$doublePoints.hide) === null || _this$$doublePoints$h === void 0 || _this$$doublePoints$h.call(_this$$doublePoints);
+    this.$points.text(String(this.points));
+  }
+  return _createClass(BaseStaffGame, [{
+    key: "_normalizeNumOfChallenges",
+    value: function _normalizeNumOfChallenges(raw) {
+      var _this$opts$numOfChall, _this$opts;
+      var n = Number(raw);
+      var fallback = Number((_this$opts$numOfChall = (_this$opts = this.opts) === null || _this$opts === void 0 ? void 0 : _this$opts.numOfChallenges) !== null && _this$opts$numOfChall !== void 0 ? _this$opts$numOfChall : 10);
+      var safe = Number.isFinite(n) ? Math.trunc(n) : Number.isFinite(fallback) ? Math.trunc(fallback) : 10;
+      var min = BaseStaffGame.MIN_CHALLENGES;
+      var max = BaseStaffGame.MAX_CHALLENGES;
+      if (safe < min) return min;
+      if (safe > max) return max;
+      return safe;
+    }
+
+    // ------------------------ sound controls ------------------------
+  }, {
+    key: "setSoundEnabled",
+    value: function setSoundEnabled(enabled) {
+      this.opts.sound = !!enabled;
+      this.staff.setSoundEnabled(!!enabled);
+      if (!this.opts.sound && window.Tone) {
+        try {
+          this._uiSfxSynth && this._uiSfxSynth.releaseAll && this._uiSfxSynth.releaseAll();
+        } catch (_) {}
+        try {
+          this._uiSfxSynth && this._uiSfxSynth.dispose && this._uiSfxSynth.dispose();
+        } catch (_) {}
+        try {
+          this._uiSfxNoise && this._uiSfxNoise.dispose && this._uiSfxNoise.dispose();
+        } catch (_) {}
+        try {
+          this._uiTimerSfxSynth && this._uiTimerSfxSynth.dispose && this._uiTimerSfxSynth.dispose();
+        } catch (_) {}
+        this._uiSfxSynth = null;
+        this._uiSfxNoise = null;
+        this._uiTimerSfxSynth = null;
+        this._uiSfxReady = false;
+        try {
+          Tone.context && Tone.context.suspend && Tone.context.suspend();
+        } catch (_) {}
+      }
+      return this;
+    }
+  }, {
+    key: "isSoundEnabled",
+    value: function isSoundEnabled() {
+      return this.staff.isSoundEnabled();
+    }
+  }, {
+    key: "_ensureUiSfxAudio",
+    value: function () {
+      var _ensureUiSfxAudio2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
+        var _t;
+        return _regenerator().w(function (_context) {
+          while (1) switch (_context.p = _context.n) {
+            case 0:
+              if (this.isSoundEnabled()) {
+                _context.n = 1;
+                break;
+              }
+              return _context.a(2);
+            case 1:
+              if (!this._uiSfxReady) {
+                _context.n = 2;
+                break;
+              }
+              return _context.a(2);
+            case 2:
+              if (window.Tone) {
+                _context.n = 3;
+                break;
+              }
+              return _context.a(2);
+            case 3:
+              _context.p = 3;
+              _context.n = 4;
+              return Tone.start();
+            case 4:
+              _context.n = 6;
+              break;
+            case 5:
+              _context.p = 5;
+              _t = _context.v;
+              return _context.a(2);
+            case 6:
+              this._uiSfxSynth = new Tone.PolySynth(Tone.Synth, {
+                oscillator: {
+                  type: "triangle"
+                },
+                envelope: {
+                  attack: 0.005,
+                  decay: 0.12,
+                  sustain: 0.0,
+                  release: 0.25
+                }
+              }).toDestination();
+              this._uiSfxNoise = new Tone.NoiseSynth({
+                noise: {
+                  type: "pink"
+                },
+                envelope: {
+                  attack: 0.001,
+                  decay: 0.08,
+                  sustain: 0.0,
+                  release: 0.06
+                }
+              }).toDestination();
+              this._uiTimerSfxSynth = new Tone.Synth({
+                oscillator: {
+                  type: "square"
+                },
+                envelope: {
+                  attack: 0.001,
+                  decay: 0.03,
+                  sustain: 0.0,
+                  release: 0.06
+                }
+              }).toDestination();
+              this._uiSfxReady = true;
+            case 7:
+              return _context.a(2);
+          }
+        }, _callee, this, [[3, 5]]);
+      }));
+      function _ensureUiSfxAudio() {
+        return _ensureUiSfxAudio2.apply(this, arguments);
+      }
+      return _ensureUiSfxAudio;
+    }()
+  }, {
+    key: "_armUiSfxOnFirstGesture",
+    value: function _armUiSfxOnFirstGesture() {
+      var _this2 = this;
+      if (this._audioUnlockArmed) return;
+      if (!this.isSoundEnabled() || !window.Tone) return;
+      this._audioUnlockArmed = true;
+      var ns = ".uiSfxUnlock.".concat(this.ns);
+      var unlock = function unlock() {
+        _this2._ensureUiSfxAudio()["finally"](function () {
+          $(document).off(ns);
+        });
+      };
+      $(document).off(ns).one("pointerdown".concat(ns, " keydown").concat(ns, " touchstart").concat(ns), unlock);
+    }
+  }, {
+    key: "_playSuccessSfxBasic",
+    value: function _playSuccessSfxBasic() {
+      var _this3 = this;
+      if (!this.isSoundEnabled() || !window.Tone) return;
+      this._ensureUiSfxAudio().then(function () {
+        if (!_this3._uiSfxSynth) return;
+        var now = Tone.now();
+        var variants = [["C6", "E6", "G6"], ["D6", "F#6", "A6"], ["E6", "G6", "B6"], ["G5", "B5", "D6", "G6"], ["A5", "C6", "E6", "A6"], ["C6", "D6", "G6"], ["F5", "A5", "C6", "F6"], ["E6", "A6", "C7"], ["B5", "D6", "G6"], ["C6", "G6", "E7"]];
+        var picked = variants[Math.floor(Math.random() * variants.length)];
+        picked.forEach(function (n, i) {
+          _this3._uiSfxSynth.triggerAttackRelease(n, 0.07, now + i * 0.05, 0.42);
+        });
+      });
+    }
+  }, {
+    key: "_playSuccessSfxBonus",
+    value: function _playSuccessSfxBonus() {
+      var _this4 = this;
+      if (!this.isSoundEnabled() || !window.Tone) return;
+      this._ensureUiSfxAudio().then(function () {
+        var _this4$_uiSfxSynth$ge;
+        if (!_this4._uiSfxSynth) return;
+        var now = Tone.now();
+        var oldEnv = _objectSpread({}, _this4._uiSfxSynth.get().envelope);
+        var oldOsc = (_this4$_uiSfxSynth$ge = _this4._uiSfxSynth.get().oscillator) === null || _this4$_uiSfxSynth$ge === void 0 ? void 0 : _this4$_uiSfxSynth$ge.type;
+        try {
+          _this4._uiSfxSynth.set({
+            oscillator: {
+              type: "sine"
+            },
+            envelope: {
+              attack: 0.004,
+              decay: 0.12,
+              sustain: 0.15,
+              release: 0.65
+            }
+          });
+        } catch (_) {}
+        var streakLevel = Math.max(1, Math.min(24, Number(_this4._correctStreak) || 1));
+        var semitoneShift = streakLevel - 1;
+        var toNote = function toNote(midi) {
+          return Tone.Frequency(midi, "midi").toNote();
+        };
+
+        // Start slightly higher (D4 root) and climb one semitone per streak level up to 24.
+        var arp = [62, 66, 69, 73, 74].map(function (m) {
+          return toNote(m + semitoneShift);
+        });
+        var hit = [62, 69, 74, 78].map(function (m) {
+          return toNote(m + semitoneShift);
+        });
+        arp.forEach(function (n, i) {
+          _this4._uiSfxSynth.triggerAttackRelease(n, 0.06, now + i * 0.045, 0.45);
+        });
+        hit.forEach(function (n) {
+          _this4._uiSfxSynth.triggerAttackRelease(n, 0.12, now + 0.26, 0.30);
+        });
+        setTimeout(function () {
+          try {
+            _this4._uiSfxSynth.set({
+              oscillator: {
+                type: oldOsc || "triangle"
+              },
+              envelope: oldEnv
+            });
+          } catch (_) {}
+        }, 600);
+      });
+    }
+  }, {
+    key: "_playFailSfx",
+    value: function _playFailSfx() {
+      var _this5 = this;
+      if (!this.isSoundEnabled() || !window.Tone) return;
+      this._ensureUiSfxAudio().then(function () {
+        var now = Tone.now();
+        if (_this5._uiSfxNoise) {
+          _this5._uiSfxNoise.triggerAttackRelease(0.06, now, 0.1);
+        }
+        if (_this5._uiSfxSynth) {
+          _this5._uiSfxSynth.triggerAttackRelease("A2", 0.10, now + 0.01, 0.1);
+          _this5._uiSfxSynth.triggerAttackRelease("G2", 0.12, now + 0.08, 10.1);
+        }
+      });
+    }
+  }, {
+    key: "_playFinalSfx",
+    value: function _playFinalSfx() {
+      var _this6 = this;
+      if (!this.isSoundEnabled() || !window.Tone) return;
+      this._ensureUiSfxAudio().then(function () {
+        var _this6$_uiSfxSynth$ge;
+        if (!_this6._uiSfxSynth) return;
+        var oldEnv = _objectSpread({}, _this6._uiSfxSynth.get().envelope);
+        var oldOsc = (_this6$_uiSfxSynth$ge = _this6._uiSfxSynth.get().oscillator) === null || _this6$_uiSfxSynth$ge === void 0 ? void 0 : _this6$_uiSfxSynth$ge.type;
+        _this6._uiSfxSynth.set({
+          oscillator: {
+            type: "sine"
+          },
+          envelope: {
+            attack: 0.02,
+            decay: 0.25,
+            sustain: 0.35,
+            release: 0.9
+          }
+        });
+        var now = Tone.now();
+        var variants = [
+        // 1) Triad pad + bright run
+        function () {
+          ["C4", "G4", "C5", "E5"].forEach(function (n) {
+            return _this6._uiSfxSynth.triggerAttackRelease(n, 0.9, now, 0.6);
+          });
+          ["G5", "A5", "B5", "C6", "D6", "E6", "G6"].forEach(function (n, i) {
+            _this6._uiSfxSynth.triggerAttackRelease(n, 0.08, now + 0.25 + i * 0.06, 0.35);
+          });
+        },
+        // 2) Rising broken chord + final hit
+        function () {
+          ["C5", "E5", "G5", "B5", "D6", "G6"].forEach(function (n, i) {
+            _this6._uiSfxSynth.triggerAttackRelease(n, 0.11, now + i * 0.08, 0.44);
+          });
+          ["C6", "E6", "G6"].forEach(function (n) {
+            return _this6._uiSfxSynth.triggerAttackRelease(n, 0.28, now + 0.62, 0.5);
+          });
+        },
+        // 3) Two chord swells
+        function () {
+          ["A3", "E4", "A4", "C5"].forEach(function (n) {
+            return _this6._uiSfxSynth.triggerAttackRelease(n, 0.45, now, 0.45);
+          });
+          ["F4", "A4", "C5", "F5"].forEach(function (n) {
+            return _this6._uiSfxSynth.triggerAttackRelease(n, 0.52, now + 0.35, 0.48);
+          });
+          ["C5", "F5", "A5"].forEach(function (n) {
+            return _this6._uiSfxSynth.triggerAttackRelease(n, 0.24, now + 0.78, 0.4);
+          });
+        },
+        // 4) Sparkly step run + octave landing
+        function () {
+          ["E5", "G5", "A5", "B5", "D6", "E6", "G6", "A6"].forEach(function (n, i) {
+            _this6._uiSfxSynth.triggerAttackRelease(n, 0.075, now + i * 0.055, 0.34);
+          });
+          ["A5", "A6", "C7"].forEach(function (n) {
+            return _this6._uiSfxSynth.triggerAttackRelease(n, 0.20, now + 0.52, 0.42);
+          });
+        },
+        // 5) Major lift arpeggio
+        function () {
+          ["D4", "A4", "D5", "F#5"].forEach(function (n) {
+            return _this6._uiSfxSynth.triggerAttackRelease(n, 0.36, now, 0.45);
+          });
+          ["D5", "F#5", "A5", "D6", "F#6"].forEach(function (n, i) {
+            _this6._uiSfxSynth.triggerAttackRelease(n, 0.095, now + 0.2 + i * 0.065, 0.4);
+          });
+        },
+        // 6) Warm cadence
+        function () {
+          ["G3", "D4", "G4", "B4"].forEach(function (n) {
+            return _this6._uiSfxSynth.triggerAttackRelease(n, 0.4, now, 0.4);
+          });
+          ["C4", "E4", "G4", "C5"].forEach(function (n) {
+            return _this6._uiSfxSynth.triggerAttackRelease(n, 0.44, now + 0.32, 0.46);
+          });
+          ["E5", "G5", "C6"].forEach(function (n) {
+            return _this6._uiSfxSynth.triggerAttackRelease(n, 0.22, now + 0.72, 0.4);
+          });
+        },
+        // 7) Fast gamey sparkle
+        function () {
+          ["C6", "D6", "E6", "G6", "A6", "G6", "E6", "C7"].forEach(function (n, i) {
+            _this6._uiSfxSynth.triggerAttackRelease(n, 0.06, now + i * 0.048, 0.3);
+          });
+          ["G6", "C7"].forEach(function (n) {
+            return _this6._uiSfxSynth.triggerAttackRelease(n, 0.2, now + 0.48, 0.38);
+          });
+        },
+        // 8) Two-step fanfare
+        function () {
+          ["F4", "C5", "A5"].forEach(function (n, i) {
+            _this6._uiSfxSynth.triggerAttackRelease(n, 0.16, now + i * 0.06, 0.45);
+          });
+          ["G4", "D5", "B5"].forEach(function (n, i) {
+            _this6._uiSfxSynth.triggerAttackRelease(n, 0.16, now + 0.28 + i * 0.06, 0.48);
+          });
+          ["C5", "E5", "G5", "C6"].forEach(function (n) {
+            return _this6._uiSfxSynth.triggerAttackRelease(n, 0.26, now + 0.54, 0.44);
+          });
+        },
+        // 9) Descend then resolve up
+        function () {
+          ["A6", "G6", "E6", "D6", "C6"].forEach(function (n, i) {
+            _this6._uiSfxSynth.triggerAttackRelease(n, 0.08, now + i * 0.06, 0.34);
+          });
+          ["E6", "G6", "C7"].forEach(function (n) {
+            return _this6._uiSfxSynth.triggerAttackRelease(n, 0.24, now + 0.4, 0.42);
+          });
+        },
+        // 10) Big finish hit
+        function () {
+          ["C4", "E4", "G4", "C5"].forEach(function (n) {
+            return _this6._uiSfxSynth.triggerAttackRelease(n, 0.34, now, 0.48);
+          });
+          ["E5", "G5", "B5", "D6", "E6"].forEach(function (n, i) {
+            _this6._uiSfxSynth.triggerAttackRelease(n, 0.09, now + 0.18 + i * 0.055, 0.38);
+          });
+          ["C6", "E6", "G6", "C7"].forEach(function (n) {
+            return _this6._uiSfxSynth.triggerAttackRelease(n, 0.3, now + 0.58, 0.5);
+          });
+        }];
+        var playVariant = variants[Math.floor(Math.random() * variants.length)];
+        playVariant();
+        setTimeout(function () {
+          try {
+            _this6._uiSfxSynth.set({
+              oscillator: {
+                type: oldOsc || "triangle"
+              },
+              envelope: oldEnv
+            });
+          } catch (_) {}
+        }, 1700);
+      });
+    }
+  }, {
+    key: "_clearFinalMetricsSfxTimers",
+    value: function _clearFinalMetricsSfxTimers() {
+      if (!Array.isArray(this._finalMetricsSfxTimeouts)) {
+        this._finalMetricsSfxTimeouts = [];
+        return;
+      }
+      this._finalMetricsSfxTimeouts.forEach(function (id) {
+        return clearTimeout(id);
+      });
+      this._finalMetricsSfxTimeouts = [];
+    }
+  }, {
+    key: "_clearFinalCountupTimers",
+    value: function _clearFinalCountupTimers() {
+      if (!Array.isArray(this._finalCountupTimeouts)) {
+        this._finalCountupTimeouts = [];
+        return;
+      }
+      this._finalCountupTimeouts.forEach(function (id) {
+        return clearTimeout(id);
+      });
+      this._finalCountupTimeouts = [];
+    }
+  }, {
+    key: "_playFinalMetricPopSfx",
+    value: function _playFinalMetricPopSfx(index) {
+      if (!this.isSoundEnabled() || !window.Tone) return;
+      if (!this._uiSfxReady) return;
+      var now = Tone.now();
+      var safeIdx = Math.max(0, Number(index) || 0);
+      var midi = Math.min(96, 67 + safeIdx * 2); // rises as each box appears
+      var synth = this._uiTimerSfxSynth || this._uiSfxSynth;
+      if (!synth) return;
+      synth.triggerAttackRelease(Tone.Frequency(midi, "midi"), 0.055, now, 0.44);
+      synth.triggerAttackRelease(Tone.Frequency(midi + 5, "midi"), 0.045, now + 0.03, 0.34);
+    }
+  }, {
+    key: "_animateFinalMetricsWithSfx",
+    value: function _animateFinalMetricsWithSfx() {
+      var _this7 = this;
+      var $boxes = this.$finalOverlay.find("#metrics-boxes > div");
+      if (!$boxes.length) return;
+      var BASE_DELAY_MS = 260;
+      var STEP_DELAY_MS = 260; // wider spacing between boxes
+
+      this._clearFinalMetricsSfxTimers();
+      $boxes.each(function (i, el) {
+        var delayMs = BASE_DELAY_MS + i * STEP_DELAY_MS;
+        el.style.animationDelay = "".concat(delayMs, "ms");
+        var tid = setTimeout(function () {
+          _this7._playFinalMetricPopSfx(i);
+        }, delayMs);
+        _this7._finalMetricsSfxTimeouts.push(tid);
+      });
+    }
+  }, {
+    key: "_playPerfectGameBonusSfx",
+    value: function _playPerfectGameBonusSfx() {
+      var _this8 = this;
+      if (!this.isSoundEnabled() || !window.Tone) return;
+      this._ensureUiSfxAudio().then(function () {
+        var _this8$_uiSfxSynth$ge;
+        if (!_this8._uiSfxSynth) return;
+        var oldEnv = _objectSpread({}, _this8._uiSfxSynth.get().envelope);
+        var oldOsc = (_this8$_uiSfxSynth$ge = _this8._uiSfxSynth.get().oscillator) === null || _this8$_uiSfxSynth$ge === void 0 ? void 0 : _this8$_uiSfxSynth$ge.type;
+        try {
+          _this8._uiSfxSynth.set({
+            oscillator: {
+              type: "triangle"
+            },
+            envelope: {
+              attack: 0.01,
+              decay: 0.18,
+              sustain: 0.25,
+              release: 0.8
+            }
+          });
+        } catch (_) {}
+        var now = Tone.now();
+        var fanfare = ["C5", "E5", "G5", "C6", "E6", "G6", "C7"];
+        fanfare.forEach(function (n, i) {
+          _this8._uiSfxSynth.triggerAttackRelease(n, 0.09, now + i * 0.06, 0.62);
+        });
+        var hit = ["C6", "G6", "C7", "E7"];
+        hit.forEach(function (n) {
+          return _this8._uiSfxSynth.triggerAttackRelease(n, 0.35, now + 0.48, 0.46);
+        });
+        setTimeout(function () {
+          try {
+            _this8._uiSfxSynth.set({
+              oscillator: {
+                type: oldOsc || "triangle"
+              },
+              envelope: oldEnv
+            });
+          } catch (_) {}
+        }, 1400);
+      });
+    }
+
+    // ------------------------ lifecycle ------------------------
+  }, {
+    key: "_isTimerEnabled",
+    value: function _isTimerEnabled() {
+      var v = this.opts.timer;
+      var s = String(v || "").trim().toLowerCase();
+      return v === true || s === "true" || s === "on";
+    }
+  }, {
+    key: "_formatTimerDisplay",
+    value: function _formatTimerDisplay(totalSec) {
+      var sec = Math.max(0, Math.floor(Number(totalSec) || 0));
+      var mm = String(Math.floor(sec / 60)).padStart(2, "0");
+      var ss = String(sec % 60).padStart(2, "0");
+      return "".concat(mm, ":").concat(ss);
+    }
+  }, {
+    key: "_renderTimerDisplay",
+    value: function _renderTimerDisplay() {
+      var _this$$timerText;
+      if (!((_this$$timerText = this.$timerText) !== null && _this$$timerText !== void 0 && _this$$timerText.length)) return;
+      this.$timerText.text(this._formatTimerDisplay(this._timerRemainingSec));
+      this._syncTimerWarningStyle();
+    }
+  }, {
+    key: "_syncTimerWarningStyle",
+    value: function _syncTimerWarningStyle() {
+      var _this$$timerBox;
+      if (!((_this$$timerBox = this.$timerBox) !== null && _this$$timerBox !== void 0 && _this$$timerBox.length)) return;
+      var warning = this._timerRemainingSec <= 5;
+      this.$timerBox.toggleClass("bg-red", warning);
+      this.$timerBox.toggleClass("bg-primary", !warning);
+    }
+  }, {
+    key: "_setTimedOutInteractivityDisabled",
+    value: function _setTimedOutInteractivityDisabled(disabled) {
+      var on = !!disabled;
+      var $staff = $("#staff");
+      var $staffWrapper = $("#staff-wrapper");
+      var $accidentals = $("#accidentals");
+      if (on) {
+        $staff.attr("disabled", "disabled");
+        $staffWrapper.attr("disabled", "disabled");
+        $accidentals.attr("disabled", "disabled");
+        $staff.attr("aria-disabled", "true");
+        $staffWrapper.attr("aria-disabled", "true");
+        $accidentals.attr("aria-disabled", "true");
+        $staff.css("pointer-events", "none");
+        $staffWrapper.css("pointer-events", "none");
+        $accidentals.css("pointer-events", "none");
+      } else {
+        $staff.removeAttr("disabled");
+        $staffWrapper.removeAttr("disabled");
+        $accidentals.removeAttr("disabled");
+        $staff.removeAttr("aria-disabled");
+        $staffWrapper.removeAttr("aria-disabled");
+        $accidentals.removeAttr("aria-disabled");
+        $staff.css("pointer-events", "");
+        $staffWrapper.css("pointer-events", "");
+        $accidentals.css("pointer-events", "");
+      }
+    }
+  }, {
+    key: "_showSkipRoundButton",
+    value: function _showSkipRoundButton() {
+      var _this$$skipWrap;
+      if (!((_this$$skipWrap = this.$skipWrap) !== null && _this$$skipWrap !== void 0 && _this$$skipWrap.length)) return;
+      this.$skipWrap.show();
+    }
+  }, {
+    key: "_hideSkipRoundButton",
+    value: function _hideSkipRoundButton() {
+      var _this$$skipWrap2;
+      if (!((_this$$skipWrap2 = this.$skipWrap) !== null && _this$$skipWrap2 !== void 0 && _this$$skipWrap2.length)) return;
+      this.$skipWrap.hide();
+    }
+  }, {
+    key: "_hideTimeUpMessage",
+    value: function _hideTimeUpMessage() {
+      var _this$$timeupMessage;
+      if (!((_this$$timeupMessage = this.$timeupMessage) !== null && _this$$timeupMessage !== void 0 && _this$$timeupMessage.length)) return;
+      this.$timeupMessage.removeClass("animate__animated animate__flash").hide();
+    }
+  }, {
+    key: "_showTimeUpMessage",
+    value: function _showTimeUpMessage() {
+      var _this$$timeupMessage2;
+      if (!((_this$$timeupMessage2 = this.$timeupMessage) !== null && _this$$timeupMessage2 !== void 0 && _this$$timeupMessage2.length)) return;
+      this.$timeupMessage.removeClass("animate__animated animate__flash").show();
+      // eslint-disable-next-line no-unused-expressions
+      this.$timeupMessage[0] && this.$timeupMessage[0].offsetWidth;
+      this.$timeupMessage.addClass("animate__animated animate__flash");
+    }
+  }, {
+    key: "_wouldReachLastRoundAfterAdvance",
+    value: function _wouldReachLastRoundAfterAdvance() {
+      if (this._isPracticeMode()) return false;
+      var steps = Math.max(1, this.numOfChallenges || 1);
+      var increment = 100 / steps;
+      var current = parseFloat(this.$progressBar.data("progress")) || 0;
+      return current + increment >= 100;
+    }
+  }, {
+    key: "_finishRoundAsTimedOut",
+    value: function _finishRoundAsTimedOut() {
+      var _this9 = this;
+      this._correctStreak = 0;
+      this._madeAnyMistake = true;
+      this._madeMistakeThisRound = true;
+      this._stats.checksTotal += 1;
+      var reachedEnd = this._updateProgressBar() >= 100;
+      if (reachedEnd && !this._isPracticeMode()) {
+        this._stats.finishedAtMs = Date.now();
+        this.$checkBtn.text('Final results, let\'s see…');
+        setTimeout(function () {
+          return _this9._showFinalResults();
+        }, 1600);
+        return;
+      }
+      this._setTimedOutInteractivityDisabled(false);
+      this._hideTimeUpMessage();
+      this._hideSkipRoundButton();
+      $("#interval").removeClass("text-red").addClass("text-blue");
+      this._resetRoundTimerIfEnabled();
+      this.newChallenge();
+      this._armUiGates({
+        resetInstructions: false
+      });
+      this.$checkBtn.enable();
+    }
+  }, {
+    key: "_pulseTimerWarning",
+    value: function _pulseTimerWarning() {
+      var _this$$timer;
+      if (!((_this$$timer = this.$timer) !== null && _this$$timer !== void 0 && _this$$timer.length)) return;
+      this.$timer.removeClass("animate__animated animate__pulse");
+      // eslint-disable-next-line no-unused-expressions
+      this.$timer[0] && this.$timer[0].offsetWidth;
+      this.$timer.addClass("animate__animated animate__pulse");
+    }
+  }, {
+    key: "_playTimerWarningBeep",
+    value: function _playTimerWarningBeep() {
+      if (!this.isSoundEnabled() || !window.Tone) return;
+      if (!this._uiSfxReady || !this._uiTimerSfxSynth) return;
+      var now = Tone.now();
+      this._uiTimerSfxSynth.triggerAttackRelease("C6", 0.06, now, 0.5);
+    }
+  }, {
+    key: "_playTimerTimeUpSfx",
+    value: function _playTimerTimeUpSfx() {
+      if (!this.isSoundEnabled() || !window.Tone) return;
+      if (!this._uiSfxReady || !this._uiTimerSfxSynth) return;
+      var now = Tone.now();
+      if (this._uiSfxNoise) {
+        this._uiSfxNoise.triggerAttackRelease(0.12, now, 0.2);
+      }
+      this._uiTimerSfxSynth.triggerAttackRelease("G4", 0.11, now, 0.72);
+      this._uiTimerSfxSynth.triggerAttackRelease("E4", 0.13, now + 0.10, 0.76);
+      this._uiTimerSfxSynth.triggerAttackRelease("C4", 0.18, now + 0.22, 0.82);
+    }
+  }, {
+    key: "_stopGameTimer",
+    value: function _stopGameTimer() {
+      var _this$$timer2, _this$$timer2$removeC;
+      if (this._timerTimeoutId != null) {
+        clearTimeout(this._timerTimeoutId);
+        this._timerTimeoutId = null;
+      }
+      this._timerEndsAtMs = 0;
+      this._timerRemainingSec = 0;
+      this._syncTimerWarningStyle();
+      (_this$$timer2 = this.$timer) === null || _this$$timer2 === void 0 || (_this$$timer2$removeC = _this$$timer2.removeClass) === null || _this$$timer2$removeC === void 0 || _this$$timer2$removeC.call(_this$$timer2, "animate__animated animate__pulse");
+    }
+  }, {
+    key: "_pauseGameTimer",
+    value: function _pauseGameTimer() {
+      var _this$$timer3, _this$$timer3$removeC;
+      if (this._timerTimeoutId != null) {
+        clearTimeout(this._timerTimeoutId);
+        this._timerTimeoutId = null;
+      }
+      this._timerEndsAtMs = 0;
+      (_this$$timer3 = this.$timer) === null || _this$$timer3 === void 0 || (_this$$timer3$removeC = _this$$timer3.removeClass) === null || _this$$timer3$removeC === void 0 || _this$$timer3$removeC.call(_this$$timer3, "animate__animated animate__pulse");
+    }
+  }, {
+    key: "_runGameTimerTick",
+    value: function _runGameTimerTick() {
+      var _this0 = this;
+      if (!this._timerEndsAtMs) return;
+      var prev = this._timerRemainingSec;
+      var msLeft = this._timerEndsAtMs - Date.now();
+      var next = Math.max(0, Math.ceil(msLeft / 1000));
+      this._timerRemainingSec = next;
+      this._renderTimerDisplay();
+      if (next > 0 && next <= 5 && next !== prev) {
+        this._pulseTimerWarning();
+        this._playTimerWarningBeep();
+      } else if (next === 0 && prev !== 0) {
+        $("#check").hide();
+        this.$helpBtn.hide();
+        this._setTimedOutInteractivityDisabled(true);
+        this._pulseTimerWarning();
+        this._playTimerTimeUpSfx();
+        this._showTimeUpMessage();
+        this.$checkBtn.disable();
+        if (this._wouldReachLastRoundAfterAdvance()) {
+          this._hideSkipRoundButton();
+          this._finishRoundAsTimedOut();
+        } else {
+          this._showSkipRoundButton();
+        }
+      }
+      if (next <= 0) {
+        this._stopGameTimer();
+        return;
+      }
+      var nextChangeAt = this._timerEndsAtMs - (next - 1) * 1000;
+      var delay = Math.max(16, nextChangeAt - Date.now());
+      this._timerTimeoutId = setTimeout(function () {
+        return _this0._runGameTimerTick();
+      }, delay);
+    }
+  }, {
+    key: "_startGameTimer",
+    value: function _startGameTimer() {
+      var startSec = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 10;
+      this._stopGameTimer();
+      var total = Math.max(0, Math.floor(Number(startSec) || 0));
+      this._timerEndsAtMs = Date.now() + total * 1000;
+      this._timerRemainingSec = total;
+      this._renderTimerDisplay();
+      this._runGameTimerTick();
+    }
+  }, {
+    key: "_timerLimitSeconds",
+    value: function _timerLimitSeconds() {
+      var raw = Number(this.opts.timeLimit != null ? this.opts.timeLimit : this.opts.timerLimit);
+      if (!Number.isFinite(raw)) return 10;
+      return Math.max(0, Math.floor(raw));
+    }
+  }, {
+    key: "_resetRoundTimerIfEnabled",
+    value: function _resetRoundTimerIfEnabled() {
+      if (!this._isTimerEnabled()) return;
+      this.$timer.show();
+      this._startGameTimer(this._timerLimitSeconds());
+    }
+  }, {
+    key: "start",
+    value: function start() {
+      this._madeAnyMistake = false;
+      $("#instructions").show();
+      $("#controls").show();
+      this._instructionsRemoved = false;
+      this._wireAccidentalPalette();
+      this._wireStaffTools();
+      this._wireFirstNoteLearningTracker();
+      this._wireControls();
+      this._resetProgress();
+      this._setTimedOutInteractivityDisabled(false);
+      this._hideTimeUpMessage();
+      this._hideSkipRoundButton();
+      this._syncHandPointerVisibility();
+      if (this._isTimerEnabled()) {
+        this.$timer.show();
+        this._armUiSfxOnFirstGesture();
+        this._resetRoundTimerIfEnabled();
+      } else {
+        this._stopGameTimer();
+        this.$timer.hide();
+      }
+      this.newChallenge();
+      this._armUiGates({
+        resetInstructions: true
+      });
+      $("#page-wrapper").fadeIn("fast");
+    }
+
+    // Subclasses must implement
+  }, {
+    key: "newChallenge",
+    value: function newChallenge() {
+      throw new Error("newChallenge() not implemented");
+    }
+
+    // Subclasses implement their own check logic
+  }, {
+    key: "_onCheck",
+    value: function _onCheck() {
+      throw new Error("_onCheck() not implemented");
+    }
+
+    // ------------------------ wiring ------------------------
+  }, {
+    key: "_wireAccidentalPalette",
+    value: function _wireAccidentalPalette() {
+      $("#accidentals .music-font__doublesharp, #accidentals .music-font__doubleflat").addClass("d-none");
+    }
+  }, {
+    key: "_wireStaffTools",
+    value: function _wireStaffTools() {
+      var _this1 = this;
+      this.staff.enableNoteDragAndClickDelete();
+      this.staff.enableGhostClickCreate();
+      this.staff.enableAccidentalDrag($("#accidentals .music-font__sharp, #accidentals .music-font__flat, #accidentals .music-font__natural"));
+      this.staff.enableAccidentalDropOnStaff();
+      this.$staffEl.off("staff:noteState._log.".concat(this.ns)).on("staff:noteState._log.".concat(this.ns), function (e, data) {
+        var full = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.spellNoteFromState)(_this1.staff, data.step, data.accidentalClass);
+        var letterOnly = full.replace(/\d+$/, "");
+        if (_this1.showLetterNames) {
+          _this1.$staffEl.find(".note[data-note-id=\"".concat(data.noteId, "\"] .lettername")).text(letterOnly);
+        }
+        if (data.source === "fixed") {
+          var _this1$_onFixedNoteSt;
+          _this1._fixedNote = {
+            letterWithAcc: letterOnly,
+            letterOnly: letterOnly.replace(/[#b]+$/, "")
+          };
+          _this1._fixedState = {
+            step: data.step,
+            accidentalClass: data.accidentalClass || null,
+            midi: data.midi
+          };
+          (_this1$_onFixedNoteSt = _this1._onFixedNoteState) === null || _this1$_onFixedNoteSt === void 0 || _this1$_onFixedNoteSt.call(_this1, data, full, letterOnly);
+        }
+
+        // Keep your debug logging behavior
+        // eslint-disable-next-line no-console
+        console.log(data.source === "fixed" ? "Fixed note:" : "User note:", full, {
+          midi: data.midi,
+          noteId: data.noteId,
+          step: data.step,
+          clef: _this1.staff.getClef()
+        });
+      });
+    }
+  }, {
+    key: "_firstNoteCookieName",
+    value: function _firstNoteCookieName() {
+      var base = String(this.ns || "staffGame").trim().replace(/[^a-zA-Z0-9_-]/g, "_");
+      return "music_first_note_learned_".concat(base);
+    }
+  }, {
+    key: "_getCookie",
+    value: function _getCookie(name) {
+      var key = "".concat(name, "=");
+      var parts = String(document.cookie || "").split("; ");
+      for (var i = 0; i < parts.length; i += 1) {
+        if (parts[i].startsWith(key)) return decodeURIComponent(parts[i].slice(key.length));
+      }
+      return null;
+    }
+  }, {
+    key: "_setCookie",
+    value: function _setCookie(name, value) {
+      var days = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 3650;
+      var d = new Date();
+      d.setTime(d.getTime() + days * 24 * 60 * 60 * 1000);
+      var expires = "expires=".concat(d.toUTCString());
+      document.cookie = "".concat(name, "=").concat(encodeURIComponent(String(value)), "; ").concat(expires, "; path=/; SameSite=Lax");
+    }
+  }, {
+    key: "_hasLearnedFirstNote",
+    value: function _hasLearnedFirstNote() {
+      return this._getCookie(this._firstNoteCookieName()) === "1";
+    }
+  }, {
+    key: "_markLearnedFirstNote",
+    value: function _markLearnedFirstNote() {
+      this._setCookie(this._firstNoteCookieName(), "1");
+    }
+  }, {
+    key: "_syncHandPointerVisibility",
+    value: function _syncHandPointerVisibility() {
+      var _this$$handPointer;
+      if (!((_this$$handPointer = this.$handPointer) !== null && _this$$handPointer !== void 0 && _this$$handPointer.length)) return;
+      if (this._hasLearnedFirstNote()) this.$handPointer.hide();else this.$handPointer.show();
+    }
+  }, {
+    key: "_wireFirstNoteLearningTracker",
+    value: function _wireFirstNoteLearningTracker() {
+      var _this10 = this;
+      this.$staffEl.off("staff:userNoteAdded._learn.".concat(this.ns)).on("staff:userNoteAdded._learn.".concat(this.ns), function () {
+        var _this10$$handPointer2, _this10$$handPointer3;
+        if (_this10._hasLearnedFirstNote()) {
+          var _this10$$handPointer, _this10$$handPointer$;
+          (_this10$$handPointer = _this10.$handPointer) === null || _this10$$handPointer === void 0 || (_this10$$handPointer$ = _this10$$handPointer.hide) === null || _this10$$handPointer$ === void 0 || _this10$$handPointer$.call(_this10$$handPointer);
+          _this10.$staffEl.off("staff:userNoteAdded._learn.".concat(_this10.ns));
+          return;
+        }
+        _this10._markLearnedFirstNote();
+        (_this10$$handPointer2 = _this10.$handPointer) === null || _this10$$handPointer2 === void 0 || (_this10$$handPointer3 = _this10$$handPointer2.hide) === null || _this10$$handPointer3 === void 0 || _this10$$handPointer3.call(_this10$$handPointer2);
+        _this10.$staffEl.off("staff:userNoteAdded._learn.".concat(_this10.ns));
+      });
+    }
+  }, {
+    key: "_wireControls",
+    value: function _wireControls() {
+      var _this11 = this;
+      $("#clear").off("click.".concat(this.ns)).on("click.".concat(this.ns), function () {
+        return _this11.staff.clearNotes();
+      });
+      this.$checkBtn.off("click.".concat(this.ns)).on("click.".concat(this.ns), function () {
+        return _this11._onCheck();
+      });
+      this.$helpBtn.off("click.".concat(this.ns, "Help")).on("click.".concat(this.ns, "Help"), function () {
+        _this11._usedHintThisRound = true;
+        _this11._showHintNote();
+      });
+      this.$skipBtn.off("click.".concat(this.ns, "Skip")).on("click.".concat(this.ns, "Skip"), function (e) {
+        e.preventDefault();
+        _this11._finishRoundAsTimedOut();
+      });
+      if (!this._continueBound) {
+        this._continueBound = true;
+        $("#continue button").off("click.".concat(this.ns)).on("click.".concat(this.ns), function () {
+          $("#continue").hide();
+          _this11._hideSkipRoundButton();
+          _this11._hideTimeUpMessage();
+          _this11._setTimedOutInteractivityDisabled(false);
+          _this11._resetRoundTimerIfEnabled();
+          _this11.newChallenge();
+          _this11._armUiGates({
+            resetInstructions: false
+          });
+          _this11.$checkBtn.enable();
+        });
+      }
+    }
+
+    // ------------------------ UI gating ------------------------
+  }, {
+    key: "_instructionsAfterUserNotes",
+    value: function _instructionsAfterUserNotes() {
+      var v = Number(this.opts.instructionsAfterUserNotes);
+      return Number.isFinite(v) && v >= 0 ? Math.floor(v) : 1;
+    }
+  }, {
+    key: "_checkAfterUserNotes",
+    value: function _checkAfterUserNotes() {
+      var v = Number(this.opts.checkAfterUserNotes);
+      return Number.isFinite(v) && v >= 0 ? Math.floor(v) : 1;
+    }
+  }, {
+    key: "_armUiGates",
+    value: function _armUiGates() {
+      var _this12 = this;
+      var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+        resetInstructions = _ref.resetInstructions;
+      var needForInstructions = this._instructionsAfterUserNotes();
+      var needForCheck = this._checkAfterUserNotes();
+      if (resetInstructions) this._instructionsRemoved = false;
+
+      // Ensure the check control occupies layout but is not visible until the gate opens.
+      $("#check").show().addClass("invisible");
+      this._userNotesSinceGate = 0;
+      this.$staffEl.off("staff:userNoteAdded._uiGate.".concat(this.ns)).on("staff:userNoteAdded._uiGate.".concat(this.ns), function () {
+        _this12._userNotesSinceGate += 1;
+        if (!_this12._instructionsRemoved && _this12._userNotesSinceGate >= needForInstructions) {
+          $("#instructions").remove();
+          _this12._instructionsRemoved = true;
+        }
+        if (_this12._userNotesSinceGate >= needForCheck) {
+          $("#check").removeClass("invisible");
+          _this12.$staffEl.off("staff:userNoteAdded._uiGate.".concat(_this12.ns));
+        }
+      });
+    }
+
+    // ------------------------ initial note range ------------------------
+
+    /**
+     * Resolve the configured range index for the randomly-generated *given* note.
+     *
+     * Supported inputs:
+     * - number or numeric string: 0=narrow, 1=wide, 2=full
+     *
+     * There is intentionally NO default here; the backend must always provide it.
+     *
+     * @returns {0|1|2}
+     */
+  }, {
+    key: "_initialNoteRangeIndex",
+    value: function _initialNoteRangeIndex() {
+      var raw = this.opts.initialNoteRange != null ? this.opts.initialNoteRange : this.opts.range != null ? this.opts.range : undefined;
+      if (raw == null) {
+        throw new Error("[BaseStaffGame] Missing required option: initialNoteRange (0=narrow, 1=wide, 2=full).");
+      }
+      var n = Number(raw);
+      if (!Number.isFinite(n)) {
+        throw new Error("[BaseStaffGame] initialNoteRange must be a number (0, 1, or 2). Got: ".concat(String(raw)));
+      }
+      var idx = Math.trunc(n);
+      if (idx === 0 || idx === 1 || idx === 2) {
+        return /** @type {0|1|2} */idx;
+      }
+
+      // Out-of-range values default to FULL (2) instead of crashing.
+      // eslint-disable-next-line no-console
+      console.warn("[BaseStaffGame] initialNoteRange out of range; defaulting to 2 (full).", {
+        value: raw
+      });
+      return 2;
+    }
+
+    /**
+     * Staff "step" for the clef's reference line:
+     * - treble: G line (2nd line from bottom) => step 2
+     * - bass:   F line (2nd line from top)    => step 6
+     * - alto:   C line (middle line)          => step 4
+     * - tenor:  C line (2nd line from top)    => step 6
+     */
+  }, {
+    key: "_clefMainLineStep",
+    value: function _clefMainLineStep(clef) {
+      switch (String(clef || "").trim().toLowerCase()) {
+        case "bass":
+          return 6;
+        case "alto":
+          return 4;
+        case "tenor":
+          return 6;
+        case "treble":
+        default:
+          return 2;
+      }
+    }
+
+    /**
+     * Allowed bounds for the randomly-generated *given* note, based on the current clef.
+     * @returns {{min:number, max:number}}
+     */
+  }, {
+    key: "_initialFixedStepBounds",
+    value: function _initialFixedStepBounds() {
+      var minAllowed = this.staff.minStepAllowed();
+      var maxAllowed = this.staff.maxStepAllowed();
+      var idx = this._initialNoteRangeIndex();
+      if (idx === 2) return {
+        min: minAllowed,
+        max: maxAllowed
+      };
+      var center = this._clefMainLineStep(this.staff.getClef());
+      var lineSpan = idx === 0 ? 1 : 2;
+      var spanSteps = lineSpan * 2; // 1 staff line = 2 "steps"
+
+      var min = Math.max(minAllowed, center - spanSteps);
+      var max = Math.min(maxAllowed, center + spanSteps);
+      return {
+        min: min,
+        max: max
+      };
+    }
+  }, {
+    key: "_isStepInInitialFixedRange",
+    value: function _isStepInInitialFixedRange(step) {
+      if (!Number.isFinite(step)) return false;
+      var _this$_initialFixedSt = this._initialFixedStepBounds(),
+        min = _this$_initialFixedSt.min,
+        max = _this$_initialFixedSt.max;
+      return step >= min && step <= max;
+    }
+
+    /**
+     * Pick a random step for the *given* note (fixed note) that respects the selected range.
+     * @returns {number}
+     */
+  }, {
+    key: "_randomInitialFixedStep",
+    value: function _randomInitialFixedStep() {
+      var _this$_initialFixedSt2 = this._initialFixedStepBounds(),
+        min = _this$_initialFixedSt2.min,
+        max = _this$_initialFixedSt2.max;
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    // ------------------------ hints ------------------------
+
+    /**
+     * Compute one hint note (legacy API).
+     *
+     * @returns {{step:number, accidentalClass?:string}|null}
+     */
+  }, {
+    key: "_computeHintAnswer",
+    value: function _computeHintAnswer() {
+      return null; // subclasses override
+    }
+
+    /**
+     * Compute one or more hint notes.
+     *
+     * Subclasses can override this to return multiple notes (e.g. triads).
+     *
+     * @returns {Array<{id?:string, step:number|null, accidentalClass?:string|null}>}
+     */
+  }, {
+    key: "_computeHintAnswers",
+    value: function _computeHintAnswers() {
+      var single = this._computeHintAnswer();
+      return single ? [single] : [];
+    }
+  }, {
+    key: "_removeAllHintNotes",
+    value: function _removeAllHintNotes() {
+      var _this13 = this;
+      var ids = Array.isArray(this._activeHintIds) ? this._activeHintIds : [];
+      ids.forEach(function (id) {
+        return _this13.staff.removeNote(id);
+      });
+      this._activeHintIds = [];
+    }
+  }, {
+    key: "_randomFreeStep",
+    value: function _randomFreeStep() {
+      var min = this.staff.minStepAllowed();
+      var max = this.staff.maxStepAllowed();
+      for (var tries = 0; tries < 50; tries++) {
+        var step = Math.floor(Math.random() * (max - min + 1)) + min;
+        if (!this.staff._isStepOccupied(step, null)) return step;
+      }
+      return null;
+    }
+  }, {
+    key: "_attachHintBlinkRemoval",
+    value: function _attachHintBlinkRemoval(noteId) {
+      var _this14 = this;
+      var $note = this.$staffEl.find(".note[data-note-id=\"".concat(noteId, "\"]"));
+      if (!$note.length) return;
+      $note.off("animationend.hint.".concat(noteId, " webkitAnimationEnd.hint.").concat(noteId)).one("animationend.hint.".concat(noteId, " webkitAnimationEnd.hint.").concat(noteId), function () {
+        _this14.staff.removeNote(noteId);
+        _this14._activeHintIds = (_this14._activeHintIds || []).filter(function (x) {
+          return x !== noteId;
+        });
+      });
+    }
+  }, {
+    key: "_showHintNote",
+    value: function _showHintNote() {
+      this._removeAllHintNotes();
+      var answers = this._computeHintAnswers();
+      var specs = Array.isArray(answers) && answers.length ? answers : [{
+        step: null,
+        accidentalClass: null
+      }];
+      this._activeHintIds = [];
+      for (var i = 0; i < specs.length; i++) {
+        var ans = specs[i] || {};
+        var id = ans.id || (specs.length === 1 ? "hint" : "hint".concat(i + 1));
+        var step = Number.isFinite(ans.step) ? Number(ans.step) : null;
+        var accidentalClass = ans.accidentalClass || null;
+        if (step == null) step = this._randomFreeStep();
+        if (step == null) continue;
+        var createdId = this.staff.addNote({
+          id: id,
+          step: step,
+          className: "hint blink",
+          allowOccupied: true,
+          skipResolve: true
+        });
+        if (!createdId) continue;
+        this._activeHintIds.push(id);
+        if (accidentalClass) {
+          this.staff.attachAccidentalToNote(id, accidentalClass);
+          this.$staffEl.find(".accidental[data-for-note-id=\"".concat(id, "\"]")).addClass("hint blink");
+        }
+        this.$staffEl.find(".ledger[data-for-note-id=\"".concat(id, "\"]")).addClass("hint blink");
+        this._attachHintBlinkRemoval(id);
+      }
+    }
+
+    // ------------------------ scoring / progress ------------------------
+  }, {
+    key: "_isPracticeMode",
+    value: function _isPracticeMode() {
+      var v = this.opts.practiceMode;
+      return v === true || String(v || "").trim().toLowerCase() === "on";
+    }
+  }, {
+    key: "_syncPracticeUi",
+    value: function _syncPracticeUi() {
+      var practice = this._isPracticeMode();
+      var $score = $("#score");
+      if (practice) {
+        $score.hide();
+        this.$progressBar.parent().addClass("opacity-1");
+      } else {
+        $score.show();
+        this.$progressBar.parent().removeClass("opacity-1");
+      }
+    }
+  }, {
+    key: "_successAnimation",
+    value: function _successAnimation() {
+      var _ref2 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+        isBonus = _ref2.isBonus;
+      if (isBonus) this._playSuccessSfxBonus();else this._playSuccessSfxBasic();
+      this.$helpBtn.hide();
+      this.$accidentals.addClass("invisible");
+      this.$feedback.find(".message span").text((0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.pickOne)(this.successPhrases));
+      this.$feedback.stop(true, true).fadeIn("fast");
+    }
+  }, {
+    key: "_showIncrement",
+    value: function _showIncrement(earned) {
+      var $inc = this.$increment;
+      if (!$inc || !$inc.length) return;
+      $inc.stop(true, true);
+      $inc.text("+".concat(earned)).show();
+      if ($inc.animateCSS) {
+        $inc.animateCSS("fadeOutUp").then(function () {
+          return $inc.hide();
+        });
+      } else {
+        setTimeout(function () {
+          return $inc.hide();
+        }, 800);
+      }
+    }
+  }, {
+    key: "_showBonusBadge",
+    value: function _showBonusBadge(bonusAmount) {
+      if (!this.$bonusBadge || !this.$bonusBadge.length) return;
+      if (!bonusAmount || bonusAmount <= 0) {
+        this.$bonusBadge.hide();
+        return;
+      }
+      this.$bonusBadge.text("+".concat(bonusAmount, " BONUS")).show();
+      if (this.$bonusBadge.animateCSS) {
+        this.$bonusBadge.animateCSS("tada");
+      }
+    }
+  }, {
+    key: "_awardPointsForCorrect",
+    value: function _awardPointsForCorrect() {
+      if (this._isPracticeMode()) {
+        this.$points.text("0");
+        this._showBonusBadge(0);
+        return {
+          earned: 0,
+          firstTry: false,
+          bonusEarned: 0
+        };
+      }
+      if (this._usedHintThisRound) {
+        this._showBonusBadge(0);
+        return {
+          earned: 0,
+          firstTry: false,
+          bonusEarned: 0
+        };
+      }
+      var firstTry = !this._madeMistakeThisRound;
+      var base = Number.isFinite(this.opts.basePoints) ? this.opts.basePoints : 1;
+      var bonus = Number.isFinite(this.opts.firstTryBonus) ? this.opts.firstTryBonus : 0;
+      var earned = firstTry ? base + bonus : base;
+      var bonusEarned = firstTry ? bonus : 0;
+      if (firstTry) {
+        this._correctStreak += 1;
+        if (this._correctStreak <= 1) {
+          // eslint-disable-next-line no-console
+          console.log("[BaseStaffGame] Correct answer. No streak yet.");
+        } else {
+          // eslint-disable-next-line no-console
+          console.log("[BaseStaffGame] Streak ".concat(this._correctStreak, "x"));
+        }
+      }
+      this.points += earned;
+      this.$points.text(String(this.points));
+      this._showBonusBadge(bonusEarned);
+      return {
+        earned: earned,
+        firstTry: firstTry,
+        bonusEarned: bonusEarned
+      };
+    }
+  }, {
+    key: "getCorrectStreak",
+    value: function getCorrectStreak() {
+      return Math.max(0, Number(this._correctStreak) || 0);
+    }
+  }, {
+    key: "_resetProgress",
+    value: function _resetProgress() {
+      this._syncPracticeUi();
+      this._correctStreak = 0;
+      this._madeAnyMistake = false;
+      this.$progressBar.data("progress", 0);
+      this.$progressBar.css({
+        width: "0%"
+      });
+      if (this._isPracticeMode()) this.$progressCounter.text("Practice");else this.$progressCounter.text("");
+    }
+  }, {
+    key: "_updateProgressBar",
+    value: function _updateProgressBar() {
+      if (this._isPracticeMode()) {
+        this.$progressBar.data("progress", 0);
+        this.$progressBar.css({
+          width: "0%"
+        });
+        this.$progressCounter.text("Practice");
+        return 0;
+      }
+      var steps = Math.max(1, this.numOfChallenges || 1);
+      var increment = 100 / steps;
+      var current = parseFloat(this.$progressBar.data("progress")) || 0;
+      current = Math.min(100, current + increment);
+      this.$progressBar.data("progress", current);
+      this.$progressBar.css({
+        width: "".concat(current, "%")
+      });
+      var completed = Math.min(steps, Math.max(0, Math.round(current / increment)));
+      this.$progressCounter.text("".concat(completed, " of ").concat(steps));
+      return current;
+    }
+  }, {
+    key: "_failAnimation",
+    value: function _failAnimation($shakeTarget) {
+      var _this15 = this;
+      this._correctStreak = 0;
+      this._playFailSfx();
+      var $target = $shakeTarget || this.$checkWrap;
+      $target.removeClass("animate__animated animate__shakeX");
+      // eslint-disable-next-line no-unused-expressions
+      $target[0] && $target[0].offsetWidth;
+      $target.addClass("animate__animated animate__shakeX");
+      $target.off("animationend._fail.".concat(this.ns, " webkitAnimationEnd._fail.").concat(this.ns, " oAnimationEnd._fail.").concat(this.ns, " MSAnimationEnd._fail.").concat(this.ns)).one("animationend._fail.".concat(this.ns, " webkitAnimationEnd._fail.").concat(this.ns, " oAnimationEnd._fail.").concat(this.ns, " MSAnimationEnd._fail.").concat(this.ns), function () {
+        $target.removeClass("animate__animated animate__shakeX");
+        _this15.$checkBtn.enable();
+      });
+    }
+  }, {
+    key: "_showFinalResults",
+    value: function _showFinalResults() {
+      var _this$_stats$checksTo,
+        _this$_stats$checksCo,
+        _this$_stats$finished,
+        _this16 = this,
+        _window;
+      if (this._isPracticeMode()) return;
+      var total = Math.max(0, (_this$_stats$checksTo = this._stats.checksTotal) !== null && _this$_stats$checksTo !== void 0 ? _this$_stats$checksTo : 0);
+      var correct = Math.max(0, (_this$_stats$checksCo = this._stats.checksCorrect) !== null && _this$_stats$checksCo !== void 0 ? _this$_stats$checksCo : 0);
+      var accuracy = total ? Math.round(correct / total * 100) : 0;
+      var endMs = (_this$_stats$finished = this._stats.finishedAtMs) !== null && _this$_stats$finished !== void 0 ? _this$_stats$finished : Date.now();
+      var totalSeconds = Math.max(0, Math.floor((endMs - PAGE_OPENED_AT_MS) / 1000));
+      var perfectGame = total > 0 && !this._madeAnyMistake;
+      var finalPoints = perfectGame ? this.points * 2 : this.points;
+      if (perfectGame) {
+        setTimeout(function () {
+          var _this16$$doublePoints, _this16$$doublePoints2;
+          (_this16$$doublePoints = _this16.$doublePoints) === null || _this16$$doublePoints === void 0 || (_this16$$doublePoints2 = _this16$$doublePoints.show) === null || _this16$$doublePoints2 === void 0 || _this16$$doublePoints2.call(_this16$$doublePoints);
+          _this16._playPerfectGameBonusSfx();
+        }, 1750);
+
+        // eslint-disable-next-line no-console
+        console.log("[BaseStaffGame] Perfect game! 2x bonus applied.", {
+          basePoints: this.points,
+          finalPoints: finalPoints
+        });
+      } else {
+        // eslint-disable-next-line no-console
+        console.log("[BaseStaffGame] No perfect-game bonus.", {
+          basePoints: this.points,
+          finalPoints: finalPoints,
+          madeAnyMistake: this._madeAnyMistake
+        });
+      }
+      var CountUpCtor = (_window = window) === null || _window === void 0 || (_window = _window.CountUp) === null || _window === void 0 ? void 0 : _window.CountUp;
+      var DURATION = 3.5;
+      var mmss = function mmss(secs) {
+        var v = Math.max(0, Math.floor(secs));
+        var mm = String(Math.floor(v / 60)).padStart(2, "0");
+        var ss = String(v % 60).padStart(2, "0");
+        return "".concat(mm, ":").concat(ss);
+      };
+      var countTo = function countTo(selector, endVal) {
+        var opts = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+        var el = _this16.$finalOverlay.find(selector)[0];
+        if (!el) return;
+        var startCount = function startCount() {
+          if (!CountUpCtor) {
+            el.textContent = String(opts.formattingFn ? opts.formattingFn(endVal) : endVal) + (opts.suffix || "");
+            return;
+          }
+          var c = new CountUpCtor(el, endVal, _objectSpread({
+            duration: DURATION
+          }, opts));
+          if (!c.error) c.start();
+        };
+        var $box = $(el).closest("#metrics-boxes > div");
+        var rawDelay = $box.length ? parseFloat($box[0].style.animationDelay || "0") : 0;
+        var delayMs = Number.isFinite(rawDelay) ? Math.max(0, rawDelay) : 0;
+        if (delayMs <= 0) {
+          startCount();
+          return;
+        }
+        var tid = setTimeout(startCount, delayMs + 40);
+        _this16._finalCountupTimeouts.push(tid);
+      };
+      var $greeting = this.$finalOverlay.find("#result-greeting");
+      var $greetingTitle = $greeting.find("h1");
+      var $greetingSubtitle = $greeting.find("h6");
+      var $resultImg = this.$finalOverlay.find("img").first();
+      var defaultTitle = "Great job!";
+      var defaultSubtitle = "It's not about getting the most points, but if it was...";
+      if (accuracy < 50) {
+        $greetingTitle.text("Keep going!");
+        $greetingSubtitle.text("That round was tough, but your next one can be much better.");
+        if ($resultImg.length) {
+          var cur = String($resultImg.attr("src") || "");
+          if (cur.includes("trophy.svg")) {
+            $resultImg.attr("src", cur.replace("trophy.svg", "plant.svg"));
+          }
+        }
+      } else {
+        $greetingTitle.text(defaultTitle);
+        $greetingSubtitle.text(defaultSubtitle);
+        if ($resultImg.length) {
+          var _cur = String($resultImg.attr("src") || "");
+          if (_cur.includes("plant.svg")) {
+            $resultImg.attr("src", _cur.replace("plant.svg", "trophy.svg"));
+          }
+        }
+      }
+      this.$finalOverlay.show();
+      this._animateFinalMetricsWithSfx();
+      this._clearFinalCountupTimers();
+      countTo('span[name="rounds"]', this.numOfChallenges);
+      countTo('span[name="score"]', finalPoints);
+      countTo('span[name="accuracy"]', accuracy, {
+        suffix: "%"
+      });
+      countTo('span[name="duration"]', totalSeconds, {
+        formattingFn: mmss
+      });
+      this._playFinalSfx();
+    }
+  }]);
+}();
+_defineProperty(BaseStaffGame, "MIN_CHALLENGES", 2);
+_defineProperty(BaseStaffGame, "MAX_CHALLENGES", 12);
+
+/***/ },
+
+/***/ "./resources/js/music/games/intervals/IntervalsChallenge.js"
+/*!******************************************************************!*\
+  !*** ./resources/js/music/games/intervals/IntervalsChallenge.js ***!
+  \******************************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   IntervalsChallenge: () => (/* binding */ IntervalsChallenge)
+/* harmony export */ });
+/* harmony import */ var _base_BaseStaffGame_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../base/BaseStaffGame.js */ "./resources/js/music/games/base/BaseStaffGame.js");
+/* harmony import */ var _staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../staff/staffUtils.js */ "./resources/js/music/staff/staffUtils.js");
+/* harmony import */ var _shared_challengeUtils_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/challengeUtils.js */ "./resources/js/music/games/shared/challengeUtils.js");
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+function _classCallCheck(a, n) { if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function"); }
+function _defineProperties(e, r) { for (var t = 0; t < r.length; t++) { var o = r[t]; o.enumerable = o.enumerable || !1, o.configurable = !0, "value" in o && (o.writable = !0), Object.defineProperty(e, _toPropertyKey(o.key), o); } }
+function _createClass(e, r, t) { return r && _defineProperties(e.prototype, r), t && _defineProperties(e, t), Object.defineProperty(e, "prototype", { writable: !1 }), e; }
+function _callSuper(t, o, e) { return o = _getPrototypeOf(o), _possibleConstructorReturn(t, _isNativeReflectConstruct() ? Reflect.construct(o, e || [], _getPrototypeOf(t).constructor) : o.apply(t, e)); }
+function _possibleConstructorReturn(t, e) { if (e && ("object" == _typeof(e) || "function" == typeof e)) return e; if (void 0 !== e) throw new TypeError("Derived constructors may only return object or undefined"); return _assertThisInitialized(t); }
+function _assertThisInitialized(e) { if (void 0 === e) throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); return e; }
+function _isNativeReflectConstruct() { try { var t = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); } catch (t) {} return (_isNativeReflectConstruct = function _isNativeReflectConstruct() { return !!t; })(); }
+function _getPrototypeOf(t) { return _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function (t) { return t.__proto__ || Object.getPrototypeOf(t); }, _getPrototypeOf(t); }
+function _inherits(t, e) { if ("function" != typeof e && null !== e) throw new TypeError("Super expression must either be null or a function"); t.prototype = Object.create(e && e.prototype, { constructor: { value: t, writable: !0, configurable: !0 } }), Object.defineProperty(t, "prototype", { writable: !1 }), e && _setPrototypeOf(t, e); }
+function _setPrototypeOf(t, e) { return _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function (t, e) { return t.__proto__ = e, t; }, _setPrototypeOf(t, e); }
+function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+
+
+
+var IntervalsChallenge = /*#__PURE__*/function (_BaseStaffGame) {
+  function IntervalsChallenge() {
+    var _this;
+    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    _classCallCheck(this, IntervalsChallenge);
+    var defaults = {
+      staffEl: "#staff",
+      basePoints: 1,
+      firstTryBonus: 2,
+      namespace: "intervalsChallenge"
+    };
+    var merged = _objectSpread(_objectSpread(_objectSpread({}, defaults), options), {}, {
+      accidentalWeights: _objectSpread(_objectSpread({}, defaults.accidentalWeights || {}), options.accidentalWeights || {}),
+      intervals: Array.isArray(options.intervals) ? options.intervals.slice() : Object.keys(IntervalsChallenge.INTERVAL_FULL_NAME_MAP)
+    });
+    var clefPool = (0,_shared_challengeUtils_js__WEBPACK_IMPORTED_MODULE_2__.normalizeClefPool)(merged.clefs != null ? merged.clefs : merged.clef);
+    _this = _callSuper(this, IntervalsChallenge, [_objectSpread(_objectSpread({}, merged), {}, {
+      initialClef: clefPool && clefPool[0] ? clefPool[0] : "treble"
+    })]);
+    _this._clefPool = clefPool;
+
+    // interval UI
+    _this.$interval = $("#interval");
+    _this.$intervalLabel = _this.$interval.find("label");
+    _this.$intervalFull = _this.$interval.find("div");
+    _this._currentIntervalAbbr = null;
+    return _this;
+  }
+
+  // ------------------------ interval UI ------------------------
+  _inherits(IntervalsChallenge, _BaseStaffGame);
+  return _createClass(IntervalsChallenge, [{
+    key: "_deriveFullNameFromAbbr",
+    value: function _deriveFullNameFromAbbr(abbr) {
+      var m = String(abbr || "").trim().match(/^([PMAmd])(\d+)$/);
+      if (!m) return abbr;
+      var q = m[1];
+      var n = m[2];
+      var qWord = q === "m" ? "minor" : q === "M" ? "major" : q === "P" ? "perfect" : q === "A" ? "augmented" : q === "d" ? "diminished" : q;
+      return "".concat(qWord, " ").concat(n);
+    }
+  }, {
+    key: "_fullNameForInterval",
+    value: function _fullNameForInterval(abbr) {
+      var key = String(abbr || "").trim();
+      return IntervalsChallenge.INTERVAL_FULL_NAME_MAP[key] || this._deriveFullNameFromAbbr(key);
+    }
+  }, {
+    key: "_setIntervalUI",
+    value: function _setIntervalUI(intervalAbbr) {
+      var _this$$intervalLabel, _this$$intervalFull;
+      var abbr = String(intervalAbbr || "").trim();
+      this._currentIntervalAbbr = abbr;
+      if ((_this$$intervalLabel = this.$intervalLabel) !== null && _this$$intervalLabel !== void 0 && _this$$intervalLabel.length) this.$intervalLabel.text(abbr);
+      if ((_this$$intervalFull = this.$intervalFull) !== null && _this$$intervalFull !== void 0 && _this$$intervalFull.length) this.$intervalFull.text(this._fullNameForInterval(abbr));
+    }
+
+    // ------------------------ game flow ------------------------
+  }, {
+    key: "newChallenge",
+    value: function newChallenge() {
+      var _this$$doublePoints, _this$$doublePoints$h;
+      this.$helpBtn.hide();
+      this._fixedState = null;
+      var clef = (0,_shared_challengeUtils_js__WEBPACK_IMPORTED_MODULE_2__.pickChallengeClef)(this._clefPool);
+      if (clef && clef !== this.staff.getClef()) this.staff.setClef(clef);
+      this._madeMistakeThisRound = false;
+      this._usedHintThisRound = false;
+      this.$bonusBadge.hide();
+      (_this$$doublePoints = this.$doublePoints) === null || _this$$doublePoints === void 0 || (_this$$doublePoints$h = _this$$doublePoints.hide) === null || _this$$doublePoints$h === void 0 || _this$$doublePoints$h.call(_this$$doublePoints);
+      var interval = this._pickInterval();
+      var fixed = this._pickFixedNote();
+      this.staff.clearNotes();
+      this.$accidentals.removeClass("invisible");
+      this.$feedback.hide();
+      this.$interval.show();
+      this._setIntervalUI(interval);
+      if (fixed) {
+        var fixedId = this.staff.addFixedNote({
+          step: fixed.step,
+          accidentalClass: fixed.accidentalClass || null
+        });
+        if (fixedId) this.staff._emitNoteState(fixedId, "fixed");
+      }
+      $("#check").show();
+      $("#continue").hide();
+    }
+  }, {
+    key: "_pickInterval",
+    value: function _pickInterval() {
+      var pool = Array.isArray(this.opts.intervals) && this.opts.intervals.length ? this.opts.intervals : ["M3"];
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
+  }, {
+    key: "_pickFixedNote",
+    value: function _pickFixedNote() {
+      var fixedList = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.toArrayMaybe)(this.opts.fixedNotes).filter(Boolean);
+      if (fixedList.length) {
+        var chosen = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.pickOne)(fixedList);
+        return (0,_shared_challengeUtils_js__WEBPACK_IMPORTED_MODULE_2__.fixedNoteToStaffPosition)(this.staff, chosen);
+      }
+      var w = this.opts.accidentalWeights || {};
+      var accidentalClass = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.pickWeighted)([{
+        value: null,
+        weight: Number(w.natural) || 0
+      }, {
+        value: "music-font__sharp",
+        weight: Number(w.sharp) || 0
+      }, {
+        value: "music-font__flat",
+        weight: Number(w.flat) || 0
+      }]);
+      return {
+        step: this._randomInitialFixedStep(),
+        accidentalClass: accidentalClass
+      };
+    }
+
+    // ------------------------ evaluation ------------------------
+  }, {
+    key: "_notesOnStaffOrdered",
+    value: function _notesOnStaffOrdered() {
+      var _this2 = this;
+      var $notes = this.$staffEl.find(".note").not(".preview").not(".hint");
+      var notes = $notes.toArray().map(function (el) {
+        var id = el.getAttribute("data-note-id");
+        var step = _this2.staff._stepOfNoteEl(el);
+        var accCls = _this2.staff._getAttachedAccidentalClass(id);
+        var accOff = _this2.staff._accidentalClassToOffset(accCls);
+        return {
+          id: id,
+          step: step,
+          accOff: accOff
+        };
+      });
+      notes.sort(function (a, b) {
+        return a.step - b.step;
+      });
+      return notes;
+    }
+  }, {
+    key: "_qualityFor",
+    value: function _qualityFor(simpleNum, semitones) {
+      var isPerfectClass = simpleNum === 1 || simpleNum === 4 || simpleNum === 5 || simpleNum === 8;
+      var expectedMajorOrPerfect = {
+        1: 0,
+        2: 2,
+        3: 4,
+        4: 5,
+        5: 7,
+        6: 9,
+        7: 11,
+        8: 12
+      }[simpleNum];
+      var delta = semitones - expectedMajorOrPerfect;
+      if (isPerfectClass) {
+        if (delta === 0) return "P";
+        if (delta === 1) return "A";
+        if (delta === -1) return "d";
+        if (delta > 1) return "A".repeat(delta);
+        if (delta < -1) return "d".repeat(-delta);
+      } else {
+        if (delta === 0) return "M";
+        if (delta === -1) return "m";
+        if (delta === 1) return "A";
+        if (delta === -2) return "d";
+        if (delta > 1) return "A".repeat(delta);
+        if (delta < -2) return "d".repeat(-delta - 1);
+      }
+      return "?";
+    }
+  }, {
+    key: "_intervalNameBetween",
+    value: function _intervalNameBetween(noteA, noteB) {
+      var midiLow = this.staff._stepToMidi(noteA.step) + (noteA.accOff || 0);
+      var midiHigh = this.staff._stepToMidi(noteB.step) + (noteB.accOff || 0);
+      var semitones = Math.abs(midiHigh - midiLow);
+      var diatonicNum = Math.abs(noteB.step - noteA.step) + 1;
+      var simpleNum = (diatonicNum - 1) % 7 + 1;
+      var octaves = Math.floor((diatonicNum - 1) / 7);
+      var semitonesReduced = semitones - 12 * octaves;
+      return this._qualityFor(simpleNum, semitonesReduced) + diatonicNum;
+    }
+  }, {
+    key: "_onCheck",
+    value: function _onCheck() {
+      var _this3 = this;
+      var notes = this._notesOnStaffOrdered();
+      this.$checkBtn.disable();
+      this._stats.checksTotal += 1;
+      if (notes.length !== 2) {
+        this._madeAnyMistake = true;
+        this._madeMistakeThisRound = true;
+        this.$interval.removeClass("text-blue").addClass("text-red");
+        this._failAnimation(this.$checkWrap);
+        this.$checkBtn[0] && this.$checkBtn[0].blur && this.$checkBtn[0].blur();
+        this.$helpBtn.show();
+        return;
+      }
+      var name = this._intervalNameBetween(notes[0], notes[1]);
+      if (name === this.$intervalLabel.text()) {
+        this._stats.checksCorrect += 1;
+        this._pauseGameTimer();
+        var _this$_awardPointsFor = this._awardPointsForCorrect(),
+          earned = _this$_awardPointsFor.earned,
+          bonusEarned = _this$_awardPointsFor.bonusEarned;
+        this._successAnimation({
+          isBonus: bonusEarned > 0
+        });
+        this.$interval.hide();
+        $("#score").animateCSS && $("#score").animateCSS("heartBeat");
+        if (earned > 0) this._showIncrement(earned);
+        if (this._updateProgressBar() >= 100) {
+          this._stats.finishedAtMs = Date.now();
+          this.$checkBtn.text('Final results, let\'s see…');
+          setTimeout(function () {
+            return _this3._showFinalResults();
+          }, 1600);
+        } else {
+          $("#check").hide();
+          $("#continue").show();
+        }
+      } else {
+        this._madeAnyMistake = true;
+        this._madeMistakeThisRound = true;
+        this.$interval.removeClass("text-blue").addClass("text-red");
+        this._failAnimation(this.$checkWrap);
+
+        // restore interval color after fail animation completes
+        this.$checkWrap.off("animationend._failRestore.".concat(this.ns, " webkitAnimationEnd._failRestore.").concat(this.ns)).one("animationend._failRestore.".concat(this.ns, " webkitAnimationEnd._failRestore.").concat(this.ns), function () {
+          _this3.$interval.removeClass("text-red").addClass("text-blue");
+        });
+        this.$helpBtn.show();
+      }
+    }
+
+    // ------------------------ hint math (interval-specific) ------------------------
+  }, {
+    key: "_intervalSemitones",
+    value: function _intervalSemitones(quality, simpleNum) {
+      var baseMajorPerfect = {
+        1: 0,
+        2: 2,
+        3: 4,
+        4: 5,
+        5: 7,
+        6: 9,
+        7: 11,
+        8: 12
+      }[simpleNum];
+      if (baseMajorPerfect == null) return null;
+      var isPerfectClass = simpleNum === 1 || simpleNum === 4 || simpleNum === 5 || simpleNum === 8;
+      var q = String(quality || "").trim();
+      if (isPerfectClass) {
+        if (q === "P") return baseMajorPerfect;
+        if (/^A+$/.test(q)) return baseMajorPerfect + q.length;
+        if (/^d+$/.test(q)) return baseMajorPerfect - q.length;
+        return null;
+      }
+      if (q === "M") return baseMajorPerfect;
+      if (q === "m") return baseMajorPerfect - 1;
+      if (/^A+$/.test(q)) return baseMajorPerfect + q.length;
+      if (/^d+$/.test(q)) return baseMajorPerfect - (q.length + 1);
+      return null;
+    }
+  }, {
+    key: "_computeHintAnswer",
+    value: function _computeHintAnswer() {
+      var _this4 = this;
+      if (!this._fixedState) return null;
+      var abbr = this._currentIntervalAbbr || this.$intervalLabel && this.$intervalLabel.text() || "";
+      var parsed = (0,_shared_challengeUtils_js__WEBPACK_IMPORTED_MODULE_2__.parseIntervalAbbr)(abbr);
+      if (!parsed || !Number.isFinite(parsed.number) || parsed.number < 1) return null;
+      var diatonicSteps = parsed.number - 1;
+      var simpleNum = (parsed.number - 1) % 7 + 1;
+      var octaves = Math.floor((parsed.number - 1) / 7);
+      var baseSemiSimple = this._intervalSemitones(parsed.quality, simpleNum);
+      if (baseSemiSimple == null) return null;
+      var semitones = baseSemiSimple + 12 * octaves;
+      var fixedStep = this._fixedState.step;
+      var fixedMidi = this._fixedState.midi;
+      var minStep = this.staff.minStepAllowed();
+      var maxStep = this.staff.maxStepAllowed();
+      var tryDir = function tryDir(dir) {
+        var targetStep = fixedStep + dir * diatonicSteps;
+        if (targetStep < minStep || targetStep > maxStep) return null;
+        var targetMidi = fixedMidi + dir * semitones;
+        var naturalTargetMidi = _this4.staff._stepToMidi(targetStep);
+        var off = targetMidi - naturalTargetMidi;
+        if (off < -2 || off > 2) return null;
+        var accidentalClass = (0,_shared_challengeUtils_js__WEBPACK_IMPORTED_MODULE_2__.accidentalClassFromOffset)(off);
+        if (!accidentalClass) return null;
+        return {
+          step: targetStep,
+          accidentalClass: accidentalClass
+        };
+      };
+      return tryDir(+1) || tryDir(-1);
+    }
+  }]);
+}(_base_BaseStaffGame_js__WEBPACK_IMPORTED_MODULE_0__.BaseStaffGame);
+_defineProperty(IntervalsChallenge, "INTERVAL_FULL_NAME_MAP", {
+  m2: "minor 2nd",
+  M2: "major 2nd",
+  m3: "minor 3rd",
+  M3: "major 3rd",
+  P4: "perfect 4th",
+  A4: "augmented 4th",
+  d5: "diminished 5th",
+  P5: "perfect 5th",
+  m6: "minor 6th",
+  M6: "major 6th",
+  m7: "minor 7th",
+  M7: "major 7th",
+  P8: "perfect 8th"
+});
+
+/***/ },
+
+/***/ "./resources/js/music/games/shared/challengeUtils.js"
+/*!***********************************************************!*\
+  !*** ./resources/js/music/games/shared/challengeUtils.js ***!
+  \***********************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   accidentalClassFromOffset: () => (/* binding */ accidentalClassFromOffset),
+/* harmony export */   fixedNoteToStaffPosition: () => (/* binding */ fixedNoteToStaffPosition),
+/* harmony export */   normalizeClefPool: () => (/* binding */ normalizeClefPool),
+/* harmony export */   parseIntervalAbbr: () => (/* binding */ parseIntervalAbbr),
+/* harmony export */   parsePitch: () => (/* binding */ parsePitch),
+/* harmony export */   pickChallengeClef: () => (/* binding */ pickChallengeClef)
+/* harmony export */ });
+/* harmony import */ var _staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../staff/staffUtils.js */ "./resources/js/music/staff/staffUtils.js");
+
+function normalizeClefPool(clefsOrSingle) {
+  var raw = Array.isArray(clefsOrSingle) ? clefsOrSingle : clefsOrSingle != null ? [clefsOrSingle] : ["treble", "bass"];
+  var normalized = raw.map(function (c) {
+    return (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_0__.normalizeClef)(c);
+  }).filter(Boolean);
+  var uniq = [];
+  for (var i = 0; i < normalized.length; i += 1) {
+    if (!uniq.includes(normalized[i])) uniq.push(normalized[i]);
+  }
+  return uniq.length ? uniq : ["treble", "bass"];
+}
+function pickChallengeClef(clefPool) {
+  var pool = Array.isArray(clefPool) && clefPool.length ? clefPool : ["treble", "bass"];
+  if (pool.length === 1) return pool[0];
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+function accidentalClassFromOffset(off) {
+  if (off === 2) return "music-font__doublesharp";
+  if (off === 1) return "music-font__sharp";
+  if (off === 0) return "music-font__natural";
+  if (off === -1) return "music-font__flat";
+  if (off === -2) return "music-font__doubleflat";
+  return null;
+}
+function parseIntervalAbbr(abbr) {
+  var s = String(abbr || "").trim();
+  var m = s.match(/^([PMAmd]+)(\d+)$/);
+  if (!m) return null;
+  return {
+    quality: m[1],
+    number: parseInt(m[2], 10)
+  };
+}
+function parsePitch(pitch) {
+  var s = String(pitch || "").trim();
+  var m = s.match(/^([A-Ga-g])((?:#{1,2})|(?:b{1,2})|)?(\d+)$/);
+  if (!m) return null;
+  var letter = m[1].toUpperCase();
+  var acc = m[2] || "";
+  var octave = parseInt(m[3], 10);
+  var baseSemitoneFromC = {
+    C: 0,
+    D: 2,
+    E: 4,
+    F: 5,
+    G: 7,
+    A: 9,
+    B: 11
+  }[letter];
+  var accOffset = acc === "##" ? 2 : acc === "#" ? 1 : acc === "bb" ? -2 : acc === "b" ? -1 : 0;
+  var accidentalClass = accidentalClassFromOffset(accOffset);
+  var midi = 12 * (octave + 1) + baseSemitoneFromC + accOffset;
+  return {
+    midi: midi,
+    accOffset: accOffset,
+    accidentalClass: accidentalClass
+  };
+}
+function fixedNoteToStaffPosition(staff, noteStr) {
+  var parsed = parsePitch(noteStr);
+  if (!parsed) return null;
+  var midi = parsed.midi,
+    accOffset = parsed.accOffset,
+    accidentalClass = parsed.accidentalClass;
+  for (var step = staff.minStepAllowed(); step <= staff.maxStepAllowed(); step += 1) {
+    var baseMidi = staff._stepToMidi(step);
+    if (baseMidi + accOffset === midi) return {
+      step: step,
+      accidentalClass: accidentalClass
+    };
+  }
+  var best = null;
+  for (var _step = staff.minStepAllowed(); _step <= staff.maxStepAllowed(); _step += 1) {
+    var _baseMidi = staff._stepToMidi(_step);
+    var dist = Math.abs(_baseMidi + accOffset - midi);
+    if (!best || dist < best.dist) best = {
+      step: _step,
+      dist: dist
+    };
+  }
+  return best ? {
+    step: best.step,
+    accidentalClass: accidentalClass
+  } : null;
+}
+
+/***/ },
+
+/***/ "./resources/js/music/staff/Staff.js"
+/*!*******************************************!*\
+  !*** ./resources/js/music/staff/Staff.js ***!
+  \*******************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   Staff: () => (/* binding */ Staff)
+/* harmony export */ });
+/* harmony import */ var _staffUtils_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./staffUtils.js */ "./resources/js/music/staff/staffUtils.js");
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
+function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+function _classCallCheck(a, n) { if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function"); }
+function _defineProperties(e, r) { for (var t = 0; t < r.length; t++) { var o = r[t]; o.enumerable = o.enumerable || !1, o.configurable = !0, "value" in o && (o.writable = !0), Object.defineProperty(e, _toPropertyKey(o.key), o); } }
+function _createClass(e, r, t) { return r && _defineProperties(e.prototype, r), t && _defineProperties(e, t), Object.defineProperty(e, "prototype", { writable: !1 }), e; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+
+
+/**
+ * Staff engine: draws staff, manages note interactions, emits events.
+ * Requires: jQuery, jQuery UI (draggable/droppable), optional Tone.js.
+ */
+var Staff = /*#__PURE__*/function () {
+  function Staff($el, opts) {
+    _classCallCheck(this, Staff);
+    this.$el = $el;
+    var css = getComputedStyle($el[0]);
+    this.opts = $.extend({
+      paddingX: (0,_staffUtils_js__WEBPACK_IMPORTED_MODULE_0__.pxFromCss)(css, "--staff-padding-x", 20),
+      lineGap: (0,_staffUtils_js__WEBPACK_IMPORTED_MODULE_0__.pxFromCss)(css, "--staff-line-gap", 16),
+      lineThickness: (0,_staffUtils_js__WEBPACK_IMPORTED_MODULE_0__.pxFromCss)(css, "--staff-line-thickness", 3),
+      noteOverlapGap: (0,_staffUtils_js__WEBPACK_IMPORTED_MODULE_0__.pxFromCss)(css, "--note-overlap-gap", -6),
+      noteIdPrefix: "n",
+      /** If you want default clef URLs, pass them in from page/game:
+       *  clefUrls: { treble,bass,alto,tenor }
+       */
+      clefUrls: null,
+      clef: null,
+      clefUrl: null,
+      autoClef: true,
+      maxLedgerAbove: 2,
+      maxLedgerBelow: 2,
+      accidentalTopPx: 20,
+      accidentalGapPx: 16,
+      getMaxUserNotes: function getMaxUserNotes() {
+        return Infinity;
+      },
+      sound: true,
+      accSnapMaxPx: (0,_staffUtils_js__WEBPACK_IMPORTED_MODULE_0__.pxFromCss)(css, "--staff-line-gap", 25) * 1.2
+    }, opts || {});
+    this.opts.clef = this.opts.clef == null ? null : (0,_staffUtils_js__WEBPACK_IMPORTED_MODULE_0__.normalizeClef)(this.opts.clef);
+    if (this.opts.clef && !this.opts.clefUrl) {
+      this.opts.clefUrl = this._clefUrlFor(this.opts.clef);
+    }
+    this.opts.stepSize = this.opts.lineGap / 2;
+    this.$el.css("position", "relative");
+    this._idCounter = 1;
+    this._drag = {
+      isDragging: false,
+      movedPx: 0,
+      startPageY: 0,
+      noteId: null,
+      thresholdPx: 5,
+      swallowClick: false,
+      startStep: null,
+      lastTargetStep: null,
+      lastSoundStep: null,
+      dropOnOccupied: false,
+      outOfRange: false
+    };
+    this._previewState = {
+      active: false,
+      step: null
+    };
+    this._preview = null;
+    this._previewStep = null;
+    this._audioReady = false;
+    this._synth = null;
+    this._fxNoise = null;
+    this._accDragSound = {
+      noteId: null,
+      step: null,
+      toolType: null,
+      prospectiveCls: null
+    };
+    this._accSnap = {
+      noteId: null,
+      dist: null,
+      localY: null
+    };
+    this._suppressNextClick = {
+      noteId: null,
+      until: 0
+    };
+    this._applyClefCssVars(this.opts.clef);
+    this._computeLayout();
+    this._drawLines();
+    if (this.opts.autoClef && !this.opts.clef) {
+      this.setClef("treble");
+    } else if (this.opts.clef) {
+      this._applyClefCssVars(this.opts.clef);
+      this.relayout();
+    }
+  }
+  return _createClass(Staff, [{
+    key: "_clefUrlFor",
+    value: function _clefUrlFor(clef) {
+      var c = (0,_staffUtils_js__WEBPACK_IMPORTED_MODULE_0__.normalizeClef)(clef);
+      if (!c) return null;
+      var urls = this.opts.clefUrls || {};
+      return urls[c] || urls.treble || null;
+    }
+  }, {
+    key: "setSoundEnabled",
+    value: function setSoundEnabled(enabled) {
+      this.opts.sound = !!enabled;
+      if (!this.opts.sound && window.Tone) {
+        try {
+          Tone.Transport && Tone.Transport.stop();
+        } catch (_) {}
+        try {
+          Tone.context && Tone.context.suspend && Tone.context.suspend();
+        } catch (_) {}
+        try {
+          this._synth && this._synth.releaseAll && this._synth.releaseAll();
+        } catch (_) {}
+        try {
+          this._fxNoise && this._fxNoise.dispose && this._fxNoise.dispose();
+        } catch (_) {}
+        this._fxNoise = null;
+        this._audioReady = false;
+      }
+    }
+  }, {
+    key: "isSoundEnabled",
+    value: function isSoundEnabled() {
+      return !!this.opts.sound;
+    }
+  }, {
+    key: "_soundEnabled",
+    value: function _soundEnabled() {
+      return !!this.opts.sound;
+    }
+  }, {
+    key: "_applyClefCssVars",
+    value: function _applyClefCssVars(clef) {
+      var c = (0,_staffUtils_js__WEBPACK_IMPORTED_MODULE_0__.normalizeClef)(clef);
+      var vars = _staffUtils_js__WEBPACK_IMPORTED_MODULE_0__.CLEF_LAYOUT_VARS[c] || _staffUtils_js__WEBPACK_IMPORTED_MODULE_0__.CLEF_LAYOUT_VARS.treble;
+      var el = this.$el[0];
+      Object.keys(vars).forEach(function (k) {
+        return el.style.setProperty(k, vars[k]);
+      });
+    }
+  }, {
+    key: "setClef",
+    value: function setClef(clef) {
+      this.opts.clef = (0,_staffUtils_js__WEBPACK_IMPORTED_MODULE_0__.normalizeClef)(clef);
+      this.opts.clefUrl = this._clefUrlFor(this.opts.clef);
+      this._applyClefCssVars(this.opts.clef);
+      this.relayout();
+    }
+  }, {
+    key: "getClef",
+    value: function getClef() {
+      return this.opts.clef || "treble";
+    }
+  }, {
+    key: "_maxUserNotes",
+    value: function _maxUserNotes() {
+      var v = this.opts.getMaxUserNotes ? this.opts.getMaxUserNotes() : Infinity;
+      return Number.isFinite(v) ? v : Infinity;
+    }
+  }, {
+    key: "_userNoteCount",
+    value: function _userNoteCount() {
+      return this.$el.find(".note").not(".fixed").not(".preview").not(".hint").length;
+    }
+  }, {
+    key: "_computeLayout",
+    value: function _computeLayout() {
+      var h = this.$el.height();
+      var staffHeight = this.opts.lineGap * 4;
+      var topLineY = Math.round((h - staffHeight) / 2);
+      this.opts.bottomLineY = topLineY + staffHeight;
+    }
+  }, {
+    key: "_drawLines",
+    value: function _drawLines() {
+      this.$el.find(".staff-line, .staff-clef").remove();
+      for (var i = 0; i < 5; i++) {
+        var y = this.opts.bottomLineY - (4 - i) * this.opts.lineGap;
+        $('<div class="staff-line"></div>').css({
+          top: "".concat(y, "px")
+        }).appendTo(this.$el);
+      }
+      this._drawClef();
+    }
+  }, {
+    key: "_drawClef",
+    value: function _drawClef() {
+      if (!this.opts.clefUrl) return;
+      var clef = (0,_staffUtils_js__WEBPACK_IMPORTED_MODULE_0__.normalizeClef)(this.opts.clef);
+      $('<img alt="">').addClass("staff-clef").addClass("".concat(clef, "-clef")).attr("src", this.opts.clefUrl).appendTo(this.$el);
+    }
+  }, {
+    key: "relayout",
+    value: function relayout() {
+      this._computeLayout();
+      this._drawLines();
+      this._resolveNoteOverlaps();
+      this._repositionAllAccidentals();
+    }
+  }, {
+    key: "centerX",
+    value: function centerX() {
+      return this.$el.width() / 2;
+    }
+  }, {
+    key: "stepToY",
+    value: function stepToY(step) {
+      return this.opts.bottomLineY - step * this.opts.stepSize;
+    }
+  }, {
+    key: "yToStep",
+    value: function yToStep(y) {
+      return Math.round((this.opts.bottomLineY - y) / this.opts.stepSize);
+    }
+  }, {
+    key: "_pageYToLocalY",
+    value: function _pageYToLocalY(pageY) {
+      return pageY - this.$el.offset().top;
+    }
+  }, {
+    key: "minStepAllowed",
+    value: function minStepAllowed() {
+      return 0 - this.opts.maxLedgerBelow * 2;
+    }
+  }, {
+    key: "maxStepAllowed",
+    value: function maxStepAllowed() {
+      return 8 + this.opts.maxLedgerAbove * 2;
+    }
+  }, {
+    key: "_isStepAllowed",
+    value: function _isStepAllowed(step) {
+      return step >= this.minStepAllowed() && step <= this.maxStepAllowed();
+    }
+  }, {
+    key: "_ledgerStepsFor",
+    value: function _ledgerStepsFor(step) {
+      var ledgers = [];
+      var topMost = 8 + this.opts.maxLedgerAbove * 2;
+      var bottomMost = 0 - this.opts.maxLedgerBelow * 2;
+      if (step > 8) {
+        var capped = Math.min(step, topMost);
+        for (var s = 10; s <= capped; s += 2) ledgers.push(s);
+      } else if (step < 0) {
+        var _capped = Math.max(step, bottomMost);
+        for (var _s = -2; _s >= _capped; _s -= 2) ledgers.push(_s);
+      }
+      return ledgers;
+    }
+  }, {
+    key: "_renderLedgers",
+    value: function _renderLedgers(id, x, step) {
+      this.$el.find(".ledger[data-for-note-id=\"".concat(id, "\"]")).remove();
+      var isDragging = this.$el.find(".note[data-note-id=\"".concat(id, "\"]")).hasClass("dragging");
+      var steps = this._ledgerStepsFor(step);
+      for (var i = 0; i < steps.length; i++) {
+        var $l = $('<div class="ledger"></div>').attr("data-for-note-id", id).css({
+          left: "".concat(x, "px"),
+          top: "".concat(this.stepToY(steps[i]), "px")
+        });
+        if (isDragging) $l.addClass("dragging");
+        $l.appendTo(this.$el);
+      }
+    }
+  }, {
+    key: "_previewLedgersClear",
+    value: function _previewLedgersClear() {
+      this.$el.find(".ledger.preview").remove();
+    }
+  }, {
+    key: "_previewLedgersSet",
+    value: function _previewLedgersSet(step) {
+      this._previewLedgersClear();
+      var x = this.centerX();
+      var steps = this._ledgerStepsFor(step);
+      for (var i = 0; i < steps.length; i++) {
+        $('<div class="ledger preview"></div>').css({
+          left: "".concat(x, "px"),
+          top: "".concat(this.stepToY(steps[i]), "px")
+        }).appendTo(this.$el);
+      }
+    }
+  }, {
+    key: "_stepOfNoteEl",
+    value: function _stepOfNoteEl(el) {
+      var topStr = el.style.top || window.getComputedStyle(el).top;
+      return this.yToStep(parseFloat(topStr));
+    }
+  }, {
+    key: "_isStepOccupied",
+    value: function _isStepOccupied(step, excludeId) {
+      var nodes = this.$el.find(".note").toArray();
+      for (var i = 0; i < nodes.length; i++) {
+        var el = nodes[i];
+        if (!el) continue;
+        var id = el.getAttribute("data-note-id");
+        if (excludeId && id === excludeId) continue;
+        if (this._stepOfNoteEl(el) === step) return true;
+      }
+      return false;
+    }
+  }, {
+    key: "_getNoteIdAtStep",
+    value: function _getNoteIdAtStep(step, excludeId) {
+      var nodes = this.$el.find(".note").toArray();
+      for (var i = 0; i < nodes.length; i++) {
+        var el = nodes[i];
+        if (!el) continue;
+        var id = el.getAttribute("data-note-id");
+        if (excludeId && id === excludeId) continue;
+        if (this._stepOfNoteEl(el) === step) return id;
+      }
+      return null;
+    }
+  }, {
+    key: "_isCenteredX",
+    value: function _isCenteredX(noteId) {
+      var $n = this.$el.find(".note[data-note-id=\"".concat(noteId, "\"]"));
+      if (!$n.length) return true;
+      return Math.abs(parseFloat($n.css("left")) - this.centerX()) <= 0.5;
+    }
+  }, {
+    key: "isNoteFixed",
+    value: function isNoteFixed(noteId) {
+      var $note = this.$el.find(".note[data-note-id=\"".concat(noteId, "\"]"));
+      return $note.length ? $note.hasClass("fixed") : false;
+    }
+  }, {
+    key: "_nearestEditableNoteByLocalY",
+    value: function _nearestEditableNoteByLocalY(localY) {
+      var maxD = Number.isFinite(this.opts.accSnapMaxPx) ? this.opts.accSnapMaxPx : this.opts.lineGap * 1.2;
+      var best = null;
+      var nodes = this.$el.find(".note").not(".preview").toArray();
+      for (var i = 0; i < nodes.length; i++) {
+        var el = nodes[i];
+        var id = el.getAttribute("data-note-id");
+        if (!id) continue;
+        if ($(el).hasClass("fixed")) continue;
+        var top = parseFloat(el.style.top || window.getComputedStyle(el).top);
+        var d = Math.abs(top - localY);
+        if (best == null || d < best.dist) best = {
+          noteId: id,
+          dist: d
+        };
+      }
+      if (!best || best.dist > maxD) return null;
+      return best;
+    }
+  }, {
+    key: "_removeAccidentalForNote",
+    value: function _removeAccidentalForNote(noteId) {
+      this.$el.find(".accidental[data-for-note-id=\"".concat(noteId, "\"]")).remove();
+    }
+  }, {
+    key: "_accidentalAnchorXForNote",
+    value: function _accidentalAnchorXForNote(noteLeftPx) {
+      var cx = this.centerX();
+      var EPS = 0.5;
+      if (Number.isFinite(noteLeftPx) && noteLeftPx > cx + EPS) return cx;
+      return noteLeftPx;
+    }
+  }, {
+    key: "_positionAccidentalForNote",
+    value: function _positionAccidentalForNote(noteId) {
+      var $note = this.$el.find(".note[data-note-id=\"".concat(noteId, "\"]"));
+      var $acc = this.$el.find(".accidental[data-for-note-id=\"".concat(noteId, "\"]"));
+      if (!$note.length || !$acc.length) return;
+      var noteLeft = parseFloat($note.css("left"));
+      var noteTop = parseFloat($note.css("top"));
+      var anchorX = this._accidentalAnchorXForNote(noteLeft);
+      $acc.css({
+        left: "".concat(anchorX - this.opts.accidentalGapPx, "px"),
+        top: "".concat(noteTop - this.opts.accidentalTopPx, "px")
+      });
+    }
+  }, {
+    key: "_rectsOverlap",
+    value: function _rectsOverlap(a, b) {
+      return !(a.right <= b.left || a.left >= b.right || a.bottom <= b.top || a.top >= b.bottom);
+    }
+  }, {
+    key: "_repositionAllAccidentals",
+    value: function _repositionAllAccidentals() {
+      var _this = this;
+      this.$el.find(".accidental").each(function (_, node) {
+        var id = node.getAttribute("data-for-note-id");
+        if (id) _this._positionAccidentalForNote(id);
+      });
+      var noteEls = this.$el.find(".note").not(".preview").toArray();
+      var stepToNoteId = {};
+      for (var i = 0; i < noteEls.length; i++) {
+        var el = noteEls[i];
+        var id = el.getAttribute("data-note-id");
+        if (!id) continue;
+        stepToNoteId[this._stepOfNoteEl(el)] = id;
+      }
+      var steps = Object.keys(stepToNoteId).map(function (s) {
+        return parseInt(s, 10);
+      }).sort(function (a, b) {
+        return a - b;
+      });
+      for (var _i = 0; _i < steps.length; _i++) {
+        var lowerStep = steps[_i];
+        var upperStep = lowerStep + 1;
+        var lowerId = stepToNoteId[lowerStep];
+        var upperId = stepToNoteId[upperStep];
+        if (!lowerId || !upperId) continue;
+        var $lowerAcc = this.$el.find(".accidental[data-for-note-id=\"".concat(lowerId, "\"]"));
+        var $upperAcc = this.$el.find(".accidental[data-for-note-id=\"".concat(upperId, "\"]"));
+        if (!$lowerAcc.length || !$upperAcc.length) continue;
+        var lowerRect = $lowerAcc[0].getBoundingClientRect();
+        var upperRect = $upperAcc[0].getBoundingClientRect();
+        if (!this._rectsOverlap(lowerRect, upperRect)) continue;
+        var overlapPx = Math.max(0, upperRect.right - lowerRect.left);
+        var padPx = -6;
+        var curLeft = parseFloat($upperAcc.css("left"));
+        if (!Number.isFinite(curLeft)) continue;
+        $upperAcc.css("left", "".concat(curLeft - (overlapPx + padPx), "px"));
+      }
+    }
+  }, {
+    key: "_getAttachedAccidentalClass",
+    value: function _getAttachedAccidentalClass(noteId) {
+      var $acc = this.$el.find(".accidental[data-for-note-id=\"".concat(noteId, "\"]"));
+      if (!$acc.length) return null;
+      for (var i = 0; i < _staffUtils_js__WEBPACK_IMPORTED_MODULE_0__.ACCIDENTAL_CLASSES.length; i++) {
+        var cls = _staffUtils_js__WEBPACK_IMPORTED_MODULE_0__.ACCIDENTAL_CLASSES[i];
+        if ($acc.hasClass(cls)) return cls;
+      }
+      return null;
+    }
+  }, {
+    key: "attachAccidentalToNote",
+    value: function attachAccidentalToNote(noteId, accidentalClass) {
+      if (!noteId || this.isNoteFixed(noteId)) return;
+      this._removeAccidentalForNote(noteId);
+      var $acc = $('<div class="accidental music-font"></div>').addClass(accidentalClass).attr("data-for-note-id", noteId);
+      this.$el.append($acc);
+      this._repositionAllAccidentals();
+    }
+  }, {
+    key: "_hintIgnoredAccidental",
+    value: function _hintIgnoredAccidental(noteId) {
+      var $note = this.$el.find(".note[data-note-id=\"".concat(noteId, "\"]"));
+      if (!$note.length) return;
+      $note.removeClass("animate__animated animate__headShake");
+      void $note[0].offsetWidth;
+      $note.addClass("animate__animated animate__headShake");
+      $note.off("animationend._hint webkitAnimationEnd._hint oAnimationEnd._hint MSAnimationEnd._hint").one("animationend._hint webkitAnimationEnd._hint oAnimationEnd._hint MSAnimationEnd._hint", function () {
+        $note.removeClass("animate__animated animate__headShake");
+      });
+    }
+  }, {
+    key: "applyAccidentalToolToNote",
+    value: function applyAccidentalToolToNote(noteId, toolType) {
+      if (!noteId || this.isNoteFixed(noteId)) return false;
+      var currentCls = this._getAttachedAccidentalClass(noteId);
+      if ((0,_staffUtils_js__WEBPACK_IMPORTED_MODULE_0__.isMaxedDouble)(currentCls, toolType)) {
+        this._hintIgnoredAccidental(noteId);
+        return false;
+      }
+      var nextCls = (0,_staffUtils_js__WEBPACK_IMPORTED_MODULE_0__.nextAccidentalClass)(currentCls, toolType);
+      if (toolType === "natural" && currentCls === "music-font__natural") return false;
+      if (nextCls === currentCls) return false;
+      this.attachAccidentalToNote(noteId, nextCls);
+      this._emitNoteState(noteId, "user");
+      return true;
+    }
+  }, {
+    key: "_ensureAudio",
+    value: function () {
+      var _ensureAudio2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
+        return _regenerator().w(function (_context) {
+          while (1) switch (_context.n) {
+            case 0:
+              if (this._soundEnabled()) {
+                _context.n = 1;
+                break;
+              }
+              return _context.a(2);
+            case 1:
+              if (!this._audioReady) {
+                _context.n = 2;
+                break;
+              }
+              return _context.a(2);
+            case 2:
+              if (window.Tone) {
+                _context.n = 3;
+                break;
+              }
+              return _context.a(2);
+            case 3:
+              _context.n = 4;
+              return Tone.start();
+            case 4:
+              this._synth = new Tone.Synth({
+                oscillator: {
+                  type: "sine"
+                },
+                envelope: {
+                  attack: 0.01,
+                  decay: 0.08,
+                  sustain: 0.6,
+                  release: 0.12
+                }
+              }).toDestination();
+              this._fxNoise = new Tone.NoiseSynth({
+                noise: {
+                  type: "white"
+                },
+                envelope: {
+                  attack: 0.001,
+                  decay: 0.03,
+                  sustain: 0.0,
+                  release: 0.02
+                },
+                volume: -10
+              }).toDestination();
+              this._audioReady = true;
+            case 5:
+              return _context.a(2);
+          }
+        }, _callee, this);
+      }));
+      function _ensureAudio() {
+        return _ensureAudio2.apply(this, arguments);
+      }
+      return _ensureAudio;
+    }()
+  }, {
+    key: "_playAccidentalGrabSfx",
+    value: function _playAccidentalGrabSfx() {
+      var _this2 = this;
+      if (!this._soundEnabled() || !window.Tone) return;
+      this._ensureAudio().then(function () {
+        if (!_this2._fxNoise) return;
+        _this2._fxNoise.triggerAttackRelease(0.03, Tone.now(), 0.12);
+      });
+    }
+  }, {
+    key: "_stepToMidi",
+    value: function _stepToMidi(step) {
+      var diatonic = [0, 2, 4, 5, 7, 9, 11];
+      var baseC;
+      var baseIndex;
+      switch (this.opts.clef) {
+        case "bass":
+          baseC = 36;
+          baseIndex = 4;
+          break;
+        case "alto":
+          baseC = 48;
+          baseIndex = 3;
+          break;
+        case "tenor":
+          baseC = 48;
+          baseIndex = 1;
+          break;
+        case "treble":
+        default:
+          baseC = 60;
+          baseIndex = 2;
+          break;
+      }
+      var idx = baseIndex + step;
+      var octaveShift = Math.floor(idx / 7);
+      var noteIndex = (idx % 7 + 7) % 7;
+      return baseC + diatonic[noteIndex] + octaveShift * 12;
+    }
+  }, {
+    key: "_accidentalClassToOffset",
+    value: function _accidentalClassToOffset(cls) {
+      if (!cls) return 0;
+      if (cls.includes("music-font__doublesharp")) return +2;
+      if (cls.includes("music-font__sharp")) return +1;
+      if (cls.includes("music-font__doubleflat")) return -2;
+      if (cls.includes("music-font__flat")) return -1;
+      return 0;
+    }
+  }, {
+    key: "_emitNoteState",
+    value: function _emitNoteState(noteId, source) {
+      var $note = this.$el.find(".note[data-note-id=\"".concat(noteId, "\"]"));
+      if (!$note.length) return;
+      var step = this.yToStep(parseFloat($note.css("top")));
+      var accCls = this._getAttachedAccidentalClass(noteId);
+      var accOff = this._accidentalClassToOffset(accCls);
+      var midi = this._stepToMidi(step) + accOff;
+      this.$el.trigger("staff:noteState", {
+        noteId: noteId,
+        step: step,
+        accidentalClass: accCls,
+        midi: midi,
+        source: source || "unknown"
+      });
+    }
+  }, {
+    key: "_playStep",
+    value: function () {
+      var _playStep2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee2(step, accidentalOffset) {
+        var midi;
+        return _regenerator().w(function (_context2) {
+          while (1) switch (_context2.n) {
+            case 0:
+              if (!(!this._soundEnabled() || !Number.isFinite(step))) {
+                _context2.n = 1;
+                break;
+              }
+              return _context2.a(2);
+            case 1:
+              _context2.n = 2;
+              return this._ensureAudio();
+            case 2:
+              if (this._synth) {
+                _context2.n = 3;
+                break;
+              }
+              return _context2.a(2);
+            case 3:
+              midi = this._stepToMidi(step) + (accidentalOffset || 0);
+              if (this._synth.triggerRelease) this._synth.triggerRelease();
+              this._synth.triggerAttackRelease(Tone.Frequency(midi, "midi"), 0.5);
+            case 4:
+              return _context2.a(2);
+          }
+        }, _callee2, this);
+      }));
+      function _playStep(_x, _x2) {
+        return _playStep2.apply(this, arguments);
+      }
+      return _playStep;
+    }()
+  }, {
+    key: "setNoteFixed",
+    value: function setNoteFixed(noteId, fixed) {
+      var on = !!fixed;
+      this.$el.find(".note[data-note-id=\"".concat(noteId, "\"]")).toggleClass("fixed", on);
+      this.$el.find(".ledger[data-for-note-id=\"".concat(noteId, "\"]")).toggleClass("fixed", on);
+      this.$el.find(".accidental[data-for-note-id=\"".concat(noteId, "\"]")).toggleClass("fixed", on);
+    }
+  }, {
+    key: "addFixedNote",
+    value: function addFixedNote(cfg) {
+      var c = cfg || {};
+      var id = this.addNote({
+        step: c.step,
+        y: c.y,
+        x: c.x,
+        id: c.id,
+        ledger: c.ledger,
+        className: c.className || ""
+      });
+      if (!id) return null;
+      if (c.accidentalClass) this.attachAccidentalToNote(id, c.accidentalClass);
+      this.setNoteFixed(id, true);
+      return id;
+    }
+  }, {
+    key: "clearNotes",
+    value: function clearNotes() {
+      this.$el.find(".note, .ledger, .accidental").remove();
+      this._previewClear();
+    }
+  }, {
+    key: "removeNote",
+    value: function removeNote(id) {
+      this.$el.find(".note[data-note-id=\"".concat(id, "\"]")).remove();
+      this.$el.find(".ledger[data-for-note-id=\"".concat(id, "\"]")).remove();
+      this._removeAccidentalForNote(id);
+      this._resolveNoteOverlaps();
+    }
+  }, {
+    key: "addNote",
+    value: function addNote(cfg) {
+      var c = cfg || {};
+      var step = Number.isFinite(c.step) ? Number(c.step) : null;
+      if (Number.isFinite(step) && !this._isStepAllowed(step)) return null;
+      if (Number.isFinite(step) && !c.allowOccupied && this._isStepOccupied(step, null)) return null;
+      var y = Number.isFinite(c.y) ? Number(c.y) : Number.isFinite(step) ? this.stepToY(step) : null;
+      if (!Number.isFinite(y)) throw new Error("addNote: provide either y or step");
+      var x = Number.isFinite(c.x) ? Number(c.x) : this.centerX();
+      var id = c.id || "".concat(this.opts.noteIdPrefix).concat(this._idCounter++);
+      var $note = $('<div class="note"><span class="lettername"></span></div>').attr("data-note-id", id).css({
+        left: "".concat(x, "px"),
+        top: "".concat(y, "px")
+      });
+      if (c.className) $note.addClass(c.className);
+      this.$el.append($note);
+      if (c.ledger === true || c.ledger !== false && Number.isFinite(step)) {
+        this._renderLedgers(id, x, step);
+      }
+      if (!c.skipResolve) this._resolveNoteOverlaps();else this._repositionAllAccidentals();
+      return id;
+    }
+  }, {
+    key: "moveNote",
+    value: function moveNote(id, pos) {
+      var p = pos || {};
+      var $note = this.$el.find(".note[data-note-id=\"".concat(id, "\"]"));
+      if (!$note.length) return;
+      var x = Number.isFinite(p.x) ? Number(p.x) : null;
+      var step = Number.isFinite(p.step) ? Number(p.step) : null;
+      if (Number.isFinite(step) && !this._isStepAllowed(step)) return;
+      var y = Number.isFinite(p.y) ? Number(p.y) : Number.isFinite(step) ? this.stepToY(step) : null;
+      if (Number.isFinite(x)) $note.css("left", "".concat(x, "px"));
+      if (Number.isFinite(y)) $note.css("top", "".concat(y, "px"));
+      if (Number.isFinite(step)) {
+        var noteX = Number.isFinite(x) ? x : parseFloat($note.css("left"));
+        this._renderLedgers(id, noteX, step);
+      }
+      this._repositionAllAccidentals();
+    }
+  }, {
+    key: "_previewSet",
+    value: function _previewSet(step) {
+      if (!this._preview) this._preview = $('<div class="note preview"></div>').appendTo(this.$el);
+      this._preview.css({
+        left: "".concat(this.centerX(), "px"),
+        top: "".concat(this.stepToY(step), "px")
+      });
+      this._previewStep = step;
+      this._previewLedgersSet(step);
+    }
+  }, {
+    key: "_previewClear",
+    value: function _previewClear() {
+      if (this._preview) {
+        this._preview.remove();
+        this._preview = null;
+        this._previewStep = null;
+      }
+      this._previewLedgersClear();
+    }
+  }, {
+    key: "_resolveNoteOverlaps",
+    value: function _resolveNoteOverlaps() {
+      var self = this;
+      var GAP = this.opts.noteOverlapGap;
+      var MAX_ITERS = 20;
+      function notesArray() {
+        return self.$el.find(".note").toArray().map(function (el) {
+          var $el = $(el);
+          return {
+            el: el,
+            $el: $el,
+            step: self.yToStep(parseFloat($el.css("top")))
+          };
+        });
+      }
+      function noteByStep(list) {
+        var map = {};
+        for (var i = 0; i < list.length; i++) {
+          var s = list[i].step;
+          (map[s] || (map[s] = [])).push(list[i]);
+        }
+        return map;
+      }
+      function centerAll(list) {
+        var cx = self.centerX();
+        for (var i = 0; i < list.length; i++) {
+          var id = list[i].$el.attr("data-note-id");
+          self.moveNote(id, {
+            x: cx,
+            step: list[i].step
+          });
+          list[i]._shifted = false;
+        }
+      }
+      function shiftUpperToTouch(upper, stepMap) {
+        var upperRect = upper.el.getBoundingClientRect();
+        var lowerEls = stepMap[upper.step - 1];
+        if (!lowerEls || !lowerEls.length) return false;
+        var lowerRect = lowerEls[0].el.getBoundingClientRect();
+        if (!self._rectsOverlap(upperRect, lowerRect)) return false;
+        var dx = lowerRect.right - upperRect.left + GAP;
+        var id = upper.$el.attr("data-note-id");
+        self.moveNote(id, {
+          x: parseFloat(upper.$el.css("left")) + dx,
+          step: upper.step
+        });
+        return true;
+      }
+      for (var iter = 0; iter < MAX_ITERS; iter++) {
+        var list = notesArray();
+        if (!list.length) return;
+        centerAll(list);
+        var stepMap = noteByStep(list);
+        var steps = Object.keys(stepMap).map(function (s) {
+          return parseInt(s, 10);
+        }).sort(function (a, b) {
+          return a - b;
+        });
+        var changed = false;
+        for (var i = 0; i < steps.length; i++) {
+          var s = steps[i];
+          if (!stepMap[s] || !stepMap[s + 1]) continue;
+          var lower = stepMap[s][0];
+          var upper = stepMap[s + 1][0];
+          if (!lower._shifted) {
+            if (shiftUpperToTouch(upper, stepMap)) changed = true;
+            upper._shifted = true;
+          }
+        }
+        if (!changed) {
+          self._repositionAllAccidentals();
+          return;
+        }
+      }
+      self._repositionAllAccidentals();
+    }
+  }, {
+    key: "_setDraggingVisual",
+    value: function _setDraggingVisual(noteId, on) {
+      var $note = this.$el.find(".note[data-note-id=\"".concat(noteId, "\"]"));
+      var $ledgers = this.$el.find(".ledger[data-for-note-id=\"".concat(noteId, "\"]"));
+      var $acc = this.$el.find(".accidental[data-for-note-id=\"".concat(noteId, "\"]"));
+      $note.toggleClass("dragging", !!on);
+      $ledgers.toggleClass("dragging", !!on);
+      $acc.toggleClass("dragging", !!on);
+    }
+  }, {
+    key: "_applyDraggedAdjacencyX",
+    value: function _applyDraggedAdjacencyX(dragId) {
+      var $drag = this.$el.find(".note[data-note-id=\"".concat(dragId, "\"]"));
+      if (!$drag.length) return;
+      var dragStep = this.yToStep(parseFloat($drag.css("top")));
+      var center = this.centerX();
+      var gap = this.opts.noteOverlapGap;
+      this.moveNote(dragId, {
+        x: center
+      });
+      var lowerId = this._getNoteIdAtStep(dragStep - 1, dragId);
+      if (!lowerId) return;
+      if (!this._isCenteredX(lowerId)) return;
+      var $lower = this.$el.find(".note[data-note-id=\"".concat(lowerId, "\"]"));
+      if (!$lower.length) return;
+      var upperRect = $drag[0].getBoundingClientRect();
+      var lowerRect = $lower[0].getBoundingClientRect();
+      if (!this._rectsOverlap(upperRect, lowerRect)) return;
+      var dx = lowerRect.right - upperRect.left + gap;
+      this.moveNote(dragId, {
+        x: center + dx
+      });
+    }
+  }, {
+    key: "enableGhostClickCreate",
+    value: function enableGhostClickCreate() {
+      var self = this;
+      this.$el.off(".previewCreate");
+      $(window).off("blur.previewCreate");
+      this.$el.on("pointerdown.previewCreate", function (e) {
+        if ($(e.target).closest(".note, .accidental").length) return;
+        if (self._userNoteCount() >= self._maxUserNotes()) return;
+        e.preventDefault();
+        var _getPointerPageXY = (0,_staffUtils_js__WEBPACK_IMPORTED_MODULE_0__.getPointerPageXY)(e),
+          pageY = _getPointerPageXY.y;
+        var initialStep = self.yToStep(self._pageYToLocalY(pageY));
+        if (!self._isStepAllowed(initialStep)) return;
+        self._previewState.active = true;
+        self._previewState.step = initialStep;
+        self._previewSet(initialStep);
+        if (self._soundEnabled()) self._ensureAudio();
+        var pointerId = (0,_staffUtils_js__WEBPACK_IMPORTED_MODULE_0__.getPointerId)(e);
+        if (this.setPointerCapture && pointerId != null) this.setPointerCapture(pointerId);
+        self.$el.off("pointermove.previewCreate").on("pointermove.previewCreate", function (ev) {
+          if (!self._previewState.active) return;
+          if (self._userNoteCount() >= self._maxUserNotes()) {
+            self._previewState.active = false;
+            self._previewClear();
+            self.$el.off("pointermove.previewCreate pointerup.previewCreate pointercancel.previewCreate");
+            return;
+          }
+          var _getPointerPageXY2 = (0,_staffUtils_js__WEBPACK_IMPORTED_MODULE_0__.getPointerPageXY)(ev),
+            py = _getPointerPageXY2.y;
+          var s = self.yToStep(self._pageYToLocalY(py));
+          if (!self._isStepAllowed(s)) return;
+          self._previewState.step = s;
+          self._previewSet(s);
+        });
+        self.$el.off("pointerup.previewCreate pointercancel.previewCreate").on("pointerup.previewCreate pointercancel.previewCreate", function () {
+          if (!self._previewState.active) return;
+          self._previewState.active = false;
+          var finalStep = self._previewState.step;
+          self._previewClear();
+          self.$el.off("pointermove.previewCreate pointerup.previewCreate pointercancel.previewCreate");
+          if (!self._isStepAllowed(finalStep)) return;
+          if (self._isStepOccupied(finalStep, null)) return;
+          if (self._userNoteCount() >= self._maxUserNotes()) return;
+          var createdId = self.addNote({
+            step: finalStep
+          });
+          if (createdId) {
+            self.$el.trigger("staff:userNoteAdded", {
+              noteId: createdId,
+              step: finalStep
+            });
+            self._emitNoteState(createdId, "user");
+            self._suppressNextClick.noteId = createdId;
+            self._suppressNextClick.until = Date.now() + 700;
+            self._playStep(finalStep, 0);
+          }
+        });
+      });
+      $(window).on("blur.previewCreate", function () {
+        if (!self._previewState.active) return;
+        self._previewState.active = false;
+        self._previewClear();
+        self.$el.off("pointermove.previewCreate pointerup.previewCreate pointercancel.previewCreate");
+      });
+    }
+  }, {
+    key: "enableNoteDragAndClickDelete",
+    value: function enableNoteDragAndClickDelete() {
+      var self = this;
+      var d = this._drag;
+      this.$el.off(".noteDrag");
+      function startDragFromNoteEl(noteEl, e) {
+        e.preventDefault();
+        if ($(noteEl).hasClass("fixed")) return;
+        if (e.stopImmediatePropagation) e.stopImmediatePropagation();else e.stopPropagation();
+        var pointerId = (0,_staffUtils_js__WEBPACK_IMPORTED_MODULE_0__.getPointerId)(e);
+        var $note = $(noteEl);
+        d.isDragging = false;
+        d.movedPx = 0;
+        d.startPageY = (0,_staffUtils_js__WEBPACK_IMPORTED_MODULE_0__.getPointerPageXY)(e).y;
+        d.noteId = $note.attr("data-note-id");
+        d.startStep = self.yToStep(parseFloat($note.css("top")));
+        d.lastTargetStep = d.startStep;
+        d.lastSoundStep = d.startStep;
+        d.dropOnOccupied = false;
+        d.outOfRange = false;
+        self._setDraggingVisual(d.noteId, true);
+        if (self._soundEnabled()) self._ensureAudio();
+        var capEl = e.currentTarget && e.currentTarget.setPointerCapture ? e.currentTarget : null;
+        if (capEl && pointerId != null) capEl.setPointerCapture(pointerId);
+        self.$el.off("pointermove.noteDrag").on("pointermove.noteDrag", function (ev) {
+          var evPointerId = (0,_staffUtils_js__WEBPACK_IMPORTED_MODULE_0__.getPointerId)(ev);
+          if (pointerId != null && evPointerId != null && evPointerId !== pointerId) return;
+          var py = (0,_staffUtils_js__WEBPACK_IMPORTED_MODULE_0__.getPointerPageXY)(ev).y;
+          var dy = py - d.startPageY;
+          d.movedPx = Math.max(d.movedPx, Math.abs(dy));
+          if (!d.isDragging && d.movedPx >= d.thresholdPx) d.isDragging = true;
+          if (!d.isDragging) return;
+          var targetStep = self.yToStep(self._pageYToLocalY(py));
+          if (!self._isStepAllowed(targetStep)) {
+            d.outOfRange = true;
+            return;
+          }
+          d.outOfRange = false;
+          d.lastTargetStep = targetStep;
+          self.moveNote(d.noteId, {
+            step: targetStep
+          });
+          d.dropOnOccupied = self._isStepOccupied(targetStep, d.noteId);
+          self._applyDraggedAdjacencyX(d.noteId);
+          if (self._soundEnabled() && targetStep !== d.lastSoundStep) {
+            d.lastSoundStep = targetStep;
+            var accCls = self._getAttachedAccidentalClass(d.noteId);
+            var accOff = self._accidentalClassToOffset(accCls);
+            self._playStep(targetStep, accOff);
+          }
+        });
+        self.$el.off("pointerup.noteDrag pointercancel.noteDrag").on("pointerup.noteDrag pointercancel.noteDrag", function (ev2) {
+          var evPointerId = (0,_staffUtils_js__WEBPACK_IMPORTED_MODULE_0__.getPointerId)(ev2);
+          if (pointerId != null && evPointerId != null && evPointerId !== pointerId) return;
+          self.$el.off("pointermove.noteDrag pointerup.noteDrag pointercancel.noteDrag");
+          d.swallowClick = d.isDragging;
+          self._setDraggingVisual(d.noteId, false);
+          if (d.outOfRange || d.dropOnOccupied) {
+            self.removeNote(d.noteId);
+          } else {
+            self.moveNote(d.noteId, {
+              step: d.lastTargetStep
+            });
+            self._resolveNoteOverlaps();
+            self._emitNoteState(d.noteId, "user");
+          }
+          d.noteId = null;
+          d.isDragging = false;
+          d.movedPx = 0;
+          d.startStep = null;
+          d.lastTargetStep = null;
+          d.lastSoundStep = null;
+          d.dropOnOccupied = false;
+          d.outOfRange = false;
+        });
+      }
+      this.$el.on("pointerdown.noteDrag", ".accidental", function (e) {
+        e.stopPropagation();
+      });
+      this.$el.on("pointerdown.noteDrag", ".note", function (e) {
+        startDragFromNoteEl(this, e);
+      });
+      this.$el.on("pointerdown.noteDrag", function (e) {
+        if ($(e.target).closest(".accidental").length) return;
+        if ($(e.target).closest(".note").length) return;
+        var _getPointerPageXY3 = (0,_staffUtils_js__WEBPACK_IMPORTED_MODULE_0__.getPointerPageXY)(e),
+          pageY = _getPointerPageXY3.y;
+        var step = self.yToStep(self._pageYToLocalY(pageY));
+        var idAtStep = self._getNoteIdAtStep(step, null);
+        if (!idAtStep) return;
+        var noteEl = self.$el.find(".note[data-note-id=\"".concat(idAtStep, "\"]"))[0];
+        if (!noteEl) return;
+        startDragFromNoteEl(noteEl, e);
+      });
+      this.$el.on("click.noteDrag", ".accidental", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var noteId = this.getAttribute("data-for-note-id");
+        if (!noteId) return;
+        if (self.isNoteFixed(noteId)) return;
+        self._removeAccidentalForNote(noteId);
+        self._repositionAllAccidentals();
+        self._emitNoteState(noteId, "user");
+      });
+      this.$el.on("click.noteDrag", ".note", function (e) {
+        var clickedId = $(this).attr("data-note-id");
+        if (self._suppressNextClick.noteId && clickedId === self._suppressNextClick.noteId && Date.now() < self._suppressNextClick.until) {
+          self._suppressNextClick.noteId = null;
+          self._suppressNextClick.until = 0;
+          e.preventDefault();
+          e.stopPropagation();
+          return;
+        }
+        if (d.swallowClick) {
+          e.preventDefault();
+          e.stopPropagation();
+          d.swallowClick = false;
+          return;
+        }
+        self.removeNote(clickedId);
+      });
+    }
+  }, {
+    key: "enableAccidentalDrag",
+    value: function enableAccidentalDrag($toolEls) {
+      var self = this;
+      $toolEls.addClass("accidental-tool");
+      function resetAccDrag() {
+        self._accDragSound.noteId = null;
+        self._accDragSound.step = null;
+        self._accDragSound.toolType = null;
+        self._accDragSound.prospectiveCls = null;
+        self._accSnap.noteId = null;
+        self._accSnap.dist = null;
+        self._accSnap.localY = null;
+      }
+      $toolEls.draggable({
+        helper: "clone",
+        appendTo: "body",
+        zIndex: 9999,
+        revert: "invalid",
+        scroll: false,
+        start: function start(_event, ui) {
+          ui.helper.addClass("dragging accidental-tool");
+          if (self._soundEnabled()) self._ensureAudio();
+          self._playAccidentalGrabSfx();
+          resetAccDrag();
+          self._accDragSound.toolType = (0,_staffUtils_js__WEBPACK_IMPORTED_MODULE_0__.toolTypeFromEl)($(this));
+        },
+        drag: function drag(event) {
+          var toolType = self._accDragSound.toolType;
+          if (!toolType) return;
+          var pageX = event.pageX;
+          var pageY = event.pageY;
+          if (!Number.isFinite(pageY) && event.originalEvent) pageY = event.originalEvent.pageY;
+          if (!Number.isFinite(pageX) && event.originalEvent) pageX = event.originalEvent.pageX;
+          var off = self.$el.offset();
+          var x = pageX - off.left;
+          var y = pageY - off.top;
+          self._accSnap.localY = y;
+          if (x < 0 || y < 0 || x > self.$el.width() || y > self.$el.height()) {
+            resetAccDrag();
+            self._accDragSound.toolType = toolType;
+            return;
+          }
+          var nearest = self._nearestEditableNoteByLocalY(y);
+          if (!nearest) {
+            self._accSnap.noteId = null;
+            self._accSnap.dist = null;
+            self._accDragSound.noteId = null;
+            self._accDragSound.step = null;
+            self._accDragSound.prospectiveCls = null;
+            return;
+          }
+          var noteId = nearest.noteId;
+          self._accSnap.noteId = noteId;
+          self._accSnap.dist = nearest.dist;
+          var $note = self.$el.find(".note[data-note-id=\"".concat(noteId, "\"]"));
+          if (!$note.length) return;
+          var step = self.yToStep(parseFloat($note.css("top")));
+          if (!self._isStepAllowed(step)) return;
+          var currentCls = self._getAttachedAccidentalClass(noteId);
+          var prospectiveCls = (0,_staffUtils_js__WEBPACK_IMPORTED_MODULE_0__.nextAccidentalClass)(currentCls, toolType);
+          if ((0,_staffUtils_js__WEBPACK_IMPORTED_MODULE_0__.isMaxedDouble)(currentCls, toolType)) {
+            self._accDragSound.noteId = null;
+            self._accDragSound.step = null;
+            self._accDragSound.prospectiveCls = null;
+            return;
+          }
+          if (noteId === self._accDragSound.noteId && step === self._accDragSound.step && prospectiveCls === self._accDragSound.prospectiveCls) return;
+          self._accDragSound.noteId = noteId;
+          self._accDragSound.step = step;
+          self._accDragSound.prospectiveCls = prospectiveCls;
+          if (self._soundEnabled()) {
+            var accOff = self._accidentalClassToOffset(prospectiveCls);
+            self._playStep(step, accOff);
+          }
+        },
+        stop: function stop() {
+          resetAccDrag();
+        }
+      });
+    }
+  }, {
+    key: "enableAccidentalDropOnStaff",
+    value: function enableAccidentalDropOnStaff() {
+      var self = this;
+      this.$el.droppable({
+        accept: ".accidental-tool",
+        tolerance: "pointer",
+        drop: function drop(event, ui) {
+          var toolType = (0,_staffUtils_js__WEBPACK_IMPORTED_MODULE_0__.toolTypeFromEl)(ui.draggable);
+          if (!toolType) return;
+          var localY;
+          if (self._accSnap && self._accSnap.localY != null) localY = self._accSnap.localY;else {
+            var pageY = event.pageY;
+            if (!Number.isFinite(pageY) && event.originalEvent) pageY = event.originalEvent.pageY;
+            localY = self._pageYToLocalY(pageY);
+          }
+          var nearest = self._nearestEditableNoteByLocalY(localY);
+          if (!nearest) return;
+          self.applyAccidentalToolToNote(nearest.noteId, toolType);
+        }
+      });
+    }
+  }]);
+}();
+
+/***/ },
+
+/***/ "./resources/js/music/staff/staffUtils.js"
+/*!************************************************!*\
+  !*** ./resources/js/music/staff/staffUtils.js ***!
+  \************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   ACCIDENTAL_CLASSES: () => (/* binding */ ACCIDENTAL_CLASSES),
+/* harmony export */   CLEF_LAYOUT_VARS: () => (/* binding */ CLEF_LAYOUT_VARS),
+/* harmony export */   accidentalClassToText: () => (/* binding */ accidentalClassToText),
+/* harmony export */   getPointerId: () => (/* binding */ getPointerId),
+/* harmony export */   getPointerPageXY: () => (/* binding */ getPointerPageXY),
+/* harmony export */   isMaxedDouble: () => (/* binding */ isMaxedDouble),
+/* harmony export */   nextAccidentalClass: () => (/* binding */ nextAccidentalClass),
+/* harmony export */   normalizeClef: () => (/* binding */ normalizeClef),
+/* harmony export */   pickOne: () => (/* binding */ pickOne),
+/* harmony export */   pickWeighted: () => (/* binding */ pickWeighted),
+/* harmony export */   pxFromCss: () => (/* binding */ pxFromCss),
+/* harmony export */   randomInt: () => (/* binding */ randomInt),
+/* harmony export */   spellNoteFromState: () => (/* binding */ spellNoteFromState),
+/* harmony export */   stepToLetterOctave: () => (/* binding */ stepToLetterOctave),
+/* harmony export */   toArrayMaybe: () => (/* binding */ toArrayMaybe),
+/* harmony export */   toolTypeFromEl: () => (/* binding */ toolTypeFromEl)
+/* harmony export */ });
+// resources/js/music/staff/staffUtils.js
+
+var ACCIDENTAL_CLASSES = ["music-font__sharp", "music-font__doublesharp", "music-font__flat", "music-font__doubleflat", "music-font__natural"];
+var CLEF_LAYOUT_VARS = {
+  treble: {
+    "--clef-width": "140px",
+    "--clef-height": "calc(var(--staff-line-gap) * 6)",
+    "--clef-top": "54px",
+    "--clef-left-nudge": "28px"
+  },
+  bass: {
+    "--clef-width": "76px",
+    "--clef-height": "calc(var(--staff-line-gap) * 6)",
+    "--clef-top": "35px",
+    "--clef-left-nudge": "-12px"
+  },
+  alto: {
+    "--clef-width": "88px",
+    "--clef-height": "calc(var(--staff-line-gap) * 6)",
+    "--clef-top": "47.5px",
+    "--clef-left-nudge": "-10px"
+  },
+  tenor: {
+    "--clef-width": "88px",
+    "--clef-height": "calc(var(--staff-line-gap) * 6)",
+    "--clef-top": "22.5px",
+    "--clef-left-nudge": "-10px"
+  }
+};
+function pxFromCss(css, varName, fallback) {
+  var v = css.getPropertyValue(varName);
+  var n = parseFloat(v);
+  return Number.isFinite(n) ? n : fallback;
+}
+function getPointerPageXY(e) {
+  var oe = e.originalEvent || e;
+  if (oe.touches && oe.touches.length) return {
+    x: oe.touches[0].pageX,
+    y: oe.touches[0].pageY
+  };
+  if (oe.changedTouches && oe.changedTouches.length) return {
+    x: oe.changedTouches[0].pageX,
+    y: oe.changedTouches[0].pageY
+  };
+  return {
+    x: oe.pageX,
+    y: oe.pageY
+  };
+}
+function getPointerId(e) {
+  var oe = e.originalEvent || e;
+  return oe && oe.pointerId != null ? oe.pointerId : null;
+}
+function randomInt(min, maxInclusive) {
+  return Math.floor(Math.random() * (maxInclusive - min + 1)) + min;
+}
+function pickOne(arr) {
+  if (!Array.isArray(arr) || !arr.length) return null;
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+function pickWeighted(items) {
+  var list = Array.isArray(items) ? items.filter(function (x) {
+    return x && Number.isFinite(x.weight) && x.weight > 0;
+  }) : [];
+  if (!list.length) return null;
+  var total = list.reduce(function (sum, x) {
+    return sum + x.weight;
+  }, 0);
+  var r = Math.random() * total;
+  for (var i = 0; i < list.length; i++) {
+    r -= list[i].weight;
+    if (r <= 0) return list[i].value;
+  }
+  return list[list.length - 1].value;
+}
+function toArrayMaybe(v) {
+  if (v == null) return [];
+  return Array.isArray(v) ? v : [v];
+}
+function normalizeClef(clef) {
+  if (clef == null) return null;
+  var c = String(clef || "treble").toLowerCase();
+  if (c === "bass") return "bass";
+  if (c === "alto") return "alto";
+  if (c === "tenor") return "tenor";
+  return "treble";
+}
+function toolTypeFromEl($el) {
+  if ($el.hasClass("music-font__sharp")) return "sharp";
+  if ($el.hasClass("music-font__flat")) return "flat";
+  if ($el.hasClass("music-font__natural")) return "natural";
+  return null;
+}
+function nextAccidentalClass(currentCls, toolType) {
+  if (toolType === "sharp") {
+    if (currentCls === "music-font__doublesharp") return "music-font__doublesharp";
+    if (currentCls === "music-font__sharp") return "music-font__doublesharp";
+    return "music-font__sharp";
+  }
+  if (toolType === "flat") {
+    if (currentCls === "music-font__doubleflat") return "music-font__doubleflat";
+    if (currentCls === "music-font__flat") return "music-font__doubleflat";
+    return "music-font__flat";
+  }
+  if (toolType === "natural") return "music-font__natural";
+  return currentCls || null;
+}
+function isMaxedDouble(currentCls, toolType) {
+  return toolType === "sharp" && currentCls === "music-font__doublesharp" || toolType === "flat" && currentCls === "music-font__doubleflat";
+}
+function accidentalClassToText(cls) {
+  if (!cls) return "";
+  if (cls.includes("music-font__doublesharp")) return "##";
+  if (cls.includes("music-font__sharp")) return "#";
+  if (cls.includes("music-font__doubleflat")) return "bb";
+  if (cls.includes("music-font__flat")) return "b";
+  return "";
+}
+function stepToLetterOctave(staff, step) {
+  var letters = ["C", "D", "E", "F", "G", "A", "B"];
+  var baseC;
+  var baseIndex;
+  switch (staff.getClef()) {
+    case "bass":
+      baseC = 36;
+      baseIndex = 4;
+      break;
+    case "alto":
+      baseC = 48;
+      baseIndex = 3;
+      break;
+    case "tenor":
+      baseC = 48;
+      baseIndex = 1;
+      break;
+    case "treble":
+    default:
+      baseC = 60;
+      baseIndex = 2;
+      break;
+  }
+  var idx = baseIndex + step;
+  var octaveShift = Math.floor(idx / 7);
+  var letterIndex = (idx % 7 + 7) % 7;
+  var baseOctave = Math.floor(baseC / 12) - 1;
+  var octave = baseOctave + octaveShift;
+  return {
+    letter: letters[letterIndex],
+    octave: octave
+  };
+}
+function spellNoteFromState(staff, step, accidentalClass) {
+  var _stepToLetterOctave = stepToLetterOctave(staff, step),
+    letter = _stepToLetterOctave.letter,
+    octave = _stepToLetterOctave.octave;
+  var acc = accidentalClassToText(accidentalClass);
+  return "".concat(letter).concat(acc).concat(octave);
+}
+
+/***/ }
+
+/******/ 	});
+/************************************************************************/
+/******/ 	// The module cache
+/******/ 	var __webpack_module_cache__ = {};
+/******/ 	
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/ 		// Check if module is in cache
+/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
+/******/ 		if (cachedModule !== undefined) {
+/******/ 			return cachedModule.exports;
+/******/ 		}
+/******/ 		// Check if module exists (development only)
+/******/ 		if (__webpack_modules__[moduleId] === undefined) {
+/******/ 			var e = new Error("Cannot find module '" + moduleId + "'");
+/******/ 			e.code = 'MODULE_NOT_FOUND';
+/******/ 			throw e;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = __webpack_module_cache__[moduleId] = {
+/******/ 			// no module.id needed
+/******/ 			// no module.loaded needed
+/******/ 			exports: {}
+/******/ 		};
+/******/ 	
+/******/ 		// Execute the module function
+/******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+/******/ 	
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/ 	
+/************************************************************************/
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__webpack_require__.d = (exports, definition) => {
+/******/ 			for(var key in definition) {
+/******/ 				if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__webpack_require__.r = (exports) => {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/************************************************************************/
+var __webpack_exports__ = {};
+// This entry needs to be wrapped in an IIFE because it needs to be isolated against other modules in the chunk.
+(() => {
+/*!***********************************************!*\
+  !*** ./resources/js/music/games/intervals.js ***!
+  \***********************************************/
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _intervals_IntervalsChallenge_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./intervals/IntervalsChallenge.js */ "./resources/js/music/games/intervals/IntervalsChallenge.js");
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+
+var options = readGlobal("__challengeOptions") || {};
+var clefUrls = readGlobal("__clefUrls") || null;
+var game = new _intervals_IntervalsChallenge_js__WEBPACK_IMPORTED_MODULE_0__.IntervalsChallenge(_objectSpread(_objectSpread({}, options), {}, {
+  clefUrls: clefUrls
+}));
+game.start();
+})();
+
+/******/ })()
+;

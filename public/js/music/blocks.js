@@ -1,2 +1,644 @@
-/*! For license information please see blocks.js.LICENSE.txt */
-(()=>{"use strict";function t(e){return t="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(t){return typeof t}:function(t){return t&&"function"==typeof Symbol&&t.constructor===Symbol&&t!==Symbol.prototype?"symbol":typeof t},t(e)}function e(){var t,r,i="function"==typeof Symbol?Symbol:{},a=i.iterator||"@@iterator",o=i.toStringTag||"@@toStringTag";function l(e,i,a,o){var l=i&&i.prototype instanceof u?i:u,c=Object.create(l.prototype);return n(c,"_invoke",function(e,n,i){var a,o,l,u=0,c=i||[],f=!1,h={p:0,n:0,v:t,a:p,f:p.bind(t,4),d:function(e,n){return a=e,o=0,l=t,h.n=n,s}};function p(e,n){for(o=e,l=n,r=0;!f&&u&&!i&&r<c.length;r++){var i,a=c[r],p=h.p,d=a[2];e>3?(i=d===n)&&(l=a[(o=a[4])?5:(o=3,3)],a[4]=a[5]=t):a[0]<=p&&((i=e<2&&p<a[1])?(o=0,h.v=n,h.n=a[1]):p<d&&(i=e<3||a[0]>n||n>d)&&(a[4]=e,a[5]=n,h.n=d,o=0))}if(i||e>1)return s;throw f=!0,n}return function(i,c,d){if(u>1)throw TypeError("Generator is already running");for(f&&1===c&&p(c,d),o=c,l=d;(r=o<2?t:l)||!f;){a||(o?o<3?(o>1&&(h.n=-1),p(o,l)):h.n=l:h.v=l);try{if(u=2,a){if(o||(i="next"),r=a[i]){if(!(r=r.call(a,l)))throw TypeError("iterator result is not an object");if(!r.done)return r;l=r.value,o<2&&(o=0)}else 1===o&&(r=a.return)&&r.call(a),o<2&&(l=TypeError("The iterator does not provide a '"+i+"' method"),o=1);a=t}else if((r=(f=h.n<0)?l:e.call(n,h))!==s)break}catch(e){a=t,o=1,l=e}finally{u=1}}return{value:r,done:f}}}(e,a,o),!0),c}var s={};function u(){}function c(){}function f(){}r=Object.getPrototypeOf;var h=[][a]?r(r([][a]())):(n(r={},a,function(){return this}),r),p=f.prototype=u.prototype=Object.create(h);function d(t){return Object.setPrototypeOf?Object.setPrototypeOf(t,f):(t.__proto__=f,n(t,o,"GeneratorFunction")),t.prototype=Object.create(p),t}return c.prototype=f,n(p,"constructor",f),n(f,"constructor",c),c.displayName="GeneratorFunction",n(f,o,"GeneratorFunction"),n(p),n(p,o,"Generator"),n(p,a,function(){return this}),n(p,"toString",function(){return"[object Generator]"}),(e=function(){return{w:l,m:d}})()}function n(t,e,r,i){var a=Object.defineProperty;try{a({},"",{})}catch(t){a=0}n=function(t,e,r,i){function o(e,r){n(t,e,function(t){return this._invoke(e,r,t)})}e?a?a(t,e,{value:r,enumerable:!i,configurable:!i,writable:!i}):t[e]=r:(o("next",0),o("throw",1),o("return",2))},n(t,e,r,i)}function r(t,e,n,r,i,a,o){try{var l=t[a](o),s=l.value}catch(t){return void n(t)}l.done?e(s):Promise.resolve(s).then(r,i)}function i(t,e){var n=Object.keys(t);if(Object.getOwnPropertySymbols){var r=Object.getOwnPropertySymbols(t);e&&(r=r.filter(function(e){return Object.getOwnPropertyDescriptor(t,e).enumerable})),n.push.apply(n,r)}return n}function a(t){for(var e=1;e<arguments.length;e++){var n=null!=arguments[e]?arguments[e]:{};e%2?i(Object(n),!0).forEach(function(e){l(t,e,n[e])}):Object.getOwnPropertyDescriptors?Object.defineProperties(t,Object.getOwnPropertyDescriptors(n)):i(Object(n)).forEach(function(e){Object.defineProperty(t,e,Object.getOwnPropertyDescriptor(n,e))})}return t}function o(t,e){for(var n=0;n<e.length;n++){var r=e[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(t,s(r.key),r)}}function l(t,e,n){return(e=s(e))in t?Object.defineProperty(t,e,{value:n,enumerable:!0,configurable:!0,writable:!0}):t[e]=n,t}function s(e){var n=function(e,n){if("object"!=t(e)||!e)return e;var r=e[Symbol.toPrimitive];if(void 0!==r){var i=r.call(e,n||"default");if("object"!=t(i))return i;throw new TypeError("@@toPrimitive must return a primitive value.")}return("string"===n?String:Number)(e)}(e,"string");return"symbol"==t(n)?n:n+""}var u=function(){function t(){var e=arguments.length>0&&void 0!==arguments[0]?arguments[0]:{};!function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,t);this.opts=a(a({},{tableEl:"table.table",pathLength:9,maxGenerateAttempts:2e3,maxStraightRun:3,intervals:null,initialNotes:null,sound:!0,namespace:"blocksChallenge"}),e||{}),this.$table=$(this.opts.tableEl).first(),this.ns=this.opts.namespace||"blocksChallenge",this._audioReady=!1,this._synth=null,this._revealTimeouts=[]}return n=t,i=[{key:"start",value:function(){var t=this;if(this.$table.length){var e=this.$table.find("tbody tr"),n=e.length,r=n?e.first().find("td").length:0;if(n&&r){this._clearRevealTimers(),this.$table.find("td").removeClass("block interval-block initial-block").removeAttr("id").empty(),this._hideAllCellsVisual();var i=n*r,a=Math.max(1,Math.min(i,Number(this.opts.pathLength)||9)),o=this._generatePath({rowCount:n,colCount:r,length:a,maxAttempts:Number(this.opts.maxGenerateAttempts)||2e3,maxStraightRun:Math.max(1,Number(this.opts.maxStraightRun)||3)});if(o){var l=o.map(function(e,n){if(0===n){var r=t._pickInitialNote(),i=o[1]||null,a=t._caretClassForNextStep(e,i);return{r:e.r,c:e.c,i:n,cls:"initial-block",html:'<div><span>START HERE</span><input type="text" name="note" value="'.concat(r,'" disabled=""><i class="fa-solid ').concat(a,'"></i></div>')}}if(n%2==1){var l=t._pickInitialInterval(),s=Math.random()<.5?"UP":"DOWN";return{r:e.r,c:e.c,i:n,cls:"interval-block",html:'<div><button type="button" data-interval="'.concat(l,'"><i class="fa-solid fa-circle-play"></i></button><span interval>').concat(l,"</span><span direction>").concat(s,"</span></div>")}}return{r:e.r,c:e.c,i:n,cls:"block",html:'<div><span>NEW<br>NOTE<br>HERE</span><input type="text" name="note"></div>'}});this._wireNoteInputUx(),this._wireIntervalBlocks(),this._showStandardGameUi(),this._revealPathCells(l)}}}}},{key:"_generatePath",value:function(t){for(var e=t.rowCount,n=t.colCount,r=t.length,i=t.maxAttempts,a=t.maxStraightRun,o=[{dr:1,dc:0},{dr:-1,dc:0},{dr:0,dc:1},{dr:0,dc:-1}],l=0;l<i;l+=1){for(var s=Math.floor(Math.random()*n),u=[{r:0,c:s}],c=new Set(["0,".concat(s)]),f=null,h=0;u.length<r;){for(var p=u[u.length-1],d=[],v=0;v<o.length;v+=1){var b=o[v];if(!(f&&b.dr===f.dr&&b.dc===f.dc&&h>=a)){var m=p.r+b.dr,y=p.c+b.dc;if(!(m<0||m>=e||y<0||y>=n)){var g="".concat(m,",").concat(y);if(!c.has(g)){var _=this._sideNeighbors(m,y,c);1===_.length&&_[0]==="".concat(p.r,",").concat(p.c)&&d.push({r:m,c:y,dir:b})}}}}if(!d.length)break;var k=d[Math.floor(Math.random()*d.length)];u.push({r:k.r,c:k.c}),c.add("".concat(k.r,",").concat(k.c)),f&&k.dir.dr===f.dr&&k.dir.dc===f.dc?h+=1:(f=k.dir,h=1)}if(u.length===r)return u}return null}},{key:"_sideNeighbors",value:function(t,e,n){for(var r=[],i=[[t+1,e],[t-1,e],[t,e+1],[t,e-1]],a=0;a<i.length;a+=1){var o="".concat(i[a][0],",").concat(i[a][1]);n.has(o)&&r.push(o)}return r}},{key:"_cellAt",value:function(t,e){return this.$table.find("tbody tr").eq(t).find("td").eq(e)}},{key:"_pickInitialInterval",value:function(){var e=Array.isArray(this.opts.intervals)?this.opts.intervals.filter(Boolean):[],n=e.length?e:t.INTERVALS_FALLBACK;return String(n[Math.floor(Math.random()*n.length)]||"M2")}},{key:"_caretClassForNextStep",value:function(t,e){if(!t||!e)return"fa-arrow-down";var n=e.r-t.r,r=e.c-t.c;return 1===n&&0===r?"fa-arrow-down":-1===n&&0===r?"fa-arrow-up":0===n&&1===r?"fa-arrow-right":0===n&&-1===r?"fa-arrow-left":"fa-arrow-down"}},{key:"_pickInitialNote",value:function(){var t=Array.isArray(this.opts.initialNotes)?this.opts.initialNotes.filter(Boolean).map(function(t){return String(t).trim()}):[],e=t.length?t:["C","D","E","F","G","A","B"];return String(e[Math.floor(Math.random()*e.length)]||"E")}},{key:"_wireIntervalBlocks",value:function(){var t=this;this.$table.off("click.".concat(this.ns,"Block")).on("click.".concat(this.ns,"Block"),"td.interval-block",function(t){if(!$(t.target).closest("button[data-interval]").length){var e=$(t.currentTarget).find("button[data-interval]").first();e.length&&e.trigger("click")}}),this.$table.off("click.".concat(this.ns,"Btn")).on("click.".concat(this.ns,"Btn"),"td.interval-block button[data-interval]",function(e){e.preventDefault(),e.stopPropagation();var n=$(e.currentTarget),r=n.closest("td.interval-block"),i=parseInt(r.attr("data-path-index"),10);if(!Number.isFinite(i)||i<=0)t._shakeCell(r);else{var a=t.$table.find('td[data-path-index="'.concat(i-1,'"]')).first(),o=t._midiFromCell(a);if(Number.isFinite(o)){var l=String(n.attr("data-interval")||"").trim(),s="DOWN"===String(r.find("span[direction]").first().text()||"").trim().toUpperCase()?-1:1,u=t._intervalToSemitones(l);if(Number.isFinite(u)){var c=o+s*u;t._playDictationLike(o,c)}else t._shakeCell(r)}else t._shakeCell(r)}})}},{key:"_wireNoteInputUx",value:function(){var t=this;this.$table.off("blur.".concat(this.ns,"Note"),'input[name="note"]').on("blur.".concat(this.ns,"Note"),'input[name="note"]',function(e){$(e.currentTarget).closest("td.block").length&&t._updateNoteInputProgression()}),this.$table.off("input.".concat(this.ns,"Note"),'input[name="note"]').on("input.".concat(this.ns,"Note"),'input[name="note"]',function(e){$(e.currentTarget).closest("td.block").length&&t._updateNoteInputProgression()})}},{key:"_updateNoteInputProgression",value:function(){for(var t=this.$table.find("td.block").toArray().sort(function(t,e){var n=parseInt(t.getAttribute("data-path-index"),10),r=parseInt(e.getAttribute("data-path-index"),10);return(Number.isFinite(n)?n:9999)-(Number.isFinite(r)?r:9999)}),e=!0,n=0;n<t.length;n+=1){var r=$(t[n]),i=r.find('input[name="note"]').first(),a=r.find("span").first();if(i.length){var o=String(i.val()||"").trim();e?(i.prop("disabled",!1),o?a.hide():(a.show(),e=!1)):(i.prop("disabled",!0),a.hide())}}}},{key:"_isSoundEnabled",value:function(){var t=this.opts.sound;return!0===t||"on"===String(t||"").trim().toLowerCase()}},{key:"_ensureAudio",value:(s=e().m(function t(){return e().w(function(t){for(;;)switch(t.p=t.n){case 0:if(this._isSoundEnabled()){t.n=1;break}return t.a(2);case 1:if(!this._audioReady){t.n=2;break}return t.a(2);case 2:if(window.Tone){t.n=3;break}return t.a(2);case 3:return t.p=3,t.n=4,Tone.start();case 4:t.n=6;break;case 5:return t.p=5,t.v,t.a(2);case 6:this._synth=new Tone.PolySynth(Tone.Synth,{oscillator:{type:"sine"},envelope:{attack:.01,decay:.08,sustain:.35,release:.25}}).toDestination(),this._audioReady=!0;case 7:return t.a(2)}},t,this,[[3,5]])}),u=function(){var t=this,e=arguments;return new Promise(function(n,i){var a=s.apply(t,e);function o(t){r(a,n,i,o,l,"next",t)}function l(t){r(a,n,i,o,l,"throw",t)}o(void 0)})},function(){return u.apply(this,arguments)})},{key:"_playMidi",value:function(t,e,n){var r=this;window.Tone&&this._ensureAudio().then(function(){if(r._synth){var i=Tone.now()+(Number(n)||0),a=Number(e)||.6;r._synth.triggerAttackRelease(Tone.Frequency(t,"midi"),a,i)}})}},{key:"_playDictationLike",value:function(t,e){this._isSoundEnabled()&&(this._playMidi(t,.6,0),this._playMidi(e,.6,1),this._playMidi(t,.6,2),this._playMidi(t,.6,3),this._playMidi(e,.6,3))}},{key:"_midiFromCell",value:function(t){if(!t||!t.length)return null;var e=String(t.find('input[name="note"]').first().val()||"").trim(),n=String(t.find("span[note]").first().text()||"").trim(),r=String(t.find("span").first().text()||"").trim(),i=e||n||r||String(t.text()||"").trim();if(!i)return null;var a=i.match(/^([A-Ga-g])((?:#{1,2})|(?:b{1,2})|)?(\d+)?$/);if(!a)return null;var o=a[1].toUpperCase(),l=a[2]||"";return 12*((null!=a[3]?parseInt(a[3],10):4)+1)+{C:0,D:2,E:4,F:5,G:7,A:9,B:11}[o]+("##"===l?2:"#"===l?1:"bb"===l?-2:"b"===l?-1:0)}},{key:"_parseIntervalAbbr",value:function(t){var e=String(t||"").trim().match(/^([PMAmd]+)(\d+)$/);return e?{quality:e[1],number:parseInt(e[2],10)}:null}},{key:"_intervalSemitones",value:function(t,e){var n={1:0,2:2,3:4,4:5,5:7,6:9,7:11,8:12}[e];if(null==n)return null;var r=1===e||4===e||5===e||8===e,i=String(t||"").trim();return r?"P"===i?n:/^A+$/.test(i)?n+i.length:/^d+$/.test(i)?n-i.length:null:"M"===i?n:"m"===i?n-1:/^A+$/.test(i)?n+i.length:/^d+$/.test(i)?n-(i.length+1):null}},{key:"_intervalToSemitones",value:function(t){var e=this._parseIntervalAbbr(t);if(!e||!Number.isFinite(e.number)||e.number<1)return null;var n=(e.number-1)%7+1,r=Math.floor((e.number-1)/7),i=this._intervalSemitones(e.quality,n);return null==i?null:i+12*r}},{key:"_shakeCell",value:function(t){t&&t.length&&(t.removeClass("animate__animated animate__shakeX"),t[0]&&t[0].offsetWidth,t.addClass("animate__animated animate__shakeX"),t.off("animationend.".concat(this.ns,"Shake webkitAnimationEnd.").concat(this.ns,"Shake")).one("animationend.".concat(this.ns,"Shake webkitAnimationEnd.").concat(this.ns,"Shake"),function(){t.removeClass("animate__animated animate__shakeX")}))}},{key:"_clearRevealTimers",value:function(){Array.isArray(this._revealTimeouts)?(this._revealTimeouts.forEach(function(t){return clearTimeout(t)}),this._revealTimeouts=[]):this._revealTimeouts=[]}},{key:"_revealPathCells",value:function(t){var e=this,n=arguments.length>1&&void 0!==arguments[1]?arguments[1]:null,r=Array.isArray(t)?t:[];if(r.length){for(var i=function(){var t=r[a],n=setTimeout(function(){var n=e._cellAt(t.r,t.c);n.attr("data-path-index",String(t.i)),n.addClass(t.cls).append(t.html),"block"===t.cls&&(n.find('input[name="note"]').prop("disabled",!0),n.find("span").hide()),e._showCellVisual(n),e._updateNoteInputProgression()},80*a);e._revealTimeouts.push(n)},a=0;a<r.length;a+=1)i();if("function"==typeof n){var o=setTimeout(function(){return n()},80*r.length);this._revealTimeouts.push(o)}}else"function"==typeof n&&n()}},{key:"_showStandardGameUi",value:function(){$("#instructions").show(),$("#controls").show(),$("#page-wrapper").fadeIn("fast")}},{key:"_hideAllCellsVisual",value:function(){this.$table.find("td").css({visibility:"visible",borderColor:"transparent",backgroundColor:"transparent",color:"transparent"})}},{key:"_showCellVisual",value:function(t){t&&t.length&&t.css({borderColor:"",backgroundColor:"",color:""})}}],i&&o(n.prototype,i),l&&o(n,l),Object.defineProperty(n,"prototype",{writable:!1}),n;var n,i,l,s,u}();function c(t){return c="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(t){return typeof t}:function(t){return t&&"function"==typeof Symbol&&t.constructor===Symbol&&t!==Symbol.prototype?"symbol":typeof t},c(t)}function f(t,e){var n=Object.keys(t);if(Object.getOwnPropertySymbols){var r=Object.getOwnPropertySymbols(t);e&&(r=r.filter(function(e){return Object.getOwnPropertyDescriptor(t,e).enumerable})),n.push.apply(n,r)}return n}function h(t,e,n){return(e=function(t){var e=function(t,e){if("object"!=c(t)||!t)return t;var n=t[Symbol.toPrimitive];if(void 0!==n){var r=n.call(t,e||"default");if("object"!=c(r))return r;throw new TypeError("@@toPrimitive must return a primitive value.")}return("string"===e?String:Number)(t)}(t,"string");return"symbol"==c(e)?e:e+""}(e))in t?Object.defineProperty(t,e,{value:n,enumerable:!0,configurable:!0,writable:!0}):t[e]=n,t}l(u,"INTERVALS_FALLBACK",["m2","M2","m3","M3","P4","A4","d5","P5","m6","M6","m7","M7","P8"]),new u(function(t){for(var e=1;e<arguments.length;e++){var n=null!=arguments[e]?arguments[e]:{};e%2?f(Object(n),!0).forEach(function(e){h(t,e,n[e])}):Object.getOwnPropertyDescriptors?Object.defineProperties(t,Object.getOwnPropertyDescriptors(n)):f(Object(n)).forEach(function(e){Object.defineProperty(t,e,Object.getOwnPropertyDescriptor(n,e))})}return t}({},readGlobal("__challengeOptions")||{})).start()})();
+/******/ (() => { // webpackBootstrap
+/******/ 	"use strict";
+/******/ 	var __webpack_modules__ = ({
+
+/***/ "./resources/js/music/games/blocks/BlocksChallenge.js"
+/*!************************************************************!*\
+  !*** ./resources/js/music/games/blocks/BlocksChallenge.js ***!
+  \************************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   BlocksChallenge: () => (/* binding */ BlocksChallenge)
+/* harmony export */ });
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
+function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+function _classCallCheck(a, n) { if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function"); }
+function _defineProperties(e, r) { for (var t = 0; t < r.length; t++) { var o = r[t]; o.enumerable = o.enumerable || !1, o.configurable = !0, "value" in o && (o.writable = !0), Object.defineProperty(e, _toPropertyKey(o.key), o); } }
+function _createClass(e, r, t) { return r && _defineProperties(e.prototype, r), t && _defineProperties(e, t), Object.defineProperty(e, "prototype", { writable: !1 }), e; }
+function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+var BlocksChallenge = /*#__PURE__*/function () {
+  function BlocksChallenge() {
+    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    _classCallCheck(this, BlocksChallenge);
+    var defaults = {
+      tableEl: "table.table",
+      pathLength: 9,
+      maxGenerateAttempts: 2000,
+      maxStraightRun: 3,
+      intervals: null,
+      initialNotes: null,
+      sound: true,
+      namespace: "blocksChallenge"
+    };
+    this.opts = _objectSpread(_objectSpread({}, defaults), options || {});
+    this.$table = $(this.opts.tableEl).first();
+    this.ns = this.opts.namespace || "blocksChallenge";
+    this._audioReady = false;
+    this._synth = null;
+    this._revealTimeouts = [];
+  }
+  return _createClass(BlocksChallenge, [{
+    key: "start",
+    value: function start() {
+      var _this = this;
+      if (!this.$table.length) return;
+      var $rows = this.$table.find("tbody tr");
+      var rowCount = $rows.length;
+      var colCount = rowCount ? $rows.first().find("td").length : 0;
+      if (!rowCount || !colCount) return;
+      this._clearRevealTimers();
+      this.$table.find("td").removeClass("block interval-block initial-block").removeAttr("id").empty();
+      this._hideAllCellsVisual();
+      var maxCells = rowCount * colCount;
+      var pathLength = Math.max(1, Math.min(maxCells, Number(this.opts.pathLength) || 9));
+      var path = this._generatePath({
+        rowCount: rowCount,
+        colCount: colCount,
+        length: pathLength,
+        maxAttempts: Number(this.opts.maxGenerateAttempts) || 2000,
+        maxStraightRun: Math.max(1, Number(this.opts.maxStraightRun) || 3)
+      });
+      if (!path) return;
+      var revealItems = path.map(function (cell, i) {
+        if (i === 0) {
+          var note = _this._pickInitialNote();
+          var next = path[1] || null;
+          var arrowClass = _this._arrowClassForNextStep(cell, next);
+          return {
+            r: cell.r,
+            c: cell.c,
+            i: i,
+            cls: "initial-block",
+            html: "<div><span>START HERE</span><input type=\"text\" name=\"note\" value=\"".concat(note, "\" disabled=\"\"><i class=\"fa-solid ").concat(arrowClass, "\"></i></div>")
+          };
+        }
+        if (i % 2 === 1) {
+          var interval = _this._pickInitialInterval();
+          var direction = Math.random() < 0.5 ? "UP" : "DOWN";
+          return {
+            r: cell.r,
+            c: cell.c,
+            i: i,
+            cls: "interval-block",
+            html: "<div><button type=\"button\" data-interval=\"".concat(interval, "\"><i class=\"fa-solid fa-volume-up\"></i></button><span interval>").concat(interval, "</span><span direction>").concat(direction, "</span></div>")
+          };
+        }
+        return {
+          r: cell.r,
+          c: cell.c,
+          i: i,
+          cls: "block",
+          html: "<div><span>NEW<br>NOTE<br>HERE</span><input type=\"text\" name=\"note\"></div>"
+        };
+      });
+      this._wireNoteInputUx();
+      this._wireIntervalBlocks();
+      this._showStandardGameUi();
+      this._revealPathCells(revealItems);
+    }
+  }, {
+    key: "_generatePath",
+    value: function _generatePath(_ref) {
+      var rowCount = _ref.rowCount,
+        colCount = _ref.colCount,
+        length = _ref.length,
+        maxAttempts = _ref.maxAttempts,
+        maxStraightRun = _ref.maxStraightRun;
+      var dirs = [{
+        dr: 1,
+        dc: 0
+      }, {
+        dr: -1,
+        dc: 0
+      }, {
+        dr: 0,
+        dc: 1
+      }, {
+        dr: 0,
+        dc: -1
+      }];
+      for (var attempt = 0; attempt < maxAttempts; attempt += 1) {
+        var startCol = Math.floor(Math.random() * colCount);
+        var path = [{
+          r: 0,
+          c: startCol
+        }];
+        var occupied = new Set(["0,".concat(startCol)]);
+        var prevDir = null;
+        var sameDirRun = 0;
+        while (path.length < length) {
+          var cur = path[path.length - 1];
+          var candidates = [];
+          for (var i = 0; i < dirs.length; i += 1) {
+            var dir = dirs[i];
+            if (prevDir && dir.dr === prevDir.dr && dir.dc === prevDir.dc && sameDirRun >= maxStraightRun) {
+              continue;
+            }
+            var nr = cur.r + dir.dr;
+            var nc = cur.c + dir.dc;
+            if (nr < 0 || nr >= rowCount || nc < 0 || nc >= colCount) continue;
+            var key = "".concat(nr, ",").concat(nc);
+            if (occupied.has(key)) continue;
+            var sideNeighbors = this._sideNeighbors(nr, nc, occupied);
+            if (sideNeighbors.length !== 1) continue;
+            if (sideNeighbors[0] !== "".concat(cur.r, ",").concat(cur.c)) continue;
+            candidates.push({
+              r: nr,
+              c: nc,
+              dir: dir
+            });
+          }
+          if (!candidates.length) break;
+          var picked = candidates[Math.floor(Math.random() * candidates.length)];
+          path.push({
+            r: picked.r,
+            c: picked.c
+          });
+          occupied.add("".concat(picked.r, ",").concat(picked.c));
+          if (prevDir && picked.dir.dr === prevDir.dr && picked.dir.dc === prevDir.dc) {
+            sameDirRun += 1;
+          } else {
+            prevDir = picked.dir;
+            sameDirRun = 1;
+          }
+        }
+        if (path.length === length) return path;
+      }
+      return null;
+    }
+  }, {
+    key: "_sideNeighbors",
+    value: function _sideNeighbors(r, c, occupied) {
+      var out = [];
+      var neighbors = [[r + 1, c], [r - 1, c], [r, c + 1], [r, c - 1]];
+      for (var i = 0; i < neighbors.length; i += 1) {
+        var key = "".concat(neighbors[i][0], ",").concat(neighbors[i][1]);
+        if (occupied.has(key)) out.push(key);
+      }
+      return out;
+    }
+  }, {
+    key: "_cellAt",
+    value: function _cellAt(r, c) {
+      var $row = this.$table.find("tbody tr").eq(r);
+      return $row.find("td").eq(c);
+    }
+  }, {
+    key: "_pickInitialInterval",
+    value: function _pickInitialInterval() {
+      var fromOptions = Array.isArray(this.opts.intervals) ? this.opts.intervals.filter(Boolean) : [];
+      var pool = fromOptions.length ? fromOptions : BlocksChallenge.INTERVALS_FALLBACK;
+      return String(pool[Math.floor(Math.random() * pool.length)] || "M2");
+    }
+  }, {
+    key: "_arrowClassForNextStep",
+    value: function _arrowClassForNextStep(cur, next) {
+      if (!cur || !next) return "fa-arrow-right";
+      var dr = next.r - cur.r;
+      var dc = next.c - cur.c;
+      if (dr === 1 && dc === 0) return "fa-arrow-down";
+      if (dr === -1 && dc === 0) return "fa-arrow-up";
+      if (dr === 0 && dc === 1) return "fa-arrow-right";
+      if (dr === 0 && dc === -1) return "fa-arrow-left";
+      return "fa-arrow-right";
+    }
+  }, {
+    key: "_pickInitialNote",
+    value: function _pickInitialNote() {
+      var fromOptions = Array.isArray(this.opts.initialNotes) ? this.opts.initialNotes.filter(Boolean).map(function (x) {
+        return String(x).trim();
+      }) : [];
+      var fallback = ["C", "D", "E", "F", "G", "A", "B"];
+      var pool = fromOptions.length ? fromOptions : fallback;
+      return String(pool[Math.floor(Math.random() * pool.length)] || "E");
+    }
+  }, {
+    key: "_wireIntervalBlocks",
+    value: function _wireIntervalBlocks() {
+      var _this2 = this;
+      this.$table.off("click.".concat(this.ns, "Block")).on("click.".concat(this.ns, "Block"), "td.interval-block", function (e) {
+        if ($(e.target).closest("button[data-interval]").length) return;
+        var $btn = $(e.currentTarget).find('button[data-interval]').first();
+        if ($btn.length) $btn.trigger("click");
+      });
+      this.$table.off("click.".concat(this.ns, "Btn")).on("click.".concat(this.ns, "Btn"), 'td.interval-block button[data-interval]', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $btn = $(e.currentTarget);
+        var $cell = $btn.closest("td.interval-block");
+        var idx = parseInt($cell.attr("data-path-index"), 10);
+        if (!Number.isFinite(idx) || idx <= 0) {
+          _this2._shakeCell($cell);
+          return;
+        }
+        var $prev = _this2.$table.find("td[data-path-index=\"".concat(idx - 1, "\"]")).first();
+        var prevMidi = _this2._midiFromCell($prev);
+        if (!Number.isFinite(prevMidi)) {
+          _this2._shakeCell($cell);
+          return;
+        }
+        var interval = String($btn.attr("data-interval") || "").trim();
+        var dirRaw = String($cell.find("span[direction]").first().text() || "").trim().toUpperCase();
+        var dir = dirRaw === "DOWN" ? -1 : 1;
+        var semis = _this2._intervalToSemitones(interval);
+        if (!Number.isFinite(semis)) {
+          _this2._shakeCell($cell);
+          return;
+        }
+        var secondMidi = prevMidi + dir * semis;
+        _this2._playDictationLike(prevMidi, secondMidi);
+      });
+    }
+  }, {
+    key: "_wireNoteInputUx",
+    value: function _wireNoteInputUx() {
+      var _this3 = this;
+      this.$table.off("blur.".concat(this.ns, "Note"), 'input[name="note"]').on("blur.".concat(this.ns, "Note"), 'input[name="note"]', function (e) {
+        var $input = $(e.currentTarget);
+        if (!$input.closest("td.block").length) return;
+        _this3._updateNoteInputProgression();
+      });
+      this.$table.off("input.".concat(this.ns, "Note"), 'input[name="note"]').on("input.".concat(this.ns, "Note"), 'input[name="note"]', function (e) {
+        var $input = $(e.currentTarget);
+        if (!$input.closest("td.block").length) return;
+        _this3._updateNoteInputProgression();
+      });
+    }
+  }, {
+    key: "_updateNoteInputProgression",
+    value: function _updateNoteInputProgression() {
+      var $blocks = this.$table.find("td.block").toArray().sort(function (a, b) {
+        var ia = parseInt(a.getAttribute("data-path-index"), 10);
+        var ib = parseInt(b.getAttribute("data-path-index"), 10);
+        return (Number.isFinite(ia) ? ia : 9999) - (Number.isFinite(ib) ? ib : 9999);
+      });
+      var gateOpen = true;
+      for (var i = 0; i < $blocks.length; i += 1) {
+        var $cell = $($blocks[i]);
+        var $input = $cell.find('input[name="note"]').first();
+        var $label = $cell.children("div").children("span").not(".block-arrow").first();
+        if (!$input.length) continue;
+        var value = String($input.val() || "").trim();
+        if (gateOpen) {
+          $input.prop("disabled", false);
+          if (value) {
+            $label.hide();
+          } else {
+            $label.show();
+            gateOpen = false;
+          }
+        } else {
+          $input.prop("disabled", true);
+          $label.hide();
+        }
+      }
+    }
+  }, {
+    key: "_isSoundEnabled",
+    value: function _isSoundEnabled() {
+      var v = this.opts.sound;
+      return v === true || String(v || "").trim().toLowerCase() === "on";
+    }
+  }, {
+    key: "_ensureAudio",
+    value: function () {
+      var _ensureAudio2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
+        var _t;
+        return _regenerator().w(function (_context) {
+          while (1) switch (_context.p = _context.n) {
+            case 0:
+              if (this._isSoundEnabled()) {
+                _context.n = 1;
+                break;
+              }
+              return _context.a(2);
+            case 1:
+              if (!this._audioReady) {
+                _context.n = 2;
+                break;
+              }
+              return _context.a(2);
+            case 2:
+              if (window.Tone) {
+                _context.n = 3;
+                break;
+              }
+              return _context.a(2);
+            case 3:
+              _context.p = 3;
+              _context.n = 4;
+              return Tone.start();
+            case 4:
+              _context.n = 6;
+              break;
+            case 5:
+              _context.p = 5;
+              _t = _context.v;
+              return _context.a(2);
+            case 6:
+              this._synth = new Tone.PolySynth(Tone.Synth, {
+                oscillator: {
+                  type: "sine"
+                },
+                envelope: {
+                  attack: 0.01,
+                  decay: 0.08,
+                  sustain: 0.35,
+                  release: 0.25
+                }
+              }).toDestination();
+              this._audioReady = true;
+            case 7:
+              return _context.a(2);
+          }
+        }, _callee, this, [[3, 5]]);
+      }));
+      function _ensureAudio() {
+        return _ensureAudio2.apply(this, arguments);
+      }
+      return _ensureAudio;
+    }()
+  }, {
+    key: "_playMidi",
+    value: function _playMidi(midi, durSeconds, atSecondsFromNow) {
+      var _this4 = this;
+      if (!window.Tone) return;
+      this._ensureAudio().then(function () {
+        if (!_this4._synth) return;
+        var now = Tone.now();
+        var when = now + (Number(atSecondsFromNow) || 0);
+        var dur = Number(durSeconds) || 0.6;
+        _this4._synth.triggerAttackRelease(Tone.Frequency(midi, "midi"), dur, when);
+      });
+    }
+  }, {
+    key: "_playDictationLike",
+    value: function _playDictationLike(firstMidi, secondMidi) {
+      if (!this._isSoundEnabled()) return;
+      this._playMidi(firstMidi, 0.6, 0.0);
+      this._playMidi(secondMidi, 0.6, 1.0);
+      this._playMidi(firstMidi, 0.6, 2.0);
+      this._playMidi(firstMidi, 0.6, 3.0);
+      this._playMidi(secondMidi, 0.6, 3.0);
+    }
+  }, {
+    key: "_midiFromCell",
+    value: function _midiFromCell($cell) {
+      if (!$cell || !$cell.length) return null;
+      var textFromInput = String($cell.find('input[name="note"]').first().val() || "").trim();
+      var textFromInterval = String($cell.find("span[note]").first().text() || "").trim();
+      var textFromInitial = String($cell.find("span").first().text() || "").trim();
+      var rawText = textFromInput || textFromInterval || textFromInitial || String($cell.text() || "").trim();
+      if (!rawText) return null;
+      var m = rawText.match(/^([A-Ga-g])((?:#{1,2})|(?:b{1,2})|)?(\d+)?$/);
+      if (!m) return null;
+      var letter = m[1].toUpperCase();
+      var acc = m[2] || "";
+      var octave = m[3] != null ? parseInt(m[3], 10) : 4;
+      var baseSemitoneFromC = {
+        C: 0,
+        D: 2,
+        E: 4,
+        F: 5,
+        G: 7,
+        A: 9,
+        B: 11
+      }[letter];
+      var accOffset = acc === "##" ? 2 : acc === "#" ? 1 : acc === "bb" ? -2 : acc === "b" ? -1 : 0;
+      return 12 * (octave + 1) + baseSemitoneFromC + accOffset;
+    }
+  }, {
+    key: "_parseIntervalAbbr",
+    value: function _parseIntervalAbbr(abbr) {
+      var s = String(abbr || "").trim();
+      var m = s.match(/^([PMAmd]+)(\d+)$/);
+      if (!m) return null;
+      return {
+        quality: m[1],
+        number: parseInt(m[2], 10)
+      };
+    }
+  }, {
+    key: "_intervalSemitones",
+    value: function _intervalSemitones(quality, simpleNum) {
+      var baseMajorPerfect = {
+        1: 0,
+        2: 2,
+        3: 4,
+        4: 5,
+        5: 7,
+        6: 9,
+        7: 11,
+        8: 12
+      }[simpleNum];
+      if (baseMajorPerfect == null) return null;
+      var isPerfectClass = simpleNum === 1 || simpleNum === 4 || simpleNum === 5 || simpleNum === 8;
+      var q = String(quality || "").trim();
+      if (isPerfectClass) {
+        if (q === "P") return baseMajorPerfect;
+        if (/^A+$/.test(q)) return baseMajorPerfect + q.length;
+        if (/^d+$/.test(q)) return baseMajorPerfect - q.length;
+        return null;
+      }
+      if (q === "M") return baseMajorPerfect;
+      if (q === "m") return baseMajorPerfect - 1;
+      if (/^A+$/.test(q)) return baseMajorPerfect + q.length;
+      if (/^d+$/.test(q)) return baseMajorPerfect - (q.length + 1);
+      return null;
+    }
+  }, {
+    key: "_intervalToSemitones",
+    value: function _intervalToSemitones(abbr) {
+      var parsed = this._parseIntervalAbbr(abbr);
+      if (!parsed || !Number.isFinite(parsed.number) || parsed.number < 1) return null;
+      var simpleNum = (parsed.number - 1) % 7 + 1;
+      var octaves = Math.floor((parsed.number - 1) / 7);
+      var base = this._intervalSemitones(parsed.quality, simpleNum);
+      if (base == null) return null;
+      return base + 12 * octaves;
+    }
+  }, {
+    key: "_shakeCell",
+    value: function _shakeCell($cell) {
+      if (!$cell || !$cell.length) return;
+      $cell.removeClass("animate__animated animate__shakeX");
+      // eslint-disable-next-line no-unused-expressions
+      $cell[0] && $cell[0].offsetWidth;
+      $cell.addClass("animate__animated animate__shakeX");
+      $cell.off("animationend.".concat(this.ns, "Shake webkitAnimationEnd.").concat(this.ns, "Shake")).one("animationend.".concat(this.ns, "Shake webkitAnimationEnd.").concat(this.ns, "Shake"), function () {
+        $cell.removeClass("animate__animated animate__shakeX");
+      });
+    }
+  }, {
+    key: "_clearRevealTimers",
+    value: function _clearRevealTimers() {
+      if (!Array.isArray(this._revealTimeouts)) {
+        this._revealTimeouts = [];
+        return;
+      }
+      this._revealTimeouts.forEach(function (id) {
+        return clearTimeout(id);
+      });
+      this._revealTimeouts = [];
+    }
+  }, {
+    key: "_revealPathCells",
+    value: function _revealPathCells(items) {
+      var _this5 = this;
+      var onDone = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+      var list = Array.isArray(items) ? items : [];
+      if (!list.length) {
+        if (typeof onDone === "function") onDone();
+        return;
+      }
+      var _loop = function _loop() {
+        var item = list[i];
+        var tid = setTimeout(function () {
+          var $cell = _this5._cellAt(item.r, item.c);
+          $cell.attr("data-path-index", String(item.i));
+          $cell.addClass(item.cls).append(item.html);
+          if (item.cls === "block") {
+            $cell.find('input[name="note"]').prop("disabled", true);
+            $cell.children("div").children("span").not(".block-arrow").first().hide();
+          }
+          _this5._showCellVisual($cell);
+          _this5._updateNoteInputProgression();
+        }, i * 80);
+        _this5._revealTimeouts.push(tid);
+      };
+      for (var i = 0; i < list.length; i += 1) {
+        _loop();
+      }
+      if (typeof onDone === "function") {
+        var doneTid = setTimeout(function () {
+          return onDone();
+        }, list.length * 80);
+        this._revealTimeouts.push(doneTid);
+      }
+    }
+  }, {
+    key: "_showStandardGameUi",
+    value: function _showStandardGameUi() {
+      $("#instructions").show();
+      $("#controls").show();
+      $("#page-wrapper").fadeIn("fast");
+    }
+  }, {
+    key: "_hideAllCellsVisual",
+    value: function _hideAllCellsVisual() {
+      this.$table.find("td").css({
+        visibility: "visible",
+        borderColor: "transparent",
+        backgroundColor: "transparent",
+        color: "transparent"
+      });
+    }
+  }, {
+    key: "_showCellVisual",
+    value: function _showCellVisual($cell) {
+      if (!$cell || !$cell.length) return;
+      $cell.css({
+        borderColor: "",
+        backgroundColor: "",
+        color: ""
+      });
+    }
+  }]);
+}();
+_defineProperty(BlocksChallenge, "INTERVALS_FALLBACK", ["m2", "M2", "m3", "M3", "P4", "A4", "d5", "P5", "m6", "M6", "m7", "M7", "P8"]);
+
+/***/ }
+
+/******/ 	});
+/************************************************************************/
+/******/ 	// The module cache
+/******/ 	var __webpack_module_cache__ = {};
+/******/ 	
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/ 		// Check if module is in cache
+/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
+/******/ 		if (cachedModule !== undefined) {
+/******/ 			return cachedModule.exports;
+/******/ 		}
+/******/ 		// Check if module exists (development only)
+/******/ 		if (__webpack_modules__[moduleId] === undefined) {
+/******/ 			var e = new Error("Cannot find module '" + moduleId + "'");
+/******/ 			e.code = 'MODULE_NOT_FOUND';
+/******/ 			throw e;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = __webpack_module_cache__[moduleId] = {
+/******/ 			// no module.id needed
+/******/ 			// no module.loaded needed
+/******/ 			exports: {}
+/******/ 		};
+/******/ 	
+/******/ 		// Execute the module function
+/******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+/******/ 	
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/ 	
+/************************************************************************/
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__webpack_require__.d = (exports, definition) => {
+/******/ 			for(var key in definition) {
+/******/ 				if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__webpack_require__.r = (exports) => {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/************************************************************************/
+var __webpack_exports__ = {};
+// This entry needs to be wrapped in an IIFE because it needs to be isolated against other modules in the chunk.
+(() => {
+/*!********************************************!*\
+  !*** ./resources/js/music/games/blocks.js ***!
+  \********************************************/
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _blocks_BlocksChallenge_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./blocks/BlocksChallenge.js */ "./resources/js/music/games/blocks/BlocksChallenge.js");
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+
+var options = readGlobal("__challengeOptions") || {};
+var game = new _blocks_BlocksChallenge_js__WEBPACK_IMPORTED_MODULE_0__.BlocksChallenge(_objectSpread({}, options));
+game.start();
+})();
+
+/******/ })()
+;

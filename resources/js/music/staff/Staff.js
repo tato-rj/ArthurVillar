@@ -435,6 +435,7 @@ export class Staff {
     this._fxNoise = new Tone.NoiseSynth({
       noise: { type: "white" },
       envelope: { attack: 0.001, decay: 0.03, sustain: 0.0, release: 0.02 },
+      volume: -10,
     }).toDestination();
     this._audioReady = true;
   }
@@ -443,7 +444,7 @@ export class Staff {
     if (!this._soundEnabled() || !window.Tone) return;
     this._ensureAudio().then(() => {
       if (!this._fxNoise) return;
-      this._fxNoise.triggerAttackRelease(0.03, Tone.now(), 0.16);
+      this._fxNoise.triggerAttackRelease(0.03, Tone.now(), 0.12);
     });
   }
 

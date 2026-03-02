@@ -53,13 +53,13 @@ export class BlocksChallenge {
       if (i === 0) {
         const note = this._pickInitialNote();
         const next = path[1] || null;
-        const caretClass = this._caretClassForNextStep(cell, next);
+        const arrowClass = this._arrowClassForNextStep(cell, next);
         return {
           r: cell.r,
           c: cell.c,
           i,
           cls: "initial-block",
-          html: `<div><span>START HERE</span><input type="text" name="note" value="${note}" disabled=""><i class="fa-solid ${caretClass}"></i></div>`,
+          html: `<div><span>START HERE</span><input type="text" name="note" value="${note}" disabled=""><i class="fa-solid ${arrowClass}"></i></div>`,
         };
       }
 
@@ -71,7 +71,7 @@ export class BlocksChallenge {
           c: cell.c,
           i,
           cls: "interval-block",
-          html: `<div><button type="button" data-interval="${interval}"><i class="fa-solid fa-circle-play"></i></button><span interval>${interval}</span><span direction>${direction}</span></div>`,
+          html: `<div><button type="button" data-interval="${interval}"><i class="fa-solid fa-volume-up"></i></button><span interval>${interval}</span><span direction>${direction}</span></div>`,
         };
       }
 
@@ -80,7 +80,7 @@ export class BlocksChallenge {
         c: cell.c,
         i,
         cls: "block",
-        html: '<div><span>NEW<br>NOTE<br>HERE</span><input type="text" name="note"></div>',
+        html: `<div><span>NEW<br>NOTE<br>HERE</span><input type="text" name="note"></div>`,
       };
     });
 
@@ -186,15 +186,15 @@ export class BlocksChallenge {
     return String(pool[Math.floor(Math.random() * pool.length)] || "M2");
   }
 
-  _caretClassForNextStep(cur, next) {
-    if (!cur || !next) return "fa-arrow-down";
+  _arrowClassForNextStep(cur, next) {
+    if (!cur || !next) return "fa-arrow-right";
     const dr = next.r - cur.r;
     const dc = next.c - cur.c;
     if (dr === 1 && dc === 0) return "fa-arrow-down";
     if (dr === -1 && dc === 0) return "fa-arrow-up";
     if (dr === 0 && dc === 1) return "fa-arrow-right";
     if (dr === 0 && dc === -1) return "fa-arrow-left";
-    return "fa-arrow-down";
+    return "fa-arrow-right";
   }
 
   _pickInitialNote() {
@@ -279,7 +279,7 @@ export class BlocksChallenge {
     for (let i = 0; i < $blocks.length; i += 1) {
       const $cell = $($blocks[i]);
       const $input = $cell.find('input[name="note"]').first();
-      const $label = $cell.find("span").first();
+      const $label = $cell.children("div").children("span").not(".block-arrow").first();
       if (!$input.length) continue;
 
       const value = String($input.val() || "").trim();
@@ -443,7 +443,7 @@ export class BlocksChallenge {
         $cell.addClass(item.cls).append(item.html);
         if (item.cls === "block") {
           $cell.find('input[name="note"]').prop("disabled", true);
-          $cell.find("span").hide();
+          $cell.children("div").children("span").not(".block-arrow").first().hide();
         }
         this._showCellVisual($cell);
         this._updateNoteInputProgression();
