@@ -13,8 +13,8 @@
 
 <style>
 .table {
-  width: 180px;
-  max-width: 100%;
+  width: 380px;
+  max-width: 100% !important;
 }
 td {
   height: 94.75px;
