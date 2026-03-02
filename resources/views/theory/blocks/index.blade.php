@@ -13,7 +13,7 @@
 
 <style>
 .table {
-  width: 380px;
+  width: 180px;
   max-width: 100%;
 }
 td {
@@ -121,7 +121,6 @@ td {
     </div>
     <div class="col-11 mx-auto mb-3 position-relative">
       <div id="blocks-wrapper" class="text-center mx-auto position-relative">
-        @include('theory.components.accidentals')
         <div id="blocks" class="my-4">
           @include('theory.blocks.grid')
         </div>
