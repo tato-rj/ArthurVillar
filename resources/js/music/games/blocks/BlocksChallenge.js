@@ -17,10 +17,15 @@ export class BlocksChallenge {
 
     this.opts = { ...defaults, ...(options || {}) };
     this.$table = $(this.opts.tableEl).first();
+    this.$musicKeyboard = $("#music-keyboard").first();
     this.ns = this.opts.namespace || "blocksChallenge";
     this._audioReady = false;
     this._synth = null;
     this._revealTimeouts = [];
+    this._keyboardHideTimer = null;
+    this._suppressKeyboardHideUntil = 0;
+    this.$activeBlockInput = null;
+    this.$activeBlockCell = null;
   }
 
   start() {
@@ -252,11 +257,54 @@ export class BlocksChallenge {
 
   _wireNoteInputUx() {
     this.$table
+      .off(`click.${this.ns}Cell`, "td.block")
+      .on(`click.${this.ns}Cell`, "td.block", (e) => {
+        const $cell = $(e.currentTarget);
+        const $input = $cell.find('input[name="note"]').first();
+        if (!$input.length || $input.prop("disabled")) return;
+        this._setActiveBlockInput($input);
+        $input.trigger("focus");
+        this._showMusicKeyboard();
+      });
+
+    this.$table
+      .off(`focusin.${this.ns}Note`, 'input[name="note"]')
+      .on(`focusin.${this.ns}Note`, 'input[name="note"]', (e) => {
+        const $input = $(e.currentTarget);
+        if (!$input.closest("td.block").length) return;
+        this._setActiveBlockInput($input);
+        this._showMusicKeyboard();
+      });
+
+    this.$table
+      .off(`focusout.${this.ns}Note`, 'input[name="note"]')
+      .on(`focusout.${this.ns}Note`, 'input[name="note"]', () => {
+        if (this._keyboardHideTimer) clearTimeout(this._keyboardHideTimer);
+        this._keyboardHideTimer = setTimeout(() => {
+          if (Date.now() < this._suppressKeyboardHideUntil) return;
+          const $active = $(document.activeElement);
+          const inNoteInput = $active.is('input[name="note"]') && $active.closest("td.block").length;
+          const inKeyboard = $active.closest("#music-keyboard").length;
+          if (!inNoteInput && !inKeyboard) {
+            this._hideMusicKeyboard();
+          }
+        }, 0);
+      });
+
+    this.$table
       .off(`blur.${this.ns}Note`, 'input[name="note"]')
       .on(`blur.${this.ns}Note`, 'input[name="note"]', (e) => {
         const $input = $(e.currentTarget);
         if (!$input.closest("td.block").length) return;
         this._updateNoteInputProgression();
+      });
+
+    this.$table
+      .off(`keydown.${this.ns}Note`, 'input[name="note"]')
+      .on(`keydown.${this.ns}Note`, 'input[name="note"]', (e) => {
+        const $input = $(e.currentTarget);
+        if (!$input.closest("td.block").length) return;
+        e.preventDefault();
       });
 
     this.$table
@@ -266,6 +314,98 @@ export class BlocksChallenge {
         if (!$input.closest("td.block").length) return;
         this._updateNoteInputProgression();
       });
+
+    this.$table
+      .off(`paste.${this.ns}Note`, 'input[name="note"]')
+      .on(`paste.${this.ns}Note`, 'input[name="note"]', (e) => {
+        const $input = $(e.currentTarget);
+        if (!$input.closest("td.block").length) return;
+        e.preventDefault();
+      });
+
+    $(document)
+      .off(`mousedown.${this.ns}Keyboard touchstart.${this.ns}Keyboard`)
+      .on(`mousedown.${this.ns}Keyboard touchstart.${this.ns}Keyboard`, (e) => {
+        const $target = $(e.target);
+        if ($target.closest('input[name="note"]').length) return;
+        if ($target.closest("#music-keyboard").length) {
+          this._suppressKeyboardHideUntil = Date.now() + 250;
+          return;
+        }
+        this._hideMusicKeyboard();
+        this._clearActiveBlockInput();
+      });
+
+    this.$musicKeyboard
+      .off(`click.${this.ns}Write`, "button")
+      .on(`click.${this.ns}Write`, "button", (e) => {
+        e.preventDefault();
+        const $target = $(e.currentTarget);
+        const $active = this.$activeBlockInput && this.$activeBlockInput.length
+          ? this.$activeBlockInput
+          : $(document.activeElement).closest('input[name="note"]');
+        if (!$active || !$active.length || !$active.closest("td.block").length) return;
+        if ($active.prop("disabled")) return;
+
+        const letter = String($target.attr("data-lettername") || "").trim().toUpperCase();
+        const accidentalType = String($target.attr("data-accidental") || "").trim().toLowerCase();
+        const isDelete = $target.is("[data-delete]");
+        const current = String($active.val() || "").trim();
+
+        if (isDelete) {
+          const chars = Array.from(current);
+          if (!chars.length) return;
+          $active.val(chars.slice(0, -1).join(""));
+          $active.trigger("input");
+          return;
+        }
+
+        if (letter) {
+          $active.val(letter);
+          $active.trigger("input");
+          return;
+        }
+
+        if (accidentalType) {
+          const nextValue = this._applyAccidentalToInputValue(current, accidentalType);
+          if (nextValue == null) return;
+          $active.val(nextValue);
+        } else {
+          const text = String($target.text() || "").trim();
+          if (!text) return;
+          $active.val(text);
+        }
+
+        $active.trigger("input");
+      });
+  }
+
+  _applyAccidentalToInputValue(current, accidentalType) {
+    const m = String(current || "").trim().match(/^([A-G])([#b♯♭𝄪𝄫]{0,2})$/i);
+    if (!m) return null;
+
+    const letter = m[1].toUpperCase();
+    const rawAcc = m[2] || "";
+    const normalizedAcc =
+      rawAcc === "#" || rawAcc === "♯" ? "sharp" :
+      rawAcc === "##" || rawAcc === "𝄪" ? "double_sharp" :
+      rawAcc === "b" || rawAcc === "♭" ? "flat" :
+      rawAcc === "bb" || rawAcc === "𝄫" ? "double_flat" :
+      "";
+
+    if (accidentalType === "sharp") {
+      if (normalizedAcc === "double_sharp") return `${letter}𝄪`;
+      if (normalizedAcc === "sharp") return `${letter}𝄪`;
+      return `${letter}♯`;
+    }
+
+    if (accidentalType === "flat") {
+      if (normalizedAcc === "double_flat") return `${letter}𝄫`;
+      if (normalizedAcc === "flat") return `${letter}𝄫`;
+      return `${letter}♭`;
+    }
+
+    return `${letter}`;
   }
 
   _updateNoteInputProgression() {
@@ -297,6 +437,41 @@ export class BlocksChallenge {
         $label.hide();
       }
     }
+
+    if (this.$activeBlockInput && this.$activeBlockInput.length && this.$activeBlockInput.prop("disabled")) {
+      this._clearActiveBlockInput();
+    }
+  }
+
+  _setActiveBlockInput($input) {
+    if (!$input || !$input.length) return;
+    const $cell = $input.closest("td.block");
+    if (!$cell.length) return;
+
+    this.$activeBlockInput = $input;
+    this.$activeBlockCell = $cell;
+
+    this.$table.find("td.block").removeClass("active-editable").css({
+      boxShadow: "",
+      borderColor: "",
+      zIndex: "",
+    });
+
+    $cell.addClass("active-editable").css({
+      boxShadow: "0 0 0 3px rgba(13, 110, 253, 0.55) inset, 0 0 0 2px rgba(13, 110, 253, 0.75)",
+      borderColor: "#0d6efd",
+      zIndex: "2",
+    });
+  }
+
+  _clearActiveBlockInput() {
+    this.$activeBlockInput = null;
+    this.$activeBlockCell = null;
+    this.$table.find("td.block").removeClass("active-editable").css({
+      boxShadow: "",
+      borderColor: "",
+      zIndex: "",
+    });
   }
 
   _isSoundEnabled() {
@@ -350,7 +525,13 @@ export class BlocksChallenge {
     const rawText = textFromInput || textFromInterval || textFromInitial || String($cell.text() || "").trim();
     if (!rawText) return null;
 
-    const m = rawText.match(/^([A-Ga-g])((?:#{1,2})|(?:b{1,2})|)?(\d+)?$/);
+    const normalized = rawText
+      .replaceAll("𝄪", "##")
+      .replaceAll("♯", "#")
+      .replaceAll("𝄫", "bb")
+      .replaceAll("♭", "b");
+
+    const m = normalized.match(/^([A-Ga-g])((?:#{1,2})|(?:b{1,2})|)?(\d+)?$/);
     if (!m) return null;
 
     const letter = m[1].toUpperCase();
@@ -442,7 +623,13 @@ export class BlocksChallenge {
         $cell.attr("data-path-index", String(item.i));
         $cell.addClass(item.cls).append(item.html);
         if (item.cls === "block") {
-          $cell.find('input[name="note"]').prop("disabled", true);
+          $cell.find('input[name="note"]').prop("disabled", true).prop("readonly", true).attr({
+            inputmode: "none",
+            autocomplete: "off",
+            autocorrect: "off",
+            autocapitalize: "off",
+            spellcheck: "false",
+          });
           $cell.children("div").children("span").not(".block-arrow").first().hide();
         }
         this._showCellVisual($cell);
@@ -461,6 +648,33 @@ export class BlocksChallenge {
     $("#instructions").show();
     $("#controls").show();
     $("#page-wrapper").fadeIn("fast");
+  }
+
+  _showMusicKeyboard() {
+    if (!this.$musicKeyboard.length) return;
+    if (this._keyboardHideTimer) {
+      clearTimeout(this._keyboardHideTimer);
+      this._keyboardHideTimer = null;
+    }
+    this.$musicKeyboard
+      .stop(true, true)
+      .show()
+      .removeClass("animate__bounceOutDown")
+      .addClass("animate__animated animate__bounceInUp");
+  }
+
+  _hideMusicKeyboard() {
+    if (!this.$musicKeyboard.length) return;
+    if (!this.$musicKeyboard.is(":visible")) return;
+    this.$musicKeyboard
+      .removeClass("animate__bounceInUp")
+      .addClass("animate__animated animate__bounceOutDown");
+
+    const hideTid = setTimeout(() => {
+      this.$musicKeyboard.hide();
+      this.$musicKeyboard.removeClass("animate__bounceOutDown");
+    }, 550);
+    this._revealTimeouts.push(hideTid);
   }
 
   _hideAllCellsVisual() {

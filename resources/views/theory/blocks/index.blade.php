@@ -17,7 +17,7 @@
   max-width: 100%;
 }
 td {
-  height: 94.75px;
+  height: 79.75px;
   position: relative;
 }
 
@@ -54,7 +54,7 @@ td {
   top: 8px;
   left: 0;
   text-align: center;
-  font-size: 70%;
+  font-size: 60%;
   font-weight: bold;
   opacity: .4;
 }
@@ -65,8 +65,8 @@ td {
   bottom: 6px;
   left: 0;
   text-align: center;
-  font-size: 1.5rem;
-  opacity: .8;
+  font-size: 1rem;
+
 }
 
 .initial-block input, .block input {
@@ -77,7 +77,7 @@ td {
   background: transparent;
   color: black !important;
   font-weight: bold;
-  font-size: 2rem;
+  font-size: 1.4rem;
   z-index: 2;
 }
 
@@ -88,13 +88,15 @@ td {
   font-weight: bold;
   color: #ffe54c;
 }
-
+.interval-block button {
+  font-size: 76%;
+}
 .interval-block span[interval] {
-  font-size: 1.6rem;
+  font-size: 1.4rem;
   font-weight: bold;
 }
 .interval-block span[direction] {
-  font-size: .8rem;
+  font-size: .6rem;
 }
 
 .interval-block > div {
@@ -108,6 +110,7 @@ td {
   border: none;
   color: yellow;
 }
+
 </style>
 @endpush
 
@@ -140,6 +143,7 @@ td {
 </section>
 
 @include('theory.results.overlay')
+@include('theory.components.keyboard')
 @endsection
 
 @push('scripts')

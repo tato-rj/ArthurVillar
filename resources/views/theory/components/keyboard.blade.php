@@ -1,0 +1,43 @@
+<div id="music-keyboard" style="display: none" class="w-100 position-fixed bottom-0 left-0 pb-4">
+
+		<div class="rounded border border-dark p-1 mx-auto" style="background: rgba(0,0,0,0.6); width: 348px">
+			<label class="w-100 text-center fw-bold mb-1 text-white opacity-4" style="font-size: 70%">MUSIC KEYBOARD</label>
+			<div class="d-flex justify-content-around flex-wrap">
+				<div class="m-1 btn-floating">
+					<button class="rounded btn btn-white text-dark" type="button" data-lettername="C" data-solfege="DO">C</button>
+				</div>
+				<div class="m-1 btn-floating">
+				<button class="rounded btn btn-white text-dark" type="button" data-lettername="D" data-solfege="RE">D</button>
+				</div>
+				<div class="m-1 btn-floating">
+				<button class="rounded btn btn-white text-dark" type="button" data-lettername="E" data-solfege="MI">E</button>
+				</div>
+				<div class="m-1 btn-floating">
+				<button class="rounded btn btn-white text-dark" type="button" data-lettername="F" data-solfege="FA">F</button>
+				</div>
+				<div class="m-1 btn-floating">
+				<button class="rounded btn btn-white text-dark" type="button" data-lettername="G" data-solfege="SOL">G</button>
+				</div>
+				<div class="m-1 btn-floating">
+				<button class="rounded btn btn-white text-dark" type="button" data-lettername="A" data-solfege="LA">A</button>
+				</div>
+				<div class="m-1 btn-floating">
+				<button class="rounded btn btn-white text-dark" type="button" data-lettername="B" data-solfege="SI">B</button>
+				</div>
+			</div>
+			<div class="d-flex justify-content-between flex-wrap">
+				<div>
+					<div class="m-1 btn-floating">
+						<button class="rounded btn btn-white text-dark" data-accidental="sharp" type="button">#</button>
+					</div>
+					<div class="m-1 btn-floating">
+						<button class="rounded btn btn-white text-dark" data-accidental="flat" type="button">♭</button>
+					</div>
+				</div>
+				<div class="m-1 btn-floating">
+					<button class="rounded btn btn-white text-dark" data-delete type="button">@fa(['icon' => 'delete-left', 'mr' => 0])</button>
+				</div>
+			</div>
+		</div>
+
+</div>

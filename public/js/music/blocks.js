@@ -41,10 +41,15 @@ var BlocksChallenge = /*#__PURE__*/function () {
     };
     this.opts = _objectSpread(_objectSpread({}, defaults), options || {});
     this.$table = $(this.opts.tableEl).first();
+    this.$musicKeyboard = $("#music-keyboard").first();
     this.ns = this.opts.namespace || "blocksChallenge";
     this._audioReady = false;
     this._synth = null;
     this._revealTimeouts = [];
+    this._keyboardHideTimer = null;
+    this._suppressKeyboardHideUntil = 0;
+    this.$activeBlockInput = null;
+    this.$activeBlockCell = null;
   }
   return _createClass(BlocksChallenge, [{
     key: "start",
@@ -262,16 +267,115 @@ var BlocksChallenge = /*#__PURE__*/function () {
     key: "_wireNoteInputUx",
     value: function _wireNoteInputUx() {
       var _this3 = this;
+      this.$table.off("click.".concat(this.ns, "Cell"), "td.block").on("click.".concat(this.ns, "Cell"), "td.block", function (e) {
+        var $cell = $(e.currentTarget);
+        var $input = $cell.find('input[name="note"]').first();
+        if (!$input.length || $input.prop("disabled")) return;
+        _this3._setActiveBlockInput($input);
+        $input.trigger("focus");
+        _this3._showMusicKeyboard();
+      });
+      this.$table.off("focusin.".concat(this.ns, "Note"), 'input[name="note"]').on("focusin.".concat(this.ns, "Note"), 'input[name="note"]', function (e) {
+        var $input = $(e.currentTarget);
+        if (!$input.closest("td.block").length) return;
+        _this3._setActiveBlockInput($input);
+        _this3._showMusicKeyboard();
+      });
+      this.$table.off("focusout.".concat(this.ns, "Note"), 'input[name="note"]').on("focusout.".concat(this.ns, "Note"), 'input[name="note"]', function () {
+        if (_this3._keyboardHideTimer) clearTimeout(_this3._keyboardHideTimer);
+        _this3._keyboardHideTimer = setTimeout(function () {
+          if (Date.now() < _this3._suppressKeyboardHideUntil) return;
+          var $active = $(document.activeElement);
+          var inNoteInput = $active.is('input[name="note"]') && $active.closest("td.block").length;
+          var inKeyboard = $active.closest("#music-keyboard").length;
+          if (!inNoteInput && !inKeyboard) {
+            _this3._hideMusicKeyboard();
+          }
+        }, 0);
+      });
       this.$table.off("blur.".concat(this.ns, "Note"), 'input[name="note"]').on("blur.".concat(this.ns, "Note"), 'input[name="note"]', function (e) {
         var $input = $(e.currentTarget);
         if (!$input.closest("td.block").length) return;
         _this3._updateNoteInputProgression();
+      });
+      this.$table.off("keydown.".concat(this.ns, "Note"), 'input[name="note"]').on("keydown.".concat(this.ns, "Note"), 'input[name="note"]', function (e) {
+        var $input = $(e.currentTarget);
+        if (!$input.closest("td.block").length) return;
+        e.preventDefault();
       });
       this.$table.off("input.".concat(this.ns, "Note"), 'input[name="note"]').on("input.".concat(this.ns, "Note"), 'input[name="note"]', function (e) {
         var $input = $(e.currentTarget);
         if (!$input.closest("td.block").length) return;
         _this3._updateNoteInputProgression();
       });
+      this.$table.off("paste.".concat(this.ns, "Note"), 'input[name="note"]').on("paste.".concat(this.ns, "Note"), 'input[name="note"]', function (e) {
+        var $input = $(e.currentTarget);
+        if (!$input.closest("td.block").length) return;
+        e.preventDefault();
+      });
+      $(document).off("mousedown.".concat(this.ns, "Keyboard touchstart.").concat(this.ns, "Keyboard")).on("mousedown.".concat(this.ns, "Keyboard touchstart.").concat(this.ns, "Keyboard"), function (e) {
+        var $target = $(e.target);
+        if ($target.closest('input[name="note"]').length) return;
+        if ($target.closest("#music-keyboard").length) {
+          _this3._suppressKeyboardHideUntil = Date.now() + 250;
+          return;
+        }
+        _this3._hideMusicKeyboard();
+        _this3._clearActiveBlockInput();
+      });
+      this.$musicKeyboard.off("click.".concat(this.ns, "Write"), "button").on("click.".concat(this.ns, "Write"), "button", function (e) {
+        e.preventDefault();
+        var $target = $(e.currentTarget);
+        var $active = _this3.$activeBlockInput && _this3.$activeBlockInput.length ? _this3.$activeBlockInput : $(document.activeElement).closest('input[name="note"]');
+        if (!$active || !$active.length || !$active.closest("td.block").length) return;
+        if ($active.prop("disabled")) return;
+        var letter = String($target.attr("data-lettername") || "").trim().toUpperCase();
+        var accidentalType = String($target.attr("data-accidental") || "").trim().toLowerCase();
+        var isDelete = $target.is("[data-delete]");
+        var current = String($active.val() || "").trim();
+        if (isDelete) {
+          var chars = Array.from(current);
+          if (!chars.length) return;
+          $active.val(chars.slice(0, -1).join(""));
+          $active.trigger("input");
+          return;
+        }
+        if (letter) {
+          $active.val(letter);
+          $active.trigger("input");
+          return;
+        }
+        if (accidentalType) {
+          var nextValue = _this3._applyAccidentalToInputValue(current, accidentalType);
+          if (nextValue == null) return;
+          $active.val(nextValue);
+        } else {
+          var text = String($target.text() || "").trim();
+          if (!text) return;
+          $active.val(text);
+        }
+        $active.trigger("input");
+      });
+    }
+  }, {
+    key: "_applyAccidentalToInputValue",
+    value: function _applyAccidentalToInputValue(current, accidentalType) {
+      var m = String(current || "").trim().match(/^([A-G])([#b♯♭𝄪𝄫]{0,2})$/i);
+      if (!m) return null;
+      var letter = m[1].toUpperCase();
+      var rawAcc = m[2] || "";
+      var normalizedAcc = rawAcc === "#" || rawAcc === "♯" ? "sharp" : rawAcc === "##" || rawAcc === "𝄪" ? "double_sharp" : rawAcc === "b" || rawAcc === "♭" ? "flat" : rawAcc === "bb" || rawAcc === "𝄫" ? "double_flat" : "";
+      if (accidentalType === "sharp") {
+        if (normalizedAcc === "double_sharp") return "".concat(letter, "\uD834\uDD2A");
+        if (normalizedAcc === "sharp") return "".concat(letter, "\uD834\uDD2A");
+        return "".concat(letter, "\u266F");
+      }
+      if (accidentalType === "flat") {
+        if (normalizedAcc === "double_flat") return "".concat(letter, "\uD834\uDD2B");
+        if (normalizedAcc === "flat") return "".concat(letter, "\uD834\uDD2B");
+        return "".concat(letter, "\u266D");
+      }
+      return "".concat(letter);
     }
   }, {
     key: "_updateNoteInputProgression",
@@ -301,6 +405,39 @@ var BlocksChallenge = /*#__PURE__*/function () {
           $label.hide();
         }
       }
+      if (this.$activeBlockInput && this.$activeBlockInput.length && this.$activeBlockInput.prop("disabled")) {
+        this._clearActiveBlockInput();
+      }
+    }
+  }, {
+    key: "_setActiveBlockInput",
+    value: function _setActiveBlockInput($input) {
+      if (!$input || !$input.length) return;
+      var $cell = $input.closest("td.block");
+      if (!$cell.length) return;
+      this.$activeBlockInput = $input;
+      this.$activeBlockCell = $cell;
+      this.$table.find("td.block").removeClass("active-editable").css({
+        boxShadow: "",
+        borderColor: "",
+        zIndex: ""
+      });
+      $cell.addClass("active-editable").css({
+        boxShadow: "0 0 0 3px rgba(13, 110, 253, 0.55) inset, 0 0 0 2px rgba(13, 110, 253, 0.75)",
+        borderColor: "#0d6efd",
+        zIndex: "2"
+      });
+    }
+  }, {
+    key: "_clearActiveBlockInput",
+    value: function _clearActiveBlockInput() {
+      this.$activeBlockInput = null;
+      this.$activeBlockCell = null;
+      this.$table.find("td.block").removeClass("active-editable").css({
+        boxShadow: "",
+        borderColor: "",
+        zIndex: ""
+      });
     }
   }, {
     key: "_isSoundEnabled",
@@ -399,7 +536,8 @@ var BlocksChallenge = /*#__PURE__*/function () {
       var textFromInitial = String($cell.find("span").first().text() || "").trim();
       var rawText = textFromInput || textFromInterval || textFromInitial || String($cell.text() || "").trim();
       if (!rawText) return null;
-      var m = rawText.match(/^([A-Ga-g])((?:#{1,2})|(?:b{1,2})|)?(\d+)?$/);
+      var normalized = rawText.replaceAll("𝄪", "##").replaceAll("♯", "#").replaceAll("𝄫", "bb").replaceAll("♭", "b");
+      var m = normalized.match(/^([A-Ga-g])((?:#{1,2})|(?:b{1,2})|)?(\d+)?$/);
       if (!m) return null;
       var letter = m[1].toUpperCase();
       var acc = m[2] || "";
@@ -507,7 +645,13 @@ var BlocksChallenge = /*#__PURE__*/function () {
           $cell.attr("data-path-index", String(item.i));
           $cell.addClass(item.cls).append(item.html);
           if (item.cls === "block") {
-            $cell.find('input[name="note"]').prop("disabled", true);
+            $cell.find('input[name="note"]').prop("disabled", true).prop("readonly", true).attr({
+              inputmode: "none",
+              autocomplete: "off",
+              autocorrect: "off",
+              autocapitalize: "off",
+              spellcheck: "false"
+            });
             $cell.children("div").children("span").not(".block-arrow").first().hide();
           }
           _this5._showCellVisual($cell);
@@ -531,6 +675,29 @@ var BlocksChallenge = /*#__PURE__*/function () {
       $("#instructions").show();
       $("#controls").show();
       $("#page-wrapper").fadeIn("fast");
+    }
+  }, {
+    key: "_showMusicKeyboard",
+    value: function _showMusicKeyboard() {
+      if (!this.$musicKeyboard.length) return;
+      if (this._keyboardHideTimer) {
+        clearTimeout(this._keyboardHideTimer);
+        this._keyboardHideTimer = null;
+      }
+      this.$musicKeyboard.stop(true, true).show().removeClass("animate__bounceOutDown").addClass("animate__animated animate__bounceInUp");
+    }
+  }, {
+    key: "_hideMusicKeyboard",
+    value: function _hideMusicKeyboard() {
+      var _this6 = this;
+      if (!this.$musicKeyboard.length) return;
+      if (!this.$musicKeyboard.is(":visible")) return;
+      this.$musicKeyboard.removeClass("animate__bounceInUp").addClass("animate__animated animate__bounceOutDown");
+      var hideTid = setTimeout(function () {
+        _this6.$musicKeyboard.hide();
+        _this6.$musicKeyboard.removeClass("animate__bounceOutDown");
+      }, 550);
+      this._revealTimeouts.push(hideTid);
     }
   }, {
     key: "_hideAllCellsVisual",
