@@ -1569,34 +1569,10 @@ export class BlocksChallenge {
   _midiFromCell($cell) {
     if (!$cell || !$cell.length) return null;
 
-    const textFromInput = String($cell.find('input[name="note"]').first().val() || "").trim();
-    const textFromInterval = String($cell.find("span[note]").first().text() || "").trim();
-    const textFromInitial = String($cell.find("span").first().text() || "").trim();
-    const rawText = textFromInput || textFromInterval || textFromInitial || String($cell.text() || "").trim();
-    if (!rawText) return null;
-
-    const normalized = rawText
-      .replaceAll("𝄪", "##")
-      .replaceAll("♯", "#")
-      .replaceAll("𝄫", "bb")
-      .replaceAll("♭", "b");
-
-    const m = normalized.match(/^([A-Ga-g])((?:#{1,2})|(?:b{1,2})|)?(\d+)?$/);
-    if (!m) return null;
-
-    const letter = m[1].toUpperCase();
-    const acc = m[2] || "";
-    const octave = m[3] != null ? parseInt(m[3], 10) : 4;
-
-    const baseSemitoneFromC = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }[letter];
-    const accOffset =
-      acc === "##" ? 2 :
-      acc === "#" ? 1 :
-      acc === "bb" ? -2 :
-      acc === "b" ? -1 :
-      0;
-
-    return 12 * (octave + 1) + baseSemitoneFromC + accOffset;
+    const note = this._noteFromCell($cell);
+    if (!note) return null;
+    // Keep playback in a stable middle register, matching previous behavior.
+    return 60 + Number(note.pitchClass || 0);
   }
 
   _parseIntervalAbbr(abbr) {

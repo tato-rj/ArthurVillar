@@ -27,7 +27,7 @@ class ToneTrekSettings extends GameFactory
     protected function defaults(): array
     {
         return [
-            'timeLimit' => 30,
+            'timeLimit' => 40,
             'practiceMode' => false,
             'timer' => false,
             'numOfChallenges' => 4,
