@@ -2,7 +2,9 @@
 
 @push('header')
 <style>
-
+h5 i {
+    transform: rotate(15deg);
+}
 </style>
 @endpush
 
@@ -14,21 +16,20 @@
             <p>Interactive games for practicing core music theory skills</p>
         </div>
 
-        @component('theory.card', ['settings' => $intervalsLabSettings])
+        @component('theory.card', ['settings' => $intervalsLabSettings, 'icon' => 'flask'])
             @include('theory.intervals.modals.settings', ['settings' => $intervalsLabSettings])
         @endcomponent
 
-        @component('theory.card', ['settings' => $chordsLabSettings])
+        @component('theory.card', ['settings' => $chordsLabSettings, 'icon' => 'flask'])
 
             @include('theory.chords.modals.settings', ['settings' => $chordsLabSettings])
         @endcomponent
-        
-        @component('theory.card', ['settings' => $pitchDetectiveSettings])
+
+        @component('theory.card', ['settings' => $pitchDetectiveSettings, 'icon' => 'magnifying-glass'])
             @include('theory.dictation.modals.settings', ['settings' => $pitchDetectiveSettings])
         @endcomponent
 
-        @component('theory.card', ['settings' => $toneTrekSettings])
-
+        @component('theory.card', ['settings' => $toneTrekSettings, 'icon' => 'shoe-prints'])
             @include('theory.blocks.modals.settings', ['settings' => $toneTrekSettings])
         @endcomponent
     </div>
