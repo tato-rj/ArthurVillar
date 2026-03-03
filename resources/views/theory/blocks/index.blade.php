@@ -23,17 +23,17 @@ td {
 
 .initial-block {
   background: #ffe54c !important;
-  border: 1px solid #ffe54c !important;
+  {{-- border: 1px solid #ffe54c !important; --}}
 }
 
 .block {
   background: lightyellow !important;
-  border: 1px solid #ffe54c !important;
+  {{-- border: 1px solid #ffe54c !important; --}}
 }
 
 .interval-block {
   background: black !important;
-  border: 1px solid black !important;
+  {{-- border: 1px solid black !important; --}}
   color: white !important;
 }
 
@@ -69,6 +69,18 @@ td {
 
 }
 
+.block-cover {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #f7f7f7;
+  z-index: 10;
+  transition: .2s;
+  border: 1px solid white;
+}
+
 .initial-block input, .block input {
   width: 100%;
   height: 100%;
@@ -81,12 +93,20 @@ td {
   z-index: 2;
 }
 
-.block span {
+.block-correct, .block-wrong {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  color: white;
+}
+
+.block span:not(.block-correct):not(.block-wrong) {
   position: absolute;
   z-index: 1;
   font-size: 80%;
   font-weight: bold;
-  color: #ffe54c;
+  opacity: .2;
+  transition: .2s;
 }
 .interval-block button {
   font-size: 76%;
@@ -99,7 +119,7 @@ td {
   font-size: .6rem;
 }
 
-.interval-block > div {
+.interval-block > div:not(.block-cover) {
   display: flex;
   flex-direction: column;
   cursor: pointer;
@@ -128,13 +148,11 @@ td {
           @include('theory.blocks.grid')
         </div>
         @include('theory.components.feedback')
-        @include('theory.components.interval')
-        @include('theory.components.hand')
       </div>
     </div>
 
     <div class="col-lg-6 col-md-8 col-11 mx-auto">
-      @include('theory.components.controls', ['instructions' => 'Complete the intervals above'])
+      @include('theory.components.controls', ['instructions' => 'Complete all intervals above'])
       @include('theory.blocks.modals.settings')
       @include('theory.blocks.modals.instructions')
       @include('theory.components.preferences')

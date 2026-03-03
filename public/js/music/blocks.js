@@ -37,11 +37,25 @@ var BlocksChallenge = /*#__PURE__*/function () {
       intervals: null,
       initialNotes: null,
       sound: true,
+      basePoints: 1,
+      firstTryBonus: 2,
+      numOfChallenges: 4,
       namespace: "blocksChallenge"
     };
     this.opts = _objectSpread(_objectSpread({}, defaults), options || {});
+    this.opts.numOfChallenges = this._normalizeNumOfChallenges(this.opts.numOfChallenges);
     this.$table = $(this.opts.tableEl).first();
     this.$musicKeyboard = $("#music-keyboard").first();
+    this.$feedback = $("#feedback-success");
+    this.$helpBtn = $("#help");
+    this.$checkWrap = $("#check");
+    this.$checkBtn = $("#check button");
+    this.$continueWrap = $("#continue");
+    this.$continueBtn = $("#continue button");
+    this.$progressBar = $("#progress-bar");
+    this.$progressCounter = $("#progress-counter");
+    this.$points = $("#points");
+    this.$finalOverlay = $("#final-overlay");
     this.ns = this.opts.namespace || "blocksChallenge";
     this._audioReady = false;
     this._synth = null;
@@ -50,12 +64,89 @@ var BlocksChallenge = /*#__PURE__*/function () {
     this._suppressKeyboardHideUntil = 0;
     this.$activeBlockInput = null;
     this.$activeBlockCell = null;
+    this._instructionsDismissed = false;
+    this._correctionMode = false;
+    this._wrongEditableIndexes = new Set();
+    this._finalStartMs = Date.now();
+    this._currentRound = 1;
+    this._roundLocked = false;
+    this._usedHintThisRound = false;
+    this._madeMistakeThisRound = false;
+    this._madeAnyMistake = false;
+    this._points = 0;
+    this._stats = {
+      checksTotal: 0,
+      checksCorrect: 0,
+      finishedAtMs: null
+    };
+    this._roundAnswerKey = {};
+    this._roundRecords = [];
+    this._instructionsDismissed = false;
+    this._correctionMode = false;
+    this._wrongEditableIndexes = new Set();
   }
   return _createClass(BlocksChallenge, [{
     key: "start",
     value: function start() {
-      var _this = this;
       if (!this.$table.length) return;
+      this._wireControls();
+      this._wireNoteInputUx();
+      this._wireIntervalBlocks();
+      this._showStandardGameUi();
+      this._resetRunUi();
+      this._startRound();
+    }
+  }, {
+    key: "_normalizeNumOfChallenges",
+    value: function _normalizeNumOfChallenges(raw) {
+      var n = Number(raw);
+      var safe = Number.isFinite(n) ? Math.trunc(n) : 4;
+      if (safe < BlocksChallenge.MIN_CHALLENGES) return BlocksChallenge.MIN_CHALLENGES;
+      if (safe > BlocksChallenge.MAX_CHALLENGES) return BlocksChallenge.MAX_CHALLENGES;
+      return safe;
+    }
+  }, {
+    key: "_resetRunUi",
+    value: function _resetRunUi() {
+      this._finalStartMs = Date.now();
+      this._currentRound = 1;
+      this._roundLocked = false;
+      this._usedHintThisRound = false;
+      this._madeMistakeThisRound = false;
+      this._madeAnyMistake = false;
+      this._points = 0;
+      this._stats = {
+        checksTotal: 0,
+        checksCorrect: 0,
+        finishedAtMs: null
+      };
+      this._roundAnswerKey = {};
+      this._roundRecords = [];
+      this.$points.text("0");
+      this.$feedback.hide();
+      this.$helpBtn.hide();
+      this.$continueWrap.hide();
+      this.$finalOverlay.hide();
+      this.$checkBtn.text("Check my answer");
+      this.$progressBar.data("progress", 0).css({
+        width: "0%"
+      });
+      this.$progressCounter.text("0 of ".concat(this.opts.numOfChallenges));
+    }
+  }, {
+    key: "_startRound",
+    value: function _startRound() {
+      this._roundLocked = false;
+      this._correctionMode = false;
+      this._wrongEditableIndexes = new Set();
+      this._usedHintThisRound = false;
+      this._madeMistakeThisRound = false;
+      this.$helpBtn.hide();
+      this.$continueWrap.hide();
+      this.$feedback.hide();
+      this.$checkWrap.show().addClass("invisible");
+      this._hideMusicKeyboard();
+      this._clearActiveBlockInput();
       var $rows = this.$table.find("tbody tr");
       var rowCount = $rows.length;
       var colCount = rowCount ? $rows.first().find("td").length : 0;
@@ -65,59 +156,116 @@ var BlocksChallenge = /*#__PURE__*/function () {
       this._hideAllCellsVisual();
       var maxCells = rowCount * colCount;
       var pathLength = Math.max(1, Math.min(maxCells, Number(this.opts.pathLength) || 9));
-      var path = this._generatePath({
+      var layout = this._buildRoundLayout({
         rowCount: rowCount,
         colCount: colCount,
-        length: pathLength,
-        maxAttempts: Number(this.opts.maxGenerateAttempts) || 2000,
-        maxStraightRun: Math.max(1, Number(this.opts.maxStraightRun) || 3)
+        pathLength: pathLength
       });
-      if (!path) return;
-      var revealItems = path.map(function (cell, i) {
-        if (i === 0) {
-          var note = _this._pickInitialNote();
-          var next = path[1] || null;
-          var arrowClass = _this._arrowClassForNextStep(cell, next);
-          return {
-            r: cell.r,
-            c: cell.c,
-            i: i,
-            cls: "initial-block",
-            html: "<div><span>START HERE</span><input type=\"text\" name=\"note\" value=\"".concat(note, "\" disabled=\"\"><i class=\"fa-solid ").concat(arrowClass, "\"></i></div>")
-          };
-        }
-        if (i % 2 === 1) {
-          var interval = _this._pickInitialInterval();
-          var direction = Math.random() < 0.5 ? "UP" : "DOWN";
-          return {
-            r: cell.r,
-            c: cell.c,
-            i: i,
-            cls: "interval-block",
-            html: "<div><button type=\"button\" data-interval=\"".concat(interval, "\"><i class=\"fa-solid fa-volume-up\"></i></button><span interval>").concat(interval, "</span><span direction>").concat(direction, "</span></div>")
-          };
-        }
-        return {
-          r: cell.r,
-          c: cell.c,
-          i: i,
-          cls: "block",
-          html: "<div><span>NEW<br>NOTE<br>HERE</span><input type=\"text\" name=\"note\"></div>"
-        };
-      });
-      this._wireNoteInputUx();
-      this._wireIntervalBlocks();
-      this._showStandardGameUi();
+      if (!layout) return;
+      var revealItems = layout.revealItems;
+      this._roundAnswerKey = layout.answerKey || {};
       this._revealPathCells(revealItems);
     }
   }, {
-    key: "_generatePath",
-    value: function _generatePath(_ref) {
+    key: "_buildRoundLayout",
+    value: function _buildRoundLayout(_ref) {
       var rowCount = _ref.rowCount,
         colCount = _ref.colCount,
-        length = _ref.length,
-        maxAttempts = _ref.maxAttempts,
-        maxStraightRun = _ref.maxStraightRun;
+        pathLength = _ref.pathLength;
+      var maxAttempts = Math.max(1, Number(this.opts.maxGenerateAttempts) || 2000);
+      var maxStraightRun = Math.max(1, Number(this.opts.maxStraightRun) || 3);
+      var intervalPool = this._intervalPool();
+      for (var attempt = 0; attempt < maxAttempts; attempt += 1) {
+        var path = this._generatePath({
+          rowCount: rowCount,
+          colCount: colCount,
+          length: pathLength,
+          maxAttempts: 1,
+          maxStraightRun: maxStraightRun
+        });
+        if (!path) continue;
+        var initialRaw = this._pickInitialNote();
+        var initialNote = this._parseSpelledNote(initialRaw) || this._parseSpelledNote("C");
+        if (!initialNote) continue;
+        var revealItems = [];
+        var answerKey = {};
+        var prevExpected = initialNote;
+        var failed = false;
+        for (var i = 0; i < path.length; i += 1) {
+          var cell = path[i];
+          if (i === 0) {
+            var next = path[1] || null;
+            var arrowClass = this._arrowClassForNextStep(cell, next);
+            revealItems.push({
+              r: cell.r,
+              c: cell.c,
+              i: i,
+              cls: "initial-block",
+              html: "<div><span>START HERE</span><input type=\"text\" name=\"note\" value=\"".concat(initialNote.display, "\" disabled=\"\"><i class=\"fa-solid ").concat(arrowClass, "\"></i></div>")
+            });
+            continue;
+          }
+          if (i % 2 === 1) {
+            var pickedInterval = null;
+            var pickedDir = null;
+            var nextExpected = null;
+            var localAttempts = Math.max(8, intervalPool.length * 3);
+            for (var t = 0; t < localAttempts; t += 1) {
+              var interval = intervalPool[Math.floor(Math.random() * intervalPool.length)];
+              var dir = Math.random() < 0.5 ? -1 : 1;
+              var candidate = this._spelledIntervalTarget(prevExpected, interval, dir);
+              if (!candidate) continue;
+              pickedInterval = interval;
+              pickedDir = dir;
+              nextExpected = candidate;
+              break;
+            }
+            if (!pickedInterval || !nextExpected) {
+              failed = true;
+              break;
+            }
+            answerKey[i + 1] = nextExpected;
+            prevExpected = nextExpected;
+            revealItems.push({
+              r: cell.r,
+              c: cell.c,
+              i: i,
+              cls: "interval-block",
+              html: "<div><button type=\"button\" data-interval=\"".concat(pickedInterval, "\"><i class=\"fa-solid fa-volume-up\"></i></button><span interval>").concat(pickedInterval, "</span><span direction>").concat(pickedDir === -1 ? "DOWN" : "UP", "</span></div>")
+            });
+            continue;
+          }
+          revealItems.push({
+            r: cell.r,
+            c: cell.c,
+            i: i,
+            cls: "block",
+            html: "<div><span style=\"opacity: 0.2; font-size: 3rem;\">?</span><input type=\"text\" name=\"note\"></div>"
+          });
+        }
+        if (!failed) return {
+          revealItems: revealItems,
+          answerKey: answerKey
+        };
+      }
+      return null;
+    }
+  }, {
+    key: "_intervalPool",
+    value: function _intervalPool() {
+      var fromOptions = Array.isArray(this.opts.intervals) ? this.opts.intervals.filter(Boolean).map(function (x) {
+        return String(x).trim();
+      }) : [];
+      return fromOptions.length ? fromOptions : BlocksChallenge.INTERVALS_FALLBACK.slice();
+    }
+  }, {
+    key: "_generatePath",
+    value: function _generatePath(_ref2) {
+      var rowCount = _ref2.rowCount,
+        colCount = _ref2.colCount,
+        length = _ref2.length,
+        maxAttempts = _ref2.maxAttempts,
+        maxStraightRun = _ref2.maxStraightRun;
       var dirs = [{
         dr: 1,
         dc: 0
@@ -229,7 +377,7 @@ var BlocksChallenge = /*#__PURE__*/function () {
   }, {
     key: "_wireIntervalBlocks",
     value: function _wireIntervalBlocks() {
-      var _this2 = this;
+      var _this = this;
       this.$table.off("click.".concat(this.ns, "Block")).on("click.".concat(this.ns, "Block"), "td.interval-block", function (e) {
         if ($(e.target).closest("button[data-interval]").length) return;
         var $btn = $(e.currentTarget).find('button[data-interval]').first();
@@ -242,65 +390,476 @@ var BlocksChallenge = /*#__PURE__*/function () {
         var $cell = $btn.closest("td.interval-block");
         var idx = parseInt($cell.attr("data-path-index"), 10);
         if (!Number.isFinite(idx) || idx <= 0) {
-          _this2._shakeCell($cell);
+          _this._shakeCell($cell);
           return;
         }
-        var $prev = _this2.$table.find("td[data-path-index=\"".concat(idx - 1, "\"]")).first();
-        var prevMidi = _this2._midiFromCell($prev);
+        var $prev = _this.$table.find("td[data-path-index=\"".concat(idx - 1, "\"]")).first();
+        var prevMidi = _this._midiFromCell($prev);
         if (!Number.isFinite(prevMidi)) {
-          _this2._shakeCell($cell);
+          _this._shakeCell($cell);
           return;
         }
         var interval = String($btn.attr("data-interval") || "").trim();
         var dirRaw = String($cell.find("span[direction]").first().text() || "").trim().toUpperCase();
         var dir = dirRaw === "DOWN" ? -1 : 1;
-        var semis = _this2._intervalToSemitones(interval);
+        var semis = _this._intervalToSemitones(interval);
         if (!Number.isFinite(semis)) {
-          _this2._shakeCell($cell);
+          _this._shakeCell($cell);
           return;
         }
         var secondMidi = prevMidi + dir * semis;
-        _this2._playDictationLike(prevMidi, secondMidi);
+        _this._playDictationLike(prevMidi, secondMidi);
       });
+    }
+  }, {
+    key: "_wireControls",
+    value: function _wireControls() {
+      var _this2 = this;
+      this.$checkBtn.off("click.".concat(this.ns, "Check")).on("click.".concat(this.ns, "Check"), function (e) {
+        e.preventDefault();
+        _this2._onCheck();
+      });
+      this.$helpBtn.off("click.".concat(this.ns, "Help")).on("click.".concat(this.ns, "Help"), function (e) {
+        e.preventDefault();
+        _this2._onHelp();
+      });
+      this.$continueBtn.off("click.".concat(this.ns, "Continue")).on("click.".concat(this.ns, "Continue"), function (e) {
+        e.preventDefault();
+        _this2.$continueWrap.hide();
+        if (_this2._currentRound >= _this2.opts.numOfChallenges) {
+          _this2._showFinalResults();
+          return;
+        }
+        _this2._currentRound += 1;
+        _this2._startRound();
+      });
+    }
+  }, {
+    key: "_onCheck",
+    value: function _onCheck() {
+      var _this3 = this;
+      if (this._roundLocked) return;
+      var evalResult = this._evaluateRoundAnswers();
+      this._renderBlockCheckMarks(evalResult);
+      var isComplete = this._areAllBlockInputsFilled();
+      if (!isComplete) {
+        this._failAnimation();
+        this.$helpBtn.show();
+        this._madeAnyMistake = true;
+        this._madeMistakeThisRound = true;
+        return;
+      }
+      this._recordRoundCheck(evalResult);
+      this._stats.checksTotal += 1;
+      if (evalResult.correct) {
+        this._correctionMode = false;
+        this._wrongEditableIndexes = new Set();
+        this._stats.checksCorrect += 1;
+        var earned = this._awardPointsForCorrect();
+        this._finalizeRoundRecord({
+          passed: true,
+          earned: earned
+        });
+        this._showSuccessAnimation();
+        this._updateProgressBar();
+        this._roundLocked = true;
+        this.$table.find('td.block input[name="note"]').prop("disabled", true);
+        this.$helpBtn.hide();
+        if (this._currentRound >= this.opts.numOfChallenges) {
+          this.$checkBtn.text("Final results, let's see...");
+          this.$checkWrap.hide();
+          this.$continueWrap.hide();
+          var tid = setTimeout(function () {
+            return _this3._showFinalResults();
+          }, 1400);
+          this._revealTimeouts.push(tid);
+        } else {
+          this.$checkWrap.hide();
+          this.$continueWrap.show();
+          this.$continueBtn.text("Continue");
+        }
+        if (earned > 0) {
+          $("#score").animateCSS && $("#score").animateCSS("heartBeat");
+        }
+        return;
+      }
+      this._madeAnyMistake = true;
+      this._madeMistakeThisRound = true;
+      this._finalizeRoundRecord({
+        passed: false,
+        earned: 0
+      });
+      this._enterCorrectionMode(evalResult);
+      this._failAnimation();
+      this.$helpBtn.show();
+    }
+  }, {
+    key: "_onHelp",
+    value: function _onHelp() {
+      var _this4 = this;
+      if (this._roundLocked) return;
+      var evalResult = this._evaluateRoundAnswers();
+      var answers = evalResult.expectedByIndex || {};
+      var entries = Object.keys(answers);
+      if (!entries.length) return;
+      this._usedHintThisRound = true;
+      this._ensureRoundRecord().usedHint = true;
+      entries.forEach(function (idxStr) {
+        var _answers$idxStr;
+        var idx = Number(idxStr);
+        var $cell = _this4.$table.find("td[data-path-index=\"".concat(idx, "\"]")).first();
+        if (!$cell.length || !$cell.hasClass("block")) return;
+        var $input = $cell.find('input[name="note"]').first();
+        if (!$input.length) return;
+        var note = String(((_answers$idxStr = answers[idxStr]) === null || _answers$idxStr === void 0 ? void 0 : _answers$idxStr.display) || "");
+        if (!note) return;
+        $input.val(note).trigger("input");
+      });
+      this.$helpBtn.hide();
+    }
+  }, {
+    key: "_areAllBlockInputsFilled",
+    value: function _areAllBlockInputsFilled() {
+      var $inputs = this.$table.find('td.block input[name="note"]');
+      if (!$inputs.length) return false;
+      var allFilled = true;
+      $inputs.each(function (_, el) {
+        if (!String(el.value || "").trim()) allFilled = false;
+      });
+      return allFilled;
+    }
+  }, {
+    key: "_evaluateRoundAnswers",
+    value: function _evaluateRoundAnswers() {
+      var _this5 = this;
+      var expectedByIndex = this._roundAnswerKey || {};
+      var marksByIndex = {};
+      var expectedKeys = Object.keys(expectedByIndex);
+      if (!expectedKeys.length) {
+        return {
+          correct: false,
+          expectedByIndex: expectedByIndex,
+          marksByIndex: marksByIndex,
+          correctCount: 0,
+          wrongCount: 0
+        };
+      }
+      var correct = true;
+      var correctCount = 0;
+      var wrongCount = 0;
+      expectedKeys.forEach(function (idxStr) {
+        var expected = expectedByIndex[idxStr];
+        var $target = _this5.$table.find("td.block[data-path-index=\"".concat(idxStr, "\"]")).first();
+        var user = _this5._noteFromCell($target);
+        var ok = !!(user && user.canonical === expected.canonical);
+        marksByIndex[idxStr] = ok;
+        if (!ok) {
+          correct = false;
+          wrongCount += 1;
+        } else {
+          correctCount += 1;
+        }
+      });
+      return {
+        correct: correct,
+        expectedByIndex: expectedByIndex,
+        marksByIndex: marksByIndex,
+        correctCount: correctCount,
+        wrongCount: wrongCount
+      };
+    }
+  }, {
+    key: "_ensureRoundRecord",
+    value: function _ensureRoundRecord() {
+      var idx = Math.max(0, Number(this._currentRound || 1) - 1);
+      if (!this._roundRecords[idx]) {
+        this._roundRecords[idx] = {
+          round: idx + 1,
+          checks: 0,
+          firstCorrect: null,
+          firstWrong: null,
+          finalCorrect: 0,
+          finalWrong: 0,
+          usedHint: false,
+          passed: false,
+          points: 0
+        };
+      }
+      return this._roundRecords[idx];
+    }
+  }, {
+    key: "_recordRoundCheck",
+    value: function _recordRoundCheck(evalResult) {
+      var rec = this._ensureRoundRecord();
+      rec.checks += 1;
+      if (rec.firstCorrect == null || rec.firstWrong == null) {
+        rec.firstCorrect = Number((evalResult === null || evalResult === void 0 ? void 0 : evalResult.correctCount) || 0);
+        rec.firstWrong = Number((evalResult === null || evalResult === void 0 ? void 0 : evalResult.wrongCount) || 0);
+      }
+      rec.finalCorrect = Number((evalResult === null || evalResult === void 0 ? void 0 : evalResult.correctCount) || 0);
+      rec.finalWrong = Number((evalResult === null || evalResult === void 0 ? void 0 : evalResult.wrongCount) || 0);
+      rec.usedHint = rec.usedHint || this._usedHintThisRound;
+    }
+  }, {
+    key: "_finalizeRoundRecord",
+    value: function _finalizeRoundRecord(_ref3) {
+      var passed = _ref3.passed,
+        earned = _ref3.earned;
+      var rec = this._ensureRoundRecord();
+      rec.passed = !!passed;
+      rec.usedHint = rec.usedHint || this._usedHintThisRound;
+      rec.points = Number(earned || 0);
+    }
+  }, {
+    key: "_enterCorrectionMode",
+    value: function _enterCorrectionMode(evalResult) {
+      var _this6 = this;
+      var marks = (evalResult === null || evalResult === void 0 ? void 0 : evalResult.marksByIndex) || {};
+      this._correctionMode = true;
+      this._wrongEditableIndexes = new Set();
+      Object.keys(marks).forEach(function (idxStr) {
+        if (!marks[idxStr]) _this6._wrongEditableIndexes.add(Number(idxStr));
+      });
+      this._updateNoteInputProgression();
+    }
+  }, {
+    key: "_renderBlockCheckMarks",
+    value: function _renderBlockCheckMarks(evalResult) {
+      var _this7 = this;
+      var marks = (evalResult === null || evalResult === void 0 ? void 0 : evalResult.marksByIndex) || {};
+      this.$table.find("td.block .block-correct").remove();
+      this.$table.find("td.block .block-wrong").remove();
+      this.$table.find("td.block > div").removeClass("bg-green bg-red");
+      this.$table.find("td.block").removeClass("animate__animated animate__rubberBand animate__shakeX");
+      Object.keys(marks).forEach(function (idxStr) {
+        var ok = !!marks[idxStr];
+        var $cell = _this7.$table.find("td.block[data-path-index=\"".concat(idxStr, "\"]")).first();
+        if (!$cell.length) return;
+        var $wrap = $cell.children("div").first();
+        if (!$wrap.length) return;
+        $wrap.addClass(ok ? "bg-green" : "bg-red");
+        $cell.removeClass("animate__animated animate__rubberBand animate__shakeX");
+        // eslint-disable-next-line no-unused-expressions
+        $cell[0] && $cell[0].offsetWidth;
+        if (ok) $cell.addClass("animate__animated animate__rubberBand");
+        var html = ok ? '<span class="block-correct"><i class="fa-solid fa-circle-check"></i></span>' : '<span class="block-wrong"><i class="fa-solid fa-circle-xmark"></i></span>';
+        $wrap.append(html);
+      });
+    }
+  }, {
+    key: "_noteFromCell",
+    value: function _noteFromCell($cell) {
+      if (!$cell || !$cell.length) return null;
+      var textFromInput = String($cell.find('input[name="note"]').first().val() || "").trim();
+      var raw = textFromInput || String($cell.text() || "").trim();
+      return this._parseSpelledNote(raw);
+    }
+  }, {
+    key: "_parseSpelledNote",
+    value: function _parseSpelledNote(rawText) {
+      var normalized = String(rawText || "").trim().replaceAll("𝄪", "##").replaceAll("♯", "#").replaceAll("𝄫", "bb").replaceAll("♭", "b");
+      var m = normalized.match(/^([A-Ga-g])((?:#{1,2})|(?:b{1,2})|)?(\d+)?$/);
+      if (!m) return null;
+      var letter = m[1].toUpperCase();
+      var acc = m[2] || "";
+      var accOffset = acc === "##" ? 2 : acc === "#" ? 1 : acc === "bb" ? -2 : acc === "b" ? -1 : 0;
+      var basePc = {
+        C: 0,
+        D: 2,
+        E: 4,
+        F: 5,
+        G: 7,
+        A: 9,
+        B: 11
+      }[letter];
+      var pitchClass = ((basePc + accOffset) % 12 + 12) % 12;
+      return {
+        letter: letter,
+        accOffset: accOffset,
+        pitchClass: pitchClass,
+        canonical: "".concat(letter).concat(acc),
+        display: "".concat(letter).concat(this._accidentalDisplayFromOffset(accOffset))
+      };
+    }
+  }, {
+    key: "_accidentalDisplayFromOffset",
+    value: function _accidentalDisplayFromOffset(off) {
+      if (off === 2) return "𝄪";
+      if (off === 1) return "♯";
+      if (off === -1) return "♭";
+      if (off === -2) return "𝄫";
+      return "";
+    }
+  }, {
+    key: "_spelledIntervalTarget",
+    value: function _spelledIntervalTarget(prevNote, intervalAbbr, dir) {
+      if (!prevNote) return null;
+      var semis = this._intervalToSemitones(intervalAbbr);
+      var parsed = this._parseIntervalAbbr(intervalAbbr);
+      if (!Number.isFinite(semis) || !parsed || !Number.isFinite(parsed.number)) return null;
+      var letters = ["C", "D", "E", "F", "G", "A", "B"];
+      var fromIdx = letters.indexOf(prevNote.letter);
+      if (fromIdx < 0) return null;
+      var diatonicSteps = Math.max(0, parsed.number - 1);
+      var toIdxRaw = fromIdx + dir * diatonicSteps;
+      var toIdx = (toIdxRaw % 7 + 7) % 7;
+      var targetLetter = letters[toIdx];
+      var targetPc = ((prevNote.pitchClass + dir * semis) % 12 + 12) % 12;
+      var naturalPc = {
+        C: 0,
+        D: 2,
+        E: 4,
+        F: 5,
+        G: 7,
+        A: 9,
+        B: 11
+      }[targetLetter];
+      var off = targetPc - naturalPc;
+      while (off > 6) off -= 12;
+      while (off < -6) off += 12;
+      if (off > 2) off -= 12;
+      if (off < -2) off += 12;
+      if (off < -2 || off > 2) return null;
+      var accText = off === 2 ? "##" : off === 1 ? "#" : off === -1 ? "b" : off === -2 ? "bb" : "";
+      return {
+        letter: targetLetter,
+        accOffset: off,
+        pitchClass: targetPc,
+        canonical: "".concat(targetLetter).concat(accText),
+        display: "".concat(targetLetter).concat(this._accidentalDisplayFromOffset(off))
+      };
+    }
+  }, {
+    key: "_awardPointsForCorrect",
+    value: function _awardPointsForCorrect() {
+      if (this._usedHintThisRound) return 0;
+      var base = Number.isFinite(Number(this.opts.basePoints)) ? Number(this.opts.basePoints) : 1;
+      var bonus = Number.isFinite(Number(this.opts.firstTryBonus)) ? Number(this.opts.firstTryBonus) : 2;
+      var earned = this._madeMistakeThisRound ? base : base + bonus;
+      this._points += Math.max(0, earned);
+      this.$points.text(String(this._points));
+      return earned;
+    }
+  }, {
+    key: "_showSuccessAnimation",
+    value: function _showSuccessAnimation() {
+      this.$feedback.find(".message span").text("Great job");
+      this.$feedback.stop(true, true).fadeIn("fast");
+    }
+  }, {
+    key: "_failAnimation",
+    value: function _failAnimation() {
+      var $target = this.$checkWrap && this.$checkWrap.length ? this.$checkWrap : this.$table;
+      $target.removeClass("animate__animated animate__shakeX");
+      // eslint-disable-next-line no-unused-expressions
+      $target[0] && $target[0].offsetWidth;
+      $target.addClass("animate__animated animate__shakeX");
+      $target.off("animationend.".concat(this.ns, "Fail webkitAnimationEnd.").concat(this.ns, "Fail")).one("animationend.".concat(this.ns, "Fail webkitAnimationEnd.").concat(this.ns, "Fail"), function () {
+        $target.removeClass("animate__animated animate__shakeX");
+      });
+    }
+  }, {
+    key: "_updateProgressBar",
+    value: function _updateProgressBar() {
+      var steps = Math.max(1, Number(this.opts.numOfChallenges) || 1);
+      var increment = 100 / steps;
+      var current = parseFloat(this.$progressBar.data("progress")) || 0;
+      current = Math.min(100, current + increment);
+      this.$progressBar.data("progress", current);
+      this.$progressBar.css({
+        width: "".concat(current, "%")
+      });
+      var completed = Math.min(steps, Math.round(current / increment));
+      this.$progressCounter.text("".concat(completed, " of ").concat(steps));
+      return current;
+    }
+  }, {
+    key: "_showFinalResults",
+    value: function _showFinalResults() {
+      this._stats.finishedAtMs = Date.now();
+      var records = this._roundRecords.filter(Boolean);
+      var answersCorrect = 0;
+      var answersWrong = 0;
+      records.forEach(function (r) {
+        var c = Number.isFinite(r.firstCorrect) ? r.firstCorrect : Number(r.finalCorrect || 0);
+        var w = Number.isFinite(r.firstWrong) ? r.firstWrong : Number(r.finalWrong || 0);
+        answersCorrect += Math.max(0, c);
+        answersWrong += Math.max(0, w);
+      });
+      var accuracyBase = answersCorrect + answersWrong;
+      var accuracy = accuracyBase ? Math.round(answersCorrect / accuracyBase * 100) : 0;
+      var durationSec = Math.max(0, Math.floor((this._stats.finishedAtMs - this._finalStartMs) / 1000));
+      var mm = String(Math.floor(durationSec / 60)).padStart(2, "0");
+      var ss = String(durationSec % 60).padStart(2, "0");
+      var $overlay = this.$finalOverlay;
+      $overlay.find('span[name="rounds"]').text(String(this.opts.numOfChallenges));
+      $overlay.find('span[name="score"]').text(String(this._points));
+      $overlay.find('span[name="accuracy"]').text("".concat(accuracy, "%"));
+      $overlay.find('span[name="duration"]').text("".concat(mm, ":").concat(ss));
+      var $greeting = $overlay.find("#result-greeting");
+      var $title = $greeting.find("h1");
+      var $subtitle = $greeting.find("h6");
+      var $img = $overlay.find("img").first();
+      if (accuracy < 50) {
+        $title.text("Keep going!");
+        $subtitle.text("That round was tough, but your next one can be much better.");
+        var cur = String($img.attr("src") || "");
+        if (cur.includes("trophy.svg")) $img.attr("src", cur.replace("trophy.svg", "plant.svg"));
+      } else {
+        $title.text("Great job!");
+        $subtitle.text("It's not about getting the most points, but if it was...");
+        var _cur = String($img.attr("src") || "");
+        if (_cur.includes("plant.svg")) $img.attr("src", _cur.replace("plant.svg", "trophy.svg"));
+      }
+      this.$musicKeyboard.hide();
+      this.$continueWrap.hide();
+      this.$helpBtn.hide();
+      this.$checkWrap.hide();
+      $overlay.show();
     }
   }, {
     key: "_wireNoteInputUx",
     value: function _wireNoteInputUx() {
-      var _this3 = this;
+      var _this8 = this;
+      this.$table.off("pointerdown.".concat(this.ns, "Cover mousedown.").concat(this.ns, "Cover touchstart.").concat(this.ns, "Cover click.").concat(this.ns, "Cover"), ".block-cover").on("pointerdown.".concat(this.ns, "Cover mousedown.").concat(this.ns, "Cover touchstart.").concat(this.ns, "Cover click.").concat(this.ns, "Cover"), ".block-cover", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+      });
       this.$table.off("click.".concat(this.ns, "Cell"), "td.block").on("click.".concat(this.ns, "Cell"), "td.block", function (e) {
         var $cell = $(e.currentTarget);
         var $input = $cell.find('input[name="note"]').first();
         if (!$input.length) return;
         if ($input.prop("disabled")) {
-          _this3._clearActiveBlockInput();
+          _this8._clearActiveBlockInput();
           return;
         }
-        _this3._setActiveBlockInput($input);
+        _this8._setActiveBlockInput($input);
         $input.trigger("focus");
-        _this3._showMusicKeyboard();
+        _this8._showMusicKeyboard();
       });
       this.$table.off("focusin.".concat(this.ns, "Note"), 'input[name="note"]').on("focusin.".concat(this.ns, "Note"), 'input[name="note"]', function (e) {
         var $input = $(e.currentTarget);
         if (!$input.closest("td.block").length) return;
-        _this3._setActiveBlockInput($input);
-        _this3._showMusicKeyboard();
+        _this8._setActiveBlockInput($input);
+        _this8._showMusicKeyboard();
       });
       this.$table.off("focusout.".concat(this.ns, "Note"), 'input[name="note"]').on("focusout.".concat(this.ns, "Note"), 'input[name="note"]', function () {
-        if (_this3._keyboardHideTimer) clearTimeout(_this3._keyboardHideTimer);
-        _this3._keyboardHideTimer = setTimeout(function () {
-          if (Date.now() < _this3._suppressKeyboardHideUntil) return;
+        if (_this8._keyboardHideTimer) clearTimeout(_this8._keyboardHideTimer);
+        _this8._keyboardHideTimer = setTimeout(function () {
+          if (Date.now() < _this8._suppressKeyboardHideUntil) return;
           var $active = $(document.activeElement);
           var inNoteInput = $active.is('input[name="note"]') && $active.closest("td.block").length;
           var inKeyboard = $active.closest("#music-keyboard").length;
           if (!inNoteInput && !inKeyboard) {
-            _this3._hideMusicKeyboard();
+            _this8._hideMusicKeyboard();
           }
         }, 0);
       });
       this.$table.off("blur.".concat(this.ns, "Note"), 'input[name="note"]').on("blur.".concat(this.ns, "Note"), 'input[name="note"]', function (e) {
         var $input = $(e.currentTarget);
         if (!$input.closest("td.block").length) return;
-        _this3._updateNoteInputProgression();
+        _this8._updateNoteInputProgression();
       });
       this.$table.off("keydown.".concat(this.ns, "Note"), 'input[name="note"]').on("keydown.".concat(this.ns, "Note"), 'input[name="note"]', function (e) {
         var $input = $(e.currentTarget);
@@ -310,7 +869,14 @@ var BlocksChallenge = /*#__PURE__*/function () {
       this.$table.off("input.".concat(this.ns, "Note"), 'input[name="note"]').on("input.".concat(this.ns, "Note"), 'input[name="note"]', function (e) {
         var $input = $(e.currentTarget);
         if (!$input.closest("td.block").length) return;
-        _this3._updateNoteInputProgression();
+        var prevVal = String($input.data("prev-value") || "");
+        var curVal = String($input.val() || "");
+        var becameFilled = prevVal.trim().length === 0 && curVal.trim().length > 0;
+        if (becameFilled) {
+          _this8._revealNextCovers(2);
+        }
+        $input.data("prev-value", curVal);
+        _this8._updateNoteInputProgression();
       });
       this.$table.off("paste.".concat(this.ns, "Note"), 'input[name="note"]').on("paste.".concat(this.ns, "Note"), 'input[name="note"]', function (e) {
         var $input = $(e.currentTarget);
@@ -321,16 +887,16 @@ var BlocksChallenge = /*#__PURE__*/function () {
         var $target = $(e.target);
         if ($target.closest('input[name="note"]').length) return;
         if ($target.closest("#music-keyboard").length) {
-          _this3._suppressKeyboardHideUntil = Date.now() + 250;
+          _this8._suppressKeyboardHideUntil = Date.now() + 250;
           return;
         }
-        _this3._hideMusicKeyboard();
-        _this3._clearActiveBlockInput();
+        _this8._hideMusicKeyboard();
+        _this8._clearActiveBlockInput();
       });
       this.$musicKeyboard.off("click.".concat(this.ns, "Write"), "button").on("click.".concat(this.ns, "Write"), "button", function (e) {
         e.preventDefault();
         var $target = $(e.currentTarget);
-        var $active = _this3.$activeBlockInput && _this3.$activeBlockInput.length ? _this3.$activeBlockInput : $(document.activeElement).closest('input[name="note"]');
+        var $active = _this8.$activeBlockInput && _this8.$activeBlockInput.length ? _this8.$activeBlockInput : $(document.activeElement).closest('input[name="note"]');
         if (!$active || !$active.length || !$active.closest("td.block").length) return;
         if ($active.prop("disabled")) return;
         var letter = String($target.attr("data-lettername") || "").trim().toUpperCase();
@@ -350,7 +916,7 @@ var BlocksChallenge = /*#__PURE__*/function () {
           return;
         }
         if (accidentalType) {
-          var nextValue = _this3._applyAccidentalToInputValue(current, accidentalType);
+          var nextValue = _this8._applyAccidentalToInputValue(current, accidentalType);
           if (nextValue == null) return;
           $active.val(nextValue);
         } else {
@@ -389,29 +955,76 @@ var BlocksChallenge = /*#__PURE__*/function () {
         var ib = parseInt(b.getAttribute("data-path-index"), 10);
         return (Number.isFinite(ia) ? ia : 9999) - (Number.isFinite(ib) ? ib : 9999);
       });
-      var gateOpen = true;
-      for (var i = 0; i < $blocks.length; i += 1) {
-        var $cell = $($blocks[i]);
-        var $input = $cell.find('input[name="note"]').first();
-        var $label = $cell.children("div").children("span").not(".block-arrow").first();
-        if (!$input.length) continue;
-        var value = String($input.val() || "").trim();
-        if (gateOpen) {
-          $input.prop("disabled", false);
-          if (value) {
-            $label.hide();
+      if (this._correctionMode) {
+        var allFilledCorrection = $blocks.length > 0;
+        for (var i = 0; i < $blocks.length; i += 1) {
+          var $cell = $($blocks[i]);
+          var idx = parseInt($cell.attr("data-path-index"), 10);
+          var $input = $cell.find('input[name="note"]').first();
+          var $label = $cell.children("div").children("span").not(".block-arrow").first();
+          if (!$input.length) continue;
+          var value = String($input.val() || "").trim();
+          if (!value) allFilledCorrection = false;
+          var editable = this._wrongEditableIndexes.has(idx);
+          $input.prop("disabled", !editable);
+          if (editable) {
+            if (value) $label.hide();else {
+              $label.css("opacity", "0.2");
+              $label.show();
+            }
           } else {
-            $label.show();
+            $label.hide();
+          }
+        }
+        if (this.$activeBlockInput && this.$activeBlockInput.length && this.$activeBlockInput.prop("disabled")) {
+          this._clearActiveBlockInput();
+          this._hideMusicKeyboard();
+        }
+        this._syncActiveBlockLabelOpacity();
+        this._syncBlocksCompletionUi(allFilledCorrection);
+        return;
+      }
+      var gateOpen = true;
+      var allFilled = $blocks.length > 0;
+      for (var _i = 0; _i < $blocks.length; _i += 1) {
+        var _$cell = $($blocks[_i]);
+        var _$input = _$cell.find('input[name="note"]').first();
+        var _$label = _$cell.children("div").children("span").not(".block-arrow").first();
+        if (!_$input.length) continue;
+        var _value = String(_$input.val() || "").trim();
+        if (!_value) allFilled = false;
+        if (gateOpen) {
+          _$input.prop("disabled", false);
+          if (_value) {
+            _$label.hide();
+          } else {
+            _$label.css("opacity", "0.2");
+            _$label.show();
             gateOpen = false;
           }
         } else {
-          $input.prop("disabled", true);
-          $label.hide();
+          _$input.prop("disabled", true);
+          _$label.hide();
         }
       }
       if (this.$activeBlockInput && this.$activeBlockInput.length && this.$activeBlockInput.prop("disabled")) {
         this._clearActiveBlockInput();
       }
+      this._syncActiveBlockLabelOpacity();
+      this._syncBlocksCompletionUi(allFilled);
+    }
+  }, {
+    key: "_syncBlocksCompletionUi",
+    value: function _syncBlocksCompletionUi(allFilled) {
+      if (this._roundLocked) return;
+      if (allFilled) {
+        this._instructionsDismissed = true;
+        $("#instructions").remove();
+        $("#check").show().removeClass("invisible");
+        return;
+      }
+      if (!this._instructionsDismissed) $("#instructions").show();
+      $("#check").show().addClass("invisible");
     }
   }, {
     key: "_setActiveBlockInput",
@@ -431,6 +1044,7 @@ var BlocksChallenge = /*#__PURE__*/function () {
         borderColor: "#0d6efd",
         zIndex: "2"
       });
+      this._syncActiveBlockLabelOpacity();
     }
   }, {
     key: "_clearActiveBlockInput",
@@ -442,6 +1056,17 @@ var BlocksChallenge = /*#__PURE__*/function () {
         borderColor: "",
         zIndex: ""
       });
+      this._syncActiveBlockLabelOpacity();
+    }
+  }, {
+    key: "_syncActiveBlockLabelOpacity",
+    value: function _syncActiveBlockLabelOpacity() {
+      var $labels = this.$table.find('td.block > div > span').not(".block-arrow");
+      $labels.css("opacity", "0.2");
+      if (!this.$activeBlockCell || !this.$activeBlockCell.length) return;
+      var $activeLabel = this.$activeBlockCell.children("div").children("span").not(".block-arrow").first();
+      if (!$activeLabel.length || !$activeLabel.is(":visible")) return;
+      $activeLabel.css("opacity", "0.05");
     }
   }, {
     key: "_isSoundEnabled",
@@ -511,14 +1136,14 @@ var BlocksChallenge = /*#__PURE__*/function () {
   }, {
     key: "_playMidi",
     value: function _playMidi(midi, durSeconds, atSecondsFromNow) {
-      var _this4 = this;
+      var _this9 = this;
       if (!window.Tone) return;
       this._ensureAudio().then(function () {
-        if (!_this4._synth) return;
+        if (!_this9._synth) return;
         var now = Tone.now();
         var when = now + (Number(atSecondsFromNow) || 0);
         var dur = Number(durSeconds) || 0.6;
-        _this4._synth.triggerAttackRelease(Tone.Frequency(midi, "midi"), dur, when);
+        _this9._synth.triggerAttackRelease(Tone.Frequency(midi, "midi"), dur, when);
       });
     }
   }, {
@@ -635,7 +1260,7 @@ var BlocksChallenge = /*#__PURE__*/function () {
   }, {
     key: "_revealPathCells",
     value: function _revealPathCells(items) {
-      var _this5 = this;
+      var _this0 = this;
       var onDone = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
       var list = Array.isArray(items) ? items : [];
       if (!list.length) {
@@ -645,9 +1270,12 @@ var BlocksChallenge = /*#__PURE__*/function () {
       var _loop = function _loop() {
         var item = list[i];
         var tid = setTimeout(function () {
-          var $cell = _this5._cellAt(item.r, item.c);
+          var $cell = _this0._cellAt(item.r, item.c);
           $cell.attr("data-path-index", String(item.i));
           $cell.addClass(item.cls).append(item.html);
+          if (item.i >= 2) {
+            $cell.append('<div class="block-cover"></div>');
+          }
           if (item.cls === "block") {
             $cell.find('input[name="note"]').prop("disabled", true).prop("readonly", true).attr({
               inputmode: "none",
@@ -658,20 +1286,60 @@ var BlocksChallenge = /*#__PURE__*/function () {
             });
             $cell.children("div").children("span").not(".block-arrow").first().hide();
           }
-          _this5._showCellVisual($cell);
-          _this5._updateNoteInputProgression();
+          _this0._showCellVisual($cell);
+          _this0._updateNoteInputProgression();
         }, i * 80);
-        _this5._revealTimeouts.push(tid);
+        _this0._revealTimeouts.push(tid);
       };
       for (var i = 0; i < list.length; i += 1) {
         _loop();
       }
+      var coversTid = setTimeout(function () {
+        _this0._revealNextCovers(1);
+      }, list.length * 80);
+      this._revealTimeouts.push(coversTid);
       if (typeof onDone === "function") {
         var doneTid = setTimeout(function () {
           return onDone();
         }, list.length * 80);
         this._revealTimeouts.push(doneTid);
       }
+    }
+  }, {
+    key: "_revealNextCovers",
+    value: function _revealNextCovers() {
+      var _this1 = this;
+      var count = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
+      var maxCount = Math.max(0, Number(count) || 0);
+      if (!maxCount) return;
+      var $covers = this.$table.find("td[data-path-index]").toArray().sort(function (a, b) {
+        var ia = parseInt(a.getAttribute("data-path-index"), 10);
+        var ib = parseInt(b.getAttribute("data-path-index"), 10);
+        return (Number.isFinite(ia) ? ia : 9999) - (Number.isFinite(ib) ? ib : 9999);
+      }).map(function (td) {
+        return $(td).children(".block-cover").first();
+      }).filter(function ($c) {
+        return $c && $c.length && !$c.hasClass("cover-revealing") && !$c.hasClass("cover-revealed");
+      }).slice(0, maxCount);
+      $covers.forEach(function ($cover, i) {
+        var tid = setTimeout(function () {
+          $cover.addClass("cover-revealing");
+          $cover.removeClass("animate__animated animate__hinge").addClass("animate__animated animate__hinge").one("animationend.".concat(_this1.ns, "CoverHinge webkitAnimationEnd.").concat(_this1.ns, "CoverHinge"), function () {
+            $cover.hide();
+            $cover.removeClass("animate__animated animate__hinge cover-revealing");
+            $cover.addClass("cover-revealed");
+          });
+
+          // Fallback in case animationend does not fire.
+          var fallbackTid = setTimeout(function () {
+            $cover.hide();
+            $cover.removeClass("animate__animated animate__hinge cover-revealing");
+            $cover.addClass("cover-revealed");
+          }, 2200);
+          _this1._revealTimeouts.push(fallbackTid);
+        }, i * 500);
+        _this1._revealTimeouts.push(tid);
+      });
     }
   }, {
     key: "_showStandardGameUi",
@@ -693,13 +1361,13 @@ var BlocksChallenge = /*#__PURE__*/function () {
   }, {
     key: "_hideMusicKeyboard",
     value: function _hideMusicKeyboard() {
-      var _this6 = this;
+      var _this10 = this;
       if (!this.$musicKeyboard.length) return;
       if (!this.$musicKeyboard.is(":visible")) return;
       this.$musicKeyboard.removeClass("animate__bounceInUp").addClass("animate__animated animate__bounceOutDown");
       var hideTid = setTimeout(function () {
-        _this6.$musicKeyboard.hide();
-        _this6.$musicKeyboard.removeClass("animate__bounceOutDown");
+        _this10.$musicKeyboard.hide();
+        _this10.$musicKeyboard.removeClass("animate__bounceOutDown");
       }, 550);
       this._revealTimeouts.push(hideTid);
     }
@@ -726,6 +1394,8 @@ var BlocksChallenge = /*#__PURE__*/function () {
   }]);
 }();
 _defineProperty(BlocksChallenge, "INTERVALS_FALLBACK", ["m2", "M2", "m3", "M3", "P4", "A4", "d5", "P5", "m6", "M6", "m7", "M7", "P8"]);
+_defineProperty(BlocksChallenge, "MIN_CHALLENGES", 2);
+_defineProperty(BlocksChallenge, "MAX_CHALLENGES", 12);
 
 /***/ }
 

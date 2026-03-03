@@ -17,18 +17,18 @@
 
             @component('theory.card', [
                 'settings' => $intervalsBuilderSettings,
-                'title' => 'Intervals Builder', 
-                'description' => 'Practice the most common chromatic intervals in different clefs.'])
+                'title' => 'Intervals Lab', 
+                'description' => 'Build chromatic intervals on the staff.'])
 
                 @include('theory.intervals.modals.settings', [
                     'settings' => $intervalsBuilderSettings, 
-                    'modalID' => 'intervals-builder-settings-modal'])
+                    'modalID' => 'intervals-lab-settings-modal'])
             @endcomponent
 
             @component('theory.card', [
                 'settings' => $intervalsDictationSettings,
-                'title' => 'Intervals Dictation', 
-                'description' => 'Practice intervals dictation in different clefs.'])
+                'title' => 'Pitch Detective', 
+                'description' => 'Hear an interval, write the note.'])
 
                 @include('theory.dictation.modals.settings', [
                     'settings' => $intervalsDictationSettings, 
@@ -37,13 +37,23 @@
 
             @component('theory.card', [
                 'settings' => $chordsBuilderSettings,
-                'title' => 'Chords Builder', 
-                'description' => 'Practice the four fundamental triads as well as 7th chords.'])
+                'title' => 'Chords Lab', 
+                'description' => 'Build triads and 7th chords on the staff.'])
 
                 @include('theory.chords.modals.settings', [
                     'settings' => $chordsBuilderSettings, 
                     'modalID' => 'chords-builder-settings-modal'])
             @endcomponent
+
+{{--             @component('theory.card', [
+                'settings' => $chordsBuilderSettings,
+                'title' => 'Tone Trek', 
+                'description' => 'Follow the interval path and fill in notes.'])
+
+                @include('theory.chords.modals.settings', [
+                    'settings' => $chordsBuilderSettings, 
+                    'modalID' => 'chords-builder-settings-modal'])
+            @endcomponent --}}
         </div>
     </div>
 </section>

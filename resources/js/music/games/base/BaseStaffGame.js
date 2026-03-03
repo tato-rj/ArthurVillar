@@ -1,6 +1,7 @@
 // resources/js/music/games/base/BaseStaffGame.js
 import { Staff } from "../../staff/Staff.js";
 import { pickOne, spellNoteFromState } from "../../staff/staffUtils.js";
+import { renderFinalResultsOverlay } from "../shared/finalResults.js";
 
 export const PAGE_OPENED_AT_MS = Date.now();
 
@@ -1388,77 +1389,16 @@ export class BaseStaffGame {
       });
     }
 
-    const CountUpCtor = window?.CountUp?.CountUp;
-    const DURATION = 3.5;
-
-    const mmss = (secs) => {
-      const v = Math.max(0, Math.floor(secs));
-      const mm = String(Math.floor(v / 60)).padStart(2, "0");
-      const ss = String(v % 60).padStart(2, "0");
-      return `${mm}:${ss}`;
-    };
-
-    const countTo = (selector, endVal, opts = {}) => {
-      const el = this.$finalOverlay.find(selector)[0];
-      if (!el) return;
-
-      const startCount = () => {
-        if (!CountUpCtor) {
-          el.textContent =
-            String(opts.formattingFn ? opts.formattingFn(endVal) : endVal) + (opts.suffix || "");
-          return;
-        }
-
-        const c = new CountUpCtor(el, endVal, { duration: DURATION, ...opts });
-        if (!c.error) c.start();
-      };
-
-      const $box = $(el).closest("#metrics-boxes > div");
-      const rawDelay = $box.length ? parseFloat($box[0].style.animationDelay || "0") : 0;
-      const delayMs = Number.isFinite(rawDelay) ? Math.max(0, rawDelay) : 0;
-      if (delayMs <= 0) {
-        startCount();
-        return;
-      }
-
-      const tid = setTimeout(startCount, delayMs + 40);
-      this._finalCountupTimeouts.push(tid);
-    };
-
-    const $greeting = this.$finalOverlay.find("#result-greeting");
-    const $greetingTitle = $greeting.find("h1");
-    const $greetingSubtitle = $greeting.find("h6");
-    const $resultImg = this.$finalOverlay.find("img").first();
-    const defaultTitle = "Great job!";
-    const defaultSubtitle = "It's not about getting the most points, but if it was...";
-
-    if (accuracy < 50) {
-      $greetingTitle.text("Keep going!");
-      $greetingSubtitle.text("That round was tough, but your next one can be much better.");
-      if ($resultImg.length) {
-        const cur = String($resultImg.attr("src") || "");
-        if (cur.includes("trophy.svg")) {
-          $resultImg.attr("src", cur.replace("trophy.svg", "plant.svg"));
-        }
-      }
-    } else {
-      $greetingTitle.text(defaultTitle);
-      $greetingSubtitle.text(defaultSubtitle);
-      if ($resultImg.length) {
-        const cur = String($resultImg.attr("src") || "");
-        if (cur.includes("plant.svg")) {
-          $resultImg.attr("src", cur.replace("plant.svg", "trophy.svg"));
-        }
-      }
-    }
-
-    this.$finalOverlay.show();
-    this._animateFinalMetricsWithSfx();
-    this._clearFinalCountupTimers();
-    countTo('span[name="rounds"]', this.numOfChallenges);
-    countTo('span[name="score"]', finalPoints);
-    countTo('span[name="accuracy"]', accuracy, { suffix: "%" });
-    countTo('span[name="duration"]', totalSeconds, { formattingFn: mmss });
-    this._playFinalSfx();
+    renderFinalResultsOverlay({
+      $finalOverlay: this.$finalOverlay,
+      rounds: this.numOfChallenges,
+      score: finalPoints,
+      accuracy,
+      durationSec: totalSeconds,
+      clearCountupTimers: () => this._clearFinalCountupTimers(),
+      countupTimers: this._finalCountupTimeouts,
+      animateMetrics: () => this._animateFinalMetricsWithSfx(),
+      playFinalSfx: () => this._playFinalSfx(),
+    });
   }
 }
