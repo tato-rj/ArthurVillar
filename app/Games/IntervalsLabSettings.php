@@ -2,8 +2,23 @@
 
 namespace App\Games;
 
-class IntervalsBuilderSettings extends GameFactory
+class IntervalsLabSettings extends GameFactory
 {   
+    public function gameName(): string
+    {
+        return 'Intervals Lab';
+    }
+
+    public function gameDescription() : string
+    {
+        return 'Find and build chromatic intervals on the staff.';
+    }
+
+    public function gameTheme(): string
+    {
+        return 'blue';
+    }
+
     protected function requiredToggleKeys(): array
     {
         return ['sound', 'showLetterNames', 'allowInitialAccidentals'];

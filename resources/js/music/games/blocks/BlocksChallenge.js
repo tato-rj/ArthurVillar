@@ -1,4 +1,5 @@
 import { renderFinalResultsOverlay } from "../shared/finalResults.js";
+import { BaseStaffGame } from "../base/BaseStaffGame.js";
 
 export class BlocksChallenge {
   static INTERVALS_FALLBACK = [
@@ -6,6 +7,24 @@ export class BlocksChallenge {
   ];
   static MIN_CHALLENGES = 2;
   static MAX_CHALLENGES = 12;
+  static LETTER_TO_SOLFEGE = {
+    C: "Do",
+    D: "Re",
+    E: "Mi",
+    F: "Fa",
+    G: "Sol",
+    A: "La",
+    B: "Si",
+  };
+  static SOLFEGE_TO_LETTER = {
+    DO: "C",
+    RE: "D",
+    MI: "E",
+    FA: "F",
+    SOL: "G",
+    LA: "A",
+    SI: "B",
+  };
 
   constructor(options = {}) {
     const defaults = {
@@ -15,6 +34,8 @@ export class BlocksChallenge {
       maxStraightRun: 3,
       intervals: null,
       initialNotes: null,
+      allowInitialAccidentals: false,
+      solfege: false,
       sound: true,
       basePoints: 1,
       firstTryBonus: 2,
@@ -28,18 +49,33 @@ export class BlocksChallenge {
     this.$musicKeyboard = $("#music-keyboard").first();
     this.$feedback = $("#feedback-success");
     this.$helpBtn = $("#help");
+    this.$skipWrap = $("#skip");
+    this.$skipBtn = this.$skipWrap.find("button");
     this.$checkWrap = $("#check");
     this.$checkBtn = $("#check button");
     this.$continueWrap = $("#continue");
     this.$continueBtn = $("#continue button");
+    this.$timeupMessage = $("#timeup-message");
+    this.$timer = $("#timer");
+    this.$timerBox = this.$timer.children("div").first();
+    this.$timerText = this.$timer.find("span");
     this.$progressBar = $("#progress-bar");
     this.$progressCounter = $("#progress-counter");
     this.$points = $("#points");
     this.$finalOverlay = $("#final-overlay");
+    this.$doublePoints = $("#double-points");
     this.ns = this.opts.namespace || "blocksChallenge";
     this._audioReady = false;
     this._synth = null;
+    this._uiSfxReady = false;
+    this._uiSfxSynth = null;
+    this._uiSfxNoise = null;
+    this._uiTimerSfxSynth = null;
+    this._audioUnlockArmed = false;
     this._revealTimeouts = [];
+    this._timerTimeoutId = null;
+    this._timerRemainingSec = 0;
+    this._timerEndsAtMs = 0;
     this._keyboardHideTimer = null;
     this._suppressKeyboardHideUntil = 0;
     this.$activeBlockInput = null;
@@ -53,6 +89,7 @@ export class BlocksChallenge {
     this._usedHintThisRound = false;
     this._madeMistakeThisRound = false;
     this._madeAnyMistake = false;
+    this._correctStreak = 0;
     this._points = 0;
     this._stats = {
       checksTotal: 0,
@@ -61,6 +98,7 @@ export class BlocksChallenge {
     };
     this._roundAnswerKey = {};
     this._roundRecords = [];
+    this._finalMetricsSfxTimeouts = [];
     this._finalCountupTimeouts = [];
     this._instructionsDismissed = false;
     this._correctionMode = false;
@@ -92,6 +130,7 @@ export class BlocksChallenge {
     this._usedHintThisRound = false;
     this._madeMistakeThisRound = false;
     this._madeAnyMistake = false;
+    this._correctStreak = 0;
     this._points = 0;
     this._stats = {
       checksTotal: 0,
@@ -100,16 +139,24 @@ export class BlocksChallenge {
     };
     this._roundAnswerKey = {};
     this._roundRecords = [];
+    this._clearFinalMetricsSfxTimers();
     this._clearFinalCountupTimers();
 
+    this._syncPracticeUi();
     this.$points.text("0");
     this.$feedback.hide();
     this.$helpBtn.hide();
+    this.$skipWrap.hide();
     this.$continueWrap.hide();
+    this._hideTimeUpMessage();
+    this._setTimedOutInteractivityDisabled(false);
     this.$finalOverlay.hide();
+    this.$doublePoints?.hide?.();
     this.$checkBtn.text("Check my answer");
     this.$progressBar.data("progress", 0).css({ width: "0%" });
-    this.$progressCounter.text(`0 of ${this.opts.numOfChallenges}`);
+    this.$progressCounter.text(this._isPracticeMode() ? "Practice" : `0 of ${this.opts.numOfChallenges}`);
+    if (this._isTimerEnabled()) this.$timer.show();
+    else this.$timer.hide();
   }
 
   _startRound() {
@@ -119,9 +166,14 @@ export class BlocksChallenge {
     this._usedHintThisRound = false;
     this._madeMistakeThisRound = false;
     this.$helpBtn.hide();
+    this.$skipWrap.hide();
     this.$continueWrap.hide();
     this.$feedback.hide();
     this.$checkWrap.show().addClass("invisible");
+    this._armUiSfxOnFirstGesture();
+    this._syncKeyboardLabels();
+    this._hideTimeUpMessage();
+    this._setTimedOutInteractivityDisabled(false);
     this._hideMusicKeyboard();
     this._clearActiveBlockInput();
     const $rows = this.$table.find("tbody tr");
@@ -148,6 +200,11 @@ export class BlocksChallenge {
     this._roundAnswerKey = layout.answerKey || {};
 
     this._revealPathCells(revealItems);
+    if (this._isTimerEnabled()) this._resetRoundTimerIfEnabled();
+    else {
+      this._stopGameTimer();
+      this.$timer.hide();
+    }
   }
 
   _buildRoundLayout({ rowCount, colCount, pathLength }) {
@@ -184,7 +241,7 @@ export class BlocksChallenge {
             c: cell.c,
             i,
             cls: "initial-block",
-            html: `<div><span>START HERE</span><input type="text" name="note" value="${initialNote.display}" disabled=""><i class="fa-solid ${arrowClass}"></i></div>`,
+            html: `<div><span>START HERE</span><input type="text" name="note" value="${this._noteDisplay(initialNote)}" disabled=""><i class="fa-solid ${arrowClass}"></i></div>`,
           });
           continue;
         }
@@ -243,6 +300,57 @@ export class BlocksChallenge {
       ? this.opts.intervals.filter(Boolean).map((x) => String(x).trim())
       : [];
     return fromOptions.length ? fromOptions : BlocksChallenge.INTERVALS_FALLBACK.slice();
+  }
+
+  _normalizeOnOff(v) {
+    if (v === true) return true;
+    const s = String(v ?? "").trim().toLowerCase();
+    return s === "on" || s === "true" || s === "1";
+  }
+
+  _readBoolSetting(key, fallback = false) {
+    const direct = this.opts?.[key];
+    if (direct !== undefined && direct !== null && String(direct).trim() !== "") {
+      return this._normalizeOnOff(direct);
+    }
+
+    try {
+      const qs = new URLSearchParams(window.location.search || "");
+      if (qs.has(key)) return this._normalizeOnOff(qs.get(key));
+    } catch (_) {}
+
+    return !!fallback;
+  }
+
+  _isSolfegeEnabled() {
+    return this._readBoolSetting("solfege", false);
+  }
+
+  _allowsInitialAccidentals() {
+    return this._readBoolSetting("allowInitialAccidentals", false);
+  }
+
+  _noteDisplay(noteObj) {
+    if (!noteObj) return "";
+    const letter = String(noteObj.letter || "").toUpperCase();
+    const base = this._isSolfegeEnabled()
+      ? (BlocksChallenge.LETTER_TO_SOLFEGE[letter] || letter)
+      : letter;
+    return `${base}${this._accidentalDisplayFromOffset(Number(noteObj.accOffset) || 0)}`;
+  }
+
+  _syncKeyboardLabels() {
+    if (!this.$musicKeyboard || !this.$musicKeyboard.length) return;
+    const useSolfege = this._isSolfegeEnabled();
+    this.$musicKeyboard.find("button[data-lettername]").each((_, el) => {
+      const $btn = $(el);
+      const letter = String($btn.attr("data-lettername") || "").trim().toUpperCase();
+      const sol = String($btn.attr("data-solfege") || "").trim();
+      const label = useSolfege
+        ? (sol ? sol.charAt(0).toUpperCase() + sol.slice(1).toLowerCase() : (BlocksChallenge.LETTER_TO_SOLFEGE[letter] || letter))
+        : letter;
+      $btn.text(label);
+    });
   }
 
   _generatePath({ rowCount, colCount, length, maxAttempts, maxStraightRun }) {
@@ -358,7 +466,15 @@ export class BlocksChallenge {
       : [];
     const fallback = ["C", "D", "E", "F", "G", "A", "B"];
     const pool = fromOptions.length ? fromOptions : fallback;
-    return String(pool[Math.floor(Math.random() * pool.length)] || "E");
+    const picked = String(pool[Math.floor(Math.random() * pool.length)] || "E");
+    const parsed = this._parseSpelledNote(picked) || this._parseSpelledNote("E");
+    if (!parsed) return "E";
+    if (!this._allowsInitialAccidentals()) return `${parsed.letter}`;
+
+    const accidentalChoices = [0, 0, 0, 1, -1];
+    const off = accidentalChoices[Math.floor(Math.random() * accidentalChoices.length)] || 0;
+    const acc = off === 1 ? "#" : off === -1 ? "b" : "";
+    return `${parsed.letter}${acc}`;
   }
 
   _wireIntervalBlocks() {
@@ -425,12 +541,27 @@ export class BlocksChallenge {
       .on(`click.${this.ns}Continue`, (e) => {
         e.preventDefault();
         this.$continueWrap.hide();
+        this.$skipWrap.hide();
+        this._hideTimeUpMessage();
+        this._setTimedOutInteractivityDisabled(false);
+        if (this._isPracticeMode()) {
+          this._currentRound += 1;
+          this._startRound();
+          return;
+        }
         if (this._currentRound >= this.opts.numOfChallenges) {
           this._showFinalResults();
           return;
         }
         this._currentRound += 1;
         this._startRound();
+      });
+
+    this.$skipBtn
+      .off(`click.${this.ns}Skip`)
+      .on(`click.${this.ns}Skip`, (e) => {
+        e.preventDefault();
+        this._finishRoundAsTimedOut();
       });
   }
 
@@ -443,6 +574,8 @@ export class BlocksChallenge {
     const isComplete = this._areAllBlockInputsFilled();
     if (!isComplete) {
       this._failAnimation();
+      this._correctStreak = 0;
+      this._playFailSfx();
       this.$helpBtn.show();
       this._madeAnyMistake = true;
       this._madeMistakeThisRound = true;
@@ -458,6 +591,17 @@ export class BlocksChallenge {
       this._stats.checksCorrect += 1;
       const earned = this._awardPointsForCorrect();
       this._finalizeRoundRecord({ passed: true, earned });
+      this._pauseGameTimer();
+      if (this._isPracticeMode()) {
+        this._correctStreak = 0;
+        this._playSuccessSfxBasic();
+      } else if (!this._usedHintThisRound && !this._madeMistakeThisRound) {
+        this._correctStreak += 1;
+        this._playSuccessSfxBonus();
+      } else {
+        this._correctStreak = 0;
+        this._playSuccessSfxBasic();
+      }
       this._showSuccessAnimation();
       this._updateProgressBar();
       this._roundLocked = true;
@@ -483,9 +627,11 @@ export class BlocksChallenge {
 
     this._madeAnyMistake = true;
     this._madeMistakeThisRound = true;
+    this._correctStreak = 0;
     this._finalizeRoundRecord({ passed: false, earned: 0 });
     this._enterCorrectionMode(evalResult);
     this._failAnimation();
+    this._playFailSfx();
     this.$helpBtn.show();
   }
 
@@ -505,7 +651,7 @@ export class BlocksChallenge {
       if (!$cell.length || !$cell.hasClass("block")) return;
       const $input = $cell.find('input[name="note"]').first();
       if (!$input.length) return;
-      const note = String(answers[idxStr]?.display || "");
+      const note = String(this._noteDisplay(answers[idxStr]) || "");
       if (!note) return;
       $input.val(note).trigger("input");
     });
@@ -643,10 +789,11 @@ export class BlocksChallenge {
       .replaceAll("𝄫", "bb")
       .replaceAll("♭", "b");
 
-    const m = normalized.match(/^([A-Ga-g])((?:#{1,2})|(?:b{1,2})|)?(\d+)?$/);
+    const m = normalized.match(/^([A-Ga-g]|DO|RE|MI|FA|SOL|LA|SI)((?:#{1,2})|(?:b{1,2})|)?(\d+)?$/i);
     if (!m) return null;
 
-    const letter = m[1].toUpperCase();
+    const token = m[1].toUpperCase();
+    const letter = BlocksChallenge.SOLFEGE_TO_LETTER[token] || token;
     const acc = m[2] || "";
     const accOffset =
       acc === "##" ? 2 :
@@ -661,7 +808,7 @@ export class BlocksChallenge {
       accOffset,
       pitchClass,
       canonical: `${letter}${acc}`,
-      display: `${letter}${this._accidentalDisplayFromOffset(accOffset)}`,
+      display: this._noteDisplay({ letter, accOffset }),
     };
   }
 
@@ -710,11 +857,15 @@ export class BlocksChallenge {
       accOffset: off,
       pitchClass: targetPc,
       canonical: `${targetLetter}${accText}`,
-      display: `${targetLetter}${this._accidentalDisplayFromOffset(off)}`,
+      display: this._noteDisplay({ letter: targetLetter, accOffset: off }),
     };
   }
 
   _awardPointsForCorrect() {
+    if (this._isPracticeMode()) {
+      this.$points.text("0");
+      return 0;
+    }
     if (this._usedHintThisRound) return 0;
     const base = Number.isFinite(Number(this.opts.basePoints)) ? Number(this.opts.basePoints) : 1;
     const bonus = Number.isFinite(Number(this.opts.firstTryBonus)) ? Number(this.opts.firstTryBonus) : 2;
@@ -743,6 +894,12 @@ export class BlocksChallenge {
   }
 
   _updateProgressBar() {
+    if (this._isPracticeMode()) {
+      this.$progressBar.data("progress", 0);
+      this.$progressBar.css({ width: "0%" });
+      this.$progressCounter.text("Practice");
+      return 0;
+    }
     const steps = Math.max(1, Number(this.opts.numOfChallenges) || 1);
     const increment = 100 / steps;
     let current = parseFloat(this.$progressBar.data("progress")) || 0;
@@ -755,6 +912,8 @@ export class BlocksChallenge {
   }
 
   _showFinalResults() {
+    if (this._isPracticeMode()) return;
+    this._stopGameTimer();
     this._stats.finishedAtMs = Date.now();
     const records = this._roundRecords.filter(Boolean);
     let answersCorrect = 0;
@@ -768,6 +927,18 @@ export class BlocksChallenge {
     const accuracyBase = answersCorrect + answersWrong;
     const accuracy = accuracyBase ? Math.round((answersCorrect / accuracyBase) * 100) : 0;
     const durationSec = Math.max(0, Math.floor((this._stats.finishedAtMs - this._finalStartMs) / 1000));
+    const perfectGame = records.length > 0 && !this._madeAnyMistake;
+    const finalScore = perfectGame ? this._points * 2 : this._points;
+
+    if (perfectGame) {
+      const tid = setTimeout(() => {
+        this.$doublePoints?.show?.();
+        this._playPerfectGameBonusSfx();
+      }, 1750);
+      this._revealTimeouts.push(tid);
+    } else {
+      this.$doublePoints?.hide?.();
+    }
 
     this.$musicKeyboard.hide();
     this.$continueWrap.hide();
@@ -776,12 +947,58 @@ export class BlocksChallenge {
     renderFinalResultsOverlay({
       $finalOverlay: this.$finalOverlay,
       rounds: this.opts.numOfChallenges,
-      score: this._points,
+      score: finalScore,
       accuracy,
       durationSec,
       clearCountupTimers: () => this._clearFinalCountupTimers(),
       countupTimers: this._finalCountupTimeouts,
+      animateMetrics: () => this._animateFinalMetricsWithSfx(),
+      playFinalSfx: () => this._playFinalSfx(),
     });
+  }
+
+  isSoundEnabled() {
+    return this._isSoundEnabled();
+  }
+
+  _ensureUiSfxAudio() {
+    return BaseStaffGame.prototype._ensureUiSfxAudio.call(this);
+  }
+
+  _armUiSfxOnFirstGesture() {
+    return BaseStaffGame.prototype._armUiSfxOnFirstGesture.call(this);
+  }
+
+  _playSuccessSfxBasic() {
+    return BaseStaffGame.prototype._playSuccessSfxBasic.call(this);
+  }
+
+  _playSuccessSfxBonus() {
+    return BaseStaffGame.prototype._playSuccessSfxBonus.call(this);
+  }
+
+  _playFailSfx() {
+    return BaseStaffGame.prototype._playFailSfx.call(this);
+  }
+
+  _playFinalSfx() {
+    return BaseStaffGame.prototype._playFinalSfx.call(this);
+  }
+
+  _playPerfectGameBonusSfx() {
+    return BaseStaffGame.prototype._playPerfectGameBonusSfx.call(this);
+  }
+
+  _playFinalMetricPopSfx(index) {
+    return BaseStaffGame.prototype._playFinalMetricPopSfx.call(this, index);
+  }
+
+  _clearFinalMetricsSfxTimers() {
+    return BaseStaffGame.prototype._clearFinalMetricsSfxTimers.call(this);
+  }
+
+  _animateFinalMetricsWithSfx() {
+    return BaseStaffGame.prototype._animateFinalMetricsWithSfx.call(this);
   }
 
   _clearFinalCountupTimers() {
@@ -791,6 +1008,207 @@ export class BlocksChallenge {
     }
     this._finalCountupTimeouts.forEach((id) => clearTimeout(id));
     this._finalCountupTimeouts = [];
+  }
+
+  _isPracticeMode() {
+    return this._normalizeOnOff(this.opts.practiceMode);
+  }
+
+  _syncPracticeUi() {
+    const practice = this._isPracticeMode();
+    const $score = $("#score");
+    if (practice) {
+      $score.hide();
+      this.$progressBar.parent().addClass("opacity-1");
+    } else {
+      $score.show();
+      this.$progressBar.parent().removeClass("opacity-1");
+    }
+  }
+
+  _isTimerEnabled() {
+    return this._normalizeOnOff(this.opts.timer);
+  }
+
+  _formatTimerDisplay(sec) {
+    const safe = Math.max(0, Math.floor(Number(sec) || 0));
+    const mm = String(Math.floor(safe / 60)).padStart(2, "0");
+    const ss = String(safe % 60).padStart(2, "0");
+    return `${mm}:${ss}`;
+  }
+
+  _renderTimerDisplay() {
+    if (!this.$timerText?.length) return;
+    this.$timerText.text(this._formatTimerDisplay(this._timerRemainingSec));
+    this._syncTimerWarningStyle();
+  }
+
+  _syncTimerWarningStyle() {
+    if (!this.$timerBox?.length) return;
+    const warning = this._timerRemainingSec <= 5;
+    this.$timerBox.toggleClass("bg-red", warning);
+    this.$timerBox.toggleClass("bg-primary", !warning);
+  }
+
+  _setTimedOutInteractivityDisabled(disabled) {
+    const on = !!disabled;
+    const $blocksWrapper = $("#blocks-wrapper");
+    this.$table.find("td.block, td.interval-block, td.initial-block").css("pointer-events", on ? "none" : "");
+    $blocksWrapper.attr("disabled", on ? "disabled" : null);
+    $blocksWrapper.attr("aria-disabled", on ? "true" : "false");
+    $blocksWrapper.css("pointer-events", on ? "none" : "");
+    if (on) {
+      this.$table.find('input[name="note"]').prop("disabled", true);
+      this._hideMusicKeyboard();
+      this._clearActiveBlockInput();
+    } else {
+      this._updateNoteInputProgression();
+    }
+  }
+
+  _hideTimeUpMessage() {
+    if (!this.$timeupMessage?.length) return;
+    this.$timeupMessage.hide().removeClass("animate__animated animate__flash");
+  }
+
+  _showTimeUpMessage() {
+    if (!this.$timeupMessage?.length) return;
+    this.$timeupMessage.show();
+    this.$timeupMessage.removeClass("animate__animated animate__flash");
+    // eslint-disable-next-line no-unused-expressions
+    this.$timeupMessage[0] && this.$timeupMessage[0].offsetWidth;
+    this.$timeupMessage.addClass("animate__animated animate__flash");
+  }
+
+  _wouldReachLastRoundAfterAdvance() {
+    return !this._isPracticeMode() && this._currentRound >= this.opts.numOfChallenges;
+  }
+
+  _finishRoundAsTimedOut() {
+    this._madeAnyMistake = true;
+    this._madeMistakeThisRound = true;
+    this._correctStreak = 0;
+    this._pauseGameTimer();
+    this._hideSkipRoundButton();
+    this.$helpBtn.hide();
+    this.$checkWrap.hide();
+
+    if (this._wouldReachLastRoundAfterAdvance()) {
+      this._stats.finishedAtMs = Date.now();
+      const tid = setTimeout(() => this._showFinalResults(), 600);
+      this._revealTimeouts.push(tid);
+      return;
+    }
+
+    this._setTimedOutInteractivityDisabled(false);
+    this._hideTimeUpMessage();
+
+    this._currentRound += 1;
+    this._startRound();
+  }
+
+  _pulseTimerWarning() {
+    if (!this.$timer?.length) return;
+    this.$timer.removeClass("animate__animated animate__pulse");
+    // eslint-disable-next-line no-unused-expressions
+    this.$timer[0] && this.$timer[0].offsetWidth;
+    this.$timer.addClass("animate__animated animate__pulse");
+  }
+
+  _playTimerWarningBeep() {
+    return BaseStaffGame.prototype._playTimerWarningBeep.call(this);
+  }
+
+  _playTimerTimeUpSfx() {
+    return BaseStaffGame.prototype._playTimerTimeUpSfx.call(this);
+  }
+
+  _stopGameTimer() {
+    if (this._timerTimeoutId != null) {
+      clearTimeout(this._timerTimeoutId);
+      this._timerTimeoutId = null;
+    }
+    this._timerEndsAtMs = 0;
+    this._timerRemainingSec = 0;
+    this._syncTimerWarningStyle();
+    this.$timer?.removeClass?.("animate__animated animate__pulse");
+  }
+
+  _pauseGameTimer() {
+    if (this._timerTimeoutId != null) {
+      clearTimeout(this._timerTimeoutId);
+      this._timerTimeoutId = null;
+    }
+    this._timerEndsAtMs = 0;
+    this.$timer?.removeClass?.("animate__animated animate__pulse");
+  }
+
+  _runGameTimerTick() {
+    if (!this._timerEndsAtMs) return;
+
+    const prev = this._timerRemainingSec;
+    const msLeft = this._timerEndsAtMs - Date.now();
+    const next = Math.max(0, Math.ceil(msLeft / 1000));
+    this._timerRemainingSec = next;
+    this._renderTimerDisplay();
+
+    if (next > 0 && next <= 5 && next !== prev) {
+      this._pulseTimerWarning();
+      this._playTimerWarningBeep();
+    } else if (next === 0 && prev !== 0) {
+      this.$checkWrap.hide();
+      this.$helpBtn.hide();
+      this._setTimedOutInteractivityDisabled(true);
+      this._pulseTimerWarning();
+      this._playTimerTimeUpSfx();
+      this._showTimeUpMessage();
+      if (this._wouldReachLastRoundAfterAdvance()) {
+        this._hideSkipRoundButton();
+        this._finishRoundAsTimedOut();
+      } else {
+        this._showSkipRoundButton();
+      }
+    }
+
+    if (next <= 0) {
+      this._stopGameTimer();
+      return;
+    }
+
+    const nextChangeAt = this._timerEndsAtMs - ((next - 1) * 1000);
+    const delay = Math.max(16, nextChangeAt - Date.now());
+    this._timerTimeoutId = setTimeout(() => this._runGameTimerTick(), delay);
+  }
+
+  _startGameTimer(startSec = 10) {
+    this._stopGameTimer();
+    const total = Math.max(0, Math.floor(Number(startSec) || 0));
+    this._timerEndsAtMs = Date.now() + (total * 1000);
+    this._timerRemainingSec = total;
+    this._renderTimerDisplay();
+    this._runGameTimerTick();
+  }
+
+  _timerLimitSeconds() {
+    const raw = Number(this.opts.timeLimit != null ? this.opts.timeLimit : this.opts.timerLimit);
+    if (!Number.isFinite(raw)) return 10;
+    return Math.max(0, Math.floor(raw));
+  }
+
+  _resetRoundTimerIfEnabled() {
+    if (!this._isTimerEnabled()) return;
+    this.$timer.show();
+    this._startGameTimer(this._timerLimitSeconds());
+  }
+
+  _showSkipRoundButton() {
+    if (!this.$skipWrap?.length) return;
+    this.$skipWrap.stop(true, true).show();
+  }
+
+  _hideSkipRoundButton() {
+    if (!this.$skipWrap?.length) return;
+    this.$skipWrap.stop(true, true).hide();
   }
 
   _wireNoteInputUx() {
@@ -918,7 +1336,11 @@ export class BlocksChallenge {
         }
 
         if (letter) {
-          $active.val(letter);
+          const sol = String($target.attr("data-solfege") || "").trim();
+          const label = this._isSolfegeEnabled()
+            ? (sol ? sol.charAt(0).toUpperCase() + sol.slice(1).toLowerCase() : (BlocksChallenge.LETTER_TO_SOLFEGE[letter] || letter))
+            : letter;
+          $active.val(label);
           $active.trigger("input");
           return;
         }
@@ -938,10 +1360,14 @@ export class BlocksChallenge {
   }
 
   _applyAccidentalToInputValue(current, accidentalType) {
-    const m = String(current || "").trim().match(/^([A-G])([#b♯♭𝄪𝄫]{0,2})$/i);
+    const m = String(current || "").trim().match(/^([A-G]|Do|Re|Mi|Fa|Sol|La|Si)([#b♯♭𝄪𝄫]{0,2})$/i);
     if (!m) return null;
 
-    const letter = m[1].toUpperCase();
+    const tokenUpper = String(m[1] || "").toUpperCase();
+    const letter = BlocksChallenge.SOLFEGE_TO_LETTER[tokenUpper] || tokenUpper;
+    const baseDisplay = this._isSolfegeEnabled()
+      ? (BlocksChallenge.LETTER_TO_SOLFEGE[letter] || letter)
+      : letter;
     const rawAcc = m[2] || "";
     const normalizedAcc =
       rawAcc === "#" || rawAcc === "♯" ? "sharp" :
@@ -951,18 +1377,18 @@ export class BlocksChallenge {
       "";
 
     if (accidentalType === "sharp") {
-      if (normalizedAcc === "double_sharp") return `${letter}𝄪`;
-      if (normalizedAcc === "sharp") return `${letter}𝄪`;
-      return `${letter}♯`;
+      if (normalizedAcc === "double_sharp") return `${baseDisplay}𝄪`;
+      if (normalizedAcc === "sharp") return `${baseDisplay}𝄪`;
+      return `${baseDisplay}♯`;
     }
 
     if (accidentalType === "flat") {
-      if (normalizedAcc === "double_flat") return `${letter}𝄫`;
-      if (normalizedAcc === "flat") return `${letter}𝄫`;
-      return `${letter}♭`;
+      if (normalizedAcc === "double_flat") return `${baseDisplay}𝄫`;
+      if (normalizedAcc === "flat") return `${baseDisplay}𝄫`;
+      return `${baseDisplay}♭`;
     }
 
-    return `${letter}`;
+    return `${baseDisplay}`;
   }
 
   _updateNoteInputProgression() {
@@ -1294,7 +1720,7 @@ export class BlocksChallenge {
 
     $covers.forEach(($cover, i) => {
       const tid = setTimeout(() => {
-        $cover.addClass("cover-revealing");
+        $cover.addClass("cover-revealing block-falling");
         $cover
           .removeClass("animate__animated animate__hinge")
           .addClass("animate__animated animate__hinge")
@@ -1317,6 +1743,7 @@ export class BlocksChallenge {
   }
 
   _showStandardGameUi() {
+    this._syncKeyboardLabels();
     $("#instructions").show();
     $("#controls").show();
     $("#page-wrapper").fadeIn("fast");

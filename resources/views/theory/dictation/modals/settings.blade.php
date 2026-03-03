@@ -1,4 +1,4 @@
-@modal(['title' => 'Game settings', 'id' => $modalID ?? 'settings-modal'])
+@modal(['title' => 'Game settings', 'id' => str_slug($settings->gameName()).'-settings-modal'])
 <form id="intervals-settings" method="GET" action="{{ route('theory.dictation.play') }}">
   @component('theory.components.settings.section', ['title' => 'SETUP'])
     @include('theory.components.settings.rounds')

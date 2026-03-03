@@ -15,6 +15,9 @@ abstract class GameFactory
         	['natural' => 8, 'sharp' => 6, 'flat' => 6]
         ];
 
+    abstract public function gameName(): string;
+    abstract public function gameTheme(): string;
+    abstract public function gameDescription(): string;
     abstract protected function defaults(): array;
 
     public function __construct(array $request = [])

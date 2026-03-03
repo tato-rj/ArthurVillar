@@ -75,9 +75,11 @@ td {
   left: 0;
   width: 100%;
   height: 100%;
-  background: #f7f7f7;
-  z-index: 10;
-  transition: .2s;
+  background-color: #f7f7f7;
+  background-image:  repeating-linear-gradient(45deg, #fff 25%, transparent 25%, transparent 75%, #fff 75%, #fff), repeating-linear-gradient(45deg, #fff 25%, #f7f7f7 25%, #f7f7f7 75%, #fff 75%, #fff);
+  background-position: 0 0, 10px 10px;
+  background-size: 20px 20px;
+  z-index: 100;
   border: 1px solid white;
 }
 
@@ -106,7 +108,6 @@ td {
   font-size: 80%;
   font-weight: bold;
   opacity: .2;
-  transition: .2s;
 }
 .interval-block button {
   font-size: 76%;
@@ -138,7 +139,7 @@ td {
 @include('theory.components.title', ['label' => 'BLOCKS CHALLENGE'])
 <section id="page-wrapper" class="container prevent-select">
   <div class="row">
-    <div class="col-lg-6 col-md-8 col-11 mx-auto text-center">
+    <div class="col-lg-6 col-md-8 col-11 mx-auto text-center mb-2">
       @include('theory.components.counter')
       @include('theory.components.timer')
     </div>

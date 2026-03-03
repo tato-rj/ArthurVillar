@@ -1,4 +1,4 @@
-@extends('layouts.app', ['title' => 'Intervals Challenge', 'noMenu' => true])
+@extends('layouts.app', ['title' => $settings->gameName(), 'noMenu' => true])
 
 @push('header')
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
@@ -26,7 +26,7 @@
   'title' => 'Intervals Challenge', 
   'description' => 'Add the note that forms the indicated interval']) --}}
 
-@include('theory.components.title', ['label' => 'INTERVALS BUILDER'])
+@include('theory.components.title')
 
 <section id="page-wrapper" class="container prevent-select">
   <div class="row">

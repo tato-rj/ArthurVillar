@@ -2,8 +2,23 @@
 
 namespace App\Games;
 
-class ChordsBuilderSettings extends GameFactory
+class PitchDetectiveSettings extends GameFactory
 {
+    public function gameName(): string
+    {
+        return 'Pitch Detective';
+    }
+    
+    public function gameDescription() : string
+    {
+        return 'Hear an interval and write the note on the staff.';
+    }
+
+    public function gameTheme(): string
+    {
+        return 'green';
+    }
+
     protected function requiredToggleKeys(): array
     {
         return ['sound', 'showLetterNames', 'allowInitialAccidentals', 'initialRoot', 'only7thChords'];
@@ -15,16 +30,14 @@ class ChordsBuilderSettings extends GameFactory
             'timerLimit' => 20,
             'practiceMode' => false,
             'timer' => false,
-            'maxUserNotes' => 2,
+            'maxUserNotes' => 1,
             'numOfChallenges' => 4,
-            'triadQualities' => ['major', 'minor'],
+            'intervals' => ['M2', 'm3', 'M3', 'P5', 'P8'],
             'clefs' => ['treble', 'bass'],
             'fixedNotes' => [],
             'sound' => true,
             'showLetterNames' => false,
             'allowInitialAccidentals' => false,
-            'initialRoot' => true,
-            'only7thChords' => false,
             'initialNoteRange' => 0,
         ];
     }
@@ -32,8 +45,6 @@ class ChordsBuilderSettings extends GameFactory
     public function options($key = null)
     {
         $options = $this->applyUserPreferences();
-
-        $options['maxUserNotes'] = !empty($options['only7thChords']) ? 3 : 2;
 
         $weights = $this->getAccidentalWeights()[(bool) $options['allowInitialAccidentals']];
         $array = array_merge($options, ['accidentalWeights' => $weights]);

@@ -2,8 +2,23 @@
 
 namespace App\Games;
 
-class IntervalsDictationSettings extends GameFactory
+class ChordsLabSettings extends GameFactory
 {
+    public function gameName(): string
+    {
+        return 'Chords Lab';
+    }
+
+    public function gameDescription() : string
+    {
+        return 'Build triads and 7th chords on the staff.';
+    }
+
+    public function gameTheme(): string
+    {
+        return 'orange';
+    }
+    
     protected function requiredToggleKeys(): array
     {
         return ['sound', 'showLetterNames', 'allowInitialAccidentals', 'initialRoot', 'only7thChords'];
@@ -15,14 +30,16 @@ class IntervalsDictationSettings extends GameFactory
             'timerLimit' => 20,
             'practiceMode' => false,
             'timer' => false,
-            'maxUserNotes' => 1,
+            'maxUserNotes' => 2,
             'numOfChallenges' => 4,
-            'intervals' => ['M2', 'm3', 'M3', 'P5', 'P8'],
+            'triadQualities' => ['major', 'minor'],
             'clefs' => ['treble', 'bass'],
             'fixedNotes' => [],
             'sound' => true,
             'showLetterNames' => false,
             'allowInitialAccidentals' => false,
+            'initialRoot' => true,
+            'only7thChords' => false,
             'initialNoteRange' => 0,
         ];
     }
@@ -30,6 +47,8 @@ class IntervalsDictationSettings extends GameFactory
     public function options($key = null)
     {
         $options = $this->applyUserPreferences();
+
+        $options['maxUserNotes'] = !empty($options['only7thChords']) ? 3 : 2;
 
         $weights = $this->getAccidentalWeights()[(bool) $options['allowInitialAccidentals']];
         $array = array_merge($options, ['accidentalWeights' => $weights]);
