@@ -25,7 +25,7 @@
       </div>
 
       <div class="btn-floating ml-1 w-100">
-        <button data-bs-toggle="modal" data-bs-target="#settings-modal" class="btn btn-white w-100">@fa(['icon' => 'gear'])Settings</button>
+        <button data-bs-toggle="modal" data-bs-target="#{{str_slug($settings->gameName())}}-settings-modal" class="btn btn-white w-100">@fa(['icon' => 'gear'])Settings</button>
       </div>
     </div>
   </div>
