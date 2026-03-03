@@ -18,13 +18,13 @@
             @include('theory.intervals.modals.settings', ['settings' => $intervalsLabSettings])
         @endcomponent
 
-        @component('theory.card', ['settings' => $pitchDetectiveSettings])
-            @include('theory.dictation.modals.settings', ['settings' => $pitchDetectiveSettings])
-        @endcomponent
-
         @component('theory.card', ['settings' => $chordsLabSettings])
 
             @include('theory.chords.modals.settings', ['settings' => $chordsLabSettings])
+        @endcomponent
+        
+        @component('theory.card', ['settings' => $pitchDetectiveSettings])
+            @include('theory.dictation.modals.settings', ['settings' => $pitchDetectiveSettings])
         @endcomponent
 
         @component('theory.card', ['settings' => $toneTrekSettings])
