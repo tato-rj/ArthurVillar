@@ -14,8 +14,9 @@ class TheoryController extends Controller
         $chordsLabSettings = new ChordsLabSettings;
         $pitchDetectiveSettings = new PitchDetectiveSettings;
         $toneTrekSettings = new ToneTrekSettings;
+        $toneTrailSettings = new ToneTrailSettings;
 
-        return view('theory.index', compact('intervalsLabSettings', 'chordsLabSettings', 'pitchDetectiveSettings', 'toneTrekSettings'));
+        return view('theory.index', compact('intervalsLabSettings', 'chordsLabSettings', 'pitchDetectiveSettings', 'toneTrekSettings', 'toneTrailSettings'));
     }
 
     public function intervalsLab(Request $request)
@@ -46,10 +47,10 @@ class TheoryController extends Controller
         return view('theory.pitch-detective.index', compact('settings'));
     }
 
-    public function snake(Request $request)
+    public function toneTrail(Request $request)
     {
-        $settings = new PitchDetectiveSettings($request->all());
+        $settings = new ToneTrailSettings($request->all());
 
-        return view('theory.snake.index', compact('settings'));
+        return view('theory.tone-trail.index', compact('settings'));
     }
 }

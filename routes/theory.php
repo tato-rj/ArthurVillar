@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('theory')->name('theory.')->group(function() {
 	Route::get('', 'TheoryController@index')->name('index');
 
+	Route::get('intervals', 'TheoryController@intervalsLab');
+
 	Route::get('intervals-lab', 'TheoryController@intervalsLab')->name('intervals-lab.play');
 
 	Route::get('tone-trek', 'TheoryController@toneTrek')->name('tone-trek.play');
@@ -13,5 +15,5 @@ Route::prefix('theory')->name('theory.')->group(function() {
 
 	Route::get('pitch-detective', 'TheoryController@pitchDetective')->name('pitch-detective.play');
 
-	Route::get('snake', 'TheoryController@snake')->name('snake.play');
+	Route::get('tone-trail', 'TheoryController@toneTrail')->name('tone-trail.play');
 });

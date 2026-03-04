@@ -23,7 +23,7 @@
                 </button>
             </div>
             
-            {{$slot}}
+            @include('theory.'.str_slug($settings->gameName()).'.modals.settings')
         </div>
     </div>
 </div>
