@@ -1,5 +1,5 @@
 <div id="music-keyboard" style="display: none" class="w-100 position-fixed bottom-0 left-0 pb-4 text-center">
-		<div class="rounded border border shadow-lg p-1 mx-auto d-inline-block" style="background: rgba(255,255,255,0.95);">
+		<div class="rounded border border shadow-lg py-1 px-3 mx-auto d-inline-block" style="background: rgba(255,255,255,0.95);">
 			<label class="w-100 text-center fw-bold mb-1 opacity-4" style="font-size: 70%">MUSIC KEYBOARD</label>
 			<div class="d-flex justify-content-around flex-wrap">
 				<div class="m-1 btn-floating">

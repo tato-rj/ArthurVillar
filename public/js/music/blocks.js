@@ -2585,8 +2585,8 @@ var BlocksChallenge = /*#__PURE__*/function () {
         }
         var synth = _this9._uiTimerSfxSynth || _this9._uiSfxSynth;
         if (!synth) return;
-        synth.triggerAttackRelease("E4", 0.04, now, 0.22);
-        synth.triggerAttackRelease("C4", 0.05, now + 0.04, 0.26);
+        synth.triggerAttackRelease("E4", 0.04, now, 0.12);
+        synth.triggerAttackRelease("C4", 0.05, now + 0.04, 0.16);
       });
     }
   }, {
