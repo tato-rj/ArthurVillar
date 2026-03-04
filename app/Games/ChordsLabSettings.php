@@ -11,7 +11,7 @@ class ChordsLabSettings extends GameFactory
 
     public function gameDescription() : string
     {
-        return 'Build triads, suspended and 7th chords on the staff.';
+        return 'Build triads, sus and 7th chords on the staff.';
     }
 
     public function gameTheme(): string
