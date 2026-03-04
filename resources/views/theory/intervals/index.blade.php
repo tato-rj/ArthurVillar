@@ -18,6 +18,9 @@
 </script>
 
 <style>
+
+
+
 </style>
 @endpush
 
@@ -61,10 +64,5 @@
 <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.js"></script>
 <script src="{{ mix('js/music/intervals.js') }}"></script>
 <script>
-  /**
-   * Toggle "text-black" on the label matching the range value, reset others to "text-light".
-   * Works with multiple sliders if each slider points at its own labels container via data-range-labels.
-   */
-
 </script>
 @endpush

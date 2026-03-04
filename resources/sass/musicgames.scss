@@ -9,6 +9,10 @@ body,
   touch-action: manipulation;
 }
 
+body {
+  background-color: #f7f7f7;
+}
+
 .animate__animated {
   --animate-duration: 0.8s;
 }
@@ -109,7 +113,6 @@ body,
 }
 
 #staff {
-  background: #fff;
   border-radius: var(--staff-radius);
   height: var(--staff-height);
   overflow: visible;
@@ -192,7 +195,7 @@ body,
 }
 
 #staff-wrapper[disabled], #blocks-wrapper[disabled] {
-  opacity: .2;
+  // opacity: .2;
 }
 
 /* ==========================================================================
@@ -228,6 +231,11 @@ body,
   transform: rotate(-40deg);
 }
 
+@keyframes drawStaffLine {
+  from {width: 0;}
+  to {width: 300px;}
+}
+
 .staff-line {
   background: var(--ink);
   border-radius: 999px;
@@ -236,6 +244,7 @@ body,
   opacity: 0.9;
   position: absolute;
   right: var(--staff-padding-x);
+  animation-name: drawStaffLine;
 }
 
 .staff-clef {
@@ -246,6 +255,8 @@ body,
   top: var(--clef-top);
   user-select: none;
   width: var(--clef-width);
+  animation-name: bounceInLeft;
+  animation-duration: 0.65s;
 }
 
 /* ==========================================================================
@@ -265,6 +276,8 @@ body,
 
 .note.fixed {
   pointer-events: none;
+  animation-name: bounceInDown;
+  animation-duration: .6s;
 }
 
 .note .lettername {
@@ -412,5 +425,8 @@ body,
 }
 
 .block-falling {
-  @extend .shadow, .opacity-4;
+  @extend .shadow;
+
+  z-index: 110 !important;
+  position: relative;
 }

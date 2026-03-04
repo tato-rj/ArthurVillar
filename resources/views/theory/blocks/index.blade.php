@@ -1,4 +1,4 @@
-@extends('layouts.app', ['title' => 'Blocks Challenge', 'noMenu' => true])
+@extends('layouts.app', ['title' => $settings->gameName(), 'noMenu' => true])
 
 @push('header')
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
@@ -16,6 +16,7 @@
   width: 320px;
   max-width: 100%;
 }
+
 td {
   height: 79.75px;
   position: relative;

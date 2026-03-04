@@ -9,6 +9,7 @@ import {
   nextAccidentalClass,
   isMaxedDouble,
 } from "./staffUtils.js";
+import { StaffAnimations } from "./StaffAnimations.js";
 
 /**
  * Staff engine: draws staff, manages note interactions, emits events.
@@ -86,6 +87,7 @@ export class Staff {
     this._accSnap = { noteId: null, dist: null, localY: null };
 
     this._suppressNextClick = { noteId: null, until: 0 };
+    this._animations = new StaffAnimations(this.$el);
 
     this._applyClefCssVars(this.opts.clef);
     this._computeLayout();
@@ -158,7 +160,13 @@ export class Staff {
     this.$el.find(".staff-line, .staff-clef").remove();
     for (let i = 0; i < 5; i++) {
       const y = this.opts.bottomLineY - (4 - i) * this.opts.lineGap;
-      $('<div class="staff-line"></div>').css({ top: `${y}px` }).appendTo(this.$el);
+      const durationSec = (0.12 + (Math.random() * 0.36)).toFixed(3); // ~0.12s..0.48s
+      $('<div class="staff-line"></div>')
+        .css({
+          top: `${y}px`,
+          animationDuration: `${durationSec}s`,
+        })
+        .appendTo(this.$el);
     }
     this._drawClef();
   }
@@ -538,7 +546,11 @@ export class Staff {
     this._previewClear();
   }
 
-  removeNote(id) {
+  removeNote(id, opts = {}) {
+    if (opts.smoke === true) {
+      const noteEl = this.$el.find(`.note[data-note-id="${id}"]`)[0];
+      this._animations.playNoteRemoveSmoke(noteEl);
+    }
     this.$el.find(`.note[data-note-id="${id}"]`).remove();
     this.$el.find(`.ledger[data-for-note-id="${id}"]`).remove();
     this._removeAccidentalForNote(id);
@@ -956,7 +968,7 @@ export class Staff {
         return;
       }
 
-      self.removeNote(clickedId);
+      self.removeNote(clickedId, { smoke: true });
     });
   }
 

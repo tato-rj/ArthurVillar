@@ -2,6 +2,7 @@
 import { Staff } from "../../staff/Staff.js";
 import { pickOne, spellNoteFromState } from "../../staff/staffUtils.js";
 import { renderFinalResultsOverlay } from "../shared/finalResults.js";
+import { playBurstConfettiAtElement } from "../shared/mojsEffects.js";
 
 export const PAGE_OPENED_AT_MS = Date.now();
 
@@ -505,6 +506,7 @@ export class BaseStaffGame {
   _animateFinalMetricsWithSfx() {
     const $boxes = this.$finalOverlay.find("#metrics-boxes > div");
     if (!$boxes.length) return;
+    $boxes.css({ position: "relative", zIndex: 6 });
 
     const BASE_DELAY_MS = 260;
     const STEP_DELAY_MS = 260; // wider spacing between boxes
@@ -517,6 +519,10 @@ export class BaseStaffGame {
 
       const tid = setTimeout(() => {
         this._playFinalMetricPopSfx(i);
+        playBurstConfettiAtElement(el, {
+          parentEl: this.$finalOverlay?.[0] || document.body,
+          index: i,
+        });
       }, delayMs);
       this._finalMetricsSfxTimeouts.push(tid);
     });
@@ -702,6 +708,27 @@ export class BaseStaffGame {
     this._uiTimerSfxSynth.triggerAttackRelease("C4", 0.18, now + 0.22, 0.82);
   }
 
+  _removeAllStaffNotesWithSmoke() {
+    if (!this.$staffEl?.length || !this.staff?.removeNote) return;
+
+    const noteIds = this.$staffEl
+      .find(".note")
+      .not(".preview")
+      .not(".hint")
+      .map((_, el) => String(el.getAttribute("data-note-id") || ""))
+      .get()
+      .filter(Boolean);
+
+    if (!noteIds.length) return;
+
+    noteIds.forEach((id) => {
+      const delay = Math.floor(Math.random() * 140); // tiny natural stagger
+      setTimeout(() => {
+        this.staff.removeNote(id, { smoke: true });
+      }, delay);
+    });
+  }
+
   _stopGameTimer() {
     if (this._timerTimeoutId != null) {
       clearTimeout(this._timerTimeoutId);
@@ -738,6 +765,7 @@ export class BaseStaffGame {
     } else if (next === 0 && prev !== 0) {
       $("#check").hide();
       this.$helpBtn.hide();
+      this._removeAllStaffNotesWithSmoke();
       this._setTimedOutInteractivityDisabled(true);
       this._pulseTimerWarning();
       this._playTimerTimeUpSfx();

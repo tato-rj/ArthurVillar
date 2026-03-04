@@ -5,6 +5,12 @@
   */
 
 /*!
+  @mojs/core – The motion graphics toolbelt for the web
+  Oleg Solomka @legomushroom 2023 MIT
+  1.7.1
+*/
+
+/*!
  * The buffer module from node.js, for the browser.
  *
  * @author   Feross Aboukhadijeh <http://feross.org>
