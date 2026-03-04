@@ -19,16 +19,10 @@
 
 <style>
 
-
-
 </style>
 @endpush
 
 @section('content')
-{{-- @include('theory.components.pagetitle', [
-  'title' => 'Intervals Challenge', 
-  'description' => 'Add the note that forms the indicated interval']) --}}
-
 @include('theory.components.title')
 
 <section id="page-wrapper" class="container prevent-select">
@@ -38,31 +32,29 @@
       @include('theory.components.timer')
     </div>
 
-    <div class="col-11 mx-auto mb-3 position-relative">
-      <div id="staff-wrapper" class="text-center mx-auto position-relative">
+    <div class="col-11 mx-auto mb-3">
+      <div id="staff-wrapper" class="text-center mx-auto position-relative prevent-select">
         @include('theory.components.accidentals')
         <div id="staff"></div>
         @include('theory.components.feedback')
         @include('theory.components.interval')
-        @include('theory.components.hand')
       </div>
     </div>
 
     <div class="col-lg-6 col-md-8 col-11 mx-auto">
       @include('theory.components.controls')
-      @include('theory.intervals.modals.settings')
-      @include('theory.intervals.modals.instructions')
+      @include('theory.chords-lab.modals.settings')
+      @include('theory.chords-lab.modals.instructions')
       @include('theory.components.preferences')
     </div>
   </div>
 </section>
 
-@include('theory.results.overlay')
+@include('theory.components.results.overlay')
 @endsection
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.js"></script>
-<script src="{{ mix('js/music/intervals.js') }}"></script>
-<script>
-</script>
+<script src="{{ mix('js/music/chords.js') }}"></script>
+{{-- <script type="module" src="{{ asset('js/dev-music/games/chords.js') }}"></script> --}}
 @endpush

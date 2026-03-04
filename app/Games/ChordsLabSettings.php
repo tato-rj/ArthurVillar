@@ -9,6 +9,11 @@ class ChordsLabSettings extends GameFactory
         return 'Chords Lab';
     }
 
+    public function gameIcon(): string
+    {
+        return 'flask';
+    }
+
     public function gameDescription() : string
     {
         return 'Build triads, suspended and 7th chords on the staff.';
@@ -21,7 +26,7 @@ class ChordsLabSettings extends GameFactory
 
     public function gameUrl(): string 
     {
-        return route('theory.chords.play');
+        return route('theory.chords-lab.play');
     }
 
     protected function requiredToggleKeys(): array

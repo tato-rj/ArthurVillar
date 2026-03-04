@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Theory;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Games\{IntervalsLabSettings, ChordsLabSettings, PitchDetectiveSettings, ToneTrekSettings};
+use App\Games\{IntervalsLabSettings, ChordsLabSettings, PitchDetectiveSettings, ToneTrekSettings, ToneTrailSettings};
 
 class TheoryController extends Controller
 {
@@ -18,31 +18,38 @@ class TheoryController extends Controller
         return view('theory.index', compact('intervalsLabSettings', 'chordsLabSettings', 'pitchDetectiveSettings', 'toneTrekSettings'));
     }
 
-    public function intervals(Request $request)
+    public function intervalsLab(Request $request)
     {
         $settings = new IntervalsLabSettings($request->all());
 
-        return view('theory.intervals.index', compact('settings'));
+        return view('theory.intervals-lab.index', compact('settings'));
     }
 
     public function toneTrek(Request $request)
     {
         $settings = new ToneTrekSettings($request->all());
 
-        return view('theory.blocks.index', compact('settings'));
+        return view('theory.tone-trek.index', compact('settings'));
     }
 
-    public function chords(Request $request)
+    public function chordsLab(Request $request)
     {
         $settings = new ChordsLabSettings($request->all());
 
-        return view('theory.chords.index', compact('settings'));
+        return view('theory.chords-lab.index', compact('settings'));
     }
 
-    public function dictation(Request $request)
+    public function pitchDetective(Request $request)
     {
         $settings = new PitchDetectiveSettings($request->all());
 
-        return view('theory.dictation.index', compact('settings'));
+        return view('theory.pitch-detective.index', compact('settings'));
+    }
+
+    public function snake(Request $request)
+    {
+        $settings = new PitchDetectiveSettings($request->all());
+
+        return view('theory.snake.index', compact('settings'));
     }
 }

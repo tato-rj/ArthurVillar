@@ -137,7 +137,7 @@ td {
 @endpush
 
 @section('content')
-@include('theory.components.title', ['label' => 'BLOCKS CHALLENGE'])
+@include('theory.components.title')
 <section id="page-wrapper" class="container prevent-select">
   <div class="row">
     <div class="col-lg-6 col-md-8 col-11 mx-auto text-center mb-2">
@@ -147,7 +147,7 @@ td {
     <div class="col-11 mx-auto mb-3 position-relative">
       <div id="blocks-wrapper" class="text-center mx-auto position-relative">
         <div id="blocks" class="my-4">
-          @include('theory.blocks.grid')
+          @include('theory.tone-trek.grid')
         </div>
         @include('theory.components.feedback')
       </div>
@@ -155,14 +155,14 @@ td {
 
     <div class="col-lg-6 col-md-8 col-11 mx-auto">
       @include('theory.components.controls', ['instructions' => 'Complete all intervals above'])
-      @include('theory.blocks.modals.settings')
-      @include('theory.blocks.modals.instructions')
+      @include('theory.tone-trek.modals.settings')
+      @include('theory.tone-trek.modals.instructions')
       @include('theory.components.preferences')
     </div>
   </div>
 </section>
 
-@include('theory.results.overlay')
+@include('theory.components.results.overlay')
 @include('theory.components.keyboard')
 @endsection
 

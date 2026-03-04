@@ -8,7 +8,12 @@ class ToneTrekSettings extends GameFactory
     {
         return 'Tone Trek';
     }
-
+    
+    public function gameIcon(): string
+    {
+        return 'shoe-prints';
+    }
+    
     public function gameDescription() : string
     {
         return 'Follow the interval path and fill in missing notes.';

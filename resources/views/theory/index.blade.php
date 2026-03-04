@@ -3,35 +3,32 @@
 @push('header')
 <link href="{{ mix('css/musicgames.css') }}" rel="stylesheet">
 <style>
-h5 i {
-    transform: rotate(15deg);
-}
 </style>
 @endpush
 
 @section('content')
 <section class="container py-5">
     <div class="row">
-        <div class="text-center mb-4 px-4">
+        <div class="text-center mb-2 px-4">
             <h1 class="text-center">Music Theory Challenges</h1>
             <p>Interactive games for practicing core music theory skills</p>
         </div>
 
-        @component('theory.card', ['settings' => $intervalsLabSettings, 'icon' => 'flask'])
-            @include('theory.intervals.modals.settings', ['settings' => $intervalsLabSettings])
+        @component('theory.card', ['settings' => $intervalsLabSettings])
+            @include('theory.intervals-lab.modals.settings', ['settings' => $intervalsLabSettings])
         @endcomponent
 
-        @component('theory.card', ['settings' => $chordsLabSettings, 'icon' => 'flask'])
+        @component('theory.card', ['settings' => $chordsLabSettings])
 
-            @include('theory.chords.modals.settings', ['settings' => $chordsLabSettings])
+            @include('theory.chords-lab.modals.settings', ['settings' => $chordsLabSettings])
         @endcomponent
 
-        @component('theory.card', ['settings' => $pitchDetectiveSettings, 'icon' => 'magnifying-glass'])
-            @include('theory.dictation.modals.settings', ['settings' => $pitchDetectiveSettings])
+        @component('theory.card', ['settings' => $pitchDetectiveSettings])
+            @include('theory.pitch-detective.modals.settings', ['settings' => $pitchDetectiveSettings])
         @endcomponent
 
-        @component('theory.card', ['settings' => $toneTrekSettings, 'icon' => 'shoe-prints'])
-            @include('theory.blocks.modals.settings', ['settings' => $toneTrekSettings])
+        @component('theory.card', ['settings' => $toneTrekSettings])
+            @include('theory.tone-trek.modals.settings', ['settings' => $toneTrekSettings])
         @endcomponent
     </div>
 </section>

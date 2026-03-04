@@ -1,7 +1,7 @@
 <div class="col-lg-3 col-md-4 col-6 mx-auto g-3">
     <div class="mb-4 bg-white border border-dark p-3 rounded h-100 d-flex flex-column justify-content-between">
         <div>
-            <div class="bg-{{$settings->gameTheme()}} rounded p-2 d-center mb-2" style="width: 40px; height: 40px;">@fa(['icon' => $icon, 'mr' => 0])
+            <div class="bg-{{$settings->gameTheme()}} rounded p-2 d-center mb-2" style="width: 40px; height: 40px;transform: rotate(15deg);">@fa(['icon' => $settings->gameIcon(), 'mr' => 0])
             </div>
 
             <h5 class="mb-1">{{$settings->gameName()}}</h5>

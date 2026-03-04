@@ -2,53 +2,50 @@
 
 namespace App\Games;
 
-class IntervalsLabSettings extends GameFactory
+class ToneTrailSettings extends GameFactory
 {   
-    public function gameName(): string 
+    public function gameName(): string
     {
-        return 'Intervals Lab';
-    }
-
-    public function gameIcon(): string
-    {
-        return 'flask';
+        return 'Tone Trail';
     }
     
-    public function gameDescription() : string 
+    public function gameIcon(): string
     {
-        return 'Find and build chromatic intervals on the staff.';
+        return 'signs-post';
+    }
+    
+    public function gameDescription() : string
+    {
+        return 'Chase and collect the sounding note by ear.';
     }
 
-    public function gameTheme(): string 
+    public function gameTheme(): string
     {
-        return 'blue';
+        return 'red';
     }
 
     public function gameUrl(): string 
     {
-        return route('theory.intervals-lab.play');
+        return route('theory.tone-trail.play');
     }
 
     protected function requiredToggleKeys(): array
     {
-        return ['sound', 'showLetterNames', 'allowInitialAccidentals'];
+        return ['sound', 'solfege', 'allowInitialAccidentals'];
     }
 
     protected function defaults(): array
     {
         return [
-            'timeLimit' => 20,
+            'timeLimit' => 40,
             'practiceMode' => false,
             'timer' => false,
-            'maxUserNotes' => 1,
             'numOfChallenges' => 4,
             'intervals' => ['M2', 'm3', 'M3', 'P5', 'P8'],
-            'clefs' => ['treble', 'bass'],
-            'fixedNotes' => [],
+            'initialNotes' => [],
             'sound' => true,
-            'showLetterNames' => false,
+            'solfege' => false,
             'allowInitialAccidentals' => false,
-            'initialNoteRange' => 0,
         ];
     }
 

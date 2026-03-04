@@ -18,12 +18,22 @@
 </script>
 
 <style>
+#interval {
+  display: none;
+}
 
+#interval label {
+  top: -4px !important;
+}
+
+#play {
+  height: 66.4px;
+}
 </style>
 @endpush
 
 @section('content')
-@include('theory.components.title', ['label' => 'CHORDS BUILDER'])
+@include('theory.components.title')
 
 <section id="page-wrapper" class="container prevent-select">
   <div class="row">
@@ -37,24 +47,23 @@
         @include('theory.components.accidentals')
         <div id="staff"></div>
         @include('theory.components.feedback')
-        @include('theory.components.interval')
+        @include('theory.components.play')
       </div>
     </div>
 
     <div class="col-lg-6 col-md-8 col-11 mx-auto">
       @include('theory.components.controls')
-      @include('theory.chords.modals.settings')
-      @include('theory.chords.modals.instructions')
+      @include('theory.pitch-detective.modals.settings')
+      @include('theory.pitch-detective.modals.instructions')
       @include('theory.components.preferences')
     </div>
   </div>
 </section>
 
-@include('theory.results.overlay')
+@include('theory.components.results.overlay')
 @endsection
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.js"></script>
-<script src="{{ mix('js/music/chords.js') }}"></script>
-{{-- <script type="module" src="{{ asset('js/dev-music/games/chords.js') }}"></script> --}}
+<script src="{{ mix('js/music/dictation.js') }}"></script>
 @endpush

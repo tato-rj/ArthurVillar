@@ -9,6 +9,11 @@ class PitchDetectiveSettings extends GameFactory
         return 'Pitch Detective';
     }
     
+    public function gameIcon(): string
+    {
+        return 'magnifying-glass';
+    }
+    
     public function gameDescription() : string
     {
         return 'Hear an interval and write the note on the staff.';
@@ -21,7 +26,7 @@ class PitchDetectiveSettings extends GameFactory
 
     public function gameUrl(): string 
     {
-        return route('theory.dictation.play');
+        return route('theory.pitch-detective.play');
     }
 
     protected function requiredToggleKeys(): array

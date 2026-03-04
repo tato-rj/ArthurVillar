@@ -16,6 +16,7 @@ abstract class GameFactory
         ];
 
     abstract public function gameName(): string;
+    abstract public function gameIcon(): string;
     abstract public function gameTheme(): string;
     abstract public function gameDescription(): string;
     abstract public function gameUrl(): string;
