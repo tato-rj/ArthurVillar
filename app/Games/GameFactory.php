@@ -18,6 +18,7 @@ abstract class GameFactory
     abstract public function gameName(): string;
     abstract public function gameTheme(): string;
     abstract public function gameDescription(): string;
+    abstract public function gameUrl(): string;
     abstract protected function defaults(): array;
 
     public function __construct(array $request = [])

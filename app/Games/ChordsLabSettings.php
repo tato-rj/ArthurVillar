@@ -18,7 +18,12 @@ class ChordsLabSettings extends GameFactory
     {
         return 'orange';
     }
-    
+
+    public function gameUrl(): string 
+    {
+        return route('theory.chords.play');
+    }
+
     protected function requiredToggleKeys(): array
     {
         return ['sound', 'showLetterNames', 'allowInitialAccidentals', 'initialRoot', 'only7thChords'];

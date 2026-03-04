@@ -4,19 +4,24 @@ namespace App\Games;
 
 class IntervalsLabSettings extends GameFactory
 {   
-    public function gameName(): string
+    public function gameName(): string 
     {
         return 'Intervals Lab';
     }
 
-    public function gameDescription() : string
+    public function gameDescription() : string 
     {
         return 'Find and build chromatic intervals on the staff.';
     }
 
-    public function gameTheme(): string
+    public function gameTheme(): string 
     {
         return 'blue';
+    }
+
+    public function gameUrl(): string 
+    {
+        return route('theory.intervals.play');
     }
 
     protected function requiredToggleKeys(): array

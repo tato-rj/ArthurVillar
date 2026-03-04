@@ -1,5 +1,5 @@
 @modal(['title' => 'Game settings', 'id' => str_slug($settings->gameName()).'-settings-modal'])
-<form id="chords-settings" method="GET" action="{{ route('theory.chords.play') }}">
+<form id="chords-settings" method="GET" action="{{ $settings->gameUrl() }}">
   @component('theory.components.settings.section', ['title' => 'SETUP'])
     @include('theory.components.settings.rounds')
     @include('theory.components.settings.timer')

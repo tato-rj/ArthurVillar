@@ -19,6 +19,11 @@ class PitchDetectiveSettings extends GameFactory
         return 'green';
     }
 
+    public function gameUrl(): string 
+    {
+        return route('theory.dictation.play');
+    }
+
     protected function requiredToggleKeys(): array
     {
         return ['sound', 'showLetterNames', 'allowInitialAccidentals', 'initialRoot', 'only7thChords'];

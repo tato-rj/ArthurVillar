@@ -19,6 +19,11 @@ class ToneTrekSettings extends GameFactory
         return 'purple';
     }
 
+    public function gameUrl(): string 
+    {
+        return route('theory.tone-trek.play');
+    }
+
     protected function requiredToggleKeys(): array
     {
         return ['sound', 'solfege', 'allowInitialAccidentals'];

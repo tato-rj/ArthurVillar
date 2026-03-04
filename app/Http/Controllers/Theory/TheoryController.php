@@ -25,7 +25,7 @@ class TheoryController extends Controller
         return view('theory.intervals.index', compact('settings'));
     }
 
-    public function blocks(Request $request)
+    public function toneTrek(Request $request)
     {
         $settings = new ToneTrekSettings($request->all());
 
