@@ -1,6 +1,7 @@
 @extends('layouts.app', ['title' => 'Music Theory Challenges', 'noMenu' => true])
 
 @push('header')
+<link href="{{ mix('css/musicgames.css') }}" rel="stylesheet">
 <style>
 h5 i {
     transform: rotate(15deg);

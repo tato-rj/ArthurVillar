@@ -993,6 +993,20 @@ export class BlocksChallenge {
     return BaseStaffGame.prototype._playFinalMetricPopSfx.call(this, index);
   }
 
+  _playHingeSfx() {
+    if (!this._isSoundEnabled() || !window.Tone) return;
+    this._ensureUiSfxAudio().then(() => {
+      const now = Tone.now();
+      if (this._uiSfxNoise) {
+        this._uiSfxNoise.triggerAttackRelease(0.04, now, 0.07);
+      }
+      const synth = this._uiTimerSfxSynth || this._uiSfxSynth;
+      if (!synth) return;
+      synth.triggerAttackRelease("E4", 0.04, now, 0.22);
+      synth.triggerAttackRelease("C4", 0.05, now + 0.04, 0.26);
+    });
+  }
+
   _clearFinalMetricsSfxTimers() {
     return BaseStaffGame.prototype._clearFinalMetricsSfxTimers.call(this);
   }
@@ -1696,6 +1710,7 @@ export class BlocksChallenge {
 
     $covers.forEach(($cover, i) => {
       const tid = setTimeout(() => {
+        this._playHingeSfx();
         $cover.addClass("cover-revealing block-falling");
         $cover
           .removeClass("animate__animated animate__hinge")
