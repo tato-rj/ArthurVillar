@@ -13,7 +13,7 @@
 
 <style>
   :root {
-    --tone-trail-board-size: 378px;
+    --tone-trail-board-size: 368px;
     --tone-trail-border-width: 6px;
     --tone-trail-board-cols: 9;
     --tone-trail-cell-size: calc(var(--tone-trail-board-size) / var(--tone-trail-board-cols));
