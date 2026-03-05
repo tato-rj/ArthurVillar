@@ -812,6 +812,21 @@ _requiredUserNotesForChord(seventhType) {
 
   // ------------------------ hints ------------------------
 
+  _clearUserNotesForStrictHint() {
+    const $userNotes = this.$staffEl.find(".note").not(".fixed").not(".preview").not(".hint");
+    $userNotes.each((_, el) => {
+      const id = el.getAttribute("data-note-id");
+      if (id) this.staff.removeNote(id);
+    });
+  }
+
+  _showHintNote() {
+    if (this._isStrictDirection()) {
+      this._clearUserNotesForStrictHint();
+    }
+    return BaseStaffGame.prototype._showHintNote.call(this);
+  }
+
   _computeHintAnswers() {
     const notes = this._notesOnStaffOrdered();
     if (notes.length < 1) return [];
