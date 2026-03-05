@@ -12,15 +12,22 @@
 </script>
 
 <style>
+  :root {
+    --tone-trail-board-size: 378px;
+    --tone-trail-border-width: 6px;
+    --tone-trail-board-cols: 9;
+    --tone-trail-cell-size: calc(var(--tone-trail-board-size) / var(--tone-trail-board-cols));
+  }
 
   #board { 
     display: inline-grid; 
-    grid-template-columns: repeat(9, 49.7px); 
-    grid-auto-rows: 49.7px; 
+    grid-template-columns: repeat(var(--tone-trail-board-cols), var(--tone-trail-cell-size));
+    grid-auto-rows: var(--tone-trail-cell-size);
     gap:0; 
-    width: fit-content;
+    width: calc(var(--tone-trail-board-size) + calc(var(--tone-trail-border-width) * 2));
+    height: calc(var(--tone-trail-board-size) + calc(var(--tone-trail-border-width) * 2));
     background: white;
-    border: 6px solid rgba(0,0,0,0.1);
+    border: var(--tone-trail-border-width) solid rgba(0,0,0,0.1);
   }
 
   @keyframes greenBoard {
@@ -49,8 +56,9 @@
   }
 
   .board-cell {
-    width: 49.7px;
-    height: 49.7px;
+    width: var(--tone-trail-cell-size);
+    height: var(--tone-trail-cell-size);
+    border: .5px dotted lightgrey;
   }
 
   .snake {
@@ -91,7 +99,7 @@
       @include('theory.components.counter')
       @include('theory.components.timer')
     </div>
-    <div class="col-11 mx-auto mb-3 position-relative">
+    <div class="col-12 mx-auto mb-2 position-relative">
       <div id="board-wrapper" style="display: none" class="text-center mx-auto position-relative animate__animated animate__flipInX">
 
             <div id="game-countdown" class="position-absolute w-100 h-100 d-center">

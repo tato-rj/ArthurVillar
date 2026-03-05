@@ -2767,6 +2767,7 @@ var ToneTrailChallenge = /*#__PURE__*/function () {
       this.$startBtn.show();
       this.$startBtn.off("click.".concat(this.ns, "Start")).one("click.".concat(this.ns, "Start"), function (e) {
         e.preventDefault();
+        _this1._playStartTadaSfx();
         _this1.$startBtn.hide();
         _this1._runCountdownThenStart();
       });
@@ -2997,6 +2998,20 @@ var ToneTrailChallenge = /*#__PURE__*/function () {
     key: "_clearFinalMetricsSfxTimers",
     value: function _clearFinalMetricsSfxTimers() {
       return _base_BaseStaffGame_js__WEBPACK_IMPORTED_MODULE_0__.BaseStaffGame.prototype._clearFinalMetricsSfxTimers.call(this);
+    }
+  }, {
+    key: "_playStartTadaSfx",
+    value: function _playStartTadaSfx() {
+      var _this$_uiSfxSynth$vol;
+      if (!this._isSoundEnabled()) return;
+      this._ensureUiSfxAudio();
+      if (!window.Tone || !this._uiSfxSynth) return;
+      var now = Tone.now();
+      var v = (_this$_uiSfxSynth$vol = this._uiSfxSynth.volume) === null || _this$_uiSfxSynth$vol === void 0 ? void 0 : _this$_uiSfxSynth$vol.value;
+      if (typeof v === "number") this._uiSfxSynth.volume.value = Math.min(v, -7);
+      this._uiSfxSynth.triggerAttackRelease(["C5", "E5", "G5"], "0.14", now, 0.95);
+      this._uiSfxSynth.triggerAttackRelease(["E5", "A5", "C6"], "0.18", now + 0.15, 0.95);
+      this._uiSfxSynth.triggerAttackRelease(["G5", "C6", "E6"], "0.24", now + 0.33, 1);
     }
   }, {
     key: "_animateFinalMetricsWithSfx",
