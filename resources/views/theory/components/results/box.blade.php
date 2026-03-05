@@ -1,4 +1,4 @@
-<div class="col-6 animate__animated animate__bounceIn">
+<div class="col-6 g-3 animate__animated animate__bounceIn">
 	<div class="w-100 border border-dark bg-{{$color}} position-relative rounded p-1 mb-3" style="border-radius: 16px !important;">
 		@if($name == 'score')
 		<div id="double-points">

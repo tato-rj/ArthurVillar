@@ -17,7 +17,7 @@
 					<span id="points" class="fw-bold text-primary">0</span>
 					<span id="increment" class="position-absolute right-0 fw-bold text-light opacity-4">+1</span>
 				</div>
-				<span class="text-primary fw-bold" style="font-size: 75%; margin-left: 0.15rem;">XP</span>
+				<span class="text-primary fw-bold" style="font-size: 75%; margin-left: 0.15rem;"></span>
 			</div>
 		</div>
 	</div>

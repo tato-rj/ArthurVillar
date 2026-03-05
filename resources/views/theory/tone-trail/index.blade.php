@@ -25,28 +25,26 @@
       @include('theory.components.timer')
     </div>
     <div class="col-11 mx-auto mb-3 position-relative">
-      <div id="blocks-wrapper" class="text-center mx-auto position-relative">
-        <div id="blocks" class="my-4">
-          @include('theory.tone-trek.grid')
+      <div id="board-wrapper" class="text-center mx-auto">
+        <div id="board" class="my-4">
         </div>
         @include('theory.components.feedback')
       </div>
     </div>
 
     <div class="col-lg-6 col-md-8 col-11 mx-auto">
-      @include('theory.components.controls', ['instructions' => 'Complete all intervals above'])
-      @include('theory.tone-trek.modals.settings')
-      @include('theory.tone-trek.modals.instructions')
+      {{-- @include('theory.components.controls', ['instructions' => 'Complete all intervals above']) --}}
+      @include('theory.tone-trail.modals.settings')
+      @include('theory.tone-trail.modals.instructions')
       @include('theory.components.preferences')
     </div>
   </div>
 </section>
 
 @include('theory.components.results.overlay')
-@include('theory.components.keyboard')
 @endsection
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.js"></script>
-<script src="{{ mix('js/music/blocks.js') }}"></script>
+<script src="{{ mix('js/music/tonetrail.js') }}"></script>
 @endpush
