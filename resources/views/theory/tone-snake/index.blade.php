@@ -13,21 +13,21 @@
 
 <style>
   :root {
-    --tone-trail-board-size: 368px;
-    --tone-trail-border-width: 6px;
-    --tone-trail-board-cols: 9;
-    --tone-trail-cell-size: calc(var(--tone-trail-board-size) / var(--tone-trail-board-cols));
+    --tone-snake-board-size: 368px;
+    --tone-snake-border-width: 6px;
+    --tone-snake-board-cols: 9;
+    --tone-snake-cell-size: calc(var(--tone-snake-board-size) / var(--tone-snake-board-cols));
   }
 
   #board { 
     display: inline-grid; 
-    grid-template-columns: repeat(var(--tone-trail-board-cols), var(--tone-trail-cell-size));
-    grid-auto-rows: var(--tone-trail-cell-size);
+    grid-template-columns: repeat(var(--tone-snake-board-cols), var(--tone-snake-cell-size));
+    grid-auto-rows: var(--tone-snake-cell-size);
     gap:0; 
-    width: calc(var(--tone-trail-board-size) + calc(var(--tone-trail-border-width) * 2));
-    height: calc(var(--tone-trail-board-size) + calc(var(--tone-trail-border-width) * 2));
+    width: calc(var(--tone-snake-board-size) + calc(var(--tone-snake-border-width) * 2));
+    height: calc(var(--tone-snake-board-size) + calc(var(--tone-snake-border-width) * 2));
     background: white;
-    border: var(--tone-trail-border-width) solid rgba(0,0,0,0.1);
+    border: var(--tone-snake-border-width) solid rgba(0,0,0,0.1);
   }
 
   @keyframes greenBoard {
@@ -56,8 +56,8 @@
   }
 
   .board-cell {
-    width: var(--tone-trail-cell-size);
-    height: var(--tone-trail-cell-size);
+    width: var(--tone-snake-cell-size);
+    height: var(--tone-snake-cell-size);
     border: 1px dotted rgba(0,0,0,0.05);
   }
 
@@ -77,6 +77,7 @@
     background: black;
     color: white;
     border-radius: 4px;
+    border: .5px solid white;
   }
 
   .food-note {
@@ -115,8 +116,8 @@
 
     <div class="col-lg-6 col-md-8 col-11 mx-auto">
       @include('theory.components.controls')
-      @include('theory.tone-trail.modals.settings')
-      @include('theory.tone-trail.modals.instructions')
+      @include('theory.tone-snake.modals.settings')
+      @include('theory.tone-snake.modals.instructions')
       @include('theory.components.preferences')
     </div>
   </div>

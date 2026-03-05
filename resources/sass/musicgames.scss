@@ -129,6 +129,7 @@ body {
 /* ==========================================================================
    UI Elements
    ========================================================================== */
+
 #interval {
   font-size: 3rem;
   font-weight: 700;
@@ -259,6 +260,19 @@ body {
   animation-duration: 0.65s;
 }
 
+@keyframes streakGreenBar {
+  0% {background-color: #58cc02;}
+  50% {background-color: #ccfdb6;}
+  100% {background-color: #58cc02;}
+}
+
+.progress .progress-bar {
+  background-color: #58cc02;
+}
+
+.progress-bar.streak-bar {
+  animation: streakGreenBar .8s ease-in-out infinite;
+}
 /* ==========================================================================
    Notes / Ledgers
    ========================================================================== */

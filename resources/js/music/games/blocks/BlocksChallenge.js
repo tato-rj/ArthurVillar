@@ -89,7 +89,7 @@ export class BlocksChallenge {
     this._usedHintThisRound = false;
     this._madeMistakeThisRound = false;
     this._madeAnyMistake = false;
-    this._correctStreak = 0;
+    this._clearCorrectStreak();
     this._points = 0;
     this._stats = {
       checksTotal: 0,
@@ -130,7 +130,7 @@ export class BlocksChallenge {
     this._usedHintThisRound = false;
     this._madeMistakeThisRound = false;
     this._madeAnyMistake = false;
-    this._correctStreak = 0;
+    this._clearCorrectStreak();
     this._points = 0;
     this._stats = {
       checksTotal: 0,
@@ -574,7 +574,7 @@ export class BlocksChallenge {
     const isComplete = this._areAllBlockInputsFilled();
     if (!isComplete) {
       this._failAnimation();
-      this._correctStreak = 0;
+      this._clearCorrectStreak();
       this._playFailSfx();
       this.$helpBtn.show();
       this._madeAnyMistake = true;
@@ -593,13 +593,13 @@ export class BlocksChallenge {
       this._finalizeRoundRecord({ passed: true, earned });
       this._pauseGameTimer();
       if (this._isPracticeMode()) {
-        this._correctStreak = 0;
+        this._clearCorrectStreak();
         this._playSuccessSfxBasic();
       } else if (!this._usedHintThisRound && !this._madeMistakeThisRound) {
-        this._correctStreak += 1;
+        this._applyCorrectStreakForOutcome({ firstTry: true });
         this._playSuccessSfxBonus();
       } else {
-        this._correctStreak = 0;
+        this._clearCorrectStreak();
         this._playSuccessSfxBasic();
       }
       this._showSuccessAnimation();
@@ -627,7 +627,7 @@ export class BlocksChallenge {
 
     this._madeAnyMistake = true;
     this._madeMistakeThisRound = true;
-    this._correctStreak = 0;
+    this._clearCorrectStreak();
     this._finalizeRoundRecord({ passed: false, earned: 0 });
     this._enterCorrectionMode(evalResult);
     this._failAnimation();
@@ -977,6 +977,22 @@ export class BlocksChallenge {
     return BaseStaffGame.prototype._playSuccessSfxBonus.call(this);
   }
 
+  _applyCorrectStreakForOutcome(args) {
+    return BaseStaffGame.prototype._applyCorrectStreakForOutcome.call(this, args);
+  }
+
+  getCorrectStreak() {
+    return BaseStaffGame.prototype.getCorrectStreak.call(this);
+  }
+
+  _syncStreakBarClass() {
+    return BaseStaffGame.prototype._syncStreakBarClass.call(this);
+  }
+
+  _clearCorrectStreak() {
+    return BaseStaffGame.prototype._clearCorrectStreak.call(this);
+  }
+
   _playFailSfx() {
     return BaseStaffGame.prototype._playFailSfx.call(this);
   }
@@ -1101,7 +1117,7 @@ export class BlocksChallenge {
   _finishRoundAsTimedOut() {
     this._madeAnyMistake = true;
     this._madeMistakeThisRound = true;
-    this._correctStreak = 0;
+    this._clearCorrectStreak();
     this._pauseGameTimer();
     this._hideSkipRoundButton();
     this.$helpBtn.hide();

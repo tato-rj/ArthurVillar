@@ -2,7 +2,7 @@
 <form id="intervals-settings" method="GET" action="{{ $settings->gameUrl() }}">
   @component('theory.components.settings.section', ['title' => 'SETUP'])
     @include('theory.components.settings.rounds')
-    @include('theory.components.settings.timer')
+    @include('theory.components.settings.speed')
     @include('theory.components.settings.practice')
   @endcomponent
 

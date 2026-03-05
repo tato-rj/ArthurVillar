@@ -18,10 +18,7 @@
         @include('theory.card', ['settings' => $chordsLabSettings])
         @include('theory.card', ['settings' => $pitchDetectiveSettings])
         @include('theory.card', ['settings' => $toneTrekSettings])
-
-        {{-- @env('local') --}}
-        @include('theory.card', ['settings' => $toneTrailSettings])
-        {{-- @endenv --}}
+        @include('theory.card', ['settings' => $toneSnakeSettings])
     </div>
 </section>
 @endsection

@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Theory;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Games\{IntervalsLabSettings, ChordsLabSettings, PitchDetectiveSettings, ToneTrekSettings, ToneTrailSettings};
+use App\Games\{IntervalsLabSettings, ChordsLabSettings, PitchDetectiveSettings, ToneTrekSettings, ToneSnakeSettings};
 
 class TheoryController extends Controller
 {
@@ -14,9 +14,9 @@ class TheoryController extends Controller
         $chordsLabSettings = new ChordsLabSettings;
         $pitchDetectiveSettings = new PitchDetectiveSettings;
         $toneTrekSettings = new ToneTrekSettings;
-        $toneTrailSettings = new ToneTrailSettings;
+        $toneSnakeSettings = new ToneSnakeSettings;
 
-        return view('theory.index', compact('intervalsLabSettings', 'chordsLabSettings', 'pitchDetectiveSettings', 'toneTrekSettings', 'toneTrailSettings'));
+        return view('theory.index', compact('intervalsLabSettings', 'chordsLabSettings', 'pitchDetectiveSettings', 'toneTrekSettings', 'toneSnakeSettings'));
     }
 
     public function intervalsLab(Request $request)
@@ -47,10 +47,10 @@ class TheoryController extends Controller
         return view('theory.pitch-detective.index', compact('settings'));
     }
 
-    public function toneTrail(Request $request)
+    public function toneSnake(Request $request)
     {
-        $settings = new ToneTrailSettings($request->all());
-
-        return view('theory.tone-trail.index', compact('settings'));
+        $settings = new ToneSnakeSettings($request->all());
+// return $settings->options();
+        return view('theory.tone-snake.index', compact('settings'));
     }
 }

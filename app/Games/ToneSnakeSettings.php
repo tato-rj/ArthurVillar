@@ -2,11 +2,11 @@
 
 namespace App\Games;
 
-class ToneTrailSettings extends GameFactory
+class ToneSnakeSettings extends GameFactory
 {   
     public function gameName(): string
     {
-        return 'Tone Trail';
+        return 'Tone Snake';
     }
     
     public function gameIcon(): string
@@ -16,7 +16,7 @@ class ToneTrailSettings extends GameFactory
     
     public function gameDescription() : string
     {
-        return 'Chase and collect the sounding note by ear.';
+        return 'Chase and collect the note by intervals.';
     }
 
     public function gameTheme(): string
@@ -26,18 +26,23 @@ class ToneTrailSettings extends GameFactory
 
     public function gameUrl(): string 
     {
-        return route('theory.tone-trail.play');
+        return route('theory.tone-snake.play');
     }
 
     protected function requiredToggleKeys(): array
     {
-        return ['sound', 'solfege', 'allowInitialAccidentals'];
+        return ['sound', 'solfege', 'allowInitialAccidentals', 'strictDirection'];
+    }
+
+    protected function snakeSpeeds(): array
+    {
+        return [400, 300, 200];
     }
 
     protected function defaults(): array
     {
         return [
-            'snakeSpeed' => 400,
+            'speedIndex' => 0,
             'timeLimit' => 40,
             'practiceMode' => false,
             'timer' => false,
@@ -47,7 +52,7 @@ class ToneTrailSettings extends GameFactory
             'sound' => true,
             'solfege' => false,
             'allowInitialAccidentals' => false,
-            'strictDirection' => false
+            'strictDirection' => false,
         ];
     }
 
@@ -55,9 +60,15 @@ class ToneTrailSettings extends GameFactory
     {
         $options = $this->applyUserPreferences();
 
+        $speeds = $this->snakeSpeeds();
+        $idx = (int) ($options['speedIndex'] ?? 0);
+        $idx = max(0, min($idx, count($speeds) - 1));
+        $options['snakeSpeed'] = $speeds[$idx];
+
         $weights = $this->getAccidentalWeights()[(bool) $options['allowInitialAccidentals']];
         $array = array_merge($options, ['accidentalWeights' => $weights]);
 
         return $key ? $array[$key] : $array;
     }
+
 }

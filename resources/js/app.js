@@ -7,14 +7,18 @@ require('./utilities');
 document.addEventListener("touchstart", () => {}, { passive: true });
 
 document.addEventListener("DOMContentLoaded", () => {
-  const ranges = document.querySelectorAll('input[type="range"][name="initialNoteRange"]');
+  const ranges = document.querySelectorAll('input[type="range"][data-range-labels]');
 
   for (const range of ranges) {
     const wrap = range.closest(".mb-4") ?? range.parentElement;
-    const labelsWrap = wrap?.querySelector("#initialNoteRangeLabels") 
-      ?? range.nextElementSibling?.id === "initialNoteRangeLabels"
-      ? range.nextElementSibling
-      : null;
+
+    const labelsSel = range.dataset.rangeLabels; // e.g. "#initialNoteRangeLabels" or "#speedLabels"
+    const labelsWrap =
+      (labelsSel ? wrap?.querySelector(labelsSel) : null)
+      ?? (labelsSel ? document.querySelector(labelsSel) : null)
+      ?? (labelsSel?.startsWith("#") && range.nextElementSibling?.id === labelsSel.slice(1)
+        ? range.nextElementSibling
+        : null);
 
     if (!labelsWrap) continue;
 

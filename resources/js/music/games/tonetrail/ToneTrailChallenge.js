@@ -666,6 +666,26 @@ export class ToneTrailChallenge {
     this._countdownTimeouts.push(tid);
   }
 
+  _animateSnakeFinalCelebrate() {
+    if (!this.$board?.length) return;
+    const $cells = this.$board.find(".board-cell.snake");
+    $cells.each((_, el) => {
+      const $el = $(el);
+      const dur = (0.85 + (Math.random() * 0.6)).toFixed(2);
+      $el
+        .removeClass("animate__animated animate__shakeY")
+        .css("animation-duration", `${dur}s`);
+      // eslint-disable-next-line no-unused-expressions
+      el && el.offsetWidth;
+      $el
+        .addClass("animate__animated animate__shakeY")
+        .off(`animationend.${this.ns}SnakeCelebrate webkitAnimationEnd.${this.ns}SnakeCelebrate`)
+        .one(`animationend.${this.ns}SnakeCelebrate webkitAnimationEnd.${this.ns}SnakeCelebrate`, () => {
+          $el.removeClass("animate__animated animate__shakeY").css("animation-duration", "");
+        });
+    });
+  }
+
   _advanceSnake() {
     if (!this._snake.length || this._isGameOver) return;
     if (this._directionQueue.length) {
@@ -737,6 +757,8 @@ export class ToneTrailChallenge {
       if (!this._isPracticeMode() && this._roundsCompleted >= (Number(this.opts.numOfChallenges) || 4)) {
         this._isGameOver = true;
         this._stopLoop();
+        this._renderEntities();
+        this._animateSnakeFinalCelebrate();
         this._stats.finishedAtMs = Date.now();
         if (this._finalResultsTimeoutId != null) clearTimeout(this._finalResultsTimeoutId);
         this._finalResultsTimeoutId = setTimeout(() => {
@@ -1014,6 +1036,14 @@ export class ToneTrailChallenge {
 
   _applyCorrectStreakForOutcome(args) {
     return BaseStaffGame.prototype._applyCorrectStreakForOutcome.call(this, args);
+  }
+
+  getCorrectStreak() {
+    return BaseStaffGame.prototype.getCorrectStreak.call(this);
+  }
+
+  _syncStreakBarClass() {
+    return BaseStaffGame.prototype._syncStreakBarClass.call(this);
   }
 
   _clearCorrectStreak() {

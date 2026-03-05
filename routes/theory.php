@@ -15,5 +15,5 @@ Route::prefix('theory')->name('theory.')->group(function() {
 
 	Route::get('pitch-detective', 'TheoryController@pitchDetective')->name('pitch-detective.play');
 
-	Route::get('tone-trail', 'TheoryController@toneTrail')->name('tone-trail.play');
+	Route::get('tone-snake', 'TheoryController@toneSnake')->name('tone-snake.play');
 });

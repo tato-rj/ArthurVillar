@@ -75,6 +75,11 @@ abstract class GameFactory
     	return $this->clefs;
     }
 
+    public function getSpeeds()
+    {
+        return $this->speeds;
+    }
+
     public function getAccidentalWeights()
     {
     	return $this->accidentalWeights;

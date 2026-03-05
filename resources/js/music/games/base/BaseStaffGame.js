@@ -1294,12 +1294,14 @@ export class BaseStaffGame {
 
   _awardPointsForCorrect() {
     if (this._isPracticeMode()) {
+      this._clearCorrectStreak();
       this.$points.text("0");
       this._showBonusBadge(0);
       return { earned: 0, firstTry: false, bonusEarned: 0 };
     }
 
     if (this._usedHintThisRound) {
+      this._clearCorrectStreak();
       this._showBonusBadge(0);
       return { earned: 0, firstTry: false, bonusEarned: 0 };
     }
@@ -1323,9 +1325,19 @@ export class BaseStaffGame {
     return Math.max(0, Number(this._correctStreak) || 0);
   }
 
+  _syncStreakBarClass() {
+    if (!this.$progressBar?.length) return;
+    const active = this.getCorrectStreak() >= 3;
+    this.$progressBar.toggleClass("streak-bar", !!active);
+  }
+
   _applyCorrectStreakForOutcome({ firstTry } = {}) {
-    if (!firstTry) return;
+    if (!firstTry) {
+      this._clearCorrectStreak();
+      return;
+    }
     this._correctStreak += 1;
+    this._syncStreakBarClass();
     if (this._correctStreak <= 1) {
       // eslint-disable-next-line no-console
       console.log("[BaseStaffGame] Correct answer. No streak yet.");
@@ -1337,6 +1349,7 @@ export class BaseStaffGame {
 
   _clearCorrectStreak() {
     this._correctStreak = 0;
+    this._syncStreakBarClass();
   }
 
   _resetProgress() {
@@ -1345,6 +1358,7 @@ export class BaseStaffGame {
     this._madeAnyMistake = false;
     this.$progressBar.data("progress", 0);
     this.$progressBar.css({ width: "0%" });
+    this.$progressBar.removeClass("streak-bar");
     if (this._isPracticeMode()) this.$progressCounter.text("Practice");
     else this.$progressCounter.text("");
   }
