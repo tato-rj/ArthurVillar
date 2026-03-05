@@ -13,6 +13,7 @@
     @include('theory.components.settings.accidentals')
     @include('theory.components.settings.rootnote')
     @include('theory.components.settings.7thchords')
+    @include('theory.components.settings.direction')
   @endcomponent
 
   @component('theory.components.settings.section', ['title' => 'PREFERENCES'])
