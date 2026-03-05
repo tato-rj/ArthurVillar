@@ -51,6 +51,7 @@ class ChordsLabSettings extends GameFactory
             'initialRoot' => true,
             'only7thChords' => false,
             'initialNoteRange' => 0,
+            'strictDirection' => false,
         ];
     }
 

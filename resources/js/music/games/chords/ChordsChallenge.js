@@ -33,6 +33,7 @@ export class ChordsChallenge extends BaseStaffGame {
       staffEl: "#staff",
       basePoints: 1,
       firstTryBonus: 2,
+      strictDirection: false,
       namespace: "chordsChallenge",
       // BaseStaffGame UI gating: triads need 2 user notes before Check/instructions
       instructionsAfterUserNotes: 2,
@@ -69,11 +70,14 @@ export class ChordsChallenge extends BaseStaffGame {
     this.$interval = $("#interval");
     this.$intervalLabel = $("#interval-shortname");
     if (!this.$intervalLabel.length) this.$intervalLabel = this.$interval.find("label").first();
+    this.$intervalDirection = $("#interval-direction");
+    if (!this.$intervalDirection.length) this.$intervalDirection = this.$interval.find("i").first();
     this.$intervalFull = $("#interval-longname");
     if (!this.$intervalFull.length) this.$intervalFull = this.$interval.find("div").last();
 
     this._currentTriadQuality = null;
     this._currentSeventhType = null; // null | '7' | 'maj7' | 'dim7'
+    this._currentChordDirection = 1; // 1=up, -1=down
     this._requiredUserNotesThisRound = 2;
 
     // Triad context per round
@@ -84,11 +88,38 @@ export class ChordsChallenge extends BaseStaffGame {
 
   // ------------------------ UI labels ------------------------
 
-  _setTriadUI(quality, seventhType = null) {
+  _setTriadUI(quality, seventhType = null, direction = 1) {
     this._currentTriadQuality = String(quality || "").trim();
     this._currentSeventhType = seventhType ? String(seventhType).trim() : null;
+    this._currentChordDirection = Number(direction) === -1 ? -1 : 1;
     this.$interval.removeClass("text-red").addClass("text-blue");
+    if (this.$intervalDirection?.length) {
+      if (this._isStrictDirection()) {
+        this.$intervalDirection
+          .show()
+          .removeClass("fa-up-long fa-down-long")
+          .addClass(this._currentChordDirection === -1 ? "fa-down-long" : "fa-up-long");
+      } else {
+        this.$intervalDirection.hide();
+      }
+    }
     this._refreshTriadUILabels();
+  }
+
+  _normalizeOnOff(v) {
+    if (v === true) return true;
+    if (v === false) return false;
+    const s = String(v ?? "").trim().toLowerCase();
+    return s === "on" || s === "true" || s === "1";
+  }
+
+  _isStrictDirection() {
+    return this._normalizeOnOff(this.opts.strictDirection);
+  }
+
+  _pickChordDirection() {
+    if (!this._isStrictDirection()) return 1;
+    return Math.random() < 0.5 ? -1 : 1;
   }
 
 _escapeHtml(s) {
@@ -243,6 +274,76 @@ _formatShortLabelHtml(shortLabel) {
     const accClass = accidentalClassFromOffset(offset);
     if (accClass == null && offset !== 0) return null;
     return accClass;
+  }
+
+  _roleSemisMap(expected) {
+    return expected.length === 3
+      ? { 0: 0, 2: expected[0], 4: expected[1], 6: expected[2] }
+      : { 0: 0, 2: expected[0], 4: expected[1] };
+  }
+
+  _stepRoleRelativeToRoot(step, rootStep) {
+    return ((step - rootStep) % 7 + 7) % 7;
+  }
+
+  _findRoleStepInDirection({
+    role,
+    rootStep,
+    rootMidi,
+    roleSemis,
+    anchorStep,
+    dir,
+    minStep,
+    maxStep,
+  }) {
+    if (dir === 1) {
+      for (let step = anchorStep + 1; step <= maxStep; step += 1) {
+        if (this._stepRoleRelativeToRoot(step, rootStep) !== role) continue;
+        const acc = this._toneAccidentalClass(rootMidi, step, roleSemis);
+        if (acc != null || roleSemis === 0) return { step, accidentalClass: acc };
+      }
+      return null;
+    }
+
+    for (let step = anchorStep - 1; step >= minStep; step -= 1) {
+      if (this._stepRoleRelativeToRoot(step, rootStep) !== role) continue;
+      const acc = this._toneAccidentalClass(rootMidi, step, roleSemis);
+      if (acc != null || roleSemis === 0) return { step, accidentalClass: acc };
+    }
+    return null;
+  }
+
+  _isStrictSetupPlaceable(setup, quality, seventhType, direction) {
+    const expected = this._triadExpectedSemisForQuality(quality, seventhType);
+    if (!expected || !setup?.root || !setup?.bass) return false;
+
+    const rootStep = setup.root.step;
+    const rootMidi =
+      this.staff._stepToMidi(rootStep) +
+      this.staff._accidentalClassToOffset(setup.root.accidentalClass);
+    const bassStep = setup.bass.step;
+    const minStep = this.staff.minStepAllowed();
+    const maxStep = this.staff.maxStepAllowed();
+    const allRoles = expected.length === 3 ? [0, 2, 4, 6] : [0, 2, 4];
+    const fixedRole = this._stepRoleRelativeToRoot(bassStep, rootStep);
+    const roleSemisMap = this._roleSemisMap(expected);
+    const dir = Number(direction) === -1 ? -1 : 1;
+
+    for (const role of allRoles) {
+      if (role === fixedRole) continue;
+      const found = this._findRoleStepInDirection({
+        role,
+        rootStep,
+        rootMidi,
+        roleSemis: roleSemisMap[role],
+        anchorStep: bassStep,
+        dir,
+        minStep,
+        maxStep,
+      });
+      if (!found) return false;
+    }
+    return true;
   }
 
   _stepAboveBass(step, bassStep) {
@@ -413,6 +514,7 @@ _formatShortLabelHtml(shortLabel) {
 
     let quality = null;
     let seventhType = null;
+    let direction = 1;
     let setup = null;
 
     // Some spellings can be invalid for our accidental system; retry instead of starting an empty round.
@@ -420,6 +522,7 @@ _formatShortLabelHtml(shortLabel) {
       const chord = this._pickChordSpec();
       quality = chord.quality;
       seventhType = chord.seventhType;
+      direction = this._pickChordDirection();
 
       setup = this._pickRootAndBassForTriad(quality, seventhType);
       if (!setup) continue;
@@ -436,6 +539,10 @@ _formatShortLabelHtml(shortLabel) {
         if (!setup) continue;
       }
 
+      if (this._isStrictDirection() && !this._isStrictSetupPlaceable(setup, quality, seventhType, direction)) {
+        continue;
+      }
+
       break;
     }
 
@@ -443,8 +550,21 @@ _formatShortLabelHtml(shortLabel) {
     if (!setup) {
       quality = "major";
       seventhType = null;
+      direction = this._pickChordDirection();
       setup = this._pickRootAndBassForTriad(quality, seventhType);
       if (!setup) return;
+
+      if (this._isStrictDirection() && !this._isStrictSetupPlaceable(setup, quality, seventhType, direction)) {
+        const fallbackDir = 1;
+        for (let i = 0; i < 120; i += 1) {
+          setup = this._pickRootAndBassForTriad(quality, seventhType);
+          if (setup && this._isStrictSetupPlaceable(setup, quality, seventhType, fallbackDir)) {
+            direction = fallbackDir;
+            break;
+          }
+        }
+        if (!setup || !this._isStrictSetupPlaceable(setup, quality, seventhType, direction)) return;
+      }
     }
 
     this._requiredUserNotesThisRound = this._requiredUserNotesForChord(seventhType);
@@ -458,7 +578,7 @@ _formatShortLabelHtml(shortLabel) {
     this.$feedback.hide();
 
     this.$interval.show();
-    this._setTriadUI(quality, seventhType);
+    this._setTriadUI(quality, seventhType, direction);
 
     {
       const rootMidi =
@@ -613,10 +733,28 @@ _requiredUserNotesForChord(seventhType) {
 
     const rootStep = rootState.step;
     const rootMidi = rootState.midi;
+    const strict = this._isStrictDirection();
+    const dir = this._currentChordDirection === -1 ? -1 : 1;
+    const anchorStep = this._triadBassState?.step;
+    const userNotes = notes.filter((n) => !n.fixed);
+    if (strict && Number.isFinite(anchorStep)) {
+      const allOnDirectedSide = userNotes.every((n) => (dir === 1 ? n.step > anchorStep : n.step < anchorStep));
+      if (!allOnDirectedSide) {
+        this._madeAnyMistake = true;
+        this._madeMistakeThisRound = true;
+        this.$interval.removeClass("text-blue").addClass("text-red");
+        this._failAnimation(this.$checkWrap);
+        this.$checkWrap
+          .off(`animationend._failRestore.${this.ns} webkitAnimationEnd._failRestore.${this.ns}`)
+          .one(`animationend._failRestore.${this.ns} webkitAnimationEnd._failRestore.${this.ns}`, () => {
+            this.$interval.removeClass("text-red").addClass("text-blue");
+          });
+        this.$helpBtn.show();
+        return;
+      }
+    }
 
-    const roleToSemis = expected.length === 3
-      ? { 0: 0, 2: expected[0], 4: expected[1], 6: expected[2] }
-      : { 0: 0, 2: expected[0], 4: expected[1] };
+    const roleToSemis = this._roleSemisMap(expected);
     const seenRoles = new Set();
 
     let ok = true;
@@ -687,6 +825,8 @@ _requiredUserNotesForChord(seventhType) {
     const rootStep = rootState.step;
     const rootMidi = rootState.midi;
     const bassStep = bassState.step;
+    const strict = this._isStrictDirection();
+    const dir = this._currentChordDirection === -1 ? -1 : 1;
 
     const presentRoles = new Set();
     for (const n of notes) {
@@ -729,8 +869,24 @@ _requiredUserNotesForChord(seventhType) {
       if (presentRoles.has(t.role)) continue;
 
       let step = this._stepAboveBass(t.baseStep, bassStep);
-      if (step > max) step = t.baseStep;
+      if (strict) {
+        const directed = this._findRoleStepInDirection({
+          role: t.role,
+          rootStep,
+          rootMidi,
+          roleSemis: t.semis,
+          anchorStep: bassStep,
+          dir,
+          minStep: min,
+          maxStep: max,
+        });
+        if (!directed) continue;
+        const h = buildHintAtStep(t.id, directed.step, t.semis);
+        if (h) hints.push(h);
+        continue;
+      }
 
+      if (step > max) step = t.baseStep;
       const h = buildHintAtStep(t.id, step, t.semis);
       if (h) hints.push(h);
     }
