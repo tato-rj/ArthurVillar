@@ -58,7 +58,7 @@
   .board-cell {
     width: var(--tone-trail-cell-size);
     height: var(--tone-trail-cell-size);
-    border: 1px dotted lightgrey;
+    border: 1px dotted rgba(0,0,0,0.05);
   }
 
   .snake {
