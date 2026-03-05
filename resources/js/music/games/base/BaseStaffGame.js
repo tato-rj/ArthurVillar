@@ -1170,6 +1170,14 @@ export class BaseStaffGame {
     this._activeHintIds = [];
   }
 
+  _removeAllUserNotesForHint() {
+    const $userNotes = this.$staffEl.find(".note").not(".fixed").not(".preview").not(".hint");
+    $userNotes.each((_, el) => {
+      const id = el.getAttribute("data-note-id");
+      if (id) this.staff.removeNote(id);
+    });
+  }
+
   _randomFreeStep() {
     const min = this.staff.minStepAllowed();
     const max = this.staff.maxStepAllowed();
@@ -1195,6 +1203,7 @@ export class BaseStaffGame {
 
   _showHintNote() {
     this._removeAllHintNotes();
+    this._removeAllUserNotesForHint();
 
     const answers = this._computeHintAnswers();
     const specs = (Array.isArray(answers) && answers.length) ? answers : [{ step: null, accidentalClass: null }];
