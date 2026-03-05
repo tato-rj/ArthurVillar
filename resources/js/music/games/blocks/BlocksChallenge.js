@@ -1737,7 +1737,6 @@ export class BlocksChallenge {
     this._syncKeyboardLabels();
     $("#instructions").show();
     $("#controls").show();
-    $("#page-wrapper").fadeIn("fast");
   }
 
   _showMusicKeyboard() {

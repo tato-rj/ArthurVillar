@@ -49,6 +49,7 @@ class IntervalsLabSettings extends GameFactory
             'showLetterNames' => false,
             'allowInitialAccidentals' => false,
             'initialNoteRange' => 0,
+            'strictDirection' => false
         ];
     }
 

@@ -658,7 +658,7 @@ export class BaseStaffGame {
   }
 
   _finishRoundAsTimedOut() {
-    this._correctStreak = 0;
+    this._clearCorrectStreak();
     this._madeAnyMistake = true;
     this._madeMistakeThisRound = true;
     this._stats.checksTotal += 1;
@@ -1310,16 +1310,7 @@ export class BaseStaffGame {
 
     const earned = firstTry ? base + bonus : base;
     const bonusEarned = firstTry ? bonus : 0;
-    if (firstTry) {
-      this._correctStreak += 1;
-      if (this._correctStreak <= 1) {
-        // eslint-disable-next-line no-console
-        console.log("[BaseStaffGame] Correct answer. No streak yet.");
-      } else {
-        // eslint-disable-next-line no-console
-        console.log(`[BaseStaffGame] Streak ${this._correctStreak}x`);
-      }
-    }
+    this._applyCorrectStreakForOutcome({ firstTry });
 
     this.points += earned;
     this.$points.text(String(this.points));
@@ -1332,9 +1323,25 @@ export class BaseStaffGame {
     return Math.max(0, Number(this._correctStreak) || 0);
   }
 
+  _applyCorrectStreakForOutcome({ firstTry } = {}) {
+    if (!firstTry) return;
+    this._correctStreak += 1;
+    if (this._correctStreak <= 1) {
+      // eslint-disable-next-line no-console
+      console.log("[BaseStaffGame] Correct answer. No streak yet.");
+    } else {
+      // eslint-disable-next-line no-console
+      console.log(`[BaseStaffGame] Streak ${this._correctStreak}x`);
+    }
+  }
+
+  _clearCorrectStreak() {
+    this._correctStreak = 0;
+  }
+
   _resetProgress() {
     this._syncPracticeUi();
-    this._correctStreak = 0;
+    this._clearCorrectStreak();
     this._madeAnyMistake = false;
     this.$progressBar.data("progress", 0);
     this.$progressBar.css({ width: "0%" });
@@ -1366,7 +1373,7 @@ export class BaseStaffGame {
   }
 
   _failAnimation($shakeTarget) {
-    this._correctStreak = 0;
+    this._clearCorrectStreak();
     this._playFailSfx();
 
     const $target = $shakeTarget || this.$checkWrap;

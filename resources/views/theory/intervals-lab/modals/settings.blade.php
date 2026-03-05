@@ -11,6 +11,7 @@
     @include('theory.components.settings.clefs')
     <hr class="opacity-1">
     @include('theory.components.settings.accidentals')
+    @include('theory.components.settings.direction')
   @endcomponent
 
   @component('theory.components.settings.section', ['title' => 'PREFERENCES'])

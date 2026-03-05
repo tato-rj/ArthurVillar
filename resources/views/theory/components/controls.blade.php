@@ -1,8 +1,10 @@
-<div id="controls">
+<div id="controls" class="mb-5">
   <div class="d-flex flex-column">
+
+    @isset($instructions)
     <div class="position-relative">
       <div id="instructions" class="fw-bold position-absolute top-0 left-0 w-100 h-100 d-center">
-        <h6 class="m-0 text-red">{{$instructions ?? 'Tap on the staff to add a note'}} 👆</h6>
+        <h6 class="m-0 text-red">{{$instructions ?? null}} </h6>
       </div>
       <div id="check" class="btn-floating w-100 invisible">
         <button class="btn btn-primary w-100">Check my answer</button>
@@ -13,11 +15,11 @@
       <div id="skip" class="btn-floating w-100" style="display: none;">
         <button class="btn btn-red w-100">Next round</button>
       </div>
-    </div>
-
+    </div>    
     <div id="continue" class="btn-floating w-100" style="display: none;">
       <button class="btn btn-green w-100">Continue</button>
     </div>
+    @endisset
 
     <div class="d-flex mt-3">
       <div class="btn-floating mr-1 w-100">

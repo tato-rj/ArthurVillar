@@ -24,11 +24,13 @@ td {
 
 .initial-block {
   background: #ffe54c !important;
+  box-shadow: 0 0 0 1px black inset !important;
   {{-- border: 1px solid #ffe54c !important; --}}
 }
 
 .block {
   background: lightyellow !important;
+  box-shadow: 0 0 0 1px black inset !important;
   {{-- border: 1px solid #ffe54c !important; --}}
 }
 
@@ -154,7 +156,7 @@ td {
     </div>
 
     <div class="col-lg-6 col-md-8 col-11 mx-auto">
-      @include('theory.components.controls', ['instructions' => 'Complete all intervals above'])
+      @include('theory.components.controls', ['instructions' => 'Tap the ❓ to complete the intervals above'])
       @include('theory.tone-trek.modals.settings')
       @include('theory.tone-trek.modals.instructions')
       @include('theory.components.preferences')

@@ -67,8 +67,10 @@ export class ChordsChallenge extends BaseStaffGame {
 
     // UI (re-using #interval container)
     this.$interval = $("#interval");
-    this.$intervalLabel = this.$interval.find("label");
-    this.$intervalFull = this.$interval.find("div");
+    this.$intervalLabel = $("#interval-shortname");
+    if (!this.$intervalLabel.length) this.$intervalLabel = this.$interval.find("label").first();
+    this.$intervalFull = $("#interval-longname");
+    if (!this.$intervalFull.length) this.$intervalFull = this.$interval.find("div").last();
 
     this._currentTriadQuality = null;
     this._currentSeventhType = null; // null | '7' | 'maj7' | 'dim7'

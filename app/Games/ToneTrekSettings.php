@@ -45,7 +45,7 @@ class ToneTrekSettings extends GameFactory
             'initialNotes' => [],
             'sound' => true,
             'solfege' => false,
-            'allowInitialAccidentals' => false,
+            'allowInitialAccidentals' => false
         ];
     }
 

@@ -52,7 +52,7 @@
     </div>
 
     <div class="col-lg-6 col-md-8 col-11 mx-auto">
-      @include('theory.components.controls')
+      @include('theory.components.controls', ['instructions' => 'Tap on the staff to add a note 👆'])
       @include('theory.pitch-detective.modals.settings')
       @include('theory.pitch-detective.modals.instructions')
       @include('theory.components.preferences')

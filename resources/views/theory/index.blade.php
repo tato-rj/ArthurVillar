@@ -19,9 +19,9 @@
         @include('theory.card', ['settings' => $pitchDetectiveSettings])
         @include('theory.card', ['settings' => $toneTrekSettings])
 
-        @env('local')
+        {{-- @env('local') --}}
         @include('theory.card', ['settings' => $toneTrailSettings])
-        @endenv
+        {{-- @endenv --}}
     </div>
 </section>
 @endsection

@@ -34,6 +34,7 @@ export class IntervalsChallenge extends BaseStaffGame {
       staffEl: "#staff",
       basePoints: 1,
       firstTryBonus: 2,
+      strictDirection: false,
       namespace: "intervalsChallenge",
     };
 
@@ -62,10 +63,15 @@ export class IntervalsChallenge extends BaseStaffGame {
 
     // interval UI
     this.$interval = $("#interval");
-    this.$intervalLabel = this.$interval.find("label");
-    this.$intervalFull = this.$interval.find("div");
+    this.$intervalLabel = $("#interval-shortname");
+    if (!this.$intervalLabel.length) this.$intervalLabel = this.$interval.find("label").first();
+    this.$intervalDirection = $("#interval-direction");
+    if (!this.$intervalDirection.length) this.$intervalDirection = this.$interval.find("i").first();
+    this.$intervalFull = $("#interval-longname");
+    if (!this.$intervalFull.length) this.$intervalFull = this.$interval.find("div").last();
 
     this._currentIntervalAbbr = null;
+    this._currentIntervalDirection = 1; // 1=up, -1=down
   }
 
   // ------------------------ interval UI ------------------------
@@ -93,12 +99,102 @@ export class IntervalsChallenge extends BaseStaffGame {
     return IntervalsChallenge.INTERVAL_FULL_NAME_MAP[key] || this._deriveFullNameFromAbbr(key);
   }
 
-  _setIntervalUI(intervalAbbr) {
+  _setIntervalUI(intervalAbbr, direction = 1) {
     const abbr = String(intervalAbbr || "").trim();
     this._currentIntervalAbbr = abbr;
+    this._currentIntervalDirection = Number(direction) === -1 ? -1 : 1;
 
     if (this.$intervalLabel?.length) this.$intervalLabel.text(abbr);
+    if (this.$intervalDirection?.length) {
+      if (this._isStrictDirection()) {
+        this.$intervalDirection
+          .show()
+          .removeClass("fa-up-long fa-down-long")
+          .addClass(this._currentIntervalDirection === -1 ? "fa-down-long" : "fa-up-long");
+      } else {
+        this.$intervalDirection.hide();
+      }
+    }
     if (this.$intervalFull?.length) this.$intervalFull.text(this._fullNameForInterval(abbr));
+  }
+
+  _normalizeOnOff(v) {
+    if (v === true) return true;
+    if (v === false) return false;
+    const s = String(v ?? "").trim().toLowerCase();
+    return s === "on" || s === "true" || s === "1";
+  }
+
+  _isStrictDirection() {
+    return this._normalizeOnOff(this.opts.strictDirection);
+  }
+
+  _pickIntervalDirection() {
+    if (!this._isStrictDirection()) return 1;
+    return Math.random() < 0.5 ? -1 : 1;
+  }
+
+  _fixedToState(fixed) {
+    if (!fixed || !Number.isFinite(fixed.step)) return null;
+    const accidentalClass = fixed.accidentalClass || null;
+    const accOff = this.staff._accidentalClassToOffset(accidentalClass);
+    const midi = this.staff._stepToMidi(fixed.step) + (accOff || 0);
+    return { step: fixed.step, accidentalClass, midi };
+  }
+
+  _computeTargetFromFixed(intervalAbbr, direction, fixedState) {
+    if (!fixedState) return null;
+    const parsed = parseIntervalAbbr(intervalAbbr);
+    if (!parsed || !Number.isFinite(parsed.number) || parsed.number < 1) return null;
+
+    const diatonicSteps = parsed.number - 1;
+    const simpleNum = ((parsed.number - 1) % 7) + 1;
+    const octaves = Math.floor((parsed.number - 1) / 7);
+    const baseSemiSimple = this._intervalSemitones(parsed.quality, simpleNum);
+    if (baseSemiSimple == null) return null;
+    const semitones = baseSemiSimple + (12 * octaves);
+
+    const dir = Number(direction) === -1 ? -1 : 1;
+    const targetStep = fixedState.step + (dir * diatonicSteps);
+    const minStep = this.staff.minStepAllowed();
+    const maxStep = this.staff.maxStepAllowed();
+    if (targetStep < minStep || targetStep > maxStep) return null;
+
+    const targetMidi = fixedState.midi + (dir * semitones);
+    const naturalTargetMidi = this.staff._stepToMidi(targetStep);
+    const off = targetMidi - naturalTargetMidi;
+    if (off < -2 || off > 2) return null;
+
+    const accidentalClass = accidentalClassFromOffset(off);
+    if (!accidentalClass) return null;
+
+    return { step: targetStep, accidentalClass };
+  }
+
+  _isStrictChallengePlaceable(intervalAbbr, direction, fixed) {
+    const fixedState = this._fixedToState(fixed);
+    return !!this._computeTargetFromFixed(intervalAbbr, direction, fixedState);
+  }
+
+  _pickStrictPlaceableChallenge() {
+    const maxAttempts = 240;
+    for (let i = 0; i < maxAttempts; i += 1) {
+      const interval = this._pickInterval();
+      const direction = this._pickIntervalDirection();
+      const fixed = this._pickFixedNote();
+      if (this._isStrictChallengePlaceable(interval, direction, fixed)) {
+        return { interval, direction, fixed };
+      }
+    }
+
+    // deterministic fallback to guarantee playability
+    const minStep = this.staff.minStepAllowed();
+    const maxStep = this.staff.maxStepAllowed();
+    const midStep = Math.floor((minStep + maxStep) / 2);
+    const fixed = { step: midStep, accidentalClass: null };
+    const interval = "m2";
+    const direction = (midStep + 1 <= maxStep) ? 1 : -1;
+    return { interval, direction, fixed };
   }
 
   // ------------------------ game flow ------------------------
@@ -115,15 +211,23 @@ export class IntervalsChallenge extends BaseStaffGame {
     this.$bonusBadge.hide();
     this.$doublePoints?.hide?.();
 
-    const interval = this._pickInterval();
-    const fixed = this._pickFixedNote();
+    const challenge = this._isStrictDirection()
+      ? this._pickStrictPlaceableChallenge()
+      : {
+        interval: this._pickInterval(),
+        direction: this._pickIntervalDirection(),
+        fixed: this._pickFixedNote(),
+      };
+    const interval = challenge.interval;
+    const direction = challenge.direction;
+    const fixed = challenge.fixed;
 
     this.staff.clearNotes();
     this.$accidentals.removeClass("invisible");
     this.$feedback.hide();
 
     this.$interval.show();
-    this._setIntervalUI(interval);
+    this._setIntervalUI(interval, direction);
 
     if (fixed) {
       const fixedId = this.staff.addFixedNote({
@@ -215,6 +319,19 @@ export class IntervalsChallenge extends BaseStaffGame {
     return this._qualityFor(simpleNum, semitonesReduced) + diatonicNum;
   }
 
+  _userNotesOnStaff() {
+    const $notes = this.$staffEl.find(".note").not(".fixed").not(".preview").not(".hint");
+    const notes = $notes.toArray().map((el) => {
+      const id = el.getAttribute("data-note-id");
+      const step = this.staff._stepOfNoteEl(el);
+      const accCls = this.staff._getAttachedAccidentalClass(id);
+      const accOff = this.staff._accidentalClassToOffset(accCls);
+      return { id, step, accOff };
+    });
+    notes.sort((a, b) => a.step - b.step);
+    return notes;
+  }
+
   _onCheck() {
     const notes = this._notesOnStaffOrdered();
     this.$checkBtn.disable();
@@ -233,9 +350,30 @@ export class IntervalsChallenge extends BaseStaffGame {
       return;
     }
 
-    const name = this._intervalNameBetween(notes[0], notes[1]);
+    const userNotes = this._userNotesOnStaff();
+    if (!userNotes.length || !this._fixedState) {
+      this._madeAnyMistake = true;
+      this._madeMistakeThisRound = true;
+      this.$interval.removeClass("text-blue").addClass("text-red");
+      this._failAnimation(this.$checkWrap);
+      this.$helpBtn.show();
+      return;
+    }
 
-    if (name === this.$intervalLabel.text()) {
+    const userNote = userNotes[0];
+    const fixedNote = {
+      step: this._fixedState.step,
+      accOff: this.staff._accidentalClassToOffset(this._fixedState.accidentalClass),
+    };
+    const name = this._intervalNameBetween(fixedNote, userNote);
+    const expectedDir = this._currentIntervalDirection === -1 ? -1 : 1;
+    const dirDelta = userNote.step - fixedNote.step;
+    const directionMatches = this._isStrictDirection()
+      ? (expectedDir === 1 ? dirDelta > 0 : dirDelta < 0)
+      : true;
+    const isCorrect = directionMatches && name === this.$intervalLabel.text();
+
+    if (isCorrect) {
       this._stats.checksCorrect += 1;
       this._pauseGameTimer();
 
@@ -303,39 +441,21 @@ export class IntervalsChallenge extends BaseStaffGame {
       this._currentIntervalAbbr || (this.$intervalLabel && this.$intervalLabel.text()) || "";
     const parsed = parseIntervalAbbr(abbr);
     if (!parsed || !Number.isFinite(parsed.number) || parsed.number < 1) return null;
-
-    const diatonicSteps = parsed.number - 1;
-
-    const simpleNum = ((parsed.number - 1) % 7) + 1;
-    const octaves = Math.floor((parsed.number - 1) / 7);
-
-    const baseSemiSimple = this._intervalSemitones(parsed.quality, simpleNum);
-    if (baseSemiSimple == null) return null;
-
-    const semitones = baseSemiSimple + (12 * octaves);
-
-    const fixedStep = this._fixedState.step;
-    const fixedMidi = this._fixedState.midi;
-
-    const minStep = this.staff.minStepAllowed();
-    const maxStep = this.staff.maxStepAllowed();
-
-    const tryDir = (dir) => {
-      const targetStep = fixedStep + (dir * diatonicSteps);
-      if (targetStep < minStep || targetStep > maxStep) return null;
-
-      const targetMidi = fixedMidi + (dir * semitones);
-      const naturalTargetMidi = this.staff._stepToMidi(targetStep);
-      const off = targetMidi - naturalTargetMidi;
-
-      if (off < -2 || off > 2) return null;
-
-      const accidentalClass = accidentalClassFromOffset(off);
-      if (!accidentalClass) return null;
-
-      return { step: targetStep, accidentalClass };
+    const fixedState = {
+      step: this._fixedState.step,
+      accidentalClass: this._fixedState.accidentalClass,
+      midi: this._fixedState.midi,
     };
 
+    const tryDir = (dir) => this._computeTargetFromFixed(
+      abbr,
+      dir,
+      fixedState,
+    );
+
+    if (this._isStrictDirection()) {
+      return tryDir(this._currentIntervalDirection === -1 ? -1 : +1);
+    }
     return tryDir(+1) || tryDir(-1);
   }
 

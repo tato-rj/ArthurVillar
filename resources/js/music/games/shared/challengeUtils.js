@@ -50,7 +50,7 @@ export function parsePitch(pitch) {
 
   const baseSemitoneFromC = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }[letter];
   const accOffset =
-    acc === "##" ? 2 :
+    acc === "𝄪" ? 2 :
     acc === "#" ? 1 :
     acc === "bb" ? -2 :
     acc === "b" ? -1 :

@@ -747,7 +747,7 @@ var BaseStaffGame = /*#__PURE__*/function () {
     key: "_finishRoundAsTimedOut",
     value: function _finishRoundAsTimedOut() {
       var _this9 = this;
-      this._correctStreak = 0;
+      this._clearCorrectStreak();
       this._madeAnyMistake = true;
       this._madeMistakeThisRound = true;
       this._stats.checksTotal += 1;
@@ -1420,16 +1420,9 @@ var BaseStaffGame = /*#__PURE__*/function () {
       var bonus = Number.isFinite(this.opts.firstTryBonus) ? this.opts.firstTryBonus : 0;
       var earned = firstTry ? base + bonus : base;
       var bonusEarned = firstTry ? bonus : 0;
-      if (firstTry) {
-        this._correctStreak += 1;
-        if (this._correctStreak <= 1) {
-          // eslint-disable-next-line no-console
-          console.log("[BaseStaffGame] Correct answer. No streak yet.");
-        } else {
-          // eslint-disable-next-line no-console
-          console.log("[BaseStaffGame] Streak ".concat(this._correctStreak, "x"));
-        }
-      }
+      this._applyCorrectStreakForOutcome({
+        firstTry: firstTry
+      });
       this.points += earned;
       this.$points.text(String(this.points));
       this._showBonusBadge(bonusEarned);
@@ -1445,10 +1438,30 @@ var BaseStaffGame = /*#__PURE__*/function () {
       return Math.max(0, Number(this._correctStreak) || 0);
     }
   }, {
+    key: "_applyCorrectStreakForOutcome",
+    value: function _applyCorrectStreakForOutcome() {
+      var _ref3 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+        firstTry = _ref3.firstTry;
+      if (!firstTry) return;
+      this._correctStreak += 1;
+      if (this._correctStreak <= 1) {
+        // eslint-disable-next-line no-console
+        console.log("[BaseStaffGame] Correct answer. No streak yet.");
+      } else {
+        // eslint-disable-next-line no-console
+        console.log("[BaseStaffGame] Streak ".concat(this._correctStreak, "x"));
+      }
+    }
+  }, {
+    key: "_clearCorrectStreak",
+    value: function _clearCorrectStreak() {
+      this._correctStreak = 0;
+    }
+  }, {
     key: "_resetProgress",
     value: function _resetProgress() {
       this._syncPracticeUi();
-      this._correctStreak = 0;
+      this._clearCorrectStreak();
       this._madeAnyMistake = false;
       this.$progressBar.data("progress", 0);
       this.$progressBar.css({
@@ -1483,7 +1496,7 @@ var BaseStaffGame = /*#__PURE__*/function () {
     key: "_failAnimation",
     value: function _failAnimation($shakeTarget) {
       var _this16 = this;
-      this._correctStreak = 0;
+      this._clearCorrectStreak();
       this._playFailSfx();
       var $target = $shakeTarget || this.$checkWrap;
       $target.removeClass("animate__animated animate__shakeX");
@@ -1596,6 +1609,7 @@ var IntervalsChallenge = /*#__PURE__*/function (_BaseStaffGame) {
       staffEl: "#staff",
       basePoints: 1,
       firstTryBonus: 2,
+      strictDirection: false,
       namespace: "intervalsChallenge"
     };
     var merged = _objectSpread(_objectSpread(_objectSpread({}, defaults), options), {}, {
@@ -1610,9 +1624,14 @@ var IntervalsChallenge = /*#__PURE__*/function (_BaseStaffGame) {
 
     // interval UI
     _this.$interval = $("#interval");
-    _this.$intervalLabel = _this.$interval.find("label");
-    _this.$intervalFull = _this.$interval.find("div");
+    _this.$intervalLabel = $("#interval-shortname");
+    if (!_this.$intervalLabel.length) _this.$intervalLabel = _this.$interval.find("label").first();
+    _this.$intervalDirection = $("#interval-direction");
+    if (!_this.$intervalDirection.length) _this.$intervalDirection = _this.$interval.find("i").first();
+    _this.$intervalFull = $("#interval-longname");
+    if (!_this.$intervalFull.length) _this.$intervalFull = _this.$interval.find("div").last();
     _this._currentIntervalAbbr = null;
+    _this._currentIntervalDirection = 1; // 1=up, -1=down
     return _this;
   }
 
@@ -1637,11 +1656,119 @@ var IntervalsChallenge = /*#__PURE__*/function (_BaseStaffGame) {
   }, {
     key: "_setIntervalUI",
     value: function _setIntervalUI(intervalAbbr) {
-      var _this$$intervalLabel, _this$$intervalFull;
+      var _this$$intervalLabel, _this$$intervalDirect, _this$$intervalFull;
+      var direction = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
       var abbr = String(intervalAbbr || "").trim();
       this._currentIntervalAbbr = abbr;
+      this._currentIntervalDirection = Number(direction) === -1 ? -1 : 1;
       if ((_this$$intervalLabel = this.$intervalLabel) !== null && _this$$intervalLabel !== void 0 && _this$$intervalLabel.length) this.$intervalLabel.text(abbr);
+      if ((_this$$intervalDirect = this.$intervalDirection) !== null && _this$$intervalDirect !== void 0 && _this$$intervalDirect.length) {
+        if (this._isStrictDirection()) {
+          this.$intervalDirection.show().removeClass("fa-up-long fa-down-long").addClass(this._currentIntervalDirection === -1 ? "fa-down-long" : "fa-up-long");
+        } else {
+          this.$intervalDirection.hide();
+        }
+      }
       if ((_this$$intervalFull = this.$intervalFull) !== null && _this$$intervalFull !== void 0 && _this$$intervalFull.length) this.$intervalFull.text(this._fullNameForInterval(abbr));
+    }
+  }, {
+    key: "_normalizeOnOff",
+    value: function _normalizeOnOff(v) {
+      if (v === true) return true;
+      if (v === false) return false;
+      var s = String(v !== null && v !== void 0 ? v : "").trim().toLowerCase();
+      return s === "on" || s === "true" || s === "1";
+    }
+  }, {
+    key: "_isStrictDirection",
+    value: function _isStrictDirection() {
+      return this._normalizeOnOff(this.opts.strictDirection);
+    }
+  }, {
+    key: "_pickIntervalDirection",
+    value: function _pickIntervalDirection() {
+      if (!this._isStrictDirection()) return 1;
+      return Math.random() < 0.5 ? -1 : 1;
+    }
+  }, {
+    key: "_fixedToState",
+    value: function _fixedToState(fixed) {
+      if (!fixed || !Number.isFinite(fixed.step)) return null;
+      var accidentalClass = fixed.accidentalClass || null;
+      var accOff = this.staff._accidentalClassToOffset(accidentalClass);
+      var midi = this.staff._stepToMidi(fixed.step) + (accOff || 0);
+      return {
+        step: fixed.step,
+        accidentalClass: accidentalClass,
+        midi: midi
+      };
+    }
+  }, {
+    key: "_computeTargetFromFixed",
+    value: function _computeTargetFromFixed(intervalAbbr, direction, fixedState) {
+      if (!fixedState) return null;
+      var parsed = (0,_shared_challengeUtils_js__WEBPACK_IMPORTED_MODULE_2__.parseIntervalAbbr)(intervalAbbr);
+      if (!parsed || !Number.isFinite(parsed.number) || parsed.number < 1) return null;
+      var diatonicSteps = parsed.number - 1;
+      var simpleNum = (parsed.number - 1) % 7 + 1;
+      var octaves = Math.floor((parsed.number - 1) / 7);
+      var baseSemiSimple = this._intervalSemitones(parsed.quality, simpleNum);
+      if (baseSemiSimple == null) return null;
+      var semitones = baseSemiSimple + 12 * octaves;
+      var dir = Number(direction) === -1 ? -1 : 1;
+      var targetStep = fixedState.step + dir * diatonicSteps;
+      var minStep = this.staff.minStepAllowed();
+      var maxStep = this.staff.maxStepAllowed();
+      if (targetStep < minStep || targetStep > maxStep) return null;
+      var targetMidi = fixedState.midi + dir * semitones;
+      var naturalTargetMidi = this.staff._stepToMidi(targetStep);
+      var off = targetMidi - naturalTargetMidi;
+      if (off < -2 || off > 2) return null;
+      var accidentalClass = (0,_shared_challengeUtils_js__WEBPACK_IMPORTED_MODULE_2__.accidentalClassFromOffset)(off);
+      if (!accidentalClass) return null;
+      return {
+        step: targetStep,
+        accidentalClass: accidentalClass
+      };
+    }
+  }, {
+    key: "_isStrictChallengePlaceable",
+    value: function _isStrictChallengePlaceable(intervalAbbr, direction, fixed) {
+      var fixedState = this._fixedToState(fixed);
+      return !!this._computeTargetFromFixed(intervalAbbr, direction, fixedState);
+    }
+  }, {
+    key: "_pickStrictPlaceableChallenge",
+    value: function _pickStrictPlaceableChallenge() {
+      var maxAttempts = 240;
+      for (var i = 0; i < maxAttempts; i += 1) {
+        var _interval = this._pickInterval();
+        var _direction = this._pickIntervalDirection();
+        var _fixed = this._pickFixedNote();
+        if (this._isStrictChallengePlaceable(_interval, _direction, _fixed)) {
+          return {
+            interval: _interval,
+            direction: _direction,
+            fixed: _fixed
+          };
+        }
+      }
+
+      // deterministic fallback to guarantee playability
+      var minStep = this.staff.minStepAllowed();
+      var maxStep = this.staff.maxStepAllowed();
+      var midStep = Math.floor((minStep + maxStep) / 2);
+      var fixed = {
+        step: midStep,
+        accidentalClass: null
+      };
+      var interval = "m2";
+      var direction = midStep + 1 <= maxStep ? 1 : -1;
+      return {
+        interval: interval,
+        direction: direction,
+        fixed: fixed
+      };
     }
 
     // ------------------------ game flow ------------------------
@@ -1657,13 +1784,19 @@ var IntervalsChallenge = /*#__PURE__*/function (_BaseStaffGame) {
       this._usedHintThisRound = false;
       this.$bonusBadge.hide();
       (_this$$doublePoints = this.$doublePoints) === null || _this$$doublePoints === void 0 || (_this$$doublePoints$h = _this$$doublePoints.hide) === null || _this$$doublePoints$h === void 0 || _this$$doublePoints$h.call(_this$$doublePoints);
-      var interval = this._pickInterval();
-      var fixed = this._pickFixedNote();
+      var challenge = this._isStrictDirection() ? this._pickStrictPlaceableChallenge() : {
+        interval: this._pickInterval(),
+        direction: this._pickIntervalDirection(),
+        fixed: this._pickFixedNote()
+      };
+      var interval = challenge.interval;
+      var direction = challenge.direction;
+      var fixed = challenge.fixed;
       this.staff.clearNotes();
       this.$accidentals.removeClass("invisible");
       this.$feedback.hide();
       this.$interval.show();
-      this._setIntervalUI(interval);
+      this._setIntervalUI(interval, direction);
       if (fixed) {
         var fixedId = this.staff.addFixedNote({
           step: fixed.step,
@@ -1771,9 +1904,30 @@ var IntervalsChallenge = /*#__PURE__*/function (_BaseStaffGame) {
       return this._qualityFor(simpleNum, semitonesReduced) + diatonicNum;
     }
   }, {
+    key: "_userNotesOnStaff",
+    value: function _userNotesOnStaff() {
+      var _this3 = this;
+      var $notes = this.$staffEl.find(".note").not(".fixed").not(".preview").not(".hint");
+      var notes = $notes.toArray().map(function (el) {
+        var id = el.getAttribute("data-note-id");
+        var step = _this3.staff._stepOfNoteEl(el);
+        var accCls = _this3.staff._getAttachedAccidentalClass(id);
+        var accOff = _this3.staff._accidentalClassToOffset(accCls);
+        return {
+          id: id,
+          step: step,
+          accOff: accOff
+        };
+      });
+      notes.sort(function (a, b) {
+        return a.step - b.step;
+      });
+      return notes;
+    }
+  }, {
     key: "_onCheck",
     value: function _onCheck() {
-      var _this3 = this;
+      var _this4 = this;
       var notes = this._notesOnStaffOrdered();
       this.$checkBtn.disable();
       this._stats.checksTotal += 1;
@@ -1786,8 +1940,26 @@ var IntervalsChallenge = /*#__PURE__*/function (_BaseStaffGame) {
         this.$helpBtn.show();
         return;
       }
-      var name = this._intervalNameBetween(notes[0], notes[1]);
-      if (name === this.$intervalLabel.text()) {
+      var userNotes = this._userNotesOnStaff();
+      if (!userNotes.length || !this._fixedState) {
+        this._madeAnyMistake = true;
+        this._madeMistakeThisRound = true;
+        this.$interval.removeClass("text-blue").addClass("text-red");
+        this._failAnimation(this.$checkWrap);
+        this.$helpBtn.show();
+        return;
+      }
+      var userNote = userNotes[0];
+      var fixedNote = {
+        step: this._fixedState.step,
+        accOff: this.staff._accidentalClassToOffset(this._fixedState.accidentalClass)
+      };
+      var name = this._intervalNameBetween(fixedNote, userNote);
+      var expectedDir = this._currentIntervalDirection === -1 ? -1 : 1;
+      var dirDelta = userNote.step - fixedNote.step;
+      var directionMatches = this._isStrictDirection() ? expectedDir === 1 ? dirDelta > 0 : dirDelta < 0 : true;
+      var isCorrect = directionMatches && name === this.$intervalLabel.text();
+      if (isCorrect) {
         this._stats.checksCorrect += 1;
         this._pauseGameTimer();
         var _this$_awardPointsFor = this._awardPointsForCorrect(),
@@ -1803,7 +1975,7 @@ var IntervalsChallenge = /*#__PURE__*/function (_BaseStaffGame) {
           this._stats.finishedAtMs = Date.now();
           this.$checkBtn.text('Final results, let\'s see…');
           setTimeout(function () {
-            return _this3._showFinalResults();
+            return _this4._showFinalResults();
           }, 1600);
         } else {
           $("#check").hide();
@@ -1817,7 +1989,7 @@ var IntervalsChallenge = /*#__PURE__*/function (_BaseStaffGame) {
 
         // restore interval color after fail animation completes
         this.$checkWrap.off("animationend._failRestore.".concat(this.ns, " webkitAnimationEnd._failRestore.").concat(this.ns)).one("animationend._failRestore.".concat(this.ns, " webkitAnimationEnd._failRestore.").concat(this.ns), function () {
-          _this3.$interval.removeClass("text-red").addClass("text-blue");
+          _this4.$interval.removeClass("text-red").addClass("text-blue");
         });
         this.$helpBtn.show();
       }
@@ -1855,35 +2027,22 @@ var IntervalsChallenge = /*#__PURE__*/function (_BaseStaffGame) {
   }, {
     key: "_computeHintAnswer",
     value: function _computeHintAnswer() {
-      var _this4 = this;
+      var _this5 = this;
       if (!this._fixedState) return null;
       var abbr = this._currentIntervalAbbr || this.$intervalLabel && this.$intervalLabel.text() || "";
       var parsed = (0,_shared_challengeUtils_js__WEBPACK_IMPORTED_MODULE_2__.parseIntervalAbbr)(abbr);
       if (!parsed || !Number.isFinite(parsed.number) || parsed.number < 1) return null;
-      var diatonicSteps = parsed.number - 1;
-      var simpleNum = (parsed.number - 1) % 7 + 1;
-      var octaves = Math.floor((parsed.number - 1) / 7);
-      var baseSemiSimple = this._intervalSemitones(parsed.quality, simpleNum);
-      if (baseSemiSimple == null) return null;
-      var semitones = baseSemiSimple + 12 * octaves;
-      var fixedStep = this._fixedState.step;
-      var fixedMidi = this._fixedState.midi;
-      var minStep = this.staff.minStepAllowed();
-      var maxStep = this.staff.maxStepAllowed();
-      var tryDir = function tryDir(dir) {
-        var targetStep = fixedStep + dir * diatonicSteps;
-        if (targetStep < minStep || targetStep > maxStep) return null;
-        var targetMidi = fixedMidi + dir * semitones;
-        var naturalTargetMidi = _this4.staff._stepToMidi(targetStep);
-        var off = targetMidi - naturalTargetMidi;
-        if (off < -2 || off > 2) return null;
-        var accidentalClass = (0,_shared_challengeUtils_js__WEBPACK_IMPORTED_MODULE_2__.accidentalClassFromOffset)(off);
-        if (!accidentalClass) return null;
-        return {
-          step: targetStep,
-          accidentalClass: accidentalClass
-        };
+      var fixedState = {
+        step: this._fixedState.step,
+        accidentalClass: this._fixedState.accidentalClass,
+        midi: this._fixedState.midi
       };
+      var tryDir = function tryDir(dir) {
+        return _this5._computeTargetFromFixed(abbr, dir, fixedState);
+      };
+      if (this._isStrictDirection()) {
+        return tryDir(this._currentIntervalDirection === -1 ? -1 : +1);
+      }
       return tryDir(+1) || tryDir(-1);
     }
   }]);
@@ -1972,7 +2131,7 @@ function parsePitch(pitch) {
     A: 9,
     B: 11
   }[letter];
-  var accOffset = acc === "##" ? 2 : acc === "#" ? 1 : acc === "bb" ? -2 : acc === "b" ? -1 : 0;
+  var accOffset = acc === "𝄪" ? 2 : acc === "#" ? 1 : acc === "bb" ? -2 : acc === "b" ? -1 : 0;
   var accidentalClass = accidentalClassFromOffset(accOffset);
   var midi = 12 * (octave + 1) + baseSemitoneFromC + accOffset;
   return {
@@ -2138,7 +2297,8 @@ function renderFinalResultsOverlay(_ref) {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   playBurstConfettiAtElement: () => (/* binding */ playBurstConfettiAtElement),
-/* harmony export */   playSmokePuffAtElement: () => (/* binding */ playSmokePuffAtElement)
+/* harmony export */   playSmokePuffAtElement: () => (/* binding */ playSmokePuffAtElement),
+/* harmony export */   playSnakeCellBreakBurstAtElement: () => (/* binding */ playSnakeCellBreakBurstAtElement)
 /* harmony export */ });
 function playBurstConfettiAtElement(targetEl) {
   var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
@@ -2231,6 +2391,67 @@ function playSmokePuffAtElement(targetEl) {
     x: x,
     y: y
   }).generate().replay();
+}
+function playSnakeCellBreakBurstAtElement(targetEl) {
+  var _ref3 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
+    _ref3$parentEl = _ref3.parentEl,
+    parentEl = _ref3$parentEl === void 0 ? document.body : _ref3$parentEl,
+    _ref3$index = _ref3.index,
+    index = _ref3$index === void 0 ? 0 : _ref3$index;
+  var mojs = window.mojs;
+  if (!mojs || !targetEl || !parentEl) return;
+  var parentRect = parentEl.getBoundingClientRect();
+  var rect = targetEl.getBoundingClientRect();
+  var x = rect.left - parentRect.left + rect.width / 2;
+  var y = rect.top - parentRect.top + rect.height / 2;
+  var boost = Math.min(4, Math.max(0, Number(index) || 0));
+  var yellowShards = new mojs.Burst({
+    parent: parentEl,
+    left: 0,
+    top: 0,
+    x: x,
+    y: y,
+    count: 14 + boost,
+    radius: {
+      0: 62 + boost * 9
+    },
+    zIndex: 9,
+    children: {
+      shape: "rect",
+      fill: "#ffe54c",
+      radius: "rand(8.5,15.5)",
+      pathScale: [1, 0.3],
+      degreeShift: "rand(-28,28)",
+      duration: "rand(760,1100)",
+      delay: "rand(0,85)",
+      easing: "quart.out",
+      isForce3d: true
+    }
+  });
+  var blackBits = new mojs.Burst({
+    parent: parentEl,
+    left: 0,
+    top: 0,
+    x: x,
+    y: y,
+    count: 18 + boost,
+    radius: {
+      0: 74 + boost * 10
+    },
+    zIndex: 9,
+    children: {
+      shape: "circle",
+      fill: "black",
+      radius: "rand(7.2,13.2)",
+      pathScale: [1.1, 0.35],
+      degreeShift: "rand(-35,35)",
+      duration: "rand(820,1200)",
+      delay: "rand(0,95)",
+      easing: "quint.out",
+      isForce3d: true
+    }
+  });
+  new mojs.Timeline().add(yellowShards, blackBits).play();
 }
 
 /***/ },

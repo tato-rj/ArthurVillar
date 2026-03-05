@@ -747,7 +747,7 @@ var BaseStaffGame = /*#__PURE__*/function () {
     key: "_finishRoundAsTimedOut",
     value: function _finishRoundAsTimedOut() {
       var _this9 = this;
-      this._correctStreak = 0;
+      this._clearCorrectStreak();
       this._madeAnyMistake = true;
       this._madeMistakeThisRound = true;
       this._stats.checksTotal += 1;
@@ -1420,16 +1420,9 @@ var BaseStaffGame = /*#__PURE__*/function () {
       var bonus = Number.isFinite(this.opts.firstTryBonus) ? this.opts.firstTryBonus : 0;
       var earned = firstTry ? base + bonus : base;
       var bonusEarned = firstTry ? bonus : 0;
-      if (firstTry) {
-        this._correctStreak += 1;
-        if (this._correctStreak <= 1) {
-          // eslint-disable-next-line no-console
-          console.log("[BaseStaffGame] Correct answer. No streak yet.");
-        } else {
-          // eslint-disable-next-line no-console
-          console.log("[BaseStaffGame] Streak ".concat(this._correctStreak, "x"));
-        }
-      }
+      this._applyCorrectStreakForOutcome({
+        firstTry: firstTry
+      });
       this.points += earned;
       this.$points.text(String(this.points));
       this._showBonusBadge(bonusEarned);
@@ -1445,10 +1438,30 @@ var BaseStaffGame = /*#__PURE__*/function () {
       return Math.max(0, Number(this._correctStreak) || 0);
     }
   }, {
+    key: "_applyCorrectStreakForOutcome",
+    value: function _applyCorrectStreakForOutcome() {
+      var _ref3 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+        firstTry = _ref3.firstTry;
+      if (!firstTry) return;
+      this._correctStreak += 1;
+      if (this._correctStreak <= 1) {
+        // eslint-disable-next-line no-console
+        console.log("[BaseStaffGame] Correct answer. No streak yet.");
+      } else {
+        // eslint-disable-next-line no-console
+        console.log("[BaseStaffGame] Streak ".concat(this._correctStreak, "x"));
+      }
+    }
+  }, {
+    key: "_clearCorrectStreak",
+    value: function _clearCorrectStreak() {
+      this._correctStreak = 0;
+    }
+  }, {
     key: "_resetProgress",
     value: function _resetProgress() {
       this._syncPracticeUi();
-      this._correctStreak = 0;
+      this._clearCorrectStreak();
       this._madeAnyMistake = false;
       this.$progressBar.data("progress", 0);
       this.$progressBar.css({
@@ -1483,7 +1496,7 @@ var BaseStaffGame = /*#__PURE__*/function () {
     key: "_failAnimation",
     value: function _failAnimation($shakeTarget) {
       var _this16 = this;
-      this._correctStreak = 0;
+      this._clearCorrectStreak();
       this._playFailSfx();
       var $target = $shakeTarget || this.$checkWrap;
       $target.removeClass("animate__animated animate__shakeX");
@@ -2112,7 +2125,7 @@ function parsePitch(pitch) {
     A: 9,
     B: 11
   }[letter];
-  var accOffset = acc === "##" ? 2 : acc === "#" ? 1 : acc === "bb" ? -2 : acc === "b" ? -1 : 0;
+  var accOffset = acc === "𝄪" ? 2 : acc === "#" ? 1 : acc === "bb" ? -2 : acc === "b" ? -1 : 0;
   var accidentalClass = accidentalClassFromOffset(accOffset);
   var midi = 12 * (octave + 1) + baseSemitoneFromC + accOffset;
   return {
@@ -2278,7 +2291,8 @@ function renderFinalResultsOverlay(_ref) {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   playBurstConfettiAtElement: () => (/* binding */ playBurstConfettiAtElement),
-/* harmony export */   playSmokePuffAtElement: () => (/* binding */ playSmokePuffAtElement)
+/* harmony export */   playSmokePuffAtElement: () => (/* binding */ playSmokePuffAtElement),
+/* harmony export */   playSnakeCellBreakBurstAtElement: () => (/* binding */ playSnakeCellBreakBurstAtElement)
 /* harmony export */ });
 function playBurstConfettiAtElement(targetEl) {
   var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
@@ -2371,6 +2385,67 @@ function playSmokePuffAtElement(targetEl) {
     x: x,
     y: y
   }).generate().replay();
+}
+function playSnakeCellBreakBurstAtElement(targetEl) {
+  var _ref3 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
+    _ref3$parentEl = _ref3.parentEl,
+    parentEl = _ref3$parentEl === void 0 ? document.body : _ref3$parentEl,
+    _ref3$index = _ref3.index,
+    index = _ref3$index === void 0 ? 0 : _ref3$index;
+  var mojs = window.mojs;
+  if (!mojs || !targetEl || !parentEl) return;
+  var parentRect = parentEl.getBoundingClientRect();
+  var rect = targetEl.getBoundingClientRect();
+  var x = rect.left - parentRect.left + rect.width / 2;
+  var y = rect.top - parentRect.top + rect.height / 2;
+  var boost = Math.min(4, Math.max(0, Number(index) || 0));
+  var yellowShards = new mojs.Burst({
+    parent: parentEl,
+    left: 0,
+    top: 0,
+    x: x,
+    y: y,
+    count: 14 + boost,
+    radius: {
+      0: 62 + boost * 9
+    },
+    zIndex: 9,
+    children: {
+      shape: "rect",
+      fill: "#ffe54c",
+      radius: "rand(8.5,15.5)",
+      pathScale: [1, 0.3],
+      degreeShift: "rand(-28,28)",
+      duration: "rand(760,1100)",
+      delay: "rand(0,85)",
+      easing: "quart.out",
+      isForce3d: true
+    }
+  });
+  var blackBits = new mojs.Burst({
+    parent: parentEl,
+    left: 0,
+    top: 0,
+    x: x,
+    y: y,
+    count: 18 + boost,
+    radius: {
+      0: 74 + boost * 10
+    },
+    zIndex: 9,
+    children: {
+      shape: "circle",
+      fill: "black",
+      radius: "rand(7.2,13.2)",
+      pathScale: [1.1, 0.35],
+      degreeShift: "rand(-35,35)",
+      duration: "rand(820,1200)",
+      delay: "rand(0,95)",
+      easing: "quint.out",
+      isForce3d: true
+    }
+  });
+  new mojs.Timeline().add(yellowShards, blackBits).play();
 }
 
 /***/ },

@@ -37,6 +37,7 @@ class ToneTrailSettings extends GameFactory
     protected function defaults(): array
     {
         return [
+            'snakeSpeed' => 400,
             'timeLimit' => 40,
             'practiceMode' => false,
             'timer' => false,
@@ -46,6 +47,7 @@ class ToneTrailSettings extends GameFactory
             'sound' => true,
             'solfege' => false,
             'allowInitialAccidentals' => false,
+            'strictDirection' => false
         ];
     }
 
