@@ -19,6 +19,15 @@ export class ToneTrailChallenge {
     M7: "major 7th",
     P8: "perfect 8th",
   };
+  static LETTER_TO_SOLFEGE = {
+    C: "Do",
+    D: "Re",
+    E: "Mi",
+    F: "Fa",
+    G: "Sol",
+    A: "La",
+    B: "Si",
+  };
 
   constructor(options = {}) {
     const defaults = {
@@ -31,6 +40,7 @@ export class ToneTrailChallenge {
       firstTryBonus: 2,
       numOfChallenges: 4,
       practiceMode: false,
+      solfege: false,
       strictDirection: false,
       intervals: Object.keys(ToneTrailChallenge.INTERVAL_FULL_NAME_MAP),
       namespace: "toneTrailChallenge",
@@ -229,9 +239,28 @@ export class ToneTrailChallenge {
     return this._normalizeOnOff(this.opts.strictDirection);
   }
 
+  _isSolfege() {
+    return this._normalizeOnOff(this.opts.solfege);
+  }
+
   _pickIntervalDirection() {
     if (!this._isStrictDirection()) return 1;
     return Math.random() < 0.5 ? -1 : 1;
+  }
+
+  _noteDisplay({ letter, accOffset = 0 } = {}) {
+    const L = String(letter || "").toUpperCase();
+    const base = this._isSolfege()
+      ? (ToneTrailChallenge.LETTER_TO_SOLFEGE[L] || L)
+      : L;
+    const off = Number(accOffset) || 0;
+    const accText =
+      off === 2 ? "##" :
+      off === 1 ? "#" :
+      off === -1 ? "b" :
+      off === -2 ? "bb" :
+      "";
+    return `${base}${accText}`;
   }
 
   _noteObj(letter, accOffset = 0) {
@@ -249,7 +278,7 @@ export class ToneTrailChallenge {
       accOffset: off,
       pitchClass,
       canonical: `${letter}${accText}`,
-      display: `${letter}${accText}`,
+      display: this._noteDisplay({ letter, accOffset: off }),
     };
   }
 
