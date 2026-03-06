@@ -55,6 +55,5 @@
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.js"></script>
-<script src="{{ mix('js/music/chords.js') }}"></script>
-{{-- <script type="module" src="{{ asset('js/dev-music/games/chords.js') }}"></script> --}}
+<script src="{{ mix('js/music/chordslab.js') }}"></script>
 @endpush

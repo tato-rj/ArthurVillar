@@ -1,4 +1,4 @@
-// resources/js/music/games/dictation/DictationChallenge.dev.js
+// resources/js/music/games/pitchdetective/PitchDetective.js
 import { BaseStaffGame } from "../base/BaseStaffGame.js";
 import {
   pickOne,
@@ -23,7 +23,7 @@ import {
  * - The player enters exactly ONE note (the heard note) above/below the fixed note.
  * - Answer checking is pitch-only (enharmonic spellings are accepted).
  */
-export class DictationChallenge extends BaseStaffGame {
+export class PitchDetective extends BaseStaffGame {
   static INTERVALS_DEFAULT = ["M2", "m3", "M3", "P5", "P8"];
 
   constructor(options = {}) {
@@ -31,7 +31,7 @@ export class DictationChallenge extends BaseStaffGame {
       staffEl: "#staff",
       basePoints: 1,
       firstTryBonus: 2,
-      namespace: "dictationChallenge",
+      namespace: "pitchDetective",
 
       // Dictation: one user note (the heard note).
       maxUserNotes: 1,
@@ -51,7 +51,7 @@ export class DictationChallenge extends BaseStaffGame {
       intervals:
         Array.isArray(options.intervals) && options.intervals.length
           ? options.intervals.slice()
-          : DictationChallenge.INTERVALS_DEFAULT.slice(),
+          : PitchDetective.INTERVALS_DEFAULT.slice(),
     };
 
     const clefPool = normalizeClefPool(
@@ -209,7 +209,7 @@ export class DictationChallenge extends BaseStaffGame {
     const pool =
       Array.isArray(this.opts.intervals) && this.opts.intervals.length
         ? this.opts.intervals
-        : DictationChallenge.INTERVALS_DEFAULT;
+        : PitchDetective.INTERVALS_DEFAULT;
     return pool[Math.floor(Math.random() * pool.length)];
   }
 

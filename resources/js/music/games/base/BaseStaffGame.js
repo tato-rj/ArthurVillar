@@ -565,6 +565,62 @@ export class BaseStaffGame {
     });
   }
 
+  _playRunStartFanfareSfx() {
+    if (!this.isSoundEnabled() || !window.Tone) return;
+
+    this._ensureUiSfxAudio().then(() => {
+      if (!this._uiSfxSynth) return;
+
+      const now = Tone.now();
+      // French-overture style: dotted long-short gestures, ceremonial but "opening".
+      // 4 rhythmic motifs x 5 tonal centers = 20 variants.
+      const motifs = [
+        // Motif A: tonic -> chromatic lift -> suspended color
+        [
+          [[0, 7], 0.00, 0.19, 0.20],
+          [[3, 7], 0.24, 0.06, 0.18],
+          [[0, 5, 10], 0.38, 0.18, 0.22],
+          [[2, 5, 9], 0.62, 0.06, 0.18],
+          [[0, 7, 12], 0.76, 0.15, 0.22],
+        ],
+        // Motif B: minor color then bright turn
+        [
+          [[0, 3, 7], 0.00, 0.18, 0.20],
+          [[2, 5, 9], 0.23, 0.06, 0.18],
+          [[0, 7], 0.36, 0.18, 0.22],
+          [[4, 7, 11], 0.60, 0.06, 0.18],
+          [[0, 5, 9], 0.74, 0.15, 0.22],
+        ],
+        // Motif C: fanfare call/response
+        [
+          [[0, 12], 0.00, 0.20, 0.19],
+          [[7, 12], 0.25, 0.06, 0.17],
+          [[2, 9, 14], 0.39, 0.18, 0.21],
+          [[5, 9, 12], 0.63, 0.06, 0.17],
+          [[0, 7, 10], 0.77, 0.16, 0.21],
+        ],
+        // Motif D: stately dotted march
+        [
+          [[0, 5], 0.00, 0.19, 0.20],
+          [[2, 5], 0.24, 0.06, 0.18],
+          [[0, 4, 9], 0.38, 0.18, 0.22],
+          [[-1, 4, 7], 0.62, 0.06, 0.18],
+          [[0, 7, 11], 0.76, 0.15, 0.22],
+        ],
+      ];
+      const roots = [53, 55, 57, 58, 60]; // F3..C4
+      const variantIndex = Math.floor(Math.random() * 20);
+      const motif = motifs[Math.floor(variantIndex / roots.length)];
+      const root = roots[variantIndex % roots.length];
+      const toNote = (m) => Tone.Frequency(m, "midi").toNote();
+
+      motif.forEach(([intervals, t, dur, vel]) => {
+        const notes = intervals.map((i) => toNote(root + i));
+        this._uiSfxSynth.triggerAttackRelease(notes, dur, now + t, vel);
+      });
+    });
+  }
+
   // ------------------------ lifecycle ------------------------
 
   _isTimerEnabled() {
@@ -1270,6 +1326,25 @@ export class BaseStaffGame {
     this.$accidentals.addClass("invisible");
     this.$feedback.find(".message span").text(pickOne(this.successPhrases));
     this.$feedback.stop(true, true).fadeIn("fast");
+  }
+
+  _runSuccessFeedbackTransition({ $interval = null, delayMs = 800, onDone = null } = {}) {
+    if (this._successFeedbackTimeoutId != null) {
+      clearTimeout(this._successFeedbackTimeoutId);
+      this._successFeedbackTimeoutId = null;
+    }
+
+    if ($interval?.length) $interval.hide();
+
+    const safeDelay = Math.max(0, Number(delayMs) || 0);
+    this._successFeedbackTimeoutId = setTimeout(() => {
+      this._successFeedbackTimeoutId = null;
+      this.$feedback?.hide?.();
+      if ($interval?.length) $interval.show();
+      if (typeof onDone === "function") onDone();
+    }, safeDelay);
+
+    return this._successFeedbackTimeoutId;
   }
 
   _showIncrement(earned) {

@@ -1,0 +1,65 @@
+<?php
+
+namespace App\Games;
+
+class KeysLabSettings extends GameFactory
+{   
+    public function gameName(): string 
+    {
+        return 'Keys Lab';
+    }
+
+    public function gameIcon(): string
+    {
+        return 'flask';
+    }
+    
+    public function gameDescription() : string 
+    {
+        return 'Find and build chromatic intervals on the staff.';
+    }
+
+    public function gameTheme(): string 
+    {
+        return 'pink';
+    }
+
+    public function gameUrl(): string 
+    {
+        return route('theory.keys-lab.play');
+    }
+
+    protected function requiredToggleKeys(): array
+    {
+        return ['sound', 'showLetterNames', 'allowInitialAccidentals'];
+    }
+
+    protected function defaults(): array
+    {
+        return [
+            'timeLimit' => 20,
+            'practiceMode' => false,
+            'timer' => false,
+            'maxUserNotes' => 1,
+            'numOfChallenges' => 4,
+            'intervals' => ['M2', 'm3', 'M3', 'P5', 'P8'],
+            'clefs' => ['treble', 'bass'],
+            'fixedNotes' => [],
+            'sound' => true,
+            'showLetterNames' => false,
+            'allowInitialAccidentals' => false,
+            'initialNoteRange' => 0,
+            'strictDirection' => false
+        ];
+    }
+
+    public function options($key = null)
+    {
+        $options = $this->applyUserPreferences();
+
+        $weights = $this->getAccidentalWeights()[(bool) $options['allowInitialAccidentals']];
+        $array = array_merge($options, ['accidentalWeights' => $weights]);
+
+        return $key ? $array[$key] : $array;
+    }
+}

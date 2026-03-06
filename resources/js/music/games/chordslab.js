@@ -1,9 +1,9 @@
-import { ChordsChallenge } from "./chords/ChordsChallenge.js";
+import { ChordsLab } from "./chordslab/ChordsLab.js";
 
 const options = readGlobal("__challengeOptions") || {};
 const clefUrls = readGlobal("__clefUrls") || null;
 
-const game = new ChordsChallenge({
+const game = new ChordsLab({
   ...options,
   clefUrls,
 });

@@ -16,9 +16,10 @@
 
         @include('theory.card', ['settings' => $intervalsLabSettings])
         @include('theory.card', ['settings' => $chordsLabSettings])
+        @include('theory.card', ['settings' => $keysLabSettings])
         @include('theory.card', ['settings' => $pitchDetectiveSettings])
         @include('theory.card', ['settings' => $toneTrekSettings])
-        @include('theory.card', ['settings' => $toneSnakeSettings])
+        @include('theory.card', ['settings' => $notePythonSettings])
     </div>
 </section>
 @endsection

@@ -3,7 +3,7 @@ import { renderFinalResultsOverlay } from "../shared/finalResults.js";
 import { playSnakeCellBreakBurstAtElement } from "../shared/mojsEffects.js";
 import { playSmokePuffAtElement } from "../shared/mojsEffects.js";
 
-export class ToneTrailChallenge {
+export class NotePython {
   static INTERVAL_FULL_NAME_MAP = {
     m2: "minor 2nd",
     M2: "major 2nd",
@@ -42,12 +42,36 @@ export class ToneTrailChallenge {
       practiceMode: false,
       solfege: false,
       strictDirection: false,
-      intervals: Object.keys(ToneTrailChallenge.INTERVAL_FULL_NAME_MAP),
-      namespace: "toneTrailChallenge",
+      successPhrases: [
+        "Awesome",
+        "Nicely done",
+        "Well done",
+        "Great job",
+        "Hooray",
+        "Fantastic",
+        "Nice work",
+        "Looks good",
+        "Good one",
+        "Splendid",
+        "Way to go",
+        "Nailed it",
+        "Brilliant",
+        "Excellent",
+        "Superb",
+        "Right on",
+        "You got it",
+        "Perfect",
+        "Spot on",
+        "Impressive",
+        "Top notch",
+        "That’s it",
+      ],
+      intervals: Object.keys(NotePython.INTERVAL_FULL_NAME_MAP),
+      namespace: "notePython",
     };
 
     this.opts = { ...defaults, ...(options || {}) };
-    this.ns = this.opts.namespace || "toneTrailChallenge";
+    this.ns = this.opts.namespace || "notePython";
     this.$board = $(this.opts.boardEl).first();
     this.$countdown = $("#game-countdown").first();
     this.$countdownText = this.$countdown.find("h1").first();
@@ -61,6 +85,9 @@ export class ToneTrailChallenge {
     if (!this.$intervalFull.length) this.$intervalFull = this.$interval.find("div").last();
     this.$points = $("#points");
     this.$increment = $("#increment");
+    this.$feedback = $("#feedback-success");
+    this.$helpBtn = $("#help");
+    this.$accidentals = $("#accidentals");
     this.$progressBar = $("#progress-bar");
     this.$progressCounter = $("#progress-counter");
     this.$finalOverlay = $("#final-overlay");
@@ -102,6 +129,9 @@ export class ToneTrailChallenge {
       checksCorrect: 0,
       finishedAtMs: null,
     };
+    this.successPhrases = Array.isArray(this.opts.successPhrases) && this.opts.successPhrases.length
+      ? this.opts.successPhrases.slice()
+      : ["Great job"];
   }
 
   _gridRows() {
@@ -192,13 +222,13 @@ export class ToneTrailChallenge {
 
   _fullNameForInterval(abbr) {
     const key = String(abbr || "").trim();
-    return ToneTrailChallenge.INTERVAL_FULL_NAME_MAP[key] || this._deriveFullNameFromAbbr(key);
+    return NotePython.INTERVAL_FULL_NAME_MAP[key] || this._deriveFullNameFromAbbr(key);
   }
 
   _intervalPool() {
     const pool = Array.isArray(this.opts.intervals) ? this.opts.intervals : null;
     if (pool && pool.length) return pool.slice();
-    return Object.keys(ToneTrailChallenge.INTERVAL_FULL_NAME_MAP);
+    return Object.keys(NotePython.INTERVAL_FULL_NAME_MAP);
   }
 
   _pickInterval() {
@@ -251,7 +281,7 @@ export class ToneTrailChallenge {
   _noteDisplay({ letter, accOffset = 0 } = {}) {
     const L = String(letter || "").toUpperCase();
     const base = this._isSolfege()
-      ? (ToneTrailChallenge.LETTER_TO_SOLFEGE[L] || L)
+      ? (NotePython.LETTER_TO_SOLFEGE[L] || L)
       : L;
     const off = Number(accOffset) || 0;
     const accText =
@@ -632,6 +662,7 @@ export class ToneTrailChallenge {
 
       setTimeout(() => {
         this.$board.find(".board-cell").removeClass("snake snake-head");
+        this.$board.find(".board-cell .food-note").remove();
       }, 80);
     };
 
@@ -773,20 +804,19 @@ export class ToneTrailChallenge {
       this._applyCorrectStreakForOutcome({ firstTry });
 
       const earned = this._awardPointsForCorrect();
-      if (this._isPracticeMode()) this._playSuccessSfxBasic();
-      else if (this._madeMistakeThisRound) this._playSuccessSfxBasic();
-      else this._playSuccessSfxBonus();
+      const isBonusSuccess = !this._isPracticeMode() && !this._madeMistakeThisRound;
+      this._successAnimation({ isBonus: isBonusSuccess });
       if (earned > 0) this._showIncrement(earned);
 
       this._updateProgressBar();
       this._madeMistakeThisRound = false;
       this._headNote = this._cloneNote(eatenFood.note);
       this._animateBoardCorrectHit();
+      this._renderEntities();
 
       if (!this._isPracticeMode() && this._roundsCompleted >= (Number(this.opts.numOfChallenges) || 4)) {
         this._isGameOver = true;
         this._stopLoop();
-        this._renderEntities();
         this._animateSnakeFinalCelebrate();
         this._stats.finishedAtMs = Date.now();
         if (this._finalResultsTimeoutId != null) clearTimeout(this._finalResultsTimeoutId);
@@ -797,9 +827,18 @@ export class ToneTrailChallenge {
         return;
       }
 
-      this._setIntervalUIWithDirection(this._pickInterval(), this._pickIntervalDirection());
-      this._spawnFoods(2);
-      this._ensureTargetFoodPresent();
+      this._runSuccessFeedbackTransition({
+        $interval: this.$interval,
+        delayMs: 700,
+        onDone: () => {
+          if (this._isGameOver) return;
+          this._setIntervalUIWithDirection(this._pickInterval(), this._pickIntervalDirection());
+          this._spawnFoods(2);
+          this._ensureTargetFoodPresent();
+          this._renderEntities();
+        },
+      });
+      return;
     } else if (eatenFood) {
       this._stats.checksTotal += 1;
       this._madeAnyMistake = true;
@@ -841,6 +880,20 @@ export class ToneTrailChallenge {
     this.$countdownText.addClass("animate__animated animate__bounceInDown");
   }
 
+  _playCountdownBeepSfx() {
+    if (!this._isSoundEnabled()) return;
+    this._ensureUiSfxAudio();
+    if (!window.Tone) return;
+    const synth = this._uiTimerSfxSynth || this._uiSfxSynth;
+    if (!synth) return;
+    const now = Tone.now();
+    synth.triggerAttackRelease("B5", 0.06, now, 0.2);
+  }
+
+  _playCountdownGoFanfareSfx() {
+    return BaseStaffGame.prototype._playRunStartFanfareSfx.call(this);
+  }
+
   _runCountdownThenStart() {
     if (!this.$countdown.length || !this.$countdownText.length) {
       this._placeInitialSnake();
@@ -861,6 +914,8 @@ export class ToneTrailChallenge {
     steps.forEach((label, i) => {
       const tid = setTimeout(() => {
         this._showCountdownStep(label);
+        if (label === "GO!") this._playCountdownGoFanfareSfx();
+        else this._playCountdownBeepSfx();
       }, i * stepMs);
       this._countdownTimeouts.push(tid);
     });
@@ -875,7 +930,7 @@ export class ToneTrailChallenge {
       this._ensureTargetFoodPresent();
       this._renderEntities();
       this._startLoop();
-    }, steps.length * stepMs);
+    }, (steps.length * stepMs) + 500);
     this._countdownTimeouts.push(doneTid);
   }
 
@@ -898,7 +953,6 @@ export class ToneTrailChallenge {
       .off(`click.${this.ns}Start`)
       .one(`click.${this.ns}Start`, (e) => {
         e.preventDefault();
-        this._playStartTadaSfx();
         this.$startBtn.hide();
         this._runCountdownThenStart();
       });
@@ -967,6 +1021,7 @@ export class ToneTrailChallenge {
     this._stats = { checksTotal: 0, checksCorrect: 0, finishedAtMs: null };
     this._finalStartMs = Date.now();
     this._syncPracticeUi();
+    this.$feedback?.hide?.();
     this.$points.text("0");
     this.$progressBar.data("progress", 0).css({ width: "0%" });
     if (this._isPracticeMode()) this.$progressCounter.text("Practice");
@@ -1063,6 +1118,14 @@ export class ToneTrailChallenge {
     return BaseStaffGame.prototype._playSuccessSfxBonus.call(this);
   }
 
+  _successAnimation(args) {
+    return BaseStaffGame.prototype._successAnimation.call(this, args);
+  }
+
+  _runSuccessFeedbackTransition(args) {
+    return BaseStaffGame.prototype._runSuccessFeedbackTransition.call(this, args);
+  }
+
   _applyCorrectStreakForOutcome(args) {
     return BaseStaffGame.prototype._applyCorrectStreakForOutcome.call(this, args);
   }
@@ -1097,20 +1160,6 @@ export class ToneTrailChallenge {
 
   _clearFinalMetricsSfxTimers() {
     return BaseStaffGame.prototype._clearFinalMetricsSfxTimers.call(this);
-  }
-
-  _playStartTadaSfx() {
-    if (!this._isSoundEnabled()) return;
-    this._ensureUiSfxAudio();
-    if (!window.Tone || !this._uiSfxSynth) return;
-
-    const now = Tone.now();
-    const v = this._uiSfxSynth.volume?.value;
-    if (typeof v === "number") this._uiSfxSynth.volume.value = Math.min(v, -7);
-
-    this._uiSfxSynth.triggerAttackRelease(["C5", "E5", "G5"], "0.14", now, 0.95);
-    this._uiSfxSynth.triggerAttackRelease(["E5", "A5", "C6"], "0.18", now + 0.15, 0.95);
-    this._uiSfxSynth.triggerAttackRelease(["G5", "C6", "E6"], "0.24", now + 0.33, 1);
   }
 
   _animateFinalMetricsWithSfx() {

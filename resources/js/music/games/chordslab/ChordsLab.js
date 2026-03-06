@@ -13,7 +13,7 @@ import {
   pickChallengeClef,
 } from "../shared/challengeUtils.js";
 
-export class ChordsChallenge extends BaseStaffGame {
+export class ChordsLab extends BaseStaffGame {
   static TRIAD_QUALITY_FULL_NAME_MAP = {
     major: "major",
     minor: "minor",
@@ -34,7 +34,7 @@ export class ChordsChallenge extends BaseStaffGame {
       basePoints: 1,
       firstTryBonus: 2,
       strictDirection: false,
-      namespace: "chordsChallenge",
+      namespace: "chordsLab",
       // BaseStaffGame UI gating: triads need 2 user notes before Check/instructions
       instructionsAfterUserNotes: 2,
       checkAfterUserNotes: 2,
@@ -52,7 +52,7 @@ export class ChordsChallenge extends BaseStaffGame {
       triadQualities:
         Array.isArray(options.triadQualities) && options.triadQualities.length
           ? options.triadQualities.slice()
-          : Object.keys(ChordsChallenge.TRIAD_QUALITY_FULL_NAME_MAP),
+          : Object.keys(ChordsLab.TRIAD_QUALITY_FULL_NAME_MAP),
     };
 
     const clefPool = normalizeClefPool(
@@ -165,7 +165,7 @@ _formatShortLabelHtml(shortLabel) {
       return `${r}ø`;
     }
 
-    const suffix = ChordsChallenge.TRIAD_QUALITY_SHORT_SUFFIX_MAP[q] ?? "";
+    const suffix = ChordsLab.TRIAD_QUALITY_SHORT_SUFFIX_MAP[q] ?? "";
     const base = `${r}${suffix}`;
     if (!seventhType) return base;
     return seventhType === "maj7" ? `${base}maj7` : `${base}7`;
@@ -174,7 +174,7 @@ _formatShortLabelHtml(shortLabel) {
   _triadFullName(root, quality, seventhType = null) {
     const r = String(root || "").trim();
     const q = String(quality || "").trim();
-    const qWord = ChordsChallenge.TRIAD_QUALITY_FULL_NAME_MAP[q] || q;
+    const qWord = ChordsLab.TRIAD_QUALITY_FULL_NAME_MAP[q] || q;
 
     // Special diminished 7th naming:
     if (q === "diminished" && seventhType) {
@@ -200,7 +200,7 @@ _formatShortLabelHtml(shortLabel) {
     const shortLabel = root ? this._triadShortName(root, q, this._currentSeventhType) : q;
     const fullLabel = root
       ? this._triadFullName(root, q, this._currentSeventhType)
-      : (ChordsChallenge.TRIAD_QUALITY_FULL_NAME_MAP[q] || q);
+      : (ChordsLab.TRIAD_QUALITY_FULL_NAME_MAP[q] || q);
 
     if (this.$intervalLabel?.length) this.$intervalLabel.html(this._formatShortLabelHtml(shortLabel));
     if (this.$intervalFull?.length) this.$intervalFull.text(fullLabel);
@@ -635,7 +635,7 @@ _pickChordSpec() {
   const poolRaw =
     Array.isArray(this.opts.triadQualities) && this.opts.triadQualities.length
       ? this.opts.triadQualities
-      : Object.keys(ChordsChallenge.TRIAD_QUALITY_FULL_NAME_MAP);
+      : Object.keys(ChordsLab.TRIAD_QUALITY_FULL_NAME_MAP);
 
   const pool = poolRaw.length ? poolRaw : ["major", "minor", "diminished", "augmented"];
 

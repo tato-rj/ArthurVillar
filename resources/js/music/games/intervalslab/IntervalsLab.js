@@ -12,7 +12,7 @@ import {
   pickChallengeClef,
 } from "../shared/challengeUtils.js";
 
-export class IntervalsChallenge extends BaseStaffGame {
+export class IntervalsLab extends BaseStaffGame {
   static INTERVAL_FULL_NAME_MAP = {
     m2: "minor 2nd",
     M2: "major 2nd",
@@ -35,7 +35,7 @@ export class IntervalsChallenge extends BaseStaffGame {
       basePoints: 1,
       firstTryBonus: 2,
       strictDirection: false,
-      namespace: "intervalsChallenge",
+      namespace: "intervalsLab",
     };
 
     const merged = {
@@ -47,7 +47,7 @@ export class IntervalsChallenge extends BaseStaffGame {
       },
       intervals: Array.isArray(options.intervals)
         ? options.intervals.slice()
-        : Object.keys(IntervalsChallenge.INTERVAL_FULL_NAME_MAP),
+        : Object.keys(IntervalsLab.INTERVAL_FULL_NAME_MAP),
     };
 
     const clefPool = normalizeClefPool(
@@ -96,7 +96,7 @@ export class IntervalsChallenge extends BaseStaffGame {
 
   _fullNameForInterval(abbr) {
     const key = String(abbr || "").trim();
-    return IntervalsChallenge.INTERVAL_FULL_NAME_MAP[key] || this._deriveFullNameFromAbbr(key);
+    return IntervalsLab.INTERVAL_FULL_NAME_MAP[key] || this._deriveFullNameFromAbbr(key);
   }
 
   _setIntervalUI(intervalAbbr, direction = 1) {

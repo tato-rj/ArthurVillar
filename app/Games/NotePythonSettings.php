@@ -2,11 +2,11 @@
 
 namespace App\Games;
 
-class ToneSnakeSettings extends GameFactory
+class NotePythonSettings extends GameFactory
 {   
     public function gameName(): string
     {
-        return 'Tone Snake';
+        return 'Note Python';
     }
     
     public function gameIcon(): string
@@ -26,7 +26,7 @@ class ToneSnakeSettings extends GameFactory
 
     public function gameUrl(): string 
     {
-        return route('theory.tone-snake.play');
+        return route('theory.note-python.play');
     }
 
     protected function requiredToggleKeys(): array

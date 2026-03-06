@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Theory;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Games\{IntervalsLabSettings, ChordsLabSettings, PitchDetectiveSettings, ToneTrekSettings, ToneSnakeSettings};
+use App\Games\{IntervalsLabSettings, ChordsLabSettings, PitchDetectiveSettings, ToneTrekSettings, NotePythonSettings, KeysLabSettings};
 
 class TheoryController extends Controller
 {
@@ -14,9 +14,10 @@ class TheoryController extends Controller
         $chordsLabSettings = new ChordsLabSettings;
         $pitchDetectiveSettings = new PitchDetectiveSettings;
         $toneTrekSettings = new ToneTrekSettings;
-        $toneSnakeSettings = new ToneSnakeSettings;
+        $notePythonSettings = new NotePythonSettings;
+        $keysLabSettings = new KeysLabSettings;
 
-        return view('theory.index', compact('intervalsLabSettings', 'chordsLabSettings', 'pitchDetectiveSettings', 'toneTrekSettings', 'toneSnakeSettings'));
+        return view('theory.index', compact('intervalsLabSettings', 'chordsLabSettings', 'pitchDetectiveSettings', 'toneTrekSettings', 'notePythonSettings', 'keysLabSettings'));
     }
 
     public function intervalsLab(Request $request)
@@ -47,10 +48,10 @@ class TheoryController extends Controller
         return view('theory.pitch-detective.index', compact('settings'));
     }
 
-    public function toneSnake(Request $request)
+    public function notePython(Request $request)
     {
-        $settings = new ToneSnakeSettings($request->all());
-// return $settings->options();
-        return view('theory.tone-snake.index', compact('settings'));
+        $settings = new NotePythonSettings($request->all());
+
+        return view('theory.note-python.index', compact('settings'));
     }
 }

@@ -11,9 +11,9 @@
 
 	<div id="score">
 		<div class="d-center"> 
-			@fa(['icon' => 'bolt', 'mr' => 1, 'fa_color' => 'primary'])
+			@fa(['icon' => 'bolt', 'mr' => 0, 'fa_color' => 'primary'])
 			<div class="d-flex align-items-baseline">
-				<div class="position-relative h4 m-0">
+				<div class="position-relative h2 m-0">
 					<span id="points" class="fw-bold text-primary">0</span>
 					<span id="increment" class="position-absolute right-0 fw-bold text-light opacity-4">+1</span>
 				</div>

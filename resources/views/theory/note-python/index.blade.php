@@ -13,21 +13,21 @@
 
 <style>
   :root {
-    --tone-snake-board-size: 368px;
-    --tone-snake-border-width: 6px;
-    --tone-snake-board-cols: 9;
-    --tone-snake-cell-size: calc(var(--tone-snake-board-size) / var(--tone-snake-board-cols));
+    --note-python-board-size: 368px;
+    --note-python-border-width: 6px;
+    --note-python-board-cols: 9;
+    --note-python-cell-size: calc(var(--note-python-board-size) / var(--note-python-board-cols));
   }
 
   #board { 
     display: inline-grid; 
-    grid-template-columns: repeat(var(--tone-snake-board-cols), var(--tone-snake-cell-size));
-    grid-auto-rows: var(--tone-snake-cell-size);
+    grid-template-columns: repeat(var(--note-python-board-cols), var(--note-python-cell-size));
+    grid-auto-rows: var(--note-python-cell-size);
     gap:0; 
-    width: calc(var(--tone-snake-board-size) + calc(var(--tone-snake-border-width) * 2));
-    height: calc(var(--tone-snake-board-size) + calc(var(--tone-snake-border-width) * 2));
+    width: calc(var(--note-python-board-size) + calc(var(--note-python-border-width) * 2));
+    height: calc(var(--note-python-board-size) + calc(var(--note-python-border-width) * 2));
     background: white;
-    border: var(--tone-snake-border-width) solid rgba(0,0,0,0.1);
+    border: var(--note-python-border-width) solid rgba(0,0,0,0.1);
   }
 
   @keyframes greenBoard {
@@ -56,8 +56,8 @@
   }
 
   .board-cell {
-    width: var(--tone-snake-cell-size);
-    height: var(--tone-snake-cell-size);
+    width: var(--note-python-cell-size);
+    height: var(--note-python-cell-size);
     border: 1px dotted rgba(0,0,0,0.05);
   }
 
@@ -65,12 +65,14 @@
     background: #ffe54c;
     border-radius: 4px;
     border: .5px solid black;
+    transform: scale(.8);
   }
 
   .snake-head {
     background: #ffe54c;
     border: .5px solid black;
     border-radius: 4px;
+    transform: scale(1);
   }
 
   .food {
@@ -101,10 +103,10 @@
       @include('theory.components.timer')
     </div>
     <div class="col-12 mx-auto mb-2 position-relative">
-      <div id="board-wrapper" style="display: none" class="text-center mx-auto position-relative animate__animated animate__flipInX">
+      <div id="board-wrapper" style="display: none" class="text-center mx-auto position-relative ">
 
             <div id="game-countdown" class="position-absolute w-100 h-100 d-center">
-              <button type="button" class="btn btn-primary btn-lg">START GAME</button>
+              <button type="button" class="btn btn-primary btn-lg animate__animated animate__flipInX">START GAME</button>
               <h1 class="animate__animated animate__bounceInDown"></h1>
             </div>
           <div id="board" class="my-2 mx-auto position-relative"></div>
@@ -116,8 +118,8 @@
 
     <div class="col-lg-6 col-md-8 col-11 mx-auto">
       @include('theory.components.controls')
-      @include('theory.tone-snake.modals.settings')
-      @include('theory.tone-snake.modals.instructions')
+      @include('theory.note-python.modals.settings')
+      @include('theory.note-python.modals.instructions')
       @include('theory.components.preferences')
     </div>
   </div>
@@ -128,5 +130,5 @@
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.js"></script>
-<script src="{{ mix('js/music/tonetrail.js') }}"></script>
+<script src="{{ mix('js/music/notepython.js') }}"></script>
 @endpush

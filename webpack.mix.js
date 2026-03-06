@@ -12,11 +12,11 @@ const mix = require('laravel-mix');
  */
 
 mix.js('resources/js/app.js', 'public/js')
-    .js('resources/js/music/games/intervals.js', 'public/js/music')
-    .js('resources/js/music/games/chords.js', 'public/js/music')
-    .js('resources/js/music/games/dictation.js', 'public/js/music')
-    .js('resources/js/music/games/blocks.js', 'public/js/music')
-    .js('resources/js/music/games/tonetrail.js', 'public/js/music')
+    .js('resources/js/music/games/intervalslab.js', 'public/js/music')
+    .js('resources/js/music/games/chordslab.js', 'public/js/music')
+    .js('resources/js/music/games/pitchdetective.js', 'public/js/music')
+    .js('resources/js/music/games/tonetrek.js', 'public/js/music')
+    .js('resources/js/music/games/notepython.js', 'public/js/music')
     .sass('resources/sass/app.scss', 'public/css')
     .sass('resources/sass/musicgames.scss', 'public/css')
     .copyDirectory('resources/js/vendor', 'public/js/vendor')

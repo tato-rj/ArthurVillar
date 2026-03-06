@@ -1,7 +1,7 @@
 import { renderFinalResultsOverlay } from "../shared/finalResults.js";
 import { BaseStaffGame } from "../base/BaseStaffGame.js";
 
-export class BlocksChallenge {
+export class ToneTrek {
   static INTERVALS_FALLBACK = [
     "m2", "M2", "m3", "M3", "P4", "A4", "d5", "P5", "m6", "M6", "m7", "M7", "P8",
   ];
@@ -40,7 +40,7 @@ export class BlocksChallenge {
       basePoints: 1,
       firstTryBonus: 2,
       numOfChallenges: 4,
-      namespace: "blocksChallenge",
+      namespace: "toneTrek",
     };
 
     this.opts = { ...defaults, ...(options || {}) };
@@ -64,7 +64,7 @@ export class BlocksChallenge {
     this.$points = $("#points");
     this.$finalOverlay = $("#final-overlay");
     this.$doublePoints = $("#double-points");
-    this.ns = this.opts.namespace || "blocksChallenge";
+    this.ns = this.opts.namespace || "toneTrek";
     this._audioReady = false;
     this._synth = null;
     this._uiSfxReady = false;
@@ -118,8 +118,8 @@ export class BlocksChallenge {
   _normalizeNumOfChallenges(raw) {
     const n = Number(raw);
     const safe = Number.isFinite(n) ? Math.trunc(n) : 4;
-    if (safe < BlocksChallenge.MIN_CHALLENGES) return BlocksChallenge.MIN_CHALLENGES;
-    if (safe > BlocksChallenge.MAX_CHALLENGES) return BlocksChallenge.MAX_CHALLENGES;
+    if (safe < ToneTrek.MIN_CHALLENGES) return ToneTrek.MIN_CHALLENGES;
+    if (safe > ToneTrek.MAX_CHALLENGES) return ToneTrek.MAX_CHALLENGES;
     return safe;
   }
 
@@ -285,7 +285,7 @@ export class BlocksChallenge {
           c: cell.c,
           i,
           cls: "block",
-          html: `<div><span style="opacity: 0.2; font-size: 3rem;">?</span><input type="text" name="note"></div>`,
+          html: `<div><span style="opacity: 0.2; font-size: 1rem;">ADD NOTE HERE</span><input type="text" name="note"></div>`,
         });
       }
 
@@ -299,7 +299,7 @@ export class BlocksChallenge {
     const fromOptions = Array.isArray(this.opts.intervals)
       ? this.opts.intervals.filter(Boolean).map((x) => String(x).trim())
       : [];
-    return fromOptions.length ? fromOptions : BlocksChallenge.INTERVALS_FALLBACK.slice();
+    return fromOptions.length ? fromOptions : ToneTrek.INTERVALS_FALLBACK.slice();
   }
 
   _normalizeOnOff(v) {
@@ -334,7 +334,7 @@ export class BlocksChallenge {
     if (!noteObj) return "";
     const letter = String(noteObj.letter || "").toUpperCase();
     const base = this._isSolfegeEnabled()
-      ? (BlocksChallenge.LETTER_TO_SOLFEGE[letter] || letter)
+      ? (ToneTrek.LETTER_TO_SOLFEGE[letter] || letter)
       : letter;
     return `${base}${this._accidentalDisplayFromOffset(Number(noteObj.accOffset) || 0)}`;
   }
@@ -347,7 +347,7 @@ export class BlocksChallenge {
       const letter = String($btn.attr("data-lettername") || "").trim().toUpperCase();
       const sol = String($btn.attr("data-solfege") || "").trim();
       const label = useSolfege
-        ? (sol ? sol.charAt(0).toUpperCase() + sol.slice(1).toLowerCase() : (BlocksChallenge.LETTER_TO_SOLFEGE[letter] || letter))
+        ? (sol ? sol.charAt(0).toUpperCase() + sol.slice(1).toLowerCase() : (ToneTrek.LETTER_TO_SOLFEGE[letter] || letter))
         : letter;
       $btn.text(label);
     });
@@ -445,7 +445,7 @@ export class BlocksChallenge {
     const fromOptions = Array.isArray(this.opts.intervals)
       ? this.opts.intervals.filter(Boolean)
       : [];
-    const pool = fromOptions.length ? fromOptions : BlocksChallenge.INTERVALS_FALLBACK;
+    const pool = fromOptions.length ? fromOptions : ToneTrek.INTERVALS_FALLBACK;
     return String(pool[Math.floor(Math.random() * pool.length)] || "M2");
   }
 
@@ -793,7 +793,7 @@ export class BlocksChallenge {
     if (!m) return null;
 
     const token = m[1].toUpperCase();
-    const letter = BlocksChallenge.SOLFEGE_TO_LETTER[token] || token;
+    const letter = ToneTrek.SOLFEGE_TO_LETTER[token] || token;
     const acc = m[2] || "";
     const accOffset =
       acc === "##" ? 2 :
@@ -1368,7 +1368,7 @@ export class BlocksChallenge {
         if (letter) {
           const sol = String($target.attr("data-solfege") || "").trim();
           const label = this._isSolfegeEnabled()
-            ? (sol ? sol.charAt(0).toUpperCase() + sol.slice(1).toLowerCase() : (BlocksChallenge.LETTER_TO_SOLFEGE[letter] || letter))
+            ? (sol ? sol.charAt(0).toUpperCase() + sol.slice(1).toLowerCase() : (ToneTrek.LETTER_TO_SOLFEGE[letter] || letter))
             : letter;
           $active.val(label);
           $active.trigger("input");
@@ -1394,9 +1394,9 @@ export class BlocksChallenge {
     if (!m) return null;
 
     const tokenUpper = String(m[1] || "").toUpperCase();
-    const letter = BlocksChallenge.SOLFEGE_TO_LETTER[tokenUpper] || tokenUpper;
+    const letter = ToneTrek.SOLFEGE_TO_LETTER[tokenUpper] || tokenUpper;
     const baseDisplay = this._isSolfegeEnabled()
-      ? (BlocksChallenge.LETTER_TO_SOLFEGE[letter] || letter)
+      ? (ToneTrek.LETTER_TO_SOLFEGE[letter] || letter)
       : letter;
     const rawAcc = m[2] || "";
     const normalizedAcc =
