@@ -18,4 +18,6 @@ Route::prefix('theory')->name('theory.')->group(function() {
 	Route::get('pitch-detective', 'TheoryController@pitchDetective')->name('pitch-detective.play');
 
 	Route::get('note-python', 'TheoryController@notePython')->name('note-python.play');
+
+	Route::get('note-nest', 'TheoryController@noteNest')->name('note-nest.play');
 });

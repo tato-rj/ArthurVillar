@@ -422,7 +422,7 @@ export class PitchDetective extends BaseStaffGame {
       this._handleCorrectAnswerUi({
         isBonus: bonusEarned > 0,
         earned,
-        $prompt: $("#prompt"),
+        $prompt: this.prompt.$root,
         $extraHide: this.$playWrap,
       });
     } else {

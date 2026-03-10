@@ -112,7 +112,7 @@
           <div id="board" class="my-2 mx-auto position-relative"></div>
 
       </div>
-      @include('theory.components.interval')
+      @include('theory.components.prompt')
       @include('theory.components.feedback')
     </div>
 

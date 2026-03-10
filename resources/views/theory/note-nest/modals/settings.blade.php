@@ -7,12 +7,10 @@
   @endcomponent
 
   @component('theory.components.settings.section', ['title' => 'MATERIAL'])
-    @include('theory.components.settings.intervals')
     @include('theory.components.settings.clefs')
     @include('theory.components.settings.range')
     <hr class="opacity-1">
     @include('theory.components.settings.accidentals')
-    @include('theory.components.settings.direction')
   @endcomponent
 
   @component('theory.components.settings.section', ['title' => 'PREFERENCES'])

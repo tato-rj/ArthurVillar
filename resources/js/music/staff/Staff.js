@@ -59,6 +59,7 @@ export class Staff {
     this.opts.stepSize = this.opts.lineGap / 2;
 
     this.$el.css("position", "relative");
+    this._baseHeightPx = this.$el.height();
     this._idCounter = 1;
 
     this._drag = {
@@ -150,10 +151,31 @@ export class Staff {
   }
 
   _computeLayout() {
-    const h = this.$el.height();
+    const h = Number.isFinite(this._baseHeightPx) && this._baseHeightPx > 0
+      ? this._baseHeightPx
+      : this.$el.height();
     const staffHeight = this.opts.lineGap * 4;
     const topLineY = Math.round((h - staffHeight) / 2);
     this.opts.bottomLineY = topLineY + staffHeight;
+  }
+
+  _syncDynamicHeight() {
+    const baseHeight = Number.isFinite(this._baseHeightPx) && this._baseHeightPx > 0
+      ? this._baseHeightPx
+      : this.$el.height();
+    let requiredHeight = baseHeight;
+
+    this.$el.find(".note, .ledger").each((_, el) => {
+      const $node = $(el);
+      const top = parseFloat($node.css("top"));
+      if (!Number.isFinite(top)) return;
+      const outerHeight = $node.outerHeight() || 0;
+      const bottom = top + outerHeight + this.opts.lineGap;
+      if (bottom > requiredHeight) requiredHeight = bottom;
+    });
+
+    const finalHeight = Math.max(baseHeight, Math.ceil(requiredHeight));
+    if (this.$el.height() !== finalHeight) this.$el.height(finalHeight);
   }
 
   _drawLines() {
@@ -188,6 +210,7 @@ export class Staff {
     this._drawLines();
     this._resolveNoteOverlaps();
     this._repositionAllAccidentals();
+    this._syncDynamicHeight();
   }
 
   centerX() { return this.$el.width() / 2; }
@@ -545,6 +568,7 @@ export class Staff {
   clearNotes() {
     this.$el.find(".note, .ledger, .accidental").remove();
     this._previewClear();
+    this._syncDynamicHeight();
   }
 
   removeNote(id, opts = {}) {
@@ -556,6 +580,7 @@ export class Staff {
     this.$el.find(`.ledger[data-for-note-id="${id}"]`).remove();
     this._removeAccidentalForNote(id);
     this._resolveNoteOverlaps();
+    this._syncDynamicHeight();
   }
 
   addNote(cfg) {
@@ -589,6 +614,7 @@ export class Staff {
 
     if (!c.skipResolve) this._resolveNoteOverlaps();
     else this._repositionAllAccidentals();
+    this._syncDynamicHeight();
 
     return id;
   }
@@ -617,6 +643,7 @@ export class Staff {
     }
 
     this._repositionAllAccidentals();
+    this._syncDynamicHeight();
   }
 
   _previewSet(step) {
@@ -624,6 +651,7 @@ export class Staff {
     this._preview.css({ left: `${this.centerX()}px`, top: `${this.stepToY(step)}px` });
     this._previewStep = step;
     this._previewLedgersSet(step);
+    this._syncDynamicHeight();
   }
 
   _previewClear() {
@@ -633,6 +661,7 @@ export class Staff {
       this._previewStep = null;
     }
     this._previewLedgersClear();
+    this._syncDynamicHeight();
   }
 
   _resolveNoteOverlaps() {

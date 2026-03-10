@@ -40,9 +40,6 @@ export class KeysLab extends BaseStaffGame {
       merged.clefs != null ? merged.clefs : merged.clef,
     );
     this._activeClef = (this._clefPool && this._clefPool[0]) || merged.initialClef || "treble";
-    this.$promptShort = $("#prompt-shortname");
-    this.$promptLong = $("#prompt-longname");
-
     this._toolsWired = false;
     this._anchorCounter = 1;
     this._accidentalRepositionPatched = false;
@@ -129,8 +126,8 @@ export class KeysLab extends BaseStaffGame {
   _renderKeyPrompt() {
     const picked = this._pickKeyPrompt();
     this._currentKeyPrompt = picked;
-    if (this.$promptShort.length) this.$promptShort.text(picked.full);
-    if (this.$promptLong.length) this.$promptLong.text(`Key of ${picked.full}`);
+    this.prompt.setShort(picked.full);
+    this.prompt.setLong(`Key of ${picked.full}`);
   }
 
   _expectedSignatureForPrompt() {
@@ -290,7 +287,7 @@ export class KeysLab extends BaseStaffGame {
     this.$bonusBadge.hide();
     this.$doublePoints?.hide?.();
 
-    $("#prompt").show();
+    this.prompt.show();
     $("#check").show().removeClass("invisible");
     $("#continue").hide();
     this._renderKeyPrompt();
@@ -309,7 +306,7 @@ export class KeysLab extends BaseStaffGame {
       this._handleCorrectAnswerUi({
         isBonus: bonusEarned > 0,
         earned,
-        $prompt: $("#prompt"),
+        $prompt: this.prompt.$root,
       });
       return;
     }

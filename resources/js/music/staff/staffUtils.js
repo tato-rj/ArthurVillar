@@ -12,25 +12,25 @@ export const CLEF_LAYOUT_VARS = {
   treble: {
     "--clef-width": "140px",
     "--clef-height": "calc(var(--staff-line-gap) * 6)",
-    "--clef-top": "54px",
+    "--clef-top": "34px",
     "--clef-left-nudge": "28px",
   },
   bass: {
     "--clef-width": "76px",
     "--clef-height": "calc(var(--staff-line-gap) * 6)",
-    "--clef-top": "35px",
+    "--clef-top": "15px",
     "--clef-left-nudge": "-12px",
   },
   alto: {
     "--clef-width": "88px",
     "--clef-height": "calc(var(--staff-line-gap) * 6)",
-    "--clef-top": "47.5px",
+    "--clef-top": "27.5px",
     "--clef-left-nudge": "-10px",
   },
   tenor: {
     "--clef-width": "88px",
     "--clef-height": "calc(var(--staff-line-gap) * 6)",
-    "--clef-top": "22.5px",
+    "--clef-top": "2.5px",
     "--clef-left-nudge": "-10px",
   },
 };

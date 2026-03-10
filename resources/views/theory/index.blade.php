@@ -20,6 +20,7 @@
         @include('theory.card', ['settings' => $pitchDetectiveSettings])
         @include('theory.card', ['settings' => $toneTrekSettings])
         @include('theory.card', ['settings' => $notePythonSettings])
+        @include('theory.card', ['settings' => $noteNestSettings])
     </div>
 </section>
 @endsection

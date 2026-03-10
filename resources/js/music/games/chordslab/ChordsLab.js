@@ -66,15 +66,6 @@ export class ChordsLab extends BaseStaffGame {
 
     this._clefPool = clefPool;
 
-    // UI (re-using #prompt container)
-    this.$interval = $("#prompt");
-    this.$intervalLabel = $("#prompt-shortname");
-    if (!this.$intervalLabel.length) this.$intervalLabel = this.$interval.find("label").first();
-    this.$intervalDirection = $("#prompt-direction");
-    if (!this.$intervalDirection.length) this.$intervalDirection = this.$interval.find("i").first();
-    this.$intervalFull = $("#prompt-longname");
-    if (!this.$intervalFull.length) this.$intervalFull = this.$interval.find("div").last();
-
     this._currentTriadQuality = null;
     this._currentSeventhType = null; // null | '7' | 'maj7' | 'dim7'
     this._currentChordDirection = 1; // 1=up, -1=down
@@ -92,17 +83,9 @@ export class ChordsLab extends BaseStaffGame {
     this._currentTriadQuality = String(quality || "").trim();
     this._currentSeventhType = seventhType ? String(seventhType).trim() : null;
     this._currentChordDirection = Number(direction) === -1 ? -1 : 1;
-    this.$interval.removeClass("text-red").addClass("text-blue");
-    if (this.$intervalDirection?.length) {
-      if (this._isStrictDirection()) {
-        this.$intervalDirection
-          .show()
-          .removeClass("fa-up-long fa-down-long")
-          .addClass(this._currentChordDirection === -1 ? "fa-down-long" : "fa-up-long");
-      } else {
-        this.$intervalDirection.hide();
-      }
-    }
+    this.prompt.setTone("blue");
+    if (this._isStrictDirection()) this.prompt.showDirection(this._currentChordDirection);
+    else this.prompt.hideDirection();
     this._refreshTriadUILabels();
   }
 
@@ -202,8 +185,8 @@ _formatShortLabelHtml(shortLabel) {
       ? this._triadFullName(root, q, this._currentSeventhType)
       : (ChordsLab.TRIAD_QUALITY_FULL_NAME_MAP[q] || q);
 
-    if (this.$intervalLabel?.length) this.$intervalLabel.html(this._formatShortLabelHtml(shortLabel));
-    if (this.$intervalFull?.length) this.$intervalFull.text(fullLabel);
+    this.prompt.setShort(this._formatShortLabelHtml(shortLabel), { html: true });
+    this.prompt.setLong(fullLabel);
   }
 
   _onFixedNoteState() {
@@ -577,7 +560,7 @@ _formatShortLabelHtml(shortLabel) {
     this.$accidentals.removeClass("invisible");
     this.$feedback.hide();
 
-    this.$interval.show();
+    this.prompt.show();
     this._setTriadUI(quality, seventhType, direction);
 
     {
@@ -715,7 +698,7 @@ _requiredUserNotesForChord(seventhType) {
       this._madeAnyMistake = true;
       this._madeMistakeThisRound = true;
 
-      this.$interval.removeClass("text-blue").addClass("text-red");
+      this.prompt.setTone("red");
       this._failAnimation(this.$checkWrap);
 
       this.$checkBtn[0] && this.$checkBtn[0].blur && this.$checkBtn[0].blur();
@@ -742,12 +725,12 @@ _requiredUserNotesForChord(seventhType) {
       if (!allOnDirectedSide) {
         this._madeAnyMistake = true;
         this._madeMistakeThisRound = true;
-        this.$interval.removeClass("text-blue").addClass("text-red");
+        this.prompt.setTone("red");
         this._failAnimation(this.$checkWrap);
         this.$checkWrap
           .off(`animationend._failRestore.${this.ns} webkitAnimationEnd._failRestore.${this.ns}`)
           .one(`animationend._failRestore.${this.ns} webkitAnimationEnd._failRestore.${this.ns}`, () => {
-            this.$interval.removeClass("text-red").addClass("text-blue");
+            this.prompt.setTone("blue");
           });
         this.$helpBtn.show();
         return;
@@ -781,19 +764,19 @@ _requiredUserNotesForChord(seventhType) {
       this._handleCorrectAnswerUi({
         isBonus: bonusEarned > 0,
         earned,
-        $prompt: this.$interval,
+        $prompt: this.prompt.$root,
       });
     } else {
       this._madeAnyMistake = true;
       this._madeMistakeThisRound = true;
 
-      this.$interval.removeClass("text-blue").addClass("text-red");
+      this.prompt.setTone("red");
       this._failAnimation(this.$checkWrap);
 
       this.$checkWrap
         .off(`animationend._failRestore.${this.ns} webkitAnimationEnd._failRestore.${this.ns}`)
         .one(`animationend._failRestore.${this.ns} webkitAnimationEnd._failRestore.${this.ns}`, () => {
-          this.$interval.removeClass("text-red").addClass("text-blue");
+          this.prompt.setTone("blue");
         });
 
       this.$helpBtn.show();

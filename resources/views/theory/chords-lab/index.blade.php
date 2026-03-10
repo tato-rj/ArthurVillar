@@ -37,7 +37,7 @@
         @include('theory.components.accidentals')
         <div id="staff"></div>
         @include('theory.components.feedback')
-        @include('theory.components.interval')
+        @include('theory.components.prompt')
       </div>
     </div>
 

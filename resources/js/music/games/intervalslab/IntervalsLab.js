@@ -61,15 +61,6 @@ export class IntervalsLab extends BaseStaffGame {
 
     this._clefPool = clefPool;
 
-    // interval UI
-    this.$interval = $("#prompt");
-    this.$intervalLabel = $("#prompt-shortname");
-    if (!this.$intervalLabel.length) this.$intervalLabel = this.$interval.find("label").first();
-    this.$intervalDirection = $("#prompt-direction");
-    if (!this.$intervalDirection.length) this.$intervalDirection = this.$interval.find("i").first();
-    this.$intervalFull = $("#prompt-longname");
-    if (!this.$intervalFull.length) this.$intervalFull = this.$interval.find("div").last();
-
     this._currentIntervalAbbr = null;
     this._currentIntervalDirection = 1; // 1=up, -1=down
   }
@@ -104,18 +95,10 @@ export class IntervalsLab extends BaseStaffGame {
     this._currentIntervalAbbr = abbr;
     this._currentIntervalDirection = Number(direction) === -1 ? -1 : 1;
 
-    if (this.$intervalLabel?.length) this.$intervalLabel.text(abbr);
-    if (this.$intervalDirection?.length) {
-      if (this._isStrictDirection()) {
-        this.$intervalDirection
-          .show()
-          .removeClass("fa-up-long fa-down-long")
-          .addClass(this._currentIntervalDirection === -1 ? "fa-down-long" : "fa-up-long");
-      } else {
-        this.$intervalDirection.hide();
-      }
-    }
-    if (this.$intervalFull?.length) this.$intervalFull.text(this._fullNameForInterval(abbr));
+    this.prompt.setShort(abbr);
+    if (this._isStrictDirection()) this.prompt.showDirection(this._currentIntervalDirection);
+    else this.prompt.hideDirection();
+    this.prompt.setLong(this._fullNameForInterval(abbr));
   }
 
   _normalizeOnOff(v) {
@@ -226,7 +209,7 @@ export class IntervalsLab extends BaseStaffGame {
     this.$accidentals.removeClass("invisible");
     this.$feedback.hide();
 
-    this.$interval.show();
+    this.prompt.show();
     this._setIntervalUI(interval, direction);
 
     if (fixed) {
@@ -342,7 +325,7 @@ export class IntervalsLab extends BaseStaffGame {
       this._madeAnyMistake = true;
       this._madeMistakeThisRound = true;
 
-      this.$interval.removeClass("text-blue").addClass("text-red");
+      this.prompt.setTone("red");
       this._failAnimation(this.$checkWrap);
 
       this.$checkBtn[0] && this.$checkBtn[0].blur && this.$checkBtn[0].blur();
@@ -354,7 +337,7 @@ export class IntervalsLab extends BaseStaffGame {
     if (!userNotes.length || !this._fixedState) {
       this._madeAnyMistake = true;
       this._madeMistakeThisRound = true;
-      this.$interval.removeClass("text-blue").addClass("text-red");
+      this.prompt.setTone("red");
       this._failAnimation(this.$checkWrap);
       this.$helpBtn.show();
       return;
@@ -371,7 +354,7 @@ export class IntervalsLab extends BaseStaffGame {
     const directionMatches = this._isStrictDirection()
       ? (expectedDir === 1 ? dirDelta > 0 : dirDelta < 0)
       : true;
-    const isCorrect = directionMatches && name === this.$intervalLabel.text();
+    const isCorrect = directionMatches && name === this.prompt.getShortText();
 
     if (isCorrect) {
       this._stats.checksCorrect += 1;
@@ -381,20 +364,20 @@ export class IntervalsLab extends BaseStaffGame {
       this._handleCorrectAnswerUi({
         isBonus: bonusEarned > 0,
         earned,
-        $prompt: this.$interval,
+        $prompt: this.prompt.$root,
       });
     } else {
       this._madeAnyMistake = true;
       this._madeMistakeThisRound = true;
 
-      this.$interval.removeClass("text-blue").addClass("text-red");
+      this.prompt.setTone("red");
       this._failAnimation(this.$checkWrap);
 
       // restore interval color after fail animation completes
       this.$checkWrap
         .off(`animationend._failRestore.${this.ns} webkitAnimationEnd._failRestore.${this.ns}`)
         .one(`animationend._failRestore.${this.ns} webkitAnimationEnd._failRestore.${this.ns}`, () => {
-          this.$interval.removeClass("text-red").addClass("text-blue");
+          this.prompt.setTone("blue");
         });
 
       this.$helpBtn.show();
@@ -428,7 +411,7 @@ export class IntervalsLab extends BaseStaffGame {
     if (!this._fixedState) return null;
 
     const abbr =
-      this._currentIntervalAbbr || (this.$intervalLabel && this.$intervalLabel.text()) || "";
+      this._currentIntervalAbbr || this.prompt.getShortText() || "";
     const parsed = parseIntervalAbbr(abbr);
     if (!parsed || !Number.isFinite(parsed.number) || parsed.number < 1) return null;
     const fixedState = {

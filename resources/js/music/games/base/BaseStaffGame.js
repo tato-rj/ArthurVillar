@@ -3,6 +3,7 @@ import { Staff } from "../../staff/Staff.js";
 import { pickOne, spellNoteFromState } from "../../staff/staffUtils.js";
 import { renderFinalResultsOverlay } from "../shared/finalResults.js";
 import { playBurstConfettiAtElement } from "../shared/mojsEffects.js";
+import { PromptUi } from "../shared/PromptUi.js";
 
 export const PAGE_OPENED_AT_MS = Date.now();
 
@@ -113,6 +114,7 @@ export class BaseStaffGame {
     this.$timer = $("#timer");
     this.$timerBox = this.$timer.children("div").first();
     this.$timerText = this.$timer.find("span");
+    this.prompt = new PromptUi("#prompt");
 
     // Game state
     this.successPhrases = this.opts.successPhrases;
@@ -764,8 +766,9 @@ export class BaseStaffGame {
     this._setTimedOutInteractivityDisabled(false);
     this._hideTimeUpMessage();
     this._hideSkipRoundButton();
-    $("#prompt").removeClass("text-red").addClass("text-blue");
+    this.prompt.setTone("blue");
     this._resetRoundTimerIfEnabled();
+    this.prompt.setTone("blue");
     this.newChallenge();
     this._armUiGates({ resetInstructions: false });
     this.$checkBtn.enable();
@@ -1030,6 +1033,7 @@ export class BaseStaffGame {
           this._hideTimeUpMessage();
           this._setTimedOutInteractivityDisabled(false);
           this._resetRoundTimerIfEnabled();
+          this.prompt.setTone("blue");
           this.newChallenge();
           this._armUiGates({ resetInstructions: false });
           this.$checkBtn.enable();
@@ -1303,7 +1307,7 @@ export class BaseStaffGame {
   _handleCorrectAnswerUi({
     isBonus = false,
     earned = 0,
-    $prompt = $("#prompt"),
+    $prompt = this.prompt.$root,
     $extraHide = $(),
     finalDelayMs = 1600,
   } = {}) {

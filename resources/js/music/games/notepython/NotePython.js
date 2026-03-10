@@ -2,6 +2,7 @@ import { BaseStaffGame } from "../base/BaseStaffGame.js";
 import { renderFinalResultsOverlay } from "../shared/finalResults.js";
 import { playSnakeCellBreakBurstAtElement } from "../shared/mojsEffects.js";
 import { playSmokePuffAtElement } from "../shared/mojsEffects.js";
+import { PromptUi } from "../shared/PromptUi.js";
 
 export class NotePython {
   static INTERVAL_FULL_NAME_MAP = {
@@ -76,13 +77,7 @@ export class NotePython {
     this.$countdown = $("#game-countdown").first();
     this.$countdownText = this.$countdown.find("h1").first();
     this.$startBtn = this.$countdown.find("button").first();
-    this.$interval = $("#prompt");
-    this.$intervalLabel = $("#prompt-shortname");
-    if (!this.$intervalLabel.length) this.$intervalLabel = this.$interval.find("label").first();
-    this.$intervalDirection = $("#prompt-direction");
-    if (!this.$intervalDirection.length) this.$intervalDirection = this.$interval.find("i").first();
-    this.$intervalFull = $("#prompt-longname");
-    if (!this.$intervalFull.length) this.$intervalFull = this.$interval.find("div").last();
+    this.prompt = new PromptUi("#prompt");
     this.$points = $("#points");
     this.$increment = $("#increment");
     this.$feedback = $("#feedback-success");
@@ -244,18 +239,10 @@ export class NotePython {
     const abbr = String(intervalAbbr || "").trim();
     this._currentIntervalAbbr = abbr;
     this._currentIntervalDirection = Number(direction) === -1 ? -1 : 1;
-    if (this.$intervalLabel?.length) this.$intervalLabel.text(abbr);
-    if (this.$intervalDirection?.length) {
-      if (this._isStrictDirection()) {
-        this.$intervalDirection
-          .show()
-          .removeClass("fa-up-long fa-down-long")
-          .addClass(this._currentIntervalDirection === -1 ? "fa-down-long" : "fa-up-long");
-      } else {
-        this.$intervalDirection.hide();
-      }
-    }
-    if (this.$intervalFull?.length) this.$intervalFull.text(this._fullNameForInterval(abbr));
+    this.prompt.setShort(abbr);
+    if (this._isStrictDirection()) this.prompt.showDirection(this._currentIntervalDirection);
+    else this.prompt.hideDirection();
+    this.prompt.setLong(this._fullNameForInterval(abbr));
   }
 
   _normalizeOnOff(v) {
