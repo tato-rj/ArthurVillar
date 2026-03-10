@@ -419,21 +419,12 @@ export class PitchDetective extends BaseStaffGame {
       this._pauseGameTimer();
 
       const { earned, bonusEarned } = this._awardPointsForCorrect();
-      this._successAnimation({ isBonus: bonusEarned > 0 });
-
-      if (this.$playWrap?.length) this.$playWrap.hide();
-
-      $("#score").animateCSS && $("#score").animateCSS("heartBeat");
-      if (earned > 0) this._showIncrement(earned);
-
-      if (this._updateProgressBar() >= 100) {
-        this._stats.finishedAtMs = Date.now();
-        this.$checkBtn.text('Final results, let\'s see…');
-        setTimeout(() => this._showFinalResults(), 1600);
-      } else {
-        $("#check").hide();
-        $("#continue").show();
-      }
+      this._handleCorrectAnswerUi({
+        isBonus: bonusEarned > 0,
+        earned,
+        $prompt: $("#prompt"),
+        $extraHide: this.$playWrap,
+      });
     } else {
       this._madeAnyMistake = true;
       this._madeMistakeThisRound = true;

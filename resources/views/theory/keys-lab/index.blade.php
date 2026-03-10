@@ -44,14 +44,13 @@
         <div id="staff"></div>
         @include('theory.components.feedback')
         @include('theory.components.interval')
-        @include('theory.components.hand')
       </div>
     </div>
 
     <div class="col-lg-6 col-md-8 col-11 mx-auto">
-      @include('theory.components.controls', ['instructions' => 'Tap on the staff to add a note 👆'])
-      @include('theory.intervals-lab.modals.settings')
-      @include('theory.intervals-lab.modals.instructions')
+      @include('theory.components.controls', ['instructions' => 'Drag & drop sharps or flats onto the staff 👆'])
+      @include('theory.keys-lab.modals.settings')
+      @include('theory.keys-lab.modals.instructions')
       @include('theory.components.preferences')
     </div>
   </div>
@@ -62,7 +61,7 @@
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.js"></script>
-<script src="{{ mix('js/music/intervalslab.js') }}"></script>
+<script src="{{ mix('js/music/keyslab.js') }}"></script>
 <script>
 </script>
 @endpush

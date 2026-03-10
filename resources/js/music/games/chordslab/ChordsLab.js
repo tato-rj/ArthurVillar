@@ -66,13 +66,13 @@ export class ChordsLab extends BaseStaffGame {
 
     this._clefPool = clefPool;
 
-    // UI (re-using #interval container)
-    this.$interval = $("#interval");
-    this.$intervalLabel = $("#interval-shortname");
+    // UI (re-using #prompt container)
+    this.$interval = $("#prompt");
+    this.$intervalLabel = $("#prompt-shortname");
     if (!this.$intervalLabel.length) this.$intervalLabel = this.$interval.find("label").first();
-    this.$intervalDirection = $("#interval-direction");
+    this.$intervalDirection = $("#prompt-direction");
     if (!this.$intervalDirection.length) this.$intervalDirection = this.$interval.find("i").first();
-    this.$intervalFull = $("#interval-longname");
+    this.$intervalFull = $("#prompt-longname");
     if (!this.$intervalFull.length) this.$intervalFull = this.$interval.find("div").last();
 
     this._currentTriadQuality = null;
@@ -778,21 +778,11 @@ _requiredUserNotesForChord(seventhType) {
       this._pauseGameTimer();
 
       const { earned, bonusEarned } = this._awardPointsForCorrect();
-
-      this._successAnimation({ isBonus: bonusEarned > 0 });
-      this.$interval.hide();
-
-      $("#score").animateCSS && $("#score").animateCSS("heartBeat");
-      if (earned > 0) this._showIncrement(earned);
-
-      if (this._updateProgressBar() >= 100) {
-        this._stats.finishedAtMs = Date.now();
-        this.$checkBtn.text('Final results, let\'s see…');
-        setTimeout(() => this._showFinalResults(), 1600);
-      } else {
-        $("#check").hide();
-        $("#continue").show();
-      }
+      this._handleCorrectAnswerUi({
+        isBonus: bonusEarned > 0,
+        earned,
+        $prompt: this.$interval,
+      });
     } else {
       this._madeAnyMistake = true;
       this._madeMistakeThisRound = true;

@@ -7,7 +7,9 @@ abstract class GameFactory
     protected array $request = [];
     protected $intervals = ['m2', 'M2', 'm3', 'M3', 'P4', 'A4', 'd5', 'P5', 'm6', 'M6', 'm7', 'M7', 'P8'];
     protected $triadQualities = ['major', 'minor', 'diminished', 'augmented'];
+    protected $keyQualities = ['major', 'minor'];
     protected $initialNoteRanges = ['Few notes', 'More notes', 'All notes'];
+    protected $numberOfAccidentals = ['2 or less', '4 or less', 'Any number'];
     protected $clefs = ['treble', 'bass', 'alto', 'tenor'];
     protected $numOfChallenges = [0,2,4,6,8,10,12];
     protected $accidentalWeights = [
@@ -60,6 +62,11 @@ abstract class GameFactory
         return $this->triadQualities;
     }
 
+    public function getKeyQualities()
+    {
+        return $this->keyQualities;
+    }
+
     public function getNumOfChallenges()
     {
         return $this->numOfChallenges;
@@ -68,6 +75,11 @@ abstract class GameFactory
     public function getInitialNoteRanges()
     {
         return $this->initialNoteRanges;
+    }
+
+    public function getNumberOfAccidentals()
+    {
+        return $this->numberOfAccidentals;
     }
 
     public function getClefs()

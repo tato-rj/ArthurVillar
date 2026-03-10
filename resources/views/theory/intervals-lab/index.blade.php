@@ -44,7 +44,6 @@
         <div id="staff"></div>
         @include('theory.components.feedback')
         @include('theory.components.interval')
-        @include('theory.components.hand')
       </div>
     </div>
 

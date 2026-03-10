@@ -27,6 +27,13 @@ class TheoryController extends Controller
         return view('theory.intervals-lab.index', compact('settings'));
     }
 
+    public function keysLab(Request $request)
+    {
+        $settings = new KeysLabSettings($request->all());
+
+        return view('theory.keys-lab.index', compact('settings'));
+    }
+
     public function toneTrek(Request $request)
     {
         $settings = new ToneTrekSettings($request->all());

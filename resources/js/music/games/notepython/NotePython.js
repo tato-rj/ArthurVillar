@@ -76,12 +76,12 @@ export class NotePython {
     this.$countdown = $("#game-countdown").first();
     this.$countdownText = this.$countdown.find("h1").first();
     this.$startBtn = this.$countdown.find("button").first();
-    this.$interval = $("#interval");
-    this.$intervalLabel = $("#interval-shortname");
+    this.$interval = $("#prompt");
+    this.$intervalLabel = $("#prompt-shortname");
     if (!this.$intervalLabel.length) this.$intervalLabel = this.$interval.find("label").first();
-    this.$intervalDirection = $("#interval-direction");
+    this.$intervalDirection = $("#prompt-direction");
     if (!this.$intervalDirection.length) this.$intervalDirection = this.$interval.find("i").first();
-    this.$intervalFull = $("#interval-longname");
+    this.$intervalFull = $("#prompt-longname");
     if (!this.$intervalFull.length) this.$intervalFull = this.$interval.find("div").last();
     this.$points = $("#points");
     this.$increment = $("#increment");

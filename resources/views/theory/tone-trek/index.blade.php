@@ -156,7 +156,11 @@ td {
     </div>
 
     <div class="col-lg-6 col-md-8 col-11 mx-auto">
-      @include('theory.components.controls', ['instructions' => 'Tap the ❓ to complete the intervals above'])
+      @component('theory.components.controls', compact('settings'))
+        @slot('instructions')
+        Tap <img src="{{asset('images/tone-trek help.png')}}" width="35"> and write the note that completes the interval
+        @endslot
+      @endcomponent
       @include('theory.tone-trek.modals.settings')
       @include('theory.tone-trek.modals.instructions')
       @include('theory.components.preferences')

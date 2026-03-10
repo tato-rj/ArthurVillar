@@ -169,7 +169,7 @@ export class ToneTrek {
     this.$skipWrap.hide();
     this.$continueWrap.hide();
     this.$feedback.hide();
-    this.$checkWrap.show().addClass("invisible");
+    this.$checkWrap.show().removeClass("invisible");
     this._armUiSfxOnFirstGesture();
     this._syncKeyboardLabels();
     this._hideTimeUpMessage();
@@ -1506,8 +1506,7 @@ export class ToneTrek {
       return;
     }
 
-    if (!this._instructionsDismissed) $("#instructions").show();
-    $("#check").show().addClass("invisible");
+    $("#check").show().removeClass("invisible");
   }
 
   _setActiveBlockInput($input) {

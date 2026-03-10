@@ -157,7 +157,7 @@ export class Staff {
   }
 
   _drawLines() {
-    this.$el.find(".staff-line, .staff-clef").remove();
+    this.$el.find(".staff-line, .staff-clef, #clef-wrapper").remove();
     for (let i = 0; i < 5; i++) {
       const y = this.opts.bottomLineY - (4 - i) * this.opts.lineGap;
       const durationSec = (0.12 + (Math.random() * 0.36)).toFixed(3); // ~0.12s..0.48s
@@ -175,10 +175,11 @@ export class Staff {
     if (!this.opts.clefUrl) return;
 
     const clef = normalizeClef(this.opts.clef);
-    $('<img alt="">')
-      .addClass("staff-clef")
+    const $img = $('<img alt="">').attr("src", this.opts.clefUrl);
+
+    $('<div id="clef-wrapper"></div>')
       .addClass(`${clef}-clef`)
-      .attr("src", this.opts.clefUrl)
+      .append($img)
       .appendTo(this.$el);
   }
 

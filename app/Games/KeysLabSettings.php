@@ -16,7 +16,7 @@ class KeysLabSettings extends GameFactory
     
     public function gameDescription() : string 
     {
-        return 'Find and build chromatic intervals on the staff.';
+        return 'Find the key signature and add accidentals on the staff.';
     }
 
     public function gameTheme(): string 
@@ -31,7 +31,7 @@ class KeysLabSettings extends GameFactory
 
     protected function requiredToggleKeys(): array
     {
-        return ['sound', 'showLetterNames', 'allowInitialAccidentals'];
+        return ['sound'];
     }
 
     protected function defaults(): array
@@ -40,16 +40,11 @@ class KeysLabSettings extends GameFactory
             'timeLimit' => 20,
             'practiceMode' => false,
             'timer' => false,
-            'maxUserNotes' => 1,
             'numOfChallenges' => 4,
-            'intervals' => ['M2', 'm3', 'M3', 'P5', 'P8'],
+            'keyQualities' => ['major', 'minor'],
+            'numberOfAccidentals' => 0,
             'clefs' => ['treble', 'bass'],
-            'fixedNotes' => [],
-            'sound' => true,
-            'showLetterNames' => false,
-            'allowInitialAccidentals' => false,
-            'initialNoteRange' => 0,
-            'strictDirection' => false
+            'sound' => true
         ];
     }
 
@@ -57,9 +52,6 @@ class KeysLabSettings extends GameFactory
     {
         $options = $this->applyUserPreferences();
 
-        $weights = $this->getAccidentalWeights()[(bool) $options['allowInitialAccidentals']];
-        $array = array_merge($options, ['accidentalWeights' => $weights]);
-
-        return $key ? $array[$key] : $array;
+        return $key ? $options[$key] : $options;
     }
 }

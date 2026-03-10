@@ -31,7 +31,7 @@ class ChordsLabSettings extends GameFactory
 
     protected function requiredToggleKeys(): array
     {
-        return ['sound', 'showLetterNames', 'allowInitialAccidentals', 'initialRoot', 'only7thChords'];
+        return ['sound', 'showNoteNames', 'solfege', 'allowInitialAccidentals', 'initialRoot', 'only7thChords'];
     }
 
     protected function defaults(): array
@@ -46,12 +46,13 @@ class ChordsLabSettings extends GameFactory
             'clefs' => ['treble', 'bass'],
             'fixedNotes' => [],
             'sound' => true,
-            'showLetterNames' => false,
+            'showNoteNames' => false,
             'allowInitialAccidentals' => false,
             'initialRoot' => true,
             'only7thChords' => false,
             'initialNoteRange' => 0,
             'strictDirection' => false,
+            'solfege' => false
         ];
     }
 

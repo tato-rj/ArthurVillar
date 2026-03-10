@@ -16,7 +16,8 @@
 
   @component('theory.components.settings.section', ['title' => 'PREFERENCES'])
     @include('theory.components.settings.sound')
-    @include('theory.components.settings.lettername')
+    @include('theory.components.settings.notename')
+    @include('theory.components.settings.solfege')
     @include('theory.components.settings.range')
   @endcomponent
 

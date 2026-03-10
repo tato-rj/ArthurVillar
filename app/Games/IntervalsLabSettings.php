@@ -31,7 +31,7 @@ class IntervalsLabSettings extends GameFactory
 
     protected function requiredToggleKeys(): array
     {
-        return ['sound', 'showLetterNames', 'allowInitialAccidentals'];
+        return ['sound', 'showNoteNames', 'solfege', 'allowInitialAccidentals'];
     }
 
     protected function defaults(): array
@@ -46,9 +46,10 @@ class IntervalsLabSettings extends GameFactory
             'clefs' => ['treble', 'bass'],
             'fixedNotes' => [],
             'sound' => true,
-            'showLetterNames' => false,
+            'showNoteNames' => false,
             'allowInitialAccidentals' => false,
             'initialNoteRange' => 0,
+            'solfege' => false,
             'strictDirection' => false
         ];
     }

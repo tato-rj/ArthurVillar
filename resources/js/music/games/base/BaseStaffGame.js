@@ -25,6 +25,15 @@ export const PAGE_OPENED_AT_MS = Date.now();
 export class BaseStaffGame {
   static MIN_CHALLENGES = 2;
   static MAX_CHALLENGES = 12;
+  static LETTER_TO_SOLFEGE = {
+    C: "Do",
+    D: "Re",
+    E: "Mi",
+    F: "Fa",
+    G: "Sol",
+    A: "La",
+    B: "Si",
+  };
 
   constructor(options = {}) {
     const defaults = {
@@ -32,7 +41,7 @@ export class BaseStaffGame {
       basePoints: 1,
       firstTryBonus: 2,
       sound: true,
-      showLetterNames: false,
+      showNoteNames: false,
       clefUrls: null,
       initialClef: "treble",
       maxUserNotes: Infinity,
@@ -141,8 +150,8 @@ export class BaseStaffGame {
       sound: !!this.opts.sound,
     });
 
-    this.showLetterNames = !!this.opts.showLetterNames;
-    this.$staffEl.toggleClass("show-letternames", this.showLetterNames);
+    this.showNoteNames = !!this.opts.showNoteNames;
+    this.$staffEl.toggleClass("show-letternames", this.showNoteNames);
 
     // Fixed note state (for hints)
     this._fixedNote = { letterWithAcc: "?", letterOnly: "?" };
@@ -153,6 +162,31 @@ export class BaseStaffGame {
     this.$bonusBadge.hide();
     this.$doublePoints?.hide?.();
     this.$points.text(String(this.points));
+  }
+
+  _normalizeOnOff(value) {
+    if (value === true) return true;
+    if (value === false) return false;
+    const s = String(value ?? "").trim().toLowerCase();
+    return s === "on" || s === "true" || s === "1";
+  }
+
+  _showSolfegeNoteNames() {
+    return this._normalizeOnOff(this.opts.solfege);
+  }
+
+  _toDisplayNoteName(letterWithAccidentals) {
+    const raw = String(letterWithAccidentals || "").trim();
+    if (!raw) return raw;
+    if (!this._showSolfegeNoteNames()) return raw;
+
+    const m = raw.match(/^([A-G])([#b]{0,2})$/i);
+    if (!m) return raw;
+
+    const letter = String(m[1] || "").toUpperCase();
+    const acc = String(m[2] || "");
+    const sol = BaseStaffGame.LETTER_TO_SOLFEGE[letter] || letter;
+    return `${sol}${acc}`;
   }
 
   _normalizeNumOfChallenges(raw) {
@@ -730,7 +764,7 @@ export class BaseStaffGame {
     this._setTimedOutInteractivityDisabled(false);
     this._hideTimeUpMessage();
     this._hideSkipRoundButton();
-    $("#interval").removeClass("text-red").addClass("text-blue");
+    $("#prompt").removeClass("text-red").addClass("text-blue");
     this._resetRoundTimerIfEnabled();
     this.newChallenge();
     this._armUiGates({ resetInstructions: false });
@@ -879,13 +913,11 @@ export class BaseStaffGame {
 
     this._wireAccidentalPalette();
     this._wireStaffTools();
-    this._wireFirstNoteLearningTracker();
     this._wireControls();
     this._resetProgress();
     this._setTimedOutInteractivityDisabled(false);
     this._hideTimeUpMessage();
     this._hideSkipRoundButton();
-    this._syncHandPointerVisibility();
 
     if (this._isTimerEnabled()) {
       this.$timer.show();
@@ -931,11 +963,12 @@ export class BaseStaffGame {
       .on(`staff:noteState._log.${this.ns}`, (e, data) => {
         const full = spellNoteFromState(this.staff, data.step, data.accidentalClass);
         const letterOnly = full.replace(/\d+$/, "");
+        const displayName = this._toDisplayNoteName(letterOnly);
 
-        if (this.showLetterNames) {
+        if (this.showNoteNames) {
           this.$staffEl
             .find(`.note[data-note-id="${data.noteId}"] .lettername`)
-            .text(letterOnly);
+            .text(displayName);
         }
 
         if (data.source === "fixed") {
@@ -961,59 +994,6 @@ export class BaseStaffGame {
           step: data.step,
           clef: this.staff.getClef(),
         });
-      });
-  }
-
-  _firstNoteCookieName() {
-    const base = String(this.ns || "staffGame")
-      .trim()
-      .replace(/[^a-zA-Z0-9_-]/g, "_");
-    return `music_first_note_learned_${base}`;
-  }
-
-  _getCookie(name) {
-    const key = `${name}=`;
-    const parts = String(document.cookie || "").split("; ");
-    for (let i = 0; i < parts.length; i += 1) {
-      if (parts[i].startsWith(key)) return decodeURIComponent(parts[i].slice(key.length));
-    }
-    return null;
-  }
-
-  _setCookie(name, value, days = 3650) {
-    const d = new Date();
-    d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
-    const expires = `expires=${d.toUTCString()}`;
-    document.cookie = `${name}=${encodeURIComponent(String(value))}; ${expires}; path=/; SameSite=Lax`;
-  }
-
-  _hasLearnedFirstNote() {
-    return this._getCookie(this._firstNoteCookieName()) === "1";
-  }
-
-  _markLearnedFirstNote() {
-    this._setCookie(this._firstNoteCookieName(), "1");
-  }
-
-  _syncHandPointerVisibility() {
-    if (!this.$handPointer?.length) return;
-    if (this._hasLearnedFirstNote()) this.$handPointer.hide();
-    else this.$handPointer.show();
-  }
-
-  _wireFirstNoteLearningTracker() {
-    this.$staffEl
-      .off(`staff:userNoteAdded._learn.${this.ns}`)
-      .on(`staff:userNoteAdded._learn.${this.ns}`, () => {
-        if (this._hasLearnedFirstNote()) {
-          this.$handPointer?.hide?.();
-          this.$staffEl.off(`staff:userNoteAdded._learn.${this.ns}`);
-          return;
-        }
-
-        this._markLearnedFirstNote();
-        this.$handPointer?.hide?.();
-        this.$staffEl.off(`staff:userNoteAdded._learn.${this.ns}`);
       });
   }
 
@@ -1072,12 +1052,10 @@ export class BaseStaffGame {
 
   _armUiGates({ resetInstructions } = {}) {
     const needForInstructions = this._instructionsAfterUserNotes();
-    const needForCheck = this._checkAfterUserNotes();
 
     if (resetInstructions) this._instructionsRemoved = false;
 
-    // Ensure the check control occupies layout but is not visible until the gate opens.
-    $("#check").show().addClass("invisible");
+    $("#check").show().removeClass("invisible");
 
     this._userNotesSinceGate = 0;
 
@@ -1087,13 +1065,7 @@ export class BaseStaffGame {
         this._userNotesSinceGate += 1;
 
         if (!this._instructionsRemoved && this._userNotesSinceGate >= needForInstructions) {
-          $("#instructions").remove();
-          this._instructionsRemoved = true;
-        }
-
-        if (this._userNotesSinceGate >= needForCheck) {
-          $("#check").removeClass("invisible");
-          this.$staffEl.off(`staff:userNoteAdded._uiGate.${this.ns}`);
+          this._removeInstructions();
         }
       });
   }
@@ -1328,6 +1300,36 @@ export class BaseStaffGame {
     this.$feedback.stop(true, true).fadeIn("fast");
   }
 
+  _handleCorrectAnswerUi({
+    isBonus = false,
+    earned = 0,
+    $prompt = $("#prompt"),
+    $extraHide = $(),
+    finalDelayMs = 1600,
+  } = {}) {
+    this._successAnimation({ isBonus });
+
+    if (!this._instructionsRemoved) {
+      $("#instructions").remove();
+      this._instructionsRemoved = true;
+    }
+
+    if ($prompt?.length) $prompt.hide();
+    if ($extraHide?.length) $extraHide.hide();
+
+    $("#score").animateCSS && $("#score").animateCSS("heartBeat");
+    if (earned > 0) this._showIncrement(earned);
+
+    if (this._updateProgressBar() >= 100) {
+      this._stats.finishedAtMs = Date.now();
+      this.$checkBtn.text('Final results, let\'s see…');
+      setTimeout(() => this._showFinalResults(), finalDelayMs);
+    } else {
+      $("#check").hide();
+      $("#continue").show();
+    }
+  }
+
   _runSuccessFeedbackTransition({ $interval = null, delayMs = 800, onDone = null } = {}) {
     if (this._successFeedbackTimeoutId != null) {
       clearTimeout(this._successFeedbackTimeoutId);
@@ -1473,6 +1475,7 @@ export class BaseStaffGame {
   _failAnimation($shakeTarget) {
     this._clearCorrectStreak();
     this._playFailSfx();
+    this._removeInstructions();
 
     const $target = $shakeTarget || this.$checkWrap;
 
@@ -1487,6 +1490,12 @@ export class BaseStaffGame {
         $target.removeClass("animate__animated animate__shakeX");
         this.$checkBtn.enable();
       });
+  }
+
+  _removeInstructions() {
+    if (this._instructionsRemoved) return;
+    $("#instructions").remove();
+    this._instructionsRemoved = true;
   }
 
   _showFinalResults() {
