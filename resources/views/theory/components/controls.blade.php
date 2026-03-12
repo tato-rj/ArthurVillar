@@ -3,7 +3,7 @@
 
     @isset($instructions)
     <div class="position-relative">
-      <div id="instructions" class="fw-bold position-absolute top-0 left-0 w-100 h-100 d-center">
+      <div id="instructions" class="fw-bold text-center mb-3">
         <h6 class="m-0 text-red">{{$instructions ?? null}} </h6>
       </div>
       <div id="check" class="btn-floating w-100 invisible">

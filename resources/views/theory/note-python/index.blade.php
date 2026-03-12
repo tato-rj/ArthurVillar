@@ -120,7 +120,7 @@
 
           <div id="restart" class="position-absolute w-100 h-100">
             <div class="d-center w-100 h-100">
-              <button onclick="window.location.reload();" type="button" class="btn btn-red btn-lg">RESTART</button>
+              <button onclick="window.location.reload();" type="button" class="btn btn-red btn-lg">@fa(['icon' => 'arrow-rotate-right'])RESTART</button>
             </div>
           </div>
 
@@ -131,6 +131,9 @@
     </div>
 
     <div class="col-lg-6 col-md-8 col-11 mx-auto">
+      <div id="instructions" class="fw-bold text-center">
+        <h6 class="m-0 text-red">Swipe or use the arrows to control the snake</h6>
+      </div>
       @include('theory.components.controls')
       @include('theory.note-python.modals.settings')
       @include('theory.note-python.modals.instructions')

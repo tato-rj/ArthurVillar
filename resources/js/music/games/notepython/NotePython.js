@@ -973,15 +973,6 @@ export class NotePython {
       eatenFood && validTargets.has(String(eatenFood.note?.canonical || "").trim())
     );
     const willGrow = !!isCorrectFood;
-    const hitSelf = this._snake.some((segment, idx) => {
-      // Moving into current tail cell is valid when not growing (tail moves away this tick).
-      if (!willGrow && idx === this._snake.length - 1) return false;
-      return this._sameCell(segment, next);
-    });
-    if (hitSelf) {
-      this._explodeSnakeAndEndGame();
-      return;
-    }
 
     this._snake.unshift(next);
 
@@ -1092,7 +1083,7 @@ export class NotePython {
     const synth = this._uiTimerSfxSynth || this._uiSfxSynth;
     if (!synth) return;
     const now = Tone.now();
-    synth.triggerAttackRelease("B5", 0.06, now, GameAudio.scale("countdownBeep", 0.2));
+    synth.triggerAttackRelease("B5", 0.09, now, GameAudio.scale("countdownBeep", 0.5));
   }
 
   _playCountdownGoFanfareSfx() {
@@ -1120,8 +1111,11 @@ export class NotePython {
     steps.forEach((label, i) => {
       const tid = setTimeout(() => {
         this._showCountdownStep(label);
-        if (label === "GO!") this._playCountdownGoFanfareSfx();
-        else this._playCountdownBeepSfx();
+        const soundTid = setTimeout(() => {
+          if (label === "GO!") this._playCountdownGoFanfareSfx();
+          else this._playCountdownBeepSfx();
+        }, 90);
+        this._countdownTimeouts.push(soundTid);
       }, i * stepMs);
       this._countdownTimeouts.push(tid);
     });
