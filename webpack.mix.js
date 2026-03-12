@@ -12,6 +12,7 @@ const mix = require('laravel-mix');
  */
 
 mix.js('resources/js/app.js', 'public/js')
+    .js('resources/js/music/admin-soundeffects.js', 'public/js/music')
     .js('resources/js/music/games/intervalslab.js', 'public/js/music')
     .js('resources/js/music/games/chordslab.js', 'public/js/music')
     .js('resources/js/music/games/pitchdetective.js', 'public/js/music')

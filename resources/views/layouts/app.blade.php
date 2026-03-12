@@ -38,8 +38,6 @@
         <div class="position-fixed top-0 right-0 p-4 z-10">
             @auth
             @include('layouts.menu')
-            @else
-            <a href="{{route('login')}}">Login</a>
             @endauth
         </div>
         @endif

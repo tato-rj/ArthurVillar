@@ -10,6 +10,7 @@ import {
   isMaxedDouble,
 } from "./staffUtils.js";
 import { StaffAnimations } from "./StaffAnimations.js";
+import { GameAudio } from "../games/shared/GameAudio.js";
 
 /**
  * Staff engine: draws staff, manages note interactions, emits events.
@@ -460,15 +461,8 @@ export class Staff {
     if (!window.Tone) return;
 
     await Tone.start();
-    this._synth = new Tone.Synth({
-      oscillator: { type: "sine" },
-      envelope: { attack: 0.01, decay: 0.08, sustain: 0.6, release: 0.12 },
-    }).toDestination();
-    this._fxNoise = new Tone.NoiseSynth({
-      noise: { type: "white" },
-      envelope: { attack: 0.001, decay: 0.03, sustain: 0.0, release: 0.02 },
-      volume: -10,
-    }).toDestination();
+    this._synth = GameAudio.createStaffNoteSynth();
+    this._fxNoise = GameAudio.createStaffNoiseSynth();
     this._audioReady = true;
   }
 
@@ -476,7 +470,7 @@ export class Staff {
     if (!this._soundEnabled() || !window.Tone) return;
     this._ensureAudio().then(() => {
       if (!this._fxNoise) return;
-      this._fxNoise.triggerAttackRelease(0.03, Tone.now(), 0.12);
+      this._fxNoise.triggerAttackRelease(0.06, Tone.now(), GameAudio.scale("accidentalGrab", 0.5));
     });
   }
 
@@ -538,7 +532,7 @@ export class Staff {
     if (!this._synth) return;
     const midi = this._stepToMidi(step) + (accidentalOffset || 0);
     if (this._synth.triggerRelease) this._synth.triggerRelease();
-    this._synth.triggerAttackRelease(Tone.Frequency(midi, "midi"), 0.5);
+    this._synth.triggerAttackRelease(Tone.Frequency(midi, "midi"), 0.5, undefined, GameAudio.scale("staffNote", 1));
   }
 
   setNoteFixed(noteId, fixed) {

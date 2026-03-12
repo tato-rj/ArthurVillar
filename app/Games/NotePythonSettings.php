@@ -31,7 +31,7 @@ class NotePythonSettings extends GameFactory
 
     protected function requiredToggleKeys(): array
     {
-        return ['sound', 'solfege', 'allowInitialAccidentals', 'strictDirection'];
+        return ['sound', 'solfege', 'allowAccidentals', 'strictDirection', 'showBombs'];
     }
 
     protected function snakeSpeeds(): array
@@ -51,8 +51,9 @@ class NotePythonSettings extends GameFactory
             'initialNotes' => [],
             'sound' => true,
             'solfege' => false,
-            'allowInitialAccidentals' => false,
+            'allowAccidentals' => false,
             'strictDirection' => false,
+            'showBombs' => false,
         ];
     }
 
@@ -65,7 +66,7 @@ class NotePythonSettings extends GameFactory
         $idx = max(0, min($idx, count($speeds) - 1));
         $options['snakeSpeed'] = $speeds[$idx];
 
-        $weights = $this->getAccidentalWeights()[(bool) $options['allowInitialAccidentals']];
+        $weights = $this->getAccidentalWeights()[(bool) $options['allowAccidentals']];
         $array = array_merge($options, ['accidentalWeights' => $weights]);
 
         return $key ? $array[$key] : $array;

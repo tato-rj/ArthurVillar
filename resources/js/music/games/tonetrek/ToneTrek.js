@@ -1,5 +1,6 @@
 import { renderFinalResultsOverlay } from "../shared/finalResults.js";
 import { BaseStaffGame } from "../base/BaseStaffGame.js";
+import { GameAudio } from "../shared/GameAudio.js";
 
 export class ToneTrek {
   static INTERVALS_FALLBACK = [
@@ -34,7 +35,7 @@ export class ToneTrek {
       maxStraightRun: 3,
       intervals: null,
       initialNotes: null,
-      allowInitialAccidentals: false,
+      allowAccidentals: false,
       solfege: false,
       sound: true,
       basePoints: 1,
@@ -327,7 +328,7 @@ export class ToneTrek {
   }
 
   _allowsInitialAccidentals() {
-    return this._readBoolSetting("allowInitialAccidentals", false);
+    return this._readBoolSetting("allowAccidentals", false);
   }
 
   _noteDisplay(noteObj) {
@@ -1014,12 +1015,12 @@ export class ToneTrek {
     this._ensureUiSfxAudio().then(() => {
       const now = Tone.now();
       if (this._uiSfxNoise) {
-        this._uiSfxNoise.triggerAttackRelease(0.04, now, 0.07);
+        this._uiSfxNoise.triggerAttackRelease(0.04, now, GameAudio.scale("hinge", 0.07));
       }
       const synth = this._uiTimerSfxSynth || this._uiSfxSynth;
       if (!synth) return;
-      synth.triggerAttackRelease("E4", 0.04, now, 0.12);
-      synth.triggerAttackRelease("C4", 0.05, now + 0.04, 0.16);
+      synth.triggerAttackRelease("E4", 0.04, now, GameAudio.scale("hinge", 0.12));
+      synth.triggerAttackRelease("C4", 0.05, now + 0.04, GameAudio.scale("hinge", 0.16));
     });
   }
 
@@ -1568,10 +1569,7 @@ export class ToneTrek {
       return;
     }
 
-    this._synth = new Tone.PolySynth(Tone.Synth, {
-      oscillator: { type: "sine" },
-      envelope: { attack: 0.01, decay: 0.08, sustain: 0.35, release: 0.25 },
-    }).toDestination();
+    this._synth = GameAudio.createSequenceSynth();
     this._audioReady = true;
   }
 
@@ -1582,7 +1580,7 @@ export class ToneTrek {
       const now = Tone.now();
       const when = now + (Number(atSecondsFromNow) || 0);
       const dur = Number(durSeconds) || 0.6;
-      this._synth.triggerAttackRelease(Tone.Frequency(midi, "midi"), dur, when);
+      this._synth.triggerAttackRelease(Tone.Frequency(midi, "midi"), dur, when, GameAudio.scale("sequence", 1));
     });
   }
 

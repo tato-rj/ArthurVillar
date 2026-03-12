@@ -31,7 +31,7 @@ class ChordsLabSettings extends GameFactory
 
     protected function requiredToggleKeys(): array
     {
-        return ['sound', 'showNoteNames', 'solfege', 'allowInitialAccidentals', 'initialRoot', 'only7thChords'];
+        return ['sound', 'showNoteNames', 'solfege', 'allowAccidentals', 'initialRoot', 'only7thChords'];
     }
 
     protected function defaults(): array
@@ -47,7 +47,7 @@ class ChordsLabSettings extends GameFactory
             'fixedNotes' => [],
             'sound' => true,
             'showNoteNames' => false,
-            'allowInitialAccidentals' => false,
+            'allowAccidentals' => false,
             'initialRoot' => true,
             'only7thChords' => false,
             'initialNoteRange' => 0,
@@ -62,7 +62,7 @@ class ChordsLabSettings extends GameFactory
 
         $options['maxUserNotes'] = !empty($options['only7thChords']) ? 3 : 2;
 
-        $weights = $this->getAccidentalWeights()[(bool) $options['allowInitialAccidentals']];
+        $weights = $this->getAccidentalWeights()[(bool) $options['allowAccidentals']];
         $array = array_merge($options, ['accidentalWeights' => $weights]);
 
         return $key ? $array[$key] : $array;

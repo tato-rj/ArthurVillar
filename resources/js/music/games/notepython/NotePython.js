@@ -3,6 +3,7 @@ import { renderFinalResultsOverlay } from "../shared/finalResults.js";
 import { playSnakeCellBreakBurstAtElement } from "../shared/mojsEffects.js";
 import { playSmokePuffAtElement } from "../shared/mojsEffects.js";
 import { PromptUi } from "../shared/PromptUi.js";
+import { GameAudio } from "../shared/GameAudio.js";
 
 export class NotePython {
   static INTERVAL_FULL_NAME_MAP = {
@@ -43,6 +44,7 @@ export class NotePython {
       practiceMode: false,
       solfege: false,
       strictDirection: false,
+      showBombs: false,
       successPhrases: [
         "Awesome",
         "Nicely done",
@@ -88,10 +90,12 @@ export class NotePython {
     this.$finalOverlay = $("#final-overlay");
     this.$doublePoints = $("#double-points");
     this.$controls = $("#controls");
+    this.$restart = $("#restart");
     this._rows = 9;
     this._cols = 9;
     this._snake = [];
     this._foods = [];
+    this._bombs = [];
     this._foodIdCounter = 1;
     this._animatedFoodIds = new Set();
     this._foodAnimTimeouts = [];
@@ -382,6 +386,10 @@ export class NotePython {
     return s === "on" || s === "true" || s === "1";
   }
 
+  _showBombs() {
+    return this._normalizeOnOff(this.opts.showBombs);
+  }
+
   _syncPracticeUi() {
     const practice = this._isPracticeMode();
     const $score = $("#score");
@@ -531,8 +539,9 @@ export class NotePython {
           const cell = { r, c };
           const occupiedBySnake = this._snake.some((s) => this._sameCell(s, cell));
           const occupiedByFood = this._foods.some((f) => this._sameCell(f, cell));
+          const occupiedByBomb = this._bombs.some((b) => this._sameCell(b, cell));
           const tooCloseToHead = this._isTooCloseToHead(cell, 2);
-          if (!occupiedBySnake && !occupiedByFood && !tooCloseToHead) free.push(cell);
+          if (!occupiedBySnake && !occupiedByFood && !occupiedByBomb && !tooCloseToHead) free.push(cell);
         }
       }
 
@@ -551,6 +560,45 @@ export class NotePython {
         c: pick.c,
         note: this._randomNoteObj(),
       });
+    }
+  }
+
+  _spawnBombs(count = 1, { preferredRow = null } = {}) {
+    if (!this._showBombs()) return;
+    const n = Math.max(0, Math.floor(Number(count) || 0));
+    if (!n) return;
+
+    const hasPreferredRow = Number.isFinite(preferredRow);
+    const targetRow = hasPreferredRow
+      ? Math.max(0, Math.min(this._rows - 1, Math.floor(preferredRow)))
+      : null;
+
+    for (let k = 0; k < n; k += 1) {
+      const free = [];
+      const rowStart = hasPreferredRow ? targetRow : 0;
+      const rowEnd = hasPreferredRow ? (targetRow + 1) : this._rows;
+
+      for (let r = rowStart; r < rowEnd; r += 1) {
+        for (let c = 0; c < this._cols; c += 1) {
+          const cell = { r, c };
+          const occupiedBySnake = this._snake.some((s) => this._sameCell(s, cell));
+          const occupiedByFood = this._foods.some((f) => this._sameCell(f, cell));
+          const occupiedByBomb = this._bombs.some((b) => this._sameCell(b, cell));
+          const tooCloseToHead = this._isTooCloseToHead(cell, 2);
+          if (!occupiedBySnake && !occupiedByFood && !occupiedByBomb && !tooCloseToHead) free.push(cell);
+        }
+      }
+
+      if (!free.length) {
+        if (hasPreferredRow) {
+          this._spawnBombs(1);
+          continue;
+        }
+        return;
+      }
+
+      const pick = free[Math.floor(Math.random() * free.length)];
+      this._bombs.push({ r: pick.r, c: pick.c });
     }
   }
 
@@ -585,7 +633,7 @@ export class NotePython {
   _renderEntities() {
     if (!this.$board.length) return;
     const $cells = this.$board.find(".board-cell");
-    $cells.removeClass("snake snake-head food animate__animated animate__rubberBand").text("");
+    $cells.removeClass("snake snake-head food bomb animate__animated animate__rubberBand").html("");
 
     this._snake.forEach((cell, i) => {
       const selector = `.board-cell[data-row="${cell.r}"][data-col="${cell.c}"]`;
@@ -626,6 +674,17 @@ export class NotePython {
       }, 0);
       this._foodAnimTimeouts.push(tid);
     });
+
+    this._bombs.forEach((bomb) => {
+      if (!this._showBombs()) return;
+      const $bomb = this.$board.find(
+        `.board-cell[data-row="${bomb.r}"][data-col="${bomb.c}"]`,
+      );
+      if (!$bomb.length) return;
+      $bomb
+        .addClass("bomb")
+        .html('<div class="bomb"><i class="fa-solid fa-bomb"></i></div>');
+    });
   }
 
   _explodeSnakeAndEndGame() {
@@ -633,27 +692,180 @@ export class NotePython {
     this._isGameOver = true;
     this._stopLoop();
     this._clearCorrectStreak();
+    this.$board?.addClass?.("failed");
+    this._playBombHitFailSfx();
+    this._hingeClearSnake();
+  }
 
-    let exploded = false;
-    const explodeNow = () => {
-      if (exploded) return;
-      exploded = true;
-      const parentEl = this.$board?.[0] || document.body;
-      this._snake.forEach((cell, i) => {
-        const $cell = this.$board.find(
-          `.board-cell[data-row="${cell.r}"][data-col="${cell.c}"]`,
-        ).first();
-        if (!$cell.length) return;
-        playSnakeCellBreakBurstAtElement($cell[0], { parentEl, index: i });
+  _hingeClearSnake() {
+    if (!this.$board?.length) return;
+
+    const $targets = this.$board.find(".board-cell.snake, .board-cell.snake-head");
+    if (!$targets.length) {
+      this.$restart?.show?.();
+      return;
+    }
+
+    const lastIndex = $targets.length - 1;
+    $targets.each((i, el) => {
+      const delay = i * 85;
+      const tid = setTimeout(() => {
+        const $el = $(el);
+        $el
+          .removeClass("animate__animated animate__hinge animate__rubberBand")
+          .addClass("animate__animated animate__hinge")
+          .off(`animationend.${this.ns}SnakeHinge webkitAnimationEnd.${this.ns}SnakeHinge`)
+          .one(`animationend.${this.ns}SnakeHinge webkitAnimationEnd.${this.ns}SnakeHinge`, () => {
+            $el
+              .removeClass("snake snake-head animate__animated animate__hinge animate__rubberBand")
+              .html("")
+              .css("animation-delay", "");
+            if (i === lastIndex) this.$restart?.show?.();
+          });
+      }, delay);
+      this._countdownTimeouts.push(tid);
+    });
+  }
+
+  _explodeBombCollision(hitCell) {
+    if (!this.$board?.length) return;
+
+    const parentEl = this.$board[0] || document.body;
+    const explodedSelectors = [];
+    this._snake.forEach((cell, i) => {
+      const $cell = this.$board.find(
+        `.board-cell[data-row="${cell.r}"][data-col="${cell.c}"]`,
+      ).first();
+      if (!$cell.length) return;
+      playSnakeCellBreakBurstAtElement($cell[0], { parentEl, index: i });
+      explodedSelectors.push(`.board-cell[data-row="${cell.r}"][data-col="${cell.c}"]`);
+    });
+
+    if (hitCell) {
+      const $bombCell = this.$board.find(
+        `.board-cell[data-row="${hitCell.r}"][data-col="${hitCell.c}"]`,
+      ).first();
+      if ($bombCell.length) {
+        playSnakeCellBreakBurstAtElement($bombCell[0], {
+          parentEl,
+          index: this._snake.length + 1,
+        });
+        explodedSelectors.push(`.board-cell[data-row="${hitCell.r}"][data-col="${hitCell.c}"]`);
+      }
+    }
+
+    const deduped = Array.from(new Set(explodedSelectors));
+    const tid = setTimeout(() => {
+      deduped.forEach((selector) => {
+        this.$board.find(selector)
+          .removeClass("snake snake-head bomb food animate__animated animate__rubberBand animate__hinge")
+          .html("");
+      });
+    }, 110);
+    this._countdownTimeouts.push(tid);
+  }
+
+  _playBombHitFailSfx() {
+    if (!this._isSoundEnabled() || !window.Tone) return Promise.resolve(0);
+
+    return this._ensureUiSfxAudio().then(() => {
+      const synth = this._uiSfxSynth;
+      const noiseSynth = this._uiSfxNoise;
+      if (!synth) return 0;
+
+      const now = Tone.now();
+      const oldEnv = { ...synth.get().envelope };
+      const oldOsc = synth.get().oscillator?.type;
+
+      try {
+        synth.set({
+          oscillator: { type: "triangle" },
+          envelope: { attack: 0.004, decay: 0.16, sustain: 0.08, release: 0.38 },
+        });
+      } catch (_) {}
+
+      ["E5", "D5", "C5", "A4", "G4", "E4", "D4", "B3", "A3", "F3", "E3"].forEach((n, i) => {
+        const when = now + (i * 0.17);
+        synth.triggerAttackRelease(n, 0.15, when, GameAudio.scale("bombFail", 0.42));
+        if (noiseSynth && i < 8) {
+          noiseSynth.triggerAttackRelease(0.05, when + 0.015, GameAudio.scale("bombFail", 0.14));
+        }
       });
 
-      setTimeout(() => {
-        this.$board.find(".board-cell").removeClass("snake snake-head");
-        this.$board.find(".board-cell .food-note").remove();
-      }, 80);
-    };
+      const restoreDelay = 2200;
+      const tid = setTimeout(() => {
+        try {
+          synth.set({
+            oscillator: { type: oldOsc || "triangle" },
+            envelope: oldEnv,
+          });
+        } catch (_) {}
+      }, restoreDelay);
+      this._countdownTimeouts.push(tid);
 
-    this._runBoardPreExplosionShake(() => explodeNow());
+      return restoreDelay;
+    });
+  }
+
+  _hingeClearBoardEntities() {
+    if (!this.$board?.length) return;
+
+    const $targets = this.$board.find(".board-cell").filter((_, el) => {
+      const $el = $(el);
+      return $el.hasClass("snake")
+        || $el.hasClass("snake-head")
+        || $el.hasClass("food")
+        || $el.hasClass("bomb")
+        || $el.children().length > 0;
+    });
+
+    if (!$targets.length) {
+      this.$restart?.show?.();
+      return;
+    }
+
+    const lastIndex = $targets.length - 1;
+    $targets.each((i, el) => {
+      const delay = i * 85;
+      const tid = setTimeout(() => {
+        const $el = $(el);
+        $el
+          .removeClass("animate__animated animate__hinge animate__rubberBand")
+          .addClass("animate__animated animate__hinge")
+          .off(`animationend.${this.ns}BombHinge webkitAnimationEnd.${this.ns}BombHinge`)
+          .one(`animationend.${this.ns}BombHinge webkitAnimationEnd.${this.ns}BombHinge`, () => {
+            $el
+              .removeClass("snake snake-head food bomb animate__animated animate__hinge animate__rubberBand")
+              .html("")
+              .css("animation-delay", "");
+            if (i === lastIndex) this.$restart?.show?.();
+          });
+      }, delay);
+      this._countdownTimeouts.push(tid);
+    });
+  }
+
+  _handleBombCollision() {
+    if (this._isGameOver) return;
+    const hitCell = this._snake?.[0]
+      ? this._wrapCell({
+        r: this._snake[0].r + this._direction.dr,
+        c: this._snake[0].c + this._direction.dc,
+      })
+      : null;
+    this._isGameOver = true;
+    this._stopLoop();
+    this._clearCorrectStreak();
+    this.$board?.addClass?.("failed");
+
+    this._playBombHitFailSfx();
+    this._runBoardPreExplosionShake(() => {
+      this._explodeBombCollision(hitCell);
+      const tid = setTimeout(() => {
+        this._hingeClearBoardEntities();
+      }, 520);
+      this._countdownTimeouts.push(tid);
+    });
   }
 
   _runBoardPreExplosionShake(onDone) {
@@ -745,6 +957,11 @@ export class NotePython {
       r: head.r + this._direction.dr,
       c: head.c + this._direction.dc,
     });
+    const hitBomb = this._showBombs() && this._bombs.some((bomb) => this._sameCell(bomb, next));
+    if (hitBomb) {
+      this._handleBombCollision();
+      return;
+    }
     const eatenFoodIdx = this._foods.findIndex((f) => this._sameCell(f, next));
     const eatenFood = eatenFoodIdx >= 0 ? this._foods[eatenFoodIdx] : null;
     const validTargets = new Set(
@@ -821,6 +1038,7 @@ export class NotePython {
           if (this._isGameOver) return;
           this._setIntervalUIWithDirection(this._pickInterval(), this._pickIntervalDirection());
           this._spawnFoods(2);
+          this._spawnBombs(1);
           this._ensureTargetFoodPresent();
           this._renderEntities();
         },
@@ -874,7 +1092,7 @@ export class NotePython {
     const synth = this._uiTimerSfxSynth || this._uiSfxSynth;
     if (!synth) return;
     const now = Tone.now();
-    synth.triggerAttackRelease("B5", 0.06, now, 0.2);
+    synth.triggerAttackRelease("B5", 0.06, now, GameAudio.scale("countdownBeep", 0.2));
   }
 
   _playCountdownGoFanfareSfx() {
@@ -885,6 +1103,7 @@ export class NotePython {
     if (!this.$countdown.length || !this.$countdownText.length) {
       this._placeInitialSnake();
       this._spawnFoods(2, { preferredRow: this._rows - 2 });
+      if (this._showBombs()) this._spawnBombs(2);
       this._ensureTargetFoodPresent();
       this._renderEntities();
       this._startLoop();
@@ -914,6 +1133,7 @@ export class NotePython {
       this._placeInitialSnake();
       this._directionQueue = [];
       this._spawnFoods(2, { preferredRow: this._rows - 2 });
+      if (this._showBombs()) this._spawnBombs(2);
       this._ensureTargetFoodPresent();
       this._renderEntities();
       this._startLoop();
@@ -993,6 +1213,7 @@ export class NotePython {
     this.$board.find(".board-cell").removeClass("snake snake-head food");
     this._snake = [];
     this._foods = [];
+    this._bombs = [];
     this._foodIdCounter = 1;
     this._animatedFoodIds = new Set();
     this._isGameOver = false;
@@ -1009,6 +1230,8 @@ export class NotePython {
     this._finalStartMs = Date.now();
     this._syncPracticeUi();
     this.$feedback?.hide?.();
+    this.$restart?.hide?.();
+    this.$board?.removeClass?.("failed");
     this.$points.text("0");
     this.$progressBar.data("progress", 0).css({ width: "0%" });
     if (this._isPracticeMode()) this.$progressCounter.text("Practice");

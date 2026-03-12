@@ -3,19 +3,20 @@
   @component('theory.components.settings.section', ['title' => 'SETUP'])
     @include('theory.components.settings.rounds')
     @include('theory.components.settings.speed')
-    @include('theory.components.settings.practice')
+    @include('theory.components.settings.toggle', ['label' => 'Practice mode', 'name' => 'practiceMode'])
   @endcomponent
 
   @component('theory.components.settings.section', ['title' => 'MATERIAL'])
     @include('theory.components.settings.intervals')
     <hr class="opacity-1">
-    @include('theory.components.settings.accidentals')
-    @include('theory.components.settings.direction')
+    @include('theory.components.settings.toggle', ['label' => 'Allow accidentals', 'name' => 'allowAccidentals'])
+    @include('theory.components.settings.toggle', ['label' => 'Specify a direction', 'name' => 'strictDirection'])
+    @include('theory.components.settings.toggle', ['label' => 'Show bombs', 'name' => 'showBombs'])
   @endcomponent
 
   @component('theory.components.settings.section', ['title' => 'PREFERENCES'])
-    @include('theory.components.settings.sound')
-    @include('theory.components.settings.solfege')
+    @include('theory.components.settings.toggle', ['label' => 'Sound effects', 'name' => 'sound'])
+    @include('theory.components.settings.toggle', ['label' => 'Use solfege', 'name' => 'solfege'])
   @endcomponent
 
   <button type="submit" class="btn btn-primary w-100">Start new game</button>

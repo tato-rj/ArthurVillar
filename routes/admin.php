@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('', 'AdminController@index')->name('index');
 
+Route::get('sound-effects', 'AdminController@soundEffects')->name('sound-effects.index');
+
 Route::namespace('Listening\\')->group(function() {
 	Route::prefix('recordings')->name('recordings.')->group(function() {
 	    Route::get('', 'RecordingsController@index')->name('index');

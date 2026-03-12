@@ -5,6 +5,7 @@ import {
   pickWeighted,
   toArrayMaybe,
 } from "../../staff/staffUtils.js";
+import { GameAudio } from "../shared/GameAudio.js";
 import {
   accidentalClassFromOffset,
   fixedNoteToStaffPosition,
@@ -179,10 +180,7 @@ export class PitchDetective extends BaseStaffGame {
     await Tone.start();
 
     // Poly synth so we can play two notes together.
-    this._dictSynth = new Tone.PolySynth(Tone.Synth, {
-      oscillator: { type: "sine" },
-      envelope: { attack: 0.01, decay: 0.08, sustain: 0.35, release: 0.25 },
-    }).toDestination();
+    this._dictSynth = GameAudio.createDictationSynth();
 
     this._dictAudioReady = true;
   }
@@ -199,6 +197,7 @@ export class PitchDetective extends BaseStaffGame {
         Tone.Frequency(midi, "midi"),
         dur,
         when,
+        GameAudio.scale("dictation", 1),
       );
     });
   }

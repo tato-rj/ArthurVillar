@@ -4,6 +4,7 @@ import { pickOne, spellNoteFromState } from "../../staff/staffUtils.js";
 import { renderFinalResultsOverlay } from "../shared/finalResults.js";
 import { playBurstConfettiAtElement } from "../shared/mojsEffects.js";
 import { PromptUi } from "../shared/PromptUi.js";
+import { GameAudio } from "../shared/GameAudio.js";
 
 export const PAGE_OPENED_AT_MS = Date.now();
 
@@ -252,20 +253,9 @@ export class BaseStaffGame {
       return;
     }
 
-    this._uiSfxSynth = new Tone.PolySynth(Tone.Synth, {
-      oscillator: { type: "triangle" },
-      envelope: { attack: 0.005, decay: 0.12, sustain: 0.0, release: 0.25 },
-    }).toDestination();
-
-    this._uiSfxNoise = new Tone.NoiseSynth({
-      noise: { type: "pink" },
-      envelope: { attack: 0.001, decay: 0.08, sustain: 0.0, release: 0.06 },
-    }).toDestination();
-
-    this._uiTimerSfxSynth = new Tone.Synth({
-      oscillator: { type: "square" },
-      envelope: { attack: 0.001, decay: 0.03, sustain: 0.0, release: 0.06 },
-    }).toDestination();
+    this._uiSfxSynth = GameAudio.createUiPolySynth();
+    this._uiSfxNoise = GameAudio.createUiNoiseSynth();
+    this._uiTimerSfxSynth = GameAudio.createUiTimerSynth();
 
     this._uiSfxReady = true;
   }
@@ -309,7 +299,7 @@ export class BaseStaffGame {
 
       const picked = variants[Math.floor(Math.random() * variants.length)];
       picked.forEach((n, i) => {
-        this._uiSfxSynth.triggerAttackRelease(n, 0.07, now + i * 0.05, 0.42);
+        this._uiSfxSynth.triggerAttackRelease(n, 0.07, now + i * 0.05, GameAudio.scale("successBasic", 0.42));
       });
     });
   }
@@ -340,10 +330,10 @@ export class BaseStaffGame {
       const hit = [62, 69, 74, 78].map((m) => toNote(m + semitoneShift));
 
       arp.forEach((n, i) => {
-        this._uiSfxSynth.triggerAttackRelease(n, 0.06, now + i * 0.045, 0.45);
+        this._uiSfxSynth.triggerAttackRelease(n, 0.06, now + i * 0.045, GameAudio.scale("successBonus", 0.45));
       });
       hit.forEach((n) => {
-        this._uiSfxSynth.triggerAttackRelease(n, 0.12, now + 0.26, 0.30);
+        this._uiSfxSynth.triggerAttackRelease(n, 0.12, now + 0.26, GameAudio.scale("successBonus", 0.30));
       });
 
       setTimeout(() => {
@@ -364,11 +354,11 @@ export class BaseStaffGame {
       const now = Tone.now();
 
       if (this._uiSfxNoise) {
-        this._uiSfxNoise.triggerAttackRelease(0.06, now, 0.1);
+        this._uiSfxNoise.triggerAttackRelease(0.06, now, GameAudio.scale("failNoise", 0.45));
       }
       if (this._uiSfxSynth) {
-        this._uiSfxSynth.triggerAttackRelease("A2", 0.10, now + 0.01, 0.1);
-        this._uiSfxSynth.triggerAttackRelease("G2", 0.12, now + 0.08, 10.1);
+        this._uiSfxSynth.triggerAttackRelease("A2", 0.10, now + 0.01, GameAudio.scale("failNote", 0.55));
+        this._uiSfxSynth.triggerAttackRelease("G2", 0.12, now + 0.08, GameAudio.scale("failNote", 0.6));
       }
     });
   }
@@ -392,103 +382,103 @@ export class BaseStaffGame {
         // 1) Triad pad + bright run
         () => {
           ["C4", "G4", "C5", "E5"].forEach((n) =>
-            this._uiSfxSynth.triggerAttackRelease(n, 0.9, now, 0.6),
+            this._uiSfxSynth.triggerAttackRelease(n, 0.9, now, GameAudio.scale("final", 0.6)),
           );
           ["G5", "A5", "B5", "C6", "D6", "E6", "G6"].forEach((n, i) => {
-            this._uiSfxSynth.triggerAttackRelease(n, 0.08, now + 0.25 + i * 0.06, 0.35);
+            this._uiSfxSynth.triggerAttackRelease(n, 0.08, now + 0.25 + i * 0.06, GameAudio.scale("final", 0.35));
           });
         },
         // 2) Rising broken chord + final hit
         () => {
           ["C5", "E5", "G5", "B5", "D6", "G6"].forEach((n, i) => {
-            this._uiSfxSynth.triggerAttackRelease(n, 0.11, now + i * 0.08, 0.44);
+            this._uiSfxSynth.triggerAttackRelease(n, 0.11, now + i * 0.08, GameAudio.scale("final", 0.44));
           });
           ["C6", "E6", "G6"].forEach((n) =>
-            this._uiSfxSynth.triggerAttackRelease(n, 0.28, now + 0.62, 0.5),
+            this._uiSfxSynth.triggerAttackRelease(n, 0.28, now + 0.62, GameAudio.scale("final", 0.5)),
           );
         },
         // 3) Two chord swells
         () => {
           ["A3", "E4", "A4", "C5"].forEach((n) =>
-            this._uiSfxSynth.triggerAttackRelease(n, 0.45, now, 0.45),
+            this._uiSfxSynth.triggerAttackRelease(n, 0.45, now, GameAudio.scale("final", 0.45)),
           );
           ["F4", "A4", "C5", "F5"].forEach((n) =>
-            this._uiSfxSynth.triggerAttackRelease(n, 0.52, now + 0.35, 0.48),
+            this._uiSfxSynth.triggerAttackRelease(n, 0.52, now + 0.35, GameAudio.scale("final", 0.48)),
           );
           ["C5", "F5", "A5"].forEach((n) =>
-            this._uiSfxSynth.triggerAttackRelease(n, 0.24, now + 0.78, 0.4),
+            this._uiSfxSynth.triggerAttackRelease(n, 0.24, now + 0.78, GameAudio.scale("final", 0.4)),
           );
         },
         // 4) Sparkly step run + octave landing
         () => {
           ["E5", "G5", "A5", "B5", "D6", "E6", "G6", "A6"].forEach((n, i) => {
-            this._uiSfxSynth.triggerAttackRelease(n, 0.075, now + i * 0.055, 0.34);
+            this._uiSfxSynth.triggerAttackRelease(n, 0.075, now + i * 0.055, GameAudio.scale("final", 0.34));
           });
           ["A5", "A6", "C7"].forEach((n) =>
-            this._uiSfxSynth.triggerAttackRelease(n, 0.20, now + 0.52, 0.42),
+            this._uiSfxSynth.triggerAttackRelease(n, 0.20, now + 0.52, GameAudio.scale("final", 0.42)),
           );
         },
         // 5) Major lift arpeggio
         () => {
           ["D4", "A4", "D5", "F#5"].forEach((n) =>
-            this._uiSfxSynth.triggerAttackRelease(n, 0.36, now, 0.45),
+            this._uiSfxSynth.triggerAttackRelease(n, 0.36, now, GameAudio.scale("final", 0.45)),
           );
           ["D5", "F#5", "A5", "D6", "F#6"].forEach((n, i) => {
-            this._uiSfxSynth.triggerAttackRelease(n, 0.095, now + 0.2 + i * 0.065, 0.4);
+            this._uiSfxSynth.triggerAttackRelease(n, 0.095, now + 0.2 + i * 0.065, GameAudio.scale("final", 0.4));
           });
         },
         // 6) Warm cadence
         () => {
           ["G3", "D4", "G4", "B4"].forEach((n) =>
-            this._uiSfxSynth.triggerAttackRelease(n, 0.4, now, 0.4),
+            this._uiSfxSynth.triggerAttackRelease(n, 0.4, now, GameAudio.scale("final", 0.4)),
           );
           ["C4", "E4", "G4", "C5"].forEach((n) =>
-            this._uiSfxSynth.triggerAttackRelease(n, 0.44, now + 0.32, 0.46),
+            this._uiSfxSynth.triggerAttackRelease(n, 0.44, now + 0.32, GameAudio.scale("final", 0.46)),
           );
           ["E5", "G5", "C6"].forEach((n) =>
-            this._uiSfxSynth.triggerAttackRelease(n, 0.22, now + 0.72, 0.4),
+            this._uiSfxSynth.triggerAttackRelease(n, 0.22, now + 0.72, GameAudio.scale("final", 0.4)),
           );
         },
         // 7) Fast gamey sparkle
         () => {
           ["C6", "D6", "E6", "G6", "A6", "G6", "E6", "C7"].forEach((n, i) => {
-            this._uiSfxSynth.triggerAttackRelease(n, 0.06, now + i * 0.048, 0.3);
+            this._uiSfxSynth.triggerAttackRelease(n, 0.06, now + i * 0.048, GameAudio.scale("final", 0.3));
           });
           ["G6", "C7"].forEach((n) =>
-            this._uiSfxSynth.triggerAttackRelease(n, 0.2, now + 0.48, 0.38),
+            this._uiSfxSynth.triggerAttackRelease(n, 0.2, now + 0.48, GameAudio.scale("final", 0.38)),
           );
         },
         // 8) Two-step fanfare
         () => {
           ["F4", "C5", "A5"].forEach((n, i) => {
-            this._uiSfxSynth.triggerAttackRelease(n, 0.16, now + i * 0.06, 0.45);
+            this._uiSfxSynth.triggerAttackRelease(n, 0.16, now + i * 0.06, GameAudio.scale("final", 0.45));
           });
           ["G4", "D5", "B5"].forEach((n, i) => {
-            this._uiSfxSynth.triggerAttackRelease(n, 0.16, now + 0.28 + i * 0.06, 0.48);
+            this._uiSfxSynth.triggerAttackRelease(n, 0.16, now + 0.28 + i * 0.06, GameAudio.scale("final", 0.48));
           });
           ["C5", "E5", "G5", "C6"].forEach((n) =>
-            this._uiSfxSynth.triggerAttackRelease(n, 0.26, now + 0.54, 0.44),
+            this._uiSfxSynth.triggerAttackRelease(n, 0.26, now + 0.54, GameAudio.scale("final", 0.44)),
           );
         },
         // 9) Descend then resolve up
         () => {
           ["A6", "G6", "E6", "D6", "C6"].forEach((n, i) => {
-            this._uiSfxSynth.triggerAttackRelease(n, 0.08, now + i * 0.06, 0.34);
+            this._uiSfxSynth.triggerAttackRelease(n, 0.08, now + i * 0.06, GameAudio.scale("final", 0.34));
           });
           ["E6", "G6", "C7"].forEach((n) =>
-            this._uiSfxSynth.triggerAttackRelease(n, 0.24, now + 0.4, 0.42),
+            this._uiSfxSynth.triggerAttackRelease(n, 0.24, now + 0.4, GameAudio.scale("final", 0.42)),
           );
         },
         // 10) Big finish hit
         () => {
           ["C4", "E4", "G4", "C5"].forEach((n) =>
-            this._uiSfxSynth.triggerAttackRelease(n, 0.34, now, 0.48),
+            this._uiSfxSynth.triggerAttackRelease(n, 0.34, now, GameAudio.scale("final", 0.48)),
           );
           ["E5", "G5", "B5", "D6", "E6"].forEach((n, i) => {
-            this._uiSfxSynth.triggerAttackRelease(n, 0.09, now + 0.18 + i * 0.055, 0.38);
+            this._uiSfxSynth.triggerAttackRelease(n, 0.09, now + 0.18 + i * 0.055, GameAudio.scale("final", 0.38));
           });
           ["C6", "E6", "G6", "C7"].forEach((n) =>
-            this._uiSfxSynth.triggerAttackRelease(n, 0.3, now + 0.58, 0.5),
+            this._uiSfxSynth.triggerAttackRelease(n, 0.3, now + 0.58, GameAudio.scale("final", 0.5)),
           );
         },
       ];
@@ -535,8 +525,8 @@ export class BaseStaffGame {
     const synth = this._uiTimerSfxSynth || this._uiSfxSynth;
     if (!synth) return;
 
-    synth.triggerAttackRelease(Tone.Frequency(midi, "midi"), 0.055, now, 0.44);
-    synth.triggerAttackRelease(Tone.Frequency(midi + 5, "midi"), 0.045, now + 0.03, 0.34);
+    synth.triggerAttackRelease(Tone.Frequency(midi, "midi"), 0.055, now, GameAudio.scale("finalMetric", 0.44));
+    synth.triggerAttackRelease(Tone.Frequency(midi + 5, "midi"), 0.045, now + 0.03, GameAudio.scale("finalMetric", 0.34));
   }
 
   _animateFinalMetricsWithSfx() {
@@ -584,11 +574,11 @@ export class BaseStaffGame {
 
       const fanfare = ["C5", "E5", "G5", "C6", "E6", "G6", "C7"];
       fanfare.forEach((n, i) => {
-        this._uiSfxSynth.triggerAttackRelease(n, 0.09, now + i * 0.06, 0.62);
+        this._uiSfxSynth.triggerAttackRelease(n, 0.09, now + i * 0.06, GameAudio.scale("perfectBonus", 0.62));
       });
 
       const hit = ["C6", "G6", "C7", "E7"];
-      hit.forEach((n) => this._uiSfxSynth.triggerAttackRelease(n, 0.35, now + 0.48, 0.46));
+      hit.forEach((n) => this._uiSfxSynth.triggerAttackRelease(n, 0.35, now + 0.48, GameAudio.scale("perfectBonus", 0.46)));
 
       setTimeout(() => {
         try {
@@ -652,7 +642,7 @@ export class BaseStaffGame {
 
       motif.forEach(([intervals, t, dur, vel]) => {
         const notes = intervals.map((i) => toNote(root + i));
-        this._uiSfxSynth.triggerAttackRelease(notes, dur, now + t, vel);
+        this._uiSfxSynth.triggerAttackRelease(notes, dur, now + t, GameAudio.scale("runStart", vel));
       });
     });
   }
@@ -768,7 +758,7 @@ export class BaseStaffGame {
     this._hideSkipRoundButton();
     this.prompt.setTone("blue");
     this._resetRoundTimerIfEnabled();
-    this.prompt.setTone("blue");
+    this.$accidentals.removeClass("invisible");
     this.newChallenge();
     this._armUiGates({ resetInstructions: false });
     this.$checkBtn.enable();
@@ -786,7 +776,7 @@ export class BaseStaffGame {
     if (!this.isSoundEnabled() || !window.Tone) return;
     if (!this._uiSfxReady || !this._uiTimerSfxSynth) return;
     const now = Tone.now();
-    this._uiTimerSfxSynth.triggerAttackRelease("C6", 0.06, now, 0.5);
+    this._uiTimerSfxSynth.triggerAttackRelease("C6", 0.06, now, GameAudio.scale("timerBeep", 0.5));
   }
 
   _playTimerTimeUpSfx() {
@@ -794,11 +784,11 @@ export class BaseStaffGame {
     if (!this._uiSfxReady || !this._uiTimerSfxSynth) return;
     const now = Tone.now();
     if (this._uiSfxNoise) {
-      this._uiSfxNoise.triggerAttackRelease(0.12, now, 0.2);
+      this._uiSfxNoise.triggerAttackRelease(0.12, now, GameAudio.scale("timerTimeUp", 0.2));
     }
-    this._uiTimerSfxSynth.triggerAttackRelease("G4", 0.11, now, 0.72);
-    this._uiTimerSfxSynth.triggerAttackRelease("E4", 0.13, now + 0.10, 0.76);
-    this._uiTimerSfxSynth.triggerAttackRelease("C4", 0.18, now + 0.22, 0.82);
+    this._uiTimerSfxSynth.triggerAttackRelease("G4", 0.11, now, GameAudio.scale("timerTimeUp", 0.72));
+    this._uiTimerSfxSynth.triggerAttackRelease("E4", 0.13, now + 0.10, GameAudio.scale("timerTimeUp", 0.76));
+    this._uiTimerSfxSynth.triggerAttackRelease("C4", 0.18, now + 0.22, GameAudio.scale("timerTimeUp", 0.82));
   }
 
   _removeAllStaffNotesWithSmoke() {
@@ -931,6 +921,7 @@ export class BaseStaffGame {
       this.$timer.hide();
     }
 
+    this.$accidentals.removeClass("invisible");
     this.newChallenge();
     this._armUiGates({ resetInstructions: true });
 
@@ -951,6 +942,7 @@ export class BaseStaffGame {
 
   _wireAccidentalPalette() {
     $("#accidentals .music-font__doublesharp, #accidentals .music-font__doubleflat").addClass("d-none");
+    this.$accidentals.removeClass("invisible");
   }
 
   _wireStaffTools() {
@@ -1034,6 +1026,7 @@ export class BaseStaffGame {
           this._setTimedOutInteractivityDisabled(false);
           this._resetRoundTimerIfEnabled();
           this.prompt.setTone("blue");
+          this.$accidentals.removeClass("invisible");
           this.newChallenge();
           this._armUiGates({ resetInstructions: false });
           this.$checkBtn.enable();

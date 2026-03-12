@@ -470,3 +470,11 @@ body {
   z-index: 110 !important;
   position: relative;
 }
+
+.bomb {
+  @extend .text-red;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.8rem;
+}

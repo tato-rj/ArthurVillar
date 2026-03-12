@@ -31,7 +31,7 @@ class PitchDetectiveSettings extends GameFactory
 
     protected function requiredToggleKeys(): array
     {
-        return ['sound', 'showNoteNames', 'solfege', 'allowInitialAccidentals', 'initialRoot', 'only7thChords'];
+        return ['sound', 'showNoteNames', 'solfege', 'allowAccidentals', 'initialRoot', 'only7thChords'];
     }
 
     protected function defaults(): array
@@ -47,7 +47,7 @@ class PitchDetectiveSettings extends GameFactory
             'fixedNotes' => [],
             'sound' => true,
             'showNoteNames' => false,
-            'allowInitialAccidentals' => false,
+            'allowAccidentals' => false,
             'initialNoteRange' => 0,
             'solfege' => false
         ];
@@ -57,7 +57,7 @@ class PitchDetectiveSettings extends GameFactory
     {
         $options = $this->applyUserPreferences();
 
-        $weights = $this->getAccidentalWeights()[(bool) $options['allowInitialAccidentals']];
+        $weights = $this->getAccidentalWeights()[(bool) $options['allowAccidentals']];
         $array = array_merge($options, ['accidentalWeights' => $weights]);
 
         return $key ? $array[$key] : $array;

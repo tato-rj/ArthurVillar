@@ -50,9 +50,13 @@
     animation: redBoard 0.4s 6;
   }
 
-  #game-countdown {
+  #game-countdown, #restart {
     font-size: 3rem;
     z-index: 100;
+  }
+
+  #restart {
+    display: none;
   }
 
   .board-cell {
@@ -90,6 +94,10 @@
     align-items: center;
     font-weight: bold;
   }
+
+  #board.failed {
+    background: rgba(255,0,0,0.2);
+  }
 </style>
 @endpush
 
@@ -105,12 +113,18 @@
     <div class="col-12 mx-auto mb-2 position-relative">
       <div id="board-wrapper" style="display: none" class="text-center mx-auto position-relative ">
 
-            <div id="game-countdown" class="position-absolute w-100 h-100 d-center">
-              <button type="button" class="btn btn-primary btn-lg animate__animated animate__flipInX">START GAME</button>
-              <h1 class="animate__animated animate__bounceInDown"></h1>
-            </div>
-          <div id="board" class="my-2 mx-auto position-relative"></div>
+          <div id="game-countdown" class="position-absolute w-100 h-100 d-center">
+            <button type="button" class="btn btn-primary btn-lg">START GAME</button>
+            <h1 class="animate__animated animate__bounceInDown"></h1>
+          </div>
 
+          <div id="restart" class="position-absolute w-100 h-100">
+            <div class="d-center w-100 h-100">
+              <button onclick="window.location.reload();" type="button" class="btn btn-red btn-lg">RESTART</button>
+            </div>
+          </div>
+
+          <div id="board" class="my-2 mx-auto position-relative"></div>
       </div>
       @include('theory.components.prompt')
       @include('theory.components.feedback')

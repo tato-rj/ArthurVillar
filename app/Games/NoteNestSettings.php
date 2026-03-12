@@ -31,7 +31,7 @@ class NoteNestSettings extends GameFactory
 
     protected function requiredToggleKeys(): array
     {
-        return ['sound', 'showNoteNames', 'solfege', 'allowInitialAccidentals'];
+        return ['sound', 'showNoteNames', 'solfege', 'allowAccidentals'];
     }
 
     protected function defaults(): array
@@ -47,7 +47,7 @@ class NoteNestSettings extends GameFactory
             'fixedNotes' => [],
             'sound' => true,
             'showNoteNames' => false,
-            'allowInitialAccidentals' => false,
+            'allowAccidentals' => false,
             'initialNoteRange' => 0,
             'solfege' => false,
             'strictDirection' => false
@@ -58,7 +58,7 @@ class NoteNestSettings extends GameFactory
     {
         $options = $this->applyUserPreferences();
 
-        $weights = $this->getAccidentalWeights()[(bool) $options['allowInitialAccidentals']];
+        $weights = $this->getAccidentalWeights()[(bool) $options['allowAccidentals']];
         $array = array_merge($options, ['accidentalWeights' => $weights]);
 
         return $key ? $array[$key] : $array;

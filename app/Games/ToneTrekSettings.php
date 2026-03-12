@@ -31,7 +31,7 @@ class ToneTrekSettings extends GameFactory
 
     protected function requiredToggleKeys(): array
     {
-        return ['sound', 'solfege', 'allowInitialAccidentals'];
+        return ['sound', 'solfege', 'allowAccidentals'];
     }
 
     protected function defaults(): array
@@ -45,7 +45,7 @@ class ToneTrekSettings extends GameFactory
             'initialNotes' => [],
             'sound' => true,
             'solfege' => false,
-            'allowInitialAccidentals' => false
+            'allowAccidentals' => false
         ];
     }
 
@@ -53,7 +53,7 @@ class ToneTrekSettings extends GameFactory
     {
         $options = $this->applyUserPreferences();
 
-        $weights = $this->getAccidentalWeights()[(bool) $options['allowInitialAccidentals']];
+        $weights = $this->getAccidentalWeights()[(bool) $options['allowAccidentals']];
         $array = array_merge($options, ['accidentalWeights' => $weights]);
 
         return $key ? $array[$key] : $array;
