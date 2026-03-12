@@ -36,7 +36,7 @@ class NotePythonSettings extends GameFactory
 
     protected function snakeSpeeds(): array
     {
-        return [400, 300, 200];
+        return [600, 400, 200];
     }
 
     protected function defaults(): array
