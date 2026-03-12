@@ -35,7 +35,7 @@
         @include('layouts.overlay')
 
         @if(! isset($noMenu))
-        <div class="position-fixed top-0 right-0 p-4 z-10">
+        <div class="position-absolute top-0 right-0 p-4 z-10">
             @auth
             @include('layouts.menu')
             @endauth
