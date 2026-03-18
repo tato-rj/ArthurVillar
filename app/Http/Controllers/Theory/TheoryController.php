@@ -4,21 +4,23 @@ namespace App\Http\Controllers\Theory;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Games\{IntervalsLabSettings, ChordsLabSettings, PitchDetectiveSettings, ToneTrekSettings, NotePythonSettings, KeysLabSettings, NoteNestSettings};
+use App\Games\{IntervalsLabSettings, ChordsLabSettings, PitchDetectiveSettings, ToneTrekSettings, NotePythonSettings, KeysLabSettings, NoteNestSettings, ModesMasterSettings};
 
 class TheoryController extends Controller
 {
     public function index()
     {
-        $intervalsLabSettings = new IntervalsLabSettings;
-        $chordsLabSettings = new ChordsLabSettings;
-        $pitchDetectiveSettings = new PitchDetectiveSettings;
-        $toneTrekSettings = new ToneTrekSettings;
-        $notePythonSettings = new NotePythonSettings;
-        $keysLabSettings = new KeysLabSettings;
-        $noteNestSettings = new NoteNestSettings;
+        $games = [
+            new IntervalsLabSettings,
+            new ChordsLabSettings,
+            new PitchDetectiveSettings,
+            new ToneTrekSettings,
+            new NotePythonSettings,
+            new KeysLabSettings,
+            new NoteNestSettings
+        ];
 
-        return view('theory.index', compact('intervalsLabSettings', 'chordsLabSettings', 'pitchDetectiveSettings', 'toneTrekSettings', 'notePythonSettings', 'keysLabSettings', 'noteNestSettings'));
+        return view('theory.index', compact('games'));
     }
 
     public function intervalsLab(Request $request)

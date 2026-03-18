@@ -20,6 +20,7 @@ export class GameAudio {
     failNoise: 1,
     failNote: 1,
     bombFail: 1,
+    wallCrash: .4,
     final: 0.5,
     finalMetric: 0.85,
     perfectBonus: 0.25,
@@ -84,6 +85,12 @@ export class GameAudio {
       label: "Bomb Hit",
       volumeKey: "bombFail",
       description: "Long stumbling fail sound when the snake hits a bomb.",
+    },
+    {
+      id: "wallCrash",
+      label: "Wall Crash",
+      volumeKey: "wallCrash",
+      description: "Sharp breaking impact when the snake crashes into a wall.",
     },
     {
       id: "final",
@@ -260,6 +267,16 @@ export class GameAudio {
             });
           } catch (_) {}
         }, 2200);
+      },
+      wallCrash: () => {
+        const synth = GameAudio._getPreviewSynth("uiTimer", () => GameAudio.createUiTimerSynth());
+        const noiseSynth = GameAudio._getPreviewSynth("uiNoise", () => GameAudio.createUiNoiseSynth());
+        const now = Tone.now();
+        noiseSynth.triggerAttackRelease(0.12, now, GameAudio.scale("wallCrash", 0.32));
+        noiseSynth.triggerAttackRelease(0.09, now + 0.045, GameAudio.scale("wallCrash", 0.22));
+        synth.triggerAttackRelease("G3", 0.08, now, GameAudio.scale("wallCrash", 0.85));
+        synth.triggerAttackRelease("D3", 0.12, now + 0.04, GameAudio.scale("wallCrash", 0.7));
+        synth.triggerAttackRelease("A2", 0.18, now + 0.11, GameAudio.scale("wallCrash", 0.62));
       },
       final: () => {
         const synth = GameAudio._getPreviewSynth("uiPoly", () => GameAudio.createUiPolySynth());

@@ -7,7 +7,7 @@
   @endcomponent
 
   @component('theory.components.settings.section', ['title' => 'MATERIAL'])
-    @include('theory.components.settings.intervals')
+    @include('theory.components.settings.multichoice', ['label' => 'Intervals', 'name' => 'intervals', 'options' => $settings->getIntervals(), 'game' => $settings->gameName()])
     <hr class="opacity-1">
     @include('theory.components.settings.toggle', ['label' => 'Allow accidentals', 'name' => 'allowAccidentals'])
   @endcomponent

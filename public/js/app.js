@@ -3097,7 +3097,7 @@ $('.form-number button').on('click', function () {
     $input.val(current + 1);
   }
 });
-$(document).off("change.settingsToggles").on("change.settingsToggles", 'input[name="intervals[]"], input[name="clefs[]"], input[name="keyQualities[]"], input[name="triadQualities[]"]', function () {
+$(document).off("change.settingsToggles").on("change.settingsToggles", 'input[multichoice]', function () {
   var $label = $(this).siblings("label");
   $label.removeClass("btn-white btn-secondary");
   $label.addClass(this.checked ? "btn-secondary" : "btn-white");

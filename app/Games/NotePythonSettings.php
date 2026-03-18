@@ -54,6 +54,7 @@ class NotePythonSettings extends GameFactory
             'allowAccidentals' => false,
             'strictDirection' => false,
             'showBombs' => false,
+            'realWalls' => false,
         ];
     }
 

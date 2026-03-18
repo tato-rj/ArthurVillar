@@ -271,6 +271,16 @@ export class Staff {
     return this.yToStep(parseFloat(topStr));
   }
 
+  _noteLocksX(elOrId) {
+    if (!elOrId) return false;
+    const el = typeof elOrId === "string"
+      ? this.$el.find(`.note[data-note-id="${elOrId}"]`)[0]
+      : elOrId;
+    if (!el) return false;
+    const attr = String(el.getAttribute("data-lock-x") || "").trim().toLowerCase();
+    return attr === "true" || attr === "1" || $(el).hasClass("lock-x");
+  }
+
   _isStepOccupied(step, excludeId) {
     const nodes = this.$el.find(".note").toArray();
     for (let i = 0; i < nodes.length; i++) {
@@ -666,7 +676,12 @@ export class Staff {
     function notesArray() {
       return self.$el.find(".note").toArray().map((el) => {
         const $el = $(el);
-        return { el, $el, step: self.yToStep(parseFloat($el.css("top"))) };
+        return {
+          el,
+          $el,
+          step: self.yToStep(parseFloat($el.css("top"))),
+          lockX: self._noteLocksX(el),
+        };
       });
     }
 
@@ -682,6 +697,7 @@ export class Staff {
     function centerAll(list) {
       const cx = self.centerX();
       for (let i = 0; i < list.length; i++) {
+        if (list[i].lockX) continue;
         const id = list[i].$el.attr("data-note-id");
         self.moveNote(id, { x: cx, step: list[i].step });
         list[i]._shifted = false;
@@ -689,6 +705,7 @@ export class Staff {
     }
 
     function shiftUpperToTouch(upper, stepMap) {
+      if (upper.lockX) return false;
       const upperRect = upper.el.getBoundingClientRect();
       const lowerEls = stepMap[upper.step - 1];
       if (!lowerEls || !lowerEls.length) return false;
@@ -745,6 +762,7 @@ export class Staff {
   }
 
   _applyDraggedAdjacencyX(dragId) {
+    if (this._noteLocksX(dragId)) return;
     const $drag = this.$el.find(`.note[data-note-id="${dragId}"]`);
     if (!$drag.length) return;
 

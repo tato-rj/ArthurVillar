@@ -27,7 +27,12 @@
     width: calc(var(--note-python-board-size) + calc(var(--note-python-border-width) * 2));
     height: calc(var(--note-python-board-size) + calc(var(--note-python-border-width) * 2));
     background: white;
-    border: var(--note-python-border-width) solid rgba(0,0,0,0.1);
+    border: var(--note-python-border-width) dashed rgba(0,0,0,0.1);
+  }
+
+  #board.walled {
+    border-color: black;
+    border-style: solid;
   }
 
   @keyframes greenBoard {

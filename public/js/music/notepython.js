@@ -1705,6 +1705,7 @@ var NotePython = /*#__PURE__*/function () {
       solfege: false,
       strictDirection: false,
       showBombs: false,
+      realWalls: false,
       successPhrases: ["Awesome", "Nicely done", "Well done", "Great job", "Hooray", "Fantastic", "Nice work", "Looks good", "Good one", "Splendid", "Way to go", "Nailed it", "Brilliant", "Excellent", "Superb", "Right on", "You got it", "Perfect", "Spot on", "Impressive", "Top notch", "That’s it"],
       intervals: Object.keys(NotePython.INTERVAL_FULL_NAME_MAP),
       namespace: "notePython"
@@ -1898,6 +1899,11 @@ var NotePython = /*#__PURE__*/function () {
     key: "_isStrictDirection",
     value: function _isStrictDirection() {
       return this._normalizeOnOff(this.opts.strictDirection);
+    }
+  }, {
+    key: "_useRealWalls",
+    value: function _useRealWalls() {
+      return this._normalizeOnOff(this.opts.realWalls);
     }
   }, {
     key: "_isSolfege",
@@ -2517,10 +2523,29 @@ var NotePython = /*#__PURE__*/function () {
       });
     }
   }, {
+    key: "_playWallCrashSfx",
+    value: function _playWallCrashSfx() {
+      var _this0 = this;
+      if (!this._isSoundEnabled() || !window.Tone) return;
+      this._ensureUiSfxAudio().then(function () {
+        var synth = _this0._uiTimerSfxSynth || _this0._uiSfxSynth;
+        var noiseSynth = _this0._uiSfxNoise;
+        if (!synth) return;
+        var now = Tone.now();
+        if (noiseSynth) {
+          noiseSynth.triggerAttackRelease(0.12, now, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("wallCrash", 0.32));
+          noiseSynth.triggerAttackRelease(0.09, now + 0.045, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("wallCrash", 0.22));
+        }
+        synth.triggerAttackRelease("G3", 0.08, now, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("wallCrash", 0.85));
+        synth.triggerAttackRelease("D3", 0.12, now + 0.04, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("wallCrash", 0.7));
+        synth.triggerAttackRelease("A2", 0.18, now + 0.11, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("wallCrash", 0.62));
+      });
+    }
+  }, {
     key: "_hingeClearBoardEntities",
     value: function _hingeClearBoardEntities() {
       var _this$$board5,
-        _this0 = this;
+        _this1 = this;
       if (!((_this$$board5 = this.$board) !== null && _this$$board5 !== void 0 && _this$$board5.length)) return;
       var $targets = this.$board.find(".board-cell").filter(function (_, el) {
         var $el = $(el);
@@ -2536,13 +2561,13 @@ var NotePython = /*#__PURE__*/function () {
         var delay = i * 85;
         var tid = setTimeout(function () {
           var $el = $(el);
-          $el.removeClass("animate__animated animate__hinge animate__rubberBand").addClass("animate__animated animate__hinge").off("animationend.".concat(_this0.ns, "BombHinge webkitAnimationEnd.").concat(_this0.ns, "BombHinge")).one("animationend.".concat(_this0.ns, "BombHinge webkitAnimationEnd.").concat(_this0.ns, "BombHinge"), function () {
-            var _this0$$restart, _this0$$restart$show;
+          $el.removeClass("animate__animated animate__hinge animate__rubberBand").addClass("animate__animated animate__hinge").off("animationend.".concat(_this1.ns, "BombHinge webkitAnimationEnd.").concat(_this1.ns, "BombHinge")).one("animationend.".concat(_this1.ns, "BombHinge webkitAnimationEnd.").concat(_this1.ns, "BombHinge"), function () {
+            var _this1$$restart, _this1$$restart$show;
             $el.removeClass("snake snake-head food bomb animate__animated animate__hinge animate__rubberBand").html("").css("animation-delay", "");
-            if (i === lastIndex) (_this0$$restart = _this0.$restart) === null || _this0$$restart === void 0 || (_this0$$restart$show = _this0$$restart.show) === null || _this0$$restart$show === void 0 || _this0$$restart$show.call(_this0$$restart);
+            if (i === lastIndex) (_this1$$restart = _this1.$restart) === null || _this1$$restart === void 0 || (_this1$$restart$show = _this1$$restart.show) === null || _this1$$restart$show === void 0 || _this1$$restart$show.call(_this1$$restart);
           });
         }, delay);
-        _this0._countdownTimeouts.push(tid);
+        _this1._countdownTimeouts.push(tid);
       });
     }
   }, {
@@ -2551,7 +2576,7 @@ var NotePython = /*#__PURE__*/function () {
       var _this$_snake2,
         _this$$board6,
         _this$$board6$addClas,
-        _this1 = this;
+        _this10 = this;
       if (this._isGameOver) return;
       var hitCell = (_this$_snake2 = this._snake) !== null && _this$_snake2 !== void 0 && _this$_snake2[0] ? this._wrapCell({
         r: this._snake[0].r + this._direction.dr,
@@ -2563,11 +2588,11 @@ var NotePython = /*#__PURE__*/function () {
       (_this$$board6 = this.$board) === null || _this$$board6 === void 0 || (_this$$board6$addClas = _this$$board6.addClass) === null || _this$$board6$addClas === void 0 || _this$$board6$addClas.call(_this$$board6, "failed");
       this._playBombHitFailSfx();
       this._runBoardPreExplosionShake(function () {
-        _this1._explodeBombCollision(hitCell);
+        _this10._explodeBombCollision(hitCell);
         var tid = setTimeout(function () {
-          _this1._hingeClearBoardEntities();
+          _this10._hingeClearBoardEntities();
         }, 520);
-        _this1._countdownTimeouts.push(tid);
+        _this10._countdownTimeouts.push(tid);
       });
     }
   }, {
@@ -2603,14 +2628,14 @@ var NotePython = /*#__PURE__*/function () {
     key: "_animateBoardCorrectHit",
     value: function _animateBoardCorrectHit() {
       var _this$$board8,
-        _this10 = this;
+        _this11 = this;
       if (!((_this$$board8 = this.$board) !== null && _this$$board8 !== void 0 && _this$$board8.length)) return;
       this.$board.removeClass("board-correct-hit");
       // eslint-disable-next-line no-unused-expressions
       this.$board[0] && this.$board[0].offsetWidth;
       this.$board.addClass("board-correct-hit");
       var tid = setTimeout(function () {
-        _this10.$board.removeClass("board-correct-hit");
+        _this11.$board.removeClass("board-correct-hit");
       }, 900);
       this._countdownTimeouts.push(tid);
     }
@@ -2618,14 +2643,14 @@ var NotePython = /*#__PURE__*/function () {
     key: "_animateBoardWrongHit",
     value: function _animateBoardWrongHit() {
       var _this$$board9,
-        _this11 = this;
+        _this12 = this;
       if (!((_this$$board9 = this.$board) !== null && _this$$board9 !== void 0 && _this$$board9.length)) return;
       this.$board.removeClass("board-wrong-hit");
       // eslint-disable-next-line no-unused-expressions
       this.$board[0] && this.$board[0].offsetWidth;
       this.$board.addClass("board-wrong-hit");
       var tid = setTimeout(function () {
-        _this11.$board.removeClass("board-wrong-hit");
+        _this12.$board.removeClass("board-wrong-hit");
       }, 420);
       this._countdownTimeouts.push(tid);
     }
@@ -2633,7 +2658,7 @@ var NotePython = /*#__PURE__*/function () {
     key: "_animateSnakeFinalCelebrate",
     value: function _animateSnakeFinalCelebrate() {
       var _this$$board0,
-        _this12 = this;
+        _this13 = this;
       if (!((_this$$board0 = this.$board) !== null && _this$$board0 !== void 0 && _this$$board0.length)) return;
       var $cells = this.$board.find(".board-cell.snake");
       $cells.each(function (_, el) {
@@ -2642,7 +2667,7 @@ var NotePython = /*#__PURE__*/function () {
         $el.removeClass("animate__animated animate__shakeY").css("animation-duration", "".concat(dur, "s"));
         // eslint-disable-next-line no-unused-expressions
         el && el.offsetWidth;
-        $el.addClass("animate__animated animate__shakeY").off("animationend.".concat(_this12.ns, "SnakeCelebrate webkitAnimationEnd.").concat(_this12.ns, "SnakeCelebrate")).one("animationend.".concat(_this12.ns, "SnakeCelebrate webkitAnimationEnd.").concat(_this12.ns, "SnakeCelebrate"), function () {
+        $el.addClass("animate__animated animate__shakeY").off("animationend.".concat(_this13.ns, "SnakeCelebrate webkitAnimationEnd.").concat(_this13.ns, "SnakeCelebrate")).one("animationend.".concat(_this13.ns, "SnakeCelebrate webkitAnimationEnd.").concat(_this13.ns, "SnakeCelebrate"), function () {
           $el.removeClass("animate__animated animate__shakeY").css("animation-duration", "");
         });
       });
@@ -2650,7 +2675,7 @@ var NotePython = /*#__PURE__*/function () {
   }, {
     key: "_advanceSnake",
     value: function _advanceSnake() {
-      var _this13 = this,
+      var _this14 = this,
         _eatenFood$note;
       if (!this._snake.length || this._isGameOver) return;
       if (this._directionQueue.length) {
@@ -2658,19 +2683,26 @@ var NotePython = /*#__PURE__*/function () {
         if (queued) this._direction = queued;
       }
       var head = this._snake[0];
-      var next = this._wrapCell({
+      var rawNext = {
         r: head.r + this._direction.dr,
         c: head.c + this._direction.dc
-      });
+      };
+      var hitWall = this._useRealWalls() && (rawNext.r < 0 || rawNext.r >= this._rows || rawNext.c < 0 || rawNext.c >= this._cols);
+      if (hitWall) {
+        this._playWallCrashSfx();
+        this._explodeSnakeAndEndGame();
+        return;
+      }
+      var next = this._wrapCell(rawNext);
       var hitBomb = this._showBombs() && this._bombs.some(function (bomb) {
-        return _this13._sameCell(bomb, next);
+        return _this14._sameCell(bomb, next);
       });
       if (hitBomb) {
         this._handleBombCollision();
         return;
       }
       var eatenFoodIdx = this._foods.findIndex(function (f) {
-        return _this13._sameCell(f, next);
+        return _this14._sameCell(f, next);
       });
       var eatenFood = eatenFoodIdx >= 0 ? this._foods[eatenFoodIdx] : null;
       var validTargets = new Set((Array.isArray(this._targetNotes) ? this._targetNotes : []).map(function (n) {
@@ -2718,8 +2750,8 @@ var NotePython = /*#__PURE__*/function () {
           this._stats.finishedAtMs = Date.now();
           if (this._finalResultsTimeoutId != null) clearTimeout(this._finalResultsTimeoutId);
           this._finalResultsTimeoutId = setTimeout(function () {
-            _this13._finalResultsTimeoutId = null;
-            _this13._showFinalResults();
+            _this14._finalResultsTimeoutId = null;
+            _this14._showFinalResults();
           }, 1600);
           return;
         }
@@ -2727,12 +2759,12 @@ var NotePython = /*#__PURE__*/function () {
           $interval: this.$interval,
           delayMs: 700,
           onDone: function onDone() {
-            if (_this13._isGameOver) return;
-            _this13._setIntervalUIWithDirection(_this13._pickInterval(), _this13._pickIntervalDirection());
-            _this13._spawnFoods(2);
-            _this13._spawnBombs(1);
-            _this13._ensureTargetFoodPresent();
-            _this13._renderEntities();
+            if (_this14._isGameOver) return;
+            _this14._setIntervalUIWithDirection(_this14._pickInterval(), _this14._pickIntervalDirection());
+            _this14._spawnFoods(2);
+            _this14._spawnBombs(1);
+            _this14._ensureTargetFoodPresent();
+            _this14._renderEntities();
           }
         });
         return;
@@ -2797,7 +2829,7 @@ var NotePython = /*#__PURE__*/function () {
   }, {
     key: "_runCountdownThenStart",
     value: function _runCountdownThenStart() {
-      var _this14 = this;
+      var _this15 = this;
       if (!this.$countdown.length || !this.$countdownText.length) {
         this._placeInitialSnake();
         this._spawnFoods(2, {
@@ -2816,34 +2848,34 @@ var NotePython = /*#__PURE__*/function () {
       var stepMs = 1000;
       steps.forEach(function (label, i) {
         var tid = setTimeout(function () {
-          _this14._showCountdownStep(label);
+          _this15._showCountdownStep(label);
           var soundTid = setTimeout(function () {
-            if (label === "GO!") _this14._playCountdownGoFanfareSfx();else _this14._playCountdownBeepSfx();
+            if (label === "GO!") _this15._playCountdownGoFanfareSfx();else _this15._playCountdownBeepSfx();
           }, 90);
-          _this14._countdownTimeouts.push(soundTid);
+          _this15._countdownTimeouts.push(soundTid);
         }, i * stepMs);
-        _this14._countdownTimeouts.push(tid);
+        _this15._countdownTimeouts.push(tid);
       });
       var doneTid = setTimeout(function () {
-        _this14.$countdown.remove();
-        _this14.$countdown = $();
-        _this14.$countdownText = $();
-        _this14._placeInitialSnake();
-        _this14._directionQueue = [];
-        _this14._spawnFoods(2, {
-          preferredRow: _this14._rows - 2
+        _this15.$countdown.remove();
+        _this15.$countdown = $();
+        _this15.$countdownText = $();
+        _this15._placeInitialSnake();
+        _this15._directionQueue = [];
+        _this15._spawnFoods(2, {
+          preferredRow: _this15._rows - 2
         });
-        if (_this14._showBombs()) _this14._spawnBombs(2);
-        _this14._ensureTargetFoodPresent();
-        _this14._renderEntities();
-        _this14._startLoop();
+        if (_this15._showBombs()) _this15._spawnBombs(2);
+        _this15._ensureTargetFoodPresent();
+        _this15._renderEntities();
+        _this15._startLoop();
       }, steps.length * stepMs + 500);
       this._countdownTimeouts.push(doneTid);
     }
   }, {
     key: "_awaitStartThenCountdown",
     value: function _awaitStartThenCountdown() {
-      var _this15 = this;
+      var _this16 = this;
       if (!this.$countdown.length) {
         this._runCountdownThenStart();
         return;
@@ -2857,28 +2889,29 @@ var NotePython = /*#__PURE__*/function () {
       this.$startBtn.show();
       this.$startBtn.off("click.".concat(this.ns, "Start")).one("click.".concat(this.ns, "Start"), function (e) {
         e.preventDefault();
-        _this15.$startBtn.hide();
-        _this15._runCountdownThenStart();
+        _this16.$startBtn.hide();
+        _this16._runCountdownThenStart();
       });
     }
   }, {
     key: "_startLoop",
     value: function _startLoop() {
-      var _this16 = this;
+      var _this17 = this;
       if (this._pausedByModal) return;
       this._stopLoop();
       this._tickTimer = setInterval(function () {
-        _this16._advanceSnake();
+        _this17._advanceSnake();
       }, this._snakeSpeedMs());
     }
   }, {
     key: "_showStandardGameUi",
     value: function _showStandardGameUi() {
-      var _this$$interval, _this$$interval$show;
+      var _this$$board1, _this$$board1$toggleC, _this$$interval, _this$$interval$show;
       if (typeof this._syncKeyboardLabels === "function") this._syncKeyboardLabels();
       $("#instructions").show();
       $("#controls").show();
       $("#board-wrapper").show();
+      (_this$$board1 = this.$board) === null || _this$$board1 === void 0 || (_this$$board1$toggleC = _this$$board1.toggleClass) === null || _this$$board1$toggleC === void 0 || _this$$board1$toggleC.call(_this$$board1, "walled", this._useRealWalls());
       (_this$$interval = this.$interval) === null || _this$$interval === void 0 || (_this$$interval$show = _this$$interval.show) === null || _this$$interval$show === void 0 || _this$$interval$show.call(_this$$interval);
       if (!this._currentIntervalAbbr) {
         this._setIntervalUIWithDirection(this._pickInterval(), this._pickIntervalDirection());
@@ -2900,7 +2933,7 @@ var NotePython = /*#__PURE__*/function () {
   }, {
     key: "start",
     value: function start() {
-      var _this$$feedback, _this$$feedback$hide, _this$$restart3, _this$$restart3$hide, _this$$board1, _this$$board1$removeC;
+      var _this$$feedback, _this$$feedback$hide, _this$$restart3, _this$$restart3$hide, _this$$board10, _this$$board10$remove;
       this._stopLoop();
       if (this._finalResultsTimeoutId != null) {
         clearTimeout(this._finalResultsTimeoutId);
@@ -2941,7 +2974,7 @@ var NotePython = /*#__PURE__*/function () {
       this._syncPracticeUi();
       (_this$$feedback = this.$feedback) === null || _this$$feedback === void 0 || (_this$$feedback$hide = _this$$feedback.hide) === null || _this$$feedback$hide === void 0 || _this$$feedback$hide.call(_this$$feedback);
       (_this$$restart3 = this.$restart) === null || _this$$restart3 === void 0 || (_this$$restart3$hide = _this$$restart3.hide) === null || _this$$restart3$hide === void 0 || _this$$restart3$hide.call(_this$$restart3);
-      (_this$$board1 = this.$board) === null || _this$$board1 === void 0 || (_this$$board1$removeC = _this$$board1.removeClass) === null || _this$$board1$removeC === void 0 || _this$$board1$removeC.call(_this$$board1, "failed");
+      (_this$$board10 = this.$board) === null || _this$$board10 === void 0 || (_this$$board10$remove = _this$$board10.removeClass) === null || _this$$board10$remove === void 0 || _this$$board10$remove.call(_this$$board10, "failed");
       this.$points.text("0");
       this.$progressBar.data("progress", 0).css({
         width: "0%"
@@ -2998,7 +3031,7 @@ var NotePython = /*#__PURE__*/function () {
   }, {
     key: "_showFinalResults",
     value: function _showFinalResults() {
-      var _this17 = this,
+      var _this18 = this,
         _this$$controls,
         _this$$controls$hide;
       if (this._isPracticeMode()) return;
@@ -3010,9 +3043,9 @@ var NotePython = /*#__PURE__*/function () {
       var finalScore = perfectGame ? this._pointsValue * 2 : this._pointsValue;
       if (perfectGame) {
         var tid = setTimeout(function () {
-          var _this17$$doublePoints, _this17$$doublePoints2;
-          (_this17$$doublePoints = _this17.$doublePoints) === null || _this17$$doublePoints === void 0 || (_this17$$doublePoints2 = _this17$$doublePoints.show) === null || _this17$$doublePoints2 === void 0 || _this17$$doublePoints2.call(_this17$$doublePoints);
-          _this17._playPerfectGameBonusSfx();
+          var _this18$$doublePoints, _this18$$doublePoints2;
+          (_this18$$doublePoints = _this18.$doublePoints) === null || _this18$$doublePoints === void 0 || (_this18$$doublePoints2 = _this18$$doublePoints.show) === null || _this18$$doublePoints2 === void 0 || _this18$$doublePoints2.call(_this18$$doublePoints);
+          _this18._playPerfectGameBonusSfx();
         }, 1750);
         this._countdownTimeouts.push(tid);
       } else {
@@ -3027,14 +3060,14 @@ var NotePython = /*#__PURE__*/function () {
         accuracy: accuracy,
         durationSec: durationSec,
         clearCountupTimers: function clearCountupTimers() {
-          return _this17._clearFinalCountupTimers();
+          return _this18._clearFinalCountupTimers();
         },
         countupTimers: this._finalCountupTimeouts,
         animateMetrics: function animateMetrics() {
-          return _this17._animateFinalMetricsWithSfx();
+          return _this18._animateFinalMetricsWithSfx();
         },
         playFinalSfx: function playFinalSfx() {
-          return _this17._playFinalSfx();
+          return _this18._playFinalSfx();
         }
       });
     }
@@ -3375,6 +3408,20 @@ var GameAudio = /*#__PURE__*/function () {
                     } catch (_) {}
                   }, 2200);
                 },
+                wallCrash: function wallCrash() {
+                  var synth = GameAudio._getPreviewSynth("uiTimer", function () {
+                    return GameAudio.createUiTimerSynth();
+                  });
+                  var noiseSynth = GameAudio._getPreviewSynth("uiNoise", function () {
+                    return GameAudio.createUiNoiseSynth();
+                  });
+                  var now = Tone.now();
+                  noiseSynth.triggerAttackRelease(0.12, now, GameAudio.scale("wallCrash", 0.32));
+                  noiseSynth.triggerAttackRelease(0.09, now + 0.045, GameAudio.scale("wallCrash", 0.22));
+                  synth.triggerAttackRelease("G3", 0.08, now, GameAudio.scale("wallCrash", 0.85));
+                  synth.triggerAttackRelease("D3", 0.12, now + 0.04, GameAudio.scale("wallCrash", 0.7));
+                  synth.triggerAttackRelease("A2", 0.18, now + 0.11, GameAudio.scale("wallCrash", 0.62));
+                },
                 "final": function _final() {
                   var _synth$get$oscillator3;
                   var synth = GameAudio._getPreviewSynth("uiPoly", function () {
@@ -3664,6 +3711,7 @@ _defineProperty(GameAudio, "VELOCITY", {
   failNoise: 1,
   failNote: 1,
   bombFail: 1,
+  wallCrash: .4,
   "final": 0.5,
   finalMetric: 0.85,
   perfectBonus: 0.25,
@@ -3718,6 +3766,11 @@ _defineProperty(GameAudio, "SOUND_LIBRARY", [{
   label: "Bomb Hit",
   volumeKey: "bombFail",
   description: "Long stumbling fail sound when the snake hits a bomb."
+}, {
+  id: "wallCrash",
+  label: "Wall Crash",
+  volumeKey: "wallCrash",
+  description: "Sharp breaking impact when the snake crashes into a wall."
 }, {
   id: "final",
   label: "Final Results",
@@ -4477,6 +4530,15 @@ var Staff = /*#__PURE__*/function () {
       return this.yToStep(parseFloat(topStr));
     }
   }, {
+    key: "_noteLocksX",
+    value: function _noteLocksX(elOrId) {
+      if (!elOrId) return false;
+      var el = typeof elOrId === "string" ? this.$el.find(".note[data-note-id=\"".concat(elOrId, "\"]"))[0] : elOrId;
+      if (!el) return false;
+      var attr = String(el.getAttribute("data-lock-x") || "").trim().toLowerCase();
+      return attr === "true" || attr === "1" || $(el).hasClass("lock-x");
+    }
+  }, {
     key: "_isStepOccupied",
     value: function _isStepOccupied(step, excludeId) {
       var nodes = this.$el.find(".note").toArray();
@@ -4924,7 +4986,8 @@ var Staff = /*#__PURE__*/function () {
           return {
             el: el,
             $el: $el,
-            step: self.yToStep(parseFloat($el.css("top")))
+            step: self.yToStep(parseFloat($el.css("top"))),
+            lockX: self._noteLocksX(el)
           };
         });
       }
@@ -4939,6 +5002,7 @@ var Staff = /*#__PURE__*/function () {
       function centerAll(list) {
         var cx = self.centerX();
         for (var i = 0; i < list.length; i++) {
+          if (list[i].lockX) continue;
           var id = list[i].$el.attr("data-note-id");
           self.moveNote(id, {
             x: cx,
@@ -4948,6 +5012,7 @@ var Staff = /*#__PURE__*/function () {
         }
       }
       function shiftUpperToTouch(upper, stepMap) {
+        if (upper.lockX) return false;
         var upperRect = upper.el.getBoundingClientRect();
         var lowerEls = stepMap[upper.step - 1];
         if (!lowerEls || !lowerEls.length) return false;
@@ -5002,6 +5067,7 @@ var Staff = /*#__PURE__*/function () {
   }, {
     key: "_applyDraggedAdjacencyX",
     value: function _applyDraggedAdjacencyX(dragId) {
+      if (this._noteLocksX(dragId)) return;
       var $drag = this.$el.find(".note[data-note-id=\"".concat(dragId, "\"]"));
       if (!$drag.length) return;
       var dragStep = this.yToStep(parseFloat($drag.css("top")));

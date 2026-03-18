@@ -14,13 +14,7 @@
             <p>Interactive games for practicing core music theory skills</p>
         </div>
 
-        @include('theory.card', ['settings' => $intervalsLabSettings])
-        @include('theory.card', ['settings' => $chordsLabSettings])
-        @include('theory.card', ['settings' => $keysLabSettings])
-        @include('theory.card', ['settings' => $pitchDetectiveSettings])
-        @include('theory.card', ['settings' => $toneTrekSettings])
-        @include('theory.card', ['settings' => $notePythonSettings])
-        @include('theory.card', ['settings' => $noteNestSettings])
+        @each('theory.card', $games, 'settings')
     </div>
 </section>
 @endsection

@@ -7,9 +7,11 @@
   @endcomponent
 
   @component('theory.components.settings.section', ['title' => 'MATERIAL'])
-    @include('theory.components.settings.triads')
-    @include('theory.components.settings.clefs')
+    @include('theory.components.settings.multichoice', ['label' => 'Triads', 'name' => 'triadQualities', 'options' => $settings->getTriadQualities(), 'game' => $settings->gameName(), 'ucfirst' => true])
+    @include('theory.components.settings.multichoice', ['label' => 'Clefs', 'name' => 'clefs', 'options' => $settings->getClefs(), 'game' => $settings->gameName(), 'ucfirst' => true])
+
     <hr class="opacity-1">
+    
     @include('theory.components.settings.toggle', ['label' => 'Allow accidentals', 'name' => 'allowAccidentals'])
     @include('theory.components.settings.toggle', ['label' => 'Initial note is always the root', 'name' => 'initialRoot'])
     @include('theory.components.settings.toggle', ['label' => 'Play with 7th chords', 'name' => 'only7thChords'])

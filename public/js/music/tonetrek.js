@@ -1869,6 +1869,20 @@ var GameAudio = /*#__PURE__*/function () {
                     } catch (_) {}
                   }, 2200);
                 },
+                wallCrash: function wallCrash() {
+                  var synth = GameAudio._getPreviewSynth("uiTimer", function () {
+                    return GameAudio.createUiTimerSynth();
+                  });
+                  var noiseSynth = GameAudio._getPreviewSynth("uiNoise", function () {
+                    return GameAudio.createUiNoiseSynth();
+                  });
+                  var now = Tone.now();
+                  noiseSynth.triggerAttackRelease(0.12, now, GameAudio.scale("wallCrash", 0.32));
+                  noiseSynth.triggerAttackRelease(0.09, now + 0.045, GameAudio.scale("wallCrash", 0.22));
+                  synth.triggerAttackRelease("G3", 0.08, now, GameAudio.scale("wallCrash", 0.85));
+                  synth.triggerAttackRelease("D3", 0.12, now + 0.04, GameAudio.scale("wallCrash", 0.7));
+                  synth.triggerAttackRelease("A2", 0.18, now + 0.11, GameAudio.scale("wallCrash", 0.62));
+                },
                 "final": function _final() {
                   var _synth$get$oscillator3;
                   var synth = GameAudio._getPreviewSynth("uiPoly", function () {
@@ -2158,6 +2172,7 @@ _defineProperty(GameAudio, "VELOCITY", {
   failNoise: 1,
   failNote: 1,
   bombFail: 1,
+  wallCrash: .4,
   "final": 0.5,
   finalMetric: 0.85,
   perfectBonus: 0.25,
@@ -2212,6 +2227,11 @@ _defineProperty(GameAudio, "SOUND_LIBRARY", [{
   label: "Bomb Hit",
   volumeKey: "bombFail",
   description: "Long stumbling fail sound when the snake hits a bomb."
+}, {
+  id: "wallCrash",
+  label: "Wall Crash",
+  volumeKey: "wallCrash",
+  description: "Sharp breaking impact when the snake crashes into a wall."
 }, {
   id: "final",
   label: "Final Results",
@@ -4859,6 +4879,15 @@ var Staff = /*#__PURE__*/function () {
       return this.yToStep(parseFloat(topStr));
     }
   }, {
+    key: "_noteLocksX",
+    value: function _noteLocksX(elOrId) {
+      if (!elOrId) return false;
+      var el = typeof elOrId === "string" ? this.$el.find(".note[data-note-id=\"".concat(elOrId, "\"]"))[0] : elOrId;
+      if (!el) return false;
+      var attr = String(el.getAttribute("data-lock-x") || "").trim().toLowerCase();
+      return attr === "true" || attr === "1" || $(el).hasClass("lock-x");
+    }
+  }, {
     key: "_isStepOccupied",
     value: function _isStepOccupied(step, excludeId) {
       var nodes = this.$el.find(".note").toArray();
@@ -5306,7 +5335,8 @@ var Staff = /*#__PURE__*/function () {
           return {
             el: el,
             $el: $el,
-            step: self.yToStep(parseFloat($el.css("top")))
+            step: self.yToStep(parseFloat($el.css("top"))),
+            lockX: self._noteLocksX(el)
           };
         });
       }
@@ -5321,6 +5351,7 @@ var Staff = /*#__PURE__*/function () {
       function centerAll(list) {
         var cx = self.centerX();
         for (var i = 0; i < list.length; i++) {
+          if (list[i].lockX) continue;
           var id = list[i].$el.attr("data-note-id");
           self.moveNote(id, {
             x: cx,
@@ -5330,6 +5361,7 @@ var Staff = /*#__PURE__*/function () {
         }
       }
       function shiftUpperToTouch(upper, stepMap) {
+        if (upper.lockX) return false;
         var upperRect = upper.el.getBoundingClientRect();
         var lowerEls = stepMap[upper.step - 1];
         if (!lowerEls || !lowerEls.length) return false;
@@ -5384,6 +5416,7 @@ var Staff = /*#__PURE__*/function () {
   }, {
     key: "_applyDraggedAdjacencyX",
     value: function _applyDraggedAdjacencyX(dragId) {
+      if (this._noteLocksX(dragId)) return;
       var $drag = this.$el.find(".note[data-note-id=\"".concat(dragId, "\"]"));
       if (!$drag.length) return;
       var dragStep = this.yToStep(parseFloat($drag.css("top")));

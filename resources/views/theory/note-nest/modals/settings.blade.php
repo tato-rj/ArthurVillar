@@ -7,7 +7,7 @@
   @endcomponent
 
   @component('theory.components.settings.section', ['title' => 'MATERIAL'])
-    @include('theory.components.settings.clefs')
+    @include('theory.components.settings.multichoice', ['label' => 'Clefs', 'name' => 'clefs', 'options' => $settings->getClefs(), 'game' => $settings->gameName(), 'ucfirst' => true])
     @include('theory.components.settings.range')
     <hr class="opacity-1">
     @include('theory.components.settings.toggle', ['label' => 'Allow accidentals', 'name' => 'allowAccidentals'])

@@ -45,6 +45,7 @@ export class NotePython {
       solfege: false,
       strictDirection: false,
       showBombs: false,
+      realWalls: false,
       successPhrases: [
         "Awesome",
         "Nicely done",
@@ -258,6 +259,10 @@ export class NotePython {
 
   _isStrictDirection() {
     return this._normalizeOnOff(this.opts.strictDirection);
+  }
+
+  _useRealWalls() {
+    return this._normalizeOnOff(this.opts.realWalls);
   }
 
   _isSolfege() {
@@ -693,6 +698,7 @@ export class NotePython {
     this._stopLoop();
     this._clearCorrectStreak();
     this.$board?.addClass?.("failed");
+    this._playWallCrashSfx();
     this._playBombHitFailSfx();
     this._hingeClearSnake();
   }
@@ -807,6 +813,25 @@ export class NotePython {
     });
   }
 
+  _playWallCrashSfx() {
+    if (!this._isSoundEnabled() || !window.Tone) return;
+
+    this._ensureUiSfxAudio().then(() => {
+      const synth = this._uiTimerSfxSynth || this._uiSfxSynth;
+      const noiseSynth = this._uiSfxNoise;
+      if (!synth) return;
+
+      const now = Tone.now();
+      if (noiseSynth) {
+        noiseSynth.triggerAttackRelease(0.12, now, GameAudio.scale("wallCrash", 0.32));
+        noiseSynth.triggerAttackRelease(0.09, now + 0.045, GameAudio.scale("wallCrash", 0.22));
+      }
+      synth.triggerAttackRelease("G3", 0.08, now, GameAudio.scale("wallCrash", 0.85));
+      synth.triggerAttackRelease("D3", 0.12, now + 0.04, GameAudio.scale("wallCrash", 0.7));
+      synth.triggerAttackRelease("A2", 0.18, now + 0.11, GameAudio.scale("wallCrash", 0.62));
+    });
+  }
+
   _hingeClearBoardEntities() {
     if (!this.$board?.length) return;
 
@@ -858,6 +883,7 @@ export class NotePython {
     this._clearCorrectStreak();
     this.$board?.addClass?.("failed");
 
+    this._playWallCrashSfx();
     this._playBombHitFailSfx();
     this._runBoardPreExplosionShake(() => {
       this._explodeBombCollision(hitCell);
@@ -953,10 +979,19 @@ export class NotePython {
     }
 
     const head = this._snake[0];
-    const next = this._wrapCell({
+    const rawNext = {
       r: head.r + this._direction.dr,
       c: head.c + this._direction.dc,
-    });
+    };
+    const hitWall = this._useRealWalls()
+      && (rawNext.r < 0 || rawNext.r >= this._rows || rawNext.c < 0 || rawNext.c >= this._cols);
+    if (hitWall) {
+      this._playWallCrashSfx();
+      this._explodeSnakeAndEndGame();
+      return;
+    }
+
+    const next = this._wrapCell(rawNext);
     const hitBomb = this._showBombs() && this._bombs.some((bomb) => this._sameCell(bomb, next));
     if (hitBomb) {
       this._handleBombCollision();
@@ -1172,6 +1207,7 @@ export class NotePython {
     $("#instructions").show();
     $("#controls").show();
     $("#board-wrapper").show();
+    this.$board?.toggleClass?.("walled", this._useRealWalls());
     this.$interval?.show?.();
     if (!this._currentIntervalAbbr) {
       this._setIntervalUIWithDirection(this._pickInterval(), this._pickIntervalDirection());

@@ -7,8 +7,8 @@
   @endcomponent
 
   @component('theory.components.settings.section', ['title' => 'MATERIAL'])
-    @include('theory.components.settings.keys')
-    @include('theory.components.settings.clefs')
+    @include('theory.components.settings.multichoice', ['label' => 'Keys', 'name' => 'keyQualities', 'options' => $settings->getKeyQualities(), 'game' => $settings->gameName(), 'ucfirst' => true])
+    @include('theory.components.settings.multichoice', ['label' => 'Clefs', 'name' => 'clefs', 'options' => $settings->getClefs(), 'game' => $settings->gameName(), 'ucfirst' => true])
     @include('theory.components.settings.accidentalsCount')
   @endcomponent
 
