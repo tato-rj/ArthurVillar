@@ -1,7 +1,6 @@
 import { BaseStaffGame } from "../base/BaseStaffGame.js";
 import { normalizeClefPool, pickChallengeClef } from "../shared/challengeUtils.js";
 import { accidentalClassToText, pickWeighted, stepToLetterOctave } from "../../staff/staffUtils.js";
-import { PianoKeyboardUi } from "../shared/PianoKeyboardUi.js";
 
 export class NoteNest extends BaseStaffGame {
   static LETTER_TO_SOLFEGE = {
@@ -34,127 +33,12 @@ export class NoteNest extends BaseStaffGame {
 
     this._clefPool = clefPool;
     this._targetNote = null;
-    this._keyboardSyncPatched = false;
-    this._keyboardAccidentalPreviewPatched = false;
-    this.keyboard = new PianoKeyboardUi({
-      rootSelector: "#keyboard",
-      namespace: `${this.ns}.keyboard`,
-    });
   }
 
   start() {
-    this.keyboard.bind();
-    this._wireKeyboardSync();
     super.start();
-    this._wireKeyboardAccidentalPreview();
     this.prompt.show();
     this._setPromptForTarget(this._targetNote);
-  }
-
-  _wireKeyboardSync() {
-    if (this._keyboardSyncPatched) return;
-    this._keyboardSyncPatched = true;
-
-    const baseMoveNote = this.staff.moveNote.bind(this.staff);
-    this.staff.moveNote = (...args) => {
-      const out = baseMoveNote(...args);
-      this._syncKeyboardMarkerFromStaff();
-      return out;
-    };
-
-    const baseRemoveNote = this.staff.removeNote.bind(this.staff);
-    this.staff.removeNote = (...args) => {
-      const out = baseRemoveNote(...args);
-      this._syncKeyboardMarkerFromStaff();
-      return out;
-    };
-
-    const baseClearNotes = this.staff.clearNotes.bind(this.staff);
-    this.staff.clearNotes = (...args) => {
-      const out = baseClearNotes(...args);
-      this._syncKeyboardMarkerFromStaff();
-      return out;
-    };
-
-    this.$staffEl
-      .off(`staff:noteState.${this.ns}.keyboard`)
-      .on(`staff:noteState.${this.ns}.keyboard`, (e, data) => {
-        if (data?.source !== "user") return;
-        this._syncKeyboardMarkerFromStaff();
-      });
-  }
-
-  _wireKeyboardAccidentalPreview() {
-    if (this._keyboardAccidentalPreviewPatched) return;
-    this._keyboardAccidentalPreviewPatched = true;
-
-    const $tools = $("#accidentals .accidental-tool");
-    if (!$tools.length || !$tools.draggable) return;
-
-    const originalDrag = $tools.draggable("option", "drag");
-    const originalStop = $tools.draggable("option", "stop");
-
-    $tools.draggable("option", "drag", (event, ui) => {
-      if (typeof originalDrag === "function") originalDrag.call(event.currentTarget, event, ui);
-      this._syncKeyboardMarkerFromAccidentalPreview();
-    });
-
-    $tools.draggable("option", "stop", (event, ui) => {
-      if (typeof originalStop === "function") originalStop.call(event.currentTarget, event, ui);
-      this._syncKeyboardMarkerFromStaff();
-    });
-  }
-
-  _keyboardKeySelectorFor(letter, accidentalClass, octave) {
-    return this.keyboard.keyForNote(letter, accidentalClass, octave);
-  }
-
-  _syncKeyboardMarkerFromAccidentalPreview() {
-    const dragState = this.staff?._accDragSound || {};
-    const noteId = String(dragState.noteId || "");
-    const previewAccidentalClass = dragState.prospectiveCls || null;
-
-    if (!noteId || !previewAccidentalClass) {
-      this._syncKeyboardMarkerFromStaff();
-      return;
-    }
-
-    const $note = this.$staffEl.find(`.note[data-note-id="${noteId}"]`).first();
-    if (!$note.length) {
-      this._syncKeyboardMarkerFromStaff();
-      return;
-    }
-
-    const top = parseFloat($note.css("top"));
-    const step = Number.isFinite(top) ? this.staff.yToStep(top) : null;
-    if (!Number.isFinite(step)) {
-      this._syncKeyboardMarkerFromStaff();
-      return;
-    }
-
-    const noteState = stepToLetterOctave(this.staff, step);
-    const $nextKey = this._keyboardKeySelectorFor(
-      noteState?.letter,
-      previewAccidentalClass,
-      noteState?.octave,
-    );
-    this.keyboard.syncActiveKey($nextKey);
-  }
-
-  _syncKeyboardMarkerFromStaff() {
-    const notes = this._collectUserNotes();
-    const note = notes.length ? notes[0] : null;
-
-    let $nextKey = $();
-    if (note && Number.isFinite(note.step)) {
-      const noteState = stepToLetterOctave(this.staff, note.step);
-      $nextKey = this._keyboardKeySelectorFor(
-        noteState?.letter,
-        note.accidentalClass,
-        noteState?.octave,
-      );
-    }
-    this.keyboard.syncActiveKey($nextKey);
   }
 
   _displayNameForLetter(letter) {
@@ -182,14 +66,6 @@ export class NoteNest extends BaseStaffGame {
     return Math.random() < 0.5 ? "music-font__sharp" : "music-font__flat";
   }
 
-  _keyboardStartNoteForClef(clef) {
-    const cleanClef = String(clef || "").trim().toLowerCase();
-    if (cleanClef === "bass") return "C3";
-    if (cleanClef === "alto") return "C3";
-    if (cleanClef === "tenor") return "C3";
-    return "C4";
-  }
-
   _pickTargetStep() {
     const minStep = 0;
     const maxStep = 8;
@@ -206,7 +82,6 @@ export class NoteNest extends BaseStaffGame {
   newChallenge() {
     const clef = pickChallengeClef(this._clefPool);
     if (clef && clef !== this.staff.getClef()) this.staff.setClef(clef);
-    this.keyboard.setStartNote(this._keyboardStartNoteForClef(this.staff.getClef()));
 
     this._madeMistakeThisRound = false;
     this._usedHintThisRound = false;
@@ -228,7 +103,6 @@ export class NoteNest extends BaseStaffGame {
 
     this.prompt.show();
     this._setPromptForTarget(this._targetNote);
-    this._syncKeyboardMarkerFromStaff();
 
     $("#check").show().removeClass("invisible");
     $("#continue").hide();

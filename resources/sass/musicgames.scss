@@ -478,3 +478,74 @@ body {
   align-items: center;
   font-size: 1.8rem;
 }
+
+
+#keyboard {
+  height: 160px;
+}
+
+#keyboard .white-key {
+  width: 40px;
+  height: 100%;
+  padding-left: 1px; 
+  padding-right: 1px;
+}
+
+#keyboard .white-key button {
+  height: 100%;
+  width: 100%;
+  border-top-right-radius: 0 !important;
+  border-top-left-radius: 0 !important;
+}
+
+#keyboard .white-key button:active {
+  background: rgba(0,0,0,0.04) !important;
+}
+
+#keyboard .black-key {
+  height: 55%;
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  z-index: 1;
+  padding-left: 1px; 
+  padding-right: 1px;
+}
+
+#keyboard .black-key button {
+  height: 100%;
+  width: 100%;
+  border-top-right-radius: 0 !important;
+  border-top-left-radius: 0 !important;
+}
+
+#keyboard .key-marker {
+  width: 100%;
+  position: absolute;
+  left: 0;
+  bottom: 10px;
+  display: none;
+  cursor: pointer;
+}
+
+#keyboard .key-marker span {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+}
+
+#piano-toggle {
+  position: absolute;
+  left: 20px;
+  top: 10px;
+  z-index: 1;
+}
+
+#piano-toggle button {
+  opacity: .25;
+}
+
+#piano-toggle button[selected] {
+  opacity: 1;
+}

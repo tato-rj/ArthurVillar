@@ -33,7 +33,9 @@
     </div>
 
     <div class="col-11 mx-auto mb-3">
+      @include('theory.components.piano.keyboard')
       <div id="staff-wrapper" class="text-center mx-auto position-relative prevent-select">
+        @include('theory.components.piano.toggle')
         @include('theory.components.accidentals')
         <div id="staff"></div>
         @include('theory.components.feedback')

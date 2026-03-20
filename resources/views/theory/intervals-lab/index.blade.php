@@ -19,8 +19,6 @@
 
 <style>
 
-
-
 </style>
 @endpush
 
@@ -39,7 +37,9 @@
     </div>
 
     <div class="col-11 mx-auto mb-3 position-relative">
+      @include('theory.components.piano.keyboard')
       <div id="staff-wrapper" class="text-center mx-auto position-relative">
+        @include('theory.components.piano.toggle')
         @include('theory.components.accidentals')
         <div id="staff"></div>
         @include('theory.components.feedback')
@@ -62,6 +62,4 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.js"></script>
 <script src="{{ mix('js/music/intervalslab.js') }}"></script>
-<script>
-</script>
 @endpush

@@ -1,10 +1,11 @@
 // resources/js/music/games/base/BaseStaffGame.js
 import { Staff } from "../../staff/Staff.js";
-import { pickOne, spellNoteFromState } from "../../staff/staffUtils.js";
+import { pickOne, spellNoteFromState, stepToLetterOctave } from "../../staff/staffUtils.js";
 import { renderFinalResultsOverlay } from "../shared/finalResults.js";
 import { playBurstConfettiAtElement } from "../shared/mojsEffects.js";
 import { PromptUi } from "../shared/PromptUi.js";
 import { GameAudio } from "../shared/GameAudio.js";
+import { PianoKeyboardUi } from "../shared/PianoKeyboardUi.js";
 
 export const PAGE_OPENED_AT_MS = Date.now();
 
@@ -116,6 +117,9 @@ export class BaseStaffGame {
     this.$timerBox = this.$timer.children("div").first();
     this.$timerText = this.$timer.find("span");
     this.prompt = new PromptUi("#prompt");
+    this.$keyboard = $("#keyboard").first();
+    this.$keyboardWrap = $("#keyboard-wrapper").first();
+    this.$pianoToggleBtn = $("#piano-toggle button").first();
 
     // Game state
     this.successPhrases = this.opts.successPhrases;
@@ -142,6 +146,15 @@ export class BaseStaffGame {
     this._timerEndsAtMs = 0;
     this._finalMetricsSfxTimeouts = [];
     this._finalCountupTimeouts = [];
+    this._keyboardSyncPatched = false;
+    this._keyboardAccidentalPreviewPatched = false;
+
+    this.keyboard = this._shouldUsePianoKeyboard()
+      ? new PianoKeyboardUi({
+        rootSelector: "#keyboard",
+        namespace: `${this.ns}.keyboard`,
+      })
+      : null;
 
     // Staff
     this.staff = new Staff(this.$staffEl, {
@@ -176,6 +189,177 @@ export class BaseStaffGame {
 
   _showSolfegeNoteNames() {
     return this._normalizeOnOff(this.opts.solfege);
+  }
+
+  _shouldUsePianoKeyboard() {
+    if (this.opts.usePianoKeyboard === false) return false;
+    if (this._normalizeOnOff(this.opts.usePianoKeyboard)) return true;
+    return !!this.$keyboard?.length;
+  }
+
+  _keyboardStartNoteForClef(clef) {
+    const cleanClef = String(clef || "").trim().toLowerCase();
+    if (cleanClef === "bass") return "C3";
+    if (cleanClef === "alto") return "C3";
+    if (cleanClef === "tenor") return "C3";
+    return "C4";
+  }
+
+  _syncPianoKeyboardStartNote() {
+    if (!this.keyboard || !this.staff) return;
+    this.keyboard.setStartNote(this._keyboardStartNoteForClef(this.staff.getClef()));
+  }
+
+  _collectKeyboardSyncNotes() {
+    return this.$staffEl.find(".note").not(".preview").not(".hint").toArray()
+      .map((el) => {
+        const $note = $(el);
+        const noteId = String($note.attr("data-note-id") || "");
+        if (!noteId) return null;
+        const top = parseFloat($note.css("top"));
+        const step = Number.isFinite(top) ? this.staff.yToStep(top) : null;
+        const accidentalClass = this.staff._getAttachedAccidentalClass?.(noteId) || null;
+        return { noteId, step, accidentalClass };
+      })
+      .filter(Boolean);
+  }
+
+  _syncPianoKeyboardMarkerFromStaff() {
+    if (!this.keyboard || !this.staff) return;
+
+    const keys = this._collectKeyboardSyncNotes()
+      .filter((note) => Number.isFinite(note.step))
+      .map((note) => {
+        const noteState = stepToLetterOctave(this.staff, note.step);
+        return this.keyboard.keyForNote(
+          noteState?.letter,
+          note.accidentalClass,
+          noteState?.octave,
+        );
+      })
+      .filter(($key) => $key?.length);
+
+    this.keyboard.syncActiveKeys(keys);
+  }
+
+  _syncPianoKeyboardMarkerFromAccidentalPreview() {
+    if (!this.keyboard || !this.staff) return;
+
+    const dragState = this.staff?._accDragSound || {};
+    const noteId = String(dragState.noteId || "");
+    const previewAccidentalClass = dragState.prospectiveCls || null;
+
+    if (!noteId || !previewAccidentalClass) {
+      this._syncPianoKeyboardMarkerFromStaff();
+      return;
+    }
+
+    const $note = this.$staffEl.find(`.note[data-note-id="${noteId}"]`).first();
+    if (!$note.length) {
+      this._syncPianoKeyboardMarkerFromStaff();
+      return;
+    }
+
+    const top = parseFloat($note.css("top"));
+    const step = Number.isFinite(top) ? this.staff.yToStep(top) : null;
+    if (!Number.isFinite(step)) {
+      this._syncPianoKeyboardMarkerFromStaff();
+      return;
+    }
+
+    const keys = this._collectKeyboardSyncNotes()
+      .map((note) => {
+        if (!Number.isFinite(note.step)) return $();
+        const noteState = stepToLetterOctave(this.staff, note.step);
+        const accidentalClass = note.noteId === noteId ? previewAccidentalClass : note.accidentalClass;
+        return this.keyboard.keyForNote(
+          noteState?.letter,
+          accidentalClass,
+          noteState?.octave,
+        );
+      })
+      .filter(($key) => $key?.length);
+
+    this.keyboard.syncActiveKeys(keys);
+  }
+
+  _wirePianoKeyboardSync() {
+    if (!this.keyboard || !this.staff || this._keyboardSyncPatched) return;
+    this._keyboardSyncPatched = true;
+
+    const baseMoveNote = this.staff.moveNote.bind(this.staff);
+    this.staff.moveNote = (...args) => {
+      const out = baseMoveNote(...args);
+      this._syncPianoKeyboardMarkerFromStaff();
+      return out;
+    };
+
+    const baseRemoveNote = this.staff.removeNote.bind(this.staff);
+    this.staff.removeNote = (...args) => {
+      const out = baseRemoveNote(...args);
+      this._syncPianoKeyboardMarkerFromStaff();
+      return out;
+    };
+
+    const baseClearNotes = this.staff.clearNotes.bind(this.staff);
+    this.staff.clearNotes = (...args) => {
+      const out = baseClearNotes(...args);
+      this._syncPianoKeyboardMarkerFromStaff();
+      return out;
+    };
+
+    this.$staffEl
+      .off(`staff:noteState.${this.ns}.keyboard`)
+      .on(`staff:noteState.${this.ns}.keyboard`, (e, data) => {
+        this._syncPianoKeyboardMarkerFromStaff();
+      });
+  }
+
+  _wirePianoKeyboardAccidentalPreview() {
+    if (!this.keyboard || this._keyboardAccidentalPreviewPatched) return;
+    this._keyboardAccidentalPreviewPatched = true;
+
+    const $tools = $("#accidentals .accidental-tool");
+    if (!$tools.length || !$tools.draggable) return;
+
+    const originalDrag = $tools.draggable("option", "drag");
+    const originalStop = $tools.draggable("option", "stop");
+
+    $tools.draggable("option", "drag", (event, ui) => {
+      if (typeof originalDrag === "function") originalDrag.call(event.currentTarget, event, ui);
+      this._syncPianoKeyboardMarkerFromAccidentalPreview();
+    });
+
+    $tools.draggable("option", "stop", (event, ui) => {
+      if (typeof originalStop === "function") originalStop.call(event.currentTarget, event, ui);
+      this._syncPianoKeyboardMarkerFromStaff();
+    });
+  }
+
+  _syncPianoKeyboardToggleUi() {
+    if (!this.$pianoToggleBtn?.length || !this.$keyboardWrap?.length) return;
+    const visible = this.$keyboardWrap.is(":visible");
+    if (visible) this.$pianoToggleBtn.attr("selected", "selected");
+    else this.$pianoToggleBtn.removeAttr("selected");
+  }
+
+  _wirePianoKeyboardToggle() {
+    if (!this.$keyboardWrap?.length) return;
+
+    if (this.$pianoToggleBtn?.length) this.$keyboardWrap.hide();
+    else this.$keyboardWrap.show();
+
+    if (this.$pianoToggleBtn?.length) {
+      this.$pianoToggleBtn
+        .off(`click.${this.ns}.pianoToggle`)
+        .on(`click.${this.ns}.pianoToggle`, (e) => {
+          e.preventDefault();
+          this.$keyboardWrap.toggle();
+          this._syncPianoKeyboardToggleUi();
+        });
+    }
+
+    this._syncPianoKeyboardToggleUi();
   }
 
   _toDisplayNoteName(letterWithAccidentals) {
@@ -906,6 +1090,10 @@ export class BaseStaffGame {
 
     this._wireAccidentalPalette();
     this._wireStaffTools();
+    this.keyboard?.bind?.();
+    this._wirePianoKeyboardSync();
+    this._wirePianoKeyboardAccidentalPreview();
+    this._wirePianoKeyboardToggle();
     this._wireControls();
     this._resetProgress();
     this._setTimedOutInteractivityDisabled(false);
@@ -923,6 +1111,8 @@ export class BaseStaffGame {
 
     this.$accidentals.removeClass("invisible");
     this.newChallenge();
+    this._syncPianoKeyboardStartNote();
+    this._syncPianoKeyboardMarkerFromStaff();
     this._armUiGates({ resetInstructions: true });
 
     $("#page-wrapper").fadeIn("fast");
@@ -1028,6 +1218,8 @@ export class BaseStaffGame {
           this.prompt.setTone("blue");
           this.$accidentals.removeClass("invisible");
           this.newChallenge();
+          this._syncPianoKeyboardStartNote();
+          this._syncPianoKeyboardMarkerFromStaff();
           this._armUiGates({ resetInstructions: false });
           this.$checkBtn.enable();
         });

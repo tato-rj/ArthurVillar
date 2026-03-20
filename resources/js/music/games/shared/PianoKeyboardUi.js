@@ -23,7 +23,7 @@ export class PianoKeyboardUi {
     this.onKeyClick = typeof onKeyClick === "function" ? onKeyClick : null;
     this.visibleWhiteKeys = Math.max(1, Number(visibleWhiteKeys) || 7);
     this._startWhiteMidi = this._naturalMidiFromNoteName(initialStartNote) ?? 60;
-    this._activeNoteName = null;
+    this._activeNoteNames = new Set();
     this._renderTimeoutId = null;
   }
 
@@ -124,21 +124,33 @@ export class PianoKeyboardUi {
 
   clearActive() {
     this._hideAllMarkers();
-    this._activeNoteName = null;
+    this._activeNoteNames = new Set();
     return this;
   }
 
   syncActiveKey($nextKey) {
-    const nextNoteName = this.noteNameForKey($nextKey);
-    if (this._activeNoteName && this._activeNoteName === nextNoteName) return this;
+    return this.syncActiveKeys($nextKey?.length ? [$nextKey] : []);
+  }
+
+  syncActiveKeys(keys) {
+    const nextKeys = Array.isArray(keys) ? keys.filter(($key) => $key?.length) : [];
+    const nextNoteNames = new Set(
+      nextKeys
+        .map(($key) => this.noteNameForKey($key))
+        .filter(Boolean),
+    );
+
+    if (this._setsEqual(this._activeNoteNames, nextNoteNames)) return this;
 
     this._hideAllMarkers();
-    this._activeNoteName = null;
+    this._activeNoteNames = new Set();
 
-    if ($nextKey?.length) {
-      this._showMarker($nextKey.find(".key-marker").first());
-      this._activeNoteName = nextNoteName || null;
-    }
+    nextKeys.forEach(($key) => {
+      const noteName = this.noteNameForKey($key);
+      if (!noteName || this._activeNoteNames.has(noteName)) return;
+      this._showMarker($key.find(".key-marker").first());
+      this._activeNoteNames.add(noteName);
+    });
 
     return this;
   }
@@ -316,13 +328,17 @@ export class PianoKeyboardUi {
     $(`${this.rootSelector} .key-marker`).hide();
   }
 
+  _setsEqual(a, b) {
+    if (!(a instanceof Set) || !(b instanceof Set)) return false;
+    if (a.size !== b.size) return false;
+    for (const value of a) {
+      if (!b.has(value)) return false;
+    }
+    return true;
+  }
+
   _showMarker($marker) {
     if (!$marker?.length) return;
-    $marker
-      .removeClass("animate__animated animate__jello")
-      .show();
-    // eslint-disable-next-line no-unused-expressions
-    $marker[0] && $marker[0].offsetWidth;
-    $marker.addClass("animate__animated animate__jello");
+    $marker.show();
   }
 }
