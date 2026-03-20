@@ -117,6 +117,14 @@ export class PianoKeyboardUi {
     return $(selector).first();
   }
 
+  keyForNoteIfVisible(letter, accidentalClass, octave) {
+    const targetMidi = this._midiForNoteSpec(letter, accidentalClass, octave);
+    if (!Number.isFinite(targetMidi) || !this._isMidiVisible(targetMidi)) return $();
+
+    const selector = `${this.rootSelector} [data-midi="${targetMidi}"]`;
+    return $(selector).first();
+  }
+
   clickKey($key) {
     if ($key?.length) $key.trigger("click");
     return this;
@@ -243,6 +251,14 @@ export class PianoKeyboardUi {
       this._startWhiteMidi = this._nextNaturalMidi(this._startWhiteMidi);
       this.render();
     }
+  }
+
+  _isMidiVisible(targetMidi) {
+    if (!Number.isFinite(targetMidi)) return false;
+    const lastWhiteMidi = this._lastWhiteMidi();
+    const lastBlack = this._blackNoteAfter(lastWhiteMidi);
+    const maxVisibleMidi = lastBlack ? lastBlack.midi : lastWhiteMidi;
+    return targetMidi >= this._startWhiteMidi && targetMidi <= maxVisibleMidi;
   }
 
   _lastWhiteMidi() {

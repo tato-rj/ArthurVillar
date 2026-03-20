@@ -219,25 +219,52 @@ export class BaseStaffGame {
         const top = parseFloat($note.css("top"));
         const step = Number.isFinite(top) ? this.staff.yToStep(top) : null;
         const accidentalClass = this.staff._getAttachedAccidentalClass?.(noteId) || null;
-        return { noteId, step, accidentalClass };
+        return {
+          noteId,
+          step,
+          accidentalClass,
+          fixed: $note.hasClass("fixed"),
+        };
       })
       .filter(Boolean);
+  }
+
+  _keyboardPrimaryNote(notes) {
+    const list = Array.isArray(notes) ? notes : [];
+    const userNotes = list.filter((note) => !note.fixed);
+    if (userNotes.length) return userNotes[userNotes.length - 1];
+    return list.length ? list[list.length - 1] : null;
   }
 
   _syncPianoKeyboardMarkerFromStaff() {
     if (!this.keyboard || !this.staff) return;
 
-    const keys = this._collectKeyboardSyncNotes()
-      .filter((note) => Number.isFinite(note.step))
-      .map((note) => {
-        const noteState = stepToLetterOctave(this.staff, note.step);
-        return this.keyboard.keyForNote(
-          noteState?.letter,
-          note.accidentalClass,
-          noteState?.octave,
-        );
-      })
-      .filter(($key) => $key?.length);
+    const notes = this._collectKeyboardSyncNotes().filter((note) => Number.isFinite(note.step));
+    const primary = this._keyboardPrimaryNote(notes);
+    if (!primary) {
+      this.keyboard.syncActiveKeys([]);
+      return;
+    }
+
+    const primaryState = stepToLetterOctave(this.staff, primary.step);
+    const keys = [
+      this.keyboard.keyForNote(
+        primaryState?.letter,
+        primary.accidentalClass,
+        primaryState?.octave,
+      ),
+    ];
+
+    notes.forEach((note) => {
+      if (note.noteId === primary.noteId) return;
+      const noteState = stepToLetterOctave(this.staff, note.step);
+      const $key = this.keyboard.keyForNoteIfVisible(
+        noteState?.letter,
+        note.accidentalClass,
+        noteState?.octave,
+      );
+      if ($key.length) keys.push($key);
+    });
 
     this.keyboard.syncActiveKeys(keys);
   }
@@ -267,20 +294,31 @@ export class BaseStaffGame {
       return;
     }
 
-    const keys = this._collectKeyboardSyncNotes()
-      .map((note) => {
-        if (!Number.isFinite(note.step)) return $();
-        const noteState = stepToLetterOctave(this.staff, note.step);
-        const accidentalClass = note.noteId === noteId ? previewAccidentalClass : note.accidentalClass;
-        return this.keyboard.keyForNote(
-          noteState?.letter,
-          accidentalClass,
-          noteState?.octave,
-        );
-      })
-      .filter(($key) => $key?.length);
+    const notes = this._collectKeyboardSyncNotes().filter((note) => Number.isFinite(note.step));
+    const primary = this._keyboardPrimaryNote(notes) || { noteId, step, accidentalClass: previewAccidentalClass, fixed: false };
+    const primaryState = stepToLetterOctave(this.staff, primary.step);
+    const primaryAccidental = primary.noteId === noteId ? previewAccidentalClass : primary.accidentalClass;
+    const keys = [
+      this.keyboard.keyForNote(
+        primaryState?.letter,
+        primaryAccidental,
+        primaryState?.octave,
+      ),
+    ];
 
-    this.keyboard.syncActiveKeys(keys);
+    notes.forEach((note) => {
+      if (note.noteId === primary.noteId) return;
+      const noteState = stepToLetterOctave(this.staff, note.step);
+      const accidentalClass = note.noteId === noteId ? previewAccidentalClass : note.accidentalClass;
+      const $key = this.keyboard.keyForNoteIfVisible(
+        noteState?.letter,
+        accidentalClass,
+        noteState?.octave,
+      );
+      if ($key.length) keys.push($key);
+    });
+
+    this.keyboard.syncActiveKeys(keys.filter(($key) => $key?.length));
   }
 
   _wirePianoKeyboardSync() {
