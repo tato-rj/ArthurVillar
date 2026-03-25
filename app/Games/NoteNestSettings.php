@@ -37,7 +37,7 @@ class NoteNestSettings extends GameFactory
     protected function defaults(): array
     {
         return [
-            'timeLimit' => 20,
+            'timeLimit' => 15,
             'practiceMode' => false,
             'timer' => false,
             'maxUserNotes' => 1,
