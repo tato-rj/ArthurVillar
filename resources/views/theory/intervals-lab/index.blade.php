@@ -60,16 +60,16 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.js"></script>
 <script src="{{ mix('js/music/intervalslab.js') }}"></script>
-<script>
+{{-- <script>
 const el = document.querySelector("#prompt");
 const html = (el?.innerHTML ?? "").trim();
 
-el.innerHTML = ""; // important: Typed will write into it
+el.innerHTML = "";
 new Typed("#prompt", {
   strings: [html],
   typeSpeed: 50,
   showCursor: false,
 });
 
-</script>
+</script> --}}
 @endpush
