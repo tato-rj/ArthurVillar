@@ -123,10 +123,10 @@ export function isMaxedDouble(currentCls, toolType) {
 
 export function accidentalClassToText(cls) {
   if (!cls) return "";
-  if (cls.includes("music-font__doublesharp")) return "##";
-  if (cls.includes("music-font__sharp")) return "#";
-  if (cls.includes("music-font__doubleflat")) return "bb";
-  if (cls.includes("music-font__flat")) return "b";
+  if (cls.includes("music-font__doublesharp")) return "<span class='doublesharp-symbol'>𝄪</span>";
+  if (cls.includes("music-font__sharp")) return "<span class='sharp-symbol'>♯</span>";
+  if (cls.includes("music-font__doubleflat")) return "<span class='doubleflat-symbol'>𝄫</span>";
+  if (cls.includes("music-font__flat")) return "<span class='flat-symbol'>♭</span>";
   return "";
 }
 

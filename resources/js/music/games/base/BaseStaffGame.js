@@ -405,7 +405,7 @@ export class BaseStaffGame {
     if (!raw) return raw;
     if (!this._showSolfegeNoteNames()) return raw;
 
-    const m = raw.match(/^([A-G])([#b]{0,2})$/i);
+    const m = raw.match(/^([A-G])(.*)$/i);
     if (!m) return raw;
 
     const letter = String(m[1] || "").toUpperCase();
@@ -1191,7 +1191,7 @@ export class BaseStaffGame {
         if (this.showNoteNames) {
           this.$staffEl
             .find(`.note[data-note-id="${data.noteId}"] .lettername`)
-            .text(displayName);
+            .html(displayName);
         }
 
         if (data.source === "fixed") {

@@ -12,11 +12,11 @@ export class KeysLab extends BaseStaffGame {
   static KEYSIG_STEPS = {
     treble: {
       sharp: [8, 5, 9, 6, 3, 7, 4],
-      flat: [4, 7, 3, 6, 9, 5, 8],
+      flat: [4, 7, 3, 6, 2, 5, 1],
     },
     bass: {
       sharp: [6, 3, 7, 4, 1, 5, 2],
-      flat: [2, 5, 8, 4, 7, 3, 6],
+      flat: [2, 5, 8, 4, 0, 3, 6],
     },
   };
 
@@ -48,11 +48,14 @@ export class KeysLab extends BaseStaffGame {
       noteId: null,
       pointerId: null,
       fromAccidental: false,
+      startPageX: 0,
       startPageY: 0,
+      startNoteX: null,
       movedPx: 0,
       isDragging: false,
       thresholdPx: 0,
       lastTargetStep: null,
+      lastTargetX: null,
       lastSoundStep: null,
     };
     this._swallowAccidentalClick = { noteId: null, until: 0 };
@@ -163,6 +166,8 @@ export class KeysLab extends BaseStaffGame {
   }
 
   _collectUserSignatureEntries() {
+    this._placeAccidentalsInsideClefWrapper();
+
     return this.$staffEl.find(".accidental").toArray().map((el) => {
       const $acc = $(el);
       const noteId = String($acc.attr("data-for-note-id") || "");
@@ -173,7 +178,9 @@ export class KeysLab extends BaseStaffGame {
           : null;
       const step = this._stepOfNoteId(noteId);
       const $note = this.$staffEl.find(`.note[data-note-id="${noteId}"]`).first();
-      const left = $note.length ? parseFloat($note.css("left")) : NaN;
+      const accLeft = parseFloat($acc.css("left"));
+      const noteLeft = $note.length ? parseFloat($note.css("left")) : NaN;
+      const left = Number.isFinite(accLeft) ? accLeft : noteLeft;
       return { cls, step, left };
     });
   }
@@ -539,6 +546,14 @@ export class KeysLab extends BaseStaffGame {
       if (oe && oe.changedTouches && oe.changedTouches.length) return oe.changedTouches[0].pageY;
       return null;
     };
+    const getPageX = (ev) => {
+      if (Number.isFinite(ev.pageX)) return ev.pageX;
+      const oe = ev.originalEvent || ev;
+      if (oe && Number.isFinite(oe.pageX)) return oe.pageX;
+      if (oe && oe.touches && oe.touches.length) return oe.touches[0].pageX;
+      if (oe && oe.changedTouches && oe.changedTouches.length) return oe.changedTouches[0].pageX;
+      return null;
+    };
 
     this.$staffEl
       .off(`pointerdown.${ns} mousedown.${ns} touchstart.${ns}`)
@@ -563,10 +578,15 @@ export class KeysLab extends BaseStaffGame {
         this._laneDrag.noteId = noteId;
         this._laneDrag.pointerId = getPointerId(e);
         this._laneDrag.fromAccidental = !!noteIdFromAccidental;
+        this._laneDrag.startPageX = getPageX(e) || 0;
         this._laneDrag.startPageY = pageY;
+        const $note = this.$staffEl.find(`.note[data-note-id="${noteId}"]`).first();
+        const startNoteX = $note.length ? parseFloat($note.css("left")) : NaN;
+        this._laneDrag.startNoteX = Number.isFinite(startNoteX) ? startNoteX : null;
         this._laneDrag.movedPx = 0;
         this._laneDrag.isDragging = false;
         this._laneDrag.lastTargetStep = step;
+        this._laneDrag.lastTargetX = null;
         this._laneDrag.lastSoundStep = step;
 
         this.staff._setDraggingVisual(noteId, true);
@@ -588,9 +608,11 @@ export class KeysLab extends BaseStaffGame {
             }
 
             const py = getPageY(ev);
+            const px = getPageX(ev);
             if (!Number.isFinite(py) || !this._laneDrag.noteId) return;
             const dy = py - this._laneDrag.startPageY;
-            this._laneDrag.movedPx = Math.max(this._laneDrag.movedPx, Math.abs(dy));
+            const dx = Number.isFinite(px) ? (px - this._laneDrag.startPageX) : 0;
+            this._laneDrag.movedPx = Math.max(this._laneDrag.movedPx, Math.abs(dy), Math.abs(dx));
             if (!this._laneDrag.isDragging && this._laneDrag.movedPx >= this._laneDrag.thresholdPx) {
               this._laneDrag.isDragging = true;
             }
@@ -599,7 +621,13 @@ export class KeysLab extends BaseStaffGame {
             const targetStep = this.staff.yToStep(this.staff._pageYToLocalY(py));
             if (!this._isRegularStaffStep(targetStep)) return;
             this._laneDrag.lastTargetStep = targetStep;
-            this.staff.moveNote(this._laneDrag.noteId, { step: targetStep });
+            const movePos = { step: targetStep };
+            if (Number.isFinite(px) && Number.isFinite(this._laneDrag.startNoteX)) {
+              const nextX = this._laneDrag.startNoteX + dx;
+              movePos.x = Math.max(0, Math.min(this.$staffEl.width(), nextX));
+              this._laneDrag.lastTargetX = movePos.x;
+            }
+            this.staff.moveNote(this._laneDrag.noteId, movePos);
             if (this.staff._soundEnabled?.() && targetStep !== this._laneDrag.lastSoundStep) {
               this._laneDrag.lastSoundStep = targetStep;
               this._playAccidentalAnchorStep(this._laneDrag.noteId);
@@ -624,7 +652,11 @@ export class KeysLab extends BaseStaffGame {
             if (draggedNoteId) {
               this.staff._setDraggingVisual(draggedNoteId, false);
               if (dragged && Number.isFinite(this._laneDrag.lastTargetStep)) {
-                this.staff.moveNote(draggedNoteId, { step: this._laneDrag.lastTargetStep });
+                const finalPos = { step: this._laneDrag.lastTargetStep };
+                if (Number.isFinite(this._laneDrag.lastTargetX)) {
+                  finalPos.x = this._laneDrag.lastTargetX;
+                }
+                this.staff.moveNote(draggedNoteId, finalPos);
                 this.staff._emitNoteState(draggedNoteId, "user");
                 this._swallowAccidentalClick.noteId = draggedNoteId;
                 this._swallowAccidentalClick.until = Date.now() + 350;
@@ -640,10 +672,13 @@ export class KeysLab extends BaseStaffGame {
             this._laneDrag.noteId = null;
             this._laneDrag.pointerId = null;
             this._laneDrag.fromAccidental = false;
+            this._laneDrag.startPageX = 0;
             this._laneDrag.startPageY = 0;
+            this._laneDrag.startNoteX = null;
             this._laneDrag.movedPx = 0;
             this._laneDrag.isDragging = false;
             this._laneDrag.lastTargetStep = null;
+            this._laneDrag.lastTargetX = null;
             this._laneDrag.lastSoundStep = null;
           });
       });

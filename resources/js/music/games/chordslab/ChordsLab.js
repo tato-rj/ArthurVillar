@@ -105,13 +105,6 @@ export class ChordsLab extends BaseStaffGame {
     return Math.random() < 0.5 ? -1 : 1;
   }
 
-_escapeHtml(s) {
-  return String(s)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;");
-}
-
 /**
  * Converts chord symbols in the SHORT label to superscripts:
  * - Aø7  -> A<sup>ø</sup>7
@@ -121,16 +114,16 @@ _escapeHtml(s) {
  * Only superscripts 'o' when it is the diminished marker after the root.
  */
 _formatShortLabelHtml(shortLabel) {
-  const safe = this._escapeHtml(shortLabel);
+  const safe = String(shortLabel || "");
 
   // Always superscript ø wherever it appears (it's only used as a symbol).
   const withOslash = safe.replaceAll("ø", "<sup>ø</sup>");
 
-  // Superscript 'o' only when it's used as the diminished marker:
-  // root = A-G + optional accidentals (b, bb, #, ##), then 'o', then optional digits/end.
+  // Superscript a trailing diminished marker without escaping the root,
+  // so shared accidental HTML like <span class="flat-symbol">♭</span> survives.
   return withOslash.replace(
-    /(^[A-G](?:bb|b|##|#)?)o(?=\d|$)/,
-    "$1<sup>o</sup>",
+    /o(?=\d|$)/,
+    "<sup>o</sup>",
   );
 }
 

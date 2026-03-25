@@ -19,7 +19,7 @@ export class PromptUi {
     return this;
   }
 
-  setShort(value, { html = false } = {}) {
+  setShort(value, { html = true } = {}) {
     if (!this.$short.length) return this;
     if (html) this.$short.html(value ?? "");
     else this.$short.text(value ?? "");
@@ -30,13 +30,15 @@ export class PromptUi {
     return this.$short.length ? this.$short.text() : "";
   }
 
-  setLong(value) {
-    if (this.$long.length) this.$long.text(value ?? "");
+  setLong(value, { html = true } = {}) {
+    if (!this.$long.length) return this;
+    if (html) this.$long.html(value ?? "");
+    else this.$long.text(value ?? "");
     return this;
   }
 
   clearLong() {
-    if (this.$long.length) this.$long.text("");
+    if (this.$long.length) this.$long.html("");
     return this;
   }
 

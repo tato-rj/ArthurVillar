@@ -126,6 +126,20 @@ body {
   touch-action: none;
 }
 
+#prompt-short .flat-symbol, .doubleflat-symbol {
+  margin-left: -12px;
+  margin-right: -6px;
+}
+
+#prompt-long .flat-symbol, .doubleflat-symbol {
+  margin-left: -3px;
+  margin-right: -3px;
+}
+
+#prompt-short .sharp-symbol, .doublesharp-symbol {
+  margin-left: -3px;
+}
+
 /* ==========================================================================
    UI Elements
    ========================================================================== */
@@ -481,7 +495,7 @@ body {
 
 
 #keyboard {
-  height: 160px;
+  height: 130px;
 }
 
 #keyboard .white-key {

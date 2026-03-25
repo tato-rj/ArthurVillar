@@ -28,7 +28,6 @@
   'description' => 'Add the note that forms the indicated interval']) --}}
 
 @include('theory.components.title')
-
 <section id="page-wrapper" class="container prevent-select">
   <div class="row">
     <div class="col-lg-6 col-md-8 col-11 mx-auto text-center">
@@ -55,11 +54,22 @@
     </div>
   </div>
 </section>
-
 @include('theory.components.results.overlay')
 @endsection
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.js"></script>
 <script src="{{ mix('js/music/intervalslab.js') }}"></script>
+<script>
+const el = document.querySelector("#prompt");
+const html = (el?.innerHTML ?? "").trim();
+
+el.innerHTML = ""; // important: Typed will write into it
+new Typed("#prompt", {
+  strings: [html],
+  typeSpeed: 50,
+  showCursor: false,
+});
+
+</script>
 @endpush
