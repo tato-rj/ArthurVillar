@@ -38,9 +38,34 @@ export function playBurstConfettiAtElement(targetEl, {
 
 const smokeBurstCache = new WeakMap();
 
-function _getSmokeBurst(parentEl) {
+function _getSmokeBurst(parentEl, fill = "black") {
   const mojs = window.mojs;
   if (!mojs || !mojs.Burst || !parentEl) return null;
+
+  if (fill !== "black") {
+    const DURATION = 400;
+    return new mojs.Burst({
+      parent: parentEl,
+      left: 0,
+      top: 0,
+      degree: 0,
+      count: 3,
+      radius: { 0: 100 },
+      children: {
+        fill,
+        pathScale: "rand(0.5, 1)",
+        radius: "rand(12, 15)",
+        swirlSize: "rand(10, 15)",
+        swirlFrequency: "rand(2, 4)",
+        direction: [1, -1],
+        duration: `rand(${1 * DURATION}, ${2 * DURATION})`,
+        delay: "rand(0, 75)",
+        easing: "quad.out",
+        isSwirl: true,
+        isForce3d: true,
+      },
+    });
+  }
 
   const cached = smokeBurstCache.get(parentEl);
   if (cached) return cached;
@@ -72,7 +97,7 @@ function _getSmokeBurst(parentEl) {
   return smoke;
 }
 
-export function playSmokePuffAtElement(targetEl, { parentEl = document.body } = {}) {
+export function playSmokePuffAtElement(targetEl, { parentEl = document.body, fill = "black" } = {}) {
   const mojs = window.mojs;
   if (!mojs || !targetEl || !parentEl) return;
 
@@ -81,7 +106,7 @@ export function playSmokePuffAtElement(targetEl, { parentEl = document.body } = 
   const x = (rect.left - parentRect.left) + (rect.width / 2);
   const y = (rect.top - parentRect.top) + (rect.height / 2);
 
-  const smoke = _getSmokeBurst(parentEl);
+  const smoke = _getSmokeBurst(parentEl, fill);
   if (!smoke) return;
 
   smoke

@@ -20,4 +20,6 @@ Route::prefix('theory')->name('theory.')->group(function() {
 	Route::get('note-python', 'TheoryController@notePython')->name('note-python.play');
 
 	Route::get('note-nest', 'TheoryController@noteNest')->name('note-nest.play');
+
+	Route::get('staff-zone', 'TheoryController@staffZone')->name('staff-zone.play');
 });

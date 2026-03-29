@@ -142,6 +142,14 @@ export class Staff {
 
   getClef() { return this.opts.clef || "treble"; }
 
+  isStepAllowed(step) {
+    return this._isStepAllowed(step);
+  }
+
+  ledgerStepsFor(step) {
+    return this._ledgerStepsFor(step);
+  }
+
   _maxUserNotes() {
     const v = this.opts.getMaxUserNotes ? this.opts.getMaxUserNotes() : Infinity;
     return Number.isFinite(v) ? v : Infinity;
@@ -543,6 +551,10 @@ export class Staff {
     const midi = this._stepToMidi(step) + (accidentalOffset || 0);
     if (this._synth.triggerRelease) this._synth.triggerRelease();
     this._synth.triggerAttackRelease(Tone.Frequency(midi, "midi"), 0.5, undefined, GameAudio.scale("staffNote", 1));
+  }
+
+  async playStep(step, accidentalOffset = 0) {
+    await this._playStep(step, accidentalOffset);
   }
 
   setNoteFixed(noteId, fixed) {

@@ -5,8 +5,8 @@ export class StaffAnimations {
     this.$container = $container;
   }
 
-  playNoteRemoveSmoke(noteEl) {
+  playNoteRemoveSmoke(noteEl, opts = {}) {
     if (!noteEl) return;
-    playSmokePuffAtElement(noteEl, { parentEl: document.body });
+    playSmokePuffAtElement(noteEl, { parentEl: document.body, ...opts });
   }
 }
