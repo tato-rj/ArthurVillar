@@ -38,7 +38,7 @@ class StaffZoneSettings extends GameFactory
     {
         return [
             'maxUserNotes' => 2,
-            'clefs' => ['treble', 'bass'],
+            'clefs' => ['treble'],
             'sound' => true,
             'showNoteNames' => true,
             'solfege' => true,

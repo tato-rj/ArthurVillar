@@ -320,7 +320,7 @@ export class StaffZone {
     const $highlight = this.$staffEl.find(`.staff-highlight[data-highlight-id="${highlightId}"]`);
     if (!$highlight.length) return;
     if (smoke) {
-      const fill = window.getComputedStyle($highlight[0]).backgroundColor || "black";
+      const fill = "rgba(144, 213, 255, 0.2)";
       this.staff._animations.playNoteRemoveSmoke($highlight[0], { fill });
     }
     this.$staffEl.find(`.ledger[data-for-highlight-id="${highlightId}"]`).remove();

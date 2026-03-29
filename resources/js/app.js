@@ -48,12 +48,36 @@ $('.form-number button').on('click', function () {
     $input.val(current + 1);
   }
 });
+// /public/js/settings-toggles.js (example path)
+$(document)
+  .off("change.settingsToggles")
+  .on("change.settingsToggles", 'input[multichoice], input[singlechoice]', function () {
+    const $this = $(this);
+    const isSingle = $this.is("[singlechoice]");
+    const name = $this.attr("name"); // e.g. "something[]"
 
-$(document).off("change.settingsToggles").on("change.settingsToggles", 'input[multichoice]', function () {
-  const $label = $(this).siblings("label");
-  $label.removeClass("btn-white btn-secondary");
-  $label.addClass(this.checked ? "btn-secondary" : "btn-white");
-});
+    if (isSingle) {
+      // Force "only one checked" behavior.
+      // If user tries to uncheck the current one, keep it checked (optional but usually desired).
+      if (!$this.prop("checked")) $this.prop("checked", true);
+
+      // Uncheck all others in the same group.
+      $(`input[singlechoice][name="${CSS.escape(name)}"]`)
+        .not(this)
+        .prop("checked", false);
+    }
+
+    // Update classes for the whole group (single) or just this item (multi).
+    const $scope = isSingle
+      ? $(`input[singlechoice][name="${CSS.escape(name)}"]`)
+      : $this;
+
+    $scope.each(function () {
+      const $label = $(this).siblings("label");
+      $label.removeClass("btn-white btn-secondary");
+      $label.addClass(this.checked ? "btn-secondary" : "btn-white");
+    });
+  });
 
 $(document).on('click', 'button[data-form]', function() {
     let formID = $(this).data('form');
