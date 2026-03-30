@@ -26,7 +26,7 @@
 }
 
 .staff-highlight:active {
-  background: rgba(144, 213, 255, 0.2) !important;
+  background: rgba(255, 229, 76, 0.6) !important;
 }
 
 .staff-highlight:active .staff-highlight__note {
@@ -62,7 +62,7 @@
     </div>
 
     <div class="col-lg-6 col-md-8 col-11 mx-auto">
-      @include('theory.components.controls', ['instructions' => 'Tap on the staff to see the note 👆'])
+      @include('theory.components.controls', ['instructions' => 'This is not a game! Just a space to explore the staff. Tap to see the name of lines/spaces in different clefs.'])
       @include('theory.staff-zone.modals.settings')
       @include('theory.staff-zone.modals.instructions')
       @include('theory.components.preferences')

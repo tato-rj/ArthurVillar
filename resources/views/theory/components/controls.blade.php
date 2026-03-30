@@ -4,7 +4,7 @@
     @isset($instructions)
     <div class="position-relative">
       <div id="instructions" class="fw-bold text-center mb-3">
-        <h6 class="m-0 text-red">{{$instructions ?? null}} </h6>
+        <h6 class="m-0 text-grey-light" style="line-height: 1.4">{{$instructions ?? null}} </h6>
       </div>
       <div id="check" class="btn-floating w-100 invisible">
         <button class="btn btn-primary w-100">Check my answer</button>

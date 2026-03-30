@@ -37,7 +37,7 @@ class StaffZoneSettings extends GameFactory
     protected function defaults(): array
     {
         return [
-            'maxUserNotes' => 2,
+            'maxUserNotes' => 1,
             'clefs' => ['treble'],
             'sound' => true,
             'showNoteNames' => true,
