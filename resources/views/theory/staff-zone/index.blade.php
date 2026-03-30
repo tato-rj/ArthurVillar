@@ -25,11 +25,11 @@
   position: absolute;
 }
 
-.staff-highlight:active {
+.staff-highlight.dragging {
   background: rgba(255, 229, 76, 0.6) !important;
 }
 
-.staff-highlight:active .staff-highlight__note {
+.staff-highlight.dragging .staff-highlight__note {
   opacity: .3;
 }
 
