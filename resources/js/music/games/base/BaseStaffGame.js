@@ -97,6 +97,7 @@ export class BaseStaffGame {
     this.$staffEl = $(this.opts.staffEl);
     this.$accidentals = $("#accidentals");
     this.$controls = $("#controls");
+    this.$instructions = $("#instructions");
     this.$feedback = $("#feedback-success");
     this.$bonusBadge = this.$feedback.find(".bonus");
     this.$points = $("#points");
@@ -1121,7 +1122,7 @@ export class BaseStaffGame {
   start() {
     this._madeAnyMistake = false;
 
-    $("#instructions").show();
+    this.$instructions.show();
     $("#controls").show();
 
     this._instructionsRemoved = false;
@@ -1258,7 +1259,7 @@ export class BaseStaffGame {
           this.newChallenge();
           this._syncPianoKeyboardStartNote();
           this._syncPianoKeyboardMarkerFromStaff();
-          this._armUiGates({ resetInstructions: false });
+          this._armUiGates({ resetInstructions: true });
           this.$checkBtn.enable();
         });
     }
@@ -1279,10 +1280,15 @@ export class BaseStaffGame {
 
   _armUiGates({ resetInstructions } = {}) {
     const needForInstructions = this._instructionsAfterUserNotes();
+    const needForCheck = this._checkAfterUserNotes();
 
-    if (resetInstructions) this._instructionsRemoved = false;
+    if (resetInstructions) {
+      this._instructionsRemoved = false;
+      this.$instructions.show();
+    }
 
-    $("#check").show().removeClass("invisible");
+    if (needForCheck <= 0) $("#check").show().removeClass("invisible");
+    else $("#check").hide().addClass("invisible");
 
     this._userNotesSinceGate = 0;
 
@@ -1293,6 +1299,10 @@ export class BaseStaffGame {
 
         if (!this._instructionsRemoved && this._userNotesSinceGate >= needForInstructions) {
           this._removeInstructions();
+        }
+
+        if (this._userNotesSinceGate >= needForCheck) {
+          $("#check").show().removeClass("invisible");
         }
       });
   }
@@ -1537,7 +1547,7 @@ export class BaseStaffGame {
     this._successAnimation({ isBonus });
 
     if (!this._instructionsRemoved) {
-      $("#instructions").remove();
+      this.$instructions.hide();
       this._instructionsRemoved = true;
     }
 
@@ -1721,7 +1731,7 @@ export class BaseStaffGame {
 
   _removeInstructions() {
     if (this._instructionsRemoved) return;
-    $("#instructions").remove();
+    this.$instructions.hide();
     this._instructionsRemoved = true;
   }
 

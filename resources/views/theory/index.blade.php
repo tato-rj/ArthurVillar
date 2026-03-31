@@ -9,9 +9,10 @@
 @section('content')
 <section class="container py-5">
     <div class="row">
-        <div class="text-center mb-2 px-4">
+        <div class="text-center mb-4 px-4">
             <h1 class="text-center">Music Theory Challenges</h1>
             <p>Interactive games for practicing core music theory skills</p>
+            <a href="{{route('theory.basics.play')}}" class="btn btn-outline-secondary">@fa(['icon' => 'seedling'])Learn the basics</a>
         </div>
 
         @each('theory.card', $games, 'settings')

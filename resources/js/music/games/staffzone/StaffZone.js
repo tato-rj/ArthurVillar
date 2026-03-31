@@ -29,6 +29,10 @@ export class StaffZone {
     this.opts = { ...defaults, ...(options || {}) };
     this.ns = this.opts.namespace || "staffZone";
     this.$staffEl = $(this.opts.staffEl).first();
+    this.$instructions = $("#instructions").find("h6").first();
+    this.$continue = $("#continue");
+    this.$continueBtn = this.$continue.find("button").first();
+    this.$done = $("#done");
 
     const clefPool = normalizeClefPool(
       this.opts.clefs != null
@@ -36,7 +40,11 @@ export class StaffZone {
         : (this.opts.clef != null ? this.opts.clef : this.opts.initialClef),
     );
 
-    this._activeClef = clefPool[0] || "treble";
+    this._defaultClef = clefPool[0] || "treble";
+    this._currentScreenIndex = 0;
+    this._currentScreen = null;
+    this._screens = this._buildScreens();
+    this._typedInstructions = null;
     this._highlightIdCounter = 1;
     this._pointer = {
       active: false,
@@ -50,7 +58,7 @@ export class StaffZone {
     };
 
     this.staff = new Staff(this.$staffEl, {
-      clef: this._activeClef,
+      clef: null,
       clefUrls: this.opts.clefUrls || window.__clefUrls,
       autoClef: false,
       getMaxUserNotes: () => 0,
@@ -62,7 +70,10 @@ export class StaffZone {
     if (!this.$staffEl.length) return;
 
     this._hideGameChrome();
+    this._bindContinue();
+    this._bindKeyboardArrows();
     this._bindStaffZoneInteraction();
+    this._showScreen(0);
 
     $("#page-wrapper").fadeIn("fast");
   }
@@ -86,16 +97,156 @@ export class StaffZone {
       "#timer",
       "#score",
       "#check",
-      "#continue",
       "#skip",
       "#help",
       "#clear",
     ].forEach((selector) => $(selector).hide());
 
-    $("#controls").show();
     $("#instructions").show();
 
     this.$staffEl.addClass("staffzone");
+  }
+
+  _buildScreens() {
+    const raw = window.staffZoneScreens;
+    const screens = Array.isArray(raw) ? raw : [];
+
+    return screens.map((screen) => ({
+      instructions: this._normalizeInstructions(screen?.instructions),
+      clef: screen?.clef ?? null,
+      playSound: this._normalizeOnOff(screen?.playSound),
+      logNoteName: this._normalizeOnOff(screen?.logNoteName),
+      showLabels: this._normalizeOnOff(screen?.showLabels),
+      solfege: this._normalizeOnOff(screen?.solfege),
+      initialStep: this._normalizeInitialStep(screen?.initialStep),
+    }));
+  }
+
+  _normalizeInitialStep(value) {
+    const step = Number(value);
+    return Number.isFinite(step) ? step : null;
+  }
+
+  _normalizeInstructions(value) {
+    if (Array.isArray(value)) {
+      return value
+        .map((line) => String(line ?? "").trim())
+        .filter(Boolean)
+        .join("<br>");
+    }
+
+    return String(value ?? "");
+  }
+
+  _bindContinue() {
+    this.$continueBtn
+      .off(`click.${this.ns}`)
+      .on(`click.${this.ns}`, (e) => {
+        e.preventDefault();
+        const nextIndex = this._currentScreenIndex + 1;
+        if (nextIndex >= this._screens.length) return;
+        this._showScreen(nextIndex);
+      });
+  }
+
+  _bindKeyboardArrows() {
+    $(document)
+      .off(`keydown.${this.ns}HighlightArrow`)
+      .on(`keydown.${this.ns}HighlightArrow`, (e) => {
+        const key = String(e.key || "").toLowerCase();
+        if (key !== "arrowup" && key !== "arrowdown") return;
+
+        const $target = $(e.target);
+        if ($target.is("input, textarea, select, [contenteditable='true']")) return;
+
+        e.preventDefault();
+        this._moveCurrentHighlightBy(key === "arrowup" ? 1 : -1);
+      });
+
+    $(document)
+      .off(`click.${this.ns}HighlightArrow`, '#music-keyboard [data-direction], [data-direction][data-target="staff-highlight"]')
+      .on(`click.${this.ns}HighlightArrow`, '#music-keyboard [data-direction], [data-direction][data-target="staff-highlight"]', (e) => {
+        const direction = String($(e.currentTarget).attr("data-direction") || "").toLowerCase();
+        if (direction !== "up" && direction !== "down") return;
+
+        e.preventDefault();
+        this._moveCurrentHighlightBy(direction === "up" ? 1 : -1);
+      });
+  }
+
+  _showScreen(index) {
+    const screen = this._screens[index];
+    if (!screen) return;
+
+    this._currentScreenIndex = index;
+    this._currentScreen = screen;
+    this._clearHighlights();
+    this._applyScreen(screen);
+  }
+
+  _applyScreen(screen) {
+    this._renderInstructions(screen.instructions || "");
+    this.$continue.hide();
+    this.$done.hide();
+    this.staff.setSoundEnabled(!!screen.playSound);
+
+    if (screen.clef) this.staff.setClef(screen.clef);
+    else this._hideClef();
+
+    if (Number.isFinite(screen.initialStep)) {
+      this._createHighlight(screen.initialStep, { revealContinue: false });
+    }
+  }
+
+  _revealContinue() {
+    if (indexHasNext(this._currentScreenIndex, this._screens.length)) {
+      this.$done.hide();
+      this.$continue.show();
+      return;
+    }
+
+    this.$continue.hide();
+    this.$done.show();
+  }
+
+  _renderInstructions(html) {
+    if (this._typedInstructions?.destroy) {
+      this._typedInstructions.destroy();
+      this._typedInstructions = null;
+    }
+
+    if (!this.$instructions.length) return;
+
+    this.$instructions.html("");
+
+    if (!html) return;
+
+    const $typedTarget = $("<span></span>").addClass("staffzone-instructions__typed");
+    this.$instructions.append($typedTarget);
+
+    if (typeof window.Typed !== "function") {
+      $typedTarget.html(html);
+      return;
+    }
+
+    this._typedInstructions = new window.Typed($typedTarget[0], {
+      strings: [html],
+      typeSpeed: 24,
+      startDelay: 180,
+      showCursor: true,
+      contentType: "html",
+    });
+  }
+
+  _hideClef() {
+    this.staff.opts.clef = null;
+    this.staff.opts.clefUrl = null;
+    this.$staffEl.find("#clef-wrapper, .staff-clef").remove();
+  }
+
+  _clearHighlights() {
+    this.$staffEl.find(".staff-highlight").remove();
+    this.$staffEl.find(".ledger[data-for-highlight-id]").remove();
   }
 
   _bindStaffZoneInteraction() {
@@ -104,6 +255,7 @@ export class StaffZone {
 
     this.$staffEl.on(`pointerdown.${this.ns}`, (e) => {
       e.preventDefault();
+      this._revealContinue();
 
       const { y: pageY } = getPointerPageXY(e);
       const $highlight = $(e.target).closest(".staff-highlight");
@@ -206,17 +358,24 @@ export class StaffZone {
     if (!note) return "";
 
     const letter = String(note.letter || "").toUpperCase();
-    return this._normalizeOnOff(this.opts.solfege)
+    return this._currentScreen?.solfege
       ? (StaffZone.LETTER_TO_SOLFEGE[letter] || letter)
       : letter;
   }
 
-  _showNoteNames() {
-    return this._normalizeOnOff(this.opts.showNoteNames);
+  _stepPositionLabel(step) {
+    if (!Number.isFinite(step)) return "";
+
+    if (step % 2 === 0) {
+      return `line ${Math.floor(step / 2) + 1}`;
+    }
+
+    return `space ${Math.floor((step + 1) / 2)}`;
   }
 
   _highlightLabelHtml(step) {
-    if (!this._showNoteNames()) return "";
+    if (!this._currentScreen?.showLabels) return "";
+    if (!this._currentScreen?.clef) return this._stepPositionLabel(step);
     return this._stepName(step);
   }
 
@@ -227,7 +386,7 @@ export class StaffZone {
   }
 
   _highlightTopForStep(step) {
-    return this.staff.stepToY(step) - 8;
+    return this.staff.stepToY(step) - 7.7;
   }
 
   _maxUserHighlights() {
@@ -264,7 +423,7 @@ export class StaffZone {
     });
   }
 
-  _createHighlight(step) {
+  _createHighlight(step, { revealContinue = true } = {}) {
     if (!this.staff.isStepAllowed(step)) return null;
     if (this._highlightCount() >= this._maxUserHighlights()) return null;
 
@@ -276,12 +435,13 @@ export class StaffZone {
       .css({ top: `${this._highlightTopForStep(step)}px` })
       .append(
         $("<div></div>")
-          .addClass("staff-highlight__note")
+          .addClass("staff-highlight__label")
           .html(this._highlightLabelHtml(step)),
       )
       .appendTo(this.$staffEl);
 
     this._renderHighlightLedgers(id, step);
+    if (revealContinue) this._revealContinue();
 
     return id;
   }
@@ -292,6 +452,25 @@ export class StaffZone {
     return Number.isFinite(step) ? step : null;
   }
 
+  _currentHighlightId() {
+    return String(this.$staffEl.find(".staff-highlight").first().attr("data-highlight-id") || "");
+  }
+
+  _moveCurrentHighlightBy(delta) {
+    const highlightId = this._currentHighlightId();
+    if (!highlightId || !Number.isFinite(delta) || delta === 0) return;
+
+    const currentStep = this._highlightStep(highlightId);
+    if (!Number.isFinite(currentStep)) return;
+
+    const nextStep = this._clampStep(currentStep + delta);
+    if (nextStep === currentStep || !this.staff.isStepAllowed(nextStep)) return;
+
+    this._revealContinue();
+    this._moveHighlightToStep(highlightId, nextStep);
+    this._playAndLogStep(nextStep);
+  }
+
   _moveHighlightToStep(highlightId, step) {
     if (!highlightId || !this.staff.isStepAllowed(step)) return;
 
@@ -299,7 +478,7 @@ export class StaffZone {
       .find(`.staff-highlight[data-highlight-id="${highlightId}"]`)
       .attr("data-step", step)
       .css({ top: `${this._highlightTopForStep(step)}px` })
-      .find(".staff-highlight__note")
+      .find(".staff-highlight__label")
       .html(this._highlightLabelHtml(step));
 
     this._renderHighlightLedgers(highlightId, step);
@@ -329,7 +508,8 @@ export class StaffZone {
 
   _playAndLogStep(step) {
     const noteName = this._stepName(step);
-    void this.staff.playStep(step, 0);
+    if (this._currentScreen?.playSound) void this.staff.playStep(step, 0);
+    if (!this._currentScreen?.logNoteName) return;
 
     // eslint-disable-next-line no-console
     console.log("StaffZone note:", noteName, {
@@ -337,4 +517,8 @@ export class StaffZone {
       step,
     });
   }
+}
+
+function indexHasNext(index, total) {
+  return index < (total - 1);
 }

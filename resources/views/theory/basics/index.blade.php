@@ -8,7 +8,7 @@
 <link href="{{ mix('css/musicgames.css') }}" rel="stylesheet">
 
 <script>
-  window.__challengeOptions = @json($settings->options());
+  window.staffZoneScreens = @json($settings->screens());
   window.__clefUrls = {
     treble: "{{ asset('images/clefs/treble-clef.svg') }}",
     bass:   "{{ asset('images/clefs/bass-clef.svg') }}",
@@ -19,27 +19,35 @@
 
 <style>
 .staff-highlight {
-  width: 104%;
+  width: 93%;
   height: 20px;
-  background: rgba(255, 229, 76, 0.4);
+  background: rgba(255, 229, 76, 0.6);
   position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .staff-highlight.dragging {
-  background: rgba(255, 229, 76, 0.6) !important;
+  background: rgba(255, 229, 76, 0.8) !important;
 }
 
-.staff-highlight.dragging .staff-highlight__note {
+.staff-highlight.dragging .staff-highlight__label {
   opacity: .3;
 }
 
-.staff-highlight__note {
+.staff-highlight__label {
   position: absolute;
-  right: 6px;
-  top: 1.6px;
+  right: 0;
+  top: 0;
+  height: 100%;
   font-size: .8rem;
-  vertical-align: unset;
+  line-height: 1.6;
   font-weight: bold;
+  text-align: right;
+  padding: 0 6px;
+  border-top-right-radius: 2rem;
+  border-bottom-right-radius: 2rem;
+  background: rgba(255, 229, 76);
 }
 
 .progress, #score {display: none}
@@ -62,10 +70,15 @@
     </div>
 
     <div class="col-lg-6 col-md-8 col-11 mx-auto">
-      @include('theory.components.controls', ['instructions' => 'This is not a game! Just a space to explore the staff. Tap to see the name of lines/spaces in different clefs.'])
-      @include('theory.staff-zone.modals.settings')
-      @include('theory.staff-zone.modals.instructions')
-      @include('theory.components.preferences')
+      <div id="instructions" class="fw-bold text-center mb-4">
+        <h6 class="m-0 text-grey" style="line-height: 1.6"></h6>
+      </div>
+      <div id="continue" class="btn-floating w-100" style="display: none;">
+        <button class="btn btn-green w-100">Continue</button>
+      </div>
+      <div id="done" class="btn-floating w-100" style="display: none;">
+        <a href="{{route('theory.note-nest.play', ['numOfChallenges'=>4, 'clefs'=>['treble'], 'initialNoteRange'=>0, 'sound'=>'on', 'solfege'=>'on'])}}" class="btn btn-primary w-100">Start practicing 🙂</a>
+      </div>
     </div>
   </div>
 </section>

@@ -76,7 +76,7 @@ export class NoteNest extends BaseStaffGame {
     if (!target) return;
     const shortName = `${this._displayNameForLetter(target.letter)}${accidentalClassToText(target.accidentalClass)}`;
     this.prompt.setShort(shortName, { html: true });
-    this.prompt.setLong("Find this note on the staff");
+    // this.prompt.setLong("Find this note on the staff");
   }
 
   newChallenge() {

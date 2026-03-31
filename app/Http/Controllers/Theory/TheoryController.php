@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Theory;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Games\{IntervalsLabSettings, ChordsLabSettings, PitchDetectiveSettings, ToneTrekSettings, NotePythonSettings, KeysLabSettings, NoteNestSettings, ModesMasterSettings, StaffZoneSettings};
+use App\Games\{IntervalsLabSettings, ChordsLabSettings, PitchDetectiveSettings, ToneTrekSettings, NotePythonSettings, KeysLabSettings, NoteNestSettings, ModesMasterSettings, BasicsSettings};
 
 class TheoryController extends Controller
 {
@@ -17,8 +17,7 @@ class TheoryController extends Controller
             new ToneTrekSettings,
             new NotePythonSettings,
             new KeysLabSettings,
-            new NoteNestSettings,
-            new StaffZoneSettings
+            new NoteNestSettings
         ];
 
         return view('theory.index', compact('games'));
@@ -73,10 +72,10 @@ class TheoryController extends Controller
         return view('theory.note-nest.index', compact('settings'));
     }
 
-    public function staffZone(Request $request)
+    public function basics(Request $request)
     {
-        $settings = new StaffZoneSettings($request->all());
+        $settings = new BasicsSettings;
 
-        return view('theory.staff-zone.index', compact('settings'));
+        return view('theory.basics.index', compact('settings'));
     }
 }
