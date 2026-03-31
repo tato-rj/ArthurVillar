@@ -31,7 +31,7 @@ class NoteNestSettings extends GameFactory
 
     protected function requiredToggleKeys(): array
     {
-        return ['sound', 'showNoteNames', 'solfege', 'allowAccidentals'];
+        return ['sound', 'showNoteNames', 'solfege', 'allowAccidentals', 'showLineNames'];
     }
 
     protected function defaults(): array
@@ -50,7 +50,8 @@ class NoteNestSettings extends GameFactory
             'allowAccidentals' => false,
             'initialNoteRange' => 0,
             'solfege' => false,
-            'strictDirection' => false
+            'strictDirection' => false,
+            'showLineNames' => false
         ];
     }
 

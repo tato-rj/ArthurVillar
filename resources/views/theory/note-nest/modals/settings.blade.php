@@ -16,6 +16,7 @@
   @component('theory.components.settings.section', ['title' => 'PREFERENCES'])
     @include('theory.components.settings.toggle', ['label' => 'Sound effects', 'name' => 'sound'])
     @include('theory.components.settings.toggle', ['label' => 'Show note names', 'name' => 'showNoteNames'])
+    @include('theory.components.settings.toggle', ['label' => 'Show names of each line', 'name' => 'showLineNames'])
     @include('theory.components.settings.toggle', ['label' => 'Use solfege', 'name' => 'solfege'])
   @endcomponent
 

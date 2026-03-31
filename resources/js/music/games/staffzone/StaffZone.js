@@ -43,8 +43,11 @@ export class StaffZone {
     this._defaultClef = clefPool[0] || "treble";
     this._currentScreenIndex = 0;
     this._currentScreen = null;
+    this._currentScreenSuccessShown = false;
+    this._pendingSuccessInstructions = false;
     this._screens = this._buildScreens();
     this._typedInstructions = null;
+    this._instructionsTyping = false;
     this._highlightIdCounter = 1;
     this._pointer = {
       active: false,
@@ -113,6 +116,7 @@ export class StaffZone {
 
     return screens.map((screen) => ({
       instructions: this._normalizeInstructions(screen?.instructions),
+      success: this._normalizeInstructions(screen?.success),
       clef: screen?.clef ?? null,
       playSound: this._normalizeOnOff(screen?.playSound),
       logNoteName: this._normalizeOnOff(screen?.logNoteName),
@@ -153,6 +157,8 @@ export class StaffZone {
     $(document)
       .off(`keydown.${this.ns}HighlightArrow`)
       .on(`keydown.${this.ns}HighlightArrow`, (e) => {
+        if (this._shouldBlockStaffInteraction()) return;
+
         const key = String(e.key || "").toLowerCase();
         if (key !== "arrowup" && key !== "arrowdown") return;
 
@@ -166,6 +172,8 @@ export class StaffZone {
     $(document)
       .off(`click.${this.ns}HighlightArrow`, '#music-keyboard [data-direction], [data-direction][data-target="staff-highlight"]')
       .on(`click.${this.ns}HighlightArrow`, '#music-keyboard [data-direction], [data-direction][data-target="staff-highlight"]', (e) => {
+        if (this._shouldBlockStaffInteraction()) return;
+
         const direction = String($(e.currentTarget).attr("data-direction") || "").toLowerCase();
         if (direction !== "up" && direction !== "down") return;
 
@@ -178,8 +186,11 @@ export class StaffZone {
     const screen = this._screens[index];
     if (!screen) return;
 
+    this._finishPointerInteraction();
     this._currentScreenIndex = index;
     this._currentScreen = screen;
+    this._currentScreenSuccessShown = false;
+    this._pendingSuccessInstructions = false;
     this._clearHighlights();
     this._applyScreen(screen);
   }
@@ -199,6 +210,14 @@ export class StaffZone {
   }
 
   _revealContinue() {
+    if (!this._currentScreenSuccessShown) {
+      this._currentScreenSuccessShown = true;
+      if (this._currentScreen?.success) {
+        if (this._pointer.active) this._pendingSuccessInstructions = true;
+        else this._renderSuccessInstructions();
+      }
+    }
+
     if (indexHasNext(this._currentScreenIndex, this._screens.length)) {
       this.$done.hide();
       this.$continue.show();
@@ -215,6 +234,8 @@ export class StaffZone {
       this._typedInstructions = null;
     }
 
+    this._instructionsTyping = false;
+
     if (!this.$instructions.length) return;
 
     this.$instructions.html("");
@@ -229,13 +250,27 @@ export class StaffZone {
       return;
     }
 
+    this._instructionsTyping = true;
     this._typedInstructions = new window.Typed($typedTarget[0], {
       strings: [html],
       typeSpeed: 24,
       startDelay: 180,
       showCursor: true,
       contentType: "html",
+      onComplete: () => {
+        this._instructionsTyping = false;
+      },
     });
+  }
+
+  _renderSuccessInstructions() {
+    this._pendingSuccessInstructions = false;
+    this._renderInstructions(this._currentScreen?.success || "");
+  }
+
+  _shouldBlockStaffInteraction() {
+    if (!this._instructionsTyping) return false;
+    return !this.$continue.is(":visible") && !this.$done.is(":visible");
   }
 
   _hideClef() {
@@ -254,8 +289,9 @@ export class StaffZone {
     $(window).off(`blur.${this.ns}`);
 
     this.$staffEl.on(`pointerdown.${this.ns}`, (e) => {
+      if (this._shouldBlockStaffInteraction()) return;
+
       e.preventDefault();
-      this._revealContinue();
 
       const { y: pageY } = getPointerPageXY(e);
       const $highlight = $(e.target).closest(".staff-highlight");
@@ -296,6 +332,7 @@ export class StaffZone {
     });
 
     this.$staffEl.on(`pointermove.${this.ns}`, (e) => {
+      if (this._shouldBlockStaffInteraction()) return;
       if (!this._pointer.active) return;
 
       const pointerId = getPointerId(e);
@@ -317,6 +354,7 @@ export class StaffZone {
 
       if (step === this._pointer.lastStep) return;
       this._pointer.lastStep = step;
+      this._revealContinue();
       this._playAndLogStep(step);
     });
 
@@ -333,10 +371,21 @@ export class StaffZone {
 
   _finishPointerInteraction() {
     const targetId = this._pointer.targetId;
+    const pointerId = this._pointer.pointerId;
     const shouldRemove = !!targetId && !this._pointer.dragging && !this._pointer.createdOnPointerDown;
 
     if (targetId) this._setHighlightDragging(targetId, false);
-    if (shouldRemove) this._removeHighlight(targetId, { smoke: true });
+    if (shouldRemove) {
+      this._revealContinue();
+      this._removeHighlight(targetId, { smoke: true });
+    }
+    if (this.$staffEl[0]?.releasePointerCapture && pointerId != null) {
+      try {
+        this.$staffEl[0].releasePointerCapture(pointerId);
+      } catch (_) {
+        // Ignore release errors when capture is already gone.
+      }
+    }
 
     this._pointer.active = false;
     this._pointer.pointerId = null;
@@ -345,6 +394,8 @@ export class StaffZone {
     this._pointer.createdOnPointerDown = false;
     this._pointer.startPageY = 0;
     this._pointer.lastStep = null;
+
+    if (this._pendingSuccessInstructions) this._renderSuccessInstructions();
   }
 
   _clampStep(step) {

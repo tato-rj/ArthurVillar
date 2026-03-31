@@ -71,7 +71,7 @@
 
     <div class="col-lg-6 col-md-8 col-11 mx-auto">
       <div id="instructions" class="fw-bold text-center mb-4">
-        <h6 class="m-0 text-grey" style="line-height: 1.6"></h6>
+        <h6 class="m-0 text-grey" style="line-height: 1.6;"></h6>
       </div>
       <div id="continue" class="btn-floating w-100" style="display: none;">
         <button class="btn btn-green w-100">Continue</button>

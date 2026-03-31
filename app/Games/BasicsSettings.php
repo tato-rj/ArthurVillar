@@ -47,8 +47,11 @@ class BasicsSettings extends GameFactory
                 'instructions' => [
                     "This is the <u>staff</u>.",
                     "We count lines and spaces from bottom to top.",
-                    "Without a clef, they have no name yet.",
-                    "<strong class='text-dark'>Tap on the staff</strong> to highlight a line or a space!"
+                    "Without a clef, lines and spaces have no name.",
+                    "<strong class='text-dark'>Tap on the staff</strong> to highlight a line or a space."
+                ],
+                'success' => [
+                    "Great! Now click continue for the next lesson."
                 ],
                 'clef' => null,
                 'playSound' => false,
@@ -60,7 +63,10 @@ class BasicsSettings extends GameFactory
                 'instructions' => [
                     "Clefs give names to the lines and spaces.",
                     "Here, the <u>Treble clef</u> gives line 2 the name Sol, or G.",
-                    "<strong class='text-dark'>Drag the note on the staff</strong> to see and hear the notes now!",
+                    "<strong class='text-dark'>Drag the note on the staff</strong> to see and hear the notes now.",
+                ],
+                'success' => [
+                    "Excellent! Click continue for the next lesson."
                 ],
                 'clef' => ['treble'],
                 'playSound' => true,
@@ -71,9 +77,12 @@ class BasicsSettings extends GameFactory
             ],
             [
                 'instructions' => [
-                    "The <u>Bass clef</u> gives line 4 the name Fa, or F.",
-                    "From there, we find all the other notes.",
-                    "<strong class='text-dark'>Drag the note on the staff</strong> to see and hear the new notes!",
+                    "Different clefs are used to represent a wide range of pitches.",
+                    "The <u>Bass clef</u> represents lower notes, and gives line 4 the name Fa, or F.",
+                    "<strong class='text-dark'>Drag the note on the staff</strong> to see and hear the new notes.",
+                ],
+                'success' => [
+                    "Nice! You are ready to start reading notes on the staff."
                 ],
                 'clef' => ['bass'],
                 'playSound' => true,
