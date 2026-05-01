@@ -25,11 +25,11 @@
 				</div>
 			</div>
 			<div class="d-flex justify-content-between flex-wrap">
-				<div>
-					<div class="m-1 btn-floating">
+				<div class="btn-floating-group m-1">
+					<div class="btn-floating">
 						<button class="rounded btn btn-white text-dark" data-accidental="sharp" type="button">#</button>
 					</div>
-					<div class="m-1 btn-floating">
+					<div class="btn-floating">
 						<button class="rounded btn btn-white text-dark" data-accidental="flat" type="button">♭</button>
 					</div>
 				</div>

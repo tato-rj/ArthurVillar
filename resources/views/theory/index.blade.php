@@ -12,7 +12,7 @@
         <div class="text-center mb-4 px-4">
             <h1 class="text-center">Music Theory Challenges</h1>
             <p>Interactive games for practicing core music theory skills</p>
-            <a href="{{route('theory.basics.play')}}" class="btn btn-outline-secondary">@fa(['icon' => 'seedling'])Learn the basics</a>
+            <a href="{{route('theory.open-staff.play')}}" class="btn btn-outline-secondary">@fa(['icon' => 'chalkboard'])Open Staff</a>
         </div>
 
         @each('theory.card', $games, 'settings')

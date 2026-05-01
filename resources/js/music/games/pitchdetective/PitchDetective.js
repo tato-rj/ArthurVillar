@@ -67,7 +67,7 @@ export class PitchDetective extends BaseStaffGame {
     this._clefPool = clefPool;
 
     // Dictation state
-    this._expectedFirst = null; // { step, accidentalClass }
+    this._expectedFirst = null; // { noteId, step, accidentalClass }
     this._expectedSecond = null; // { step, accidentalClass, accOff, midi }
 
     // Dictation playback
@@ -141,12 +141,12 @@ export class PitchDetective extends BaseStaffGame {
       (this.staff._accidentalClassToOffset(this._expectedFirst.accidentalClass) || 0);
 
     // Sequence: first -> second -> first -> both together (1s spacing)
-    this._playMidi(firstMidi, 0.6, 0.0);
+    this._playMidi(firstMidi, 0.6, 0.0, () => this._scheduleInitialNoteFlicker(0.6, 0.0));
     this._playMidi(this._expectedSecond.midi, 0.6, 1.0);
-    this._playMidi(firstMidi, 0.6, 2.0);
+    this._playMidi(firstMidi, 0.6, 2.0, () => this._scheduleInitialNoteFlicker(0.6, 2.0));
 
     // Both together at t=3.0s (two trigger calls at same time).
-    this._playMidi(firstMidi, 0.6, 3.0);
+    this._playMidi(firstMidi, 0.6, 3.0, () => this._scheduleInitialNoteFlicker(0.6, 3.0));
     this._playMidi(this._expectedSecond.midi, 0.6, 3.0);
 
     this._dictationTimeouts.push(
@@ -163,6 +163,7 @@ export class PitchDetective extends BaseStaffGame {
       this._dictationTimeouts.forEach((t) => clearTimeout(t));
     }
     this._dictationTimeouts = [];
+    this._clearInitialNoteFlicker();
 
     if (this._dictSynth && this._dictSynth.dispose) {
       try {
@@ -185,7 +186,7 @@ export class PitchDetective extends BaseStaffGame {
     this._dictAudioReady = true;
   }
 
-  _playMidi(midi, durSeconds, atSecondsFromNow) {
+  _playMidi(midi, durSeconds, atSecondsFromNow, onPlay = null) {
     if (!window.Tone) return;
 
     this._ensureDictationAudio().then(() => {
@@ -199,7 +200,41 @@ export class PitchDetective extends BaseStaffGame {
         when,
         GameAudio.scale("dictation", 1),
       );
+      if (typeof onPlay === "function") onPlay();
     });
+  }
+
+  _initialNoteEl() {
+    const noteId = this._expectedFirst?.noteId;
+    if (!noteId) return $();
+
+    return this.$staffEl.find(".note").filter((_, el) => (
+      String(el.getAttribute("data-note-id") || "") === String(noteId)
+    )).first();
+  }
+
+  _clearInitialNoteFlicker() {
+    this._initialNoteEl().removeClass("flickering");
+  }
+
+  _scheduleInitialNoteFlicker(durSeconds, atSecondsFromNow) {
+    const delayMs = Math.max(0, (Number(atSecondsFromNow) || 0) * 1000);
+    const durationMs = Math.max(0, (Number(durSeconds) || 0.6) * 1000);
+
+    const startId = setTimeout(() => {
+      const $note = this._initialNoteEl();
+      if (!$note.length) return;
+
+      $note.addClass("flickering");
+
+      const endId = setTimeout(() => {
+        $note.removeClass("flickering");
+      }, durationMs);
+
+      this._dictationTimeouts.push(endId);
+    }, delayMs);
+
+    this._dictationTimeouts.push(startId);
   }
 
   // ------------------------ selection ------------------------
@@ -210,6 +245,28 @@ export class PitchDetective extends BaseStaffGame {
         ? this.opts.intervals
         : PitchDetective.INTERVALS_DEFAULT;
     return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  _directionPool() {
+    const raw = Array.isArray(this.opts.direction)
+      ? this.opts.direction
+      : this.opts.direction != null
+        ? [this.opts.direction]
+        : ["up", "down"];
+
+    const pool = raw
+      .map((direction) => String(direction || "").trim().toLowerCase())
+      .filter((direction) => direction === "up" || direction === "down");
+
+    return pool.length ? [...new Set(pool)] : ["up", "down"];
+  }
+
+  _pickDirection() {
+    return pickOne(this._directionPool());
+  }
+
+  _directionValue(direction) {
+    return String(direction || "").trim().toLowerCase() === "down" ? -1 : 1;
   }
 
   _pickFixedNote() {
@@ -226,7 +283,13 @@ export class PitchDetective extends BaseStaffGame {
       { value: "music-font__flat", weight: Number(w.flat) || 0 },
     ]);
 
-    return { step: this._randomInitialFixedStep(), accidentalClass };
+    return { step: this._randomFixedStep(), accidentalClass };
+  }
+
+  _randomFixedStep() {
+    const min = this.staff.minStepAllowed();
+    const max = this.staff.maxStepAllowed();
+    return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 
   // ------------------------ interval math ------------------------
@@ -255,7 +318,7 @@ export class PitchDetective extends BaseStaffGame {
     return null;
   }
 
-  _computeSecondFromFixed(intervalAbbr, fixedStep, fixedMidi) {
+  _computeSecondFromFixed(intervalAbbr, fixedStep, fixedMidi, direction) {
     const parsed = parseIntervalAbbr(intervalAbbr);
     if (!parsed || !Number.isFinite(parsed.number) || parsed.number < 1) return null;
 
@@ -288,11 +351,7 @@ export class PitchDetective extends BaseStaffGame {
       return { step: targetStep, accidentalClass, accOff: off, midi: targetMidi };
     };
 
-    const up = build(+1);
-    const down = build(-1);
-
-    if (up && down) return pickOne([up, down]);
-    return up || down || null;
+    return build(this._directionValue(direction));
   }
 
   // ------------------------ game flow ------------------------
@@ -303,6 +362,7 @@ export class PitchDetective extends BaseStaffGame {
 
     this.$helpBtn.hide();
     this._fixedState = null;
+    this._clearInitialNoteFlicker();
     this._expectedFirst = null;
     this._expectedSecond = null;
 
@@ -315,6 +375,7 @@ export class PitchDetective extends BaseStaffGame {
     this.$doublePoints?.hide?.();
 
     const interval = this._pickInterval();
+    const direction = this._pickDirection();
 
     // Retry until we find a playable pair within staff bounds/accidentals.
     let fixed = null;
@@ -327,7 +388,7 @@ export class PitchDetective extends BaseStaffGame {
       const fixedAccOff = this.staff._accidentalClassToOffset(fixed.accidentalClass) || 0;
       const fixedMidi = this.staff._stepToMidi(fixed.step) + fixedAccOff;
 
-      second = this._computeSecondFromFixed(interval, fixed.step, fixedMidi);
+      second = this._computeSecondFromFixed(interval, fixed.step, fixedMidi, direction);
       if (second) break;
     }
 
@@ -347,7 +408,11 @@ export class PitchDetective extends BaseStaffGame {
     });
     if (fixedId) this.staff._emitNoteState(fixedId, "fixed");
 
-    this._expectedFirst = { step: fixed.step, accidentalClass: fixed.accidentalClass || null };
+    this._expectedFirst = {
+      noteId: fixedId,
+      step: fixed.step,
+      accidentalClass: fixed.accidentalClass || null,
+    };
     this._expectedSecond = second;
 
     $("#continue").hide();

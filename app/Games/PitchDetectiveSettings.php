@@ -31,7 +31,7 @@ class PitchDetectiveSettings extends GameFactory
 
     protected function requiredToggleKeys(): array
     {
-        return ['sound', 'showNoteNames', 'solfege', 'allowAccidentals', 'initialRoot', 'only7thChords'];
+        return ['sound', 'showNoteNames', 'solfege', 'allowAccidentals'];
     }
 
     protected function defaults(): array
@@ -48,7 +48,7 @@ class PitchDetectiveSettings extends GameFactory
             'sound' => true,
             'showNoteNames' => false,
             'allowAccidentals' => false,
-            'initialNoteRange' => 0,
+            'direction' => ['up', 'down'],
             'solfege' => false
         ];
     }

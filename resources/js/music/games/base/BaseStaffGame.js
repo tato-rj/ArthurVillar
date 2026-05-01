@@ -6,6 +6,7 @@ import { playBurstConfettiAtElement } from "../shared/mojsEffects.js";
 import { PromptUi } from "../shared/PromptUi.js";
 import { GameAudio } from "../shared/GameAudio.js";
 import { PianoKeyboardUi } from "../shared/PianoKeyboardUi.js";
+import { InstructionsUi } from "../shared/InstructionsUi.js";
 
 export const PAGE_OPENED_AT_MS = Date.now();
 
@@ -118,6 +119,7 @@ export class BaseStaffGame {
     this.$timerBox = this.$timer.children("div").first();
     this.$timerText = this.$timer.find("span");
     this.prompt = new PromptUi("#prompt");
+    this.instructionsUi = new InstructionsUi("#instructions");
     this.$keyboard = $("#keyboard").first();
     this.$keyboardWrap = $("#keyboard-wrapper").first();
     this.$pianoToggleBtn = $("#piano-toggle button").first();
@@ -1122,7 +1124,7 @@ export class BaseStaffGame {
   start() {
     this._madeAnyMistake = false;
 
-    this.$instructions.show();
+    this.instructionsUi.show().replay();
     $("#controls").show();
 
     this._instructionsRemoved = false;

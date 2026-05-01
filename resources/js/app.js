@@ -49,35 +49,34 @@ $('.form-number button').on('click', function () {
   }
 });
 // /public/js/settings-toggles.js (example path)
+// settings/toggles.js
 $(document)
   .off("change.settingsToggles")
-  .on("change.settingsToggles", 'input[multichoice], input[singlechoice]', function () {
-    const $this = $(this);
-    const isSingle = $this.is("[singlechoice]");
-    const name = $this.attr("name"); // e.g. "something[]"
+  .on(
+    "change.settingsToggles",
+    'input[multichoice], input[singlechoice]',
+    function () {
+      const $this = $(this);
+      const isSingle = $this.is("[singlechoice]");
+      const name = $this.attr("name");
 
-    if (isSingle) {
-      // Force "only one checked" behavior.
-      // If user tries to uncheck the current one, keep it checked (optional but usually desired).
-      if (!$this.prop("checked")) $this.prop("checked", true);
+      if (isSingle && $this.prop("checked")) {
+        $(`input[singlechoice][name="${CSS.escape(name)}"]`)
+          .not(this)
+          .prop("checked", false);
+      }
 
-      // Uncheck all others in the same group.
-      $(`input[singlechoice][name="${CSS.escape(name)}"]`)
-        .not(this)
-        .prop("checked", false);
+      const $scope = isSingle
+        ? $(`input[singlechoice][name="${CSS.escape(name)}"]`)
+        : $this;
+
+      $scope.each(function () {
+        const $label = $(this).siblings("label");
+        $label.removeClass("btn-white btn-secondary");
+        $label.addClass(this.checked ? "btn-secondary" : "btn-white");
+      });
     }
-
-    // Update classes for the whole group (single) or just this item (multi).
-    const $scope = isSingle
-      ? $(`input[singlechoice][name="${CSS.escape(name)}"]`)
-      : $this;
-
-    $scope.each(function () {
-      const $label = $(this).siblings("label");
-      $label.removeClass("btn-white btn-secondary");
-      $label.addClass(this.checked ? "btn-secondary" : "btn-white");
-    });
-  });
+  );
 
 $(document).on('click', 'button[data-form]', function() {
     let formID = $(this).data('form');

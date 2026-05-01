@@ -169,7 +169,7 @@ td {
 </section>
 
 @include('theory.components.results.overlay')
-@include('theory.components.keyboard')
+@include('theory.components.keyboard', ['type' => 'notes'])
 @endsection
 
 @push('scripts')

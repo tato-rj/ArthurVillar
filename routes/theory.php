@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('theory')->name('theory.')->group(function() {
 	Route::get('', 'TheoryController@index')->name('index');
 
-	Route::get('basics', 'TheoryController@basics')->name('basics.play');
+	Route::get('open-staff', 'TheoryController@openStaff')->name('open-staff.play');
 
 	Route::get('intervals', 'TheoryController@intervalsLab');
 
@@ -22,4 +22,6 @@ Route::prefix('theory')->name('theory.')->group(function() {
 	Route::get('note-python', 'TheoryController@notePython')->name('note-python.play');
 
 	Route::get('note-nest', 'TheoryController@noteNest')->name('note-nest.play');
+
+	Route::get('beat-hero', 'TheoryController@beatHero')->name('beat-hero.play');
 });

@@ -72,5 +72,4 @@ class NotePythonSettings extends GameFactory
 
         return $key ? $array[$key] : $array;
     }
-
 }

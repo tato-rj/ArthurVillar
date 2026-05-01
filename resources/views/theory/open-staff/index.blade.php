@@ -8,7 +8,7 @@
 <link href="{{ mix('css/musicgames.css') }}" rel="stylesheet">
 
 <script>
-  window.staffZoneScreens = @json($settings->screens());
+  window.__challengeOptions = @json($settings->options());
   window.__clefUrls = {
     treble: "{{ asset('images/clefs/treble-clef.svg') }}",
     bass:   "{{ asset('images/clefs/bass-clef.svg') }}",
@@ -70,15 +70,9 @@
     </div>
 
     <div class="col-lg-6 col-md-8 col-11 mx-auto">
-      <div id="instructions" class="fw-bold text-center mb-4">
-        <h6 class="m-0 text-grey" style="line-height: 1.6;"></h6>
-      </div>
-      <div id="continue" class="btn-floating w-100" style="display: none;">
-        <button class="btn btn-green w-100">Continue</button>
-      </div>
-      <div id="done" class="btn-floating w-100" style="display: none;">
-        <a href="{{route('theory.note-nest.play', ['numOfChallenges'=>4, 'clefs'=>['treble'], 'initialNoteRange'=>0, 'sound'=>'on', 'solfege'=>'on'])}}" class="btn btn-primary w-100">Start practicing 🙂</a>
-      </div>
+      @include('theory.components.controls', ['instructions' => 'Tap the staff to higlight a line or space 👆'])
+      @include('theory.open-staff.modals.settings')
+      @include('theory.components.preferences')
     </div>
   </div>
 </section>
@@ -86,7 +80,7 @@
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.js"></script>
-<script src="{{ mix('js/music/staffzone.js') }}"></script>
+<script src="{{ mix('js/music/openstaff.js') }}"></script>
 <script>
 </script>
 @endpush

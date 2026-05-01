@@ -67,6 +67,11 @@ abstract class GameFactory
         return $this->keyQualities;
     }
 
+    public function getPositions()
+    {
+        return $this->positions;
+    }
+
     public function getNumOfChallenges()
     {
         return $this->numOfChallenges;

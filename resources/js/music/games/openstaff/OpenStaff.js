@@ -1,8 +1,8 @@
 import { Staff } from "../../staff/Staff.js";
-import { getPointerId, getPointerPageXY, stepToLetterOctave } from "../../staff/staffUtils.js";
-import { normalizeClefPool } from "../shared/challengeUtils.js";
+import { getPointerId, getPointerPageXY, normalizeClef, stepToLetterOctave } from "../../staff/staffUtils.js";
+import { InstructionsUi } from "../shared/InstructionsUi.js";
 
-export class StaffZone {
+export class OpenStaff {
   static LETTER_TO_SOLFEGE = {
     C: "Do",
     D: "Re",
@@ -16,7 +16,7 @@ export class StaffZone {
   constructor(options = {}) {
     const defaults = {
       staffEl: "#staff",
-      namespace: "staffZone",
+      namespace: "openStaff",
       sound: true,
       solfege: false,
       maxUserNotes: 1,
@@ -27,27 +27,21 @@ export class StaffZone {
     };
 
     this.opts = { ...defaults, ...(options || {}) };
-    this.ns = this.opts.namespace || "staffZone";
+    this.ns = this.opts.namespace || "openStaff";
     this.$staffEl = $(this.opts.staffEl).first();
+    this.instructionsUi = new InstructionsUi("#instructions");
     this.$instructions = $("#instructions").find("h6").first();
     this.$continue = $("#continue");
     this.$continueBtn = this.$continue.find("button").first();
     this.$done = $("#done");
 
-    const clefPool = normalizeClefPool(
-      this.opts.clefs != null
-        ? this.opts.clefs
-        : (this.opts.clef != null ? this.opts.clef : this.opts.initialClef),
-    );
-
-    this._defaultClef = clefPool[0] || "treble";
+    this._clefPool = this._resolveClefPool();
+    this._defaultClef = this._clefPool[0] || null;
     this._currentScreenIndex = 0;
     this._currentScreen = null;
     this._currentScreenSuccessShown = false;
     this._pendingSuccessInstructions = false;
     this._screens = this._buildScreens();
-    this._typedInstructions = null;
-    this._instructionsTyping = false;
     this._highlightIdCounter = 1;
     this._pointer = {
       active: false,
@@ -72,10 +66,11 @@ export class StaffZone {
   start() {
     if (!this.$staffEl.length) return;
 
+    $("#controls").show();
     this._hideGameChrome();
     this._bindContinue();
     this._bindKeyboardArrows();
-    this._bindStaffZoneInteraction();
+    this._bindOpenStaffInteraction();
     this._showScreen(0);
 
     $("#page-wrapper").fadeIn("fast");
@@ -105,7 +100,7 @@ export class StaffZone {
       "#clear",
     ].forEach((selector) => $(selector).hide());
 
-    $("#instructions").show();
+    this.instructionsUi.show();
 
     this.$staffEl.addClass("staffzone");
   }
@@ -114,16 +109,59 @@ export class StaffZone {
     const raw = window.staffZoneScreens;
     const screens = Array.isArray(raw) ? raw : [];
 
+    if (!screens.length) {
+      return [this._buildDefaultScreen()];
+    }
+
     return screens.map((screen) => ({
       instructions: this._normalizeInstructions(screen?.instructions),
       success: this._normalizeInstructions(screen?.success),
-      clef: screen?.clef ?? null,
+      clef: this._normalizeScreenClef(screen?.clef),
       playSound: this._normalizeOnOff(screen?.playSound),
       logNoteName: this._normalizeOnOff(screen?.logNoteName),
       showLabels: this._normalizeOnOff(screen?.showLabels),
       solfege: this._normalizeOnOff(screen?.solfege),
       initialStep: this._normalizeInitialStep(screen?.initialStep),
     }));
+  }
+
+  _resolveClefPool() {
+    const raw = this.opts.clefs != null
+      ? this.opts.clefs
+      : (this.opts.clef != null ? this.opts.clef : this.opts.initialClef);
+
+    const source = Array.isArray(raw)
+      ? raw
+      : raw != null
+        ? [raw]
+        : [];
+
+    const pool = [];
+
+    source.forEach((value) => {
+      const clef = normalizeClef(value);
+      if (clef && !pool.includes(clef)) pool.push(clef);
+    });
+
+    return pool;
+  }
+
+  _normalizeScreenClef(value) {
+    if (value == null || value === "") return this._defaultClef;
+    return normalizeClef(value);
+  }
+
+  _buildDefaultScreen() {
+    return {
+      instructions: this.instructionsUi.getHtml() || "",
+      success: "",
+      clef: this._defaultClef,
+      playSound: !!this.opts.sound,
+      logNoteName: false,
+      showLabels: true,
+      solfege: !!this.opts.solfege,
+      initialStep: null,
+    };
   }
 
   _normalizeInitialStep(value) {
@@ -229,38 +267,7 @@ export class StaffZone {
   }
 
   _renderInstructions(html) {
-    if (this._typedInstructions?.destroy) {
-      this._typedInstructions.destroy();
-      this._typedInstructions = null;
-    }
-
-    this._instructionsTyping = false;
-
-    if (!this.$instructions.length) return;
-
-    this.$instructions.html("");
-
-    if (!html) return;
-
-    const $typedTarget = $("<span></span>").addClass("staffzone-instructions__typed");
-    this.$instructions.append($typedTarget);
-
-    if (typeof window.Typed !== "function") {
-      $typedTarget.html(html);
-      return;
-    }
-
-    this._instructionsTyping = true;
-    this._typedInstructions = new window.Typed($typedTarget[0], {
-      strings: [html],
-      typeSpeed: 24,
-      startDelay: 180,
-      showCursor: true,
-      contentType: "html",
-      onComplete: () => {
-        this._instructionsTyping = false;
-      },
-    });
+    this.instructionsUi.setHtml(html);
   }
 
   _renderSuccessInstructions() {
@@ -269,8 +276,7 @@ export class StaffZone {
   }
 
   _shouldBlockStaffInteraction() {
-    if (!this._instructionsTyping) return false;
-    return !this.$continue.is(":visible") && !this.$done.is(":visible");
+    return false;
   }
 
   _hideClef() {
@@ -284,7 +290,7 @@ export class StaffZone {
     this.$staffEl.find(".ledger[data-for-highlight-id]").remove();
   }
 
-  _bindStaffZoneInteraction() {
+  _bindOpenStaffInteraction() {
     this.$staffEl.off(`.${this.ns}`);
     $(window).off(`blur.${this.ns}`);
 
@@ -410,12 +416,24 @@ export class StaffZone {
 
     const letter = String(note.letter || "").toUpperCase();
     return this._currentScreen?.solfege
-      ? (StaffZone.LETTER_TO_SOLFEGE[letter] || letter)
+      ? (OpenStaff.LETTER_TO_SOLFEGE[letter] || letter)
       : letter;
   }
 
   _stepPositionLabel(step) {
     if (!Number.isFinite(step)) return "";
+
+    if (step > 8) {
+      if (step === 9) return "space 5";
+      if (step % 2 !== 0) return "space";
+      return `ledger line ${Math.floor((step - 8) / 2)}`;
+    }
+
+    if (step < 0) {
+      if (step === -1) return "space 0";
+      if (step % 2 !== 0) return "space";
+      return `ledger line ${Math.floor(Math.abs(step) / 2)}`;
+    }
 
     if (step % 2 === 0) {
       return `line ${Math.floor(step / 2) + 1}`;
@@ -559,11 +577,13 @@ export class StaffZone {
 
   _playAndLogStep(step) {
     const noteName = this._stepName(step);
-    if (this._currentScreen?.playSound) void this.staff.playStep(step, 0);
+    if (this._currentScreen?.playSound && this._currentScreen?.clef) {
+      void this.staff.playStep(step, 0);
+    }
     if (!this._currentScreen?.logNoteName) return;
 
     // eslint-disable-next-line no-console
-    console.log("StaffZone note:", noteName, {
+    console.log("OpenStaff note:", noteName, {
       clef: this.staff.getClef(),
       step,
     });

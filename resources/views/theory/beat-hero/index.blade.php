@@ -9,16 +9,9 @@
 
 <script>
   window.__challengeOptions = @json($settings->options());
-  window.__clefUrls = {
-    treble: "{{ asset('images/clefs/treble-clef.svg') }}",
-    bass:   "{{ asset('images/clefs/bass-clef.svg') }}",
-    alto:   "{{ asset('images/clefs/alto-clef.svg') }}",
-    tenor:  "{{ asset('images/clefs/tenor-clef.svg') }}",
-  };
 </script>
 
 <style>
-
 </style>
 @endpush
 
@@ -27,26 +20,24 @@
 
 <section id="page-wrapper" class="container prevent-select">
   <div class="row">
-    <div class="col-lg-6 col-md-8 col-11 mx-auto text-center">
+    <div class="col-lg-6 col-md-8 col-11 mx-auto text-center mb-2">
       @include('theory.components.counter')
       @include('theory.components.timer')
     </div>
-
-    <div class="col-11 mx-auto mb-3">
-      @include('theory.components.piano.keyboard')
-      <div id="staff-wrapper" class="text-center mx-auto position-relative prevent-select">
-        @include('theory.components.piano.toggle')
-        @include('theory.components.accidentals')
-        <div id="staff"></div>
-        @include('theory.components.feedback')
-        @include('theory.components.prompt')
+    <div class="col-12 mx-auto mb-2 position-relative">
+      <div id="game-wrapper">
       </div>
+      @include('theory.components.prompt')
+      @include('theory.components.feedback')
     </div>
 
     <div class="col-lg-6 col-md-8 col-11 mx-auto">
-      @include('theory.components.controls', ['instructions' => 'Tap on the staff to add notes 👆'])
-      @include('theory.chords-lab.modals.settings')
-      @include('theory.chords-lab.modals.instructions')
+      <div id="instructions" class="fw-bold text-center">
+        <h6 class="m-0 text-red">Swipe or use the arrows to control the snake</h6>
+      </div>
+      @include('theory.components.controls')
+      @include('theory.beat-hero.modals.settings')
+      @include('theory.beat-hero.modals.instructions')
       @include('theory.components.preferences')
     </div>
   </div>
@@ -57,5 +48,5 @@
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.js"></script>
-<script src="{{ mix('js/music/chordslab.js') }}"></script>
+<script src="{{ mix('js/music/beathero.js') }}"></script>
 @endpush

@@ -1,6 +1,13 @@
 import { renderFinalResultsOverlay } from "../shared/finalResults.js";
 import { BaseStaffGame } from "../base/BaseStaffGame.js";
 import { GameAudio } from "../shared/GameAudio.js";
+import { InstructionsUi } from "../shared/InstructionsUi.js";
+import {
+  MusicKeyboardController,
+  applyAccidentalToSingleNoteValue,
+  deleteSingleNoteValue,
+  keyboardLabelForLetter,
+} from "../shared/MusicKeyboardController.js";
 
 export class ToneTrek {
   static INTERVALS_FALLBACK = [
@@ -65,6 +72,7 @@ export class ToneTrek {
     this.$points = $("#points");
     this.$finalOverlay = $("#final-overlay");
     this.$doublePoints = $("#double-points");
+    this.instructionsUi = new InstructionsUi("#instructions");
     this.ns = this.opts.namespace || "toneTrek";
     this._audioReady = false;
     this._synth = null;
@@ -77,10 +85,13 @@ export class ToneTrek {
     this._timerTimeoutId = null;
     this._timerRemainingSec = 0;
     this._timerEndsAtMs = 0;
-    this._keyboardHideTimer = null;
-    this._suppressKeyboardHideUntil = 0;
     this.$activeBlockInput = null;
     this.$activeBlockCell = null;
+    this._musicKeyboard = new MusicKeyboardController({
+      namespace: this.ns,
+      $keyboard: this.$musicKeyboard,
+      pushTimeout: (id) => this._revealTimeouts.push(id),
+    });
     this._instructionsDismissed = false;
     this._correctionMode = false;
     this._wrongEditableIndexes = new Set();
@@ -101,9 +112,6 @@ export class ToneTrek {
     this._roundRecords = [];
     this._finalMetricsSfxTimeouts = [];
     this._finalCountupTimeouts = [];
-    this._instructionsDismissed = false;
-    this._correctionMode = false;
-    this._wrongEditableIndexes = new Set();
   }
 
   start() {
@@ -341,16 +349,9 @@ export class ToneTrek {
   }
 
   _syncKeyboardLabels() {
-    if (!this.$musicKeyboard || !this.$musicKeyboard.length) return;
-    const useSolfege = this._isSolfegeEnabled();
-    this.$musicKeyboard.find("button[data-lettername]").each((_, el) => {
-      const $btn = $(el);
-      const letter = String($btn.attr("data-lettername") || "").trim().toUpperCase();
-      const sol = String($btn.attr("data-solfege") || "").trim();
-      const label = useSolfege
-        ? (sol ? sol.charAt(0).toUpperCase() + sol.slice(1).toLowerCase() : (ToneTrek.LETTER_TO_SOLFEGE[letter] || letter))
-        : letter;
-      $btn.text(label);
+    this._musicKeyboard.syncLetterButtonLabels({
+      useSolfege: this._isSolfegeEnabled(),
+      letterToSolfege: ToneTrek.LETTER_TO_SOLFEGE,
     });
   }
 
@@ -1252,58 +1253,11 @@ export class ToneTrek {
       });
 
     this.$table
-      .off(`click.${this.ns}Cell`, "td.block")
-      .on(`click.${this.ns}Cell`, "td.block", (e) => {
-        const $cell = $(e.currentTarget);
-        const $input = $cell.find('input[name="note"]').first();
-        if (!$input.length) return;
-        if ($input.prop("disabled")) {
-          this._clearActiveBlockInput();
-          return;
-        }
-        this._setActiveBlockInput($input);
-        $input.trigger("focus");
-        this._showMusicKeyboard();
-      });
-
-    this.$table
-      .off(`focusin.${this.ns}Note`, 'input[name="note"]')
-      .on(`focusin.${this.ns}Note`, 'input[name="note"]', (e) => {
-        const $input = $(e.currentTarget);
-        if (!$input.closest("td.block").length) return;
-        this._setActiveBlockInput($input);
-        this._showMusicKeyboard();
-      });
-
-    this.$table
-      .off(`focusout.${this.ns}Note`, 'input[name="note"]')
-      .on(`focusout.${this.ns}Note`, 'input[name="note"]', () => {
-        if (this._keyboardHideTimer) clearTimeout(this._keyboardHideTimer);
-        this._keyboardHideTimer = setTimeout(() => {
-          if (Date.now() < this._suppressKeyboardHideUntil) return;
-          const $active = $(document.activeElement);
-          const inNoteInput = $active.is('input[name="note"]') && $active.closest("td.block").length;
-          const inKeyboard = $active.closest("#music-keyboard").length;
-          if (!inNoteInput && !inKeyboard) {
-            this._hideMusicKeyboard();
-          }
-        }, 0);
-      });
-
-    this.$table
       .off(`blur.${this.ns}Note`, 'input[name="note"]')
       .on(`blur.${this.ns}Note`, 'input[name="note"]', (e) => {
         const $input = $(e.currentTarget);
         if (!$input.closest("td.block").length) return;
         this._updateNoteInputProgression();
-      });
-
-    this.$table
-      .off(`keydown.${this.ns}Note`, 'input[name="note"]')
-      .on(`keydown.${this.ns}Note`, 'input[name="note"]', (e) => {
-        const $input = $(e.currentTarget);
-        if (!$input.closest("td.block").length) return;
-        e.preventDefault();
       });
 
     this.$table
@@ -1321,105 +1275,46 @@ export class ToneTrek {
         this._updateNoteInputProgression();
       });
 
-    this.$table
-      .off(`paste.${this.ns}Note`, 'input[name="note"]')
-      .on(`paste.${this.ns}Note`, 'input[name="note"]', (e) => {
-        const $input = $(e.currentTarget);
-        if (!$input.closest("td.block").length) return;
-        e.preventDefault();
-      });
-
-    $(document)
-      .off(`mousedown.${this.ns}Keyboard touchstart.${this.ns}Keyboard`)
-      .on(`mousedown.${this.ns}Keyboard touchstart.${this.ns}Keyboard`, (e) => {
-        const $target = $(e.target);
-        if ($target.closest('input[name="note"]').length) return;
-        if ($target.closest("#music-keyboard").length) {
-          this._suppressKeyboardHideUntil = Date.now() + 250;
-          return;
-        }
-        this._hideMusicKeyboard();
-        this._clearActiveBlockInput();
-      });
-
-    this.$musicKeyboard
-      .off(`click.${this.ns}Write`, "button")
-      .on(`click.${this.ns}Write`, "button", (e) => {
-        e.preventDefault();
-        const $target = $(e.currentTarget);
-        const $active = this.$activeBlockInput && this.$activeBlockInput.length
-          ? this.$activeBlockInput
-          : $(document.activeElement).closest('input[name="note"]');
-        if (!$active || !$active.length || !$active.closest("td.block").length) return;
-        if ($active.prop("disabled")) return;
-
-        const letter = String($target.attr("data-lettername") || "").trim().toUpperCase();
-        const accidentalType = String($target.attr("data-accidental") || "").trim().toLowerCase();
-        const isDelete = $target.is("[data-delete]");
-        const current = String($active.val() || "").trim();
-
-        if (isDelete) {
-          const chars = Array.from(current);
-          if (!chars.length) return;
-          $active.val(chars.slice(0, -1).join(""));
-          $active.trigger("input");
-          return;
+    this._musicKeyboard.bind({
+      $root: this.$table,
+      focusSelector: 'input[name="note"]',
+      clickSelector: "td.block",
+      resolveInputFromClick: ($cell) => $cell.find('input[name="note"]').first(),
+      getActiveInput: () => this.$activeBlockInput,
+      setActiveInput: ($input) => this._setActiveBlockInput($input),
+      clearActiveInput: () => this._clearActiveBlockInput(),
+      isManagedInput: ($input) => $input.is('input[name="note"]') && $input.closest("td.block").length > 0,
+      isInputDisabled: ($input) => $input.prop("disabled"),
+      transformButtonPress: ({ action, currentValue }) => {
+        if (action.isDelete) {
+          const nextValue = deleteSingleNoteValue(currentValue);
+          return nextValue === currentValue ? null : nextValue;
         }
 
-        if (letter) {
-          const sol = String($target.attr("data-solfege") || "").trim();
-          const label = this._isSolfegeEnabled()
-            ? (sol ? sol.charAt(0).toUpperCase() + sol.slice(1).toLowerCase() : (ToneTrek.LETTER_TO_SOLFEGE[letter] || letter))
-            : letter;
-          $active.val(label);
-          $active.trigger("input");
-          return;
+        if (action.letter) {
+          return keyboardLabelForLetter({
+            letter: action.letter,
+            solfege: action.solfege,
+            useSolfege: this._isSolfegeEnabled(),
+            letterToSolfege: ToneTrek.LETTER_TO_SOLFEGE,
+          });
         }
 
-        if (accidentalType) {
-          const nextValue = this._applyAccidentalToInputValue(current, accidentalType);
-          if (nextValue == null) return;
-          $active.val(nextValue);
-        } else {
-          const text = String($target.text() || "").trim();
-          if (!text) return;
-          $active.val(text);
+        if (action.accidentalType) {
+          return this._applyAccidentalToInputValue(currentValue, action.accidentalType);
         }
 
-        $active.trigger("input");
-      });
+        return action.text || null;
+      },
+    });
   }
 
   _applyAccidentalToInputValue(current, accidentalType) {
-    const m = String(current || "").trim().match(/^([A-G]|Do|Re|Mi|Fa|Sol|La|Si)([#b♯♭𝄪𝄫]{0,2})$/i);
-    if (!m) return null;
-
-    const tokenUpper = String(m[1] || "").toUpperCase();
-    const letter = ToneTrek.SOLFEGE_TO_LETTER[tokenUpper] || tokenUpper;
-    const baseDisplay = this._isSolfegeEnabled()
-      ? (ToneTrek.LETTER_TO_SOLFEGE[letter] || letter)
-      : letter;
-    const rawAcc = m[2] || "";
-    const normalizedAcc =
-      rawAcc === "#" || rawAcc === "♯" ? "sharp" :
-      rawAcc === "##" || rawAcc === "𝄪" ? "double_sharp" :
-      rawAcc === "b" || rawAcc === "♭" ? "flat" :
-      rawAcc === "bb" || rawAcc === "𝄫" ? "double_flat" :
-      "";
-
-    if (accidentalType === "sharp") {
-      if (normalizedAcc === "double_sharp") return `${baseDisplay}𝄪`;
-      if (normalizedAcc === "sharp") return `${baseDisplay}𝄪`;
-      return `${baseDisplay}♯`;
-    }
-
-    if (accidentalType === "flat") {
-      if (normalizedAcc === "double_flat") return `${baseDisplay}𝄫`;
-      if (normalizedAcc === "flat") return `${baseDisplay}𝄫`;
-      return `${baseDisplay}♭`;
-    }
-
-    return `${baseDisplay}`;
+    return applyAccidentalToSingleNoteValue(current, accidentalType, {
+      useSolfege: this._isSolfegeEnabled(),
+      solfegeToLetter: ToneTrek.SOLFEGE_TO_LETTER,
+      letterToSolfege: ToneTrek.LETTER_TO_SOLFEGE,
+    });
   }
 
   _updateNoteInputProgression() {
@@ -1748,35 +1643,16 @@ export class ToneTrek {
 
   _showStandardGameUi() {
     this._syncKeyboardLabels();
-    $("#instructions").show();
+    this.instructionsUi.show().replay();
     $("#controls").show();
   }
 
   _showMusicKeyboard() {
-    if (!this.$musicKeyboard.length) return;
-    if (this._keyboardHideTimer) {
-      clearTimeout(this._keyboardHideTimer);
-      this._keyboardHideTimer = null;
-    }
-    this.$musicKeyboard
-      .stop(true, true)
-      .show()
-      .removeClass("animate__bounceOutDown")
-      .addClass("animate__animated animate__bounceInUp");
+    this._musicKeyboard.show();
   }
 
   _hideMusicKeyboard() {
-    if (!this.$musicKeyboard.length) return;
-    if (!this.$musicKeyboard.is(":visible")) return;
-    this.$musicKeyboard
-      .removeClass("animate__bounceInUp")
-      .addClass("animate__animated animate__bounceOutDown");
-
-    const hideTid = setTimeout(() => {
-      this.$musicKeyboard.hide();
-      this.$musicKeyboard.removeClass("animate__bounceOutDown");
-    }, 550);
-    this._revealTimeouts.push(hideTid);
+    this._musicKeyboard.hide();
   }
 
   _hideAllCellsVisual() {

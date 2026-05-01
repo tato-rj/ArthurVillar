@@ -327,6 +327,21 @@ body {
   z-index: 10;
 }
 
+.note.flickering {
+  border: 4px dotted yellow;
+  // animation: borderFlicker 1s infinite;
+}
+
+/* Animation */
+@keyframes borderFlicker {
+  0%   { border-color: white; }
+  20%  { border-color: yellow; }
+  40%  { border-color: white; }
+  60%  { border-color: yellow; }
+  80%  { border-color: white; }
+  100% { border-color: yellow; }
+}
+
 .note.fixed {
   pointer-events: none;
   animation-name: bounceInDown;

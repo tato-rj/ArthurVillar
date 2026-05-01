@@ -11,7 +11,7 @@
     @include('theory.components.settings.multichoice', ['label' => 'Clefs', 'name' => 'clefs', 'options' => $settings->getClefs(), 'game' => $settings->gameName(), 'ucfirst' => true])
     <hr class="opacity-1">
     @include('theory.components.settings.toggle', ['label' => 'Allow accidentals', 'name' => 'allowAccidentals'])
-    @include('theory.components.settings.range')
+    @include('theory.components.settings.switch', ['label' => 'Direction', 'name' => 'direction', 'options' => ['up', 'down'], 'game' => $settings->gameName()])
   @endcomponent
 
   @component('theory.components.settings.section', ['title' => 'PREFERENCES'])

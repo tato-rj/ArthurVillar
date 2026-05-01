@@ -1885,31 +1885,26 @@ _defineProperty(BaseStaffGame, "LETTER_TO_SOLFEGE", {
 
 /***/ },
 
-/***/ "./resources/js/music/games/pitchdetective/PitchDetective.js"
-/*!*******************************************************************!*\
-  !*** ./resources/js/music/games/pitchdetective/PitchDetective.js ***!
-  \*******************************************************************/
+/***/ "./resources/js/music/games/beathero/BeatHero.js"
+/*!*******************************************************!*\
+  !*** ./resources/js/music/games/beathero/BeatHero.js ***!
+  \*******************************************************/
 (__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   PitchDetective: () => (/* binding */ PitchDetective)
+/* harmony export */   BeatHero: () => (/* binding */ BeatHero)
 /* harmony export */ });
 /* harmony import */ var _base_BaseStaffGame_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../base/BaseStaffGame.js */ "./resources/js/music/games/base/BaseStaffGame.js");
-/* harmony import */ var _staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../staff/staffUtils.js */ "./resources/js/music/staff/staffUtils.js");
-/* harmony import */ var _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/GameAudio.js */ "./resources/js/music/games/shared/GameAudio.js");
-/* harmony import */ var _shared_challengeUtils_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/challengeUtils.js */ "./resources/js/music/games/shared/challengeUtils.js");
+/* harmony import */ var _shared_challengeUtils_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../shared/challengeUtils.js */ "./resources/js/music/games/shared/challengeUtils.js");
+/* harmony import */ var _staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../staff/staffUtils.js */ "./resources/js/music/staff/staffUtils.js");
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
-function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
-function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
 function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
-function _iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
-function _arrayWithoutHoles(r) { if (Array.isArray(r)) return _arrayLikeToArray(r); }
 function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
-function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
-function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
-function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
-function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
 function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
 function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
 function _classCallCheck(a, n) { if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function"); }
@@ -1928,485 +1923,136 @@ function _setPrototypeOf(t, e) { return _setPrototypeOf = Object.setPrototypeOf 
 function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
 function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
 function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
-// resources/js/music/games/pitchdetective/PitchDetective.js
 
 
 
-
-
-/**
- * Interval Dictation (dev)
- *
- * Rules:
- * - Staff note sounds are always disabled (no click/drag audio).
- * - SFX follow the global sound toggle (BaseStaffGame / opts.sound).
- * - Dictation playback always plays (ignores opts.sound) via its own synth.
- * - The player enters exactly ONE note (the heard note) above/below the fixed note.
- * - Answer checking is pitch-only (enharmonic spellings are accepted).
- */
-var PitchDetective = /*#__PURE__*/function (_BaseStaffGame) {
-  function PitchDetective() {
+var BeatHero = /*#__PURE__*/function (_BaseStaffGame) {
+  function BeatHero() {
     var _this;
     var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-    _classCallCheck(this, PitchDetective);
+    _classCallCheck(this, BeatHero);
     var defaults = {
       staffEl: "#staff",
       basePoints: 1,
       firstTryBonus: 2,
-      namespace: "pitchDetective",
-      // Dictation: one user note (the heard note).
-      maxUserNotes: 1,
-      // UI gating: show Check after 1 user note.
-      instructionsAfterUserNotes: 1,
-      checkAfterUserNotes: 1
+      namespace: "beatHero"
     };
-    var merged = _objectSpread(_objectSpread(_objectSpread({}, defaults), options), {}, {
-      accidentalWeights: _objectSpread(_objectSpread({}, defaults.accidentalWeights || {}), options.accidentalWeights || {}),
-      intervals: Array.isArray(options.intervals) && options.intervals.length ? options.intervals.slice() : PitchDetective.INTERVALS_DEFAULT.slice()
-    });
-    var clefPool = (0,_shared_challengeUtils_js__WEBPACK_IMPORTED_MODULE_3__.normalizeClefPool)(merged.clefs != null ? merged.clefs : merged.clef);
-    _this = _callSuper(this, PitchDetective, [_objectSpread(_objectSpread({}, merged), {}, {
+    var merged = _objectSpread(_objectSpread({}, defaults), options || {});
+    var clefPool = (0,_shared_challengeUtils_js__WEBPACK_IMPORTED_MODULE_1__.normalizeClefPool)(merged.clefs != null ? merged.clefs : merged.clef);
+    _this = _callSuper(this, BeatHero, [_objectSpread(_objectSpread({}, merged), {}, {
       initialClef: clefPool && clefPool[0] ? clefPool[0] : "treble"
     })]);
     _this._clefPool = clefPool;
-
-    // Dictation state
-    _this._expectedFirst = null; // { noteId, step, accidentalClass }
-    _this._expectedSecond = null; // { step, accidentalClass, accOff, midi }
-
-    // Dictation playback
-    _this._dictationTimeouts = [];
-    _this._dictSynth = null;
-    _this._dictAudioReady = false;
-
-    // Play/Stop UI
-    _this.$playWrap = null;
-    _this.$playPlayBtn = null;
-    _this.$playStopBtn = null;
+    _this._targetNote = null;
     return _this;
   }
-
-  // ------------------------ lifecycle ------------------------
-  _inherits(PitchDetective, _BaseStaffGame);
-  return _createClass(PitchDetective, [{
+  _inherits(BeatHero, _BaseStaffGame);
+  return _createClass(BeatHero, [{
     key: "start",
     value: function start() {
-      var _this2 = this;
-      _superPropGet(PitchDetective, "start", this, 3)([]);
-
-      // Dictation: never play sounds for user-added/moved staff notes.
-      if (this.staff && typeof this.staff._soundEnabled === "function") {
-        this.staff._soundEnabled = function () {
-          return false;
-        };
-      }
-      this.$playWrap = $("#play");
-      this.$playPlayBtn = this.$playWrap.find('button[action="play"]');
-      this.$playStopBtn = this.$playWrap.find('button[action="stop"]');
-      this.$playPlayBtn.off("click.".concat(this.ns, "Play")).on("click.".concat(this.ns, "Play"), function (e) {
-        e.preventDefault();
-        _this2.playDictation();
+      _superPropGet(BeatHero, "start", this, 3)([]);
+      this.prompt.show();
+      this._setPromptForTarget(this._targetNote);
+    }
+  }, {
+    key: "_displayNameForLetter",
+    value: function _displayNameForLetter(letter) {
+      var clean = String(letter || "").trim().toUpperCase();
+      if (this._showSolfegeNoteNames()) return BeatHero.LETTER_TO_SOLFEGE[clean] || clean;
+      return clean;
+    }
+  }, {
+    key: "_pickTargetStep",
+    value: function _pickTargetStep() {
+      var minStep = 0;
+      var maxStep = 8;
+      return Math.floor(Math.random() * (maxStep - minStep + 1)) + minStep;
+    }
+  }, {
+    key: "_setPromptForTarget",
+    value: function _setPromptForTarget(target) {
+      if (!target) return;
+      var shortName = "".concat(this._displayNameForLetter(target.letter)).concat((0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_2__.accidentalClassToText)(target.accidentalClass));
+      this.prompt.setShort(shortName, {
+        html: true
       });
-      this.$playStopBtn.off("click.".concat(this.ns, "Stop")).on("click.".concat(this.ns, "Stop"), function (e) {
-        e.preventDefault();
-        _this2._stopDictationPlayback();
-        _this2._setPlayButtons(false);
-      });
-
-      // Ensure Play is shown on Continue (new round).
-      $("#continue button").off("click.".concat(this.ns, "ShowPlay")).on("click.".concat(this.ns, "ShowPlay"), function () {
-        var _this2$$playWrap;
-        if ((_this2$$playWrap = _this2.$playWrap) !== null && _this2$$playWrap !== void 0 && _this2$$playWrap.length) _this2.$playWrap.show();
-        _this2._setPlayButtons(false);
-      });
-      this._setPlayButtons(false);
+      this.prompt.setLong("BeatHero scaffold challenge");
     }
-
-    // ------------------------ play/stop UI ------------------------
-  }, {
-    key: "_setPlayButtons",
-    value: function _setPlayButtons(isPlaying) {
-      var _this$$playPlayBtn, _this$$playStopBtn;
-      if ((_this$$playPlayBtn = this.$playPlayBtn) !== null && _this$$playPlayBtn !== void 0 && _this$$playPlayBtn.length) this.$playPlayBtn.toggle(!isPlaying);
-      if ((_this$$playStopBtn = this.$playStopBtn) !== null && _this$$playStopBtn !== void 0 && _this$$playStopBtn.length) this.$playStopBtn.toggle(!!isPlaying);
-    }
-
-    // ------------------------ dictation playback ------------------------
-  }, {
-    key: "playDictation",
-    value: function playDictation() {
-      var _this3 = this;
-      if (!this._expectedFirst || !this._expectedSecond) return;
-      this._stopDictationPlayback();
-      this._setPlayButtons(true);
-      var firstMidi = this.staff._stepToMidi(this._expectedFirst.step) + (this.staff._accidentalClassToOffset(this._expectedFirst.accidentalClass) || 0);
-
-      // Sequence: first -> second -> first -> both together (1s spacing)
-      this._playMidi(firstMidi, 0.6, 0.0, function () {
-        return _this3._scheduleInitialNoteFlicker(0.6, 0.0);
-      });
-      this._playMidi(this._expectedSecond.midi, 0.6, 1.0);
-      this._playMidi(firstMidi, 0.6, 2.0, function () {
-        return _this3._scheduleInitialNoteFlicker(0.6, 2.0);
-      });
-
-      // Both together at t=3.0s (two trigger calls at same time).
-      this._playMidi(firstMidi, 0.6, 3.0, function () {
-        return _this3._scheduleInitialNoteFlicker(0.6, 3.0);
-      });
-      this._playMidi(this._expectedSecond.midi, 0.6, 3.0);
-      this._dictationTimeouts.push(setTimeout(function () {
-        // eslint-disable-next-line no-console
-        console.log("Dictation: user can now write the note on the staff.");
-        _this3._setPlayButtons(false);
-      }, 3000));
-    }
-  }, {
-    key: "_stopDictationPlayback",
-    value: function _stopDictationPlayback() {
-      if (Array.isArray(this._dictationTimeouts)) {
-        this._dictationTimeouts.forEach(function (t) {
-          return clearTimeout(t);
-        });
-      }
-      this._dictationTimeouts = [];
-      this._clearInitialNoteFlicker();
-      if (this._dictSynth && this._dictSynth.dispose) {
-        try {
-          this._dictSynth.dispose();
-        } catch (_) {}
-      }
-      this._dictSynth = null;
-      this._dictAudioReady = false;
-    }
-  }, {
-    key: "_ensureDictationAudio",
-    value: function () {
-      var _ensureDictationAudio2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
-        return _regenerator().w(function (_context) {
-          while (1) switch (_context.n) {
-            case 0:
-              if (window.Tone) {
-                _context.n = 1;
-                break;
-              }
-              return _context.a(2);
-            case 1:
-              if (!this._dictAudioReady) {
-                _context.n = 2;
-                break;
-              }
-              return _context.a(2);
-            case 2:
-              _context.n = 3;
-              return Tone.start();
-            case 3:
-              // Poly synth so we can play two notes together.
-              this._dictSynth = _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_2__.GameAudio.createDictationSynth();
-              this._dictAudioReady = true;
-            case 4:
-              return _context.a(2);
-          }
-        }, _callee, this);
-      }));
-      function _ensureDictationAudio() {
-        return _ensureDictationAudio2.apply(this, arguments);
-      }
-      return _ensureDictationAudio;
-    }()
-  }, {
-    key: "_playMidi",
-    value: function _playMidi(midi, durSeconds, atSecondsFromNow) {
-      var _this4 = this;
-      var onPlay = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
-      if (!window.Tone) return;
-      this._ensureDictationAudio().then(function () {
-        if (!_this4._dictSynth) return;
-        var now = Tone.now();
-        var when = now + (Number(atSecondsFromNow) || 0);
-        var dur = Number(durSeconds) || 0.6;
-        _this4._dictSynth.triggerAttackRelease(Tone.Frequency(midi, "midi"), dur, when, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_2__.GameAudio.scale("dictation", 1));
-        if (typeof onPlay === "function") onPlay();
-      });
-    }
-  }, {
-    key: "_initialNoteEl",
-    value: function _initialNoteEl() {
-      var _this$_expectedFirst;
-      var noteId = (_this$_expectedFirst = this._expectedFirst) === null || _this$_expectedFirst === void 0 ? void 0 : _this$_expectedFirst.noteId;
-      if (!noteId) return $();
-      return this.$staffEl.find(".note").filter(function (_, el) {
-        return String(el.getAttribute("data-note-id") || "") === String(noteId);
-      }).first();
-    }
-  }, {
-    key: "_clearInitialNoteFlicker",
-    value: function _clearInitialNoteFlicker() {
-      this._initialNoteEl().removeClass("flickering");
-    }
-  }, {
-    key: "_scheduleInitialNoteFlicker",
-    value: function _scheduleInitialNoteFlicker(durSeconds, atSecondsFromNow) {
-      var _this5 = this;
-      var delayMs = Math.max(0, (Number(atSecondsFromNow) || 0) * 1000);
-      var durationMs = Math.max(0, (Number(durSeconds) || 0.6) * 1000);
-      var startId = setTimeout(function () {
-        var $note = _this5._initialNoteEl();
-        if (!$note.length) return;
-        $note.addClass("flickering");
-        var endId = setTimeout(function () {
-          $note.removeClass("flickering");
-        }, durationMs);
-        _this5._dictationTimeouts.push(endId);
-      }, delayMs);
-      this._dictationTimeouts.push(startId);
-    }
-
-    // ------------------------ selection ------------------------
-  }, {
-    key: "_pickInterval",
-    value: function _pickInterval() {
-      var pool = Array.isArray(this.opts.intervals) && this.opts.intervals.length ? this.opts.intervals : PitchDetective.INTERVALS_DEFAULT;
-      return pool[Math.floor(Math.random() * pool.length)];
-    }
-  }, {
-    key: "_directionPool",
-    value: function _directionPool() {
-      var raw = Array.isArray(this.opts.direction) ? this.opts.direction : this.opts.direction != null ? [this.opts.direction] : ["up", "down"];
-      var pool = raw.map(function (direction) {
-        return String(direction || "").trim().toLowerCase();
-      }).filter(function (direction) {
-        return direction === "up" || direction === "down";
-      });
-      return pool.length ? _toConsumableArray(new Set(pool)) : ["up", "down"];
-    }
-  }, {
-    key: "_pickDirection",
-    value: function _pickDirection() {
-      return (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.pickOne)(this._directionPool());
-    }
-  }, {
-    key: "_directionValue",
-    value: function _directionValue(direction) {
-      return String(direction || "").trim().toLowerCase() === "down" ? -1 : 1;
-    }
-  }, {
-    key: "_pickFixedNote",
-    value: function _pickFixedNote() {
-      var fixedList = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.toArrayMaybe)(this.opts.fixedNotes).filter(Boolean);
-      if (fixedList.length) {
-        var chosen = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.pickOne)(fixedList);
-        return (0,_shared_challengeUtils_js__WEBPACK_IMPORTED_MODULE_3__.fixedNoteToStaffPosition)(this.staff, chosen);
-      }
-      var w = this.opts.accidentalWeights || {};
-      var accidentalClass = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.pickWeighted)([{
-        value: null,
-        weight: Number(w.natural) || 0
-      }, {
-        value: "music-font__sharp",
-        weight: Number(w.sharp) || 0
-      }, {
-        value: "music-font__flat",
-        weight: Number(w.flat) || 0
-      }]);
-      return {
-        step: this._randomFixedStep(),
-        accidentalClass: accidentalClass
-      };
-    }
-  }, {
-    key: "_randomFixedStep",
-    value: function _randomFixedStep() {
-      var min = this.staff.minStepAllowed();
-      var max = this.staff.maxStepAllowed();
-      return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
-
-    // ------------------------ interval math ------------------------
-  }, {
-    key: "_intervalSemitones",
-    value: function _intervalSemitones(quality, simpleNum) {
-      var baseMajorPerfect = {
-        1: 0,
-        2: 2,
-        3: 4,
-        4: 5,
-        5: 7,
-        6: 9,
-        7: 11,
-        8: 12
-      }[simpleNum];
-      if (baseMajorPerfect == null) return null;
-      var isPerfectClass = simpleNum === 1 || simpleNum === 4 || simpleNum === 5 || simpleNum === 8;
-      var q = String(quality || "").trim();
-      if (isPerfectClass) {
-        if (q === "P") return baseMajorPerfect;
-        if (/^A+$/.test(q)) return baseMajorPerfect + q.length;
-        if (/^d+$/.test(q)) return baseMajorPerfect - q.length;
-        return null;
-      }
-      if (q === "M") return baseMajorPerfect;
-      if (q === "m") return baseMajorPerfect - 1;
-      if (/^A+$/.test(q)) return baseMajorPerfect + q.length;
-      if (/^d+$/.test(q)) return baseMajorPerfect - (q.length + 1);
-      return null;
-    }
-  }, {
-    key: "_computeSecondFromFixed",
-    value: function _computeSecondFromFixed(intervalAbbr, fixedStep, fixedMidi, direction) {
-      var _this6 = this;
-      var parsed = (0,_shared_challengeUtils_js__WEBPACK_IMPORTED_MODULE_3__.parseIntervalAbbr)(intervalAbbr);
-      if (!parsed || !Number.isFinite(parsed.number) || parsed.number < 1) return null;
-      var diatonicSteps = parsed.number - 1;
-      var simpleNum = (parsed.number - 1) % 7 + 1;
-      var octaves = Math.floor((parsed.number - 1) / 7);
-      var baseSemiSimple = this._intervalSemitones(parsed.quality, simpleNum);
-      if (baseSemiSimple == null) return null;
-      var semitones = baseSemiSimple + 12 * octaves;
-      var minStep = this.staff.minStepAllowed();
-      var maxStep = this.staff.maxStepAllowed();
-      var build = function build(dir) {
-        var targetStep = fixedStep + dir * diatonicSteps;
-        if (targetStep < minStep || targetStep > maxStep) return null;
-        var targetMidi = fixedMidi + dir * semitones;
-        var naturalTargetMidi = _this6.staff._stepToMidi(targetStep);
-        var off = targetMidi - naturalTargetMidi;
-
-        // Limit to supported accidentals.
-        if (off < -2 || off > 2) return null;
-        var accidentalClass = (0,_shared_challengeUtils_js__WEBPACK_IMPORTED_MODULE_3__.accidentalClassFromOffset)(off);
-        if (!accidentalClass) return null;
-        return {
-          step: targetStep,
-          accidentalClass: accidentalClass,
-          accOff: off,
-          midi: targetMidi
-        };
-      };
-      return build(this._directionValue(direction));
-    }
-
-    // ------------------------ game flow ------------------------
   }, {
     key: "newChallenge",
     value: function newChallenge() {
-      var _this$$playWrap, _this$$doublePoints, _this$$doublePoints$h;
-      if ((_this$$playWrap = this.$playWrap) !== null && _this$$playWrap !== void 0 && _this$$playWrap.length) this.$playWrap.show();
-      this._setPlayButtons(false);
-      this.$helpBtn.hide();
-      this._fixedState = null;
-      this._clearInitialNoteFlicker();
-      this._expectedFirst = null;
-      this._expectedSecond = null;
-      var clef = (0,_shared_challengeUtils_js__WEBPACK_IMPORTED_MODULE_3__.pickChallengeClef)(this._clefPool);
+      var _this$$doublePoints, _this$$doublePoints$h;
+      var clef = (0,_shared_challengeUtils_js__WEBPACK_IMPORTED_MODULE_1__.pickChallengeClef)(this._clefPool);
       if (clef && clef !== this.staff.getClef()) this.staff.setClef(clef);
       this._madeMistakeThisRound = false;
       this._usedHintThisRound = false;
+      this.staff.clearNotes();
+      this.$feedback.hide();
+      this.$helpBtn.hide();
       this.$bonusBadge.hide();
       (_this$$doublePoints = this.$doublePoints) === null || _this$$doublePoints === void 0 || (_this$$doublePoints$h = _this$$doublePoints.hide) === null || _this$$doublePoints$h === void 0 || _this$$doublePoints$h.call(_this$$doublePoints);
-      var interval = this._pickInterval();
-      var direction = this._pickDirection();
-
-      // Retry until we find a playable pair within staff bounds/accidentals.
-      var fixed = null;
-      var second = null;
-      for (var i = 0; i < 40; i += 1) {
-        fixed = this._pickFixedNote();
-        if (!fixed) continue;
-        var fixedAccOff = this.staff._accidentalClassToOffset(fixed.accidentalClass) || 0;
-        var fixedMidi = this.staff._stepToMidi(fixed.step) + fixedAccOff;
-        second = this._computeSecondFromFixed(interval, fixed.step, fixedMidi, direction);
-        if (second) break;
-      }
-      if (!fixed || !second) return;
-      this.staff.clearNotes();
-      this.$accidentals.removeClass("invisible");
-      this.$feedback.hide();
-
-      // Show the initial note immediately (suppress natural glyph).
-      var fixedAcc = fixed.accidentalClass === "music-font__natural" ? null : fixed.accidentalClass || null;
-      var fixedId = this.staff.addFixedNote({
-        step: fixed.step,
-        accidentalClass: fixedAcc
-      });
-      if (fixedId) this.staff._emitNoteState(fixedId, "fixed");
-      this._expectedFirst = {
-        noteId: fixedId,
-        step: fixed.step,
-        accidentalClass: fixed.accidentalClass || null
+      var step = this._pickTargetStep();
+      var noteState = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_2__.stepToLetterOctave)(this.staff, step);
+      this._targetNote = {
+        step: step,
+        letter: noteState.letter,
+        octave: noteState.octave,
+        accidentalClass: null
       };
-      this._expectedSecond = second;
+      this.prompt.show();
+      this._setPromptForTarget(this._targetNote);
+      $("#check").show().removeClass("invisible");
       $("#continue").hide();
     }
-
-    // ------------------------ notes + hint ------------------------
   }, {
-    key: "_notesOnStaffOrdered",
-    value: function _notesOnStaffOrdered() {
-      var _this7 = this;
-      var $notes = this.$staffEl.find(".note").not(".preview").not(".hint");
-      var notes = $notes.toArray().map(function (el) {
-        var id = el.getAttribute("data-note-id");
-        var step = _this7.staff._stepOfNoteEl(el);
-        var accCls = _this7.staff._getAttachedAccidentalClass(id);
-        var accOff = _this7.staff._accidentalClassToOffset(accCls) || 0;
-        var fixed = el.classList.contains("fixed");
+    key: "_collectUserNotes",
+    value: function _collectUserNotes() {
+      var _this2 = this;
+      return this.$staffEl.find(".note").toArray().map(function (el) {
+        var _this2$staff$_getAtta, _this2$staff;
+        var $note = $(el);
+        var noteId = String($note.attr("data-note-id") || "");
+        if (!noteId || _this2.staff.isNoteFixed(noteId)) return null;
+        var top = parseFloat($note.css("top"));
+        var step = Number.isFinite(top) ? _this2.staff.yToStep(top) : null;
+        var accidentalClass = ((_this2$staff$_getAtta = (_this2$staff = _this2.staff)._getAttachedAccidentalClass) === null || _this2$staff$_getAtta === void 0 ? void 0 : _this2$staff$_getAtta.call(_this2$staff, noteId)) || null;
         return {
-          id: id,
+          noteId: noteId,
           step: step,
-          accOff: accOff,
-          fixed: fixed
+          accidentalClass: accidentalClass
         };
-      });
-      notes.sort(function (a, b) {
-        return a.step - b.step;
-      });
-      return notes;
+      }).filter(Boolean);
     }
   }, {
-    key: "_computeHintAnswer",
-    value: function _computeHintAnswer() {
-      if (!this._expectedSecond) return null;
-      return {
-        step: this._expectedSecond.step,
-        accidentalClass: this._expectedSecond.accidentalClass || null
-      };
+    key: "_isUserAnswerCorrect",
+    value: function _isUserAnswerCorrect() {
+      var target = this._targetNote;
+      if (!target) return false;
+      var notes = this._collectUserNotes();
+      if (notes.length !== 1) return false;
+      var _notes = _slicedToArray(notes, 1),
+        note = _notes[0];
+      var noteState = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_2__.stepToLetterOctave)(this.staff, note.step);
+      return String((noteState === null || noteState === void 0 ? void 0 : noteState.letter) || "") === String(target.letter || "") && String(note.accidentalClass || "") === String(target.accidentalClass || "");
     }
-
-    // ------------------------ evaluation ------------------------
+  }, {
+    key: "_computeHintAnswers",
+    value: function _computeHintAnswers() {
+      if (!this._targetNote) return [{
+        step: null,
+        accidentalClass: null
+      }];
+      return [{
+        step: this._targetNote.step,
+        accidentalClass: this._targetNote.accidentalClass || null
+      }];
+    }
   }, {
     key: "_onCheck",
     value: function _onCheck() {
-      this._stopDictationPlayback();
-      this._setPlayButtons(false);
-      var notes = this._notesOnStaffOrdered();
       this.$checkBtn.disable();
       this._stats.checksTotal += 1;
-      if (!this._expectedSecond) return;
-
-      // fixed + 1 user note
-      if (notes.length !== 2) {
-        this._madeAnyMistake = true;
-        this._madeMistakeThisRound = true;
-        this._failAnimation(this.$checkWrap);
-        this.$helpBtn.show();
-        return;
-      }
-      var user = notes.find(function (n) {
-        return !n.fixed;
-      }) || null;
-      if (!user) {
-        this._madeAnyMistake = true;
-        this._madeMistakeThisRound = true;
-        this._failAnimation(this.$checkWrap);
-        this.$helpBtn.show();
-        return;
-      }
-
-      // Pitch-only correctness (enharmonics accepted).
-      var userMidi = this.staff._stepToMidi(user.step) + (user.accOff || 0);
-      var ok = userMidi === this._expectedSecond.midi;
-      if (ok) {
+      if (this._isUserAnswerCorrect()) {
         this._stats.checksCorrect += 1;
         this._pauseGameTimer();
         var _this$_awardPointsFor = this._awardPointsForCorrect(),
@@ -2415,19 +2061,26 @@ var PitchDetective = /*#__PURE__*/function (_BaseStaffGame) {
         this._handleCorrectAnswerUi({
           isBonus: bonusEarned > 0,
           earned: earned,
-          $prompt: this.prompt.$root,
-          $extraHide: this.$playWrap
+          $prompt: this.prompt.$root
         });
-      } else {
-        this._madeAnyMistake = true;
-        this._madeMistakeThisRound = true;
-        this._failAnimation(this.$checkWrap);
-        this.$helpBtn.show();
+        return;
       }
+      this._madeAnyMistake = true;
+      this._madeMistakeThisRound = true;
+      this._failAnimation(this.$checkWrap);
+      this.$helpBtn.show();
     }
   }]);
 }(_base_BaseStaffGame_js__WEBPACK_IMPORTED_MODULE_0__.BaseStaffGame);
-_defineProperty(PitchDetective, "INTERVALS_DEFAULT", ["M2", "m3", "M3", "P5", "P8"]);
+_defineProperty(BeatHero, "LETTER_TO_SOLFEGE", {
+  C: "Do",
+  D: "Re",
+  E: "Mi",
+  F: "Fa",
+  G: "Sol",
+  A: "La",
+  B: "Si"
+});
 
 /***/ },
 
@@ -5602,11 +5255,12 @@ function spellNoteFromState(staff, step, accidentalClass) {
 var __webpack_exports__ = {};
 // This entry needs to be wrapped in an IIFE because it needs to be isolated against other modules in the chunk.
 (() => {
-/*!****************************************************!*\
-  !*** ./resources/js/music/games/pitchdetective.js ***!
-  \****************************************************/
+/*!**********************************************!*\
+  !*** ./resources/js/music/games/beathero.js ***!
+  \**********************************************/
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _pitchdetective_PitchDetective_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./pitchdetective/PitchDetective.js */ "./resources/js/music/games/pitchdetective/PitchDetective.js");
+/* harmony import */ var _beathero_BeatHero_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./beathero/BeatHero.js */ "./resources/js/music/games/beathero/BeatHero.js");
+var _game$start;
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
 function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
@@ -5616,10 +5270,10 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
 
 var options = readGlobal("__challengeOptions") || {};
 var clefUrls = readGlobal("__clefUrls") || null;
-var game = new _pitchdetective_PitchDetective_js__WEBPACK_IMPORTED_MODULE_0__.PitchDetective(_objectSpread(_objectSpread({}, options), {}, {
+var game = new _beathero_BeatHero_js__WEBPACK_IMPORTED_MODULE_0__.BeatHero(_objectSpread(_objectSpread({}, options), {}, {
   clefUrls: clefUrls
 }));
-game.start();
+(_game$start = game.start) === null || _game$start === void 0 ? void 0 : _game$start.call(game);
 })();
 
 /******/ })()

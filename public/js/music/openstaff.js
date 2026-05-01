@@ -2,6 +2,585 @@
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
+/***/ "./resources/js/music/games/openstaff/OpenStaff.js"
+/*!*********************************************************!*\
+  !*** ./resources/js/music/games/openstaff/OpenStaff.js ***!
+  \*********************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   OpenStaff: () => (/* binding */ OpenStaff)
+/* harmony export */ });
+/* harmony import */ var _staff_Staff_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../staff/Staff.js */ "./resources/js/music/staff/Staff.js");
+/* harmony import */ var _staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../staff/staffUtils.js */ "./resources/js/music/staff/staffUtils.js");
+/* harmony import */ var _shared_InstructionsUi_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/InstructionsUi.js */ "./resources/js/music/games/shared/InstructionsUi.js");
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+function _classCallCheck(a, n) { if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function"); }
+function _defineProperties(e, r) { for (var t = 0; t < r.length; t++) { var o = r[t]; o.enumerable = o.enumerable || !1, o.configurable = !0, "value" in o && (o.writable = !0), Object.defineProperty(e, _toPropertyKey(o.key), o); } }
+function _createClass(e, r, t) { return r && _defineProperties(e.prototype, r), t && _defineProperties(e, t), Object.defineProperty(e, "prototype", { writable: !1 }), e; }
+function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+
+
+
+var OpenStaff = /*#__PURE__*/function () {
+  function OpenStaff() {
+    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    _classCallCheck(this, OpenStaff);
+    var defaults = {
+      staffEl: "#staff",
+      namespace: "openStaff",
+      sound: true,
+      solfege: false,
+      maxUserNotes: 1,
+      clefUrls: null,
+      clef: null,
+      clefs: null,
+      initialClef: "treble"
+    };
+    this.opts = _objectSpread(_objectSpread({}, defaults), options || {});
+    this.ns = this.opts.namespace || "openStaff";
+    this.$staffEl = $(this.opts.staffEl).first();
+    this.instructionsUi = new _shared_InstructionsUi_js__WEBPACK_IMPORTED_MODULE_2__.InstructionsUi("#instructions");
+    this.$instructions = $("#instructions").find("h6").first();
+    this.$continue = $("#continue");
+    this.$continueBtn = this.$continue.find("button").first();
+    this.$done = $("#done");
+    this._clefPool = this._resolveClefPool();
+    this._defaultClef = this._clefPool[0] || null;
+    this._currentScreenIndex = 0;
+    this._currentScreen = null;
+    this._currentScreenSuccessShown = false;
+    this._pendingSuccessInstructions = false;
+    this._screens = this._buildScreens();
+    this._highlightIdCounter = 1;
+    this._pointer = {
+      active: false,
+      pointerId: null,
+      targetId: null,
+      dragging: false,
+      createdOnPointerDown: false,
+      startPageY: 0,
+      lastStep: null,
+      dragThresholdPx: 5
+    };
+    this.staff = new _staff_Staff_js__WEBPACK_IMPORTED_MODULE_0__.Staff(this.$staffEl, {
+      clef: null,
+      clefUrls: this.opts.clefUrls || window.__clefUrls,
+      autoClef: false,
+      getMaxUserNotes: function getMaxUserNotes() {
+        return 0;
+      },
+      sound: !!this.opts.sound
+    });
+  }
+  return _createClass(OpenStaff, [{
+    key: "start",
+    value: function start() {
+      if (!this.$staffEl.length) return;
+      $("#controls").show();
+      this._hideGameChrome();
+      this._bindContinue();
+      this._bindKeyboardArrows();
+      this._bindOpenStaffInteraction();
+      this._showScreen(0);
+      $("#page-wrapper").fadeIn("fast");
+    }
+  }, {
+    key: "_normalizeOnOff",
+    value: function _normalizeOnOff(value) {
+      if (value === true) return true;
+      if (value === false) return false;
+      var normalized = String(value !== null && value !== void 0 ? value : "").trim().toLowerCase();
+      return normalized === "on" || normalized === "true" || normalized === "1";
+    }
+  }, {
+    key: "_hideGameChrome",
+    value: function _hideGameChrome() {
+      ["#prompt", "#feedback-success", "#accidentals", "#final-overlay", "#double-points", "#timeup-message", "#hand-pointer", "#timer", "#score", "#check", "#skip", "#help", "#clear"].forEach(function (selector) {
+        return $(selector).hide();
+      });
+      this.instructionsUi.show();
+      this.$staffEl.addClass("staffzone");
+    }
+  }, {
+    key: "_buildScreens",
+    value: function _buildScreens() {
+      var _this = this;
+      var raw = window.staffZoneScreens;
+      var screens = Array.isArray(raw) ? raw : [];
+      if (!screens.length) {
+        return [this._buildDefaultScreen()];
+      }
+      return screens.map(function (screen) {
+        return {
+          instructions: _this._normalizeInstructions(screen === null || screen === void 0 ? void 0 : screen.instructions),
+          success: _this._normalizeInstructions(screen === null || screen === void 0 ? void 0 : screen.success),
+          clef: _this._normalizeScreenClef(screen === null || screen === void 0 ? void 0 : screen.clef),
+          playSound: _this._normalizeOnOff(screen === null || screen === void 0 ? void 0 : screen.playSound),
+          logNoteName: _this._normalizeOnOff(screen === null || screen === void 0 ? void 0 : screen.logNoteName),
+          showLabels: _this._normalizeOnOff(screen === null || screen === void 0 ? void 0 : screen.showLabels),
+          solfege: _this._normalizeOnOff(screen === null || screen === void 0 ? void 0 : screen.solfege),
+          initialStep: _this._normalizeInitialStep(screen === null || screen === void 0 ? void 0 : screen.initialStep)
+        };
+      });
+    }
+  }, {
+    key: "_resolveClefPool",
+    value: function _resolveClefPool() {
+      var raw = this.opts.clefs != null ? this.opts.clefs : this.opts.clef != null ? this.opts.clef : this.opts.initialClef;
+      var source = Array.isArray(raw) ? raw : raw != null ? [raw] : [];
+      var pool = [];
+      source.forEach(function (value) {
+        var clef = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.normalizeClef)(value);
+        if (clef && !pool.includes(clef)) pool.push(clef);
+      });
+      return pool;
+    }
+  }, {
+    key: "_normalizeScreenClef",
+    value: function _normalizeScreenClef(value) {
+      if (value == null || value === "") return this._defaultClef;
+      return (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.normalizeClef)(value);
+    }
+  }, {
+    key: "_buildDefaultScreen",
+    value: function _buildDefaultScreen() {
+      return {
+        instructions: this.instructionsUi.getHtml() || "",
+        success: "",
+        clef: this._defaultClef,
+        playSound: !!this.opts.sound,
+        logNoteName: false,
+        showLabels: true,
+        solfege: !!this.opts.solfege,
+        initialStep: null
+      };
+    }
+  }, {
+    key: "_normalizeInitialStep",
+    value: function _normalizeInitialStep(value) {
+      var step = Number(value);
+      return Number.isFinite(step) ? step : null;
+    }
+  }, {
+    key: "_normalizeInstructions",
+    value: function _normalizeInstructions(value) {
+      if (Array.isArray(value)) {
+        return value.map(function (line) {
+          return String(line !== null && line !== void 0 ? line : "").trim();
+        }).filter(Boolean).join("<br>");
+      }
+      return String(value !== null && value !== void 0 ? value : "");
+    }
+  }, {
+    key: "_bindContinue",
+    value: function _bindContinue() {
+      var _this2 = this;
+      this.$continueBtn.off("click.".concat(this.ns)).on("click.".concat(this.ns), function (e) {
+        e.preventDefault();
+        var nextIndex = _this2._currentScreenIndex + 1;
+        if (nextIndex >= _this2._screens.length) return;
+        _this2._showScreen(nextIndex);
+      });
+    }
+  }, {
+    key: "_bindKeyboardArrows",
+    value: function _bindKeyboardArrows() {
+      var _this3 = this;
+      $(document).off("keydown.".concat(this.ns, "HighlightArrow")).on("keydown.".concat(this.ns, "HighlightArrow"), function (e) {
+        if (_this3._shouldBlockStaffInteraction()) return;
+        var key = String(e.key || "").toLowerCase();
+        if (key !== "arrowup" && key !== "arrowdown") return;
+        var $target = $(e.target);
+        if ($target.is("input, textarea, select, [contenteditable='true']")) return;
+        e.preventDefault();
+        _this3._moveCurrentHighlightBy(key === "arrowup" ? 1 : -1);
+      });
+      $(document).off("click.".concat(this.ns, "HighlightArrow"), '#music-keyboard [data-direction], [data-direction][data-target="staff-highlight"]').on("click.".concat(this.ns, "HighlightArrow"), '#music-keyboard [data-direction], [data-direction][data-target="staff-highlight"]', function (e) {
+        if (_this3._shouldBlockStaffInteraction()) return;
+        var direction = String($(e.currentTarget).attr("data-direction") || "").toLowerCase();
+        if (direction !== "up" && direction !== "down") return;
+        e.preventDefault();
+        _this3._moveCurrentHighlightBy(direction === "up" ? 1 : -1);
+      });
+    }
+  }, {
+    key: "_showScreen",
+    value: function _showScreen(index) {
+      var screen = this._screens[index];
+      if (!screen) return;
+      this._finishPointerInteraction();
+      this._currentScreenIndex = index;
+      this._currentScreen = screen;
+      this._currentScreenSuccessShown = false;
+      this._pendingSuccessInstructions = false;
+      this._clearHighlights();
+      this._applyScreen(screen);
+    }
+  }, {
+    key: "_applyScreen",
+    value: function _applyScreen(screen) {
+      this._renderInstructions(screen.instructions || "");
+      this.$continue.hide();
+      this.$done.hide();
+      this.staff.setSoundEnabled(!!screen.playSound);
+      if (screen.clef) this.staff.setClef(screen.clef);else this._hideClef();
+      if (Number.isFinite(screen.initialStep)) {
+        this._createHighlight(screen.initialStep, {
+          revealContinue: false
+        });
+      }
+    }
+  }, {
+    key: "_revealContinue",
+    value: function _revealContinue() {
+      if (!this._currentScreenSuccessShown) {
+        var _this$_currentScreen;
+        this._currentScreenSuccessShown = true;
+        if ((_this$_currentScreen = this._currentScreen) !== null && _this$_currentScreen !== void 0 && _this$_currentScreen.success) {
+          if (this._pointer.active) this._pendingSuccessInstructions = true;else this._renderSuccessInstructions();
+        }
+      }
+      if (indexHasNext(this._currentScreenIndex, this._screens.length)) {
+        this.$done.hide();
+        this.$continue.show();
+        return;
+      }
+      this.$continue.hide();
+      this.$done.show();
+    }
+  }, {
+    key: "_renderInstructions",
+    value: function _renderInstructions(html) {
+      this.instructionsUi.setHtml(html);
+    }
+  }, {
+    key: "_renderSuccessInstructions",
+    value: function _renderSuccessInstructions() {
+      var _this$_currentScreen2;
+      this._pendingSuccessInstructions = false;
+      this._renderInstructions(((_this$_currentScreen2 = this._currentScreen) === null || _this$_currentScreen2 === void 0 ? void 0 : _this$_currentScreen2.success) || "");
+    }
+  }, {
+    key: "_shouldBlockStaffInteraction",
+    value: function _shouldBlockStaffInteraction() {
+      return false;
+    }
+  }, {
+    key: "_hideClef",
+    value: function _hideClef() {
+      this.staff.opts.clef = null;
+      this.staff.opts.clefUrl = null;
+      this.$staffEl.find("#clef-wrapper, .staff-clef").remove();
+    }
+  }, {
+    key: "_clearHighlights",
+    value: function _clearHighlights() {
+      this.$staffEl.find(".staff-highlight").remove();
+      this.$staffEl.find(".ledger[data-for-highlight-id]").remove();
+    }
+  }, {
+    key: "_bindOpenStaffInteraction",
+    value: function _bindOpenStaffInteraction() {
+      var _this4 = this;
+      this.$staffEl.off(".".concat(this.ns));
+      $(window).off("blur.".concat(this.ns));
+      this.$staffEl.on("pointerdown.".concat(this.ns), function (e) {
+        var _this4$$staffEl$;
+        if (_this4._shouldBlockStaffInteraction()) return;
+        e.preventDefault();
+        var _getPointerPageXY = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.getPointerPageXY)(e),
+          pageY = _getPointerPageXY.y;
+        var $highlight = $(e.target).closest(".staff-highlight");
+        var pointerStep = _this4._stepFromPageY(pageY);
+        _this4._pointer.active = true;
+        _this4._pointer.pointerId = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.getPointerId)(e);
+        _this4._pointer.targetId = null;
+        _this4._pointer.dragging = false;
+        _this4._pointer.createdOnPointerDown = false;
+        _this4._pointer.startPageY = pageY;
+        _this4._pointer.lastStep = null;
+        if ($highlight.length) {
+          var highlightId = String($highlight.attr("data-highlight-id") || "");
+          if (!highlightId) {
+            _this4._finishPointerInteraction();
+            return;
+          }
+          _this4._pointer.targetId = highlightId;
+          _this4._pointer.lastStep = _this4._highlightStep(highlightId);
+        } else {
+          var createdId = _this4._createHighlight(pointerStep);
+          if (!createdId) {
+            _this4._finishPointerInteraction();
+            return;
+          }
+          _this4._pointer.targetId = createdId;
+          _this4._pointer.createdOnPointerDown = true;
+          _this4._pointer.lastStep = pointerStep;
+          _this4._playAndLogStep(pointerStep);
+        }
+        var pointerId = _this4._pointer.pointerId;
+        if ((_this4$$staffEl$ = _this4.$staffEl[0]) !== null && _this4$$staffEl$ !== void 0 && _this4$$staffEl$.setPointerCapture && pointerId != null) {
+          _this4.$staffEl[0].setPointerCapture(pointerId);
+        }
+      });
+      this.$staffEl.on("pointermove.".concat(this.ns), function (e) {
+        if (_this4._shouldBlockStaffInteraction()) return;
+        if (!_this4._pointer.active) return;
+        var pointerId = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.getPointerId)(e);
+        if (_this4._pointer.pointerId != null && pointerId != null && pointerId !== _this4._pointer.pointerId) return;
+        e.preventDefault();
+        var _getPointerPageXY2 = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.getPointerPageXY)(e),
+          pageY = _getPointerPageXY2.y;
+        var movedPx = Math.abs(pageY - _this4._pointer.startPageY);
+        if (!_this4._pointer.dragging && movedPx >= _this4._pointer.dragThresholdPx) {
+          _this4._pointer.dragging = true;
+          _this4._setHighlightDragging(_this4._pointer.targetId, true);
+        }
+        if (!_this4._pointer.dragging) return;
+        var step = _this4._stepFromPageY(pageY);
+        _this4._moveHighlightToStep(_this4._pointer.targetId, step);
+        if (step === _this4._pointer.lastStep) return;
+        _this4._pointer.lastStep = step;
+        _this4._revealContinue();
+        _this4._playAndLogStep(step);
+      });
+      this.$staffEl.on("pointerup.".concat(this.ns, " pointercancel.").concat(this.ns), function (e) {
+        var pointerId = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.getPointerId)(e);
+        if (_this4._pointer.pointerId != null && pointerId != null && pointerId !== _this4._pointer.pointerId) return;
+        _this4._finishPointerInteraction();
+      });
+      $(window).on("blur.".concat(this.ns), function () {
+        _this4._finishPointerInteraction();
+      });
+    }
+  }, {
+    key: "_finishPointerInteraction",
+    value: function _finishPointerInteraction() {
+      var _this$$staffEl$;
+      var targetId = this._pointer.targetId;
+      var pointerId = this._pointer.pointerId;
+      var shouldRemove = !!targetId && !this._pointer.dragging && !this._pointer.createdOnPointerDown;
+      if (targetId) this._setHighlightDragging(targetId, false);
+      if (shouldRemove) {
+        this._revealContinue();
+        this._removeHighlight(targetId, {
+          smoke: true
+        });
+      }
+      if ((_this$$staffEl$ = this.$staffEl[0]) !== null && _this$$staffEl$ !== void 0 && _this$$staffEl$.releasePointerCapture && pointerId != null) {
+        try {
+          this.$staffEl[0].releasePointerCapture(pointerId);
+        } catch (_) {
+          // Ignore release errors when capture is already gone.
+        }
+      }
+      this._pointer.active = false;
+      this._pointer.pointerId = null;
+      this._pointer.targetId = null;
+      this._pointer.dragging = false;
+      this._pointer.createdOnPointerDown = false;
+      this._pointer.startPageY = 0;
+      this._pointer.lastStep = null;
+      if (this._pendingSuccessInstructions) this._renderSuccessInstructions();
+    }
+  }, {
+    key: "_clampStep",
+    value: function _clampStep(step) {
+      var min = this.staff.minStepAllowed();
+      var max = this.staff.maxStepAllowed();
+      return Math.max(min, Math.min(max, step));
+    }
+  }, {
+    key: "_stepName",
+    value: function _stepName(step) {
+      var _this$_currentScreen3;
+      var note = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.stepToLetterOctave)(this.staff, step);
+      if (!note) return "";
+      var letter = String(note.letter || "").toUpperCase();
+      return (_this$_currentScreen3 = this._currentScreen) !== null && _this$_currentScreen3 !== void 0 && _this$_currentScreen3.solfege ? OpenStaff.LETTER_TO_SOLFEGE[letter] || letter : letter;
+    }
+  }, {
+    key: "_stepPositionLabel",
+    value: function _stepPositionLabel(step) {
+      if (!Number.isFinite(step)) return "";
+      if (step > 8) {
+        if (step === 9) return "space 5";
+        if (step % 2 !== 0) return "space";
+        return "ledger line ".concat(Math.floor((step - 8) / 2));
+      }
+      if (step < 0) {
+        if (step === -1) return "space 0";
+        if (step % 2 !== 0) return "space";
+        return "ledger line ".concat(Math.floor(Math.abs(step) / 2));
+      }
+      if (step % 2 === 0) {
+        return "line ".concat(Math.floor(step / 2) + 1);
+      }
+      return "space ".concat(Math.floor((step + 1) / 2));
+    }
+  }, {
+    key: "_highlightLabelHtml",
+    value: function _highlightLabelHtml(step) {
+      var _this$_currentScreen4, _this$_currentScreen5;
+      if (!((_this$_currentScreen4 = this._currentScreen) !== null && _this$_currentScreen4 !== void 0 && _this$_currentScreen4.showLabels)) return "";
+      if (!((_this$_currentScreen5 = this._currentScreen) !== null && _this$_currentScreen5 !== void 0 && _this$_currentScreen5.clef)) return this._stepPositionLabel(step);
+      return this._stepName(step);
+    }
+  }, {
+    key: "_stepFromPageY",
+    value: function _stepFromPageY(pageY) {
+      var localY = pageY - this.$staffEl.offset().top;
+      var rawStep = this.staff.yToStep(localY);
+      return this._clampStep(rawStep);
+    }
+  }, {
+    key: "_highlightTopForStep",
+    value: function _highlightTopForStep(step) {
+      return this.staff.stepToY(step) - 7.7;
+    }
+  }, {
+    key: "_maxUserHighlights",
+    value: function _maxUserHighlights() {
+      var value = Number(this.opts.maxUserNotes);
+      return Number.isFinite(value) ? Math.max(0, Math.floor(value)) : 1;
+    }
+  }, {
+    key: "_highlightCount",
+    value: function _highlightCount() {
+      return this.$staffEl.find(".staff-highlight").length;
+    }
+  }, {
+    key: "_renderHighlightLedgers",
+    value: function _renderHighlightLedgers(highlightId, step) {
+      var _this5 = this;
+      if (!highlightId) return;
+      this.$staffEl.find(".ledger[data-for-highlight-id=\"".concat(highlightId, "\"]")).remove();
+      var ledgerSteps = this.staff.ledgerStepsFor(step);
+      var left = this.staff.centerX();
+      var isDragging = this.$staffEl.find(".staff-highlight[data-highlight-id=\"".concat(highlightId, "\"]")).hasClass("dragging");
+      ledgerSteps.forEach(function (ledgerStep) {
+        var $ledger = $("<div></div>").addClass("ledger").attr("data-for-highlight-id", highlightId).css({
+          left: "".concat(left, "px"),
+          top: "".concat(_this5.staff.stepToY(ledgerStep), "px")
+        });
+        if (isDragging) $ledger.addClass("dragging");
+        $ledger.appendTo(_this5.$staffEl);
+      });
+    }
+  }, {
+    key: "_createHighlight",
+    value: function _createHighlight(step) {
+      var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
+        _ref$revealContinue = _ref.revealContinue,
+        revealContinue = _ref$revealContinue === void 0 ? true : _ref$revealContinue;
+      if (!this.staff.isStepAllowed(step)) return null;
+      if (this._highlightCount() >= this._maxUserHighlights()) return null;
+      var id = "staffzone-highlight-".concat(this._highlightIdCounter++);
+      $("<div></div>").addClass("staff-highlight rounded").attr("data-highlight-id", id).attr("data-step", step).css({
+        top: "".concat(this._highlightTopForStep(step), "px")
+      }).append($("<div></div>").addClass("staff-highlight__label").html(this._highlightLabelHtml(step))).appendTo(this.$staffEl);
+      this._renderHighlightLedgers(id, step);
+      if (revealContinue) this._revealContinue();
+      return id;
+    }
+  }, {
+    key: "_highlightStep",
+    value: function _highlightStep(highlightId) {
+      var raw = this.$staffEl.find(".staff-highlight[data-highlight-id=\"".concat(highlightId, "\"]")).attr("data-step");
+      var step = Number(raw);
+      return Number.isFinite(step) ? step : null;
+    }
+  }, {
+    key: "_currentHighlightId",
+    value: function _currentHighlightId() {
+      return String(this.$staffEl.find(".staff-highlight").first().attr("data-highlight-id") || "");
+    }
+  }, {
+    key: "_moveCurrentHighlightBy",
+    value: function _moveCurrentHighlightBy(delta) {
+      var highlightId = this._currentHighlightId();
+      if (!highlightId || !Number.isFinite(delta) || delta === 0) return;
+      var currentStep = this._highlightStep(highlightId);
+      if (!Number.isFinite(currentStep)) return;
+      var nextStep = this._clampStep(currentStep + delta);
+      if (nextStep === currentStep || !this.staff.isStepAllowed(nextStep)) return;
+      this._revealContinue();
+      this._moveHighlightToStep(highlightId, nextStep);
+      this._playAndLogStep(nextStep);
+    }
+  }, {
+    key: "_moveHighlightToStep",
+    value: function _moveHighlightToStep(highlightId, step) {
+      if (!highlightId || !this.staff.isStepAllowed(step)) return;
+      this.$staffEl.find(".staff-highlight[data-highlight-id=\"".concat(highlightId, "\"]")).attr("data-step", step).css({
+        top: "".concat(this._highlightTopForStep(step), "px")
+      }).find(".staff-highlight__label").html(this._highlightLabelHtml(step));
+      this._renderHighlightLedgers(highlightId, step);
+    }
+  }, {
+    key: "_setHighlightDragging",
+    value: function _setHighlightDragging(highlightId, on) {
+      if (!highlightId) return;
+      this.$staffEl.find(".staff-highlight[data-highlight-id=\"".concat(highlightId, "\"]")).toggleClass("dragging", !!on);
+      this.$staffEl.find(".ledger[data-for-highlight-id=\"".concat(highlightId, "\"]")).toggleClass("dragging", !!on);
+    }
+  }, {
+    key: "_removeHighlight",
+    value: function _removeHighlight(highlightId) {
+      var _ref2 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
+        _ref2$smoke = _ref2.smoke,
+        smoke = _ref2$smoke === void 0 ? false : _ref2$smoke;
+      if (!highlightId) return;
+      var $highlight = this.$staffEl.find(".staff-highlight[data-highlight-id=\"".concat(highlightId, "\"]"));
+      if (!$highlight.length) return;
+      if (smoke) {
+        var fill = window.getComputedStyle($highlight[0]).backgroundColor || "black";
+        this.staff._animations.playNoteRemoveSmoke($highlight[0], {
+          fill: fill
+        });
+      }
+      this.$staffEl.find(".ledger[data-for-highlight-id=\"".concat(highlightId, "\"]")).remove();
+      $highlight.remove();
+    }
+  }, {
+    key: "_playAndLogStep",
+    value: function _playAndLogStep(step) {
+      var _this$_currentScreen6, _this$_currentScreen7, _this$_currentScreen8;
+      var noteName = this._stepName(step);
+      if ((_this$_currentScreen6 = this._currentScreen) !== null && _this$_currentScreen6 !== void 0 && _this$_currentScreen6.playSound && (_this$_currentScreen7 = this._currentScreen) !== null && _this$_currentScreen7 !== void 0 && _this$_currentScreen7.clef) {
+        void this.staff.playStep(step, 0);
+      }
+      if (!((_this$_currentScreen8 = this._currentScreen) !== null && _this$_currentScreen8 !== void 0 && _this$_currentScreen8.logNoteName)) return;
+
+      // eslint-disable-next-line no-console
+      console.log("OpenStaff note:", noteName, {
+        clef: this.staff.getClef(),
+        step: step
+      });
+    }
+  }]);
+}();
+_defineProperty(OpenStaff, "LETTER_TO_SOLFEGE", {
+  C: "Do",
+  D: "Re",
+  E: "Mi",
+  F: "Fa",
+  G: "Sol",
+  A: "La",
+  B: "Si"
+});
+function indexHasNext(index, total) {
+  return index < total - 1;
+}
+
+/***/ },
+
 /***/ "./resources/js/music/games/shared/GameAudio.js"
 /*!******************************************************!*\
   !*** ./resources/js/music/games/shared/GameAudio.js ***!
@@ -621,108 +1200,98 @@ _defineProperty(GameAudio, "_previewSynths", {});
 
 /***/ },
 
-/***/ "./resources/js/music/games/shared/challengeUtils.js"
+/***/ "./resources/js/music/games/shared/InstructionsUi.js"
 /*!***********************************************************!*\
-  !*** ./resources/js/music/games/shared/challengeUtils.js ***!
+  !*** ./resources/js/music/games/shared/InstructionsUi.js ***!
   \***********************************************************/
 (__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   accidentalClassFromOffset: () => (/* binding */ accidentalClassFromOffset),
-/* harmony export */   fixedNoteToStaffPosition: () => (/* binding */ fixedNoteToStaffPosition),
-/* harmony export */   normalizeClefPool: () => (/* binding */ normalizeClefPool),
-/* harmony export */   parseIntervalAbbr: () => (/* binding */ parseIntervalAbbr),
-/* harmony export */   parsePitch: () => (/* binding */ parsePitch),
-/* harmony export */   pickChallengeClef: () => (/* binding */ pickChallengeClef)
+/* harmony export */   InstructionsUi: () => (/* binding */ InstructionsUi)
 /* harmony export */ });
-/* harmony import */ var _staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../staff/staffUtils.js */ "./resources/js/music/staff/staffUtils.js");
-
-function normalizeClefPool(clefsOrSingle) {
-  var raw = Array.isArray(clefsOrSingle) ? clefsOrSingle : clefsOrSingle != null ? [clefsOrSingle] : ["treble", "bass"];
-  var normalized = raw.map(function (c) {
-    return (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_0__.normalizeClef)(c);
-  }).filter(Boolean);
-  var uniq = [];
-  for (var i = 0; i < normalized.length; i += 1) {
-    if (!uniq.includes(normalized[i])) uniq.push(normalized[i]);
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _classCallCheck(a, n) { if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function"); }
+function _defineProperties(e, r) { for (var t = 0; t < r.length; t++) { var o = r[t]; o.enumerable = o.enumerable || !1, o.configurable = !0, "value" in o && (o.writable = !0), Object.defineProperty(e, _toPropertyKey(o.key), o); } }
+function _createClass(e, r, t) { return r && _defineProperties(e.prototype, r), t && _defineProperties(e, t), Object.defineProperty(e, "prototype", { writable: !1 }), e; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+var InstructionsUi = /*#__PURE__*/function () {
+  function InstructionsUi() {
+    var rootSelector = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "#instructions";
+    _classCallCheck(this, InstructionsUi);
+    this.$root = $(rootSelector).first();
+    this.$content = this.$root.find("h6").first();
+    if (!this.$content.length) this.$content = this.$root;
+    this._typed = null;
+    this._lastHtml = this.$content.html() || "";
   }
-  return uniq.length ? uniq : ["treble", "bass"];
-}
-function pickChallengeClef(clefPool) {
-  var pool = Array.isArray(clefPool) && clefPool.length ? clefPool : ["treble", "bass"];
-  if (pool.length === 1) return pool[0];
-  return pool[Math.floor(Math.random() * pool.length)];
-}
-function accidentalClassFromOffset(off) {
-  if (off === 2) return "music-font__doublesharp";
-  if (off === 1) return "music-font__sharp";
-  if (off === 0) return "music-font__natural";
-  if (off === -1) return "music-font__flat";
-  if (off === -2) return "music-font__doubleflat";
-  return null;
-}
-function parseIntervalAbbr(abbr) {
-  var s = String(abbr || "").trim();
-  var m = s.match(/^([PMAmd]+)(\d+)$/);
-  if (!m) return null;
-  return {
-    quality: m[1],
-    number: parseInt(m[2], 10)
-  };
-}
-function parsePitch(pitch) {
-  var s = String(pitch || "").trim();
-  var m = s.match(/^([A-Ga-g])((?:#{1,2})|(?:b{1,2})|)?(\d+)$/);
-  if (!m) return null;
-  var letter = m[1].toUpperCase();
-  var acc = m[2] || "";
-  var octave = parseInt(m[3], 10);
-  var baseSemitoneFromC = {
-    C: 0,
-    D: 2,
-    E: 4,
-    F: 5,
-    G: 7,
-    A: 9,
-    B: 11
-  }[letter];
-  var accOffset = acc === "𝄪" ? 2 : acc === "#" ? 1 : acc === "bb" ? -2 : acc === "b" ? -1 : 0;
-  var accidentalClass = accidentalClassFromOffset(accOffset);
-  var midi = 12 * (octave + 1) + baseSemitoneFromC + accOffset;
-  return {
-    midi: midi,
-    accOffset: accOffset,
-    accidentalClass: accidentalClass
-  };
-}
-function fixedNoteToStaffPosition(staff, noteStr) {
-  var parsed = parsePitch(noteStr);
-  if (!parsed) return null;
-  var midi = parsed.midi,
-    accOffset = parsed.accOffset,
-    accidentalClass = parsed.accidentalClass;
-  for (var step = staff.minStepAllowed(); step <= staff.maxStepAllowed(); step += 1) {
-    var baseMidi = staff._stepToMidi(step);
-    if (baseMidi + accOffset === midi) return {
-      step: step,
-      accidentalClass: accidentalClass
-    };
-  }
-  var best = null;
-  for (var _step = staff.minStepAllowed(); _step <= staff.maxStepAllowed(); _step += 1) {
-    var _baseMidi = staff._stepToMidi(_step);
-    var dist = Math.abs(_baseMidi + accOffset - midi);
-    if (!best || dist < best.dist) best = {
-      step: _step,
-      dist: dist
-    };
-  }
-  return best ? {
-    step: best.step,
-    accidentalClass: accidentalClass
-  } : null;
-}
+  return _createClass(InstructionsUi, [{
+    key: "show",
+    value: function show() {
+      this.$root.show();
+      return this;
+    }
+  }, {
+    key: "hide",
+    value: function hide() {
+      this.$root.hide();
+      return this;
+    }
+  }, {
+    key: "setHtml",
+    value: function setHtml(value) {
+      var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
+        _ref$animate = _ref.animate,
+        animate = _ref$animate === void 0 ? true : _ref$animate;
+      if (!this.$content.length) return this;
+      var html = String(value !== null && value !== void 0 ? value : "");
+      this._lastHtml = html;
+      this._destroyTyped();
+      this.$content.html("");
+      if (!html) return this;
+      var shouldAnimate = animate && typeof window.Typed === "function";
+      if (!shouldAnimate) {
+        this.$content.html(html);
+        return this;
+      }
+      var $typedTarget = $("<span></span>").addClass("instructions__typed");
+      this.$content.append($typedTarget);
+      this._typed = new window.Typed($typedTarget[0], {
+        strings: [html],
+        typeSpeed: 24,
+        startDelay: 180,
+        showCursor: true,
+        contentType: "html"
+      });
+      return this;
+    }
+  }, {
+    key: "replay",
+    value: function replay() {
+      return this.setHtml(this._lastHtml);
+    }
+  }, {
+    key: "getHtml",
+    value: function getHtml() {
+      return this._lastHtml;
+    }
+  }, {
+    key: "destroy",
+    value: function destroy() {
+      this._destroyTyped();
+      return this;
+    }
+  }, {
+    key: "_destroyTyped",
+    value: function _destroyTyped() {
+      var _this$_typed;
+      if (!((_this$_typed = this._typed) !== null && _this$_typed !== void 0 && _this$_typed.destroy)) return;
+      this._typed.destroy();
+      this._typed = null;
+    }
+  }]);
+}();
 
 /***/ },
 
@@ -919,566 +1488,6 @@ function playSnakeCellBreakBurstAtElement(targetEl) {
     }
   });
   new mojs.Timeline().add(yellowShards, blackBits).play();
-}
-
-/***/ },
-
-/***/ "./resources/js/music/games/staffzone/StaffZone.js"
-/*!*********************************************************!*\
-  !*** ./resources/js/music/games/staffzone/StaffZone.js ***!
-  \*********************************************************/
-(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   StaffZone: () => (/* binding */ StaffZone)
-/* harmony export */ });
-/* harmony import */ var _staff_Staff_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../staff/Staff.js */ "./resources/js/music/staff/Staff.js");
-/* harmony import */ var _staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../staff/staffUtils.js */ "./resources/js/music/staff/staffUtils.js");
-/* harmony import */ var _shared_challengeUtils_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/challengeUtils.js */ "./resources/js/music/games/shared/challengeUtils.js");
-function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
-function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
-function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
-function _classCallCheck(a, n) { if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function"); }
-function _defineProperties(e, r) { for (var t = 0; t < r.length; t++) { var o = r[t]; o.enumerable = o.enumerable || !1, o.configurable = !0, "value" in o && (o.writable = !0), Object.defineProperty(e, _toPropertyKey(o.key), o); } }
-function _createClass(e, r, t) { return r && _defineProperties(e.prototype, r), t && _defineProperties(e, t), Object.defineProperty(e, "prototype", { writable: !1 }), e; }
-function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
-function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
-function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
-
-
-
-var StaffZone = /*#__PURE__*/function () {
-  function StaffZone() {
-    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-    _classCallCheck(this, StaffZone);
-    var defaults = {
-      staffEl: "#staff",
-      namespace: "staffZone",
-      sound: true,
-      solfege: false,
-      maxUserNotes: 1,
-      clefUrls: null,
-      clef: null,
-      clefs: null,
-      initialClef: "treble"
-    };
-    this.opts = _objectSpread(_objectSpread({}, defaults), options || {});
-    this.ns = this.opts.namespace || "staffZone";
-    this.$staffEl = $(this.opts.staffEl).first();
-    this.$instructions = $("#instructions").find("h6").first();
-    this.$continue = $("#continue");
-    this.$continueBtn = this.$continue.find("button").first();
-    this.$done = $("#done");
-    var clefPool = (0,_shared_challengeUtils_js__WEBPACK_IMPORTED_MODULE_2__.normalizeClefPool)(this.opts.clefs != null ? this.opts.clefs : this.opts.clef != null ? this.opts.clef : this.opts.initialClef);
-    this._defaultClef = clefPool[0] || "treble";
-    this._currentScreenIndex = 0;
-    this._currentScreen = null;
-    this._currentScreenSuccessShown = false;
-    this._pendingSuccessInstructions = false;
-    this._screens = this._buildScreens();
-    this._typedInstructions = null;
-    this._instructionsTyping = false;
-    this._highlightIdCounter = 1;
-    this._pointer = {
-      active: false,
-      pointerId: null,
-      targetId: null,
-      dragging: false,
-      createdOnPointerDown: false,
-      startPageY: 0,
-      lastStep: null,
-      dragThresholdPx: 5
-    };
-    this.staff = new _staff_Staff_js__WEBPACK_IMPORTED_MODULE_0__.Staff(this.$staffEl, {
-      clef: null,
-      clefUrls: this.opts.clefUrls || window.__clefUrls,
-      autoClef: false,
-      getMaxUserNotes: function getMaxUserNotes() {
-        return 0;
-      },
-      sound: !!this.opts.sound
-    });
-  }
-  return _createClass(StaffZone, [{
-    key: "start",
-    value: function start() {
-      if (!this.$staffEl.length) return;
-      this._hideGameChrome();
-      this._bindContinue();
-      this._bindKeyboardArrows();
-      this._bindStaffZoneInteraction();
-      this._showScreen(0);
-      $("#page-wrapper").fadeIn("fast");
-    }
-  }, {
-    key: "_normalizeOnOff",
-    value: function _normalizeOnOff(value) {
-      if (value === true) return true;
-      if (value === false) return false;
-      var normalized = String(value !== null && value !== void 0 ? value : "").trim().toLowerCase();
-      return normalized === "on" || normalized === "true" || normalized === "1";
-    }
-  }, {
-    key: "_hideGameChrome",
-    value: function _hideGameChrome() {
-      ["#prompt", "#feedback-success", "#accidentals", "#final-overlay", "#double-points", "#timeup-message", "#hand-pointer", "#timer", "#score", "#check", "#skip", "#help", "#clear"].forEach(function (selector) {
-        return $(selector).hide();
-      });
-      $("#instructions").show();
-      this.$staffEl.addClass("staffzone");
-    }
-  }, {
-    key: "_buildScreens",
-    value: function _buildScreens() {
-      var _this = this;
-      var raw = window.staffZoneScreens;
-      var screens = Array.isArray(raw) ? raw : [];
-      return screens.map(function (screen) {
-        var _screen$clef;
-        return {
-          instructions: _this._normalizeInstructions(screen === null || screen === void 0 ? void 0 : screen.instructions),
-          success: _this._normalizeInstructions(screen === null || screen === void 0 ? void 0 : screen.success),
-          clef: (_screen$clef = screen === null || screen === void 0 ? void 0 : screen.clef) !== null && _screen$clef !== void 0 ? _screen$clef : null,
-          playSound: _this._normalizeOnOff(screen === null || screen === void 0 ? void 0 : screen.playSound),
-          logNoteName: _this._normalizeOnOff(screen === null || screen === void 0 ? void 0 : screen.logNoteName),
-          showLabels: _this._normalizeOnOff(screen === null || screen === void 0 ? void 0 : screen.showLabels),
-          solfege: _this._normalizeOnOff(screen === null || screen === void 0 ? void 0 : screen.solfege),
-          initialStep: _this._normalizeInitialStep(screen === null || screen === void 0 ? void 0 : screen.initialStep)
-        };
-      });
-    }
-  }, {
-    key: "_normalizeInitialStep",
-    value: function _normalizeInitialStep(value) {
-      var step = Number(value);
-      return Number.isFinite(step) ? step : null;
-    }
-  }, {
-    key: "_normalizeInstructions",
-    value: function _normalizeInstructions(value) {
-      if (Array.isArray(value)) {
-        return value.map(function (line) {
-          return String(line !== null && line !== void 0 ? line : "").trim();
-        }).filter(Boolean).join("<br>");
-      }
-      return String(value !== null && value !== void 0 ? value : "");
-    }
-  }, {
-    key: "_bindContinue",
-    value: function _bindContinue() {
-      var _this2 = this;
-      this.$continueBtn.off("click.".concat(this.ns)).on("click.".concat(this.ns), function (e) {
-        e.preventDefault();
-        var nextIndex = _this2._currentScreenIndex + 1;
-        if (nextIndex >= _this2._screens.length) return;
-        _this2._showScreen(nextIndex);
-      });
-    }
-  }, {
-    key: "_bindKeyboardArrows",
-    value: function _bindKeyboardArrows() {
-      var _this3 = this;
-      $(document).off("keydown.".concat(this.ns, "HighlightArrow")).on("keydown.".concat(this.ns, "HighlightArrow"), function (e) {
-        if (_this3._shouldBlockStaffInteraction()) return;
-        var key = String(e.key || "").toLowerCase();
-        if (key !== "arrowup" && key !== "arrowdown") return;
-        var $target = $(e.target);
-        if ($target.is("input, textarea, select, [contenteditable='true']")) return;
-        e.preventDefault();
-        _this3._moveCurrentHighlightBy(key === "arrowup" ? 1 : -1);
-      });
-      $(document).off("click.".concat(this.ns, "HighlightArrow"), '#music-keyboard [data-direction], [data-direction][data-target="staff-highlight"]').on("click.".concat(this.ns, "HighlightArrow"), '#music-keyboard [data-direction], [data-direction][data-target="staff-highlight"]', function (e) {
-        if (_this3._shouldBlockStaffInteraction()) return;
-        var direction = String($(e.currentTarget).attr("data-direction") || "").toLowerCase();
-        if (direction !== "up" && direction !== "down") return;
-        e.preventDefault();
-        _this3._moveCurrentHighlightBy(direction === "up" ? 1 : -1);
-      });
-    }
-  }, {
-    key: "_showScreen",
-    value: function _showScreen(index) {
-      var screen = this._screens[index];
-      if (!screen) return;
-      this._finishPointerInteraction();
-      this._currentScreenIndex = index;
-      this._currentScreen = screen;
-      this._currentScreenSuccessShown = false;
-      this._pendingSuccessInstructions = false;
-      this._clearHighlights();
-      this._applyScreen(screen);
-    }
-  }, {
-    key: "_applyScreen",
-    value: function _applyScreen(screen) {
-      this._renderInstructions(screen.instructions || "");
-      this.$continue.hide();
-      this.$done.hide();
-      this.staff.setSoundEnabled(!!screen.playSound);
-      if (screen.clef) this.staff.setClef(screen.clef);else this._hideClef();
-      if (Number.isFinite(screen.initialStep)) {
-        this._createHighlight(screen.initialStep, {
-          revealContinue: false
-        });
-      }
-    }
-  }, {
-    key: "_revealContinue",
-    value: function _revealContinue() {
-      if (!this._currentScreenSuccessShown) {
-        var _this$_currentScreen;
-        this._currentScreenSuccessShown = true;
-        if ((_this$_currentScreen = this._currentScreen) !== null && _this$_currentScreen !== void 0 && _this$_currentScreen.success) {
-          if (this._pointer.active) this._pendingSuccessInstructions = true;else this._renderSuccessInstructions();
-        }
-      }
-      if (indexHasNext(this._currentScreenIndex, this._screens.length)) {
-        this.$done.hide();
-        this.$continue.show();
-        return;
-      }
-      this.$continue.hide();
-      this.$done.show();
-    }
-  }, {
-    key: "_renderInstructions",
-    value: function _renderInstructions(html) {
-      var _this$_typedInstructi,
-        _this4 = this;
-      if ((_this$_typedInstructi = this._typedInstructions) !== null && _this$_typedInstructi !== void 0 && _this$_typedInstructi.destroy) {
-        this._typedInstructions.destroy();
-        this._typedInstructions = null;
-      }
-      this._instructionsTyping = false;
-      if (!this.$instructions.length) return;
-      this.$instructions.html("");
-      if (!html) return;
-      var $typedTarget = $("<span></span>").addClass("staffzone-instructions__typed");
-      this.$instructions.append($typedTarget);
-      if (typeof window.Typed !== "function") {
-        $typedTarget.html(html);
-        return;
-      }
-      this._instructionsTyping = true;
-      this._typedInstructions = new window.Typed($typedTarget[0], {
-        strings: [html],
-        typeSpeed: 24,
-        startDelay: 180,
-        showCursor: true,
-        contentType: "html",
-        onComplete: function onComplete() {
-          _this4._instructionsTyping = false;
-        }
-      });
-    }
-  }, {
-    key: "_renderSuccessInstructions",
-    value: function _renderSuccessInstructions() {
-      var _this$_currentScreen2;
-      this._pendingSuccessInstructions = false;
-      this._renderInstructions(((_this$_currentScreen2 = this._currentScreen) === null || _this$_currentScreen2 === void 0 ? void 0 : _this$_currentScreen2.success) || "");
-    }
-  }, {
-    key: "_shouldBlockStaffInteraction",
-    value: function _shouldBlockStaffInteraction() {
-      if (!this._instructionsTyping) return false;
-      return !this.$continue.is(":visible") && !this.$done.is(":visible");
-    }
-  }, {
-    key: "_hideClef",
-    value: function _hideClef() {
-      this.staff.opts.clef = null;
-      this.staff.opts.clefUrl = null;
-      this.$staffEl.find("#clef-wrapper, .staff-clef").remove();
-    }
-  }, {
-    key: "_clearHighlights",
-    value: function _clearHighlights() {
-      this.$staffEl.find(".staff-highlight").remove();
-      this.$staffEl.find(".ledger[data-for-highlight-id]").remove();
-    }
-  }, {
-    key: "_bindStaffZoneInteraction",
-    value: function _bindStaffZoneInteraction() {
-      var _this5 = this;
-      this.$staffEl.off(".".concat(this.ns));
-      $(window).off("blur.".concat(this.ns));
-      this.$staffEl.on("pointerdown.".concat(this.ns), function (e) {
-        var _this5$$staffEl$;
-        if (_this5._shouldBlockStaffInteraction()) return;
-        e.preventDefault();
-        var _getPointerPageXY = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.getPointerPageXY)(e),
-          pageY = _getPointerPageXY.y;
-        var $highlight = $(e.target).closest(".staff-highlight");
-        var pointerStep = _this5._stepFromPageY(pageY);
-        _this5._pointer.active = true;
-        _this5._pointer.pointerId = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.getPointerId)(e);
-        _this5._pointer.targetId = null;
-        _this5._pointer.dragging = false;
-        _this5._pointer.createdOnPointerDown = false;
-        _this5._pointer.startPageY = pageY;
-        _this5._pointer.lastStep = null;
-        if ($highlight.length) {
-          var highlightId = String($highlight.attr("data-highlight-id") || "");
-          if (!highlightId) {
-            _this5._finishPointerInteraction();
-            return;
-          }
-          _this5._pointer.targetId = highlightId;
-          _this5._pointer.lastStep = _this5._highlightStep(highlightId);
-        } else {
-          var createdId = _this5._createHighlight(pointerStep);
-          if (!createdId) {
-            _this5._finishPointerInteraction();
-            return;
-          }
-          _this5._pointer.targetId = createdId;
-          _this5._pointer.createdOnPointerDown = true;
-          _this5._pointer.lastStep = pointerStep;
-          _this5._playAndLogStep(pointerStep);
-        }
-        var pointerId = _this5._pointer.pointerId;
-        if ((_this5$$staffEl$ = _this5.$staffEl[0]) !== null && _this5$$staffEl$ !== void 0 && _this5$$staffEl$.setPointerCapture && pointerId != null) {
-          _this5.$staffEl[0].setPointerCapture(pointerId);
-        }
-      });
-      this.$staffEl.on("pointermove.".concat(this.ns), function (e) {
-        if (_this5._shouldBlockStaffInteraction()) return;
-        if (!_this5._pointer.active) return;
-        var pointerId = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.getPointerId)(e);
-        if (_this5._pointer.pointerId != null && pointerId != null && pointerId !== _this5._pointer.pointerId) return;
-        e.preventDefault();
-        var _getPointerPageXY2 = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.getPointerPageXY)(e),
-          pageY = _getPointerPageXY2.y;
-        var movedPx = Math.abs(pageY - _this5._pointer.startPageY);
-        if (!_this5._pointer.dragging && movedPx >= _this5._pointer.dragThresholdPx) {
-          _this5._pointer.dragging = true;
-          _this5._setHighlightDragging(_this5._pointer.targetId, true);
-        }
-        if (!_this5._pointer.dragging) return;
-        var step = _this5._stepFromPageY(pageY);
-        _this5._moveHighlightToStep(_this5._pointer.targetId, step);
-        if (step === _this5._pointer.lastStep) return;
-        _this5._pointer.lastStep = step;
-        _this5._revealContinue();
-        _this5._playAndLogStep(step);
-      });
-      this.$staffEl.on("pointerup.".concat(this.ns, " pointercancel.").concat(this.ns), function (e) {
-        var pointerId = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.getPointerId)(e);
-        if (_this5._pointer.pointerId != null && pointerId != null && pointerId !== _this5._pointer.pointerId) return;
-        _this5._finishPointerInteraction();
-      });
-      $(window).on("blur.".concat(this.ns), function () {
-        _this5._finishPointerInteraction();
-      });
-    }
-  }, {
-    key: "_finishPointerInteraction",
-    value: function _finishPointerInteraction() {
-      var _this$$staffEl$;
-      var targetId = this._pointer.targetId;
-      var pointerId = this._pointer.pointerId;
-      var shouldRemove = !!targetId && !this._pointer.dragging && !this._pointer.createdOnPointerDown;
-      if (targetId) this._setHighlightDragging(targetId, false);
-      if (shouldRemove) {
-        this._revealContinue();
-        this._removeHighlight(targetId, {
-          smoke: true
-        });
-      }
-      if ((_this$$staffEl$ = this.$staffEl[0]) !== null && _this$$staffEl$ !== void 0 && _this$$staffEl$.releasePointerCapture && pointerId != null) {
-        try {
-          this.$staffEl[0].releasePointerCapture(pointerId);
-        } catch (_) {
-          // Ignore release errors when capture is already gone.
-        }
-      }
-      this._pointer.active = false;
-      this._pointer.pointerId = null;
-      this._pointer.targetId = null;
-      this._pointer.dragging = false;
-      this._pointer.createdOnPointerDown = false;
-      this._pointer.startPageY = 0;
-      this._pointer.lastStep = null;
-      if (this._pendingSuccessInstructions) this._renderSuccessInstructions();
-    }
-  }, {
-    key: "_clampStep",
-    value: function _clampStep(step) {
-      var min = this.staff.minStepAllowed();
-      var max = this.staff.maxStepAllowed();
-      return Math.max(min, Math.min(max, step));
-    }
-  }, {
-    key: "_stepName",
-    value: function _stepName(step) {
-      var _this$_currentScreen3;
-      var note = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.stepToLetterOctave)(this.staff, step);
-      if (!note) return "";
-      var letter = String(note.letter || "").toUpperCase();
-      return (_this$_currentScreen3 = this._currentScreen) !== null && _this$_currentScreen3 !== void 0 && _this$_currentScreen3.solfege ? StaffZone.LETTER_TO_SOLFEGE[letter] || letter : letter;
-    }
-  }, {
-    key: "_stepPositionLabel",
-    value: function _stepPositionLabel(step) {
-      if (!Number.isFinite(step)) return "";
-      if (step % 2 === 0) {
-        return "line ".concat(Math.floor(step / 2) + 1);
-      }
-      return "space ".concat(Math.floor((step + 1) / 2));
-    }
-  }, {
-    key: "_highlightLabelHtml",
-    value: function _highlightLabelHtml(step) {
-      var _this$_currentScreen4, _this$_currentScreen5;
-      if (!((_this$_currentScreen4 = this._currentScreen) !== null && _this$_currentScreen4 !== void 0 && _this$_currentScreen4.showLabels)) return "";
-      if (!((_this$_currentScreen5 = this._currentScreen) !== null && _this$_currentScreen5 !== void 0 && _this$_currentScreen5.clef)) return this._stepPositionLabel(step);
-      return this._stepName(step);
-    }
-  }, {
-    key: "_stepFromPageY",
-    value: function _stepFromPageY(pageY) {
-      var localY = pageY - this.$staffEl.offset().top;
-      var rawStep = this.staff.yToStep(localY);
-      return this._clampStep(rawStep);
-    }
-  }, {
-    key: "_highlightTopForStep",
-    value: function _highlightTopForStep(step) {
-      return this.staff.stepToY(step) - 7.7;
-    }
-  }, {
-    key: "_maxUserHighlights",
-    value: function _maxUserHighlights() {
-      var value = Number(this.opts.maxUserNotes);
-      return Number.isFinite(value) ? Math.max(0, Math.floor(value)) : 1;
-    }
-  }, {
-    key: "_highlightCount",
-    value: function _highlightCount() {
-      return this.$staffEl.find(".staff-highlight").length;
-    }
-  }, {
-    key: "_renderHighlightLedgers",
-    value: function _renderHighlightLedgers(highlightId, step) {
-      var _this6 = this;
-      if (!highlightId) return;
-      this.$staffEl.find(".ledger[data-for-highlight-id=\"".concat(highlightId, "\"]")).remove();
-      var ledgerSteps = this.staff.ledgerStepsFor(step);
-      var left = this.staff.centerX();
-      var isDragging = this.$staffEl.find(".staff-highlight[data-highlight-id=\"".concat(highlightId, "\"]")).hasClass("dragging");
-      ledgerSteps.forEach(function (ledgerStep) {
-        var $ledger = $("<div></div>").addClass("ledger").attr("data-for-highlight-id", highlightId).css({
-          left: "".concat(left, "px"),
-          top: "".concat(_this6.staff.stepToY(ledgerStep), "px")
-        });
-        if (isDragging) $ledger.addClass("dragging");
-        $ledger.appendTo(_this6.$staffEl);
-      });
-    }
-  }, {
-    key: "_createHighlight",
-    value: function _createHighlight(step) {
-      var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
-        _ref$revealContinue = _ref.revealContinue,
-        revealContinue = _ref$revealContinue === void 0 ? true : _ref$revealContinue;
-      if (!this.staff.isStepAllowed(step)) return null;
-      if (this._highlightCount() >= this._maxUserHighlights()) return null;
-      var id = "staffzone-highlight-".concat(this._highlightIdCounter++);
-      $("<div></div>").addClass("staff-highlight rounded").attr("data-highlight-id", id).attr("data-step", step).css({
-        top: "".concat(this._highlightTopForStep(step), "px")
-      }).append($("<div></div>").addClass("staff-highlight__label").html(this._highlightLabelHtml(step))).appendTo(this.$staffEl);
-      this._renderHighlightLedgers(id, step);
-      if (revealContinue) this._revealContinue();
-      return id;
-    }
-  }, {
-    key: "_highlightStep",
-    value: function _highlightStep(highlightId) {
-      var raw = this.$staffEl.find(".staff-highlight[data-highlight-id=\"".concat(highlightId, "\"]")).attr("data-step");
-      var step = Number(raw);
-      return Number.isFinite(step) ? step : null;
-    }
-  }, {
-    key: "_currentHighlightId",
-    value: function _currentHighlightId() {
-      return String(this.$staffEl.find(".staff-highlight").first().attr("data-highlight-id") || "");
-    }
-  }, {
-    key: "_moveCurrentHighlightBy",
-    value: function _moveCurrentHighlightBy(delta) {
-      var highlightId = this._currentHighlightId();
-      if (!highlightId || !Number.isFinite(delta) || delta === 0) return;
-      var currentStep = this._highlightStep(highlightId);
-      if (!Number.isFinite(currentStep)) return;
-      var nextStep = this._clampStep(currentStep + delta);
-      if (nextStep === currentStep || !this.staff.isStepAllowed(nextStep)) return;
-      this._revealContinue();
-      this._moveHighlightToStep(highlightId, nextStep);
-      this._playAndLogStep(nextStep);
-    }
-  }, {
-    key: "_moveHighlightToStep",
-    value: function _moveHighlightToStep(highlightId, step) {
-      if (!highlightId || !this.staff.isStepAllowed(step)) return;
-      this.$staffEl.find(".staff-highlight[data-highlight-id=\"".concat(highlightId, "\"]")).attr("data-step", step).css({
-        top: "".concat(this._highlightTopForStep(step), "px")
-      }).find(".staff-highlight__label").html(this._highlightLabelHtml(step));
-      this._renderHighlightLedgers(highlightId, step);
-    }
-  }, {
-    key: "_setHighlightDragging",
-    value: function _setHighlightDragging(highlightId, on) {
-      if (!highlightId) return;
-      this.$staffEl.find(".staff-highlight[data-highlight-id=\"".concat(highlightId, "\"]")).toggleClass("dragging", !!on);
-      this.$staffEl.find(".ledger[data-for-highlight-id=\"".concat(highlightId, "\"]")).toggleClass("dragging", !!on);
-    }
-  }, {
-    key: "_removeHighlight",
-    value: function _removeHighlight(highlightId) {
-      var _ref2 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
-        _ref2$smoke = _ref2.smoke,
-        smoke = _ref2$smoke === void 0 ? false : _ref2$smoke;
-      if (!highlightId) return;
-      var $highlight = this.$staffEl.find(".staff-highlight[data-highlight-id=\"".concat(highlightId, "\"]"));
-      if (!$highlight.length) return;
-      if (smoke) {
-        var fill = window.getComputedStyle($highlight[0]).backgroundColor || "black";
-        this.staff._animations.playNoteRemoveSmoke($highlight[0], {
-          fill: fill
-        });
-      }
-      this.$staffEl.find(".ledger[data-for-highlight-id=\"".concat(highlightId, "\"]")).remove();
-      $highlight.remove();
-    }
-  }, {
-    key: "_playAndLogStep",
-    value: function _playAndLogStep(step) {
-      var _this$_currentScreen6, _this$_currentScreen7;
-      var noteName = this._stepName(step);
-      if ((_this$_currentScreen6 = this._currentScreen) !== null && _this$_currentScreen6 !== void 0 && _this$_currentScreen6.playSound) void this.staff.playStep(step, 0);
-      if (!((_this$_currentScreen7 = this._currentScreen) !== null && _this$_currentScreen7 !== void 0 && _this$_currentScreen7.logNoteName)) return;
-
-      // eslint-disable-next-line no-console
-      console.log("StaffZone note:", noteName, {
-        clef: this.staff.getClef(),
-        step: step
-      });
-    }
-  }]);
-}();
-_defineProperty(StaffZone, "LETTER_TO_SOLFEGE", {
-  C: "Do",
-  D: "Re",
-  E: "Mi",
-  F: "Fa",
-  G: "Sol",
-  A: "La",
-  B: "Si"
-});
-function indexHasNext(index, total) {
-  return index < total - 1;
 }
 
 /***/ },
@@ -2999,10 +3008,10 @@ var __webpack_exports__ = {};
 // This entry needs to be wrapped in an IIFE because it needs to be isolated against other modules in the chunk.
 (() => {
 /*!***********************************************!*\
-  !*** ./resources/js/music/games/staffzone.js ***!
+  !*** ./resources/js/music/games/openstaff.js ***!
   \***********************************************/
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _staffzone_StaffZone_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./staffzone/StaffZone.js */ "./resources/js/music/games/staffzone/StaffZone.js");
+/* harmony import */ var _openstaff_OpenStaff_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./openstaff/OpenStaff.js */ "./resources/js/music/games/openstaff/OpenStaff.js");
 var _game$start;
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
@@ -3013,7 +3022,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
 
 var options = readGlobal("__challengeOptions") || {};
 var clefUrls = readGlobal("__clefUrls") || null;
-var game = new _staffzone_StaffZone_js__WEBPACK_IMPORTED_MODULE_0__.StaffZone(_objectSpread(_objectSpread({}, options), {}, {
+var game = new _openstaff_OpenStaff_js__WEBPACK_IMPORTED_MODULE_0__.OpenStaff(_objectSpread(_objectSpread({}, options), {}, {
   clefUrls: clefUrls
 }));
 (_game$start = game.start) === null || _game$start === void 0 ? void 0 : _game$start.call(game);

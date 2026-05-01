@@ -8,17 +8,31 @@ input[type="range"].big-thumb {
   outline: none;
 }
 
-.btn-group .btn:first-of-type {
+.btn-floating-group .btn-floating:not(:first-of-type, :last-of-type), .btn-floating-group .btn-floating:not(:first-of-type, :last-of-type) .btn {
+  border-radius: 0 !important;
+}
+
+.btn-floating-group .btn-floating:first-of-type, .btn-floating-group .btn-floating:first-of-type .btn {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+
+.btn-floating-group .btn-floating:last-of-type, .btn-floating-group .btn-floating:last-of-type .btn {
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+}
+
+.btn-group div:first-of-type .btn {
     border-top-right-radius: 0 !important;
     border-bottom-right-radius: 0 !important;
 }
 
-.btn-group .btn:last-of-type {
+.btn-group div:last-of-type .btn {
     border-top-left-radius: 0 !important;
     border-bottom-left-radius: 0 !important;
 }
 
-.btn-group .btn:not(:first-of-type):not(:last-of-type) {
+.btn-group div:not(:first-of-type):not(:last-of-type) .btn {
     border-radius: 0 !important;
 }
 

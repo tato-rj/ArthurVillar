@@ -4,6 +4,7 @@ import { playSnakeCellBreakBurstAtElement } from "../shared/mojsEffects.js";
 import { playSmokePuffAtElement } from "../shared/mojsEffects.js";
 import { PromptUi } from "../shared/PromptUi.js";
 import { GameAudio } from "../shared/GameAudio.js";
+import { InstructionsUi } from "../shared/InstructionsUi.js";
 
 export class NotePython {
   static INTERVAL_FULL_NAME_MAP = {
@@ -81,6 +82,7 @@ export class NotePython {
     this.$countdownText = this.$countdown.find("h1").first();
     this.$startBtn = this.$countdown.find("button").first();
     this.prompt = new PromptUi("#prompt");
+    this.instructionsUi = new InstructionsUi("#instructions");
     this.$points = $("#points");
     this.$increment = $("#increment");
     this.$feedback = $("#feedback-success");
@@ -1204,7 +1206,7 @@ export class NotePython {
 
   _showStandardGameUi() {
     if (typeof this._syncKeyboardLabels === "function") this._syncKeyboardLabels();
-    $("#instructions").show();
+    this.instructionsUi.show().replay();
     $("#controls").show();
     $("#board-wrapper").show();
     this.$board?.toggleClass?.("walled", this._useRealWalls());
