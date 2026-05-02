@@ -1,6 +1,7 @@
 import { Staff } from "../../staff/Staff.js";
 import { getPointerId, getPointerPageXY, normalizeClef, stepToLetterOctave } from "../../staff/staffUtils.js";
 import { InstructionsUi } from "../shared/InstructionsUi.js";
+import { PianoKeyboardUi } from "../shared/PianoKeyboardUi.js";
 
 export class OpenStaff {
   static LETTER_TO_SOLFEGE = {
@@ -34,6 +35,8 @@ export class OpenStaff {
     this.$continue = $("#continue");
     this.$continueBtn = this.$continue.find("button").first();
     this.$done = $("#done");
+    this.$keyboardWrap = $("#keyboard-wrapper").first();
+    this.$pianoToggleBtn = $("#piano-toggle button").first();
 
     this._clefPool = this._resolveClefPool();
     this._defaultClef = this._clefPool[0] || null;
@@ -53,6 +56,12 @@ export class OpenStaff {
       lastStep: null,
       dragThresholdPx: 5,
     };
+    this.keyboard = this.$keyboardWrap.length
+      ? new PianoKeyboardUi({
+        rootSelector: "#keyboard",
+        namespace: `${this.ns}.keyboard`,
+      })
+      : null;
 
     this.staff = new Staff(this.$staffEl, {
       clef: null,
@@ -71,6 +80,8 @@ export class OpenStaff {
     this._bindContinue();
     this._bindKeyboardArrows();
     this._bindOpenStaffInteraction();
+    this._wirePianoKeyboardToggle();
+    this.keyboard?.bind?.();
     this._showScreen(0);
 
     $("#page-wrapper").fadeIn("fast");
@@ -245,6 +256,8 @@ export class OpenStaff {
     if (Number.isFinite(screen.initialStep)) {
       this._createHighlight(screen.initialStep, { revealContinue: false });
     }
+
+    this._syncPianoKeyboardMarkerFromHighlight();
   }
 
   _revealContinue() {
@@ -288,6 +301,51 @@ export class OpenStaff {
   _clearHighlights() {
     this.$staffEl.find(".staff-highlight").remove();
     this.$staffEl.find(".ledger[data-for-highlight-id]").remove();
+    this._syncPianoKeyboardMarkerFromHighlight();
+  }
+
+  _syncPianoKeyboardToggleUi() {
+    if (!this.$pianoToggleBtn.length || !this.$keyboardWrap.length) return;
+    if (this.$keyboardWrap.is(":visible")) this.$pianoToggleBtn.attr("selected", "selected");
+    else this.$pianoToggleBtn.removeAttr("selected");
+  }
+
+  _wirePianoKeyboardToggle() {
+    if (!this.$keyboardWrap.length) return;
+
+    if (this.$pianoToggleBtn.length) this.$keyboardWrap.hide();
+    else this.$keyboardWrap.show();
+
+    if (this.$pianoToggleBtn.length) {
+      this.$pianoToggleBtn
+        .off(`click.${this.ns}.pianoToggle`)
+        .on(`click.${this.ns}.pianoToggle`, (e) => {
+          e.preventDefault();
+          this.$keyboardWrap.toggle();
+          this._syncPianoKeyboardToggleUi();
+        });
+    }
+
+    this._syncPianoKeyboardToggleUi();
+  }
+
+  _syncPianoKeyboardMarkerFromHighlight() {
+    if (!this.keyboard) return;
+    if (!this._currentScreen?.clef) {
+      this.keyboard.syncActiveKeys([]);
+      return;
+    }
+
+    const highlightId = this._currentHighlightId();
+    const step = this._highlightStep(highlightId);
+    if (!highlightId || !Number.isFinite(step)) {
+      this.keyboard.syncActiveKeys([]);
+      return;
+    }
+
+    const note = stepToLetterOctave(this.staff, step);
+    const $key = this.keyboard.keyForNote(note?.letter, null, note?.octave);
+    this.keyboard.syncActiveKeys($key.length ? [$key] : []);
   }
 
   _bindOpenStaffInteraction() {
@@ -319,6 +377,7 @@ export class OpenStaff {
         }
         this._pointer.targetId = highlightId;
         this._pointer.lastStep = this._highlightStep(highlightId);
+        this._setHighlightDragging(highlightId, true);
       } else {
         const createdId = this._createHighlight(pointerStep);
         if (!createdId) {
@@ -511,6 +570,7 @@ export class OpenStaff {
 
     this._renderHighlightLedgers(id, step);
     if (revealContinue) this._revealContinue();
+    this._syncPianoKeyboardMarkerFromHighlight();
 
     return id;
   }
@@ -551,6 +611,7 @@ export class OpenStaff {
       .html(this._highlightLabelHtml(step));
 
     this._renderHighlightLedgers(highlightId, step);
+    this._syncPianoKeyboardMarkerFromHighlight();
   }
 
   _setHighlightDragging(highlightId, on) {
@@ -573,6 +634,7 @@ export class OpenStaff {
     }
     this.$staffEl.find(`.ledger[data-for-highlight-id="${highlightId}"]`).remove();
     $highlight.remove();
+    this._syncPianoKeyboardMarkerFromHighlight();
   }
 
   _playAndLogStep(step) {

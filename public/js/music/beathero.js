@@ -2840,6 +2840,15 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
     this._startWhiteMidi = (_this$_naturalMidiFro = this._naturalMidiFromNoteName(initialStartNote)) !== null && _this$_naturalMidiFro !== void 0 ? _this$_naturalMidiFro : 60;
     this._activeNoteNames = new Set();
     this._renderTimeoutId = null;
+    this._drag = {
+      active: false,
+      pointerId: null,
+      startPageX: 0,
+      originWhiteMidi: this._startWhiteMidi,
+      lastStepOffset: 0,
+      didMove: false,
+      suppressClickUntil: 0
+    };
   }
   return _createClass(PianoKeyboardUi, [{
     key: "setStartNote",
@@ -2857,6 +2866,7 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
       var _this = this;
       this.render();
       $(document).off("click.".concat(this.ns), this.rootSelector).on("click.".concat(this.ns), this.rootSelector, function (e) {
+        if (Date.now() < _this._drag.suppressClickUntil) return;
         e.preventDefault();
         var $key = _this._resolveKeyFromTarget(e.target);
         if (!$key.length) return;
@@ -2867,12 +2877,51 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
           manual: true
         });
       });
+      $(document).off("pointerdown.".concat(this.ns, "Drag"), this.rootSelector).on("pointerdown.".concat(this.ns, "Drag"), this.rootSelector, function (e) {
+        var _e$originalEvent;
+        e.preventDefault();
+        var pointerId = (_e$originalEvent = e.originalEvent) === null || _e$originalEvent === void 0 ? void 0 : _e$originalEvent.pointerId;
+        _this._drag.active = true;
+        _this._drag.pointerId = pointerId != null ? pointerId : null;
+        _this._drag.startPageX = e.pageX;
+        _this._drag.originWhiteMidi = _this._startWhiteMidi;
+        _this._drag.lastStepOffset = 0;
+        _this._drag.didMove = false;
+        $(e.currentTarget).addClass("dragging");
+        if (e.currentTarget.setPointerCapture && pointerId != null) {
+          e.currentTarget.setPointerCapture(pointerId);
+        }
+      });
+      $(document).off("pointermove.".concat(this.ns, "Drag")).on("pointermove.".concat(this.ns, "Drag"), function (e) {
+        var _e$originalEvent2;
+        if (!_this._drag.active) return;
+        var pointerId = (_e$originalEvent2 = e.originalEvent) === null || _e$originalEvent2 === void 0 ? void 0 : _e$originalEvent2.pointerId;
+        if (_this._drag.pointerId != null && pointerId != null && pointerId !== _this._drag.pointerId) return;
+        var whiteKeyWidth = _this._whiteKeyWidth();
+        if (!Number.isFinite(whiteKeyWidth) || whiteKeyWidth <= 0) return;
+        var deltaX = e.pageX - _this._drag.startPageX;
+        var nextOffset = _this._stepOffsetFromDeltaX(deltaX, whiteKeyWidth);
+        if (nextOffset === _this._drag.lastStepOffset) return;
+        _this._drag.lastStepOffset = nextOffset;
+        _this._drag.didMove = true;
+        _this._startWhiteMidi = _this._shiftNaturalMidi(_this._drag.originWhiteMidi, -nextOffset);
+        _this.render();
+      });
+      $(document).off("pointerup.".concat(this.ns, "Drag pointercancel.").concat(this.ns, "Drag")).on("pointerup.".concat(this.ns, "Drag pointercancel.").concat(this.ns, "Drag"), function (e) {
+        var _e$originalEvent3;
+        var pointerId = (_e$originalEvent3 = e.originalEvent) === null || _e$originalEvent3 === void 0 ? void 0 : _e$originalEvent3.pointerId;
+        if (_this._drag.pointerId != null && pointerId != null && pointerId !== _this._drag.pointerId) return;
+        _this._finishDrag();
+      });
       return this;
     }
   }, {
     key: "unbind",
     value: function unbind() {
       $(document).off("click.".concat(this.ns), this.rootSelector);
+      $(document).off("pointerdown.".concat(this.ns, "Drag"), this.rootSelector);
+      $(document).off("pointermove.".concat(this.ns, "Drag"));
+      $(document).off("pointerup.".concat(this.ns, "Drag pointercancel.").concat(this.ns, "Drag"));
       return this;
     }
   }, {
@@ -2911,11 +2960,13 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
       }
       if (!currentIds.length) {
         $root.find(".white-key, .black-key").show();
+        this._reapplyActiveMarkers();
         return this;
       }
       newWrappers.forEach(function ($wrapper) {
         $wrapper.find(".white-key, .black-key").show();
       });
+      this._reapplyActiveMarkers();
       return this;
     }
   }, {
@@ -3180,6 +3231,67 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
     key: "_hideAllMarkers",
     value: function _hideAllMarkers() {
       $("".concat(this.rootSelector, " .key-marker")).hide();
+    }
+  }, {
+    key: "_reapplyActiveMarkers",
+    value: function _reapplyActiveMarkers() {
+      var _this3 = this;
+      this._hideAllMarkers();
+      if (!(this._activeNoteNames instanceof Set) || !this._activeNoteNames.size) return;
+      this._activeNoteNames.forEach(function (noteName) {
+        var $key = _this3._keyByNoteName(noteName);
+        if (!$key.length) return;
+        _this3._showMarker($key.find(".key-marker").first());
+      });
+    }
+  }, {
+    key: "_whiteKeyWidth",
+    value: function _whiteKeyWidth() {
+      var $whiteKey = $("".concat(this.rootSelector, " .white-key")).first();
+      return $whiteKey.length ? $whiteKey.outerWidth() || 0 : 0;
+    }
+  }, {
+    key: "_stepOffsetFromDeltaX",
+    value: function _stepOffsetFromDeltaX(deltaX, whiteKeyWidth) {
+      if (!Number.isFinite(deltaX) || !Number.isFinite(whiteKeyWidth) || whiteKeyWidth <= 0) return 0;
+      if (deltaX > 0) return Math.floor(deltaX / whiteKeyWidth);
+      if (deltaX < 0) return -Math.floor(Math.abs(deltaX) / whiteKeyWidth);
+      return 0;
+    }
+  }, {
+    key: "_shiftNaturalMidi",
+    value: function _shiftNaturalMidi(midi, whiteSteps) {
+      if (!Number.isFinite(midi) || !Number.isFinite(whiteSteps) || whiteSteps === 0) return midi;
+      var nextMidi = midi;
+      var stepCount = Math.abs(Math.trunc(whiteSteps));
+      for (var i = 0; i < stepCount; i += 1) {
+        nextMidi = whiteSteps > 0 ? this._nextNaturalMidi(nextMidi) : this._prevNaturalMidi(nextMidi);
+      }
+      return nextMidi;
+    }
+  }, {
+    key: "_finishDrag",
+    value: function _finishDrag() {
+      if (!this._drag.active) return;
+      var $root = $(this.rootSelector).first();
+      if ($root.length) {
+        var _$root$;
+        $root.removeClass("dragging");
+        if ((_$root$ = $root[0]) !== null && _$root$ !== void 0 && _$root$.releasePointerCapture && this._drag.pointerId != null) {
+          try {
+            $root[0].releasePointerCapture(this._drag.pointerId);
+          } catch (_) {
+            // Ignore capture release errors when the pointer is already gone.
+          }
+        }
+      }
+      this._drag.active = false;
+      this._drag.pointerId = null;
+      this._drag.startPageX = 0;
+      this._drag.originWhiteMidi = this._startWhiteMidi;
+      this._drag.suppressClickUntil = this._drag.didMove ? Date.now() + 250 : 0;
+      this._drag.lastStepOffset = 0;
+      this._drag.didMove = false;
     }
   }, {
     key: "_setsEqual",

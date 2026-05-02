@@ -512,6 +512,13 @@ body {
 
 #keyboard {
   height: 130px;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+#keyboard.dragging {
+  cursor: grabbing;
 }
 
 #keyboard .white-key {

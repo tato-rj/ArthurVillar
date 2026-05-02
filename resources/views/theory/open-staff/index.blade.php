@@ -64,7 +64,9 @@
     </div>
 
     <div class="col-11 mx-auto mb-3 position-relative">
+      @include('theory.components.piano.keyboard')
       <div id="staff-wrapper" class="text-center mx-auto position-relative">
+        @include('theory.components.piano.toggle')
         <div id="staff"></div>
       </div>
     </div>

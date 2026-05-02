@@ -31708,6 +31708,15 @@ body {
 
 #keyboard {
   height: 130px;
+  cursor: grab;
+  touch-action: none;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+          user-select: none;
+}
+
+#keyboard.dragging {
+  cursor: grabbing;
 }
 
 #keyboard .white-key {
