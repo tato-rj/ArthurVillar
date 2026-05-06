@@ -19,34 +19,20 @@ class LeaderboardController extends Controller
             'duration' => 'required'
         ]);
 
-        Player::create([
+        $player = Player::create([
             'game' => $request->game,
             'username' => $request->username,
             'avatar_url' => $request->avatar_url,
             'score' => (int) $request->score,
             'accuracy' => (float) $request->accuracy,
             'rounds' => (int) $request->rounds,
-            'duration' => (int) $request->duration,
-            'finalScore' => $this->leaderboardScore($request)
+            'duration' => (int) $request->duration
         ]);
+
+        $player->calculateFinalScore();
 
         return back()->with([
             'showLeaderboard' => true,
         ]);
-    }
-
-    private function leaderboardScore($request): int 
-    {
-        $acc = (float) $request->accuracy / 1000;
-
-        $result =
-            (
-                pow((int) $request->score, 1.08) *
-                $acc *
-                pow((int) $request->rounds + 1, 0.35) *
-                (30 / ((int) $request->duration + 10))
-            ) * 18.7;
-
-        return (int) round($result);
     }
 }

@@ -10,6 +10,8 @@ Route::get('sound-effects', 'AdminController@soundEffects')->name('sound-effects
 Route::prefix('leaderboards')->name('leaderboard.')->group(function() {
 	Route::get('', 'LeaderboardsController@index')->name('index');
 
+	Route::post('fake', 'LeaderboardsController@fake')->name('fake');
+
 	Route::delete('{player}', 'LeaderboardsController@destroy')->name('destroy');
 });
 

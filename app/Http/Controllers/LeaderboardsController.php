@@ -12,6 +12,13 @@ class LeaderboardsController extends Controller
         return view('admin.leaderboards.index');
     }
 
+    public function fake(Request $request)
+    {
+        (new Player)->fake($request->game);
+
+        return back()->with('success', 'The fake player was successully created');
+    }
+
     public function destroy(Player $player)
     {
         $player->delete();

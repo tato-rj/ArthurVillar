@@ -21,7 +21,7 @@ return new class extends Migration
             $table->unsignedInteger('rounds');
             $table->unsignedInteger('duration');
             $table->decimal('accuracy', 5, 2)->unsigned();
-            $table->unsignedInteger('finalScore');
+            $table->unsignedInteger('finalScore')->nullable();
             $table->string('avatar_url');
             $table->timestamps();
         });
