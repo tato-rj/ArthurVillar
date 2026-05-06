@@ -2,8 +2,12 @@
 
 namespace App\Models;
 
+use App\Models\Traits\Usernames;
+
 class Player extends BaseModel
 {
+    use Usernames;
+    
     public function scopeByGame($query, $name)
     {
         return $query->where('game', $name);
@@ -13,12 +17,12 @@ class Player extends BaseModel
     {
         $player = $this->create([
             'game' => $game,
-            'username' => fake()->userName(),
-            'avatar_url' => 'https://api.dicebear.com/9.x/bottts-neutral/svg?seed='.fake()->numberBetween(1, 24),
-            'score' => fake()->numberBetween(10, 30),
-            'accuracy' => fake()->randomFloat(2, 60, 100),
-            'rounds' => fake()->numberBetween(2, 8),
-            'duration' => fake()->numberBetween(10, 40)
+            'username' => $this->randomUsername(),
+            'avatar_url' => 'https://api.dicebear.com/9.x/bottts-neutral/svg?seed='.random_int(1, 24),
+            'score' => random_int(10, 30),
+            'accuracy' => random_int(6000, 10000) / 100,
+            'rounds' => random_int(2, 8),
+            'duration' => random_int(10, 40)
         ]);
 
         $player->calculateFinalScore();
