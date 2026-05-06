@@ -3274,15 +3274,7 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
       $(document).off("click.".concat(this.ns), this.rootSelector).on("click.".concat(this.ns), this.rootSelector, function (e) {
         if (Date.now() < _this._drag.suppressClickUntil) return;
         e.preventDefault();
-        var $key = _this._resolveKeyFromTarget(e.target);
-        if (!$key.length) return;
-        var noteName = _this.noteNameForKey($key);
-        void _this._playNoteName(noteName);
-        if (_this.onKeyClick) _this.onKeyClick({
-          $key: $key,
-          noteName: noteName,
-          manual: true
-        });
+        _this._activateKeyFromTarget(e.target);
       });
       $(document).off("pointerdown.".concat(this.ns, "Drag"), this.rootSelector).on("pointerdown.".concat(this.ns, "Drag"), this.rootSelector, function (e) {
         var _e$originalEvent;
@@ -3315,9 +3307,14 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
         _this.render();
       });
       $(document).off("pointerup.".concat(this.ns, "Drag pointercancel.").concat(this.ns, "Drag")).on("pointerup.".concat(this.ns, "Drag pointercancel.").concat(this.ns, "Drag"), function (e) {
-        var _e$originalEvent3;
+        var _e$originalEvent3, _e$originalEvent4;
         var pointerId = (_e$originalEvent3 = e.originalEvent) === null || _e$originalEvent3 === void 0 ? void 0 : _e$originalEvent3.pointerId;
         if (_this._drag.pointerId != null && pointerId != null && pointerId !== _this._drag.pointerId) return;
+        var pointerType = String(((_e$originalEvent4 = e.originalEvent) === null || _e$originalEvent4 === void 0 ? void 0 : _e$originalEvent4.pointerType) || "").toLowerCase();
+        if (e.type === "pointerup" && !_this._drag.didMove && (pointerType === "touch" || pointerType === "pen")) {
+          _this._drag.suppressClickUntil = Date.now() + 250;
+          _this._activateKeyFromTarget(e.target);
+        }
         _this._finishDrag();
       });
       return this;
@@ -3380,6 +3377,19 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
     key: "noteNameForKey",
     value: function noteNameForKey($key) {
       return $key !== null && $key !== void 0 && $key.length ? String($key.attr("data-note") || "") : "";
+    }
+  }, {
+    key: "_activateKeyFromTarget",
+    value: function _activateKeyFromTarget(target) {
+      var $key = this._resolveKeyFromTarget(target);
+      if (!$key.length) return;
+      var noteName = this.noteNameForKey($key);
+      void this._playNoteName(noteName);
+      if (this.onKeyClick) this.onKeyClick({
+        $key: $key,
+        noteName: noteName,
+        manual: true
+      });
     }
   }, {
     key: "keyForNote",

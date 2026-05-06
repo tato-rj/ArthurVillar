@@ -60,11 +60,7 @@ export class PianoKeyboardUi {
         if (Date.now() < this._drag.suppressClickUntil) return;
         e.preventDefault();
 
-        const $key = this._resolveKeyFromTarget(e.target);
-        if (!$key.length) return;
-        const noteName = this.noteNameForKey($key);
-        void this._playNoteName(noteName);
-        if (this.onKeyClick) this.onKeyClick({ $key, noteName, manual: true });
+        this._activateKeyFromTarget(e.target);
       });
 
     $(document)
@@ -112,6 +108,15 @@ export class PianoKeyboardUi {
       .on(`pointerup.${this.ns}Drag pointercancel.${this.ns}Drag`, (e) => {
         const pointerId = e.originalEvent?.pointerId;
         if (this._drag.pointerId != null && pointerId != null && pointerId !== this._drag.pointerId) return;
+        const pointerType = String(e.originalEvent?.pointerType || "").toLowerCase();
+        if (
+          e.type === "pointerup" &&
+          !this._drag.didMove &&
+          (pointerType === "touch" || pointerType === "pen")
+        ) {
+          this._drag.suppressClickUntil = Date.now() + 250;
+          this._activateKeyFromTarget(e.target);
+        }
         this._finishDrag();
       });
 
@@ -177,6 +182,14 @@ export class PianoKeyboardUi {
 
   noteNameForKey($key) {
     return $key?.length ? String($key.attr("data-note") || "") : "";
+  }
+
+  _activateKeyFromTarget(target) {
+    const $key = this._resolveKeyFromTarget(target);
+    if (!$key.length) return;
+    const noteName = this.noteNameForKey($key);
+    void this._playNoteName(noteName);
+    if (this.onKeyClick) this.onKeyClick({ $key, noteName, manual: true });
   }
 
   keyForNote(letter, accidentalClass, octave) {
