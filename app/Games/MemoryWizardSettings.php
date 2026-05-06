@@ -18,7 +18,7 @@ class MemoryWizardSettings extends GameFactory
 
     public function gameDescription() : string
     {
-        return 'A magical note memory challenge built from the Note Nest scaffold.';
+        return 'A note reading challenge to test your memory and ear.';
     }
 
     public function gameTheme(): string

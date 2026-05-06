@@ -398,15 +398,31 @@ export class OpenStaff {
           this._playAndLogStep(this._pointer.lastStep);
         }
       } else {
-        const createdId = this._createHighlight(pointerStep);
-        if (!createdId) {
+        const existingHighlightId = this._currentHighlightId();
+
+        if (existingHighlightId) {
+          this._pointer.targetId = existingHighlightId;
+          this._pointer.createdOnPointerDown = true;
+          this._pointer.lastStep = pointerStep;
+          this._moveHighlightToStep(existingHighlightId, pointerStep);
+          this._setHighlightDragging(existingHighlightId, true);
+          this._playAndLogStep(pointerStep);
+        } else {
+          const createdId = this._createHighlight(pointerStep);
+          if (!createdId) {
+            this._finishPointerInteraction();
+            return;
+          }
+          this._pointer.targetId = createdId;
+          this._pointer.createdOnPointerDown = true;
+          this._pointer.lastStep = pointerStep;
+          this._playAndLogStep(pointerStep);
+        }
+
+        if (!this._pointer.targetId) {
           this._finishPointerInteraction();
           return;
         }
-        this._pointer.targetId = createdId;
-        this._pointer.createdOnPointerDown = true;
-        this._pointer.lastStep = pointerStep;
-        this._playAndLogStep(pointerStep);
       }
 
       const pointerId = this._pointer.pointerId;

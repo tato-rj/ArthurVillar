@@ -393,15 +393,29 @@ var OpenStaff = /*#__PURE__*/function () {
             _this6._playAndLogStep(_this6._pointer.lastStep);
           }
         } else {
-          var createdId = _this6._createHighlight(pointerStep);
-          if (!createdId) {
+          var existingHighlightId = _this6._currentHighlightId();
+          if (existingHighlightId) {
+            _this6._pointer.targetId = existingHighlightId;
+            _this6._pointer.createdOnPointerDown = true;
+            _this6._pointer.lastStep = pointerStep;
+            _this6._moveHighlightToStep(existingHighlightId, pointerStep);
+            _this6._setHighlightDragging(existingHighlightId, true);
+            _this6._playAndLogStep(pointerStep);
+          } else {
+            var createdId = _this6._createHighlight(pointerStep);
+            if (!createdId) {
+              _this6._finishPointerInteraction();
+              return;
+            }
+            _this6._pointer.targetId = createdId;
+            _this6._pointer.createdOnPointerDown = true;
+            _this6._pointer.lastStep = pointerStep;
+            _this6._playAndLogStep(pointerStep);
+          }
+          if (!_this6._pointer.targetId) {
             _this6._finishPointerInteraction();
             return;
           }
-          _this6._pointer.targetId = createdId;
-          _this6._pointer.createdOnPointerDown = true;
-          _this6._pointer.lastStep = pointerStep;
-          _this6._playAndLogStep(pointerStep);
         }
         var pointerId = _this6._pointer.pointerId;
         if ((_this6$$staffEl$ = _this6.$staffEl[0]) !== null && _this6$$staffEl$ !== void 0 && _this6$$staffEl$.setPointerCapture && pointerId != null) {
@@ -1393,6 +1407,10 @@ function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present,
 function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
 function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
 function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
 function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
 function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
 function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
@@ -1430,7 +1448,7 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
     this.canPlayNote = typeof canPlayNote === "function" ? canPlayNote : null;
     this.visibleWhiteKeys = Math.max(1, Number(visibleWhiteKeys) || 7);
     this._startWhiteMidi = (_this$_naturalMidiFro = this._naturalMidiFromNoteName(initialStartNote)) !== null && _this$_naturalMidiFro !== void 0 ? _this$_naturalMidiFro : 60;
-    this._activeNoteNames = new Set();
+    this._activeMarkers = new Map();
     this._renderTimeoutId = null;
     this._audioReady = false;
     this._synth = null;
@@ -1596,7 +1614,7 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
     key: "clearActive",
     value: function clearActive() {
       this._hideAllMarkers();
-      this._activeNoteNames = new Set();
+      this._activeMarkers = new Map();
       return this;
     }
   }, {
@@ -1611,32 +1629,71 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
       var nextKeys = Array.isArray(keys) ? keys.filter(function ($key) {
         return $key === null || $key === void 0 ? void 0 : $key.length;
       }) : [];
-      var nextNoteNames = new Set(nextKeys.map(function ($key) {
-        return _this2.noteNameForKey($key);
-      }).filter(Boolean));
-      return this.syncActiveNoteNames(nextNoteNames, nextKeys);
+      var entries = nextKeys.map(function ($key) {
+        var noteName = _this2.noteNameForKey($key);
+        if (!noteName) return null;
+        return {
+          noteName: noteName,
+          tone: "primary",
+          $key: $key
+        };
+      }).filter(Boolean);
+      return this.syncActiveMarkers(entries);
     }
   }, {
     key: "syncActiveNoteNames",
     value: function syncActiveNoteNames(noteNames) {
       var _this3 = this;
       var visibleKeys = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
-      var nextNoteNames = noteNames instanceof Set ? new Set(_toConsumableArray(noteNames).filter(Boolean)) : new Set((Array.isArray(noteNames) ? noteNames : []).filter(Boolean));
+      var nextNoteNames = noteNames instanceof Set ? _toConsumableArray(noteNames).filter(Boolean) : (Array.isArray(noteNames) ? noteNames : []).filter(Boolean);
       var nextKeys = Array.isArray(visibleKeys) ? visibleKeys.filter(function ($key) {
         return $key === null || $key === void 0 ? void 0 : $key.length;
       }) : [];
-      if (this._setsEqual(this._activeNoteNames, nextNoteNames)) {
-        nextKeys.forEach(function ($key) {
-          _this3._showMarker($key.find(".key-marker").first());
+      var entries = nextNoteNames.map(function (noteName) {
+        var $key = nextKeys.find(function ($candidate) {
+          return _this3.noteNameForKey($candidate) === noteName;
+        }) || null;
+        return {
+          noteName: noteName,
+          tone: "primary",
+          $key: $key
+        };
+      });
+      return this.syncActiveMarkers(entries);
+    }
+  }, {
+    key: "syncActiveMarkers",
+    value: function syncActiveMarkers(entries) {
+      var _this4 = this;
+      var list = Array.isArray(entries) ? entries.filter(Boolean) : [];
+      var nextMarkers = new Map();
+      list.forEach(function (entry) {
+        var noteName = String(entry.noteName || "").trim();
+        if (!noteName) return;
+        nextMarkers.set(noteName, entry.tone === "secondary" ? "secondary" : "primary");
+      });
+      if (this._markerMapsEqual(this._activeMarkers, nextMarkers)) {
+        list.forEach(function (entry) {
+          var _entry$$key;
+          if (!(entry !== null && entry !== void 0 && (_entry$$key = entry.$key) !== null && _entry$$key !== void 0 && _entry$$key.length)) return;
+          var tone = nextMarkers.get(String(entry.noteName || "").trim()) || "primary";
+          var $marker = entry.$key.find(".key-marker").first();
+          _this4._applyMarkerTone($marker, tone);
+          _this4._showMarker($marker);
         });
         return this;
       }
       this._hideAllMarkers();
-      this._activeNoteNames = new Set(nextNoteNames);
-      nextKeys.forEach(function ($key) {
-        var noteName = _this3.noteNameForKey($key);
-        if (!noteName || !_this3._activeNoteNames.has(noteName)) return;
-        _this3._showMarker($key.find(".key-marker").first());
+      this._activeMarkers = new Map(nextMarkers);
+      list.forEach(function (entry) {
+        var _entry$$key2;
+        if (!(entry !== null && entry !== void 0 && (_entry$$key2 = entry.$key) !== null && _entry$$key2 !== void 0 && _entry$$key2.length)) return;
+        var noteName = String(entry.noteName || "").trim();
+        var tone = _this4._activeMarkers.get(noteName);
+        if (!noteName || !tone) return;
+        var $marker = entry.$key.find(".key-marker").first();
+        _this4._applyMarkerTone($marker, tone);
+        _this4._showMarker($marker);
       });
       return this;
     }
@@ -1845,13 +1902,15 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
   }, {
     key: "_reapplyActiveMarkers",
     value: function _reapplyActiveMarkers() {
-      var _this4 = this;
+      var _this5 = this;
       this._hideAllMarkers();
-      if (!(this._activeNoteNames instanceof Set) || !this._activeNoteNames.size) return;
-      this._activeNoteNames.forEach(function (noteName) {
-        var $key = _this4._keyByNoteName(noteName);
+      if (!(this._activeMarkers instanceof Map) || !this._activeMarkers.size) return;
+      this._activeMarkers.forEach(function (tone, noteName) {
+        var $key = _this5._keyByNoteName(noteName);
         if (!$key.length) return;
-        _this4._showMarker($key.find(".key-marker").first());
+        var $marker = $key.find(".key-marker").first();
+        _this5._applyMarkerTone($marker, tone);
+        _this5._showMarker($marker);
       });
     }
   }, {
@@ -1904,16 +1963,18 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
       this._drag.didMove = false;
     }
   }, {
-    key: "_setsEqual",
-    value: function _setsEqual(a, b) {
-      if (!(a instanceof Set) || !(b instanceof Set)) return false;
+    key: "_markerMapsEqual",
+    value: function _markerMapsEqual(a, b) {
+      if (!(a instanceof Map) || !(b instanceof Map)) return false;
       if (a.size !== b.size) return false;
       var _iterator = _createForOfIteratorHelper(a),
         _step;
       try {
         for (_iterator.s(); !(_step = _iterator.n()).done;) {
-          var value = _step.value;
-          if (!b.has(value)) return false;
+          var _step$value = _slicedToArray(_step.value, 2),
+            key = _step$value[0],
+            value = _step$value[1];
+          if (b.get(key) !== value) return false;
         }
       } catch (err) {
         _iterator.e(err);
@@ -1921,6 +1982,15 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
         _iterator.f();
       }
       return true;
+    }
+  }, {
+    key: "_applyMarkerTone",
+    value: function _applyMarkerTone($marker, tone) {
+      if (!($marker !== null && $marker !== void 0 && $marker.length)) return;
+      var $swatch = $marker.find("span").first();
+      if (!$swatch.length) return;
+      $swatch.removeClass("bg-primary bg-secondary");
+      $swatch.addClass(tone === "secondary" ? "bg-secondary" : "bg-primary");
     }
   }, {
     key: "_showMarker",

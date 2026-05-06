@@ -27,7 +27,7 @@ export class PianoKeyboardUi {
     this.canPlayNote = typeof canPlayNote === "function" ? canPlayNote : null;
     this.visibleWhiteKeys = Math.max(1, Number(visibleWhiteKeys) || 7);
     this._startWhiteMidi = this._naturalMidiFromNoteName(initialStartNote) ?? 60;
-    this._activeNoteNames = new Set();
+    this._activeMarkers = new Map();
     this._renderTimeoutId = null;
     this._audioReady = false;
     this._synth = null;
@@ -203,7 +203,7 @@ export class PianoKeyboardUi {
 
   clearActive() {
     this._hideAllMarkers();
-    this._activeNoteNames = new Set();
+    this._activeMarkers = new Map();
     return this;
   }
 
@@ -213,35 +213,63 @@ export class PianoKeyboardUi {
 
   syncActiveKeys(keys) {
     const nextKeys = Array.isArray(keys) ? keys.filter(($key) => $key?.length) : [];
-    const nextNoteNames = new Set(
-      nextKeys
-        .map(($key) => this.noteNameForKey($key))
-        .filter(Boolean),
-    );
+    const entries = nextKeys
+      .map(($key) => {
+        const noteName = this.noteNameForKey($key);
+        if (!noteName) return null;
+        return { noteName, tone: "primary", $key };
+      })
+      .filter(Boolean);
 
-    return this.syncActiveNoteNames(nextNoteNames, nextKeys);
+    return this.syncActiveMarkers(entries);
   }
 
   syncActiveNoteNames(noteNames, visibleKeys = []) {
     const nextNoteNames = noteNames instanceof Set
-      ? new Set([...noteNames].filter(Boolean))
-      : new Set((Array.isArray(noteNames) ? noteNames : []).filter(Boolean));
+      ? [...noteNames].filter(Boolean)
+      : (Array.isArray(noteNames) ? noteNames : []).filter(Boolean);
     const nextKeys = Array.isArray(visibleKeys) ? visibleKeys.filter(($key) => $key?.length) : [];
 
-    if (this._setsEqual(this._activeNoteNames, nextNoteNames)) {
-      nextKeys.forEach(($key) => {
-        this._showMarker($key.find(".key-marker").first());
+    const entries = nextNoteNames.map((noteName) => {
+      const $key = nextKeys.find(($candidate) => this.noteNameForKey($candidate) === noteName) || null;
+      return { noteName, tone: "primary", $key };
+    });
+
+    return this.syncActiveMarkers(entries);
+  }
+
+  syncActiveMarkers(entries) {
+    const list = Array.isArray(entries) ? entries.filter(Boolean) : [];
+    const nextMarkers = new Map();
+
+    list.forEach((entry) => {
+      const noteName = String(entry.noteName || "").trim();
+      if (!noteName) return;
+      nextMarkers.set(noteName, entry.tone === "secondary" ? "secondary" : "primary");
+    });
+
+    if (this._markerMapsEqual(this._activeMarkers, nextMarkers)) {
+      list.forEach((entry) => {
+        if (!entry?.$key?.length) return;
+        const tone = nextMarkers.get(String(entry.noteName || "").trim()) || "primary";
+        const $marker = entry.$key.find(".key-marker").first();
+        this._applyMarkerTone($marker, tone);
+        this._showMarker($marker);
       });
       return this;
     }
 
     this._hideAllMarkers();
-    this._activeNoteNames = new Set(nextNoteNames);
+    this._activeMarkers = new Map(nextMarkers);
 
-    nextKeys.forEach(($key) => {
-      const noteName = this.noteNameForKey($key);
-      if (!noteName || !this._activeNoteNames.has(noteName)) return;
-      this._showMarker($key.find(".key-marker").first());
+    list.forEach((entry) => {
+      if (!entry?.$key?.length) return;
+      const noteName = String(entry.noteName || "").trim();
+      const tone = this._activeMarkers.get(noteName);
+      if (!noteName || !tone) return;
+      const $marker = entry.$key.find(".key-marker").first();
+      this._applyMarkerTone($marker, tone);
+      this._showMarker($marker);
     });
 
     return this;
@@ -430,12 +458,14 @@ export class PianoKeyboardUi {
 
   _reapplyActiveMarkers() {
     this._hideAllMarkers();
-    if (!(this._activeNoteNames instanceof Set) || !this._activeNoteNames.size) return;
+    if (!(this._activeMarkers instanceof Map) || !this._activeMarkers.size) return;
 
-    this._activeNoteNames.forEach((noteName) => {
+    this._activeMarkers.forEach((tone, noteName) => {
       const $key = this._keyByNoteName(noteName);
       if (!$key.length) return;
-      this._showMarker($key.find(".key-marker").first());
+      const $marker = $key.find(".key-marker").first();
+      this._applyMarkerTone($marker, tone);
+      this._showMarker($marker);
     });
   }
 
@@ -490,13 +520,21 @@ export class PianoKeyboardUi {
     this._drag.didMove = false;
   }
 
-  _setsEqual(a, b) {
-    if (!(a instanceof Set) || !(b instanceof Set)) return false;
+  _markerMapsEqual(a, b) {
+    if (!(a instanceof Map) || !(b instanceof Map)) return false;
     if (a.size !== b.size) return false;
-    for (const value of a) {
-      if (!b.has(value)) return false;
+    for (const [key, value] of a) {
+      if (b.get(key) !== value) return false;
     }
     return true;
+  }
+
+  _applyMarkerTone($marker, tone) {
+    if (!$marker?.length) return;
+    const $swatch = $marker.find("span").first();
+    if (!$swatch.length) return;
+    $swatch.removeClass("bg-primary bg-secondary");
+    $swatch.addClass(tone === "secondary" ? "bg-secondary" : "bg-primary");
   }
 
   _showMarker($marker) {

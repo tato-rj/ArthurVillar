@@ -282,11 +282,13 @@ export class BaseStaffGame {
         primaryState?.octave,
       ),
     ];
-    const noteNames = new Set(
-      notes
-        .map((note) => this._keyboardNoteNameForState(note.step, note.accidentalClass))
-        .filter(Boolean),
-    );
+    const markerEntries = notes
+      .map((note) => ({
+        noteName: this._keyboardNoteNameForState(note.step, note.accidentalClass),
+        tone: note.fixed ? "secondary" : "primary",
+        $key: note.noteId === primary.noteId ? keys[0] : null,
+      }))
+      .filter((entry) => entry.noteName);
 
     notes.forEach((note) => {
       if (note.noteId === primary.noteId) return;
@@ -296,10 +298,14 @@ export class BaseStaffGame {
         note.accidentalClass,
         noteState?.octave,
       );
-      if ($key.length) keys.push($key);
+      if ($key.length) {
+        keys.push($key);
+        const entry = markerEntries.find((item) => item.noteName === this._keyboardNoteNameForState(note.step, note.accidentalClass));
+        if (entry) entry.$key = $key;
+      }
     });
 
-    this.keyboard.syncActiveNoteNames(noteNames, keys);
+    this.keyboard.syncActiveMarkers(markerEntries);
   }
 
   _syncPianoKeyboardMarkerFromAccidentalPreview() {
@@ -338,14 +344,16 @@ export class BaseStaffGame {
         primaryState?.octave,
       ),
     ];
-    const noteNames = new Set(
-      notes
-        .map((note) => this._keyboardNoteNameForState(
+    const markerEntries = notes
+      .map((note) => ({
+        noteName: this._keyboardNoteNameForState(
           note.step,
           note.noteId === noteId ? previewAccidentalClass : note.accidentalClass,
-        ))
-        .filter(Boolean),
-    );
+        ),
+        tone: note.fixed ? "secondary" : "primary",
+        $key: note.noteId === primary.noteId ? keys[0] : null,
+      }))
+      .filter((entry) => entry.noteName);
 
     notes.forEach((note) => {
       if (note.noteId === primary.noteId) return;
@@ -356,10 +364,14 @@ export class BaseStaffGame {
         accidentalClass,
         noteState?.octave,
       );
-      if ($key.length) keys.push($key);
+      if ($key.length) {
+        keys.push($key);
+        const entry = markerEntries.find((item) => item.noteName === this._keyboardNoteNameForState(note.step, accidentalClass));
+        if (entry) entry.$key = $key;
+      }
     });
 
-    this.keyboard.syncActiveNoteNames(noteNames, keys.filter(($key) => $key?.length));
+    this.keyboard.syncActiveMarkers(markerEntries);
   }
 
   _wirePianoKeyboardSync() {
