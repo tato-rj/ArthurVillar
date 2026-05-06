@@ -4,6 +4,8 @@ namespace App\Games;
 
 class NoteNestSettings extends GameFactory
 {   
+    protected array $bonusPoints = ['blockNote'];
+    
     public function gameName(): string 
     {
         return 'Note Nest';
@@ -61,7 +63,7 @@ class NoteNestSettings extends GameFactory
         $options = $this->applyUserPreferences();
 
         $weights = $this->getAccidentalWeights()[(bool) $options['allowAccidentals']];
-        $array = array_merge($options, ['accidentalWeights' => $weights]);
+        $array = $this->buildOptions($options, ['accidentalWeights' => $weights]);
 
         return $key ? $array[$key] : $array;
     }

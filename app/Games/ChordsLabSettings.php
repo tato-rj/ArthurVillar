@@ -63,7 +63,7 @@ class ChordsLabSettings extends GameFactory
         $options['maxUserNotes'] = !empty($options['only7thChords']) ? 3 : 2;
 
         $weights = $this->getAccidentalWeights()[(bool) $options['allowAccidentals']];
-        $array = array_merge($options, ['accidentalWeights' => $weights]);
+        $array = $this->buildOptions($options, ['accidentalWeights' => $weights]);
 
         return $key ? $array[$key] : $array;
     }

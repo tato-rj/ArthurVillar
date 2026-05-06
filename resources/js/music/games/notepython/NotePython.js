@@ -1318,7 +1318,11 @@ export class NotePython {
       : 0;
     const durationSec = Math.max(0, Math.floor((this._stats.finishedAtMs - this._finalStartMs) / 1000));
     const perfectGame = this._stats.checksCorrect > 0 && !this._madeAnyMistake;
-    const finalScore = perfectGame ? this._pointsValue * 2 : this._pointsValue;
+    const scoreSummary = BaseStaffGame.prototype._buildFinalScoreSummary.call(this, {
+      basePoints: this._pointsValue,
+      accuracy,
+      perfectGame,
+    });
 
     if (perfectGame) {
       const tid = setTimeout(() => {
@@ -1334,7 +1338,9 @@ export class NotePython {
     renderFinalResultsOverlay({
       $finalOverlay: this.$finalOverlay,
       rounds: Number(this.opts.numOfChallenges) || 0,
-      score: finalScore,
+      score: scoreSummary.initialScore,
+      delayedFinalScore: scoreSummary.settingsBonus ? scoreSummary.finalScore : null,
+      delayedScoreAlert: scoreSummary.settingsBonus ? "Double points!" : "",
       accuracy,
       durationSec,
       clearCountupTimers: () => this._clearFinalCountupTimers(),

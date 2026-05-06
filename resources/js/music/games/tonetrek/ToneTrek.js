@@ -930,7 +930,11 @@ export class ToneTrek {
     const accuracy = accuracyBase ? Math.round((answersCorrect / accuracyBase) * 100) : 0;
     const durationSec = Math.max(0, Math.floor((this._stats.finishedAtMs - this._finalStartMs) / 1000));
     const perfectGame = records.length > 0 && !this._madeAnyMistake;
-    const finalScore = perfectGame ? this._points * 2 : this._points;
+    const scoreSummary = BaseStaffGame.prototype._buildFinalScoreSummary.call(this, {
+      basePoints: this._points,
+      accuracy,
+      perfectGame,
+    });
 
     if (perfectGame) {
       const tid = setTimeout(() => {
@@ -949,7 +953,9 @@ export class ToneTrek {
     renderFinalResultsOverlay({
       $finalOverlay: this.$finalOverlay,
       rounds: this.opts.numOfChallenges,
-      score: finalScore,
+      score: scoreSummary.initialScore,
+      delayedFinalScore: scoreSummary.settingsBonus ? scoreSummary.finalScore : null,
+      delayedScoreAlert: scoreSummary.settingsBonus ? "Double points!" : "",
       accuracy,
       durationSec,
       clearCountupTimers: () => this._clearFinalCountupTimers(),

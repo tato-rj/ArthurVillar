@@ -4,6 +4,8 @@ namespace App\Games;
 
 class NotePythonSettings extends GameFactory
 {   
+    protected array $bonusPoints = ['showBombs', 'realWalls'];
+
     public function gameName(): string
     {
         return 'Note Python';
@@ -68,7 +70,7 @@ class NotePythonSettings extends GameFactory
         $options['snakeSpeed'] = $speeds[$idx];
 
         $weights = $this->getAccidentalWeights()[(bool) $options['allowAccidentals']];
-        $array = array_merge($options, ['accidentalWeights' => $weights]);
+        $array = $this->buildOptions($options, ['accidentalWeights' => $weights]);
 
         return $key ? $array[$key] : $array;
     }

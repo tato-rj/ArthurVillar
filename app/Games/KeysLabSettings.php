@@ -52,6 +52,8 @@ class KeysLabSettings extends GameFactory
     {
         $options = $this->applyUserPreferences();
 
-        return $key ? $options[$key] : $options;
+        $array = $this->buildOptions($options);
+
+        return $key ? $array[$key] : $array;
     }
 }

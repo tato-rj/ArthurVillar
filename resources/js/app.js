@@ -63,8 +63,8 @@ $(document).on('click', '.avatar-picker .player-avatar', function () {
 
     $radio.prop('checked', true).trigger('change');
 
-    $container.find('.player-avatar').addClass('opacity-50');
-    $clickedAvatar.removeClass('opacity-50');
+    $container.find('.player-avatar').addClass('opacity-2');
+    $clickedAvatar.removeClass('opacity-2');
 });
 
 // /public/js/settings-toggles.js (example path)

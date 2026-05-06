@@ -58,7 +58,7 @@ class PitchDetectiveSettings extends GameFactory
         $options = $this->applyUserPreferences();
 
         $weights = $this->getAccidentalWeights()[(bool) $options['allowAccidentals']];
-        $array = array_merge($options, ['accidentalWeights' => $weights]);
+        $array = $this->buildOptions($options, ['accidentalWeights' => $weights]);
 
         return $key ? $array[$key] : $array;
     }

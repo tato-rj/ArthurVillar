@@ -1,2 +1,808 @@
-/*! For license information please see admin-soundeffects.js.LICENSE.txt */
-(()=>{"use strict";function e(t){return e="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(e){return typeof e}:function(e){return e&&"function"==typeof Symbol&&e.constructor===Symbol&&e!==Symbol.prototype?"symbol":typeof e},e(t)}function t(){var e,r,i="function"==typeof Symbol?Symbol:{},o=i.iterator||"@@iterator",a=i.toStringTag||"@@toStringTag";function c(t,i,o,a){var c=i&&i.prototype instanceof l?i:l,s=Object.create(c.prototype);return n(s,"_invoke",function(t,n,i){var o,a,c,l=0,s=i||[],f=!1,y={p:0,n:0,v:e,a:p,f:p.bind(e,4),d:function(t,n){return o=t,a=0,c=e,y.n=n,u}};function p(t,n){for(a=t,c=n,r=0;!f&&l&&!i&&r<s.length;r++){var i,o=s[r],p=y.p,v=o[2];t>3?(i=v===n)&&(c=o[(a=o[4])?5:(a=3,3)],o[4]=o[5]=e):o[0]<=p&&((i=t<2&&p<o[1])?(a=0,y.v=n,y.n=o[1]):p<v&&(i=t<3||o[0]>n||n>v)&&(o[4]=t,o[5]=n,y.n=v,a=0))}if(i||t>1)return u;throw f=!0,n}return function(i,s,v){if(l>1)throw TypeError("Generator is already running");for(f&&1===s&&p(s,v),a=s,c=v;(r=a<2?e:c)||!f;){o||(a?a<3?(a>1&&(y.n=-1),p(a,c)):y.n=c:y.v=c);try{if(l=2,o){if(a||(i="next"),r=o[i]){if(!(r=r.call(o,c)))throw TypeError("iterator result is not an object");if(!r.done)return r;c=r.value,a<2&&(a=0)}else 1===a&&(r=o.return)&&r.call(o),a<2&&(c=TypeError("The iterator does not provide a '"+i+"' method"),a=1);o=e}else if((r=(f=y.n<0)?c:t.call(n,y))!==u)break}catch(t){o=e,a=1,c=t}finally{l=1}}return{value:r,done:f}}}(t,o,a),!0),s}var u={};function l(){}function s(){}function f(){}r=Object.getPrototypeOf;var y=[][o]?r(r([][o]())):(n(r={},o,function(){return this}),r),p=f.prototype=l.prototype=Object.create(y);function v(e){return Object.setPrototypeOf?Object.setPrototypeOf(e,f):(e.__proto__=f,n(e,a,"GeneratorFunction")),e.prototype=Object.create(p),e}return s.prototype=f,n(p,"constructor",f),n(f,"constructor",s),s.displayName="GeneratorFunction",n(f,a,"GeneratorFunction"),n(p),n(p,a,"Generator"),n(p,o,function(){return this}),n(p,"toString",function(){return"[object Generator]"}),(t=function(){return{w:c,m:v}})()}function n(e,t,r,i){var o=Object.defineProperty;try{o({},"",{})}catch(e){o=0}n=function(e,t,r,i){function a(t,r){n(e,t,function(e){return this._invoke(t,r,e)})}t?o?o(e,t,{value:r,enumerable:!i,configurable:!i,writable:!i}):e[t]=r:(a("next",0),a("throw",1),a("return",2))},n(e,t,r,i)}function r(e,t){return function(e){if(Array.isArray(e))return e}(e)||function(e,t){var n=null==e?null:"undefined"!=typeof Symbol&&e[Symbol.iterator]||e["@@iterator"];if(null!=n){var r,i,o,a,c=[],u=!0,l=!1;try{if(o=(n=n.call(e)).next,0===t){if(Object(n)!==n)return;u=!1}else for(;!(u=(r=o.call(n)).done)&&(c.push(r.value),c.length!==t);u=!0);}catch(e){l=!0,i=e}finally{try{if(!u&&null!=n.return&&(a=n.return(),Object(a)!==a))return}finally{if(l)throw i}}return c}}(e,t)||function(e,t){if(e){if("string"==typeof e)return i(e,t);var n={}.toString.call(e).slice(8,-1);return"Object"===n&&e.constructor&&(n=e.constructor.name),"Map"===n||"Set"===n?Array.from(e):"Arguments"===n||/^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)?i(e,t):void 0}}(e,t)||function(){throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.")}()}function i(e,t){(null==t||t>e.length)&&(t=e.length);for(var n=0,r=Array(t);n<t;n++)r[n]=e[n];return r}function o(e,t,n,r,i,o,a){try{var c=e[o](a),u=c.value}catch(e){return void n(e)}c.done?t(u):Promise.resolve(u).then(r,i)}function a(e,t){var n=Object.keys(e);if(Object.getOwnPropertySymbols){var r=Object.getOwnPropertySymbols(e);t&&(r=r.filter(function(t){return Object.getOwnPropertyDescriptor(e,t).enumerable})),n.push.apply(n,r)}return n}function c(e){for(var t=1;t<arguments.length;t++){var n=null!=arguments[t]?arguments[t]:{};t%2?a(Object(n),!0).forEach(function(t){l(e,t,n[t])}):Object.getOwnPropertyDescriptors?Object.defineProperties(e,Object.getOwnPropertyDescriptors(n)):a(Object(n)).forEach(function(t){Object.defineProperty(e,t,Object.getOwnPropertyDescriptor(n,t))})}return e}function u(e,t){for(var n=0;n<t.length;n++){var r=t[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(e,s(r.key),r)}}function l(e,t,n){return(t=s(t))in e?Object.defineProperty(e,t,{value:n,enumerable:!0,configurable:!0,writable:!0}):e[t]=n,e}function s(t){var n=function(t,n){if("object"!=e(t)||!t)return t;var r=t[Symbol.toPrimitive];if(void 0!==r){var i=r.call(t,n||"default");if("object"!=e(i))return i;throw new TypeError("@@toPrimitive must return a primitive value.")}return("string"===n?String:Number)(t)}(t,"string");return"symbol"==e(n)?n:n+""}var f=function(){function e(){!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,e)}return n=e,i=null,a=[{key:"scale",value:function(t){var n=arguments.length>1&&void 0!==arguments[1]?arguments[1]:1,r=Number(e.VELOCITY[t]);return(Number.isFinite(r)?r:1)*(Number(n)||0)}},{key:"getSoundLibrary",value:function(){return e.SOUND_LIBRARY.map(function(t){return c(c({},t),{},{valuePercent:e.getVelocityPercent(t.volumeKey)})})}},{key:"getVelocityPercent",value:function(t){var n=Number(e.VELOCITY[t]);return Number.isFinite(n)?Math.max(0,Math.min(100,Math.round(100*n))):0}},{key:"setVelocityPercent",value:function(t,n){var r=Math.max(0,Math.min(100,Number(n)||0));return Object.prototype.hasOwnProperty.call(e.VELOCITY,t)?(e.VELOCITY[t]=r/100,r):0}},{key:"previewSound",value:(l=t().m(function n(i){var o,a;return t().w(function(t){for(;;)switch(t.n){case 0:if(window.Tone){t.n=1;break}return t.a(2);case 1:return t.n=2,Tone.start();case 2:null===(o=(a={staffNote:function(){e._getPreviewSynth("staffNote",function(){return e.createStaffNoteSynth()}).triggerAttackRelease("C4",.5,void 0,e.scale("staffNote",1))},accidentalGrab:function(){e._getPreviewSynth("staffNoise",function(){return e.createStaffNoiseSynth()}).triggerAttackRelease(.06,Tone.now(),e.scale("accidentalGrab",.5))},dictation:function(){e._getPreviewSynth("dictation",function(){return e.createDictationSynth()}).triggerAttackRelease(["C4","E4"],.3,void 0,e.scale("dictation",1))},sequence:function(){e._getPreviewSynth("sequence",function(){return e.createSequenceSynth()}).triggerAttackRelease(["C4","G4"],.26,void 0,e.scale("sequence",1))},successBasic:function(){var t=e._getPreviewSynth("uiPoly",function(){return e.createUiPolySynth()}),n=Tone.now();["C6","E6","G6"].forEach(function(r,i){t.triggerAttackRelease(r,.07,n+.05*i,e.scale("successBasic",.42))})},successBonus:function(){var t,n=e._getPreviewSynth("uiPoly",function(){return e.createUiPolySynth()}),r=Tone.now(),i=c({},n.get().envelope),o=null===(t=n.get().oscillator)||void 0===t?void 0:t.type;try{n.set({oscillator:{type:"sine"},envelope:{attack:.004,decay:.12,sustain:.15,release:.65}})}catch(e){}var a=function(e){return Tone.Frequency(e,"midi").toNote()};[62,66,69,73,74].map(function(e){return a(e+3)}).forEach(function(t,i){n.triggerAttackRelease(t,.06,r+.045*i,e.scale("successBonus",.45))}),[62,69,74,78].map(function(e){return a(e+3)}).forEach(function(t){n.triggerAttackRelease(t,.12,r+.26,e.scale("successBonus",.3))}),setTimeout(function(){try{n.set({oscillator:{type:o||"triangle"},envelope:i})}catch(e){}},600)},failNoise:function(){e._getPreviewSynth("uiNoise",function(){return e.createUiNoiseSynth()}).triggerAttackRelease(.06,Tone.now(),e.scale("failNoise",.45))},failNote:function(){var t=e._getPreviewSynth("uiPoly",function(){return e.createUiPolySynth()}),n=Tone.now();t.triggerAttackRelease("A2",.1,n+.01,e.scale("failNote",.55)),t.triggerAttackRelease("G2",.12,n+.08,e.scale("failNote",.6))},bombFail:function(){var t,n=e._getPreviewSynth("uiPoly",function(){return e.createUiPolySynth()}),r=e._getPreviewSynth("uiNoise",function(){return e.createUiNoiseSynth()}),i=Tone.now(),o=c({},n.get().envelope),a=null===(t=n.get().oscillator)||void 0===t?void 0:t.type;try{n.set({oscillator:{type:"triangle"},envelope:{attack:.004,decay:.16,sustain:.08,release:.38}})}catch(e){}["E5","D5","C5","A4","G4","E4","D4","B3","A3","F3","E3"].forEach(function(t,o){var a=i+.17*o;n.triggerAttackRelease(t,.15,a,e.scale("bombFail",.42)),o<8&&r.triggerAttackRelease(.05,a+.015,e.scale("bombFail",.14))}),setTimeout(function(){try{n.set({oscillator:{type:a||"triangle"},envelope:o})}catch(e){}},2200)},wallCrash:function(){var t=e._getPreviewSynth("uiTimer",function(){return e.createUiTimerSynth()}),n=e._getPreviewSynth("uiNoise",function(){return e.createUiNoiseSynth()}),r=Tone.now();n.triggerAttackRelease(.12,r,e.scale("wallCrash",.32)),n.triggerAttackRelease(.09,r+.045,e.scale("wallCrash",.22)),t.triggerAttackRelease("G3",.08,r,e.scale("wallCrash",.85)),t.triggerAttackRelease("D3",.12,r+.04,e.scale("wallCrash",.7)),t.triggerAttackRelease("A2",.18,r+.11,e.scale("wallCrash",.62))},final:function(){var t,n=e._getPreviewSynth("uiPoly",function(){return e.createUiPolySynth()}),r=Tone.now(),i=c({},n.get().envelope),o=null===(t=n.get().oscillator)||void 0===t?void 0:t.type;try{n.set({oscillator:{type:"sine"},envelope:{attack:.02,decay:.25,sustain:.35,release:.9}})}catch(e){}["C5","E5","G5","B5","D6","G6"].forEach(function(t,i){n.triggerAttackRelease(t,.11,r+.08*i,e.scale("final",.44))}),["C6","E6","G6"].forEach(function(t){n.triggerAttackRelease(t,.28,r+.62,e.scale("final",.5))}),setTimeout(function(){try{n.set({oscillator:{type:o||"triangle"},envelope:i})}catch(e){}},1700)},finalMetric:function(){var t=e._getPreviewSynth("uiTimer",function(){return e.createUiTimerSynth()}),n=Tone.now();t.triggerAttackRelease("G5",.055,n,e.scale("finalMetric",.44)),t.triggerAttackRelease("C6",.045,n+.03,e.scale("finalMetric",.34))},perfectBonus:function(){var t,n=e._getPreviewSynth("uiPoly",function(){return e.createUiPolySynth()}),r=Tone.now(),i=c({},n.get().envelope),o=null===(t=n.get().oscillator)||void 0===t?void 0:t.type;try{n.set({oscillator:{type:"triangle"},envelope:{attack:.01,decay:.18,sustain:.25,release:.8}})}catch(e){}["C5","E5","G5","C6","E6","G6","C7"].forEach(function(t,i){n.triggerAttackRelease(t,.09,r+.06*i,e.scale("perfectBonus",.62))}),setTimeout(function(){try{n.set({oscillator:{type:o||"triangle"},envelope:i})}catch(e){}},1400)},runStart:function(){var t=e._getPreviewSynth("uiPoly",function(){return e.createUiPolySynth()}),n=Tone.now();[[[0,7],0,.19,.2],[[3,7],.24,.06,.18],[[0,5,10],.38,.18,.22],[[2,5,9],.62,.06,.18],[[0,7,12],.76,.15,.22]].forEach(function(i){var o=r(i,4),a=o[0],c=o[1],u=o[2],l=o[3];t.triggerAttackRelease(a.map(function(e){return t=60+e,Tone.Frequency(t,"midi").toNote();var t}),u,n+c,e.scale("runStart",l))})},timerBeep:function(){e._getPreviewSynth("uiTimer",function(){return e.createUiTimerSynth()}).triggerAttackRelease("C6",.06,Tone.now(),e.scale("timerBeep",.5))},timerTimeUp:function(){var t=e._getPreviewSynth("uiTimer",function(){return e.createUiTimerSynth()}),n=e._getPreviewSynth("uiNoise",function(){return e.createUiNoiseSynth()}),r=Tone.now();n.triggerAttackRelease(.12,r,e.scale("timerTimeUp",.2)),t.triggerAttackRelease("G4",.11,r,e.scale("timerTimeUp",.72)),t.triggerAttackRelease("E4",.13,r+.1,e.scale("timerTimeUp",.76)),t.triggerAttackRelease("C4",.18,r+.22,e.scale("timerTimeUp",.82))},countdownBeep:function(){e._getPreviewSynth("uiTimer",function(){return e.createUiTimerSynth()}).triggerAttackRelease("B5",.06,Tone.now(),e.scale("countdownBeep",.2))},hinge:function(){var t=e._getPreviewSynth("uiNoise",function(){return e.createUiNoiseSynth()}),n=e._getPreviewSynth("uiTimer",function(){return e.createUiTimerSynth()}),r=Tone.now();t.triggerAttackRelease(.04,r,e.scale("hinge",.07)),n.triggerAttackRelease("E4",.04,r,e.scale("hinge",.12)),n.triggerAttackRelease("C4",.05,r+.04,e.scale("hinge",.16))}})[i])||void 0===o||o.call(a);case 3:return t.a(2)}},n)}),s=function(){var e=this,t=arguments;return new Promise(function(n,r){var i=l.apply(e,t);function a(e){o(i,n,r,a,c,"next",e)}function c(e){o(i,n,r,a,c,"throw",e)}a(void 0)})},function(e){return s.apply(this,arguments)})},{key:"createUiPolySynth",value:function(){return new Tone.PolySynth(Tone.Synth,{oscillator:{type:"triangle"},envelope:{attack:.005,decay:.12,sustain:0,release:.25},volume:e.SYNTH_VOLUME_DB.uiPoly}).toDestination()}},{key:"createUiNoiseSynth",value:function(){return new Tone.NoiseSynth({noise:{type:"pink"},envelope:{attack:.001,decay:.08,sustain:0,release:.06},volume:e.SYNTH_VOLUME_DB.uiNoise}).toDestination()}},{key:"createUiTimerSynth",value:function(){return new Tone.Synth({oscillator:{type:"square"},envelope:{attack:.001,decay:.03,sustain:0,release:.06},volume:e.SYNTH_VOLUME_DB.uiTimer}).toDestination()}},{key:"createStaffNoteSynth",value:function(){return new Tone.Synth({oscillator:{type:"sine"},envelope:{attack:.01,decay:.08,sustain:.6,release:.12},volume:e.SYNTH_VOLUME_DB.staffNote}).toDestination()}},{key:"createStaffNoiseSynth",value:function(){return new Tone.NoiseSynth({noise:{type:"white"},envelope:{attack:.001,decay:.05,sustain:0,release:.04},volume:e.SYNTH_VOLUME_DB.staffNoise}).toDestination()}},{key:"createDictationSynth",value:function(){return new Tone.PolySynth(Tone.Synth,{oscillator:{type:"sine"},envelope:{attack:.01,decay:.08,sustain:.35,release:.25},volume:e.SYNTH_VOLUME_DB.dictation}).toDestination()}},{key:"createSequenceSynth",value:function(){return new Tone.PolySynth(Tone.Synth,{oscillator:{type:"sine"},envelope:{attack:.01,decay:.08,sustain:.35,release:.25},volume:e.SYNTH_VOLUME_DB.sequence}).toDestination()}},{key:"_getPreviewSynth",value:function(t,n){return e._previewSynths[t]||(e._previewSynths[t]=n()),e._previewSynths[t]}}],i&&u(n.prototype,i),a&&u(n,a),Object.defineProperty(n,"prototype",{writable:!1}),n;var n,i,a,l,s}();function y(e){return y="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(e){return typeof e}:function(e){return e&&"function"==typeof Symbol&&e.constructor===Symbol&&e!==Symbol.prototype?"symbol":typeof e},y(e)}function p(){var e,t,n="function"==typeof Symbol?Symbol:{},r=n.iterator||"@@iterator",i=n.toStringTag||"@@toStringTag";function o(n,r,i,o){var u=r&&r.prototype instanceof c?r:c,l=Object.create(u.prototype);return v(l,"_invoke",function(n,r,i){var o,c,u,l=0,s=i||[],f=!1,y={p:0,n:0,v:e,a:p,f:p.bind(e,4),d:function(t,n){return o=t,c=0,u=e,y.n=n,a}};function p(n,r){for(c=n,u=r,t=0;!f&&l&&!i&&t<s.length;t++){var i,o=s[t],p=y.p,v=o[2];n>3?(i=v===r)&&(u=o[(c=o[4])?5:(c=3,3)],o[4]=o[5]=e):o[0]<=p&&((i=n<2&&p<o[1])?(c=0,y.v=r,y.n=o[1]):p<v&&(i=n<3||o[0]>r||r>v)&&(o[4]=n,o[5]=r,y.n=v,c=0))}if(i||n>1)return a;throw f=!0,r}return function(i,s,v){if(l>1)throw TypeError("Generator is already running");for(f&&1===s&&p(s,v),c=s,u=v;(t=c<2?e:u)||!f;){o||(c?c<3?(c>1&&(y.n=-1),p(c,u)):y.n=u:y.v=u);try{if(l=2,o){if(c||(i="next"),t=o[i]){if(!(t=t.call(o,u)))throw TypeError("iterator result is not an object");if(!t.done)return t;u=t.value,c<2&&(c=0)}else 1===c&&(t=o.return)&&t.call(o),c<2&&(u=TypeError("The iterator does not provide a '"+i+"' method"),c=1);o=e}else if((t=(f=y.n<0)?u:n.call(r,y))!==a)break}catch(t){o=e,c=1,u=t}finally{l=1}}return{value:t,done:f}}}(n,i,o),!0),l}var a={};function c(){}function u(){}function l(){}t=Object.getPrototypeOf;var s=[][r]?t(t([][r]())):(v(t={},r,function(){return this}),t),f=l.prototype=c.prototype=Object.create(s);function y(e){return Object.setPrototypeOf?Object.setPrototypeOf(e,l):(e.__proto__=l,v(e,i,"GeneratorFunction")),e.prototype=Object.create(f),e}return u.prototype=l,v(f,"constructor",l),v(l,"constructor",u),u.displayName="GeneratorFunction",v(l,i,"GeneratorFunction"),v(f),v(f,i,"Generator"),v(f,r,function(){return this}),v(f,"toString",function(){return"[object Generator]"}),(p=function(){return{w:o,m:y}})()}function v(e,t,n,r){var i=Object.defineProperty;try{i({},"",{})}catch(e){i=0}v=function(e,t,n,r){function o(t,n){v(e,t,function(e){return this._invoke(t,n,e)})}t?i?i(e,t,{value:n,enumerable:!r,configurable:!r,writable:!r}):e[t]=n:(o("next",0),o("throw",1),o("return",2))},v(e,t,n,r)}function d(e,t,n,r,i,o,a){try{var c=e[o](a),u=c.value}catch(e){return void n(e)}c.done?t(u):Promise.resolve(u).then(r,i)}function h(e,t){for(var n=0;n<t.length;n++){var r=t[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(e,m(r.key),r)}}function m(e){var t=function(e,t){if("object"!=y(e)||!e)return e;var n=e[Symbol.toPrimitive];if(void 0!==n){var r=n.call(e,t||"default");if("object"!=y(r))return r;throw new TypeError("@@toPrimitive must return a primitive value.")}return("string"===t?String:Number)(e)}(e,"string");return"symbol"==y(t)?t:t+""}l(f,"SYNTH_VOLUME_DB",{uiPoly:-10,uiNoise:-16,uiTimer:-14,staffNote:-8,staffNoise:-14,dictation:-9,sequence:-9}),l(f,"VELOCITY",{staffNote:1,accidentalGrab:.45,dictation:1,sequence:1,successBasic:.7,successBonus:.7,failNoise:1,failNote:1,bombFail:1,wallCrash:.4,final:.5,finalMetric:.85,perfectBonus:.25,runStart:.9,timerBeep:.7,timerTimeUp:.95,countdownBeep:1,hinge:.55}),l(f,"SOUND_LIBRARY",[{id:"staffNote",label:"Staff Note",volumeKey:"staffNote",description:"Base loudness for staff note playback."},{id:"accidentalGrab",label:"Accidental Grab",volumeKey:"accidentalGrab",description:"Grab/tap feedback when picking up an accidental."},{id:"dictation",label:"Dictation",volumeKey:"dictation",description:"Dictation playback loudness in PitchDetective."},{id:"sequence",label:"Sequence",volumeKey:"sequence",description:"Sequence playback loudness in ToneTrek and similar games."},{id:"successBasic",label:"Success",volumeKey:"successBasic",description:"Normal correct-answer sound."},{id:"successBonus",label:"Streak Bonus",volumeKey:"successBonus",description:"Streak / bonus correct-answer sound."},{id:"failNoise",label:"Fail Noise",volumeKey:"failNoise",description:"Noise portion of the fail sound."},{id:"failNote",label:"Fail Notes",volumeKey:"failNote",description:"Pitched portion of the fail sound."},{id:"bombFail",label:"Bomb Hit",volumeKey:"bombFail",description:"Long stumbling fail sound when the snake hits a bomb."},{id:"wallCrash",label:"Wall Crash",volumeKey:"wallCrash",description:"Sharp breaking impact when the snake crashes into a wall."},{id:"final",label:"Final Results",volumeKey:"final",description:"Final results reveal fanfare."},{id:"finalMetric",label:"Metric Pop",volumeKey:"finalMetric",description:"Small pop sound as each final metric box appears."},{id:"perfectBonus",label:"Perfect Bonus",volumeKey:"perfectBonus",description:"Extra reward sound for perfect/no-mistakes games."},{id:"runStart",label:"Run Start",volumeKey:"runStart",description:"Opening fanfare at the start of a run/countdown."},{id:"timerBeep",label:"Timer Warning",volumeKey:"timerBeep",description:"Repeating warning beep in the last timer seconds."},{id:"timerTimeUp",label:"Time Up",volumeKey:"timerTimeUp",description:"Stronger sound when the timer actually runs out."},{id:"countdownBeep",label:"Countdown Tick",volumeKey:"countdownBeep",description:"Simple 3-2-1 countdown tick sound."},{id:"hinge",label:"Hinge",volumeKey:"hinge",description:"Short hinge/fall sound used by ToneTrek block reveals."}]),l(f,"_previewSynths",{}),(new(function(){return e=function e(){var t=arguments.length>0&&void 0!==arguments[0]?arguments[0]:{},n=t.listSelector,r=void 0===n?"#sound-effects-list":n,i=t.cardSelector,o=void 0===i?"[data-sound-card]":i;!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,e),this.listSelector=r,this.cardSelector=o,this.$list=$(),this.$template=$()},t=[{key:"init",value:function(){return this.$list=$(this.listSelector).first(),this.$list.length?(this.$template=this.$list.find(this.cardSelector).first().clone(),this.$template.length?(this.$list.empty(),this._renderCards(),this._bindEvents(),this):this):this}},{key:"_renderCards",value:function(){var e=this,t=document.createDocumentFragment();f.getSoundLibrary().forEach(function(n){var r=e.$template.clone(),i=r.find("[data-play]").first(),o=r.find(".sound-name").first(),a=r.find(".sound-volume").first(),c=r.find('input[type="range"]').first(),u=r.find(".sound-description").first();r.attr("data-sound-card",n.id),i.attr("data-play",n.id),o.text(n.label),u.text(n.description),c.attr("name",n.volumeKey).attr("data-volume-key",n.volumeKey).attr("data-sound-id",n.id).val(n.valuePercent),a.text(e._formatVolumeLabel(n.valuePercent)),t.appendChild(r[0])}),this.$list.append(t)}},{key:"_bindEvents",value:function(){var e=this;this.$list.off(".gameAudioAdmin").on("input.gameAudioAdmin change.gameAudioAdmin",'input[type="range"][data-volume-key]',function(t){var n=$(t.currentTarget),r=String(n.attr("data-volume-key")||""),i=f.setVelocityPercent(r,n.val());n.closest(e.cardSelector).find(".sound-volume").first().text(e._formatVolumeLabel(i))}).on("click.gameAudioAdmin","[data-play]",function(){var e,t=(e=p().m(function e(t){var n;return p().w(function(e){for(;;)switch(e.n){case 0:return t.preventDefault(),n=String($(t.currentTarget).attr("data-play")||""),e.n=1,f.previewSound(n);case 1:return e.a(2)}},e)}),function(){var t=this,n=arguments;return new Promise(function(r,i){var o=e.apply(t,n);function a(e){d(o,r,i,a,c,"next",e)}function c(e){d(o,r,i,a,c,"throw",e)}a(void 0)})});return function(e){return t.apply(this,arguments)}}())}},{key:"_formatVolumeLabel",value:function(e){var t=Math.max(0,Math.min(100,Number(e)||0))/100;return String(Number(t.toFixed(2)))}}],t&&h(e.prototype,t),n&&h(e,n),Object.defineProperty(e,"prototype",{writable:!1}),e;var e,t,n}())).init()})();
+/******/ (() => { // webpackBootstrap
+/******/ 	"use strict";
+/******/ 	var __webpack_modules__ = ({
+
+/***/ "./resources/js/music/admin/GameAudioAdminPage.js"
+/*!********************************************************!*\
+  !*** ./resources/js/music/admin/GameAudioAdminPage.js ***!
+  \********************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   GameAudioAdminPage: () => (/* binding */ GameAudioAdminPage)
+/* harmony export */ });
+/* harmony import */ var _games_shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../games/shared/GameAudio.js */ "./resources/js/music/games/shared/GameAudio.js");
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
+function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+function _classCallCheck(a, n) { if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function"); }
+function _defineProperties(e, r) { for (var t = 0; t < r.length; t++) { var o = r[t]; o.enumerable = o.enumerable || !1, o.configurable = !0, "value" in o && (o.writable = !0), Object.defineProperty(e, _toPropertyKey(o.key), o); } }
+function _createClass(e, r, t) { return r && _defineProperties(e.prototype, r), t && _defineProperties(e, t), Object.defineProperty(e, "prototype", { writable: !1 }), e; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+
+var GameAudioAdminPage = /*#__PURE__*/function () {
+  function GameAudioAdminPage() {
+    var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+      _ref$listSelector = _ref.listSelector,
+      listSelector = _ref$listSelector === void 0 ? "#sound-effects-list" : _ref$listSelector,
+      _ref$cardSelector = _ref.cardSelector,
+      cardSelector = _ref$cardSelector === void 0 ? "[data-sound-card]" : _ref$cardSelector;
+    _classCallCheck(this, GameAudioAdminPage);
+    this.listSelector = listSelector;
+    this.cardSelector = cardSelector;
+    this.$list = $();
+    this.$template = $();
+  }
+  return _createClass(GameAudioAdminPage, [{
+    key: "init",
+    value: function init() {
+      this.$list = $(this.listSelector).first();
+      if (!this.$list.length) return this;
+      this.$template = this.$list.find(this.cardSelector).first().clone();
+      if (!this.$template.length) return this;
+      this.$list.empty();
+      this._renderCards();
+      this._bindEvents();
+      return this;
+    }
+  }, {
+    key: "_renderCards",
+    value: function _renderCards() {
+      var _this = this;
+      var frag = document.createDocumentFragment();
+      _games_shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_0__.GameAudio.getSoundLibrary().forEach(function (sound) {
+        var $card = _this.$template.clone();
+        var $playBtn = $card.find("[data-play]").first();
+        var $name = $card.find(".sound-name").first();
+        var $value = $card.find(".sound-volume").first();
+        var $input = $card.find('input[type="range"]').first();
+        var $desc = $card.find(".sound-description").first();
+        $card.attr("data-sound-card", sound.id);
+        $playBtn.attr("data-play", sound.id);
+        $name.text(sound.label);
+        $desc.text(sound.description);
+        $input.attr("name", sound.volumeKey).attr("data-volume-key", sound.volumeKey).attr("data-sound-id", sound.id).val(sound.valuePercent);
+        $value.text(_this._formatVolumeLabel(sound.valuePercent));
+        frag.appendChild($card[0]);
+      });
+      this.$list.append(frag);
+    }
+  }, {
+    key: "_bindEvents",
+    value: function _bindEvents() {
+      var _this2 = this;
+      this.$list.off(".gameAudioAdmin").on("input.gameAudioAdmin change.gameAudioAdmin", 'input[type="range"][data-volume-key]', function (e) {
+        var $input = $(e.currentTarget);
+        var volumeKey = String($input.attr("data-volume-key") || "");
+        var nextValue = _games_shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_0__.GameAudio.setVelocityPercent(volumeKey, $input.val());
+        $input.closest(_this2.cardSelector).find(".sound-volume").first().text(_this2._formatVolumeLabel(nextValue));
+      }).on("click.gameAudioAdmin", "[data-play]", /*#__PURE__*/function () {
+        var _ref2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee(e) {
+          var soundId;
+          return _regenerator().w(function (_context) {
+            while (1) switch (_context.n) {
+              case 0:
+                e.preventDefault();
+                soundId = String($(e.currentTarget).attr("data-play") || "");
+                _context.n = 1;
+                return _games_shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_0__.GameAudio.previewSound(soundId);
+              case 1:
+                return _context.a(2);
+            }
+          }, _callee);
+        }));
+        return function (_x) {
+          return _ref2.apply(this, arguments);
+        };
+      }());
+    }
+  }, {
+    key: "_formatVolumeLabel",
+    value: function _formatVolumeLabel(percent) {
+      var normalized = Math.max(0, Math.min(100, Number(percent) || 0)) / 100;
+      return String(Number(normalized.toFixed(2)));
+    }
+  }]);
+}();
+
+/***/ },
+
+/***/ "./resources/js/music/games/shared/GameAudio.js"
+/*!******************************************************!*\
+  !*** ./resources/js/music/games/shared/GameAudio.js ***!
+  \******************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   GameAudio: () => (/* binding */ GameAudio)
+/* harmony export */ });
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
+function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
+function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+function _classCallCheck(a, n) { if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function"); }
+function _defineProperties(e, r) { for (var t = 0; t < r.length; t++) { var o = r[t]; o.enumerable = o.enumerable || !1, o.configurable = !0, "value" in o && (o.writable = !0), Object.defineProperty(e, _toPropertyKey(o.key), o); } }
+function _createClass(e, r, t) { return r && _defineProperties(e.prototype, r), t && _defineProperties(e, t), Object.defineProperty(e, "prototype", { writable: !1 }), e; }
+function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+var GameAudio = /*#__PURE__*/function () {
+  function GameAudio() {
+    _classCallCheck(this, GameAudio);
+  }
+  return _createClass(GameAudio, null, [{
+    key: "scale",
+    value: function scale(kind) {
+      var base = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+      var mult = Number(GameAudio.VELOCITY[kind]);
+      return (Number.isFinite(mult) ? mult : 1) * (Number(base) || 0);
+    }
+  }, {
+    key: "getSoundLibrary",
+    value: function getSoundLibrary() {
+      return GameAudio.SOUND_LIBRARY.map(function (sound) {
+        return _objectSpread(_objectSpread({}, sound), {}, {
+          valuePercent: GameAudio.getVelocityPercent(sound.volumeKey)
+        });
+      });
+    }
+  }, {
+    key: "getVelocityPercent",
+    value: function getVelocityPercent(kind) {
+      var value = Number(GameAudio.VELOCITY[kind]);
+      if (!Number.isFinite(value)) return 0;
+      return Math.max(0, Math.min(100, Math.round(value * 100)));
+    }
+  }, {
+    key: "setVelocityPercent",
+    value: function setVelocityPercent(kind, percent) {
+      var next = Math.max(0, Math.min(100, Number(percent) || 0));
+      if (!Object.prototype.hasOwnProperty.call(GameAudio.VELOCITY, kind)) return 0;
+      GameAudio.VELOCITY[kind] = next / 100;
+      return next;
+    }
+  }, {
+    key: "previewSound",
+    value: function () {
+      var _previewSound = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee(soundId) {
+        var _previewers$soundId;
+        var previewers;
+        return _regenerator().w(function (_context) {
+          while (1) switch (_context.n) {
+            case 0:
+              if (window.Tone) {
+                _context.n = 1;
+                break;
+              }
+              return _context.a(2);
+            case 1:
+              _context.n = 2;
+              return Tone.start();
+            case 2:
+              previewers = {
+                staffNote: function staffNote() {
+                  GameAudio._getPreviewSynth("staffNote", function () {
+                    return GameAudio.createStaffNoteSynth();
+                  }).triggerAttackRelease("C4", 0.5, undefined, GameAudio.scale("staffNote", 1));
+                },
+                accidentalGrab: function accidentalGrab() {
+                  GameAudio._getPreviewSynth("staffNoise", function () {
+                    return GameAudio.createStaffNoiseSynth();
+                  }).triggerAttackRelease(0.06, Tone.now(), GameAudio.scale("accidentalGrab", 0.5));
+                },
+                dictation: function dictation() {
+                  GameAudio._getPreviewSynth("dictation", function () {
+                    return GameAudio.createDictationSynth();
+                  }).triggerAttackRelease(["C4", "E4"], 0.3, undefined, GameAudio.scale("dictation", 1));
+                },
+                sequence: function sequence() {
+                  GameAudio._getPreviewSynth("sequence", function () {
+                    return GameAudio.createSequenceSynth();
+                  }).triggerAttackRelease(["C4", "G4"], 0.26, undefined, GameAudio.scale("sequence", 1));
+                },
+                successBasic: function successBasic() {
+                  var synth = GameAudio._getPreviewSynth("uiPoly", function () {
+                    return GameAudio.createUiPolySynth();
+                  });
+                  var now = Tone.now();
+                  ["C6", "E6", "G6"].forEach(function (n, i) {
+                    synth.triggerAttackRelease(n, 0.07, now + i * 0.05, GameAudio.scale("successBasic", 0.42));
+                  });
+                },
+                successBonus: function successBonus() {
+                  var _synth$get$oscillator;
+                  var synth = GameAudio._getPreviewSynth("uiPoly", function () {
+                    return GameAudio.createUiPolySynth();
+                  });
+                  var now = Tone.now();
+                  var oldEnv = _objectSpread({}, synth.get().envelope);
+                  var oldOsc = (_synth$get$oscillator = synth.get().oscillator) === null || _synth$get$oscillator === void 0 ? void 0 : _synth$get$oscillator.type;
+                  try {
+                    synth.set({
+                      oscillator: {
+                        type: "sine"
+                      },
+                      envelope: {
+                        attack: 0.004,
+                        decay: 0.12,
+                        sustain: 0.15,
+                        release: 0.65
+                      }
+                    });
+                  } catch (_) {}
+                  var semitoneShift = 3;
+                  var toNote = function toNote(midi) {
+                    return Tone.Frequency(midi, "midi").toNote();
+                  };
+                  [62, 66, 69, 73, 74].map(function (m) {
+                    return toNote(m + semitoneShift);
+                  }).forEach(function (n, i) {
+                    synth.triggerAttackRelease(n, 0.06, now + i * 0.045, GameAudio.scale("successBonus", 0.45));
+                  });
+                  [62, 69, 74, 78].map(function (m) {
+                    return toNote(m + semitoneShift);
+                  }).forEach(function (n) {
+                    synth.triggerAttackRelease(n, 0.12, now + 0.26, GameAudio.scale("successBonus", 0.30));
+                  });
+                  setTimeout(function () {
+                    try {
+                      synth.set({
+                        oscillator: {
+                          type: oldOsc || "triangle"
+                        },
+                        envelope: oldEnv
+                      });
+                    } catch (_) {}
+                  }, 600);
+                },
+                failNoise: function failNoise() {
+                  GameAudio._getPreviewSynth("uiNoise", function () {
+                    return GameAudio.createUiNoiseSynth();
+                  }).triggerAttackRelease(0.06, Tone.now(), GameAudio.scale("failNoise", 0.45));
+                },
+                failNote: function failNote() {
+                  var synth = GameAudio._getPreviewSynth("uiPoly", function () {
+                    return GameAudio.createUiPolySynth();
+                  });
+                  var now = Tone.now();
+                  synth.triggerAttackRelease("A2", 0.10, now + 0.01, GameAudio.scale("failNote", 0.55));
+                  synth.triggerAttackRelease("G2", 0.12, now + 0.08, GameAudio.scale("failNote", 0.6));
+                },
+                bombFail: function bombFail() {
+                  var _synth$get$oscillator2;
+                  var synth = GameAudio._getPreviewSynth("uiPoly", function () {
+                    return GameAudio.createUiPolySynth();
+                  });
+                  var noiseSynth = GameAudio._getPreviewSynth("uiNoise", function () {
+                    return GameAudio.createUiNoiseSynth();
+                  });
+                  var now = Tone.now();
+                  var oldEnv = _objectSpread({}, synth.get().envelope);
+                  var oldOsc = (_synth$get$oscillator2 = synth.get().oscillator) === null || _synth$get$oscillator2 === void 0 ? void 0 : _synth$get$oscillator2.type;
+                  try {
+                    synth.set({
+                      oscillator: {
+                        type: "triangle"
+                      },
+                      envelope: {
+                        attack: 0.004,
+                        decay: 0.16,
+                        sustain: 0.08,
+                        release: 0.38
+                      }
+                    });
+                  } catch (_) {}
+                  ["E5", "D5", "C5", "A4", "G4", "E4", "D4", "B3", "A3", "F3", "E3"].forEach(function (n, i) {
+                    var when = now + i * 0.17;
+                    synth.triggerAttackRelease(n, 0.15, when, GameAudio.scale("bombFail", 0.42));
+                    if (i < 8) noiseSynth.triggerAttackRelease(0.05, when + 0.015, GameAudio.scale("bombFail", 0.14));
+                  });
+                  setTimeout(function () {
+                    try {
+                      synth.set({
+                        oscillator: {
+                          type: oldOsc || "triangle"
+                        },
+                        envelope: oldEnv
+                      });
+                    } catch (_) {}
+                  }, 2200);
+                },
+                wallCrash: function wallCrash() {
+                  var synth = GameAudio._getPreviewSynth("uiTimer", function () {
+                    return GameAudio.createUiTimerSynth();
+                  });
+                  var noiseSynth = GameAudio._getPreviewSynth("uiNoise", function () {
+                    return GameAudio.createUiNoiseSynth();
+                  });
+                  var now = Tone.now();
+                  noiseSynth.triggerAttackRelease(0.12, now, GameAudio.scale("wallCrash", 0.32));
+                  noiseSynth.triggerAttackRelease(0.09, now + 0.045, GameAudio.scale("wallCrash", 0.22));
+                  synth.triggerAttackRelease("G3", 0.08, now, GameAudio.scale("wallCrash", 0.85));
+                  synth.triggerAttackRelease("D3", 0.12, now + 0.04, GameAudio.scale("wallCrash", 0.7));
+                  synth.triggerAttackRelease("A2", 0.18, now + 0.11, GameAudio.scale("wallCrash", 0.62));
+                },
+                "final": function _final() {
+                  var _synth$get$oscillator3;
+                  var synth = GameAudio._getPreviewSynth("uiPoly", function () {
+                    return GameAudio.createUiPolySynth();
+                  });
+                  var now = Tone.now();
+                  var oldEnv = _objectSpread({}, synth.get().envelope);
+                  var oldOsc = (_synth$get$oscillator3 = synth.get().oscillator) === null || _synth$get$oscillator3 === void 0 ? void 0 : _synth$get$oscillator3.type;
+                  try {
+                    synth.set({
+                      oscillator: {
+                        type: "sine"
+                      },
+                      envelope: {
+                        attack: 0.02,
+                        decay: 0.25,
+                        sustain: 0.35,
+                        release: 0.9
+                      }
+                    });
+                  } catch (_) {}
+                  ["C5", "E5", "G5", "B5", "D6", "G6"].forEach(function (n, i) {
+                    synth.triggerAttackRelease(n, 0.11, now + i * 0.08, GameAudio.scale("final", 0.44));
+                  });
+                  ["C6", "E6", "G6"].forEach(function (n) {
+                    synth.triggerAttackRelease(n, 0.28, now + 0.62, GameAudio.scale("final", 0.5));
+                  });
+                  setTimeout(function () {
+                    try {
+                      synth.set({
+                        oscillator: {
+                          type: oldOsc || "triangle"
+                        },
+                        envelope: oldEnv
+                      });
+                    } catch (_) {}
+                  }, 1700);
+                },
+                finalMetric: function finalMetric() {
+                  var synth = GameAudio._getPreviewSynth("uiTimer", function () {
+                    return GameAudio.createUiTimerSynth();
+                  });
+                  var now = Tone.now();
+                  synth.triggerAttackRelease("G5", 0.055, now, GameAudio.scale("finalMetric", 0.44));
+                  synth.triggerAttackRelease("C6", 0.045, now + 0.03, GameAudio.scale("finalMetric", 0.34));
+                },
+                perfectBonus: function perfectBonus() {
+                  var _synth$get$oscillator4;
+                  var synth = GameAudio._getPreviewSynth("uiPoly", function () {
+                    return GameAudio.createUiPolySynth();
+                  });
+                  var now = Tone.now();
+                  var oldEnv = _objectSpread({}, synth.get().envelope);
+                  var oldOsc = (_synth$get$oscillator4 = synth.get().oscillator) === null || _synth$get$oscillator4 === void 0 ? void 0 : _synth$get$oscillator4.type;
+                  try {
+                    synth.set({
+                      oscillator: {
+                        type: "triangle"
+                      },
+                      envelope: {
+                        attack: 0.01,
+                        decay: 0.18,
+                        sustain: 0.25,
+                        release: 0.8
+                      }
+                    });
+                  } catch (_) {}
+                  ["C5", "E5", "G5", "C6", "E6", "G6", "C7"].forEach(function (n, i) {
+                    synth.triggerAttackRelease(n, 0.09, now + i * 0.06, GameAudio.scale("perfectBonus", 0.62));
+                  });
+                  setTimeout(function () {
+                    try {
+                      synth.set({
+                        oscillator: {
+                          type: oldOsc || "triangle"
+                        },
+                        envelope: oldEnv
+                      });
+                    } catch (_) {}
+                  }, 1400);
+                },
+                runStart: function runStart() {
+                  var synth = GameAudio._getPreviewSynth("uiPoly", function () {
+                    return GameAudio.createUiPolySynth();
+                  });
+                  var now = Tone.now();
+                  var toNote = function toNote(m) {
+                    return Tone.Frequency(m, "midi").toNote();
+                  };
+                  [[[0, 7], 0.00, 0.19, 0.20], [[3, 7], 0.24, 0.06, 0.18], [[0, 5, 10], 0.38, 0.18, 0.22], [[2, 5, 9], 0.62, 0.06, 0.18], [[0, 7, 12], 0.76, 0.15, 0.22]].forEach(function (_ref) {
+                    var _ref2 = _slicedToArray(_ref, 4),
+                      intervals = _ref2[0],
+                      t = _ref2[1],
+                      dur = _ref2[2],
+                      vel = _ref2[3];
+                    synth.triggerAttackRelease(intervals.map(function (i) {
+                      return toNote(60 + i);
+                    }), dur, now + t, GameAudio.scale("runStart", vel));
+                  });
+                },
+                timerBeep: function timerBeep() {
+                  GameAudio._getPreviewSynth("uiTimer", function () {
+                    return GameAudio.createUiTimerSynth();
+                  }).triggerAttackRelease("C6", 0.06, Tone.now(), GameAudio.scale("timerBeep", 0.5));
+                },
+                timerTimeUp: function timerTimeUp() {
+                  var timerSynth = GameAudio._getPreviewSynth("uiTimer", function () {
+                    return GameAudio.createUiTimerSynth();
+                  });
+                  var noiseSynth = GameAudio._getPreviewSynth("uiNoise", function () {
+                    return GameAudio.createUiNoiseSynth();
+                  });
+                  var now = Tone.now();
+                  noiseSynth.triggerAttackRelease(0.12, now, GameAudio.scale("timerTimeUp", 0.2));
+                  timerSynth.triggerAttackRelease("G4", 0.11, now, GameAudio.scale("timerTimeUp", 0.72));
+                  timerSynth.triggerAttackRelease("E4", 0.13, now + 0.10, GameAudio.scale("timerTimeUp", 0.76));
+                  timerSynth.triggerAttackRelease("C4", 0.18, now + 0.22, GameAudio.scale("timerTimeUp", 0.82));
+                },
+                countdownBeep: function countdownBeep() {
+                  GameAudio._getPreviewSynth("uiTimer", function () {
+                    return GameAudio.createUiTimerSynth();
+                  }).triggerAttackRelease("B5", 0.06, Tone.now(), GameAudio.scale("countdownBeep", 0.2));
+                },
+                hinge: function hinge() {
+                  var noiseSynth = GameAudio._getPreviewSynth("uiNoise", function () {
+                    return GameAudio.createUiNoiseSynth();
+                  });
+                  var synth = GameAudio._getPreviewSynth("uiTimer", function () {
+                    return GameAudio.createUiTimerSynth();
+                  });
+                  var now = Tone.now();
+                  noiseSynth.triggerAttackRelease(0.04, now, GameAudio.scale("hinge", 0.07));
+                  synth.triggerAttackRelease("E4", 0.04, now, GameAudio.scale("hinge", 0.12));
+                  synth.triggerAttackRelease("C4", 0.05, now + 0.04, GameAudio.scale("hinge", 0.16));
+                }
+              };
+              (_previewers$soundId = previewers[soundId]) === null || _previewers$soundId === void 0 || _previewers$soundId.call(previewers);
+            case 3:
+              return _context.a(2);
+          }
+        }, _callee);
+      }));
+      function previewSound(_x) {
+        return _previewSound.apply(this, arguments);
+      }
+      return previewSound;
+    }()
+  }, {
+    key: "createUiPolySynth",
+    value: function createUiPolySynth() {
+      return new Tone.PolySynth(Tone.Synth, {
+        oscillator: {
+          type: "triangle"
+        },
+        envelope: {
+          attack: 0.005,
+          decay: 0.12,
+          sustain: 0.0,
+          release: 0.25
+        },
+        volume: GameAudio.SYNTH_VOLUME_DB.uiPoly
+      }).toDestination();
+    }
+  }, {
+    key: "createUiNoiseSynth",
+    value: function createUiNoiseSynth() {
+      return new Tone.NoiseSynth({
+        noise: {
+          type: "pink"
+        },
+        envelope: {
+          attack: 0.001,
+          decay: 0.08,
+          sustain: 0.0,
+          release: 0.06
+        },
+        volume: GameAudio.SYNTH_VOLUME_DB.uiNoise
+      }).toDestination();
+    }
+  }, {
+    key: "createUiTimerSynth",
+    value: function createUiTimerSynth() {
+      return new Tone.Synth({
+        oscillator: {
+          type: "square"
+        },
+        envelope: {
+          attack: 0.001,
+          decay: 0.03,
+          sustain: 0.0,
+          release: 0.06
+        },
+        volume: GameAudio.SYNTH_VOLUME_DB.uiTimer
+      }).toDestination();
+    }
+  }, {
+    key: "createStaffNoteSynth",
+    value: function createStaffNoteSynth() {
+      return new Tone.Synth({
+        oscillator: {
+          type: "sine"
+        },
+        envelope: {
+          attack: 0.01,
+          decay: 0.08,
+          sustain: 0.6,
+          release: 0.12
+        },
+        volume: GameAudio.SYNTH_VOLUME_DB.staffNote
+      }).toDestination();
+    }
+  }, {
+    key: "createStaffNoiseSynth",
+    value: function createStaffNoiseSynth() {
+      return new Tone.NoiseSynth({
+        noise: {
+          type: "white"
+        },
+        envelope: {
+          attack: 0.001,
+          decay: 0.05,
+          sustain: 0.0,
+          release: 0.04
+        },
+        volume: GameAudio.SYNTH_VOLUME_DB.staffNoise
+      }).toDestination();
+    }
+  }, {
+    key: "createDictationSynth",
+    value: function createDictationSynth() {
+      return new Tone.PolySynth(Tone.Synth, {
+        oscillator: {
+          type: "sine"
+        },
+        envelope: {
+          attack: 0.01,
+          decay: 0.08,
+          sustain: 0.35,
+          release: 0.25
+        },
+        volume: GameAudio.SYNTH_VOLUME_DB.dictation
+      }).toDestination();
+    }
+  }, {
+    key: "createSequenceSynth",
+    value: function createSequenceSynth() {
+      return new Tone.PolySynth(Tone.Synth, {
+        oscillator: {
+          type: "sine"
+        },
+        envelope: {
+          attack: 0.01,
+          decay: 0.08,
+          sustain: 0.35,
+          release: 0.25
+        },
+        volume: GameAudio.SYNTH_VOLUME_DB.sequence
+      }).toDestination();
+    }
+  }, {
+    key: "_getPreviewSynth",
+    value: function _getPreviewSynth(key, factory) {
+      if (!GameAudio._previewSynths[key]) {
+        GameAudio._previewSynths[key] = factory();
+      }
+      return GameAudio._previewSynths[key];
+    }
+  }]);
+}();
+// Tweak these values to rebalance the whole app.
+_defineProperty(GameAudio, "SYNTH_VOLUME_DB", {
+  uiPoly: -10,
+  uiNoise: -16,
+  uiTimer: -14,
+  staffNote: -8,
+  staffNoise: -14,
+  dictation: -9,
+  sequence: -9
+});
+_defineProperty(GameAudio, "VELOCITY", {
+  staffNote: 1.0,
+  accidentalGrab: 0.45,
+  dictation: 1.0,
+  sequence: 1.0,
+  successBasic: 0.7,
+  successBonus: 0.7,
+  failNoise: 1,
+  failNote: 1,
+  bombFail: 1,
+  wallCrash: .4,
+  "final": 0.5,
+  finalMetric: 0.85,
+  perfectBonus: 0.25,
+  runStart: 0.9,
+  timerBeep: 0.7,
+  timerTimeUp: 0.95,
+  countdownBeep: 1,
+  hinge: 0.55
+});
+_defineProperty(GameAudio, "SOUND_LIBRARY", [{
+  id: "staffNote",
+  label: "Staff Note",
+  volumeKey: "staffNote",
+  description: "Base loudness for staff note playback."
+}, {
+  id: "accidentalGrab",
+  label: "Accidental Grab",
+  volumeKey: "accidentalGrab",
+  description: "Grab/tap feedback when picking up an accidental."
+}, {
+  id: "dictation",
+  label: "Dictation",
+  volumeKey: "dictation",
+  description: "Dictation playback loudness in PitchDetective."
+}, {
+  id: "sequence",
+  label: "Sequence",
+  volumeKey: "sequence",
+  description: "Sequence playback loudness in ToneTrek and similar games."
+}, {
+  id: "successBasic",
+  label: "Success",
+  volumeKey: "successBasic",
+  description: "Normal correct-answer sound."
+}, {
+  id: "successBonus",
+  label: "Streak Bonus",
+  volumeKey: "successBonus",
+  description: "Streak / bonus correct-answer sound."
+}, {
+  id: "failNoise",
+  label: "Fail Noise",
+  volumeKey: "failNoise",
+  description: "Noise portion of the fail sound."
+}, {
+  id: "failNote",
+  label: "Fail Notes",
+  volumeKey: "failNote",
+  description: "Pitched portion of the fail sound."
+}, {
+  id: "bombFail",
+  label: "Bomb Hit",
+  volumeKey: "bombFail",
+  description: "Long stumbling fail sound when the snake hits a bomb."
+}, {
+  id: "wallCrash",
+  label: "Wall Crash",
+  volumeKey: "wallCrash",
+  description: "Sharp breaking impact when the snake crashes into a wall."
+}, {
+  id: "final",
+  label: "Final Results",
+  volumeKey: "final",
+  description: "Final results reveal fanfare."
+}, {
+  id: "finalMetric",
+  label: "Metric Pop",
+  volumeKey: "finalMetric",
+  description: "Small pop sound as each final metric box appears."
+}, {
+  id: "perfectBonus",
+  label: "Perfect Bonus",
+  volumeKey: "perfectBonus",
+  description: "Extra reward sound for perfect/no-mistakes games."
+}, {
+  id: "runStart",
+  label: "Run Start",
+  volumeKey: "runStart",
+  description: "Opening fanfare at the start of a run/countdown."
+}, {
+  id: "timerBeep",
+  label: "Timer Warning",
+  volumeKey: "timerBeep",
+  description: "Repeating warning beep in the last timer seconds."
+}, {
+  id: "timerTimeUp",
+  label: "Time Up",
+  volumeKey: "timerTimeUp",
+  description: "Stronger sound when the timer actually runs out."
+}, {
+  id: "countdownBeep",
+  label: "Countdown Tick",
+  volumeKey: "countdownBeep",
+  description: "Simple 3-2-1 countdown tick sound."
+}, {
+  id: "hinge",
+  label: "Hinge",
+  volumeKey: "hinge",
+  description: "Short hinge/fall sound used by ToneTrek block reveals."
+}]);
+_defineProperty(GameAudio, "_previewSynths", {});
+
+/***/ }
+
+/******/ 	});
+/************************************************************************/
+/******/ 	// The module cache
+/******/ 	var __webpack_module_cache__ = {};
+/******/ 	
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/ 		// Check if module is in cache
+/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
+/******/ 		if (cachedModule !== undefined) {
+/******/ 			return cachedModule.exports;
+/******/ 		}
+/******/ 		// Check if module exists (development only)
+/******/ 		if (__webpack_modules__[moduleId] === undefined) {
+/******/ 			var e = new Error("Cannot find module '" + moduleId + "'");
+/******/ 			e.code = 'MODULE_NOT_FOUND';
+/******/ 			throw e;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = __webpack_module_cache__[moduleId] = {
+/******/ 			// no module.id needed
+/******/ 			// no module.loaded needed
+/******/ 			exports: {}
+/******/ 		};
+/******/ 	
+/******/ 		// Execute the module function
+/******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+/******/ 	
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/ 	
+/************************************************************************/
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__webpack_require__.d = (exports, definition) => {
+/******/ 			for(var key in definition) {
+/******/ 				if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__webpack_require__.r = (exports) => {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/************************************************************************/
+var __webpack_exports__ = {};
+// This entry needs to be wrapped in an IIFE because it needs to be isolated against other modules in the chunk.
+(() => {
+/*!**************************************************!*\
+  !*** ./resources/js/music/admin-soundeffects.js ***!
+  \**************************************************/
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _admin_GameAudioAdminPage_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./admin/GameAudioAdminPage.js */ "./resources/js/music/admin/GameAudioAdminPage.js");
+
+new _admin_GameAudioAdminPage_js__WEBPACK_IMPORTED_MODULE_0__.GameAudioAdminPage().init();
+})();
+
+/******/ })()
+;

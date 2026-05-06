@@ -4,6 +4,8 @@ namespace App\Games;
 
 class MemoryWizardSettings extends GameFactory
 {
+    protected array $bonusPoints = ['hideLastNote'];
+
     public function gameName(): string
     {
         return 'Memory Wizard';
@@ -60,7 +62,7 @@ class MemoryWizardSettings extends GameFactory
         $options = $this->applyUserPreferences();
 
         $weights = $this->getAccidentalWeights()[(bool) $options['allowAccidentals']];
-        $array = array_merge($options, ['accidentalWeights' => $weights]);
+        $array = $this->buildOptions($options, ['accidentalWeights' => $weights]);
 
         return $key ? $array[$key] : $array;
     }

@@ -59,6 +59,8 @@ class BeatHeroSettings extends GameFactory
         $idx = max(0, min($idx, count($speeds) - 1));
         $options['bpm'] = $speeds[$idx];
 
-        return $key ? $options[$key] : $options;
+        $array = $this->buildOptions($options);
+
+        return $key ? $array[$key] : $array;
     }
 }

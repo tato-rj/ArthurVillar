@@ -7,6 +7,7 @@ use App\Models\Player;
 abstract class GameFactory 
 {
     protected array $request = [];
+    protected array $bonusPoints = [];
     protected $intervals = ['m2', 'M2', 'm3', 'M3', 'P4', 'A4', 'd5', 'P5', 'm6', 'M6', 'm7', 'M7', 'P8'];
     protected $triadQualities = ['major', 'minor', 'diminished', 'augmented'];
     protected $keyQualities = ['major', 'minor'];
@@ -57,6 +58,11 @@ abstract class GameFactory
     protected function applyUserPreferences()
     {
         return array_replace($this->defaults(), $this->request);
+    }
+
+    protected function buildOptions(array $options, array $extra = []): array
+    {
+        return array_merge($options, $extra, ['bonusPoints' => $this->bonusPoints]);
     }
 
     public function getIntervals()

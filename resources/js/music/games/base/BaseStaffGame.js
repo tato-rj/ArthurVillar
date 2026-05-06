@@ -1775,6 +1775,32 @@ export class BaseStaffGame {
     this._instructionsRemoved = true;
   }
 
+  _bonusPointSettingKeys() {
+    return Array.isArray(this.opts?.bonusPoints)
+      ? this.opts.bonusPoints.map((key) => String(key || "").trim()).filter(Boolean)
+      : [];
+  }
+
+  _hasConfiguredScoreDoubleBonus(accuracy) {
+    if (Number(accuracy) !== 100) return false;
+    const keys = BaseStaffGame.prototype._bonusPointSettingKeys.call(this);
+    return keys.some((key) => BaseStaffGame.prototype._normalizeOnOff.call(this, this.opts?.[key]));
+  }
+
+  _buildFinalScoreSummary({ basePoints = 0, accuracy = 0, perfectGame = false } = {}) {
+    const normalizedBasePoints = Number(basePoints) || 0;
+    const initialScore = perfectGame ? normalizedBasePoints * 2 : normalizedBasePoints;
+    const settingsBonus = BaseStaffGame.prototype._hasConfiguredScoreDoubleBonus.call(this, accuracy);
+    const finalScore = settingsBonus ? initialScore * 2 : initialScore;
+
+    return {
+      perfectGame: !!perfectGame,
+      settingsBonus,
+      initialScore,
+      finalScore,
+    };
+  }
+
   _showFinalResults() {
     if (this._isPracticeMode()) return;
 
@@ -1786,7 +1812,11 @@ export class BaseStaffGame {
     const totalSeconds = Math.max(0, Math.floor((endMs - PAGE_OPENED_AT_MS) / 1000));
 
     const perfectGame = total > 0 && !this._madeAnyMistake;
-    const finalPoints = perfectGame ? this.points * 2 : this.points;
+    const scoreSummary = this._buildFinalScoreSummary({
+      basePoints: this.points,
+      accuracy,
+      perfectGame,
+    });
 
     if (perfectGame) {
       setTimeout(() => {
@@ -1797,13 +1827,13 @@ export class BaseStaffGame {
       // eslint-disable-next-line no-console
       console.log("[BaseStaffGame] Perfect game! 2x bonus applied.", {
         basePoints: this.points,
-        finalPoints,
+        finalPoints: scoreSummary.initialScore,
       });
     } else {
       // eslint-disable-next-line no-console
       console.log("[BaseStaffGame] No perfect-game bonus.", {
         basePoints: this.points,
-        finalPoints,
+        finalPoints: scoreSummary.initialScore,
         madeAnyMistake: this._madeAnyMistake,
       });
     }
@@ -1811,7 +1841,9 @@ export class BaseStaffGame {
     renderFinalResultsOverlay({
       $finalOverlay: this.$finalOverlay,
       rounds: this.numOfChallenges,
-      score: finalPoints,
+      score: scoreSummary.initialScore,
+      delayedFinalScore: scoreSummary.settingsBonus ? scoreSummary.finalScore : null,
+      delayedScoreAlert: scoreSummary.settingsBonus ? "Double points!" : "",
       accuracy,
       durationSec: totalSeconds,
       clearCountupTimers: () => this._clearFinalCountupTimers(),

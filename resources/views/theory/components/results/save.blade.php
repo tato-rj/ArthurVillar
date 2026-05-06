@@ -1,4 +1,21 @@
+@php
+    $seeds = range(1, 78);
+    shuffle($seeds);
+@endphp
+
 @modal(['title' => 'Join the Leaderboard', 'id' => 'save-results-modal'])
+
+<div>
+<p>Your <strong>final score</strong> is based on 4 things:</p>
+<ul>
+    <li>Your score</li>
+    <li>Your accuracy</li>
+    <li>How many rounds you played</li>
+    <li>How fast you finished</li>
+</ul>
+<p>Higher score, better accuracy, more rounds, and faster time will all increase your final score.</p>
+
+</div>
 
 <form method="POST" action="{{route('theory.leaderboard.store')}}">
 	@csrf
@@ -17,26 +34,27 @@
 	<div class="form-group">
 		<label class="text-grey mb-1 small">Select your avatar</label>
 
-        <div class="btn-group align-items-center justify-content-center flex-wrap avatar-picker" role="group">
-            @for($i = 1; $i <= 24; $i++)
+        <div class="btn-group align-items-center justify-content-center flex-wrap avatar-picker" style="height: 240px; overflow-y: scroll;" role="group">
+
+            @foreach($seeds as $seed)
                 <div class="m-2 cursor-pointer avatar-option">
                     <input
                         type="radio"
                         required
                         class="btn-check"
                         name="avatar_url"
-                        id="avatar-{{ $i }}"
-                        value="https://api.dicebear.com/9.x/bottts-neutral/svg?seed={{ $i }}"
+                        id="avatar-{{ $seed }}"
+                        value="https://api.dicebear.com/9.x/bottts-neutral/svg?seed={{ $seed }}"
                         autocomplete="off"
                     >
                     <img
                         class="player-avatar"
-                        src="https://api.dicebear.com/9.x/bottts-neutral/svg?seed={{ $i }}"
-                        alt="Avatar {{ $i }}"
+                        src="https://api.dicebear.com/9.x/bottts-neutral/svg?seed={{ $seed }}"
+                        alt="Avatar {{ $seed }}"
                         style="width:52px; height:52px;"
                     >
                 </div>
-            @endfor
+            @endforeach
         </div>
 	</div>
 

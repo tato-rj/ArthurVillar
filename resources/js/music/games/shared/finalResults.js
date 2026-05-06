@@ -2,6 +2,8 @@ export function renderFinalResultsOverlay({
   $finalOverlay,
   rounds = 0,
   score = 0,
+  delayedFinalScore = null,
+  delayedScoreAlert = "",
   accuracy = 0,
   durationSec = 0,
   clearCountupTimers = null,
@@ -42,6 +44,16 @@ export function renderFinalResultsOverlay({
 
   const pushCountupTimer = (id) => {
     if (Array.isArray(countupTimers)) countupTimers.push(id);
+  };
+
+  const maxMetricAnimationDelayMs = () => {
+    const $boxes = $finalOverlay.find("#metrics-boxes > div");
+    let maxDelay = 0;
+    $boxes.each((_, el) => {
+      const rawDelay = parseFloat(el.style.animationDelay || "0");
+      if (Number.isFinite(rawDelay)) maxDelay = Math.max(maxDelay, rawDelay);
+    });
+    return maxDelay;
   };
 
   const countTo = (selector, endVal, opts = {}) => {
@@ -108,6 +120,17 @@ export function renderFinalResultsOverlay({
   setSaveResultField("score", score);
   setSaveResultField("accuracy", `${accuracy}%`);
   setSaveResultField("duration", mmss(durationSec));
+
+  if (Number.isFinite(delayedFinalScore) && Number(delayedFinalScore) !== Number(score)) {
+    const delayedBonusTimeout = setTimeout(() => {
+      alert(delayedScoreAlert || "Double points!");
+      const $scoreSpan = $finalOverlay.find('span[name="score"]').first();
+      if ($scoreSpan.length) $scoreSpan.text(String(delayedFinalScore));
+      setSaveResultField("score", delayedFinalScore);
+    }, maxMetricAnimationDelayMs() + (DURATION * 1000) + 120);
+
+    pushCountupTimer(delayedBonusTimeout);
+  }
 
   if (typeof playFinalSfx === "function") playFinalSfx();
 }
