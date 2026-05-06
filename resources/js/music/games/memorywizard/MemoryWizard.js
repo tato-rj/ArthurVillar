@@ -4,7 +4,7 @@ import { pickWeighted, stepToLetterOctave } from "../../staff/staffUtils.js";
 
 export class MemoryWizard extends BaseStaffGame {
   static PREVIEW_NOTE_ANIMATION_MS = 360;
-  static SEQUENCE_NOTE_DISPLAY_MS = 1500;
+  static SEQUENCE_NOTE_DISPLAY_MS = 1200;
 
   static LETTER_TO_SOLFEGE = {
     C: "Do",
