@@ -10,7 +10,7 @@
 
         <div class="row">
                 @foreach($games as $game)
-                <div class="col-lg-4 col-md-6 col-12 g-2">
+                <div class="col-lg-4 col-md-6 col-12 g-3">
                         <div class="border rounded p-2 bg-light">
                                 <h6 class="border bg-white rounded py-2">@fa(['icon' => $game->gameIcon(), 'fa_color' => $game->gameTheme()]){{$game->gameName()}}</h6>
                                 @forelse($game->leaderboard() as $player)
