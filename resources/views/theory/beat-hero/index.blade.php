@@ -36,8 +36,8 @@
         <h6 class="m-0 text-red">Swipe or use the arrows to control the snake</h6>
       </div>
       @include('theory.components.controls')
-      @include('theory.beat-hero.modals.settings')
-      @include('theory.beat-hero.modals.instructions')
+      @include('theory.beat-hero.settings')
+      @include('theory.components.leaderboard.show')
       @include('theory.components.preferences')
     </div>
   </div>

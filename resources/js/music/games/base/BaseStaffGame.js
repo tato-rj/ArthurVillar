@@ -156,6 +156,7 @@ export class BaseStaffGame {
       ? new PianoKeyboardUi({
         rootSelector: "#keyboard",
         namespace: `${this.ns}.keyboard`,
+        canPlayNote: () => this.staff?.isSoundEnabled?.(),
       })
       : null;
 
@@ -239,6 +240,30 @@ export class BaseStaffGame {
     return list.length ? list[list.length - 1] : null;
   }
 
+  _keyboardNoteNameForState(step, accidentalClass) {
+    if (!Number.isFinite(step) || !this.keyboard) return "";
+    const noteState = stepToLetterOctave(this.staff, step);
+    const letter = String(noteState?.letter || "").trim().toUpperCase();
+    const octave = Number(noteState?.octave);
+    if (!letter || !Number.isFinite(octave)) return "";
+
+    const accidentalOffset = this.staff._accidentalClassToOffset(accidentalClass) || 0;
+    const naturalPitchClass = {
+      C: 0,
+      D: 2,
+      E: 4,
+      F: 5,
+      G: 7,
+      A: 9,
+      B: 11,
+    }[letter];
+
+    if (!Number.isInteger(naturalPitchClass)) return "";
+
+    const midi = ((octave + 1) * 12) + naturalPitchClass + accidentalOffset;
+    return this.keyboard._noteNameFromMidi?.(midi) || "";
+  }
+
   _syncPianoKeyboardMarkerFromStaff() {
     if (!this.keyboard || !this.staff) return;
 
@@ -257,6 +282,11 @@ export class BaseStaffGame {
         primaryState?.octave,
       ),
     ];
+    const noteNames = new Set(
+      notes
+        .map((note) => this._keyboardNoteNameForState(note.step, note.accidentalClass))
+        .filter(Boolean),
+    );
 
     notes.forEach((note) => {
       if (note.noteId === primary.noteId) return;
@@ -269,7 +299,7 @@ export class BaseStaffGame {
       if ($key.length) keys.push($key);
     });
 
-    this.keyboard.syncActiveKeys(keys);
+    this.keyboard.syncActiveNoteNames(noteNames, keys);
   }
 
   _syncPianoKeyboardMarkerFromAccidentalPreview() {
@@ -308,6 +338,14 @@ export class BaseStaffGame {
         primaryState?.octave,
       ),
     ];
+    const noteNames = new Set(
+      notes
+        .map((note) => this._keyboardNoteNameForState(
+          note.step,
+          note.noteId === noteId ? previewAccidentalClass : note.accidentalClass,
+        ))
+        .filter(Boolean),
+    );
 
     notes.forEach((note) => {
       if (note.noteId === primary.noteId) return;
@@ -321,7 +359,7 @@ export class BaseStaffGame {
       if ($key.length) keys.push($key);
     });
 
-    this.keyboard.syncActiveKeys(keys.filter(($key) => $key?.length));
+    this.keyboard.syncActiveNoteNames(noteNames, keys.filter(($key) => $key?.length));
   }
 
   _wirePianoKeyboardSync() {

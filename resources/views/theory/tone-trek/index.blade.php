@@ -161,8 +161,8 @@ td {
         Tap <img src="{{asset('images/tone-trek help.png')}}" width="35"> and write the note that completes the interval
         @endslot
       @endcomponent
-      @include('theory.tone-trek.modals.settings')
-      @include('theory.tone-trek.modals.instructions')
+      @include('theory.tone-trek.settings')
+      @include('theory.components.leaderboard.show')
       @include('theory.components.preferences')
     </div>
   </div>

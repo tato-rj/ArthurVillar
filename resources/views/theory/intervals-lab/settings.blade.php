@@ -1,4 +1,4 @@
-@modal(['title' => 'Game settings', 'id' => str_slug($settings->gameName()).'-settings-modal'])
+@modal(['title' => fa('gear').'Game settings', 'id' => str_slug($settings->gameName()).'-settings-modal'])
 <form id="intervals-settings" method="GET" action="{{ $settings->gameUrl() }}">
   @component('theory.components.settings.section', ['title' => 'SETUP'])
     @include('theory.components.settings.rounds')

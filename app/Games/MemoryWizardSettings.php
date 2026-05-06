@@ -2,36 +2,36 @@
 
 namespace App\Games;
 
-class NoteNestSettings extends GameFactory
-{   
-    public function gameName(): string 
+class MemoryWizardSettings extends GameFactory
+{
+    public function gameName(): string
     {
-        return 'Note Nest';
+        return 'Memory Wizard';
     }
 
     public function gameIcon(): string
     {
-        return 'graduation-cap';
-    }
-    
-    public function gameDescription() : string 
-    {
-        return 'Write the note in the correct spot on the staff.';
+        return 'hat-wizard';
     }
 
-    public function gameTheme(): string 
+    public function gameDescription() : string
     {
-        return 'teal';
+        return 'A magical note memory challenge built from the Note Nest scaffold.';
     }
 
-    public function gameUrl(): string 
+    public function gameTheme(): string
     {
-        return route('theory.note-nest.play');
+        return 'fuchsia';
+    }
+
+    public function gameUrl(): string
+    {
+        return route('theory.memory-wizard.play');
     }
 
     protected function requiredToggleKeys(): array
     {
-        return ['sound', 'showNoteNames', 'solfege', 'allowAccidentals', 'showLineNames', 'blockNote'];
+        return ['sound', 'showNoteNames', 'solfege', 'allowAccidentals', 'showLineNames', 'hideLastNote'];
     }
 
     protected function defaults(): array
@@ -48,11 +48,10 @@ class NoteNestSettings extends GameFactory
             'sound' => true,
             'showNoteNames' => false,
             'allowAccidentals' => false,
+            'hideLastNote' => false,
             'solfege' => false,
             'strictDirection' => false,
-            'showLineNames' => false,
-            'blockNote' => false,
-            'blockIcon' => 'ban'
+            'showLineNames' => false
         ];
     }
 

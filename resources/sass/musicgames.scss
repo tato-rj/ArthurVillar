@@ -155,6 +155,23 @@ body {
   @extend .text-red;
 }
 
+.block-icon {
+  align-items: center;
+  color: red;
+  display: inline-flex;
+  justify-content: center;
+}
+
+#staff .block-icon {
+  cursor: help;
+  font-size: 1.5rem;
+  line-height: 1;
+  pointer-events: auto;
+  position: absolute;
+  transform: translate(-50%, -52%);
+  z-index: 4;
+}
+
 #feedback-success {
   display: none;
   height: 74px;
@@ -585,4 +602,9 @@ body {
 
 #piano-toggle button[selected] {
   opacity: 1;
+}
+
+.player-avatar {
+  border-radius: 50%;
+  width: 48px;
 }

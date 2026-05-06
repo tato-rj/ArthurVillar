@@ -1,3 +1,5 @@
+import { GameAudio } from "./GameAudio.js";
+
 export class PianoKeyboardUi {
   static NATURAL_ORDER = ["C", "D", "E", "F", "G", "A", "B"];
   static NATURAL_PITCH_CLASS = {
@@ -15,16 +17,20 @@ export class PianoKeyboardUi {
     rootSelector = "#keyboard",
     namespace = "pianoKeyboard",
     onKeyClick = null,
+    canPlayNote = null,
     visibleWhiteKeys = 7,
     initialStartNote = "C4",
   } = {}) {
     this.rootSelector = rootSelector;
     this.ns = namespace;
     this.onKeyClick = typeof onKeyClick === "function" ? onKeyClick : null;
+    this.canPlayNote = typeof canPlayNote === "function" ? canPlayNote : null;
     this.visibleWhiteKeys = Math.max(1, Number(visibleWhiteKeys) || 7);
     this._startWhiteMidi = this._naturalMidiFromNoteName(initialStartNote) ?? 60;
     this._activeNoteNames = new Set();
     this._renderTimeoutId = null;
+    this._audioReady = false;
+    this._synth = null;
     this._drag = {
       active: false,
       pointerId: null,
@@ -57,6 +63,7 @@ export class PianoKeyboardUi {
         const $key = this._resolveKeyFromTarget(e.target);
         if (!$key.length) return;
         const noteName = this.noteNameForKey($key);
+        void this._playNoteName(noteName);
         if (this.onKeyClick) this.onKeyClick({ $key, noteName, manual: true });
       });
 
@@ -212,16 +219,29 @@ export class PianoKeyboardUi {
         .filter(Boolean),
     );
 
-    if (this._setsEqual(this._activeNoteNames, nextNoteNames)) return this;
+    return this.syncActiveNoteNames(nextNoteNames, nextKeys);
+  }
+
+  syncActiveNoteNames(noteNames, visibleKeys = []) {
+    const nextNoteNames = noteNames instanceof Set
+      ? new Set([...noteNames].filter(Boolean))
+      : new Set((Array.isArray(noteNames) ? noteNames : []).filter(Boolean));
+    const nextKeys = Array.isArray(visibleKeys) ? visibleKeys.filter(($key) => $key?.length) : [];
+
+    if (this._setsEqual(this._activeNoteNames, nextNoteNames)) {
+      nextKeys.forEach(($key) => {
+        this._showMarker($key.find(".key-marker").first());
+      });
+      return this;
+    }
 
     this._hideAllMarkers();
-    this._activeNoteNames = new Set();
+    this._activeNoteNames = new Set(nextNoteNames);
 
     nextKeys.forEach(($key) => {
       const noteName = this.noteNameForKey($key);
-      if (!noteName || this._activeNoteNames.has(noteName)) return;
+      if (!noteName || !this._activeNoteNames.has(noteName)) return;
       this._showMarker($key.find(".key-marker").first());
-      this._activeNoteNames.add(noteName);
     });
 
     return this;
@@ -482,5 +502,42 @@ export class PianoKeyboardUi {
   _showMarker($marker) {
     if (!$marker?.length) return;
     $marker.show();
+  }
+
+  async _ensureAudio() {
+    if (this._audioReady && this._synth) return;
+    if (!window.Tone) return;
+
+    await Tone.start();
+    this._synth = this._synth || new Tone.Synth({
+      oscillator: { type: "triangle" },
+      envelope: {
+        attack: 0.005,
+        decay: 0.08,
+        sustain: 0.15,
+        release: 0.2,
+      },
+    }).toDestination();
+    this._audioReady = true;
+  }
+
+  _canPlayNote() {
+    if (this.canPlayNote) return !!this.canPlayNote();
+    return true;
+  }
+
+  async _playNoteName(noteName) {
+    if (!this._canPlayNote()) return;
+    if (!String(noteName || "").trim()) return;
+
+    await this._ensureAudio();
+    if (!this._synth) return;
+
+    this._synth.triggerAttackRelease(
+      String(noteName).trim(),
+      0.45,
+      undefined,
+      GameAudio.scale("staffNote", 0.85),
+    );
   }
 }

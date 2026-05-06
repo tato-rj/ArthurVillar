@@ -34,6 +34,12 @@ export function renderFinalResultsOverlay({
     return `${mm}:${ss}`;
   };
 
+  const setSaveResultField = (name, value) => {
+    const $input = $(`#save-results-modal input[name="${name}"]`).first();
+    if (!$input.length) return;
+    $input.val(String(value ?? "").trim());
+  };
+
   const pushCountupTimer = (id) => {
     if (Array.isArray(countupTimers)) countupTimers.push(id);
   };
@@ -98,6 +104,10 @@ export function renderFinalResultsOverlay({
   countTo('span[name="accuracy"]', accuracy, { suffix: "%" });
   countTo('span[name="duration"]', durationSec, { formattingFn: mmss });
 
+  setSaveResultField("rounds", rounds);
+  setSaveResultField("score", score);
+  setSaveResultField("accuracy", `${accuracy}%`);
+  setSaveResultField("duration", mmss(durationSec));
+
   if (typeof playFinalSfx === "function") playFinalSfx();
 }
-

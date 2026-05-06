@@ -27,7 +27,6 @@
   'description' => 'Add the note that forms the indicated interval']) --}}
 
 @include('theory.components.title')
-
 <section id="page-wrapper" class="container prevent-select">
   <div class="row">
     <div class="col-lg-6 col-md-8 col-11 mx-auto text-center">
@@ -47,8 +46,8 @@
 
     <div class="col-lg-6 col-md-8 col-11 mx-auto">
       @include('theory.components.controls', ['instructions' => 'Add this note to the staff 👆'])
-      @include('theory.note-nest.modals.settings')
-      @include('theory.note-nest.modals.instructions')
+      @include('theory.note-nest.settings')
+      @include('theory.components.leaderboard.show')
       @include('theory.components.preferences')
     </div>
   </div>
@@ -61,5 +60,8 @@
 <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.js"></script>
 <script src="{{ mix('js/music/notenest.js') }}"></script>
 <script>
+  $(function () {
+  $('[data-toggle="tooltip"]').tooltip()
+});
 </script>
 @endpush

@@ -17,10 +17,13 @@
 		<div class="row mb-4">
 			<div class="col-lg-4 col-md-8 col-12 mx-auto"> 
 				<div class="px-3">
-					<button onclick="location.reload();" class="btn btn-primary mb-2 w-100">@fa(['icon' => 'star'])Start a new challenge</button>
+        			<button data-bs-toggle="modal" data-bs-target="#save-results-modal" class="btn btn-primary mb-2 w-100">@fa(['icon' => 'star'])Join the leaderboard</button>
+					<button onclick="location.reload();" class="btn btn-white mb-2 w-100">Start a new challenge</button>
 					<a href="{{route('theory.index')}}" class="btn btn-white w-100">Back to the main menu</a>
 				</div>
 			</div>
 		</div>
 	</div>
 </div>
+
+@include('theory.components.results.save')

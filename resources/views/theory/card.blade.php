@@ -23,7 +23,7 @@
                 </button>
             </div>
             
-            @include('theory.'.str_slug($settings->gameName()).'.modals.settings')
+            @include('theory.'.str_slug($settings->gameName()).'.settings')
         </div>
     </div>
 </div>

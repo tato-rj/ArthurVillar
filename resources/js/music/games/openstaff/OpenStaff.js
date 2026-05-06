@@ -60,6 +60,7 @@ export class OpenStaff {
       ? new PianoKeyboardUi({
         rootSelector: "#keyboard",
         namespace: `${this.ns}.keyboard`,
+        canPlayNote: () => !!this._currentScreen?.clef && this.staff?.isSoundEnabled?.(),
       })
       : null;
 
@@ -191,6 +192,19 @@ export class OpenStaff {
     return String(value ?? "");
   }
 
+  _keyboardStartNoteForClef(clef) {
+    const cleanClef = String(clef || "").trim().toLowerCase();
+    if (cleanClef === "bass" || cleanClef === "alto" || cleanClef === "tenor") return "C3";
+    return "C4";
+  }
+
+  _syncPianoKeyboardStartNote() {
+    if (!this.keyboard) return;
+    const clef = this._currentScreen?.clef || null;
+    if (!clef) return;
+    this.keyboard.setStartNote(this._keyboardStartNoteForClef(clef));
+  }
+
   _bindContinue() {
     this.$continueBtn
       .off(`click.${this.ns}`)
@@ -252,6 +266,8 @@ export class OpenStaff {
 
     if (screen.clef) this.staff.setClef(screen.clef);
     else this._hideClef();
+
+    this._syncPianoKeyboardStartNote();
 
     if (Number.isFinite(screen.initialStep)) {
       this._createHighlight(screen.initialStep, { revealContinue: false });
@@ -378,6 +394,9 @@ export class OpenStaff {
         this._pointer.targetId = highlightId;
         this._pointer.lastStep = this._highlightStep(highlightId);
         this._setHighlightDragging(highlightId, true);
+        if (Number.isFinite(this._pointer.lastStep)) {
+          this._playAndLogStep(this._pointer.lastStep);
+        }
       } else {
         const createdId = this._createHighlight(pointerStep);
         if (!createdId) {

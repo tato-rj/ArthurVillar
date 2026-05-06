@@ -6,6 +6,10 @@ require('./utilities');
 
 document.addEventListener("touchstart", () => {}, { passive: true });
 
+$(window).on('load', function() {
+    $('.modal.modal-autoshow').modal('show');
+});
+
 document.addEventListener("DOMContentLoaded", () => {
   const ranges = document.querySelectorAll('input[type="range"][data-range-labels]');
 
@@ -48,6 +52,21 @@ $('.form-number button').on('click', function () {
     $input.val(current + 1);
   }
 });
+
+$(document).on('click', '.avatar-picker .player-avatar', function () {
+    const $clickedAvatar = $(this);
+    const $option = $clickedAvatar.closest('.avatar-option');
+    const $container = $clickedAvatar.closest('.avatar-picker');
+    const $radio = $option.find('input[type="radio"][name="avatar_url"]');
+
+    if (!$radio.length) return;
+
+    $radio.prop('checked', true).trigger('change');
+
+    $container.find('.player-avatar').addClass('opacity-50');
+    $clickedAvatar.removeClass('opacity-50');
+});
+
 // /public/js/settings-toggles.js (example path)
 // settings/toggles.js
 $(document)

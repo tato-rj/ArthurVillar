@@ -31,6 +31,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
 
 var OpenStaff = /*#__PURE__*/function () {
   function OpenStaff() {
+    var _this = this;
     var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
     _classCallCheck(this, OpenStaff);
     var defaults = {
@@ -74,7 +75,11 @@ var OpenStaff = /*#__PURE__*/function () {
     };
     this.keyboard = this.$keyboardWrap.length ? new _shared_PianoKeyboardUi_js__WEBPACK_IMPORTED_MODULE_3__.PianoKeyboardUi({
       rootSelector: "#keyboard",
-      namespace: "".concat(this.ns, ".keyboard")
+      namespace: "".concat(this.ns, ".keyboard"),
+      canPlayNote: function canPlayNote() {
+        var _this$_currentScreen, _this$staff, _this$staff$isSoundEn;
+        return !!((_this$_currentScreen = _this._currentScreen) !== null && _this$_currentScreen !== void 0 && _this$_currentScreen.clef) && ((_this$staff = _this.staff) === null || _this$staff === void 0 || (_this$staff$isSoundEn = _this$staff.isSoundEnabled) === null || _this$staff$isSoundEn === void 0 ? void 0 : _this$staff$isSoundEn.call(_this$staff));
+      }
     }) : null;
     this.staff = new _staff_Staff_js__WEBPACK_IMPORTED_MODULE_0__.Staff(this.$staffEl, {
       clef: null,
@@ -121,7 +126,7 @@ var OpenStaff = /*#__PURE__*/function () {
   }, {
     key: "_buildScreens",
     value: function _buildScreens() {
-      var _this = this;
+      var _this2 = this;
       var raw = window.staffZoneScreens;
       var screens = Array.isArray(raw) ? raw : [];
       if (!screens.length) {
@@ -129,14 +134,14 @@ var OpenStaff = /*#__PURE__*/function () {
       }
       return screens.map(function (screen) {
         return {
-          instructions: _this._normalizeInstructions(screen === null || screen === void 0 ? void 0 : screen.instructions),
-          success: _this._normalizeInstructions(screen === null || screen === void 0 ? void 0 : screen.success),
-          clef: _this._normalizeScreenClef(screen === null || screen === void 0 ? void 0 : screen.clef),
-          playSound: _this._normalizeOnOff(screen === null || screen === void 0 ? void 0 : screen.playSound),
-          logNoteName: _this._normalizeOnOff(screen === null || screen === void 0 ? void 0 : screen.logNoteName),
-          showLabels: _this._normalizeOnOff(screen === null || screen === void 0 ? void 0 : screen.showLabels),
-          solfege: _this._normalizeOnOff(screen === null || screen === void 0 ? void 0 : screen.solfege),
-          initialStep: _this._normalizeInitialStep(screen === null || screen === void 0 ? void 0 : screen.initialStep)
+          instructions: _this2._normalizeInstructions(screen === null || screen === void 0 ? void 0 : screen.instructions),
+          success: _this2._normalizeInstructions(screen === null || screen === void 0 ? void 0 : screen.success),
+          clef: _this2._normalizeScreenClef(screen === null || screen === void 0 ? void 0 : screen.clef),
+          playSound: _this2._normalizeOnOff(screen === null || screen === void 0 ? void 0 : screen.playSound),
+          logNoteName: _this2._normalizeOnOff(screen === null || screen === void 0 ? void 0 : screen.logNoteName),
+          showLabels: _this2._normalizeOnOff(screen === null || screen === void 0 ? void 0 : screen.showLabels),
+          solfege: _this2._normalizeOnOff(screen === null || screen === void 0 ? void 0 : screen.solfege),
+          initialStep: _this2._normalizeInitialStep(screen === null || screen === void 0 ? void 0 : screen.initialStep)
         };
       });
     }
@@ -189,35 +194,51 @@ var OpenStaff = /*#__PURE__*/function () {
       return String(value !== null && value !== void 0 ? value : "");
     }
   }, {
+    key: "_keyboardStartNoteForClef",
+    value: function _keyboardStartNoteForClef(clef) {
+      var cleanClef = String(clef || "").trim().toLowerCase();
+      if (cleanClef === "bass" || cleanClef === "alto" || cleanClef === "tenor") return "C3";
+      return "C4";
+    }
+  }, {
+    key: "_syncPianoKeyboardStartNote",
+    value: function _syncPianoKeyboardStartNote() {
+      var _this$_currentScreen2;
+      if (!this.keyboard) return;
+      var clef = ((_this$_currentScreen2 = this._currentScreen) === null || _this$_currentScreen2 === void 0 ? void 0 : _this$_currentScreen2.clef) || null;
+      if (!clef) return;
+      this.keyboard.setStartNote(this._keyboardStartNoteForClef(clef));
+    }
+  }, {
     key: "_bindContinue",
     value: function _bindContinue() {
-      var _this2 = this;
+      var _this3 = this;
       this.$continueBtn.off("click.".concat(this.ns)).on("click.".concat(this.ns), function (e) {
         e.preventDefault();
-        var nextIndex = _this2._currentScreenIndex + 1;
-        if (nextIndex >= _this2._screens.length) return;
-        _this2._showScreen(nextIndex);
+        var nextIndex = _this3._currentScreenIndex + 1;
+        if (nextIndex >= _this3._screens.length) return;
+        _this3._showScreen(nextIndex);
       });
     }
   }, {
     key: "_bindKeyboardArrows",
     value: function _bindKeyboardArrows() {
-      var _this3 = this;
+      var _this4 = this;
       $(document).off("keydown.".concat(this.ns, "HighlightArrow")).on("keydown.".concat(this.ns, "HighlightArrow"), function (e) {
-        if (_this3._shouldBlockStaffInteraction()) return;
+        if (_this4._shouldBlockStaffInteraction()) return;
         var key = String(e.key || "").toLowerCase();
         if (key !== "arrowup" && key !== "arrowdown") return;
         var $target = $(e.target);
         if ($target.is("input, textarea, select, [contenteditable='true']")) return;
         e.preventDefault();
-        _this3._moveCurrentHighlightBy(key === "arrowup" ? 1 : -1);
+        _this4._moveCurrentHighlightBy(key === "arrowup" ? 1 : -1);
       });
       $(document).off("click.".concat(this.ns, "HighlightArrow"), '#music-keyboard [data-direction], [data-direction][data-target="staff-highlight"]').on("click.".concat(this.ns, "HighlightArrow"), '#music-keyboard [data-direction], [data-direction][data-target="staff-highlight"]', function (e) {
-        if (_this3._shouldBlockStaffInteraction()) return;
+        if (_this4._shouldBlockStaffInteraction()) return;
         var direction = String($(e.currentTarget).attr("data-direction") || "").toLowerCase();
         if (direction !== "up" && direction !== "down") return;
         e.preventDefault();
-        _this3._moveCurrentHighlightBy(direction === "up" ? 1 : -1);
+        _this4._moveCurrentHighlightBy(direction === "up" ? 1 : -1);
       });
     }
   }, {
@@ -241,6 +262,7 @@ var OpenStaff = /*#__PURE__*/function () {
       this.$done.hide();
       this.staff.setSoundEnabled(!!screen.playSound);
       if (screen.clef) this.staff.setClef(screen.clef);else this._hideClef();
+      this._syncPianoKeyboardStartNote();
       if (Number.isFinite(screen.initialStep)) {
         this._createHighlight(screen.initialStep, {
           revealContinue: false
@@ -252,9 +274,9 @@ var OpenStaff = /*#__PURE__*/function () {
     key: "_revealContinue",
     value: function _revealContinue() {
       if (!this._currentScreenSuccessShown) {
-        var _this$_currentScreen;
+        var _this$_currentScreen3;
         this._currentScreenSuccessShown = true;
-        if ((_this$_currentScreen = this._currentScreen) !== null && _this$_currentScreen !== void 0 && _this$_currentScreen.success) {
+        if ((_this$_currentScreen3 = this._currentScreen) !== null && _this$_currentScreen3 !== void 0 && _this$_currentScreen3.success) {
           if (this._pointer.active) this._pendingSuccessInstructions = true;else this._renderSuccessInstructions();
         }
       }
@@ -274,9 +296,9 @@ var OpenStaff = /*#__PURE__*/function () {
   }, {
     key: "_renderSuccessInstructions",
     value: function _renderSuccessInstructions() {
-      var _this$_currentScreen2;
+      var _this$_currentScreen4;
       this._pendingSuccessInstructions = false;
-      this._renderInstructions(((_this$_currentScreen2 = this._currentScreen) === null || _this$_currentScreen2 === void 0 ? void 0 : _this$_currentScreen2.success) || "");
+      this._renderInstructions(((_this$_currentScreen4 = this._currentScreen) === null || _this$_currentScreen4 === void 0 ? void 0 : _this$_currentScreen4.success) || "");
     }
   }, {
     key: "_shouldBlockStaffInteraction",
@@ -306,14 +328,14 @@ var OpenStaff = /*#__PURE__*/function () {
   }, {
     key: "_wirePianoKeyboardToggle",
     value: function _wirePianoKeyboardToggle() {
-      var _this4 = this;
+      var _this5 = this;
       if (!this.$keyboardWrap.length) return;
       if (this.$pianoToggleBtn.length) this.$keyboardWrap.hide();else this.$keyboardWrap.show();
       if (this.$pianoToggleBtn.length) {
         this.$pianoToggleBtn.off("click.".concat(this.ns, ".pianoToggle")).on("click.".concat(this.ns, ".pianoToggle"), function (e) {
           e.preventDefault();
-          _this4.$keyboardWrap.toggle();
-          _this4._syncPianoKeyboardToggleUi();
+          _this5.$keyboardWrap.toggle();
+          _this5._syncPianoKeyboardToggleUi();
         });
       }
       this._syncPianoKeyboardToggleUi();
@@ -321,9 +343,9 @@ var OpenStaff = /*#__PURE__*/function () {
   }, {
     key: "_syncPianoKeyboardMarkerFromHighlight",
     value: function _syncPianoKeyboardMarkerFromHighlight() {
-      var _this$_currentScreen3;
+      var _this$_currentScreen5;
       if (!this.keyboard) return;
-      if (!((_this$_currentScreen3 = this._currentScreen) !== null && _this$_currentScreen3 !== void 0 && _this$_currentScreen3.clef)) {
+      if (!((_this$_currentScreen5 = this._currentScreen) !== null && _this$_currentScreen5 !== void 0 && _this$_currentScreen5.clef)) {
         this.keyboard.syncActiveKeys([]);
         return;
       }
@@ -340,77 +362,80 @@ var OpenStaff = /*#__PURE__*/function () {
   }, {
     key: "_bindOpenStaffInteraction",
     value: function _bindOpenStaffInteraction() {
-      var _this5 = this;
+      var _this6 = this;
       this.$staffEl.off(".".concat(this.ns));
       $(window).off("blur.".concat(this.ns));
       this.$staffEl.on("pointerdown.".concat(this.ns), function (e) {
-        var _this5$$staffEl$;
-        if (_this5._shouldBlockStaffInteraction()) return;
+        var _this6$$staffEl$;
+        if (_this6._shouldBlockStaffInteraction()) return;
         e.preventDefault();
         var _getPointerPageXY = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.getPointerPageXY)(e),
           pageY = _getPointerPageXY.y;
         var $highlight = $(e.target).closest(".staff-highlight");
-        var pointerStep = _this5._stepFromPageY(pageY);
-        _this5._pointer.active = true;
-        _this5._pointer.pointerId = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.getPointerId)(e);
-        _this5._pointer.targetId = null;
-        _this5._pointer.dragging = false;
-        _this5._pointer.createdOnPointerDown = false;
-        _this5._pointer.startPageY = pageY;
-        _this5._pointer.lastStep = null;
+        var pointerStep = _this6._stepFromPageY(pageY);
+        _this6._pointer.active = true;
+        _this6._pointer.pointerId = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.getPointerId)(e);
+        _this6._pointer.targetId = null;
+        _this6._pointer.dragging = false;
+        _this6._pointer.createdOnPointerDown = false;
+        _this6._pointer.startPageY = pageY;
+        _this6._pointer.lastStep = null;
         if ($highlight.length) {
           var highlightId = String($highlight.attr("data-highlight-id") || "");
           if (!highlightId) {
-            _this5._finishPointerInteraction();
+            _this6._finishPointerInteraction();
             return;
           }
-          _this5._pointer.targetId = highlightId;
-          _this5._pointer.lastStep = _this5._highlightStep(highlightId);
-          _this5._setHighlightDragging(highlightId, true);
+          _this6._pointer.targetId = highlightId;
+          _this6._pointer.lastStep = _this6._highlightStep(highlightId);
+          _this6._setHighlightDragging(highlightId, true);
+          if (Number.isFinite(_this6._pointer.lastStep)) {
+            _this6._playAndLogStep(_this6._pointer.lastStep);
+          }
         } else {
-          var createdId = _this5._createHighlight(pointerStep);
+          var createdId = _this6._createHighlight(pointerStep);
           if (!createdId) {
-            _this5._finishPointerInteraction();
+            _this6._finishPointerInteraction();
             return;
           }
-          _this5._pointer.targetId = createdId;
-          _this5._pointer.createdOnPointerDown = true;
-          _this5._pointer.lastStep = pointerStep;
-          _this5._playAndLogStep(pointerStep);
+          _this6._pointer.targetId = createdId;
+          _this6._pointer.createdOnPointerDown = true;
+          _this6._pointer.lastStep = pointerStep;
+          _this6._playAndLogStep(pointerStep);
         }
-        var pointerId = _this5._pointer.pointerId;
-        if ((_this5$$staffEl$ = _this5.$staffEl[0]) !== null && _this5$$staffEl$ !== void 0 && _this5$$staffEl$.setPointerCapture && pointerId != null) {
-          _this5.$staffEl[0].setPointerCapture(pointerId);
+        var pointerId = _this6._pointer.pointerId;
+        if ((_this6$$staffEl$ = _this6.$staffEl[0]) !== null && _this6$$staffEl$ !== void 0 && _this6$$staffEl$.setPointerCapture && pointerId != null) {
+          _this6.$staffEl[0].setPointerCapture(pointerId);
         }
       });
       this.$staffEl.on("pointermove.".concat(this.ns), function (e) {
-        if (_this5._shouldBlockStaffInteraction()) return;
-        if (!_this5._pointer.active) return;
+        if (_this6._shouldBlockStaffInteraction()) return;
+        if (!_this6._pointer.active) return;
         var pointerId = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.getPointerId)(e);
-        if (_this5._pointer.pointerId != null && pointerId != null && pointerId !== _this5._pointer.pointerId) return;
+        if (_this6._pointer.pointerId != null && pointerId != null && pointerId !== _this6._pointer.pointerId) return;
         e.preventDefault();
         var _getPointerPageXY2 = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.getPointerPageXY)(e),
           pageY = _getPointerPageXY2.y;
-        var movedPx = Math.abs(pageY - _this5._pointer.startPageY);
-        if (!_this5._pointer.dragging && movedPx >= _this5._pointer.dragThresholdPx) {
-          _this5._pointer.dragging = true;
-          _this5._setHighlightDragging(_this5._pointer.targetId, true);
+        var movedPx = Math.abs(pageY - _this6._pointer.startPageY);
+        if (!_this6._pointer.dragging && movedPx >= _this6._pointer.dragThresholdPx) {
+          _this6._pointer.dragging = true;
+          _this6._setHighlightDragging(_this6._pointer.targetId, true);
         }
-        if (!_this5._pointer.dragging) return;
-        var step = _this5._stepFromPageY(pageY);
-        _this5._moveHighlightToStep(_this5._pointer.targetId, step);
-        if (step === _this5._pointer.lastStep) return;
-        _this5._pointer.lastStep = step;
-        _this5._revealContinue();
-        _this5._playAndLogStep(step);
+        if (!_this6._pointer.dragging) return;
+        var step = _this6._stepFromPageY(pageY);
+        _this6._moveHighlightToStep(_this6._pointer.targetId, step);
+        if (step === _this6._pointer.lastStep) return;
+        _this6._pointer.lastStep = step;
+        _this6._revealContinue();
+        _this6._playAndLogStep(step);
       });
       this.$staffEl.on("pointerup.".concat(this.ns, " pointercancel.").concat(this.ns), function (e) {
         var pointerId = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.getPointerId)(e);
-        if (_this5._pointer.pointerId != null && pointerId != null && pointerId !== _this5._pointer.pointerId) return;
-        _this5._finishPointerInteraction();
+        if (_this6._pointer.pointerId != null && pointerId != null && pointerId !== _this6._pointer.pointerId) return;
+        _this6._finishPointerInteraction();
       });
       $(window).on("blur.".concat(this.ns), function () {
-        _this5._finishPointerInteraction();
+        _this6._finishPointerInteraction();
       });
     }
   }, {
@@ -453,11 +478,11 @@ var OpenStaff = /*#__PURE__*/function () {
   }, {
     key: "_stepName",
     value: function _stepName(step) {
-      var _this$_currentScreen4;
+      var _this$_currentScreen6;
       var note = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.stepToLetterOctave)(this.staff, step);
       if (!note) return "";
       var letter = String(note.letter || "").toUpperCase();
-      return (_this$_currentScreen4 = this._currentScreen) !== null && _this$_currentScreen4 !== void 0 && _this$_currentScreen4.solfege ? OpenStaff.LETTER_TO_SOLFEGE[letter] || letter : letter;
+      return (_this$_currentScreen6 = this._currentScreen) !== null && _this$_currentScreen6 !== void 0 && _this$_currentScreen6.solfege ? OpenStaff.LETTER_TO_SOLFEGE[letter] || letter : letter;
     }
   }, {
     key: "_stepPositionLabel",
@@ -481,9 +506,9 @@ var OpenStaff = /*#__PURE__*/function () {
   }, {
     key: "_highlightLabelHtml",
     value: function _highlightLabelHtml(step) {
-      var _this$_currentScreen5, _this$_currentScreen6;
-      if (!((_this$_currentScreen5 = this._currentScreen) !== null && _this$_currentScreen5 !== void 0 && _this$_currentScreen5.showLabels)) return "";
-      if (!((_this$_currentScreen6 = this._currentScreen) !== null && _this$_currentScreen6 !== void 0 && _this$_currentScreen6.clef)) return this._stepPositionLabel(step);
+      var _this$_currentScreen7, _this$_currentScreen8;
+      if (!((_this$_currentScreen7 = this._currentScreen) !== null && _this$_currentScreen7 !== void 0 && _this$_currentScreen7.showLabels)) return "";
+      if (!((_this$_currentScreen8 = this._currentScreen) !== null && _this$_currentScreen8 !== void 0 && _this$_currentScreen8.clef)) return this._stepPositionLabel(step);
       return this._stepName(step);
     }
   }, {
@@ -512,7 +537,7 @@ var OpenStaff = /*#__PURE__*/function () {
   }, {
     key: "_renderHighlightLedgers",
     value: function _renderHighlightLedgers(highlightId, step) {
-      var _this6 = this;
+      var _this7 = this;
       if (!highlightId) return;
       this.$staffEl.find(".ledger[data-for-highlight-id=\"".concat(highlightId, "\"]")).remove();
       var ledgerSteps = this.staff.ledgerStepsFor(step);
@@ -521,10 +546,10 @@ var OpenStaff = /*#__PURE__*/function () {
       ledgerSteps.forEach(function (ledgerStep) {
         var $ledger = $("<div></div>").addClass("ledger").attr("data-for-highlight-id", highlightId).css({
           left: "".concat(left, "px"),
-          top: "".concat(_this6.staff.stepToY(ledgerStep), "px")
+          top: "".concat(_this7.staff.stepToY(ledgerStep), "px")
         });
         if (isDragging) $ledger.addClass("dragging");
-        $ledger.appendTo(_this6.$staffEl);
+        $ledger.appendTo(_this7.$staffEl);
       });
     }
   }, {
@@ -608,12 +633,12 @@ var OpenStaff = /*#__PURE__*/function () {
   }, {
     key: "_playAndLogStep",
     value: function _playAndLogStep(step) {
-      var _this$_currentScreen7, _this$_currentScreen8, _this$_currentScreen9;
+      var _this$_currentScreen9, _this$_currentScreen0, _this$_currentScreen1;
       var noteName = this._stepName(step);
-      if ((_this$_currentScreen7 = this._currentScreen) !== null && _this$_currentScreen7 !== void 0 && _this$_currentScreen7.playSound && (_this$_currentScreen8 = this._currentScreen) !== null && _this$_currentScreen8 !== void 0 && _this$_currentScreen8.clef) {
+      if ((_this$_currentScreen9 = this._currentScreen) !== null && _this$_currentScreen9 !== void 0 && _this$_currentScreen9.playSound && (_this$_currentScreen0 = this._currentScreen) !== null && _this$_currentScreen0 !== void 0 && _this$_currentScreen0.clef) {
         void this.staff.playStep(step, 0);
       }
-      if (!((_this$_currentScreen9 = this._currentScreen) !== null && _this$_currentScreen9 !== void 0 && _this$_currentScreen9.logNoteName)) return;
+      if (!((_this$_currentScreen1 = this._currentScreen) !== null && _this$_currentScreen1 !== void 0 && _this$_currentScreen1.logNoteName)) return;
 
       // eslint-disable-next-line no-console
       console.log("OpenStaff note:", noteName, {
@@ -1362,9 +1387,18 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   PianoKeyboardUi: () => (/* binding */ PianoKeyboardUi)
 /* harmony export */ });
+/* harmony import */ var _GameAudio_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./GameAudio.js */ "./resources/js/music/games/shared/GameAudio.js");
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
+function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
 function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
+function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
 function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
+function _arrayWithoutHoles(r) { if (Array.isArray(r)) return _arrayLikeToArray(r); }
 function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
 function _classCallCheck(a, n) { if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function"); }
 function _defineProperties(e, r) { for (var t = 0; t < r.length; t++) { var o = r[t]; o.enumerable = o.enumerable || !1, o.configurable = !0, "value" in o && (o.writable = !0), Object.defineProperty(e, _toPropertyKey(o.key), o); } }
@@ -1372,6 +1406,7 @@ function _createClass(e, r, t) { return r && _defineProperties(e.prototype, r), 
 function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
 function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
 function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+
 var PianoKeyboardUi = /*#__PURE__*/function () {
   function PianoKeyboardUi() {
     var _this$_naturalMidiFro;
@@ -1382,6 +1417,8 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
       namespace = _ref$namespace === void 0 ? "pianoKeyboard" : _ref$namespace,
       _ref$onKeyClick = _ref.onKeyClick,
       onKeyClick = _ref$onKeyClick === void 0 ? null : _ref$onKeyClick,
+      _ref$canPlayNote = _ref.canPlayNote,
+      canPlayNote = _ref$canPlayNote === void 0 ? null : _ref$canPlayNote,
       _ref$visibleWhiteKeys = _ref.visibleWhiteKeys,
       visibleWhiteKeys = _ref$visibleWhiteKeys === void 0 ? 7 : _ref$visibleWhiteKeys,
       _ref$initialStartNote = _ref.initialStartNote,
@@ -1390,10 +1427,13 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
     this.rootSelector = rootSelector;
     this.ns = namespace;
     this.onKeyClick = typeof onKeyClick === "function" ? onKeyClick : null;
+    this.canPlayNote = typeof canPlayNote === "function" ? canPlayNote : null;
     this.visibleWhiteKeys = Math.max(1, Number(visibleWhiteKeys) || 7);
     this._startWhiteMidi = (_this$_naturalMidiFro = this._naturalMidiFromNoteName(initialStartNote)) !== null && _this$_naturalMidiFro !== void 0 ? _this$_naturalMidiFro : 60;
     this._activeNoteNames = new Set();
     this._renderTimeoutId = null;
+    this._audioReady = false;
+    this._synth = null;
     this._drag = {
       active: false,
       pointerId: null,
@@ -1425,6 +1465,7 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
         var $key = _this._resolveKeyFromTarget(e.target);
         if (!$key.length) return;
         var noteName = _this.noteNameForKey($key);
+        void _this._playNoteName(noteName);
         if (_this.onKeyClick) _this.onKeyClick({
           $key: $key,
           noteName: noteName,
@@ -1573,14 +1614,29 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
       var nextNoteNames = new Set(nextKeys.map(function ($key) {
         return _this2.noteNameForKey($key);
       }).filter(Boolean));
-      if (this._setsEqual(this._activeNoteNames, nextNoteNames)) return this;
+      return this.syncActiveNoteNames(nextNoteNames, nextKeys);
+    }
+  }, {
+    key: "syncActiveNoteNames",
+    value: function syncActiveNoteNames(noteNames) {
+      var _this3 = this;
+      var visibleKeys = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+      var nextNoteNames = noteNames instanceof Set ? new Set(_toConsumableArray(noteNames).filter(Boolean)) : new Set((Array.isArray(noteNames) ? noteNames : []).filter(Boolean));
+      var nextKeys = Array.isArray(visibleKeys) ? visibleKeys.filter(function ($key) {
+        return $key === null || $key === void 0 ? void 0 : $key.length;
+      }) : [];
+      if (this._setsEqual(this._activeNoteNames, nextNoteNames)) {
+        nextKeys.forEach(function ($key) {
+          _this3._showMarker($key.find(".key-marker").first());
+        });
+        return this;
+      }
       this._hideAllMarkers();
-      this._activeNoteNames = new Set();
+      this._activeNoteNames = new Set(nextNoteNames);
       nextKeys.forEach(function ($key) {
-        var noteName = _this2.noteNameForKey($key);
-        if (!noteName || _this2._activeNoteNames.has(noteName)) return;
-        _this2._showMarker($key.find(".key-marker").first());
-        _this2._activeNoteNames.add(noteName);
+        var noteName = _this3.noteNameForKey($key);
+        if (!noteName || !_this3._activeNoteNames.has(noteName)) return;
+        _this3._showMarker($key.find(".key-marker").first());
       });
       return this;
     }
@@ -1789,13 +1845,13 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
   }, {
     key: "_reapplyActiveMarkers",
     value: function _reapplyActiveMarkers() {
-      var _this3 = this;
+      var _this4 = this;
       this._hideAllMarkers();
       if (!(this._activeNoteNames instanceof Set) || !this._activeNoteNames.size) return;
       this._activeNoteNames.forEach(function (noteName) {
-        var $key = _this3._keyByNoteName(noteName);
+        var $key = _this4._keyByNoteName(noteName);
         if (!$key.length) return;
-        _this3._showMarker($key.find(".key-marker").first());
+        _this4._showMarker($key.find(".key-marker").first());
       });
     }
   }, {
@@ -1872,6 +1928,95 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
       if (!($marker !== null && $marker !== void 0 && $marker.length)) return;
       $marker.show();
     }
+  }, {
+    key: "_ensureAudio",
+    value: function () {
+      var _ensureAudio2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
+        return _regenerator().w(function (_context) {
+          while (1) switch (_context.n) {
+            case 0:
+              if (!(this._audioReady && this._synth)) {
+                _context.n = 1;
+                break;
+              }
+              return _context.a(2);
+            case 1:
+              if (window.Tone) {
+                _context.n = 2;
+                break;
+              }
+              return _context.a(2);
+            case 2:
+              _context.n = 3;
+              return Tone.start();
+            case 3:
+              this._synth = this._synth || new Tone.Synth({
+                oscillator: {
+                  type: "triangle"
+                },
+                envelope: {
+                  attack: 0.005,
+                  decay: 0.08,
+                  sustain: 0.15,
+                  release: 0.2
+                }
+              }).toDestination();
+              this._audioReady = true;
+            case 4:
+              return _context.a(2);
+          }
+        }, _callee, this);
+      }));
+      function _ensureAudio() {
+        return _ensureAudio2.apply(this, arguments);
+      }
+      return _ensureAudio;
+    }()
+  }, {
+    key: "_canPlayNote",
+    value: function _canPlayNote() {
+      if (this.canPlayNote) return !!this.canPlayNote();
+      return true;
+    }
+  }, {
+    key: "_playNoteName",
+    value: function () {
+      var _playNoteName2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee2(noteName) {
+        return _regenerator().w(function (_context2) {
+          while (1) switch (_context2.n) {
+            case 0:
+              if (this._canPlayNote()) {
+                _context2.n = 1;
+                break;
+              }
+              return _context2.a(2);
+            case 1:
+              if (String(noteName || "").trim()) {
+                _context2.n = 2;
+                break;
+              }
+              return _context2.a(2);
+            case 2:
+              _context2.n = 3;
+              return this._ensureAudio();
+            case 3:
+              if (this._synth) {
+                _context2.n = 4;
+                break;
+              }
+              return _context2.a(2);
+            case 4:
+              this._synth.triggerAttackRelease(String(noteName).trim(), 0.45, undefined, _GameAudio_js__WEBPACK_IMPORTED_MODULE_0__.GameAudio.scale("staffNote", 0.85));
+            case 5:
+              return _context2.a(2);
+          }
+        }, _callee2, this);
+      }));
+      function _playNoteName(_x) {
+        return _playNoteName2.apply(this, arguments);
+      }
+      return _playNoteName;
+    }()
   }]);
 }();
 _defineProperty(PianoKeyboardUi, "NATURAL_ORDER", ["C", "D", "E", "F", "G", "A", "B"]);
@@ -2190,6 +2335,7 @@ var Staff = /*#__PURE__*/function () {
       until: 0
     };
     this._animations = new _StaffAnimations_js__WEBPACK_IMPORTED_MODULE_1__.StaffAnimations(this.$el);
+    this._blockedSteps = new Set();
     this._applyClefCssVars(this.opts.clef);
     this._computeLayout();
     this._drawLines();
@@ -2266,6 +2412,29 @@ var Staff = /*#__PURE__*/function () {
     key: "isStepAllowed",
     value: function isStepAllowed(step) {
       return this._isStepAllowed(step);
+    }
+  }, {
+    key: "setBlockedSteps",
+    value: function setBlockedSteps(steps) {
+      var next = new Set();
+      var list = Array.isArray(steps) ? steps : [];
+      for (var i = 0; i < list.length; i++) {
+        var step = Number(list[i]);
+        if (Number.isFinite(step)) next.add(step);
+      }
+      this._blockedSteps = next;
+    }
+  }, {
+    key: "clearBlockedSteps",
+    value: function clearBlockedSteps() {
+      this._blockedSteps.clear();
+    }
+  }, {
+    key: "isStepBlocked",
+    value: function isStepBlocked(step) {
+      var excludeId = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+      if (excludeId && this.isNoteFixed(excludeId)) return false;
+      return this._blockedSteps.has(Number(step));
     }
   }, {
     key: "ledgerStepsFor",
@@ -2440,6 +2609,7 @@ var Staff = /*#__PURE__*/function () {
   }, {
     key: "_isStepOccupied",
     value: function _isStepOccupied(step, excludeId) {
+      if (this.isStepBlocked(step, excludeId)) return true;
       var nodes = this.$el.find(".note").toArray();
       for (var i = 0; i < nodes.length; i++) {
         var el = nodes[i];
@@ -2453,6 +2623,7 @@ var Staff = /*#__PURE__*/function () {
   }, {
     key: "_getNoteIdAtStep",
     value: function _getNoteIdAtStep(step, excludeId) {
+      if (this.isStepBlocked(step, excludeId)) return null;
       var nodes = this.$el.find(".note").toArray();
       for (var i = 0; i < nodes.length; i++) {
         var el = nodes[i];
@@ -3024,10 +3195,15 @@ var Staff = /*#__PURE__*/function () {
           pageY = _getPointerPageXY.y;
         var initialStep = self.yToStep(self._pageYToLocalY(pageY));
         if (!self._isStepAllowed(initialStep)) return;
+        if (self.isStepBlocked(initialStep, null)) return;
         self._previewState.active = true;
         self._previewState.step = initialStep;
+        self._previewState.lastSoundStep = initialStep;
         self._previewSet(initialStep);
-        if (self._soundEnabled()) self._ensureAudio();
+        if (self._soundEnabled()) {
+          self._ensureAudio();
+          self._playStep(initialStep, 0);
+        }
         var pointerId = (0,_staffUtils_js__WEBPACK_IMPORTED_MODULE_0__.getPointerId)(e);
         if (this.setPointerCapture && pointerId != null) this.setPointerCapture(pointerId);
         self.$el.off("pointermove.previewCreate").on("pointermove.previewCreate", function (ev) {
@@ -3042,8 +3218,17 @@ var Staff = /*#__PURE__*/function () {
             py = _getPointerPageXY2.y;
           var s = self.yToStep(self._pageYToLocalY(py));
           if (!self._isStepAllowed(s)) return;
+          if (self.isStepBlocked(s, null)) {
+            self._previewState.step = null;
+            self._previewClear();
+            return;
+          }
           self._previewState.step = s;
           self._previewSet(s);
+          if (self._soundEnabled() && s !== self._previewState.lastSoundStep) {
+            self._previewState.lastSoundStep = s;
+            self._playStep(s, 0);
+          }
         });
         self.$el.off("pointerup.previewCreate pointercancel.previewCreate").on("pointerup.previewCreate pointercancel.previewCreate", function () {
           if (!self._previewState.active) return;
@@ -3051,7 +3236,9 @@ var Staff = /*#__PURE__*/function () {
           var finalStep = self._previewState.step;
           self._previewClear();
           self.$el.off("pointermove.previewCreate pointerup.previewCreate pointercancel.previewCreate");
+          if (!Number.isFinite(finalStep)) return;
           if (!self._isStepAllowed(finalStep)) return;
+          if (self.isStepBlocked(finalStep, null)) return;
           if (self._isStepOccupied(finalStep, null)) return;
           if (self._userNoteCount() >= self._maxUserNotes()) return;
           var createdId = self.addNote({
@@ -3065,7 +3252,6 @@ var Staff = /*#__PURE__*/function () {
             self._emitNoteState(createdId, "user");
             self._suppressNextClick.noteId = createdId;
             self._suppressNextClick.until = Date.now() + 700;
-            self._playStep(finalStep, 0);
           }
         });
       });
@@ -3098,7 +3284,12 @@ var Staff = /*#__PURE__*/function () {
         d.dropOnOccupied = false;
         d.outOfRange = false;
         self._setDraggingVisual(d.noteId, true);
-        if (self._soundEnabled()) self._ensureAudio();
+        if (self._soundEnabled()) {
+          self._ensureAudio();
+          var accCls = self._getAttachedAccidentalClass(d.noteId);
+          var accOff = self._accidentalClassToOffset(accCls);
+          self._playStep(d.startStep, accOff);
+        }
         var capEl = e.currentTarget && e.currentTarget.setPointerCapture ? e.currentTarget : null;
         if (capEl && pointerId != null) capEl.setPointerCapture(pointerId);
         self.$el.off("pointermove.noteDrag").on("pointermove.noteDrag", function (ev) {
@@ -3123,9 +3314,9 @@ var Staff = /*#__PURE__*/function () {
           self._applyDraggedAdjacencyX(d.noteId);
           if (self._soundEnabled() && targetStep !== d.lastSoundStep) {
             d.lastSoundStep = targetStep;
-            var accCls = self._getAttachedAccidentalClass(d.noteId);
-            var accOff = self._accidentalClassToOffset(accCls);
-            self._playStep(targetStep, accOff);
+            var _accCls = self._getAttachedAccidentalClass(d.noteId);
+            var _accOff = self._accidentalClassToOffset(_accCls);
+            self._playStep(targetStep, _accOff);
           }
         });
         self.$el.off("pointerup.noteDrag pointercancel.noteDrag").on("pointerup.noteDrag pointercancel.noteDrag", function (ev2) {

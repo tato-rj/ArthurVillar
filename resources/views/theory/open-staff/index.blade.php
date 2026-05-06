@@ -73,7 +73,7 @@
 
     <div class="col-lg-6 col-md-8 col-11 mx-auto">
       @include('theory.components.controls', ['instructions' => 'Tap the staff to higlight a line or space 👆'])
-      @include('theory.open-staff.modals.settings')
+      @include('theory.open-staff.settings')
       @include('theory.components.preferences')
     </div>
   </div>

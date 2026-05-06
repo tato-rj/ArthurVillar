@@ -49,8 +49,8 @@
 
     <div class="col-lg-6 col-md-8 col-11 mx-auto">
       @include('theory.components.controls', ['instructions' => 'Drag & drop sharps or flats onto the staff 👆'])
-      @include('theory.keys-lab.modals.settings')
-      @include('theory.keys-lab.modals.instructions')
+      @include('theory.keys-lab.settings')
+      @include('theory.components.leaderboard.show')
       @include('theory.components.preferences')
     </div>
   </div>

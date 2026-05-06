@@ -3056,6 +3056,9 @@ __webpack_require__(/*! ./utilities */ "./resources/js/utilities/index.js");
 document.addEventListener("touchstart", function () {}, {
   passive: true
 });
+$(window).on('load', function () {
+  $('.modal.modal-autoshow').modal('show');
+});
 document.addEventListener("DOMContentLoaded", function () {
   var ranges = document.querySelectorAll('input[type="range"][data-range-labels]');
   var _iterator = _createForOfIteratorHelper(ranges),
@@ -3098,6 +3101,17 @@ $('.form-number button').on('click', function () {
     $input.val(current + 1);
   }
 });
+$(document).on('click', '.avatar-picker .player-avatar', function () {
+  var $clickedAvatar = $(this);
+  var $option = $clickedAvatar.closest('.avatar-option');
+  var $container = $clickedAvatar.closest('.avatar-picker');
+  var $radio = $option.find('input[type="radio"][name="avatar_url"]');
+  if (!$radio.length) return;
+  $radio.prop('checked', true).trigger('change');
+  $container.find('.player-avatar').addClass('opacity-50');
+  $clickedAvatar.removeClass('opacity-50');
+});
+
 // /public/js/settings-toggles.js (example path)
 // settings/toggles.js
 $(document).off("change.settingsToggles").on("change.settingsToggles", 'input[multichoice], input[singlechoice]', function () {

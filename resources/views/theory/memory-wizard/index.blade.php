@@ -18,23 +18,16 @@
 </script>
 
 <style>
-#interval {
-  display: none;
-}
 
-#interval label {
-  top: -4px !important;
-}
-
-#play {
-  height: 66.4px;
-}
 </style>
 @endpush
 
 @section('content')
-@include('theory.components.title')
+{{-- @include('theory.components.pagetitle', [
+  'title' => 'Intervals Challenge',
+  'description' => 'Add the note that forms the indicated interval']) --}}
 
+@include('theory.components.title')
 <section id="page-wrapper" class="container prevent-select">
   <div class="row">
     <div class="col-lg-6 col-md-8 col-11 mx-auto text-center">
@@ -42,20 +35,18 @@
       @include('theory.components.timer')
     </div>
 
-    <div class="col-11 mx-auto mb-3">
-      <div id="staff-wrapper" class="text-center mx-auto position-relative prevent-select">
+    <div class="col-11 mx-auto mb-3 position-relative">
+      <div id="staff-wrapper" class="text-center mx-auto position-relative">
         @include('theory.components.accidentals')
         <div id="staff"></div>
         @include('theory.components.feedback')
-        @include('theory.components.play')
       </div>
     </div>
 
     <div class="col-lg-6 col-md-8 col-11 mx-auto">
-      @include('theory.components.controls', ['instructions' => 'Tap on the staff to add a note 👆'])
-      @include('theory.pitch-detective.settings')
+      @include('theory.components.controls', ['instructions' => 'Add the notes you see, in the right order 👆'])
+      @include('theory.memory-wizard.settings')
       @include('theory.components.leaderboard.show')
-      @include('theory.components.preferences')
     </div>
   </div>
 </section>
@@ -65,5 +56,10 @@
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.js"></script>
-<script src="{{ mix('js/music/pitchdetective.js') }}"></script>
+<script src="{{ mix('js/music/memorywizard.js') }}"></script>
+<script>
+$(function () {
+  $('[data-toggle="tooltip"]').tooltip()
+});
+</script>
 @endpush

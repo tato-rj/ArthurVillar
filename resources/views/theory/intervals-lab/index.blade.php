@@ -48,8 +48,8 @@
 
     <div class="col-lg-6 col-md-8 col-11 mx-auto">
       @include('theory.components.controls', ['instructions' => 'Tap on the staff to add a note 👆'])
-      @include('theory.intervals-lab.modals.settings')
-      @include('theory.intervals-lab.modals.instructions')
+      @include('theory.intervals-lab.settings')
+      @include('theory.components.leaderboard.show')
       @include('theory.components.preferences')
     </div>
   </div>

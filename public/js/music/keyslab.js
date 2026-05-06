@@ -159,7 +159,11 @@ var BaseStaffGame = /*#__PURE__*/function () {
     this._keyboardAccidentalPreviewPatched = false;
     this.keyboard = this._shouldUsePianoKeyboard() ? new _shared_PianoKeyboardUi_js__WEBPACK_IMPORTED_MODULE_6__.PianoKeyboardUi({
       rootSelector: "#keyboard",
-      namespace: "".concat(this.ns, ".keyboard")
+      namespace: "".concat(this.ns, ".keyboard"),
+      canPlayNote: function canPlayNote() {
+        var _this$staff, _this$staff$isSoundEn;
+        return (_this$staff = _this.staff) === null || _this$staff === void 0 || (_this$staff$isSoundEn = _this$staff.isSoundEnabled) === null || _this$staff$isSoundEn === void 0 ? void 0 : _this$staff$isSoundEn.call(_this$staff);
+      }
     }) : null;
 
     // Staff
@@ -255,6 +259,29 @@ var BaseStaffGame = /*#__PURE__*/function () {
       return list.length ? list[list.length - 1] : null;
     }
   }, {
+    key: "_keyboardNoteNameForState",
+    value: function _keyboardNoteNameForState(step, accidentalClass) {
+      var _this$keyboard$_noteN, _this$keyboard;
+      if (!Number.isFinite(step) || !this.keyboard) return "";
+      var noteState = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.stepToLetterOctave)(this.staff, step);
+      var letter = String((noteState === null || noteState === void 0 ? void 0 : noteState.letter) || "").trim().toUpperCase();
+      var octave = Number(noteState === null || noteState === void 0 ? void 0 : noteState.octave);
+      if (!letter || !Number.isFinite(octave)) return "";
+      var accidentalOffset = this.staff._accidentalClassToOffset(accidentalClass) || 0;
+      var naturalPitchClass = {
+        C: 0,
+        D: 2,
+        E: 4,
+        F: 5,
+        G: 7,
+        A: 9,
+        B: 11
+      }[letter];
+      if (!Number.isInteger(naturalPitchClass)) return "";
+      var midi = (octave + 1) * 12 + naturalPitchClass + accidentalOffset;
+      return ((_this$keyboard$_noteN = (_this$keyboard = this.keyboard)._noteNameFromMidi) === null || _this$keyboard$_noteN === void 0 ? void 0 : _this$keyboard$_noteN.call(_this$keyboard, midi)) || "";
+    }
+  }, {
     key: "_syncPianoKeyboardMarkerFromStaff",
     value: function _syncPianoKeyboardMarkerFromStaff() {
       var _this3 = this;
@@ -269,21 +296,24 @@ var BaseStaffGame = /*#__PURE__*/function () {
       }
       var primaryState = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.stepToLetterOctave)(this.staff, primary.step);
       var keys = [this.keyboard.keyForNote(primaryState === null || primaryState === void 0 ? void 0 : primaryState.letter, primary.accidentalClass, primaryState === null || primaryState === void 0 ? void 0 : primaryState.octave)];
+      var noteNames = new Set(notes.map(function (note) {
+        return _this3._keyboardNoteNameForState(note.step, note.accidentalClass);
+      }).filter(Boolean));
       notes.forEach(function (note) {
         if (note.noteId === primary.noteId) return;
         var noteState = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.stepToLetterOctave)(_this3.staff, note.step);
         var $key = _this3.keyboard.keyForNoteIfVisible(noteState === null || noteState === void 0 ? void 0 : noteState.letter, note.accidentalClass, noteState === null || noteState === void 0 ? void 0 : noteState.octave);
         if ($key.length) keys.push($key);
       });
-      this.keyboard.syncActiveKeys(keys);
+      this.keyboard.syncActiveNoteNames(noteNames, keys);
     }
   }, {
     key: "_syncPianoKeyboardMarkerFromAccidentalPreview",
     value: function _syncPianoKeyboardMarkerFromAccidentalPreview() {
-      var _this$staff,
+      var _this$staff2,
         _this4 = this;
       if (!this.keyboard || !this.staff) return;
-      var dragState = ((_this$staff = this.staff) === null || _this$staff === void 0 ? void 0 : _this$staff._accDragSound) || {};
+      var dragState = ((_this$staff2 = this.staff) === null || _this$staff2 === void 0 ? void 0 : _this$staff2._accDragSound) || {};
       var noteId = String(dragState.noteId || "");
       var previewAccidentalClass = dragState.prospectiveCls || null;
       if (!noteId || !previewAccidentalClass) {
@@ -313,6 +343,9 @@ var BaseStaffGame = /*#__PURE__*/function () {
       var primaryState = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.stepToLetterOctave)(this.staff, primary.step);
       var primaryAccidental = primary.noteId === noteId ? previewAccidentalClass : primary.accidentalClass;
       var keys = [this.keyboard.keyForNote(primaryState === null || primaryState === void 0 ? void 0 : primaryState.letter, primaryAccidental, primaryState === null || primaryState === void 0 ? void 0 : primaryState.octave)];
+      var noteNames = new Set(notes.map(function (note) {
+        return _this4._keyboardNoteNameForState(note.step, note.noteId === noteId ? previewAccidentalClass : note.accidentalClass);
+      }).filter(Boolean));
       notes.forEach(function (note) {
         if (note.noteId === primary.noteId) return;
         var noteState = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.stepToLetterOctave)(_this4.staff, note.step);
@@ -320,7 +353,7 @@ var BaseStaffGame = /*#__PURE__*/function () {
         var $key = _this4.keyboard.keyForNoteIfVisible(noteState === null || noteState === void 0 ? void 0 : noteState.letter, accidentalClass, noteState === null || noteState === void 0 ? void 0 : noteState.octave);
         if ($key.length) keys.push($key);
       });
-      this.keyboard.syncActiveKeys(keys.filter(function ($key) {
+      this.keyboard.syncActiveNoteNames(noteNames, keys.filter(function ($key) {
         return $key === null || $key === void 0 ? void 0 : $key.length;
       }));
     }
@@ -1064,9 +1097,9 @@ var BaseStaffGame = /*#__PURE__*/function () {
     key: "_removeAllStaffNotesWithSmoke",
     value: function _removeAllStaffNotesWithSmoke() {
       var _this$$staffEl,
-        _this$staff2,
+        _this$staff3,
         _this15 = this;
-      if (!((_this$$staffEl = this.$staffEl) !== null && _this$$staffEl !== void 0 && _this$$staffEl.length) || !((_this$staff2 = this.staff) !== null && _this$staff2 !== void 0 && _this$staff2.removeNote)) return;
+      if (!((_this$$staffEl = this.$staffEl) !== null && _this$$staffEl !== void 0 && _this$$staffEl.length) || !((_this$staff3 = this.staff) !== null && _this$staff3 !== void 0 && _this$staff3.removeNote)) return;
       var noteIds = this.$staffEl.find(".note").not(".preview").not(".hint").map(function (_, el) {
         return String(el.getAttribute("data-note-id") || "");
       }).get().filter(Boolean);
@@ -1171,14 +1204,14 @@ var BaseStaffGame = /*#__PURE__*/function () {
   }, {
     key: "start",
     value: function start() {
-      var _this$keyboard, _this$keyboard$bind;
+      var _this$keyboard2, _this$keyboard2$bind;
       this._madeAnyMistake = false;
       this.instructionsUi.show().replay();
       $("#controls").show();
       this._instructionsRemoved = false;
       this._wireAccidentalPalette();
       this._wireStaffTools();
-      (_this$keyboard = this.keyboard) === null || _this$keyboard === void 0 || (_this$keyboard$bind = _this$keyboard.bind) === null || _this$keyboard$bind === void 0 || _this$keyboard$bind.call(_this$keyboard);
+      (_this$keyboard2 = this.keyboard) === null || _this$keyboard2 === void 0 || (_this$keyboard2$bind = _this$keyboard2.bind) === null || _this$keyboard2$bind === void 0 || _this$keyboard2$bind.call(_this$keyboard2);
       this._wirePianoKeyboardSync();
       this._wirePianoKeyboardAccidentalPreview();
       this._wirePianoKeyboardToggle();
@@ -3370,9 +3403,18 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   PianoKeyboardUi: () => (/* binding */ PianoKeyboardUi)
 /* harmony export */ });
+/* harmony import */ var _GameAudio_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./GameAudio.js */ "./resources/js/music/games/shared/GameAudio.js");
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
+function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
 function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
+function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
 function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
+function _arrayWithoutHoles(r) { if (Array.isArray(r)) return _arrayLikeToArray(r); }
 function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
 function _classCallCheck(a, n) { if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function"); }
 function _defineProperties(e, r) { for (var t = 0; t < r.length; t++) { var o = r[t]; o.enumerable = o.enumerable || !1, o.configurable = !0, "value" in o && (o.writable = !0), Object.defineProperty(e, _toPropertyKey(o.key), o); } }
@@ -3380,6 +3422,7 @@ function _createClass(e, r, t) { return r && _defineProperties(e.prototype, r), 
 function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
 function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
 function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+
 var PianoKeyboardUi = /*#__PURE__*/function () {
   function PianoKeyboardUi() {
     var _this$_naturalMidiFro;
@@ -3390,6 +3433,8 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
       namespace = _ref$namespace === void 0 ? "pianoKeyboard" : _ref$namespace,
       _ref$onKeyClick = _ref.onKeyClick,
       onKeyClick = _ref$onKeyClick === void 0 ? null : _ref$onKeyClick,
+      _ref$canPlayNote = _ref.canPlayNote,
+      canPlayNote = _ref$canPlayNote === void 0 ? null : _ref$canPlayNote,
       _ref$visibleWhiteKeys = _ref.visibleWhiteKeys,
       visibleWhiteKeys = _ref$visibleWhiteKeys === void 0 ? 7 : _ref$visibleWhiteKeys,
       _ref$initialStartNote = _ref.initialStartNote,
@@ -3398,10 +3443,13 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
     this.rootSelector = rootSelector;
     this.ns = namespace;
     this.onKeyClick = typeof onKeyClick === "function" ? onKeyClick : null;
+    this.canPlayNote = typeof canPlayNote === "function" ? canPlayNote : null;
     this.visibleWhiteKeys = Math.max(1, Number(visibleWhiteKeys) || 7);
     this._startWhiteMidi = (_this$_naturalMidiFro = this._naturalMidiFromNoteName(initialStartNote)) !== null && _this$_naturalMidiFro !== void 0 ? _this$_naturalMidiFro : 60;
     this._activeNoteNames = new Set();
     this._renderTimeoutId = null;
+    this._audioReady = false;
+    this._synth = null;
     this._drag = {
       active: false,
       pointerId: null,
@@ -3433,6 +3481,7 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
         var $key = _this._resolveKeyFromTarget(e.target);
         if (!$key.length) return;
         var noteName = _this.noteNameForKey($key);
+        void _this._playNoteName(noteName);
         if (_this.onKeyClick) _this.onKeyClick({
           $key: $key,
           noteName: noteName,
@@ -3581,14 +3630,29 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
       var nextNoteNames = new Set(nextKeys.map(function ($key) {
         return _this2.noteNameForKey($key);
       }).filter(Boolean));
-      if (this._setsEqual(this._activeNoteNames, nextNoteNames)) return this;
+      return this.syncActiveNoteNames(nextNoteNames, nextKeys);
+    }
+  }, {
+    key: "syncActiveNoteNames",
+    value: function syncActiveNoteNames(noteNames) {
+      var _this3 = this;
+      var visibleKeys = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+      var nextNoteNames = noteNames instanceof Set ? new Set(_toConsumableArray(noteNames).filter(Boolean)) : new Set((Array.isArray(noteNames) ? noteNames : []).filter(Boolean));
+      var nextKeys = Array.isArray(visibleKeys) ? visibleKeys.filter(function ($key) {
+        return $key === null || $key === void 0 ? void 0 : $key.length;
+      }) : [];
+      if (this._setsEqual(this._activeNoteNames, nextNoteNames)) {
+        nextKeys.forEach(function ($key) {
+          _this3._showMarker($key.find(".key-marker").first());
+        });
+        return this;
+      }
       this._hideAllMarkers();
-      this._activeNoteNames = new Set();
+      this._activeNoteNames = new Set(nextNoteNames);
       nextKeys.forEach(function ($key) {
-        var noteName = _this2.noteNameForKey($key);
-        if (!noteName || _this2._activeNoteNames.has(noteName)) return;
-        _this2._showMarker($key.find(".key-marker").first());
-        _this2._activeNoteNames.add(noteName);
+        var noteName = _this3.noteNameForKey($key);
+        if (!noteName || !_this3._activeNoteNames.has(noteName)) return;
+        _this3._showMarker($key.find(".key-marker").first());
       });
       return this;
     }
@@ -3797,13 +3861,13 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
   }, {
     key: "_reapplyActiveMarkers",
     value: function _reapplyActiveMarkers() {
-      var _this3 = this;
+      var _this4 = this;
       this._hideAllMarkers();
       if (!(this._activeNoteNames instanceof Set) || !this._activeNoteNames.size) return;
       this._activeNoteNames.forEach(function (noteName) {
-        var $key = _this3._keyByNoteName(noteName);
+        var $key = _this4._keyByNoteName(noteName);
         if (!$key.length) return;
-        _this3._showMarker($key.find(".key-marker").first());
+        _this4._showMarker($key.find(".key-marker").first());
       });
     }
   }, {
@@ -3880,6 +3944,95 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
       if (!($marker !== null && $marker !== void 0 && $marker.length)) return;
       $marker.show();
     }
+  }, {
+    key: "_ensureAudio",
+    value: function () {
+      var _ensureAudio2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
+        return _regenerator().w(function (_context) {
+          while (1) switch (_context.n) {
+            case 0:
+              if (!(this._audioReady && this._synth)) {
+                _context.n = 1;
+                break;
+              }
+              return _context.a(2);
+            case 1:
+              if (window.Tone) {
+                _context.n = 2;
+                break;
+              }
+              return _context.a(2);
+            case 2:
+              _context.n = 3;
+              return Tone.start();
+            case 3:
+              this._synth = this._synth || new Tone.Synth({
+                oscillator: {
+                  type: "triangle"
+                },
+                envelope: {
+                  attack: 0.005,
+                  decay: 0.08,
+                  sustain: 0.15,
+                  release: 0.2
+                }
+              }).toDestination();
+              this._audioReady = true;
+            case 4:
+              return _context.a(2);
+          }
+        }, _callee, this);
+      }));
+      function _ensureAudio() {
+        return _ensureAudio2.apply(this, arguments);
+      }
+      return _ensureAudio;
+    }()
+  }, {
+    key: "_canPlayNote",
+    value: function _canPlayNote() {
+      if (this.canPlayNote) return !!this.canPlayNote();
+      return true;
+    }
+  }, {
+    key: "_playNoteName",
+    value: function () {
+      var _playNoteName2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee2(noteName) {
+        return _regenerator().w(function (_context2) {
+          while (1) switch (_context2.n) {
+            case 0:
+              if (this._canPlayNote()) {
+                _context2.n = 1;
+                break;
+              }
+              return _context2.a(2);
+            case 1:
+              if (String(noteName || "").trim()) {
+                _context2.n = 2;
+                break;
+              }
+              return _context2.a(2);
+            case 2:
+              _context2.n = 3;
+              return this._ensureAudio();
+            case 3:
+              if (this._synth) {
+                _context2.n = 4;
+                break;
+              }
+              return _context2.a(2);
+            case 4:
+              this._synth.triggerAttackRelease(String(noteName).trim(), 0.45, undefined, _GameAudio_js__WEBPACK_IMPORTED_MODULE_0__.GameAudio.scale("staffNote", 0.85));
+            case 5:
+              return _context2.a(2);
+          }
+        }, _callee2, this);
+      }));
+      function _playNoteName(_x) {
+        return _playNoteName2.apply(this, arguments);
+      }
+      return _playNoteName;
+    }()
   }]);
 }();
 _defineProperty(PianoKeyboardUi, "NATURAL_ORDER", ["C", "D", "E", "F", "G", "A", "B"]);
@@ -4154,6 +4307,11 @@ function renderFinalResultsOverlay(_ref) {
     var ss = String(v % 60).padStart(2, "0");
     return "".concat(mm, ":").concat(ss);
   };
+  var setSaveResultField = function setSaveResultField(name, value) {
+    var $input = $("#save-results-modal input[name=\"".concat(name, "\"]")).first();
+    if (!$input.length) return;
+    $input.val(String(value !== null && value !== void 0 ? value : "").trim());
+  };
   var pushCountupTimer = function pushCountupTimer(id) {
     if (Array.isArray(countupTimers)) countupTimers.push(id);
   };
@@ -4212,6 +4370,10 @@ function renderFinalResultsOverlay(_ref) {
   countTo('span[name="duration"]', durationSec, {
     formattingFn: mmss
   });
+  setSaveResultField("rounds", rounds);
+  setSaveResultField("score", score);
+  setSaveResultField("accuracy", "".concat(accuracy, "%"));
+  setSaveResultField("duration", mmss(durationSec));
   if (typeof playFinalSfx === "function") playFinalSfx();
 }
 
@@ -4519,6 +4681,7 @@ var Staff = /*#__PURE__*/function () {
       until: 0
     };
     this._animations = new _StaffAnimations_js__WEBPACK_IMPORTED_MODULE_1__.StaffAnimations(this.$el);
+    this._blockedSteps = new Set();
     this._applyClefCssVars(this.opts.clef);
     this._computeLayout();
     this._drawLines();
@@ -4595,6 +4758,29 @@ var Staff = /*#__PURE__*/function () {
     key: "isStepAllowed",
     value: function isStepAllowed(step) {
       return this._isStepAllowed(step);
+    }
+  }, {
+    key: "setBlockedSteps",
+    value: function setBlockedSteps(steps) {
+      var next = new Set();
+      var list = Array.isArray(steps) ? steps : [];
+      for (var i = 0; i < list.length; i++) {
+        var step = Number(list[i]);
+        if (Number.isFinite(step)) next.add(step);
+      }
+      this._blockedSteps = next;
+    }
+  }, {
+    key: "clearBlockedSteps",
+    value: function clearBlockedSteps() {
+      this._blockedSteps.clear();
+    }
+  }, {
+    key: "isStepBlocked",
+    value: function isStepBlocked(step) {
+      var excludeId = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+      if (excludeId && this.isNoteFixed(excludeId)) return false;
+      return this._blockedSteps.has(Number(step));
     }
   }, {
     key: "ledgerStepsFor",
@@ -4769,6 +4955,7 @@ var Staff = /*#__PURE__*/function () {
   }, {
     key: "_isStepOccupied",
     value: function _isStepOccupied(step, excludeId) {
+      if (this.isStepBlocked(step, excludeId)) return true;
       var nodes = this.$el.find(".note").toArray();
       for (var i = 0; i < nodes.length; i++) {
         var el = nodes[i];
@@ -4782,6 +4969,7 @@ var Staff = /*#__PURE__*/function () {
   }, {
     key: "_getNoteIdAtStep",
     value: function _getNoteIdAtStep(step, excludeId) {
+      if (this.isStepBlocked(step, excludeId)) return null;
       var nodes = this.$el.find(".note").toArray();
       for (var i = 0; i < nodes.length; i++) {
         var el = nodes[i];
@@ -5353,10 +5541,15 @@ var Staff = /*#__PURE__*/function () {
           pageY = _getPointerPageXY.y;
         var initialStep = self.yToStep(self._pageYToLocalY(pageY));
         if (!self._isStepAllowed(initialStep)) return;
+        if (self.isStepBlocked(initialStep, null)) return;
         self._previewState.active = true;
         self._previewState.step = initialStep;
+        self._previewState.lastSoundStep = initialStep;
         self._previewSet(initialStep);
-        if (self._soundEnabled()) self._ensureAudio();
+        if (self._soundEnabled()) {
+          self._ensureAudio();
+          self._playStep(initialStep, 0);
+        }
         var pointerId = (0,_staffUtils_js__WEBPACK_IMPORTED_MODULE_0__.getPointerId)(e);
         if (this.setPointerCapture && pointerId != null) this.setPointerCapture(pointerId);
         self.$el.off("pointermove.previewCreate").on("pointermove.previewCreate", function (ev) {
@@ -5371,8 +5564,17 @@ var Staff = /*#__PURE__*/function () {
             py = _getPointerPageXY2.y;
           var s = self.yToStep(self._pageYToLocalY(py));
           if (!self._isStepAllowed(s)) return;
+          if (self.isStepBlocked(s, null)) {
+            self._previewState.step = null;
+            self._previewClear();
+            return;
+          }
           self._previewState.step = s;
           self._previewSet(s);
+          if (self._soundEnabled() && s !== self._previewState.lastSoundStep) {
+            self._previewState.lastSoundStep = s;
+            self._playStep(s, 0);
+          }
         });
         self.$el.off("pointerup.previewCreate pointercancel.previewCreate").on("pointerup.previewCreate pointercancel.previewCreate", function () {
           if (!self._previewState.active) return;
@@ -5380,7 +5582,9 @@ var Staff = /*#__PURE__*/function () {
           var finalStep = self._previewState.step;
           self._previewClear();
           self.$el.off("pointermove.previewCreate pointerup.previewCreate pointercancel.previewCreate");
+          if (!Number.isFinite(finalStep)) return;
           if (!self._isStepAllowed(finalStep)) return;
+          if (self.isStepBlocked(finalStep, null)) return;
           if (self._isStepOccupied(finalStep, null)) return;
           if (self._userNoteCount() >= self._maxUserNotes()) return;
           var createdId = self.addNote({
@@ -5394,7 +5598,6 @@ var Staff = /*#__PURE__*/function () {
             self._emitNoteState(createdId, "user");
             self._suppressNextClick.noteId = createdId;
             self._suppressNextClick.until = Date.now() + 700;
-            self._playStep(finalStep, 0);
           }
         });
       });
@@ -5427,7 +5630,12 @@ var Staff = /*#__PURE__*/function () {
         d.dropOnOccupied = false;
         d.outOfRange = false;
         self._setDraggingVisual(d.noteId, true);
-        if (self._soundEnabled()) self._ensureAudio();
+        if (self._soundEnabled()) {
+          self._ensureAudio();
+          var accCls = self._getAttachedAccidentalClass(d.noteId);
+          var accOff = self._accidentalClassToOffset(accCls);
+          self._playStep(d.startStep, accOff);
+        }
         var capEl = e.currentTarget && e.currentTarget.setPointerCapture ? e.currentTarget : null;
         if (capEl && pointerId != null) capEl.setPointerCapture(pointerId);
         self.$el.off("pointermove.noteDrag").on("pointermove.noteDrag", function (ev) {
@@ -5452,9 +5660,9 @@ var Staff = /*#__PURE__*/function () {
           self._applyDraggedAdjacencyX(d.noteId);
           if (self._soundEnabled() && targetStep !== d.lastSoundStep) {
             d.lastSoundStep = targetStep;
-            var accCls = self._getAttachedAccidentalClass(d.noteId);
-            var accOff = self._accidentalClassToOffset(accCls);
-            self._playStep(targetStep, accOff);
+            var _accCls = self._getAttachedAccidentalClass(d.noteId);
+            var _accOff = self._accidentalClassToOffset(_accCls);
+            self._playStep(targetStep, _accOff);
           }
         });
         self.$el.off("pointerup.noteDrag pointercancel.noteDrag").on("pointerup.noteDrag pointercancel.noteDrag", function (ev2) {

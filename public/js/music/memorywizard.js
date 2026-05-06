@@ -1918,6 +1918,482 @@ _defineProperty(BaseStaffGame, "LETTER_TO_SOLFEGE", {
 
 /***/ },
 
+/***/ "./resources/js/music/games/memorywizard/MemoryWizard.js"
+/*!***************************************************************!*\
+  !*** ./resources/js/music/games/memorywizard/MemoryWizard.js ***!
+  \***************************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   MemoryWizard: () => (/* binding */ MemoryWizard)
+/* harmony export */ });
+/* harmony import */ var _base_BaseStaffGame_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../base/BaseStaffGame.js */ "./resources/js/music/games/base/BaseStaffGame.js");
+/* harmony import */ var _shared_challengeUtils_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../shared/challengeUtils.js */ "./resources/js/music/games/shared/challengeUtils.js");
+/* harmony import */ var _staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../staff/staffUtils.js */ "./resources/js/music/staff/staffUtils.js");
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+function _classCallCheck(a, n) { if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function"); }
+function _defineProperties(e, r) { for (var t = 0; t < r.length; t++) { var o = r[t]; o.enumerable = o.enumerable || !1, o.configurable = !0, "value" in o && (o.writable = !0), Object.defineProperty(e, _toPropertyKey(o.key), o); } }
+function _createClass(e, r, t) { return r && _defineProperties(e.prototype, r), t && _defineProperties(e, t), Object.defineProperty(e, "prototype", { writable: !1 }), e; }
+function _callSuper(t, o, e) { return o = _getPrototypeOf(o), _possibleConstructorReturn(t, _isNativeReflectConstruct() ? Reflect.construct(o, e || [], _getPrototypeOf(t).constructor) : o.apply(t, e)); }
+function _possibleConstructorReturn(t, e) { if (e && ("object" == _typeof(e) || "function" == typeof e)) return e; if (void 0 !== e) throw new TypeError("Derived constructors may only return object or undefined"); return _assertThisInitialized(t); }
+function _assertThisInitialized(e) { if (void 0 === e) throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); return e; }
+function _isNativeReflectConstruct() { try { var t = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); } catch (t) {} return (_isNativeReflectConstruct = function _isNativeReflectConstruct() { return !!t; })(); }
+function _superPropGet(t, o, e, r) { var p = _get(_getPrototypeOf(1 & r ? t.prototype : t), o, e); return 2 & r && "function" == typeof p ? function (t) { return p.apply(e, t); } : p; }
+function _get() { return _get = "undefined" != typeof Reflect && Reflect.get ? Reflect.get.bind() : function (e, t, r) { var p = _superPropBase(e, t); if (p) { var n = Object.getOwnPropertyDescriptor(p, t); return n.get ? n.get.call(arguments.length < 3 ? e : r) : n.value; } }, _get.apply(null, arguments); }
+function _superPropBase(t, o) { for (; !{}.hasOwnProperty.call(t, o) && null !== (t = _getPrototypeOf(t));); return t; }
+function _getPrototypeOf(t) { return _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function (t) { return t.__proto__ || Object.getPrototypeOf(t); }, _getPrototypeOf(t); }
+function _inherits(t, e) { if ("function" != typeof e && null !== e) throw new TypeError("Super expression must either be null or a function"); t.prototype = Object.create(e && e.prototype, { constructor: { value: t, writable: !0, configurable: !0 } }), Object.defineProperty(t, "prototype", { writable: !1 }), e && _setPrototypeOf(t, e); }
+function _setPrototypeOf(t, e) { return _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function (t, e) { return t.__proto__ = e, t; }, _setPrototypeOf(t, e); }
+function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+
+
+
+var MemoryWizard = /*#__PURE__*/function (_BaseStaffGame) {
+  function MemoryWizard() {
+    var _this;
+    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    _classCallCheck(this, MemoryWizard);
+    var defaults = {
+      staffEl: "#staff",
+      basePoints: 1,
+      firstTryBonus: 2,
+      namespace: "memoryWizard",
+      usePianoKeyboard: false
+    };
+    var merged = _objectSpread(_objectSpread({}, defaults), options || {});
+    var clefPool = (0,_shared_challengeUtils_js__WEBPACK_IMPORTED_MODULE_1__.normalizeClefPool)(merged.clefs != null ? merged.clefs : merged.clef);
+    _this = _callSuper(this, MemoryWizard, [_objectSpread(_objectSpread({}, merged), {}, {
+      initialClef: clefPool && clefPool[0] ? clefPool[0] : "treble"
+    })]);
+    _this._clefPool = clefPool;
+    _this._targetSequence = [];
+    _this._lastTargetSignature = null;
+    _this._previewTimeoutIds = [];
+    _this._pendingRoundTimerStart = false;
+    return _this;
+  }
+  _inherits(MemoryWizard, _BaseStaffGame);
+  return _createClass(MemoryWizard, [{
+    key: "start",
+    value: function start() {
+      this._resetSequenceState();
+      _superPropGet(MemoryWizard, "start", this, 3)([]);
+    }
+  }, {
+    key: "_displayNameForLetter",
+    value: function _displayNameForLetter(letter) {
+      var clean = String(letter || "").trim().toUpperCase();
+      if (this._showSolfegeNoteNames()) return MemoryWizard.LETTER_TO_SOLFEGE[clean] || clean;
+      return clean;
+    }
+  }, {
+    key: "_readBoolSetting",
+    value: function _readBoolSetting(key) {
+      var _this$opts;
+      var fallback = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+      var direct = (_this$opts = this.opts) === null || _this$opts === void 0 ? void 0 : _this$opts[key];
+      if (direct !== undefined && direct !== null && String(direct).trim() !== "") {
+        return this._normalizeOnOff(direct);
+      }
+      try {
+        var qs = new URLSearchParams(window.location.search || "");
+        if (qs.has(key)) return this._normalizeOnOff(qs.get(key));
+      } catch (_) {}
+      return !!fallback;
+    }
+  }, {
+    key: "_targetAccidentalClass",
+    value: function _targetAccidentalClass() {
+      if (!this._readBoolSetting("allowAccidentals", false)) return null;
+      var w = this.opts.accidentalWeights || {};
+      var naturalWeight = Number(w.natural);
+      var sharpWeight = Number(w.sharp);
+      var flatWeight = Number(w.flat);
+      if (Number.isFinite(naturalWeight) || Number.isFinite(sharpWeight) || Number.isFinite(flatWeight)) {
+        return (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_2__.pickWeighted)([{
+          value: null,
+          weight: Number.isFinite(naturalWeight) ? naturalWeight : 0
+        }, {
+          value: "music-font__sharp",
+          weight: Number.isFinite(sharpWeight) ? sharpWeight : 0
+        }, {
+          value: "music-font__flat",
+          weight: Number.isFinite(flatWeight) ? flatWeight : 0
+        }]);
+      }
+      return Math.random() < 0.5 ? "music-font__sharp" : "music-font__flat";
+    }
+  }, {
+    key: "_pickTargetStep",
+    value: function _pickTargetStep() {
+      var minStep = 0;
+      var maxStep = 8;
+      return Math.floor(Math.random() * (maxStep - minStep + 1)) + minStep;
+    }
+  }, {
+    key: "_resetSequenceState",
+    value: function _resetSequenceState() {
+      this._clearPendingPreviewTimeouts();
+      this._targetSequence = [];
+      this._lastTargetSignature = null;
+      this.maxUserNotes = 0;
+      this._pendingRoundTimerStart = false;
+    }
+  }, {
+    key: "_clearPendingPreviewTimeouts",
+    value: function _clearPendingPreviewTimeouts() {
+      if (!this._previewTimeoutIds.length) return;
+      this._previewTimeoutIds.forEach(function (timeoutId) {
+        return clearTimeout(timeoutId);
+      });
+      this._previewTimeoutIds = [];
+    }
+  }, {
+    key: "_setPreviewInteractionDisabled",
+    value: function _setPreviewInteractionDisabled(disabled) {
+      this._setTimedOutInteractivityDisabled(disabled);
+      if (!disabled) this._startPendingRoundTimerIfNeeded();
+    }
+  }, {
+    key: "_primeRoundTimerIfEnabled",
+    value: function _primeRoundTimerIfEnabled() {
+      var _this$$timer, _this$$timer$show;
+      if (!this._isTimerEnabled()) return;
+      (_this$$timer = this.$timer) === null || _this$$timer === void 0 || (_this$$timer$show = _this$$timer.show) === null || _this$$timer$show === void 0 || _this$$timer$show.call(_this$$timer);
+      this._stopGameTimer();
+      this._timerRemainingSec = this._timerLimitSeconds();
+      this._renderTimerDisplay();
+      this._pendingRoundTimerStart = false;
+    }
+  }, {
+    key: "_startPendingRoundTimerIfNeeded",
+    value: function _startPendingRoundTimerIfNeeded() {
+      if (!this._pendingRoundTimerStart || !this._isTimerEnabled()) return;
+      this._pendingRoundTimerStart = false;
+      this._startGameTimer(this._timerLimitSeconds());
+    }
+  }, {
+    key: "_shouldHideLastPreviewNote",
+    value: function _shouldHideLastPreviewNote(index) {
+      if (!this._readBoolSetting("hideLastNote", false)) return false;
+      if (this._targetSequence.length <= 1) return false;
+      return index === this._targetSequence.length - 1;
+    }
+  }, {
+    key: "_resetRoundTimerIfEnabled",
+    value: function _resetRoundTimerIfEnabled() {
+      if (!this._isTimerEnabled()) return;
+      this._primeRoundTimerIfEnabled();
+    }
+  }, {
+    key: "_removeTargetPreview",
+    value: function _removeTargetPreview(noteId) {
+      if (!noteId) return;
+      this.staff.removeNote(noteId);
+    }
+  }, {
+    key: "_playTargetSound",
+    value: function _playTargetSound(target) {
+      var _this$staff, _this$staff$_accident, _this$staff2;
+      if (!target || !((_this$staff = this.staff) !== null && _this$staff !== void 0 && _this$staff.playStep)) return;
+      var accidentalOffset = ((_this$staff$_accident = (_this$staff2 = this.staff)._accidentalClassToOffset) === null || _this$staff$_accident === void 0 ? void 0 : _this$staff$_accident.call(_this$staff2, target.accidentalClass)) || 0;
+      this.staff.playStep(target.step, accidentalOffset);
+    }
+  }, {
+    key: "_showPreviewNote",
+    value: function _showPreviewNote(target) {
+      var _this2 = this;
+      if (!target) return null;
+      var fixedId = this.staff.addNote({
+        step: target.step
+      });
+      if (!fixedId) return null;
+      var accidentalClass = target.accidentalClass || null;
+      if (accidentalClass) {
+        this.staff.attachAccidentalToNote(fixedId, accidentalClass);
+        this.$staffEl.find(".accidental[data-for-note-id=\"".concat(fixedId, "\"]")).hide();
+      }
+      this.staff.setNoteFixed(fixedId, true);
+      if (!accidentalClass) {
+        this.staff._emitNoteState(fixedId, "fixed");
+        this._playTargetSound(target);
+        return fixedId;
+      }
+      var timeoutId = window.setTimeout(function () {
+        _this2.$staffEl.find(".accidental[data-for-note-id=\"".concat(fixedId, "\"]")).show();
+        _this2.staff._emitNoteState(fixedId, "fixed");
+        _this2._playTargetSound(target);
+      }, MemoryWizard.PREVIEW_NOTE_ANIMATION_MS);
+      this._previewTimeoutIds.push(timeoutId);
+      return fixedId;
+    }
+  }, {
+    key: "_showTargetPreviewSequence",
+    value: function _showTargetPreviewSequence() {
+      var _this3 = this;
+      if (!this._targetSequence.length) return;
+      this._setPreviewInteractionDisabled(true);
+      this._clearPendingPreviewTimeouts();
+      var _showAtIndex = function showAtIndex(index) {
+        var target = _this3._targetSequence[index];
+        if (!target) {
+          _this3._setPreviewInteractionDisabled(false);
+          return;
+        }
+        var hideNote = _this3._shouldHideLastPreviewNote(index);
+        var fixedId = hideNote ? null : _this3._showPreviewNote(target);
+        if (hideNote) _this3._playTargetSound(target);
+        var timeoutId = window.setTimeout(function () {
+          _this3._removeTargetPreview(fixedId);
+          if (index >= _this3._targetSequence.length - 1) {
+            _this3._setPreviewInteractionDisabled(false);
+            return;
+          }
+          _showAtIndex(index + 1);
+        }, MemoryWizard.SEQUENCE_NOTE_DISPLAY_MS);
+        _this3._previewTimeoutIds.push(timeoutId);
+      };
+      _showAtIndex(0);
+    }
+  }, {
+    key: "_targetSignature",
+    value: function _targetSignature(target) {
+      if (!target) return "";
+      return [String(target.letter || ""), String(target.accidentalClass || ""), String(target.step), String(target.octave)].join("|");
+    }
+  }, {
+    key: "_sequenceHasTarget",
+    value: function _sequenceHasTarget(target) {
+      var _this4 = this;
+      var signature = this._targetSignature(target);
+      return this._targetSequence.some(function (note) {
+        return _this4._targetSignature(note) === signature;
+      });
+    }
+  }, {
+    key: "_pickTargetNote",
+    value: function _pickTargetNote() {
+      var maxAttempts = 24;
+      for (var attempt = 0; attempt < maxAttempts; attempt += 1) {
+        var step = this._pickTargetStep();
+        var noteState = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_2__.stepToLetterOctave)(this.staff, step);
+        var target = {
+          step: step,
+          letter: noteState.letter,
+          octave: noteState.octave,
+          accidentalClass: this._targetAccidentalClass()
+        };
+        if (this._targetSignature(target) !== this._lastTargetSignature && !this._sequenceHasTarget(target)) {
+          return target;
+        }
+      }
+      var minStep = this.staff.minStepAllowed();
+      var maxStep = this.staff.maxStepAllowed();
+      for (var _step = minStep; _step <= maxStep; _step += 1) {
+        var _fallbackState = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_2__.stepToLetterOctave)(this.staff, _step);
+        var accidentalOptions = this._readBoolSetting("allowAccidentals", false) ? [null, "music-font__sharp", "music-font__flat"] : [null];
+        for (var i = 0; i < accidentalOptions.length; i += 1) {
+          var _target = {
+            step: _step,
+            letter: _fallbackState.letter,
+            octave: _fallbackState.octave,
+            accidentalClass: accidentalOptions[i]
+          };
+          if (this._targetSignature(_target) !== this._lastTargetSignature && !this._sequenceHasTarget(_target)) {
+            return _target;
+          }
+        }
+      }
+      var fallbackStep = this._pickTargetStep();
+      var fallbackState = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_2__.stepToLetterOctave)(this.staff, fallbackStep);
+      return {
+        step: fallbackStep,
+        letter: fallbackState.letter,
+        octave: fallbackState.octave,
+        accidentalClass: this._targetAccidentalClass()
+      };
+    }
+  }, {
+    key: "newChallenge",
+    value: function newChallenge() {
+      var _this$$doublePoints, _this$$doublePoints$h;
+      if (!this._targetSequence.length) {
+        var clef = (0,_shared_challengeUtils_js__WEBPACK_IMPORTED_MODULE_1__.pickChallengeClef)(this._clefPool);
+        if (clef && clef !== this.staff.getClef()) this.staff.setClef(clef);
+      }
+      this._madeMistakeThisRound = false;
+      this._usedHintThisRound = false;
+      this._clearPendingPreviewTimeouts();
+      this._setPreviewInteractionDisabled(false);
+      this.staff.clearNotes();
+      this.$feedback.hide();
+      this.$helpBtn.hide();
+      this.$bonusBadge.hide();
+      (_this$$doublePoints = this.$doublePoints) === null || _this$$doublePoints === void 0 || (_this$$doublePoints$h = _this$$doublePoints.hide) === null || _this$$doublePoints$h === void 0 || _this$$doublePoints$h.call(_this$$doublePoints);
+      var nextTarget = this._pickTargetNote();
+      this._targetSequence.push(nextTarget);
+      this._lastTargetSignature = this._targetSignature(nextTarget);
+      this.maxUserNotes = this._targetSequence.length;
+      if (this._isTimerEnabled()) this._pendingRoundTimerStart = true;
+      this._showTargetPreviewSequence();
+      $("#check").show().removeClass("invisible");
+      $("#continue").hide();
+    }
+  }, {
+    key: "_collectUserNotes",
+    value: function _collectUserNotes() {
+      var _this5 = this;
+      return this.$staffEl.find(".note").toArray().map(function (el) {
+        var _this5$staff$_getAtta, _this5$staff;
+        var $note = $(el);
+        var noteId = String($note.attr("data-note-id") || "");
+        if (!noteId || _this5.staff.isNoteFixed(noteId)) return null;
+        var top = parseFloat($note.css("top"));
+        var step = Number.isFinite(top) ? _this5.staff.yToStep(top) : null;
+        var accidentalClass = ((_this5$staff$_getAtta = (_this5$staff = _this5.staff)._getAttachedAccidentalClass) === null || _this5$staff$_getAtta === void 0 ? void 0 : _this5$staff$_getAtta.call(_this5$staff, noteId)) || null;
+        return {
+          noteId: noteId,
+          step: step,
+          accidentalClass: accidentalClass
+        };
+      }).filter(Boolean);
+    }
+  }, {
+    key: "_isUserAnswerCorrect",
+    value: function _isUserAnswerCorrect() {
+      var targetSequence = this._targetSequence;
+      if (!targetSequence.length) return false;
+      var notes = this._collectUserNotes();
+      if (notes.length !== targetSequence.length) return false;
+      return notes.every(function (note, index) {
+        var target = targetSequence[index];
+        if (!target) return false;
+        return Number(note.step) === Number(target.step) && String(note.accidentalClass || "") === String(target.accidentalClass || "");
+      });
+    }
+  }, {
+    key: "_computeHintAnswers",
+    value: function _computeHintAnswers() {
+      if (!this._targetSequence.length) return [{
+        step: null,
+        accidentalClass: null
+      }];
+      return this._targetSequence.map(function (target) {
+        return {
+          step: target.step,
+          accidentalClass: target.accidentalClass || null
+        };
+      });
+    }
+  }, {
+    key: "_showHintNote",
+    value: function _showHintNote() {
+      var _this6 = this;
+      this._removeAllHintNotes();
+      this._removeAllUserNotesForHint();
+      this._clearPendingPreviewTimeouts();
+      this.staff.clearNotes();
+      this._activeHintIds = [];
+      this._setPreviewInteractionDisabled(true);
+      var answers = this._computeHintAnswers();
+      var specs = Array.isArray(answers) && answers.length ? answers : [{
+        step: null,
+        accidentalClass: null
+      }];
+      var _showAtIndex2 = function showAtIndex(index) {
+        var ans = specs[index];
+        if (!ans) {
+          _this6._setPreviewInteractionDisabled(false);
+          return;
+        }
+        var step = Number.isFinite(ans.step) ? Number(ans.step) : null;
+        var accidentalClass = ans.accidentalClass || null;
+        if (step == null) step = _this6._randomFreeStep();
+        if (step == null) {
+          _this6._setPreviewInteractionDisabled(false);
+          return;
+        }
+        var noteId = ans.id || (specs.length === 1 ? "hint" : "hint".concat(index + 1));
+        var createdId = _this6.staff.addNote({
+          id: noteId,
+          step: step,
+          className: "hint blink",
+          allowOccupied: true,
+          skipResolve: true
+        });
+        if (!createdId) {
+          _this6._setPreviewInteractionDisabled(false);
+          return;
+        }
+        _this6._activeHintIds.push(createdId);
+        if (accidentalClass) {
+          _this6.staff.attachAccidentalToNote(createdId, accidentalClass);
+          _this6.$staffEl.find(".accidental[data-for-note-id=\"".concat(createdId, "\"]")).addClass("hint blink");
+        }
+        _this6.$staffEl.find(".ledger[data-for-note-id=\"".concat(createdId, "\"]")).addClass("hint blink");
+        _this6._playTargetSound({
+          step: step,
+          accidentalClass: accidentalClass
+        });
+        var timeoutId = window.setTimeout(function () {
+          _this6.staff.removeNote(createdId);
+          _this6._activeHintIds = (_this6._activeHintIds || []).filter(function (id) {
+            return id !== createdId;
+          });
+          if (index >= specs.length - 1) {
+            _this6._setPreviewInteractionDisabled(false);
+            return;
+          }
+          _showAtIndex2(index + 1);
+        }, MemoryWizard.SEQUENCE_NOTE_DISPLAY_MS);
+        _this6._previewTimeoutIds.push(timeoutId);
+      };
+      _showAtIndex2(0);
+    }
+  }, {
+    key: "_onCheck",
+    value: function _onCheck() {
+      this.$checkBtn.disable();
+      this._stats.checksTotal += 1;
+      if (this._isUserAnswerCorrect()) {
+        this._stats.checksCorrect += 1;
+        this._pauseGameTimer();
+        var _this$_awardPointsFor = this._awardPointsForCorrect(),
+          earned = _this$_awardPointsFor.earned,
+          bonusEarned = _this$_awardPointsFor.bonusEarned;
+        this._handleCorrectAnswerUi({
+          isBonus: bonusEarned > 0,
+          earned: earned,
+          $prompt: $()
+        });
+        return;
+      }
+      this._madeAnyMistake = true;
+      this._madeMistakeThisRound = true;
+      this._failAnimation(this.$checkWrap);
+      this.$helpBtn.show();
+    }
+  }]);
+}(_base_BaseStaffGame_js__WEBPACK_IMPORTED_MODULE_0__.BaseStaffGame);
+_defineProperty(MemoryWizard, "PREVIEW_NOTE_ANIMATION_MS", 360);
+_defineProperty(MemoryWizard, "SEQUENCE_NOTE_DISPLAY_MS", 1500);
+_defineProperty(MemoryWizard, "LETTER_TO_SOLFEGE", {
+  C: "Do",
+  D: "Re",
+  E: "Mi",
+  F: "Fa",
+  G: "Sol",
+  A: "La",
+  B: "Si"
+});
+
+/***/ },
+
 /***/ "./resources/js/music/games/shared/GameAudio.js"
 /*!******************************************************!*\
   !*** ./resources/js/music/games/shared/GameAudio.js ***!
@@ -2626,259 +3102,6 @@ var InstructionsUi = /*#__PURE__*/function () {
       if (!((_this$_typed = this._typed) !== null && _this$_typed !== void 0 && _this$_typed.destroy)) return;
       this._typed.destroy();
       this._typed = null;
-    }
-  }]);
-}();
-
-/***/ },
-
-/***/ "./resources/js/music/games/shared/MusicKeyboardController.js"
-/*!********************************************************************!*\
-  !*** ./resources/js/music/games/shared/MusicKeyboardController.js ***!
-  \********************************************************************/
-(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   MusicKeyboardController: () => (/* binding */ MusicKeyboardController),
-/* harmony export */   applyAccidentalToSingleNoteValue: () => (/* binding */ applyAccidentalToSingleNoteValue),
-/* harmony export */   deleteSingleNoteValue: () => (/* binding */ deleteSingleNoteValue),
-/* harmony export */   keyboardLabelForLetter: () => (/* binding */ keyboardLabelForLetter)
-/* harmony export */ });
-function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
-function _classCallCheck(a, n) { if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function"); }
-function _defineProperties(e, r) { for (var t = 0; t < r.length; t++) { var o = r[t]; o.enumerable = o.enumerable || !1, o.configurable = !0, "value" in o && (o.writable = !0), Object.defineProperty(e, _toPropertyKey(o.key), o); } }
-function _createClass(e, r, t) { return r && _defineProperties(e.prototype, r), t && _defineProperties(e, t), Object.defineProperty(e, "prototype", { writable: !1 }), e; }
-function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
-function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
-function keyboardLabelForLetter() {
-  var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
-    letter = _ref.letter,
-    _ref$solfege = _ref.solfege,
-    solfege = _ref$solfege === void 0 ? "" : _ref$solfege,
-    _ref$useSolfege = _ref.useSolfege,
-    useSolfege = _ref$useSolfege === void 0 ? false : _ref$useSolfege,
-    _ref$letterToSolfege = _ref.letterToSolfege,
-    letterToSolfege = _ref$letterToSolfege === void 0 ? {} : _ref$letterToSolfege;
-  var cleanLetter = String(letter || "").trim().toUpperCase();
-  if (!cleanLetter) return "";
-  if (!useSolfege) return cleanLetter;
-  var cleanSolfege = String(solfege || "").trim();
-  if (cleanSolfege) {
-    return cleanSolfege.charAt(0).toUpperCase() + cleanSolfege.slice(1).toLowerCase();
-  }
-  return letterToSolfege[cleanLetter] || cleanLetter;
-}
-function applyAccidentalToSingleNoteValue(current, accidentalType) {
-  var _ref2 = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
-    _ref2$useSolfege = _ref2.useSolfege,
-    useSolfege = _ref2$useSolfege === void 0 ? false : _ref2$useSolfege,
-    _ref2$solfegeToLetter = _ref2.solfegeToLetter,
-    solfegeToLetter = _ref2$solfegeToLetter === void 0 ? {} : _ref2$solfegeToLetter,
-    _ref2$letterToSolfege = _ref2.letterToSolfege,
-    letterToSolfege = _ref2$letterToSolfege === void 0 ? {} : _ref2$letterToSolfege;
-  var m = String(current || "").trim().match(/^([A-G]|Do|Re|Mi|Fa|Sol|La|Si)([#b♯♭𝄪𝄫]{0,2})$/i);
-  if (!m) return null;
-  var tokenUpper = String(m[1] || "").toUpperCase();
-  var letter = solfegeToLetter[tokenUpper] || tokenUpper;
-  var baseDisplay = useSolfege ? letterToSolfege[letter] || letter : letter;
-  var rawAcc = m[2] || "";
-  var normalizedAcc = rawAcc === "#" || rawAcc === "♯" ? "sharp" : rawAcc === "##" || rawAcc === "𝄪" ? "double_sharp" : rawAcc === "b" || rawAcc === "♭" ? "flat" : rawAcc === "bb" || rawAcc === "𝄫" ? "double_flat" : "";
-  if (accidentalType === "sharp") {
-    if (normalizedAcc === "double_sharp" || normalizedAcc === "sharp") return "".concat(baseDisplay, "\uD834\uDD2A");
-    return "".concat(baseDisplay, "\u266F");
-  }
-  if (accidentalType === "flat") {
-    if (normalizedAcc === "double_flat" || normalizedAcc === "flat") return "".concat(baseDisplay, "\uD834\uDD2B");
-    return "".concat(baseDisplay, "\u266D");
-  }
-  return "".concat(baseDisplay);
-}
-function deleteSingleNoteValue(current) {
-  var value = String(current || "").trim();
-  if (!value) return "";
-  var m = value.match(/^([A-G]|Do|Re|Mi|Fa|Sol|La|Si)([#b♯♭𝄪𝄫]{0,2})$/i);
-  if (!m) {
-    var chars = Array.from(value);
-    return chars.slice(0, -1).join("");
-  }
-  if (m[2]) return m[1];
-  return "";
-}
-var MusicKeyboardController = /*#__PURE__*/function () {
-  function MusicKeyboardController() {
-    var _ref3 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
-      namespace = _ref3.namespace,
-      $keyboard = _ref3.$keyboard,
-      _ref3$pushTimeout = _ref3.pushTimeout,
-      pushTimeout = _ref3$pushTimeout === void 0 ? null : _ref3$pushTimeout;
-    _classCallCheck(this, MusicKeyboardController);
-    this.ns = namespace || "musicKeyboard";
-    this.$keyboard = $keyboard || $("#music-keyboard").first();
-    this._pushTimeout = typeof pushTimeout === "function" ? pushTimeout : null;
-    this._hideTimer = null;
-    this._suppressHideUntil = 0;
-  }
-  return _createClass(MusicKeyboardController, [{
-    key: "bind",
-    value: function bind() {
-      var _this = this;
-      var _ref4 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
-        $root = _ref4.$root,
-        focusSelector = _ref4.focusSelector,
-        _ref4$clickSelector = _ref4.clickSelector,
-        clickSelector = _ref4$clickSelector === void 0 ? null : _ref4$clickSelector,
-        _ref4$resolveInputFro = _ref4.resolveInputFromClick,
-        resolveInputFromClick = _ref4$resolveInputFro === void 0 ? null : _ref4$resolveInputFro,
-        getActiveInput = _ref4.getActiveInput,
-        setActiveInput = _ref4.setActiveInput,
-        clearActiveInput = _ref4.clearActiveInput,
-        _ref4$isManagedInput = _ref4.isManagedInput,
-        isManagedInput = _ref4$isManagedInput === void 0 ? null : _ref4$isManagedInput,
-        _ref4$isInputDisabled = _ref4.isInputDisabled,
-        isInputDisabled = _ref4$isInputDisabled === void 0 ? null : _ref4$isInputDisabled,
-        transformButtonPress = _ref4.transformButtonPress;
-      var manages = typeof isManagedInput === "function" ? isManagedInput : function ($input) {
-        return !!($input && $input.length);
-      };
-      var disabled = typeof isInputDisabled === "function" ? isInputDisabled : function ($input) {
-        var _$input$prop;
-        return !!($input !== null && $input !== void 0 && (_$input$prop = $input.prop) !== null && _$input$prop !== void 0 && _$input$prop.call($input, "disabled"));
-      };
-      if (clickSelector && $root !== null && $root !== void 0 && $root.length) {
-        $root.off("click.".concat(this.ns, "KeyboardActivate"), clickSelector).on("click.".concat(this.ns, "KeyboardActivate"), clickSelector, function (e) {
-          var $input = typeof resolveInputFromClick === "function" ? resolveInputFromClick($(e.currentTarget), e) : $(e.currentTarget).find(focusSelector).first();
-          if (!$input || !$input.length) return;
-          if (disabled($input)) {
-            clearActiveInput === null || clearActiveInput === void 0 || clearActiveInput();
-            return;
-          }
-          setActiveInput === null || setActiveInput === void 0 || setActiveInput($input);
-          $input.trigger("focus");
-          _this.show();
-        });
-      }
-      if ($root !== null && $root !== void 0 && $root.length) {
-        $root.off("focusin.".concat(this.ns, "Keyboard"), focusSelector).on("focusin.".concat(this.ns, "Keyboard"), focusSelector, function (e) {
-          var $input = $(e.currentTarget);
-          if (!manages($input)) return;
-          setActiveInput === null || setActiveInput === void 0 || setActiveInput($input);
-          _this.show();
-        });
-        $root.off("focusout.".concat(this.ns, "Keyboard"), focusSelector).on("focusout.".concat(this.ns, "Keyboard"), focusSelector, function () {
-          _this._scheduleHide(function () {
-            var $active = $(document.activeElement);
-            var inManagedInput = manages($active);
-            var inKeyboard = $active.closest("#music-keyboard").length;
-            if (!inManagedInput && !inKeyboard) {
-              _this.hide();
-              clearActiveInput === null || clearActiveInput === void 0 || clearActiveInput();
-            }
-          });
-        });
-        $root.off("keydown.".concat(this.ns, "Keyboard"), focusSelector).on("keydown.".concat(this.ns, "Keyboard"), focusSelector, function (e) {
-          if (!manages($(e.currentTarget))) return;
-          e.preventDefault();
-        });
-        $root.off("paste.".concat(this.ns, "Keyboard"), focusSelector).on("paste.".concat(this.ns, "Keyboard"), focusSelector, function (e) {
-          if (!manages($(e.currentTarget))) return;
-          e.preventDefault();
-        });
-      }
-      $(document).off("mousedown.".concat(this.ns, "Keyboard touchstart.").concat(this.ns, "Keyboard")).on("mousedown.".concat(this.ns, "Keyboard touchstart.").concat(this.ns, "Keyboard"), function (e) {
-        var $target = $(e.target);
-        if (manages($target.closest(focusSelector))) return;
-        if ($target.closest("#music-keyboard").length) {
-          _this._suppressHideUntil = Date.now() + 250;
-          return;
-        }
-        _this.hide();
-        clearActiveInput === null || clearActiveInput === void 0 || clearActiveInput();
-      });
-      this.$keyboard.off("click.".concat(this.ns, "KeyboardWrite"), "button").on("click.".concat(this.ns, "KeyboardWrite"), "button", function (e) {
-        e.preventDefault();
-        var $button = $(e.currentTarget);
-        var $active = getActiveInput !== null && getActiveInput !== void 0 && getActiveInput() && getActiveInput().length ? getActiveInput() : $(document.activeElement).closest(focusSelector);
-        if (!$active || !$active.length || !manages($active)) return;
-        if (disabled($active)) return;
-        if (typeof transformButtonPress !== "function") return;
-        var result = transformButtonPress({
-          action: MusicKeyboardController.parseButton($button),
-          currentValue: String($active.val() || "").trim(),
-          $input: $active,
-          $button: $button
-        });
-        if (result == null) return;
-        $active.val(result).trigger("input");
-      });
-    }
-  }, {
-    key: "syncLetterButtonLabels",
-    value: function syncLetterButtonLabels() {
-      var _this$$keyboard;
-      var _ref5 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
-        _ref5$useSolfege = _ref5.useSolfege,
-        useSolfege = _ref5$useSolfege === void 0 ? false : _ref5$useSolfege,
-        _ref5$letterToSolfege = _ref5.letterToSolfege,
-        letterToSolfege = _ref5$letterToSolfege === void 0 ? {} : _ref5$letterToSolfege;
-      if (!((_this$$keyboard = this.$keyboard) !== null && _this$$keyboard !== void 0 && _this$$keyboard.length)) return;
-      this.$keyboard.find("button[data-lettername]").each(function (_, el) {
-        var $button = $(el);
-        var letter = String($button.attr("data-lettername") || "").trim().toUpperCase();
-        var solfege = String($button.attr("data-solfege") || "").trim();
-        var label = keyboardLabelForLetter({
-          letter: letter,
-          solfege: solfege,
-          useSolfege: useSolfege,
-          letterToSolfege: letterToSolfege
-        });
-        if (label) $button.text(label);
-      });
-    }
-  }, {
-    key: "show",
-    value: function show() {
-      if (!this.$keyboard.length) return;
-      if (this._hideTimer) {
-        clearTimeout(this._hideTimer);
-        this._hideTimer = null;
-      }
-      this.$keyboard.stop(true, true).show().removeClass("animate__bounceOutDown").addClass("animate__animated animate__bounceInUp");
-    }
-  }, {
-    key: "hide",
-    value: function hide() {
-      var _this2 = this;
-      if (!this.$keyboard.length) return;
-      if (!this.$keyboard.is(":visible")) return;
-      this.$keyboard.removeClass("animate__bounceInUp").addClass("animate__animated animate__bounceOutDown");
-      var hideTid = setTimeout(function () {
-        _this2.$keyboard.hide();
-        _this2.$keyboard.removeClass("animate__bounceOutDown");
-      }, 550);
-      if (this._pushTimeout) this._pushTimeout(hideTid);
-    }
-  }, {
-    key: "_scheduleHide",
-    value: function _scheduleHide(onHide) {
-      var _this3 = this;
-      if (this._hideTimer) clearTimeout(this._hideTimer);
-      this._hideTimer = setTimeout(function () {
-        _this3._hideTimer = null;
-        if (Date.now() < _this3._suppressHideUntil) return;
-        if (typeof onHide === "function") onHide();
-      }, 0);
-    }
-  }], [{
-    key: "parseButton",
-    value: function parseButton($button) {
-      return {
-        letter: String($button.attr("data-lettername") || "").trim().toUpperCase(),
-        solfege: String($button.attr("data-solfege") || "").trim(),
-        accidentalType: String($button.attr("data-accidental") || "").trim().toLowerCase(),
-        isDelete: $button.is("[data-delete]"),
-        text: String($button.text() || "").trim()
-      };
     }
   }]);
 }();
@@ -3639,6 +3862,111 @@ var PromptUi = /*#__PURE__*/function () {
 
 /***/ },
 
+/***/ "./resources/js/music/games/shared/challengeUtils.js"
+/*!***********************************************************!*\
+  !*** ./resources/js/music/games/shared/challengeUtils.js ***!
+  \***********************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   accidentalClassFromOffset: () => (/* binding */ accidentalClassFromOffset),
+/* harmony export */   fixedNoteToStaffPosition: () => (/* binding */ fixedNoteToStaffPosition),
+/* harmony export */   normalizeClefPool: () => (/* binding */ normalizeClefPool),
+/* harmony export */   parseIntervalAbbr: () => (/* binding */ parseIntervalAbbr),
+/* harmony export */   parsePitch: () => (/* binding */ parsePitch),
+/* harmony export */   pickChallengeClef: () => (/* binding */ pickChallengeClef)
+/* harmony export */ });
+/* harmony import */ var _staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../staff/staffUtils.js */ "./resources/js/music/staff/staffUtils.js");
+
+function normalizeClefPool(clefsOrSingle) {
+  var raw = Array.isArray(clefsOrSingle) ? clefsOrSingle : clefsOrSingle != null ? [clefsOrSingle] : ["treble", "bass"];
+  var normalized = raw.map(function (c) {
+    return (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_0__.normalizeClef)(c);
+  }).filter(Boolean);
+  var uniq = [];
+  for (var i = 0; i < normalized.length; i += 1) {
+    if (!uniq.includes(normalized[i])) uniq.push(normalized[i]);
+  }
+  return uniq.length ? uniq : ["treble", "bass"];
+}
+function pickChallengeClef(clefPool) {
+  var pool = Array.isArray(clefPool) && clefPool.length ? clefPool : ["treble", "bass"];
+  if (pool.length === 1) return pool[0];
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+function accidentalClassFromOffset(off) {
+  if (off === 2) return "music-font__doublesharp";
+  if (off === 1) return "music-font__sharp";
+  if (off === 0) return "music-font__natural";
+  if (off === -1) return "music-font__flat";
+  if (off === -2) return "music-font__doubleflat";
+  return null;
+}
+function parseIntervalAbbr(abbr) {
+  var s = String(abbr || "").trim();
+  var m = s.match(/^([PMAmd]+)(\d+)$/);
+  if (!m) return null;
+  return {
+    quality: m[1],
+    number: parseInt(m[2], 10)
+  };
+}
+function parsePitch(pitch) {
+  var s = String(pitch || "").trim();
+  var m = s.match(/^([A-Ga-g])((?:#{1,2})|(?:b{1,2})|)?(\d+)$/);
+  if (!m) return null;
+  var letter = m[1].toUpperCase();
+  var acc = m[2] || "";
+  var octave = parseInt(m[3], 10);
+  var baseSemitoneFromC = {
+    C: 0,
+    D: 2,
+    E: 4,
+    F: 5,
+    G: 7,
+    A: 9,
+    B: 11
+  }[letter];
+  var accOffset = acc === "𝄪" ? 2 : acc === "#" ? 1 : acc === "bb" ? -2 : acc === "b" ? -1 : 0;
+  var accidentalClass = accidentalClassFromOffset(accOffset);
+  var midi = 12 * (octave + 1) + baseSemitoneFromC + accOffset;
+  return {
+    midi: midi,
+    accOffset: accOffset,
+    accidentalClass: accidentalClass
+  };
+}
+function fixedNoteToStaffPosition(staff, noteStr) {
+  var parsed = parsePitch(noteStr);
+  if (!parsed) return null;
+  var midi = parsed.midi,
+    accOffset = parsed.accOffset,
+    accidentalClass = parsed.accidentalClass;
+  for (var step = staff.minStepAllowed(); step <= staff.maxStepAllowed(); step += 1) {
+    var baseMidi = staff._stepToMidi(step);
+    if (baseMidi + accOffset === midi) return {
+      step: step,
+      accidentalClass: accidentalClass
+    };
+  }
+  var best = null;
+  for (var _step = staff.minStepAllowed(); _step <= staff.maxStepAllowed(); _step += 1) {
+    var _baseMidi = staff._stepToMidi(_step);
+    var dist = Math.abs(_baseMidi + accOffset - midi);
+    if (!best || dist < best.dist) best = {
+      step: _step,
+      dist: dist
+    };
+  }
+  return best ? {
+    step: best.step,
+    accidentalClass: accidentalClass
+  } : null;
+}
+
+/***/ },
+
 /***/ "./resources/js/music/games/shared/finalResults.js"
 /*!*********************************************************!*\
   !*** ./resources/js/music/games/shared/finalResults.js ***!
@@ -3960,1829 +4288,6 @@ function playSnakeCellBreakBurstAtElement(targetEl) {
   });
   new mojs.Timeline().add(yellowShards, blackBits).play();
 }
-
-/***/ },
-
-/***/ "./resources/js/music/games/tonetrek/ToneTrek.js"
-/*!*******************************************************!*\
-  !*** ./resources/js/music/games/tonetrek/ToneTrek.js ***!
-  \*******************************************************/
-(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   ToneTrek: () => (/* binding */ ToneTrek)
-/* harmony export */ });
-/* harmony import */ var _shared_finalResults_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../shared/finalResults.js */ "./resources/js/music/games/shared/finalResults.js");
-/* harmony import */ var _base_BaseStaffGame_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../base/BaseStaffGame.js */ "./resources/js/music/games/base/BaseStaffGame.js");
-/* harmony import */ var _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/GameAudio.js */ "./resources/js/music/games/shared/GameAudio.js");
-/* harmony import */ var _shared_InstructionsUi_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/InstructionsUi.js */ "./resources/js/music/games/shared/InstructionsUi.js");
-/* harmony import */ var _shared_MusicKeyboardController_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../shared/MusicKeyboardController.js */ "./resources/js/music/games/shared/MusicKeyboardController.js");
-function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
-function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
-function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
-function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
-function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
-function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
-function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
-function _classCallCheck(a, n) { if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function"); }
-function _defineProperties(e, r) { for (var t = 0; t < r.length; t++) { var o = r[t]; o.enumerable = o.enumerable || !1, o.configurable = !0, "value" in o && (o.writable = !0), Object.defineProperty(e, _toPropertyKey(o.key), o); } }
-function _createClass(e, r, t) { return r && _defineProperties(e.prototype, r), t && _defineProperties(e, t), Object.defineProperty(e, "prototype", { writable: !1 }), e; }
-function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
-function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
-function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
-
-
-
-
-
-var ToneTrek = /*#__PURE__*/function () {
-  function ToneTrek() {
-    var _this = this;
-    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-    _classCallCheck(this, ToneTrek);
-    var defaults = {
-      tableEl: "table.table",
-      pathLength: 9,
-      maxGenerateAttempts: 2000,
-      maxStraightRun: 3,
-      intervals: null,
-      initialNotes: null,
-      allowAccidentals: false,
-      solfege: false,
-      sound: true,
-      basePoints: 1,
-      firstTryBonus: 2,
-      numOfChallenges: 4,
-      namespace: "toneTrek"
-    };
-    this.opts = _objectSpread(_objectSpread({}, defaults), options || {});
-    this.opts.numOfChallenges = this._normalizeNumOfChallenges(this.opts.numOfChallenges);
-    this.$table = $(this.opts.tableEl).first();
-    this.$musicKeyboard = $("#music-keyboard").first();
-    this.$feedback = $("#feedback-success");
-    this.$helpBtn = $("#help");
-    this.$skipWrap = $("#skip");
-    this.$skipBtn = this.$skipWrap.find("button");
-    this.$checkWrap = $("#check");
-    this.$checkBtn = $("#check button");
-    this.$continueWrap = $("#continue");
-    this.$continueBtn = $("#continue button");
-    this.$timeupMessage = $("#timeup-message");
-    this.$timer = $("#timer");
-    this.$timerBox = this.$timer.children("div").first();
-    this.$timerText = this.$timer.find("span");
-    this.$progressBar = $("#progress-bar");
-    this.$progressCounter = $("#progress-counter");
-    this.$points = $("#points");
-    this.$finalOverlay = $("#final-overlay");
-    this.$doublePoints = $("#double-points");
-    this.instructionsUi = new _shared_InstructionsUi_js__WEBPACK_IMPORTED_MODULE_3__.InstructionsUi("#instructions");
-    this.ns = this.opts.namespace || "toneTrek";
-    this._audioReady = false;
-    this._synth = null;
-    this._uiSfxReady = false;
-    this._uiSfxSynth = null;
-    this._uiSfxNoise = null;
-    this._uiTimerSfxSynth = null;
-    this._audioUnlockArmed = false;
-    this._revealTimeouts = [];
-    this._timerTimeoutId = null;
-    this._timerRemainingSec = 0;
-    this._timerEndsAtMs = 0;
-    this.$activeBlockInput = null;
-    this.$activeBlockCell = null;
-    this._musicKeyboard = new _shared_MusicKeyboardController_js__WEBPACK_IMPORTED_MODULE_4__.MusicKeyboardController({
-      namespace: this.ns,
-      $keyboard: this.$musicKeyboard,
-      pushTimeout: function pushTimeout(id) {
-        return _this._revealTimeouts.push(id);
-      }
-    });
-    this._instructionsDismissed = false;
-    this._correctionMode = false;
-    this._wrongEditableIndexes = new Set();
-    this._finalStartMs = Date.now();
-    this._currentRound = 1;
-    this._roundLocked = false;
-    this._usedHintThisRound = false;
-    this._madeMistakeThisRound = false;
-    this._madeAnyMistake = false;
-    this._clearCorrectStreak();
-    this._points = 0;
-    this._stats = {
-      checksTotal: 0,
-      checksCorrect: 0,
-      finishedAtMs: null
-    };
-    this._roundAnswerKey = {};
-    this._roundRecords = [];
-    this._finalMetricsSfxTimeouts = [];
-    this._finalCountupTimeouts = [];
-  }
-  return _createClass(ToneTrek, [{
-    key: "start",
-    value: function start() {
-      if (!this.$table.length) return;
-      this._wireControls();
-      this._wireNoteInputUx();
-      this._wireIntervalBlocks();
-      this._showStandardGameUi();
-      this._resetRunUi();
-      this._startRound();
-    }
-  }, {
-    key: "_normalizeNumOfChallenges",
-    value: function _normalizeNumOfChallenges(raw) {
-      var n = Number(raw);
-      var safe = Number.isFinite(n) ? Math.trunc(n) : 4;
-      if (safe < ToneTrek.MIN_CHALLENGES) return ToneTrek.MIN_CHALLENGES;
-      if (safe > ToneTrek.MAX_CHALLENGES) return ToneTrek.MAX_CHALLENGES;
-      return safe;
-    }
-  }, {
-    key: "_resetRunUi",
-    value: function _resetRunUi() {
-      var _this$$doublePoints, _this$$doublePoints$h;
-      this._finalStartMs = Date.now();
-      this._currentRound = 1;
-      this._roundLocked = false;
-      this._usedHintThisRound = false;
-      this._madeMistakeThisRound = false;
-      this._madeAnyMistake = false;
-      this._clearCorrectStreak();
-      this._points = 0;
-      this._stats = {
-        checksTotal: 0,
-        checksCorrect: 0,
-        finishedAtMs: null
-      };
-      this._roundAnswerKey = {};
-      this._roundRecords = [];
-      this._clearFinalMetricsSfxTimers();
-      this._clearFinalCountupTimers();
-      this._syncPracticeUi();
-      this.$points.text("0");
-      this.$feedback.hide();
-      this.$helpBtn.hide();
-      this.$skipWrap.hide();
-      this.$continueWrap.hide();
-      this._hideTimeUpMessage();
-      this._setTimedOutInteractivityDisabled(false);
-      this.$finalOverlay.hide();
-      (_this$$doublePoints = this.$doublePoints) === null || _this$$doublePoints === void 0 || (_this$$doublePoints$h = _this$$doublePoints.hide) === null || _this$$doublePoints$h === void 0 || _this$$doublePoints$h.call(_this$$doublePoints);
-      this.$checkBtn.text("Check my answer");
-      this.$progressBar.data("progress", 0).css({
-        width: "0%"
-      });
-      this.$progressCounter.text(this._isPracticeMode() ? "Practice" : "0 of ".concat(this.opts.numOfChallenges));
-      if (this._isTimerEnabled()) this.$timer.show();else this.$timer.hide();
-    }
-  }, {
-    key: "_startRound",
-    value: function _startRound() {
-      this._roundLocked = false;
-      this._correctionMode = false;
-      this._wrongEditableIndexes = new Set();
-      this._usedHintThisRound = false;
-      this._madeMistakeThisRound = false;
-      this.$helpBtn.hide();
-      this.$skipWrap.hide();
-      this.$continueWrap.hide();
-      this.$feedback.hide();
-      this.$checkWrap.show().removeClass("invisible");
-      this._armUiSfxOnFirstGesture();
-      this._syncKeyboardLabels();
-      this._hideTimeUpMessage();
-      this._setTimedOutInteractivityDisabled(false);
-      this._hideMusicKeyboard();
-      this._clearActiveBlockInput();
-      var $rows = this.$table.find("tbody tr");
-      var rowCount = $rows.length;
-      var colCount = rowCount ? $rows.first().find("td").length : 0;
-      if (!rowCount || !colCount) return;
-      this._clearRevealTimers();
-      this.$table.find("td").removeClass("block interval-block initial-block").removeAttr("id").empty();
-      this._hideAllCellsVisual();
-      var maxCells = rowCount * colCount;
-      var pathLength = Math.max(1, Math.min(maxCells, Number(this.opts.pathLength) || 9));
-      var layout = this._buildRoundLayout({
-        rowCount: rowCount,
-        colCount: colCount,
-        pathLength: pathLength
-      });
-      if (!layout) return;
-      var revealItems = layout.revealItems;
-      this._roundAnswerKey = layout.answerKey || {};
-      this._revealPathCells(revealItems);
-      if (this._isTimerEnabled()) this._resetRoundTimerIfEnabled();else {
-        this._stopGameTimer();
-        this.$timer.hide();
-      }
-    }
-  }, {
-    key: "_buildRoundLayout",
-    value: function _buildRoundLayout(_ref) {
-      var rowCount = _ref.rowCount,
-        colCount = _ref.colCount,
-        pathLength = _ref.pathLength;
-      var maxAttempts = Math.max(1, Number(this.opts.maxGenerateAttempts) || 2000);
-      var maxStraightRun = Math.max(1, Number(this.opts.maxStraightRun) || 3);
-      var intervalPool = this._intervalPool();
-      for (var attempt = 0; attempt < maxAttempts; attempt += 1) {
-        var path = this._generatePath({
-          rowCount: rowCount,
-          colCount: colCount,
-          length: pathLength,
-          maxAttempts: 1,
-          maxStraightRun: maxStraightRun
-        });
-        if (!path) continue;
-        var initialRaw = this._pickInitialNote();
-        var initialNote = this._parseSpelledNote(initialRaw) || this._parseSpelledNote("C");
-        if (!initialNote) continue;
-        var revealItems = [];
-        var answerKey = {};
-        var prevExpected = initialNote;
-        var failed = false;
-        for (var i = 0; i < path.length; i += 1) {
-          var cell = path[i];
-          if (i === 0) {
-            var next = path[1] || null;
-            var arrowClass = this._arrowClassForNextStep(cell, next);
-            revealItems.push({
-              r: cell.r,
-              c: cell.c,
-              i: i,
-              cls: "initial-block",
-              html: "<div><span>START HERE</span><input type=\"text\" name=\"note\" value=\"".concat(this._noteDisplay(initialNote), "\" disabled=\"\"><i class=\"fa-solid ").concat(arrowClass, "\"></i></div>")
-            });
-            continue;
-          }
-          if (i % 2 === 1) {
-            var pickedInterval = null;
-            var pickedDir = null;
-            var nextExpected = null;
-            var localAttempts = Math.max(8, intervalPool.length * 3);
-            for (var t = 0; t < localAttempts; t += 1) {
-              var interval = intervalPool[Math.floor(Math.random() * intervalPool.length)];
-              var dir = Math.random() < 0.5 ? -1 : 1;
-              var candidate = this._spelledIntervalTarget(prevExpected, interval, dir);
-              if (!candidate) continue;
-              pickedInterval = interval;
-              pickedDir = dir;
-              nextExpected = candidate;
-              break;
-            }
-            if (!pickedInterval || !nextExpected) {
-              failed = true;
-              break;
-            }
-            answerKey[i + 1] = nextExpected;
-            prevExpected = nextExpected;
-            revealItems.push({
-              r: cell.r,
-              c: cell.c,
-              i: i,
-              cls: "interval-block",
-              html: "<div><button type=\"button\" data-interval=\"".concat(pickedInterval, "\"><i class=\"fa-solid fa-volume-up\"></i></button><span interval>").concat(pickedInterval, "</span><span direction>").concat(pickedDir === -1 ? "DOWN" : "UP", "</span></div>")
-            });
-            continue;
-          }
-          revealItems.push({
-            r: cell.r,
-            c: cell.c,
-            i: i,
-            cls: "block",
-            html: "<div><span style=\"opacity: 0.2; font-size: 1rem;\">ADD NOTE HERE</span><input type=\"text\" name=\"note\"></div>"
-          });
-        }
-        if (!failed) return {
-          revealItems: revealItems,
-          answerKey: answerKey
-        };
-      }
-      return null;
-    }
-  }, {
-    key: "_intervalPool",
-    value: function _intervalPool() {
-      var fromOptions = Array.isArray(this.opts.intervals) ? this.opts.intervals.filter(Boolean).map(function (x) {
-        return String(x).trim();
-      }) : [];
-      return fromOptions.length ? fromOptions : ToneTrek.INTERVALS_FALLBACK.slice();
-    }
-  }, {
-    key: "_normalizeOnOff",
-    value: function _normalizeOnOff(v) {
-      if (v === true) return true;
-      var s = String(v !== null && v !== void 0 ? v : "").trim().toLowerCase();
-      return s === "on" || s === "true" || s === "1";
-    }
-  }, {
-    key: "_readBoolSetting",
-    value: function _readBoolSetting(key) {
-      var _this$opts;
-      var fallback = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
-      var direct = (_this$opts = this.opts) === null || _this$opts === void 0 ? void 0 : _this$opts[key];
-      if (direct !== undefined && direct !== null && String(direct).trim() !== "") {
-        return this._normalizeOnOff(direct);
-      }
-      try {
-        var qs = new URLSearchParams(window.location.search || "");
-        if (qs.has(key)) return this._normalizeOnOff(qs.get(key));
-      } catch (_) {}
-      return !!fallback;
-    }
-  }, {
-    key: "_isSolfegeEnabled",
-    value: function _isSolfegeEnabled() {
-      return this._readBoolSetting("solfege", false);
-    }
-  }, {
-    key: "_allowsInitialAccidentals",
-    value: function _allowsInitialAccidentals() {
-      return this._readBoolSetting("allowAccidentals", false);
-    }
-  }, {
-    key: "_noteDisplay",
-    value: function _noteDisplay(noteObj) {
-      if (!noteObj) return "";
-      var letter = String(noteObj.letter || "").toUpperCase();
-      var base = this._isSolfegeEnabled() ? ToneTrek.LETTER_TO_SOLFEGE[letter] || letter : letter;
-      return "".concat(base).concat(this._accidentalDisplayFromOffset(Number(noteObj.accOffset) || 0));
-    }
-  }, {
-    key: "_syncKeyboardLabels",
-    value: function _syncKeyboardLabels() {
-      this._musicKeyboard.syncLetterButtonLabels({
-        useSolfege: this._isSolfegeEnabled(),
-        letterToSolfege: ToneTrek.LETTER_TO_SOLFEGE
-      });
-    }
-  }, {
-    key: "_generatePath",
-    value: function _generatePath(_ref2) {
-      var rowCount = _ref2.rowCount,
-        colCount = _ref2.colCount,
-        length = _ref2.length,
-        maxAttempts = _ref2.maxAttempts,
-        maxStraightRun = _ref2.maxStraightRun;
-      var dirs = [{
-        dr: 1,
-        dc: 0
-      }, {
-        dr: -1,
-        dc: 0
-      }, {
-        dr: 0,
-        dc: 1
-      }, {
-        dr: 0,
-        dc: -1
-      }];
-      for (var attempt = 0; attempt < maxAttempts; attempt += 1) {
-        var startCol = Math.floor(Math.random() * colCount);
-        var path = [{
-          r: 0,
-          c: startCol
-        }];
-        var occupied = new Set(["0,".concat(startCol)]);
-        var prevDir = null;
-        var sameDirRun = 0;
-        while (path.length < length) {
-          var cur = path[path.length - 1];
-          var candidates = [];
-          for (var i = 0; i < dirs.length; i += 1) {
-            var dir = dirs[i];
-            if (prevDir && dir.dr === prevDir.dr && dir.dc === prevDir.dc && sameDirRun >= maxStraightRun) {
-              continue;
-            }
-            var nr = cur.r + dir.dr;
-            var nc = cur.c + dir.dc;
-            if (nr < 0 || nr >= rowCount || nc < 0 || nc >= colCount) continue;
-            var key = "".concat(nr, ",").concat(nc);
-            if (occupied.has(key)) continue;
-            var sideNeighbors = this._sideNeighbors(nr, nc, occupied);
-            if (sideNeighbors.length !== 1) continue;
-            if (sideNeighbors[0] !== "".concat(cur.r, ",").concat(cur.c)) continue;
-            candidates.push({
-              r: nr,
-              c: nc,
-              dir: dir
-            });
-          }
-          if (!candidates.length) break;
-          var picked = candidates[Math.floor(Math.random() * candidates.length)];
-          path.push({
-            r: picked.r,
-            c: picked.c
-          });
-          occupied.add("".concat(picked.r, ",").concat(picked.c));
-          if (prevDir && picked.dir.dr === prevDir.dr && picked.dir.dc === prevDir.dc) {
-            sameDirRun += 1;
-          } else {
-            prevDir = picked.dir;
-            sameDirRun = 1;
-          }
-        }
-        if (path.length === length) return path;
-      }
-      return null;
-    }
-  }, {
-    key: "_sideNeighbors",
-    value: function _sideNeighbors(r, c, occupied) {
-      var out = [];
-      var neighbors = [[r + 1, c], [r - 1, c], [r, c + 1], [r, c - 1]];
-      for (var i = 0; i < neighbors.length; i += 1) {
-        var key = "".concat(neighbors[i][0], ",").concat(neighbors[i][1]);
-        if (occupied.has(key)) out.push(key);
-      }
-      return out;
-    }
-  }, {
-    key: "_cellAt",
-    value: function _cellAt(r, c) {
-      var $row = this.$table.find("tbody tr").eq(r);
-      return $row.find("td").eq(c);
-    }
-  }, {
-    key: "_pickInitialInterval",
-    value: function _pickInitialInterval() {
-      var fromOptions = Array.isArray(this.opts.intervals) ? this.opts.intervals.filter(Boolean) : [];
-      var pool = fromOptions.length ? fromOptions : ToneTrek.INTERVALS_FALLBACK;
-      return String(pool[Math.floor(Math.random() * pool.length)] || "M2");
-    }
-  }, {
-    key: "_arrowClassForNextStep",
-    value: function _arrowClassForNextStep(cur, next) {
-      if (!cur || !next) return "fa-arrow-right";
-      var dr = next.r - cur.r;
-      var dc = next.c - cur.c;
-      if (dr === 1 && dc === 0) return "fa-arrow-down";
-      if (dr === -1 && dc === 0) return "fa-arrow-up";
-      if (dr === 0 && dc === 1) return "fa-arrow-right";
-      if (dr === 0 && dc === -1) return "fa-arrow-left";
-      return "fa-arrow-right";
-    }
-  }, {
-    key: "_pickInitialNote",
-    value: function _pickInitialNote() {
-      var fromOptions = Array.isArray(this.opts.initialNotes) ? this.opts.initialNotes.filter(Boolean).map(function (x) {
-        return String(x).trim();
-      }) : [];
-      var fallback = ["C", "D", "E", "F", "G", "A", "B"];
-      var pool = fromOptions.length ? fromOptions : fallback;
-      var picked = String(pool[Math.floor(Math.random() * pool.length)] || "E");
-      var parsed = this._parseSpelledNote(picked) || this._parseSpelledNote("E");
-      if (!parsed) return "E";
-      if (!this._allowsInitialAccidentals()) return "".concat(parsed.letter);
-      var accidentalChoices = [0, 0, 0, 1, -1];
-      var off = accidentalChoices[Math.floor(Math.random() * accidentalChoices.length)] || 0;
-      var acc = off === 1 ? "#" : off === -1 ? "b" : "";
-      return "".concat(parsed.letter).concat(acc);
-    }
-  }, {
-    key: "_wireIntervalBlocks",
-    value: function _wireIntervalBlocks() {
-      var _this2 = this;
-      this.$table.off("click.".concat(this.ns, "Block")).on("click.".concat(this.ns, "Block"), "td.interval-block", function (e) {
-        if ($(e.target).closest("button[data-interval]").length) return;
-        var $btn = $(e.currentTarget).find('button[data-interval]').first();
-        if ($btn.length) $btn.trigger("click");
-      });
-      this.$table.off("click.".concat(this.ns, "Btn")).on("click.".concat(this.ns, "Btn"), 'td.interval-block button[data-interval]', function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        var $btn = $(e.currentTarget);
-        var $cell = $btn.closest("td.interval-block");
-        var idx = parseInt($cell.attr("data-path-index"), 10);
-        if (!Number.isFinite(idx) || idx <= 0) {
-          _this2._shakeCell($cell);
-          return;
-        }
-        var $prev = _this2.$table.find("td[data-path-index=\"".concat(idx - 1, "\"]")).first();
-        var prevMidi = _this2._midiFromCell($prev);
-        if (!Number.isFinite(prevMidi)) {
-          _this2._shakeCell($cell);
-          return;
-        }
-        var interval = String($btn.attr("data-interval") || "").trim();
-        var dirRaw = String($cell.find("span[direction]").first().text() || "").trim().toUpperCase();
-        var dir = dirRaw === "DOWN" ? -1 : 1;
-        var semis = _this2._intervalToSemitones(interval);
-        if (!Number.isFinite(semis)) {
-          _this2._shakeCell($cell);
-          return;
-        }
-        var secondMidi = prevMidi + dir * semis;
-        _this2._playDictationLike(prevMidi, secondMidi);
-      });
-    }
-  }, {
-    key: "_wireControls",
-    value: function _wireControls() {
-      var _this3 = this;
-      this.$checkBtn.off("click.".concat(this.ns, "Check")).on("click.".concat(this.ns, "Check"), function (e) {
-        e.preventDefault();
-        _this3._onCheck();
-      });
-      this.$helpBtn.off("click.".concat(this.ns, "Help")).on("click.".concat(this.ns, "Help"), function (e) {
-        e.preventDefault();
-        _this3._onHelp();
-      });
-      this.$continueBtn.off("click.".concat(this.ns, "Continue")).on("click.".concat(this.ns, "Continue"), function (e) {
-        e.preventDefault();
-        _this3.$continueWrap.hide();
-        _this3.$skipWrap.hide();
-        _this3._hideTimeUpMessage();
-        _this3._setTimedOutInteractivityDisabled(false);
-        if (_this3._isPracticeMode()) {
-          _this3._currentRound += 1;
-          _this3._startRound();
-          return;
-        }
-        if (_this3._currentRound >= _this3.opts.numOfChallenges) {
-          _this3._showFinalResults();
-          return;
-        }
-        _this3._currentRound += 1;
-        _this3._startRound();
-      });
-      this.$skipBtn.off("click.".concat(this.ns, "Skip")).on("click.".concat(this.ns, "Skip"), function (e) {
-        e.preventDefault();
-        _this3._finishRoundAsTimedOut();
-      });
-    }
-  }, {
-    key: "_onCheck",
-    value: function _onCheck() {
-      var _this4 = this;
-      if (this._roundLocked) return;
-      var evalResult = this._evaluateRoundAnswers();
-      this._renderBlockCheckMarks(evalResult);
-      var isComplete = this._areAllBlockInputsFilled();
-      if (!isComplete) {
-        this._failAnimation();
-        this._clearCorrectStreak();
-        this._playFailSfx();
-        this.$helpBtn.show();
-        this._madeAnyMistake = true;
-        this._madeMistakeThisRound = true;
-        return;
-      }
-      this._recordRoundCheck(evalResult);
-      this._stats.checksTotal += 1;
-      if (evalResult.correct) {
-        this._correctionMode = false;
-        this._wrongEditableIndexes = new Set();
-        this._stats.checksCorrect += 1;
-        var earned = this._awardPointsForCorrect();
-        this._finalizeRoundRecord({
-          passed: true,
-          earned: earned
-        });
-        this._pauseGameTimer();
-        if (this._isPracticeMode()) {
-          this._clearCorrectStreak();
-          this._playSuccessSfxBasic();
-        } else if (!this._usedHintThisRound && !this._madeMistakeThisRound) {
-          this._applyCorrectStreakForOutcome({
-            firstTry: true
-          });
-          this._playSuccessSfxBonus();
-        } else {
-          this._clearCorrectStreak();
-          this._playSuccessSfxBasic();
-        }
-        this._showSuccessAnimation();
-        this._updateProgressBar();
-        this._roundLocked = true;
-        this.$table.find('td.block input[name="note"]').prop("disabled", true);
-        this.$helpBtn.hide();
-        if (this._currentRound >= this.opts.numOfChallenges) {
-          this.$checkBtn.text("Final results, let's see...");
-          this.$checkWrap.hide();
-          this.$continueWrap.hide();
-          var tid = setTimeout(function () {
-            return _this4._showFinalResults();
-          }, 1400);
-          this._revealTimeouts.push(tid);
-        } else {
-          this.$checkWrap.hide();
-          this.$continueWrap.show();
-          this.$continueBtn.text("Continue");
-        }
-        if (earned > 0) {
-          $("#score").animateCSS && $("#score").animateCSS("heartBeat");
-        }
-        return;
-      }
-      this._madeAnyMistake = true;
-      this._madeMistakeThisRound = true;
-      this._clearCorrectStreak();
-      this._finalizeRoundRecord({
-        passed: false,
-        earned: 0
-      });
-      this._enterCorrectionMode(evalResult);
-      this._failAnimation();
-      this._playFailSfx();
-      this.$helpBtn.show();
-    }
-  }, {
-    key: "_onHelp",
-    value: function _onHelp() {
-      var _this5 = this;
-      if (this._roundLocked) return;
-      var evalResult = this._evaluateRoundAnswers();
-      var answers = evalResult.expectedByIndex || {};
-      var entries = Object.keys(answers);
-      if (!entries.length) return;
-      this._usedHintThisRound = true;
-      this._ensureRoundRecord().usedHint = true;
-      entries.forEach(function (idxStr) {
-        var idx = Number(idxStr);
-        var $cell = _this5.$table.find("td[data-path-index=\"".concat(idx, "\"]")).first();
-        if (!$cell.length || !$cell.hasClass("block")) return;
-        var $input = $cell.find('input[name="note"]').first();
-        if (!$input.length) return;
-        var note = String(_this5._noteDisplay(answers[idxStr]) || "");
-        if (!note) return;
-        $input.val(note).trigger("input");
-      });
-      this.$helpBtn.hide();
-    }
-  }, {
-    key: "_areAllBlockInputsFilled",
-    value: function _areAllBlockInputsFilled() {
-      var $inputs = this.$table.find('td.block input[name="note"]');
-      if (!$inputs.length) return false;
-      var allFilled = true;
-      $inputs.each(function (_, el) {
-        if (!String(el.value || "").trim()) allFilled = false;
-      });
-      return allFilled;
-    }
-  }, {
-    key: "_evaluateRoundAnswers",
-    value: function _evaluateRoundAnswers() {
-      var _this6 = this;
-      var expectedByIndex = this._roundAnswerKey || {};
-      var marksByIndex = {};
-      var expectedKeys = Object.keys(expectedByIndex);
-      if (!expectedKeys.length) {
-        return {
-          correct: false,
-          expectedByIndex: expectedByIndex,
-          marksByIndex: marksByIndex,
-          correctCount: 0,
-          wrongCount: 0
-        };
-      }
-      var correct = true;
-      var correctCount = 0;
-      var wrongCount = 0;
-      expectedKeys.forEach(function (idxStr) {
-        var expected = expectedByIndex[idxStr];
-        var $target = _this6.$table.find("td.block[data-path-index=\"".concat(idxStr, "\"]")).first();
-        var user = _this6._noteFromCell($target);
-        var ok = !!(user && user.canonical === expected.canonical);
-        marksByIndex[idxStr] = ok;
-        if (!ok) {
-          correct = false;
-          wrongCount += 1;
-        } else {
-          correctCount += 1;
-        }
-      });
-      return {
-        correct: correct,
-        expectedByIndex: expectedByIndex,
-        marksByIndex: marksByIndex,
-        correctCount: correctCount,
-        wrongCount: wrongCount
-      };
-    }
-  }, {
-    key: "_ensureRoundRecord",
-    value: function _ensureRoundRecord() {
-      var idx = Math.max(0, Number(this._currentRound || 1) - 1);
-      if (!this._roundRecords[idx]) {
-        this._roundRecords[idx] = {
-          round: idx + 1,
-          checks: 0,
-          firstCorrect: null,
-          firstWrong: null,
-          finalCorrect: 0,
-          finalWrong: 0,
-          usedHint: false,
-          passed: false,
-          points: 0
-        };
-      }
-      return this._roundRecords[idx];
-    }
-  }, {
-    key: "_recordRoundCheck",
-    value: function _recordRoundCheck(evalResult) {
-      var rec = this._ensureRoundRecord();
-      rec.checks += 1;
-      if (rec.firstCorrect == null || rec.firstWrong == null) {
-        rec.firstCorrect = Number((evalResult === null || evalResult === void 0 ? void 0 : evalResult.correctCount) || 0);
-        rec.firstWrong = Number((evalResult === null || evalResult === void 0 ? void 0 : evalResult.wrongCount) || 0);
-      }
-      rec.finalCorrect = Number((evalResult === null || evalResult === void 0 ? void 0 : evalResult.correctCount) || 0);
-      rec.finalWrong = Number((evalResult === null || evalResult === void 0 ? void 0 : evalResult.wrongCount) || 0);
-      rec.usedHint = rec.usedHint || this._usedHintThisRound;
-    }
-  }, {
-    key: "_finalizeRoundRecord",
-    value: function _finalizeRoundRecord(_ref3) {
-      var passed = _ref3.passed,
-        earned = _ref3.earned;
-      var rec = this._ensureRoundRecord();
-      rec.passed = !!passed;
-      rec.usedHint = rec.usedHint || this._usedHintThisRound;
-      rec.points = Number(earned || 0);
-    }
-  }, {
-    key: "_enterCorrectionMode",
-    value: function _enterCorrectionMode(evalResult) {
-      var _this7 = this;
-      var marks = (evalResult === null || evalResult === void 0 ? void 0 : evalResult.marksByIndex) || {};
-      this._correctionMode = true;
-      this._wrongEditableIndexes = new Set();
-      Object.keys(marks).forEach(function (idxStr) {
-        if (!marks[idxStr]) _this7._wrongEditableIndexes.add(Number(idxStr));
-      });
-      this._updateNoteInputProgression();
-    }
-  }, {
-    key: "_renderBlockCheckMarks",
-    value: function _renderBlockCheckMarks(evalResult) {
-      var _this8 = this;
-      var marks = (evalResult === null || evalResult === void 0 ? void 0 : evalResult.marksByIndex) || {};
-      this.$table.find("td.block .block-correct").remove();
-      this.$table.find("td.block .block-wrong").remove();
-      this.$table.find("td.block > div").removeClass("bg-green bg-red");
-      this.$table.find("td.block").removeClass("animate__animated animate__rubberBand animate__shakeX");
-      Object.keys(marks).forEach(function (idxStr) {
-        var ok = !!marks[idxStr];
-        var $cell = _this8.$table.find("td.block[data-path-index=\"".concat(idxStr, "\"]")).first();
-        if (!$cell.length) return;
-        var $wrap = $cell.children("div").first();
-        if (!$wrap.length) return;
-        $wrap.addClass(ok ? "bg-green" : "bg-red");
-        $cell.removeClass("animate__animated animate__rubberBand animate__shakeX");
-        // eslint-disable-next-line no-unused-expressions
-        $cell[0] && $cell[0].offsetWidth;
-        if (ok) $cell.addClass("animate__animated animate__rubberBand");
-        var html = ok ? '<span class="block-correct"><i class="fa-solid fa-circle-check"></i></span>' : '<span class="block-wrong"><i class="fa-solid fa-circle-xmark"></i></span>';
-        $wrap.append(html);
-      });
-    }
-  }, {
-    key: "_noteFromCell",
-    value: function _noteFromCell($cell) {
-      if (!$cell || !$cell.length) return null;
-      var textFromInput = String($cell.find('input[name="note"]').first().val() || "").trim();
-      var raw = textFromInput || String($cell.text() || "").trim();
-      return this._parseSpelledNote(raw);
-    }
-  }, {
-    key: "_parseSpelledNote",
-    value: function _parseSpelledNote(rawText) {
-      var normalized = String(rawText || "").trim().replaceAll("𝄪", "##").replaceAll("♯", "#").replaceAll("𝄫", "bb").replaceAll("♭", "b");
-      var m = normalized.match(/^([A-Ga-g]|DO|RE|MI|FA|SOL|LA|SI)((?:#{1,2})|(?:b{1,2})|)?(\d+)?$/i);
-      if (!m) return null;
-      var token = m[1].toUpperCase();
-      var letter = ToneTrek.SOLFEGE_TO_LETTER[token] || token;
-      var acc = m[2] || "";
-      var accOffset = acc === "##" ? 2 : acc === "#" ? 1 : acc === "bb" ? -2 : acc === "b" ? -1 : 0;
-      var basePc = {
-        C: 0,
-        D: 2,
-        E: 4,
-        F: 5,
-        G: 7,
-        A: 9,
-        B: 11
-      }[letter];
-      var pitchClass = ((basePc + accOffset) % 12 + 12) % 12;
-      return {
-        letter: letter,
-        accOffset: accOffset,
-        pitchClass: pitchClass,
-        canonical: "".concat(letter).concat(acc),
-        display: this._noteDisplay({
-          letter: letter,
-          accOffset: accOffset
-        })
-      };
-    }
-  }, {
-    key: "_accidentalDisplayFromOffset",
-    value: function _accidentalDisplayFromOffset(off) {
-      if (off === 2) return "𝄪";
-      if (off === 1) return "♯";
-      if (off === -1) return "♭";
-      if (off === -2) return "𝄫";
-      return "";
-    }
-  }, {
-    key: "_spelledIntervalTarget",
-    value: function _spelledIntervalTarget(prevNote, intervalAbbr, dir) {
-      if (!prevNote) return null;
-      var semis = this._intervalToSemitones(intervalAbbr);
-      var parsed = this._parseIntervalAbbr(intervalAbbr);
-      if (!Number.isFinite(semis) || !parsed || !Number.isFinite(parsed.number)) return null;
-      var letters = ["C", "D", "E", "F", "G", "A", "B"];
-      var fromIdx = letters.indexOf(prevNote.letter);
-      if (fromIdx < 0) return null;
-      var diatonicSteps = Math.max(0, parsed.number - 1);
-      var toIdxRaw = fromIdx + dir * diatonicSteps;
-      var toIdx = (toIdxRaw % 7 + 7) % 7;
-      var targetLetter = letters[toIdx];
-      var targetPc = ((prevNote.pitchClass + dir * semis) % 12 + 12) % 12;
-      var naturalPc = {
-        C: 0,
-        D: 2,
-        E: 4,
-        F: 5,
-        G: 7,
-        A: 9,
-        B: 11
-      }[targetLetter];
-      var off = targetPc - naturalPc;
-      while (off > 6) off -= 12;
-      while (off < -6) off += 12;
-      if (off > 2) off -= 12;
-      if (off < -2) off += 12;
-      if (off < -2 || off > 2) return null;
-      var accText = off === 2 ? "##" : off === 1 ? "#" : off === -1 ? "b" : off === -2 ? "bb" : "";
-      return {
-        letter: targetLetter,
-        accOffset: off,
-        pitchClass: targetPc,
-        canonical: "".concat(targetLetter).concat(accText),
-        display: this._noteDisplay({
-          letter: targetLetter,
-          accOffset: off
-        })
-      };
-    }
-  }, {
-    key: "_awardPointsForCorrect",
-    value: function _awardPointsForCorrect() {
-      if (this._isPracticeMode()) {
-        this.$points.text("0");
-        return 0;
-      }
-      if (this._usedHintThisRound) return 0;
-      var base = Number.isFinite(Number(this.opts.basePoints)) ? Number(this.opts.basePoints) : 1;
-      var bonus = Number.isFinite(Number(this.opts.firstTryBonus)) ? Number(this.opts.firstTryBonus) : 2;
-      var earned = this._madeMistakeThisRound ? base : base + bonus;
-      this._points += Math.max(0, earned);
-      this.$points.text(String(this._points));
-      return earned;
-    }
-  }, {
-    key: "_showSuccessAnimation",
-    value: function _showSuccessAnimation() {
-      this.$feedback.find(".message span").text("Great job");
-      this.$feedback.stop(true, true).fadeIn("fast");
-    }
-  }, {
-    key: "_failAnimation",
-    value: function _failAnimation() {
-      var $target = this.$checkWrap && this.$checkWrap.length ? this.$checkWrap : this.$table;
-      $target.removeClass("animate__animated animate__shakeX");
-      // eslint-disable-next-line no-unused-expressions
-      $target[0] && $target[0].offsetWidth;
-      $target.addClass("animate__animated animate__shakeX");
-      $target.off("animationend.".concat(this.ns, "Fail webkitAnimationEnd.").concat(this.ns, "Fail")).one("animationend.".concat(this.ns, "Fail webkitAnimationEnd.").concat(this.ns, "Fail"), function () {
-        $target.removeClass("animate__animated animate__shakeX");
-      });
-    }
-  }, {
-    key: "_updateProgressBar",
-    value: function _updateProgressBar() {
-      if (this._isPracticeMode()) {
-        this.$progressBar.data("progress", 0);
-        this.$progressBar.css({
-          width: "0%"
-        });
-        this.$progressCounter.text("Practice");
-        return 0;
-      }
-      var steps = Math.max(1, Number(this.opts.numOfChallenges) || 1);
-      var increment = 100 / steps;
-      var current = parseFloat(this.$progressBar.data("progress")) || 0;
-      current = Math.min(100, current + increment);
-      this.$progressBar.data("progress", current);
-      this.$progressBar.css({
-        width: "".concat(current, "%")
-      });
-      var completed = Math.min(steps, Math.round(current / increment));
-      this.$progressCounter.text("".concat(completed, " of ").concat(steps));
-      return current;
-    }
-  }, {
-    key: "_showFinalResults",
-    value: function _showFinalResults() {
-      var _this9 = this;
-      if (this._isPracticeMode()) return;
-      this._stopGameTimer();
-      this._stats.finishedAtMs = Date.now();
-      var records = this._roundRecords.filter(Boolean);
-      var answersCorrect = 0;
-      var answersWrong = 0;
-      records.forEach(function (r) {
-        var c = Number.isFinite(r.firstCorrect) ? r.firstCorrect : Number(r.finalCorrect || 0);
-        var w = Number.isFinite(r.firstWrong) ? r.firstWrong : Number(r.finalWrong || 0);
-        answersCorrect += Math.max(0, c);
-        answersWrong += Math.max(0, w);
-      });
-      var accuracyBase = answersCorrect + answersWrong;
-      var accuracy = accuracyBase ? Math.round(answersCorrect / accuracyBase * 100) : 0;
-      var durationSec = Math.max(0, Math.floor((this._stats.finishedAtMs - this._finalStartMs) / 1000));
-      var perfectGame = records.length > 0 && !this._madeAnyMistake;
-      var finalScore = perfectGame ? this._points * 2 : this._points;
-      if (perfectGame) {
-        var tid = setTimeout(function () {
-          var _this9$$doublePoints, _this9$$doublePoints$;
-          (_this9$$doublePoints = _this9.$doublePoints) === null || _this9$$doublePoints === void 0 || (_this9$$doublePoints$ = _this9$$doublePoints.show) === null || _this9$$doublePoints$ === void 0 || _this9$$doublePoints$.call(_this9$$doublePoints);
-          _this9._playPerfectGameBonusSfx();
-        }, 1750);
-        this._revealTimeouts.push(tid);
-      } else {
-        var _this$$doublePoints2, _this$$doublePoints2$;
-        (_this$$doublePoints2 = this.$doublePoints) === null || _this$$doublePoints2 === void 0 || (_this$$doublePoints2$ = _this$$doublePoints2.hide) === null || _this$$doublePoints2$ === void 0 || _this$$doublePoints2$.call(_this$$doublePoints2);
-      }
-      this.$musicKeyboard.hide();
-      this.$continueWrap.hide();
-      this.$helpBtn.hide();
-      this.$checkWrap.hide();
-      (0,_shared_finalResults_js__WEBPACK_IMPORTED_MODULE_0__.renderFinalResultsOverlay)({
-        $finalOverlay: this.$finalOverlay,
-        rounds: this.opts.numOfChallenges,
-        score: finalScore,
-        accuracy: accuracy,
-        durationSec: durationSec,
-        clearCountupTimers: function clearCountupTimers() {
-          return _this9._clearFinalCountupTimers();
-        },
-        countupTimers: this._finalCountupTimeouts,
-        animateMetrics: function animateMetrics() {
-          return _this9._animateFinalMetricsWithSfx();
-        },
-        playFinalSfx: function playFinalSfx() {
-          return _this9._playFinalSfx();
-        }
-      });
-    }
-  }, {
-    key: "isSoundEnabled",
-    value: function isSoundEnabled() {
-      return this._isSoundEnabled();
-    }
-  }, {
-    key: "_ensureUiSfxAudio",
-    value: function _ensureUiSfxAudio() {
-      return _base_BaseStaffGame_js__WEBPACK_IMPORTED_MODULE_1__.BaseStaffGame.prototype._ensureUiSfxAudio.call(this);
-    }
-  }, {
-    key: "_armUiSfxOnFirstGesture",
-    value: function _armUiSfxOnFirstGesture() {
-      return _base_BaseStaffGame_js__WEBPACK_IMPORTED_MODULE_1__.BaseStaffGame.prototype._armUiSfxOnFirstGesture.call(this);
-    }
-  }, {
-    key: "_playSuccessSfxBasic",
-    value: function _playSuccessSfxBasic() {
-      return _base_BaseStaffGame_js__WEBPACK_IMPORTED_MODULE_1__.BaseStaffGame.prototype._playSuccessSfxBasic.call(this);
-    }
-  }, {
-    key: "_playSuccessSfxBonus",
-    value: function _playSuccessSfxBonus() {
-      return _base_BaseStaffGame_js__WEBPACK_IMPORTED_MODULE_1__.BaseStaffGame.prototype._playSuccessSfxBonus.call(this);
-    }
-  }, {
-    key: "_applyCorrectStreakForOutcome",
-    value: function _applyCorrectStreakForOutcome(args) {
-      return _base_BaseStaffGame_js__WEBPACK_IMPORTED_MODULE_1__.BaseStaffGame.prototype._applyCorrectStreakForOutcome.call(this, args);
-    }
-  }, {
-    key: "getCorrectStreak",
-    value: function getCorrectStreak() {
-      return _base_BaseStaffGame_js__WEBPACK_IMPORTED_MODULE_1__.BaseStaffGame.prototype.getCorrectStreak.call(this);
-    }
-  }, {
-    key: "_syncStreakBarClass",
-    value: function _syncStreakBarClass() {
-      return _base_BaseStaffGame_js__WEBPACK_IMPORTED_MODULE_1__.BaseStaffGame.prototype._syncStreakBarClass.call(this);
-    }
-  }, {
-    key: "_clearCorrectStreak",
-    value: function _clearCorrectStreak() {
-      return _base_BaseStaffGame_js__WEBPACK_IMPORTED_MODULE_1__.BaseStaffGame.prototype._clearCorrectStreak.call(this);
-    }
-  }, {
-    key: "_playFailSfx",
-    value: function _playFailSfx() {
-      return _base_BaseStaffGame_js__WEBPACK_IMPORTED_MODULE_1__.BaseStaffGame.prototype._playFailSfx.call(this);
-    }
-  }, {
-    key: "_playFinalSfx",
-    value: function _playFinalSfx() {
-      return _base_BaseStaffGame_js__WEBPACK_IMPORTED_MODULE_1__.BaseStaffGame.prototype._playFinalSfx.call(this);
-    }
-  }, {
-    key: "_playPerfectGameBonusSfx",
-    value: function _playPerfectGameBonusSfx() {
-      return _base_BaseStaffGame_js__WEBPACK_IMPORTED_MODULE_1__.BaseStaffGame.prototype._playPerfectGameBonusSfx.call(this);
-    }
-  }, {
-    key: "_playFinalMetricPopSfx",
-    value: function _playFinalMetricPopSfx(index) {
-      return _base_BaseStaffGame_js__WEBPACK_IMPORTED_MODULE_1__.BaseStaffGame.prototype._playFinalMetricPopSfx.call(this, index);
-    }
-  }, {
-    key: "_playHingeSfx",
-    value: function _playHingeSfx() {
-      var _this0 = this;
-      if (!this._isSoundEnabled() || !window.Tone) return;
-      this._ensureUiSfxAudio().then(function () {
-        var now = Tone.now();
-        if (_this0._uiSfxNoise) {
-          _this0._uiSfxNoise.triggerAttackRelease(0.04, now, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_2__.GameAudio.scale("hinge", 0.07));
-        }
-        var synth = _this0._uiTimerSfxSynth || _this0._uiSfxSynth;
-        if (!synth) return;
-        synth.triggerAttackRelease("E4", 0.04, now, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_2__.GameAudio.scale("hinge", 0.12));
-        synth.triggerAttackRelease("C4", 0.05, now + 0.04, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_2__.GameAudio.scale("hinge", 0.16));
-      });
-    }
-  }, {
-    key: "_clearFinalMetricsSfxTimers",
-    value: function _clearFinalMetricsSfxTimers() {
-      return _base_BaseStaffGame_js__WEBPACK_IMPORTED_MODULE_1__.BaseStaffGame.prototype._clearFinalMetricsSfxTimers.call(this);
-    }
-  }, {
-    key: "_animateFinalMetricsWithSfx",
-    value: function _animateFinalMetricsWithSfx() {
-      return _base_BaseStaffGame_js__WEBPACK_IMPORTED_MODULE_1__.BaseStaffGame.prototype._animateFinalMetricsWithSfx.call(this);
-    }
-  }, {
-    key: "_clearFinalCountupTimers",
-    value: function _clearFinalCountupTimers() {
-      if (!Array.isArray(this._finalCountupTimeouts)) {
-        this._finalCountupTimeouts = [];
-        return;
-      }
-      this._finalCountupTimeouts.forEach(function (id) {
-        return clearTimeout(id);
-      });
-      this._finalCountupTimeouts = [];
-    }
-  }, {
-    key: "_isPracticeMode",
-    value: function _isPracticeMode() {
-      return this._normalizeOnOff(this.opts.practiceMode);
-    }
-  }, {
-    key: "_syncPracticeUi",
-    value: function _syncPracticeUi() {
-      var practice = this._isPracticeMode();
-      var $score = $("#score");
-      if (practice) {
-        $score.hide();
-        this.$progressBar.parent().addClass("opacity-1");
-      } else {
-        $score.show();
-        this.$progressBar.parent().removeClass("opacity-1");
-      }
-    }
-  }, {
-    key: "_isTimerEnabled",
-    value: function _isTimerEnabled() {
-      return this._normalizeOnOff(this.opts.timer);
-    }
-  }, {
-    key: "_formatTimerDisplay",
-    value: function _formatTimerDisplay(sec) {
-      var safe = Math.max(0, Math.floor(Number(sec) || 0));
-      var mm = String(Math.floor(safe / 60)).padStart(2, "0");
-      var ss = String(safe % 60).padStart(2, "0");
-      return "".concat(mm, ":").concat(ss);
-    }
-  }, {
-    key: "_renderTimerDisplay",
-    value: function _renderTimerDisplay() {
-      var _this$$timerText;
-      if (!((_this$$timerText = this.$timerText) !== null && _this$$timerText !== void 0 && _this$$timerText.length)) return;
-      this.$timerText.text(this._formatTimerDisplay(this._timerRemainingSec));
-      this._syncTimerWarningStyle();
-    }
-  }, {
-    key: "_syncTimerWarningStyle",
-    value: function _syncTimerWarningStyle() {
-      var _this$$timerBox;
-      if (!((_this$$timerBox = this.$timerBox) !== null && _this$$timerBox !== void 0 && _this$$timerBox.length)) return;
-      var warning = this._timerRemainingSec <= 5;
-      this.$timerBox.toggleClass("bg-red", warning);
-      this.$timerBox.toggleClass("bg-primary", !warning);
-    }
-  }, {
-    key: "_setTimedOutInteractivityDisabled",
-    value: function _setTimedOutInteractivityDisabled(disabled) {
-      var on = !!disabled;
-      var $blocksWrapper = $("#blocks-wrapper");
-      this.$table.find("td.block, td.interval-block, td.initial-block").css("pointer-events", on ? "none" : "");
-      $blocksWrapper.attr("disabled", on ? "disabled" : null);
-      $blocksWrapper.attr("aria-disabled", on ? "true" : "false");
-      $blocksWrapper.css("pointer-events", on ? "none" : "");
-      if (on) {
-        this.$table.find('input[name="note"]').prop("disabled", true);
-        this._hideMusicKeyboard();
-        this._clearActiveBlockInput();
-      } else {
-        this._updateNoteInputProgression();
-      }
-    }
-  }, {
-    key: "_hideTimeUpMessage",
-    value: function _hideTimeUpMessage() {
-      var _this$$timeupMessage;
-      if (!((_this$$timeupMessage = this.$timeupMessage) !== null && _this$$timeupMessage !== void 0 && _this$$timeupMessage.length)) return;
-      this.$timeupMessage.hide().removeClass("animate__animated animate__flash");
-    }
-  }, {
-    key: "_showTimeUpMessage",
-    value: function _showTimeUpMessage() {
-      var _this$$timeupMessage2;
-      if (!((_this$$timeupMessage2 = this.$timeupMessage) !== null && _this$$timeupMessage2 !== void 0 && _this$$timeupMessage2.length)) return;
-      this.$timeupMessage.show();
-      this.$timeupMessage.removeClass("animate__animated animate__flash");
-      // eslint-disable-next-line no-unused-expressions
-      this.$timeupMessage[0] && this.$timeupMessage[0].offsetWidth;
-      this.$timeupMessage.addClass("animate__animated animate__flash");
-    }
-  }, {
-    key: "_wouldReachLastRoundAfterAdvance",
-    value: function _wouldReachLastRoundAfterAdvance() {
-      return !this._isPracticeMode() && this._currentRound >= this.opts.numOfChallenges;
-    }
-  }, {
-    key: "_finishRoundAsTimedOut",
-    value: function _finishRoundAsTimedOut() {
-      var _this1 = this;
-      this._madeAnyMistake = true;
-      this._madeMistakeThisRound = true;
-      this._clearCorrectStreak();
-      this._pauseGameTimer();
-      this._hideSkipRoundButton();
-      this.$helpBtn.hide();
-      this.$checkWrap.hide();
-      if (this._wouldReachLastRoundAfterAdvance()) {
-        this._stats.finishedAtMs = Date.now();
-        var tid = setTimeout(function () {
-          return _this1._showFinalResults();
-        }, 600);
-        this._revealTimeouts.push(tid);
-        return;
-      }
-      this._setTimedOutInteractivityDisabled(false);
-      this._hideTimeUpMessage();
-      this._currentRound += 1;
-      this._startRound();
-    }
-  }, {
-    key: "_pulseTimerWarning",
-    value: function _pulseTimerWarning() {
-      var _this$$timer;
-      if (!((_this$$timer = this.$timer) !== null && _this$$timer !== void 0 && _this$$timer.length)) return;
-      this.$timer.removeClass("animate__animated animate__pulse");
-      // eslint-disable-next-line no-unused-expressions
-      this.$timer[0] && this.$timer[0].offsetWidth;
-      this.$timer.addClass("animate__animated animate__pulse");
-    }
-  }, {
-    key: "_playTimerWarningBeep",
-    value: function _playTimerWarningBeep() {
-      return _base_BaseStaffGame_js__WEBPACK_IMPORTED_MODULE_1__.BaseStaffGame.prototype._playTimerWarningBeep.call(this);
-    }
-  }, {
-    key: "_playTimerTimeUpSfx",
-    value: function _playTimerTimeUpSfx() {
-      return _base_BaseStaffGame_js__WEBPACK_IMPORTED_MODULE_1__.BaseStaffGame.prototype._playTimerTimeUpSfx.call(this);
-    }
-  }, {
-    key: "_stopGameTimer",
-    value: function _stopGameTimer() {
-      var _this$$timer2, _this$$timer2$removeC;
-      if (this._timerTimeoutId != null) {
-        clearTimeout(this._timerTimeoutId);
-        this._timerTimeoutId = null;
-      }
-      this._timerEndsAtMs = 0;
-      this._timerRemainingSec = 0;
-      this._syncTimerWarningStyle();
-      (_this$$timer2 = this.$timer) === null || _this$$timer2 === void 0 || (_this$$timer2$removeC = _this$$timer2.removeClass) === null || _this$$timer2$removeC === void 0 || _this$$timer2$removeC.call(_this$$timer2, "animate__animated animate__pulse");
-    }
-  }, {
-    key: "_pauseGameTimer",
-    value: function _pauseGameTimer() {
-      var _this$$timer3, _this$$timer3$removeC;
-      if (this._timerTimeoutId != null) {
-        clearTimeout(this._timerTimeoutId);
-        this._timerTimeoutId = null;
-      }
-      this._timerEndsAtMs = 0;
-      (_this$$timer3 = this.$timer) === null || _this$$timer3 === void 0 || (_this$$timer3$removeC = _this$$timer3.removeClass) === null || _this$$timer3$removeC === void 0 || _this$$timer3$removeC.call(_this$$timer3, "animate__animated animate__pulse");
-    }
-  }, {
-    key: "_runGameTimerTick",
-    value: function _runGameTimerTick() {
-      var _this10 = this;
-      if (!this._timerEndsAtMs) return;
-      var prev = this._timerRemainingSec;
-      var msLeft = this._timerEndsAtMs - Date.now();
-      var next = Math.max(0, Math.ceil(msLeft / 1000));
-      this._timerRemainingSec = next;
-      this._renderTimerDisplay();
-      if (next > 0 && next <= 5 && next !== prev) {
-        this._pulseTimerWarning();
-        this._playTimerWarningBeep();
-      } else if (next === 0 && prev !== 0) {
-        this.$checkWrap.hide();
-        this.$helpBtn.hide();
-        this._setTimedOutInteractivityDisabled(true);
-        this._pulseTimerWarning();
-        this._playTimerTimeUpSfx();
-        this._showTimeUpMessage();
-        if (this._wouldReachLastRoundAfterAdvance()) {
-          this._hideSkipRoundButton();
-          this._finishRoundAsTimedOut();
-        } else {
-          this._showSkipRoundButton();
-        }
-      }
-      if (next <= 0) {
-        this._stopGameTimer();
-        return;
-      }
-      var nextChangeAt = this._timerEndsAtMs - (next - 1) * 1000;
-      var delay = Math.max(16, nextChangeAt - Date.now());
-      this._timerTimeoutId = setTimeout(function () {
-        return _this10._runGameTimerTick();
-      }, delay);
-    }
-  }, {
-    key: "_startGameTimer",
-    value: function _startGameTimer() {
-      var startSec = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 10;
-      this._stopGameTimer();
-      var total = Math.max(0, Math.floor(Number(startSec) || 0));
-      this._timerEndsAtMs = Date.now() + total * 1000;
-      this._timerRemainingSec = total;
-      this._renderTimerDisplay();
-      this._runGameTimerTick();
-    }
-  }, {
-    key: "_timerLimitSeconds",
-    value: function _timerLimitSeconds() {
-      var raw = Number(this.opts.timeLimit != null ? this.opts.timeLimit : this.opts.timerLimit);
-      if (!Number.isFinite(raw)) return 10;
-      return Math.max(0, Math.floor(raw));
-    }
-  }, {
-    key: "_resetRoundTimerIfEnabled",
-    value: function _resetRoundTimerIfEnabled() {
-      if (!this._isTimerEnabled()) return;
-      this.$timer.show();
-      this._startGameTimer(this._timerLimitSeconds());
-    }
-  }, {
-    key: "_showSkipRoundButton",
-    value: function _showSkipRoundButton() {
-      var _this$$skipWrap;
-      if (!((_this$$skipWrap = this.$skipWrap) !== null && _this$$skipWrap !== void 0 && _this$$skipWrap.length)) return;
-      this.$skipWrap.stop(true, true).show();
-    }
-  }, {
-    key: "_hideSkipRoundButton",
-    value: function _hideSkipRoundButton() {
-      var _this$$skipWrap2;
-      if (!((_this$$skipWrap2 = this.$skipWrap) !== null && _this$$skipWrap2 !== void 0 && _this$$skipWrap2.length)) return;
-      this.$skipWrap.stop(true, true).hide();
-    }
-  }, {
-    key: "_wireNoteInputUx",
-    value: function _wireNoteInputUx() {
-      var _this11 = this;
-      this.$table.off("pointerdown.".concat(this.ns, "Cover mousedown.").concat(this.ns, "Cover touchstart.").concat(this.ns, "Cover click.").concat(this.ns, "Cover"), ".block-cover").on("pointerdown.".concat(this.ns, "Cover mousedown.").concat(this.ns, "Cover touchstart.").concat(this.ns, "Cover click.").concat(this.ns, "Cover"), ".block-cover", function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-      });
-      this.$table.off("blur.".concat(this.ns, "Note"), 'input[name="note"]').on("blur.".concat(this.ns, "Note"), 'input[name="note"]', function (e) {
-        var $input = $(e.currentTarget);
-        if (!$input.closest("td.block").length) return;
-        _this11._updateNoteInputProgression();
-      });
-      this.$table.off("input.".concat(this.ns, "Note"), 'input[name="note"]').on("input.".concat(this.ns, "Note"), 'input[name="note"]', function (e) {
-        var $input = $(e.currentTarget);
-        if (!$input.closest("td.block").length) return;
-        var prevVal = String($input.data("prev-value") || "");
-        var curVal = String($input.val() || "");
-        var becameFilled = prevVal.trim().length === 0 && curVal.trim().length > 0;
-        if (becameFilled) {
-          _this11._revealNextCovers(2);
-        }
-        $input.data("prev-value", curVal);
-        _this11._updateNoteInputProgression();
-      });
-      this._musicKeyboard.bind({
-        $root: this.$table,
-        focusSelector: 'input[name="note"]',
-        clickSelector: "td.block",
-        resolveInputFromClick: function resolveInputFromClick($cell) {
-          return $cell.find('input[name="note"]').first();
-        },
-        getActiveInput: function getActiveInput() {
-          return _this11.$activeBlockInput;
-        },
-        setActiveInput: function setActiveInput($input) {
-          return _this11._setActiveBlockInput($input);
-        },
-        clearActiveInput: function clearActiveInput() {
-          return _this11._clearActiveBlockInput();
-        },
-        isManagedInput: function isManagedInput($input) {
-          return $input.is('input[name="note"]') && $input.closest("td.block").length > 0;
-        },
-        isInputDisabled: function isInputDisabled($input) {
-          return $input.prop("disabled");
-        },
-        transformButtonPress: function transformButtonPress(_ref4) {
-          var action = _ref4.action,
-            currentValue = _ref4.currentValue;
-          if (action.isDelete) {
-            var nextValue = (0,_shared_MusicKeyboardController_js__WEBPACK_IMPORTED_MODULE_4__.deleteSingleNoteValue)(currentValue);
-            return nextValue === currentValue ? null : nextValue;
-          }
-          if (action.letter) {
-            return (0,_shared_MusicKeyboardController_js__WEBPACK_IMPORTED_MODULE_4__.keyboardLabelForLetter)({
-              letter: action.letter,
-              solfege: action.solfege,
-              useSolfege: _this11._isSolfegeEnabled(),
-              letterToSolfege: ToneTrek.LETTER_TO_SOLFEGE
-            });
-          }
-          if (action.accidentalType) {
-            return _this11._applyAccidentalToInputValue(currentValue, action.accidentalType);
-          }
-          return action.text || null;
-        }
-      });
-    }
-  }, {
-    key: "_applyAccidentalToInputValue",
-    value: function _applyAccidentalToInputValue(current, accidentalType) {
-      return (0,_shared_MusicKeyboardController_js__WEBPACK_IMPORTED_MODULE_4__.applyAccidentalToSingleNoteValue)(current, accidentalType, {
-        useSolfege: this._isSolfegeEnabled(),
-        solfegeToLetter: ToneTrek.SOLFEGE_TO_LETTER,
-        letterToSolfege: ToneTrek.LETTER_TO_SOLFEGE
-      });
-    }
-  }, {
-    key: "_updateNoteInputProgression",
-    value: function _updateNoteInputProgression() {
-      var $blocks = this.$table.find("td.block").toArray().sort(function (a, b) {
-        var ia = parseInt(a.getAttribute("data-path-index"), 10);
-        var ib = parseInt(b.getAttribute("data-path-index"), 10);
-        return (Number.isFinite(ia) ? ia : 9999) - (Number.isFinite(ib) ? ib : 9999);
-      });
-      if (this._correctionMode) {
-        var allFilledCorrection = $blocks.length > 0;
-        for (var i = 0; i < $blocks.length; i += 1) {
-          var $cell = $($blocks[i]);
-          var idx = parseInt($cell.attr("data-path-index"), 10);
-          var $input = $cell.find('input[name="note"]').first();
-          var $label = $cell.children("div").children("span").not(".block-arrow").first();
-          if (!$input.length) continue;
-          var value = String($input.val() || "").trim();
-          if (!value) allFilledCorrection = false;
-          var editable = this._wrongEditableIndexes.has(idx);
-          $input.prop("disabled", !editable);
-          if (editable) {
-            if (value) $label.hide();else {
-              $label.css("opacity", "0.2");
-              $label.show();
-            }
-          } else {
-            $label.hide();
-          }
-        }
-        if (this.$activeBlockInput && this.$activeBlockInput.length && this.$activeBlockInput.prop("disabled")) {
-          this._clearActiveBlockInput();
-          this._hideMusicKeyboard();
-        }
-        this._syncActiveBlockLabelOpacity();
-        this._syncBlocksCompletionUi(allFilledCorrection);
-        return;
-      }
-      var gateOpen = true;
-      var allFilled = $blocks.length > 0;
-      for (var _i = 0; _i < $blocks.length; _i += 1) {
-        var _$cell = $($blocks[_i]);
-        var _$input = _$cell.find('input[name="note"]').first();
-        var _$label = _$cell.children("div").children("span").not(".block-arrow").first();
-        if (!_$input.length) continue;
-        var _value = String(_$input.val() || "").trim();
-        if (!_value) allFilled = false;
-        if (gateOpen) {
-          _$input.prop("disabled", false);
-          if (_value) {
-            _$label.hide();
-          } else {
-            _$label.css("opacity", "0.2");
-            _$label.show();
-            gateOpen = false;
-          }
-        } else {
-          _$input.prop("disabled", true);
-          _$label.hide();
-        }
-      }
-      if (this.$activeBlockInput && this.$activeBlockInput.length && this.$activeBlockInput.prop("disabled")) {
-        this._clearActiveBlockInput();
-      }
-      this._syncActiveBlockLabelOpacity();
-      this._syncBlocksCompletionUi(allFilled);
-    }
-  }, {
-    key: "_syncBlocksCompletionUi",
-    value: function _syncBlocksCompletionUi(allFilled) {
-      if (this._roundLocked) return;
-      if (allFilled) {
-        this._instructionsDismissed = true;
-        $("#instructions").remove();
-        $("#check").show().removeClass("invisible");
-        return;
-      }
-      $("#check").show().removeClass("invisible");
-    }
-  }, {
-    key: "_setActiveBlockInput",
-    value: function _setActiveBlockInput($input) {
-      if (!$input || !$input.length) return;
-      var $cell = $input.closest("td.block");
-      if (!$cell.length) return;
-      this.$activeBlockInput = $input;
-      this.$activeBlockCell = $cell;
-      this.$table.find("td.block").removeClass("active-editable").css({
-        boxShadow: "",
-        borderColor: "",
-        zIndex: ""
-      });
-      $cell.addClass("active-editable").css({
-        boxShadow: "0 0 0 3px rgba(13, 110, 253, 0.55) inset, 0 0 0 2px rgba(13, 110, 253, 0.75)",
-        borderColor: "#0d6efd",
-        zIndex: "2"
-      });
-      this._syncActiveBlockLabelOpacity();
-    }
-  }, {
-    key: "_clearActiveBlockInput",
-    value: function _clearActiveBlockInput() {
-      this.$activeBlockInput = null;
-      this.$activeBlockCell = null;
-      this.$table.find("td.block").removeClass("active-editable").css({
-        boxShadow: "",
-        borderColor: "",
-        zIndex: ""
-      });
-      this._syncActiveBlockLabelOpacity();
-    }
-  }, {
-    key: "_syncActiveBlockLabelOpacity",
-    value: function _syncActiveBlockLabelOpacity() {
-      var $labels = this.$table.find('td.block > div > span').not(".block-arrow");
-      $labels.css("opacity", "0.2");
-      if (!this.$activeBlockCell || !this.$activeBlockCell.length) return;
-      var $activeLabel = this.$activeBlockCell.children("div").children("span").not(".block-arrow").first();
-      if (!$activeLabel.length || !$activeLabel.is(":visible")) return;
-      $activeLabel.css("opacity", "0.05");
-    }
-  }, {
-    key: "_isSoundEnabled",
-    value: function _isSoundEnabled() {
-      var v = this.opts.sound;
-      return v === true || String(v || "").trim().toLowerCase() === "on";
-    }
-  }, {
-    key: "_ensureAudio",
-    value: function () {
-      var _ensureAudio2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
-        var _t;
-        return _regenerator().w(function (_context) {
-          while (1) switch (_context.p = _context.n) {
-            case 0:
-              if (this._isSoundEnabled()) {
-                _context.n = 1;
-                break;
-              }
-              return _context.a(2);
-            case 1:
-              if (!this._audioReady) {
-                _context.n = 2;
-                break;
-              }
-              return _context.a(2);
-            case 2:
-              if (window.Tone) {
-                _context.n = 3;
-                break;
-              }
-              return _context.a(2);
-            case 3:
-              _context.p = 3;
-              _context.n = 4;
-              return Tone.start();
-            case 4:
-              _context.n = 6;
-              break;
-            case 5:
-              _context.p = 5;
-              _t = _context.v;
-              return _context.a(2);
-            case 6:
-              this._synth = _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_2__.GameAudio.createSequenceSynth();
-              this._audioReady = true;
-            case 7:
-              return _context.a(2);
-          }
-        }, _callee, this, [[3, 5]]);
-      }));
-      function _ensureAudio() {
-        return _ensureAudio2.apply(this, arguments);
-      }
-      return _ensureAudio;
-    }()
-  }, {
-    key: "_playMidi",
-    value: function _playMidi(midi, durSeconds, atSecondsFromNow) {
-      var _this12 = this;
-      if (!window.Tone) return;
-      this._ensureAudio().then(function () {
-        if (!_this12._synth) return;
-        var now = Tone.now();
-        var when = now + (Number(atSecondsFromNow) || 0);
-        var dur = Number(durSeconds) || 0.6;
-        _this12._synth.triggerAttackRelease(Tone.Frequency(midi, "midi"), dur, when, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_2__.GameAudio.scale("sequence", 1));
-      });
-    }
-  }, {
-    key: "_playDictationLike",
-    value: function _playDictationLike(firstMidi, secondMidi) {
-      if (!this._isSoundEnabled()) return;
-      this._playMidi(firstMidi, 0.6, 0.0);
-      this._playMidi(secondMidi, 0.6, 1.0);
-      this._playMidi(firstMidi, 0.6, 2.0);
-      this._playMidi(firstMidi, 0.6, 3.0);
-      this._playMidi(secondMidi, 0.6, 3.0);
-    }
-  }, {
-    key: "_midiFromCell",
-    value: function _midiFromCell($cell) {
-      if (!$cell || !$cell.length) return null;
-      var note = this._noteFromCell($cell);
-      if (!note) return null;
-      // Keep playback in a stable middle register, matching previous behavior.
-      return 60 + Number(note.pitchClass || 0);
-    }
-  }, {
-    key: "_parseIntervalAbbr",
-    value: function _parseIntervalAbbr(abbr) {
-      var s = String(abbr || "").trim();
-      var m = s.match(/^([PMAmd]+)(\d+)$/);
-      if (!m) return null;
-      return {
-        quality: m[1],
-        number: parseInt(m[2], 10)
-      };
-    }
-  }, {
-    key: "_intervalSemitones",
-    value: function _intervalSemitones(quality, simpleNum) {
-      var baseMajorPerfect = {
-        1: 0,
-        2: 2,
-        3: 4,
-        4: 5,
-        5: 7,
-        6: 9,
-        7: 11,
-        8: 12
-      }[simpleNum];
-      if (baseMajorPerfect == null) return null;
-      var isPerfectClass = simpleNum === 1 || simpleNum === 4 || simpleNum === 5 || simpleNum === 8;
-      var q = String(quality || "").trim();
-      if (isPerfectClass) {
-        if (q === "P") return baseMajorPerfect;
-        if (/^A+$/.test(q)) return baseMajorPerfect + q.length;
-        if (/^d+$/.test(q)) return baseMajorPerfect - q.length;
-        return null;
-      }
-      if (q === "M") return baseMajorPerfect;
-      if (q === "m") return baseMajorPerfect - 1;
-      if (/^A+$/.test(q)) return baseMajorPerfect + q.length;
-      if (/^d+$/.test(q)) return baseMajorPerfect - (q.length + 1);
-      return null;
-    }
-  }, {
-    key: "_intervalToSemitones",
-    value: function _intervalToSemitones(abbr) {
-      var parsed = this._parseIntervalAbbr(abbr);
-      if (!parsed || !Number.isFinite(parsed.number) || parsed.number < 1) return null;
-      var simpleNum = (parsed.number - 1) % 7 + 1;
-      var octaves = Math.floor((parsed.number - 1) / 7);
-      var base = this._intervalSemitones(parsed.quality, simpleNum);
-      if (base == null) return null;
-      return base + 12 * octaves;
-    }
-  }, {
-    key: "_shakeCell",
-    value: function _shakeCell($cell) {
-      if (!$cell || !$cell.length) return;
-      $cell.removeClass("animate__animated animate__shakeX");
-      // eslint-disable-next-line no-unused-expressions
-      $cell[0] && $cell[0].offsetWidth;
-      $cell.addClass("animate__animated animate__shakeX");
-      $cell.off("animationend.".concat(this.ns, "Shake webkitAnimationEnd.").concat(this.ns, "Shake")).one("animationend.".concat(this.ns, "Shake webkitAnimationEnd.").concat(this.ns, "Shake"), function () {
-        $cell.removeClass("animate__animated animate__shakeX");
-      });
-    }
-  }, {
-    key: "_clearRevealTimers",
-    value: function _clearRevealTimers() {
-      if (!Array.isArray(this._revealTimeouts)) {
-        this._revealTimeouts = [];
-        return;
-      }
-      this._revealTimeouts.forEach(function (id) {
-        return clearTimeout(id);
-      });
-      this._revealTimeouts = [];
-    }
-  }, {
-    key: "_revealPathCells",
-    value: function _revealPathCells(items) {
-      var _this13 = this;
-      var onDone = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
-      var list = Array.isArray(items) ? items : [];
-      if (!list.length) {
-        if (typeof onDone === "function") onDone();
-        return;
-      }
-      var _loop = function _loop() {
-        var item = list[i];
-        var tid = setTimeout(function () {
-          var $cell = _this13._cellAt(item.r, item.c);
-          $cell.attr("data-path-index", String(item.i));
-          $cell.addClass(item.cls).append(item.html);
-          if (item.i >= 2) {
-            $cell.append('<div class="block-cover"></div>');
-          }
-          if (item.cls === "block") {
-            $cell.find('input[name="note"]').prop("disabled", true).prop("readonly", true).attr({
-              inputmode: "none",
-              autocomplete: "off",
-              autocorrect: "off",
-              autocapitalize: "off",
-              spellcheck: "false"
-            });
-            $cell.children("div").children("span").not(".block-arrow").first().hide();
-          }
-          _this13._showCellVisual($cell);
-          _this13._updateNoteInputProgression();
-        }, i * 80);
-        _this13._revealTimeouts.push(tid);
-      };
-      for (var i = 0; i < list.length; i += 1) {
-        _loop();
-      }
-      var coversTid = setTimeout(function () {
-        _this13._revealNextCovers(1);
-      }, list.length * 80);
-      this._revealTimeouts.push(coversTid);
-      if (typeof onDone === "function") {
-        var doneTid = setTimeout(function () {
-          return onDone();
-        }, list.length * 80);
-        this._revealTimeouts.push(doneTid);
-      }
-    }
-  }, {
-    key: "_revealNextCovers",
-    value: function _revealNextCovers() {
-      var _this14 = this;
-      var count = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
-      var maxCount = Math.max(0, Number(count) || 0);
-      if (!maxCount) return;
-      var $covers = this.$table.find("td[data-path-index]").toArray().sort(function (a, b) {
-        var ia = parseInt(a.getAttribute("data-path-index"), 10);
-        var ib = parseInt(b.getAttribute("data-path-index"), 10);
-        return (Number.isFinite(ia) ? ia : 9999) - (Number.isFinite(ib) ? ib : 9999);
-      }).map(function (td) {
-        return $(td).children(".block-cover").first();
-      }).filter(function ($c) {
-        return $c && $c.length && !$c.hasClass("cover-revealing") && !$c.hasClass("cover-revealed");
-      }).slice(0, maxCount);
-      $covers.forEach(function ($cover, i) {
-        var tid = setTimeout(function () {
-          _this14._playHingeSfx();
-          $cover.addClass("cover-revealing block-falling");
-          $cover.removeClass("animate__animated animate__hinge").addClass("animate__animated animate__hinge").one("animationend.".concat(_this14.ns, "CoverHinge webkitAnimationEnd.").concat(_this14.ns, "CoverHinge"), function () {
-            $cover.hide();
-            $cover.removeClass("animate__animated animate__hinge cover-revealing");
-            $cover.addClass("cover-revealed");
-          });
-
-          // Fallback in case animationend does not fire.
-          var fallbackTid = setTimeout(function () {
-            $cover.hide();
-            $cover.removeClass("animate__animated animate__hinge cover-revealing");
-            $cover.addClass("cover-revealed");
-          }, 2200);
-          _this14._revealTimeouts.push(fallbackTid);
-        }, i * 500);
-        _this14._revealTimeouts.push(tid);
-      });
-    }
-  }, {
-    key: "_showStandardGameUi",
-    value: function _showStandardGameUi() {
-      this._syncKeyboardLabels();
-      this.instructionsUi.show().replay();
-      $("#controls").show();
-    }
-  }, {
-    key: "_showMusicKeyboard",
-    value: function _showMusicKeyboard() {
-      this._musicKeyboard.show();
-    }
-  }, {
-    key: "_hideMusicKeyboard",
-    value: function _hideMusicKeyboard() {
-      this._musicKeyboard.hide();
-    }
-  }, {
-    key: "_hideAllCellsVisual",
-    value: function _hideAllCellsVisual() {
-      this.$table.find("td").css({
-        visibility: "visible",
-        borderColor: "transparent",
-        backgroundColor: "transparent",
-        color: "transparent"
-      });
-    }
-  }, {
-    key: "_showCellVisual",
-    value: function _showCellVisual($cell) {
-      if (!$cell || !$cell.length) return;
-      $cell.css({
-        borderColor: "",
-        backgroundColor: "",
-        color: ""
-      });
-    }
-  }]);
-}();
-_defineProperty(ToneTrek, "INTERVALS_FALLBACK", ["m2", "M2", "m3", "M3", "P4", "A4", "d5", "P5", "m6", "M6", "m7", "M7", "P8"]);
-_defineProperty(ToneTrek, "MIN_CHALLENGES", 2);
-_defineProperty(ToneTrek, "MAX_CHALLENGES", 12);
-_defineProperty(ToneTrek, "LETTER_TO_SOLFEGE", {
-  C: "Do",
-  D: "Re",
-  E: "Mi",
-  F: "Fa",
-  G: "Sol",
-  A: "La",
-  B: "Si"
-});
-_defineProperty(ToneTrek, "SOLFEGE_TO_LETTER", {
-  DO: "C",
-  RE: "D",
-  MI: "E",
-  FA: "F",
-  SOL: "G",
-  LA: "A",
-  SI: "B"
-});
 
 /***/ },
 
@@ -7347,11 +5852,12 @@ function spellNoteFromState(staff, step, accidentalClass) {
 var __webpack_exports__ = {};
 // This entry needs to be wrapped in an IIFE because it needs to be isolated against other modules in the chunk.
 (() => {
-/*!**********************************************!*\
-  !*** ./resources/js/music/games/tonetrek.js ***!
-  \**********************************************/
+/*!**************************************************!*\
+  !*** ./resources/js/music/games/memorywizard.js ***!
+  \**************************************************/
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _tonetrek_ToneTrek_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./tonetrek/ToneTrek.js */ "./resources/js/music/games/tonetrek/ToneTrek.js");
+/* harmony import */ var _memorywizard_MemoryWizard_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./memorywizard/MemoryWizard.js */ "./resources/js/music/games/memorywizard/MemoryWizard.js");
+var _game$start;
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
 function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
@@ -7360,8 +5866,11 @@ function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" 
 function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
 
 var options = readGlobal("__challengeOptions") || {};
-var game = new _tonetrek_ToneTrek_js__WEBPACK_IMPORTED_MODULE_0__.ToneTrek(_objectSpread({}, options));
-game.start();
+var clefUrls = readGlobal("__clefUrls") || null;
+var game = new _memorywizard_MemoryWizard_js__WEBPACK_IMPORTED_MODULE_0__.MemoryWizard(_objectSpread(_objectSpread({}, options), {}, {
+  clefUrls: clefUrls
+}));
+(_game$start = game.start) === null || _game$start === void 0 ? void 0 : _game$start.call(game);
 })();
 
 /******/ })()

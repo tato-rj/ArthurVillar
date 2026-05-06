@@ -90,6 +90,7 @@ export class Staff {
 
     this._suppressNextClick = { noteId: null, until: 0 };
     this._animations = new StaffAnimations(this.$el);
+    this._blockedSteps = new Set();
 
     this._applyClefCssVars(this.opts.clef);
     this._computeLayout();
@@ -144,6 +145,25 @@ export class Staff {
 
   isStepAllowed(step) {
     return this._isStepAllowed(step);
+  }
+
+  setBlockedSteps(steps) {
+    const next = new Set();
+    const list = Array.isArray(steps) ? steps : [];
+    for (let i = 0; i < list.length; i++) {
+      const step = Number(list[i]);
+      if (Number.isFinite(step)) next.add(step);
+    }
+    this._blockedSteps = next;
+  }
+
+  clearBlockedSteps() {
+    this._blockedSteps.clear();
+  }
+
+  isStepBlocked(step, excludeId = null) {
+    if (excludeId && this.isNoteFixed(excludeId)) return false;
+    return this._blockedSteps.has(Number(step));
   }
 
   ledgerStepsFor(step) {
@@ -290,6 +310,7 @@ export class Staff {
   }
 
   _isStepOccupied(step, excludeId) {
+    if (this.isStepBlocked(step, excludeId)) return true;
     const nodes = this.$el.find(".note").toArray();
     for (let i = 0; i < nodes.length; i++) {
       const el = nodes[i];
@@ -302,6 +323,7 @@ export class Staff {
   }
 
   _getNoteIdAtStep(step, excludeId) {
+    if (this.isStepBlocked(step, excludeId)) return null;
     const nodes = this.$el.find(".note").toArray();
     for (let i = 0; i < nodes.length; i++) {
       const el = nodes[i];
@@ -814,12 +836,17 @@ export class Staff {
       const { y: pageY } = getPointerPageXY(e);
       const initialStep = self.yToStep(self._pageYToLocalY(pageY));
       if (!self._isStepAllowed(initialStep)) return;
+      if (self.isStepBlocked(initialStep, null)) return;
 
       self._previewState.active = true;
       self._previewState.step = initialStep;
+      self._previewState.lastSoundStep = initialStep;
       self._previewSet(initialStep);
 
-      if (self._soundEnabled()) self._ensureAudio();
+      if (self._soundEnabled()) {
+        self._ensureAudio();
+        self._playStep(initialStep, 0);
+      }
 
       const pointerId = getPointerId(e);
       if (this.setPointerCapture && pointerId != null) this.setPointerCapture(pointerId);
@@ -837,9 +864,19 @@ export class Staff {
         const { y: py } = getPointerPageXY(ev);
         const s = self.yToStep(self._pageYToLocalY(py));
         if (!self._isStepAllowed(s)) return;
+        if (self.isStepBlocked(s, null)) {
+          self._previewState.step = null;
+          self._previewClear();
+          return;
+        }
 
         self._previewState.step = s;
         self._previewSet(s);
+
+        if (self._soundEnabled() && s !== self._previewState.lastSoundStep) {
+          self._previewState.lastSoundStep = s;
+          self._playStep(s, 0);
+        }
       });
 
       self.$el
@@ -853,7 +890,9 @@ export class Staff {
           self._previewClear();
           self.$el.off("pointermove.previewCreate pointerup.previewCreate pointercancel.previewCreate");
 
+          if (!Number.isFinite(finalStep)) return;
           if (!self._isStepAllowed(finalStep)) return;
+          if (self.isStepBlocked(finalStep, null)) return;
           if (self._isStepOccupied(finalStep, null)) return;
           if (self._userNoteCount() >= self._maxUserNotes()) return;
 
@@ -863,7 +902,6 @@ export class Staff {
             self._emitNoteState(createdId, "user");
             self._suppressNextClick.noteId = createdId;
             self._suppressNextClick.until = Date.now() + 700;
-            self._playStep(finalStep, 0);
           }
         });
     });
@@ -904,7 +942,12 @@ export class Staff {
       d.outOfRange = false;
 
       self._setDraggingVisual(d.noteId, true);
-      if (self._soundEnabled()) self._ensureAudio();
+      if (self._soundEnabled()) {
+        self._ensureAudio();
+        const accCls = self._getAttachedAccidentalClass(d.noteId);
+        const accOff = self._accidentalClassToOffset(accCls);
+        self._playStep(d.startStep, accOff);
+      }
 
       const capEl = e.currentTarget && e.currentTarget.setPointerCapture ? e.currentTarget : null;
       if (capEl && pointerId != null) capEl.setPointerCapture(pointerId);
