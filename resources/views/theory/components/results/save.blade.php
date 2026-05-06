@@ -12,7 +12,7 @@
 
 	<div class="form-group">
 		<label class="text-grey mb-1 small">Select your username</label>
-		<input class="form-control" placeholder="Username" name="username">
+		<input class="form-control" required placeholder="Username" name="username">
 	</div>
 	<div class="form-group">
 		<label class="text-grey mb-1 small">Select your avatar</label>
@@ -22,6 +22,7 @@
                 <div class="m-2 cursor-pointer avatar-option">
                     <input
                         type="radio"
+                        required
                         class="btn-check"
                         name="avatar_url"
                         id="avatar-{{ $i }}"

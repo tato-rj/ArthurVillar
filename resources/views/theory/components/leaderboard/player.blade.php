@@ -8,7 +8,7 @@
 				<img class="mr-3 player-avatar" src="{{$player->avatar_url}}">
 				<div>
 					<h6 class="mb-1 fw-bold">{{$player->username}}</h6>
-					<p class="m-0 text-grey">{{$player->finalScore}}pts</p>
+					<p class="m-0 text-grey">{{$player->finalScore}} pts</p>
 				</div>
 			</div>
 		</div>
