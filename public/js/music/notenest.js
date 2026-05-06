@@ -3656,17 +3656,7 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
               _context.n = 3;
               return Tone.start();
             case 3:
-              this._synth = this._synth || new Tone.Synth({
-                oscillator: {
-                  type: "triangle"
-                },
-                envelope: {
-                  attack: 0.005,
-                  decay: 0.08,
-                  sustain: 0.15,
-                  release: 0.2
-                }
-              }).toDestination();
+              this._synth = this._synth || _GameAudio_js__WEBPACK_IMPORTED_MODULE_0__.GameAudio.createStaffNoteSynth();
               this._audioReady = true;
             case 4:
               return _context.a(2);
@@ -3712,7 +3702,7 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
               }
               return _context2.a(2);
             case 4:
-              this._synth.triggerAttackRelease(String(noteName).trim(), 0.45, undefined, _GameAudio_js__WEBPACK_IMPORTED_MODULE_0__.GameAudio.scale("staffNote", 0.85));
+              this._synth.triggerAttackRelease(String(noteName).trim(), 0.45, undefined, _GameAudio_js__WEBPACK_IMPORTED_MODULE_0__.GameAudio.scale("staffNote", 1));
             case 5:
               return _context2.a(2);
           }

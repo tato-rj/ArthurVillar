@@ -1999,6 +1999,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _base_BaseStaffGame_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../base/BaseStaffGame.js */ "./resources/js/music/games/base/BaseStaffGame.js");
 /* harmony import */ var _shared_challengeUtils_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../shared/challengeUtils.js */ "./resources/js/music/games/shared/challengeUtils.js");
 /* harmony import */ var _staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../staff/staffUtils.js */ "./resources/js/music/staff/staffUtils.js");
+var _MemoryWizard;
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
 function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
@@ -2153,6 +2154,12 @@ var MemoryWizard = /*#__PURE__*/function (_BaseStaffGame) {
       return index === this._targetSequence.length - 1;
     }
   }, {
+    key: "_previewDisplayMsForIndex",
+    value: function _previewDisplayMsForIndex(index) {
+      if (index >= this._targetSequence.length - 1) return MemoryWizard.SEQUENCE_NOTE_DISPLAY_MS;
+      return MemoryWizard.PRIOR_SEQUENCE_NOTE_DISPLAY_MS;
+    }
+  }, {
     key: "_resetRoundTimerIfEnabled",
     value: function _resetRoundTimerIfEnabled() {
       if (!this._isTimerEnabled()) return;
@@ -2223,7 +2230,7 @@ var MemoryWizard = /*#__PURE__*/function (_BaseStaffGame) {
             return;
           }
           _showAtIndex(index + 1);
-        }, MemoryWizard.SEQUENCE_NOTE_DISPLAY_MS);
+        }, _this3._previewDisplayMsForIndex(index));
         _this3._previewTimeoutIds.push(timeoutId);
       };
       _showAtIndex(0);
@@ -2448,8 +2455,10 @@ var MemoryWizard = /*#__PURE__*/function (_BaseStaffGame) {
     }
   }]);
 }(_base_BaseStaffGame_js__WEBPACK_IMPORTED_MODULE_0__.BaseStaffGame);
+_MemoryWizard = MemoryWizard;
 _defineProperty(MemoryWizard, "PREVIEW_NOTE_ANIMATION_MS", 360);
 _defineProperty(MemoryWizard, "SEQUENCE_NOTE_DISPLAY_MS", 1200);
+_defineProperty(MemoryWizard, "PRIOR_SEQUENCE_NOTE_DISPLAY_MS", _MemoryWizard.SEQUENCE_NOTE_DISPLAY_MS / 2);
 _defineProperty(MemoryWizard, "LETTER_TO_SOLFEGE", {
   C: "Do",
   D: "Re",
@@ -3805,17 +3814,7 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
               _context.n = 3;
               return Tone.start();
             case 3:
-              this._synth = this._synth || new Tone.Synth({
-                oscillator: {
-                  type: "triangle"
-                },
-                envelope: {
-                  attack: 0.005,
-                  decay: 0.08,
-                  sustain: 0.15,
-                  release: 0.2
-                }
-              }).toDestination();
+              this._synth = this._synth || _GameAudio_js__WEBPACK_IMPORTED_MODULE_0__.GameAudio.createStaffNoteSynth();
               this._audioReady = true;
             case 4:
               return _context.a(2);
@@ -3861,7 +3860,7 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
               }
               return _context2.a(2);
             case 4:
-              this._synth.triggerAttackRelease(String(noteName).trim(), 0.45, undefined, _GameAudio_js__WEBPACK_IMPORTED_MODULE_0__.GameAudio.scale("staffNote", 0.85));
+              this._synth.triggerAttackRelease(String(noteName).trim(), 0.45, undefined, _GameAudio_js__WEBPACK_IMPORTED_MODULE_0__.GameAudio.scale("staffNote", 1));
             case 5:
               return _context2.a(2);
           }

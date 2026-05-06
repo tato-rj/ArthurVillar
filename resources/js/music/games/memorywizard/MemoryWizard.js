@@ -5,6 +5,7 @@ import { pickWeighted, stepToLetterOctave } from "../../staff/staffUtils.js";
 export class MemoryWizard extends BaseStaffGame {
   static PREVIEW_NOTE_ANIMATION_MS = 360;
   static SEQUENCE_NOTE_DISPLAY_MS = 1200;
+  static PRIOR_SEQUENCE_NOTE_DISPLAY_MS = MemoryWizard.SEQUENCE_NOTE_DISPLAY_MS / 2;
 
   static LETTER_TO_SOLFEGE = {
     C: "Do",
@@ -132,6 +133,11 @@ export class MemoryWizard extends BaseStaffGame {
     return index === this._targetSequence.length - 1;
   }
 
+  _previewDisplayMsForIndex(index) {
+    if (index >= this._targetSequence.length - 1) return MemoryWizard.SEQUENCE_NOTE_DISPLAY_MS;
+    return MemoryWizard.PRIOR_SEQUENCE_NOTE_DISPLAY_MS;
+  }
+
   _resetRoundTimerIfEnabled() {
     if (!this._isTimerEnabled()) return;
     this._primeRoundTimerIfEnabled();
@@ -207,7 +213,7 @@ export class MemoryWizard extends BaseStaffGame {
         }
 
         showAtIndex(index + 1);
-      }, MemoryWizard.SEQUENCE_NOTE_DISPLAY_MS);
+      }, this._previewDisplayMsForIndex(index));
 
       this._previewTimeoutIds.push(timeoutId);
     };

@@ -547,15 +547,7 @@ export class PianoKeyboardUi {
     if (!window.Tone) return;
 
     await Tone.start();
-    this._synth = this._synth || new Tone.Synth({
-      oscillator: { type: "triangle" },
-      envelope: {
-        attack: 0.005,
-        decay: 0.08,
-        sustain: 0.15,
-        release: 0.2,
-      },
-    }).toDestination();
+    this._synth = this._synth || GameAudio.createStaffNoteSynth();
     this._audioReady = true;
   }
 
@@ -575,7 +567,7 @@ export class PianoKeyboardUi {
       String(noteName).trim(),
       0.45,
       undefined,
-      GameAudio.scale("staffNote", 0.85),
+      GameAudio.scale("staffNote", 1),
     );
   }
 }
