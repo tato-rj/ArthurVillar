@@ -37,6 +37,9 @@
       <label class="opacity-4 mb-2 fw-bold" style="font-size: 75%;">THEORY</label>
       <div class="ml-1">
         <li class="nav-item">
+          <a class="nav-link" href="{{route('admin.leaderboard.index')}}">Leaderboards</a>
+        </li>
+        <li class="nav-item">
           <a class="nav-link" href="{{route('admin.recordings.index')}}">Tournaments</a>
         </li>
         <li class="nav-item">

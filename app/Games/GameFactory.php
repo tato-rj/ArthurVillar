@@ -2,6 +2,8 @@
 
 namespace App\Games;
 
+use App\Models\Player;
+
 abstract class GameFactory 
 {
     protected array $request = [];
@@ -27,6 +29,11 @@ abstract class GameFactory
     public function __construct(array $request = [])
     {
         $this->request = $this->normalizeRequest($request);
+    }
+
+    public function leaderboard()
+    {
+        return Player::byGame($this->gameName())->orderBy('finalScore', 'DESC')->get();
     }
 
     protected function requiredToggleKeys(): array

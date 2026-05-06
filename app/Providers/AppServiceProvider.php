@@ -32,6 +32,22 @@ class AppServiceProvider extends ServiceProvider
                 'countries' => Country::orderBy('name')->get()->groupByFirstLetter('name')
             ]);
         });
+
+        \View::composer(['admin.leaderboards.index', 'theory.index'], function($view) {
+            $view->with([
+                'games' => [
+                    new \App\Games\IntervalsLabSettings,
+                    new \App\Games\ChordsLabSettings,
+                    new \App\Games\PitchDetectiveSettings,
+                    new \App\Games\ToneTrekSettings,
+                    new \App\Games\NotePythonSettings,
+                    new \App\Games\KeysLabSettings,
+                    new \App\Games\NoteNestSettings,
+                    new \App\Games\MemoryWizardSettings,
+                    new \App\Games\BeatHeroSettings
+                ]
+            ]);
+        });
     }
 
     /**

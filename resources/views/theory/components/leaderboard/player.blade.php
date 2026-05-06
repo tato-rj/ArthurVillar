@@ -1,5 +1,5 @@
 <div class="leaderboard-player mb-2 {{$loop->iteration <=3 ? 'bg-light' : null}} rounded">
-	<div class="d-flex justify-content-between pr-4 pl-3 py-3">
+	<div class="d-flex justify-content-between pr-4 pl-3 py-2">
 		<div class="d-flex align-items-center">
 			<div class="mr-3">
 				<div style="width: 28px; height: 28px" class="bg-white border d-center small rounded-circle">{{$loop->iteration}}</div>
@@ -15,11 +15,11 @@
 		<div class="text-right">
 			<p class="text-grey mb-2" style="font-size: 70%;">{{$player->created_at->diffForHumans()}}</p>
 			@if($loop->iteration == 1)
-			<div class="text-yellow">@fa(['icon' => 'medal', 'fa_size' => 'xl', 'mr' => 0])</div>
+			<div style="color: #FFD700">@fa(['icon' => 'medal', 'fa_size' => 'xl', 'mr' => 0])</div>
 			@elseif($loop->iteration == 2)
-			<div class="text-grey">@fa(['icon' => 'medal', 'fa_size' => 'xl', 'mr' => 0])</div>
+			<div style="color: #C0C0C0">@fa(['icon' => 'medal', 'fa_size' => 'xl', 'mr' => 0])</div>
 			@elseif($loop->iteration == 3)
-			<div class="text-orange">@fa(['icon' => 'medal', 'fa_size' => 'xl', 'mr' => 0])</div>
+			<div style="color: #CD7F32">@fa(['icon' => 'medal', 'fa_size' => 'xl', 'mr' => 0])</div>
 			@endif
 		</div>
 	</div>

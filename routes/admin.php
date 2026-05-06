@@ -7,6 +7,12 @@ Route::get('', 'AdminController@index')->name('index');
 
 Route::get('sound-effects', 'AdminController@soundEffects')->name('sound-effects.index');
 
+Route::prefix('leaderboards')->name('leaderboard.')->group(function() {
+	Route::get('', 'LeaderboardsController@index')->name('index');
+
+	Route::delete('{player}', 'LeaderboardsController@destroy')->name('destroy');
+});
+
 Route::namespace('Listening\\')->group(function() {
 	Route::prefix('recordings')->name('recordings.')->group(function() {
 	    Route::get('', 'RecordingsController@index')->name('index');
