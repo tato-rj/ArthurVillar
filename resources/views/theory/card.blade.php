@@ -1,4 +1,4 @@
-<div class="col-lg-3 col-md-4 col-12 g-3">
+<div class="col-lg-3 col-md-6 col-12 g-3">
     <div class="mb-4 bg-white border border-dark p-3 rounded h-100 d-flex flex-column justify-content-between">
         <div>
             <div class="d-flex justify-content-between">
@@ -26,12 +26,8 @@
         <div>
             <div class="d-flex">
                 <div class="btn-floating w-100 mr-2">
-                    <button data-bs-toggle="modal" data-bs-target="#{{str_slug($settings->gameName())}}-settings-modal", {{isset($disabled) && $disabled ? 'disabled' : null}} class="btn btn-white text-dark w-100">
-                        @if(isset($disabled) && $disabled)
-                        Coming up soon
-                        @else
+                    <button data-bs-toggle="modal" data-bs-target="#{{str_slug($settings->gameName())}}-settings-modal" class="btn btn-white text-dark w-100 text-nowrap">
                         @fa(['icon' => 'gear'])Set up game
-                        @endif
                     </button>
                 </div>
               <div class="btn-floating">

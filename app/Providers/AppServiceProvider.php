@@ -39,6 +39,7 @@ class AppServiceProvider extends ServiceProvider
                     new \App\Games\IntervalsLabSettings,
                     new \App\Games\ChordsLabSettings,
                     new \App\Games\PitchDetectiveSettings,
+                    new \App\Games\ChordDetectiveSettings,
                     new \App\Games\ToneTrekSettings,
                     new \App\Games\NotePythonSettings,
                     new \App\Games\KeysLabSettings,

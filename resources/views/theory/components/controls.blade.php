@@ -24,7 +24,7 @@
     <div class="d-flex mt-3">
       @unless($settings->gameName() == 'Open Staff')
       <div class="btn-floating mr-1 w-100">
-        <button data-bs-toggle="modal" data-bs-target="#leaderboard-modal" class="btn btn-white w-100">@fa(['icon' => 'ranking-star'])Leaderboard</button>
+        <button data-bs-toggle="modal" data-bs-target="#leaderboard-{{str_slug($settings->gameName())}}-modal" class="btn btn-white w-100">@fa(['icon' => 'ranking-star'])Leaderboard</button>
       </div>
       @endunless
 

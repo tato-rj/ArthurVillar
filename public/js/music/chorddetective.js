@@ -1986,20 +1986,31 @@ _defineProperty(BaseStaffGame, "LETTER_TO_SOLFEGE", {
 
 /***/ },
 
-/***/ "./resources/js/music/games/keyslab/KeysLab.js"
-/*!*****************************************************!*\
-  !*** ./resources/js/music/games/keyslab/KeysLab.js ***!
-  \*****************************************************/
+/***/ "./resources/js/music/games/chorddetective/ChordDetective.js"
+/*!*******************************************************************!*\
+  !*** ./resources/js/music/games/chorddetective/ChordDetective.js ***!
+  \*******************************************************************/
 (__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   KeysLab: () => (/* binding */ KeysLab)
+/* harmony export */   ChordDetective: () => (/* binding */ ChordDetective)
 /* harmony export */ });
 /* harmony import */ var _base_BaseStaffGame_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../base/BaseStaffGame.js */ "./resources/js/music/games/base/BaseStaffGame.js");
-/* harmony import */ var _shared_mojsEffects_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../shared/mojsEffects.js */ "./resources/js/music/games/shared/mojsEffects.js");
-/* harmony import */ var _shared_challengeUtils_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/challengeUtils.js */ "./resources/js/music/games/shared/challengeUtils.js");
+/* harmony import */ var _staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../staff/staffUtils.js */ "./resources/js/music/staff/staffUtils.js");
+/* harmony import */ var _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/GameAudio.js */ "./resources/js/music/games/shared/GameAudio.js");
+/* harmony import */ var _shared_challengeUtils_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/challengeUtils.js */ "./resources/js/music/games/shared/challengeUtils.js");
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
+function _arrayWithoutHoles(r) { if (Array.isArray(r)) return _arrayLikeToArray(r); }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
+function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
 function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
 function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
 function _classCallCheck(a, n) { if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function"); }
@@ -2009,338 +2020,493 @@ function _callSuper(t, o, e) { return o = _getPrototypeOf(o), _possibleConstruct
 function _possibleConstructorReturn(t, e) { if (e && ("object" == _typeof(e) || "function" == typeof e)) return e; if (void 0 !== e) throw new TypeError("Derived constructors may only return object or undefined"); return _assertThisInitialized(t); }
 function _assertThisInitialized(e) { if (void 0 === e) throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); return e; }
 function _isNativeReflectConstruct() { try { var t = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); } catch (t) {} return (_isNativeReflectConstruct = function _isNativeReflectConstruct() { return !!t; })(); }
+function _superPropGet(t, o, e, r) { var p = _get(_getPrototypeOf(1 & r ? t.prototype : t), o, e); return 2 & r && "function" == typeof p ? function (t) { return p.apply(e, t); } : p; }
+function _get() { return _get = "undefined" != typeof Reflect && Reflect.get ? Reflect.get.bind() : function (e, t, r) { var p = _superPropBase(e, t); if (p) { var n = Object.getOwnPropertyDescriptor(p, t); return n.get ? n.get.call(arguments.length < 3 ? e : r) : n.value; } }, _get.apply(null, arguments); }
+function _superPropBase(t, o) { for (; !{}.hasOwnProperty.call(t, o) && null !== (t = _getPrototypeOf(t));); return t; }
 function _getPrototypeOf(t) { return _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function (t) { return t.__proto__ || Object.getPrototypeOf(t); }, _getPrototypeOf(t); }
 function _inherits(t, e) { if ("function" != typeof e && null !== e) throw new TypeError("Super expression must either be null or a function"); t.prototype = Object.create(e && e.prototype, { constructor: { value: t, writable: !0, configurable: !0 } }), Object.defineProperty(t, "prototype", { writable: !1 }), e && _setPrototypeOf(t, e); }
 function _setPrototypeOf(t, e) { return _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function (t, e) { return t.__proto__ = e, t; }, _setPrototypeOf(t, e); }
 function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
 function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
 function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+// resources/js/music/games/chorddetective/ChordDetective.js
 
 
 
-var KeysLab = /*#__PURE__*/function (_BaseStaffGame) {
-  function KeysLab() {
+
+
+/**
+ * Chord Detective (scaffold)
+ *
+ * Rules:
+ * - Staff note sounds are always disabled (no click/drag audio).
+ * - SFX follow the global sound toggle (BaseStaffGame / opts.sound).
+ * - Dictation playback always plays (ignores opts.sound) via its own synth.
+ * - The player enters exactly ONE note (the heard note) above/below the fixed note.
+ * - Answer checking is pitch-only (enharmonic spellings are accepted).
+ */
+var ChordDetective = /*#__PURE__*/function (_BaseStaffGame) {
+  function ChordDetective() {
     var _this;
     var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-    _classCallCheck(this, KeysLab);
+    _classCallCheck(this, ChordDetective);
     var defaults = {
       staffEl: "#staff",
       basePoints: 1,
       firstTryBonus: 2,
-      initialClef: "treble",
-      clefUrls: null,
-      sound: true,
-      keyQualities: ["major", "minor"],
-      numberOfAccidentals: 0,
-      namespace: "keysLab"
+      namespace: "chordDetective",
+      // Dictation: one user note (the heard note).
+      maxUserNotes: 1,
+      // UI gating: show Check after 1 user note.
+      instructionsAfterUserNotes: 1,
+      checkAfterUserNotes: 1
     };
-    var merged = _objectSpread(_objectSpread({}, defaults), options || {});
-    _this = _callSuper(this, KeysLab, [merged]);
-    _this._clefPool = (0,_shared_challengeUtils_js__WEBPACK_IMPORTED_MODULE_2__.normalizeClefPool)(merged.clefs != null ? merged.clefs : merged.clef);
-    _this._activeClef = _this._clefPool && _this._clefPool[0] || merged.initialClef || "treble";
-    _this._toolsWired = false;
-    _this._anchorCounter = 1;
-    _this._accidentalRepositionPatched = false;
-    _this._laneDragWired = false;
-    _this._laneDrag = {
-      noteId: null,
-      pointerId: null,
-      fromAccidental: false,
-      startPageX: 0,
-      startPageY: 0,
-      startNoteX: null,
-      movedPx: 0,
-      isDragging: false,
-      thresholdPx: 0,
-      lastTargetStep: null,
-      lastTargetX: null,
-      lastSoundStep: null
-    };
-    _this._swallowAccidentalClick = {
-      noteId: null,
-      until: 0
-    };
+    var merged = _objectSpread(_objectSpread(_objectSpread({}, defaults), options), {}, {
+      accidentalWeights: _objectSpread(_objectSpread({}, defaults.accidentalWeights || {}), options.accidentalWeights || {}),
+      intervals: Array.isArray(options.intervals) && options.intervals.length ? options.intervals.slice() : ChordDetective.INTERVALS_DEFAULT.slice()
+    });
+    var clefPool = (0,_shared_challengeUtils_js__WEBPACK_IMPORTED_MODULE_3__.normalizeClefPool)(merged.clefs != null ? merged.clefs : merged.clef);
+    _this = _callSuper(this, ChordDetective, [_objectSpread(_objectSpread({}, merged), {}, {
+      initialClef: clefPool && clefPool[0] ? clefPool[0] : "treble"
+    })]);
+    _this._clefPool = clefPool;
+
+    // Dictation state
+    _this._expectedFirst = null; // { noteId, step, accidentalClass }
+    _this._expectedSecond = null; // { step, accidentalClass, accOff, midi }
+
+    // Dictation playback
+    _this._dictationTimeouts = [];
+    _this._dictSynth = null;
+    _this._dictAudioReady = false;
+
+    // Play/Stop UI
+    _this.$playWrap = null;
+    _this.$playPlayBtn = null;
+    _this.$playStopBtn = null;
     return _this;
   }
-  _inherits(KeysLab, _BaseStaffGame);
-  return _createClass(KeysLab, [{
-    key: "_normalizeKeyQualities",
-    value: function _normalizeKeyQualities() {
-      var src = Array.isArray(this.opts.keyQualities) && this.opts.keyQualities.length ? this.opts.keyQualities : ["major", "minor"];
-      var allowed = src.map(function (q) {
-        return String(q || "").trim().toLowerCase();
-      }).filter(function (q) {
-        return q === "major" || q === "minor";
-      });
-      return allowed.length ? allowed : ["major", "minor"];
-    }
-  }, {
-    key: "_pickKeyPrompt",
-    value: function _pickKeyPrompt() {
-      var qualities = this._normalizeKeyQualities();
-      var quality = qualities[Math.floor(Math.random() * qualities.length)];
-      var pool = this._filterKeysByAccidentalLimit(quality === "minor" ? KeysLab.MINOR_KEYS : KeysLab.MAJOR_KEYS, quality);
-      var tonic = pool[Math.floor(Math.random() * pool.length)];
-      var full = "".concat(tonic, " ").concat(quality);
-      return {
-        tonic: tonic,
-        quality: quality,
-        full: full
-      };
-    }
-  }, {
-    key: "_maxAllowedAccidentals",
-    value: function _maxAllowedAccidentals() {
-      var raw = Number(this.opts.numberOfAccidentals);
-      var level = Number.isFinite(raw) ? Math.trunc(raw) : 0;
-      if (level <= 0) return 2;
-      if (level === 1) return 4;
-      return 7;
-    }
-  }, {
-    key: "_signatureCountForKey",
-    value: function _signatureCountForKey(tonic, quality) {
-      var cleanTonic = String(tonic || "").trim();
-      var cleanQuality = String(quality || "").trim().toLowerCase();
-      if (cleanQuality === "major") {
-        if (cleanTonic === "C") return 0;
-        var sharpIndex = KeysLab.SHARP_MAJOR_ORDER.indexOf(cleanTonic);
-        if (sharpIndex >= 0) return sharpIndex + 1;
-        var flatIndex = KeysLab.FLAT_MAJOR_ORDER.indexOf(cleanTonic);
-        if (flatIndex >= 0) return flatIndex + 1;
-        return 0;
-      }
-      if (cleanQuality === "minor") {
-        if (cleanTonic === "A") return 0;
-        var _sharpIndex = KeysLab.SHARP_MINOR_ORDER.indexOf(cleanTonic);
-        if (_sharpIndex >= 0) return _sharpIndex + 1;
-        var _flatIndex = KeysLab.FLAT_MINOR_ORDER.indexOf(cleanTonic);
-        if (_flatIndex >= 0) return _flatIndex + 1;
-        return 0;
-      }
-      return 0;
-    }
-  }, {
-    key: "_filterKeysByAccidentalLimit",
-    value: function _filterKeysByAccidentalLimit(keys, quality) {
+
+  // ------------------------ lifecycle ------------------------
+  _inherits(ChordDetective, _BaseStaffGame);
+  return _createClass(ChordDetective, [{
+    key: "start",
+    value: function start() {
       var _this2 = this;
-      var maxAccidentals = this._maxAllowedAccidentals();
-      var filtered = (Array.isArray(keys) ? keys : []).filter(function (tonic) {
-        return _this2._signatureCountForKey(tonic, quality) <= maxAccidentals;
+      _superPropGet(ChordDetective, "start", this, 3)([]);
+
+      // Dictation: never play sounds for user-added/moved staff notes.
+      if (this.staff && typeof this.staff._soundEnabled === "function") {
+        this.staff._soundEnabled = function () {
+          return false;
+        };
+      }
+      this.$playWrap = $("#play");
+      this.$playPlayBtn = this.$playWrap.find('button[action="play"]');
+      this.$playStopBtn = this.$playWrap.find('button[action="stop"]');
+      this.$playPlayBtn.off("click.".concat(this.ns, "Play")).on("click.".concat(this.ns, "Play"), function (e) {
+        e.preventDefault();
+        _this2.playDictation();
       });
-      return filtered.length ? filtered : Array.isArray(keys) ? keys : [];
+      this.$playStopBtn.off("click.".concat(this.ns, "Stop")).on("click.".concat(this.ns, "Stop"), function (e) {
+        e.preventDefault();
+        _this2._stopDictationPlayback();
+        _this2._setPlayButtons(false);
+      });
+
+      // Ensure Play is shown on Continue (new round).
+      $("#continue button").off("click.".concat(this.ns, "ShowPlay")).on("click.".concat(this.ns, "ShowPlay"), function () {
+        var _this2$$playWrap;
+        if ((_this2$$playWrap = _this2.$playWrap) !== null && _this2$$playWrap !== void 0 && _this2$$playWrap.length) _this2.$playWrap.show();
+        _this2._setPlayButtons(false);
+      });
+      this._setPlayButtons(false);
+    }
+
+    // ------------------------ play/stop UI ------------------------
+  }, {
+    key: "_setPlayButtons",
+    value: function _setPlayButtons(isPlaying) {
+      var _this$$playPlayBtn, _this$$playStopBtn;
+      if ((_this$$playPlayBtn = this.$playPlayBtn) !== null && _this$$playPlayBtn !== void 0 && _this$$playPlayBtn.length) this.$playPlayBtn.toggle(!isPlaying);
+      if ((_this$$playStopBtn = this.$playStopBtn) !== null && _this$$playStopBtn !== void 0 && _this$$playStopBtn.length) this.$playStopBtn.toggle(!!isPlaying);
+    }
+
+    // ------------------------ dictation playback ------------------------
+  }, {
+    key: "playDictation",
+    value: function playDictation() {
+      var _this3 = this;
+      if (!this._expectedFirst || !this._expectedSecond) return;
+      this._stopDictationPlayback();
+      this._setPlayButtons(true);
+      var firstMidi = this.staff._stepToMidi(this._expectedFirst.step) + (this.staff._accidentalClassToOffset(this._expectedFirst.accidentalClass) || 0);
+
+      // Sequence: first -> second -> first -> both together (1s spacing)
+      this._playMidi(firstMidi, 0.6, 0.0, function () {
+        return _this3._scheduleInitialNoteFlicker(0.6, 0.0);
+      });
+      this._playMidi(this._expectedSecond.midi, 0.6, 1.0);
+      this._playMidi(firstMidi, 0.6, 2.0, function () {
+        return _this3._scheduleInitialNoteFlicker(0.6, 2.0);
+      });
+
+      // Both together at t=3.0s (two trigger calls at same time).
+      this._playMidi(firstMidi, 0.6, 3.0, function () {
+        return _this3._scheduleInitialNoteFlicker(0.6, 3.0);
+      });
+      this._playMidi(this._expectedSecond.midi, 0.6, 3.0);
+      this._dictationTimeouts.push(setTimeout(function () {
+        // eslint-disable-next-line no-console
+        console.log("Dictation: user can now write the note on the staff.");
+        _this3._setPlayButtons(false);
+      }, 3000));
     }
   }, {
-    key: "_renderKeyPrompt",
-    value: function _renderKeyPrompt() {
-      var picked = this._pickKeyPrompt();
-      this._currentKeyPrompt = picked;
-      this.prompt.setShort(picked.full);
-      this.prompt.setLong("Key of ".concat(picked.full));
+    key: "_stopDictationPlayback",
+    value: function _stopDictationPlayback() {
+      if (Array.isArray(this._dictationTimeouts)) {
+        this._dictationTimeouts.forEach(function (t) {
+          return clearTimeout(t);
+        });
+      }
+      this._dictationTimeouts = [];
+      this._clearInitialNoteFlicker();
+      if (this._dictSynth && this._dictSynth.dispose) {
+        try {
+          this._dictSynth.dispose();
+        } catch (_) {}
+      }
+      this._dictSynth = null;
+      this._dictAudioReady = false;
     }
   }, {
-    key: "_expectedSignatureForPrompt",
-    value: function _expectedSignatureForPrompt() {
-      var prompt = this._currentKeyPrompt || this._pickKeyPrompt();
-      var tonic = String(prompt.tonic || "").trim();
-      var quality = String(prompt.quality || "").trim().toLowerCase();
-      if (quality === "major") {
-        if (tonic === "C") return {
-          type: null,
-          count: 0
-        };
-        var s = KeysLab.SHARP_MAJOR_ORDER.indexOf(tonic);
-        if (s >= 0) return {
-          type: "sharp",
-          count: s + 1
-        };
-        var f = KeysLab.FLAT_MAJOR_ORDER.indexOf(tonic);
-        if (f >= 0) return {
-          type: "flat",
-          count: f + 1
-        };
-        return {
-          type: null,
-          count: 0
-        };
+    key: "_ensureDictationAudio",
+    value: function () {
+      var _ensureDictationAudio2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
+        return _regenerator().w(function (_context) {
+          while (1) switch (_context.n) {
+            case 0:
+              if (window.Tone) {
+                _context.n = 1;
+                break;
+              }
+              return _context.a(2);
+            case 1:
+              if (!this._dictAudioReady) {
+                _context.n = 2;
+                break;
+              }
+              return _context.a(2);
+            case 2:
+              _context.n = 3;
+              return Tone.start();
+            case 3:
+              // Poly synth so we can play two notes together.
+              this._dictSynth = _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_2__.GameAudio.createDictationSynth();
+              this._dictAudioReady = true;
+            case 4:
+              return _context.a(2);
+          }
+        }, _callee, this);
+      }));
+      function _ensureDictationAudio() {
+        return _ensureDictationAudio2.apply(this, arguments);
       }
-      if (quality === "minor") {
-        if (tonic === "A") return {
-          type: null,
-          count: 0
-        };
-        var _s = KeysLab.SHARP_MINOR_ORDER.indexOf(tonic);
-        if (_s >= 0) return {
-          type: "sharp",
-          count: _s + 1
-        };
-        var _f = KeysLab.FLAT_MINOR_ORDER.indexOf(tonic);
-        if (_f >= 0) return {
-          type: "flat",
-          count: _f + 1
-        };
-        return {
-          type: null,
-          count: 0
-        };
+      return _ensureDictationAudio;
+    }()
+  }, {
+    key: "_playMidi",
+    value: function _playMidi(midi, durSeconds, atSecondsFromNow) {
+      var _this4 = this;
+      var onPlay = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
+      if (!window.Tone) return;
+      this._ensureDictationAudio().then(function () {
+        if (!_this4._dictSynth) return;
+        var now = Tone.now();
+        var when = now + (Number(atSecondsFromNow) || 0);
+        var dur = Number(durSeconds) || 0.6;
+        _this4._dictSynth.triggerAttackRelease(Tone.Frequency(midi, "midi"), dur, when, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_2__.GameAudio.scale("dictation", 1));
+        if (typeof onPlay === "function") onPlay();
+      });
+    }
+  }, {
+    key: "_initialNoteEl",
+    value: function _initialNoteEl() {
+      var _this$_expectedFirst;
+      var noteId = (_this$_expectedFirst = this._expectedFirst) === null || _this$_expectedFirst === void 0 ? void 0 : _this$_expectedFirst.noteId;
+      if (!noteId) return $();
+      return this.$staffEl.find(".note").filter(function (_, el) {
+        return String(el.getAttribute("data-note-id") || "") === String(noteId);
+      }).first();
+    }
+  }, {
+    key: "_clearInitialNoteFlicker",
+    value: function _clearInitialNoteFlicker() {
+      this._initialNoteEl().removeClass("flickering");
+    }
+  }, {
+    key: "_scheduleInitialNoteFlicker",
+    value: function _scheduleInitialNoteFlicker(durSeconds, atSecondsFromNow) {
+      var _this5 = this;
+      var delayMs = Math.max(0, (Number(atSecondsFromNow) || 0) * 1000);
+      var durationMs = Math.max(0, (Number(durSeconds) || 0.6) * 1000);
+      var startId = setTimeout(function () {
+        var $note = _this5._initialNoteEl();
+        if (!$note.length) return;
+        $note.addClass("flickering");
+        var endId = setTimeout(function () {
+          $note.removeClass("flickering");
+        }, durationMs);
+        _this5._dictationTimeouts.push(endId);
+      }, delayMs);
+      this._dictationTimeouts.push(startId);
+    }
+
+    // ------------------------ selection ------------------------
+  }, {
+    key: "_pickInterval",
+    value: function _pickInterval() {
+      var pool = Array.isArray(this.opts.intervals) && this.opts.intervals.length ? this.opts.intervals : ChordDetective.INTERVALS_DEFAULT;
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
+  }, {
+    key: "_directionPool",
+    value: function _directionPool() {
+      var raw = Array.isArray(this.opts.direction) ? this.opts.direction : this.opts.direction != null ? [this.opts.direction] : ["up", "down"];
+      var pool = raw.map(function (direction) {
+        return String(direction || "").trim().toLowerCase();
+      }).filter(function (direction) {
+        return direction === "up" || direction === "down";
+      });
+      return pool.length ? _toConsumableArray(new Set(pool)) : ["up", "down"];
+    }
+  }, {
+    key: "_pickDirection",
+    value: function _pickDirection() {
+      return (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.pickOne)(this._directionPool());
+    }
+  }, {
+    key: "_directionValue",
+    value: function _directionValue(direction) {
+      return String(direction || "").trim().toLowerCase() === "down" ? -1 : 1;
+    }
+  }, {
+    key: "_pickFixedNote",
+    value: function _pickFixedNote() {
+      var fixedList = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.toArrayMaybe)(this.opts.fixedNotes).filter(Boolean);
+      if (fixedList.length) {
+        var chosen = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.pickOne)(fixedList);
+        return (0,_shared_challengeUtils_js__WEBPACK_IMPORTED_MODULE_3__.fixedNoteToStaffPosition)(this.staff, chosen);
       }
+      var w = this.opts.accidentalWeights || {};
+      var accidentalClass = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.pickWeighted)([{
+        value: null,
+        weight: Number(w.natural) || 0
+      }, {
+        value: "music-font__sharp",
+        weight: Number(w.sharp) || 0
+      }, {
+        value: "music-font__flat",
+        weight: Number(w.flat) || 0
+      }]);
       return {
-        type: null,
-        count: 0
+        step: this._randomFixedStep(),
+        accidentalClass: accidentalClass
       };
     }
   }, {
-    key: "_signatureStepsForCurrentClef",
-    value: function _signatureStepsForCurrentClef(type) {
-      var clef = String(this.staff.getClef() || "treble").toLowerCase();
-      var map = KeysLab.KEYSIG_STEPS[clef] || KeysLab.KEYSIG_STEPS.treble;
-      return type === "flat" ? map.flat.slice() : map.sharp.slice();
+    key: "_randomFixedStep",
+    value: function _randomFixedStep() {
+      var min = this.staff.minStepAllowed();
+      var max = this.staff.maxStepAllowed();
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    // ------------------------ interval math ------------------------
+  }, {
+    key: "_intervalSemitones",
+    value: function _intervalSemitones(quality, simpleNum) {
+      var baseMajorPerfect = {
+        1: 0,
+        2: 2,
+        3: 4,
+        4: 5,
+        5: 7,
+        6: 9,
+        7: 11,
+        8: 12
+      }[simpleNum];
+      if (baseMajorPerfect == null) return null;
+      var isPerfectClass = simpleNum === 1 || simpleNum === 4 || simpleNum === 5 || simpleNum === 8;
+      var q = String(quality || "").trim();
+      if (isPerfectClass) {
+        if (q === "P") return baseMajorPerfect;
+        if (/^A+$/.test(q)) return baseMajorPerfect + q.length;
+        if (/^d+$/.test(q)) return baseMajorPerfect - q.length;
+        return null;
+      }
+      if (q === "M") return baseMajorPerfect;
+      if (q === "m") return baseMajorPerfect - 1;
+      if (/^A+$/.test(q)) return baseMajorPerfect + q.length;
+      if (/^d+$/.test(q)) return baseMajorPerfect - (q.length + 1);
+      return null;
     }
   }, {
-    key: "_collectUserSignatureEntries",
-    value: function _collectUserSignatureEntries() {
-      var _this3 = this;
-      this._placeAccidentalsInsideClefWrapper();
-      return this.$staffEl.find(".accidental").toArray().map(function (el) {
-        var $acc = $(el);
-        var noteId = String($acc.attr("data-for-note-id") || "");
-        var cls = $acc.hasClass("music-font__flat") ? "music-font__flat" : $acc.hasClass("music-font__sharp") ? "music-font__sharp" : null;
-        var step = _this3._stepOfNoteId(noteId);
-        var $note = _this3.$staffEl.find(".note[data-note-id=\"".concat(noteId, "\"]")).first();
-        var accLeft = parseFloat($acc.css("left"));
-        var noteLeft = $note.length ? parseFloat($note.css("left")) : NaN;
-        var left = Number.isFinite(accLeft) ? accLeft : noteLeft;
+    key: "_computeSecondFromFixed",
+    value: function _computeSecondFromFixed(intervalAbbr, fixedStep, fixedMidi, direction) {
+      var _this6 = this;
+      var parsed = (0,_shared_challengeUtils_js__WEBPACK_IMPORTED_MODULE_3__.parseIntervalAbbr)(intervalAbbr);
+      if (!parsed || !Number.isFinite(parsed.number) || parsed.number < 1) return null;
+      var diatonicSteps = parsed.number - 1;
+      var simpleNum = (parsed.number - 1) % 7 + 1;
+      var octaves = Math.floor((parsed.number - 1) / 7);
+      var baseSemiSimple = this._intervalSemitones(parsed.quality, simpleNum);
+      if (baseSemiSimple == null) return null;
+      var semitones = baseSemiSimple + 12 * octaves;
+      var minStep = this.staff.minStepAllowed();
+      var maxStep = this.staff.maxStepAllowed();
+      var build = function build(dir) {
+        var targetStep = fixedStep + dir * diatonicSteps;
+        if (targetStep < minStep || targetStep > maxStep) return null;
+        var targetMidi = fixedMidi + dir * semitones;
+        var naturalTargetMidi = _this6.staff._stepToMidi(targetStep);
+        var off = targetMidi - naturalTargetMidi;
+
+        // Limit to supported accidentals.
+        if (off < -2 || off > 2) return null;
+        var accidentalClass = (0,_shared_challengeUtils_js__WEBPACK_IMPORTED_MODULE_3__.accidentalClassFromOffset)(off);
+        if (!accidentalClass) return null;
         return {
-          cls: cls,
-          step: step,
-          left: left
-        };
-      });
-    }
-  }, {
-    key: "_buildExpectedEntries",
-    value: function _buildExpectedEntries() {
-      var sig = this._expectedSignatureForPrompt();
-      if (!sig.type || sig.count <= 0) return [];
-      var cls = sig.type === "flat" ? "music-font__flat" : "music-font__sharp";
-      var steps = this._signatureStepsForCurrentClef(sig.type);
-      var out = [];
-      for (var i = 0; i < sig.count && i < steps.length; i += 1) {
-        out.push({
-          cls: cls,
-          accidentalClass: cls,
-          step: steps[i]
-        });
-      }
-      return out;
-    }
-  }, {
-    key: "_isRegularStaffStep",
-    value: function _isRegularStaffStep(step) {
-      return Number.isFinite(step) && step >= -1 && step <= 9;
-    }
-  }, {
-    key: "_isUserSignatureCorrect",
-    value: function _isUserSignatureCorrect() {
-      var expected = this._buildExpectedEntries();
-      var user = this._collectUserSignatureEntries().sort(function (a, b) {
-        var leftDiff = (a.left || 0) - (b.left || 0);
-        if (leftDiff !== 0) return leftDiff;
-        return (a.step || 0) - (b.step || 0);
-      });
-      if (user.some(function (e) {
-        return !e.cls || !Number.isFinite(e.step) || !Number.isFinite(e.left);
-      })) return false;
-      if (expected.length !== user.length) return false;
-      for (var i = 0; i < expected.length; i += 1) {
-        var want = expected[i];
-        var got = user[i];
-        if (!want || !got) return false;
-        if (want.cls !== got.cls) return false;
-        if (want.step !== got.step) return false;
-      }
-      return true;
-    }
-  }, {
-    key: "_computeHintAnswers",
-    value: function _computeHintAnswers() {
-      return this._buildExpectedEntries();
-    }
-  }, {
-    key: "_showHintNote",
-    value: function _showHintNote() {
-      this._removeAllHintNotes();
-      this._removeAllUserNotesForHint();
-      var specs = this._buildExpectedEntries();
-      this._activeHintIds = [];
-      for (var i = 0; i < specs.length; i += 1) {
-        var ans = specs[i] || {};
-        var step = Number.isFinite(ans.step) ? Number(ans.step) : null;
-        var accidentalClass = ans.accidentalClass || null;
-        if (step == null || !accidentalClass) continue;
-        var id = "hint".concat(i + 1);
-        var createdId = this.staff.addNote({
-          id: id,
-          step: step,
-          className: "hint blink",
-          allowOccupied: true,
-          skipResolve: true
-        });
-        if (!createdId) continue;
-        this._activeHintIds.push(id);
-        this.staff.attachAccidentalToNote(id, accidentalClass);
-        this.$staffEl.find(".note[data-note-id=\"".concat(id, "\"]")).css({
-          opacity: 0,
-          width: 0,
-          height: 0,
-          pointerEvents: "none"
-        });
-        this.$staffEl.find(".ledger[data-for-note-id=\"".concat(id, "\"]")).css({
-          opacity: 0,
-          pointerEvents: "none"
-        });
-        this.$staffEl.find(".accidental[data-for-note-id=\"".concat(id, "\"]")).addClass("hint blink");
-        // eslint-disable-next-line no-console
-        console.log("[KeysLab] Hint accidental placed", {
-          noteId: id,
+          step: targetStep,
           accidentalClass: accidentalClass,
-          step: step,
-          clef: this.staff.getClef()
-        });
-        this._attachHintBlinkRemoval(id);
-      }
+          accOff: off,
+          midi: targetMidi
+        };
+      };
+      return build(this._directionValue(direction));
     }
-  }, {
-    key: "_wireStaffTools",
-    value: function _wireStaffTools() {
-      this._wireAccidentalTools();
-    }
+
+    // ------------------------ game flow ------------------------
   }, {
     key: "newChallenge",
     value: function newChallenge() {
-      var _this$$doublePoints, _this$$doublePoints$h;
-      var clef = (0,_shared_challengeUtils_js__WEBPACK_IMPORTED_MODULE_2__.pickChallengeClef)(this._clefPool);
+      var _this$$playWrap, _this$$doublePoints, _this$$doublePoints$h;
+      if ((_this$$playWrap = this.$playWrap) !== null && _this$$playWrap !== void 0 && _this$$playWrap.length) this.$playWrap.show();
+      this._setPlayButtons(false);
+      this.$helpBtn.hide();
+      this._fixedState = null;
+      this._clearInitialNoteFlicker();
+      this._expectedFirst = null;
+      this._expectedSecond = null;
+      var clef = (0,_shared_challengeUtils_js__WEBPACK_IMPORTED_MODULE_3__.pickChallengeClef)(this._clefPool);
       if (clef && clef !== this.staff.getClef()) this.staff.setClef(clef);
-      this._activeClef = this.staff.getClef();
       this._madeMistakeThisRound = false;
       this._usedHintThisRound = false;
+      this.$bonusBadge.hide();
+      (_this$$doublePoints = this.$doublePoints) === null || _this$$doublePoints === void 0 || (_this$$doublePoints$h = _this$$doublePoints.hide) === null || _this$$doublePoints$h === void 0 || _this$$doublePoints$h.call(_this$$doublePoints);
+      var interval = this._pickInterval();
+      var direction = this._pickDirection();
+
+      // Retry until we find a playable pair within staff bounds/accidentals.
+      var fixed = null;
+      var second = null;
+      for (var i = 0; i < 40; i += 1) {
+        fixed = this._pickFixedNote();
+        if (!fixed) continue;
+        var fixedAccOff = this.staff._accidentalClassToOffset(fixed.accidentalClass) || 0;
+        var fixedMidi = this.staff._stepToMidi(fixed.step) + fixedAccOff;
+        second = this._computeSecondFromFixed(interval, fixed.step, fixedMidi, direction);
+        if (second) break;
+      }
+      if (!fixed || !second) return;
       this.staff.clearNotes();
       this.$accidentals.removeClass("invisible");
       this.$feedback.hide();
-      this.$helpBtn.hide();
-      this.$bonusBadge.hide();
-      (_this$$doublePoints = this.$doublePoints) === null || _this$$doublePoints === void 0 || (_this$$doublePoints$h = _this$$doublePoints.hide) === null || _this$$doublePoints$h === void 0 || _this$$doublePoints$h.call(_this$$doublePoints);
-      this.prompt.show();
-      $("#check").show().removeClass("invisible");
+
+      // Show the initial note immediately (suppress natural glyph).
+      var fixedAcc = fixed.accidentalClass === "music-font__natural" ? null : fixed.accidentalClass || null;
+      var fixedId = this.staff.addFixedNote({
+        step: fixed.step,
+        accidentalClass: fixedAcc
+      });
+      if (fixedId) this.staff._emitNoteState(fixedId, "fixed");
+      this._expectedFirst = {
+        noteId: fixedId,
+        step: fixed.step,
+        accidentalClass: fixed.accidentalClass || null
+      };
+      this._expectedSecond = second;
       $("#continue").hide();
-      this._renderKeyPrompt();
     }
+
+    // ------------------------ notes + hint ------------------------
+  }, {
+    key: "_notesOnStaffOrdered",
+    value: function _notesOnStaffOrdered() {
+      var _this7 = this;
+      var $notes = this.$staffEl.find(".note").not(".preview").not(".hint");
+      var notes = $notes.toArray().map(function (el) {
+        var id = el.getAttribute("data-note-id");
+        var step = _this7.staff._stepOfNoteEl(el);
+        var accCls = _this7.staff._getAttachedAccidentalClass(id);
+        var accOff = _this7.staff._accidentalClassToOffset(accCls) || 0;
+        var fixed = el.classList.contains("fixed");
+        return {
+          id: id,
+          step: step,
+          accOff: accOff,
+          fixed: fixed
+        };
+      });
+      notes.sort(function (a, b) {
+        return a.step - b.step;
+      });
+      return notes;
+    }
+  }, {
+    key: "_computeHintAnswer",
+    value: function _computeHintAnswer() {
+      if (!this._expectedSecond) return null;
+      return {
+        step: this._expectedSecond.step,
+        accidentalClass: this._expectedSecond.accidentalClass || null
+      };
+    }
+
+    // ------------------------ evaluation ------------------------
   }, {
     key: "_onCheck",
     value: function _onCheck() {
+      this._stopDictationPlayback();
+      this._setPlayButtons(false);
+      var notes = this._notesOnStaffOrdered();
       this.$checkBtn.disable();
       this._stats.checksTotal += 1;
-      var ok = this._isUserSignatureCorrect();
+      if (!this._expectedSecond) return;
+
+      // fixed + 1 user note
+      if (notes.length !== 2) {
+        this._madeAnyMistake = true;
+        this._madeMistakeThisRound = true;
+        this._failAnimation(this.$checkWrap);
+        this.$helpBtn.show();
+        return;
+      }
+      var user = notes.find(function (n) {
+        return !n.fixed;
+      }) || null;
+      if (!user) {
+        this._madeAnyMistake = true;
+        this._madeMistakeThisRound = true;
+        this._failAnimation(this.$checkWrap);
+        this.$helpBtn.show();
+        return;
+      }
+
+      // Pitch-only correctness (enharmonics accepted).
+      var userMidi = this.staff._stepToMidi(user.step) + (user.accOff || 0);
+      var ok = userMidi === this._expectedSecond.midi;
       if (ok) {
         this._stats.checksCorrect += 1;
         this._pauseGameTimer();
@@ -2350,400 +2516,19 @@ var KeysLab = /*#__PURE__*/function (_BaseStaffGame) {
         this._handleCorrectAnswerUi({
           isBonus: bonusEarned > 0,
           earned: earned,
-          $prompt: this.prompt.$root
+          $prompt: this.prompt.$root,
+          $extraHide: this.$playWrap
         });
-        return;
+      } else {
+        this._madeAnyMistake = true;
+        this._madeMistakeThisRound = true;
+        this._failAnimation(this.$checkWrap);
+        this.$helpBtn.show();
       }
-      this._madeAnyMistake = true;
-      this._madeMistakeThisRound = true;
-      this._failAnimation(this.$checkWrap);
-      this.$helpBtn.show();
-    }
-  }, {
-    key: "_accidentalClassFromTool",
-    value: function _accidentalClassFromTool($tool) {
-      if (!($tool !== null && $tool !== void 0 && $tool.length)) return null;
-      if ($tool.hasClass("music-font__sharp")) return "music-font__sharp";
-      if ($tool.hasClass("music-font__flat")) return "music-font__flat";
-      return null;
-    }
-  }, {
-    key: "_wireAccidentalTools",
-    value: function _wireAccidentalTools() {
-      var _this4 = this;
-      if (this._toolsWired) return;
-      var $tools = $("#accidentals .music-font__sharp, #accidentals .music-font__flat");
-      this.staff.enableAccidentalDrag($tools);
-      this._augmentAccidentalToolDragSound($tools);
-      this._patchAccidentalRepositionForClefWrapper();
-
-      // KeysLab uses free accidental placement (not "drop onto existing note").
-      this.$staffEl.droppable({
-        accept: ".accidental-tool",
-        tolerance: "pointer",
-        drop: function drop(event, ui) {
-          var accClass = _this4._accidentalClassFromTool(ui.draggable);
-          if (!accClass) return;
-          if (_this4.$staffEl.find(".accidental").length >= 7) return;
-          var pageY = event.pageY;
-          var pageX = event.pageX;
-          if (!Number.isFinite(pageY) && event.originalEvent) pageY = event.originalEvent.pageY;
-          if (!Number.isFinite(pageX) && event.originalEvent) pageX = event.originalEvent.pageX;
-          var localY = _this4.staff._pageYToLocalY(pageY);
-          var step = _this4.staff.yToStep(localY);
-          if (!_this4._isRegularStaffStep(step)) return;
-          var off = _this4.$staffEl.offset();
-          var localXRaw = Number(pageX) - Number((off === null || off === void 0 ? void 0 : off.left) || 0);
-          var localX = Math.max(0, Math.min(_this4.$staffEl.width(), localXRaw));
-          var id = "keysig-anchor-".concat(_this4._anchorCounter++);
-          var noteId = _this4.staff.addNote({
-            id: id,
-            step: step,
-            x: localX,
-            allowOccupied: true,
-            skipResolve: true
-          });
-          if (!noteId) return;
-          _this4.staff.attachAccidentalToNote(noteId, accClass);
-
-          // Keep only the accidental visible.
-          _this4.$staffEl.find(".note[data-note-id=\"".concat(noteId, "\"]")).css({
-            opacity: 0,
-            width: 0,
-            height: 0,
-            pointerEvents: "none"
-          });
-          _this4.$staffEl.find(".ledger[data-for-note-id=\"".concat(noteId, "\"]")).css({
-            opacity: 0,
-            pointerEvents: "none"
-          });
-          $("#check").show().removeClass("invisible");
-        }
-      });
-
-      // Allow removing placed key-signature accidentals by tap/click.
-      this.$staffEl.off("click.".concat(this.ns, ".accidentalRemove")).on("click.".concat(this.ns, ".accidentalRemove"), ".accidental", function (e) {
-        var noteId = String($(e.currentTarget).attr("data-for-note-id") || "");
-        if (_this4._swallowAccidentalClick.noteId && noteId === _this4._swallowAccidentalClick.noteId && Date.now() < _this4._swallowAccidentalClick.until) {
-          _this4._swallowAccidentalClick.noteId = null;
-          _this4._swallowAccidentalClick.until = 0;
-          e.preventDefault();
-          e.stopPropagation();
-          return;
-        }
-        e.preventDefault();
-        e.stopPropagation();
-        var $acc = $(e.currentTarget);
-        if (!noteId) return;
-        (0,_shared_mojsEffects_js__WEBPACK_IMPORTED_MODULE_1__.playSmokePuffAtElement)($acc[0], {
-          parentEl: document.body
-        });
-        _this4.staff.removeNote(noteId);
-      });
-      this._wireLineSpaceAccidentalDrag();
-      this._toolsWired = true;
-    }
-  }, {
-    key: "_findNearestAccidentalNoteIdByLocalY",
-    value: function _findNearestAccidentalNoteIdByLocalY(localY) {
-      var _this$staff;
-      var maxDist = Number.isFinite((_this$staff = this.staff) === null || _this$staff === void 0 || (_this$staff = _this$staff.opts) === null || _this$staff === void 0 ? void 0 : _this$staff.lineGap) ? this.staff.opts.lineGap * 0.75 : 14;
-      var bestId = null;
-      var bestDist = Infinity;
-      var ids = this.$staffEl.find(".accidental").toArray().map(function (el) {
-        return String(el.getAttribute("data-for-note-id") || "");
-      }).filter(Boolean);
-      for (var i = 0; i < ids.length; i += 1) {
-        var id = ids[i];
-        if (this.staff.isNoteFixed(id)) continue;
-        var $note = this.$staffEl.find(".note[data-note-id=\"".concat(id, "\"]"));
-        if (!$note.length) continue;
-        var noteTop = parseFloat($note.css("top"));
-        if (!Number.isFinite(noteTop)) continue;
-        var d = Math.abs(noteTop - localY);
-        if (d < bestDist) {
-          bestDist = d;
-          bestId = id;
-        }
-      }
-      if (!bestId || bestDist > maxDist) return null;
-      return bestId;
-    }
-  }, {
-    key: "_stepOfNoteId",
-    value: function _stepOfNoteId(noteId) {
-      var $note = this.$staffEl.find(".note[data-note-id=\"".concat(noteId, "\"]"));
-      if (!$note.length) return null;
-      var top = parseFloat($note.css("top"));
-      if (!Number.isFinite(top)) return null;
-      return this.staff.yToStep(top);
-    }
-  }, {
-    key: "_playAccidentalAnchorStep",
-    value: function _playAccidentalAnchorStep(noteId) {
-      var _this$staff$_soundEna, _this$staff2, _this$staff$_getAttac, _this$staff3;
-      if (!noteId || !((_this$staff$_soundEna = (_this$staff2 = this.staff)._soundEnabled) !== null && _this$staff$_soundEna !== void 0 && _this$staff$_soundEna.call(_this$staff2))) return;
-      var step = this._stepOfNoteId(noteId);
-      if (!Number.isFinite(step)) return;
-      var accCls = ((_this$staff$_getAttac = (_this$staff3 = this.staff)._getAttachedAccidentalClass) === null || _this$staff$_getAttac === void 0 ? void 0 : _this$staff$_getAttac.call(_this$staff3, noteId)) || null;
-      this._playAccidentalStep(step, accCls);
-    }
-  }, {
-    key: "_playAccidentalStep",
-    value: function _playAccidentalStep(step, accClass) {
-      var _this$staff$_soundEna2, _this$staff4, _this$staff$_accident, _this$staff5, _this$staff$_playStep, _this$staff6;
-      if (!((_this$staff$_soundEna2 = (_this$staff4 = this.staff)._soundEnabled) !== null && _this$staff$_soundEna2 !== void 0 && _this$staff$_soundEna2.call(_this$staff4))) return;
-      if (!Number.isFinite(step)) return;
-      var accOff = ((_this$staff$_accident = (_this$staff5 = this.staff)._accidentalClassToOffset) === null || _this$staff$_accident === void 0 ? void 0 : _this$staff$_accident.call(_this$staff5, accClass)) || 0;
-      (_this$staff$_playStep = (_this$staff6 = this.staff)._playStep) === null || _this$staff$_playStep === void 0 || _this$staff$_playStep.call(_this$staff6, step, accOff);
-    }
-  }, {
-    key: "_previewToolAccidentalStep",
-    value: function _previewToolAccidentalStep(pageX, pageY, accClass) {
-      var _this$staff$_soundEna3, _this$staff7;
-      if (!((_this$staff$_soundEna3 = (_this$staff7 = this.staff)._soundEnabled) !== null && _this$staff$_soundEna3 !== void 0 && _this$staff$_soundEna3.call(_this$staff7))) return;
-      if (!Number.isFinite(pageX) || !Number.isFinite(pageY)) return;
-      var off = this.$staffEl.offset();
-      var localX = pageX - Number((off === null || off === void 0 ? void 0 : off.left) || 0);
-      var localY = pageY - Number((off === null || off === void 0 ? void 0 : off.top) || 0);
-      if (localX < 0 || localY < 0 || localX > this.$staffEl.width() || localY > this.$staffEl.height()) {
-        this._toolDragPreviewStep = null;
-        return;
-      }
-      var step = this.staff.yToStep(this.staff._pageYToLocalY(pageY));
-      if (!this._isRegularStaffStep(step)) return;
-      if (step === this._toolDragPreviewStep) return;
-      this._toolDragPreviewStep = step;
-      this._playAccidentalStep(step, accClass);
-    }
-  }, {
-    key: "_augmentAccidentalToolDragSound",
-    value: function _augmentAccidentalToolDragSound($tools) {
-      var _this5 = this;
-      var originalStart = $tools.draggable("option", "start");
-      var originalDrag = $tools.draggable("option", "drag");
-      var originalStop = $tools.draggable("option", "stop");
-      var toolTypeToClass = function toolTypeToClass(toolType) {
-        if (toolType === "sharp") return "music-font__sharp";
-        if (toolType === "flat") return "music-font__flat";
-        return null;
-      };
-      $tools.draggable("option", "start", function (event, ui) {
-        _this5._toolDragPreviewStep = null;
-        if (typeof originalStart === "function") originalStart.call(event.currentTarget, event, ui);
-      });
-      $tools.draggable("option", "drag", function (event, ui) {
-        var _this5$staff;
-        if (typeof originalDrag === "function") originalDrag.call(event.currentTarget, event, ui);
-        var accClass = toolTypeToClass((_this5$staff = _this5.staff) === null || _this5$staff === void 0 || (_this5$staff = _this5$staff._accDragSound) === null || _this5$staff === void 0 ? void 0 : _this5$staff.toolType) || _this5._accidentalClassFromTool($(ui === null || ui === void 0 ? void 0 : ui.helper)) || _this5._accidentalClassFromTool($(event.currentTarget));
-        var pageX = event.pageX;
-        var pageY = event.pageY;
-        if (!Number.isFinite(pageY) && event.originalEvent) pageY = event.originalEvent.pageY;
-        if (!Number.isFinite(pageX) && event.originalEvent) pageX = event.originalEvent.pageX;
-        _this5._previewToolAccidentalStep(pageX, pageY, accClass);
-      });
-      $tools.draggable("option", "stop", function (event, ui) {
-        _this5._toolDragPreviewStep = null;
-        if (typeof originalStop === "function") originalStop.call(event.currentTarget, event, ui);
-      });
-    }
-  }, {
-    key: "_wireLineSpaceAccidentalDrag",
-    value: function _wireLineSpaceAccidentalDrag() {
-      var _this6 = this;
-      if (this._laneDragWired) return;
-      var ns = "".concat(this.ns, ".accidentalLaneDrag");
-      var getPointerId = function getPointerId(ev) {
-        if (ev.pointerId != null) return ev.pointerId;
-        if (ev.originalEvent && ev.originalEvent.pointerId != null) return ev.originalEvent.pointerId;
-        var oe = ev.originalEvent || ev;
-        if (oe && oe.changedTouches && oe.changedTouches.length) {
-          var _oe$changedTouches$0$;
-          return (_oe$changedTouches$0$ = oe.changedTouches[0].identifier) !== null && _oe$changedTouches$0$ !== void 0 ? _oe$changedTouches$0$ : null;
-        }
-        return null;
-      };
-      var getPageY = function getPageY(ev) {
-        if (Number.isFinite(ev.pageY)) return ev.pageY;
-        var oe = ev.originalEvent || ev;
-        if (oe && Number.isFinite(oe.pageY)) return oe.pageY;
-        if (oe && oe.touches && oe.touches.length) return oe.touches[0].pageY;
-        if (oe && oe.changedTouches && oe.changedTouches.length) return oe.changedTouches[0].pageY;
-        return null;
-      };
-      var getPageX = function getPageX(ev) {
-        if (Number.isFinite(ev.pageX)) return ev.pageX;
-        var oe = ev.originalEvent || ev;
-        if (oe && Number.isFinite(oe.pageX)) return oe.pageX;
-        if (oe && oe.touches && oe.touches.length) return oe.touches[0].pageX;
-        if (oe && oe.changedTouches && oe.changedTouches.length) return oe.changedTouches[0].pageX;
-        return null;
-      };
-      this.$staffEl.off("pointerdown.".concat(ns, " mousedown.").concat(ns, " touchstart.").concat(ns)).on("pointerdown.".concat(ns, " mousedown.").concat(ns, " touchstart.").concat(ns), function (e) {
-        var _this6$staff$_soundEn, _this6$staff, _this6$staff$_ensureA, _this6$staff2;
-        if (_this6._laneDrag.noteId) return;
-        var pageY = getPageY(e);
-        if (!Number.isFinite(pageY)) return;
-        var localY = _this6.staff._pageYToLocalY(pageY);
-        var $accTarget = $(e.target).closest(".accidental");
-        var noteIdFromAccidental = $accTarget.length ? String($accTarget.attr("data-for-note-id") || "") : null;
-        var noteId = noteIdFromAccidental || _this6._findNearestAccidentalNoteIdByLocalY(localY);
-        if (!noteId) return;
-        var noteStep = _this6._stepOfNoteId(noteId);
-        var step = Number.isFinite(noteStep) ? noteStep : _this6.staff.yToStep(localY);
-        _this6._laneDrag.noteId = noteId;
-        _this6._laneDrag.pointerId = getPointerId(e);
-        _this6._laneDrag.fromAccidental = !!noteIdFromAccidental;
-        _this6._laneDrag.startPageX = getPageX(e) || 0;
-        _this6._laneDrag.startPageY = pageY;
-        var $note = _this6.$staffEl.find(".note[data-note-id=\"".concat(noteId, "\"]")).first();
-        var startNoteX = $note.length ? parseFloat($note.css("left")) : NaN;
-        _this6._laneDrag.startNoteX = Number.isFinite(startNoteX) ? startNoteX : null;
-        _this6._laneDrag.movedPx = 0;
-        _this6._laneDrag.isDragging = false;
-        _this6._laneDrag.lastTargetStep = step;
-        _this6._laneDrag.lastTargetX = null;
-        _this6._laneDrag.lastSoundStep = step;
-        _this6.staff._setDraggingVisual(noteId, true);
-        if ((_this6$staff$_soundEn = (_this6$staff = _this6.staff)._soundEnabled) !== null && _this6$staff$_soundEn !== void 0 && _this6$staff$_soundEn.call(_this6$staff)) (_this6$staff$_ensureA = (_this6$staff2 = _this6.staff)._ensureAudio) === null || _this6$staff$_ensureA === void 0 || _this6$staff$_ensureA.call(_this6$staff2);
-        e.preventDefault();
-        e.stopPropagation();
-        $(document).off("pointermove.".concat(ns, " mousemove.").concat(ns, " touchmove.").concat(ns, " pointerup.").concat(ns, " pointercancel.").concat(ns, " mouseup.").concat(ns, " touchend.").concat(ns, " touchcancel.").concat(ns)).on("pointermove.".concat(ns, " mousemove.").concat(ns, " touchmove.").concat(ns), function (ev) {
-          var _this6$staff$_soundEn2, _this6$staff3;
-          if (ev.preventDefault) ev.preventDefault();
-          var pid = getPointerId(ev);
-          if (_this6._laneDrag.pointerId != null && pid != null && pid !== _this6._laneDrag.pointerId) {
-            return;
-          }
-          var py = getPageY(ev);
-          var px = getPageX(ev);
-          if (!Number.isFinite(py) || !_this6._laneDrag.noteId) return;
-          var dy = py - _this6._laneDrag.startPageY;
-          var dx = Number.isFinite(px) ? px - _this6._laneDrag.startPageX : 0;
-          _this6._laneDrag.movedPx = Math.max(_this6._laneDrag.movedPx, Math.abs(dy), Math.abs(dx));
-          if (!_this6._laneDrag.isDragging && _this6._laneDrag.movedPx >= _this6._laneDrag.thresholdPx) {
-            _this6._laneDrag.isDragging = true;
-          }
-          if (!_this6._laneDrag.isDragging) return;
-          var targetStep = _this6.staff.yToStep(_this6.staff._pageYToLocalY(py));
-          if (!_this6._isRegularStaffStep(targetStep)) return;
-          _this6._laneDrag.lastTargetStep = targetStep;
-          var movePos = {
-            step: targetStep
-          };
-          if (Number.isFinite(px) && Number.isFinite(_this6._laneDrag.startNoteX)) {
-            var nextX = _this6._laneDrag.startNoteX + dx;
-            movePos.x = Math.max(0, Math.min(_this6.$staffEl.width(), nextX));
-            _this6._laneDrag.lastTargetX = movePos.x;
-          }
-          _this6.staff.moveNote(_this6._laneDrag.noteId, movePos);
-          if ((_this6$staff$_soundEn2 = (_this6$staff3 = _this6.staff)._soundEnabled) !== null && _this6$staff$_soundEn2 !== void 0 && _this6$staff$_soundEn2.call(_this6$staff3) && targetStep !== _this6._laneDrag.lastSoundStep) {
-            _this6._laneDrag.lastSoundStep = targetStep;
-            _this6._playAccidentalAnchorStep(_this6._laneDrag.noteId);
-          }
-        }).on("pointerup.".concat(ns, " pointercancel.").concat(ns, " mouseup.").concat(ns, " touchend.").concat(ns, " touchcancel.").concat(ns), function (ev) {
-          var pid = getPointerId(ev);
-          if (_this6._laneDrag.pointerId != null && pid != null && pid !== _this6._laneDrag.pointerId) {
-            return;
-          }
-          $(document).off("pointermove.".concat(ns, " mousemove.").concat(ns, " touchmove.").concat(ns, " pointerup.").concat(ns, " pointercancel.").concat(ns, " mouseup.").concat(ns, " touchend.").concat(ns, " touchcancel.").concat(ns));
-          var draggedNoteId = _this6._laneDrag.noteId;
-          var dragged = !!_this6._laneDrag.isDragging;
-          if (draggedNoteId) {
-            _this6.staff._setDraggingVisual(draggedNoteId, false);
-            if (dragged && Number.isFinite(_this6._laneDrag.lastTargetStep)) {
-              var finalPos = {
-                step: _this6._laneDrag.lastTargetStep
-              };
-              if (Number.isFinite(_this6._laneDrag.lastTargetX)) {
-                finalPos.x = _this6._laneDrag.lastTargetX;
-              }
-              _this6.staff.moveNote(draggedNoteId, finalPos);
-              _this6.staff._emitNoteState(draggedNoteId, "user");
-              _this6._swallowAccidentalClick.noteId = draggedNoteId;
-              _this6._swallowAccidentalClick.until = Date.now() + 350;
-            } else if (_this6._laneDrag.fromAccidental) {
-              var $acc = _this6.$staffEl.find(".accidental[data-for-note-id=\"".concat(draggedNoteId, "\"]")).first();
-              if ($acc.length) (0,_shared_mojsEffects_js__WEBPACK_IMPORTED_MODULE_1__.playSmokePuffAtElement)($acc[0], {
-                parentEl: document.body
-              });
-              _this6.staff.removeNote(draggedNoteId);
-              _this6._swallowAccidentalClick.noteId = draggedNoteId;
-              _this6._swallowAccidentalClick.until = Date.now() + 350;
-            }
-          }
-          _this6._laneDrag.noteId = null;
-          _this6._laneDrag.pointerId = null;
-          _this6._laneDrag.fromAccidental = false;
-          _this6._laneDrag.startPageX = 0;
-          _this6._laneDrag.startPageY = 0;
-          _this6._laneDrag.startNoteX = null;
-          _this6._laneDrag.movedPx = 0;
-          _this6._laneDrag.isDragging = false;
-          _this6._laneDrag.lastTargetStep = null;
-          _this6._laneDrag.lastTargetX = null;
-          _this6._laneDrag.lastSoundStep = null;
-        });
-      });
-      this._laneDragWired = true;
-    }
-  }, {
-    key: "_patchAccidentalRepositionForClefWrapper",
-    value: function _patchAccidentalRepositionForClefWrapper() {
-      var _this7 = this;
-      if (this._accidentalRepositionPatched) return;
-      var baseReposition = this.staff._repositionAllAccidentals.bind(this.staff);
-      this.staff._repositionAllAccidentals = function () {
-        var out = baseReposition.apply(void 0, arguments);
-        _this7._placeAccidentalsInsideClefWrapper();
-        return out;
-      };
-      this._accidentalRepositionPatched = true;
-    }
-  }, {
-    key: "_placeAccidentalsInsideClefWrapper",
-    value: function _placeAccidentalsInsideClefWrapper() {
-      var _this8 = this;
-      var $wrapper = this.$staffEl.find("#clef-wrapper").first();
-      if (!$wrapper.length) return;
-      $wrapper.css("pointer-events", "auto");
-      $wrapper.find("img").css("pointer-events", "none");
-      var wrapperLeft = parseFloat($wrapper.css("left")) || 0;
-      var wrapperTop = parseFloat($wrapper.css("top")) || 0;
-      this.$staffEl.find(".accidental").each(function (_, el) {
-        var $acc = $(el);
-        var noteId = String($acc.attr("data-for-note-id") || "");
-        if (!noteId) return;
-        var $note = _this8.$staffEl.find(".note[data-note-id=\"".concat(noteId, "\"]"));
-        if (!$note.length) return;
-        var noteLeft = parseFloat($note.css("left"));
-        var noteTop = parseFloat($note.css("top"));
-        var anchorX = _this8.staff._accidentalAnchorXForNote(noteLeft);
-        $acc.css({
-          left: "".concat(anchorX - _this8.staff.opts.accidentalGapPx - wrapperLeft, "px"),
-          top: "".concat(noteTop - _this8.staff.opts.accidentalTopPx - wrapperTop, "px")
-        });
-        if ($acc.parent()[0] !== $wrapper[0]) $wrapper.append($acc);
-      });
     }
   }]);
 }(_base_BaseStaffGame_js__WEBPACK_IMPORTED_MODULE_0__.BaseStaffGame);
-_defineProperty(KeysLab, "MAJOR_KEYS", ["C", "G", "D", "A", "E", "B", "F#", "C#", "F", "Bb", "Eb", "Ab", "Db", "Gb", "Cb"]);
-_defineProperty(KeysLab, "MINOR_KEYS", ["A", "E", "B", "F#", "C#", "G#", "D#", "A#", "D", "G", "C", "F", "Bb", "Eb", "Ab"]);
-_defineProperty(KeysLab, "SHARP_MAJOR_ORDER", ["G", "D", "A", "E", "B", "F#", "C#"]);
-_defineProperty(KeysLab, "FLAT_MAJOR_ORDER", ["F", "Bb", "Eb", "Ab", "Db", "Gb", "Cb"]);
-_defineProperty(KeysLab, "SHARP_MINOR_ORDER", ["E", "B", "F#", "C#", "G#", "D#", "A#"]);
-_defineProperty(KeysLab, "FLAT_MINOR_ORDER", ["D", "G", "C", "F", "Bb", "Eb", "Ab"]);
-_defineProperty(KeysLab, "KEYSIG_STEPS", {
-  treble: {
-    sharp: [8, 5, 9, 6, 3, 7, 4],
-    flat: [4, 7, 3, 6, 2, 5, 1]
-  },
-  bass: {
-    sharp: [6, 3, 7, 4, 1, 5, 2],
-    flat: [2, 5, 8, 4, 0, 3, 6]
-  }
-});
+_defineProperty(ChordDetective, "INTERVALS_DEFAULT", ["M2", "m3", "M3", "P5", "P8"]);
 
 /***/ },
 
@@ -6300,12 +6085,11 @@ function spellNoteFromState(staff, step, accidentalClass) {
 var __webpack_exports__ = {};
 // This entry needs to be wrapped in an IIFE because it needs to be isolated against other modules in the chunk.
 (() => {
-/*!*********************************************!*\
-  !*** ./resources/js/music/games/keyslab.js ***!
-  \*********************************************/
+/*!****************************************************!*\
+  !*** ./resources/js/music/games/chorddetective.js ***!
+  \****************************************************/
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _keyslab_KeysLab_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./keyslab/KeysLab.js */ "./resources/js/music/games/keyslab/KeysLab.js");
-var _game$start;
+/* harmony import */ var _chorddetective_ChordDetective_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./chorddetective/ChordDetective.js */ "./resources/js/music/games/chorddetective/ChordDetective.js");
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
 function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
@@ -6315,10 +6099,10 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
 
 var options = readGlobal("__challengeOptions") || {};
 var clefUrls = readGlobal("__clefUrls") || null;
-var game = new _keyslab_KeysLab_js__WEBPACK_IMPORTED_MODULE_0__.KeysLab(_objectSpread(_objectSpread({}, options), {}, {
+var game = new _chorddetective_ChordDetective_js__WEBPACK_IMPORTED_MODULE_0__.ChordDetective(_objectSpread(_objectSpread({}, options), {}, {
   clefUrls: clefUrls
 }));
-(_game$start = game.start) === null || _game$start === void 0 ? void 0 : _game$start.call(game);
+game.start();
 })();
 
 /******/ })()
