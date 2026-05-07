@@ -10,6 +10,24 @@ $(window).on('load', function() {
     $('.modal.modal-autoshow').modal('show');
 });
 
+$(function () {
+    $('#leaderboard-modal').on('show.bs.modal', function () {
+        var $players = $(this).find('.leaderboard-player');
+
+        $players.stop(true, true).css({
+            opacity: 0,
+            top: '6px',
+            position: 'relative'
+        });
+
+        $players.each(function (index) {
+            $(this).delay(index * 100).animate({
+                opacity: 1,
+                top: 0
+            }, 180);
+        });
+    });
+});
 document.addEventListener("DOMContentLoaded", () => {
   const ranges = document.querySelectorAll('input[type="range"][data-range-labels]');
 

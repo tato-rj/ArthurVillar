@@ -604,6 +604,11 @@ body {
   opacity: 1;
 }
 
+#leaderboard-modal .leaderboard-player {
+    opacity: 0;
+    transform: translateY(8px);
+}
+    
 .player-avatar {
   border-radius: 50%;
   width: 42px;
