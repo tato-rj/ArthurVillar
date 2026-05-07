@@ -17,7 +17,7 @@
 
             <h5 class="mb-1">{{$settings->gameName()}}</h5>
 
-            <div class="mb-1">
+            <div>
                 <label class="opacity-5 small mb-1">What's in it?</label>
                 <p class="m-0 opacity-8">{{$settings->gameDescription()}}</p>
             </div>
