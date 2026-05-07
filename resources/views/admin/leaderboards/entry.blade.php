@@ -18,7 +18,7 @@
 				<form method="POST" confirm action="{{route('admin.leaderboard.destroy', $player)}}">
 					@csrf
 					@method('DELETE')
-					<button type="submit" class="btn btn-sm btn-red text-nowrap">@fa(['icon' => 'trash-alt'])Delete</button>
+					<button type="submit" class="btn btn-sm btn-red text-nowrap">@fa(['icon' => 'trash-alt', 'mr' => 0])</button>
 				</form>
 			</div>
 		</div>

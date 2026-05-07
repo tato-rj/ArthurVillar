@@ -2154,6 +2154,13 @@ var MemoryWizard = /*#__PURE__*/function (_BaseStaffGame) {
       return index === this._targetSequence.length - 1;
     }
   }, {
+    key: "_shouldRenderPreviewNote",
+    value: function _shouldRenderPreviewNote(index) {
+      if (this._targetSequence.length <= 1) return true;
+      if (index < this._targetSequence.length - 1) return false;
+      return !this._shouldHideLastPreviewNote(index);
+    }
+  }, {
     key: "_previewDisplayMsForIndex",
     value: function _previewDisplayMsForIndex(index) {
       if (index >= this._targetSequence.length - 1) return MemoryWizard.SEQUENCE_NOTE_DISPLAY_MS;
@@ -2220,9 +2227,9 @@ var MemoryWizard = /*#__PURE__*/function (_BaseStaffGame) {
           _this3._setPreviewInteractionDisabled(false);
           return;
         }
-        var hideNote = _this3._shouldHideLastPreviewNote(index);
-        var fixedId = hideNote ? null : _this3._showPreviewNote(target);
-        if (hideNote) _this3._playTargetSound(target);
+        var shouldRender = _this3._shouldRenderPreviewNote(index);
+        var fixedId = shouldRender ? _this3._showPreviewNote(target) : null;
+        if (!shouldRender) _this3._playTargetSound(target);
         var timeoutId = window.setTimeout(function () {
           _this3._removeTargetPreview(fixedId);
           if (index >= _this3._targetSequence.length - 1) {

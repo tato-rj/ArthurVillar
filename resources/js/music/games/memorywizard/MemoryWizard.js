@@ -133,6 +133,12 @@ export class MemoryWizard extends BaseStaffGame {
     return index === this._targetSequence.length - 1;
   }
 
+  _shouldRenderPreviewNote(index) {
+    if (this._targetSequence.length <= 1) return true;
+    if (index < this._targetSequence.length - 1) return false;
+    return !this._shouldHideLastPreviewNote(index);
+  }
+
   _previewDisplayMsForIndex(index) {
     if (index >= this._targetSequence.length - 1) return MemoryWizard.SEQUENCE_NOTE_DISPLAY_MS;
     return MemoryWizard.PRIOR_SEQUENCE_NOTE_DISPLAY_MS;
@@ -200,9 +206,9 @@ export class MemoryWizard extends BaseStaffGame {
         return;
       }
 
-      const hideNote = this._shouldHideLastPreviewNote(index);
-      const fixedId = hideNote ? null : this._showPreviewNote(target);
-      if (hideNote) this._playTargetSound(target);
+      const shouldRender = this._shouldRenderPreviewNote(index);
+      const fixedId = shouldRender ? this._showPreviewNote(target) : null;
+      if (!shouldRender) this._playTargetSound(target);
 
       const timeoutId = window.setTimeout(() => {
         this._removeTargetPreview(fixedId);
