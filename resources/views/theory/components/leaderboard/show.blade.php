@@ -1,4 +1,4 @@
-@modal(['title' => fa('ranking-star').'Leaderboard', 'id' => 'leaderboard-modal', 'autoshow' => (bool) session('newPlayer')])
+@modal(['title' => fa('ranking-star').'Leaderboard', 'id' => 'leaderboard-'.str_slug($settings->gameName()).'-modal', 'autoshow' => (bool) session('newPlayer')])
 @forelse($settings->leaderboard() as $player)
 	@include('theory.components.leaderboard.player')
 @empty

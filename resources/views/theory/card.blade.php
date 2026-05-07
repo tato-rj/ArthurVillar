@@ -1,4 +1,4 @@
-<div class="col-lg-3 col-md-4 col-6 g-3">
+<div class="col-lg-3 col-md-4 col-6 g-2">
     <div class="mb-4 bg-white border border-dark p-3 rounded h-100 d-flex flex-column justify-content-between">
         <div>
             <div class="d-flex justify-content-between">
@@ -24,16 +24,21 @@
         </div>
 
         <div>
-            <div class="btn-floating w-100">
-                <button data-bs-toggle="modal" data-bs-target="#{{str_slug($settings->gameName())}}-settings-modal", {{isset($disabled) && $disabled ? 'disabled' : null}} class="btn btn-white text-dark w-100">
-                    @if(isset($disabled) && $disabled)
-                    Coming up soon
-                    @else
-                    @fa(['icon' => 'gear'])Set up game
-                    @endif
-                </button>
+            <div class="d-flex">
+                <div class="btn-floating w-100 mr-2">
+                    <button data-bs-toggle="modal" data-bs-target="#{{str_slug($settings->gameName())}}-settings-modal", {{isset($disabled) && $disabled ? 'disabled' : null}} class="btn btn-white text-dark w-100">
+                        @if(isset($disabled) && $disabled)
+                        Coming up soon
+                        @else
+                        @fa(['icon' => 'gear'])Set up game
+                        @endif
+                    </button>
+                </div>
+              <div class="btn-floating">
+                <button data-bs-toggle="modal" data-bs-target="#leaderboard-{{str_slug($settings->gameName())}}-modal" class="btn btn-white">@fa(['icon' => 'ranking-star', 'mr' => 0])</button>
+              </div>
             </div>
-            
+            @include('theory.components.leaderboard.show')
             @include('theory.'.str_slug($settings->gameName()).'.settings')
         </div>
     </div>
