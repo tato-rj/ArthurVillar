@@ -4,6 +4,8 @@ namespace App\Games;
 
 class PitchDetectiveSettings extends GameFactory
 {
+    protected array $bonusPoints = ['timer'];
+
     public function gameName(): string
     {
         return 'Pitch Detective';
@@ -22,6 +24,11 @@ class PitchDetectiveSettings extends GameFactory
     public function gameTheme(): string
     {
         return 'green';
+    }
+
+    public function categories()
+    {
+        return collect(['ear training']);
     }
 
     public function gameUrl(): string 

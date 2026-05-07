@@ -4,6 +4,8 @@ namespace App\Games;
 
 class ChordsLabSettings extends GameFactory
 {
+    protected array $bonusPoints = ['timer', 'allowAccidentals'];
+
     public function gameName(): string
     {
         return 'Chords Lab';
@@ -24,6 +26,11 @@ class ChordsLabSettings extends GameFactory
         return 'orange';
     }
 
+    public function categories()
+    {
+        return collect(['harmony']);
+    }
+
     public function gameUrl(): string 
     {
         return route('theory.chords-lab.play');
@@ -37,7 +44,7 @@ class ChordsLabSettings extends GameFactory
     protected function defaults(): array
     {
         return [
-            'timerLimit' => 20,
+            'timeLimit' => 20,
             'practiceMode' => false,
             'timer' => false,
             'maxUserNotes' => 2,

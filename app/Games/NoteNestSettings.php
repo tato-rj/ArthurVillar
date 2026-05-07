@@ -4,7 +4,7 @@ namespace App\Games;
 
 class NoteNestSettings extends GameFactory
 {   
-    protected array $bonusPoints = ['blockNote'];
+    protected array $bonusPoints = ['blockNote', 'timer'];
     
     public function gameName(): string 
     {
@@ -24,6 +24,11 @@ class NoteNestSettings extends GameFactory
     public function gameTheme(): string 
     {
         return 'teal';
+    }
+
+    public function categories()
+    {
+        return collect(['reading']);
     }
 
     public function gameUrl(): string 

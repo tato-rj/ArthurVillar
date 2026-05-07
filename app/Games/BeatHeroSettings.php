@@ -24,6 +24,11 @@ class BeatHeroSettings extends GameFactory
         return 'yellow';
     }
 
+    public function categories()
+    {
+        return collect(['rhythm']);
+    }
+
     public function gameUrl(): string 
     {
         return route('theory.beat-hero.play');

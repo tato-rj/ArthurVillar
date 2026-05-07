@@ -15,7 +15,23 @@
             <a href="{{route('theory.open-staff.play')}}" class="btn btn-outline-secondary">@fa(['icon' => 'chalkboard'])Open Staff</a>
         </div>
 
-        @each('theory.card', $games, 'settings')
+        <div class="text-right">
+            @if($category = request('category'))
+            <div class="d-inline-block">
+                <a href="{{route('theory.index')}}" class="btn btn-raw">
+                <div class="border rounded border-3 px-2 py-1 small d-center fw-bold text-muted">
+                    @fa(['icon' => 'times']){{$category}}
+                </div>
+                </a>
+            </div>
+            @endif
+        </div>
+
+        @foreach($games as $settings)
+            @if(! request('category') || $settings->categories()->contains(request('category')))
+            @include('theory.card')
+            @endif
+        @endforeach
     </div>
 </section>
 @endsection

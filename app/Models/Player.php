@@ -34,14 +34,18 @@ class Player extends BaseModel
     {
         $acc = $this->accuracy / 1000;
 
+        $timeFactor = pow(40 / ($this->duration + 10), 1.25);
+
         $result =
             (
                 pow($this->score, 1.08) *
                 $acc *
                 pow($this->rounds + 1, 0.35) *
-                (30 / ($this->duration + 10))
+                $timeFactor
             ) * 18.7;
 
-        return $this->update(['finalScore' => (int) round($result)]);
+        return $this->update([
+            'finalScore' => (int) round($result)
+        ]);
     }
 }

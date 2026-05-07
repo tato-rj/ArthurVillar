@@ -32,7 +32,7 @@ class LeaderboardController extends Controller
         $player->calculateFinalScore();
 
         return back()->with([
-            'showLeaderboard' => true,
+            'newPlayer' => $player,
         ]);
     }
 }

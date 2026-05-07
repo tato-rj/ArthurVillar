@@ -2153,11 +2153,15 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       this._clearBlockMarker();
       if (!this._isBlockNoteEnabled() || !target || !Number.isFinite(target.step)) return;
       this.staff.setBlockedSteps([target.step]);
-      var $marker = $("<span></span>").addClass("block-icon ".concat(this._blockMarkerClass)).attr("aria-hidden", "true").attr("tabindex", "0").attr("data-toggle", "tooltip").attr("data-placement", "top").attr("title", this._blockTooltipText(target)).css({
+      var $marker = $("<span></span>").addClass("block-icon ".concat(this._blockMarkerClass)).attr("aria-hidden", "true").attr("tabindex", "0").attr("data-toggle", "tooltip").attr("data-trigger", "click").attr("data-placement", "top").attr("title", this._blockTooltipText(target)).css({
         left: "".concat(this.staff.centerX(), "px"),
         top: "".concat(this.staff.stepToY(target.step) + 3, "px")
       }).html("<i class=\"".concat(this._blockIconClassName(), "\"></i>")).appendTo(this.$staffEl);
-      if ($.fn.tooltip) $marker.tooltip();
+      if ($.fn.tooltip) {
+        $marker.tooltip({
+          trigger: "click"
+        });
+      }
     }
   }, {
     key: "_pickTargetStep",

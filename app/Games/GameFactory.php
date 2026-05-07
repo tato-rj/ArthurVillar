@@ -42,6 +42,11 @@ abstract class GameFactory
         return [];
     }
 
+    public function hasBonus($key)
+    {
+        return in_array($key, $this->bonusPoints);
+    }
+
     protected function normalizeRequest(array $request)
     {
         if ($request === []) return $request;

@@ -4,7 +4,7 @@ namespace App\Games;
 
 class MemoryWizardSettings extends GameFactory
 {
-    protected array $bonusPoints = ['hideLastNote'];
+    protected array $bonusPoints = ['hideLastNote', 'timer'];
 
     public function gameName(): string
     {
@@ -24,6 +24,11 @@ class MemoryWizardSettings extends GameFactory
     public function gameTheme(): string
     {
         return 'fuchsia';
+    }
+
+    public function categories()
+    {
+        return collect(['reading', 'ear training']);
     }
 
     public function gameUrl(): string

@@ -26,6 +26,11 @@ class NotePythonSettings extends GameFactory
         return 'red';
     }
 
+    public function categories()
+    {
+        return collect(['harmony']);
+    }
+
     public function gameUrl(): string 
     {
         return route('theory.note-python.play');

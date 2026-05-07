@@ -35,7 +35,7 @@ class AppServiceProvider extends ServiceProvider
 
         \View::composer(['admin.leaderboards.index', 'theory.index'], function($view) {
             $view->with([
-                'games' => [
+                'games' => collect([
                     new \App\Games\IntervalsLabSettings,
                     new \App\Games\ChordsLabSettings,
                     new \App\Games\PitchDetectiveSettings,
@@ -45,7 +45,7 @@ class AppServiceProvider extends ServiceProvider
                     new \App\Games\NoteNestSettings,
                     new \App\Games\MemoryWizardSettings,
                     new \App\Games\BeatHeroSettings
-                ]
+                ])
             ]);
         });
     }

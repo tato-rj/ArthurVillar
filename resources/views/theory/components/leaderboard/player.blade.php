@@ -1,4 +1,4 @@
-<div class="leaderboard-player mb-2 {{$loop->iteration <=3 ? 'bg-light' : null}} rounded">
+<div class="leaderboard-player mb-2 {{$loop->iteration <=3 ? 'bg-light' : null}} rounded {{$player->is(session('newPlayer')) ? 'border border-green' : null}}">
 	<div class="d-flex justify-content-between pr-4 pl-3 py-2">
 		<div class="d-flex align-items-center">
 			<div class="mr-3">

@@ -9,7 +9,7 @@ use App\Games\{IntervalsLabSettings, ChordsLabSettings, PitchDetectiveSettings, 
 
 class TheoryController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         return view('theory.index');
     }

@@ -4,6 +4,8 @@ namespace App\Games;
 
 class IntervalsLabSettings extends GameFactory
 {   
+    protected array $bonusPoints = ['timer', 'allowAccidentals'];
+
     public function gameName(): string 
     {
         return 'Intervals Lab';
@@ -22,6 +24,11 @@ class IntervalsLabSettings extends GameFactory
     public function gameTheme(): string 
     {
         return 'blue';
+    }
+
+    public function categories()
+    {
+        return collect(['reading', 'harmony']);
     }
 
     public function gameUrl(): string 

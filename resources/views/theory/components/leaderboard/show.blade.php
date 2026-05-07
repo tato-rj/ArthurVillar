@@ -1,4 +1,4 @@
-@modal(['title' => fa('ranking-star').'Leaderboard', 'id' => 'leaderboard-modal', 'autoshow' => session('showLeaderboard')])
+@modal(['title' => fa('ranking-star').'Leaderboard', 'id' => 'leaderboard-modal', 'autoshow' => (bool) session('newPlayer')])
 @forelse($settings->leaderboard() as $player)
 	@include('theory.components.leaderboard.player')
 @empty

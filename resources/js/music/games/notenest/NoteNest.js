@@ -142,6 +142,7 @@ export class NoteNest extends BaseStaffGame {
       .attr("aria-hidden", "true")
       .attr("tabindex", "0")
       .attr("data-toggle", "tooltip")
+      .attr("data-trigger", "click")
       .attr("data-placement", "top")
       .attr("title", this._blockTooltipText(target))
       .css({
@@ -151,7 +152,11 @@ export class NoteNest extends BaseStaffGame {
       .html(`<i class="${this._blockIconClassName()}"></i>`)
       .appendTo(this.$staffEl);
 
-    if ($.fn.tooltip) $marker.tooltip();
+    if ($.fn.tooltip) {
+      $marker.tooltip({
+        trigger: "click",
+      });
+    }
   }
 
   _pickTargetStep() {

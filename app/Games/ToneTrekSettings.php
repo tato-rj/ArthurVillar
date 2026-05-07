@@ -4,6 +4,8 @@ namespace App\Games;
 
 class ToneTrekSettings extends GameFactory
 {   
+    protected array $bonusPoints = ['allowAccidentals', 'timer'];
+
     public function gameName(): string
     {
         return 'Tone Trek';
@@ -22,6 +24,11 @@ class ToneTrekSettings extends GameFactory
     public function gameTheme(): string
     {
         return 'purple';
+    }
+
+    public function categories()
+    {
+        return collect(['harmony']);
     }
 
     public function gameUrl(): string 
