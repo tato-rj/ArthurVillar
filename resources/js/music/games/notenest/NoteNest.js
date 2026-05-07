@@ -39,6 +39,7 @@ export class NoteNest extends BaseStaffGame {
 
   start() {
     super.start();
+    this._bindBlockMarkerDismiss();
     this.prompt.show();
     this._setPromptForTarget(this._targetNote);
   }
@@ -129,6 +130,23 @@ export class NoteNest extends BaseStaffGame {
     }
     $marker.remove();
     this.staff?.clearBlockedSteps?.();
+  }
+
+  _hideBlockMarkerTooltip() {
+    const $marker = this.$staffEl.find(`.${this._blockMarkerClass}`);
+    if (!$marker.length || !$.fn.tooltip) return;
+    try {
+      $marker.tooltip("hide");
+    } catch (_) {}
+  }
+
+  _bindBlockMarkerDismiss() {
+    $(document)
+      .off(`pointerdown.${this.ns}.blockTooltip mousedown.${this.ns}.blockTooltip`, "*")
+      .on(`pointerdown.${this.ns}.blockTooltip mousedown.${this.ns}.blockTooltip`, (e) => {
+        if ($(e.target).closest(`.${this._blockMarkerClass}`).length) return;
+        this._hideBlockMarkerTooltip();
+      });
   }
 
   _renderBlockMarker(target) {

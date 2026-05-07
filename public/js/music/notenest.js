@@ -2054,6 +2054,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
     key: "start",
     value: function start() {
       _superPropGet(NoteNest, "start", this, 3)([]);
+      this._bindBlockMarkerDismiss();
       this.prompt.show();
       this._setPromptForTarget(this._targetNote);
     }
@@ -2148,6 +2149,24 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       (_this$staff = this.staff) === null || _this$staff === void 0 || (_this$staff$clearBloc = _this$staff.clearBlockedSteps) === null || _this$staff$clearBloc === void 0 || _this$staff$clearBloc.call(_this$staff);
     }
   }, {
+    key: "_hideBlockMarkerTooltip",
+    value: function _hideBlockMarkerTooltip() {
+      var $marker = this.$staffEl.find(".".concat(this._blockMarkerClass));
+      if (!$marker.length || !$.fn.tooltip) return;
+      try {
+        $marker.tooltip("hide");
+      } catch (_) {}
+    }
+  }, {
+    key: "_bindBlockMarkerDismiss",
+    value: function _bindBlockMarkerDismiss() {
+      var _this2 = this;
+      $(document).off("pointerdown.".concat(this.ns, ".blockTooltip mousedown.").concat(this.ns, ".blockTooltip"), "*").on("pointerdown.".concat(this.ns, ".blockTooltip mousedown.").concat(this.ns, ".blockTooltip"), function (e) {
+        if ($(e.target).closest(".".concat(_this2._blockMarkerClass)).length) return;
+        _this2._hideBlockMarkerTooltip();
+      });
+    }
+  }, {
     key: "_renderBlockMarker",
     value: function _renderBlockMarker(target) {
       this._clearBlockMarker();
@@ -2240,15 +2259,15 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
   }, {
     key: "_collectUserNotes",
     value: function _collectUserNotes() {
-      var _this2 = this;
+      var _this3 = this;
       return this.$staffEl.find(".note").toArray().map(function (el) {
-        var _this2$staff$_getAtta, _this2$staff;
+        var _this3$staff$_getAtta, _this3$staff;
         var $note = $(el);
         var noteId = String($note.attr("data-note-id") || "");
-        if (!noteId || _this2.staff.isNoteFixed(noteId)) return null;
+        if (!noteId || _this3.staff.isNoteFixed(noteId)) return null;
         var top = parseFloat($note.css("top"));
-        var step = Number.isFinite(top) ? _this2.staff.yToStep(top) : null;
-        var accidentalClass = ((_this2$staff$_getAtta = (_this2$staff = _this2.staff)._getAttachedAccidentalClass) === null || _this2$staff$_getAtta === void 0 ? void 0 : _this2$staff$_getAtta.call(_this2$staff, noteId)) || null;
+        var step = Number.isFinite(top) ? _this3.staff.yToStep(top) : null;
+        var accidentalClass = ((_this3$staff$_getAtta = (_this3$staff = _this3.staff)._getAttachedAccidentalClass) === null || _this3$staff$_getAtta === void 0 ? void 0 : _this3$staff$_getAtta.call(_this3$staff, noteId)) || null;
         return {
           noteId: noteId,
           step: step,

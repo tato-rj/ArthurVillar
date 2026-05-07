@@ -4,7 +4,7 @@ namespace App\Games;
 
 class MemoryWizardSettings extends GameFactory
 {
-    protected array $bonusPoints = ['hideLastNote', 'timer'];
+    protected array $bonusPoints = ['hideLastNote', 'timer', 'allowAccidentals'];
 
     public function gameName(): string
     {
