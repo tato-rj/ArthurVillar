@@ -4372,13 +4372,12 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
         _this.render();
       });
       $(document).off("pointerup.".concat(this.ns, "Drag pointercancel.").concat(this.ns, "Drag")).on("pointerup.".concat(this.ns, "Drag pointercancel.").concat(this.ns, "Drag"), function (e) {
-        var _e$originalEvent3, _e$originalEvent4;
+        var _e$originalEvent3;
         var pointerId = (_e$originalEvent3 = e.originalEvent) === null || _e$originalEvent3 === void 0 ? void 0 : _e$originalEvent3.pointerId;
         if (_this._drag.pointerId != null && pointerId != null && pointerId !== _this._drag.pointerId) return;
-        var pointerType = String(((_e$originalEvent4 = e.originalEvent) === null || _e$originalEvent4 === void 0 ? void 0 : _e$originalEvent4.pointerType) || "").toLowerCase();
-        if (e.type === "pointerup" && !_this._drag.didMove && (pointerType === "touch" || pointerType === "pen")) {
+        if (e.type === "pointerup" && !_this._drag.didMove) {
           _this._drag.suppressClickUntil = Date.now() + 250;
-          _this._activateKeyFromTarget(e.target);
+          _this._activateKeyFromPointerEvent(e);
         }
         _this._finishDrag();
       });
@@ -4455,6 +4454,12 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
         noteName: noteName,
         manual: true
       });
+    }
+  }, {
+    key: "_activateKeyFromPointerEvent",
+    value: function _activateKeyFromPointerEvent(event) {
+      var pointerTarget = this._pointerEventTarget(event);
+      this._activateKeyFromTarget(pointerTarget || (event === null || event === void 0 ? void 0 : event.target));
     }
   }, {
     key: "keyForNote",
@@ -4618,6 +4623,18 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
       var $wrapper = $(target).closest("".concat(this.rootSelector, " .key-wrapper"));
       if ($wrapper.length) $key = $wrapper.find(".black-key, .white-key").first();
       return $key;
+    }
+  }, {
+    key: "_pointerEventTarget",
+    value: function _pointerEventTarget(event) {
+      var _document;
+      var source = (event === null || event === void 0 ? void 0 : event.originalEvent) || event;
+      var clientX = Number(source === null || source === void 0 ? void 0 : source.clientX);
+      var clientY = Number(source === null || source === void 0 ? void 0 : source.clientY);
+      if (!Number.isFinite(clientX) || !Number.isFinite(clientY) || typeof ((_document = document) === null || _document === void 0 ? void 0 : _document.elementFromPoint) !== "function") {
+        return null;
+      }
+      return document.elementFromPoint(clientX, clientY);
     }
   }, {
     key: "_visibleWhiteNotes",

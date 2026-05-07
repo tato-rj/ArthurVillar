@@ -108,14 +108,9 @@ export class PianoKeyboardUi {
       .on(`pointerup.${this.ns}Drag pointercancel.${this.ns}Drag`, (e) => {
         const pointerId = e.originalEvent?.pointerId;
         if (this._drag.pointerId != null && pointerId != null && pointerId !== this._drag.pointerId) return;
-        const pointerType = String(e.originalEvent?.pointerType || "").toLowerCase();
-        if (
-          e.type === "pointerup" &&
-          !this._drag.didMove &&
-          (pointerType === "touch" || pointerType === "pen")
-        ) {
+        if (e.type === "pointerup" && !this._drag.didMove) {
           this._drag.suppressClickUntil = Date.now() + 250;
-          this._activateKeyFromTarget(e.target);
+          this._activateKeyFromPointerEvent(e);
         }
         this._finishDrag();
       });
@@ -190,6 +185,11 @@ export class PianoKeyboardUi {
     const noteName = this.noteNameForKey($key);
     void this._playNoteName(noteName);
     if (this.onKeyClick) this.onKeyClick({ $key, noteName, manual: true });
+  }
+
+  _activateKeyFromPointerEvent(event) {
+    const pointerTarget = this._pointerEventTarget(event);
+    this._activateKeyFromTarget(pointerTarget || event?.target);
   }
 
   keyForNote(letter, accidentalClass, octave) {
@@ -340,6 +340,16 @@ export class PianoKeyboardUi {
     const $wrapper = $(target).closest(`${this.rootSelector} .key-wrapper`);
     if ($wrapper.length) $key = $wrapper.find(".black-key, .white-key").first();
     return $key;
+  }
+
+  _pointerEventTarget(event) {
+    const source = event?.originalEvent || event;
+    const clientX = Number(source?.clientX);
+    const clientY = Number(source?.clientY);
+    if (!Number.isFinite(clientX) || !Number.isFinite(clientY) || typeof document?.elementFromPoint !== "function") {
+      return null;
+    }
+    return document.elementFromPoint(clientX, clientY);
   }
 
   _visibleWhiteNotes() {
