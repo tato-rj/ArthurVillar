@@ -1,4 +1,4 @@
-<div class="col-lg-3 col-md-4 col-6 g-2">
+<div class="col-lg-3 col-md-4 col-12 g-3">
     <div class="mb-4 bg-white border border-dark p-3 rounded h-100 d-flex flex-column justify-content-between">
         <div>
             <div class="d-flex justify-content-between">
