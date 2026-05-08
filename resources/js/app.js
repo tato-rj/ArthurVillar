@@ -11,7 +11,7 @@ $(window).on('load', function() {
 });
 
 $(function () {
-    $('#leaderboard-modal').on('show.bs.modal', function () {
+    $('.leaderboard-modal').on('show.bs.modal', function () {
         var $players = $(this).find('.leaderboard-player');
 
         $players.stop(true, true).css({
