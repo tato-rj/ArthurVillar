@@ -16,11 +16,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _staff_Staff_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../staff/Staff.js */ "./resources/js/music/staff/Staff.js");
 /* harmony import */ var _staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../staff/staffUtils.js */ "./resources/js/music/staff/staffUtils.js");
 /* harmony import */ var _shared_finalResults_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/finalResults.js */ "./resources/js/music/games/shared/finalResults.js");
-/* harmony import */ var _shared_mojsEffects_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/mojsEffects.js */ "./resources/js/music/games/shared/mojsEffects.js");
-/* harmony import */ var _shared_PromptUi_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../shared/PromptUi.js */ "./resources/js/music/games/shared/PromptUi.js");
-/* harmony import */ var _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../shared/GameAudio.js */ "./resources/js/music/games/shared/GameAudio.js");
-/* harmony import */ var _shared_PianoKeyboardUi_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../shared/PianoKeyboardUi.js */ "./resources/js/music/games/shared/PianoKeyboardUi.js");
-/* harmony import */ var _shared_InstructionsUi_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../shared/InstructionsUi.js */ "./resources/js/music/games/shared/InstructionsUi.js");
+/* harmony import */ var _shared_PromptUi_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/PromptUi.js */ "./resources/js/music/games/shared/PromptUi.js");
+/* harmony import */ var _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../shared/GameAudio.js */ "./resources/js/music/games/shared/GameAudio.js");
+/* harmony import */ var _shared_PianoKeyboardUi_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../shared/PianoKeyboardUi.js */ "./resources/js/music/games/shared/PianoKeyboardUi.js");
+/* harmony import */ var _shared_InstructionsUi_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../shared/InstructionsUi.js */ "./resources/js/music/games/shared/InstructionsUi.js");
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
@@ -41,7 +40,6 @@ function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object
 function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
 function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
 // resources/js/music/games/base/BaseStaffGame.js
-
 
 
 
@@ -127,8 +125,8 @@ var BaseStaffGame = /*#__PURE__*/function () {
     this.$timer = $("#timer");
     this.$timerBox = this.$timer.children("div").first();
     this.$timerText = this.$timer.find("span");
-    this.prompt = new _shared_PromptUi_js__WEBPACK_IMPORTED_MODULE_4__.PromptUi("#prompt");
-    this.instructionsUi = new _shared_InstructionsUi_js__WEBPACK_IMPORTED_MODULE_7__.InstructionsUi("#instructions");
+    this.prompt = new _shared_PromptUi_js__WEBPACK_IMPORTED_MODULE_3__.PromptUi("#prompt");
+    this.instructionsUi = new _shared_InstructionsUi_js__WEBPACK_IMPORTED_MODULE_6__.InstructionsUi("#instructions");
     this.$keyboard = $("#keyboard").first();
     this.$keyboardWrap = $("#keyboard-wrapper").first();
     this.$pianoToggleBtn = $("#piano-toggle button").first();
@@ -157,7 +155,7 @@ var BaseStaffGame = /*#__PURE__*/function () {
     this._finalCountupTimeouts = [];
     this._keyboardSyncPatched = false;
     this._keyboardAccidentalPreviewPatched = false;
-    this.keyboard = this._shouldUsePianoKeyboard() ? new _shared_PianoKeyboardUi_js__WEBPACK_IMPORTED_MODULE_6__.PianoKeyboardUi({
+    this.keyboard = this._shouldUsePianoKeyboard() ? new _shared_PianoKeyboardUi_js__WEBPACK_IMPORTED_MODULE_5__.PianoKeyboardUi({
       rootSelector: "#keyboard",
       namespace: "".concat(this.ns, ".keyboard"),
       canPlayNote: function canPlayNote() {
@@ -550,9 +548,9 @@ var BaseStaffGame = /*#__PURE__*/function () {
               _t = _context.v;
               return _context.a(2);
             case 6:
-              this._uiSfxSynth = _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_5__.GameAudio.createUiPolySynth();
-              this._uiSfxNoise = _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_5__.GameAudio.createUiNoiseSynth();
-              this._uiTimerSfxSynth = _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_5__.GameAudio.createUiTimerSynth();
+              this._uiSfxSynth = _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.createUiPolySynth();
+              this._uiSfxNoise = _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.createUiNoiseSynth();
+              this._uiTimerSfxSynth = _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.createUiTimerSynth();
               this._uiSfxReady = true;
             case 7:
               return _context.a(2);
@@ -590,7 +588,7 @@ var BaseStaffGame = /*#__PURE__*/function () {
         var variants = [["C6", "E6", "G6"], ["D6", "F#6", "A6"], ["E6", "G6", "B6"], ["G5", "B5", "D6", "G6"], ["A5", "C6", "E6", "A6"], ["C6", "D6", "G6"], ["F5", "A5", "C6", "F6"], ["E6", "A6", "C7"], ["B5", "D6", "G6"], ["C6", "G6", "E7"]];
         var picked = variants[Math.floor(Math.random() * variants.length)];
         picked.forEach(function (n, i) {
-          _this9._uiSfxSynth.triggerAttackRelease(n, 0.07, now + i * 0.05, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_5__.GameAudio.scale("successBasic", 0.42));
+          _this9._uiSfxSynth.triggerAttackRelease(n, 0.07, now + i * 0.05, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("successBasic", 0.42));
         });
       });
     }
@@ -632,10 +630,10 @@ var BaseStaffGame = /*#__PURE__*/function () {
           return toNote(m + semitoneShift);
         });
         arp.forEach(function (n, i) {
-          _this0._uiSfxSynth.triggerAttackRelease(n, 0.06, now + i * 0.045, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_5__.GameAudio.scale("successBonus", 0.45));
+          _this0._uiSfxSynth.triggerAttackRelease(n, 0.06, now + i * 0.045, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("successBonus", 0.45));
         });
         hit.forEach(function (n) {
-          _this0._uiSfxSynth.triggerAttackRelease(n, 0.12, now + 0.26, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_5__.GameAudio.scale("successBonus", 0.30));
+          _this0._uiSfxSynth.triggerAttackRelease(n, 0.12, now + 0.26, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("successBonus", 0.30));
         });
         setTimeout(function () {
           try {
@@ -657,11 +655,11 @@ var BaseStaffGame = /*#__PURE__*/function () {
       this._ensureUiSfxAudio().then(function () {
         var now = Tone.now();
         if (_this1._uiSfxNoise) {
-          _this1._uiSfxNoise.triggerAttackRelease(0.06, now, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_5__.GameAudio.scale("failNoise", 0.45));
+          _this1._uiSfxNoise.triggerAttackRelease(0.06, now, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("failNoise", 0.45));
         }
         if (_this1._uiSfxSynth) {
-          _this1._uiSfxSynth.triggerAttackRelease("A2", 0.10, now + 0.01, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_5__.GameAudio.scale("failNote", 0.55));
-          _this1._uiSfxSynth.triggerAttackRelease("G2", 0.12, now + 0.08, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_5__.GameAudio.scale("failNote", 0.6));
+          _this1._uiSfxSynth.triggerAttackRelease("A2", 0.10, now + 0.01, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("failNote", 0.55));
+          _this1._uiSfxSynth.triggerAttackRelease("G2", 0.12, now + 0.08, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("failNote", 0.6));
         }
       });
     }
@@ -691,103 +689,103 @@ var BaseStaffGame = /*#__PURE__*/function () {
         // 1) Triad pad + bright run
         function () {
           ["C4", "G4", "C5", "E5"].forEach(function (n) {
-            return _this10._uiSfxSynth.triggerAttackRelease(n, 0.9, now, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_5__.GameAudio.scale("final", 0.6));
+            return _this10._uiSfxSynth.triggerAttackRelease(n, 0.9, now, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.6));
           });
           ["G5", "A5", "B5", "C6", "D6", "E6", "G6"].forEach(function (n, i) {
-            _this10._uiSfxSynth.triggerAttackRelease(n, 0.08, now + 0.25 + i * 0.06, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_5__.GameAudio.scale("final", 0.35));
+            _this10._uiSfxSynth.triggerAttackRelease(n, 0.08, now + 0.25 + i * 0.06, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.35));
           });
         },
         // 2) Rising broken chord + final hit
         function () {
           ["C5", "E5", "G5", "B5", "D6", "G6"].forEach(function (n, i) {
-            _this10._uiSfxSynth.triggerAttackRelease(n, 0.11, now + i * 0.08, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_5__.GameAudio.scale("final", 0.44));
+            _this10._uiSfxSynth.triggerAttackRelease(n, 0.11, now + i * 0.08, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.44));
           });
           ["C6", "E6", "G6"].forEach(function (n) {
-            return _this10._uiSfxSynth.triggerAttackRelease(n, 0.28, now + 0.62, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_5__.GameAudio.scale("final", 0.5));
+            return _this10._uiSfxSynth.triggerAttackRelease(n, 0.28, now + 0.62, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.5));
           });
         },
         // 3) Two chord swells
         function () {
           ["A3", "E4", "A4", "C5"].forEach(function (n) {
-            return _this10._uiSfxSynth.triggerAttackRelease(n, 0.45, now, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_5__.GameAudio.scale("final", 0.45));
+            return _this10._uiSfxSynth.triggerAttackRelease(n, 0.45, now, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.45));
           });
           ["F4", "A4", "C5", "F5"].forEach(function (n) {
-            return _this10._uiSfxSynth.triggerAttackRelease(n, 0.52, now + 0.35, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_5__.GameAudio.scale("final", 0.48));
+            return _this10._uiSfxSynth.triggerAttackRelease(n, 0.52, now + 0.35, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.48));
           });
           ["C5", "F5", "A5"].forEach(function (n) {
-            return _this10._uiSfxSynth.triggerAttackRelease(n, 0.24, now + 0.78, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_5__.GameAudio.scale("final", 0.4));
+            return _this10._uiSfxSynth.triggerAttackRelease(n, 0.24, now + 0.78, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.4));
           });
         },
         // 4) Sparkly step run + octave landing
         function () {
           ["E5", "G5", "A5", "B5", "D6", "E6", "G6", "A6"].forEach(function (n, i) {
-            _this10._uiSfxSynth.triggerAttackRelease(n, 0.075, now + i * 0.055, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_5__.GameAudio.scale("final", 0.34));
+            _this10._uiSfxSynth.triggerAttackRelease(n, 0.075, now + i * 0.055, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.34));
           });
           ["A5", "A6", "C7"].forEach(function (n) {
-            return _this10._uiSfxSynth.triggerAttackRelease(n, 0.20, now + 0.52, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_5__.GameAudio.scale("final", 0.42));
+            return _this10._uiSfxSynth.triggerAttackRelease(n, 0.20, now + 0.52, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.42));
           });
         },
         // 5) Major lift arpeggio
         function () {
           ["D4", "A4", "D5", "F#5"].forEach(function (n) {
-            return _this10._uiSfxSynth.triggerAttackRelease(n, 0.36, now, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_5__.GameAudio.scale("final", 0.45));
+            return _this10._uiSfxSynth.triggerAttackRelease(n, 0.36, now, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.45));
           });
           ["D5", "F#5", "A5", "D6", "F#6"].forEach(function (n, i) {
-            _this10._uiSfxSynth.triggerAttackRelease(n, 0.095, now + 0.2 + i * 0.065, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_5__.GameAudio.scale("final", 0.4));
+            _this10._uiSfxSynth.triggerAttackRelease(n, 0.095, now + 0.2 + i * 0.065, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.4));
           });
         },
         // 6) Warm cadence
         function () {
           ["G3", "D4", "G4", "B4"].forEach(function (n) {
-            return _this10._uiSfxSynth.triggerAttackRelease(n, 0.4, now, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_5__.GameAudio.scale("final", 0.4));
+            return _this10._uiSfxSynth.triggerAttackRelease(n, 0.4, now, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.4));
           });
           ["C4", "E4", "G4", "C5"].forEach(function (n) {
-            return _this10._uiSfxSynth.triggerAttackRelease(n, 0.44, now + 0.32, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_5__.GameAudio.scale("final", 0.46));
+            return _this10._uiSfxSynth.triggerAttackRelease(n, 0.44, now + 0.32, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.46));
           });
           ["E5", "G5", "C6"].forEach(function (n) {
-            return _this10._uiSfxSynth.triggerAttackRelease(n, 0.22, now + 0.72, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_5__.GameAudio.scale("final", 0.4));
+            return _this10._uiSfxSynth.triggerAttackRelease(n, 0.22, now + 0.72, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.4));
           });
         },
         // 7) Fast gamey sparkle
         function () {
           ["C6", "D6", "E6", "G6", "A6", "G6", "E6", "C7"].forEach(function (n, i) {
-            _this10._uiSfxSynth.triggerAttackRelease(n, 0.06, now + i * 0.048, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_5__.GameAudio.scale("final", 0.3));
+            _this10._uiSfxSynth.triggerAttackRelease(n, 0.06, now + i * 0.048, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.3));
           });
           ["G6", "C7"].forEach(function (n) {
-            return _this10._uiSfxSynth.triggerAttackRelease(n, 0.2, now + 0.48, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_5__.GameAudio.scale("final", 0.38));
+            return _this10._uiSfxSynth.triggerAttackRelease(n, 0.2, now + 0.48, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.38));
           });
         },
         // 8) Two-step fanfare
         function () {
           ["F4", "C5", "A5"].forEach(function (n, i) {
-            _this10._uiSfxSynth.triggerAttackRelease(n, 0.16, now + i * 0.06, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_5__.GameAudio.scale("final", 0.45));
+            _this10._uiSfxSynth.triggerAttackRelease(n, 0.16, now + i * 0.06, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.45));
           });
           ["G4", "D5", "B5"].forEach(function (n, i) {
-            _this10._uiSfxSynth.triggerAttackRelease(n, 0.16, now + 0.28 + i * 0.06, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_5__.GameAudio.scale("final", 0.48));
+            _this10._uiSfxSynth.triggerAttackRelease(n, 0.16, now + 0.28 + i * 0.06, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.48));
           });
           ["C5", "E5", "G5", "C6"].forEach(function (n) {
-            return _this10._uiSfxSynth.triggerAttackRelease(n, 0.26, now + 0.54, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_5__.GameAudio.scale("final", 0.44));
+            return _this10._uiSfxSynth.triggerAttackRelease(n, 0.26, now + 0.54, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.44));
           });
         },
         // 9) Descend then resolve up
         function () {
           ["A6", "G6", "E6", "D6", "C6"].forEach(function (n, i) {
-            _this10._uiSfxSynth.triggerAttackRelease(n, 0.08, now + i * 0.06, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_5__.GameAudio.scale("final", 0.34));
+            _this10._uiSfxSynth.triggerAttackRelease(n, 0.08, now + i * 0.06, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.34));
           });
           ["E6", "G6", "C7"].forEach(function (n) {
-            return _this10._uiSfxSynth.triggerAttackRelease(n, 0.24, now + 0.4, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_5__.GameAudio.scale("final", 0.42));
+            return _this10._uiSfxSynth.triggerAttackRelease(n, 0.24, now + 0.4, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.42));
           });
         },
         // 10) Big finish hit
         function () {
           ["C4", "E4", "G4", "C5"].forEach(function (n) {
-            return _this10._uiSfxSynth.triggerAttackRelease(n, 0.34, now, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_5__.GameAudio.scale("final", 0.48));
+            return _this10._uiSfxSynth.triggerAttackRelease(n, 0.34, now, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.48));
           });
           ["E5", "G5", "B5", "D6", "E6"].forEach(function (n, i) {
-            _this10._uiSfxSynth.triggerAttackRelease(n, 0.09, now + 0.18 + i * 0.055, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_5__.GameAudio.scale("final", 0.38));
+            _this10._uiSfxSynth.triggerAttackRelease(n, 0.09, now + 0.18 + i * 0.055, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.38));
           });
           ["C6", "E6", "G6", "C7"].forEach(function (n) {
-            return _this10._uiSfxSynth.triggerAttackRelease(n, 0.3, now + 0.58, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_5__.GameAudio.scale("final", 0.5));
+            return _this10._uiSfxSynth.triggerAttackRelease(n, 0.3, now + 0.58, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.5));
           });
         }];
         var playVariant = variants[Math.floor(Math.random() * variants.length)];
@@ -838,8 +836,8 @@ var BaseStaffGame = /*#__PURE__*/function () {
       var midi = Math.min(96, 67 + safeIdx * 2); // rises as each box appears
       var synth = this._uiTimerSfxSynth || this._uiSfxSynth;
       if (!synth) return;
-      synth.triggerAttackRelease(Tone.Frequency(midi, "midi"), 0.055, now, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_5__.GameAudio.scale("finalMetric", 0.44));
-      synth.triggerAttackRelease(Tone.Frequency(midi + 5, "midi"), 0.045, now + 0.03, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_5__.GameAudio.scale("finalMetric", 0.34));
+      synth.triggerAttackRelease(Tone.Frequency(midi, "midi"), 0.055, now, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("finalMetric", 0.44));
+      synth.triggerAttackRelease(Tone.Frequency(midi + 5, "midi"), 0.045, now + 0.03, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("finalMetric", 0.34));
     }
   }, {
     key: "_animateFinalMetricsWithSfx",
@@ -859,12 +857,7 @@ var BaseStaffGame = /*#__PURE__*/function () {
         var delayMs = BASE_DELAY_MS + i * STEP_DELAY_MS;
         el.style.animationDelay = "".concat(delayMs, "ms");
         var tid = setTimeout(function () {
-          var _this11$$finalOverlay;
           _this11._playFinalMetricPopSfx(i);
-          (0,_shared_mojsEffects_js__WEBPACK_IMPORTED_MODULE_3__.playBurstConfettiAtElement)(el, {
-            parentEl: ((_this11$$finalOverlay = _this11.$finalOverlay) === null || _this11$$finalOverlay === void 0 ? void 0 : _this11$$finalOverlay[0]) || document.body,
-            index: i
-          });
         }, delayMs);
         _this11._finalMetricsSfxTimeouts.push(tid);
       });
@@ -895,11 +888,11 @@ var BaseStaffGame = /*#__PURE__*/function () {
         var now = Tone.now();
         var fanfare = ["C5", "E5", "G5", "C6", "E6", "G6", "C7"];
         fanfare.forEach(function (n, i) {
-          _this12._uiSfxSynth.triggerAttackRelease(n, 0.09, now + i * 0.06, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_5__.GameAudio.scale("perfectBonus", 0.62));
+          _this12._uiSfxSynth.triggerAttackRelease(n, 0.09, now + i * 0.06, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("perfectBonus", 0.62));
         });
         var hit = ["C6", "G6", "C7", "E7"];
         hit.forEach(function (n) {
-          return _this12._uiSfxSynth.triggerAttackRelease(n, 0.35, now + 0.48, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_5__.GameAudio.scale("perfectBonus", 0.46));
+          return _this12._uiSfxSynth.triggerAttackRelease(n, 0.35, now + 0.48, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("perfectBonus", 0.46));
         });
         setTimeout(function () {
           try {
@@ -948,7 +941,7 @@ var BaseStaffGame = /*#__PURE__*/function () {
           var notes = intervals.map(function (i) {
             return toNote(root + i);
           });
-          _this13._uiSfxSynth.triggerAttackRelease(notes, dur, now + t, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_5__.GameAudio.scale("runStart", vel));
+          _this13._uiSfxSynth.triggerAttackRelease(notes, dur, now + t, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("runStart", vel));
         });
       });
     }
@@ -1100,7 +1093,7 @@ var BaseStaffGame = /*#__PURE__*/function () {
       if (!this.isSoundEnabled() || !window.Tone) return;
       if (!this._uiSfxReady || !this._uiTimerSfxSynth) return;
       var now = Tone.now();
-      this._uiTimerSfxSynth.triggerAttackRelease("C6", 0.06, now, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_5__.GameAudio.scale("timerBeep", 0.5));
+      this._uiTimerSfxSynth.triggerAttackRelease("C6", 0.06, now, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("timerBeep", 0.5));
     }
   }, {
     key: "_playTimerTimeUpSfx",
@@ -1109,11 +1102,11 @@ var BaseStaffGame = /*#__PURE__*/function () {
       if (!this._uiSfxReady || !this._uiTimerSfxSynth) return;
       var now = Tone.now();
       if (this._uiSfxNoise) {
-        this._uiSfxNoise.triggerAttackRelease(0.12, now, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_5__.GameAudio.scale("timerTimeUp", 0.2));
+        this._uiSfxNoise.triggerAttackRelease(0.12, now, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("timerTimeUp", 0.2));
       }
-      this._uiTimerSfxSynth.triggerAttackRelease("G4", 0.11, now, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_5__.GameAudio.scale("timerTimeUp", 0.72));
-      this._uiTimerSfxSynth.triggerAttackRelease("E4", 0.13, now + 0.10, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_5__.GameAudio.scale("timerTimeUp", 0.76));
-      this._uiTimerSfxSynth.triggerAttackRelease("C4", 0.18, now + 0.22, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_5__.GameAudio.scale("timerTimeUp", 0.82));
+      this._uiTimerSfxSynth.triggerAttackRelease("G4", 0.11, now, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("timerTimeUp", 0.72));
+      this._uiTimerSfxSynth.triggerAttackRelease("E4", 0.13, now + 0.10, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("timerTimeUp", 0.76));
+      this._uiTimerSfxSynth.triggerAttackRelease("C4", 0.18, now + 0.22, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("timerTimeUp", 0.82));
     }
   }, {
     key: "_removeAllStaffNotesWithSmoke",
@@ -1402,8 +1395,8 @@ var BaseStaffGame = /*#__PURE__*/function () {
     key: "_fixedStepBounds",
     value: function _fixedStepBounds() {
       return {
-        min: 0,
-        max: 8
+        min: this.staff.minStepAllowed(),
+        max: this.staff.maxStepAllowed()
       };
     }
   }, {
@@ -2234,8 +2227,8 @@ var ChordDetective = /*#__PURE__*/function (_BaseStaffGame) {
   }, {
     key: "_randomFixedStep",
     value: function _randomFixedStep() {
-      var min = 0;
-      var max = 8;
+      var min = this.staff.minStepAllowed();
+      var max = this.staff.maxStepAllowed();
       return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 

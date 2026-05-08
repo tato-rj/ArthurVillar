@@ -9,6 +9,7 @@ class LeaderboardsController extends Controller
 {
     public function index()
     {
+        return Player::first();
         return view('admin.leaderboards.index');
     }
 

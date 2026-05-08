@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Theory;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Player;
+use Carbon\CarbonInterval;
 
 class LeaderboardController extends Controller
 {
@@ -26,7 +27,7 @@ class LeaderboardController extends Controller
             'score' => (int) $request->score,
             'accuracy' => (float) $request->accuracy,
             'rounds' => (int) $request->rounds,
-            'duration' => (int) $request->duration
+            'duration' => (int) CarbonInterval::createFromFormat('i:s', $request->duration)->totalSeconds
         ]);
 
         $player->calculateFinalScore();

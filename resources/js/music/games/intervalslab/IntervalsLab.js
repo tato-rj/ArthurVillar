@@ -90,6 +90,10 @@ export class IntervalsLab extends BaseStaffGame {
     return IntervalsLab.INTERVAL_FULL_NAME_MAP[key] || this._deriveFullNameFromAbbr(key);
   }
 
+  _directionWord(direction) {
+    return Number(direction) === -1 ? "down" : "up";
+  }
+
   _setIntervalUI(intervalAbbr, direction = 1) {
     const abbr = String(intervalAbbr || "").trim();
     this._currentIntervalAbbr = abbr;
@@ -98,7 +102,13 @@ export class IntervalsLab extends BaseStaffGame {
     this.prompt.setShort(abbr);
     if (this._isStrictDirection()) this.prompt.showDirection(this._currentIntervalDirection);
     else this.prompt.hideDirection();
-    this.prompt.setLong(this._fullNameForInterval(abbr));
+
+    const fullName = this._fullNameForInterval(abbr);
+    this.prompt.setLong(
+      this._isStrictDirection()
+        ? `${fullName} ${this._directionWord(this._currentIntervalDirection)}`
+        : fullName,
+    );
   }
 
   _normalizeOnOff(v) {
@@ -248,6 +258,12 @@ export class IntervalsLab extends BaseStaffGame {
     ]);
 
     return { step: this._randomFixedStep(), accidentalClass };
+  }
+
+  _randomFixedStep() {
+    const min = 0;
+    const max = 8;
+    return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 
   // ------------------------ evaluation ------------------------

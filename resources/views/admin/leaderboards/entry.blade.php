@@ -7,7 +7,13 @@
 			<div class="d-flex align-items-center mr-4 flex-grow text-truncate">
 				<img class="mr-2 player-avatar rounded-circle" style="width: 42px" src="{{$player->avatar_url}}">
 				<div class="text-left text-truncate">
-					<h6 class="mb-1 fw-bold text-truncate">{{$player->username}}</h6>
+					<div class="d-flex mb-1" style="font-size: 60%;">
+						<div class=" mr-2 text-orange">@fa(['icon' => 'gamepad', 'mr' => 1]){{$player->rounds}}</div>
+						<div class=" mr-2 text-purple">@fa(['icon' => 'bolt', 'mr' => 1]){{$player->score}}</div>
+						<div class=" mr-2 text-green">@fa(['icon' => 'bullseye', 'mr' => 1]){{$player->accuracyForHumans}}</div>
+						<div class=" mr-2 text-blue">@fa(['icon' => 'clock', 'mr' => 1]){{$player->durationForHumans}}</div>
+					</div>
+					<h6 class="m-0 fw-bold text-truncate">{{$player->username}}</h6>
 					<p class="m-0 text-grey text-truncate">{{$player->finalScore}} pts</p>
 				</div>
 			</div>

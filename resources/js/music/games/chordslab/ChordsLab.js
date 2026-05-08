@@ -627,6 +627,12 @@ _requiredUserNotesForChord(seventhType) {
     return { step: this._randomFixedStep(), accidentalClass };
   }
 
+  _randomFixedStep() {
+    const min = 0;
+    const max = 8;
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
   // ------------------------ evaluation ------------------------
 
   _notesOnStaffOrdered() {

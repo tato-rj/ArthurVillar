@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Traits\Usernames;
+use Carbon\CarbonInterval;
 
 class Player extends BaseModel
 {
@@ -47,5 +48,15 @@ class Player extends BaseModel
         return $this->update([
             'finalScore' => (int) round($result)
         ]);
+    }
+
+    public function getAccuracyForHumansAttribute()
+    {
+        return rtrim(rtrim(number_format((float) $this->accuracy, 2), '0'), '.') . '%';
+    }
+
+    public function getDurationForHumansAttribute()
+    {
+        return CarbonInterval::seconds($this->duration)->cascade()->format('%I:%S');
     }
 }

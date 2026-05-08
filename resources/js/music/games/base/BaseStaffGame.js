@@ -2,7 +2,6 @@
 import { Staff } from "../../staff/Staff.js";
 import { pickOne, spellNoteFromState, stepToLetterOctave } from "../../staff/staffUtils.js";
 import { renderFinalResultsOverlay } from "../shared/finalResults.js";
-import { playBurstConfettiAtElement } from "../shared/mojsEffects.js";
 import { PromptUi } from "../shared/PromptUi.js";
 import { GameAudio } from "../shared/GameAudio.js";
 import { PianoKeyboardUi } from "../shared/PianoKeyboardUi.js";
@@ -820,10 +819,6 @@ export class BaseStaffGame {
 
       const tid = setTimeout(() => {
         this._playFinalMetricPopSfx(i);
-        playBurstConfettiAtElement(el, {
-          parentEl: this.$finalOverlay?.[0] || document.body,
-          index: i,
-        });
       }, delayMs);
       this._finalMetricsSfxTimeouts.push(tid);
     });
@@ -1363,8 +1358,8 @@ export class BaseStaffGame {
 
   _fixedStepBounds() {
     return {
-      min: 0,
-      max: 8,
+      min: this.staff.minStepAllowed(),
+      max: this.staff.maxStepAllowed(),
     };
   }
 

@@ -5,16 +5,9 @@
 
 @modal(['title' => 'Join the Leaderboard', 'id' => 'save-results-modal'])
 
-<div>
-<p>Your <strong>final score</strong> is based on 4 things:</p>
-<ul>
-    <li>Your score</li>
-    <li>Your accuracy</li>
-    <li>How many rounds you played</li>
-    <li>How fast you finished</li>
-</ul>
-<p>Higher score, better accuracy, more rounds, and faster time will all increase your final score.</p>
-
+<div class="bg-light p-3 rounded mb-3">
+    <p class="mb-1 fw-bold text-center">@fa(['icon' => 'circle-question'])How will my <u>points</u> be calculated?</p>
+    <p class="m-0">Higher score, better accuracy, more rounds, and faster time will all increase your final points.</p>
 </div>
 
 <form method="POST" action="{{route('theory.leaderboard.store')}}">
