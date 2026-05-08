@@ -1,5 +1,5 @@
 <div class="leaderboard-player {{$loop->last ? '' : 'mb-1 border-bottom pb-1'}}">
-	<div class="d-flex justify-content-between pr-4 pl-3 py-1">
+	<div class="d-flex justify-content-between pr-1 py-1">
 		<div class="d-flex align-items-center flex-grow text-truncate">
 			<div class="mr-3">
 				<div style="width: 28px; height: 28px" class="bg-white border d-center small rounded-circle">{{$loop->iteration}}</div>
