@@ -7,7 +7,7 @@
 			<div class="d-flex align-items-center mr-4 flex-grow text-truncate">
 				<img class="mr-2 player-avatar rounded-circle" style="width: 42px" src="{{$player->avatar_url}}">
 				<div class="text-left text-truncate">
-					<div class="d-flex mb-1" style="font-size: 60%;">
+					<div class="d-flex my-1" style="font-size: 60%;">
 						<div class=" mr-2 text-orange">@fa(['icon' => 'gamepad', 'mr' => 1]){{$player->rounds}}</div>
 						<div class=" mr-2 text-purple">@fa(['icon' => 'bolt', 'mr' => 1]){{$player->score}}</div>
 						<div class=" mr-2 text-green">@fa(['icon' => 'bullseye', 'mr' => 1]){{$player->accuracyForHumans}}</div>
@@ -18,7 +18,7 @@
 				</div>
 			</div>
 		</div>
-		<div class="text-right">
+		<div class="text-right mt-1">
 			<p class="text-grey mb-2" style="font-size: 70%;">{{$player->created_at->diffForHumans()}}</p>
 			<div>
 				<form method="POST" confirm action="{{route('admin.leaderboard.destroy', $player)}}">
