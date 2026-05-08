@@ -34,7 +34,7 @@ document.addEventListener("DOMContentLoaded", () => {
   for (const range of ranges) {
     const wrap = range.closest(".mb-4") ?? range.parentElement;
 
-    const labelsSel = range.dataset.rangeLabels; // e.g. "#initialNoteRangeLabels" or "#speedLabels"
+    const labelsSel = range.dataset.rangeLabels; // e.g. "#speedLabels"
     const labelsWrap =
       (labelsSel ? wrap?.querySelector(labelsSel) : null)
       ?? (labelsSel ? document.querySelector(labelsSel) : null)

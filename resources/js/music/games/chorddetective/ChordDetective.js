@@ -287,8 +287,8 @@ export class ChordDetective extends BaseStaffGame {
   }
 
   _randomFixedStep() {
-    const min = this.staff.minStepAllowed();
-    const max = this.staff.maxStepAllowed();
+    const min = 0;
+    const max = 8;
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 

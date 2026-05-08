@@ -1397,110 +1397,21 @@ var BaseStaffGame = /*#__PURE__*/function () {
       });
     }
 
-    // ------------------------ initial note range ------------------------
-
-    /**
-     * Resolve the configured range index for the randomly-generated *given* note.
-     *
-     * Supported inputs:
-     * - number or numeric string: 0=narrow, 1=wide, 2=full
-     *
-     * There is intentionally NO default here; the backend must always provide it.
-     *
-     * @returns {0|1|2}
-     */
+    // ------------------------ fixed note selection ------------------------
   }, {
-    key: "_initialNoteRangeIndex",
-    value: function _initialNoteRangeIndex() {
-      var raw = this.opts.initialNoteRange != null ? this.opts.initialNoteRange : this.opts.range != null ? this.opts.range : undefined;
-      if (raw == null) {
-        throw new Error("[BaseStaffGame] Missing required option: initialNoteRange (0=narrow, 1=wide, 2=full).");
-      }
-      var n = Number(raw);
-      if (!Number.isFinite(n)) {
-        throw new Error("[BaseStaffGame] initialNoteRange must be a number (0, 1, or 2). Got: ".concat(String(raw)));
-      }
-      var idx = Math.trunc(n);
-      if (idx === 0 || idx === 1 || idx === 2) {
-        return /** @type {0|1|2} */idx;
-      }
-
-      // Out-of-range values default to FULL (2) instead of crashing.
-      // eslint-disable-next-line no-console
-      console.warn("[BaseStaffGame] initialNoteRange out of range; defaulting to 2 (full).", {
-        value: raw
-      });
-      return 2;
-    }
-
-    /**
-     * Staff "step" for the clef's reference line:
-     * - treble: G line (2nd line from bottom) => step 2
-     * - bass:   F line (2nd line from top)    => step 6
-     * - alto:   C line (middle line)          => step 4
-     * - tenor:  C line (2nd line from top)    => step 6
-     */
-  }, {
-    key: "_clefMainLineStep",
-    value: function _clefMainLineStep(clef) {
-      switch (String(clef || "").trim().toLowerCase()) {
-        case "bass":
-          return 6;
-        case "alto":
-          return 4;
-        case "tenor":
-          return 6;
-        case "treble":
-        default:
-          return 2;
-      }
-    }
-
-    /**
-     * Allowed bounds for the randomly-generated *given* note, based on the current clef.
-     * @returns {{min:number, max:number}}
-     */
-  }, {
-    key: "_initialFixedStepBounds",
-    value: function _initialFixedStepBounds() {
-      var minAllowed = this.staff.minStepAllowed();
-      var maxAllowed = this.staff.maxStepAllowed();
-      var idx = this._initialNoteRangeIndex();
-      if (idx === 2) return {
-        min: minAllowed,
-        max: maxAllowed
-      };
-      var center = this._clefMainLineStep(this.staff.getClef());
-      var lineSpan = idx === 0 ? 1 : 2;
-      var spanSteps = lineSpan * 2; // 1 staff line = 2 "steps"
-
-      var min = Math.max(minAllowed, center - spanSteps);
-      var max = Math.min(maxAllowed, center + spanSteps);
+    key: "_fixedStepBounds",
+    value: function _fixedStepBounds() {
       return {
-        min: min,
-        max: max
+        min: 0,
+        max: 8
       };
     }
   }, {
-    key: "_isStepInInitialFixedRange",
-    value: function _isStepInInitialFixedRange(step) {
-      if (!Number.isFinite(step)) return false;
-      var _this$_initialFixedSt = this._initialFixedStepBounds(),
-        min = _this$_initialFixedSt.min,
-        max = _this$_initialFixedSt.max;
-      return step >= min && step <= max;
-    }
-
-    /**
-     * Pick a random step for the *given* note (fixed note) that respects the selected range.
-     * @returns {number}
-     */
-  }, {
-    key: "_randomInitialFixedStep",
-    value: function _randomInitialFixedStep() {
-      var _this$_initialFixedSt2 = this._initialFixedStepBounds(),
-        min = _this$_initialFixedSt2.min,
-        max = _this$_initialFixedSt2.max;
+    key: "_randomFixedStep",
+    value: function _randomFixedStep() {
+      var _this$_fixedStepBound = this._fixedStepBounds(),
+        min = _this$_fixedStepBound.min,
+        max = _this$_fixedStepBound.max;
       return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
@@ -1950,12 +1861,17 @@ var BaseStaffGame = /*#__PURE__*/function () {
           madeAnyMistake: this._madeAnyMistake
         });
       }
+      if (scoreSummary.settingsBonus) {
+        // eslint-disable-next-line no-console
+        console.log("[BaseStaffGame] Extra doubling is happening because the user selected challenging settings.", {
+          scoreBeforeSettingsBonus: scoreSummary.initialScore,
+          finalPoints: scoreSummary.finalScore
+        });
+      }
       (0,_shared_finalResults_js__WEBPACK_IMPORTED_MODULE_2__.renderFinalResultsOverlay)({
         $finalOverlay: this.$finalOverlay,
         rounds: this.numOfChallenges,
-        score: scoreSummary.initialScore,
-        delayedFinalScore: scoreSummary.settingsBonus ? scoreSummary.finalScore : null,
-        delayedScoreAlert: scoreSummary.settingsBonus ? "Double points!" : "",
+        score: scoreSummary.finalScore,
         accuracy: accuracy,
         durationSec: totalSeconds,
         clearCountupTimers: function clearCountupTimers() {
@@ -2397,43 +2313,19 @@ var ChordsLab = /*#__PURE__*/function (_BaseStaffGame) {
         // fall through to standard path
       }
 
-      // Standard: choose a root that fits on staff for root/third/fifth(/seventh) spelling,
-      // while keeping the *given* (fixed) note within the configured initialNoteRange.
+      // Standard: choose a root that fits on staff for root/third/fifth(/seventh) spelling.
       var span = expected.length === 3 ? 6 : 4;
       var rootMin = min;
       var rootMax = Math.max(min, max - span);
       if (rootMax < rootMin) return null;
-      var range = this._initialFixedStepBounds(); // {min,max} for the given note
-
       var rootStep = null;
       var bassRole = 0;
       if (!allowInv) {
-        // No inversions: the fixed note is the root, so constrain the root directly.
-        var a = Math.max(rootMin, range.min);
-        var b = Math.min(rootMax, range.max);
-        if (b < a) return null;
-        rootStep = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.randomInt)(a, b);
+        rootStep = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.randomInt)(rootMin, rootMax);
       } else {
-        // Inversions allowed: the fixed note can be root/3rd/5th(/7th). Constrain the chosen bass.
         var roles = expected.length === 3 ? [0, 1, 2, 3] : [0, 1, 2];
-        for (var tries = 0; tries < 80; tries += 1) {
-          var candidateRoot = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.randomInt)(rootMin, rootMax);
-          var role = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.pickOne)(roles);
-          var third = candidateRoot + 2;
-          var fifth = candidateRoot + 4;
-          var seventh = expected.length === 3 ? candidateRoot + 6 : null;
-          var candidateBass = role === 0 ? candidateRoot : role === 1 ? third : role === 2 ? fifth : seventh;
-          if (this._isStepInInitialFixedRange(candidateBass)) {
-            rootStep = candidateRoot;
-            bassRole = role;
-            break;
-          }
-        }
-        if (rootStep == null) {
-          // Fallback: keep the round playable even if constraints are too tight.
-          rootStep = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.randomInt)(rootMin, rootMax);
-          bassRole = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.pickOne)(roles);
-        }
+        rootStep = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.randomInt)(rootMin, rootMax);
+        bassRole = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.pickOne)(roles);
       }
       var w = this.opts.accidentalWeights || {};
       var rootAccClass = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.pickWeighted)([{
@@ -2641,7 +2533,7 @@ var ChordsLab = /*#__PURE__*/function (_BaseStaffGame) {
         weight: Number(w.flat) || 0
       }]);
       return {
-        step: this._randomInitialFixedStep(),
+        step: this._randomFixedStep(),
         accidentalClass: accidentalClass
       };
     }
@@ -4578,16 +4470,12 @@ function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object
 function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
 function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
 function renderFinalResultsOverlay(_ref) {
-  var _window;
+  var _window, _window2, _window3;
   var $finalOverlay = _ref.$finalOverlay,
     _ref$rounds = _ref.rounds,
     rounds = _ref$rounds === void 0 ? 0 : _ref$rounds,
     _ref$score = _ref.score,
     score = _ref$score === void 0 ? 0 : _ref$score,
-    _ref$delayedFinalScor = _ref.delayedFinalScore,
-    delayedFinalScore = _ref$delayedFinalScor === void 0 ? null : _ref$delayedFinalScor,
-    _ref$delayedScoreAler = _ref.delayedScoreAlert,
-    delayedScoreAlert = _ref$delayedScoreAler === void 0 ? "" : _ref$delayedScoreAler,
     _ref$accuracy = _ref.accuracy,
     accuracy = _ref$accuracy === void 0 ? 0 : _ref$accuracy,
     _ref$durationSec = _ref.durationSec,
@@ -4628,15 +4516,6 @@ function renderFinalResultsOverlay(_ref) {
   var pushCountupTimer = function pushCountupTimer(id) {
     if (Array.isArray(countupTimers)) countupTimers.push(id);
   };
-  var maxMetricAnimationDelayMs = function maxMetricAnimationDelayMs() {
-    var $boxes = $finalOverlay.find("#metrics-boxes > div");
-    var maxDelay = 0;
-    $boxes.each(function (_, el) {
-      var rawDelay = parseFloat(el.style.animationDelay || "0");
-      if (Number.isFinite(rawDelay)) maxDelay = Math.max(maxDelay, rawDelay);
-    });
-    return maxDelay;
-  };
   var countTo = function countTo(selector, endVal) {
     var opts = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
     var el = $finalOverlay.find(selector)[0];
@@ -4663,26 +4542,41 @@ function renderFinalResultsOverlay(_ref) {
   };
   var $greeting = $finalOverlay.find("#result-greeting");
   var $greetingTitle = $greeting.find("h1");
-  var $greetingSubtitle = $greeting.find("h6");
   var $resultImg = $finalOverlay.find("img").first();
-  var defaultTitle = "Great job!";
-  var defaultSubtitle = "It's not about getting the most points, but if it was...";
+  var resultGreetings = {
+    encouraging: ["Keep going!", "Nice try!", "You are learning!", "Getting there!", "Good effort!", "Keep practicing!", "Almost there!", "Let's try that again!", "Try another round!", "You are getting closer!"],
+    strong: ["Great job!", "Well done!", "Nice work!", "Good one!", "Solid round!", "Looking good!", "You did it!", "That was good!", "Way to go!", "Good progress!"],
+    excellent: ["You got it!", "Impressive!", "Fantastic!", "Excellent!", "Nailed it!", "Brilliant!", "Outstanding!", "Amazing round!", "That was sharp!", "Top notch!"]
+  };
+  var randomFrom = function randomFrom(items) {
+    return items[Math.floor(Math.random() * items.length)];
+  };
+  var resultGreeting = accuracy < 50 ? randomFrom(resultGreetings.encouraging) : accuracy <= 80 ? randomFrom(resultGreetings.strong) : randomFrom(resultGreetings.excellent);
   if (accuracy < 50) {
-    $greetingTitle.text("Keep going!");
-    $greetingSubtitle.text("That round was tough, but your next one can be much better.");
+    $greetingTitle.text(resultGreeting);
     if ($resultImg.length) {
       var cur = String($resultImg.attr("src") || "");
       if (cur.includes("trophy.svg")) $resultImg.attr("src", cur.replace("trophy.svg", "plant.svg"));
     }
   } else {
-    $greetingTitle.text(defaultTitle);
-    $greetingSubtitle.text(defaultSubtitle);
+    $greetingTitle.text(resultGreeting);
     if ($resultImg.length) {
       var _cur = String($resultImg.attr("src") || "");
       if (_cur.includes("plant.svg")) $resultImg.attr("src", _cur.replace("plant.svg", "trophy.svg"));
     }
   }
   $finalOverlay.show();
+  var Confetti = ((_window2 = window) === null || _window2 === void 0 ? void 0 : _window2.Confetti) || ((_window3 = window) === null || _window3 === void 0 ? void 0 : _window3.confetti);
+  if (typeof Confetti === "function") {
+    Confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: {
+        y: 0.6
+      },
+      zIndex: 1001
+    });
+  }
   if (typeof animateMetrics === "function") animateMetrics();else setMetricAnimationDelays();
   countTo('span[name="rounds"]', rounds);
   countTo('span[name="score"]', score);
@@ -4696,15 +4590,6 @@ function renderFinalResultsOverlay(_ref) {
   setSaveResultField("score", score);
   setSaveResultField("accuracy", "".concat(accuracy, "%"));
   setSaveResultField("duration", mmss(durationSec));
-  if (Number.isFinite(delayedFinalScore) && Number(delayedFinalScore) !== Number(score)) {
-    var delayedBonusTimeout = setTimeout(function () {
-      alert(delayedScoreAlert || "Double points!");
-      var $scoreSpan = $finalOverlay.find('span[name="score"]').first();
-      if ($scoreSpan.length) $scoreSpan.text(String(delayedFinalScore));
-      setSaveResultField("score", delayedFinalScore);
-    }, maxMetricAnimationDelayMs() + DURATION * 1000 + 120);
-    pushCountupTimer(delayedBonusTimeout);
-  }
   if (typeof playFinalSfx === "function") playFinalSfx();
 }
 

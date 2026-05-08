@@ -2,3 +2,4 @@ var Inputmask = require('inputmask');
 window.CountUp = require('countup.js');
 window.mojs = require("@mojs/core");
 window.Typed = require("typed.js");
+window.Confetti = require("canvas-confetti").default;

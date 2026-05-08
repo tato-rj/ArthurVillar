@@ -946,6 +946,14 @@ export class ToneTrek {
       this.$doublePoints?.hide?.();
     }
 
+    if (scoreSummary.settingsBonus) {
+      // eslint-disable-next-line no-console
+      console.log("[ToneTrek] Extra doubling is happening because the user selected challenging settings.", {
+        scoreBeforeSettingsBonus: scoreSummary.initialScore,
+        finalPoints: scoreSummary.finalScore,
+      });
+    }
+
     this.$musicKeyboard.hide();
     this.$continueWrap.hide();
     this.$helpBtn.hide();
@@ -953,9 +961,7 @@ export class ToneTrek {
     renderFinalResultsOverlay({
       $finalOverlay: this.$finalOverlay,
       rounds: this.opts.numOfChallenges,
-      score: scoreSummary.initialScore,
-      delayedFinalScore: scoreSummary.settingsBonus ? scoreSummary.finalScore : null,
-      delayedScoreAlert: scoreSummary.settingsBonus ? "Double points!" : "",
+      score: scoreSummary.finalScore,
       accuracy,
       durationSec,
       clearCountupTimers: () => this._clearFinalCountupTimers(),

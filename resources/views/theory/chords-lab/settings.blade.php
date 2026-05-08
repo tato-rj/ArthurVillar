@@ -22,7 +22,6 @@
     @include('theory.components.settings.toggle', ['label' => 'Sound effects', 'name' => 'sound'])
     @include('theory.components.settings.toggle', ['label' => 'Show note names', 'name' => 'showNoteNames'])
     @include('theory.components.settings.toggle', ['label' => 'Use solfege', 'name' => 'solfege'])
-    @include('theory.components.settings.range')
   @endcomponent
 
   <button type="submit" class="btn btn-primary w-100">Start new game</button>

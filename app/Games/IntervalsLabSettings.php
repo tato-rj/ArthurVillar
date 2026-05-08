@@ -55,7 +55,6 @@ class IntervalsLabSettings extends GameFactory
             'sound' => true,
             'showNoteNames' => false,
             'allowAccidentals' => false,
-            'initialNoteRange' => 0,
             'solfege' => false,
             'strictDirection' => false
         ];

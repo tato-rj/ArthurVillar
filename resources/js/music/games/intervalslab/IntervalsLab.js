@@ -247,7 +247,7 @@ export class IntervalsLab extends BaseStaffGame {
       { value: "music-font__flat", weight: Number(w.flat) || 0 },
     ]);
 
-    return { step: this._randomInitialFixedStep(), accidentalClass };
+    return { step: this._randomFixedStep(), accidentalClass };
   }
 
   // ------------------------ evaluation ------------------------

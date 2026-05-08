@@ -2,8 +2,6 @@ export function renderFinalResultsOverlay({
   $finalOverlay,
   rounds = 0,
   score = 0,
-  delayedFinalScore = null,
-  delayedScoreAlert = "",
   accuracy = 0,
   durationSec = 0,
   clearCountupTimers = null,
@@ -46,16 +44,6 @@ export function renderFinalResultsOverlay({
     if (Array.isArray(countupTimers)) countupTimers.push(id);
   };
 
-  const maxMetricAnimationDelayMs = () => {
-    const $boxes = $finalOverlay.find("#metrics-boxes > div");
-    let maxDelay = 0;
-    $boxes.each((_, el) => {
-      const rawDelay = parseFloat(el.style.animationDelay || "0");
-      if (Number.isFinite(rawDelay)) maxDelay = Math.max(maxDelay, rawDelay);
-    });
-    return maxDelay;
-  };
-
   const countTo = (selector, endVal, opts = {}) => {
     const el = $finalOverlay.find(selector)[0];
     if (!el) return;
@@ -85,21 +73,61 @@ export function renderFinalResultsOverlay({
 
   const $greeting = $finalOverlay.find("#result-greeting");
   const $greetingTitle = $greeting.find("h1");
-  const $greetingSubtitle = $greeting.find("h6");
   const $resultImg = $finalOverlay.find("img").first();
-  const defaultTitle = "Great job!";
-  const defaultSubtitle = "It's not about getting the most points, but if it was...";
+  const resultGreetings = {
+    encouraging: [
+      "Keep going!",
+      "Nice try!",
+      "You are learning!",
+      "Getting there!",
+      "Good effort!",
+      "Keep practicing!",
+      "Almost there!",
+      "Let's try that again!",
+      "Try another round!",
+      "You are getting closer!",
+    ],
+    strong: [
+      "Great job!",
+      "Well done!",
+      "Nice work!",
+      "Good one!",
+      "Solid round!",
+      "Looking good!",
+      "You did it!",
+      "That was good!",
+      "Way to go!",
+      "Good progress!",
+    ],
+    excellent: [
+      "You got it!",
+      "Impressive!",
+      "Fantastic!",
+      "Excellent!",
+      "Nailed it!",
+      "Brilliant!",
+      "Outstanding!",
+      "Amazing round!",
+      "That was sharp!",
+      "Top notch!",
+    ],
+  };
+  const randomFrom = (items) => items[Math.floor(Math.random() * items.length)];
+  const resultGreeting =
+    accuracy < 50
+      ? randomFrom(resultGreetings.encouraging)
+      : accuracy <= 80
+        ? randomFrom(resultGreetings.strong)
+        : randomFrom(resultGreetings.excellent);
 
   if (accuracy < 50) {
-    $greetingTitle.text("Keep going!");
-    $greetingSubtitle.text("That round was tough, but your next one can be much better.");
+    $greetingTitle.text(resultGreeting);
     if ($resultImg.length) {
       const cur = String($resultImg.attr("src") || "");
       if (cur.includes("trophy.svg")) $resultImg.attr("src", cur.replace("trophy.svg", "plant.svg"));
     }
   } else {
-    $greetingTitle.text(defaultTitle);
-    $greetingSubtitle.text(defaultSubtitle);
+    $greetingTitle.text(resultGreeting);
     if ($resultImg.length) {
       const cur = String($resultImg.attr("src") || "");
       if (cur.includes("plant.svg")) $resultImg.attr("src", cur.replace("plant.svg", "trophy.svg"));
@@ -107,6 +135,16 @@ export function renderFinalResultsOverlay({
   }
 
   $finalOverlay.show();
+
+  const Confetti = window?.Confetti || window?.confetti;
+  if (typeof Confetti === "function") {
+    Confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 },
+      zIndex: 1001,
+    });
+  }
 
   if (typeof animateMetrics === "function") animateMetrics();
   else setMetricAnimationDelays();
@@ -120,17 +158,6 @@ export function renderFinalResultsOverlay({
   setSaveResultField("score", score);
   setSaveResultField("accuracy", `${accuracy}%`);
   setSaveResultField("duration", mmss(durationSec));
-
-  if (Number.isFinite(delayedFinalScore) && Number(delayedFinalScore) !== Number(score)) {
-    const delayedBonusTimeout = setTimeout(() => {
-      alert(delayedScoreAlert || "Double points!");
-      const $scoreSpan = $finalOverlay.find('span[name="score"]').first();
-      if ($scoreSpan.length) $scoreSpan.text(String(delayedFinalScore));
-      setSaveResultField("score", delayedFinalScore);
-    }, maxMetricAnimationDelayMs() + (DURATION * 1000) + 120);
-
-    pushCountupTimer(delayedBonusTimeout);
-  }
 
   if (typeof playFinalSfx === "function") playFinalSfx();
 }

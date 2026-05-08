@@ -1334,13 +1334,19 @@ export class NotePython {
       this.$doublePoints?.hide?.();
     }
 
+    if (scoreSummary.settingsBonus) {
+      // eslint-disable-next-line no-console
+      console.log("[NotePython] Extra doubling is happening because the user selected challenging settings.", {
+        scoreBeforeSettingsBonus: scoreSummary.initialScore,
+        finalPoints: scoreSummary.finalScore,
+      });
+    }
+
     this.$controls?.hide?.();
     renderFinalResultsOverlay({
       $finalOverlay: this.$finalOverlay,
       rounds: Number(this.opts.numOfChallenges) || 0,
-      score: scoreSummary.initialScore,
-      delayedFinalScore: scoreSummary.settingsBonus ? scoreSummary.finalScore : null,
-      delayedScoreAlert: scoreSummary.settingsBonus ? "Double points!" : "",
+      score: scoreSummary.finalScore,
       accuracy,
       durationSec,
       clearCountupTimers: () => this._clearFinalCountupTimers(),

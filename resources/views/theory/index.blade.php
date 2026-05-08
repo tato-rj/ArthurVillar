@@ -46,4 +46,7 @@ $('.mode-menu button').on('click', function () {
   $($(this).data('target')).show();
 });
 </script>
+
+<script>
+</script>
 @endpush
