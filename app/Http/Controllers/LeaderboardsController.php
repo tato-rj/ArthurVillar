@@ -9,7 +9,6 @@ class LeaderboardsController extends Controller
 {
     public function index()
     {
-        return Player::first()->update(['duration' => 19]);
         return view('admin.leaderboards.index');
     }
 
