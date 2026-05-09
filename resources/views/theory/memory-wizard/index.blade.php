@@ -18,7 +18,9 @@
 </script>
 
 <style>
-
+#play {
+  height: 66.4px;
+}
 </style>
 @endpush
 
@@ -40,11 +42,12 @@
         @include('theory.components.accidentals')
         <div id="staff"></div>
         @include('theory.components.feedback')
+        @include('theory.components.play')
       </div>
     </div>
 
     <div class="col-lg-6 col-md-8 col-11 mx-auto">
-      @include('theory.components.controls', ['instructions' => 'Add the notes you see, in the right order 👆'])
+      @include('theory.components.controls', ['instructions' => 'Add the notes you hear in the right order to the staff 👆'])
       @include('theory.memory-wizard.settings')
       @include('theory.components.leaderboard.show')
     </div>

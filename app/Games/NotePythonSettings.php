@@ -5,6 +5,7 @@ namespace App\Games;
 class NotePythonSettings extends GameFactory
 {   
     protected array $bonusPoints = ['showBombs', 'realWalls'];
+    protected array $categories = ['harmony'];
 
     public function gameName(): string
     {
@@ -28,7 +29,7 @@ class NotePythonSettings extends GameFactory
 
     public function categories()
     {
-        return collect(['harmony']);
+        return collect($this->categories);
     }
 
     public function gameUrl(): string 

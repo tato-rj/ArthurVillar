@@ -4,6 +4,8 @@ namespace App\Games;
 
 class BeatHeroSettings extends GameFactory
 {
+    protected array $categories = ['rhythm', 'reading'];
+
     public function gameName(): string
     {
         return 'Beat Hero';
@@ -26,7 +28,7 @@ class BeatHeroSettings extends GameFactory
 
     public function categories()
     {
-        return collect(['rhythm']);
+        return collect($this->categories);
     }
 
     public function gameUrl(): string 

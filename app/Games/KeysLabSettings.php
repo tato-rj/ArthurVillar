@@ -5,6 +5,7 @@ namespace App\Games;
 class KeysLabSettings extends GameFactory
 {   
     protected array $bonusPoints = ['timer'];
+    protected array $categories = ['reading'];
 
     public function gameName(): string 
     {
@@ -28,7 +29,7 @@ class KeysLabSettings extends GameFactory
 
     public function categories()
     {
-        return collect(['reading']);
+        return collect($this->categories);
     }
 
     public function gameUrl(): string 

@@ -2,7 +2,7 @@
 	<div class="leaderboard-player mb-2 d-flex justify-content-between py-2">
 		<div class="d-flex align-items-center">
 			<div class="mr-3">
-				<div style="width: 28px; height: 28px" class="{{$player->is(session('newPlayer')) ? 'bg-primary border-primary shadow' : 'bg-white'}} border d-center small rounded-circle">{{$loop->iteration}}</div>
+				<div style="width: 28px; height: 28px" class="{{$player->is(session('newPlayer')) ? 'bg-primary border-primary shadow' : 'bg-white'}} {{$loop->iteration <=3 ? 'border rounded-circle' : 'opacity-4'}} d-center small">{{$loop->iteration}}</div>
 			</div>
 			<div class="d-flex align-items-center mr-1">
 				<img class="mr-2 player-avatar" src="{{$player->avatar_url}}">

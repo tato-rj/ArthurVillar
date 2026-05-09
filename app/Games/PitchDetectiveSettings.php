@@ -5,6 +5,7 @@ namespace App\Games;
 class PitchDetectiveSettings extends GameFactory
 {
     protected array $bonusPoints = ['timer'];
+    protected array $categories = ['ear training'];
 
     public function gameName(): string
     {
@@ -28,7 +29,7 @@ class PitchDetectiveSettings extends GameFactory
 
     public function categories()
     {
-        return collect(['ear training']);
+        return collect($this->categories);
     }
 
     public function gameUrl(): string 
@@ -55,7 +56,7 @@ class PitchDetectiveSettings extends GameFactory
             'sound' => true,
             'showNoteNames' => false,
             'allowAccidentals' => false,
-            'direction' => ['up', 'down'],
+            'direction' => ['up'],
             'solfege' => false
         ];
     }

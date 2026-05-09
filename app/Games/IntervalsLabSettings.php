@@ -5,6 +5,7 @@ namespace App\Games;
 class IntervalsLabSettings extends GameFactory
 {   
     protected array $bonusPoints = ['timer', 'allowAccidentals'];
+    protected array $categories = ['reading', 'harmony'];
 
     public function gameName(): string 
     {
@@ -28,7 +29,7 @@ class IntervalsLabSettings extends GameFactory
 
     public function categories()
     {
-        return collect(['reading', 'harmony']);
+        return collect($this->categories);
     }
 
     public function gameUrl(): string 

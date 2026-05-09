@@ -5,14 +5,12 @@ export class GameAudio {
     uiNoise: -16,
     uiTimer: -14,
     staffNote: -8,
-    staffNoise: -14,
     dictation: -9,
     sequence: -9,
   };
 
   static VELOCITY = {
     staffNote: 1.0,
-    accidentalGrab: 0.45,
     dictation: 1.0,
     sequence: 1.0,
     successBasic: 0.7,
@@ -37,12 +35,6 @@ export class GameAudio {
       label: "Staff Note",
       volumeKey: "staffNote",
       description: "Base loudness for staff note playback.",
-    },
-    {
-      id: "accidentalGrab",
-      label: "Accidental Grab",
-      volumeKey: "accidentalGrab",
-      description: "Grab/tap feedback when picking up an accidental.",
     },
     {
       id: "dictation",
@@ -178,10 +170,6 @@ export class GameAudio {
       staffNote: () => {
         GameAudio._getPreviewSynth("staffNote", () => GameAudio.createStaffNoteSynth())
           .triggerAttackRelease("C4", 0.5, undefined, GameAudio.scale("staffNote", 1));
-      },
-      accidentalGrab: () => {
-        GameAudio._getPreviewSynth("staffNoise", () => GameAudio.createStaffNoiseSynth())
-          .triggerAttackRelease(0.06, Tone.now(), GameAudio.scale("accidentalGrab", 0.5));
       },
       dictation: () => {
         GameAudio._getPreviewSynth("dictation", () => GameAudio.createDictationSynth())
@@ -417,14 +405,6 @@ export class GameAudio {
       oscillator: { type: "sine" },
       envelope: { attack: 0.01, decay: 0.08, sustain: 0.6, release: 0.12 },
       volume: GameAudio.SYNTH_VOLUME_DB.staffNote,
-    }).toDestination();
-  }
-
-  static createStaffNoiseSynth() {
-    return new Tone.NoiseSynth({
-      noise: { type: "white" },
-      envelope: { attack: 0.001, decay: 0.05, sustain: 0.0, release: 0.04 },
-      volume: GameAudio.SYNTH_VOLUME_DB.staffNoise,
     }).toDestination();
   }
 

@@ -5,6 +5,7 @@ namespace App\Games;
 class ToneTrekSettings extends GameFactory
 {   
     protected array $bonusPoints = ['allowAccidentals', 'timer'];
+    protected array $categories = ['harmony', 'ear training'];
 
     public function gameName(): string
     {
@@ -28,7 +29,7 @@ class ToneTrekSettings extends GameFactory
 
     public function categories()
     {
-        return collect(['harmony']);
+        return collect($this->categories);
     }
 
     public function gameUrl(): string 

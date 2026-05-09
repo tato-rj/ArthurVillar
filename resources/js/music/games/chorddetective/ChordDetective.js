@@ -3,6 +3,7 @@ import { BaseStaffGame } from "../base/BaseStaffGame.js";
 import {
   pickOne,
   pickWeighted,
+  randomInt,
   toArrayMaybe,
 } from "../../staff/staffUtils.js";
 import { GameAudio } from "../shared/GameAudio.js";
@@ -10,22 +11,26 @@ import {
   accidentalClassFromOffset,
   fixedNoteToStaffPosition,
   normalizeClefPool,
-  parseIntervalAbbr,
   pickChallengeClef,
 } from "../shared/challengeUtils.js";
 
 /**
- * Chord Detective (scaffold)
+ * Chord Detective
  *
  * Rules:
  * - Staff note sounds are always disabled (no click/drag audio).
  * - SFX follow the global sound toggle (BaseStaffGame / opts.sound).
  * - Dictation playback always plays (ignores opts.sound) via its own synth.
- * - The player enters exactly ONE note (the heard note) above/below the fixed note.
- * - Answer checking is pitch-only (enharmonic spellings are accepted).
+ * - The player enters the two heard notes that complete the triad from the fixed anchor.
+ * - Answer checking is pitch-only for those notes (enharmonic spellings are accepted).
  */
 export class ChordDetective extends BaseStaffGame {
-  static INTERVALS_DEFAULT = ["M2", "m3", "M3", "P5", "P8"];
+  static TRIAD_QUALITY_FULL_NAME_MAP = {
+    major: "major",
+    minor: "minor",
+    augmented: "augmented",
+    diminished: "diminished",
+  };
 
   constructor(options = {}) {
     const defaults = {
@@ -33,13 +38,14 @@ export class ChordDetective extends BaseStaffGame {
       basePoints: 1,
       firstTryBonus: 2,
       namespace: "chordDetective",
+      allowInversions: false,
 
-      // Dictation: one user note (the heard note).
-      maxUserNotes: 1,
+      // Dictation: two user notes complete the heard triad.
+      maxUserNotes: 2,
 
-      // UI gating: show Check after 1 user note.
-      instructionsAfterUserNotes: 1,
-      checkAfterUserNotes: 1,
+      // UI gating: show Check after 2 user notes.
+      instructionsAfterUserNotes: 2,
+      checkAfterUserNotes: 2,
     };
 
     const merged = {
@@ -49,11 +55,14 @@ export class ChordDetective extends BaseStaffGame {
         ...(defaults.accidentalWeights || {}),
         ...(options.accidentalWeights || {}),
       },
-      intervals:
-        Array.isArray(options.intervals) && options.intervals.length
-          ? options.intervals.slice()
-          : ChordDetective.INTERVALS_DEFAULT.slice(),
+      triadQualities:
+        Array.isArray(options.triadQualities) && options.triadQualities.length
+          ? options.triadQualities.slice()
+          : Object.keys(ChordDetective.TRIAD_QUALITY_FULL_NAME_MAP),
     };
+    merged.maxUserNotes = 2;
+    merged.instructionsAfterUserNotes = 2;
+    merged.checkAfterUserNotes = 2;
 
     const clefPool = normalizeClefPool(
       merged.clefs != null ? merged.clefs : merged.clef,
@@ -68,7 +77,10 @@ export class ChordDetective extends BaseStaffGame {
 
     // Dictation state
     this._expectedFirst = null; // { noteId, step, accidentalClass }
-    this._expectedSecond = null; // { step, accidentalClass, accOff, midi }
+    this._expectedChordNotes = []; // [{ step, accidentalClass, accOff, midi }]
+    this._currentTriadQuality = null;
+    this._currentChordDirection = 1; // 1=up, -1=down
+    this._currentChordInversion = 0; // 0=root position, 1=first inversion, 2=second inversion
 
     // Dictation playback
     this._dictationTimeouts = [];
@@ -131,7 +143,7 @@ export class ChordDetective extends BaseStaffGame {
   // ------------------------ dictation playback ------------------------
 
   playDictation() {
-    if (!this._expectedFirst || !this._expectedSecond) return;
+    if (!this._expectedFirst || !this._expectedChordNotes.length) return;
 
     this._stopDictationPlayback();
     this._setPlayButtons(true);
@@ -139,22 +151,23 @@ export class ChordDetective extends BaseStaffGame {
     const firstMidi =
       this.staff._stepToMidi(this._expectedFirst.step) +
       (this.staff._accidentalClassToOffset(this._expectedFirst.accidentalClass) || 0);
+    const chordMidis = [firstMidi, ...this._expectedChordNotes.map((note) => note.midi)];
 
-    // Sequence: first -> second -> first -> both together (1s spacing)
+    // Sequence: anchor -> chord tone -> chord tone -> chord tone -> anchor -> full triad.
     this._playMidi(firstMidi, 0.6, 0.0, () => this._scheduleInitialNoteFlicker(0.6, 0.0));
-    this._playMidi(this._expectedSecond.midi, 0.6, 1.0);
-    this._playMidi(firstMidi, 0.6, 2.0, () => this._scheduleInitialNoteFlicker(0.6, 2.0));
+    this._playMidi(this._expectedChordNotes[0].midi, 0.6, 1.0);
+    this._playMidi(this._expectedChordNotes[1].midi, 0.6, 2.0);
+    this._playMidi(this._expectedChordNotes[0].midi, 0.6, 3.0);
+    this._playMidi(firstMidi, 0.6, 4.0, () => this._scheduleInitialNoteFlicker(0.6, 4.0));
 
-    // Both together at t=3.0s (two trigger calls at same time).
-    this._playMidi(firstMidi, 0.6, 3.0, () => this._scheduleInitialNoteFlicker(0.6, 3.0));
-    this._playMidi(this._expectedSecond.midi, 0.6, 3.0);
+    this._playMidiGroup(chordMidis, 0.8, 5.0, () => this._scheduleInitialNoteFlicker(0.8, 5.0));
 
     this._dictationTimeouts.push(
       setTimeout(() => {
         // eslint-disable-next-line no-console
-        console.log("Dictation: user can now write the note on the staff.");
+        console.log("Dictation: user can now write the chord tones on the staff.");
         this._setPlayButtons(false);
-      }, 3000),
+      }, 5200),
     );
   }
 
@@ -204,6 +217,28 @@ export class ChordDetective extends BaseStaffGame {
     });
   }
 
+  _playMidiGroup(midis, durSeconds, atSecondsFromNow, onPlay = null) {
+    if (!window.Tone) return;
+    const notes = Array.isArray(midis)
+      ? midis.filter((midi) => Number.isFinite(midi))
+      : [];
+    if (!notes.length) return;
+
+    this._ensureDictationAudio().then(() => {
+      if (!this._dictSynth) return;
+      const now = Tone.now();
+      const when = now + (Number(atSecondsFromNow) || 0);
+      const dur = Number(durSeconds) || 0.8;
+      this._dictSynth.triggerAttackRelease(
+        notes.map((midi) => Tone.Frequency(midi, "midi")),
+        dur,
+        when,
+        GameAudio.scale("dictation", 1),
+      );
+      if (typeof onPlay === "function") onPlay();
+    });
+  }
+
   _initialNoteEl() {
     const noteId = this._expectedFirst?.noteId;
     if (!noteId) return $();
@@ -239,11 +274,11 @@ export class ChordDetective extends BaseStaffGame {
 
   // ------------------------ selection ------------------------
 
-  _pickInterval() {
+  _pickTriadQuality() {
     const pool =
-      Array.isArray(this.opts.intervals) && this.opts.intervals.length
-        ? this.opts.intervals
-        : ChordDetective.INTERVALS_DEFAULT;
+      Array.isArray(this.opts.triadQualities) && this.opts.triadQualities.length
+        ? this.opts.triadQualities
+        : Object.keys(ChordDetective.TRIAD_QUALITY_FULL_NAME_MAP);
     return pool[Math.floor(Math.random() * pool.length)];
   }
 
@@ -269,21 +304,45 @@ export class ChordDetective extends BaseStaffGame {
     return String(direction || "").trim().toLowerCase() === "down" ? -1 : 1;
   }
 
-  _pickFixedNote() {
-    const fixedList = toArrayMaybe(this.opts.fixedNotes).filter(Boolean);
-    if (fixedList.length) {
-      const chosen = pickOne(fixedList);
-      return fixedNoteToStaffPosition(this.staff, chosen);
-    }
+  _allowInitialAccidentals() {
+    return this._normalizeOnOff(this.opts.allowAccidentals);
+  }
+
+  _pickInitialAccidentalClass() {
+    if (!this._allowInitialAccidentals()) return null;
 
     const w = this.opts.accidentalWeights || {};
-    const accidentalClass = pickWeighted([
+    return pickWeighted([
       { value: null, weight: Number(w.natural) || 0 },
       { value: "music-font__sharp", weight: Number(w.sharp) || 0 },
       { value: "music-font__flat", weight: Number(w.flat) || 0 },
     ]);
+  }
 
-    return { step: this._randomFixedStep(), accidentalClass };
+  _normalizeInitialNoteAccidental(note) {
+    if (!note || this._allowInitialAccidentals()) return note;
+    return { ...note, accidentalClass: null };
+  }
+
+  _initialNoteAccidentalAllowed(note) {
+    if (this._allowInitialAccidentals()) return true;
+    const accidentalClass = note?.accidentalClass || null;
+    return accidentalClass == null || accidentalClass === "music-font__natural";
+  }
+
+  _pickFixedNote() {
+    const fixedList = toArrayMaybe(this.opts.fixedNotes).filter(Boolean);
+    if (fixedList.length) {
+      const chosen = pickOne(fixedList);
+      return this._normalizeInitialNoteAccidental(
+        fixedNoteToStaffPosition(this.staff, chosen),
+      );
+    }
+
+    return {
+      step: this._randomFixedStep(),
+      accidentalClass: this._pickInitialAccidentalClass(),
+    };
   }
 
   _randomFixedStep() {
@@ -292,66 +351,180 @@ export class ChordDetective extends BaseStaffGame {
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 
-  // ------------------------ interval math ------------------------
+  // ------------------------ triad math ------------------------
 
-  _intervalSemitones(quality, simpleNum) {
-    const baseMajorPerfect = { 1:0, 2:2, 3:4, 4:5, 5:7, 6:9, 7:11, 8:12 }[
-      simpleNum
-    ];
-    if (baseMajorPerfect == null) return null;
-
-    const isPerfectClass =
-      simpleNum === 1 || simpleNum === 4 || simpleNum === 5 || simpleNum === 8;
-    const q = String(quality || "").trim();
-
-    if (isPerfectClass) {
-      if (q === "P") return baseMajorPerfect;
-      if (/^A+$/.test(q)) return baseMajorPerfect + q.length;
-      if (/^d+$/.test(q)) return baseMajorPerfect - q.length;
-      return null;
-    }
-
-    if (q === "M") return baseMajorPerfect;
-    if (q === "m") return baseMajorPerfect - 1;
-    if (/^A+$/.test(q)) return baseMajorPerfect + q.length;
-    if (/^d+$/.test(q)) return baseMajorPerfect - (q.length + 1);
-    return null;
+  _triadExpectedSemisForQuality(quality) {
+    const triads = {
+      major: [4, 7],
+      minor: [3, 7],
+      augmented: [4, 8],
+      diminished: [3, 6],
+    };
+    return triads[String(quality || "").trim()] || null;
   }
 
-  _computeSecondFromFixed(intervalAbbr, fixedStep, fixedMidi, direction) {
-    const parsed = parseIntervalAbbr(intervalAbbr);
-    if (!parsed || !Number.isFinite(parsed.number) || parsed.number < 1) return null;
+  _toneAccidentalClass(rootMidi, targetStep, targetSemis) {
+    const naturalMidi = this.staff._stepToMidi(targetStep);
+    let offset = (rootMidi + targetSemis) - naturalMidi;
 
-    const diatonicSteps = parsed.number - 1;
-    const simpleNum = ((parsed.number - 1) % 7) + 1;
-    const octaves = Math.floor((parsed.number - 1) / 7);
+    while (offset > 6) offset -= 12;
+    while (offset < -6) offset += 12;
 
-    const baseSemiSimple = this._intervalSemitones(parsed.quality, simpleNum);
-    if (baseSemiSimple == null) return null;
+    const accClass = accidentalClassFromOffset(offset);
+    if (accClass == null && offset !== 0) return null;
+    return accClass;
+  }
 
-    const semitones = baseSemiSimple + 12 * octaves;
+  _computeChordNotesFromRoot(quality, rootStep, rootMidi, direction) {
+    const expected = this._triadExpectedSemisForQuality(quality);
+    if (!expected) return null;
+
+    const dir = this._directionValue(direction);
+    const minStep = this.staff.minStepAllowed();
+    const maxStep = this.staff.maxStepAllowed();
+    const roles = [
+      { stepOffset: 2, semis: expected[0] },
+      { stepOffset: 4, semis: expected[1] },
+    ];
+
+    const notes = [];
+    for (const role of roles) {
+      const targetStep = rootStep + dir * role.stepOffset;
+      if (targetStep < minStep || targetStep > maxStep) return null;
+
+      const targetSemis = dir * role.semis;
+      const accidentalClass = this._toneAccidentalClass(rootMidi, targetStep, targetSemis);
+      if (accidentalClass == null && targetSemis !== 0) return null;
+
+      const midi = rootMidi + targetSemis;
+      const accOff = midi - this.staff._stepToMidi(targetStep);
+      notes.push({ step: targetStep, accidentalClass, accOff, midi });
+    }
+
+    return notes;
+  }
+
+  _triadRoleSpecs(expected) {
+    return [
+      { role: 0, stepOffset: 0, semis: 0 },
+      { role: 2, stepOffset: 2, semis: expected[0] },
+      { role: 4, stepOffset: 4, semis: expected[1] },
+    ];
+  }
+
+  _voicingToneFromRoot(rootStep, rootMidi, roleSpecs, roleIndex, octaveShift = 0) {
+    const role = roleSpecs[roleIndex];
+    if (!role) return null;
+
+    const step = rootStep + role.stepOffset + (7 * octaveShift);
+    const semis = role.semis + (12 * octaveShift);
+    const minStep = this.staff.minStepAllowed();
+    const maxStep = this.staff.maxStepAllowed();
+    if (step < minStep || step > maxStep) return null;
+
+    const accidentalClass = this._toneAccidentalClass(rootMidi, step, semis);
+    if (accidentalClass == null && semis !== 0) return null;
+
+    const midi = rootMidi + semis;
+    const accOff = midi - this.staff._stepToMidi(step);
+    return { step, accidentalClass, accOff, midi };
+  }
+
+  _computeChordVoicingFromRoot(quality, rootStep, rootMidi, direction, inversion = 0) {
+    const expected = this._triadExpectedSemisForQuality(quality);
+    if (!expected) return null;
+
+    const roleSpecs = this._triadRoleSpecs(expected);
+    const dir = this._directionValue(direction);
+    const anchorIndex = Math.max(0, Math.min(2, Number(inversion) || 0));
+    const fixed = this._voicingToneFromRoot(rootStep, rootMidi, roleSpecs, anchorIndex, 0);
+    if (!fixed) return null;
+
+    const chordNotes = [];
+    for (let offset = 1; offset <= 2; offset += 1) {
+      const rawIndex = anchorIndex + (dir * offset);
+      const octaveShift = Math.floor(rawIndex / roleSpecs.length);
+      const roleIndex = ((rawIndex % roleSpecs.length) + roleSpecs.length) % roleSpecs.length;
+      const note = this._voicingToneFromRoot(rootStep, rootMidi, roleSpecs, roleIndex, octaveShift);
+      if (!note) return null;
+      chordNotes.push(note);
+    }
+
+    return { fixed, chordNotes };
+  }
+
+  _pickInvertedVoicingFromFixed(quality, fixed, direction) {
+    const expected = this._triadExpectedSemisForQuality(quality);
+    if (!expected || !fixed) return null;
+
+    const roleSpecs = this._triadRoleSpecs(expected);
+    const anchor = this._normalizeInitialNoteAccidental(fixed);
+    const fixedAccOff = this.staff._accidentalClassToOffset(anchor.accidentalClass) || 0;
+    const fixedMidi = this.staff._stepToMidi(anchor.step) + fixedAccOff;
+    const candidates = [];
+
+    roleSpecs.forEach((role, inversion) => {
+      const rootStep = anchor.step - role.stepOffset;
+      const rootMidi = fixedMidi - role.semis;
+      const rootOff = rootMidi - this.staff._stepToMidi(rootStep);
+      const rootAccidentalClass = accidentalClassFromOffset(rootOff);
+      if (rootAccidentalClass == null && rootOff !== 0) return;
+
+      const voicing = this._computeChordVoicingFromRoot(
+        quality,
+        rootStep,
+        rootMidi,
+        direction,
+        inversion,
+      );
+      if (!voicing?.chordNotes?.length) return;
+
+      candidates.push({
+        inversion,
+        fixed: {
+          ...anchor,
+          midi: fixedMidi,
+          accOff: fixedAccOff,
+        },
+        chordNotes: voicing.chordNotes,
+      });
+    });
+
+    return candidates.length ? pickOne(candidates) : null;
+  }
+
+  _pickRandomInvertedVoicing(quality, direction) {
+    const expected = this._triadExpectedSemisForQuality(quality);
+    if (!expected) return null;
 
     const minStep = this.staff.minStepAllowed();
     const maxStep = this.staff.maxStepAllowed();
 
-    const build = (dir) => {
-      const targetStep = fixedStep + dir * diatonicSteps;
-      if (targetStep < minStep || targetStep > maxStep) return null;
+    for (let i = 0; i < 80; i += 1) {
+      const rootStep = randomInt(minStep, maxStep);
+      const rootAccidentalClass = this._pickInitialAccidentalClass();
+      const rootMidi =
+        this.staff._stepToMidi(rootStep) +
+        (this.staff._accidentalClassToOffset(rootAccidentalClass) || 0);
+      const inversion = pickOne([0, 1, 2]);
+      const voicing = this._computeChordVoicingFromRoot(
+        quality,
+        rootStep,
+        rootMidi,
+        direction,
+        inversion,
+      );
+      if (!voicing?.chordNotes?.length) continue;
+      if (!this._initialNoteAccidentalAllowed(voicing.fixed)) continue;
 
-      const targetMidi = fixedMidi + dir * semitones;
-      const naturalTargetMidi = this.staff._stepToMidi(targetStep);
-      const off = targetMidi - naturalTargetMidi;
+      return {
+        inversion,
+        fixed: voicing.fixed,
+        chordNotes: voicing.chordNotes,
+      };
+    }
 
-      // Limit to supported accidentals.
-      if (off < -2 || off > 2) return null;
-
-      const accidentalClass = accidentalClassFromOffset(off);
-      if (!accidentalClass) return null;
-
-      return { step: targetStep, accidentalClass, accOff: off, midi: targetMidi };
-    };
-
-    return build(this._directionValue(direction));
+    return null;
   }
 
   // ------------------------ game flow ------------------------
@@ -364,7 +537,9 @@ export class ChordDetective extends BaseStaffGame {
     this._fixedState = null;
     this._clearInitialNoteFlicker();
     this._expectedFirst = null;
-    this._expectedSecond = null;
+    this._expectedChordNotes = [];
+    this._currentTriadQuality = null;
+    this._currentChordInversion = 0;
 
     const clef = pickChallengeClef(this._clefPool);
     if (clef && clef !== this.staff.getClef()) this.staff.setClef(clef);
@@ -374,25 +549,42 @@ export class ChordDetective extends BaseStaffGame {
     this.$bonusBadge.hide();
     this.$doublePoints?.hide?.();
 
-    const interval = this._pickInterval();
+    const quality = this._pickTriadQuality();
     const direction = this._pickDirection();
+    this._currentTriadQuality = quality;
+    this._currentChordDirection = this._directionValue(direction);
 
-    // Retry until we find a playable pair within staff bounds/accidentals.
+    // Retry until we find a playable triad within staff bounds/accidentals.
     let fixed = null;
-    let second = null;
+    let chordNotes = null;
+    let inversion = 0;
 
-    for (let i = 0; i < 40; i += 1) {
+    for (let i = 0; i < 80; i += 1) {
+      if (this.opts.allowInversions) {
+        const fixedList = toArrayMaybe(this.opts.fixedNotes).filter(Boolean);
+        const voicing = fixedList.length
+          ? this._pickInvertedVoicingFromFixed(quality, this._pickFixedNote(), direction)
+          : this._pickRandomInvertedVoicing(quality, direction);
+        if (!voicing?.fixed || !voicing?.chordNotes?.length) continue;
+
+        fixed = voicing.fixed;
+        chordNotes = voicing.chordNotes;
+        inversion = voicing.inversion || 0;
+        break;
+      }
+
       fixed = this._pickFixedNote();
       if (!fixed) continue;
 
       const fixedAccOff = this.staff._accidentalClassToOffset(fixed.accidentalClass) || 0;
       const fixedMidi = this.staff._stepToMidi(fixed.step) + fixedAccOff;
 
-      second = this._computeSecondFromFixed(interval, fixed.step, fixedMidi, direction);
-      if (second) break;
+      chordNotes = this._computeChordNotesFromRoot(quality, fixed.step, fixedMidi, direction);
+      if (chordNotes?.length === 2) break;
     }
 
-    if (!fixed || !second) return;
+    if (!fixed || !chordNotes?.length) return;
+    this._currentChordInversion = inversion;
 
     this.staff.clearNotes();
     this.$accidentals.removeClass("invisible");
@@ -413,7 +605,7 @@ export class ChordDetective extends BaseStaffGame {
       step: fixed.step,
       accidentalClass: fixed.accidentalClass || null,
     };
-    this._expectedSecond = second;
+    this._expectedChordNotes = chordNotes;
 
     $("#continue").hide();
   }
@@ -435,12 +627,12 @@ export class ChordDetective extends BaseStaffGame {
     return notes;
   }
 
-  _computeHintAnswer() {
-    if (!this._expectedSecond) return null;
-    return {
-      step: this._expectedSecond.step,
-      accidentalClass: this._expectedSecond.accidentalClass || null,
-    };
+  _computeHintAnswers() {
+    return this._expectedChordNotes.map((note, index) => ({
+      id: `hint${index + 1}`,
+      step: note.step,
+      accidentalClass: note.accidentalClass || null,
+    }));
   }
 
   // ------------------------ evaluation ------------------------
@@ -454,10 +646,10 @@ export class ChordDetective extends BaseStaffGame {
 
     this._stats.checksTotal += 1;
 
-    if (!this._expectedSecond) return;
+    if (!this._expectedChordNotes.length) return;
 
-    // fixed + 1 user note
-    if (notes.length !== 2) {
+    // fixed root + 2 user notes
+    if (notes.length !== 3) {
       this._madeAnyMistake = true;
       this._madeMistakeThisRound = true;
       this._failAnimation(this.$checkWrap);
@@ -465,8 +657,8 @@ export class ChordDetective extends BaseStaffGame {
       return;
     }
 
-    const user = notes.find((n) => !n.fixed) || null;
-    if (!user) {
+    const userNotes = notes.filter((n) => !n.fixed);
+    if (userNotes.length !== 2) {
       this._madeAnyMistake = true;
       this._madeMistakeThisRound = true;
       this._failAnimation(this.$checkWrap);
@@ -474,9 +666,16 @@ export class ChordDetective extends BaseStaffGame {
       return;
     }
 
-    // Pitch-only correctness (enharmonics accepted).
-    const userMidi = this.staff._stepToMidi(user.step) + (user.accOff || 0);
-    const ok = userMidi === this._expectedSecond.midi;
+    // Pitch-only correctness (enharmonics accepted), order-independent.
+    const expectedMidis = this._expectedChordNotes
+      .map((note) => note.midi)
+      .sort((a, b) => a - b);
+    const userMidis = userNotes
+      .map((note) => this.staff._stepToMidi(note.step) + (note.accOff || 0))
+      .sort((a, b) => a - b);
+    const ok =
+      expectedMidis.length === userMidis.length &&
+      expectedMidis.every((midi, index) => midi === userMidis[index]);
 
     if (ok) {
       this._stats.checksCorrect += 1;

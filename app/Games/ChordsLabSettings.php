@@ -5,6 +5,7 @@ namespace App\Games;
 class ChordsLabSettings extends GameFactory
 {
     protected array $bonusPoints = ['timer', 'allowAccidentals'];
+    protected array $categories = ['harmony'];
 
     public function gameName(): string
     {
@@ -28,7 +29,7 @@ class ChordsLabSettings extends GameFactory
 
     public function categories()
     {
-        return collect(['harmony']);
+        return collect($this->categories);
     }
 
     public function gameUrl(): string 

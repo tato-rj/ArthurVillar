@@ -4,7 +4,8 @@ namespace App\Games;
 
 class ChordDetectiveSettings extends GameFactory
 {
-    protected array $bonusPoints = ['timer'];
+    protected array $bonusPoints = ['timer', 'allowInversions'];
+    protected array $categories = ['ear training'];
 
     public function gameName(): string
     {
@@ -28,7 +29,7 @@ class ChordDetectiveSettings extends GameFactory
 
     public function categories()
     {
-        return collect(['ear training']);
+        return collect($this->categories);
     }
 
     public function gameUrl(): string 
@@ -38,7 +39,7 @@ class ChordDetectiveSettings extends GameFactory
 
     protected function requiredToggleKeys(): array
     {
-        return ['sound', 'showNoteNames', 'solfege', 'allowAccidentals'];
+        return ['sound', 'showNoteNames', 'solfege', 'allowAccidentals', 'allowInversions'];
     }
 
     protected function defaults(): array
@@ -49,13 +50,14 @@ class ChordDetectiveSettings extends GameFactory
             'timer' => false,
             'maxUserNotes' => 1,
             'numOfChallenges' => 4,
-            'intervals' => ['M2', 'm3', 'M3', 'P5', 'P8'],
+            'triadQualities' => ['major', 'minor'],
             'clefs' => ['treble', 'bass'],
             'fixedNotes' => [],
             'sound' => true,
             'showNoteNames' => false,
             'allowAccidentals' => false,
-            'direction' => ['up', 'down'],
+            'allowInversions' => false,
+            'direction' => ['up'],
             'solfege' => false
         ];
     }

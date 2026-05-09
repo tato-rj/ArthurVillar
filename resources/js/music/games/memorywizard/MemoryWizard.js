@@ -5,7 +5,6 @@ import { pickWeighted, stepToLetterOctave } from "../../staff/staffUtils.js";
 export class MemoryWizard extends BaseStaffGame {
   static PREVIEW_NOTE_ANIMATION_MS = 360;
   static SEQUENCE_NOTE_DISPLAY_MS = 1200;
-  static PRIOR_SEQUENCE_NOTE_DISPLAY_MS = MemoryWizard.SEQUENCE_NOTE_DISPLAY_MS / 2;
 
   static LETTER_TO_SOLFEGE = {
     C: "Do",
@@ -41,11 +40,38 @@ export class MemoryWizard extends BaseStaffGame {
     this._lastTargetSignature = null;
     this._previewTimeoutIds = [];
     this._pendingRoundTimerStart = false;
+    this.$playWrap = null;
+    this.$playPlayBtn = null;
+    this.$playStopBtn = null;
+    this._roundPrepared = false;
+    this._previewPlaybackActive = false;
+    this._staffPlayStepOriginal = null;
   }
 
   start() {
     this._resetSequenceState();
     super.start();
+    this._patchStaffUserNotePlayback();
+
+    this.$playWrap = $("#play");
+    this.$playPlayBtn = this.$playWrap.find('button[action="play"]');
+    this.$playStopBtn = this.$playWrap.find('button[action="stop"]');
+
+    this.$playPlayBtn
+      .off(`click.${this.ns}Play`)
+      .on(`click.${this.ns}Play`, (e) => {
+        e.preventDefault();
+        this._playPreparedRound();
+      });
+
+    this.$playStopBtn
+      .off(`click.${this.ns}Stop`)
+      .on(`click.${this.ns}Stop`, (e) => {
+        e.preventDefault();
+        this._stopPreparedRoundPlayback();
+      });
+
+    this._showPlayPrompt();
   }
 
   _displayNameForLetter(letter) {
@@ -99,6 +125,8 @@ export class MemoryWizard extends BaseStaffGame {
     this._lastTargetSignature = null;
     this.maxUserNotes = 0;
     this._pendingRoundTimerStart = false;
+    this._roundPrepared = false;
+    this._previewPlaybackActive = false;
   }
 
   _clearPendingPreviewTimeouts() {
@@ -107,9 +135,56 @@ export class MemoryWizard extends BaseStaffGame {
     this._previewTimeoutIds = [];
   }
 
+  _setMemoryWizardStaffInteractionDisabled(disabled) {
+    const on = !!disabled;
+    const $staff = $("#staff");
+    const $accidentals = $("#accidentals");
+
+    if (on) {
+      $staff.attr("disabled", "disabled");
+      $accidentals.attr("disabled", "disabled");
+      $staff.attr("aria-disabled", "true");
+      $accidentals.attr("aria-disabled", "true");
+      $staff.css("pointer-events", "none");
+      $accidentals.css("pointer-events", "none");
+    } else {
+      $staff.removeAttr("disabled");
+      $accidentals.removeAttr("disabled");
+      $staff.removeAttr("aria-disabled");
+      $accidentals.removeAttr("aria-disabled");
+      $staff.css("pointer-events", "");
+      $accidentals.css("pointer-events", "");
+    }
+  }
+
+  _patchStaffUserNotePlayback() {
+    if (!this.staff || typeof this.staff._playStep !== "function" || this._staffPlayStepOriginal) return;
+    this._staffPlayStepOriginal = this.staff._playStep.bind(this.staff);
+    this.staff._playStep = async () => {};
+  }
+
+  _setPlayButtons(isPlaying) {
+    if (this.$playPlayBtn?.length) this.$playPlayBtn.toggle(!isPlaying);
+    if (this.$playStopBtn?.length) this.$playStopBtn.toggle(!!isPlaying);
+  }
+
+  _showPlayPrompt() {
+    if (this.$playWrap?.length) this.$playWrap.show();
+    this._setPlayButtons(false);
+  }
+
+  _hidePlayPrompt() {
+    this.$playWrap?.hide?.();
+    this._setPlayButtons(false);
+  }
+
   _setPreviewInteractionDisabled(disabled) {
-    this._setTimedOutInteractivityDisabled(disabled);
-    if (!disabled) this._startPendingRoundTimerIfNeeded();
+    this._setMemoryWizardStaffInteractionDisabled(disabled);
+    if (!disabled) {
+      this._previewPlaybackActive = false;
+      this._setPlayButtons(false);
+      this._startPendingRoundTimerIfNeeded();
+    }
   }
 
   _primeRoundTimerIfEnabled() {
@@ -140,8 +215,7 @@ export class MemoryWizard extends BaseStaffGame {
   }
 
   _previewDisplayMsForIndex(index) {
-    if (index >= this._targetSequence.length - 1) return MemoryWizard.SEQUENCE_NOTE_DISPLAY_MS;
-    return MemoryWizard.PRIOR_SEQUENCE_NOTE_DISPLAY_MS;
+    return MemoryWizard.SEQUENCE_NOTE_DISPLAY_MS;
   }
 
   _resetRoundTimerIfEnabled() {
@@ -154,10 +228,19 @@ export class MemoryWizard extends BaseStaffGame {
     this.staff.removeNote(noteId);
   }
 
+  _stopPreparedRoundPlayback() {
+    this._clearPendingPreviewTimeouts();
+    this._previewPlaybackActive = false;
+    this._pendingRoundTimerStart = false;
+    this.staff.clearNotes();
+    this._setPreviewInteractionDisabled(true);
+    this._showPlayPrompt();
+  }
+
   _playTargetSound(target) {
-    if (!target || !this.staff?.playStep) return;
+    if (!target || !this._staffPlayStepOriginal) return;
     const accidentalOffset = this.staff._accidentalClassToOffset?.(target.accidentalClass) || 0;
-    this.staff.playStep(target.step, accidentalOffset);
+    this._staffPlayStepOriginal(target.step, accidentalOffset);
   }
 
   _showPreviewNote(target) {
@@ -196,6 +279,8 @@ export class MemoryWizard extends BaseStaffGame {
   _showTargetPreviewSequence() {
     if (!this._targetSequence.length) return;
 
+    this._previewPlaybackActive = true;
+    this._setPlayButtons(true);
     this._setPreviewInteractionDisabled(true);
     this._clearPendingPreviewTimeouts();
 
@@ -225,6 +310,15 @@ export class MemoryWizard extends BaseStaffGame {
     };
 
     showAtIndex(0);
+  }
+
+  _playPreparedRound() {
+    if (!this._roundPrepared || !this._targetSequence.length || this._previewPlaybackActive) return;
+    this.staff.clearNotes();
+    this.maxUserNotes = this._targetSequence.length;
+    if (this._isTimerEnabled()) this._pendingRoundTimerStart = true;
+    this._showPlayPrompt();
+    this._showTargetPreviewSequence();
   }
 
   _targetSignature(target) {
@@ -309,7 +403,8 @@ export class MemoryWizard extends BaseStaffGame {
     this._usedHintThisRound = false;
 
     this._clearPendingPreviewTimeouts();
-    this._setPreviewInteractionDisabled(false);
+    this._pendingRoundTimerStart = false;
+    this._setPreviewInteractionDisabled(true);
     this.staff.clearNotes();
     this.$feedback.hide();
     this.$helpBtn.hide();
@@ -319,11 +414,11 @@ export class MemoryWizard extends BaseStaffGame {
     const nextTarget = this._pickTargetNote();
     this._targetSequence.push(nextTarget);
     this._lastTargetSignature = this._targetSignature(nextTarget);
-    this.maxUserNotes = this._targetSequence.length;
-    if (this._isTimerEnabled()) this._pendingRoundTimerStart = true;
-    this._showTargetPreviewSequence();
+    this.maxUserNotes = 0;
+    this._roundPrepared = true;
+    this._showPlayPrompt();
 
-    $("#check").show().removeClass("invisible");
+    $("#check").hide().addClass("invisible");
     $("#continue").hide();
   }
 
@@ -447,6 +542,7 @@ export class MemoryWizard extends BaseStaffGame {
         isBonus: bonusEarned > 0,
         earned,
         $prompt: $(),
+        $extraHide: this.$playWrap,
       });
       return;
     }
