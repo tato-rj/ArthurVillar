@@ -329,6 +329,22 @@ body {
 .progress-bar.streak-bar {
   animation: streakGreenBar .8s ease-in-out infinite;
 }
+
+.box-shadow-rounds {
+  box-shadow: 0 5px 15px 0px rgb(230 133 20 / 80%);
+}
+
+.box-shadow-score {
+  box-shadow: 0 5px 15px 0px rgb(20 96 230 / 80%);
+}
+
+.box-shadow-accuracy {
+  box-shadow: 0 5px 15px 0px rgb(7 123 61 / 80%);
+}
+
+.box-shadow-duration {
+  box-shadow: 0 5px 15px 0px rgb(20 51 230 / 80%);
+}
 /* ==========================================================================
    Notes / Ledgers
    ========================================================================== */

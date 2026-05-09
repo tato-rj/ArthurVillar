@@ -1,5 +1,5 @@
 
-	<div class="leaderboard-player mb-2 d-flex justify-content-between py-2">
+	<div class="leaderboard-player mb-2 {{$loop->last ? null : 'border-bottom'}} d-flex justify-content-between pb-2">
 		<div class="d-flex align-items-center">
 			<div class="mr-3">
 				<div style="width: 28px; height: 28px" class="{{$player->is(session('newPlayer')) ? 'bg-primary border-primary shadow' : 'bg-white'}} {{$loop->iteration <=3 ? 'border rounded-circle' : 'opacity-4'}} d-center small">{{$loop->iteration}}</div>

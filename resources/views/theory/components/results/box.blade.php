@@ -14,7 +14,7 @@
 		</div>
 		@endif
 		<div class="pb-1 text-center fw-bold" style="font-size: 70%">{{$title}}</div>
-		<div class="text-{{$color}} border border-dark bg-{{$color}}-lighter rounded fw-bold d-center px-2 py-3 h5 m-0" style="border-radius: 16px !important;">
+		<div class="text-{{$color}} box-shadow-{{$name}} border border-dark bg-{{$color}}-lighter rounded fw-bold d-center px-2 py-3 h5 m-0" style="border-radius: 16px !important;">
 			@fa <span name="{{$name}}"></span>
 		</div>
 	</div>
