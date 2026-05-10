@@ -172,7 +172,11 @@ var BaseStaffGame = /*#__PURE__*/function () {
       getMaxUserNotes: function getMaxUserNotes() {
         return Number.isFinite(_this.maxUserNotes) ? _this.maxUserNotes : Infinity;
       },
-      sound: !!this.opts.sound
+      sound: !!this.opts.sound,
+      showLineNames: this._normalizeOnOff(this.opts.showLineNames),
+      formatLineName: function formatLineName(letter) {
+        return _this._toDisplayNoteName(letter);
+      }
     });
     this.showNoteNames = !!this.opts.showNoteNames;
     this.$staffEl.toggleClass("show-letternames", this.showNoteNames);
@@ -4392,6 +4396,8 @@ var Staff = /*#__PURE__*/function () {
         return Infinity;
       },
       sound: true,
+      showLineNames: false,
+      formatLineName: null,
       accSnapMaxPx: (0,_staffUtils_js__WEBPACK_IMPORTED_MODULE_0__.pxFromCss)(css, "--staff-line-gap", 25) * 1.2
     }, opts || {});
     this.opts.clef = this.opts.clef == null ? null : (0,_staffUtils_js__WEBPACK_IMPORTED_MODULE_0__.normalizeClef)(this.opts.clef);
@@ -4583,13 +4589,36 @@ var Staff = /*#__PURE__*/function () {
       this.$el.find(".staff-line, .staff-clef, #clef-wrapper").remove();
       for (var i = 0; i < 5; i++) {
         var y = this.opts.bottomLineY - (4 - i) * this.opts.lineGap;
+        var step = (4 - i) * 2;
         var durationSec = (0.12 + Math.random() * 0.36).toFixed(3); // ~0.12s..0.48s
-        $('<div class="staff-line"></div>').css({
+        var $line = $('<div class="staff-line"></div>').css({
           top: "".concat(y, "px"),
           animationDuration: "".concat(durationSec, "s")
-        }).appendTo(this.$el);
+        });
+        var lineName = this._lineNameForStep(step);
+        if (lineName) {
+          $('<span class="line-note-name"></span>').text(lineName).appendTo($line);
+        }
+        $line.appendTo(this.$el);
       }
       this._drawClef();
+    }
+  }, {
+    key: "_lineNameForStep",
+    value: function _lineNameForStep(step) {
+      if (!this.opts.showLineNames) return "";
+      var noteState = (0,_staffUtils_js__WEBPACK_IMPORTED_MODULE_0__.stepToLetterOctave)(this, step);
+      var letter = String((noteState === null || noteState === void 0 ? void 0 : noteState.letter) || "").trim().toUpperCase();
+      if (!letter) return "";
+      var formatter = this.opts.formatLineName;
+      if (typeof formatter === "function") {
+        return String(formatter(letter, {
+          step: step,
+          octave: noteState === null || noteState === void 0 ? void 0 : noteState.octave,
+          clef: this.getClef()
+        }) || "");
+      }
+      return letter;
     }
   }, {
     key: "_drawClef",

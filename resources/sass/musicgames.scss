@@ -278,6 +278,19 @@ body {
   animation-name: drawStaffLine;
 }
 
+.staff-line .line-note-name {
+  background: #f7f7f7;
+  color: #666;
+  font-size: 0.9rem;
+  font-weight: 700;
+  right: 101%;
+  line-height: 1;
+  padding: 0 0.2rem;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
 #clef-wrapper {
   height: var(--clef-height);
   left: calc(var(--staff-padding-x) - var(--clef-left-nudge));

@@ -5,6 +5,7 @@ import {
   getPointerPageXY,
   getPointerId,
   normalizeClef,
+  stepToLetterOctave,
   toolTypeFromEl,
   nextAccidentalClass,
   isMaxedDouble,
@@ -47,6 +48,8 @@ export class Staff {
         getMaxUserNotes: () => Infinity,
 
         sound: true,
+        showLineNames: false,
+        formatLineName: null,
         accSnapMaxPx: pxFromCss(css, "--staff-line-gap", 25) * 1.2,
       },
       opts || {},
@@ -207,15 +210,43 @@ export class Staff {
     this.$el.find(".staff-line, .staff-clef, #clef-wrapper").remove();
     for (let i = 0; i < 5; i++) {
       const y = this.opts.bottomLineY - (4 - i) * this.opts.lineGap;
+      const step = (4 - i) * 2;
       const durationSec = (0.12 + (Math.random() * 0.36)).toFixed(3); // ~0.12s..0.48s
-      $('<div class="staff-line"></div>')
+      const $line = $('<div class="staff-line"></div>')
         .css({
           top: `${y}px`,
           animationDuration: `${durationSec}s`,
-        })
-        .appendTo(this.$el);
+        });
+
+      const lineName = this._lineNameForStep(step);
+      if (lineName) {
+        $('<span class="line-note-name"></span>')
+          .text(lineName)
+          .appendTo($line);
+      }
+
+      $line.appendTo(this.$el);
     }
     this._drawClef();
+  }
+
+  _lineNameForStep(step) {
+    if (!this.opts.showLineNames) return "";
+
+    const noteState = stepToLetterOctave(this, step);
+    const letter = String(noteState?.letter || "").trim().toUpperCase();
+    if (!letter) return "";
+
+    const formatter = this.opts.formatLineName;
+    if (typeof formatter === "function") {
+      return String(formatter(letter, {
+        step,
+        octave: noteState?.octave,
+        clef: this.getClef(),
+      }) || "");
+    }
+
+    return letter;
   }
 
   _drawClef() {

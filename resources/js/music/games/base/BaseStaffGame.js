@@ -167,6 +167,8 @@ export class BaseStaffGame {
       getMaxUserNotes: () =>
         Number.isFinite(this.maxUserNotes) ? this.maxUserNotes : Infinity,
       sound: !!this.opts.sound,
+      showLineNames: this._normalizeOnOff(this.opts.showLineNames),
+      formatLineName: (letter) => this._toDisplayNoteName(letter),
     });
 
     this.showNoteNames = !!this.opts.showNoteNames;
