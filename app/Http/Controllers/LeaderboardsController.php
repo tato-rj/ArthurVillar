@@ -21,7 +21,9 @@ class LeaderboardsController extends Controller
 
     public function edit()
     {
-        $player = Player::latest()->first()->update(['username' => 'zac', 'accuracy' => 100]);
+        $player = Player::latest()->first();
+
+        $player->update(['username' => 'zac', 'accuracy' => 100]);
 
         $player->calculateFinalScore();
 
