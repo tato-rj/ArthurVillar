@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Player;
 use Carbon\CarbonInterval;
 
-class LeaderboardController extends Controller
+class LeaderboardsController extends Controller
 {
     public function store(Request $request)
     {
