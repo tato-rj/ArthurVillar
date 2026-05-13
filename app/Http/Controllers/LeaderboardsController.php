@@ -27,7 +27,7 @@ class LeaderboardsController extends Controller
             'username' => 'zac', 
             'accuracy' => 100,
             'rounds' => 6,
-            'score' => 28
+            'score' => 48
         ]);
 
         $player->calculateFinalScore();
