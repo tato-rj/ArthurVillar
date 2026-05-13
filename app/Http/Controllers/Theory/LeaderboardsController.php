@@ -36,9 +36,4 @@ class LeaderboardsController extends Controller
             'newPlayer' => $player,
         ]);
     }
-
-    public function edit()
-    {
-        return Player::latest()->first();
-    }
 }

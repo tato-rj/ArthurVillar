@@ -19,6 +19,11 @@ class LeaderboardsController extends Controller
         return back()->with('success', 'The fake player was successully created');
     }
 
+    public function edit()
+    {
+        return Player::latest()->first();
+    }
+
     public function destroy(Player $player)
     {
         $player->delete();
