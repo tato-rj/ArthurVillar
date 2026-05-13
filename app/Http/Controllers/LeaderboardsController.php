@@ -21,18 +21,7 @@ class LeaderboardsController extends Controller
 
     public function edit()
     {
-        $player = Player::find(39)->update(['created_at' => now()->subDays(1)->subMinutes(12)]);
-
-        // $player->update([
-        //     'username' => 'zac', 
-        //     'accuracy' => 100,
-        //     'rounds' => 6,
-        //     'score' => 48
-        // ]);
-
-        // $player->calculateFinalScore();
-
-        return $player;
+        //
     }
 
     public function destroy(Player $player)
