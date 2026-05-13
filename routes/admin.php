@@ -7,8 +7,10 @@ Route::get('', 'AdminController@index')->name('index');
 
 Route::get('sound-effects', 'AdminController@soundEffects')->name('sound-effects.index');
 
-Route::prefix('leaderboards')->name('leaderboard.')->group(function() {
+Route::prefix('leaderboard')->name('leaderboard.')->group(function() {
 	Route::get('', 'LeaderboardsController@index')->name('index');
+
+	Route::get('edit', 'LeaderboardsController@edit')->name('edit');
 
 	Route::post('fake', 'LeaderboardsController@fake')->name('fake');
 

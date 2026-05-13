@@ -29,7 +29,7 @@ Route::prefix('theory')->name('theory.')->group(function() {
 
 	Route::get('beat-hero', 'TheoryController@beatHero')->name('beat-hero.play');
 
-	Route::prefix('leaderboards')->name('leaderboard.')->group(function() {
+	Route::prefix('leaderboard')->name('leaderboard.')->group(function() {
 		Route::post('', 'LeaderboardsController@store')->name('store');
 	});
 });
