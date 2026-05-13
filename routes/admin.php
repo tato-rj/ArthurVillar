@@ -12,7 +12,7 @@ Route::prefix('leaderboards')->name('leaderboard.')->group(function() {
 
 	Route::post('fake', 'LeaderboardsController@fake')->name('fake');
 
-	Route::get('{player}', 'LeaderboardsController@edit')->name('edit');
+	Route::get('edit', 'LeaderboardsController@edit')->name('edit');
 
 	Route::delete('{player}', 'LeaderboardsController@destroy')->name('destroy');
 });
