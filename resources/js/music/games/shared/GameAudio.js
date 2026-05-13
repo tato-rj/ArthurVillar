@@ -4,6 +4,7 @@ export class GameAudio {
     uiPoly: -10,
     uiNoise: -16,
     uiTimer: -14,
+    metronome: -12,
     staffNote: -8,
     dictation: -9,
     sequence: -9,
@@ -26,6 +27,8 @@ export class GameAudio {
     timerBeep: 0.7,
     timerTimeUp: 0.95,
     countdownBeep: 1,
+    metronomeBeat: 0.4,
+    metronomeDownbeat: 0.6,
     hinge: 0.55,
   };
 
@@ -125,6 +128,18 @@ export class GameAudio {
       label: "Countdown Tick",
       volumeKey: "countdownBeep",
       description: "Simple 3-2-1 countdown tick sound.",
+    },
+    {
+      id: "metronomeBeat",
+      label: "Metronome Beat",
+      volumeKey: "metronomeBeat",
+      description: "Regular metronome click.",
+    },
+    {
+      id: "metronomeDownbeat",
+      label: "Metronome Downbeat",
+      volumeKey: "metronomeDownbeat",
+      description: "Higher-pitched click on the first beat of each measure.",
     },
     {
       id: "hinge",
@@ -363,6 +378,12 @@ export class GameAudio {
         GameAudio._getPreviewSynth("uiTimer", () => GameAudio.createUiTimerSynth())
           .triggerAttackRelease("B5", 0.06, Tone.now(), GameAudio.scale("countdownBeep", 0.2));
       },
+      metronomeBeat: () => {
+        GameAudio.playMetronomeClick(false);
+      },
+      metronomeDownbeat: () => {
+        GameAudio.playMetronomeClick(true);
+      },
       hinge: () => {
         const noiseSynth = GameAudio._getPreviewSynth("uiNoise", () => GameAudio.createUiNoiseSynth());
         const synth = GameAudio._getPreviewSynth("uiTimer", () => GameAudio.createUiTimerSynth());
@@ -397,6 +418,35 @@ export class GameAudio {
       oscillator: { type: "square" },
       envelope: { attack: 0.001, decay: 0.03, sustain: 0.0, release: 0.06 },
       volume: GameAudio.SYNTH_VOLUME_DB.uiTimer,
+    }).toDestination();
+  }
+
+  static async ensureMetronomeAudio() {
+    if (!window.Tone) return null;
+
+    await Tone.start();
+    return GameAudio._getPreviewSynth("metronome", () => GameAudio.createMetronomeSynth());
+  }
+
+  static playMetronomeClick(isDownbeat = false) {
+    if (!window.Tone) return;
+
+    const synth = GameAudio._getPreviewSynth("metronome", () => GameAudio.createMetronomeSynth());
+    const kind = isDownbeat ? "metronomeDownbeat" : "metronomeBeat";
+
+    synth.triggerAttackRelease(
+      isDownbeat ? "C6" : "C5",
+      "16n",
+      Tone.now(),
+      GameAudio.scale(kind, 1),
+    );
+  }
+
+  static createMetronomeSynth() {
+    return new Tone.Synth({
+      oscillator: { type: "square" },
+      envelope: { attack: 0.001, decay: 0.04, sustain: 0, release: 0.01 },
+      volume: GameAudio.SYNTH_VOLUME_DB.metronome,
     }).toDestination();
   }
 

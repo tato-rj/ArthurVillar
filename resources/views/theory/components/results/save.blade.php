@@ -5,11 +5,6 @@
 
 @modal(['title' => 'Join the Leaderboard', 'id' => 'save-results-modal'])
 
-<div class="bg-light p-3 rounded mb-3">
-    <p class="mb-1 fw-bold text-center">@fa(['icon' => 'circle-question'])How will my <u>points</u> be calculated?</p>
-    <p class="m-0">Higher score, better accuracy, more rounds, and faster time will all increase your final points.</p>
-</div>
-
 <form method="POST" action="{{route('theory.leaderboard.store')}}">
 	@csrf
 
@@ -37,12 +32,12 @@
                         class="btn-check"
                         name="avatar_url"
                         id="avatar-{{ $seed }}"
-                        value="https://api.dicebear.com/9.x/bottts-neutral/svg?seed={{ $seed }}"
+                        value="{{asset('images/avatars/avatar-'.$seed.'.svg')}}"
                         autocomplete="off"
                     >
                     <img
                         class="player-avatar"
-                        src="https://api.dicebear.com/9.x/bottts-neutral/svg?seed={{ $seed }}"
+                        src="{{asset('images/avatars/avatar-'.$seed.'.svg')}}"
                         alt="Avatar {{ $seed }}"
                         style="width:52px; height:52px;"
                     >

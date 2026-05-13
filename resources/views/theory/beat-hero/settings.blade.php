@@ -4,11 +4,12 @@
   @component('theory.components.settings.section', ['title' => 'SETUP'])
     @include('theory.components.settings.rounds')
     @include('theory.components.settings.toggle', ['label' => 'Practice mode', 'name' => 'practiceMode'])
-    @include('theory.components.settings.speed', ['speeds' => ['60bpm', '80bpm', '100bpm', '120bpm']])
   @endcomponent
 
   @component('theory.components.settings.section', ['title' => 'MATERIAL'])
+    @include('theory.components.settings.multichoice', ['label' => 'Time Signatures', 'name' => 'timeSignatures', 'options' => $settings->getTimeSignatures(), 'game' => $settings->gameName()])
 
+    @include('theory.components.settings.multichoice', ['label' => 'Notes', 'name' => 'notesValues', 'options' => $settings->getNotesValues(), 'game' => $settings->gameName()])
   @endcomponent
 
   @component('theory.components.settings.section', ['title' => 'PREFERENCES'])

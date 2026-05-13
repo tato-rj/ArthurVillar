@@ -36,11 +36,6 @@ class BeatHeroSettings extends GameFactory
         return route('theory.beat-hero.play');
     }
 
-    protected function speedsInBPM(): array
-    {
-        return [60, 80, 100, 120];
-    }
-
     protected function requiredToggleKeys(): array
     {
         return ['sound', 'showNoteNames', 'solfege', 'allowDottedRhythms', 'showDetails'];
@@ -49,11 +44,13 @@ class BeatHeroSettings extends GameFactory
     protected function defaults(): array
     {
         return [
-            'speedIndex' => 0,
             'practiceMode' => false,
             'numOfChallenges' => 4,
+            'bpm' => 80,
+            'timeSignatures' => ['4/4'],
+            'notesValues' => ['half', 'quarter', 'eigth'],
             'sound' => true,
-            'showDetails' => false
+            'includeRests' => false
         ];
     }
 
@@ -61,13 +58,6 @@ class BeatHeroSettings extends GameFactory
     {
         $options = $this->applyUserPreferences();
 
-        $speeds = $this->speedsInBPM();
-        $idx = (int) ($options['speedIndex'] ?? 0);
-        $idx = max(0, min($idx, count($speeds) - 1));
-        $options['bpm'] = $speeds[$idx];
-
-        $array = $this->buildOptions($options);
-
-        return $key ? $array[$key] : $array;
+        return $key ? $options[$key] : $options;
     }
 }

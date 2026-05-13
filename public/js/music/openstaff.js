@@ -1020,6 +1020,12 @@ var GameAudio = /*#__PURE__*/function () {
                     return GameAudio.createUiTimerSynth();
                   }).triggerAttackRelease("B5", 0.06, Tone.now(), GameAudio.scale("countdownBeep", 0.2));
                 },
+                metronomeBeat: function metronomeBeat() {
+                  GameAudio.playMetronomeClick(false);
+                },
+                metronomeDownbeat: function metronomeDownbeat() {
+                  GameAudio.playMetronomeClick(true);
+                },
                 hinge: function hinge() {
                   var noiseSynth = GameAudio._getPreviewSynth("uiNoise", function () {
                     return GameAudio.createUiNoiseSynth();
@@ -1093,6 +1099,60 @@ var GameAudio = /*#__PURE__*/function () {
       }).toDestination();
     }
   }, {
+    key: "ensureMetronomeAudio",
+    value: function () {
+      var _ensureMetronomeAudio = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee2() {
+        return _regenerator().w(function (_context2) {
+          while (1) switch (_context2.n) {
+            case 0:
+              if (window.Tone) {
+                _context2.n = 1;
+                break;
+              }
+              return _context2.a(2, null);
+            case 1:
+              _context2.n = 2;
+              return Tone.start();
+            case 2:
+              return _context2.a(2, GameAudio._getPreviewSynth("metronome", function () {
+                return GameAudio.createMetronomeSynth();
+              }));
+          }
+        }, _callee2);
+      }));
+      function ensureMetronomeAudio() {
+        return _ensureMetronomeAudio.apply(this, arguments);
+      }
+      return ensureMetronomeAudio;
+    }()
+  }, {
+    key: "playMetronomeClick",
+    value: function playMetronomeClick() {
+      var isDownbeat = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+      if (!window.Tone) return;
+      var synth = GameAudio._getPreviewSynth("metronome", function () {
+        return GameAudio.createMetronomeSynth();
+      });
+      var kind = isDownbeat ? "metronomeDownbeat" : "metronomeBeat";
+      synth.triggerAttackRelease(isDownbeat ? "C6" : "C5", "16n", Tone.now(), GameAudio.scale(kind, 1));
+    }
+  }, {
+    key: "createMetronomeSynth",
+    value: function createMetronomeSynth() {
+      return new Tone.Synth({
+        oscillator: {
+          type: "square"
+        },
+        envelope: {
+          attack: 0.001,
+          decay: 0.04,
+          sustain: 0,
+          release: 0.01
+        },
+        volume: GameAudio.SYNTH_VOLUME_DB.metronome
+      }).toDestination();
+    }
+  }, {
     key: "createStaffNoteSynth",
     value: function createStaffNoteSynth() {
       return new Tone.Synth({
@@ -1155,6 +1215,7 @@ _defineProperty(GameAudio, "SYNTH_VOLUME_DB", {
   uiPoly: -10,
   uiNoise: -16,
   uiTimer: -14,
+  metronome: -12,
   staffNote: -8,
   dictation: -9,
   sequence: -9
@@ -1176,6 +1237,8 @@ _defineProperty(GameAudio, "VELOCITY", {
   timerBeep: 0.7,
   timerTimeUp: 0.95,
   countdownBeep: 1,
+  metronomeBeat: 0.4,
+  metronomeDownbeat: 0.6,
   hinge: 0.55
 });
 _defineProperty(GameAudio, "SOUND_LIBRARY", [{
@@ -1258,6 +1321,16 @@ _defineProperty(GameAudio, "SOUND_LIBRARY", [{
   label: "Countdown Tick",
   volumeKey: "countdownBeep",
   description: "Simple 3-2-1 countdown tick sound."
+}, {
+  id: "metronomeBeat",
+  label: "Metronome Beat",
+  volumeKey: "metronomeBeat",
+  description: "Regular metronome click."
+}, {
+  id: "metronomeDownbeat",
+  label: "Metronome Downbeat",
+  volumeKey: "metronomeDownbeat",
+  description: "Higher-pitched click on the first beat of each measure."
 }, {
   id: "hinge",
   label: "Hinge",
