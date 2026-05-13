@@ -23,7 +23,12 @@ class LeaderboardsController extends Controller
     {
         $player = Player::latest()->first();
 
-        $player->update(['username' => 'zac', 'accuracy' => 100]);
+        $player->update([
+            'username' => 'zac', 
+            'accuracy' => 100,
+            'rounds' => 6,
+            'score' => 28
+        ]);
 
         $player->calculateFinalScore();
 
