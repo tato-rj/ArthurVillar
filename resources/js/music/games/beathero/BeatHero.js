@@ -531,11 +531,11 @@ export class BeatHero {
     this._voiceAnalyser.getByteTimeDomainData(this._voiceData);
     const level = this._voiceInputLevel(this._voiceData);
     const now = performance.now();
-    const threshold = Math.max(0.09, this._voiceBaseline * 3.2);
+    const threshold = Math.max(0.055, this._voiceBaseline * 2.4);
 
     this._voiceBaseline = (this._voiceBaseline * 0.96) + (Math.min(level, 0.18) * 0.04);
 
-    if (level > threshold && now - this._lastVoiceTapTime > 180) {
+    if (level > threshold && now - this._lastVoiceTapTime > 140) {
       this._lastVoiceTapTime = now;
       this._handleTapAt(now - this._voiceTapOffsetMs);
     }
