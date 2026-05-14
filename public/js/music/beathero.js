@@ -77,6 +77,7 @@ var BeatHero = /*#__PURE__*/function () {
     this._voiceIsActive = false;
     this._voiceInputStarting = false;
     this._lastVoiceTapTime = 0;
+    this._voiceTapOffsetMs = 120;
     this.$playWrap = null;
     this.$playPlayBtn = null;
     this.$playStopBtn = null;
@@ -480,7 +481,12 @@ var BeatHero = /*#__PURE__*/function () {
   }, {
     key: "_handleTap",
     value: function _handleTap() {
-      var event = this._findMatchingTapEvent(performance.now());
+      this._handleTapAt(performance.now());
+    }
+  }, {
+    key: "_handleTapAt",
+    value: function _handleTapAt(tapTime) {
+      var event = this._findMatchingTapEvent(tapTime);
       if (!event) {
         console.log("Wrong tap");
         return;
@@ -586,7 +592,7 @@ var BeatHero = /*#__PURE__*/function () {
       this._voiceBaseline = this._voiceBaseline * 0.96 + Math.min(level, 0.18) * 0.04;
       if (level > threshold && now - this._lastVoiceTapTime > 180) {
         this._lastVoiceTapTime = now;
-        this._handleTap();
+        this._handleTapAt(now - this._voiceTapOffsetMs);
       }
       this._voiceFrame = requestAnimationFrame(function () {
         return _this7._listenForVoiceTaps();

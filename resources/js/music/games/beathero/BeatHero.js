@@ -39,6 +39,7 @@ export class BeatHero {
     this._voiceIsActive = false;
     this._voiceInputStarting = false;
     this._lastVoiceTapTime = 0;
+    this._voiceTapOffsetMs = 120;
     this.$playWrap = null;
     this.$playPlayBtn = null;
     this.$playStopBtn = null;
@@ -426,7 +427,11 @@ export class BeatHero {
   }
 
   _handleTap() {
-    const event = this._findMatchingTapEvent(performance.now());
+    this._handleTapAt(performance.now());
+  }
+
+  _handleTapAt(tapTime) {
+    const event = this._findMatchingTapEvent(tapTime);
     if (!event) {
       console.log("Wrong tap");
       return;
@@ -532,7 +537,7 @@ export class BeatHero {
 
     if (level > threshold && now - this._lastVoiceTapTime > 180) {
       this._lastVoiceTapTime = now;
-      this._handleTap();
+      this._handleTapAt(now - this._voiceTapOffsetMs);
     }
 
     this._voiceFrame = requestAnimationFrame(() => this._listenForVoiceTaps());
