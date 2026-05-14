@@ -97,11 +97,12 @@
 
   #beat-count {
     position: absolute;
-    right: 98%;
-    top: 46%;
-    font-size: 2rem;
+    left: 16px;
+    top: 0;
+    font-size: 2.8rem;
     font-weight: bold;
     opacity: 0;
+    color: #1cb0f6;
   }
 
   .beat-animation {
@@ -118,7 +119,7 @@
 
   @keyframes slowFade {
     0% {
-      opacity: .4;
+      opacity: 1;
     }
 
     100% {
