@@ -502,7 +502,7 @@ export class BeatHero {
       this._voiceStream = stream;
       const source = this._voiceAudioContext.createMediaStreamSource(stream);
       this._voiceAnalyser = this._voiceAudioContext.createAnalyser();
-      this._voiceAnalyser.fftSize = 1024;
+      this._voiceAnalyser.fftSize = 512;
       this._voiceData = new Uint8Array(this._voiceAnalyser.fftSize);
       source.connect(this._voiceAnalyser);
 

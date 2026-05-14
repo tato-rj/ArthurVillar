@@ -559,7 +559,7 @@ var BeatHero = /*#__PURE__*/function () {
         _this6._voiceStream = stream;
         var source = _this6._voiceAudioContext.createMediaStreamSource(stream);
         _this6._voiceAnalyser = _this6._voiceAudioContext.createAnalyser();
-        _this6._voiceAnalyser.fftSize = 1024;
+        _this6._voiceAnalyser.fftSize = 512;
         _this6._voiceData = new Uint8Array(_this6._voiceAnalyser.fftSize);
         source.connect(_this6._voiceAnalyser);
         _this6._voiceIsActive = true;

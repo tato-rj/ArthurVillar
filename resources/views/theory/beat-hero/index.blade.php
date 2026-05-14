@@ -140,7 +140,7 @@
     </div>
     <div class="col-12 mx-auto mb-2 position-relative">
       <div id="preview-wrapper" class="opacity-2">
-        <div class="fw-bold text-center" style="font-size: 60%">UP NEXT</div>
+        <div class="fw-bold text-right mx-auto" style="font-size: 60%; width: 217px;">UP NEXT</div>
         <div id="preview-score"></div>
       </div>
       <div id="game-wrapper" class="position-relative">
