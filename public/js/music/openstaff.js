@@ -1026,6 +1026,9 @@ var GameAudio = /*#__PURE__*/function () {
                 metronomeDownbeat: function metronomeDownbeat() {
                   GameAudio.playMetronomeClick(true);
                 },
+                rhythmHit: function rhythmHit() {
+                  GameAudio.playRhythmHit();
+                },
                 hinge: function hinge() {
                   var noiseSynth = GameAudio._getPreviewSynth("uiNoise", function () {
                     return GameAudio.createUiNoiseSynth();
@@ -1153,6 +1156,33 @@ var GameAudio = /*#__PURE__*/function () {
       }).toDestination();
     }
   }, {
+    key: "playRhythmHit",
+    value: function playRhythmHit() {
+      if (!window.Tone) return;
+      var synth = GameAudio._getPreviewSynth("rhythmHit", function () {
+        return GameAudio.createRhythmHitSynth();
+      });
+      synth.triggerAttackRelease("C2", "8n", Tone.now(), GameAudio.scale("rhythmHit", 1));
+    }
+  }, {
+    key: "createRhythmHitSynth",
+    value: function createRhythmHitSynth() {
+      return new Tone.MembraneSynth({
+        pitchDecay: 0.035,
+        octaves: 2.5,
+        oscillator: {
+          type: "sine"
+        },
+        envelope: {
+          attack: 0.001,
+          decay: 0.12,
+          sustain: 0,
+          release: 0.06
+        },
+        volume: GameAudio.SYNTH_VOLUME_DB.rhythmHit
+      }).toDestination();
+    }
+  }, {
     key: "createStaffNoteSynth",
     value: function createStaffNoteSynth() {
       return new Tone.Synth({
@@ -1216,6 +1246,7 @@ _defineProperty(GameAudio, "SYNTH_VOLUME_DB", {
   uiNoise: -16,
   uiTimer: -14,
   metronome: -12,
+  rhythmHit: -10,
   staffNote: -8,
   dictation: -9,
   sequence: -9
@@ -1239,6 +1270,7 @@ _defineProperty(GameAudio, "VELOCITY", {
   countdownBeep: 1,
   metronomeBeat: 0.4,
   metronomeDownbeat: 0.6,
+  rhythmHit: 0.65,
   hinge: 0.55
 });
 _defineProperty(GameAudio, "SOUND_LIBRARY", [{
@@ -1331,6 +1363,11 @@ _defineProperty(GameAudio, "SOUND_LIBRARY", [{
   label: "Metronome Downbeat",
   volumeKey: "metronomeDownbeat",
   description: "Higher-pitched click on the first beat of each measure."
+}, {
+  id: "rhythmHit",
+  label: "Rhythm Hit",
+  volumeKey: "rhythmHit",
+  description: "Low percussive sound for Beat Hero rhythm notes."
 }, {
   id: "hinge",
   label: "Hinge",

@@ -3,10 +3,16 @@
     shuffle($seeds);
 @endphp
 
-@modal(['title' => 'Join the Leaderboard', 'id' => 'save-results-modal'])
+@modal(['title' => 'Join the Leaderboard', 'id' => 'save-results-modal', 'data' => ['final-points-url' => route('theory.leaderboard.final-points')]])
+
+<div class="mb-3">
+    <div style="font-size: 65%" class="text-center lh-1 fw-bold text-muted">FINAL POINTS</div>
+    <h1 id="finalPoints" class="text-center lh-1 text-primary" style="font-size: 4rem;"></h1>
+    <p class="m-0 fst-italic text-muted small">@fa(['icon' => 'lightbulb', 'fa_color' => 'yellow'])<strong>How is this score calculated?</strong> Higher score, better accuracy, more rounds, and faster time will all increase your final points.</p>
+</div>
 
 <form method="POST" action="{{route('theory.leaderboard.store')}}">
-	@csrf
+    @csrf
 
     <input type="hidden" name="game" value="{{$settings->gameName()}}">
 
@@ -15,12 +21,12 @@
     <input type="hidden" name="accuracy">
     <input type="hidden" name="duration">
 
-	<div class="form-group">
-		<label class="text-grey mb-1 small">Select your username</label>
-		<input class="form-control" required placeholder="Username" name="username">
-	</div>
-	<div class="form-group">
-		<label class="text-grey mb-1 small">Select your avatar</label>
+    <div class="form-group">
+        <label class="text-grey mb-1 small">Select your username</label>
+        <input class="form-control" required placeholder="Username" name="username">
+    </div>
+    <div class="form-group">
+        <label class="text-grey mb-1 small">Select your avatar</label>
 
         <div class="btn-group align-items-center justify-content-center flex-wrap avatar-picker" style="height: 240px; overflow-y: scroll;" role="group">
 
@@ -44,9 +50,9 @@
                 </div>
             @endforeach
         </div>
-	</div>
+    </div>
 
-	<button type="submit" class="btn btn-primary w-100">Post my results</button>
+    <button type="submit" class="btn btn-primary w-100">Post my results</button>
 </form>
 
 @endmodal

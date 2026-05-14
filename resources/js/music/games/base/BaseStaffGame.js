@@ -1777,6 +1777,7 @@ export class BaseStaffGame {
       score: scoreSummary.finalScore,
       accuracy,
       durationSec: totalSeconds,
+      settingsBonus: scoreSummary.settingsBonus,
       clearCountupTimers: () => this._clearFinalCountupTimers(),
       countupTimers: this._finalCountupTimeouts,
       animateMetrics: () => this._animateFinalMetricsWithSfx(),

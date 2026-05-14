@@ -1871,6 +1871,7 @@ var BaseStaffGame = /*#__PURE__*/function () {
         score: scoreSummary.finalScore,
         accuracy: accuracy,
         durationSec: totalSeconds,
+        settingsBonus: scoreSummary.settingsBonus,
         clearCountupTimers: function clearCountupTimers() {
           return _this27._clearFinalCountupTimers();
         },
@@ -2847,6 +2848,9 @@ var GameAudio = /*#__PURE__*/function () {
                 metronomeDownbeat: function metronomeDownbeat() {
                   GameAudio.playMetronomeClick(true);
                 },
+                rhythmHit: function rhythmHit() {
+                  GameAudio.playRhythmHit();
+                },
                 hinge: function hinge() {
                   var noiseSynth = GameAudio._getPreviewSynth("uiNoise", function () {
                     return GameAudio.createUiNoiseSynth();
@@ -2974,6 +2978,33 @@ var GameAudio = /*#__PURE__*/function () {
       }).toDestination();
     }
   }, {
+    key: "playRhythmHit",
+    value: function playRhythmHit() {
+      if (!window.Tone) return;
+      var synth = GameAudio._getPreviewSynth("rhythmHit", function () {
+        return GameAudio.createRhythmHitSynth();
+      });
+      synth.triggerAttackRelease("C2", "8n", Tone.now(), GameAudio.scale("rhythmHit", 1));
+    }
+  }, {
+    key: "createRhythmHitSynth",
+    value: function createRhythmHitSynth() {
+      return new Tone.MembraneSynth({
+        pitchDecay: 0.035,
+        octaves: 2.5,
+        oscillator: {
+          type: "sine"
+        },
+        envelope: {
+          attack: 0.001,
+          decay: 0.12,
+          sustain: 0,
+          release: 0.06
+        },
+        volume: GameAudio.SYNTH_VOLUME_DB.rhythmHit
+      }).toDestination();
+    }
+  }, {
     key: "createStaffNoteSynth",
     value: function createStaffNoteSynth() {
       return new Tone.Synth({
@@ -3037,6 +3068,7 @@ _defineProperty(GameAudio, "SYNTH_VOLUME_DB", {
   uiNoise: -16,
   uiTimer: -14,
   metronome: -12,
+  rhythmHit: -10,
   staffNote: -8,
   dictation: -9,
   sequence: -9
@@ -3060,6 +3092,7 @@ _defineProperty(GameAudio, "VELOCITY", {
   countdownBeep: 1,
   metronomeBeat: 0.4,
   metronomeDownbeat: 0.6,
+  rhythmHit: 0.65,
   hinge: 0.55
 });
 _defineProperty(GameAudio, "SOUND_LIBRARY", [{
@@ -3152,6 +3185,11 @@ _defineProperty(GameAudio, "SOUND_LIBRARY", [{
   label: "Metronome Downbeat",
   volumeKey: "metronomeDownbeat",
   description: "Higher-pitched click on the first beat of each measure."
+}, {
+  id: "rhythmHit",
+  label: "Rhythm Hit",
+  volumeKey: "rhythmHit",
+  description: "Low percussive sound for Beat Hero rhythm notes."
 }, {
   id: "hinge",
   label: "Hinge",
@@ -4216,6 +4254,8 @@ function renderFinalResultsOverlay(_ref) {
     accuracy = _ref$accuracy === void 0 ? 0 : _ref$accuracy,
     _ref$durationSec = _ref.durationSec,
     durationSec = _ref$durationSec === void 0 ? 0 : _ref$durationSec,
+    _ref$settingsBonus = _ref.settingsBonus,
+    settingsBonus = _ref$settingsBonus === void 0 ? false : _ref$settingsBonus,
     _ref$clearCountupTime = _ref.clearCountupTimers,
     clearCountupTimers = _ref$clearCountupTime === void 0 ? null : _ref$clearCountupTime,
     _ref$countupTimers = _ref.countupTimers,
@@ -4249,6 +4289,76 @@ function renderFinalResultsOverlay(_ref) {
     if (!$input.length) return;
     $input.val(String(value !== null && value !== void 0 ? value : "").trim());
   };
+  var getFinalPointsPreviewElements = function getFinalPointsPreviewElements() {
+    var $modal = $("#save-results-modal");
+    var $finalPoints = $modal.find("#finalPoints");
+    return {
+      $modal: $modal,
+      $finalPoints: $finalPoints
+    };
+  };
+  var countFinalPoints = function countFinalPoints(value) {
+    var _getFinalPointsPrevie = getFinalPointsPreviewElements(),
+      $finalPoints = _getFinalPointsPrevie.$finalPoints;
+    if (!$finalPoints.length) return;
+    var finalPoints = Number(value);
+    if (!Number.isFinite(finalPoints)) {
+      $finalPoints.text(value !== null && value !== void 0 ? value : "");
+      return;
+    }
+    if (!CountUpCtor) {
+      $finalPoints.text(String(Math.round(finalPoints)));
+      return;
+    }
+    var counter = new CountUpCtor($finalPoints[0], finalPoints, {
+      duration: 1.4,
+      decimalPlaces: 0
+    });
+    if (!counter.error) counter.start();else $finalPoints.text(String(Math.round(finalPoints)));
+  };
+  var fetchFinalPointsPreview = function fetchFinalPointsPreview() {
+    var _getFinalPointsPrevie2 = getFinalPointsPreviewElements(),
+      $modal = _getFinalPointsPrevie2.$modal,
+      $finalPoints = _getFinalPointsPrevie2.$finalPoints;
+    if (!$modal.length || !$finalPoints.length || !window.axios) return;
+    var url = $modal.data("final-points-url");
+    if (!url) return;
+    $modal.removeData("final-points-value");
+    $finalPoints.text("");
+    window.axios.get(url, {
+      params: {
+        game: $modal.find('input[name="game"]').val(),
+        rounds: rounds,
+        score: score,
+        accuracy: accuracy,
+        duration: Math.max(0, Math.floor(Number(durationSec) || 0))
+      }
+    }).then(function (response) {
+      var _response$data$finalP, _response$data;
+      var value = (_response$data$finalP = response === null || response === void 0 || (_response$data = response.data) === null || _response$data === void 0 ? void 0 : _response$data.finalPoints) !== null && _response$data$finalP !== void 0 ? _response$data$finalP : response === null || response === void 0 ? void 0 : response.data;
+      $modal.data("final-points-value", value);
+      if ($modal.hasClass("show")) countFinalPoints(value);
+    })["catch"](function () {
+      $modal.data("final-points-value", "");
+      if ($modal.hasClass("show")) $finalPoints.text("");
+    });
+  };
+  var bindFinalPointsPreview = function bindFinalPointsPreview() {
+    var _getFinalPointsPrevie3 = getFinalPointsPreviewElements(),
+      $modal = _getFinalPointsPrevie3.$modal,
+      $finalPoints = _getFinalPointsPrevie3.$finalPoints;
+    if (!$modal.length || !$finalPoints.length) return;
+    $modal.off("show.bs.modal.finalPoints").on("show.bs.modal.finalPoints", function () {
+      $finalPoints.text("");
+    }).off("shown.bs.modal.finalPoints").on("shown.bs.modal.finalPoints", function () {
+      var value = $modal.data("final-points-value");
+      if (value == null) {
+        $finalPoints.text("...");
+        return;
+      }
+      countFinalPoints(value);
+    });
+  };
   var pushCountupTimer = function pushCountupTimer(id) {
     if (Array.isArray(countupTimers)) countupTimers.push(id);
   };
@@ -4278,6 +4388,7 @@ function renderFinalResultsOverlay(_ref) {
   };
   var $greeting = $finalOverlay.find("#result-greeting");
   var $greetingTitle = $greeting.find("h1");
+  var $settingsBonus = $finalOverlay.find("#settings-bonus-earned");
   var $resultImg = $finalOverlay.find("img").first();
   var resultGreetings = {
     encouraging: ["Keep going!", "Nice try!", "You are learning!", "Getting there!", "Good effort!", "Keep practicing!", "Almost there!", "Let's try that again!", "Try another round!", "You are getting closer!"],
@@ -4301,6 +4412,7 @@ function renderFinalResultsOverlay(_ref) {
       if (_cur.includes("plant.svg")) $resultImg.attr("src", _cur.replace("plant.svg", "trophy.svg"));
     }
   }
+  $settingsBonus.toggle(!!settingsBonus);
   $finalOverlay.show();
   var Confetti = ((_window2 = window) === null || _window2 === void 0 ? void 0 : _window2.Confetti) || ((_window3 = window) === null || _window3 === void 0 ? void 0 : _window3.confetti);
   if (typeof Confetti === "function") {
@@ -4326,6 +4438,8 @@ function renderFinalResultsOverlay(_ref) {
   setSaveResultField("score", score);
   setSaveResultField("accuracy", "".concat(accuracy, "%"));
   setSaveResultField("duration", mmss(durationSec));
+  bindFinalPointsPreview();
+  fetchFinalPointsPreview();
   if (typeof playFinalSfx === "function") playFinalSfx();
 }
 

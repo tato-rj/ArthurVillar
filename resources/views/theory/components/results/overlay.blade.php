@@ -3,6 +3,8 @@
 		<img src="{{asset('images/badges/trophy.svg')}}" width="220" class="animate__animated animate__rubberBand mb-">
 		<div id="result-greeting" class="text-center animate__animated animate__fadeInUp animate__faster mb-2">
 			<h1 class="m-0"></h1>
+
+			<div id="settings-bonus-earned" class="text-blue mt-1 fw-bold" style="display: none">@fa(['icon' => 'gem'])Bonus points earned</div>
 		</div>
 
 		<div class="row mb-4">
@@ -13,6 +15,7 @@
 				@include('theory.components.results.box', ['name' => 'duration', 'title' => 'TIME', 'color' => 'blue', 'icon' => 'clock'])
 			</div>
 		</div>
+
 		<div class="row mb-4">
 			<div class="col-lg-4 col-md-8 col-12 mx-auto"> 
 				<div class="px-3">
@@ -29,4 +32,4 @@
 	</div>
 </div>
 
-@include('theory.components.results.save')
+@include('theory.components.leaderboard.store')

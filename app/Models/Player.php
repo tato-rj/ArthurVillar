@@ -31,23 +31,25 @@ class Player extends BaseModel
         return $player;
     }
 
-    public function calculateFinalScore()
+    public function calculateFinalScore($results = null)
     {
-        $acc = $this->accuracy / 1000;
+        $model = $results ?? $this;
 
-        $timeFactor = pow(40 / ($this->duration + 10), 1.25);
+        $acc = $model->accuracy / 1000;
+
+        $timeFactor = pow(40 / ($model->duration + 10), 1.25);
 
         $result =
             (
-                pow($this->score, 1.08) *
+                pow($model->score, 1.08) *
                 $acc *
-                pow($this->rounds + 1, 0.35) *
+                pow($model->rounds + 1, 0.35) *
                 $timeFactor
             ) * 18.7;
 
-        return $this->update([
-            'finalScore' => (int) round($result)
-        ]);
+        return $results ? 
+            (int) round($result) : 
+            $this->update(['finalScore' => (int) round($result)]);
     }
 
     public function getAccuracyForHumansAttribute()

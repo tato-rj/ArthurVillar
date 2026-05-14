@@ -4,6 +4,7 @@ export function renderFinalResultsOverlay({
   score = 0,
   accuracy = 0,
   durationSec = 0,
+  settingsBonus = false,
   clearCountupTimers = null,
   countupTimers = null,
   animateMetrics = null,
@@ -40,6 +41,86 @@ export function renderFinalResultsOverlay({
     $input.val(String(value ?? "").trim());
   };
 
+  const getFinalPointsPreviewElements = () => {
+    const $modal = $("#save-results-modal");
+    const $finalPoints = $modal.find("#finalPoints");
+
+    return { $modal, $finalPoints };
+  };
+
+  const countFinalPoints = (value) => {
+    const { $finalPoints } = getFinalPointsPreviewElements();
+    if (!$finalPoints.length) return;
+
+    const finalPoints = Number(value);
+    if (!Number.isFinite(finalPoints)) {
+      $finalPoints.text(value ?? "");
+      return;
+    }
+
+    if (!CountUpCtor) {
+      $finalPoints.text(String(Math.round(finalPoints)));
+      return;
+    }
+
+    const counter = new CountUpCtor($finalPoints[0], finalPoints, {
+      duration: 1.4,
+      decimalPlaces: 0,
+    });
+    if (!counter.error) counter.start();
+    else $finalPoints.text(String(Math.round(finalPoints)));
+  };
+
+  const fetchFinalPointsPreview = () => {
+    const { $modal, $finalPoints } = getFinalPointsPreviewElements();
+    if (!$modal.length || !$finalPoints.length || !window.axios) return;
+
+    const url = $modal.data("final-points-url");
+    if (!url) return;
+
+    $modal.removeData("final-points-value");
+    $finalPoints.text("");
+
+    window.axios.get(url, {
+      params: {
+        game: $modal.find('input[name="game"]').val(),
+        rounds,
+        score,
+        accuracy,
+        duration: Math.max(0, Math.floor(Number(durationSec) || 0)),
+      },
+    }).then((response) => {
+      const value = response?.data?.finalPoints ?? response?.data;
+      $modal.data("final-points-value", value);
+
+      if ($modal.hasClass("show")) countFinalPoints(value);
+    }).catch(() => {
+      $modal.data("final-points-value", "");
+      if ($modal.hasClass("show")) $finalPoints.text("");
+    });
+  };
+
+  const bindFinalPointsPreview = () => {
+    const { $modal, $finalPoints } = getFinalPointsPreviewElements();
+    if (!$modal.length || !$finalPoints.length) return;
+
+    $modal
+      .off("show.bs.modal.finalPoints")
+      .on("show.bs.modal.finalPoints", () => {
+        $finalPoints.text("");
+      })
+      .off("shown.bs.modal.finalPoints")
+      .on("shown.bs.modal.finalPoints", () => {
+        const value = $modal.data("final-points-value");
+        if (value == null) {
+          $finalPoints.text("...");
+          return;
+        }
+
+        countFinalPoints(value);
+      });
+  };
+
   const pushCountupTimer = (id) => {
     if (Array.isArray(countupTimers)) countupTimers.push(id);
   };
@@ -73,6 +154,7 @@ export function renderFinalResultsOverlay({
 
   const $greeting = $finalOverlay.find("#result-greeting");
   const $greetingTitle = $greeting.find("h1");
+  const $settingsBonus = $finalOverlay.find("#settings-bonus-earned");
   const $resultImg = $finalOverlay.find("img").first();
   const resultGreetings = {
     encouraging: [
@@ -134,6 +216,7 @@ export function renderFinalResultsOverlay({
     }
   }
 
+  $settingsBonus.toggle(!!settingsBonus);
   $finalOverlay.show();
 
   const Confetti = window?.Confetti || window?.confetti;
@@ -158,6 +241,8 @@ export function renderFinalResultsOverlay({
   setSaveResultField("score", score);
   setSaveResultField("accuracy", `${accuracy}%`);
   setSaveResultField("duration", mmss(durationSec));
+  bindFinalPointsPreview();
+  fetchFinalPointsPreview();
 
   if (typeof playFinalSfx === "function") playFinalSfx();
 }

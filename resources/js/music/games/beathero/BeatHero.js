@@ -12,8 +12,11 @@ export class BeatHero {
     this._bpm = this._normalizeBpm(this.opts.bpm);
     this._includeRests = this._normalizeBoolOption(this.opts.includeRests);
     this._enabledNoteValues = this._normalizeNoteOptions(this.opts.notesValues || this.opts.notes);
-    this._rhythm = this._makeRandomRhythm();
-    this._previewRhythm = this._makeRandomRhythm();
+    this._numOfMeasures = this._normalizeMeasureCount(this.opts.numOfMeasures);
+    this._measures = [];
+    this._rhythm = [];
+    this._previewRhythm = null;
+    this._activeMeasureNumber = 1;
     this._metronomeInterval = null;
     this._metronomeStartTimeout = null;
     this._rhythmAnimationTimeouts = [];
@@ -25,6 +28,7 @@ export class BeatHero {
     this.$playWrap = null;
     this.$playPlayBtn = null;
     this.$playStopBtn = null;
+    this._resetMeasureQueue();
   }
 
   start() {
@@ -43,23 +47,45 @@ export class BeatHero {
     const previewWrapper = document.querySelector(this.opts.previewSelector);
     if (!wrapper && !previewWrapper) return;
 
-    this._renderRhythmMeasure({
-      wrapper: previewWrapper,
-      rhythm: this._previewRhythm,
-      showTimeSignature: false,
-    });
+    this._setPreviewWrapperVisible(Boolean(this._previewRhythm));
+
+    if (this._previewRhythm) {
+      this._renderRhythmMeasure({
+        wrapper: previewWrapper,
+        rhythm: this._previewRhythm,
+        showClef: false,
+        showTimeSignature: false,
+        showBarlines: false,
+        isFinalMeasure: this._activeMeasureNumber + 1 >= this._numOfMeasures,
+      });
+    } else {
+      this._clearRhythmMeasure(previewWrapper);
+    }
 
     this._renderRhythmMeasure({
       wrapper,
       rhythm: this._rhythm,
       showTimeSignature: true,
+      isFinalMeasure: this._activeMeasureNumber >= this._numOfMeasures,
     });
+  }
+
+  _setPreviewWrapperVisible(isVisible) {
+    const previewWrapper = document.querySelector(this.opts.previewSelector);
+    const previewContainer = previewWrapper?.closest("#preview-wrapper") || previewWrapper;
+    if (!previewContainer) return;
+
+    previewContainer.classList.toggle("d-none", !isVisible);
+    previewContainer.style.display = isVisible ? "block" : "none";
   }
 
   _renderRhythmMeasure({
     wrapper,
     rhythm,
+    showClef = true,
     showTimeSignature = true,
+    showBarlines = true,
+    isFinalMeasure = false,
   }) {
     if (!wrapper) return;
 
@@ -98,8 +124,11 @@ export class BeatHero {
       { visible: false },
     ]);
 
-    stave.addClef("percussion");
+    if (showClef) stave.addClef("percussion");
     if (showTimeSignature) stave.addTimeSignature(this._timeSignatureLabel());
+    if (isFinalMeasure) {
+      stave.setEndBarType?.(VF.Barline?.type?.END ?? 3);
+    }
     stave.setContext(context).draw();
 
     const stemDirection = VF.Stem?.UP || 1;
@@ -131,8 +160,16 @@ export class BeatHero {
     });
 
     this._alignVerticalStaveLines(wrapper);
+    if (!showBarlines) this._removeVerticalStaveLines(wrapper);
     this._extendRenderedStems(wrapper, 10);
     this._moveStemTopAttachments(wrapper, 10);
+  }
+
+  _clearRhythmMeasure(wrapper) {
+    if (!wrapper) return;
+
+    wrapper.innerHTML = "";
+    wrapper.classList.add("beat-hero-wrapper");
   }
 
   _showInitialControls() {
@@ -177,6 +214,11 @@ export class BeatHero {
       return;
     }
 
+    if (this._shouldRewindMeasureQueueForPlayback()) {
+      this._rewindMeasureQueue();
+      this.renderChallenge();
+    }
+
     this._setPlayButtons(true);
     this._metronomeIsStarting = true;
 
@@ -188,11 +230,12 @@ export class BeatHero {
 
         const intervalMs = 60000 / this._bpm;
         const playBeat = () => {
-          if (this._shouldStopAtEndOfMeasure()) {
+          if (this._shouldStopAtEndOfPiece()) {
             this._stopMetronome();
             return;
           }
 
+          this._advanceMeasureIfNeeded();
           this._playMetronomeClick(this._isMetronomeDownbeat());
           this._updateBeatCount(intervalMs);
           this._handleMetronomeBeat(intervalMs);
@@ -254,13 +297,23 @@ export class BeatHero {
     return this._metronomeTickIndex % groupSize === 0;
   }
 
-  _shouldStopAtEndOfMeasure() {
-    if (!this._rhythmPlaybackStarted) return false;
-
+  _shouldStopAtEndOfPiece() {
     const countInBeats = Math.max(1, this._timeSignature.beats);
-    const measureBeats = Math.max(1, this._timeSignature.beats);
+    const totalMeasureBeats = this._measurePlaybackBeats() * this._numOfMeasures;
 
-    return this._metronomeTickIndex >= countInBeats + measureBeats;
+    return this._metronomeTickIndex >= countInBeats + totalMeasureBeats;
+  }
+
+  _advanceMeasureIfNeeded() {
+    const countInBeats = Math.max(1, this._timeSignature.beats);
+    const measureBeats = this._measurePlaybackBeats();
+    if (this._metronomeTickIndex < countInBeats) return;
+
+    const elapsedMeasureBeats = this._metronomeTickIndex - countInBeats;
+    if (elapsedMeasureBeats === 0 || elapsedMeasureBeats % measureBeats !== 0) return;
+    if (this._activeMeasureNumber >= this._numOfMeasures) return;
+
+    this._promotePreviewMeasure();
   }
 
   _playMetronomeClick(isDownbeat = false) {
@@ -298,6 +351,17 @@ export class BeatHero {
 
     this._rhythmPlaybackStarted = true;
     this._scheduleRhythmAnimations(intervalMs);
+  }
+
+  _promotePreviewMeasure() {
+    if (!this._previewRhythm) return;
+
+    this._clearRhythmAnimationTimeouts();
+    this._clearRhythmNoteAnimations();
+    this._activeMeasureNumber += 1;
+    this._syncCurrentMeasures();
+    this._rhythmPlaybackStarted = false;
+    this.renderChallenge();
   }
 
   _scheduleRhythmAnimations(intervalMs) {
@@ -344,6 +408,7 @@ export class BeatHero {
     if (!notehead) return;
 
     this._setNoteheadHighlight(notehead, true);
+    GameAudio.playRhythmHit();
 
     const timeout = setTimeout(() => {
       this._setNoteheadHighlight(notehead, false);
@@ -454,6 +519,10 @@ export class BeatHero {
     if (Number.isFinite(x)) finalBarline.setAttribute("x", String(x + 2));
   }
 
+  _removeVerticalStaveLines(wrapper) {
+    wrapper.querySelectorAll("svg rect").forEach((rect) => rect.remove());
+  }
+
   _extendStems(notes, extension) {
     notes.forEach((note) => {
       const stem = note.getStem?.();
@@ -524,6 +593,10 @@ export class BeatHero {
     return this._timeSignature.beats * (4 / this._timeSignature.beatValue);
   }
 
+  _measurePlaybackBeats() {
+    return Math.max(1, this._timeSignature.beats);
+  }
+
   _durationToBeatBlocks(duration) {
     const noteDuration = this._durationWithoutRest(duration);
 
@@ -554,6 +627,43 @@ export class BeatHero {
     if (!Number.isFinite(bpm) || bpm <= 0) return 80;
 
     return bpm;
+  }
+
+  _normalizeMeasureCount(value) {
+    const count = Number(value);
+    if (!Number.isInteger(count) || count <= 0) return 1;
+
+    return count;
+  }
+
+  _resetMeasureQueue() {
+    this._activeMeasureNumber = 1;
+    this._measures = Array.from(
+      { length: this._numOfMeasures },
+      () => this._makeRandomRhythm(),
+    );
+    this._syncCurrentMeasures();
+  }
+
+  _rewindMeasureQueue() {
+    if (!this._measures.length) {
+      this._resetMeasureQueue();
+      return;
+    }
+
+    this._activeMeasureNumber = 1;
+    this._syncCurrentMeasures();
+  }
+
+  _syncCurrentMeasures() {
+    const currentIndex = Math.max(0, this._activeMeasureNumber - 1);
+
+    this._rhythm = this._measures[currentIndex] || [];
+    this._previewRhythm = this._measures[currentIndex + 1] || null;
+  }
+
+  _shouldRewindMeasureQueueForPlayback() {
+    return this._activeMeasureNumber > 1 || !this._rhythm.length;
   }
 
   _pickTimeSignature() {

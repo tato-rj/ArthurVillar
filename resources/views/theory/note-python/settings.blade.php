@@ -1,7 +1,7 @@
 @modal(['title' => fa('gear').'Game settings', 'id' => str_slug($settings->gameName()).'-settings-modal'])
 <form id="intervals-settings" method="GET" action="{{ $settings->gameUrl() }}">
   @component('theory.components.settings.section', ['title' => 'SETUP'])
-    @include('theory.components.settings.rounds')
+    @include('theory.components.settings.count', ['label' => 'Number of rounds', 'name' => 'numOfChallenges', 'min' => 2, 'max' => 12])
     @include('theory.components.settings.toggle', ['label' => 'Practice mode', 'name' => 'practiceMode'])
     @include('theory.components.settings.speed', ['speeds' => ['Slow', 'Fast', 'Crazy']])
   @endcomponent

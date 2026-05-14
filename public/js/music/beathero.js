@@ -50,8 +50,11 @@ var BeatHero = /*#__PURE__*/function () {
     this._bpm = this._normalizeBpm(this.opts.bpm);
     this._includeRests = this._normalizeBoolOption(this.opts.includeRests);
     this._enabledNoteValues = this._normalizeNoteOptions(this.opts.notesValues || this.opts.notes);
-    this._rhythm = this._makeRandomRhythm();
-    this._previewRhythm = this._makeRandomRhythm();
+    this._numOfMeasures = this._normalizeMeasureCount(this.opts.numOfMeasures);
+    this._measures = [];
+    this._rhythm = [];
+    this._previewRhythm = null;
+    this._activeMeasureNumber = 1;
     this._metronomeInterval = null;
     this._metronomeStartTimeout = null;
     this._rhythmAnimationTimeouts = [];
@@ -63,6 +66,7 @@ var BeatHero = /*#__PURE__*/function () {
     this.$playWrap = null;
     this.$playPlayBtn = null;
     this.$playStopBtn = null;
+    this._resetMeasureQueue();
   }
   return _createClass(BeatHero, [{
     key: "start",
@@ -84,16 +88,34 @@ var BeatHero = /*#__PURE__*/function () {
       var wrapper = document.querySelector(this.opts.wrapperSelector);
       var previewWrapper = document.querySelector(this.opts.previewSelector);
       if (!wrapper && !previewWrapper) return;
-      this._renderRhythmMeasure({
-        wrapper: previewWrapper,
-        rhythm: this._previewRhythm,
-        showTimeSignature: false
-      });
+      this._setPreviewWrapperVisible(Boolean(this._previewRhythm));
+      if (this._previewRhythm) {
+        this._renderRhythmMeasure({
+          wrapper: previewWrapper,
+          rhythm: this._previewRhythm,
+          showClef: false,
+          showTimeSignature: false,
+          showBarlines: false,
+          isFinalMeasure: this._activeMeasureNumber + 1 >= this._numOfMeasures
+        });
+      } else {
+        this._clearRhythmMeasure(previewWrapper);
+      }
       this._renderRhythmMeasure({
         wrapper: wrapper,
         rhythm: this._rhythm,
-        showTimeSignature: true
+        showTimeSignature: true,
+        isFinalMeasure: this._activeMeasureNumber >= this._numOfMeasures
       });
+    }
+  }, {
+    key: "_setPreviewWrapperVisible",
+    value: function _setPreviewWrapperVisible(isVisible) {
+      var previewWrapper = document.querySelector(this.opts.previewSelector);
+      var previewContainer = (previewWrapper === null || previewWrapper === void 0 ? void 0 : previewWrapper.closest("#preview-wrapper")) || previewWrapper;
+      if (!previewContainer) return;
+      previewContainer.classList.toggle("d-none", !isVisible);
+      previewContainer.style.display = isVisible ? "block" : "none";
     }
   }, {
     key: "_renderRhythmMeasure",
@@ -101,8 +123,14 @@ var BeatHero = /*#__PURE__*/function () {
       var _window$Vex, _VF$Stem;
       var wrapper = _ref.wrapper,
         rhythm = _ref.rhythm,
+        _ref$showClef = _ref.showClef,
+        showClef = _ref$showClef === void 0 ? true : _ref$showClef,
         _ref$showTimeSignatur = _ref.showTimeSignature,
-        showTimeSignature = _ref$showTimeSignatur === void 0 ? true : _ref$showTimeSignatur;
+        showTimeSignature = _ref$showTimeSignatur === void 0 ? true : _ref$showTimeSignatur,
+        _ref$showBarlines = _ref.showBarlines,
+        showBarlines = _ref$showBarlines === void 0 ? true : _ref$showBarlines,
+        _ref$isFinalMeasure = _ref.isFinalMeasure,
+        isFinalMeasure = _ref$isFinalMeasure === void 0 ? false : _ref$isFinalMeasure;
       if (!wrapper) return;
       wrapper.innerHTML = "";
       wrapper.classList.add("beat-hero-wrapper");
@@ -137,8 +165,12 @@ var BeatHero = /*#__PURE__*/function () {
       }, {
         visible: false
       }]);
-      stave.addClef("percussion");
+      if (showClef) stave.addClef("percussion");
       if (showTimeSignature) stave.addTimeSignature(this._timeSignatureLabel());
+      if (isFinalMeasure) {
+        var _stave$setEndBarType, _VF$Barline$type$END, _VF$Barline;
+        (_stave$setEndBarType = stave.setEndBarType) === null || _stave$setEndBarType === void 0 || _stave$setEndBarType.call(stave, (_VF$Barline$type$END = (_VF$Barline = VF.Barline) === null || _VF$Barline === void 0 || (_VF$Barline = _VF$Barline.type) === null || _VF$Barline === void 0 ? void 0 : _VF$Barline.END) !== null && _VF$Barline$type$END !== void 0 ? _VF$Barline$type$END : 3);
+      }
       stave.setContext(context).draw();
       var stemDirection = ((_VF$Stem = VF.Stem) === null || _VF$Stem === void 0 ? void 0 : _VF$Stem.UP) || 1;
       var glyphFontScale = this._rhythmNoteGlyphFontScale(wrapper);
@@ -166,8 +198,16 @@ var BeatHero = /*#__PURE__*/function () {
         width: width
       });
       this._alignVerticalStaveLines(wrapper);
+      if (!showBarlines) this._removeVerticalStaveLines(wrapper);
       this._extendRenderedStems(wrapper, 10);
       this._moveStemTopAttachments(wrapper, 10);
+    }
+  }, {
+    key: "_clearRhythmMeasure",
+    value: function _clearRhythmMeasure(wrapper) {
+      if (!wrapper) return;
+      wrapper.innerHTML = "";
+      wrapper.classList.add("beat-hero-wrapper");
     }
   }, {
     key: "_showInitialControls",
@@ -210,6 +250,10 @@ var BeatHero = /*#__PURE__*/function () {
         this._setPlayButtons(false);
         return;
       }
+      if (this._shouldRewindMeasureQueueForPlayback()) {
+        this._rewindMeasureQueue();
+        this.renderChallenge();
+      }
       this._setPlayButtons(true);
       this._metronomeIsStarting = true;
       this._ensureMetronomeAudio().then(function () {
@@ -218,10 +262,11 @@ var BeatHero = /*#__PURE__*/function () {
           if (!_this3._metronomeIsStarting) return;
           var intervalMs = 60000 / _this3._bpm;
           var playBeat = function playBeat() {
-            if (_this3._shouldStopAtEndOfMeasure()) {
+            if (_this3._shouldStopAtEndOfPiece()) {
               _this3._stopMetronome();
               return;
             }
+            _this3._advanceMeasureIfNeeded();
             _this3._playMetronomeClick(_this3._isMetronomeDownbeat());
             _this3._updateBeatCount(intervalMs);
             _this3._handleMetronomeBeat(intervalMs);
@@ -300,12 +345,22 @@ var BeatHero = /*#__PURE__*/function () {
       return this._metronomeTickIndex % groupSize === 0;
     }
   }, {
-    key: "_shouldStopAtEndOfMeasure",
-    value: function _shouldStopAtEndOfMeasure() {
-      if (!this._rhythmPlaybackStarted) return false;
+    key: "_shouldStopAtEndOfPiece",
+    value: function _shouldStopAtEndOfPiece() {
       var countInBeats = Math.max(1, this._timeSignature.beats);
-      var measureBeats = Math.max(1, this._timeSignature.beats);
-      return this._metronomeTickIndex >= countInBeats + measureBeats;
+      var totalMeasureBeats = this._measurePlaybackBeats() * this._numOfMeasures;
+      return this._metronomeTickIndex >= countInBeats + totalMeasureBeats;
+    }
+  }, {
+    key: "_advanceMeasureIfNeeded",
+    value: function _advanceMeasureIfNeeded() {
+      var countInBeats = Math.max(1, this._timeSignature.beats);
+      var measureBeats = this._measurePlaybackBeats();
+      if (this._metronomeTickIndex < countInBeats) return;
+      var elapsedMeasureBeats = this._metronomeTickIndex - countInBeats;
+      if (elapsedMeasureBeats === 0 || elapsedMeasureBeats % measureBeats !== 0) return;
+      if (this._activeMeasureNumber >= this._numOfMeasures) return;
+      this._promotePreviewMeasure();
     }
   }, {
     key: "_playMetronomeClick",
@@ -343,6 +398,17 @@ var BeatHero = /*#__PURE__*/function () {
       if (this._metronomeTickIndex < countInBeats) return;
       this._rhythmPlaybackStarted = true;
       this._scheduleRhythmAnimations(intervalMs);
+    }
+  }, {
+    key: "_promotePreviewMeasure",
+    value: function _promotePreviewMeasure() {
+      if (!this._previewRhythm) return;
+      this._clearRhythmAnimationTimeouts();
+      this._clearRhythmNoteAnimations();
+      this._activeMeasureNumber += 1;
+      this._syncCurrentMeasures();
+      this._rhythmPlaybackStarted = false;
+      this.renderChallenge();
     }
   }, {
     key: "_scheduleRhythmAnimations",
@@ -401,6 +467,7 @@ var BeatHero = /*#__PURE__*/function () {
       var notehead = note === null || note === void 0 ? void 0 : note.querySelector(".vf-notehead");
       if (!notehead) return;
       this._setNoteheadHighlight(notehead, true);
+      _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_0__.GameAudio.playRhythmHit();
       var timeout = setTimeout(function () {
         _this7._setNoteheadHighlight(notehead, false);
       }, 200);
@@ -519,6 +586,13 @@ var BeatHero = /*#__PURE__*/function () {
       if (Number.isFinite(x)) finalBarline.setAttribute("x", String(x + 2));
     }
   }, {
+    key: "_removeVerticalStaveLines",
+    value: function _removeVerticalStaveLines(wrapper) {
+      wrapper.querySelectorAll("svg rect").forEach(function (rect) {
+        return rect.remove();
+      });
+    }
+  }, {
     key: "_extendStems",
     value: function _extendStems(notes, extension) {
       notes.forEach(function (note) {
@@ -593,6 +667,11 @@ var BeatHero = /*#__PURE__*/function () {
       return this._timeSignature.beats * (4 / this._timeSignature.beatValue);
     }
   }, {
+    key: "_measurePlaybackBeats",
+    value: function _measurePlaybackBeats() {
+      return Math.max(1, this._timeSignature.beats);
+    }
+  }, {
     key: "_durationToBeatBlocks",
     value: function _durationToBeatBlocks(duration) {
       var noteDuration = this._durationWithoutRest(duration);
@@ -627,6 +706,47 @@ var BeatHero = /*#__PURE__*/function () {
       return bpm;
     }
   }, {
+    key: "_normalizeMeasureCount",
+    value: function _normalizeMeasureCount(value) {
+      var count = Number(value);
+      if (!Number.isInteger(count) || count <= 0) return 1;
+      return count;
+    }
+  }, {
+    key: "_resetMeasureQueue",
+    value: function _resetMeasureQueue() {
+      var _this9 = this;
+      this._activeMeasureNumber = 1;
+      this._measures = Array.from({
+        length: this._numOfMeasures
+      }, function () {
+        return _this9._makeRandomRhythm();
+      });
+      this._syncCurrentMeasures();
+    }
+  }, {
+    key: "_rewindMeasureQueue",
+    value: function _rewindMeasureQueue() {
+      if (!this._measures.length) {
+        this._resetMeasureQueue();
+        return;
+      }
+      this._activeMeasureNumber = 1;
+      this._syncCurrentMeasures();
+    }
+  }, {
+    key: "_syncCurrentMeasures",
+    value: function _syncCurrentMeasures() {
+      var currentIndex = Math.max(0, this._activeMeasureNumber - 1);
+      this._rhythm = this._measures[currentIndex] || [];
+      this._previewRhythm = this._measures[currentIndex + 1] || null;
+    }
+  }, {
+    key: "_shouldRewindMeasureQueueForPlayback",
+    value: function _shouldRewindMeasureQueueForPlayback() {
+      return this._activeMeasureNumber > 1 || !this._rhythm.length;
+    }
+  }, {
     key: "_pickTimeSignature",
     value: function _pickTimeSignature() {
       var signatures = this._normalizeTimeSignatures(this.opts.timeSignatures || this.opts.timeSignatues);
@@ -635,10 +755,10 @@ var BeatHero = /*#__PURE__*/function () {
   }, {
     key: "_normalizeTimeSignatures",
     value: function _normalizeTimeSignatures(timeSignatures) {
-      var _this9 = this;
+      var _this0 = this;
       var values = Array.isArray(timeSignatures) && timeSignatures.length ? timeSignatures : ["4/4"];
       var normalized = values.map(function (value) {
-        return _this9._parseTimeSignature(value);
+        return _this0._parseTimeSignature(value);
       }).filter(Boolean);
       return normalized.length ? normalized : [{
         beats: 4,
@@ -683,14 +803,14 @@ var BeatHero = /*#__PURE__*/function () {
   }, {
     key: "_makeRandomRhythm",
     value: function _makeRandomRhythm() {
-      var _this0 = this;
+      var _this1 = this;
       var rhythm = [];
       var rhythmCells = this._rhythmCellsForEnabledNotes();
       var beatsRemaining = this._measureBeatBlocks();
       var previousHadEighths = false;
       while (beatsRemaining > 0) {
         var fittingChoices = rhythmCells.filter(function (cell) {
-          return cell.beats <= beatsRemaining && _this0._canCompleteRhythm(beatsRemaining - cell.beats, rhythmCells);
+          return cell.beats <= beatsRemaining && _this1._canCompleteRhythm(beatsRemaining - cell.beats, rhythmCells);
         });
         var separatedChoices = fittingChoices.filter(function (cell) {
           return !(previousHadEighths && cell.hasEighths);
@@ -704,7 +824,7 @@ var BeatHero = /*#__PURE__*/function () {
         }
         var cell = safeChoices[Math.floor(Math.random() * safeChoices.length)];
         rhythm.push.apply(rhythm, _toConsumableArray(cell.durations.map(function (duration) {
-          return _this0._maybeRestDuration(duration);
+          return _this1._maybeRestDuration(duration);
         })));
         beatsRemaining -= cell.beats;
         previousHadEighths = cell.hasEighths;
@@ -714,11 +834,11 @@ var BeatHero = /*#__PURE__*/function () {
   }, {
     key: "_canCompleteRhythm",
     value: function _canCompleteRhythm(beatsRemaining, rhythmCells) {
-      var _this1 = this;
+      var _this10 = this;
       if (beatsRemaining === 0) return true;
       if (beatsRemaining < 0) return false;
       return rhythmCells.some(function (cell) {
-        return cell.beats <= beatsRemaining && _this1._canCompleteRhythm(beatsRemaining - cell.beats, rhythmCells);
+        return cell.beats <= beatsRemaining && _this10._canCompleteRhythm(beatsRemaining - cell.beats, rhythmCells);
       });
     }
   }, {
@@ -1121,6 +1241,9 @@ var GameAudio = /*#__PURE__*/function () {
                 metronomeDownbeat: function metronomeDownbeat() {
                   GameAudio.playMetronomeClick(true);
                 },
+                rhythmHit: function rhythmHit() {
+                  GameAudio.playRhythmHit();
+                },
                 hinge: function hinge() {
                   var noiseSynth = GameAudio._getPreviewSynth("uiNoise", function () {
                     return GameAudio.createUiNoiseSynth();
@@ -1248,6 +1371,33 @@ var GameAudio = /*#__PURE__*/function () {
       }).toDestination();
     }
   }, {
+    key: "playRhythmHit",
+    value: function playRhythmHit() {
+      if (!window.Tone) return;
+      var synth = GameAudio._getPreviewSynth("rhythmHit", function () {
+        return GameAudio.createRhythmHitSynth();
+      });
+      synth.triggerAttackRelease("C2", "8n", Tone.now(), GameAudio.scale("rhythmHit", 1));
+    }
+  }, {
+    key: "createRhythmHitSynth",
+    value: function createRhythmHitSynth() {
+      return new Tone.MembraneSynth({
+        pitchDecay: 0.035,
+        octaves: 2.5,
+        oscillator: {
+          type: "sine"
+        },
+        envelope: {
+          attack: 0.001,
+          decay: 0.12,
+          sustain: 0,
+          release: 0.06
+        },
+        volume: GameAudio.SYNTH_VOLUME_DB.rhythmHit
+      }).toDestination();
+    }
+  }, {
     key: "createStaffNoteSynth",
     value: function createStaffNoteSynth() {
       return new Tone.Synth({
@@ -1311,6 +1461,7 @@ _defineProperty(GameAudio, "SYNTH_VOLUME_DB", {
   uiNoise: -16,
   uiTimer: -14,
   metronome: -12,
+  rhythmHit: -10,
   staffNote: -8,
   dictation: -9,
   sequence: -9
@@ -1334,6 +1485,7 @@ _defineProperty(GameAudio, "VELOCITY", {
   countdownBeep: 1,
   metronomeBeat: 0.4,
   metronomeDownbeat: 0.6,
+  rhythmHit: 0.65,
   hinge: 0.55
 });
 _defineProperty(GameAudio, "SOUND_LIBRARY", [{
@@ -1426,6 +1578,11 @@ _defineProperty(GameAudio, "SOUND_LIBRARY", [{
   label: "Metronome Downbeat",
   volumeKey: "metronomeDownbeat",
   description: "Higher-pitched click on the first beat of each measure."
+}, {
+  id: "rhythmHit",
+  label: "Rhythm Hit",
+  volumeKey: "rhythmHit",
+  description: "Low percussive sound for Beat Hero rhythm notes."
 }, {
   id: "hinge",
   label: "Hinge",

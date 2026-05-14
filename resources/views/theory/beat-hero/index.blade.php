@@ -23,6 +23,7 @@
   }
 
   #preview-wrapper {
+    display: none;
     --rhythm-staff-width: 380px;
     width: var(--rhythm-staff-width);
     margin: 0 auto;
@@ -121,8 +122,8 @@
       @include('theory.components.timer')
     </div>
     <div class="col-12 mx-auto mb-2 position-relative">
-      <div id="preview-wrapper" class="rounded bg-white position-relative">
-        <label class="fw-bold text-grey position-absolute" style="font-size: 60%; top: 12px; left: 12px">NEXT MEASURE</label>
+      <div id="preview-wrapper" class="position-relative">
+        <div class="fw-bold text-grey text-right position-absolute" style="font-size: 60%; top: 46%; left: 30px">NEXT<br>MEASURE</div>
         <div id="preview-score" class="d-center opacity-4">
         </div>
       </div>

@@ -4,6 +4,7 @@ namespace App\Games;
 
 class BeatHeroSettings extends GameFactory
 {
+    protected array $bonusPoints = ['includeRests'];
     protected array $categories = ['rhythm', 'reading'];
 
     public function gameName(): string
@@ -38,7 +39,7 @@ class BeatHeroSettings extends GameFactory
 
     protected function requiredToggleKeys(): array
     {
-        return ['sound', 'showNoteNames', 'solfege', 'allowDottedRhythms', 'showDetails'];
+        return ['sound', 'showNoteNames', 'solfege', 'allowDottedRhythms', 'showDetails', 'includeRests'];
     }
 
     protected function defaults(): array
@@ -46,6 +47,7 @@ class BeatHeroSettings extends GameFactory
         return [
             'practiceMode' => false,
             'numOfChallenges' => 4,
+            'numOfMeasures' => 2,
             'bpm' => 80,
             'timeSignatures' => ['4/4'],
             'notesValues' => ['half', 'quarter', 'eigth'],
@@ -57,7 +59,8 @@ class BeatHeroSettings extends GameFactory
     public function options($key = null)
     {
         $options = $this->applyUserPreferences();
+        $array = $this->buildOptions($options);
 
-        return $key ? $options[$key] : $options;
+        return $key ? $array[$key] : $array;
     }
 }

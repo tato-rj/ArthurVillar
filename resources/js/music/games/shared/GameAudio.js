@@ -5,6 +5,7 @@ export class GameAudio {
     uiNoise: -16,
     uiTimer: -14,
     metronome: -12,
+    rhythmHit: -10,
     staffNote: -8,
     dictation: -9,
     sequence: -9,
@@ -29,6 +30,7 @@ export class GameAudio {
     countdownBeep: 1,
     metronomeBeat: 0.4,
     metronomeDownbeat: 0.6,
+    rhythmHit: 0.65,
     hinge: 0.55,
   };
 
@@ -140,6 +142,12 @@ export class GameAudio {
       label: "Metronome Downbeat",
       volumeKey: "metronomeDownbeat",
       description: "Higher-pitched click on the first beat of each measure.",
+    },
+    {
+      id: "rhythmHit",
+      label: "Rhythm Hit",
+      volumeKey: "rhythmHit",
+      description: "Low percussive sound for Beat Hero rhythm notes.",
     },
     {
       id: "hinge",
@@ -384,6 +392,9 @@ export class GameAudio {
       metronomeDownbeat: () => {
         GameAudio.playMetronomeClick(true);
       },
+      rhythmHit: () => {
+        GameAudio.playRhythmHit();
+      },
       hinge: () => {
         const noiseSynth = GameAudio._getPreviewSynth("uiNoise", () => GameAudio.createUiNoiseSynth());
         const synth = GameAudio._getPreviewSynth("uiTimer", () => GameAudio.createUiTimerSynth());
@@ -447,6 +458,23 @@ export class GameAudio {
       oscillator: { type: "square" },
       envelope: { attack: 0.001, decay: 0.04, sustain: 0, release: 0.01 },
       volume: GameAudio.SYNTH_VOLUME_DB.metronome,
+    }).toDestination();
+  }
+
+  static playRhythmHit() {
+    if (!window.Tone) return;
+
+    const synth = GameAudio._getPreviewSynth("rhythmHit", () => GameAudio.createRhythmHitSynth());
+    synth.triggerAttackRelease("C2", "8n", Tone.now(), GameAudio.scale("rhythmHit", 1));
+  }
+
+  static createRhythmHitSynth() {
+    return new Tone.MembraneSynth({
+      pitchDecay: 0.035,
+      octaves: 2.5,
+      oscillator: { type: "sine" },
+      envelope: { attack: 0.001, decay: 0.12, sustain: 0, release: 0.06 },
+      volume: GameAudio.SYNTH_VOLUME_DB.rhythmHit,
     }).toDestination();
   }
 

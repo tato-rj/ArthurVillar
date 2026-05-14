@@ -36,4 +36,9 @@ class LeaderboardsController extends Controller
             'newPlayer' => $player,
         ]);
     }
+
+    public function finalPoints(Request $request)
+    {
+        return (new Player)->calculateFinalScore($request);
+    }
 }
