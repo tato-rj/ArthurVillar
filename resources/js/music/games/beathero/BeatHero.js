@@ -12,6 +12,7 @@ export class BeatHero {
     this._timeSignature = this._pickTimeSignature();
     this._bpm = this._normalizeBpm(this.opts.bpm);
     this._includeRests = this._normalizeBoolOption(this.opts.includeRests);
+    this._useVoice = this._normalizeBoolOption(this.opts.useVoice);
     this._enabledNoteValues = this._normalizeNoteOptions(this.opts.notesValues || this.opts.notes);
     this._numOfMeasures = this._normalizeMeasureCount(this.opts.numOfMeasures);
     this._measures = [];
@@ -47,8 +48,10 @@ export class BeatHero {
   start() {
     this.renderChallenge();
     this._showInitialControls();
+    this._syncInputMode();
     this._wirePlayControls();
     this._wireTapControls();
+    if (this._useVoice) this._startVoiceInput();
 
     if (!this._resizeHandler) {
       this._resizeHandler = () => this.renderChallenge();
@@ -202,7 +205,7 @@ export class BeatHero {
       .off("click.beatHeroMetronome")
       .on("click.beatHeroMetronome", (event) => {
         event.preventDefault();
-        this._startVoiceInput();
+        if (this._useVoice) this._startVoiceInput();
         this._startMetronome();
       });
 
@@ -224,6 +227,14 @@ export class BeatHero {
       event.preventDefault();
       this._handleTap();
     });
+  }
+
+  _syncInputMode() {
+    const tapWrapper = document.querySelector(this.opts.tapSelector);
+    if (!tapWrapper) return;
+
+    tapWrapper.classList.toggle("d-none", this._useVoice);
+    tapWrapper.style.display = this._useVoice ? "none" : "";
   }
 
   _setPlayButtons(isPlaying) {
@@ -296,7 +307,7 @@ export class BeatHero {
     this._clearRhythmNoteAnimations();
     this._clearBeatCount();
     this._clearTapSchedule();
-    this._stopVoiceInput();
+    if (!this._useVoice) this._stopVoiceInput();
     this._metronomeTickIndex = 0;
     this._rhythmPlaybackStarted = false;
 
@@ -461,7 +472,7 @@ export class BeatHero {
     const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
     if (!AudioContextCtor) return Promise.resolve();
 
-    this._voiceInputStarting = true;
+      this._voiceInputStarting = true;
     return navigator.mediaDevices.getUserMedia({
       audio: {
         echoCancellation: true,
@@ -469,7 +480,7 @@ export class BeatHero {
         autoGainControl: true,
       },
     }).then((stream) => {
-      if (!this._metronomeIsStarting && !this._metronomeInterval) {
+      if (!this._useVoice && !this._metronomeIsStarting && !this._metronomeInterval) {
         stream.getTracks?.().forEach((track) => track.stop());
         this._voiceInputStarting = false;
         return;
@@ -797,7 +808,11 @@ export class BeatHero {
   }
 
   _normalizeBoolOption(value) {
-    return value === true || value === 1 || value === "1" || value === "true";
+    return (
+      value === true
+      || value === 1
+      || ["1", "true", "on", "yes"].includes(String(value).toLowerCase())
+    );
   }
 
   _normalizeBpm(value) {

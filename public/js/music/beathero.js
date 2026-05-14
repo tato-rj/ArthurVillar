@@ -50,6 +50,7 @@ var BeatHero = /*#__PURE__*/function () {
     this._timeSignature = this._pickTimeSignature();
     this._bpm = this._normalizeBpm(this.opts.bpm);
     this._includeRests = this._normalizeBoolOption(this.opts.includeRests);
+    this._useVoice = this._normalizeBoolOption(this.opts.useVoice);
     this._enabledNoteValues = this._normalizeNoteOptions(this.opts.notesValues || this.opts.notes);
     this._numOfMeasures = this._normalizeMeasureCount(this.opts.numOfMeasures);
     this._measures = [];
@@ -87,8 +88,10 @@ var BeatHero = /*#__PURE__*/function () {
       var _this = this;
       this.renderChallenge();
       this._showInitialControls();
+      this._syncInputMode();
       this._wirePlayControls();
       this._wireTapControls();
+      if (this._useVoice) this._startVoiceInput();
       if (!this._resizeHandler) {
         this._resizeHandler = function () {
           return _this.renderChallenge();
@@ -240,7 +243,7 @@ var BeatHero = /*#__PURE__*/function () {
       this.$playStopBtn = this.$playWrap.find('button[action="stop"]');
       this.$playPlayBtn.off("click.beatHeroMetronome").on("click.beatHeroMetronome", function (event) {
         event.preventDefault();
-        _this2._startVoiceInput();
+        if (_this2._useVoice) _this2._startVoiceInput();
         _this2._startMetronome();
       });
       this.$playStopBtn.off("click.beatHeroMetronome").on("click.beatHeroMetronome", function (event) {
@@ -259,6 +262,14 @@ var BeatHero = /*#__PURE__*/function () {
         event.preventDefault();
         _this3._handleTap();
       });
+    }
+  }, {
+    key: "_syncInputMode",
+    value: function _syncInputMode() {
+      var tapWrapper = document.querySelector(this.opts.tapSelector);
+      if (!tapWrapper) return;
+      tapWrapper.classList.toggle("d-none", this._useVoice);
+      tapWrapper.style.display = this._useVoice ? "none" : "";
     }
   }, {
     key: "_setPlayButtons",
@@ -329,7 +340,7 @@ var BeatHero = /*#__PURE__*/function () {
       this._clearRhythmNoteAnimations();
       this._clearBeatCount();
       this._clearTapSchedule();
-      this._stopVoiceInput();
+      if (!this._useVoice) this._stopVoiceInput();
       this._metronomeTickIndex = 0;
       this._rhythmPlaybackStarted = false;
       if (resetButtons) this._setPlayButtons(false);
@@ -520,7 +531,7 @@ var BeatHero = /*#__PURE__*/function () {
           autoGainControl: true
         }
       }).then(function (stream) {
-        if (!_this6._metronomeIsStarting && !_this6._metronomeInterval) {
+        if (!_this6._useVoice && !_this6._metronomeIsStarting && !_this6._metronomeInterval) {
           var _stream$getTracks;
           (_stream$getTracks = stream.getTracks) === null || _stream$getTracks === void 0 || _stream$getTracks.call(stream).forEach(function (track) {
             return track.stop();
@@ -883,7 +894,7 @@ var BeatHero = /*#__PURE__*/function () {
   }, {
     key: "_normalizeBoolOption",
     value: function _normalizeBoolOption(value) {
-      return value === true || value === 1 || value === "1" || value === "true";
+      return value === true || value === 1 || ["1", "true", "on", "yes"].includes(String(value).toLowerCase());
     }
   }, {
     key: "_normalizeBpm",

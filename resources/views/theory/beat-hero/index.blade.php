@@ -143,8 +143,10 @@
       </div>
       <div id="game-wrapper" class="position-relative">
       </div>
-      <div id="tap-wrapper" class="mx-auto mb-3 d-center noselect">
-        <h1 class="opacity-2 m-0">TAP HERE</h1>
+      <div id="tap-wrapper" class="mx-auto mb-3 noselect">
+        <div class="d-center h-100 w-100">
+          <h1 class="opacity-2 m-0">TAP HERE</h1>
+        </div>
       </div>
       @include('theory.components.prompt')
       @include('theory.components.feedback')

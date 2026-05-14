@@ -39,7 +39,7 @@ class BeatHeroSettings extends GameFactory
 
     protected function requiredToggleKeys(): array
     {
-        return ['sound', 'showNoteNames', 'solfege', 'allowDottedRhythms', 'showDetails', 'includeRests'];
+        return ['sound', 'showNoteNames', 'solfege', 'allowDottedRhythms', 'showDetails', 'includeRests', 'useVoice'];
     }
 
     protected function defaults(): array
@@ -52,7 +52,8 @@ class BeatHeroSettings extends GameFactory
             'timeSignatures' => ['4/4'],
             'notesValues' => ['half', 'quarter', 'eigth'],
             'sound' => true,
-            'includeRests' => false
+            'includeRests' => false,
+            'useVoice' => false
         ];
     }
 
