@@ -29,10 +29,17 @@
     margin: 0 auto;
   }
 
+  #preview-wrapper {
+    margin-bottom: -90px;
+  }
+
   #preview-score {
-    transform: scale(.6);
-    min-height: 90px !important;
-    height: 90px;
+    min-height: auto !important;
+    margin-top: -36px;
+  }
+
+  #preview-score svg {
+    height: 120px !important;
   }
 
   .beat-hero-wrapper svg {
@@ -89,7 +96,7 @@
 
   #beat-count {
     position: absolute;
-    right: 97%;
+    right: 98%;
     top: 46%;
     font-size: 2rem;
     font-weight: bold;
@@ -98,6 +105,14 @@
 
   .beat-animation {
     animation: slowFade 1200ms;
+  }
+
+  #tap-wrapper {
+    background: white;
+    border: 4px dashed lightgrey;
+    height: 160px;
+    width: 280px;
+
   }
 
   @keyframes slowFade {
@@ -122,12 +137,14 @@
       @include('theory.components.timer')
     </div>
     <div class="col-12 mx-auto mb-2 position-relative">
-      <div id="preview-wrapper" class="position-relative">
-        <div class="fw-bold text-grey text-right position-absolute" style="font-size: 60%; top: 46%; left: 30px">NEXT<br>MEASURE</div>
-        <div id="preview-score" class="d-center opacity-4">
-        </div>
+      <div id="preview-wrapper">
+        <div class="fw-bold text-grey text-center" style="font-size: 60%">UP NEXT</div>
+        <div id="preview-score" class="opacity-4"></div>
       </div>
       <div id="game-wrapper" class="position-relative">
+      </div>
+      <div id="tap-wrapper" class="mx-auto mb-3 d-center noselect">
+        <h1 class="opacity-2 m-0">TAP HERE</h1>
       </div>
       @include('theory.components.prompt')
       @include('theory.components.feedback')

@@ -43,7 +43,8 @@ var BeatHero = /*#__PURE__*/function () {
     _classCallCheck(this, BeatHero);
     this.opts = _objectSpread({
       wrapperSelector: "#game-wrapper",
-      previewSelector: "#preview-score"
+      previewSelector: "#preview-score",
+      tapSelector: "#tap-wrapper"
     }, options);
     this._resizeHandler = null;
     this._timeSignature = this._pickTimeSignature();
@@ -63,6 +64,18 @@ var BeatHero = /*#__PURE__*/function () {
     this._rhythmPlaybackStarted = false;
     this._metronomeAudioReady = false;
     this._metronomeIsStarting = false;
+    this._rhythmStartTime = null;
+    this._tapEvents = [];
+    this._tapWindowMs = 120;
+    this._voiceAudioContext = null;
+    this._voiceAnalyser = null;
+    this._voiceData = null;
+    this._voiceStream = null;
+    this._voiceFrame = null;
+    this._voiceBaseline = 0.02;
+    this._voiceIsActive = false;
+    this._voiceInputStarting = false;
+    this._lastVoiceTapTime = 0;
     this.$playWrap = null;
     this.$playPlayBtn = null;
     this.$playStopBtn = null;
@@ -75,6 +88,7 @@ var BeatHero = /*#__PURE__*/function () {
       this.renderChallenge();
       this._showInitialControls();
       this._wirePlayControls();
+      this._wireTapControls();
       if (!this._resizeHandler) {
         this._resizeHandler = function () {
           return _this.renderChallenge();
@@ -104,7 +118,7 @@ var BeatHero = /*#__PURE__*/function () {
       this._renderRhythmMeasure({
         wrapper: wrapper,
         rhythm: this._rhythm,
-        showTimeSignature: true,
+        showTimeSignature: this._activeMeasureNumber === 1,
         isFinalMeasure: this._activeMeasureNumber >= this._numOfMeasures
       });
     }
@@ -226,6 +240,7 @@ var BeatHero = /*#__PURE__*/function () {
       this.$playStopBtn = this.$playWrap.find('button[action="stop"]');
       this.$playPlayBtn.off("click.beatHeroMetronome").on("click.beatHeroMetronome", function (event) {
         event.preventDefault();
+        _this2._startVoiceInput();
         _this2._startMetronome();
       });
       this.$playStopBtn.off("click.beatHeroMetronome").on("click.beatHeroMetronome", function (event) {
@@ -233,6 +248,17 @@ var BeatHero = /*#__PURE__*/function () {
         _this2._stopMetronome();
       });
       this._setPlayButtons(false);
+    }
+  }, {
+    key: "_wireTapControls",
+    value: function _wireTapControls() {
+      var _this3 = this;
+      var tapWrapper = document.querySelector(this.opts.tapSelector);
+      if (!tapWrapper) return;
+      tapWrapper.addEventListener("pointerdown", function (event) {
+        event.preventDefault();
+        _this3._handleTap();
+      });
     }
   }, {
     key: "_setPlayButtons",
@@ -244,7 +270,7 @@ var BeatHero = /*#__PURE__*/function () {
   }, {
     key: "_startMetronome",
     value: function _startMetronome() {
-      var _this3 = this;
+      var _this4 = this;
       if (this._isMetronomeActive()) return;
       if (!window.Tone) {
         this._setPlayButtons(false);
@@ -257,31 +283,31 @@ var BeatHero = /*#__PURE__*/function () {
       this._setPlayButtons(true);
       this._metronomeIsStarting = true;
       this._ensureMetronomeAudio().then(function () {
-        if (!_this3._metronomeIsStarting) return;
-        _this3._metronomeStartTimeout = setTimeout(function () {
-          if (!_this3._metronomeIsStarting) return;
-          var intervalMs = 60000 / _this3._bpm;
+        if (!_this4._metronomeIsStarting) return;
+        _this4._metronomeStartTimeout = setTimeout(function () {
+          if (!_this4._metronomeIsStarting) return;
+          var intervalMs = 60000 / _this4._bpm;
           var playBeat = function playBeat() {
-            if (_this3._shouldStopAtEndOfPiece()) {
-              _this3._stopMetronome();
+            if (_this4._shouldStopAtEndOfPiece()) {
+              _this4._stopMetronome();
               return;
             }
-            _this3._advanceMeasureIfNeeded();
-            _this3._playMetronomeClick(_this3._isMetronomeDownbeat());
-            _this3._updateBeatCount(intervalMs);
-            _this3._handleMetronomeBeat(intervalMs);
-            _this3._metronomeTickIndex += 1;
+            _this4._advanceMeasureIfNeeded();
+            _this4._playMetronomeClick(_this4._isMetronomeDownbeat());
+            _this4._updateBeatCount(intervalMs);
+            _this4._handleMetronomeBeat(intervalMs);
+            _this4._metronomeTickIndex += 1;
           };
-          _this3._metronomeStartTimeout = null;
-          _this3._metronomeIsStarting = false;
-          _this3._metronomeTickIndex = 0;
-          _this3._rhythmPlaybackStarted = false;
+          _this4._metronomeStartTimeout = null;
+          _this4._metronomeIsStarting = false;
+          _this4._metronomeTickIndex = 0;
+          _this4._rhythmPlaybackStarted = false;
           playBeat();
-          _this3._metronomeInterval = setInterval(playBeat, intervalMs);
+          _this4._metronomeInterval = setInterval(playBeat, intervalMs);
         }, 1000);
       })["catch"](function () {
-        _this3._metronomeIsStarting = false;
-        _this3._setPlayButtons(false);
+        _this4._metronomeIsStarting = false;
+        _this4._setPlayButtons(false);
       });
     }
   }, {
@@ -302,6 +328,8 @@ var BeatHero = /*#__PURE__*/function () {
       this._clearRhythmAnimationTimeouts();
       this._clearRhythmNoteAnimations();
       this._clearBeatCount();
+      this._clearTapSchedule();
+      this._stopVoiceInput();
       this._metronomeTickIndex = 0;
       this._rhythmPlaybackStarted = false;
       if (resetButtons) this._setPlayButtons(false);
@@ -397,7 +425,7 @@ var BeatHero = /*#__PURE__*/function () {
       var countInBeats = Math.max(1, this._timeSignature.beats);
       if (this._metronomeTickIndex < countInBeats) return;
       this._rhythmPlaybackStarted = true;
-      this._scheduleRhythmAnimations(intervalMs);
+      this._prepareTapSchedule(intervalMs);
     }
   }, {
     key: "_promotePreviewMeasure",
@@ -405,34 +433,188 @@ var BeatHero = /*#__PURE__*/function () {
       if (!this._previewRhythm) return;
       this._clearRhythmAnimationTimeouts();
       this._clearRhythmNoteAnimations();
+      this._clearTapSchedule();
       this._activeMeasureNumber += 1;
       this._syncCurrentMeasures();
       this._rhythmPlaybackStarted = false;
       this.renderChallenge();
     }
   }, {
+    key: "_prepareTapSchedule",
+    value: function _prepareTapSchedule(intervalMs) {
+      var _this5 = this;
+      this._clearTapSchedule();
+      this._rhythmStartTime = performance.now();
+      this._tapWindowMs = this._tapTimingWindow(intervalMs);
+      this._tapEvents = this._rhythmPlaybackSchedule().filter(function (event) {
+        return !_this5._isRestDuration(event.duration);
+      }).map(function (event) {
+        return _objectSpread(_objectSpread({}, event), {}, {
+          time: _this5._rhythmStartTime + event.beatOffset * intervalMs,
+          tapped: false
+        });
+      });
+    }
+  }, {
+    key: "_clearTapSchedule",
+    value: function _clearTapSchedule() {
+      this._rhythmStartTime = null;
+      this._tapEvents = [];
+    }
+  }, {
+    key: "_tapTimingWindow",
+    value: function _tapTimingWindow(intervalMs) {
+      return Math.min(260, Math.max(130, intervalMs * 0.28));
+    }
+  }, {
+    key: "_handleTap",
+    value: function _handleTap() {
+      var event = this._findMatchingTapEvent(performance.now());
+      if (!event) {
+        console.log("Wrong tap");
+        return;
+      }
+      event.tapped = true;
+      console.log("Good tap");
+      this._animateRhythmNote(event.index);
+    }
+  }, {
+    key: "_findMatchingTapEvent",
+    value: function _findMatchingTapEvent(tapTime) {
+      var availableEvents = this._tapEvents.filter(function (event) {
+        return !event.tapped;
+      });
+      if (!availableEvents.length) return null;
+      var closestEvent = availableEvents.reduce(function (closest, event) {
+        var distance = Math.abs(event.time - tapTime);
+        if (!closest || distance < closest.distance) return {
+          event: event,
+          distance: distance
+        };
+        return closest;
+      }, null);
+      if (!closestEvent || closestEvent.distance > this._tapWindowMs) return null;
+      return closestEvent.event;
+    }
+  }, {
+    key: "_startVoiceInput",
+    value: function _startVoiceInput() {
+      var _navigator$mediaDevic,
+        _this6 = this;
+      if (this._voiceIsActive || this._voiceInputStarting) return Promise.resolve();
+      if (!window.isSecureContext) {
+        console.warn("Beat Hero voice input needs HTTPS or localhost to request microphone access.");
+        return Promise.resolve();
+      }
+      if (!((_navigator$mediaDevic = navigator.mediaDevices) !== null && _navigator$mediaDevic !== void 0 && _navigator$mediaDevic.getUserMedia)) {
+        console.warn("Beat Hero voice input is not supported by this browser.");
+        return Promise.resolve();
+      }
+      var AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextCtor) return Promise.resolve();
+      this._voiceInputStarting = true;
+      return navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        }
+      }).then(function (stream) {
+        if (!_this6._metronomeIsStarting && !_this6._metronomeInterval) {
+          var _stream$getTracks;
+          (_stream$getTracks = stream.getTracks) === null || _stream$getTracks === void 0 || _stream$getTracks.call(stream).forEach(function (track) {
+            return track.stop();
+          });
+          _this6._voiceInputStarting = false;
+          return;
+        }
+        _this6._voiceAudioContext = new AudioContextCtor();
+        _this6._voiceStream = stream;
+        var source = _this6._voiceAudioContext.createMediaStreamSource(stream);
+        _this6._voiceAnalyser = _this6._voiceAudioContext.createAnalyser();
+        _this6._voiceAnalyser.fftSize = 1024;
+        _this6._voiceData = new Uint8Array(_this6._voiceAnalyser.fftSize);
+        source.connect(_this6._voiceAnalyser);
+        _this6._voiceIsActive = true;
+        _this6._voiceInputStarting = false;
+        _this6._listenForVoiceTaps();
+      })["catch"](function () {
+        _this6._voiceInputStarting = false;
+      });
+    }
+  }, {
+    key: "_stopVoiceInput",
+    value: function _stopVoiceInput() {
+      var _this$_voiceStream, _this$_voiceStream$ge, _this$_voiceAudioCont, _this$_voiceAudioCont2;
+      if (this._voiceFrame) {
+        cancelAnimationFrame(this._voiceFrame);
+        this._voiceFrame = null;
+      }
+      (_this$_voiceStream = this._voiceStream) === null || _this$_voiceStream === void 0 || (_this$_voiceStream$ge = _this$_voiceStream.getTracks) === null || _this$_voiceStream$ge === void 0 || _this$_voiceStream$ge.call(_this$_voiceStream).forEach(function (track) {
+        return track.stop();
+      });
+      (_this$_voiceAudioCont = this._voiceAudioContext) === null || _this$_voiceAudioCont === void 0 || (_this$_voiceAudioCont2 = _this$_voiceAudioCont.close) === null || _this$_voiceAudioCont2 === void 0 || _this$_voiceAudioCont2.call(_this$_voiceAudioCont);
+      this._voiceAudioContext = null;
+      this._voiceAnalyser = null;
+      this._voiceData = null;
+      this._voiceStream = null;
+      this._voiceBaseline = 0.02;
+      this._voiceIsActive = false;
+      this._voiceInputStarting = false;
+      this._lastVoiceTapTime = 0;
+    }
+  }, {
+    key: "_listenForVoiceTaps",
+    value: function _listenForVoiceTaps() {
+      var _this7 = this;
+      if (!this._voiceAnalyser || !this._voiceData) return;
+      this._voiceAnalyser.getByteTimeDomainData(this._voiceData);
+      var level = this._voiceInputLevel(this._voiceData);
+      var now = performance.now();
+      var threshold = Math.max(0.09, this._voiceBaseline * 3.2);
+      this._voiceBaseline = this._voiceBaseline * 0.96 + Math.min(level, 0.18) * 0.04;
+      if (level > threshold && now - this._lastVoiceTapTime > 180) {
+        this._lastVoiceTapTime = now;
+        this._handleTap();
+      }
+      this._voiceFrame = requestAnimationFrame(function () {
+        return _this7._listenForVoiceTaps();
+      });
+    }
+  }, {
+    key: "_voiceInputLevel",
+    value: function _voiceInputLevel(data) {
+      var sum = 0;
+      data.forEach(function (value) {
+        var centered = (value - 128) / 128;
+        sum += centered * centered;
+      });
+      return Math.sqrt(sum / data.length);
+    }
+  }, {
     key: "_scheduleRhythmAnimations",
     value: function _scheduleRhythmAnimations(intervalMs) {
-      var _this4 = this;
+      var _this8 = this;
       this._clearRhythmAnimationTimeouts();
       this._rhythmPlaybackSchedule().forEach(function (event) {
         var timeout = setTimeout(function () {
-          _this4._animateRhythmNote(event.index);
+          _this8._animateRhythmNote(event.index);
         }, event.beatOffset * intervalMs);
-        _this4._rhythmAnimationTimeouts.push(timeout);
+        _this8._rhythmAnimationTimeouts.push(timeout);
       });
     }
   }, {
     key: "_rhythmPlaybackSchedule",
     value: function _rhythmPlaybackSchedule() {
-      var _this5 = this;
+      var _this9 = this;
       var beatOffset = 0;
       return this._rhythm.map(function (duration, index) {
         var event = {
           index: index,
-          beatOffset: beatOffset
+          beatOffset: beatOffset,
+          duration: duration
         };
-        beatOffset += _this5._durationToBeatBlocks(duration);
+        beatOffset += _this9._durationToBeatBlocks(duration);
         return event;
       });
     }
@@ -451,17 +633,17 @@ var BeatHero = /*#__PURE__*/function () {
   }, {
     key: "_clearRhythmNoteAnimations",
     value: function _clearRhythmNoteAnimations() {
-      var _this6 = this;
+      var _this0 = this;
       var wrapper = document.querySelector(this.opts.wrapperSelector);
       wrapper === null || wrapper === void 0 || wrapper.querySelectorAll(".vf-notehead.beat-hero-highlight, .vf-notehead.pulsate").forEach(function (notehead) {
-        _this6._setNoteheadHighlight(notehead, false);
+        _this0._setNoteheadHighlight(notehead, false);
       });
     }
   }, {
     key: "_animateRhythmNote",
     value: function _animateRhythmNote(index) {
       var _wrapper$querySelecto,
-        _this7 = this;
+        _this1 = this;
       var wrapper = document.querySelector(this.opts.wrapperSelector);
       var note = wrapper === null || wrapper === void 0 || (_wrapper$querySelecto = wrapper.querySelectorAll(".vf-stavenote")) === null || _wrapper$querySelecto === void 0 ? void 0 : _wrapper$querySelecto[index];
       var notehead = note === null || note === void 0 ? void 0 : note.querySelector(".vf-notehead");
@@ -469,7 +651,7 @@ var BeatHero = /*#__PURE__*/function () {
       this._setNoteheadHighlight(notehead, true);
       _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_0__.GameAudio.playRhythmHit();
       var timeout = setTimeout(function () {
-        _this7._setNoteheadHighlight(notehead, false);
+        _this1._setNoteheadHighlight(notehead, false);
       }, 200);
       this._rhythmHighlightTimeouts.push(timeout);
     }
@@ -524,7 +706,7 @@ var BeatHero = /*#__PURE__*/function () {
   }, {
     key: "_drawQuarterGrid",
     value: function _drawQuarterGrid(_ref4) {
-      var _this8 = this;
+      var _this10 = this;
       var VF = _ref4.VF,
         context = _ref4.context,
         stave = _ref4.stave,
@@ -551,7 +733,7 @@ var BeatHero = /*#__PURE__*/function () {
         var division = Math.max(0, (finalBarlineX - noteOffset) / beatCount);
         tickContext.setX(firstNoteX + beatCursor * division);
         note.draw();
-        beatCursor += _this8._durationToBeatBlocks(rhythm[index]);
+        beatCursor += _this10._durationToBeatBlocks(rhythm[index]);
       });
       beams.forEach(function (beam) {
         beam.setContext(context).draw();
@@ -688,6 +870,11 @@ var BeatHero = /*#__PURE__*/function () {
       return String(duration || "").replace(/r$/, "");
     }
   }, {
+    key: "_isRestDuration",
+    value: function _isRestDuration(duration) {
+      return String(duration || "").endsWith("r");
+    }
+  }, {
     key: "_maybeRestDuration",
     value: function _maybeRestDuration(duration) {
       if (!this._includeRests || Math.random() < 0.5) return duration;
@@ -715,12 +902,12 @@ var BeatHero = /*#__PURE__*/function () {
   }, {
     key: "_resetMeasureQueue",
     value: function _resetMeasureQueue() {
-      var _this9 = this;
+      var _this11 = this;
       this._activeMeasureNumber = 1;
       this._measures = Array.from({
         length: this._numOfMeasures
       }, function () {
-        return _this9._makeRandomRhythm();
+        return _this11._makeRandomRhythm();
       });
       this._syncCurrentMeasures();
     }
@@ -755,10 +942,10 @@ var BeatHero = /*#__PURE__*/function () {
   }, {
     key: "_normalizeTimeSignatures",
     value: function _normalizeTimeSignatures(timeSignatures) {
-      var _this0 = this;
+      var _this12 = this;
       var values = Array.isArray(timeSignatures) && timeSignatures.length ? timeSignatures : ["4/4"];
       var normalized = values.map(function (value) {
-        return _this0._parseTimeSignature(value);
+        return _this12._parseTimeSignature(value);
       }).filter(Boolean);
       return normalized.length ? normalized : [{
         beats: 4,
@@ -803,14 +990,14 @@ var BeatHero = /*#__PURE__*/function () {
   }, {
     key: "_makeRandomRhythm",
     value: function _makeRandomRhythm() {
-      var _this1 = this;
+      var _this13 = this;
       var rhythm = [];
       var rhythmCells = this._rhythmCellsForEnabledNotes();
       var beatsRemaining = this._measureBeatBlocks();
       var previousHadEighths = false;
       while (beatsRemaining > 0) {
         var fittingChoices = rhythmCells.filter(function (cell) {
-          return cell.beats <= beatsRemaining && _this1._canCompleteRhythm(beatsRemaining - cell.beats, rhythmCells);
+          return cell.beats <= beatsRemaining && _this13._canCompleteRhythm(beatsRemaining - cell.beats, rhythmCells);
         });
         var separatedChoices = fittingChoices.filter(function (cell) {
           return !(previousHadEighths && cell.hasEighths);
@@ -824,7 +1011,7 @@ var BeatHero = /*#__PURE__*/function () {
         }
         var cell = safeChoices[Math.floor(Math.random() * safeChoices.length)];
         rhythm.push.apply(rhythm, _toConsumableArray(cell.durations.map(function (duration) {
-          return _this1._maybeRestDuration(duration);
+          return _this13._maybeRestDuration(duration);
         })));
         beatsRemaining -= cell.beats;
         previousHadEighths = cell.hasEighths;
@@ -834,11 +1021,11 @@ var BeatHero = /*#__PURE__*/function () {
   }, {
     key: "_canCompleteRhythm",
     value: function _canCompleteRhythm(beatsRemaining, rhythmCells) {
-      var _this10 = this;
+      var _this14 = this;
       if (beatsRemaining === 0) return true;
       if (beatsRemaining < 0) return false;
       return rhythmCells.some(function (cell) {
-        return cell.beats <= beatsRemaining && _this10._canCompleteRhythm(beatsRemaining - cell.beats, rhythmCells);
+        return cell.beats <= beatsRemaining && _this14._canCompleteRhythm(beatsRemaining - cell.beats, rhythmCells);
       });
     }
   }, {

@@ -5,6 +5,7 @@ export class BeatHero {
     this.opts = {
       wrapperSelector: "#game-wrapper",
       previewSelector: "#preview-score",
+      tapSelector: "#tap-wrapper",
       ...options,
     };
     this._resizeHandler = null;
@@ -25,6 +26,18 @@ export class BeatHero {
     this._rhythmPlaybackStarted = false;
     this._metronomeAudioReady = false;
     this._metronomeIsStarting = false;
+    this._rhythmStartTime = null;
+    this._tapEvents = [];
+    this._tapWindowMs = 120;
+    this._voiceAudioContext = null;
+    this._voiceAnalyser = null;
+    this._voiceData = null;
+    this._voiceStream = null;
+    this._voiceFrame = null;
+    this._voiceBaseline = 0.02;
+    this._voiceIsActive = false;
+    this._voiceInputStarting = false;
+    this._lastVoiceTapTime = 0;
     this.$playWrap = null;
     this.$playPlayBtn = null;
     this.$playStopBtn = null;
@@ -35,6 +48,7 @@ export class BeatHero {
     this.renderChallenge();
     this._showInitialControls();
     this._wirePlayControls();
+    this._wireTapControls();
 
     if (!this._resizeHandler) {
       this._resizeHandler = () => this.renderChallenge();
@@ -65,7 +79,7 @@ export class BeatHero {
     this._renderRhythmMeasure({
       wrapper,
       rhythm: this._rhythm,
-      showTimeSignature: true,
+      showTimeSignature: this._activeMeasureNumber === 1,
       isFinalMeasure: this._activeMeasureNumber >= this._numOfMeasures,
     });
   }
@@ -188,6 +202,7 @@ export class BeatHero {
       .off("click.beatHeroMetronome")
       .on("click.beatHeroMetronome", (event) => {
         event.preventDefault();
+        this._startVoiceInput();
         this._startMetronome();
       });
 
@@ -199,6 +214,16 @@ export class BeatHero {
       });
 
     this._setPlayButtons(false);
+  }
+
+  _wireTapControls() {
+    const tapWrapper = document.querySelector(this.opts.tapSelector);
+    if (!tapWrapper) return;
+
+    tapWrapper.addEventListener("pointerdown", (event) => {
+      event.preventDefault();
+      this._handleTap();
+    });
   }
 
   _setPlayButtons(isPlaying) {
@@ -270,6 +295,8 @@ export class BeatHero {
     this._clearRhythmAnimationTimeouts();
     this._clearRhythmNoteAnimations();
     this._clearBeatCount();
+    this._clearTapSchedule();
+    this._stopVoiceInput();
     this._metronomeTickIndex = 0;
     this._rhythmPlaybackStarted = false;
 
@@ -350,7 +377,7 @@ export class BeatHero {
     if (this._metronomeTickIndex < countInBeats) return;
 
     this._rhythmPlaybackStarted = true;
-    this._scheduleRhythmAnimations(intervalMs);
+    this._prepareTapSchedule(intervalMs);
   }
 
   _promotePreviewMeasure() {
@@ -358,10 +385,157 @@ export class BeatHero {
 
     this._clearRhythmAnimationTimeouts();
     this._clearRhythmNoteAnimations();
+    this._clearTapSchedule();
     this._activeMeasureNumber += 1;
     this._syncCurrentMeasures();
     this._rhythmPlaybackStarted = false;
     this.renderChallenge();
+  }
+
+  _prepareTapSchedule(intervalMs) {
+    this._clearTapSchedule();
+    this._rhythmStartTime = performance.now();
+    this._tapWindowMs = this._tapTimingWindow(intervalMs);
+    this._tapEvents = this._rhythmPlaybackSchedule()
+      .filter((event) => !this._isRestDuration(event.duration))
+      .map((event) => ({
+        ...event,
+        time: this._rhythmStartTime + (event.beatOffset * intervalMs),
+        tapped: false,
+      }));
+  }
+
+  _clearTapSchedule() {
+    this._rhythmStartTime = null;
+    this._tapEvents = [];
+  }
+
+  _tapTimingWindow(intervalMs) {
+    return Math.min(260, Math.max(130, intervalMs * 0.28));
+  }
+
+  _handleTap() {
+    const event = this._findMatchingTapEvent(performance.now());
+    if (!event) {
+      console.log("Wrong tap");
+      return;
+    }
+
+    event.tapped = true;
+    console.log("Good tap");
+    this._animateRhythmNote(event.index);
+  }
+
+  _findMatchingTapEvent(tapTime) {
+    const availableEvents = this._tapEvents.filter((event) => !event.tapped);
+    if (!availableEvents.length) return null;
+
+    const closestEvent = availableEvents.reduce((closest, event) => {
+      const distance = Math.abs(event.time - tapTime);
+      if (!closest || distance < closest.distance) return { event, distance };
+
+      return closest;
+    }, null);
+
+    if (!closestEvent || closestEvent.distance > this._tapWindowMs) return null;
+
+    return closestEvent.event;
+  }
+
+  _startVoiceInput() {
+    if (
+      this._voiceIsActive
+      || this._voiceInputStarting
+    ) return Promise.resolve();
+
+    if (!window.isSecureContext) {
+      console.warn("Beat Hero voice input needs HTTPS or localhost to request microphone access.");
+      return Promise.resolve();
+    }
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      console.warn("Beat Hero voice input is not supported by this browser.");
+      return Promise.resolve();
+    }
+
+    const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextCtor) return Promise.resolve();
+
+    this._voiceInputStarting = true;
+    return navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+      },
+    }).then((stream) => {
+      if (!this._metronomeIsStarting && !this._metronomeInterval) {
+        stream.getTracks?.().forEach((track) => track.stop());
+        this._voiceInputStarting = false;
+        return;
+      }
+
+      this._voiceAudioContext = new AudioContextCtor();
+      this._voiceStream = stream;
+      const source = this._voiceAudioContext.createMediaStreamSource(stream);
+      this._voiceAnalyser = this._voiceAudioContext.createAnalyser();
+      this._voiceAnalyser.fftSize = 1024;
+      this._voiceData = new Uint8Array(this._voiceAnalyser.fftSize);
+      source.connect(this._voiceAnalyser);
+
+      this._voiceIsActive = true;
+      this._voiceInputStarting = false;
+      this._listenForVoiceTaps();
+    }).catch(() => {
+      this._voiceInputStarting = false;
+    });
+  }
+
+  _stopVoiceInput() {
+    if (this._voiceFrame) {
+      cancelAnimationFrame(this._voiceFrame);
+      this._voiceFrame = null;
+    }
+
+    this._voiceStream?.getTracks?.().forEach((track) => track.stop());
+    this._voiceAudioContext?.close?.();
+    this._voiceAudioContext = null;
+    this._voiceAnalyser = null;
+    this._voiceData = null;
+    this._voiceStream = null;
+    this._voiceBaseline = 0.02;
+    this._voiceIsActive = false;
+    this._voiceInputStarting = false;
+    this._lastVoiceTapTime = 0;
+  }
+
+  _listenForVoiceTaps() {
+    if (!this._voiceAnalyser || !this._voiceData) return;
+
+    this._voiceAnalyser.getByteTimeDomainData(this._voiceData);
+    const level = this._voiceInputLevel(this._voiceData);
+    const now = performance.now();
+    const threshold = Math.max(0.09, this._voiceBaseline * 3.2);
+
+    this._voiceBaseline = (this._voiceBaseline * 0.96) + (Math.min(level, 0.18) * 0.04);
+
+    if (level > threshold && now - this._lastVoiceTapTime > 180) {
+      this._lastVoiceTapTime = now;
+      this._handleTap();
+    }
+
+    this._voiceFrame = requestAnimationFrame(() => this._listenForVoiceTaps());
+  }
+
+  _voiceInputLevel(data) {
+    let sum = 0;
+
+    data.forEach((value) => {
+      const centered = (value - 128) / 128;
+      sum += centered * centered;
+    });
+
+    return Math.sqrt(sum / data.length);
   }
 
   _scheduleRhythmAnimations(intervalMs) {
@@ -380,7 +554,7 @@ export class BeatHero {
     let beatOffset = 0;
 
     return this._rhythm.map((duration, index) => {
-      const event = { index, beatOffset };
+      const event = { index, beatOffset, duration };
       beatOffset += this._durationToBeatBlocks(duration);
 
       return event;
@@ -610,6 +784,10 @@ export class BeatHero {
 
   _durationWithoutRest(duration) {
     return String(duration || "").replace(/r$/, "");
+  }
+
+  _isRestDuration(duration) {
+    return String(duration || "").endsWith("r");
   }
 
   _maybeRestDuration(duration) {

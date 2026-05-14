@@ -8,7 +8,7 @@
 <div class="mb-3">
     <div style="font-size: 65%" class="text-center lh-1 fw-bold text-muted">FINAL POINTS</div>
     <h1 id="finalPoints" class="text-center lh-1 text-primary" style="font-size: 4rem;"></h1>
-    <p class="m-0 fst-italic text-muted small">@fa(['icon' => 'lightbulb', 'fa_color' => 'yellow'])<strong>How is this score calculated?</strong> Higher score, better accuracy, more rounds, and faster time will all increase your final points.</p>
+    <p class="m-0 fst-italic text-muted small">@fa(['icon' => 'lightbulb', 'fa_color' => 'yellow'])<strong>How is this calculated?</strong> Higher score, better accuracy, more rounds, faster time, and bonus settings will all increase your final points.</p>
 </div>
 
 <form method="POST" action="{{route('theory.leaderboard.store')}}">

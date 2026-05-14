@@ -1,4 +1,3 @@
-@if(local())
 @modal(['title' => fa('gear').'Game settings', 'id' => str_slug($settings->gameName()).'-settings-modal'])
 <form id="intervals-settings" method="GET" action="{{ $settings->gameUrl() }}">
   @component('theory.components.settings.section', ['title' => 'SETUP'])
@@ -21,4 +20,3 @@
   <button type="submit" class="btn btn-primary w-100">Start new game</button>
 </form>
 @endmodal
-@endif
