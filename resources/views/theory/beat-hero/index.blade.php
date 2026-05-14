@@ -106,7 +106,29 @@
   }
 
   .beat-animation {
-    animation: slowFade 1200ms;
+    animation: fadeAnimation 1200ms;
+  }
+
+  .good-tap {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: o;
+    background: #58cc02;
+    animation: fadeAnimation 500ms;
+    opacity: 0;
+  }
+
+  .bad-tap {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: o;
+    background: #ffc800;
+    animation: fadeAnimation 500ms;
+    opacity: 0;
   }
 
   #tap-wrapper {
@@ -117,15 +139,16 @@
 
   }
 
-  @keyframes slowFade {
+  @keyframes fadeAnimation {
     0% {
-      opacity: 1;
+      opacity: .8;
     }
 
     100% {
       opacity: 0;
     }
   }
+
 </style>
 @endpush
 
@@ -145,7 +168,16 @@
       </div>
       <div id="game-wrapper" class="position-relative">
       </div>
-      <div id="tap-wrapper" class="mx-auto mb-3 noselect">
+      <div id="feedback-count" class="d-center fw-bold mb-2">
+        <div class="feedback-count-good mx-3 text-green">
+          @fa(['icon' => 'check', 'mr' => 1])correct <span></span>
+        </div>
+        <div class="feedback-count-bad mx-3 text-red">
+          @fa(['icon' => 'times', 'mr' => 1])missed <span></span>
+        </div>
+      </div>
+      <div id="tap-wrapper" class="mx-auto mb-3 noselect position-relative">
+        <div id="tap-feedback"></div>
         <div class="d-center h-100 w-100">
           <h1 class="opacity-2 m-0">TAP HERE</h1>
         </div>

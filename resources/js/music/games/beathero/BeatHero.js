@@ -42,6 +42,8 @@ export class BeatHero {
     this._voiceInputStarting = false;
     this._lastVoiceTapTime = 0;
     this._voiceTapOffsetMs = 120;
+    this._goodTapCount = 0;
+    this._badTapCount = 0;
     this.$playWrap = null;
     this.$playPlayBtn = null;
     this.$playStopBtn = null;
@@ -50,6 +52,7 @@ export class BeatHero {
 
   start() {
     this.renderChallenge();
+    this._resetTapFeedbackCounts();
     this._showInitialControls();
     this._syncInputMode();
     this._wirePlayControls();
@@ -257,6 +260,7 @@ export class BeatHero {
       this._rewindMeasureQueue();
       this.renderChallenge();
     }
+    this._resetTapFeedbackCounts();
 
     this._setPlayButtons(true);
     this._metronomeIsStarting = true;
@@ -441,12 +445,41 @@ export class BeatHero {
     const event = this._findMatchingTapEvent(tapTime, timingWindow);
     if (!event) {
       console.log("Wrong tap");
+      this._badTapCount += 1;
+      this._renderTapFeedbackCounts();
+      this._animateTapFeedback("bad-tap");
       return;
     }
 
     event.tapped = true;
     console.log("Good tap");
+    this._goodTapCount += 1;
+    this._renderTapFeedbackCounts();
+    this._animateTapFeedback("good-tap");
     this._animateRhythmNote(event.index);
+  }
+
+  _resetTapFeedbackCounts() {
+    this._goodTapCount = 0;
+    this._badTapCount = 0;
+    this._renderTapFeedbackCounts();
+  }
+
+  _renderTapFeedbackCounts() {
+    const goodCount = document.querySelector("#feedback-count .feedback-count-good span");
+    const badCount = document.querySelector("#feedback-count .feedback-count-bad span");
+
+    if (goodCount) goodCount.textContent = String(this._goodTapCount);
+    if (badCount) badCount.textContent = String(this._badTapCount);
+  }
+
+  _animateTapFeedback(className) {
+    const feedback = document.querySelector("#tap-feedback");
+    if (!feedback) return;
+
+    feedback.classList.remove("good-tap", "bad-tap");
+    void feedback.offsetWidth;
+    feedback.classList.add(className);
   }
 
   _findMatchingTapEvent(tapTime, timingWindow = this._tapWindowMs) {

@@ -80,6 +80,8 @@ var BeatHero = /*#__PURE__*/function () {
     this._voiceInputStarting = false;
     this._lastVoiceTapTime = 0;
     this._voiceTapOffsetMs = 120;
+    this._goodTapCount = 0;
+    this._badTapCount = 0;
     this.$playWrap = null;
     this.$playPlayBtn = null;
     this.$playStopBtn = null;
@@ -90,6 +92,7 @@ var BeatHero = /*#__PURE__*/function () {
     value: function start() {
       var _this = this;
       this.renderChallenge();
+      this._resetTapFeedbackCounts();
       this._showInitialControls();
       this._syncInputMode();
       this._wirePlayControls();
@@ -294,6 +297,7 @@ var BeatHero = /*#__PURE__*/function () {
         this._rewindMeasureQueue();
         this.renderChallenge();
       }
+      this._resetTapFeedbackCounts();
       this._setPlayButtons(true);
       this._metronomeIsStarting = true;
       this._ensureMetronomeAudio().then(function () {
@@ -498,11 +502,41 @@ var BeatHero = /*#__PURE__*/function () {
       var event = this._findMatchingTapEvent(tapTime, timingWindow);
       if (!event) {
         console.log("Wrong tap");
+        this._badTapCount += 1;
+        this._renderTapFeedbackCounts();
+        this._animateTapFeedback("bad-tap");
         return;
       }
       event.tapped = true;
       console.log("Good tap");
+      this._goodTapCount += 1;
+      this._renderTapFeedbackCounts();
+      this._animateTapFeedback("good-tap");
       this._animateRhythmNote(event.index);
+    }
+  }, {
+    key: "_resetTapFeedbackCounts",
+    value: function _resetTapFeedbackCounts() {
+      this._goodTapCount = 0;
+      this._badTapCount = 0;
+      this._renderTapFeedbackCounts();
+    }
+  }, {
+    key: "_renderTapFeedbackCounts",
+    value: function _renderTapFeedbackCounts() {
+      var goodCount = document.querySelector("#feedback-count .feedback-count-good span");
+      var badCount = document.querySelector("#feedback-count .feedback-count-bad span");
+      if (goodCount) goodCount.textContent = String(this._goodTapCount);
+      if (badCount) badCount.textContent = String(this._badTapCount);
+    }
+  }, {
+    key: "_animateTapFeedback",
+    value: function _animateTapFeedback(className) {
+      var feedback = document.querySelector("#tap-feedback");
+      if (!feedback) return;
+      feedback.classList.remove("good-tap", "bad-tap");
+      void feedback.offsetWidth;
+      feedback.classList.add(className);
     }
   }, {
     key: "_findMatchingTapEvent",
