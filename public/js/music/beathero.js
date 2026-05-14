@@ -68,12 +68,14 @@ var BeatHero = /*#__PURE__*/function () {
     this._rhythmStartTime = null;
     this._tapEvents = [];
     this._tapWindowMs = 120;
+    this._voiceTapWindowMs = 180;
     this._voiceAudioContext = null;
     this._voiceAnalyser = null;
     this._voiceData = null;
     this._voiceStream = null;
     this._voiceFrame = null;
     this._voiceBaseline = 0.02;
+    this._voicePreviousLevel = 0;
     this._voiceIsActive = false;
     this._voiceInputStarting = false;
     this._lastVoiceTapTime = 0;
@@ -458,6 +460,7 @@ var BeatHero = /*#__PURE__*/function () {
       this._clearTapSchedule();
       this._rhythmStartTime = performance.now();
       this._tapWindowMs = this._tapTimingWindow(intervalMs);
+      this._voiceTapWindowMs = this._voiceTapTimingWindow(intervalMs);
       this._tapEvents = this._rhythmPlaybackSchedule().filter(function (event) {
         return !_this5._isRestDuration(event.duration);
       }).map(function (event) {
@@ -479,6 +482,11 @@ var BeatHero = /*#__PURE__*/function () {
       return Math.min(260, Math.max(130, intervalMs * 0.28));
     }
   }, {
+    key: "_voiceTapTimingWindow",
+    value: function _voiceTapTimingWindow(intervalMs) {
+      return Math.min(360, Math.max(190, intervalMs * 0.42));
+    }
+  }, {
     key: "_handleTap",
     value: function _handleTap() {
       this._handleTapAt(performance.now());
@@ -486,7 +494,8 @@ var BeatHero = /*#__PURE__*/function () {
   }, {
     key: "_handleTapAt",
     value: function _handleTapAt(tapTime) {
-      var event = this._findMatchingTapEvent(tapTime);
+      var timingWindow = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : this._tapWindowMs;
+      var event = this._findMatchingTapEvent(tapTime, timingWindow);
       if (!event) {
         console.log("Wrong tap");
         return;
@@ -498,6 +507,7 @@ var BeatHero = /*#__PURE__*/function () {
   }, {
     key: "_findMatchingTapEvent",
     value: function _findMatchingTapEvent(tapTime) {
+      var timingWindow = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : this._tapWindowMs;
       var availableEvents = this._tapEvents.filter(function (event) {
         return !event.tapped;
       });
@@ -510,7 +520,7 @@ var BeatHero = /*#__PURE__*/function () {
         };
         return closest;
       }, null);
-      if (!closestEvent || closestEvent.distance > this._tapWindowMs) return null;
+      if (!closestEvent || closestEvent.distance > timingWindow) return null;
       return closestEvent.event;
     }
   }, {
@@ -576,6 +586,7 @@ var BeatHero = /*#__PURE__*/function () {
       this._voiceData = null;
       this._voiceStream = null;
       this._voiceBaseline = 0.02;
+      this._voicePreviousLevel = 0;
       this._voiceIsActive = false;
       this._voiceInputStarting = false;
       this._lastVoiceTapTime = 0;
@@ -588,12 +599,17 @@ var BeatHero = /*#__PURE__*/function () {
       this._voiceAnalyser.getByteTimeDomainData(this._voiceData);
       var level = this._voiceInputLevel(this._voiceData);
       var now = performance.now();
-      var threshold = Math.max(0.055, this._voiceBaseline * 2.4);
-      this._voiceBaseline = this._voiceBaseline * 0.96 + Math.min(level, 0.18) * 0.04;
-      if (level > threshold && now - this._lastVoiceTapTime > 140) {
+      var threshold = Math.max(0.038, this._voiceBaseline * 1.9);
+      var attackThreshold = Math.max(0.014, this._voiceBaseline * 0.55);
+      var attack = level - this._voicePreviousLevel;
+      var isVoiceTap = level > threshold && attack > attackThreshold || level > Math.max(0.07, this._voiceBaseline * 2.8);
+      var baselineRate = level > threshold ? 0.012 : 0.045;
+      this._voiceBaseline = this._voiceBaseline * (1 - baselineRate) + Math.min(level, 0.14) * baselineRate;
+      if (isVoiceTap && now - this._lastVoiceTapTime > 120) {
         this._lastVoiceTapTime = now;
-        this._handleTapAt(now - this._voiceTapOffsetMs);
+        this._handleTapAt(now - this._voiceTapOffsetMs, this._voiceTapWindowMs);
       }
+      this._voicePreviousLevel = level;
       this._voiceFrame = requestAnimationFrame(function () {
         return _this7._listenForVoiceTaps();
       });

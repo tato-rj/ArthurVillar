@@ -20,6 +20,7 @@
     {{-- overflow: hidden; --}}
     margin-left: auto;
     margin-right: auto;
+    margin-bottom: -20px;
   }
 
   #preview-wrapper {
@@ -137,9 +138,9 @@
       @include('theory.components.timer')
     </div>
     <div class="col-12 mx-auto mb-2 position-relative">
-      <div id="preview-wrapper">
-        <div class="fw-bold text-grey text-center" style="font-size: 60%">UP NEXT</div>
-        <div id="preview-score" class="opacity-4"></div>
+      <div id="preview-wrapper" class="opacity-2">
+        <div class="fw-bold text-center" style="font-size: 60%">UP NEXT</div>
+        <div id="preview-score"></div>
       </div>
       <div id="game-wrapper" class="position-relative">
       </div>

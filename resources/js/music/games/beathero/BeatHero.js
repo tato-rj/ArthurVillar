@@ -30,12 +30,14 @@ export class BeatHero {
     this._rhythmStartTime = null;
     this._tapEvents = [];
     this._tapWindowMs = 120;
+    this._voiceTapWindowMs = 180;
     this._voiceAudioContext = null;
     this._voiceAnalyser = null;
     this._voiceData = null;
     this._voiceStream = null;
     this._voiceFrame = null;
     this._voiceBaseline = 0.02;
+    this._voicePreviousLevel = 0;
     this._voiceIsActive = false;
     this._voiceInputStarting = false;
     this._lastVoiceTapTime = 0;
@@ -408,6 +410,7 @@ export class BeatHero {
     this._clearTapSchedule();
     this._rhythmStartTime = performance.now();
     this._tapWindowMs = this._tapTimingWindow(intervalMs);
+    this._voiceTapWindowMs = this._voiceTapTimingWindow(intervalMs);
     this._tapEvents = this._rhythmPlaybackSchedule()
       .filter((event) => !this._isRestDuration(event.duration))
       .map((event) => ({
@@ -426,12 +429,16 @@ export class BeatHero {
     return Math.min(260, Math.max(130, intervalMs * 0.28));
   }
 
+  _voiceTapTimingWindow(intervalMs) {
+    return Math.min(360, Math.max(190, intervalMs * 0.42));
+  }
+
   _handleTap() {
     this._handleTapAt(performance.now());
   }
 
-  _handleTapAt(tapTime) {
-    const event = this._findMatchingTapEvent(tapTime);
+  _handleTapAt(tapTime, timingWindow = this._tapWindowMs) {
+    const event = this._findMatchingTapEvent(tapTime, timingWindow);
     if (!event) {
       console.log("Wrong tap");
       return;
@@ -442,7 +449,7 @@ export class BeatHero {
     this._animateRhythmNote(event.index);
   }
 
-  _findMatchingTapEvent(tapTime) {
+  _findMatchingTapEvent(tapTime, timingWindow = this._tapWindowMs) {
     const availableEvents = this._tapEvents.filter((event) => !event.tapped);
     if (!availableEvents.length) return null;
 
@@ -453,7 +460,7 @@ export class BeatHero {
       return closest;
     }, null);
 
-    if (!closestEvent || closestEvent.distance > this._tapWindowMs) return null;
+    if (!closestEvent || closestEvent.distance > timingWindow) return null;
 
     return closestEvent.event;
   }
@@ -520,6 +527,7 @@ export class BeatHero {
     this._voiceData = null;
     this._voiceStream = null;
     this._voiceBaseline = 0.02;
+    this._voicePreviousLevel = 0;
     this._voiceIsActive = false;
     this._voiceInputStarting = false;
     this._lastVoiceTapTime = 0;
@@ -531,14 +539,23 @@ export class BeatHero {
     this._voiceAnalyser.getByteTimeDomainData(this._voiceData);
     const level = this._voiceInputLevel(this._voiceData);
     const now = performance.now();
-    const threshold = Math.max(0.055, this._voiceBaseline * 2.4);
+    const threshold = Math.max(0.038, this._voiceBaseline * 1.9);
+    const attackThreshold = Math.max(0.014, this._voiceBaseline * 0.55);
+    const attack = level - this._voicePreviousLevel;
+    const isVoiceTap = (
+      (level > threshold && attack > attackThreshold)
+      || level > Math.max(0.07, this._voiceBaseline * 2.8)
+    );
 
-    this._voiceBaseline = (this._voiceBaseline * 0.96) + (Math.min(level, 0.18) * 0.04);
+    const baselineRate = level > threshold ? 0.012 : 0.045;
+    this._voiceBaseline = (this._voiceBaseline * (1 - baselineRate)) + (Math.min(level, 0.14) * baselineRate);
 
-    if (level > threshold && now - this._lastVoiceTapTime > 140) {
+    if (isVoiceTap && now - this._lastVoiceTapTime > 120) {
       this._lastVoiceTapTime = now;
-      this._handleTapAt(now - this._voiceTapOffsetMs);
+      this._handleTapAt(now - this._voiceTapOffsetMs, this._voiceTapWindowMs);
     }
+
+    this._voicePreviousLevel = level;
 
     this._voiceFrame = requestAnimationFrame(() => this._listenForVoiceTaps());
   }
