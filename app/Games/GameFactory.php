@@ -36,7 +36,7 @@ abstract class GameFactory
 
     public function leaderboard()
     {
-        return Player::byGame($this->gameName())->orderBy('finalScore', 'DESC')->get();
+        return Player::byGame($this->gameName())->range(request()->range)->orderBy('finalScore', 'DESC')->get();
     }
 
     protected function requiredToggleKeys(): array

@@ -14,6 +14,19 @@ class Player extends BaseModel
         return $query->where('game', $name);
     }
 
+    public function scopeRange($query, $range = null)
+    {
+        switch ($range) {
+            case 'week':
+                return $query->whereBetween('created_at', [
+                        now()->startOfWeek(),
+                        now()->endOfWeek()
+                    ]);
+            default:
+                return $query;
+        }
+    }
+
     public function fake($game)
     {
         $player = $this->create([

@@ -9,9 +9,9 @@ class LeaderboardsController extends Controller
 {
     public function index()
     {
-        foreach (Player::all() as $player) {
-            $player->calculateFinalScore();
-        }
+        // foreach (Player::all() as $player) {
+        //     $player->calculateFinalScore();
+        // }
         return view('admin.leaderboards.index');
     }
 
