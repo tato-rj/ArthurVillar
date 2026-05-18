@@ -1,12 +1,13 @@
 @extends('layouts.app', ['title' => 'Leaderboards'])
 
 @push('header')
-
 @endpush
 
 @section('content')
 <section class="container py-5 text-center">
         @pagetitle(['label' => 'Leaderboards'])
+
+        @include('theory.components.leaderboard.nav')
 
         <div class="row">
                 @foreach($games as $game)
@@ -37,4 +38,9 @@
 @endsection
 
 @push('scripts')
+<script>
+$('[name="leaderboard-range"]').change(function() {
+        window.location.assign($(this).data('url'));
+});
+</script>
 @endpush
