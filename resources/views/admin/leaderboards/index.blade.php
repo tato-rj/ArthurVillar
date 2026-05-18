@@ -7,13 +7,11 @@
 <section class="container py-5 text-center">
         @pagetitle(['label' => 'Leaderboards'])
 
-        @include('theory.components.leaderboard.nav')
-
         <div class="row">
                 @foreach($games as $game)
                 <div class="col-lg-4 col-md-6 col-12 g-3">
-                        <div class="border rounded p-2 bg-light">
-                                <div class="text-center border position-relative rounded bg-white py-2">
+                        <div class="border rounded p-2 bg-light leaderboard-wrapper">
+                                <div class="text-center border position-relative rounded bg-white py-2 mb-2">
                                         <h6 class="m-0">@fa(['icon' => $game->gameIcon(), 'fa_color' => $game->gameTheme()]){{$game->gameName()}}</h6>
                                         <div class="position-absolute top-0 right-0">
                                                 <form method="POST" action="{{route('admin.leaderboard.fake')}}">
@@ -24,11 +22,21 @@
                                         </div>
                                 </div>
 
-                                @forelse($game->leaderboard() as $player)
-                                        @include('admin.leaderboards.entry')
-                                @empty
-                                        <div class="p-5 d-center">No players yet...</div>
-                                @endforelse
+                                <div class="text-center mb-3">
+                                        @include('theory.components.leaderboard.nav', ['name' => $game->gameName()])
+                                </div>
+
+                                <div style="max-height: 400px; overflow-y: scroll;" class="leaderboard-players">
+                                        @include('theory.components.leaderboard.list', [
+                                                'leaderboard' => $game->leaderboard(), 
+                                                'settings' => $game
+                                                ])
+{{--                                         @forelse($game->leaderboard() as $player)
+                                                @include('admin.leaderboards.entry')
+                                        @empty
+                                                <div class="p-5 d-center">No players yet...</div>
+                                        @endforelse --}}
+                                </div>
                         </div>
                 </div>
                 @endforeach
@@ -38,9 +46,4 @@
 @endsection
 
 @push('scripts')
-<script>
-$('[name="leaderboard-range"]').change(function() {
-        window.location.assign($(this).data('url'));
-});
-</script>
 @endpush

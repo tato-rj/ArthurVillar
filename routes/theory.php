@@ -30,6 +30,8 @@ Route::prefix('theory')->name('theory.')->group(function() {
 	Route::get('beat-hero', 'TheoryController@beatHero')->name('beat-hero.play');
 
 	Route::prefix('leaderboard')->name('leaderboard.')->group(function() {
+		Route::get('show', 'LeaderboardsController@show')->name('show');
+
 		Route::get('final-points', 'LeaderboardsController@finalPoints')->name('final-points');
 		
 		Route::post('', 'LeaderboardsController@store')->name('store');

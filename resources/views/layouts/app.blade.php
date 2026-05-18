@@ -47,7 +47,22 @@
         @include('layouts.alerts')
 
         <script src="{{ mix('js/app.js') }}"></script>
-    
+    <script>
+$('[name$="-leaderboard-range"]').change(function() {
+        let url = $(this).data('url');
+        let $players = $(this).closest('.leaderboard-wrapper').find('.leaderboard-players');
+        log($players);
+        axios.get(url)
+             .then(function(response) {
+              log(response.data);
+              $players.html(response.data);
+             })
+             .catch(function(error) {
+              alert('Something went wrong...')
+             });
+});
+    </script>
+
     <script type="text/javascript">
 
 

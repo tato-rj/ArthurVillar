@@ -39,6 +39,11 @@ abstract class GameFactory
         return Player::byGame($this->gameName())->range(request()->range)->orderBy('finalScore', 'DESC')->get();
     }
 
+    public function gameSlug()
+    {
+        return str_slug($this->gameName());
+    }
+
     protected function requiredToggleKeys(): array
     {
         return [];

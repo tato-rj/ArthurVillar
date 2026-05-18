@@ -37,6 +37,13 @@ class LeaderboardsController extends Controller
         ]);
     }
 
+    public function show(Request $request)
+    {
+        $leaderboard = Player::byGame($request->game)->range($request->range)->orderBy('finalScore', 'DESC')->get();
+
+        return view('theory.components.leaderboard.list', compact('leaderboard'))->render();
+    }
+
     public function finalPoints(Request $request)
     {
         return (new Player)->calculateFinalScore($request);
