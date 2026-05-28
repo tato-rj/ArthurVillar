@@ -51,10 +51,9 @@
 $('[name$="-leaderboard-range"]').change(function() {
         let url = $(this).data('url');
         let $players = $(this).closest('.leaderboard-wrapper').find('.leaderboard-players');
-        log($players);
+
         axios.get(url)
              .then(function(response) {
-              log(response.data);
               $players.html(response.data);
              })
              .catch(function(error) {
