@@ -19,9 +19,9 @@ class Player extends BaseModel
         switch ($range) {
             case 'week':
                 return $query->whereBetween('created_at', [
-                        now()->startOfWeek(),
-                        now()->endOfWeek()
-                    ]);
+                    now()->subDays(7),
+                    now()
+                ]);
             default:
                 return $query;
         }
