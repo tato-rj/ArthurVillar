@@ -28,8 +28,13 @@
         </div>
 
         @foreach($games as $settings)
-            @if($settings->public() && (! request('category') || $settings->categories()->contains(request('category'))))
-            @include('theory.card')
+            @php
+                $matchesCategory = ! request('category')
+                    || $settings->categories()->contains(request('category'));
+            @endphp
+            
+            @if($settings->public() && $matchesCategory)
+                @include('theory.card')
             @endif
         @endforeach
     </div>
