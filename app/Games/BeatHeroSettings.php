@@ -7,6 +7,11 @@ class BeatHeroSettings extends GameFactory
     protected array $bonusPoints = ['includeRests'];
     protected array $categories = ['rhythm', 'reading'];
 
+    public function public()
+    {
+        return local();
+    }
+
     public function gameName(): string
     {
         return 'Beat Hero';

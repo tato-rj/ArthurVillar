@@ -34,6 +34,11 @@ abstract class GameFactory
         $this->request = $this->normalizeRequest($request);
     }
 
+    public function public()
+    {
+        return true;
+    }
+
     public function leaderboard()
     {
         return Player::byGame($this->gameName())->range(request()->range)->orderBy('finalScore', 'DESC')->get();

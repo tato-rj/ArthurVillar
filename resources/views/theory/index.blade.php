@@ -28,7 +28,7 @@
         </div>
 
         @foreach($games as $settings)
-            @if(! request('category') || $settings->categories()->contains(request('category')))
+            @if($settings->public() && (! request('category') || $settings->categories()->contains(request('category'))))
             @include('theory.card')
             @endif
         @endforeach
