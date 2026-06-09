@@ -29,6 +29,11 @@ class OpenStaffSettings extends GameFactory
         return route('theory.open-staff.play');
     }
 
+    protected function requiredToggleKeys(): array
+    {
+        return ['sound', 'solfege', 'showLabelOnTap'];
+    }
+
     protected function defaults(): array
     {
         return [
@@ -36,6 +41,7 @@ class OpenStaffSettings extends GameFactory
             'clefs' => [],
             'sound' => true,
             'solfege' => false,
+            'showLabelOnTap' => false,
         ];
     }
 

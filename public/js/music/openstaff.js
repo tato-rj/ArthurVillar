@@ -14,9 +14,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _staff_Staff_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../staff/Staff.js */ "./resources/js/music/staff/Staff.js");
 /* harmony import */ var _staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../staff/staffUtils.js */ "./resources/js/music/staff/staffUtils.js");
-/* harmony import */ var _shared_InstructionsUi_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/InstructionsUi.js */ "./resources/js/music/games/shared/InstructionsUi.js");
-/* harmony import */ var _shared_PianoKeyboardUi_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/PianoKeyboardUi.js */ "./resources/js/music/games/shared/PianoKeyboardUi.js");
+/* harmony import */ var _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/GameAudio.js */ "./resources/js/music/games/shared/GameAudio.js");
+/* harmony import */ var _shared_InstructionsUi_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/InstructionsUi.js */ "./resources/js/music/games/shared/InstructionsUi.js");
+/* harmony import */ var _shared_PianoKeyboardUi_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../shared/PianoKeyboardUi.js */ "./resources/js/music/games/shared/PianoKeyboardUi.js");
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
+function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
 function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
 function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
 function _classCallCheck(a, n) { if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function"); }
@@ -25,6 +30,7 @@ function _createClass(e, r, t) { return r && _defineProperties(e.prototype, r), 
 function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
 function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
 function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+
 
 
 
@@ -39,6 +45,7 @@ var OpenStaff = /*#__PURE__*/function () {
       namespace: "openStaff",
       sound: true,
       solfege: false,
+      showLabelOnTap: false,
       maxUserNotes: 1,
       clefUrls: null,
       clef: null,
@@ -48,7 +55,7 @@ var OpenStaff = /*#__PURE__*/function () {
     this.opts = _objectSpread(_objectSpread({}, defaults), options || {});
     this.ns = this.opts.namespace || "openStaff";
     this.$staffEl = $(this.opts.staffEl).first();
-    this.instructionsUi = new _shared_InstructionsUi_js__WEBPACK_IMPORTED_MODULE_2__.InstructionsUi("#instructions");
+    this.instructionsUi = new _shared_InstructionsUi_js__WEBPACK_IMPORTED_MODULE_3__.InstructionsUi("#instructions");
     this.$instructions = $("#instructions").find("h6").first();
     this.$continue = $("#continue");
     this.$continueBtn = this.$continue.find("button").first();
@@ -63,6 +70,10 @@ var OpenStaff = /*#__PURE__*/function () {
     this._pendingSuccessInstructions = false;
     this._screens = this._buildScreens();
     this._highlightIdCounter = 1;
+    this._holdSynth = null;
+    this._heldMidi = null;
+    this._holdSoundTimer = null;
+    this._pendingHeldStep = null;
     this._pointer = {
       active: false,
       pointerId: null,
@@ -70,10 +81,13 @@ var OpenStaff = /*#__PURE__*/function () {
       dragging: false,
       createdOnPointerDown: false,
       startPageY: 0,
+      startTime: 0,
       lastStep: null,
-      dragThresholdPx: 5
+      dragThresholdPx: 5,
+      tapMaxMs: 450,
+      holdSoundDelayMs: 140
     };
-    this.keyboard = this.$keyboardWrap.length ? new _shared_PianoKeyboardUi_js__WEBPACK_IMPORTED_MODULE_3__.PianoKeyboardUi({
+    this.keyboard = this.$keyboardWrap.length ? new _shared_PianoKeyboardUi_js__WEBPACK_IMPORTED_MODULE_4__.PianoKeyboardUi({
       rootSelector: "#keyboard",
       namespace: "".concat(this.ns, ".keyboard"),
       canPlayNote: function canPlayNote() {
@@ -133,6 +147,7 @@ var OpenStaff = /*#__PURE__*/function () {
         return [this._buildDefaultScreen()];
       }
       return screens.map(function (screen) {
+        var _screen$showLabelOnTa;
         return {
           instructions: _this2._normalizeInstructions(screen === null || screen === void 0 ? void 0 : screen.instructions),
           success: _this2._normalizeInstructions(screen === null || screen === void 0 ? void 0 : screen.success),
@@ -140,6 +155,7 @@ var OpenStaff = /*#__PURE__*/function () {
           playSound: _this2._normalizeOnOff(screen === null || screen === void 0 ? void 0 : screen.playSound),
           logNoteName: _this2._normalizeOnOff(screen === null || screen === void 0 ? void 0 : screen.logNoteName),
           showLabels: _this2._normalizeOnOff(screen === null || screen === void 0 ? void 0 : screen.showLabels),
+          showLabelOnTap: _this2._normalizeOnOff((_screen$showLabelOnTa = screen === null || screen === void 0 ? void 0 : screen.showLabelOnTap) !== null && _screen$showLabelOnTa !== void 0 ? _screen$showLabelOnTa : _this2.opts.showLabelOnTap),
           solfege: _this2._normalizeOnOff(screen === null || screen === void 0 ? void 0 : screen.solfege),
           initialStep: _this2._normalizeInitialStep(screen === null || screen === void 0 ? void 0 : screen.initialStep)
         };
@@ -173,6 +189,7 @@ var OpenStaff = /*#__PURE__*/function () {
         playSound: !!this.opts.sound,
         logNoteName: false,
         showLabels: true,
+        showLabelOnTap: this._normalizeOnOff(this.opts.showLabelOnTap),
         solfege: !!this.opts.solfege,
         initialStep: null
       };
@@ -260,6 +277,7 @@ var OpenStaff = /*#__PURE__*/function () {
       this._renderInstructions(screen.instructions || "");
       this.$continue.hide();
       this.$done.hide();
+      this._releaseHeldStep();
       this.staff.setSoundEnabled(!!screen.playSound);
       if (screen.clef) this.staff.setClef(screen.clef);else this._hideClef();
       this._syncPianoKeyboardStartNote();
@@ -379,6 +397,7 @@ var OpenStaff = /*#__PURE__*/function () {
         _this6._pointer.dragging = false;
         _this6._pointer.createdOnPointerDown = false;
         _this6._pointer.startPageY = pageY;
+        _this6._pointer.startTime = Date.now();
         _this6._pointer.lastStep = null;
         if ($highlight.length) {
           var highlightId = String($highlight.attr("data-highlight-id") || "");
@@ -390,7 +409,9 @@ var OpenStaff = /*#__PURE__*/function () {
           _this6._pointer.lastStep = _this6._highlightStep(highlightId);
           _this6._setHighlightDragging(highlightId, true);
           if (Number.isFinite(_this6._pointer.lastStep)) {
-            _this6._playAndLogStep(_this6._pointer.lastStep);
+            _this6._playAndLogStep(_this6._pointer.lastStep, {
+              sustain: true
+            });
           }
         } else {
           var existingHighlightId = _this6._currentHighlightId();
@@ -398,9 +419,13 @@ var OpenStaff = /*#__PURE__*/function () {
             _this6._pointer.targetId = existingHighlightId;
             _this6._pointer.createdOnPointerDown = true;
             _this6._pointer.lastStep = pointerStep;
-            _this6._moveHighlightToStep(existingHighlightId, pointerStep);
+            _this6._moveHighlightToStep(existingHighlightId, pointerStep, {
+              revealLabel: false
+            });
             _this6._setHighlightDragging(existingHighlightId, true);
-            _this6._playAndLogStep(pointerStep);
+            _this6._playAndLogStep(pointerStep, {
+              sustain: true
+            });
           } else {
             var createdId = _this6._createHighlight(pointerStep);
             if (!createdId) {
@@ -410,7 +435,9 @@ var OpenStaff = /*#__PURE__*/function () {
             _this6._pointer.targetId = createdId;
             _this6._pointer.createdOnPointerDown = true;
             _this6._pointer.lastStep = pointerStep;
-            _this6._playAndLogStep(pointerStep);
+            _this6._playAndLogStep(pointerStep, {
+              sustain: true
+            });
           }
           if (!_this6._pointer.targetId) {
             _this6._finishPointerInteraction();
@@ -441,7 +468,9 @@ var OpenStaff = /*#__PURE__*/function () {
         if (step === _this6._pointer.lastStep) return;
         _this6._pointer.lastStep = step;
         _this6._revealContinue();
-        _this6._playAndLogStep(step);
+        _this6._playAndLogStep(step, {
+          sustain: true
+        });
       });
       this.$staffEl.on("pointerup.".concat(this.ns, " pointercancel.").concat(this.ns), function (e) {
         var pointerId = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.getPointerId)(e);
@@ -458,13 +487,20 @@ var OpenStaff = /*#__PURE__*/function () {
       var _this$$staffEl$;
       var targetId = this._pointer.targetId;
       var pointerId = this._pointer.pointerId;
-      var shouldRemove = !!targetId && !this._pointer.dragging && !this._pointer.createdOnPointerDown;
+      var elapsedMs = this._pointer.startTime ? Date.now() - this._pointer.startTime : Infinity;
+      var isTap = elapsedMs <= this._pointer.tapMaxMs;
+      var shouldRemove = !!targetId && isTap && !this._pointer.dragging && !this._pointer.createdOnPointerDown;
       if (targetId) this._setHighlightDragging(targetId, false);
+      this._releaseHeldStep();
       if (shouldRemove) {
         this._revealContinue();
-        this._removeHighlight(targetId, {
-          smoke: true
-        });
+        if (this._shouldRevealHighlightBeforeRemove(targetId)) {
+          this._setHighlightLabelRevealed(targetId, true);
+        } else {
+          this._removeHighlight(targetId, {
+            smoke: true
+          });
+        }
       }
       if ((_this$$staffEl$ = this.$staffEl[0]) !== null && _this$$staffEl$ !== void 0 && _this$$staffEl$.releasePointerCapture && pointerId != null) {
         try {
@@ -479,6 +515,7 @@ var OpenStaff = /*#__PURE__*/function () {
       this._pointer.dragging = false;
       this._pointer.createdOnPointerDown = false;
       this._pointer.startPageY = 0;
+      this._pointer.startTime = 0;
       this._pointer.lastStep = null;
       if (this._pendingSuccessInstructions) this._renderSuccessInstructions();
     }
@@ -518,11 +555,21 @@ var OpenStaff = /*#__PURE__*/function () {
       return "space ".concat(Math.floor((step + 1) / 2));
     }
   }, {
+    key: "_delaysNoteLabel",
+    value: function _delaysNoteLabel() {
+      var _this$_currentScreen7, _this$_currentScreen8;
+      return !!((_this$_currentScreen7 = this._currentScreen) !== null && _this$_currentScreen7 !== void 0 && _this$_currentScreen7.showLabelOnTap) && !!((_this$_currentScreen8 = this._currentScreen) !== null && _this$_currentScreen8 !== void 0 && _this$_currentScreen8.showLabels);
+    }
+  }, {
     key: "_highlightLabelHtml",
     value: function _highlightLabelHtml(step) {
-      var _this$_currentScreen7, _this$_currentScreen8;
-      if (!((_this$_currentScreen7 = this._currentScreen) !== null && _this$_currentScreen7 !== void 0 && _this$_currentScreen7.showLabels)) return "";
-      if (!((_this$_currentScreen8 = this._currentScreen) !== null && _this$_currentScreen8 !== void 0 && _this$_currentScreen8.clef)) return this._stepPositionLabel(step);
+      var _this$_currentScreen9, _this$_currentScreen0;
+      var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
+        _ref$revealLabel = _ref.revealLabel,
+        revealLabel = _ref$revealLabel === void 0 ? true : _ref$revealLabel;
+      if (!((_this$_currentScreen9 = this._currentScreen) !== null && _this$_currentScreen9 !== void 0 && _this$_currentScreen9.showLabels)) return "";
+      if (this._delaysNoteLabel() && !revealLabel) return "";
+      if (!((_this$_currentScreen0 = this._currentScreen) !== null && _this$_currentScreen0 !== void 0 && _this$_currentScreen0.clef)) return this._stepPositionLabel(step);
       return this._stepName(step);
     }
   }, {
@@ -569,15 +616,19 @@ var OpenStaff = /*#__PURE__*/function () {
   }, {
     key: "_createHighlight",
     value: function _createHighlight(step) {
-      var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
-        _ref$revealContinue = _ref.revealContinue,
-        revealContinue = _ref$revealContinue === void 0 ? true : _ref$revealContinue;
+      var _ref2 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
+        _ref2$revealContinue = _ref2.revealContinue,
+        revealContinue = _ref2$revealContinue === void 0 ? true : _ref2$revealContinue;
       if (!this.staff.isStepAllowed(step)) return null;
       if (this._highlightCount() >= this._maxUserHighlights()) return null;
       var id = "staffzone-highlight-".concat(this._highlightIdCounter++);
-      $("<div></div>").addClass("staff-highlight rounded").attr("data-highlight-id", id).attr("data-step", step).css({
+      var revealLabel = !this._delaysNoteLabel();
+      var labelHtml = this._highlightLabelHtml(step, {
+        revealLabel: revealLabel
+      });
+      $("<div></div>").addClass("staff-highlight rounded").attr("data-highlight-id", id).attr("data-step", step).attr("data-label-revealed", revealLabel ? "true" : "false").css({
         top: "".concat(this._highlightTopForStep(step), "px")
-      }).append($("<div></div>").addClass("staff-highlight__label").html(this._highlightLabelHtml(step))).appendTo(this.$staffEl);
+      }).append($("<div></div>").addClass("staff-highlight__wave").attr("aria-hidden", "true")).append($("<div></div>").addClass("staff-highlight__label").toggleClass("d-none", !labelHtml).html(labelHtml)).appendTo(this.$staffEl);
       this._renderHighlightLedgers(id, step);
       if (revealContinue) this._revealContinue();
       this._syncPianoKeyboardMarkerFromHighlight();
@@ -609,12 +660,41 @@ var OpenStaff = /*#__PURE__*/function () {
       this._playAndLogStep(nextStep);
     }
   }, {
+    key: "_isHighlightLabelRevealed",
+    value: function _isHighlightLabelRevealed(highlightId) {
+      if (!highlightId) return false;
+      return this.$staffEl.find(".staff-highlight[data-highlight-id=\"".concat(highlightId, "\"]")).attr("data-label-revealed") === "true";
+    }
+  }, {
+    key: "_shouldRevealHighlightBeforeRemove",
+    value: function _shouldRevealHighlightBeforeRemove(highlightId) {
+      return this._delaysNoteLabel() && !this._isHighlightLabelRevealed(highlightId);
+    }
+  }, {
+    key: "_setHighlightLabelRevealed",
+    value: function _setHighlightLabelRevealed(highlightId, revealLabel) {
+      if (!highlightId) return;
+      var $highlight = this.$staffEl.find(".staff-highlight[data-highlight-id=\"".concat(highlightId, "\"]"));
+      if (!$highlight.length) return;
+      var step = this._highlightStep(highlightId);
+      var labelHtml = this._highlightLabelHtml(step, {
+        revealLabel: revealLabel
+      });
+      $highlight.attr("data-label-revealed", revealLabel ? "true" : "false").find(".staff-highlight__label").toggleClass("d-none", !labelHtml).html(labelHtml);
+    }
+  }, {
     key: "_moveHighlightToStep",
     value: function _moveHighlightToStep(highlightId, step) {
+      var _ref3 = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
+        _ref3$revealLabel = _ref3.revealLabel,
+        revealLabel = _ref3$revealLabel === void 0 ? this._isHighlightLabelRevealed(highlightId) : _ref3$revealLabel;
       if (!highlightId || !this.staff.isStepAllowed(step)) return;
-      this.$staffEl.find(".staff-highlight[data-highlight-id=\"".concat(highlightId, "\"]")).attr("data-step", step).css({
+      var labelHtml = this._highlightLabelHtml(step, {
+        revealLabel: revealLabel
+      });
+      this.$staffEl.find(".staff-highlight[data-highlight-id=\"".concat(highlightId, "\"]")).attr("data-step", step).attr("data-label-revealed", revealLabel ? "true" : "false").css({
         top: "".concat(this._highlightTopForStep(step), "px")
-      }).find(".staff-highlight__label").html(this._highlightLabelHtml(step));
+      }).find(".staff-highlight__label").toggleClass("d-none", !labelHtml).html(labelHtml);
       this._renderHighlightLedgers(highlightId, step);
       this._syncPianoKeyboardMarkerFromHighlight();
     }
@@ -626,11 +706,17 @@ var OpenStaff = /*#__PURE__*/function () {
       this.$staffEl.find(".ledger[data-for-highlight-id=\"".concat(highlightId, "\"]")).toggleClass("dragging", !!on);
     }
   }, {
+    key: "_setHighlightSounding",
+    value: function _setHighlightSounding(highlightId, on) {
+      var selector = highlightId ? ".staff-highlight[data-highlight-id=\"".concat(highlightId, "\"]") : ".staff-highlight";
+      this.$staffEl.find(selector).toggleClass("is-sounding", !!on);
+    }
+  }, {
     key: "_removeHighlight",
     value: function _removeHighlight(highlightId) {
-      var _ref2 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
-        _ref2$smoke = _ref2.smoke,
-        smoke = _ref2$smoke === void 0 ? false : _ref2$smoke;
+      var _ref4 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
+        _ref4$smoke = _ref4.smoke,
+        smoke = _ref4$smoke === void 0 ? false : _ref4$smoke;
       if (!highlightId) return;
       var $highlight = this.$staffEl.find(".staff-highlight[data-highlight-id=\"".concat(highlightId, "\"]"));
       if (!$highlight.length) return;
@@ -645,14 +731,137 @@ var OpenStaff = /*#__PURE__*/function () {
       this._syncPianoKeyboardMarkerFromHighlight();
     }
   }, {
+    key: "_releaseHeldStep",
+    value: function _releaseHeldStep() {
+      var _this$_holdSynth;
+      if (this._holdSoundTimer) {
+        window.clearTimeout(this._holdSoundTimer);
+        this._holdSoundTimer = null;
+      }
+      this._pendingHeldStep = null;
+      this._setHighlightSounding(null, false);
+      if (!((_this$_holdSynth = this._holdSynth) !== null && _this$_holdSynth !== void 0 && _this$_holdSynth.triggerRelease)) return;
+      this._holdSynth.triggerRelease();
+      this._heldMidi = null;
+    }
+  }, {
+    key: "_ensureHoldSynth",
+    value: function () {
+      var _ensureHoldSynth2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
+        return _regenerator().w(function (_context) {
+          while (1) switch (_context.n) {
+            case 0:
+              if (window.Tone) {
+                _context.n = 1;
+                break;
+              }
+              return _context.a(2);
+            case 1:
+              if (!this._holdSynth) {
+                _context.n = 2;
+                break;
+              }
+              return _context.a(2);
+            case 2:
+              _context.n = 3;
+              return Tone.start();
+            case 3:
+              this._holdSynth = _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_2__.GameAudio.createStaffNoteSynth();
+            case 4:
+              return _context.a(2);
+          }
+        }, _callee, this);
+      }));
+      function _ensureHoldSynth() {
+        return _ensureHoldSynth2.apply(this, arguments);
+      }
+      return _ensureHoldSynth;
+    }()
+  }, {
+    key: "_startHeldStep",
+    value: function () {
+      var _startHeldStep2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee2(step) {
+        var _this$_currentScreen1, _this$_currentScreen10;
+        var accidentalOffset,
+          midi,
+          _args2 = arguments;
+        return _regenerator().w(function (_context2) {
+          while (1) switch (_context2.n) {
+            case 0:
+              accidentalOffset = _args2.length > 1 && _args2[1] !== undefined ? _args2[1] : 0;
+              if (!(!((_this$_currentScreen1 = this._currentScreen) !== null && _this$_currentScreen1 !== void 0 && _this$_currentScreen1.playSound) || !((_this$_currentScreen10 = this._currentScreen) !== null && _this$_currentScreen10 !== void 0 && _this$_currentScreen10.clef) || !Number.isFinite(step))) {
+                _context2.n = 1;
+                break;
+              }
+              return _context2.a(2);
+            case 1:
+              _context2.n = 2;
+              return this._ensureHoldSynth();
+            case 2:
+              if (this._holdSynth) {
+                _context2.n = 3;
+                break;
+              }
+              return _context2.a(2);
+            case 3:
+              if (!(!this._pointer.active || this._pendingHeldStep !== step)) {
+                _context2.n = 4;
+                break;
+              }
+              return _context2.a(2);
+            case 4:
+              midi = this.staff._stepToMidi(step) + (accidentalOffset || 0);
+              if (!(this._heldMidi === midi)) {
+                _context2.n = 5;
+                break;
+              }
+              return _context2.a(2);
+            case 5:
+              if (this._holdSynth.triggerRelease) this._holdSynth.triggerRelease();
+              this._holdSynth.triggerAttack(Tone.Frequency(midi, "midi"), undefined, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_2__.GameAudio.scale("staffNote", 1));
+              this._heldMidi = midi;
+              this._setHighlightSounding(this._pointer.targetId, true);
+            case 6:
+              return _context2.a(2);
+          }
+        }, _callee2, this);
+      }));
+      function _startHeldStep(_x) {
+        return _startHeldStep2.apply(this, arguments);
+      }
+      return _startHeldStep;
+    }()
+  }, {
+    key: "_scheduleHeldStep",
+    value: function _scheduleHeldStep(step) {
+      var _this$_currentScreen11,
+        _this$_currentScreen12,
+        _this8 = this;
+      if (!((_this$_currentScreen11 = this._currentScreen) !== null && _this$_currentScreen11 !== void 0 && _this$_currentScreen11.playSound) || !((_this$_currentScreen12 = this._currentScreen) !== null && _this$_currentScreen12 !== void 0 && _this$_currentScreen12.clef) || !Number.isFinite(step)) return;
+      this._pendingHeldStep = step;
+      if (this._heldMidi != null) {
+        void this._startHeldStep(step, 0);
+        return;
+      }
+      if (this._holdSoundTimer) return;
+      this._holdSoundTimer = window.setTimeout(function () {
+        _this8._holdSoundTimer = null;
+        if (!_this8._pointer.active) return;
+        void _this8._startHeldStep(_this8._pendingHeldStep, 0);
+      }, this._pointer.holdSoundDelayMs);
+    }
+  }, {
     key: "_playAndLogStep",
     value: function _playAndLogStep(step) {
-      var _this$_currentScreen9, _this$_currentScreen0, _this$_currentScreen1;
+      var _this$_currentScreen13, _this$_currentScreen14, _this$_currentScreen15;
+      var _ref5 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
+        _ref5$sustain = _ref5.sustain,
+        sustain = _ref5$sustain === void 0 ? false : _ref5$sustain;
       var noteName = this._stepName(step);
-      if ((_this$_currentScreen9 = this._currentScreen) !== null && _this$_currentScreen9 !== void 0 && _this$_currentScreen9.playSound && (_this$_currentScreen0 = this._currentScreen) !== null && _this$_currentScreen0 !== void 0 && _this$_currentScreen0.clef) {
-        void this.staff.playStep(step, 0);
+      if ((_this$_currentScreen13 = this._currentScreen) !== null && _this$_currentScreen13 !== void 0 && _this$_currentScreen13.playSound && (_this$_currentScreen14 = this._currentScreen) !== null && _this$_currentScreen14 !== void 0 && _this$_currentScreen14.clef) {
+        if (sustain) this._scheduleHeldStep(step);else void this.staff.playStep(step, 0);
       }
-      if (!((_this$_currentScreen1 = this._currentScreen) !== null && _this$_currentScreen1 !== void 0 && _this$_currentScreen1.logNoteName)) return;
+      if (!((_this$_currentScreen15 = this._currentScreen) !== null && _this$_currentScreen15 !== void 0 && _this$_currentScreen15.logNoteName)) return;
 
       // eslint-disable-next-line no-console
       console.log("OpenStaff note:", noteName, {

@@ -25,6 +25,7 @@
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
+  overflow: hidden;
 }
 
 .staff-highlight.dragging {
@@ -35,10 +36,132 @@
   opacity: .3;
 }
 
+.staff-highlight__wave {
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  top: 50%;
+  height: 14px;
+  transform: translateY(-50%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease;
+}
+
+.staff-highlight.is-sounding .staff-highlight__wave {
+  opacity: .8;
+}
+
+.staff-highlight__wave::before,
+.staff-highlight__wave::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  border-radius: 999px;
+  background: rgba(125, 94, 0, .72);
+  transform-origin: center;
+}
+
+.staff-highlight__wave::before {
+  top: 6px;
+  bottom: auto;
+  height: 2px;
+  opacity: .05;
+}
+
+.staff-highlight__wave::after {
+  opacity: .15;
+  filter: drop-shadow(0 0 2px rgba(125, 94, 0, .2));
+  clip-path: polygon(
+    0 48%,
+    10% 45%,
+    20% 34%,
+    31% 63%,
+    42% 14%,
+    50% 76%,
+    58% 16%,
+    69% 63%,
+    80% 34%,
+    90% 45%,
+    100% 48%,
+    100% 58%,
+    90% 55%,
+    80% 66%,
+    69% 37%,
+    58% 86%,
+    50% 24%,
+    42% 84%,
+    31% 37%,
+    20% 66%,
+    10% 55%,
+    0 58%
+  );
+  animation: staff-highlight-string 260ms steps(2, end) infinite;
+}
+
+@keyframes staff-highlight-string {
+  0% {
+    clip-path: polygon(
+      0 48%,
+      10% 45%,
+      20% 34%,
+      31% 63%,
+      42% 14%,
+      50% 76%,
+      58% 16%,
+      69% 63%,
+      80% 34%,
+      90% 45%,
+      100% 48%,
+      100% 58%,
+      90% 55%,
+      80% 66%,
+      69% 37%,
+      58% 86%,
+      50% 24%,
+      42% 84%,
+      31% 37%,
+      20% 66%,
+      10% 55%,
+      0 58%
+    );
+  }
+  50% {
+    clip-path: polygon(
+      0 51%,
+      10% 56%,
+      20% 66%,
+      31% 37%,
+      42% 86%,
+      50% 18%,
+      58% 84%,
+      69% 37%,
+      80% 66%,
+      90% 56%,
+      100% 51%,
+      100% 61%,
+      90% 46%,
+      80% 34%,
+      69% 63%,
+      58% 14%,
+      50% 82%,
+      42% 16%,
+      31% 63%,
+      20% 34%,
+      10% 46%,
+      0 61%
+    );
+  }
+}
+
 .staff-highlight__label {
   position: absolute;
   right: 0;
   top: 0;
+  z-index: 1;
   height: 100%;
   font-size: .8rem;
   line-height: 1.6;

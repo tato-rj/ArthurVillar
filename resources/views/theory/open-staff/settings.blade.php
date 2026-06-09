@@ -7,6 +7,7 @@
   @component('theory.components.settings.section', ['title' => 'PREFERENCES'])
     @include('theory.components.settings.toggle', ['label' => 'Sound effects', 'name' => 'sound'])
     @include('theory.components.settings.toggle', ['label' => 'Use solfege', 'name' => 'solfege'])
+    @include('theory.components.settings.toggle', ['label' => 'Show label on tap', 'name' => 'showLabelOnTap'])
   @endcomponent
 
   <button type="submit" class="btn btn-primary w-100">Apply changes</button>

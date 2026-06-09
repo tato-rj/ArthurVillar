@@ -1,5 +1,6 @@
 import { Staff } from "../../staff/Staff.js";
 import { getPointerId, getPointerPageXY, normalizeClef, stepToLetterOctave } from "../../staff/staffUtils.js";
+import { GameAudio } from "../shared/GameAudio.js";
 import { InstructionsUi } from "../shared/InstructionsUi.js";
 import { PianoKeyboardUi } from "../shared/PianoKeyboardUi.js";
 
@@ -20,6 +21,7 @@ export class OpenStaff {
       namespace: "openStaff",
       sound: true,
       solfege: false,
+      showLabelOnTap: false,
       maxUserNotes: 1,
       clefUrls: null,
       clef: null,
@@ -46,6 +48,10 @@ export class OpenStaff {
     this._pendingSuccessInstructions = false;
     this._screens = this._buildScreens();
     this._highlightIdCounter = 1;
+    this._holdSynth = null;
+    this._heldMidi = null;
+    this._holdSoundTimer = null;
+    this._pendingHeldStep = null;
     this._pointer = {
       active: false,
       pointerId: null,
@@ -53,8 +59,11 @@ export class OpenStaff {
       dragging: false,
       createdOnPointerDown: false,
       startPageY: 0,
+      startTime: 0,
       lastStep: null,
       dragThresholdPx: 5,
+      tapMaxMs: 450,
+      holdSoundDelayMs: 140,
     };
     this.keyboard = this.$keyboardWrap.length
       ? new PianoKeyboardUi({
@@ -132,6 +141,7 @@ export class OpenStaff {
       playSound: this._normalizeOnOff(screen?.playSound),
       logNoteName: this._normalizeOnOff(screen?.logNoteName),
       showLabels: this._normalizeOnOff(screen?.showLabels),
+      showLabelOnTap: this._normalizeOnOff(screen?.showLabelOnTap ?? this.opts.showLabelOnTap),
       solfege: this._normalizeOnOff(screen?.solfege),
       initialStep: this._normalizeInitialStep(screen?.initialStep),
     }));
@@ -171,6 +181,7 @@ export class OpenStaff {
       playSound: !!this.opts.sound,
       logNoteName: false,
       showLabels: true,
+      showLabelOnTap: this._normalizeOnOff(this.opts.showLabelOnTap),
       solfege: !!this.opts.solfege,
       initialStep: null,
     };
@@ -262,6 +273,7 @@ export class OpenStaff {
     this._renderInstructions(screen.instructions || "");
     this.$continue.hide();
     this.$done.hide();
+    this._releaseHeldStep();
     this.staff.setSoundEnabled(!!screen.playSound);
 
     if (screen.clef) this.staff.setClef(screen.clef);
@@ -383,6 +395,7 @@ export class OpenStaff {
       this._pointer.dragging = false;
       this._pointer.createdOnPointerDown = false;
       this._pointer.startPageY = pageY;
+      this._pointer.startTime = Date.now();
       this._pointer.lastStep = null;
 
       if ($highlight.length) {
@@ -395,7 +408,7 @@ export class OpenStaff {
         this._pointer.lastStep = this._highlightStep(highlightId);
         this._setHighlightDragging(highlightId, true);
         if (Number.isFinite(this._pointer.lastStep)) {
-          this._playAndLogStep(this._pointer.lastStep);
+          this._playAndLogStep(this._pointer.lastStep, { sustain: true });
         }
       } else {
         const existingHighlightId = this._currentHighlightId();
@@ -404,9 +417,9 @@ export class OpenStaff {
           this._pointer.targetId = existingHighlightId;
           this._pointer.createdOnPointerDown = true;
           this._pointer.lastStep = pointerStep;
-          this._moveHighlightToStep(existingHighlightId, pointerStep);
+          this._moveHighlightToStep(existingHighlightId, pointerStep, { revealLabel: false });
           this._setHighlightDragging(existingHighlightId, true);
-          this._playAndLogStep(pointerStep);
+          this._playAndLogStep(pointerStep, { sustain: true });
         } else {
           const createdId = this._createHighlight(pointerStep);
           if (!createdId) {
@@ -416,7 +429,7 @@ export class OpenStaff {
           this._pointer.targetId = createdId;
           this._pointer.createdOnPointerDown = true;
           this._pointer.lastStep = pointerStep;
-          this._playAndLogStep(pointerStep);
+          this._playAndLogStep(pointerStep, { sustain: true });
         }
 
         if (!this._pointer.targetId) {
@@ -455,7 +468,7 @@ export class OpenStaff {
       if (step === this._pointer.lastStep) return;
       this._pointer.lastStep = step;
       this._revealContinue();
-      this._playAndLogStep(step);
+      this._playAndLogStep(step, { sustain: true });
     });
 
     this.$staffEl.on(`pointerup.${this.ns} pointercancel.${this.ns}`, (e) => {
@@ -472,12 +485,19 @@ export class OpenStaff {
   _finishPointerInteraction() {
     const targetId = this._pointer.targetId;
     const pointerId = this._pointer.pointerId;
-    const shouldRemove = !!targetId && !this._pointer.dragging && !this._pointer.createdOnPointerDown;
+    const elapsedMs = this._pointer.startTime ? Date.now() - this._pointer.startTime : Infinity;
+    const isTap = elapsedMs <= this._pointer.tapMaxMs;
+    const shouldRemove = !!targetId && isTap && !this._pointer.dragging && !this._pointer.createdOnPointerDown;
 
     if (targetId) this._setHighlightDragging(targetId, false);
+    this._releaseHeldStep();
     if (shouldRemove) {
       this._revealContinue();
-      this._removeHighlight(targetId, { smoke: true });
+      if (this._shouldRevealHighlightBeforeRemove(targetId)) {
+        this._setHighlightLabelRevealed(targetId, true);
+      } else {
+        this._removeHighlight(targetId, { smoke: true });
+      }
     }
     if (this.$staffEl[0]?.releasePointerCapture && pointerId != null) {
       try {
@@ -493,6 +513,7 @@ export class OpenStaff {
     this._pointer.dragging = false;
     this._pointer.createdOnPointerDown = false;
     this._pointer.startPageY = 0;
+    this._pointer.startTime = 0;
     this._pointer.lastStep = null;
 
     if (this._pendingSuccessInstructions) this._renderSuccessInstructions();
@@ -536,8 +557,14 @@ export class OpenStaff {
     return `space ${Math.floor((step + 1) / 2)}`;
   }
 
-  _highlightLabelHtml(step) {
+  _delaysNoteLabel() {
+    return !!this._currentScreen?.showLabelOnTap
+      && !!this._currentScreen?.showLabels;
+  }
+
+  _highlightLabelHtml(step, { revealLabel = true } = {}) {
     if (!this._currentScreen?.showLabels) return "";
+    if (this._delaysNoteLabel() && !revealLabel) return "";
     if (!this._currentScreen?.clef) return this._stepPositionLabel(step);
     return this._stepName(step);
   }
@@ -591,15 +618,24 @@ export class OpenStaff {
     if (this._highlightCount() >= this._maxUserHighlights()) return null;
 
     const id = `staffzone-highlight-${this._highlightIdCounter++}`;
+    const revealLabel = !this._delaysNoteLabel();
+    const labelHtml = this._highlightLabelHtml(step, { revealLabel });
     $("<div></div>")
       .addClass("staff-highlight rounded")
       .attr("data-highlight-id", id)
       .attr("data-step", step)
+      .attr("data-label-revealed", revealLabel ? "true" : "false")
       .css({ top: `${this._highlightTopForStep(step)}px` })
       .append(
         $("<div></div>")
+          .addClass("staff-highlight__wave")
+          .attr("aria-hidden", "true"),
+      )
+      .append(
+        $("<div></div>")
           .addClass("staff-highlight__label")
-          .html(this._highlightLabelHtml(step)),
+          .toggleClass("d-none", !labelHtml)
+          .html(labelHtml),
       )
       .appendTo(this.$staffEl);
 
@@ -635,15 +671,44 @@ export class OpenStaff {
     this._playAndLogStep(nextStep);
   }
 
-  _moveHighlightToStep(highlightId, step) {
+  _isHighlightLabelRevealed(highlightId) {
+    if (!highlightId) return false;
+    return this.$staffEl
+      .find(`.staff-highlight[data-highlight-id="${highlightId}"]`)
+      .attr("data-label-revealed") === "true";
+  }
+
+  _shouldRevealHighlightBeforeRemove(highlightId) {
+    return this._delaysNoteLabel() && !this._isHighlightLabelRevealed(highlightId);
+  }
+
+  _setHighlightLabelRevealed(highlightId, revealLabel) {
+    if (!highlightId) return;
+
+    const $highlight = this.$staffEl.find(`.staff-highlight[data-highlight-id="${highlightId}"]`);
+    if (!$highlight.length) return;
+
+    const step = this._highlightStep(highlightId);
+    const labelHtml = this._highlightLabelHtml(step, { revealLabel });
+    $highlight
+      .attr("data-label-revealed", revealLabel ? "true" : "false")
+      .find(".staff-highlight__label")
+      .toggleClass("d-none", !labelHtml)
+      .html(labelHtml);
+  }
+
+  _moveHighlightToStep(highlightId, step, { revealLabel = this._isHighlightLabelRevealed(highlightId) } = {}) {
     if (!highlightId || !this.staff.isStepAllowed(step)) return;
 
+    const labelHtml = this._highlightLabelHtml(step, { revealLabel });
     this.$staffEl
       .find(`.staff-highlight[data-highlight-id="${highlightId}"]`)
       .attr("data-step", step)
+      .attr("data-label-revealed", revealLabel ? "true" : "false")
       .css({ top: `${this._highlightTopForStep(step)}px` })
       .find(".staff-highlight__label")
-      .html(this._highlightLabelHtml(step));
+      .toggleClass("d-none", !labelHtml)
+      .html(labelHtml);
 
     this._renderHighlightLedgers(highlightId, step);
     this._syncPianoKeyboardMarkerFromHighlight();
@@ -659,6 +724,13 @@ export class OpenStaff {
       .toggleClass("dragging", !!on);
   }
 
+  _setHighlightSounding(highlightId, on) {
+    const selector = highlightId
+      ? `.staff-highlight[data-highlight-id="${highlightId}"]`
+      : ".staff-highlight";
+    this.$staffEl.find(selector).toggleClass("is-sounding", !!on);
+  }
+
   _removeHighlight(highlightId, { smoke = false } = {}) {
     if (!highlightId) return;
     const $highlight = this.$staffEl.find(`.staff-highlight[data-highlight-id="${highlightId}"]`);
@@ -672,10 +744,64 @@ export class OpenStaff {
     this._syncPianoKeyboardMarkerFromHighlight();
   }
 
-  _playAndLogStep(step) {
+  _releaseHeldStep() {
+    if (this._holdSoundTimer) {
+      window.clearTimeout(this._holdSoundTimer);
+      this._holdSoundTimer = null;
+    }
+    this._pendingHeldStep = null;
+    this._setHighlightSounding(null, false);
+    if (!this._holdSynth?.triggerRelease) return;
+    this._holdSynth.triggerRelease();
+    this._heldMidi = null;
+  }
+
+  async _ensureHoldSynth() {
+    if (!window.Tone) return;
+    if (this._holdSynth) return;
+
+    await Tone.start();
+    this._holdSynth = GameAudio.createStaffNoteSynth();
+  }
+
+  async _startHeldStep(step, accidentalOffset = 0) {
+    if (!this._currentScreen?.playSound || !this._currentScreen?.clef || !Number.isFinite(step)) return;
+
+    await this._ensureHoldSynth();
+    if (!this._holdSynth) return;
+    if (!this._pointer.active || this._pendingHeldStep !== step) return;
+
+    const midi = this.staff._stepToMidi(step) + (accidentalOffset || 0);
+    if (this._heldMidi === midi) return;
+
+    if (this._holdSynth.triggerRelease) this._holdSynth.triggerRelease();
+    this._holdSynth.triggerAttack(Tone.Frequency(midi, "midi"), undefined, GameAudio.scale("staffNote", 1));
+    this._heldMidi = midi;
+    this._setHighlightSounding(this._pointer.targetId, true);
+  }
+
+  _scheduleHeldStep(step) {
+    if (!this._currentScreen?.playSound || !this._currentScreen?.clef || !Number.isFinite(step)) return;
+
+    this._pendingHeldStep = step;
+    if (this._heldMidi != null) {
+      void this._startHeldStep(step, 0);
+      return;
+    }
+    if (this._holdSoundTimer) return;
+
+    this._holdSoundTimer = window.setTimeout(() => {
+      this._holdSoundTimer = null;
+      if (!this._pointer.active) return;
+      void this._startHeldStep(this._pendingHeldStep, 0);
+    }, this._pointer.holdSoundDelayMs);
+  }
+
+  _playAndLogStep(step, { sustain = false } = {}) {
     const noteName = this._stepName(step);
     if (this._currentScreen?.playSound && this._currentScreen?.clef) {
-      void this.staff.playStep(step, 0);
+      if (sustain) this._scheduleHeldStep(step);
+      else void this.staff.playStep(step, 0);
     }
     if (!this._currentScreen?.logNoteName) return;
 
