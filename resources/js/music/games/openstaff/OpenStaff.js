@@ -628,11 +628,6 @@ export class OpenStaff {
       .css({ top: `${this._highlightTopForStep(step)}px` })
       .append(
         $("<div></div>")
-          .addClass("staff-highlight__wave")
-          .attr("aria-hidden", "true"),
-      )
-      .append(
-        $("<div></div>")
           .addClass("staff-highlight__label")
           .toggleClass("d-none", !labelHtml)
           .html(labelHtml),

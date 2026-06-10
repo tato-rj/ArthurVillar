@@ -628,7 +628,7 @@ var OpenStaff = /*#__PURE__*/function () {
       });
       $("<div></div>").addClass("staff-highlight rounded").attr("data-highlight-id", id).attr("data-step", step).attr("data-label-revealed", revealLabel ? "true" : "false").css({
         top: "".concat(this._highlightTopForStep(step), "px")
-      }).append($("<div></div>").addClass("staff-highlight__wave").attr("aria-hidden", "true")).append($("<div></div>").addClass("staff-highlight__label").toggleClass("d-none", !labelHtml).html(labelHtml)).appendTo(this.$staffEl);
+      }).append($("<div></div>").addClass("staff-highlight__label").toggleClass("d-none", !labelHtml).html(labelHtml)).appendTo(this.$staffEl);
       this._renderHighlightLedgers(id, step);
       if (revealContinue) this._revealContinue();
       this._syncPianoKeyboardMarkerFromHighlight();
