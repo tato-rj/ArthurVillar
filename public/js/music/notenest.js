@@ -1999,6 +1999,9 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
     _this.$playIcon = $("#play-icon");
     _this.$playSoundStatus = $("#play-sound-status");
     _this.$playSoundDetected = $("#play-sound-detected");
+    _this.$confirmSoundWrap = $("#confirm-sound");
+    _this.$confirmSoundBtn = _this.$confirmSoundWrap.find("button");
+    _this._playedNoteConfirmed = false;
     _this._pitchAudioContext = null;
     _this._pitchStream = null;
     _this._pitchSource = null;
@@ -2031,6 +2034,8 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
     key: "_resetPlayedNote",
     value: function _resetPlayedNote() {
       this._lastPlayedNote = null;
+      this._playedNoteConfirmed = false;
+      this._hideConfirmSoundButton();
     }
   }, {
     key: "_setPlaySoundModalStatus",
@@ -2041,10 +2046,31 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       (_this$$playSoundDetec = this.$playSoundDetected) === null || _this$$playSoundDetec === void 0 || (_this$$playSoundDetec2 = _this$$playSoundDetec.text) === null || _this$$playSoundDetec2 === void 0 || _this$$playSoundDetec2.call(_this$$playSoundDetec, detected);
     }
   }, {
-    key: "_setPlayIconListening",
-    value: function _setPlayIconListening(listening) {
-      var _this$$playIcon, _this$$playIcon$toggl;
-      (_this$$playIcon = this.$playIcon) === null || _this$$playIcon === void 0 || (_this$$playIcon$toggl = _this$$playIcon.toggleClass) === null || _this$$playIcon$toggl === void 0 || _this$$playIcon$toggl.call(_this$$playIcon, "listening text-green", !!listening);
+    key: "_setPlayIconState",
+    value: function _setPlayIconState() {
+      var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "idle";
+      var $icon = this.$playIcon;
+      if (!($icon !== null && $icon !== void 0 && $icon.length)) return;
+      $icon.removeClass("listening heard text-yellow text-green animate__animated animate__tada");
+      if (state === "listening") {
+        $icon.addClass("listening text-yellow");
+        return;
+      }
+      if (state === "heard") {
+        $icon.addClass("heard text-green animate__animated animate__tada");
+      }
+    }
+  }, {
+    key: "_hideConfirmSoundButton",
+    value: function _hideConfirmSoundButton() {
+      var _this$$confirmSoundWr, _this$$confirmSoundWr2, _this$$confirmSoundWr3, _this$$confirmSoundWr4;
+      (_this$$confirmSoundWr = this.$confirmSoundWrap) === null || _this$$confirmSoundWr === void 0 || (_this$$confirmSoundWr2 = _this$$confirmSoundWr.hide) === null || _this$$confirmSoundWr2 === void 0 || (_this$$confirmSoundWr3 = (_this$$confirmSoundWr4 = _this$$confirmSoundWr2.call(_this$$confirmSoundWr)).addClass) === null || _this$$confirmSoundWr3 === void 0 || _this$$confirmSoundWr3.call(_this$$confirmSoundWr4, "invisible");
+    }
+  }, {
+    key: "_showConfirmSoundButton",
+    value: function _showConfirmSoundButton() {
+      var _this$$confirmSoundWr5, _this$$confirmSoundWr6, _this$$confirmSoundWr7, _this$$confirmSoundWr8;
+      (_this$$confirmSoundWr5 = this.$confirmSoundWrap) === null || _this$$confirmSoundWr5 === void 0 || (_this$$confirmSoundWr6 = _this$$confirmSoundWr5.show) === null || _this$$confirmSoundWr6 === void 0 || (_this$$confirmSoundWr7 = (_this$$confirmSoundWr8 = _this$$confirmSoundWr6.call(_this$$confirmSoundWr5)).removeClass) === null || _this$$confirmSoundWr7 === void 0 || _this$$confirmSoundWr7.call(_this$$confirmSoundWr8, "invisible");
     }
   }, {
     key: "_hasEnoughUserNotesForCheck",
@@ -2061,11 +2087,15 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       if (!((_this$$playNoteWrap = this.$playNoteWrap) !== null && _this$$playNoteWrap !== void 0 && _this$$playNoteWrap.length)) return;
       if (!this._requiresPlayedNote()) {
         this.$playNoteWrap.hide().addClass("invisible");
+        this._hideConfirmSoundButton();
         return;
       }
       var readyForPlayedNote = this._hasEnoughUserNotesForCheck(count);
       $("#check").hide().addClass("invisible");
-      if (readyForPlayedNote) {
+      if (readyForPlayedNote && this._lastPlayedNote && this._playedNoteConfirmed) {
+        this.$playNoteWrap.hide().addClass("invisible");
+        $("#check").show().removeClass("invisible");
+      } else if (readyForPlayedNote) {
         this.$playNoteWrap.show().removeClass("invisible");
       } else {
         this.$playNoteWrap.hide().addClass("invisible");
@@ -2077,7 +2107,8 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       var _this$$playSoundModal, _window$bootstrap;
       if (!((_this$$playSoundModal = this.$playSoundModal) !== null && _this$$playSoundModal !== void 0 && _this$$playSoundModal.length)) return;
       this._setPlaySoundModalStatus("Listening...", "Play or sing one clear note.");
-      this._setPlayIconListening(false);
+      this._hideConfirmSoundButton();
+      this._setPlayIconState("idle");
       var el = this.$playSoundModal[0];
       if ((_window$bootstrap = window.bootstrap) !== null && _window$bootstrap !== void 0 && (_window$bootstrap = _window$bootstrap.Modal) !== null && _window$bootstrap !== void 0 && _window$bootstrap.getOrCreateInstance) {
         window.bootstrap.Modal.getOrCreateInstance(el).show();
@@ -2130,7 +2161,8 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
         midi: midi,
         noteName: String((data === null || data === void 0 ? void 0 : data.noteName) || "")
       };
-      this._submitPlayedNoteAttempt();
+      this._playedNoteConfirmed = true;
+      this._syncPlayedNoteGate();
     }
   }, {
     key: "_wirePlayedNoteTracking",
@@ -2139,6 +2171,9 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
         _this$$playNoteBtn,
         _this$$playNoteBtn$of,
         _this$$playNoteBtn$of2,
+        _this$$confirmSoundBt,
+        _this$$confirmSoundBt2,
+        _this$$confirmSoundBt3,
         _this$$playSoundModal3,
         _this$$playSoundModal4,
         _this$$playSoundModal5;
@@ -2152,6 +2187,13 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
         e.preventDefault();
         _this2._showPlaySoundModal();
         _this2._startPitchInput();
+      });
+      (_this$$confirmSoundBt = this.$confirmSoundBtn) === null || _this$$confirmSoundBt === void 0 || (_this$$confirmSoundBt2 = _this$$confirmSoundBt.off) === null || _this$$confirmSoundBt2 === void 0 || (_this$$confirmSoundBt2 = _this$$confirmSoundBt2.call(_this$$confirmSoundBt, "click.".concat(this.ns, ".playedNote"))) === null || _this$$confirmSoundBt2 === void 0 || (_this$$confirmSoundBt3 = _this$$confirmSoundBt2.on) === null || _this$$confirmSoundBt3 === void 0 || _this$$confirmSoundBt3.call(_this$$confirmSoundBt2, "click.".concat(this.ns, ".playedNote"), function (e) {
+        e.preventDefault();
+        if (!_this2._lastPlayedNote) return;
+        _this2._playedNoteConfirmed = true;
+        _this2._hidePlaySoundModal();
+        _this2._syncPlayedNoteGate();
       });
       (_this$$playSoundModal3 = this.$playSoundModal) === null || _this$$playSoundModal3 === void 0 || (_this$$playSoundModal4 = _this$$playSoundModal3.off) === null || _this$$playSoundModal4 === void 0 || (_this$$playSoundModal4 = _this$$playSoundModal4.call(_this$$playSoundModal3, "hidden.bs.modal.".concat(this.ns, ".playedNote"))) === null || _this$$playSoundModal4 === void 0 || (_this$$playSoundModal5 = _this$$playSoundModal4.on) === null || _this$$playSoundModal5 === void 0 || _this$$playSoundModal5.call(_this$$playSoundModal4, "hidden.bs.modal.".concat(this.ns, ".playedNote"), function () {
         _this2._stopPitchInput();
@@ -2171,14 +2213,21 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       return clean;
     }
   }, {
-    key: "_submitPlayedNoteAttempt",
-    value: function _submitPlayedNoteAttempt() {
-      var _this$$checkBtn, _this$$checkBtn$prop;
+    key: "_handlePlayedNoteHeard",
+    value: function _handlePlayedNoteHeard(midi, noteName, frequency) {
       if (!this._hasEnoughUserNotesForCheck()) return;
-      if ((_this$$checkBtn = this.$checkBtn) !== null && _this$$checkBtn !== void 0 && (_this$$checkBtn$prop = _this$$checkBtn.prop) !== null && _this$$checkBtn$prop !== void 0 && _this$$checkBtn$prop.call(_this$$checkBtn, "disabled")) return;
-      this._stopPitchInput();
-      this._hidePlaySoundModal();
-      this._onCheck();
+      this._lastPlayedNote = {
+        midi: midi,
+        noteName: noteName,
+        frequency: frequency
+      };
+      this._playedNoteConfirmed = false;
+      this._stopPitchInput({
+        keepIconState: true
+      });
+      this._setPlayIconState("heard");
+      this._setPlaySoundModalStatus("Note heard", "Detected ".concat(noteName));
+      this._showConfirmSoundButton();
     }
   }, {
     key: "_startPitchInput",
@@ -2187,18 +2236,18 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
         _this3 = this;
       if (this._pitchInputStarting || this._pitchAnalyser) return Promise.resolve();
       if (!window.isSecureContext) {
-        this._setPlayIconListening(false);
+        this._setPlayIconState("idle");
         this._setPlaySoundModalStatus("Microphone unavailable", "Use HTTPS or localhost to enable listening.");
         return Promise.resolve();
       }
       if (!((_navigator$mediaDevic = navigator.mediaDevices) !== null && _navigator$mediaDevic !== void 0 && _navigator$mediaDevic.getUserMedia)) {
-        this._setPlayIconListening(false);
+        this._setPlayIconState("idle");
         this._setPlaySoundModalStatus("Microphone unavailable", "This browser cannot access microphone input.");
         return Promise.resolve();
       }
       var AudioContextCtor = window.AudioContext || window.webkitAudioContext;
       if (!AudioContextCtor) {
-        this._setPlayIconListening(false);
+        this._setPlayIconState("idle");
         this._setPlaySoundModalStatus("Microphone unavailable", "This browser cannot analyze live audio.");
         return Promise.resolve();
       }
@@ -2222,11 +2271,11 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
         _this3._pitchData = new Float32Array(_this3._pitchAnalyser.fftSize);
         _this3._pitchSource.connect(_this3._pitchAnalyser);
         _this3._pitchInputStarting = false;
-        _this3._setPlayIconListening(true);
+        _this3._setPlayIconState("listening");
         _this3._listenForPitch();
       })["catch"](function () {
         _this3._pitchInputStarting = false;
-        _this3._setPlayIconListening(false);
+        _this3._setPlayIconState("idle");
         _this3._setPlaySoundModalStatus("Microphone blocked", "Allow microphone access, then try again.");
       });
     }
@@ -2234,6 +2283,9 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
     key: "_stopPitchInput",
     value: function _stopPitchInput() {
       var _this$_pitchStream, _this$_pitchStream$ge, _this$_pitchAudioCont, _this$_pitchAudioCont2;
+      var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+        _ref$keepIconState = _ref.keepIconState,
+        keepIconState = _ref$keepIconState === void 0 ? false : _ref$keepIconState;
       if (this._pitchFrame) {
         cancelAnimationFrame(this._pitchFrame);
         this._pitchFrame = null;
@@ -2252,7 +2304,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
         midi: null,
         count: 0
       };
-      this._setPlayIconListening(false);
+      if (!keepIconState) this._setPlayIconState("idle");
     }
   }, {
     key: "_listenForPitch",
@@ -2270,12 +2322,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
           count: 1
         };
         if (this._stablePitch.count >= 4) {
-          this._lastPlayedNote = {
-            midi: midi,
-            noteName: noteName,
-            frequency: frequency
-          };
-          this._submitPlayedNoteAttempt();
+          this._handlePlayedNoteHeard(midi, noteName, frequency);
           return;
         }
       } else {
@@ -2577,6 +2624,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
     value: function _isPlayedNoteCorrect(note) {
       var _this$_lastPlayedNote;
       if (!this._requiresPlayedNote()) return true;
+      if (!this._playedNoteConfirmed) return false;
       var targetMidi = this._noteMidi(note);
       var playedMidi = Number((_this$_lastPlayedNote = this._lastPlayedNote) === null || _this$_lastPlayedNote === void 0 ? void 0 : _this$_lastPlayedNote.midi);
       return Number.isFinite(targetMidi) && playedMidi === targetMidi;
@@ -2604,6 +2652,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
         this._pauseGameTimer();
         this._stopPitchInput();
         (_this$$playNoteWrap2 = this.$playNoteWrap) === null || _this$$playNoteWrap2 === void 0 || (_this$$playNoteWrap2$ = _this$$playNoteWrap2.hide) === null || _this$$playNoteWrap2$ === void 0 || (_this$$playNoteWrap2$2 = (_this$$playNoteWrap2$3 = _this$$playNoteWrap2$.call(_this$$playNoteWrap2)).addClass) === null || _this$$playNoteWrap2$2 === void 0 || _this$$playNoteWrap2$2.call(_this$$playNoteWrap2$3, "invisible");
+        this._hideConfirmSoundButton();
         var _this$_awardPointsFor = this._awardPointsForCorrect(),
           earned = _this$_awardPointsFor.earned,
           bonusEarned = _this$_awardPointsFor.bonusEarned;
@@ -2616,7 +2665,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       }
       this._madeAnyMistake = true;
       this._madeMistakeThisRound = true;
-      this._failAnimation(this._requiresPlayedNote() ? this.$playNoteWrap : this.$checkWrap);
+      this._failAnimation(this.$checkWrap);
       this.$helpBtn.show();
     }
   }]);

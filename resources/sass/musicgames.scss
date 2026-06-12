@@ -639,12 +639,16 @@ body {
 }
 
 #play-icon.listening {
-  animation: playSoundIconPulse 1s ease-in-out infinite alternate;
+  animation: playSoundIconPulse .55s ease-in-out infinite alternate;
+}
+
+#play-icon.heard {
+  opacity: 1;
 }
 
 @keyframes playSoundIconPulse {
   from {
-    opacity: .5;
+    opacity: .2;
   }
 
   to {

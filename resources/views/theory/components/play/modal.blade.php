@@ -5,5 +5,9 @@
     </div>
     <div id="play-sound-status" class="fw-bold text-secondary mb-2">Listening...</div>
     <div id="play-sound-detected" class="text-grey small">Play or sing one clear note.</div>
+    
+    <div id="confirm-sound" class="btn-floating w-100 invisible mt-3" style="display: none">
+      <button class="btn btn-green w-100">@fa(['icon' => 'circle-check'])Confirm</button>
+    </div>
   </div>
 @endmodal
