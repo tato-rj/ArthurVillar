@@ -42,8 +42,10 @@ export class NoteNest extends BaseStaffGame {
     this.$playIcon = $("#play-icon");
     this.$playSoundStatus = $("#play-sound-status");
     this.$playSoundDetected = $("#play-sound-detected");
-    this.$confirmSoundWrap = $("#confirm-sound");
+    this.$confirmSoundWrap = this.$playSoundModal.find("#confirm-sound");
     this.$confirmSoundBtn = this.$confirmSoundWrap.find("button");
+    this.$retrySoundWrap = this.$playSoundModal.find("#retry");
+    this.$retrySoundBtn = this.$retrySoundWrap.find("button");
     this._playedNoteConfirmed = false;
     this._pitchAudioContext = null;
     this._pitchStream = null;
@@ -70,7 +72,7 @@ export class NoteNest extends BaseStaffGame {
   _resetPlayedNote() {
     this._lastPlayedNote = null;
     this._playedNoteConfirmed = false;
-    this._hideConfirmSoundButton();
+    this._hideRecordedSoundActions();
   }
 
   _setPlaySoundModalStatus(status, detected = "") {
@@ -102,6 +104,19 @@ export class NoteNest extends BaseStaffGame {
     this.$confirmSoundWrap?.show?.().removeClass?.("invisible");
   }
 
+  _hideRetrySoundButton() {
+    this.$retrySoundWrap?.hide?.().addClass?.("invisible");
+  }
+
+  _showRetrySoundButton() {
+    this.$retrySoundWrap?.show?.().removeClass?.("invisible");
+  }
+
+  _hideRecordedSoundActions() {
+    this._hideConfirmSoundButton();
+    this._hideRetrySoundButton();
+  }
+
   _hasEnoughUserNotesForCheck(count = this._currentUserNoteCount()) {
     const userNoteCount = Number.isFinite(count) ? count : this._currentUserNoteCount();
     return this._checkAfterUserNotes() <= 0 || userNoteCount >= this._checkAfterUserNotes();
@@ -112,7 +127,7 @@ export class NoteNest extends BaseStaffGame {
 
     if (!this._requiresPlayedNote()) {
       this.$playNoteWrap.hide().addClass("invisible");
-      this._hideConfirmSoundButton();
+      this._hideRecordedSoundActions();
       return;
     }
 
@@ -133,7 +148,7 @@ export class NoteNest extends BaseStaffGame {
     if (!this.$playSoundModal?.length) return;
 
     this._setPlaySoundModalStatus("Listening...", "Play or sing one clear note.");
-    this._hideConfirmSoundButton();
+    this._hideRecordedSoundActions();
     this._setPlayIconState("idle");
 
     const el = this.$playSoundModal[0];
@@ -216,6 +231,18 @@ export class NoteNest extends BaseStaffGame {
         this._syncPlayedNoteGate();
       });
 
+    this.$retrySoundBtn
+      ?.off?.(`click.${this.ns}.playedNote`)
+      ?.on?.(`click.${this.ns}.playedNote`, (e) => {
+        e.preventDefault();
+        this._lastPlayedNote = null;
+        this._playedNoteConfirmed = false;
+        this._hideRecordedSoundActions();
+        this._setPlaySoundModalStatus("Listening...", "Play or sing one clear note.");
+        this._setPlayIconState("idle");
+        this._startPitchInput();
+      });
+
     this.$playSoundModal
       ?.off?.(`hidden.bs.modal.${this.ns}.playedNote`)
       ?.on?.(`hidden.bs.modal.${this.ns}.playedNote`, () => {
@@ -243,6 +270,7 @@ export class NoteNest extends BaseStaffGame {
     this._setPlayIconState("heard");
     this._setPlaySoundModalStatus("Note heard", `Detected ${noteName}`);
     this._showConfirmSoundButton();
+    this._showRetrySoundButton();
   }
 
   _startPitchInput() {

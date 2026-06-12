@@ -1999,8 +1999,10 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
     _this.$playIcon = $("#play-icon");
     _this.$playSoundStatus = $("#play-sound-status");
     _this.$playSoundDetected = $("#play-sound-detected");
-    _this.$confirmSoundWrap = $("#confirm-sound");
+    _this.$confirmSoundWrap = _this.$playSoundModal.find("#confirm-sound");
     _this.$confirmSoundBtn = _this.$confirmSoundWrap.find("button");
+    _this.$retrySoundWrap = _this.$playSoundModal.find("#retry");
+    _this.$retrySoundBtn = _this.$retrySoundWrap.find("button");
     _this._playedNoteConfirmed = false;
     _this._pitchAudioContext = null;
     _this._pitchStream = null;
@@ -2035,7 +2037,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
     value: function _resetPlayedNote() {
       this._lastPlayedNote = null;
       this._playedNoteConfirmed = false;
-      this._hideConfirmSoundButton();
+      this._hideRecordedSoundActions();
     }
   }, {
     key: "_setPlaySoundModalStatus",
@@ -2073,6 +2075,24 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       (_this$$confirmSoundWr5 = this.$confirmSoundWrap) === null || _this$$confirmSoundWr5 === void 0 || (_this$$confirmSoundWr6 = _this$$confirmSoundWr5.show) === null || _this$$confirmSoundWr6 === void 0 || (_this$$confirmSoundWr7 = (_this$$confirmSoundWr8 = _this$$confirmSoundWr6.call(_this$$confirmSoundWr5)).removeClass) === null || _this$$confirmSoundWr7 === void 0 || _this$$confirmSoundWr7.call(_this$$confirmSoundWr8, "invisible");
     }
   }, {
+    key: "_hideRetrySoundButton",
+    value: function _hideRetrySoundButton() {
+      var _this$$retrySoundWrap, _this$$retrySoundWrap2, _this$$retrySoundWrap3, _this$$retrySoundWrap4;
+      (_this$$retrySoundWrap = this.$retrySoundWrap) === null || _this$$retrySoundWrap === void 0 || (_this$$retrySoundWrap2 = _this$$retrySoundWrap.hide) === null || _this$$retrySoundWrap2 === void 0 || (_this$$retrySoundWrap3 = (_this$$retrySoundWrap4 = _this$$retrySoundWrap2.call(_this$$retrySoundWrap)).addClass) === null || _this$$retrySoundWrap3 === void 0 || _this$$retrySoundWrap3.call(_this$$retrySoundWrap4, "invisible");
+    }
+  }, {
+    key: "_showRetrySoundButton",
+    value: function _showRetrySoundButton() {
+      var _this$$retrySoundWrap5, _this$$retrySoundWrap6, _this$$retrySoundWrap7, _this$$retrySoundWrap8;
+      (_this$$retrySoundWrap5 = this.$retrySoundWrap) === null || _this$$retrySoundWrap5 === void 0 || (_this$$retrySoundWrap6 = _this$$retrySoundWrap5.show) === null || _this$$retrySoundWrap6 === void 0 || (_this$$retrySoundWrap7 = (_this$$retrySoundWrap8 = _this$$retrySoundWrap6.call(_this$$retrySoundWrap5)).removeClass) === null || _this$$retrySoundWrap7 === void 0 || _this$$retrySoundWrap7.call(_this$$retrySoundWrap8, "invisible");
+    }
+  }, {
+    key: "_hideRecordedSoundActions",
+    value: function _hideRecordedSoundActions() {
+      this._hideConfirmSoundButton();
+      this._hideRetrySoundButton();
+    }
+  }, {
     key: "_hasEnoughUserNotesForCheck",
     value: function _hasEnoughUserNotesForCheck() {
       var count = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this._currentUserNoteCount();
@@ -2087,7 +2107,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       if (!((_this$$playNoteWrap = this.$playNoteWrap) !== null && _this$$playNoteWrap !== void 0 && _this$$playNoteWrap.length)) return;
       if (!this._requiresPlayedNote()) {
         this.$playNoteWrap.hide().addClass("invisible");
-        this._hideConfirmSoundButton();
+        this._hideRecordedSoundActions();
         return;
       }
       var readyForPlayedNote = this._hasEnoughUserNotesForCheck(count);
@@ -2107,7 +2127,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       var _this$$playSoundModal, _window$bootstrap;
       if (!((_this$$playSoundModal = this.$playSoundModal) !== null && _this$$playSoundModal !== void 0 && _this$$playSoundModal.length)) return;
       this._setPlaySoundModalStatus("Listening...", "Play or sing one clear note.");
-      this._hideConfirmSoundButton();
+      this._hideRecordedSoundActions();
       this._setPlayIconState("idle");
       var el = this.$playSoundModal[0];
       if ((_window$bootstrap = window.bootstrap) !== null && _window$bootstrap !== void 0 && (_window$bootstrap = _window$bootstrap.Modal) !== null && _window$bootstrap !== void 0 && _window$bootstrap.getOrCreateInstance) {
@@ -2174,6 +2194,9 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
         _this$$confirmSoundBt,
         _this$$confirmSoundBt2,
         _this$$confirmSoundBt3,
+        _this$$retrySoundBtn,
+        _this$$retrySoundBtn$,
+        _this$$retrySoundBtn$2,
         _this$$playSoundModal3,
         _this$$playSoundModal4,
         _this$$playSoundModal5;
@@ -2194,6 +2217,15 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
         _this2._playedNoteConfirmed = true;
         _this2._hidePlaySoundModal();
         _this2._syncPlayedNoteGate();
+      });
+      (_this$$retrySoundBtn = this.$retrySoundBtn) === null || _this$$retrySoundBtn === void 0 || (_this$$retrySoundBtn$ = _this$$retrySoundBtn.off) === null || _this$$retrySoundBtn$ === void 0 || (_this$$retrySoundBtn$ = _this$$retrySoundBtn$.call(_this$$retrySoundBtn, "click.".concat(this.ns, ".playedNote"))) === null || _this$$retrySoundBtn$ === void 0 || (_this$$retrySoundBtn$2 = _this$$retrySoundBtn$.on) === null || _this$$retrySoundBtn$2 === void 0 || _this$$retrySoundBtn$2.call(_this$$retrySoundBtn$, "click.".concat(this.ns, ".playedNote"), function (e) {
+        e.preventDefault();
+        _this2._lastPlayedNote = null;
+        _this2._playedNoteConfirmed = false;
+        _this2._hideRecordedSoundActions();
+        _this2._setPlaySoundModalStatus("Listening...", "Play or sing one clear note.");
+        _this2._setPlayIconState("idle");
+        _this2._startPitchInput();
       });
       (_this$$playSoundModal3 = this.$playSoundModal) === null || _this$$playSoundModal3 === void 0 || (_this$$playSoundModal4 = _this$$playSoundModal3.off) === null || _this$$playSoundModal4 === void 0 || (_this$$playSoundModal4 = _this$$playSoundModal4.call(_this$$playSoundModal3, "hidden.bs.modal.".concat(this.ns, ".playedNote"))) === null || _this$$playSoundModal4 === void 0 || (_this$$playSoundModal5 = _this$$playSoundModal4.on) === null || _this$$playSoundModal5 === void 0 || _this$$playSoundModal5.call(_this$$playSoundModal4, "hidden.bs.modal.".concat(this.ns, ".playedNote"), function () {
         _this2._stopPitchInput();
@@ -2228,6 +2260,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       this._setPlayIconState("heard");
       this._setPlaySoundModalStatus("Note heard", "Detected ".concat(noteName));
       this._showConfirmSoundButton();
+      this._showRetrySoundButton();
     }
   }, {
     key: "_startPitchInput",
