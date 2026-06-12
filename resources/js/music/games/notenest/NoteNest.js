@@ -274,12 +274,7 @@ export class NoteNest extends BaseStaffGame {
     this._setPlaySoundModalStatus("Listening...", "Play or sing one clear note.");
     this._setPlayIconState("idle");
     this._stablePitch = { midi: null, count: 0 };
-
-    window.setTimeout(() => {
-      const modalIsOpen = this.$playSoundModal?.hasClass?.("show") || this.$playSoundModal?.css?.("display") !== "none";
-      if (this.$playSoundModal?.length && !modalIsOpen) return;
-      this._startPitchInput();
-    }, 75);
+    this._startPitchInput();
   }
 
   _startPitchInput() {
