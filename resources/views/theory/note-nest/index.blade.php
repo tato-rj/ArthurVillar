@@ -68,6 +68,7 @@
 </section>
 
 @include('theory.components.results.overlay')
+@include('theory.components.play.modal')
 @endsection
 
 @push('scripts')

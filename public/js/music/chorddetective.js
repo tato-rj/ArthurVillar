@@ -158,6 +158,10 @@ var BaseStaffGame = /*#__PURE__*/function () {
     this.keyboard = this._shouldUsePianoKeyboard() ? new _shared_PianoKeyboardUi_js__WEBPACK_IMPORTED_MODULE_5__.PianoKeyboardUi({
       rootSelector: "#keyboard",
       namespace: "".concat(this.ns, ".keyboard"),
+      onKeyClick: function onKeyClick(data) {
+        var _this$_onPianoKeyboar;
+        return (_this$_onPianoKeyboar = _this._onPianoKeyboardKeyClick) === null || _this$_onPianoKeyboar === void 0 ? void 0 : _this$_onPianoKeyboar.call(_this, data);
+      },
       canPlayNote: function canPlayNote() {
         var _this$staff, _this$staff$isSoundEn;
         return (_this$staff = _this.staff) === null || _this$staff === void 0 || (_this$staff$isSoundEn = _this$staff.isSoundEnabled) === null || _this$staff$isSoundEn === void 0 ? void 0 : _this$staff$isSoundEn.call(_this$staff);
@@ -1370,6 +1374,14 @@ var BaseStaffGame = /*#__PURE__*/function () {
       return Number.isFinite(v) && v >= 0 ? Math.floor(v) : 1;
     }
   }, {
+    key: "_currentUserNoteCount",
+    value: function _currentUserNoteCount() {
+      if (this.staff && typeof this.staff._userNoteCount === "function") {
+        return this.staff._userNoteCount();
+      }
+      return this.$staffEl.find(".note").not(".fixed").not(".preview").not(".hint").length;
+    }
+  }, {
     key: "_armUiGates",
     value: function _armUiGates() {
       var _this19 = this;
@@ -1383,14 +1395,26 @@ var BaseStaffGame = /*#__PURE__*/function () {
       }
       if (needForCheck <= 0) $("#check").show().removeClass("invisible");else $("#check").hide().addClass("invisible");
       this._userNotesSinceGate = 0;
-      this.$staffEl.off("staff:userNoteAdded._uiGate.".concat(this.ns)).on("staff:userNoteAdded._uiGate.".concat(this.ns), function () {
-        _this19._userNotesSinceGate += 1;
-        if (!_this19._instructionsRemoved && _this19._userNotesSinceGate >= needForInstructions) {
+      var syncUiGate = function syncUiGate() {
+        var count = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : _this19._currentUserNoteCount();
+        var userNoteCount = Number.isFinite(count) ? count : _this19._currentUserNoteCount();
+        if (needForInstructions > 0 && userNoteCount < needForInstructions) {
+          _this19._restoreInstructions();
+        } else if (!_this19._instructionsRemoved && userNoteCount >= needForInstructions) {
           _this19._removeInstructions();
         }
-        if (_this19._userNotesSinceGate >= needForCheck) {
+        if (needForCheck <= 0 || userNoteCount >= needForCheck) {
           $("#check").show().removeClass("invisible");
+        } else {
+          $("#check").hide().addClass("invisible");
         }
+      };
+      syncUiGate();
+      this.$staffEl.off("staff:userNoteAdded._uiGate.".concat(this.ns, " staff:userNotesChanged._uiGate.").concat(this.ns)).on("staff:userNoteAdded._uiGate.".concat(this.ns), function () {
+        _this19._userNotesSinceGate += 1;
+        syncUiGate();
+      }).on("staff:userNotesChanged._uiGate.".concat(this.ns), function (e, data) {
+        syncUiGate(Number(data === null || data === void 0 ? void 0 : data.count));
       });
     }
 
@@ -1778,6 +1802,13 @@ var BaseStaffGame = /*#__PURE__*/function () {
       if (this._instructionsRemoved) return;
       this.$instructions.hide();
       this._instructionsRemoved = true;
+    }
+  }, {
+    key: "_restoreInstructions",
+    value: function _restoreInstructions() {
+      if (!this._instructionsRemoved) return;
+      this.$instructions.show();
+      this._instructionsRemoved = false;
     }
   }, {
     key: "_bonusPointSettingKeys",
@@ -3541,6 +3572,11 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
         var _e$originalEvent;
         e.preventDefault();
         var pointerId = (_e$originalEvent = e.originalEvent) === null || _e$originalEvent === void 0 ? void 0 : _e$originalEvent.pointerId;
+        var $key = _this._resolveKeyFromTarget(e.target);
+        if ($key.length) {
+          _this._drag.suppressClickUntil = Date.now() + 250;
+          _this._activateKeyFromTarget($key[0]);
+        }
         _this._drag.active = true;
         _this._drag.pointerId = pointerId != null ? pointerId : null;
         _this._drag.startPageX = e.pageX;
@@ -3571,10 +3607,6 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
         var _e$originalEvent3;
         var pointerId = (_e$originalEvent3 = e.originalEvent) === null || _e$originalEvent3 === void 0 ? void 0 : _e$originalEvent3.pointerId;
         if (_this._drag.pointerId != null && pointerId != null && pointerId !== _this._drag.pointerId) return;
-        if (e.type === "pointerup" && !_this._drag.didMove) {
-          _this._drag.suppressClickUntil = Date.now() + 250;
-          _this._activateKeyFromPointerEvent(e);
-        }
         _this._finishDrag();
       });
       return this;
@@ -4040,7 +4072,7 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
       this._drag.pointerId = null;
       this._drag.startPageX = 0;
       this._drag.originWhiteMidi = this._startWhiteMidi;
-      this._drag.suppressClickUntil = this._drag.didMove ? Date.now() + 250 : 0;
+      this._drag.suppressClickUntil = this._drag.didMove ? Date.now() + 250 : Math.max(this._drag.suppressClickUntil || 0, Date.now() + 250);
       this._drag.lastStepOffset = 0;
       this._drag.didMove = false;
     }
@@ -4883,6 +4915,11 @@ var Staff = /*#__PURE__*/function () {
     this._previewStep = null;
     this._audioReady = false;
     this._synth = null;
+    this._heldMidi = null;
+    this._holdSoundTimer = null;
+    this._pendingHeldStep = null;
+    this._pendingHeldAccidentalOffset = 0;
+    this._holdSoundDelayMs = 140;
     this._accDragSound = {
       noteId: null,
       step: null,
@@ -4932,6 +4969,7 @@ var Staff = /*#__PURE__*/function () {
         try {
           this._synth && this._synth.releaseAll && this._synth.releaseAll();
         } catch (_) {}
+        this._releaseHeldStep();
         this._audioReady = false;
       }
     }
@@ -5527,6 +5565,89 @@ var Staff = /*#__PURE__*/function () {
       return playStep;
     }()
   }, {
+    key: "_releaseHeldStep",
+    value: function _releaseHeldStep() {
+      var _this$_synth;
+      if (this._holdSoundTimer) {
+        window.clearTimeout(this._holdSoundTimer);
+        this._holdSoundTimer = null;
+      }
+      this._pendingHeldStep = null;
+      this._pendingHeldAccidentalOffset = 0;
+      if (this._heldMidi != null && (_this$_synth = this._synth) !== null && _this$_synth !== void 0 && _this$_synth.triggerRelease) this._synth.triggerRelease();
+      this._heldMidi = null;
+    }
+  }, {
+    key: "_startHeldStep",
+    value: function () {
+      var _startHeldStep2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee4(step) {
+        var accidentalOffset,
+          midi,
+          _args4 = arguments;
+        return _regenerator().w(function (_context4) {
+          while (1) switch (_context4.n) {
+            case 0:
+              accidentalOffset = _args4.length > 1 && _args4[1] !== undefined ? _args4[1] : 0;
+              if (!(!this._soundEnabled() || !Number.isFinite(step))) {
+                _context4.n = 1;
+                break;
+              }
+              return _context4.a(2);
+            case 1:
+              _context4.n = 2;
+              return this._ensureAudio();
+            case 2:
+              if (this._synth) {
+                _context4.n = 3;
+                break;
+              }
+              return _context4.a(2);
+            case 3:
+              if (!(this._pendingHeldStep !== step)) {
+                _context4.n = 4;
+                break;
+              }
+              return _context4.a(2);
+            case 4:
+              midi = this._stepToMidi(step) + (accidentalOffset || 0);
+              if (!(this._heldMidi === midi)) {
+                _context4.n = 5;
+                break;
+              }
+              return _context4.a(2);
+            case 5:
+              if (this._synth.triggerRelease) this._synth.triggerRelease();
+              this._synth.triggerAttack(Tone.Frequency(midi, "midi"), undefined, _games_shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_2__.GameAudio.scale("staffNote", 1));
+              this._heldMidi = midi;
+            case 6:
+              return _context4.a(2);
+          }
+        }, _callee4, this);
+      }));
+      function _startHeldStep(_x4) {
+        return _startHeldStep2.apply(this, arguments);
+      }
+      return _startHeldStep;
+    }()
+  }, {
+    key: "_scheduleHeldStep",
+    value: function _scheduleHeldStep(step) {
+      var _this3 = this;
+      var accidentalOffset = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+      if (!this._soundEnabled() || !Number.isFinite(step)) return;
+      this._pendingHeldStep = step;
+      this._pendingHeldAccidentalOffset = accidentalOffset || 0;
+      if (this._heldMidi != null) {
+        void this._startHeldStep(step, this._pendingHeldAccidentalOffset);
+        return;
+      }
+      if (this._holdSoundTimer) return;
+      this._holdSoundTimer = window.setTimeout(function () {
+        _this3._holdSoundTimer = null;
+        void _this3._startHeldStep(_this3._pendingHeldStep, _this3._pendingHeldAccidentalOffset);
+      }, this._holdSoundDelayMs);
+    }
+  }, {
     key: "setNoteFixed",
     value: function setNoteFixed(noteId, fixed) {
       var on = !!fixed;
@@ -5557,6 +5678,9 @@ var Staff = /*#__PURE__*/function () {
       this.$el.find(".note, .ledger, .accidental").remove();
       this._previewClear();
       this._syncDynamicHeight();
+      this.$el.trigger("staff:userNotesChanged", {
+        count: this._userNoteCount()
+      });
     }
   }, {
     key: "removeNote",
@@ -5571,6 +5695,9 @@ var Staff = /*#__PURE__*/function () {
       this._removeAccidentalForNote(id);
       this._resolveNoteOverlaps();
       this._syncDynamicHeight();
+      this.$el.trigger("staff:userNotesChanged", {
+        count: this._userNoteCount()
+      });
     }
   }, {
     key: "addNote",
@@ -5775,6 +5902,7 @@ var Staff = /*#__PURE__*/function () {
         if (self._soundEnabled()) {
           self._ensureAudio();
           self._playStep(initialStep, 0);
+          self._scheduleHeldStep(initialStep, 0);
         }
         var pointerId = (0,_staffUtils_js__WEBPACK_IMPORTED_MODULE_0__.getPointerId)(e);
         if (this.setPointerCapture && pointerId != null) this.setPointerCapture(pointerId);
@@ -5782,6 +5910,7 @@ var Staff = /*#__PURE__*/function () {
           if (!self._previewState.active) return;
           if (self._userNoteCount() >= self._maxUserNotes()) {
             self._previewState.active = false;
+            self._releaseHeldStep();
             self._previewClear();
             self.$el.off("pointermove.previewCreate pointerup.previewCreate pointercancel.previewCreate");
             return;
@@ -5792,6 +5921,7 @@ var Staff = /*#__PURE__*/function () {
           if (!self._isStepAllowed(s)) return;
           if (self.isStepBlocked(s, null)) {
             self._previewState.step = null;
+            self._releaseHeldStep();
             self._previewClear();
             return;
           }
@@ -5799,13 +5929,14 @@ var Staff = /*#__PURE__*/function () {
           self._previewSet(s);
           if (self._soundEnabled() && s !== self._previewState.lastSoundStep) {
             self._previewState.lastSoundStep = s;
-            self._playStep(s, 0);
+            self._scheduleHeldStep(s, 0);
           }
         });
         self.$el.off("pointerup.previewCreate pointercancel.previewCreate").on("pointerup.previewCreate pointercancel.previewCreate", function () {
           if (!self._previewState.active) return;
           self._previewState.active = false;
           var finalStep = self._previewState.step;
+          self._releaseHeldStep();
           self._previewClear();
           self.$el.off("pointermove.previewCreate pointerup.previewCreate pointercancel.previewCreate");
           if (!Number.isFinite(finalStep)) return;
@@ -5830,6 +5961,7 @@ var Staff = /*#__PURE__*/function () {
       $(window).on("blur.previewCreate", function () {
         if (!self._previewState.active) return;
         self._previewState.active = false;
+        self._releaseHeldStep();
         self._previewClear();
         self.$el.off("pointermove.previewCreate pointerup.previewCreate pointercancel.previewCreate");
       });
@@ -5857,10 +5989,9 @@ var Staff = /*#__PURE__*/function () {
         d.outOfRange = false;
         self._setDraggingVisual(d.noteId, true);
         if (self._soundEnabled()) {
-          self._ensureAudio();
           var accCls = self._getAttachedAccidentalClass(d.noteId);
           var accOff = self._accidentalClassToOffset(accCls);
-          self._playStep(d.startStep, accOff);
+          self._scheduleHeldStep(d.startStep, accOff);
         }
         var capEl = e.currentTarget && e.currentTarget.setPointerCapture ? e.currentTarget : null;
         if (capEl && pointerId != null) capEl.setPointerCapture(pointerId);
@@ -5870,7 +6001,14 @@ var Staff = /*#__PURE__*/function () {
           var py = (0,_staffUtils_js__WEBPACK_IMPORTED_MODULE_0__.getPointerPageXY)(ev).y;
           var dy = py - d.startPageY;
           d.movedPx = Math.max(d.movedPx, Math.abs(dy));
-          if (!d.isDragging && d.movedPx >= d.thresholdPx) d.isDragging = true;
+          if (!d.isDragging && d.movedPx >= d.thresholdPx) {
+            d.isDragging = true;
+            var _accCls = self._getAttachedAccidentalClass(d.noteId);
+            var _accOff = self._accidentalClassToOffset(_accCls);
+            self._pendingHeldStep = d.lastTargetStep;
+            self._pendingHeldAccidentalOffset = _accOff;
+            void self._startHeldStep(d.lastTargetStep, _accOff);
+          }
           if (!d.isDragging) return;
           var targetStep = self.yToStep(self._pageYToLocalY(py));
           if (!self._isStepAllowed(targetStep)) {
@@ -5886,16 +6024,18 @@ var Staff = /*#__PURE__*/function () {
           self._applyDraggedAdjacencyX(d.noteId);
           if (self._soundEnabled() && targetStep !== d.lastSoundStep) {
             d.lastSoundStep = targetStep;
-            var _accCls = self._getAttachedAccidentalClass(d.noteId);
-            var _accOff = self._accidentalClassToOffset(_accCls);
-            self._playStep(targetStep, _accOff);
+            var _accCls2 = self._getAttachedAccidentalClass(d.noteId);
+            var _accOff2 = self._accidentalClassToOffset(_accCls2);
+            self._scheduleHeldStep(targetStep, _accOff2);
           }
         });
         self.$el.off("pointerup.noteDrag pointercancel.noteDrag").on("pointerup.noteDrag pointercancel.noteDrag", function (ev2) {
           var evPointerId = (0,_staffUtils_js__WEBPACK_IMPORTED_MODULE_0__.getPointerId)(ev2);
           if (pointerId != null && evPointerId != null && evPointerId !== pointerId) return;
           self.$el.off("pointermove.noteDrag pointerup.noteDrag pointercancel.noteDrag");
-          d.swallowClick = d.isDragging;
+          var hadHeldSound = self._heldMidi != null;
+          self._releaseHeldStep();
+          d.swallowClick = d.isDragging || hadHeldSound;
           self._setDraggingVisual(d.noteId, false);
           if (d.outOfRange || d.dropOnOccupied) {
             self.removeNote(d.noteId);

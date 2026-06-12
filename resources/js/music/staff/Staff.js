@@ -86,6 +86,11 @@ export class Staff {
 
     this._audioReady = false;
     this._synth = null;
+    this._heldMidi = null;
+    this._holdSoundTimer = null;
+    this._pendingHeldStep = null;
+    this._pendingHeldAccidentalOffset = 0;
+    this._holdSoundDelayMs = 140;
     this._accDragSound = { noteId: null, step: null, toolType: null, prospectiveCls: null };
     this._accSnap = { noteId: null, dist: null, localY: null };
 
@@ -119,6 +124,7 @@ export class Staff {
       try { Tone.Transport && Tone.Transport.stop(); } catch (_) {}
       try { Tone.context && Tone.context.suspend && Tone.context.suspend(); } catch (_) {}
       try { this._synth && this._synth.releaseAll && this._synth.releaseAll(); } catch (_) {}
+      this._releaseHeldStep();
       this._audioReady = false;
     }
   }
@@ -597,6 +603,48 @@ export class Staff {
     await this._playStep(step, accidentalOffset);
   }
 
+  _releaseHeldStep() {
+    if (this._holdSoundTimer) {
+      window.clearTimeout(this._holdSoundTimer);
+      this._holdSoundTimer = null;
+    }
+    this._pendingHeldStep = null;
+    this._pendingHeldAccidentalOffset = 0;
+    if (this._heldMidi != null && this._synth?.triggerRelease) this._synth.triggerRelease();
+    this._heldMidi = null;
+  }
+
+  async _startHeldStep(step, accidentalOffset = 0) {
+    if (!this._soundEnabled() || !Number.isFinite(step)) return;
+    await this._ensureAudio();
+    if (!this._synth) return;
+    if (this._pendingHeldStep !== step) return;
+
+    const midi = this._stepToMidi(step) + (accidentalOffset || 0);
+    if (this._heldMidi === midi) return;
+
+    if (this._synth.triggerRelease) this._synth.triggerRelease();
+    this._synth.triggerAttack(Tone.Frequency(midi, "midi"), undefined, GameAudio.scale("staffNote", 1));
+    this._heldMidi = midi;
+  }
+
+  _scheduleHeldStep(step, accidentalOffset = 0) {
+    if (!this._soundEnabled() || !Number.isFinite(step)) return;
+
+    this._pendingHeldStep = step;
+    this._pendingHeldAccidentalOffset = accidentalOffset || 0;
+    if (this._heldMidi != null) {
+      void this._startHeldStep(step, this._pendingHeldAccidentalOffset);
+      return;
+    }
+    if (this._holdSoundTimer) return;
+
+    this._holdSoundTimer = window.setTimeout(() => {
+      this._holdSoundTimer = null;
+      void this._startHeldStep(this._pendingHeldStep, this._pendingHeldAccidentalOffset);
+    }, this._holdSoundDelayMs);
+  }
+
   setNoteFixed(noteId, fixed) {
     const on = !!fixed;
     this.$el.find(`.note[data-note-id="${noteId}"]`).toggleClass("fixed", on);
@@ -625,6 +673,7 @@ export class Staff {
     this.$el.find(".note, .ledger, .accidental").remove();
     this._previewClear();
     this._syncDynamicHeight();
+    this.$el.trigger("staff:userNotesChanged", { count: this._userNoteCount() });
   }
 
   removeNote(id, opts = {}) {
@@ -637,6 +686,7 @@ export class Staff {
     this._removeAccidentalForNote(id);
     this._resolveNoteOverlaps();
     this._syncDynamicHeight();
+    this.$el.trigger("staff:userNotesChanged", { count: this._userNoteCount() });
   }
 
   addNote(cfg) {
@@ -864,6 +914,7 @@ export class Staff {
       if (self._soundEnabled()) {
         self._ensureAudio();
         self._playStep(initialStep, 0);
+        self._scheduleHeldStep(initialStep, 0);
       }
 
       const pointerId = getPointerId(e);
@@ -874,6 +925,7 @@ export class Staff {
 
         if (self._userNoteCount() >= self._maxUserNotes()) {
           self._previewState.active = false;
+          self._releaseHeldStep();
           self._previewClear();
           self.$el.off("pointermove.previewCreate pointerup.previewCreate pointercancel.previewCreate");
           return;
@@ -884,6 +936,7 @@ export class Staff {
         if (!self._isStepAllowed(s)) return;
         if (self.isStepBlocked(s, null)) {
           self._previewState.step = null;
+          self._releaseHeldStep();
           self._previewClear();
           return;
         }
@@ -893,7 +946,7 @@ export class Staff {
 
         if (self._soundEnabled() && s !== self._previewState.lastSoundStep) {
           self._previewState.lastSoundStep = s;
-          self._playStep(s, 0);
+          self._scheduleHeldStep(s, 0);
         }
       });
 
@@ -905,6 +958,7 @@ export class Staff {
           self._previewState.active = false;
           const finalStep = self._previewState.step;
 
+          self._releaseHeldStep();
           self._previewClear();
           self.$el.off("pointermove.previewCreate pointerup.previewCreate pointercancel.previewCreate");
 
@@ -927,6 +981,7 @@ export class Staff {
     $(window).on("blur.previewCreate", function () {
       if (!self._previewState.active) return;
       self._previewState.active = false;
+      self._releaseHeldStep();
       self._previewClear();
       self.$el.off("pointermove.previewCreate pointerup.previewCreate pointercancel.previewCreate");
     });
@@ -961,10 +1016,9 @@ export class Staff {
 
       self._setDraggingVisual(d.noteId, true);
       if (self._soundEnabled()) {
-        self._ensureAudio();
         const accCls = self._getAttachedAccidentalClass(d.noteId);
         const accOff = self._accidentalClassToOffset(accCls);
-        self._playStep(d.startStep, accOff);
+        self._scheduleHeldStep(d.startStep, accOff);
       }
 
       const capEl = e.currentTarget && e.currentTarget.setPointerCapture ? e.currentTarget : null;
@@ -978,7 +1032,14 @@ export class Staff {
         const dy = py - d.startPageY;
         d.movedPx = Math.max(d.movedPx, Math.abs(dy));
 
-        if (!d.isDragging && d.movedPx >= d.thresholdPx) d.isDragging = true;
+        if (!d.isDragging && d.movedPx >= d.thresholdPx) {
+          d.isDragging = true;
+          const accCls = self._getAttachedAccidentalClass(d.noteId);
+          const accOff = self._accidentalClassToOffset(accCls);
+          self._pendingHeldStep = d.lastTargetStep;
+          self._pendingHeldAccidentalOffset = accOff;
+          void self._startHeldStep(d.lastTargetStep, accOff);
+        }
         if (!d.isDragging) return;
 
         const targetStep = self.yToStep(self._pageYToLocalY(py));
@@ -998,7 +1059,7 @@ export class Staff {
           d.lastSoundStep = targetStep;
           const accCls = self._getAttachedAccidentalClass(d.noteId);
           const accOff = self._accidentalClassToOffset(accCls);
-          self._playStep(targetStep, accOff);
+          self._scheduleHeldStep(targetStep, accOff);
         }
       });
 
@@ -1010,7 +1071,9 @@ export class Staff {
 
           self.$el.off("pointermove.noteDrag pointerup.noteDrag pointercancel.noteDrag");
 
-          d.swallowClick = d.isDragging;
+          const hadHeldSound = self._heldMidi != null;
+          self._releaseHeldStep();
+          d.swallowClick = d.isDragging || hadHeldSound;
           self._setDraggingVisual(d.noteId, false);
 
           if (d.outOfRange || d.dropOnOccupied) {

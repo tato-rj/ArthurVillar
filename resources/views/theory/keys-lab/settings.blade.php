@@ -2,7 +2,6 @@
 <form id="intervals-settings" method="GET" action="{{ $settings->gameUrl() }}">
   @component('theory.components.settings.section', ['title' => 'SETUP'])
     @include('theory.components.settings.count', ['label' => 'Number of rounds', 'name' => 'numOfChallenges', 'min' => 2, 'max' => 12])
-    @include('theory.components.settings.toggle', ['label' => 'Time limit', 'name' => 'timer'])
     @include('theory.components.settings.toggle', ['label' => 'Practice mode', 'name' => 'practiceMode'])
   @endcomponent
 
@@ -14,6 +13,10 @@
 
   @component('theory.components.settings.section', ['title' => 'PREFERENCES'])
     @include('theory.components.settings.toggle', ['label' => 'Sound effects', 'name' => 'sound'])
+  @endcomponent
+
+  @component('theory.components.settings.bonus')
+    @include('theory.components.settings.toggle', ['label' => 'Time limit', 'name' => 'timer', 'icon' => 'stopwatch'])
   @endcomponent
 
   <button type="submit" class="btn btn-primary w-100">Start new game</button>

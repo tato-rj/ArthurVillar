@@ -33,7 +33,7 @@
 }
 
 .staff-highlight.is-sounding {
-  background: rgba(251, 195, 102, 0.6) !important;
+  background: rgba(251, 141, 118, 0.6) !important;
 }
 
 .staff-highlight.dragging .staff-highlight__label {

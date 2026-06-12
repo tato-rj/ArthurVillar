@@ -2,7 +2,6 @@
 <form id="chords-settings" method="GET" action="{{ $settings->gameUrl() }}">
   @component('theory.components.settings.section', ['title' => 'SETUP'])
     @include('theory.components.settings.count', ['label' => 'Number of rounds', 'name' => 'numOfChallenges', 'min' => 2, 'max' => 12])
-    @include('theory.components.settings.toggle', ['label' => 'Time limit', 'name' => 'timer'])
     @include('theory.components.settings.toggle', ['label' => 'Practice mode', 'name' => 'practiceMode'])
   @endcomponent
 
@@ -11,8 +10,6 @@
     @include('theory.components.settings.multichoice', ['label' => 'Clefs', 'name' => 'clefs', 'options' => $settings->getClefs(), 'game' => $settings->gameName(), 'ucfirst' => true])
 
     <hr class="opacity-1">
-    
-    @include('theory.components.settings.toggle', ['label' => 'Allow accidentals', 'name' => 'allowAccidentals'])
     @include('theory.components.settings.toggle', ['label' => 'Initial note is always the root', 'name' => 'initialRoot'])
     @include('theory.components.settings.toggle', ['label' => 'Play with 7th chords', 'name' => 'only7thChords'])
     @include('theory.components.settings.toggle', ['label' => 'Specify a direction', 'name' => 'strictDirection'])
@@ -22,6 +19,11 @@
     @include('theory.components.settings.toggle', ['label' => 'Sound effects', 'name' => 'sound'])
     @include('theory.components.settings.toggle', ['label' => 'Show note names', 'name' => 'showNoteNames'])
     @include('theory.components.settings.toggle', ['label' => 'Use solfege', 'name' => 'solfege'])
+  @endcomponent
+
+  @component('theory.components.settings.bonus')
+    @include('theory.components.settings.toggle', ['label' => 'Time limit', 'name' => 'timer', 'icon' => 'stopwatch'])
+    @include('theory.components.settings.toggle', ['label' => 'Allow accidentals', 'name' => 'allowAccidentals', 'icon' => 'hashtag'])
   @endcomponent
 
   <button type="submit" class="btn btn-primary w-100">Start new game</button>

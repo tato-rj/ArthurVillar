@@ -69,6 +69,12 @@ export class PianoKeyboardUi {
         e.preventDefault();
 
         const pointerId = e.originalEvent?.pointerId;
+        const $key = this._resolveKeyFromTarget(e.target);
+        if ($key.length) {
+          this._drag.suppressClickUntil = Date.now() + 250;
+          this._activateKeyFromTarget($key[0]);
+        }
+
         this._drag.active = true;
         this._drag.pointerId = pointerId != null ? pointerId : null;
         this._drag.startPageX = e.pageX;
@@ -108,10 +114,6 @@ export class PianoKeyboardUi {
       .on(`pointerup.${this.ns}Drag pointercancel.${this.ns}Drag`, (e) => {
         const pointerId = e.originalEvent?.pointerId;
         if (this._drag.pointerId != null && pointerId != null && pointerId !== this._drag.pointerId) return;
-        if (e.type === "pointerup" && !this._drag.didMove) {
-          this._drag.suppressClickUntil = Date.now() + 250;
-          this._activateKeyFromPointerEvent(e);
-        }
         this._finishDrag();
       });
 
@@ -538,7 +540,9 @@ export class PianoKeyboardUi {
     this._drag.pointerId = null;
     this._drag.startPageX = 0;
     this._drag.originWhiteMidi = this._startWhiteMidi;
-    this._drag.suppressClickUntil = this._drag.didMove ? Date.now() + 250 : 0;
+    this._drag.suppressClickUntil = this._drag.didMove
+      ? Date.now() + 250
+      : Math.max(this._drag.suppressClickUntil || 0, Date.now() + 250);
     this._drag.lastStepOffset = 0;
     this._drag.didMove = false;
   }

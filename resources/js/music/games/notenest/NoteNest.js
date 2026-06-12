@@ -35,19 +35,333 @@ export class NoteNest extends BaseStaffGame {
     this._targetNote = null;
     this._lastTargetSignature = null;
     this._blockMarkerClass = "block-marker";
+    this._lastPlayedNote = null;
+    this.$playNoteWrap = $("#play-note");
+    this.$playNoteBtn = this.$playNoteWrap.find("button");
+    this.$playSoundModal = $("#play-sound-modal");
+    this.$playIcon = $("#play-icon");
+    this.$playSoundStatus = $("#play-sound-status");
+    this.$playSoundDetected = $("#play-sound-detected");
+    this._pitchAudioContext = null;
+    this._pitchStream = null;
+    this._pitchSource = null;
+    this._pitchAnalyser = null;
+    this._pitchData = null;
+    this._pitchFrame = null;
+    this._pitchInputStarting = false;
+    this._stablePitch = { midi: null, count: 0 };
   }
 
   start() {
     super.start();
+    this._wirePlayedNoteTracking();
     this._bindBlockMarkerDismiss();
     this.prompt.show();
     this._setPromptForTarget(this._targetNote);
+  }
+
+  _requiresPlayedNote() {
+    return this._normalizeOnOff(this.opts.requirePlayedNote);
+  }
+
+  _resetPlayedNote() {
+    this._lastPlayedNote = null;
+  }
+
+  _setPlaySoundModalStatus(status, detected = "") {
+    this.$playSoundStatus?.text?.(status);
+    this.$playSoundDetected?.text?.(detected);
+  }
+
+  _setPlayIconListening(listening) {
+    this.$playIcon?.toggleClass?.("listening text-green", !!listening);
+  }
+
+  _hasEnoughUserNotesForCheck(count = this._currentUserNoteCount()) {
+    const userNoteCount = Number.isFinite(count) ? count : this._currentUserNoteCount();
+    return this._checkAfterUserNotes() <= 0 || userNoteCount >= this._checkAfterUserNotes();
+  }
+
+  _syncPlayedNoteGate(count = this._currentUserNoteCount()) {
+    if (!this.$playNoteWrap?.length) return;
+
+    if (!this._requiresPlayedNote()) {
+      this.$playNoteWrap.hide().addClass("invisible");
+      return;
+    }
+
+    const readyForPlayedNote = this._hasEnoughUserNotesForCheck(count);
+    $("#check").hide().addClass("invisible");
+
+    if (readyForPlayedNote) {
+      this.$playNoteWrap.show().removeClass("invisible");
+    } else {
+      this.$playNoteWrap.hide().addClass("invisible");
+    }
+  }
+
+  _showPlaySoundModal() {
+    if (!this.$playSoundModal?.length) return;
+
+    this._setPlaySoundModalStatus("Listening...", "Play or sing one clear note.");
+    this._setPlayIconListening(false);
+
+    const el = this.$playSoundModal[0];
+    if (window.bootstrap?.Modal?.getOrCreateInstance) {
+      window.bootstrap.Modal.getOrCreateInstance(el).show();
+      return;
+    }
+
+    if (typeof this.$playSoundModal.modal === "function") {
+      this.$playSoundModal.modal("show");
+    }
+  }
+
+  _hidePlaySoundModal() {
+    if (!this.$playSoundModal?.length) return;
+
+    const el = this.$playSoundModal[0];
+    if (window.bootstrap?.Modal?.getOrCreateInstance) {
+      window.bootstrap.Modal.getOrCreateInstance(el).hide();
+      return;
+    }
+
+    if (typeof this.$playSoundModal.modal === "function") {
+      this.$playSoundModal.modal("hide");
+    }
+  }
+
+  _midiToNoteName(midi) {
+    if (!Number.isFinite(midi)) return "";
+    return this.keyboard?._noteNameFromMidi?.(midi) || `MIDI ${midi}`;
+  }
+
+  _noteMidi(note) {
+    if (!note || !this.staff) return null;
+    const naturalMidi = this.staff._stepToMidi?.(note.step);
+    if (!Number.isFinite(naturalMidi)) return null;
+    const accidentalOffset = this.staff._accidentalClassToOffset?.(note.accidentalClass) || 0;
+    return naturalMidi + accidentalOffset;
+  }
+
+  _onPianoKeyboardKeyClick(data) {
+    if (!this._requiresPlayedNote()) return;
+    const $key = data?.$key;
+    const midi = Number($key?.attr?.("data-midi"));
+    if (!Number.isFinite(midi)) return;
+
+    this._lastPlayedNote = {
+      midi,
+      noteName: String(data?.noteName || ""),
+    };
+
+    this._submitPlayedNoteAttempt();
+  }
+
+  _wirePlayedNoteTracking() {
+    this.$staffEl
+      .off(`staff:noteState.${this.ns}.playedNote staff:userNotesChanged.${this.ns}.playedNote`)
+      .on(`staff:noteState.${this.ns}.playedNote staff:userNotesChanged.${this.ns}.playedNote`, (e, data) => {
+        if (!this._requiresPlayedNote()) return;
+        if (e.type === "staff:noteState" && data?.source === "fixed") return;
+        this._resetPlayedNote();
+        this._syncPlayedNoteGate(Number(data?.count));
+      });
+
+    this.$playNoteBtn
+      ?.off?.(`click.${this.ns}.playedNote`)
+      ?.on?.(`click.${this.ns}.playedNote`, (e) => {
+        e.preventDefault();
+        this._showPlaySoundModal();
+        this._startPitchInput();
+      });
+
+    this.$playSoundModal
+      ?.off?.(`hidden.bs.modal.${this.ns}.playedNote`)
+      ?.on?.(`hidden.bs.modal.${this.ns}.playedNote`, () => {
+        this._stopPitchInput();
+      });
+  }
+
+  _armUiGates(args) {
+    super._armUiGates(args);
+    this._syncPlayedNoteGate();
   }
 
   _displayNameForLetter(letter) {
     const clean = String(letter || "").trim().toUpperCase();
     if (this._showSolfegeNoteNames()) return NoteNest.LETTER_TO_SOLFEGE[clean] || clean;
     return clean;
+  }
+
+  _submitPlayedNoteAttempt() {
+    if (!this._hasEnoughUserNotesForCheck()) return;
+    if (this.$checkBtn?.prop?.("disabled")) return;
+    this._stopPitchInput();
+    this._hidePlaySoundModal();
+    this._onCheck();
+  }
+
+  _startPitchInput() {
+    if (this._pitchInputStarting || this._pitchAnalyser) return Promise.resolve();
+
+    if (!window.isSecureContext) {
+      this._setPlayIconListening(false);
+      this._setPlaySoundModalStatus("Microphone unavailable", "Use HTTPS or localhost to enable listening.");
+      return Promise.resolve();
+    }
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      this._setPlayIconListening(false);
+      this._setPlaySoundModalStatus("Microphone unavailable", "This browser cannot access microphone input.");
+      return Promise.resolve();
+    }
+
+    const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextCtor) {
+      this._setPlayIconListening(false);
+      this._setPlaySoundModalStatus("Microphone unavailable", "This browser cannot analyze live audio.");
+      return Promise.resolve();
+    }
+
+    this._pitchInputStarting = true;
+    this._stablePitch = { midi: null, count: 0 };
+
+    return navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: false,
+        noiseSuppression: false,
+        autoGainControl: false,
+      },
+    }).then((stream) => {
+      this._pitchAudioContext = new AudioContextCtor();
+      this._pitchStream = stream;
+      this._pitchSource = this._pitchAudioContext.createMediaStreamSource(stream);
+      this._pitchAnalyser = this._pitchAudioContext.createAnalyser();
+      this._pitchAnalyser.fftSize = 4096;
+      this._pitchData = new Float32Array(this._pitchAnalyser.fftSize);
+      this._pitchSource.connect(this._pitchAnalyser);
+      this._pitchInputStarting = false;
+      this._setPlayIconListening(true);
+      this._listenForPitch();
+    }).catch(() => {
+      this._pitchInputStarting = false;
+      this._setPlayIconListening(false);
+      this._setPlaySoundModalStatus("Microphone blocked", "Allow microphone access, then try again.");
+    });
+  }
+
+  _stopPitchInput() {
+    if (this._pitchFrame) {
+      cancelAnimationFrame(this._pitchFrame);
+      this._pitchFrame = null;
+    }
+
+    this._pitchStream?.getTracks?.().forEach((track) => track.stop());
+    this._pitchAudioContext?.close?.();
+    this._pitchAudioContext = null;
+    this._pitchStream = null;
+    this._pitchSource = null;
+    this._pitchAnalyser = null;
+    this._pitchData = null;
+    this._pitchInputStarting = false;
+    this._stablePitch = { midi: null, count: 0 };
+    this._setPlayIconListening(false);
+  }
+
+  _listenForPitch() {
+    if (!this._pitchAnalyser || !this._pitchData || !this._pitchAudioContext) return;
+
+    this._pitchAnalyser.getFloatTimeDomainData(this._pitchData);
+    const frequency = this._detectPitchFrequency(this._pitchData, this._pitchAudioContext.sampleRate);
+
+    if (Number.isFinite(frequency)) {
+      const midi = this._frequencyToMidi(frequency);
+      const noteName = this._midiToNoteName(midi);
+      this._setPlaySoundModalStatus("Listening...", `Detected ${noteName}`);
+
+      if (midi === this._stablePitch.midi) this._stablePitch.count += 1;
+      else this._stablePitch = { midi, count: 1 };
+
+      if (this._stablePitch.count >= 4) {
+        this._lastPlayedNote = { midi, noteName, frequency };
+        this._submitPlayedNoteAttempt();
+        return;
+      }
+    } else {
+      this._stablePitch = { midi: null, count: 0 };
+    }
+
+    this._pitchFrame = requestAnimationFrame(() => this._listenForPitch());
+  }
+
+  _frequencyToMidi(frequency) {
+    return Math.round(69 + (12 * Math.log2(frequency / 440)));
+  }
+
+  _detectPitchFrequency(buffer, sampleRate) {
+    const size = buffer.length;
+    let rms = 0;
+
+    for (let i = 0; i < size; i += 1) {
+      rms += buffer[i] * buffer[i];
+    }
+
+    rms = Math.sqrt(rms / size);
+    if (rms < 0.012) return null;
+
+    let start = 0;
+    let end = size - 1;
+    const threshold = 0.2;
+
+    for (let i = 0; i < size / 2; i += 1) {
+      if (Math.abs(buffer[i]) < threshold) {
+        start = i;
+        break;
+      }
+    }
+
+    for (let i = 1; i < size / 2; i += 1) {
+      if (Math.abs(buffer[size - i]) < threshold) {
+        end = size - i;
+        break;
+      }
+    }
+
+    const trimmed = buffer.slice(start, end);
+    const trimmedSize = trimmed.length;
+    if (trimmedSize < 32) return null;
+
+    const minLag = Math.max(1, Math.floor(sampleRate / 2000));
+    const maxLag = Math.min(trimmedSize - 1, Math.ceil(sampleRate / 40));
+    const correlations = new Array(maxLag + 1).fill(0);
+
+    for (let lag = minLag; lag <= maxLag; lag += 1) {
+      for (let i = 0; i < trimmedSize - lag; i += 1) {
+        correlations[lag] += trimmed[i] * trimmed[i + lag];
+      }
+    }
+
+    let maxValue = -Infinity;
+    let maxPosition = -1;
+    for (let i = minLag; i <= maxLag; i += 1) {
+      if (correlations[i] > maxValue) {
+        maxValue = correlations[i];
+        maxPosition = i;
+      }
+    }
+
+    if (maxPosition <= 0) return null;
+
+    const x1 = correlations[maxPosition - 1] || 0;
+    const x2 = correlations[maxPosition] || 0;
+    const x3 = correlations[maxPosition + 1] || 0;
+    const divisor = (2 * x2) - x1 - x3;
+    const shift = divisor ? (x3 - x1) / (2 * divisor) : 0;
+    const frequency = sampleRate / (maxPosition + shift);
+
+    if (frequency < 40 || frequency > 2000) return null;
+    return frequency;
   }
 
   _targetAccidentalClass() {
@@ -238,6 +552,8 @@ export class NoteNest extends BaseStaffGame {
 
     this._madeMistakeThisRound = false;
     this._usedHintThisRound = false;
+    this._stopPitchInput();
+    this._resetPlayedNote();
 
     this._clearBlockMarker();
     this.staff.clearNotes();
@@ -254,6 +570,7 @@ export class NoteNest extends BaseStaffGame {
     this._renderBlockMarker(this._targetNote);
 
     $("#check").show().removeClass("invisible");
+    this._syncPlayedNoteGate(0);
     $("#continue").hide();
   }
 
@@ -282,8 +599,16 @@ export class NoteNest extends BaseStaffGame {
     const noteState = stepToLetterOctave(this.staff, note.step);
     return (
       String(noteState?.letter || "") === String(target.letter || "") &&
-      String(note.accidentalClass || "") === String(target.accidentalClass || "")
+      String(note.accidentalClass || "") === String(target.accidentalClass || "") &&
+      this._isPlayedNoteCorrect(note)
     );
+  }
+
+  _isPlayedNoteCorrect(note) {
+    if (!this._requiresPlayedNote()) return true;
+    const targetMidi = this._noteMidi(note);
+    const playedMidi = Number(this._lastPlayedNote?.midi);
+    return Number.isFinite(targetMidi) && playedMidi === targetMidi;
   }
 
   _computeHintAnswers() {
@@ -303,6 +628,8 @@ export class NoteNest extends BaseStaffGame {
     if (this._isUserAnswerCorrect()) {
       this._stats.checksCorrect += 1;
       this._pauseGameTimer();
+      this._stopPitchInput();
+      this.$playNoteWrap?.hide?.().addClass?.("invisible");
 
       const { earned, bonusEarned } = this._awardPointsForCorrect();
       this._handleCorrectAnswerUi({
@@ -315,7 +642,7 @@ export class NoteNest extends BaseStaffGame {
 
     this._madeAnyMistake = true;
     this._madeMistakeThisRound = true;
-    this._failAnimation(this.$checkWrap);
+    this._failAnimation(this._requiresPlayedNote() ? this.$playNoteWrap : this.$checkWrap);
     this.$helpBtn.show();
   }
 }

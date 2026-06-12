@@ -4,7 +4,7 @@ namespace App\Games;
 
 class ChordDetectiveSettings extends GameFactory
 {
-    protected array $bonusPoints = ['timer', 'allowInversions'];
+    protected array $bonusPoints = ['timer', 'allowInversions', 'allowAccidentals'];
     protected array $categories = ['ear training'];
 
     public function gameName(): string

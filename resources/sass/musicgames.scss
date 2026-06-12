@@ -362,6 +362,7 @@ body {
    Notes / Ledgers
    ========================================================================== */
 .note {
+  transition: .2s;
   background: var(--ink);
   border-radius: 50%;
   height: var(--note-height);
@@ -631,6 +632,24 @@ body {
 
 #piano-toggle button[selected] {
   opacity: 1;
+}
+
+#play-icon {
+  opacity: .2;
+}
+
+#play-icon.listening {
+  animation: playSoundIconPulse 1s ease-in-out infinite alternate;
+}
+
+@keyframes playSoundIconPulse {
+  from {
+    opacity: .5;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 #leaderboard-modal .leaderboard-player {

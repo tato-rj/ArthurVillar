@@ -14,7 +14,7 @@
         <button type="button" class="btn-close btn-raw text-dark" style="width: inherit; height: inherit;" data-bs-dismiss="modal" aria-label="Close">@fa(['icon' => 'times', 'fa_size' => '2x', 'mr' => 0])</button>
       </div>
       @else
-      <div class="modal-header border-0 {{isset($title) ? 'pb-0' : null}}">
+      <div class="modal-header border-0 pb-0">
         <h4 class="modal-title text-secondary no-stroke">{!!$title ?? null!!}</h4>
         <button type="button" class="btn-close btn-raw" style="width: inherit; height: inherit;" data-bs-dismiss="modal" aria-label="Close">@fa(['icon' => 'times', 'fa_size' => '2x', 'mr' => 0])</button>
       </div>

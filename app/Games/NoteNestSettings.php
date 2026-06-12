@@ -4,7 +4,7 @@ namespace App\Games;
 
 class NoteNestSettings extends GameFactory
 {   
-    protected array $bonusPoints = ['blockNote', 'timer'];
+    protected array $bonusPoints = ['blockNote', 'timer', 'requirePlayedNote'];
     protected array $categories = ['reading'];
     
     public function gameName(): string 
@@ -60,6 +60,7 @@ class NoteNestSettings extends GameFactory
             'strictDirection' => false,
             'showLineNames' => false,
             'blockNote' => false,
+            'requirePlayedNote' => false,
             'blockIcon' => 'ban'
         ];
     }

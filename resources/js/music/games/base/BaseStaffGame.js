@@ -155,6 +155,7 @@ export class BaseStaffGame {
       ? new PianoKeyboardUi({
         rootSelector: "#keyboard",
         namespace: `${this.ns}.keyboard`,
+        onKeyClick: (data) => this._onPianoKeyboardKeyClick?.(data),
         canPlayNote: () => this.staff?.isSoundEnabled?.(),
       })
       : null;
@@ -1327,6 +1328,14 @@ export class BaseStaffGame {
     return Number.isFinite(v) && v >= 0 ? Math.floor(v) : 1;
   }
 
+  _currentUserNoteCount() {
+    if (this.staff && typeof this.staff._userNoteCount === "function") {
+      return this.staff._userNoteCount();
+    }
+
+    return this.$staffEl.find(".note").not(".fixed").not(".preview").not(".hint").length;
+  }
+
   _armUiGates({ resetInstructions } = {}) {
     const needForInstructions = this._instructionsAfterUserNotes();
     const needForCheck = this._checkAfterUserNotes();
@@ -1341,18 +1350,33 @@ export class BaseStaffGame {
 
     this._userNotesSinceGate = 0;
 
+    const syncUiGate = (count = this._currentUserNoteCount()) => {
+      const userNoteCount = Number.isFinite(count) ? count : this._currentUserNoteCount();
+
+      if (needForInstructions > 0 && userNoteCount < needForInstructions) {
+        this._restoreInstructions();
+      } else if (!this._instructionsRemoved && userNoteCount >= needForInstructions) {
+        this._removeInstructions();
+      }
+
+      if (needForCheck <= 0 || userNoteCount >= needForCheck) {
+        $("#check").show().removeClass("invisible");
+      } else {
+        $("#check").hide().addClass("invisible");
+      }
+    };
+
+    syncUiGate();
+
     this.$staffEl
-      .off(`staff:userNoteAdded._uiGate.${this.ns}`)
+      .off(`staff:userNoteAdded._uiGate.${this.ns} staff:userNotesChanged._uiGate.${this.ns}`)
       .on(`staff:userNoteAdded._uiGate.${this.ns}`, () => {
         this._userNotesSinceGate += 1;
 
-        if (!this._instructionsRemoved && this._userNotesSinceGate >= needForInstructions) {
-          this._removeInstructions();
-        }
-
-        if (this._userNotesSinceGate >= needForCheck) {
-          $("#check").show().removeClass("invisible");
-        }
+        syncUiGate();
+      })
+      .on(`staff:userNotesChanged._uiGate.${this.ns}`, (e, data) => {
+        syncUiGate(Number(data?.count));
       });
   }
 
@@ -1698,6 +1722,12 @@ export class BaseStaffGame {
     if (this._instructionsRemoved) return;
     this.$instructions.hide();
     this._instructionsRemoved = true;
+  }
+
+  _restoreInstructions() {
+    if (!this._instructionsRemoved) return;
+    this.$instructions.show();
+    this._instructionsRemoved = false;
   }
 
   _bonusPointSettingKeys() {
