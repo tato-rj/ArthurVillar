@@ -2013,6 +2013,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
     _this._pitchInputStarting = false;
     _this._stablePitch = {
       midi: null,
+      frequency: null,
       count: 0
     };
     return _this;
@@ -2267,6 +2268,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       this._setPlayIconState("idle");
       this._stablePitch = {
         midi: null,
+        frequency: null,
         count: 0
       };
       this._startPitchInput();
@@ -2296,6 +2298,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       this._pitchInputStarting = true;
       this._stablePitch = {
         midi: null,
+        frequency: null,
         count: 0
       };
       return navigator.mediaDevices.getUserMedia({
@@ -2344,6 +2347,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       this._pitchInputStarting = false;
       this._stablePitch = {
         midi: null,
+        frequency: null,
         count: 0
       };
       if (!keepIconState) this._setPlayIconState("idle");
@@ -2354,22 +2358,30 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       var _this4 = this;
       if (!this._pitchAnalyser || !this._pitchData || !this._pitchAudioContext) return;
       this._pitchAnalyser.getFloatTimeDomainData(this._pitchData);
-      var frequency = this._detectPitchFrequency(this._pitchData, this._pitchAudioContext.sampleRate);
+      var pitch = this._detectPitch(this._pitchData, this._pitchAudioContext.sampleRate);
+      var frequency = pitch === null || pitch === void 0 ? void 0 : pitch.frequency;
       if (Number.isFinite(frequency)) {
         var midi = this._frequencyToMidi(frequency);
         var noteName = this._midiToNoteName(midi);
         this._setPlaySoundModalStatus("Listening...", "Detected ".concat(noteName));
-        if (midi === this._stablePitch.midi) this._stablePitch.count += 1;else this._stablePitch = {
-          midi: midi,
-          count: 1
-        };
-        if (this._stablePitch.count >= 4) {
-          this._handlePlayedNoteHeard(midi, noteName, frequency);
+        if (midi === this._stablePitch.midi && Math.abs(frequency - this._stablePitch.frequency) <= this._stablePitch.frequency * 0.035) {
+          this._stablePitch.count += 1;
+          this._stablePitch.frequency = this._stablePitch.frequency * 0.75 + frequency * 0.25;
+        } else {
+          this._stablePitch = {
+            midi: midi,
+            frequency: frequency,
+            count: 1
+          };
+        }
+        if (this._stablePitch.count >= 8) {
+          this._handlePlayedNoteHeard(midi, noteName, this._stablePitch.frequency);
           return;
         }
       } else {
         this._stablePitch = {
           midi: null,
+          frequency: null,
           count: 0
         };
       }
@@ -2383,27 +2395,35 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       return Math.round(69 + 12 * Math.log2(frequency / 440));
     }
   }, {
-    key: "_detectPitchFrequency",
-    value: function _detectPitchFrequency(buffer, sampleRate) {
+    key: "_detectPitch",
+    value: function _detectPitch(buffer, sampleRate) {
       var size = buffer.length;
       var rms = 0;
       for (var i = 0; i < size; i += 1) {
         rms += buffer[i] * buffer[i];
       }
       rms = Math.sqrt(rms / size);
-      if (rms < 0.012) return null;
+      if (rms < 0.02) return null;
+      var zeroCrossings = 0;
+      for (var _i = 1; _i < size; _i += 1) {
+        if (buffer[_i - 1] < 0 && buffer[_i] >= 0 || buffer[_i - 1] >= 0 && buffer[_i] < 0) {
+          zeroCrossings += 1;
+        }
+      }
+      var zeroCrossingRate = zeroCrossings / size;
+      if (zeroCrossingRate < 0.002 || zeroCrossingRate > 0.35) return null;
       var start = 0;
       var end = size - 1;
       var threshold = 0.2;
-      for (var _i = 0; _i < size / 2; _i += 1) {
-        if (Math.abs(buffer[_i]) < threshold) {
-          start = _i;
+      for (var _i2 = 0; _i2 < size / 2; _i2 += 1) {
+        if (Math.abs(buffer[_i2]) < threshold) {
+          start = _i2;
           break;
         }
       }
-      for (var _i2 = 1; _i2 < size / 2; _i2 += 1) {
-        if (Math.abs(buffer[size - _i2]) < threshold) {
-          end = size - _i2;
+      for (var _i3 = 1; _i3 < size / 2; _i3 += 1) {
+        if (Math.abs(buffer[size - _i3]) < threshold) {
+          end = size - _i3;
           break;
         }
       }
@@ -2413,28 +2433,42 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       var minLag = Math.max(1, Math.floor(sampleRate / 2000));
       var maxLag = Math.min(trimmedSize - 1, Math.ceil(sampleRate / 40));
       var correlations = new Array(maxLag + 1).fill(0);
+      var zeroLag = 0;
+      for (var _i4 = 0; _i4 < trimmedSize; _i4 += 1) {
+        zeroLag += trimmed[_i4] * trimmed[_i4];
+      }
+      if (zeroLag <= 0) return null;
       for (var lag = minLag; lag <= maxLag; lag += 1) {
-        for (var _i3 = 0; _i3 < trimmedSize - lag; _i3 += 1) {
-          correlations[lag] += trimmed[_i3] * trimmed[_i3 + lag];
+        for (var _i5 = 0; _i5 < trimmedSize - lag; _i5 += 1) {
+          correlations[lag] += trimmed[_i5] * trimmed[_i5 + lag];
         }
       }
       var maxValue = -Infinity;
       var maxPosition = -1;
-      for (var _i4 = minLag; _i4 <= maxLag; _i4 += 1) {
-        if (correlations[_i4] > maxValue) {
-          maxValue = correlations[_i4];
-          maxPosition = _i4;
+      for (var _i6 = minLag; _i6 <= maxLag; _i6 += 1) {
+        if (correlations[_i6] > maxValue) {
+          maxValue = correlations[_i6];
+          maxPosition = _i6;
         }
       }
       if (maxPosition <= 0) return null;
+      if (maxValue / zeroLag < 0.58) return null;
       var x1 = correlations[maxPosition - 1] || 0;
       var x2 = correlations[maxPosition] || 0;
       var x3 = correlations[maxPosition + 1] || 0;
+      var peakSharpness = x2 - Math.max(x1, x3);
+      if (peakSharpness < zeroLag * 0.01) return null;
       var divisor = 2 * x2 - x1 - x3;
       var shift = divisor ? (x3 - x1) / (2 * divisor) : 0;
+      if (Math.abs(shift) > 1) return null;
       var frequency = sampleRate / (maxPosition + shift);
       if (frequency < 40 || frequency > 2000) return null;
-      return frequency;
+      return {
+        frequency: frequency,
+        rms: rms,
+        confidence: maxValue / zeroLag,
+        zeroCrossingRate: zeroCrossingRate
+      };
     }
   }, {
     key: "_targetAccidentalClass",
