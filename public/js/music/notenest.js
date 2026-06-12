@@ -2209,7 +2209,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       (_this$$playNoteBtn = this.$playNoteBtn) === null || _this$$playNoteBtn === void 0 || (_this$$playNoteBtn$of = _this$$playNoteBtn.off) === null || _this$$playNoteBtn$of === void 0 || (_this$$playNoteBtn$of = _this$$playNoteBtn$of.call(_this$$playNoteBtn, "click.".concat(this.ns, ".playedNote"))) === null || _this$$playNoteBtn$of === void 0 || (_this$$playNoteBtn$of2 = _this$$playNoteBtn$of.on) === null || _this$$playNoteBtn$of2 === void 0 || _this$$playNoteBtn$of2.call(_this$$playNoteBtn$of, "click.".concat(this.ns, ".playedNote"), function (e) {
         e.preventDefault();
         _this2._showPlaySoundModal();
-        _this2._startPitchInput();
+        _this2._beginPitchRecording();
       });
       (_this$$confirmSoundBt = this.$confirmSoundBtn) === null || _this$$confirmSoundBt === void 0 || (_this$$confirmSoundBt2 = _this$$confirmSoundBt.off) === null || _this$$confirmSoundBt2 === void 0 || (_this$$confirmSoundBt2 = _this$$confirmSoundBt2.call(_this$$confirmSoundBt, "click.".concat(this.ns, ".playedNote"))) === null || _this$$confirmSoundBt2 === void 0 || (_this$$confirmSoundBt3 = _this$$confirmSoundBt2.on) === null || _this$$confirmSoundBt3 === void 0 || _this$$confirmSoundBt3.call(_this$$confirmSoundBt2, "click.".concat(this.ns, ".playedNote"), function (e) {
         e.preventDefault();
@@ -2220,12 +2220,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       });
       (_this$$retrySoundBtn = this.$retrySoundBtn) === null || _this$$retrySoundBtn === void 0 || (_this$$retrySoundBtn$ = _this$$retrySoundBtn.off) === null || _this$$retrySoundBtn$ === void 0 || (_this$$retrySoundBtn$ = _this$$retrySoundBtn$.call(_this$$retrySoundBtn, "click.".concat(this.ns, ".playedNote"))) === null || _this$$retrySoundBtn$ === void 0 || (_this$$retrySoundBtn$2 = _this$$retrySoundBtn$.on) === null || _this$$retrySoundBtn$2 === void 0 || _this$$retrySoundBtn$2.call(_this$$retrySoundBtn$, "click.".concat(this.ns, ".playedNote"), function (e) {
         e.preventDefault();
-        _this2._lastPlayedNote = null;
-        _this2._playedNoteConfirmed = false;
-        _this2._hideRecordedSoundActions();
-        _this2._setPlaySoundModalStatus("Listening...", "Play or sing one clear note.");
-        _this2._setPlayIconState("idle");
-        _this2._startPitchInput();
+        _this2._beginPitchRecording();
       });
       (_this$$playSoundModal3 = this.$playSoundModal) === null || _this$$playSoundModal3 === void 0 || (_this$$playSoundModal4 = _this$$playSoundModal3.off) === null || _this$$playSoundModal4 === void 0 || (_this$$playSoundModal4 = _this$$playSoundModal4.call(_this$$playSoundModal3, "hidden.bs.modal.".concat(this.ns, ".playedNote"))) === null || _this$$playSoundModal4 === void 0 || (_this$$playSoundModal5 = _this$$playSoundModal4.on) === null || _this$$playSoundModal5 === void 0 || _this$$playSoundModal5.call(_this$$playSoundModal4, "hidden.bs.modal.".concat(this.ns, ".playedNote"), function () {
         _this2._stopPitchInput();
@@ -2247,7 +2242,6 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
   }, {
     key: "_handlePlayedNoteHeard",
     value: function _handlePlayedNoteHeard(midi, noteName, frequency) {
-      if (!this._hasEnoughUserNotesForCheck()) return;
       this._lastPlayedNote = {
         midi: midi,
         noteName: noteName,
@@ -2263,10 +2257,31 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       this._showRetrySoundButton();
     }
   }, {
+    key: "_beginPitchRecording",
+    value: function _beginPitchRecording() {
+      var _this3 = this;
+      this._stopPitchInput();
+      this._lastPlayedNote = null;
+      this._playedNoteConfirmed = false;
+      this._hideRecordedSoundActions();
+      this._setPlaySoundModalStatus("Listening...", "Play or sing one clear note.");
+      this._setPlayIconState("idle");
+      this._stablePitch = {
+        midi: null,
+        count: 0
+      };
+      window.setTimeout(function () {
+        var _this3$$playSoundModa, _this3$$playSoundModa2, _this3$$playSoundModa3, _this3$$playSoundModa4, _this3$$playSoundModa5;
+        var modalIsOpen = ((_this3$$playSoundModa = _this3.$playSoundModal) === null || _this3$$playSoundModa === void 0 || (_this3$$playSoundModa2 = _this3$$playSoundModa.hasClass) === null || _this3$$playSoundModa2 === void 0 ? void 0 : _this3$$playSoundModa2.call(_this3$$playSoundModa, "show")) || ((_this3$$playSoundModa3 = _this3.$playSoundModal) === null || _this3$$playSoundModa3 === void 0 || (_this3$$playSoundModa4 = _this3$$playSoundModa3.css) === null || _this3$$playSoundModa4 === void 0 ? void 0 : _this3$$playSoundModa4.call(_this3$$playSoundModa3, "display")) !== "none";
+        if ((_this3$$playSoundModa5 = _this3.$playSoundModal) !== null && _this3$$playSoundModa5 !== void 0 && _this3$$playSoundModa5.length && !modalIsOpen) return;
+        _this3._startPitchInput();
+      }, 75);
+    }
+  }, {
     key: "_startPitchInput",
     value: function _startPitchInput() {
       var _navigator$mediaDevic,
-        _this3 = this;
+        _this4 = this;
       if (this._pitchInputStarting || this._pitchAnalyser) return Promise.resolve();
       if (!window.isSecureContext) {
         this._setPlayIconState("idle");
@@ -2296,20 +2311,20 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
           autoGainControl: false
         }
       }).then(function (stream) {
-        _this3._pitchAudioContext = new AudioContextCtor();
-        _this3._pitchStream = stream;
-        _this3._pitchSource = _this3._pitchAudioContext.createMediaStreamSource(stream);
-        _this3._pitchAnalyser = _this3._pitchAudioContext.createAnalyser();
-        _this3._pitchAnalyser.fftSize = 4096;
-        _this3._pitchData = new Float32Array(_this3._pitchAnalyser.fftSize);
-        _this3._pitchSource.connect(_this3._pitchAnalyser);
-        _this3._pitchInputStarting = false;
-        _this3._setPlayIconState("listening");
-        _this3._listenForPitch();
+        _this4._pitchAudioContext = new AudioContextCtor();
+        _this4._pitchStream = stream;
+        _this4._pitchSource = _this4._pitchAudioContext.createMediaStreamSource(stream);
+        _this4._pitchAnalyser = _this4._pitchAudioContext.createAnalyser();
+        _this4._pitchAnalyser.fftSize = 4096;
+        _this4._pitchData = new Float32Array(_this4._pitchAnalyser.fftSize);
+        _this4._pitchSource.connect(_this4._pitchAnalyser);
+        _this4._pitchInputStarting = false;
+        _this4._setPlayIconState("listening");
+        _this4._listenForPitch();
       })["catch"](function () {
-        _this3._pitchInputStarting = false;
-        _this3._setPlayIconState("idle");
-        _this3._setPlaySoundModalStatus("Microphone blocked", "Allow microphone access, then try again.");
+        _this4._pitchInputStarting = false;
+        _this4._setPlayIconState("idle");
+        _this4._setPlaySoundModalStatus("Microphone blocked", "Allow microphone access, then try again.");
       });
     }
   }, {
@@ -2342,7 +2357,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
   }, {
     key: "_listenForPitch",
     value: function _listenForPitch() {
-      var _this4 = this;
+      var _this5 = this;
       if (!this._pitchAnalyser || !this._pitchData || !this._pitchAudioContext) return;
       this._pitchAnalyser.getFloatTimeDomainData(this._pitchData);
       var frequency = this._detectPitchFrequency(this._pitchData, this._pitchAudioContext.sampleRate);
@@ -2365,7 +2380,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
         };
       }
       this._pitchFrame = requestAnimationFrame(function () {
-        return _this4._listenForPitch();
+        return _this5._listenForPitch();
       });
     }
   }, {
@@ -2522,10 +2537,10 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
   }, {
     key: "_bindBlockMarkerDismiss",
     value: function _bindBlockMarkerDismiss() {
-      var _this5 = this;
+      var _this6 = this;
       $(document).off("pointerdown.".concat(this.ns, ".blockTooltip mousedown.").concat(this.ns, ".blockTooltip"), "*").on("pointerdown.".concat(this.ns, ".blockTooltip mousedown.").concat(this.ns, ".blockTooltip"), function (e) {
-        if ($(e.target).closest(".".concat(_this5._blockMarkerClass)).length) return;
-        _this5._hideBlockMarkerTooltip();
+        if ($(e.target).closest(".".concat(_this6._blockMarkerClass)).length) return;
+        _this6._hideBlockMarkerTooltip();
       });
     }
   }, {
@@ -2624,15 +2639,15 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
   }, {
     key: "_collectUserNotes",
     value: function _collectUserNotes() {
-      var _this6 = this;
+      var _this7 = this;
       return this.$staffEl.find(".note").toArray().map(function (el) {
-        var _this6$staff$_getAtta, _this6$staff;
+        var _this7$staff$_getAtta, _this7$staff;
         var $note = $(el);
         var noteId = String($note.attr("data-note-id") || "");
-        if (!noteId || _this6.staff.isNoteFixed(noteId)) return null;
+        if (!noteId || _this7.staff.isNoteFixed(noteId)) return null;
         var top = parseFloat($note.css("top"));
-        var step = Number.isFinite(top) ? _this6.staff.yToStep(top) : null;
-        var accidentalClass = ((_this6$staff$_getAtta = (_this6$staff = _this6.staff)._getAttachedAccidentalClass) === null || _this6$staff$_getAtta === void 0 ? void 0 : _this6$staff$_getAtta.call(_this6$staff, noteId)) || null;
+        var step = Number.isFinite(top) ? _this7.staff.yToStep(top) : null;
+        var accidentalClass = ((_this7$staff$_getAtta = (_this7$staff = _this7.staff)._getAttachedAccidentalClass) === null || _this7$staff$_getAtta === void 0 ? void 0 : _this7$staff$_getAtta.call(_this7$staff, noteId)) || null;
         return {
           noteId: noteId,
           step: step,

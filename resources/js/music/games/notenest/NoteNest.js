@@ -218,7 +218,7 @@ export class NoteNest extends BaseStaffGame {
       ?.on?.(`click.${this.ns}.playedNote`, (e) => {
         e.preventDefault();
         this._showPlaySoundModal();
-        this._startPitchInput();
+        this._beginPitchRecording();
       });
 
     this.$confirmSoundBtn
@@ -235,12 +235,7 @@ export class NoteNest extends BaseStaffGame {
       ?.off?.(`click.${this.ns}.playedNote`)
       ?.on?.(`click.${this.ns}.playedNote`, (e) => {
         e.preventDefault();
-        this._lastPlayedNote = null;
-        this._playedNoteConfirmed = false;
-        this._hideRecordedSoundActions();
-        this._setPlaySoundModalStatus("Listening...", "Play or sing one clear note.");
-        this._setPlayIconState("idle");
-        this._startPitchInput();
+        this._beginPitchRecording();
       });
 
     this.$playSoundModal
@@ -262,8 +257,6 @@ export class NoteNest extends BaseStaffGame {
   }
 
   _handlePlayedNoteHeard(midi, noteName, frequency) {
-    if (!this._hasEnoughUserNotesForCheck()) return;
-
     this._lastPlayedNote = { midi, noteName, frequency };
     this._playedNoteConfirmed = false;
     this._stopPitchInput({ keepIconState: true });
@@ -271,6 +264,22 @@ export class NoteNest extends BaseStaffGame {
     this._setPlaySoundModalStatus("Note heard", `Detected ${noteName}`);
     this._showConfirmSoundButton();
     this._showRetrySoundButton();
+  }
+
+  _beginPitchRecording() {
+    this._stopPitchInput();
+    this._lastPlayedNote = null;
+    this._playedNoteConfirmed = false;
+    this._hideRecordedSoundActions();
+    this._setPlaySoundModalStatus("Listening...", "Play or sing one clear note.");
+    this._setPlayIconState("idle");
+    this._stablePitch = { midi: null, count: 0 };
+
+    window.setTimeout(() => {
+      const modalIsOpen = this.$playSoundModal?.hasClass?.("show") || this.$playSoundModal?.css?.("display") !== "none";
+      if (this.$playSoundModal?.length && !modalIsOpen) return;
+      this._startPitchInput();
+    }, 75);
   }
 
   _startPitchInput() {
