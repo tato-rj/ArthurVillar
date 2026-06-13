@@ -2009,6 +2009,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
     _this._lastPlayedNote = null;
     _this.$playNoteWrap = $("#play-note");
     _this.$playNoteBtn = _this.$playNoteWrap.find("button");
+    _this._playNoteButtonDefaultHtml = _this.$playNoteBtn.html();
     _this.$playSoundModal = $("#play-sound-modal");
     _this.$playIcon = $("#play-icon");
     _this.$playSoundStatus = $("#play-sound-status");
@@ -2062,6 +2063,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       this._playedNoteConfirmed = false;
       this._hideRecordedSoundActions();
       this._setPlayFeedbackState("idle");
+      this._setPlayNoteButtonLabel("default");
     }
   }, {
     key: "_setPlayFeedbackState",
@@ -2070,6 +2072,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       var $feedback = this.$playFeedback;
       if (!($feedback !== null && $feedback !== void 0 && $feedback.length)) return;
       $feedback.removeClass("saved wrong animate__animated animate__heartBeat");
+      $feedback.find(".play-feedback-wrong-note").remove();
       if (state === "saved") {
         $feedback.addClass("saved");
         return;
@@ -2077,9 +2080,22 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       if (state === "wrong") {
         var _$feedback$;
         $feedback.addClass("wrong");
+        $feedback.append('<span class="play-feedback-wrong-note ml-2 small">wrong note</span>');
         void ((_$feedback$ = $feedback[0]) === null || _$feedback$ === void 0 ? void 0 : _$feedback$.offsetWidth);
         $feedback.addClass("animate__animated animate__heartBeat");
       }
+    }
+  }, {
+    key: "_setPlayNoteButtonLabel",
+    value: function _setPlayNoteButtonLabel() {
+      var _this$$playNoteBtn;
+      var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "default";
+      if (!((_this$$playNoteBtn = this.$playNoteBtn) !== null && _this$$playNoteBtn !== void 0 && _this$$playNoteBtn.length)) return;
+      if (state === "tryAgain") {
+        this.$playNoteBtn.html("".concat(this._playNoteButtonDefaultHtml || "").replace("Tap here and play the note", "Tap here and try again"));
+        return;
+      }
+      this.$playNoteBtn.html(this._playNoteButtonDefaultHtml);
     }
   }, {
     key: "_setPlaySoundModalStatus",
@@ -2236,6 +2252,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
         noteName: String((data === null || data === void 0 ? void 0 : data.noteName) || "")
       };
       this._playedNoteConfirmed = true;
+      this._setPlayNoteButtonLabel("default");
       this._setPlayFeedbackState("saved");
       this._syncPlayedNoteGate();
     }
@@ -2243,9 +2260,9 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
     key: "_wirePlayedNoteTracking",
     value: function _wirePlayedNoteTracking() {
       var _this2 = this,
-        _this$$playNoteBtn,
-        _this$$playNoteBtn$of,
-        _this$$playNoteBtn$of2,
+        _this$$playNoteBtn2,
+        _this$$playNoteBtn2$o,
+        _this$$playNoteBtn2$o2,
         _this$$confirmSoundBt,
         _this$$confirmSoundBt2,
         _this$$confirmSoundBt3,
@@ -2261,7 +2278,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
         _this2._resetPlayedNote();
         _this2._syncPlayedNoteGate(Number(data === null || data === void 0 ? void 0 : data.count));
       });
-      (_this$$playNoteBtn = this.$playNoteBtn) === null || _this$$playNoteBtn === void 0 || (_this$$playNoteBtn$of = _this$$playNoteBtn.off) === null || _this$$playNoteBtn$of === void 0 || (_this$$playNoteBtn$of = _this$$playNoteBtn$of.call(_this$$playNoteBtn, "click.".concat(this.ns, ".playedNote"))) === null || _this$$playNoteBtn$of === void 0 || (_this$$playNoteBtn$of2 = _this$$playNoteBtn$of.on) === null || _this$$playNoteBtn$of2 === void 0 || _this$$playNoteBtn$of2.call(_this$$playNoteBtn$of, "click.".concat(this.ns, ".playedNote"), function (e) {
+      (_this$$playNoteBtn2 = this.$playNoteBtn) === null || _this$$playNoteBtn2 === void 0 || (_this$$playNoteBtn2$o = _this$$playNoteBtn2.off) === null || _this$$playNoteBtn2$o === void 0 || (_this$$playNoteBtn2$o = _this$$playNoteBtn2$o.call(_this$$playNoteBtn2, "click.".concat(this.ns, ".playedNote"))) === null || _this$$playNoteBtn2$o === void 0 || (_this$$playNoteBtn2$o2 = _this$$playNoteBtn2$o.on) === null || _this$$playNoteBtn2$o2 === void 0 || _this$$playNoteBtn2$o2.call(_this$$playNoteBtn2$o, "click.".concat(this.ns, ".playedNote"), function (e) {
         e.preventDefault();
         _this2._showPlaySoundModal();
         _this2._beginPitchRecording();
@@ -2308,6 +2325,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       });
       this._setPlayIconState("heard");
       this._setPlaySoundModalStatus("Note heard", "All set, tap confirm to continue!");
+      this._setPlayNoteButtonLabel("default");
       this._setPlayFeedbackState("saved");
       this._showConfirmSoundButton();
       this._showRetrySoundButton();
@@ -2823,6 +2841,14 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       this._madeMistakeThisRound = true;
       if (this._isPlayedNoteMistake()) {
         this._setPlayFeedbackState("wrong");
+        this._lastPlayedNote = null;
+        this._playedNoteConfirmed = false;
+        this._setPlayNoteButtonLabel("tryAgain");
+        this._hideRecordedSoundActions();
+        this.$helpBtn.hide();
+        this._syncPlayedNoteGate();
+        this._failAnimation(this.$playNoteWrap);
+        return;
       }
       this._failAnimation(this.$checkWrap);
       this.$helpBtn.show();

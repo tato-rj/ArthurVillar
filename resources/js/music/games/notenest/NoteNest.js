@@ -38,6 +38,7 @@ export class NoteNest extends BaseStaffGame {
     this._lastPlayedNote = null;
     this.$playNoteWrap = $("#play-note");
     this.$playNoteBtn = this.$playNoteWrap.find("button");
+    this._playNoteButtonDefaultHtml = this.$playNoteBtn.html();
     this.$playSoundModal = $("#play-sound-modal");
     this.$playIcon = $("#play-icon");
     this.$playSoundStatus = $("#play-sound-status");
@@ -81,6 +82,7 @@ export class NoteNest extends BaseStaffGame {
     this._playedNoteConfirmed = false;
     this._hideRecordedSoundActions();
     this._setPlayFeedbackState("idle");
+    this._setPlayNoteButtonLabel("default");
   }
 
   _setPlayFeedbackState(state = "idle") {
@@ -88,6 +90,8 @@ export class NoteNest extends BaseStaffGame {
     if (!$feedback?.length) return;
 
     $feedback.removeClass("saved wrong animate__animated animate__heartBeat");
+    $feedback.find(".play-feedback-wrong-note").remove();
+
     if (state === "saved") {
       $feedback.addClass("saved");
       return;
@@ -95,9 +99,26 @@ export class NoteNest extends BaseStaffGame {
 
     if (state === "wrong") {
       $feedback.addClass("wrong");
+      $feedback.append('<span class="play-feedback-wrong-note ml-2 small">wrong note</span>');
       void $feedback[0]?.offsetWidth;
       $feedback.addClass("animate__animated animate__heartBeat");
     }
+  }
+
+  _setPlayNoteButtonLabel(state = "default") {
+    if (!this.$playNoteBtn?.length) return;
+
+    if (state === "tryAgain") {
+      this.$playNoteBtn.html(
+        `${this._playNoteButtonDefaultHtml || ""}`.replace(
+          "Tap here and play the note",
+          "Tap here and try again",
+        ),
+      );
+      return;
+    }
+
+    this.$playNoteBtn.html(this._playNoteButtonDefaultHtml);
   }
 
   _setPlaySoundModalStatus(status, detected = "") {
@@ -237,6 +258,7 @@ export class NoteNest extends BaseStaffGame {
       noteName: String(data?.noteName || ""),
     };
     this._playedNoteConfirmed = true;
+    this._setPlayNoteButtonLabel("default");
     this._setPlayFeedbackState("saved");
     this._syncPlayedNoteGate();
   }
@@ -300,6 +322,7 @@ export class NoteNest extends BaseStaffGame {
     this._stopPitchInput({ keepIconState: true });
     this._setPlayIconState("heard");
     this._setPlaySoundModalStatus("Note heard", "All set, tap confirm to continue!");
+    this._setPlayNoteButtonLabel("default");
     this._setPlayFeedbackState("saved");
     this._showConfirmSoundButton();
     this._showRetrySoundButton();
@@ -816,6 +839,14 @@ export class NoteNest extends BaseStaffGame {
     this._madeMistakeThisRound = true;
     if (this._isPlayedNoteMistake()) {
       this._setPlayFeedbackState("wrong");
+      this._lastPlayedNote = null;
+      this._playedNoteConfirmed = false;
+      this._setPlayNoteButtonLabel("tryAgain");
+      this._hideRecordedSoundActions();
+      this.$helpBtn.hide();
+      this._syncPlayedNoteGate();
+      this._failAnimation(this.$playNoteWrap);
+      return;
     }
     this._failAnimation(this.$checkWrap);
     this.$helpBtn.show();
