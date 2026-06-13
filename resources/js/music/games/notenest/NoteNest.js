@@ -368,22 +368,20 @@ export class NoteNest extends BaseStaffGame {
       const noteName = this._midiToNoteName(midi);
       this._setPlaySoundModalStatus("Listening...", `Detected ${noteName}`);
 
-      if (
-        midi === this._stablePitch.midi &&
-        Math.abs(frequency - this._stablePitch.frequency) <= this._stablePitch.frequency * 0.035
-      ) {
+      if (midi === this._stablePitch.midi) {
         this._stablePitch.count += 1;
         this._stablePitch.frequency = ((this._stablePitch.frequency * 0.75) + (frequency * 0.25));
       } else {
         this._stablePitch = { midi, frequency, count: 1 };
       }
 
-      if (this._stablePitch.count >= 8) {
+      if (this._stablePitch.count >= 5) {
         this._handlePlayedNoteHeard(midi, noteName, this._stablePitch.frequency);
         return;
       }
     } else {
-      this._stablePitch = { midi: null, frequency: null, count: 0 };
+      this._stablePitch.count = Math.max(0, (this._stablePitch.count || 0) - 1);
+      if (!this._stablePitch.count) this._stablePitch = { midi: null, frequency: null, count: 0 };
     }
 
     this._pitchFrame = requestAnimationFrame(() => this._listenForPitch());
