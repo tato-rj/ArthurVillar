@@ -85,6 +85,7 @@ export class NoteNest extends BaseStaffGame {
     if (!$icon?.length) return;
 
     $icon.removeClass("listening heard text-yellow text-green animate__animated animate__tada");
+    this._setPlayIconGraphic(state !== "idle");
 
     if (state === "listening") {
       $icon.addClass("listening text-yellow");
@@ -94,6 +95,17 @@ export class NoteNest extends BaseStaffGame {
     if (state === "heard") {
       $icon.addClass("heard text-green animate__animated animate__tada");
     }
+  }
+
+  _setPlayIconGraphic(enabled) {
+    const activeIcon = "microphone-lines";
+    const inactiveIcon = "microphone-lines-slash";
+    const fromIcon = enabled ? inactiveIcon : activeIcon;
+    const toIcon = enabled ? activeIcon : inactiveIcon;
+    const $iconEl = this.$playIcon.find(`[data-icon="${fromIcon}"], .fa-${fromIcon}`);
+
+    $iconEl.attr("data-icon", toIcon);
+    $iconEl.removeClass(`fa-${fromIcon}`).addClass(`fa-${toIcon}`);
   }
 
   _hideConfirmSoundButton() {

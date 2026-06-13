@@ -2055,6 +2055,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       var $icon = this.$playIcon;
       if (!($icon !== null && $icon !== void 0 && $icon.length)) return;
       $icon.removeClass("listening heard text-yellow text-green animate__animated animate__tada");
+      this._setPlayIconGraphic(state !== "idle");
       if (state === "listening") {
         $icon.addClass("listening text-yellow");
         return;
@@ -2062,6 +2063,17 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       if (state === "heard") {
         $icon.addClass("heard text-green animate__animated animate__tada");
       }
+    }
+  }, {
+    key: "_setPlayIconGraphic",
+    value: function _setPlayIconGraphic(enabled) {
+      var activeIcon = "microphone-lines";
+      var inactiveIcon = "microphone-lines-slash";
+      var fromIcon = enabled ? inactiveIcon : activeIcon;
+      var toIcon = enabled ? activeIcon : inactiveIcon;
+      var $iconEl = this.$playIcon.find("[data-icon=\"".concat(fromIcon, "\"], .fa-").concat(fromIcon));
+      $iconEl.attr("data-icon", toIcon);
+      $iconEl.removeClass("fa-".concat(fromIcon)).addClass("fa-".concat(toIcon));
     }
   }, {
     key: "_hideConfirmSoundButton",
