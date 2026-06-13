@@ -2049,6 +2049,12 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       return this._normalizeOnOff(this.opts.requirePlayedNote);
     }
   }, {
+    key: "_isLikelyMobileDevice",
+    value: function _isLikelyMobileDevice() {
+      var _window$matchMedia, _window, _window$navigator;
+      return ((_window$matchMedia = (_window = window).matchMedia) === null || _window$matchMedia === void 0 || (_window$matchMedia = _window$matchMedia.call(_window, "(pointer: coarse)")) === null || _window$matchMedia === void 0 ? void 0 : _window$matchMedia.matches) || /Android|iPhone|iPad|iPod/i.test(((_window$navigator = window.navigator) === null || _window$navigator === void 0 ? void 0 : _window$navigator.userAgent) || "");
+    }
+  }, {
     key: "_resetPlayedNote",
     value: function _resetPlayedNote() {
       this._lastPlayedNote = null;
@@ -2338,10 +2344,12 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
         audio: {
           echoCancellation: false,
           noiseSuppression: false,
-          autoGainControl: false
+          autoGainControl: true
         }
       }).then(function (stream) {
+        var _this4$_pitchAudioCon, _this4$_pitchAudioCon2;
         _this4._pitchAudioContext = new AudioContextCtor();
+        (_this4$_pitchAudioCon = (_this4$_pitchAudioCon2 = _this4._pitchAudioContext).resume) === null || _this4$_pitchAudioCon === void 0 || _this4$_pitchAudioCon.call(_this4$_pitchAudioCon2);
         _this4._pitchStream = stream;
         _this4._pitchSource = _this4._pitchAudioContext.createMediaStreamSource(stream);
         _this4._pitchAnalyser = _this4._pitchAudioContext.createAnalyser();
@@ -2438,6 +2446,11 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
   }, {
     key: "_detectPitch",
     value: function _detectPitch(buffer, sampleRate) {
+      var isMobile = this._isLikelyMobileDevice();
+      var minRms = isMobile ? 0.006 : 0.014;
+      var minPeak = isMobile ? 0.022 : 0.045;
+      var trimThreshold = isMobile ? 0.035 : 0.06;
+      var minConfidence = isMobile ? 0.12 : 0.16;
       var rms = 0;
       var peak = 0;
       for (var i = 0; i < buffer.length; i += 1) {
@@ -2446,10 +2459,10 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
         if (sample > peak) peak = sample;
       }
       rms = Math.sqrt(rms / buffer.length);
-      if (rms < 0.018 || peak < 0.06) return null;
+      if (rms < minRms || peak < minPeak) return null;
       var start = 0;
       var end = buffer.length - 1;
-      var threshold = 0.08;
+      var threshold = trimThreshold;
       for (var _i = 0; _i < buffer.length / 2; _i += 1) {
         if (Math.abs(buffer[_i]) < threshold) {
           start = _i;
@@ -2487,7 +2500,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
         }
       }
       if (maxPosition <= 0) return null;
-      if (maxValue / zeroLag < 0.18) return null;
+      if (maxValue / zeroLag < minConfidence) return null;
       var x1 = correlations[maxPosition - 1] || 0;
       var x2 = correlations[maxPosition] || 0;
       var x3 = correlations[maxPosition + 1] || 0;

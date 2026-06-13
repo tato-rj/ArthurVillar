@@ -70,6 +70,11 @@ export class NoteNest extends BaseStaffGame {
     return this._normalizeOnOff(this.opts.requirePlayedNote);
   }
 
+  _isLikelyMobileDevice() {
+    return window.matchMedia?.("(pointer: coarse)")?.matches ||
+      /Android|iPhone|iPad|iPod/i.test(window.navigator?.userAgent || "");
+  }
+
   _resetPlayedNote() {
     this._lastPlayedNote = null;
     this._playedNoteConfirmed = false;
@@ -324,10 +329,11 @@ export class NoteNest extends BaseStaffGame {
       audio: {
         echoCancellation: false,
         noiseSuppression: false,
-        autoGainControl: false,
+        autoGainControl: true,
       },
     }).then((stream) => {
       this._pitchAudioContext = new AudioContextCtor();
+      this._pitchAudioContext.resume?.();
       this._pitchStream = stream;
       this._pitchSource = this._pitchAudioContext.createMediaStreamSource(stream);
       this._pitchAnalyser = this._pitchAudioContext.createAnalyser();
@@ -408,6 +414,11 @@ export class NoteNest extends BaseStaffGame {
   }
 
   _detectPitch(buffer, sampleRate) {
+    const isMobile = this._isLikelyMobileDevice();
+    const minRms = isMobile ? 0.006 : 0.014;
+    const minPeak = isMobile ? 0.022 : 0.045;
+    const trimThreshold = isMobile ? 0.035 : 0.06;
+    const minConfidence = isMobile ? 0.12 : 0.16;
     let rms = 0;
     let peak = 0;
 
@@ -418,11 +429,11 @@ export class NoteNest extends BaseStaffGame {
     }
 
     rms = Math.sqrt(rms / buffer.length);
-    if (rms < 0.018 || peak < 0.06) return null;
+    if (rms < minRms || peak < minPeak) return null;
 
     let start = 0;
     let end = buffer.length - 1;
-    const threshold = 0.08;
+    const threshold = trimThreshold;
 
     for (let i = 0; i < buffer.length / 2; i += 1) {
       if (Math.abs(buffer[i]) < threshold) {
@@ -469,7 +480,7 @@ export class NoteNest extends BaseStaffGame {
     }
 
     if (maxPosition <= 0) return null;
-    if ((maxValue / zeroLag) < 0.18) return null;
+    if ((maxValue / zeroLag) < minConfidence) return null;
 
     const x1 = correlations[maxPosition - 1] || 0;
     const x2 = correlations[maxPosition] || 0;
