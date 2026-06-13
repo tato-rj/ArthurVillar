@@ -375,7 +375,7 @@ export class NoteNest extends BaseStaffGame {
         this._stablePitch = { midi, frequency, count: 1 };
       }
 
-      if (this._stablePitch.count >= 2) {
+      if (this._stablePitch.count >= 3) {
         this._handlePlayedNoteHeard(midi, noteName, this._stablePitch.frequency);
         return;
       }
@@ -391,6 +391,18 @@ export class NoteNest extends BaseStaffGame {
   }
 
   _detectPitch(buffer, sampleRate) {
+    let rms = 0;
+    let peak = 0;
+
+    for (let i = 0; i < buffer.length; i += 1) {
+      const sample = Math.abs(buffer[i]);
+      rms += buffer[i] * buffer[i];
+      if (sample > peak) peak = sample;
+    }
+
+    rms = Math.sqrt(rms / buffer.length);
+    if (rms < 0.03 || peak < 0.12) return null;
+
     let start = 0;
     let end = buffer.length - 1;
     const threshold = 0.2;
@@ -413,9 +425,16 @@ export class NoteNest extends BaseStaffGame {
     const trimmedSize = trimmed.length;
     if (trimmedSize < 32) return null;
 
-    const minLag = 1;
-    const maxLag = trimmedSize - 1;
+    const minLag = Math.max(1, Math.floor(sampleRate / 2000));
+    const maxLag = Math.min(trimmedSize - 1, Math.ceil(sampleRate / 40));
     const correlations = new Array(maxLag + 1).fill(0);
+    let zeroLag = 0;
+
+    for (let i = 0; i < trimmedSize; i += 1) {
+      zeroLag += trimmed[i] * trimmed[i];
+    }
+
+    if (zeroLag <= 0) return null;
 
     for (let lag = minLag; lag <= maxLag; lag += 1) {
       for (let i = 0; i < trimmedSize - lag; i += 1) {
@@ -433,6 +452,7 @@ export class NoteNest extends BaseStaffGame {
     }
 
     if (maxPosition <= 0) return null;
+    if ((maxValue / zeroLag) < 0.3) return null;
 
     const x1 = correlations[maxPosition - 1] || 0;
     const x2 = correlations[maxPosition] || 0;
@@ -442,7 +462,7 @@ export class NoteNest extends BaseStaffGame {
 
     const frequency = sampleRate / (maxPosition + shift);
 
-    if (!Number.isFinite(frequency) || frequency <= 0) return null;
+    if (!Number.isFinite(frequency) || frequency < 40 || frequency > 2000) return null;
 
     return { frequency };
   }

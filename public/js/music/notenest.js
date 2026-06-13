@@ -2386,7 +2386,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
             count: 1
           };
         }
-        if (this._stablePitch.count >= 2) {
+        if (this._stablePitch.count >= 3) {
           this._handlePlayedNoteHeard(midi, noteName, this._stablePitch.frequency);
           return;
         }
@@ -2409,48 +2409,63 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
   }, {
     key: "_detectPitch",
     value: function _detectPitch(buffer, sampleRate) {
+      var rms = 0;
+      var peak = 0;
+      for (var i = 0; i < buffer.length; i += 1) {
+        var sample = Math.abs(buffer[i]);
+        rms += buffer[i] * buffer[i];
+        if (sample > peak) peak = sample;
+      }
+      rms = Math.sqrt(rms / buffer.length);
+      if (rms < 0.03 || peak < 0.12) return null;
       var start = 0;
       var end = buffer.length - 1;
       var threshold = 0.2;
-      for (var i = 0; i < buffer.length / 2; i += 1) {
-        if (Math.abs(buffer[i]) < threshold) {
-          start = i;
+      for (var _i = 0; _i < buffer.length / 2; _i += 1) {
+        if (Math.abs(buffer[_i]) < threshold) {
+          start = _i;
           break;
         }
       }
-      for (var _i = 1; _i < buffer.length / 2; _i += 1) {
-        if (Math.abs(buffer[buffer.length - _i]) < threshold) {
-          end = buffer.length - _i;
+      for (var _i2 = 1; _i2 < buffer.length / 2; _i2 += 1) {
+        if (Math.abs(buffer[buffer.length - _i2]) < threshold) {
+          end = buffer.length - _i2;
           break;
         }
       }
       var trimmed = buffer.slice(start, end);
       var trimmedSize = trimmed.length;
       if (trimmedSize < 32) return null;
-      var minLag = 1;
-      var maxLag = trimmedSize - 1;
+      var minLag = Math.max(1, Math.floor(sampleRate / 2000));
+      var maxLag = Math.min(trimmedSize - 1, Math.ceil(sampleRate / 40));
       var correlations = new Array(maxLag + 1).fill(0);
+      var zeroLag = 0;
+      for (var _i3 = 0; _i3 < trimmedSize; _i3 += 1) {
+        zeroLag += trimmed[_i3] * trimmed[_i3];
+      }
+      if (zeroLag <= 0) return null;
       for (var lag = minLag; lag <= maxLag; lag += 1) {
-        for (var _i2 = 0; _i2 < trimmedSize - lag; _i2 += 1) {
-          correlations[lag] += trimmed[_i2] * trimmed[_i2 + lag];
+        for (var _i4 = 0; _i4 < trimmedSize - lag; _i4 += 1) {
+          correlations[lag] += trimmed[_i4] * trimmed[_i4 + lag];
         }
       }
       var maxValue = -Infinity;
       var maxPosition = -1;
-      for (var _i3 = minLag; _i3 <= maxLag; _i3 += 1) {
-        if (correlations[_i3] > maxValue) {
-          maxValue = correlations[_i3];
-          maxPosition = _i3;
+      for (var _i5 = minLag; _i5 <= maxLag; _i5 += 1) {
+        if (correlations[_i5] > maxValue) {
+          maxValue = correlations[_i5];
+          maxPosition = _i5;
         }
       }
       if (maxPosition <= 0) return null;
+      if (maxValue / zeroLag < 0.3) return null;
       var x1 = correlations[maxPosition - 1] || 0;
       var x2 = correlations[maxPosition] || 0;
       var x3 = correlations[maxPosition + 1] || 0;
       var divisor = 2 * x2 - x1 - x3;
       var shift = divisor ? (x3 - x1) / (2 * divisor) : 0;
       var frequency = sampleRate / (maxPosition + shift);
-      if (!Number.isFinite(frequency) || frequency <= 0) return null;
+      if (!Number.isFinite(frequency) || frequency < 40 || frequency > 2000) return null;
       return {
         frequency: frequency
       };
