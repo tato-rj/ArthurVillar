@@ -42,6 +42,7 @@ export class NoteNest extends BaseStaffGame {
     this.$playIcon = $("#play-icon");
     this.$playSoundStatus = $("#play-sound-status");
     this.$playSoundDetected = $("#play-sound-detected");
+    this.$playFeedback = $("#play-feedback");
     this.$confirmSoundWrap = this.$playSoundModal.find("#confirm-sound");
     this.$confirmSoundBtn = this.$confirmSoundWrap.find("button");
     this.$retrySoundWrap = this.$playSoundModal.find("#retry");
@@ -79,6 +80,24 @@ export class NoteNest extends BaseStaffGame {
     this._lastPlayedNote = null;
     this._playedNoteConfirmed = false;
     this._hideRecordedSoundActions();
+    this._setPlayFeedbackState("idle");
+  }
+
+  _setPlayFeedbackState(state = "idle") {
+    const $feedback = this.$playFeedback;
+    if (!$feedback?.length) return;
+
+    $feedback.removeClass("saved wrong animate__animated animate__heartBeat");
+    if (state === "saved") {
+      $feedback.addClass("saved");
+      return;
+    }
+
+    if (state === "wrong") {
+      $feedback.addClass("wrong");
+      void $feedback[0]?.offsetWidth;
+      $feedback.addClass("animate__animated animate__heartBeat");
+    }
   }
 
   _setPlaySoundModalStatus(status, detected = "") {
@@ -218,6 +237,7 @@ export class NoteNest extends BaseStaffGame {
       noteName: String(data?.noteName || ""),
     };
     this._playedNoteConfirmed = true;
+    this._setPlayFeedbackState("saved");
     this._syncPlayedNoteGate();
   }
 
@@ -279,7 +299,8 @@ export class NoteNest extends BaseStaffGame {
     this._playedNoteConfirmed = false;
     this._stopPitchInput({ keepIconState: true });
     this._setPlayIconState("heard");
-    this._setPlaySoundModalStatus("Note heard", "All set, tap confirm to continue");
+    this._setPlaySoundModalStatus("Note heard", "All set, tap confirm to continue!");
+    this._setPlayFeedbackState("saved");
     this._showConfirmSoundButton();
     this._showRetrySoundButton();
   }
@@ -726,11 +747,20 @@ export class NoteNest extends BaseStaffGame {
     if (notes.length !== 1) return false;
 
     const [note] = notes;
+    return (
+      this._isStaffNoteCorrect(note) &&
+      this._isPlayedNoteCorrect(note)
+    );
+  }
+
+  _isStaffNoteCorrect(note) {
+    const target = this._targetNote;
+    if (!target || !note) return false;
+
     const noteState = stepToLetterOctave(this.staff, note.step);
     return (
       String(noteState?.letter || "") === String(target.letter || "") &&
-      String(note.accidentalClass || "") === String(target.accidentalClass || "") &&
-      this._isPlayedNoteCorrect(note)
+      String(note.accidentalClass || "") === String(target.accidentalClass || "")
     );
   }
 
@@ -740,6 +770,16 @@ export class NoteNest extends BaseStaffGame {
     const targetMidi = this._noteMidi(note);
     const playedMidi = Number(this._lastPlayedNote?.midi);
     return Number.isFinite(targetMidi) && playedMidi === targetMidi;
+  }
+
+  _isPlayedNoteMistake() {
+    if (!this._requiresPlayedNote()) return false;
+
+    const notes = this._collectUserNotes();
+    if (notes.length !== 1) return false;
+
+    const [note] = notes;
+    return this._isStaffNoteCorrect(note) && !this._isPlayedNoteCorrect(note);
   }
 
   _computeHintAnswers() {
@@ -774,6 +814,9 @@ export class NoteNest extends BaseStaffGame {
 
     this._madeAnyMistake = true;
     this._madeMistakeThisRound = true;
+    if (this._isPlayedNoteMistake()) {
+      this._setPlayFeedbackState("wrong");
+    }
     this._failAnimation(this.$checkWrap);
     this.$helpBtn.show();
   }

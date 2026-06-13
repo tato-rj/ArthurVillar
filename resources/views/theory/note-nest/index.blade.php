@@ -32,6 +32,23 @@
     transform: translatey(0px);
   }
 }
+
+#play-feedback {
+  background: lightgrey;
+  opacity: .3;
+}
+
+#play-feedback.saved {
+  background: rgba(88,204,2,.15);
+  color: #58cc02;
+  opacity: 1;
+}
+
+#play-feedback.wrong {
+  background: rgba(255,75,75,.15);
+  color: #ff4b4b;
+  opacity: 1;
+}
 </style>
 @endpush
 
@@ -53,6 +70,9 @@
       <div id="staff-wrapper" class="text-center mx-auto position-relative">
         @include('theory.components.accidentals')
         <div id="staff"></div>
+        @if($settings->options('requirePlayedNote'))
+        @include('theory.components.play.feedback')
+        @endif
         @include('theory.components.feedback')
         @include('theory.components.prompt')
       </div>
