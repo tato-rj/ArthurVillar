@@ -331,7 +331,7 @@ export class NoteNest extends BaseStaffGame {
       this._pitchStream = stream;
       this._pitchSource = this._pitchAudioContext.createMediaStreamSource(stream);
       this._pitchAnalyser = this._pitchAudioContext.createAnalyser();
-      this._pitchAnalyser.fftSize = 4096;
+      this._pitchAnalyser.fftSize = 8192;
       this._pitchData = new Float32Array(this._pitchAnalyser.fftSize);
       this._pitchSource.connect(this._pitchAnalyser);
       this._pitchInputStarting = false;
@@ -379,15 +379,21 @@ export class NoteNest extends BaseStaffGame {
       const noteName = this._midiToNoteName(midi);
       this._setPlaySoundModalStatus("Listening...", `Detected ${noteName}`);
 
-      if (midi === this._stablePitch.midi) {
+      const semitoneDistance = Number.isFinite(this._stablePitch.frequency)
+        ? Math.abs(12 * Math.log2(frequency / this._stablePitch.frequency))
+        : Infinity;
+
+      if (midi === this._stablePitch.midi || semitoneDistance <= 0.75) {
         this._stablePitch.count += 1;
         this._stablePitch.frequency = ((this._stablePitch.frequency * 0.75) + (frequency * 0.25));
+        this._stablePitch.midi = this._frequencyToMidi(this._stablePitch.frequency);
       } else {
         this._stablePitch = { midi, frequency, count: 1 };
       }
 
       if (this._stablePitch.count >= 3) {
-        this._handlePlayedNoteHeard(midi, noteName, this._stablePitch.frequency);
+        const stableMidi = this._frequencyToMidi(this._stablePitch.frequency);
+        this._handlePlayedNoteHeard(stableMidi, this._midiToNoteName(stableMidi), this._stablePitch.frequency);
         return;
       }
     } else {
@@ -412,11 +418,11 @@ export class NoteNest extends BaseStaffGame {
     }
 
     rms = Math.sqrt(rms / buffer.length);
-    if (rms < 0.03 || peak < 0.12) return null;
+    if (rms < 0.018 || peak < 0.06) return null;
 
     let start = 0;
     let end = buffer.length - 1;
-    const threshold = 0.2;
+    const threshold = 0.08;
 
     for (let i = 0; i < buffer.length / 2; i += 1) {
       if (Math.abs(buffer[i]) < threshold) {
@@ -463,7 +469,7 @@ export class NoteNest extends BaseStaffGame {
     }
 
     if (maxPosition <= 0) return null;
-    if ((maxValue / zeroLag) < 0.3) return null;
+    if ((maxValue / zeroLag) < 0.18) return null;
 
     const x1 = correlations[maxPosition - 1] || 0;
     const x2 = correlations[maxPosition] || 0;

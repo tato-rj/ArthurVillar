@@ -2345,7 +2345,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
         _this4._pitchStream = stream;
         _this4._pitchSource = _this4._pitchAudioContext.createMediaStreamSource(stream);
         _this4._pitchAnalyser = _this4._pitchAudioContext.createAnalyser();
-        _this4._pitchAnalyser.fftSize = 4096;
+        _this4._pitchAnalyser.fftSize = 8192;
         _this4._pitchData = new Float32Array(_this4._pitchAnalyser.fftSize);
         _this4._pitchSource.connect(_this4._pitchAnalyser);
         _this4._pitchInputStarting = false;
@@ -2402,9 +2402,11 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
         var midi = this._frequencyToMidi(frequency);
         var noteName = this._midiToNoteName(midi);
         this._setPlaySoundModalStatus("Listening...", "Detected ".concat(noteName));
-        if (midi === this._stablePitch.midi) {
+        var semitoneDistance = Number.isFinite(this._stablePitch.frequency) ? Math.abs(12 * Math.log2(frequency / this._stablePitch.frequency)) : Infinity;
+        if (midi === this._stablePitch.midi || semitoneDistance <= 0.75) {
           this._stablePitch.count += 1;
           this._stablePitch.frequency = this._stablePitch.frequency * 0.75 + frequency * 0.25;
+          this._stablePitch.midi = this._frequencyToMidi(this._stablePitch.frequency);
         } else {
           this._stablePitch = {
             midi: midi,
@@ -2413,7 +2415,8 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
           };
         }
         if (this._stablePitch.count >= 3) {
-          this._handlePlayedNoteHeard(midi, noteName, this._stablePitch.frequency);
+          var stableMidi = this._frequencyToMidi(this._stablePitch.frequency);
+          this._handlePlayedNoteHeard(stableMidi, this._midiToNoteName(stableMidi), this._stablePitch.frequency);
           return;
         }
       } else {
@@ -2443,10 +2446,10 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
         if (sample > peak) peak = sample;
       }
       rms = Math.sqrt(rms / buffer.length);
-      if (rms < 0.03 || peak < 0.12) return null;
+      if (rms < 0.018 || peak < 0.06) return null;
       var start = 0;
       var end = buffer.length - 1;
-      var threshold = 0.2;
+      var threshold = 0.08;
       for (var _i = 0; _i < buffer.length / 2; _i += 1) {
         if (Math.abs(buffer[_i]) < threshold) {
           start = _i;
@@ -2484,7 +2487,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
         }
       }
       if (maxPosition <= 0) return null;
-      if (maxValue / zeroLag < 0.3) return null;
+      if (maxValue / zeroLag < 0.18) return null;
       var x1 = correlations[maxPosition - 1] || 0;
       var x2 = correlations[maxPosition] || 0;
       var x3 = correlations[maxPosition + 1] || 0;
