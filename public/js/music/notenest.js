@@ -2146,11 +2146,11 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       }
       var readyForPlayedNote = this._hasEnoughUserNotesForCheck(count);
       $("#check").hide().addClass("invisible");
-      if (readyForPlayedNote && this._lastPlayedNote && this._playedNoteConfirmed) {
-        this.$playNoteWrap.hide().addClass("invisible");
-        $("#check").show().removeClass("invisible");
-      } else if (readyForPlayedNote) {
+      if (readyForPlayedNote) {
         this.$playNoteWrap.show().removeClass("invisible");
+        if (this._lastPlayedNote && this._playedNoteConfirmed) {
+          $("#check").show().removeClass("invisible");
+        }
       } else {
         this.$playNoteWrap.hide().addClass("invisible");
       }
