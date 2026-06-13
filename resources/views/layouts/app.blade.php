@@ -16,7 +16,12 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
-        <title>{{$title ?? config('app.name')}}</title>
+        <title>
+          @if(local())
+          (Local)
+          @endif
+          {{$title ?? config('app.name')}}
+        </title>
 
         <!-- Fonts -->
         <link href="{{asset('/favicon/favicon.ico')}}" rel="icon" type="image/x-icon">
