@@ -53,6 +53,7 @@ export class NoteNest extends BaseStaffGame {
     this._pitchAnalyser = null;
     this._pitchData = null;
     this._pitchFrame = null;
+    this._pitchStartFrame = null;
     this._pitchInputStarting = false;
     this._stablePitch = { midi: null, frequency: null, count: 0 };
   }
@@ -159,7 +160,7 @@ export class NoteNest extends BaseStaffGame {
   _showPlaySoundModal() {
     if (!this.$playSoundModal?.length) return;
 
-    this._setPlaySoundModalStatus("Listening...", "Play or sing one clear note.");
+    this._setPlaySoundModalStatus("Connecting...", "Getting the microphone ready.");
     this._hideRecordedSoundActions();
     this._setPlayIconState("idle");
 
@@ -283,10 +284,14 @@ export class NoteNest extends BaseStaffGame {
     this._lastPlayedNote = null;
     this._playedNoteConfirmed = false;
     this._hideRecordedSoundActions();
-    this._setPlaySoundModalStatus("Listening...", "Play or sing one clear note.");
+    this._setPlaySoundModalStatus("Connecting...", "Getting the microphone ready.");
     this._setPlayIconState("idle");
     this._stablePitch = { midi: null, frequency: null, count: 0 };
-    this._startPitchInput();
+    if (this._pitchStartFrame) cancelAnimationFrame(this._pitchStartFrame);
+    this._pitchStartFrame = requestAnimationFrame(() => {
+      this._pitchStartFrame = null;
+      this._startPitchInput();
+    });
   }
 
   _startPitchInput() {
@@ -313,6 +318,7 @@ export class NoteNest extends BaseStaffGame {
 
     this._pitchInputStarting = true;
     this._stablePitch = { midi: null, frequency: null, count: 0 };
+    this._setPlaySoundModalStatus("Connecting...", "Getting the microphone ready.");
 
     return navigator.mediaDevices.getUserMedia({
       audio: {
@@ -329,6 +335,7 @@ export class NoteNest extends BaseStaffGame {
       this._pitchData = new Float32Array(this._pitchAnalyser.fftSize);
       this._pitchSource.connect(this._pitchAnalyser);
       this._pitchInputStarting = false;
+      this._setPlaySoundModalStatus("Listening...", "Play or sing one clear note.");
       this._setPlayIconState("listening");
       this._listenForPitch();
     }).catch(() => {
@@ -342,6 +349,10 @@ export class NoteNest extends BaseStaffGame {
     if (this._pitchFrame) {
       cancelAnimationFrame(this._pitchFrame);
       this._pitchFrame = null;
+    }
+    if (this._pitchStartFrame) {
+      cancelAnimationFrame(this._pitchStartFrame);
+      this._pitchStartFrame = null;
     }
 
     this._pitchStream?.getTracks?.().forEach((track) => track.stop());

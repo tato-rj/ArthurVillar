@@ -2024,6 +2024,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
     _this._pitchAnalyser = null;
     _this._pitchData = null;
     _this._pitchFrame = null;
+    _this._pitchStartFrame = null;
     _this._pitchInputStarting = false;
     _this._stablePitch = {
       midi: null,
@@ -2153,7 +2154,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
     value: function _showPlaySoundModal() {
       var _this$$playSoundModal, _window$bootstrap;
       if (!((_this$$playSoundModal = this.$playSoundModal) !== null && _this$$playSoundModal !== void 0 && _this$$playSoundModal.length)) return;
-      this._setPlaySoundModalStatus("Listening...", "Play or sing one clear note.");
+      this._setPlaySoundModalStatus("Connecting...", "Getting the microphone ready.");
       this._hideRecordedSoundActions();
       this._setPlayIconState("idle");
       var el = this.$playSoundModal[0];
@@ -2286,24 +2287,29 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
   }, {
     key: "_beginPitchRecording",
     value: function _beginPitchRecording() {
+      var _this3 = this;
       this._stopPitchInput();
       this._lastPlayedNote = null;
       this._playedNoteConfirmed = false;
       this._hideRecordedSoundActions();
-      this._setPlaySoundModalStatus("Listening...", "Play or sing one clear note.");
+      this._setPlaySoundModalStatus("Connecting...", "Getting the microphone ready.");
       this._setPlayIconState("idle");
       this._stablePitch = {
         midi: null,
         frequency: null,
         count: 0
       };
-      this._startPitchInput();
+      if (this._pitchStartFrame) cancelAnimationFrame(this._pitchStartFrame);
+      this._pitchStartFrame = requestAnimationFrame(function () {
+        _this3._pitchStartFrame = null;
+        _this3._startPitchInput();
+      });
     }
   }, {
     key: "_startPitchInput",
     value: function _startPitchInput() {
       var _navigator$mediaDevic,
-        _this3 = this;
+        _this4 = this;
       if (this._pitchInputStarting || this._pitchAnalyser) return Promise.resolve();
       if (!window.isSecureContext) {
         this._setPlayIconState("idle");
@@ -2327,6 +2333,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
         frequency: null,
         count: 0
       };
+      this._setPlaySoundModalStatus("Connecting...", "Getting the microphone ready.");
       return navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: false,
@@ -2334,20 +2341,21 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
           autoGainControl: false
         }
       }).then(function (stream) {
-        _this3._pitchAudioContext = new AudioContextCtor();
-        _this3._pitchStream = stream;
-        _this3._pitchSource = _this3._pitchAudioContext.createMediaStreamSource(stream);
-        _this3._pitchAnalyser = _this3._pitchAudioContext.createAnalyser();
-        _this3._pitchAnalyser.fftSize = 4096;
-        _this3._pitchData = new Float32Array(_this3._pitchAnalyser.fftSize);
-        _this3._pitchSource.connect(_this3._pitchAnalyser);
-        _this3._pitchInputStarting = false;
-        _this3._setPlayIconState("listening");
-        _this3._listenForPitch();
+        _this4._pitchAudioContext = new AudioContextCtor();
+        _this4._pitchStream = stream;
+        _this4._pitchSource = _this4._pitchAudioContext.createMediaStreamSource(stream);
+        _this4._pitchAnalyser = _this4._pitchAudioContext.createAnalyser();
+        _this4._pitchAnalyser.fftSize = 4096;
+        _this4._pitchData = new Float32Array(_this4._pitchAnalyser.fftSize);
+        _this4._pitchSource.connect(_this4._pitchAnalyser);
+        _this4._pitchInputStarting = false;
+        _this4._setPlaySoundModalStatus("Listening...", "Play or sing one clear note.");
+        _this4._setPlayIconState("listening");
+        _this4._listenForPitch();
       })["catch"](function () {
-        _this3._pitchInputStarting = false;
-        _this3._setPlayIconState("idle");
-        _this3._setPlaySoundModalStatus("Microphone blocked", "Allow microphone access, then try again.");
+        _this4._pitchInputStarting = false;
+        _this4._setPlayIconState("idle");
+        _this4._setPlaySoundModalStatus("Microphone blocked", "Allow microphone access, then try again.");
       });
     }
   }, {
@@ -2360,6 +2368,10 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       if (this._pitchFrame) {
         cancelAnimationFrame(this._pitchFrame);
         this._pitchFrame = null;
+      }
+      if (this._pitchStartFrame) {
+        cancelAnimationFrame(this._pitchStartFrame);
+        this._pitchStartFrame = null;
       }
       (_this$_pitchStream = this._pitchStream) === null || _this$_pitchStream === void 0 || (_this$_pitchStream$ge = _this$_pitchStream.getTracks) === null || _this$_pitchStream$ge === void 0 || _this$_pitchStream$ge.call(_this$_pitchStream).forEach(function (track) {
         return track.stop();
@@ -2381,7 +2393,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
   }, {
     key: "_listenForPitch",
     value: function _listenForPitch() {
-      var _this4 = this;
+      var _this5 = this;
       if (!this._pitchAnalyser || !this._pitchData || !this._pitchAudioContext) return;
       this._pitchAnalyser.getFloatTimeDomainData(this._pitchData);
       var pitch = this._detectPitch(this._pitchData, this._pitchAudioContext.sampleRate);
@@ -2412,7 +2424,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
         };
       }
       this._pitchFrame = requestAnimationFrame(function () {
-        return _this4._listenForPitch();
+        return _this5._listenForPitch();
       });
     }
   }, {
@@ -2579,10 +2591,10 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
   }, {
     key: "_bindBlockMarkerDismiss",
     value: function _bindBlockMarkerDismiss() {
-      var _this5 = this;
+      var _this6 = this;
       $(document).off("pointerdown.".concat(this.ns, ".blockTooltip mousedown.").concat(this.ns, ".blockTooltip"), "*").on("pointerdown.".concat(this.ns, ".blockTooltip mousedown.").concat(this.ns, ".blockTooltip"), function (e) {
-        if ($(e.target).closest(".".concat(_this5._blockMarkerClass)).length) return;
-        _this5._hideBlockMarkerTooltip();
+        if ($(e.target).closest(".".concat(_this6._blockMarkerClass)).length) return;
+        _this6._hideBlockMarkerTooltip();
       });
     }
   }, {
@@ -2681,15 +2693,15 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
   }, {
     key: "_collectUserNotes",
     value: function _collectUserNotes() {
-      var _this6 = this;
+      var _this7 = this;
       return this.$staffEl.find(".note").toArray().map(function (el) {
-        var _this6$staff$_getAtta, _this6$staff;
+        var _this7$staff$_getAtta, _this7$staff;
         var $note = $(el);
         var noteId = String($note.attr("data-note-id") || "");
-        if (!noteId || _this6.staff.isNoteFixed(noteId)) return null;
+        if (!noteId || _this7.staff.isNoteFixed(noteId)) return null;
         var top = parseFloat($note.css("top"));
-        var step = Number.isFinite(top) ? _this6.staff.yToStep(top) : null;
-        var accidentalClass = ((_this6$staff$_getAtta = (_this6$staff = _this6.staff)._getAttachedAccidentalClass) === null || _this6$staff$_getAtta === void 0 ? void 0 : _this6$staff$_getAtta.call(_this6$staff, noteId)) || null;
+        var step = Number.isFinite(top) ? _this7.staff.yToStep(top) : null;
+        var accidentalClass = ((_this7$staff$_getAtta = (_this7$staff = _this7.staff)._getAttachedAccidentalClass) === null || _this7$staff$_getAtta === void 0 ? void 0 : _this7$staff$_getAtta.call(_this7$staff, noteId)) || null;
         return {
           noteId: noteId,
           step: step,
