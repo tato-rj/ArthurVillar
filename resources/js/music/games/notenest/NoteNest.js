@@ -279,7 +279,7 @@ export class NoteNest extends BaseStaffGame {
     this._playedNoteConfirmed = false;
     this._stopPitchInput({ keepIconState: true });
     this._setPlayIconState("heard");
-    this._setPlaySoundModalStatus("Note heard", `Detected ${noteName}`);
+    this._setPlaySoundModalStatus("Note heard", "All set, tap confirm to continue");
     this._showConfirmSoundButton();
     this._showRetrySoundButton();
   }
@@ -382,8 +382,7 @@ export class NoteNest extends BaseStaffGame {
 
     if (Number.isFinite(frequency)) {
       const midi = this._frequencyToMidi(frequency);
-      const noteName = this._midiToNoteName(midi);
-      this._setPlaySoundModalStatus("Listening...", `Detected ${noteName}`);
+      this._setPlaySoundModalStatus("Listening...", "Keep holding the note.");
 
       const semitoneDistance = Number.isFinite(this._stablePitch.frequency)
         ? Math.abs(12 * Math.log2(frequency / this._stablePitch.frequency))

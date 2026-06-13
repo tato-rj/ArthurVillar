@@ -2286,7 +2286,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
         keepIconState: true
       });
       this._setPlayIconState("heard");
-      this._setPlaySoundModalStatus("Note heard", "Detected ".concat(noteName));
+      this._setPlaySoundModalStatus("Note heard", "All set, tap confirm to continue");
       this._showConfirmSoundButton();
       this._showRetrySoundButton();
     }
@@ -2408,8 +2408,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       var frequency = pitch === null || pitch === void 0 ? void 0 : pitch.frequency;
       if (Number.isFinite(frequency)) {
         var midi = this._frequencyToMidi(frequency);
-        var noteName = this._midiToNoteName(midi);
-        this._setPlaySoundModalStatus("Listening...", "Detected ".concat(noteName));
+        this._setPlaySoundModalStatus("Listening...", "Keep holding the note.");
         var semitoneDistance = Number.isFinite(this._stablePitch.frequency) ? Math.abs(12 * Math.log2(frequency / this._stablePitch.frequency)) : Infinity;
         if (midi === this._stablePitch.midi || semitoneDistance <= 0.75) {
           this._stablePitch.count += 1;
