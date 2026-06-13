@@ -2447,10 +2447,10 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
     key: "_detectPitch",
     value: function _detectPitch(buffer, sampleRate) {
       var isMobile = this._isLikelyMobileDevice();
-      var minRms = isMobile ? 0.006 : 0.014;
-      var minPeak = isMobile ? 0.022 : 0.045;
-      var trimThreshold = isMobile ? 0.035 : 0.06;
-      var minConfidence = isMobile ? 0.12 : 0.16;
+      var minRms = isMobile ? 0.0035 : 0.014;
+      var minPeak = isMobile ? 0.012 : 0.045;
+      var trimThreshold = isMobile ? 0.02 : 0.06;
+      var minConfidence = isMobile ? 0.1 : 0.16;
       var rms = 0;
       var peak = 0;
       for (var i = 0; i < buffer.length; i += 1) {

@@ -415,10 +415,10 @@ export class NoteNest extends BaseStaffGame {
 
   _detectPitch(buffer, sampleRate) {
     const isMobile = this._isLikelyMobileDevice();
-    const minRms = isMobile ? 0.006 : 0.014;
-    const minPeak = isMobile ? 0.022 : 0.045;
-    const trimThreshold = isMobile ? 0.035 : 0.06;
-    const minConfidence = isMobile ? 0.12 : 0.16;
+    const minRms = isMobile ? 0.0035 : 0.014;
+    const minPeak = isMobile ? 0.012 : 0.045;
+    const trimThreshold = isMobile ? 0.02 : 0.06;
+    const minConfidence = isMobile ? 0.1 : 0.16;
     let rms = 0;
     let peak = 0;
 
