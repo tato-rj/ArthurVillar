@@ -375,13 +375,12 @@ export class NoteNest extends BaseStaffGame {
         this._stablePitch = { midi, frequency, count: 1 };
       }
 
-      if (this._stablePitch.count >= 5) {
+      if (this._stablePitch.count >= 2) {
         this._handlePlayedNoteHeard(midi, noteName, this._stablePitch.frequency);
         return;
       }
     } else {
-      this._stablePitch.count = Math.max(0, (this._stablePitch.count || 0) - 1);
-      if (!this._stablePitch.count) this._stablePitch = { midi: null, frequency: null, count: 0 };
+      this._stablePitch = { midi: null, frequency: null, count: 0 };
     }
 
     this._pitchFrame = requestAnimationFrame(() => this._listenForPitch());
@@ -392,40 +391,20 @@ export class NoteNest extends BaseStaffGame {
   }
 
   _detectPitch(buffer, sampleRate) {
-    const size = buffer.length;
-    let rms = 0;
-
-    for (let i = 0; i < size; i += 1) {
-      rms += buffer[i] * buffer[i];
-    }
-
-    rms = Math.sqrt(rms / size);
-    if (rms < 0.02) return null;
-
-    let zeroCrossings = 0;
-    for (let i = 1; i < size; i += 1) {
-      if ((buffer[i - 1] < 0 && buffer[i] >= 0) || (buffer[i - 1] >= 0 && buffer[i] < 0)) {
-        zeroCrossings += 1;
-      }
-    }
-
-    const zeroCrossingRate = zeroCrossings / size;
-    if (zeroCrossingRate < 0.002 || zeroCrossingRate > 0.35) return null;
-
     let start = 0;
-    let end = size - 1;
+    let end = buffer.length - 1;
     const threshold = 0.2;
 
-    for (let i = 0; i < size / 2; i += 1) {
+    for (let i = 0; i < buffer.length / 2; i += 1) {
       if (Math.abs(buffer[i]) < threshold) {
         start = i;
         break;
       }
     }
 
-    for (let i = 1; i < size / 2; i += 1) {
-      if (Math.abs(buffer[size - i]) < threshold) {
-        end = size - i;
+    for (let i = 1; i < buffer.length / 2; i += 1) {
+      if (Math.abs(buffer[buffer.length - i]) < threshold) {
+        end = buffer.length - i;
         break;
       }
     }
@@ -434,16 +413,9 @@ export class NoteNest extends BaseStaffGame {
     const trimmedSize = trimmed.length;
     if (trimmedSize < 32) return null;
 
-    const minLag = Math.max(1, Math.floor(sampleRate / 2000));
-    const maxLag = Math.min(trimmedSize - 1, Math.ceil(sampleRate / 40));
+    const minLag = 1;
+    const maxLag = trimmedSize - 1;
     const correlations = new Array(maxLag + 1).fill(0);
-    let zeroLag = 0;
-
-    for (let i = 0; i < trimmedSize; i += 1) {
-      zeroLag += trimmed[i] * trimmed[i];
-    }
-
-    if (zeroLag <= 0) return null;
 
     for (let lag = minLag; lag <= maxLag; lag += 1) {
       for (let i = 0; i < trimmedSize - lag; i += 1) {
@@ -461,28 +433,18 @@ export class NoteNest extends BaseStaffGame {
     }
 
     if (maxPosition <= 0) return null;
-    if ((maxValue / zeroLag) < 0.58) return null;
 
     const x1 = correlations[maxPosition - 1] || 0;
     const x2 = correlations[maxPosition] || 0;
     const x3 = correlations[maxPosition + 1] || 0;
-    const peakSharpness = x2 - Math.max(x1, x3);
-    if (peakSharpness < zeroLag * 0.01) return null;
-
     const divisor = (2 * x2) - x1 - x3;
     const shift = divisor ? (x3 - x1) / (2 * divisor) : 0;
-    if (Math.abs(shift) > 1) return null;
 
     const frequency = sampleRate / (maxPosition + shift);
 
-    if (frequency < 40 || frequency > 2000) return null;
+    if (!Number.isFinite(frequency) || frequency <= 0) return null;
 
-    return {
-      frequency,
-      rms,
-      confidence: maxValue / zeroLag,
-      zeroCrossingRate,
-    };
+    return { frequency };
   }
 
   _targetAccidentalClass() {
