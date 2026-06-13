@@ -1334,6 +1334,7 @@ var BaseStaffGame = /*#__PURE__*/function () {
       this.$helpBtn.off("click.".concat(this.ns, "Help")).on("click.".concat(this.ns, "Help"), function () {
         _this18._usedHintThisRound = true;
         _this18._showHintNote();
+        _this18.$helpBtn.hide();
       });
       this.$skipBtn.off("click.".concat(this.ns, "Skip")).on("click.".concat(this.ns, "Skip"), function (e) {
         e.preventDefault();
@@ -1358,6 +1359,14 @@ var BaseStaffGame = /*#__PURE__*/function () {
           _this18.$checkBtn.enable();
         });
       }
+    }
+  }, {
+    key: "_hideHelpButtonOnAnswerEdit",
+    value: function _hideHelpButtonOnAnswerEdit() {
+      var _this$$helpBtn, _this$$helpBtn$hide;
+      var data = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+      if ((data === null || data === void 0 ? void 0 : data.source) === "fixed") return;
+      (_this$$helpBtn = this.$helpBtn) === null || _this$$helpBtn === void 0 || (_this$$helpBtn$hide = _this$$helpBtn.hide) === null || _this$$helpBtn$hide === void 0 || _this$$helpBtn$hide.call(_this$$helpBtn);
     }
 
     // ------------------------ UI gating ------------------------
@@ -1412,9 +1421,14 @@ var BaseStaffGame = /*#__PURE__*/function () {
       syncUiGate();
       this.$staffEl.off("staff:userNoteAdded._uiGate.".concat(this.ns, " staff:userNotesChanged._uiGate.").concat(this.ns)).on("staff:userNoteAdded._uiGate.".concat(this.ns), function () {
         _this19._userNotesSinceGate += 1;
+        _this19._hideHelpButtonOnAnswerEdit();
         syncUiGate();
       }).on("staff:userNotesChanged._uiGate.".concat(this.ns), function (e, data) {
+        _this19._hideHelpButtonOnAnswerEdit(data);
         syncUiGate(Number(data === null || data === void 0 ? void 0 : data.count));
+      });
+      this.$staffEl.off("staff:noteState._hideHelp.".concat(this.ns)).on("staff:noteState._hideHelp.".concat(this.ns), function (e, data) {
+        _this19._hideHelpButtonOnAnswerEdit(data);
       });
     }
 

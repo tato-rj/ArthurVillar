@@ -1285,6 +1285,7 @@ export class BaseStaffGame {
       .on(`click.${this.ns}Help`, () => {
         this._usedHintThisRound = true;
         this._showHintNote();
+        this.$helpBtn.hide();
       });
 
     this.$skipBtn
@@ -1313,6 +1314,11 @@ export class BaseStaffGame {
           this.$checkBtn.enable();
         });
     }
+  }
+
+  _hideHelpButtonOnAnswerEdit(data = {}) {
+    if (data?.source === "fixed") return;
+    this.$helpBtn?.hide?.();
   }
 
 
@@ -1372,11 +1378,19 @@ export class BaseStaffGame {
       .off(`staff:userNoteAdded._uiGate.${this.ns} staff:userNotesChanged._uiGate.${this.ns}`)
       .on(`staff:userNoteAdded._uiGate.${this.ns}`, () => {
         this._userNotesSinceGate += 1;
+        this._hideHelpButtonOnAnswerEdit();
 
         syncUiGate();
       })
       .on(`staff:userNotesChanged._uiGate.${this.ns}`, (e, data) => {
+        this._hideHelpButtonOnAnswerEdit(data);
         syncUiGate(Number(data?.count));
+      });
+
+    this.$staffEl
+      .off(`staff:noteState._hideHelp.${this.ns}`)
+      .on(`staff:noteState._hideHelp.${this.ns}`, (e, data) => {
+        this._hideHelpButtonOnAnswerEdit(data);
       });
   }
 
