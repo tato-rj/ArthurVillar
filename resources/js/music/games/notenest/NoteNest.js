@@ -85,7 +85,7 @@ export class NoteNest extends BaseStaffGame {
     this._setPlayNoteButtonLabel("default");
   }
 
-  _setPlayFeedbackState(state = "idle") {
+  _setPlayFeedbackState(state = "idle", detail = "") {
     const $feedback = this.$playFeedback;
     if (!$feedback?.length) return;
 
@@ -99,7 +99,9 @@ export class NoteNest extends BaseStaffGame {
 
     if (state === "wrong") {
       $feedback.addClass("wrong");
-      $feedback.append('<span class="play-feedback-wrong-note ml-2 small">wrong note</span>');
+      const $detail = $('<span class="play-feedback-wrong-note ml-2 small"></span>');
+      $detail.text(detail || "you played a different note");
+      $feedback.append($detail);
       void $feedback[0]?.offsetWidth;
       $feedback.addClass("animate__animated animate__heartBeat");
     }
@@ -237,6 +239,18 @@ export class NoteNest extends BaseStaffGame {
   _midiToNoteName(midi) {
     if (!Number.isFinite(midi)) return "";
     return this.keyboard?._noteNameFromMidi?.(midi) || `MIDI ${midi}`;
+  }
+
+  _playedNoteFeedbackName(midi) {
+    const raw = this._midiToNoteName(midi);
+    const match = String(raw || "").match(/^([A-G])([#b]?)(-?\d+)$/);
+    if (!match) return raw;
+
+    const [, letter, accidental, octave] = match;
+    const base = this._showSolfegeNoteNames()
+      ? (NoteNest.LETTER_TO_SOLFEGE[letter] || letter)
+      : letter;
+    return `${base}${accidental}${octave}`;
   }
 
   _noteMidi(note) {
@@ -838,7 +852,8 @@ export class NoteNest extends BaseStaffGame {
     this._madeAnyMistake = true;
     this._madeMistakeThisRound = true;
     if (this._isPlayedNoteMistake()) {
-      this._setPlayFeedbackState("wrong");
+      const playedNoteName = this._playedNoteFeedbackName(Number(this._lastPlayedNote?.midi));
+      this._setPlayFeedbackState("wrong", playedNoteName ? `you played ${playedNoteName}` : "");
       this._lastPlayedNote = null;
       this._playedNoteConfirmed = false;
       this._setPlayNoteButtonLabel("tryAgain");

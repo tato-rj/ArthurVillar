@@ -2069,6 +2069,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
     key: "_setPlayFeedbackState",
     value: function _setPlayFeedbackState() {
       var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "idle";
+      var detail = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "";
       var $feedback = this.$playFeedback;
       if (!($feedback !== null && $feedback !== void 0 && $feedback.length)) return;
       $feedback.removeClass("saved wrong animate__animated animate__heartBeat");
@@ -2080,7 +2081,9 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       if (state === "wrong") {
         var _$feedback$;
         $feedback.addClass("wrong");
-        $feedback.append('<span class="play-feedback-wrong-note ml-2 small">wrong note</span>');
+        var $detail = $('<span class="play-feedback-wrong-note ml-2 small"></span>');
+        $detail.text(detail || "you played a different note");
+        $feedback.append($detail);
         void ((_$feedback$ = $feedback[0]) === null || _$feedback$ === void 0 ? void 0 : _$feedback$.offsetWidth);
         $feedback.addClass("animate__animated animate__heartBeat");
       }
@@ -2228,6 +2231,19 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       var _this$keyboard, _this$keyboard$_noteN;
       if (!Number.isFinite(midi)) return "";
       return ((_this$keyboard = this.keyboard) === null || _this$keyboard === void 0 || (_this$keyboard$_noteN = _this$keyboard._noteNameFromMidi) === null || _this$keyboard$_noteN === void 0 ? void 0 : _this$keyboard$_noteN.call(_this$keyboard, midi)) || "MIDI ".concat(midi);
+    }
+  }, {
+    key: "_playedNoteFeedbackName",
+    value: function _playedNoteFeedbackName(midi) {
+      var raw = this._midiToNoteName(midi);
+      var match = String(raw || "").match(/^([A-G])([#b]?)(-?\d+)$/);
+      if (!match) return raw;
+      var _match = _slicedToArray(match, 4),
+        letter = _match[1],
+        accidental = _match[2],
+        octave = _match[3];
+      var base = this._showSolfegeNoteNames() ? NoteNest.LETTER_TO_SOLFEGE[letter] || letter : letter;
+      return "".concat(base).concat(accidental).concat(octave);
     }
   }, {
     key: "_noteMidi",
@@ -2840,7 +2856,9 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       this._madeAnyMistake = true;
       this._madeMistakeThisRound = true;
       if (this._isPlayedNoteMistake()) {
-        this._setPlayFeedbackState("wrong");
+        var _this$_lastPlayedNote2;
+        var playedNoteName = this._playedNoteFeedbackName(Number((_this$_lastPlayedNote2 = this._lastPlayedNote) === null || _this$_lastPlayedNote2 === void 0 ? void 0 : _this$_lastPlayedNote2.midi));
+        this._setPlayFeedbackState("wrong", playedNoteName ? "you played ".concat(playedNoteName) : "");
         this._lastPlayedNote = null;
         this._playedNoteConfirmed = false;
         this._setPlayNoteButtonLabel("tryAgain");
