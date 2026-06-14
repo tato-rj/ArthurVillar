@@ -90,18 +90,25 @@ export class NoteNest extends BaseStaffGame {
     if (!$feedback?.length) return;
 
     $feedback.removeClass("saved wrong animate__animated animate__heartBeat");
-    $feedback.find(".play-feedback-wrong-note").remove();
+    $feedback.find(".play-feedback-note-name, .play-feedback-wrong-note").remove();
 
     if (state === "saved") {
       $feedback.addClass("saved");
+      if (detail) {
+        const $detail = $('<span class="play-feedback-note-name ml-2 small"></span>');
+        $detail.text(detail);
+        $feedback.append($detail);
+      }
       return;
     }
 
     if (state === "wrong") {
       $feedback.addClass("wrong");
-      const $detail = $('<span class="play-feedback-wrong-note ml-2 small"></span>');
-      $detail.text(detail || "you played a different note");
-      $feedback.append($detail);
+      if (detail) {
+        const $detail = $('<span class="play-feedback-note-name ml-2 small"></span>');
+        $detail.text(detail);
+        $feedback.append($detail);
+      }
       void $feedback[0]?.offsetWidth;
       $feedback.addClass("animate__animated animate__heartBeat");
     }
@@ -273,7 +280,7 @@ export class NoteNest extends BaseStaffGame {
     };
     this._playedNoteConfirmed = true;
     this._setPlayNoteButtonLabel("default");
-    this._setPlayFeedbackState("saved");
+    this._setPlayFeedbackState("saved", this._playedNoteFeedbackName(midi));
     this._syncPlayedNoteGate();
   }
 
@@ -337,7 +344,7 @@ export class NoteNest extends BaseStaffGame {
     this._setPlayIconState("heard");
     this._setPlaySoundModalStatus("Note heard", "All set, tap confirm to continue!");
     this._setPlayNoteButtonLabel("default");
-    this._setPlayFeedbackState("saved");
+    this._setPlayFeedbackState("saved", this._playedNoteFeedbackName(midi));
     this._showConfirmSoundButton();
     this._showRetrySoundButton();
   }
@@ -853,7 +860,7 @@ export class NoteNest extends BaseStaffGame {
     this._madeMistakeThisRound = true;
     if (this._isPlayedNoteMistake()) {
       const playedNoteName = this._playedNoteFeedbackName(Number(this._lastPlayedNote?.midi));
-      this._setPlayFeedbackState("wrong", playedNoteName ? `you played ${playedNoteName}` : "");
+      this._setPlayFeedbackState("wrong", playedNoteName);
       this._lastPlayedNote = null;
       this._playedNoteConfirmed = false;
       this._setPlayNoteButtonLabel("tryAgain");
