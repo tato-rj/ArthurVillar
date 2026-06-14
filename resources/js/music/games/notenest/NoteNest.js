@@ -56,6 +56,7 @@ export class NoteNest extends BaseStaffGame {
     this._pitchData = null;
     this._pitchFrame = null;
     this._pitchStartFrame = null;
+    this._pitchOpenStartTimer = null;
     this._pitchInputStarting = false;
     this._stablePitch = { midi: null, frequency: null, count: 0 };
   }
@@ -229,6 +230,36 @@ export class NoteNest extends BaseStaffGame {
     }
   }
 
+  _beginPitchRecordingAfterModalOpen() {
+    if (!this.$playSoundModal?.length) {
+      this._beginPitchRecording();
+      return;
+    }
+
+    if (this._pitchOpenStartTimer) {
+      clearTimeout(this._pitchOpenStartTimer);
+      this._pitchOpenStartTimer = null;
+    }
+
+    let started = false;
+    const start = () => {
+      if (started) return;
+      started = true;
+      if (this._pitchOpenStartTimer) {
+        clearTimeout(this._pitchOpenStartTimer);
+        this._pitchOpenStartTimer = null;
+      }
+      this.$playSoundModal.off(`shown.bs.modal.${this.ns}.playedNoteStart`);
+      this._beginPitchRecording();
+    };
+
+    this.$playSoundModal
+      .off(`shown.bs.modal.${this.ns}.playedNoteStart`)
+      .one(`shown.bs.modal.${this.ns}.playedNoteStart`, start);
+
+    this._pitchOpenStartTimer = setTimeout(start, 350);
+  }
+
   _hidePlaySoundModal() {
     if (!this.$playSoundModal?.length) return;
 
@@ -299,7 +330,7 @@ export class NoteNest extends BaseStaffGame {
       ?.on?.(`click.${this.ns}.playedNote`, (e) => {
         e.preventDefault();
         this._showPlaySoundModal();
-        this._beginPitchRecording();
+        this._beginPitchRecordingAfterModalOpen();
       });
 
     this.$confirmSoundBtn
@@ -342,7 +373,7 @@ export class NoteNest extends BaseStaffGame {
     this._playedNoteConfirmed = false;
     this._stopPitchInput({ keepIconState: true });
     this._setPlayIconState("heard");
-    this._setPlaySoundModalStatus("Note heard", "All set, tap confirm to continue!");
+    this._setPlaySoundModalStatus("Note heard", `I heard the note ${this._playedNoteFeedbackName(midi)}`);
     this._setPlayNoteButtonLabel("default");
     this._setPlayFeedbackState("saved", this._playedNoteFeedbackName(midi));
     this._showConfirmSoundButton();
@@ -417,6 +448,11 @@ export class NoteNest extends BaseStaffGame {
   }
 
   _stopPitchInput({ keepIconState = false } = {}) {
+    if (this._pitchOpenStartTimer) {
+      clearTimeout(this._pitchOpenStartTimer);
+      this._pitchOpenStartTimer = null;
+    }
+
     if (this._pitchFrame) {
       cancelAnimationFrame(this._pitchFrame);
       this._pitchFrame = null;
