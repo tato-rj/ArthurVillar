@@ -99,7 +99,13 @@ export class NoteNest extends BaseStaffGame {
       if (detail) {
         const $target = $feedback.find(".d-center").first();
         const $detail = $('<span class="play-feedback-note-name ml-2 small"></span>');
-        $detail.text(detail);
+        const playedNoteMatch = String(detail).match(/^You played\s+(.+)$/);
+        if (playedNoteMatch) {
+          $detail.append(document.createTextNode("You played "));
+          $("<strong></strong>").text(playedNoteMatch[1]).appendTo($detail);
+        } else {
+          $detail.text(detail);
+        }
         ($target.length ? $target : $feedback).append($detail);
       }
       return;
@@ -909,8 +915,7 @@ export class NoteNest extends BaseStaffGame {
     this._madeAnyMistake = true;
     this._madeMistakeThisRound = true;
     if (this._isPlayedNoteMistake()) {
-      const playedNoteName = this._playedNoteFeedbackName(Number(this._lastPlayedNote?.midi));
-      this._setPlayFeedbackState("wrong", `${playedNoteName} was the wrong note...`);
+      this._setPlayFeedbackState("wrong", "That was the wrong note...");
       this._lastPlayedNote = null;
       this._playedNoteConfirmed = false;
       this._setPlayNoteButtonLabel("tryAgain");

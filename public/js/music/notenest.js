@@ -2917,9 +2917,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       this._madeAnyMistake = true;
       this._madeMistakeThisRound = true;
       if (this._isPlayedNoteMistake()) {
-        var _this$_lastPlayedNote2;
-        var playedNoteName = this._playedNoteFeedbackName(Number((_this$_lastPlayedNote2 = this._lastPlayedNote) === null || _this$_lastPlayedNote2 === void 0 ? void 0 : _this$_lastPlayedNote2.midi));
-        this._setPlayFeedbackState("wrong", "".concat(playedNoteName, " was the wrong note..."));
+        this._setPlayFeedbackState("wrong", "That was the wrong note...");
         this._lastPlayedNote = null;
         this._playedNoteConfirmed = false;
         this._setPlayNoteButtonLabel("tryAgain");

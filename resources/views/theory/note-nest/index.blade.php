@@ -35,7 +35,7 @@
 
 #play-feedback {
   background: lightgrey;
-  opacity: .3;
+  opacity: .8;
   display: none;
 }
 
