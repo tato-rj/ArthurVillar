@@ -1,5 +1,6 @@
 import { BaseStaffGame } from "../base/BaseStaffGame.js";
 import { normalizeClefPool, pickChallengeClef } from "../shared/challengeUtils.js";
+import { GameAudio } from "../shared/GameAudio.js";
 import { accidentalClassToText, pickWeighted, stepToLetterOctave } from "../../staff/staffUtils.js";
 
 export class NoteNest extends BaseStaffGame {
@@ -44,6 +45,8 @@ export class NoteNest extends BaseStaffGame {
     this.$playSoundStatus = $("#play-sound-status");
     this.$playSoundDetected = $("#play-sound-detected");
     this.$playFeedback = $("#play-feedback");
+    this.$playFeedbackText = this.$playFeedback.find(".play-feedback-text");
+    this.$playFeedbackPlayBtn = this.$playFeedback.find("button").first();
     this.$confirmSoundWrap = this.$playSoundModal.find("#confirm-sound");
     this.$confirmSoundBtn = this.$confirmSoundWrap.find("button");
     this.$retrySoundWrap = this.$playSoundModal.find("#retry");
@@ -60,6 +63,7 @@ export class NoteNest extends BaseStaffGame {
     this._pitchInputStarting = false;
     this._stablePitch = { midi: null, frequency: null, count: 0 };
     this._ignoreAppAudioUntil = 0;
+    this._playFeedbackPreviewSynth = null;
   }
 
   start() {
@@ -93,20 +97,19 @@ export class NoteNest extends BaseStaffGame {
 
     $feedback.removeClass("saved wrong animate__animated animate__heartBeat animate__flash");
     $feedback.find(".play-feedback-note-name, .play-feedback-wrong-note").remove();
+    this.$playFeedbackText?.empty?.();
 
     if (state === "saved") {
       $feedback.css("display", "inline-block").addClass("saved");
       if (detail) {
-        const $target = $feedback.find(".d-center").first();
-        const $detail = $('<span class="play-feedback-note-name ml-2 small"></span>');
+        const $target = this.$playFeedbackText?.length ? this.$playFeedbackText : $feedback.find(".d-center").first();
         const playedNoteMatch = String(detail).match(/^You played\s+(.+)$/);
         if (playedNoteMatch) {
-          $detail.append(document.createTextNode("You played "));
-          $("<strong></strong>").text(playedNoteMatch[1]).appendTo($detail);
+          $target.append(document.createTextNode("You played "));
+          $("<strong></strong>").text(playedNoteMatch[1]).appendTo($target);
         } else {
-          $detail.text(detail);
+          $target.text(detail);
         }
-        ($target.length ? $target : $feedback).append($detail);
       }
       return;
     }
@@ -114,10 +117,8 @@ export class NoteNest extends BaseStaffGame {
     if (state === "wrong") {
       $feedback.css("display", "inline-block").addClass("wrong");
       if (detail) {
-        const $target = $feedback.find(".d-center").first();
-        const $detail = $('<span class="play-feedback-note-name ml-2 small"></span>');
-        $detail.text(detail);
-        ($target.length ? $target : $feedback).append($detail);
+        const $target = this.$playFeedbackText?.length ? this.$playFeedbackText : $feedback.find(".d-center").first();
+        ($target.length ? $target : $feedback).text(detail);
       }
       void $feedback[0]?.offsetWidth;
       $feedback.addClass("animate__animated animate__flash");
@@ -364,6 +365,13 @@ export class NoteNest extends BaseStaffGame {
         this._beginPitchRecording();
       });
 
+    this.$playFeedbackPlayBtn
+      ?.off?.(`click.${this.ns}.playedNote`)
+      ?.on?.(`click.${this.ns}.playedNote`, (e) => {
+        e.preventDefault();
+        this._playHeardNotePreview();
+      });
+
     this.$playSoundModal
       ?.off?.(`hidden.bs.modal.${this.ns}.playedNote`)
       ?.on?.(`hidden.bs.modal.${this.ns}.playedNote`, () => {
@@ -392,6 +400,25 @@ export class NoteNest extends BaseStaffGame {
     this._setPlayFeedbackState("saved", `You played ${this._playedNoteFeedbackName(midi)}`);
     this._showConfirmSoundButton();
     this._showRetrySoundButton();
+  }
+
+  _playHeardNotePreview() {
+    const midi = this._lastPlayedNote?.midi;
+    if (!Number.isFinite(midi) || !window.Tone) return;
+
+    this._ignoreAppAudioFor(900);
+
+    Tone.start().then(() => {
+      const synth = this._playFeedbackPreviewSynth || GameAudio.createStaffNoteSynth();
+      this._playFeedbackPreviewSynth = synth;
+
+      synth.triggerAttackRelease(
+        Tone.Frequency(midi, "midi"),
+        0.45,
+        undefined,
+        GameAudio.scale("staffNote", 0.8),
+      );
+    }).catch(() => {});
   }
 
   _beginPitchRecording() {

@@ -34,14 +34,12 @@
 }
 
 #play-feedback {
-  background: lightgrey;
-  opacity: .8;
   display: none;
 }
 
 #play-feedback.saved {
-{{--   background: rgba(88,204,2,.15);
-  color: #58cc02; --}}
+  background: lightgrey;
+  opacity: .8;
 }
 
 #play-feedback.wrong {
