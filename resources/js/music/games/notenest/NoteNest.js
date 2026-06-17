@@ -144,10 +144,10 @@ export class NoteNest extends BaseStaffGame {
     if (!$icon.length) return;
 
     $icon.attr("data-icon", toIcon);
-    if ($icon.attr("data-prefix") != null) $icon.attr("data-prefix", useFrown ? "far" : "fas");
+    if ($icon.attr("data-prefix") != null) $icon.attr("data-prefix", "fas");
     $icon
       .removeClass(`fa-${fromIcon} far fas`)
-      .addClass(`fa-${toIcon} ${useFrown ? "far" : "fas"}`);
+      .addClass(`fa-${toIcon} fas`);
   }
 
   _setPlayNoteButtonLabel(state = "default") {

@@ -2125,8 +2125,8 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       var $icon = $feedback.find("[data-icon=\"".concat(fromIcon, "\"], .fa-").concat(fromIcon)).first();
       if (!$icon.length) return;
       $icon.attr("data-icon", toIcon);
-      if ($icon.attr("data-prefix") != null) $icon.attr("data-prefix", useFrown ? "far" : "fas");
-      $icon.removeClass("fa-".concat(fromIcon, " far fas")).addClass("fa-".concat(toIcon, " ").concat(useFrown ? "far" : "fas"));
+      if ($icon.attr("data-prefix") != null) $icon.attr("data-prefix", "fas");
+      $icon.removeClass("fa-".concat(fromIcon, " far fas")).addClass("fa-".concat(toIcon, " fas"));
     }
   }, {
     key: "_setPlayNoteButtonLabel",
