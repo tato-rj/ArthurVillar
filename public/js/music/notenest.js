@@ -2081,7 +2081,13 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
         if (detail) {
           var $target = $feedback.find(".d-center").first();
           var $detail = $('<span class="play-feedback-note-name ml-2 small"></span>');
-          $detail.text(detail);
+          var playedNoteMatch = String(detail).match(/^You played\s+(.+)$/);
+          if (playedNoteMatch) {
+            $detail.append(document.createTextNode("You played "));
+            $("<strong></strong>").text(playedNoteMatch[1]).appendTo($detail);
+          } else {
+            $detail.text(detail);
+          }
           ($target.length ? $target : $feedback).append($detail);
         }
         return;
