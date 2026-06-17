@@ -95,6 +95,7 @@ export class NoteNest extends BaseStaffGame {
     $feedback.removeClass("saved wrong animate__animated animate__heartBeat animate__flash");
     $feedback.find(".play-feedback-note-name, .play-feedback-wrong-note").remove();
     this.$playFeedbackText?.empty?.();
+    this._setPlayFeedbackIcon(state);
 
     if (state === "saved") {
       $feedback.css("display", "inline-block").addClass("saved");
@@ -111,8 +112,17 @@ export class NoteNest extends BaseStaffGame {
       $feedback.css("display", "inline-block").addClass("wrong");
       if (detail) {
         const $target = this.$playFeedbackText?.length ? this.$playFeedbackText : $feedback.find(".d-center").first();
-        const $detail = $('<span class="play-feedback-wrong-note ml-2 small"></span>').text(detail);
-        if (this.$playFeedbackText?.length) $target.text(detail);
+        const $detail = $('<span class="play-feedback-wrong-note ml-2 small"></span>');
+        const playedNoteMatch = String(detail).match(/^You played\s+([^\s.]+)(\.\.\.)?$/);
+        if (playedNoteMatch) {
+          $detail.append(document.createTextNode("You played "));
+          $("<strong></strong>").text(playedNoteMatch[1]).appendTo($detail);
+          if (playedNoteMatch[2]) $detail.append(document.createTextNode(playedNoteMatch[2]));
+        } else {
+          $detail.text(detail);
+        }
+
+        if (this.$playFeedbackText?.length) $target.empty().append($detail.contents());
         else ($target.length ? $target : $feedback).append($detail);
       }
       void $feedback[0]?.offsetWidth;
@@ -121,6 +131,23 @@ export class NoteNest extends BaseStaffGame {
     }
 
     $feedback.hide();
+  }
+
+  _setPlayFeedbackIcon(state = "idle") {
+    const $feedback = this.$playFeedback;
+    if (!$feedback?.length) return;
+
+    const useFrown = state === "wrong";
+    const fromIcon = useFrown ? "microphone" : "face-frown";
+    const toIcon = useFrown ? "face-frown" : "microphone";
+    const $icon = $feedback.find(`[data-icon="${fromIcon}"], .fa-${fromIcon}`).first();
+    if (!$icon.length) return;
+
+    $icon.attr("data-icon", toIcon);
+    if ($icon.attr("data-prefix") != null) $icon.attr("data-prefix", useFrown ? "far" : "fas");
+    $icon
+      .removeClass(`fa-${fromIcon} far fas`)
+      .addClass(`fa-${toIcon} ${useFrown ? "far" : "fas"}`);
   }
 
   _setPlayNoteButtonLabel(state = "default") {
@@ -297,6 +324,36 @@ export class NoteNest extends BaseStaffGame {
       ? (NoteNest.LETTER_TO_SOLFEGE[letter] || letter)
       : letter;
     return `${base}${accidental}${octave}`;
+  }
+
+  _playedNoteFeedbackNameWithoutOctave(midi) {
+    const raw = this._midiToNoteName(midi);
+    const match = String(raw || "").match(/^([A-G])([#b]?)(-?\d+)$/);
+    if (!match) return raw;
+
+    const [, letter, accidental] = match;
+    const base = this._showSolfegeNoteNames()
+      ? (NoteNest.LETTER_TO_SOLFEGE[letter] || letter)
+      : letter;
+    return `${base}${accidental}`;
+  }
+
+  _playedNoteWrongFeedbackText() {
+    const playedMidi = Number(this._lastPlayedNote?.midi);
+    const [note] = this._collectUserNotes();
+    const targetMidi = this._noteMidi(note);
+    const pitchClass = (midi) => ((midi % 12) + 12) % 12;
+
+    if (
+      Number.isFinite(playedMidi) &&
+      Number.isFinite(targetMidi) &&
+      pitchClass(playedMidi) === pitchClass(targetMidi)
+    ) {
+      return "You played the wrong octave...";
+    }
+
+    const playedName = this._playedNoteFeedbackNameWithoutOctave(playedMidi);
+    return playedName ? `You played ${playedName}...` : "That was the wrong note...";
   }
 
   _noteMidi(note) {
@@ -912,8 +969,7 @@ export class NoteNest extends BaseStaffGame {
     this._madeAnyMistake = true;
     this._madeMistakeThisRound = true;
     if (this._isPlayedNoteMistake()) {
-      const playedName = this._playedNoteFeedbackName(this._lastPlayedNote?.midi);
-      this._setPlayFeedbackState("wrong", playedName ? `You played ${playedName}...` : "That was the wrong note...");
+      this._setPlayFeedbackState("wrong", this._playedNoteWrongFeedbackText());
       this._lastPlayedNote = null;
       this._playedNoteConfirmed = false;
       this._setPlayNoteButtonLabel("tryAgain");

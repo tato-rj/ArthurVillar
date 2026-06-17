@@ -2079,6 +2079,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       $feedback.removeClass("saved wrong animate__animated animate__heartBeat animate__flash");
       $feedback.find(".play-feedback-note-name, .play-feedback-wrong-note").remove();
       (_this$$playFeedbackTe = this.$playFeedbackText) === null || _this$$playFeedbackTe === void 0 || (_this$$playFeedbackTe2 = _this$$playFeedbackTe.empty) === null || _this$$playFeedbackTe2 === void 0 || _this$$playFeedbackTe2.call(_this$$playFeedbackTe);
+      this._setPlayFeedbackIcon(state);
       if (state === "saved") {
         $feedback.css("display", "inline-block").addClass("saved");
         if (detail) {
@@ -2095,14 +2096,37 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
         if (detail) {
           var _this$$playFeedbackTe5, _this$$playFeedbackTe6;
           var _$target = (_this$$playFeedbackTe5 = this.$playFeedbackText) !== null && _this$$playFeedbackTe5 !== void 0 && _this$$playFeedbackTe5.length ? this.$playFeedbackText : $feedback.find(".d-center").first();
-          var _$detail = $('<span class="play-feedback-wrong-note ml-2 small"></span>').text(detail);
-          if ((_this$$playFeedbackTe6 = this.$playFeedbackText) !== null && _this$$playFeedbackTe6 !== void 0 && _this$$playFeedbackTe6.length) _$target.text(detail);else (_$target.length ? _$target : $feedback).append(_$detail);
+          var _$detail = $('<span class="play-feedback-wrong-note ml-2 small"></span>');
+          var playedNoteMatch = String(detail).match(/^You played\s+([^\s.]+)(\.\.\.)?$/);
+          if (playedNoteMatch) {
+            _$detail.append(document.createTextNode("You played "));
+            $("<strong></strong>").text(playedNoteMatch[1]).appendTo(_$detail);
+            if (playedNoteMatch[2]) _$detail.append(document.createTextNode(playedNoteMatch[2]));
+          } else {
+            _$detail.text(detail);
+          }
+          if ((_this$$playFeedbackTe6 = this.$playFeedbackText) !== null && _this$$playFeedbackTe6 !== void 0 && _this$$playFeedbackTe6.length) _$target.empty().append(_$detail.contents());else (_$target.length ? _$target : $feedback).append(_$detail);
         }
         void ((_$feedback$ = $feedback[0]) === null || _$feedback$ === void 0 ? void 0 : _$feedback$.offsetWidth);
         $feedback.addClass("animate__animated animate__flash");
         return;
       }
       $feedback.hide();
+    }
+  }, {
+    key: "_setPlayFeedbackIcon",
+    value: function _setPlayFeedbackIcon() {
+      var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "idle";
+      var $feedback = this.$playFeedback;
+      if (!($feedback !== null && $feedback !== void 0 && $feedback.length)) return;
+      var useFrown = state === "wrong";
+      var fromIcon = useFrown ? "microphone" : "face-frown";
+      var toIcon = useFrown ? "face-frown" : "microphone";
+      var $icon = $feedback.find("[data-icon=\"".concat(fromIcon, "\"], .fa-").concat(fromIcon)).first();
+      if (!$icon.length) return;
+      $icon.attr("data-icon", toIcon);
+      if ($icon.attr("data-prefix") != null) $icon.attr("data-prefix", useFrown ? "far" : "fas");
+      $icon.removeClass("fa-".concat(fromIcon, " far fas")).addClass("fa-".concat(toIcon, " ").concat(useFrown ? "far" : "fas"));
     }
   }, {
     key: "_setPlayNoteButtonLabel",
@@ -2287,6 +2311,36 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
         octave = _match[3];
       var base = this._showSolfegeNoteNames() ? NoteNest.LETTER_TO_SOLFEGE[letter] || letter : letter;
       return "".concat(base).concat(accidental).concat(octave);
+    }
+  }, {
+    key: "_playedNoteFeedbackNameWithoutOctave",
+    value: function _playedNoteFeedbackNameWithoutOctave(midi) {
+      var raw = this._midiToNoteName(midi);
+      var match = String(raw || "").match(/^([A-G])([#b]?)(-?\d+)$/);
+      if (!match) return raw;
+      var _match2 = _slicedToArray(match, 3),
+        letter = _match2[1],
+        accidental = _match2[2];
+      var base = this._showSolfegeNoteNames() ? NoteNest.LETTER_TO_SOLFEGE[letter] || letter : letter;
+      return "".concat(base).concat(accidental);
+    }
+  }, {
+    key: "_playedNoteWrongFeedbackText",
+    value: function _playedNoteWrongFeedbackText() {
+      var _this$_lastPlayedNote;
+      var playedMidi = Number((_this$_lastPlayedNote = this._lastPlayedNote) === null || _this$_lastPlayedNote === void 0 ? void 0 : _this$_lastPlayedNote.midi);
+      var _this$_collectUserNot = this._collectUserNotes(),
+        _this$_collectUserNot2 = _slicedToArray(_this$_collectUserNot, 1),
+        note = _this$_collectUserNot2[0];
+      var targetMidi = this._noteMidi(note);
+      var pitchClass = function pitchClass(midi) {
+        return (midi % 12 + 12) % 12;
+      };
+      if (Number.isFinite(playedMidi) && Number.isFinite(targetMidi) && pitchClass(playedMidi) === pitchClass(targetMidi)) {
+        return "You played the wrong octave...";
+      }
+      var playedName = this._playedNoteFeedbackNameWithoutOctave(playedMidi);
+      return playedName ? "You played ".concat(playedName, "...") : "That was the wrong note...";
     }
   }, {
     key: "_noteMidi",
@@ -2866,11 +2920,11 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
   }, {
     key: "_isPlayedNoteCorrect",
     value: function _isPlayedNoteCorrect(note) {
-      var _this$_lastPlayedNote;
+      var _this$_lastPlayedNote2;
       if (!this._requiresPlayedNote()) return true;
       if (!this._playedNoteConfirmed) return false;
       var targetMidi = this._noteMidi(note);
-      var playedMidi = Number((_this$_lastPlayedNote = this._lastPlayedNote) === null || _this$_lastPlayedNote === void 0 ? void 0 : _this$_lastPlayedNote.midi);
+      var playedMidi = Number((_this$_lastPlayedNote2 = this._lastPlayedNote) === null || _this$_lastPlayedNote2 === void 0 ? void 0 : _this$_lastPlayedNote2.midi);
       return Number.isFinite(targetMidi) && playedMidi === targetMidi;
     }
   }, {
@@ -2921,9 +2975,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       this._madeAnyMistake = true;
       this._madeMistakeThisRound = true;
       if (this._isPlayedNoteMistake()) {
-        var _this$_lastPlayedNote2;
-        var playedName = this._playedNoteFeedbackName((_this$_lastPlayedNote2 = this._lastPlayedNote) === null || _this$_lastPlayedNote2 === void 0 ? void 0 : _this$_lastPlayedNote2.midi);
-        this._setPlayFeedbackState("wrong", playedName ? "You played ".concat(playedName, "...") : "That was the wrong note...");
+        this._setPlayFeedbackState("wrong", this._playedNoteWrongFeedbackText());
         this._lastPlayedNote = null;
         this._playedNoteConfirmed = false;
         this._setPlayNoteButtonLabel("tryAgain");
