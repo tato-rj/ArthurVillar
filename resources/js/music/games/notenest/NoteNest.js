@@ -440,7 +440,7 @@ export class NoteNest extends BaseStaffGame {
     this._playedNoteConfirmed = false;
     this._stopPitchInput({ keepIconState: true });
     this._setPlayIconState("heard");
-    this._setPlaySoundModalStatus("Note heard", "Got it!");
+    this._setPlaySoundModalStatus("Note heard", "Got it! Click confirm to continue.");
     this._setPlayNoteButtonLabel("default");
     this._setPlayFeedbackState("saved", "Your note was saved");
     this._showConfirmSoundButton();
