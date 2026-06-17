@@ -35,6 +35,7 @@
 
 #play-feedback {
   background: lightgrey;
+  opacity: .3;
   display: none;
 }
 
@@ -46,6 +47,7 @@
 #play-feedback.wrong {
   background: rgba(255,75,75,.15);
   color: #ff4b4b;
+  opacity: 1;
 }
 </style>
 @endpush
