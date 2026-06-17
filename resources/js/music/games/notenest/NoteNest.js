@@ -91,7 +91,7 @@ export class NoteNest extends BaseStaffGame {
     const $feedback = this.$playFeedback;
     if (!$feedback?.length) return;
 
-    $feedback.removeClass("saved wrong animate__animated animate__heartBeat");
+    $feedback.removeClass("saved wrong animate__animated animate__heartBeat animate__flash");
     $feedback.find(".play-feedback-note-name, .play-feedback-wrong-note").remove();
 
     if (state === "saved") {
@@ -114,7 +114,7 @@ export class NoteNest extends BaseStaffGame {
         ($target.length ? $target : $feedback).append($detail);
       }
       void $feedback[0]?.offsetWidth;
-      $feedback.addClass("animate__animated animate__heartBeat");
+      $feedback.addClass("animate__animated animate__flash");
       return;
     }
 
@@ -383,7 +383,7 @@ export class NoteNest extends BaseStaffGame {
     this._setPlayIconState("heard");
     this._setPlaySoundModalStatus("Note heard", `I heard the note ${this._playedNoteFeedbackName(midi)}`);
     this._setPlayNoteButtonLabel("default");
-    this._setPlayFeedbackState("saved", this._playedNoteFeedbackName(midi));
+    this._setPlayFeedbackState("saved", `You played ${this._playedNoteFeedbackName(midi)}`);
     this._showConfirmSoundButton();
     this._showRetrySoundButton();
   }
@@ -910,7 +910,7 @@ export class NoteNest extends BaseStaffGame {
     this._madeMistakeThisRound = true;
     if (this._isPlayedNoteMistake()) {
       const playedNoteName = this._playedNoteFeedbackName(Number(this._lastPlayedNote?.midi));
-      this._setPlayFeedbackState("wrong", playedNoteName);
+      this._setPlayFeedbackState("wrong", `You played ${playedNoteName}`);
       this._lastPlayedNote = null;
       this._playedNoteConfirmed = false;
       this._setPlayNoteButtonLabel("tryAgain");

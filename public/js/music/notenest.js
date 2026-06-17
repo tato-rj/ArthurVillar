@@ -2074,7 +2074,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       var detail = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "";
       var $feedback = this.$playFeedback;
       if (!($feedback !== null && $feedback !== void 0 && $feedback.length)) return;
-      $feedback.removeClass("saved wrong animate__animated animate__heartBeat");
+      $feedback.removeClass("saved wrong animate__animated animate__heartBeat animate__flash");
       $feedback.find(".play-feedback-note-name, .play-feedback-wrong-note").remove();
       if (state === "saved") {
         $feedback.show().addClass("saved");
@@ -2096,7 +2096,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
           (_$target.length ? _$target : $feedback).append(_$detail);
         }
         void ((_$feedback$ = $feedback[0]) === null || _$feedback$ === void 0 ? void 0 : _$feedback$.offsetWidth);
-        $feedback.addClass("animate__animated animate__heartBeat");
+        $feedback.addClass("animate__animated animate__flash");
         return;
       }
       $feedback.hide();
@@ -2388,7 +2388,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       this._setPlayIconState("heard");
       this._setPlaySoundModalStatus("Note heard", "I heard the note ".concat(this._playedNoteFeedbackName(midi)));
       this._setPlayNoteButtonLabel("default");
-      this._setPlayFeedbackState("saved", this._playedNoteFeedbackName(midi));
+      this._setPlayFeedbackState("saved", "You played ".concat(this._playedNoteFeedbackName(midi)));
       this._showConfirmSoundButton();
       this._showRetrySoundButton();
     }
@@ -2919,7 +2919,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       if (this._isPlayedNoteMistake()) {
         var _this$_lastPlayedNote2;
         var playedNoteName = this._playedNoteFeedbackName(Number((_this$_lastPlayedNote2 = this._lastPlayedNote) === null || _this$_lastPlayedNote2 === void 0 ? void 0 : _this$_lastPlayedNote2.midi));
-        this._setPlayFeedbackState("wrong", playedNoteName);
+        this._setPlayFeedbackState("wrong", "You played ".concat(playedNoteName));
         this._lastPlayedNote = null;
         this._playedNoteConfirmed = false;
         this._setPlayNoteButtonLabel("tryAgain");
