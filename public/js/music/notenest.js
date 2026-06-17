@@ -2910,6 +2910,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
         this._stopPitchInput();
         (_this$$playNoteWrap2 = this.$playNoteWrap) === null || _this$$playNoteWrap2 === void 0 || (_this$$playNoteWrap2$ = _this$$playNoteWrap2.hide) === null || _this$$playNoteWrap2$ === void 0 || (_this$$playNoteWrap2$2 = (_this$$playNoteWrap2$3 = _this$$playNoteWrap2$.call(_this$$playNoteWrap2)).addClass) === null || _this$$playNoteWrap2$2 === void 0 || _this$$playNoteWrap2$2.call(_this$$playNoteWrap2$3, "invisible");
         this._hideConfirmSoundButton();
+        this._setPlayFeedbackState("idle");
         var _this$_awardPointsFor = this._awardPointsForCorrect(),
           earned = _this$_awardPointsFor.earned,
           bonusEarned = _this$_awardPointsFor.bonusEarned;

@@ -902,6 +902,7 @@ export class NoteNest extends BaseStaffGame {
       this._stopPitchInput();
       this.$playNoteWrap?.hide?.().addClass?.("invisible");
       this._hideConfirmSoundButton();
+      this._setPlayFeedbackState("idle");
 
       const { earned, bonusEarned } = this._awardPointsForCorrect();
       this._handleCorrectAnswerUi({
