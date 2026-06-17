@@ -2077,7 +2077,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       $feedback.removeClass("saved wrong animate__animated animate__heartBeat animate__flash");
       $feedback.find(".play-feedback-note-name, .play-feedback-wrong-note").remove();
       if (state === "saved") {
-        $feedback.show().addClass("saved");
+        $feedback.css("display", "inline-block").addClass("saved");
         if (detail) {
           var $target = $feedback.find(".d-center").first();
           var $detail = $('<span class="play-feedback-note-name ml-2 small"></span>');
@@ -2088,7 +2088,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       }
       if (state === "wrong") {
         var _$feedback$;
-        $feedback.show().addClass("wrong");
+        $feedback.css("display", "inline-block").addClass("wrong");
         if (detail) {
           var _$target = $feedback.find(".d-center").first();
           var _$detail = $('<span class="play-feedback-note-name ml-2 small"></span>');
@@ -2919,7 +2919,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       if (this._isPlayedNoteMistake()) {
         var _this$_lastPlayedNote2;
         var playedNoteName = this._playedNoteFeedbackName(Number((_this$_lastPlayedNote2 = this._lastPlayedNote) === null || _this$_lastPlayedNote2 === void 0 ? void 0 : _this$_lastPlayedNote2.midi));
-        this._setPlayFeedbackState("wrong", "You played ".concat(playedNoteName));
+        this._setPlayFeedbackState("wrong", "".concat(playedNoteName, " was the wrong note..."));
         this._lastPlayedNote = null;
         this._playedNoteConfirmed = false;
         this._setPlayNoteButtonLabel("tryAgain");

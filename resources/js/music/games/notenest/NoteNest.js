@@ -95,7 +95,7 @@ export class NoteNest extends BaseStaffGame {
     $feedback.find(".play-feedback-note-name, .play-feedback-wrong-note").remove();
 
     if (state === "saved") {
-      $feedback.show().addClass("saved");
+      $feedback.css("display", "inline-block").addClass("saved");
       if (detail) {
         const $target = $feedback.find(".d-center").first();
         const $detail = $('<span class="play-feedback-note-name ml-2 small"></span>');
@@ -106,7 +106,7 @@ export class NoteNest extends BaseStaffGame {
     }
 
     if (state === "wrong") {
-      $feedback.show().addClass("wrong");
+      $feedback.css("display", "inline-block").addClass("wrong");
       if (detail) {
         const $target = $feedback.find(".d-center").first();
         const $detail = $('<span class="play-feedback-note-name ml-2 small"></span>');
@@ -910,7 +910,7 @@ export class NoteNest extends BaseStaffGame {
     this._madeMistakeThisRound = true;
     if (this._isPlayedNoteMistake()) {
       const playedNoteName = this._playedNoteFeedbackName(Number(this._lastPlayedNote?.midi));
-      this._setPlayFeedbackState("wrong", `You played ${playedNoteName}`);
+      this._setPlayFeedbackState("wrong", `${playedNoteName} was the wrong note...`);
       this._lastPlayedNote = null;
       this._playedNoteConfirmed = false;
       this._setPlayNoteButtonLabel("tryAgain");
