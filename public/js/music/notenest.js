@@ -2034,6 +2034,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       frequency: null,
       count: 0
     };
+    _this._ignoreAppAudioUntil = 0;
     return _this;
   }
   _inherits(NoteNest, _BaseStaffGame);
@@ -2076,25 +2077,29 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       $feedback.removeClass("saved wrong animate__animated animate__heartBeat");
       $feedback.find(".play-feedback-note-name, .play-feedback-wrong-note").remove();
       if (state === "saved") {
-        $feedback.addClass("saved");
+        $feedback.show().addClass("saved");
         if (detail) {
+          var $target = $feedback.find(".d-center").first();
           var $detail = $('<span class="play-feedback-note-name ml-2 small"></span>');
           $detail.text(detail);
-          $feedback.append($detail);
+          ($target.length ? $target : $feedback).append($detail);
         }
         return;
       }
       if (state === "wrong") {
         var _$feedback$;
-        $feedback.addClass("wrong");
+        $feedback.show().addClass("wrong");
         if (detail) {
+          var _$target = $feedback.find(".d-center").first();
           var _$detail = $('<span class="play-feedback-note-name ml-2 small"></span>');
           _$detail.text(detail);
-          $feedback.append(_$detail);
+          (_$target.length ? _$target : $feedback).append(_$detail);
         }
         void ((_$feedback$ = $feedback[0]) === null || _$feedback$ === void 0 ? void 0 : _$feedback$.offsetWidth);
         $feedback.addClass("animate__animated animate__heartBeat");
+        return;
       }
+      $feedback.hide();
     }
   }, {
     key: "_setPlayNoteButtonLabel",
@@ -2291,21 +2296,26 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       return naturalMidi + accidentalOffset;
     }
   }, {
+    key: "_ignoreAppAudioFor",
+    value: function _ignoreAppAudioFor() {
+      var durationMs = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 900;
+      this._ignoreAppAudioUntil = Math.max(this._ignoreAppAudioUntil || 0, Date.now() + durationMs);
+      this._stablePitch = {
+        midi: null,
+        frequency: null,
+        count: 0
+      };
+    }
+  }, {
+    key: "_isIgnoringAppAudio",
+    value: function _isIgnoringAppAudio() {
+      return Date.now() < (this._ignoreAppAudioUntil || 0);
+    }
+  }, {
     key: "_onPianoKeyboardKeyClick",
     value: function _onPianoKeyboardKeyClick(data) {
-      var _$key$attr;
       if (!this._requiresPlayedNote()) return;
-      var $key = data === null || data === void 0 ? void 0 : data.$key;
-      var midi = Number($key === null || $key === void 0 || (_$key$attr = $key.attr) === null || _$key$attr === void 0 ? void 0 : _$key$attr.call($key, "data-midi"));
-      if (!Number.isFinite(midi)) return;
-      this._lastPlayedNote = {
-        midi: midi,
-        noteName: String((data === null || data === void 0 ? void 0 : data.noteName) || "")
-      };
-      this._playedNoteConfirmed = true;
-      this._setPlayNoteButtonLabel("default");
-      this._setPlayFeedbackState("saved", this._playedNoteFeedbackName(midi));
-      this._syncPlayedNoteGate();
+      this._ignoreAppAudioFor();
     }
   }, {
     key: "_wirePlayedNoteTracking",
@@ -2326,6 +2336,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       this.$staffEl.off("staff:noteState.".concat(this.ns, ".playedNote staff:userNotesChanged.").concat(this.ns, ".playedNote")).on("staff:noteState.".concat(this.ns, ".playedNote staff:userNotesChanged.").concat(this.ns, ".playedNote"), function (e, data) {
         if (!_this3._requiresPlayedNote()) return;
         if (e.type === "staff:noteState" && (data === null || data === void 0 ? void 0 : data.source) === "fixed") return;
+        if (e.type === "staff:noteState") _this3._ignoreAppAudioFor();
         _this3._resetPlayedNote();
         _this3._syncPlayedNoteGate(Number(data === null || data === void 0 ? void 0 : data.count));
       });
@@ -2498,6 +2509,17 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
     value: function _listenForPitch() {
       var _this6 = this;
       if (!this._pitchAnalyser || !this._pitchData || !this._pitchAudioContext) return;
+      if (this._isIgnoringAppAudio()) {
+        this._stablePitch = {
+          midi: null,
+          frequency: null,
+          count: 0
+        };
+        this._pitchFrame = requestAnimationFrame(function () {
+          return _this6._listenForPitch();
+        });
+        return;
+      }
       this._pitchAnalyser.getFloatTimeDomainData(this._pitchData);
       var pitch = this._detectPitch(this._pitchData, this._pitchAudioContext.sampleRate);
       var frequency = pitch === null || pitch === void 0 ? void 0 : pitch.frequency;

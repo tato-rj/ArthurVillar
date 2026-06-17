@@ -59,6 +59,7 @@ export class NoteNest extends BaseStaffGame {
     this._pitchOpenStartTimer = null;
     this._pitchInputStarting = false;
     this._stablePitch = { midi: null, frequency: null, count: 0 };
+    this._ignoreAppAudioUntil = 0;
   }
 
   start() {
@@ -94,25 +95,30 @@ export class NoteNest extends BaseStaffGame {
     $feedback.find(".play-feedback-note-name, .play-feedback-wrong-note").remove();
 
     if (state === "saved") {
-      $feedback.addClass("saved");
+      $feedback.show().addClass("saved");
       if (detail) {
+        const $target = $feedback.find(".d-center").first();
         const $detail = $('<span class="play-feedback-note-name ml-2 small"></span>');
         $detail.text(detail);
-        $feedback.append($detail);
+        ($target.length ? $target : $feedback).append($detail);
       }
       return;
     }
 
     if (state === "wrong") {
-      $feedback.addClass("wrong");
+      $feedback.show().addClass("wrong");
       if (detail) {
+        const $target = $feedback.find(".d-center").first();
         const $detail = $('<span class="play-feedback-note-name ml-2 small"></span>');
         $detail.text(detail);
-        $feedback.append($detail);
+        ($target.length ? $target : $feedback).append($detail);
       }
       void $feedback[0]?.offsetWidth;
       $feedback.addClass("animate__animated animate__heartBeat");
+      return;
     }
+
+    $feedback.hide();
   }
 
   _setPlayNoteButtonLabel(state = "default") {
@@ -299,20 +305,21 @@ export class NoteNest extends BaseStaffGame {
     return naturalMidi + accidentalOffset;
   }
 
+  _ignoreAppAudioFor(durationMs = 900) {
+    this._ignoreAppAudioUntil = Math.max(
+      this._ignoreAppAudioUntil || 0,
+      Date.now() + durationMs,
+    );
+    this._stablePitch = { midi: null, frequency: null, count: 0 };
+  }
+
+  _isIgnoringAppAudio() {
+    return Date.now() < (this._ignoreAppAudioUntil || 0);
+  }
+
   _onPianoKeyboardKeyClick(data) {
     if (!this._requiresPlayedNote()) return;
-    const $key = data?.$key;
-    const midi = Number($key?.attr?.("data-midi"));
-    if (!Number.isFinite(midi)) return;
-
-    this._lastPlayedNote = {
-      midi,
-      noteName: String(data?.noteName || ""),
-    };
-    this._playedNoteConfirmed = true;
-    this._setPlayNoteButtonLabel("default");
-    this._setPlayFeedbackState("saved", this._playedNoteFeedbackName(midi));
-    this._syncPlayedNoteGate();
+    this._ignoreAppAudioFor();
   }
 
   _wirePlayedNoteTracking() {
@@ -321,6 +328,7 @@ export class NoteNest extends BaseStaffGame {
       .on(`staff:noteState.${this.ns}.playedNote staff:userNotesChanged.${this.ns}.playedNote`, (e, data) => {
         if (!this._requiresPlayedNote()) return;
         if (e.type === "staff:noteState" && data?.source === "fixed") return;
+        if (e.type === "staff:noteState") this._ignoreAppAudioFor();
         this._resetPlayedNote();
         this._syncPlayedNoteGate(Number(data?.count));
       });
@@ -476,6 +484,12 @@ export class NoteNest extends BaseStaffGame {
 
   _listenForPitch() {
     if (!this._pitchAnalyser || !this._pitchData || !this._pitchAudioContext) return;
+
+    if (this._isIgnoringAppAudio()) {
+      this._stablePitch = { midi: null, frequency: null, count: 0 };
+      this._pitchFrame = requestAnimationFrame(() => this._listenForPitch());
+      return;
+    }
 
     this._pitchAnalyser.getFloatTimeDomainData(this._pitchData);
     const pitch = this._detectPitch(this._pitchData, this._pitchAudioContext.sampleRate);
