@@ -1957,8 +1957,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _base_BaseStaffGame_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../base/BaseStaffGame.js */ "./resources/js/music/games/base/BaseStaffGame.js");
 /* harmony import */ var _shared_challengeUtils_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../shared/challengeUtils.js */ "./resources/js/music/games/shared/challengeUtils.js");
-/* harmony import */ var _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/GameAudio.js */ "./resources/js/music/games/shared/GameAudio.js");
-/* harmony import */ var _staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../staff/staffUtils.js */ "./resources/js/music/staff/staffUtils.js");
+/* harmony import */ var _staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../staff/staffUtils.js */ "./resources/js/music/staff/staffUtils.js");
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
@@ -1984,7 +1983,6 @@ function _setPrototypeOf(t, e) { return _setPrototypeOf = Object.setPrototypeOf 
 function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
 function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
 function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
-
 
 
 
@@ -2018,7 +2016,6 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
     _this.$playSoundDetected = $("#play-sound-detected");
     _this.$playFeedback = $("#play-feedback");
     _this.$playFeedbackText = _this.$playFeedback.find(".play-feedback-text");
-    _this.$playFeedbackPlayBtn = _this.$playFeedback.find("button").first();
     _this.$confirmSoundWrap = _this.$playSoundModal.find("#confirm-sound");
     _this.$confirmSoundBtn = _this.$confirmSoundWrap.find("button");
     _this.$retrySoundWrap = _this.$playSoundModal.find("#retry");
@@ -2039,7 +2036,6 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       count: 0
     };
     _this._ignoreAppAudioUntil = 0;
-    _this._playFeedbackPreviewSynth = null;
     return _this;
   }
   _inherits(NoteNest, _BaseStaffGame);
@@ -2086,15 +2082,10 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       if (state === "saved") {
         $feedback.css("display", "inline-block").addClass("saved");
         if (detail) {
-          var _this$$playFeedbackTe3;
+          var _this$$playFeedbackTe3, _this$$playFeedbackTe4;
           var $target = (_this$$playFeedbackTe3 = this.$playFeedbackText) !== null && _this$$playFeedbackTe3 !== void 0 && _this$$playFeedbackTe3.length ? this.$playFeedbackText : $feedback.find(".d-center").first();
-          var playedNoteMatch = String(detail).match(/^You played\s+(.+)$/);
-          if (playedNoteMatch) {
-            $target.append(document.createTextNode("You played "));
-            $("<strong></strong>").text(playedNoteMatch[1]).appendTo($target);
-          } else {
-            $target.text(detail);
-          }
+          var $detail = $('<span class="play-feedback-note-name ml-2 small"></span>').text(detail);
+          if ((_this$$playFeedbackTe4 = this.$playFeedbackText) !== null && _this$$playFeedbackTe4 !== void 0 && _this$$playFeedbackTe4.length) $target.text(detail);else ($target.length ? $target : $feedback).append($detail);
         }
         return;
       }
@@ -2102,9 +2093,10 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
         var _$feedback$;
         $feedback.css("display", "inline-block").addClass("wrong");
         if (detail) {
-          var _this$$playFeedbackTe4;
-          var _$target = (_this$$playFeedbackTe4 = this.$playFeedbackText) !== null && _this$$playFeedbackTe4 !== void 0 && _this$$playFeedbackTe4.length ? this.$playFeedbackText : $feedback.find(".d-center").first();
-          (_$target.length ? _$target : $feedback).text(detail);
+          var _this$$playFeedbackTe5, _this$$playFeedbackTe6;
+          var _$target = (_this$$playFeedbackTe5 = this.$playFeedbackText) !== null && _this$$playFeedbackTe5 !== void 0 && _this$$playFeedbackTe5.length ? this.$playFeedbackText : $feedback.find(".d-center").first();
+          var _$detail = $('<span class="play-feedback-wrong-note ml-2 small"></span>').text(detail);
+          if ((_this$$playFeedbackTe6 = this.$playFeedbackText) !== null && _this$$playFeedbackTe6 !== void 0 && _this$$playFeedbackTe6.length) _$target.text(detail);else (_$target.length ? _$target : $feedback).append(_$detail);
         }
         void ((_$feedback$ = $feedback[0]) === null || _$feedback$ === void 0 ? void 0 : _$feedback$.offsetWidth);
         $feedback.addClass("animate__animated animate__flash");
@@ -2341,9 +2333,6 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
         _this$$retrySoundBtn,
         _this$$retrySoundBtn$,
         _this$$retrySoundBtn$2,
-        _this$$playFeedbackPl,
-        _this$$playFeedbackPl2,
-        _this$$playFeedbackPl3,
         _this$$playSoundModal4,
         _this$$playSoundModal5,
         _this$$playSoundModal6;
@@ -2369,10 +2358,6 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       (_this$$retrySoundBtn = this.$retrySoundBtn) === null || _this$$retrySoundBtn === void 0 || (_this$$retrySoundBtn$ = _this$$retrySoundBtn.off) === null || _this$$retrySoundBtn$ === void 0 || (_this$$retrySoundBtn$ = _this$$retrySoundBtn$.call(_this$$retrySoundBtn, "click.".concat(this.ns, ".playedNote"))) === null || _this$$retrySoundBtn$ === void 0 || (_this$$retrySoundBtn$2 = _this$$retrySoundBtn$.on) === null || _this$$retrySoundBtn$2 === void 0 || _this$$retrySoundBtn$2.call(_this$$retrySoundBtn$, "click.".concat(this.ns, ".playedNote"), function (e) {
         e.preventDefault();
         _this3._beginPitchRecording();
-      });
-      (_this$$playFeedbackPl = this.$playFeedbackPlayBtn) === null || _this$$playFeedbackPl === void 0 || (_this$$playFeedbackPl2 = _this$$playFeedbackPl.off) === null || _this$$playFeedbackPl2 === void 0 || (_this$$playFeedbackPl2 = _this$$playFeedbackPl2.call(_this$$playFeedbackPl, "click.".concat(this.ns, ".playedNote"))) === null || _this$$playFeedbackPl2 === void 0 || (_this$$playFeedbackPl3 = _this$$playFeedbackPl2.on) === null || _this$$playFeedbackPl3 === void 0 || _this$$playFeedbackPl3.call(_this$$playFeedbackPl2, "click.".concat(this.ns, ".playedNote"), function (e) {
-        e.preventDefault();
-        _this3._playHeardNotePreview();
       });
       (_this$$playSoundModal4 = this.$playSoundModal) === null || _this$$playSoundModal4 === void 0 || (_this$$playSoundModal5 = _this$$playSoundModal4.off) === null || _this$$playSoundModal5 === void 0 || (_this$$playSoundModal5 = _this$$playSoundModal5.call(_this$$playSoundModal4, "hidden.bs.modal.".concat(this.ns, ".playedNote"))) === null || _this$$playSoundModal5 === void 0 || (_this$$playSoundModal6 = _this$$playSoundModal5.on) === null || _this$$playSoundModal6 === void 0 || _this$$playSoundModal6.call(_this$$playSoundModal5, "hidden.bs.modal.".concat(this.ns, ".playedNote"), function () {
         _this3._stopPitchInput();
@@ -2404,30 +2389,16 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
         keepIconState: true
       });
       this._setPlayIconState("heard");
-      this._setPlaySoundModalStatus("Note heard", "I heard the note ".concat(this._playedNoteFeedbackName(midi)));
+      this._setPlaySoundModalStatus("Note heard", "Got it!");
       this._setPlayNoteButtonLabel("default");
-      this._setPlayFeedbackState("saved", "You played ".concat(this._playedNoteFeedbackName(midi)));
+      this._setPlayFeedbackState("saved", "Your note was saved");
       this._showConfirmSoundButton();
       this._showRetrySoundButton();
     }
   }, {
-    key: "_playHeardNotePreview",
-    value: function _playHeardNotePreview() {
-      var _this$_lastPlayedNote,
-        _this4 = this;
-      var midi = (_this$_lastPlayedNote = this._lastPlayedNote) === null || _this$_lastPlayedNote === void 0 ? void 0 : _this$_lastPlayedNote.midi;
-      if (!Number.isFinite(midi) || !window.Tone) return;
-      this._ignoreAppAudioFor(900);
-      Tone.start().then(function () {
-        var synth = _this4._playFeedbackPreviewSynth || _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_2__.GameAudio.createStaffNoteSynth();
-        _this4._playFeedbackPreviewSynth = synth;
-        synth.triggerAttackRelease(Tone.Frequency(midi, "midi"), 0.45, undefined, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_2__.GameAudio.scale("staffNote", 0.8));
-      })["catch"](function () {});
-    }
-  }, {
     key: "_beginPitchRecording",
     value: function _beginPitchRecording() {
-      var _this5 = this;
+      var _this4 = this;
       this._stopPitchInput();
       this._lastPlayedNote = null;
       this._playedNoteConfirmed = false;
@@ -2441,15 +2412,15 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       };
       if (this._pitchStartFrame) cancelAnimationFrame(this._pitchStartFrame);
       this._pitchStartFrame = requestAnimationFrame(function () {
-        _this5._pitchStartFrame = null;
-        _this5._startPitchInput();
+        _this4._pitchStartFrame = null;
+        _this4._startPitchInput();
       });
     }
   }, {
     key: "_startPitchInput",
     value: function _startPitchInput() {
       var _navigator$mediaDevic,
-        _this6 = this;
+        _this5 = this;
       if (this._pitchInputStarting || this._pitchAnalyser) return Promise.resolve();
       if (!window.isSecureContext) {
         this._setPlayIconState("idle");
@@ -2481,23 +2452,23 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
           autoGainControl: true
         }
       }).then(function (stream) {
-        var _this6$_pitchAudioCon, _this6$_pitchAudioCon2;
-        _this6._pitchAudioContext = new AudioContextCtor();
-        (_this6$_pitchAudioCon = (_this6$_pitchAudioCon2 = _this6._pitchAudioContext).resume) === null || _this6$_pitchAudioCon === void 0 || _this6$_pitchAudioCon.call(_this6$_pitchAudioCon2);
-        _this6._pitchStream = stream;
-        _this6._pitchSource = _this6._pitchAudioContext.createMediaStreamSource(stream);
-        _this6._pitchAnalyser = _this6._pitchAudioContext.createAnalyser();
-        _this6._pitchAnalyser.fftSize = 8192;
-        _this6._pitchData = new Float32Array(_this6._pitchAnalyser.fftSize);
-        _this6._pitchSource.connect(_this6._pitchAnalyser);
-        _this6._pitchInputStarting = false;
-        _this6._setPlaySoundModalStatus("Listening...", "Play or sing one clear note.");
-        _this6._setPlayIconState("listening");
-        _this6._listenForPitch();
+        var _this5$_pitchAudioCon, _this5$_pitchAudioCon2;
+        _this5._pitchAudioContext = new AudioContextCtor();
+        (_this5$_pitchAudioCon = (_this5$_pitchAudioCon2 = _this5._pitchAudioContext).resume) === null || _this5$_pitchAudioCon === void 0 || _this5$_pitchAudioCon.call(_this5$_pitchAudioCon2);
+        _this5._pitchStream = stream;
+        _this5._pitchSource = _this5._pitchAudioContext.createMediaStreamSource(stream);
+        _this5._pitchAnalyser = _this5._pitchAudioContext.createAnalyser();
+        _this5._pitchAnalyser.fftSize = 8192;
+        _this5._pitchData = new Float32Array(_this5._pitchAnalyser.fftSize);
+        _this5._pitchSource.connect(_this5._pitchAnalyser);
+        _this5._pitchInputStarting = false;
+        _this5._setPlaySoundModalStatus("Listening...", "Play or sing one clear note.");
+        _this5._setPlayIconState("listening");
+        _this5._listenForPitch();
       })["catch"](function () {
-        _this6._pitchInputStarting = false;
-        _this6._setPlayIconState("idle");
-        _this6._setPlaySoundModalStatus("Microphone blocked", "Allow microphone access, then try again.");
+        _this5._pitchInputStarting = false;
+        _this5._setPlayIconState("idle");
+        _this5._setPlaySoundModalStatus("Microphone blocked", "Allow microphone access, then try again.");
       });
     }
   }, {
@@ -2539,7 +2510,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
   }, {
     key: "_listenForPitch",
     value: function _listenForPitch() {
-      var _this7 = this;
+      var _this6 = this;
       if (!this._pitchAnalyser || !this._pitchData || !this._pitchAudioContext) return;
       if (this._isIgnoringAppAudio()) {
         this._stablePitch = {
@@ -2548,7 +2519,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
           count: 0
         };
         this._pitchFrame = requestAnimationFrame(function () {
-          return _this7._listenForPitch();
+          return _this6._listenForPitch();
         });
         return;
       }
@@ -2583,7 +2554,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
         };
       }
       this._pitchFrame = requestAnimationFrame(function () {
-        return _this7._listenForPitch();
+        return _this6._listenForPitch();
       });
     }
   }, {
@@ -2669,7 +2640,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       var sharpWeight = Number(w.sharp);
       var flatWeight = Number(w.flat);
       if (Number.isFinite(naturalWeight) || Number.isFinite(sharpWeight) || Number.isFinite(flatWeight)) {
-        return (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_3__.pickWeighted)([{
+        return (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_2__.pickWeighted)([{
           value: null,
           weight: Number.isFinite(naturalWeight) ? naturalWeight : 0
         }, {
@@ -2716,7 +2687,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       var out = [];
       for (var step = minStep; step <= maxStep; step += 1) {
         if (step === target.step) continue;
-        var noteState = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_3__.stepToLetterOctave)(this.staff, step);
+        var noteState = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_2__.stepToLetterOctave)(this.staff, step);
         if (String((noteState === null || noteState === void 0 ? void 0 : noteState.letter) || "") !== String(target.letter || "")) continue;
         out.push(step);
       }
@@ -2755,10 +2726,10 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
   }, {
     key: "_bindBlockMarkerDismiss",
     value: function _bindBlockMarkerDismiss() {
-      var _this8 = this;
+      var _this7 = this;
       $(document).off("pointerdown.".concat(this.ns, ".blockTooltip mousedown.").concat(this.ns, ".blockTooltip"), "*").on("pointerdown.".concat(this.ns, ".blockTooltip mousedown.").concat(this.ns, ".blockTooltip"), function (e) {
-        if ($(e.target).closest(".".concat(_this8._blockMarkerClass)).length) return;
-        _this8._hideBlockMarkerTooltip();
+        if ($(e.target).closest(".".concat(_this7._blockMarkerClass)).length) return;
+        _this7._hideBlockMarkerTooltip();
       });
     }
   }, {
@@ -2788,7 +2759,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
     key: "_setPromptForTarget",
     value: function _setPromptForTarget(target) {
       if (!target) return;
-      var shortName = "".concat(this._displayNameForLetter(target.letter)).concat((0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_3__.accidentalClassToText)(target.accidentalClass));
+      var shortName = "".concat(this._displayNameForLetter(target.letter)).concat((0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_2__.accidentalClassToText)(target.accidentalClass));
       this.prompt.setShort(shortName, {
         html: true
       });
@@ -2806,7 +2777,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       var maxAttempts = 24;
       for (var attempt = 0; attempt < maxAttempts; attempt += 1) {
         var step = this._pickTargetStep();
-        var noteState = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_3__.stepToLetterOctave)(this.staff, step);
+        var noteState = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_2__.stepToLetterOctave)(this.staff, step);
         var target = {
           step: step,
           letter: noteState.letter,
@@ -2821,7 +2792,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
         }
       }
       var fallbackStep = this._pickTargetStep();
-      var fallbackState = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_3__.stepToLetterOctave)(this.staff, fallbackStep);
+      var fallbackState = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_2__.stepToLetterOctave)(this.staff, fallbackStep);
       return {
         step: fallbackStep,
         letter: fallbackState.letter,
@@ -2857,15 +2828,15 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
   }, {
     key: "_collectUserNotes",
     value: function _collectUserNotes() {
-      var _this9 = this;
+      var _this8 = this;
       return this.$staffEl.find(".note").toArray().map(function (el) {
-        var _this9$staff$_getAtta, _this9$staff;
+        var _this8$staff$_getAtta, _this8$staff;
         var $note = $(el);
         var noteId = String($note.attr("data-note-id") || "");
-        if (!noteId || _this9.staff.isNoteFixed(noteId)) return null;
+        if (!noteId || _this8.staff.isNoteFixed(noteId)) return null;
         var top = parseFloat($note.css("top"));
-        var step = Number.isFinite(top) ? _this9.staff.yToStep(top) : null;
-        var accidentalClass = ((_this9$staff$_getAtta = (_this9$staff = _this9.staff)._getAttachedAccidentalClass) === null || _this9$staff$_getAtta === void 0 ? void 0 : _this9$staff$_getAtta.call(_this9$staff, noteId)) || null;
+        var step = Number.isFinite(top) ? _this8.staff.yToStep(top) : null;
+        var accidentalClass = ((_this8$staff$_getAtta = (_this8$staff = _this8.staff)._getAttachedAccidentalClass) === null || _this8$staff$_getAtta === void 0 ? void 0 : _this8$staff$_getAtta.call(_this8$staff, noteId)) || null;
         return {
           noteId: noteId,
           step: step,
@@ -2889,17 +2860,17 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
     value: function _isStaffNoteCorrect(note) {
       var target = this._targetNote;
       if (!target || !note) return false;
-      var noteState = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_3__.stepToLetterOctave)(this.staff, note.step);
+      var noteState = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_2__.stepToLetterOctave)(this.staff, note.step);
       return String((noteState === null || noteState === void 0 ? void 0 : noteState.letter) || "") === String(target.letter || "") && String(note.accidentalClass || "") === String(target.accidentalClass || "");
     }
   }, {
     key: "_isPlayedNoteCorrect",
     value: function _isPlayedNoteCorrect(note) {
-      var _this$_lastPlayedNote2;
+      var _this$_lastPlayedNote;
       if (!this._requiresPlayedNote()) return true;
       if (!this._playedNoteConfirmed) return false;
       var targetMidi = this._noteMidi(note);
-      var playedMidi = Number((_this$_lastPlayedNote2 = this._lastPlayedNote) === null || _this$_lastPlayedNote2 === void 0 ? void 0 : _this$_lastPlayedNote2.midi);
+      var playedMidi = Number((_this$_lastPlayedNote = this._lastPlayedNote) === null || _this$_lastPlayedNote === void 0 ? void 0 : _this$_lastPlayedNote.midi);
       return Number.isFinite(targetMidi) && playedMidi === targetMidi;
     }
   }, {
@@ -2950,7 +2921,9 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       this._madeAnyMistake = true;
       this._madeMistakeThisRound = true;
       if (this._isPlayedNoteMistake()) {
-        this._setPlayFeedbackState("wrong", "That was the wrong note...");
+        var _this$_lastPlayedNote2;
+        var playedName = this._playedNoteFeedbackName((_this$_lastPlayedNote2 = this._lastPlayedNote) === null || _this$_lastPlayedNote2 === void 0 ? void 0 : _this$_lastPlayedNote2.midi);
+        this._setPlayFeedbackState("wrong", playedName ? "You played ".concat(playedName, "...") : "That was the wrong note...");
         this._lastPlayedNote = null;
         this._playedNoteConfirmed = false;
         this._setPlayNoteButtonLabel("tryAgain");
