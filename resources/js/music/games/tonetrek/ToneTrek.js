@@ -112,6 +112,7 @@ export class ToneTrek {
     this._roundRecords = [];
     this._finalMetricsSfxTimeouts = [];
     this._finalCountupTimeouts = [];
+    this._checkWrongStateTimeout = null;
   }
 
   start() {
@@ -882,17 +883,32 @@ export class ToneTrek {
     this.$feedback.stop(true, true).fadeIn("fast");
   }
 
+  _showCheckWrongState() {
+    if (!this.$checkBtn?.length) return;
+
+    if (this._checkWrongStateTimeout != null) {
+      clearTimeout(this._checkWrongStateTimeout);
+      this._checkWrongStateTimeout = null;
+    }
+
+    this.$checkBtn
+      .removeClass("animate__animated animate__shakeX")
+      .attr("state", "wrong")
+      .attr("disabled", "disabled")
+      .prop("disabled", true);
+
+    this._checkWrongStateTimeout = setTimeout(() => {
+      this.$checkBtn
+        .attr("state", "waiting")
+        .removeAttr("disabled")
+        .prop("disabled", false);
+      this._checkWrongStateTimeout = null;
+    }, 2000);
+  }
+
   _failAnimation() {
-    const $target = this.$checkWrap && this.$checkWrap.length ? this.$checkWrap : this.$table;
-    $target.removeClass("animate__animated animate__shakeX");
-    // eslint-disable-next-line no-unused-expressions
-    $target[0] && $target[0].offsetWidth;
-    $target.addClass("animate__animated animate__shakeX");
-    $target
-      .off(`animationend.${this.ns}Fail webkitAnimationEnd.${this.ns}Fail`)
-      .one(`animationend.${this.ns}Fail webkitAnimationEnd.${this.ns}Fail`, () => {
-        $target.removeClass("animate__animated animate__shakeX");
-      });
+    this.$checkWrap?.removeClass?.("animate__animated animate__shakeX");
+    this._showCheckWrongState();
   }
 
   _updateProgressBar() {

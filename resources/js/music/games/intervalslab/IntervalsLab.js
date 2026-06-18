@@ -342,6 +342,7 @@ export class IntervalsLab extends BaseStaffGame {
       this._madeMistakeThisRound = true;
 
       this.prompt.setTone("red");
+      this._shakeWrongUserStaffNotes();
       this._failAnimation(this.$checkWrap);
 
       this.$checkBtn[0] && this.$checkBtn[0].blur && this.$checkBtn[0].blur();
@@ -354,6 +355,7 @@ export class IntervalsLab extends BaseStaffGame {
       this._madeAnyMistake = true;
       this._madeMistakeThisRound = true;
       this.prompt.setTone("red");
+      this._shakeWrongUserStaffNotes();
       this._failAnimation(this.$checkWrap);
       this.$helpBtn.show();
       return;
@@ -387,6 +389,7 @@ export class IntervalsLab extends BaseStaffGame {
       this._madeMistakeThisRound = true;
 
       this.prompt.setTone("red");
+      this._shakeWrongUserStaffNotes();
       this._failAnimation(this.$checkWrap);
 
       // restore interval color after fail animation completes

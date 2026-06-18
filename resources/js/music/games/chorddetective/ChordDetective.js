@@ -652,6 +652,7 @@ export class ChordDetective extends BaseStaffGame {
     if (notes.length !== 3) {
       this._madeAnyMistake = true;
       this._madeMistakeThisRound = true;
+      this._shakeWrongUserStaffNotes();
       this._failAnimation(this.$checkWrap);
       this.$helpBtn.show();
       return;
@@ -661,6 +662,7 @@ export class ChordDetective extends BaseStaffGame {
     if (userNotes.length !== 2) {
       this._madeAnyMistake = true;
       this._madeMistakeThisRound = true;
+      this._shakeWrongUserStaffNotes();
       this._failAnimation(this.$checkWrap);
       this.$helpBtn.show();
       return;
@@ -691,6 +693,7 @@ export class ChordDetective extends BaseStaffGame {
     } else {
       this._madeAnyMistake = true;
       this._madeMistakeThisRound = true;
+      this._shakeWrongUserStaffNotes();
       this._failAnimation(this.$checkWrap);
       this.$helpBtn.show();
     }

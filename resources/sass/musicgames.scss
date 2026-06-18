@@ -108,6 +108,23 @@ body {
   display: none;
 }
 
+#controls #check button[state="waiting"] {
+  @extend .btn-primary;
+}
+
+#controls #check button[state="waiting"]::before {
+  content: "Check my answer";
+}
+
+#controls #check button[state="wrong"], #controls #check button[state="wrong"]:disabled {
+  @extend .btn-red;
+  transform: translateY(0);
+}
+
+#controls #check button[state="wrong"]::before {
+  content: "Ops, wrong answer...";
+}
+
 #staff-wrapper {
   width: var(--staff-width);
 }

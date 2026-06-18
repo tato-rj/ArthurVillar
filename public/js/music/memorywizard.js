@@ -153,6 +153,7 @@ var BaseStaffGame = /*#__PURE__*/function () {
     this._timerEndsAtMs = 0;
     this._finalMetricsSfxTimeouts = [];
     this._finalCountupTimeouts = [];
+    this._checkWrongStateTimeout = null;
     this._keyboardSyncPatched = false;
     this._keyboardAccidentalPreviewPatched = false;
     this.keyboard = this._shouldUsePianoKeyboard() ? new _shared_PianoKeyboardUi_js__WEBPACK_IMPORTED_MODULE_5__.PianoKeyboardUi({
@@ -255,6 +256,78 @@ var BaseStaffGame = /*#__PURE__*/function () {
       }).filter(Boolean);
     }
   }, {
+    key: "_collectUserStaffNotes",
+    value: function _collectUserStaffNotes() {
+      return this._collectKeyboardSyncNotes().filter(function (note) {
+        return !note.fixed && Number.isFinite(note.step);
+      });
+    }
+  }, {
+    key: "_normalizedAccidentalClass",
+    value: function _normalizedAccidentalClass(value) {
+      return String(value || "");
+    }
+  }, {
+    key: "_answerMatchesUserStaffNote",
+    value: function _answerMatchesUserStaffNote(answer, note) {
+      if (!answer || !note) return false;
+      if (!Number.isFinite(answer.step) || !Number.isFinite(note.step)) return false;
+      return Number(answer.step) === Number(note.step) && this._normalizedAccidentalClass(answer.accidentalClass) === this._normalizedAccidentalClass(note.accidentalClass);
+    }
+  }, {
+    key: "_wrongUserStaffNotes",
+    value: function _wrongUserStaffNotes() {
+      var _this$_computeHintAns,
+        _this3 = this;
+      var notes = this._collectUserStaffNotes();
+      if (!notes.length) return [];
+      var answers = ((_this$_computeHintAns = this._computeHintAnswers) === null || _this$_computeHintAns === void 0 ? void 0 : _this$_computeHintAns.call(this)) || [];
+      var remaining = Array.isArray(answers) ? answers.filter(function (answer) {
+        return Number.isFinite(answer === null || answer === void 0 ? void 0 : answer.step);
+      }) : [];
+      if (!remaining.length) return notes;
+      var wrong = [];
+      notes.forEach(function (note) {
+        var matchIndex = remaining.findIndex(function (answer) {
+          return _this3._answerMatchesUserStaffNote(answer, note);
+        });
+        if (matchIndex >= 0) {
+          remaining.splice(matchIndex, 1);
+        } else {
+          wrong.push(note);
+        }
+      });
+      return wrong;
+    }
+  }, {
+    key: "_shakeUserStaffNotes",
+    value: function _shakeUserStaffNotes() {
+      var _this4 = this;
+      var notes = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+      var list = Array.isArray(notes) ? notes : this._collectUserStaffNotes();
+      if (!list.length) return;
+      list.forEach(function (_ref) {
+        var noteId = _ref.noteId;
+        if (!noteId) return;
+        var $targets = _this4.$staffEl.find(".note[data-note-id=\"".concat(noteId, "\"], .accidental[data-for-note-id=\"").concat(noteId, "\"], .ledger[data-for-note-id=\"").concat(noteId, "\"]"));
+        if (!$targets.length) return;
+        $targets.removeClass("animate__animated animate__shakeX");
+        $targets.each(function (_, el) {
+          // eslint-disable-next-line no-unused-expressions
+          el.offsetWidth;
+        });
+        $targets.addClass("animate__animated animate__shakeX");
+        $targets.off("animationend._wrongStaffNote.".concat(_this4.ns, " webkitAnimationEnd._wrongStaffNote.").concat(_this4.ns, " oAnimationEnd._wrongStaffNote.").concat(_this4.ns, " MSAnimationEnd._wrongStaffNote.").concat(_this4.ns)).one("animationend._wrongStaffNote.".concat(_this4.ns, " webkitAnimationEnd._wrongStaffNote.").concat(_this4.ns, " oAnimationEnd._wrongStaffNote.").concat(_this4.ns, " MSAnimationEnd._wrongStaffNote.").concat(_this4.ns), function () {
+          $targets.removeClass("animate__animated animate__shakeX");
+        });
+      });
+    }
+  }, {
+    key: "_shakeWrongUserStaffNotes",
+    value: function _shakeWrongUserStaffNotes() {
+      this._shakeUserStaffNotes(this._wrongUserStaffNotes());
+    }
+  }, {
     key: "_keyboardPrimaryNote",
     value: function _keyboardPrimaryNote(notes) {
       var list = Array.isArray(notes) ? notes : [];
@@ -290,6 +363,7 @@ var BaseStaffGame = /*#__PURE__*/function () {
   }, {
     key: "_keyboardMarkerLabelForNoteName",
     value: function _keyboardMarkerLabelForNoteName(noteName) {
+      if (!this.showNoteNames) return "";
       var raw = String(noteName || "").trim();
       var match = raw.match(/^([A-G][#b]?)-?\d+$/);
       return this._toDisplayNoteName(match ? match[1] : raw);
@@ -297,7 +371,7 @@ var BaseStaffGame = /*#__PURE__*/function () {
   }, {
     key: "_syncPianoKeyboardMarkerFromStaff",
     value: function _syncPianoKeyboardMarkerFromStaff() {
-      var _this3 = this;
+      var _this5 = this;
       if (!this.keyboard || !this.staff) return;
       var notes = this._collectKeyboardSyncNotes().filter(function (note) {
         return Number.isFinite(note.step);
@@ -310,10 +384,10 @@ var BaseStaffGame = /*#__PURE__*/function () {
       var primaryState = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.stepToLetterOctave)(this.staff, primary.step);
       var keys = [this.keyboard.keyForNote(primaryState === null || primaryState === void 0 ? void 0 : primaryState.letter, primary.accidentalClass, primaryState === null || primaryState === void 0 ? void 0 : primaryState.octave)];
       var markerEntries = notes.map(function (note) {
-        var noteName = _this3._keyboardNoteNameForState(note.step, note.accidentalClass);
+        var noteName = _this5._keyboardNoteNameForState(note.step, note.accidentalClass);
         return {
           noteName: noteName,
-          markerLabel: _this3._keyboardMarkerLabelForNoteName(noteName),
+          markerLabel: _this5._keyboardMarkerLabelForNoteName(noteName),
           tone: note.fixed ? "secondary" : "primary",
           $key: note.noteId === primary.noteId ? keys[0] : null
         };
@@ -322,12 +396,12 @@ var BaseStaffGame = /*#__PURE__*/function () {
       });
       notes.forEach(function (note) {
         if (note.noteId === primary.noteId) return;
-        var noteState = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.stepToLetterOctave)(_this3.staff, note.step);
-        var $key = _this3.keyboard.keyForNoteIfVisible(noteState === null || noteState === void 0 ? void 0 : noteState.letter, note.accidentalClass, noteState === null || noteState === void 0 ? void 0 : noteState.octave);
+        var noteState = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.stepToLetterOctave)(_this5.staff, note.step);
+        var $key = _this5.keyboard.keyForNoteIfVisible(noteState === null || noteState === void 0 ? void 0 : noteState.letter, note.accidentalClass, noteState === null || noteState === void 0 ? void 0 : noteState.octave);
         if ($key.length) {
           keys.push($key);
           var entry = markerEntries.find(function (item) {
-            return item.noteName === _this3._keyboardNoteNameForState(note.step, note.accidentalClass);
+            return item.noteName === _this5._keyboardNoteNameForState(note.step, note.accidentalClass);
           });
           if (entry) entry.$key = $key;
         }
@@ -338,7 +412,7 @@ var BaseStaffGame = /*#__PURE__*/function () {
     key: "_syncPianoKeyboardMarkerFromAccidentalPreview",
     value: function _syncPianoKeyboardMarkerFromAccidentalPreview() {
       var _this$staff2,
-        _this4 = this;
+        _this6 = this;
       if (!this.keyboard || !this.staff) return;
       var dragState = ((_this$staff2 = this.staff) === null || _this$staff2 === void 0 ? void 0 : _this$staff2._accDragSound) || {};
       var noteId = String(dragState.noteId || "");
@@ -371,10 +445,10 @@ var BaseStaffGame = /*#__PURE__*/function () {
       var primaryAccidental = primary.noteId === noteId ? previewAccidentalClass : primary.accidentalClass;
       var keys = [this.keyboard.keyForNote(primaryState === null || primaryState === void 0 ? void 0 : primaryState.letter, primaryAccidental, primaryState === null || primaryState === void 0 ? void 0 : primaryState.octave)];
       var markerEntries = notes.map(function (note) {
-        var noteName = _this4._keyboardNoteNameForState(note.step, note.noteId === noteId ? previewAccidentalClass : note.accidentalClass);
+        var noteName = _this6._keyboardNoteNameForState(note.step, note.noteId === noteId ? previewAccidentalClass : note.accidentalClass);
         return {
           noteName: noteName,
-          markerLabel: _this4._keyboardMarkerLabelForNoteName(noteName),
+          markerLabel: _this6._keyboardMarkerLabelForNoteName(noteName),
           tone: note.fixed ? "secondary" : "primary",
           $key: note.noteId === primary.noteId ? keys[0] : null
         };
@@ -383,13 +457,13 @@ var BaseStaffGame = /*#__PURE__*/function () {
       });
       notes.forEach(function (note) {
         if (note.noteId === primary.noteId) return;
-        var noteState = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.stepToLetterOctave)(_this4.staff, note.step);
+        var noteState = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.stepToLetterOctave)(_this6.staff, note.step);
         var accidentalClass = note.noteId === noteId ? previewAccidentalClass : note.accidentalClass;
-        var $key = _this4.keyboard.keyForNoteIfVisible(noteState === null || noteState === void 0 ? void 0 : noteState.letter, accidentalClass, noteState === null || noteState === void 0 ? void 0 : noteState.octave);
+        var $key = _this6.keyboard.keyForNoteIfVisible(noteState === null || noteState === void 0 ? void 0 : noteState.letter, accidentalClass, noteState === null || noteState === void 0 ? void 0 : noteState.octave);
         if ($key.length) {
           keys.push($key);
           var entry = markerEntries.find(function (item) {
-            return item.noteName === _this4._keyboardNoteNameForState(note.step, accidentalClass);
+            return item.noteName === _this6._keyboardNoteNameForState(note.step, accidentalClass);
           });
           if (entry) entry.$key = $key;
         }
@@ -399,35 +473,35 @@ var BaseStaffGame = /*#__PURE__*/function () {
   }, {
     key: "_wirePianoKeyboardSync",
     value: function _wirePianoKeyboardSync() {
-      var _this5 = this;
+      var _this7 = this;
       if (!this.keyboard || !this.staff || this._keyboardSyncPatched) return;
       this._keyboardSyncPatched = true;
       var baseMoveNote = this.staff.moveNote.bind(this.staff);
       this.staff.moveNote = function () {
         var out = baseMoveNote.apply(void 0, arguments);
-        _this5._syncPianoKeyboardMarkerFromStaff();
+        _this7._syncPianoKeyboardMarkerFromStaff();
         return out;
       };
       var baseRemoveNote = this.staff.removeNote.bind(this.staff);
       this.staff.removeNote = function () {
         var out = baseRemoveNote.apply(void 0, arguments);
-        _this5._syncPianoKeyboardMarkerFromStaff();
+        _this7._syncPianoKeyboardMarkerFromStaff();
         return out;
       };
       var baseClearNotes = this.staff.clearNotes.bind(this.staff);
       this.staff.clearNotes = function () {
         var out = baseClearNotes.apply(void 0, arguments);
-        _this5._syncPianoKeyboardMarkerFromStaff();
+        _this7._syncPianoKeyboardMarkerFromStaff();
         return out;
       };
       this.$staffEl.off("staff:noteState.".concat(this.ns, ".keyboard")).on("staff:noteState.".concat(this.ns, ".keyboard"), function (e, data) {
-        _this5._syncPianoKeyboardMarkerFromStaff();
+        _this7._syncPianoKeyboardMarkerFromStaff();
       });
     }
   }, {
     key: "_wirePianoKeyboardAccidentalPreview",
     value: function _wirePianoKeyboardAccidentalPreview() {
-      var _this6 = this;
+      var _this8 = this;
       if (!this.keyboard || this._keyboardAccidentalPreviewPatched) return;
       this._keyboardAccidentalPreviewPatched = true;
       var $tools = $("#accidentals .accidental-tool");
@@ -436,11 +510,11 @@ var BaseStaffGame = /*#__PURE__*/function () {
       var originalStop = $tools.draggable("option", "stop");
       $tools.draggable("option", "drag", function (event, ui) {
         if (typeof originalDrag === "function") originalDrag.call(event.currentTarget, event, ui);
-        _this6._syncPianoKeyboardMarkerFromAccidentalPreview();
+        _this8._syncPianoKeyboardMarkerFromAccidentalPreview();
       });
       $tools.draggable("option", "stop", function (event, ui) {
         if (typeof originalStop === "function") originalStop.call(event.currentTarget, event, ui);
-        _this6._syncPianoKeyboardMarkerFromStaff();
+        _this8._syncPianoKeyboardMarkerFromStaff();
       });
     }
   }, {
@@ -457,14 +531,14 @@ var BaseStaffGame = /*#__PURE__*/function () {
       var _this$$keyboardWrap2,
         _this$$pianoToggleBtn2,
         _this$$pianoToggleBtn3,
-        _this7 = this;
+        _this9 = this;
       if (!((_this$$keyboardWrap2 = this.$keyboardWrap) !== null && _this$$keyboardWrap2 !== void 0 && _this$$keyboardWrap2.length)) return;
       if ((_this$$pianoToggleBtn2 = this.$pianoToggleBtn) !== null && _this$$pianoToggleBtn2 !== void 0 && _this$$pianoToggleBtn2.length) this.$keyboardWrap.hide();else this.$keyboardWrap.show();
       if ((_this$$pianoToggleBtn3 = this.$pianoToggleBtn) !== null && _this$$pianoToggleBtn3 !== void 0 && _this$$pianoToggleBtn3.length) {
         this.$pianoToggleBtn.off("click.".concat(this.ns, ".pianoToggle")).on("click.".concat(this.ns, ".pianoToggle"), function (e) {
           e.preventDefault();
-          _this7.$keyboardWrap.toggle();
-          _this7._syncPianoKeyboardToggleUi();
+          _this9.$keyboardWrap.toggle();
+          _this9._syncPianoKeyboardToggleUi();
         });
       }
       this._syncPianoKeyboardToggleUi();
@@ -584,13 +658,13 @@ var BaseStaffGame = /*#__PURE__*/function () {
   }, {
     key: "_armUiSfxOnFirstGesture",
     value: function _armUiSfxOnFirstGesture() {
-      var _this8 = this;
+      var _this0 = this;
       if (this._audioUnlockArmed) return;
       if (!this.isSoundEnabled() || !window.Tone) return;
       this._audioUnlockArmed = true;
       var ns = ".uiSfxUnlock.".concat(this.ns);
       var unlock = function unlock() {
-        _this8._ensureUiSfxAudio()["finally"](function () {
+        _this0._ensureUiSfxAudio()["finally"](function () {
           $(document).off(ns);
         });
       };
@@ -599,31 +673,31 @@ var BaseStaffGame = /*#__PURE__*/function () {
   }, {
     key: "_playSuccessSfxBasic",
     value: function _playSuccessSfxBasic() {
-      var _this9 = this;
+      var _this1 = this;
       if (!this.isSoundEnabled() || !window.Tone) return;
       this._ensureUiSfxAudio().then(function () {
-        if (!_this9._uiSfxSynth) return;
+        if (!_this1._uiSfxSynth) return;
         var now = Tone.now();
         var variants = [["C6", "E6", "G6"], ["D6", "F#6", "A6"], ["E6", "G6", "B6"], ["G5", "B5", "D6", "G6"], ["A5", "C6", "E6", "A6"], ["C6", "D6", "G6"], ["F5", "A5", "C6", "F6"], ["E6", "A6", "C7"], ["B5", "D6", "G6"], ["C6", "G6", "E7"]];
         var picked = variants[Math.floor(Math.random() * variants.length)];
         picked.forEach(function (n, i) {
-          _this9._uiSfxSynth.triggerAttackRelease(n, 0.07, now + i * 0.05, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("successBasic", 0.42));
+          _this1._uiSfxSynth.triggerAttackRelease(n, 0.07, now + i * 0.05, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("successBasic", 0.42));
         });
       });
     }
   }, {
     key: "_playSuccessSfxBonus",
     value: function _playSuccessSfxBonus() {
-      var _this0 = this;
+      var _this10 = this;
       if (!this.isSoundEnabled() || !window.Tone) return;
       this._ensureUiSfxAudio().then(function () {
-        var _this0$_uiSfxSynth$ge;
-        if (!_this0._uiSfxSynth) return;
+        var _this10$_uiSfxSynth$g;
+        if (!_this10._uiSfxSynth) return;
         var now = Tone.now();
-        var oldEnv = _objectSpread({}, _this0._uiSfxSynth.get().envelope);
-        var oldOsc = (_this0$_uiSfxSynth$ge = _this0._uiSfxSynth.get().oscillator) === null || _this0$_uiSfxSynth$ge === void 0 ? void 0 : _this0$_uiSfxSynth$ge.type;
+        var oldEnv = _objectSpread({}, _this10._uiSfxSynth.get().envelope);
+        var oldOsc = (_this10$_uiSfxSynth$g = _this10._uiSfxSynth.get().oscillator) === null || _this10$_uiSfxSynth$g === void 0 ? void 0 : _this10$_uiSfxSynth$g.type;
         try {
-          _this0._uiSfxSynth.set({
+          _this10._uiSfxSynth.set({
             oscillator: {
               type: "sine"
             },
@@ -635,7 +709,7 @@ var BaseStaffGame = /*#__PURE__*/function () {
             }
           });
         } catch (_) {}
-        var streakLevel = Math.max(1, Math.min(24, Number(_this0._correctStreak) || 1));
+        var streakLevel = Math.max(1, Math.min(24, Number(_this10._correctStreak) || 1));
         var semitoneShift = streakLevel - 1;
         var toNote = function toNote(midi) {
           return Tone.Frequency(midi, "midi").toNote();
@@ -649,14 +723,14 @@ var BaseStaffGame = /*#__PURE__*/function () {
           return toNote(m + semitoneShift);
         });
         arp.forEach(function (n, i) {
-          _this0._uiSfxSynth.triggerAttackRelease(n, 0.06, now + i * 0.045, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("successBonus", 0.45));
+          _this10._uiSfxSynth.triggerAttackRelease(n, 0.06, now + i * 0.045, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("successBonus", 0.45));
         });
         hit.forEach(function (n) {
-          _this0._uiSfxSynth.triggerAttackRelease(n, 0.12, now + 0.26, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("successBonus", 0.30));
+          _this10._uiSfxSynth.triggerAttackRelease(n, 0.12, now + 0.26, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("successBonus", 0.30));
         });
         setTimeout(function () {
           try {
-            _this0._uiSfxSynth.set({
+            _this10._uiSfxSynth.set({
               oscillator: {
                 type: oldOsc || "triangle"
               },
@@ -669,30 +743,30 @@ var BaseStaffGame = /*#__PURE__*/function () {
   }, {
     key: "_playFailSfx",
     value: function _playFailSfx() {
-      var _this1 = this;
+      var _this11 = this;
       if (!this.isSoundEnabled() || !window.Tone) return;
       this._ensureUiSfxAudio().then(function () {
         var now = Tone.now();
-        if (_this1._uiSfxNoise) {
-          _this1._uiSfxNoise.triggerAttackRelease(0.06, now, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("failNoise", 0.45));
+        if (_this11._uiSfxNoise) {
+          _this11._uiSfxNoise.triggerAttackRelease(0.06, now, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("failNoise", 0.45));
         }
-        if (_this1._uiSfxSynth) {
-          _this1._uiSfxSynth.triggerAttackRelease("A2", 0.10, now + 0.01, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("failNote", 0.55));
-          _this1._uiSfxSynth.triggerAttackRelease("G2", 0.12, now + 0.08, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("failNote", 0.6));
+        if (_this11._uiSfxSynth) {
+          _this11._uiSfxSynth.triggerAttackRelease("A2", 0.10, now + 0.01, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("failNote", 0.55));
+          _this11._uiSfxSynth.triggerAttackRelease("G2", 0.12, now + 0.08, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("failNote", 0.6));
         }
       });
     }
   }, {
     key: "_playFinalSfx",
     value: function _playFinalSfx() {
-      var _this10 = this;
+      var _this12 = this;
       if (!this.isSoundEnabled() || !window.Tone) return;
       this._ensureUiSfxAudio().then(function () {
-        var _this10$_uiSfxSynth$g;
-        if (!_this10._uiSfxSynth) return;
-        var oldEnv = _objectSpread({}, _this10._uiSfxSynth.get().envelope);
-        var oldOsc = (_this10$_uiSfxSynth$g = _this10._uiSfxSynth.get().oscillator) === null || _this10$_uiSfxSynth$g === void 0 ? void 0 : _this10$_uiSfxSynth$g.type;
-        _this10._uiSfxSynth.set({
+        var _this12$_uiSfxSynth$g;
+        if (!_this12._uiSfxSynth) return;
+        var oldEnv = _objectSpread({}, _this12._uiSfxSynth.get().envelope);
+        var oldOsc = (_this12$_uiSfxSynth$g = _this12._uiSfxSynth.get().oscillator) === null || _this12$_uiSfxSynth$g === void 0 ? void 0 : _this12$_uiSfxSynth$g.type;
+        _this12._uiSfxSynth.set({
           oscillator: {
             type: "sine"
           },
@@ -708,110 +782,110 @@ var BaseStaffGame = /*#__PURE__*/function () {
         // 1) Triad pad + bright run
         function () {
           ["C4", "G4", "C5", "E5"].forEach(function (n) {
-            return _this10._uiSfxSynth.triggerAttackRelease(n, 0.9, now, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.6));
+            return _this12._uiSfxSynth.triggerAttackRelease(n, 0.9, now, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.6));
           });
           ["G5", "A5", "B5", "C6", "D6", "E6", "G6"].forEach(function (n, i) {
-            _this10._uiSfxSynth.triggerAttackRelease(n, 0.08, now + 0.25 + i * 0.06, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.35));
+            _this12._uiSfxSynth.triggerAttackRelease(n, 0.08, now + 0.25 + i * 0.06, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.35));
           });
         },
         // 2) Rising broken chord + final hit
         function () {
           ["C5", "E5", "G5", "B5", "D6", "G6"].forEach(function (n, i) {
-            _this10._uiSfxSynth.triggerAttackRelease(n, 0.11, now + i * 0.08, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.44));
+            _this12._uiSfxSynth.triggerAttackRelease(n, 0.11, now + i * 0.08, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.44));
           });
           ["C6", "E6", "G6"].forEach(function (n) {
-            return _this10._uiSfxSynth.triggerAttackRelease(n, 0.28, now + 0.62, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.5));
+            return _this12._uiSfxSynth.triggerAttackRelease(n, 0.28, now + 0.62, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.5));
           });
         },
         // 3) Two chord swells
         function () {
           ["A3", "E4", "A4", "C5"].forEach(function (n) {
-            return _this10._uiSfxSynth.triggerAttackRelease(n, 0.45, now, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.45));
+            return _this12._uiSfxSynth.triggerAttackRelease(n, 0.45, now, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.45));
           });
           ["F4", "A4", "C5", "F5"].forEach(function (n) {
-            return _this10._uiSfxSynth.triggerAttackRelease(n, 0.52, now + 0.35, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.48));
+            return _this12._uiSfxSynth.triggerAttackRelease(n, 0.52, now + 0.35, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.48));
           });
           ["C5", "F5", "A5"].forEach(function (n) {
-            return _this10._uiSfxSynth.triggerAttackRelease(n, 0.24, now + 0.78, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.4));
+            return _this12._uiSfxSynth.triggerAttackRelease(n, 0.24, now + 0.78, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.4));
           });
         },
         // 4) Sparkly step run + octave landing
         function () {
           ["E5", "G5", "A5", "B5", "D6", "E6", "G6", "A6"].forEach(function (n, i) {
-            _this10._uiSfxSynth.triggerAttackRelease(n, 0.075, now + i * 0.055, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.34));
+            _this12._uiSfxSynth.triggerAttackRelease(n, 0.075, now + i * 0.055, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.34));
           });
           ["A5", "A6", "C7"].forEach(function (n) {
-            return _this10._uiSfxSynth.triggerAttackRelease(n, 0.20, now + 0.52, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.42));
+            return _this12._uiSfxSynth.triggerAttackRelease(n, 0.20, now + 0.52, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.42));
           });
         },
         // 5) Major lift arpeggio
         function () {
           ["D4", "A4", "D5", "F#5"].forEach(function (n) {
-            return _this10._uiSfxSynth.triggerAttackRelease(n, 0.36, now, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.45));
+            return _this12._uiSfxSynth.triggerAttackRelease(n, 0.36, now, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.45));
           });
           ["D5", "F#5", "A5", "D6", "F#6"].forEach(function (n, i) {
-            _this10._uiSfxSynth.triggerAttackRelease(n, 0.095, now + 0.2 + i * 0.065, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.4));
+            _this12._uiSfxSynth.triggerAttackRelease(n, 0.095, now + 0.2 + i * 0.065, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.4));
           });
         },
         // 6) Warm cadence
         function () {
           ["G3", "D4", "G4", "B4"].forEach(function (n) {
-            return _this10._uiSfxSynth.triggerAttackRelease(n, 0.4, now, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.4));
+            return _this12._uiSfxSynth.triggerAttackRelease(n, 0.4, now, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.4));
           });
           ["C4", "E4", "G4", "C5"].forEach(function (n) {
-            return _this10._uiSfxSynth.triggerAttackRelease(n, 0.44, now + 0.32, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.46));
+            return _this12._uiSfxSynth.triggerAttackRelease(n, 0.44, now + 0.32, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.46));
           });
           ["E5", "G5", "C6"].forEach(function (n) {
-            return _this10._uiSfxSynth.triggerAttackRelease(n, 0.22, now + 0.72, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.4));
+            return _this12._uiSfxSynth.triggerAttackRelease(n, 0.22, now + 0.72, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.4));
           });
         },
         // 7) Fast gamey sparkle
         function () {
           ["C6", "D6", "E6", "G6", "A6", "G6", "E6", "C7"].forEach(function (n, i) {
-            _this10._uiSfxSynth.triggerAttackRelease(n, 0.06, now + i * 0.048, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.3));
+            _this12._uiSfxSynth.triggerAttackRelease(n, 0.06, now + i * 0.048, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.3));
           });
           ["G6", "C7"].forEach(function (n) {
-            return _this10._uiSfxSynth.triggerAttackRelease(n, 0.2, now + 0.48, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.38));
+            return _this12._uiSfxSynth.triggerAttackRelease(n, 0.2, now + 0.48, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.38));
           });
         },
         // 8) Two-step fanfare
         function () {
           ["F4", "C5", "A5"].forEach(function (n, i) {
-            _this10._uiSfxSynth.triggerAttackRelease(n, 0.16, now + i * 0.06, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.45));
+            _this12._uiSfxSynth.triggerAttackRelease(n, 0.16, now + i * 0.06, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.45));
           });
           ["G4", "D5", "B5"].forEach(function (n, i) {
-            _this10._uiSfxSynth.triggerAttackRelease(n, 0.16, now + 0.28 + i * 0.06, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.48));
+            _this12._uiSfxSynth.triggerAttackRelease(n, 0.16, now + 0.28 + i * 0.06, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.48));
           });
           ["C5", "E5", "G5", "C6"].forEach(function (n) {
-            return _this10._uiSfxSynth.triggerAttackRelease(n, 0.26, now + 0.54, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.44));
+            return _this12._uiSfxSynth.triggerAttackRelease(n, 0.26, now + 0.54, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.44));
           });
         },
         // 9) Descend then resolve up
         function () {
           ["A6", "G6", "E6", "D6", "C6"].forEach(function (n, i) {
-            _this10._uiSfxSynth.triggerAttackRelease(n, 0.08, now + i * 0.06, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.34));
+            _this12._uiSfxSynth.triggerAttackRelease(n, 0.08, now + i * 0.06, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.34));
           });
           ["E6", "G6", "C7"].forEach(function (n) {
-            return _this10._uiSfxSynth.triggerAttackRelease(n, 0.24, now + 0.4, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.42));
+            return _this12._uiSfxSynth.triggerAttackRelease(n, 0.24, now + 0.4, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.42));
           });
         },
         // 10) Big finish hit
         function () {
           ["C4", "E4", "G4", "C5"].forEach(function (n) {
-            return _this10._uiSfxSynth.triggerAttackRelease(n, 0.34, now, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.48));
+            return _this12._uiSfxSynth.triggerAttackRelease(n, 0.34, now, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.48));
           });
           ["E5", "G5", "B5", "D6", "E6"].forEach(function (n, i) {
-            _this10._uiSfxSynth.triggerAttackRelease(n, 0.09, now + 0.18 + i * 0.055, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.38));
+            _this12._uiSfxSynth.triggerAttackRelease(n, 0.09, now + 0.18 + i * 0.055, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.38));
           });
           ["C6", "E6", "G6", "C7"].forEach(function (n) {
-            return _this10._uiSfxSynth.triggerAttackRelease(n, 0.3, now + 0.58, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.5));
+            return _this12._uiSfxSynth.triggerAttackRelease(n, 0.3, now + 0.58, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("final", 0.5));
           });
         }];
         var playVariant = variants[Math.floor(Math.random() * variants.length)];
         playVariant();
         setTimeout(function () {
           try {
-            _this10._uiSfxSynth.set({
+            _this12._uiSfxSynth.set({
               oscillator: {
                 type: oldOsc || "triangle"
               },
@@ -861,7 +935,7 @@ var BaseStaffGame = /*#__PURE__*/function () {
   }, {
     key: "_animateFinalMetricsWithSfx",
     value: function _animateFinalMetricsWithSfx() {
-      var _this11 = this;
+      var _this13 = this;
       var $boxes = this.$finalOverlay.find("#metrics-boxes > div");
       if (!$boxes.length) return;
       $boxes.css({
@@ -876,23 +950,23 @@ var BaseStaffGame = /*#__PURE__*/function () {
         var delayMs = BASE_DELAY_MS + i * STEP_DELAY_MS;
         el.style.animationDelay = "".concat(delayMs, "ms");
         var tid = setTimeout(function () {
-          _this11._playFinalMetricPopSfx(i);
+          _this13._playFinalMetricPopSfx(i);
         }, delayMs);
-        _this11._finalMetricsSfxTimeouts.push(tid);
+        _this13._finalMetricsSfxTimeouts.push(tid);
       });
     }
   }, {
     key: "_playPerfectGameBonusSfx",
     value: function _playPerfectGameBonusSfx() {
-      var _this12 = this;
+      var _this14 = this;
       if (!this.isSoundEnabled() || !window.Tone) return;
       this._ensureUiSfxAudio().then(function () {
-        var _this12$_uiSfxSynth$g;
-        if (!_this12._uiSfxSynth) return;
-        var oldEnv = _objectSpread({}, _this12._uiSfxSynth.get().envelope);
-        var oldOsc = (_this12$_uiSfxSynth$g = _this12._uiSfxSynth.get().oscillator) === null || _this12$_uiSfxSynth$g === void 0 ? void 0 : _this12$_uiSfxSynth$g.type;
+        var _this14$_uiSfxSynth$g;
+        if (!_this14._uiSfxSynth) return;
+        var oldEnv = _objectSpread({}, _this14._uiSfxSynth.get().envelope);
+        var oldOsc = (_this14$_uiSfxSynth$g = _this14._uiSfxSynth.get().oscillator) === null || _this14$_uiSfxSynth$g === void 0 ? void 0 : _this14$_uiSfxSynth$g.type;
         try {
-          _this12._uiSfxSynth.set({
+          _this14._uiSfxSynth.set({
             oscillator: {
               type: "triangle"
             },
@@ -907,15 +981,15 @@ var BaseStaffGame = /*#__PURE__*/function () {
         var now = Tone.now();
         var fanfare = ["C5", "E5", "G5", "C6", "E6", "G6", "C7"];
         fanfare.forEach(function (n, i) {
-          _this12._uiSfxSynth.triggerAttackRelease(n, 0.09, now + i * 0.06, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("perfectBonus", 0.62));
+          _this14._uiSfxSynth.triggerAttackRelease(n, 0.09, now + i * 0.06, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("perfectBonus", 0.62));
         });
         var hit = ["C6", "G6", "C7", "E7"];
         hit.forEach(function (n) {
-          return _this12._uiSfxSynth.triggerAttackRelease(n, 0.35, now + 0.48, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("perfectBonus", 0.46));
+          return _this14._uiSfxSynth.triggerAttackRelease(n, 0.35, now + 0.48, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("perfectBonus", 0.46));
         });
         setTimeout(function () {
           try {
-            _this12._uiSfxSynth.set({
+            _this14._uiSfxSynth.set({
               oscillator: {
                 type: oldOsc || "triangle"
               },
@@ -928,10 +1002,10 @@ var BaseStaffGame = /*#__PURE__*/function () {
   }, {
     key: "_playRunStartFanfareSfx",
     value: function _playRunStartFanfareSfx() {
-      var _this13 = this;
+      var _this15 = this;
       if (!this.isSoundEnabled() || !window.Tone) return;
       this._ensureUiSfxAudio().then(function () {
-        if (!_this13._uiSfxSynth) return;
+        if (!_this15._uiSfxSynth) return;
         var now = Tone.now();
         // French-overture style: dotted long-short gestures, ceremonial but "opening".
         // 4 rhythmic motifs x 5 tonal centers = 20 variants.
@@ -951,16 +1025,16 @@ var BaseStaffGame = /*#__PURE__*/function () {
         var toNote = function toNote(m) {
           return Tone.Frequency(m, "midi").toNote();
         };
-        motif.forEach(function (_ref) {
-          var _ref2 = _slicedToArray(_ref, 4),
-            intervals = _ref2[0],
-            t = _ref2[1],
-            dur = _ref2[2],
-            vel = _ref2[3];
+        motif.forEach(function (_ref2) {
+          var _ref3 = _slicedToArray(_ref2, 4),
+            intervals = _ref3[0],
+            t = _ref3[1],
+            dur = _ref3[2],
+            vel = _ref3[3];
           var notes = intervals.map(function (i) {
             return toNote(root + i);
           });
-          _this13._uiSfxSynth.triggerAttackRelease(notes, dur, now + t, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("runStart", vel));
+          _this15._uiSfxSynth.triggerAttackRelease(notes, dur, now + t, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("runStart", vel));
         });
       });
     }
@@ -1070,7 +1144,7 @@ var BaseStaffGame = /*#__PURE__*/function () {
   }, {
     key: "_finishRoundAsTimedOut",
     value: function _finishRoundAsTimedOut() {
-      var _this14 = this;
+      var _this16 = this;
       this._clearCorrectStreak();
       this._madeAnyMistake = true;
       this._madeMistakeThisRound = true;
@@ -1080,7 +1154,7 @@ var BaseStaffGame = /*#__PURE__*/function () {
         this._stats.finishedAtMs = Date.now();
         this.$checkBtn.text('Final results, let\'s see…');
         setTimeout(function () {
-          return _this14._showFinalResults();
+          return _this16._showFinalResults();
         }, 1600);
         return;
       }
@@ -1132,7 +1206,7 @@ var BaseStaffGame = /*#__PURE__*/function () {
     value: function _removeAllStaffNotesWithSmoke() {
       var _this$$staffEl,
         _this$staff3,
-        _this15 = this;
+        _this17 = this;
       if (!((_this$$staffEl = this.$staffEl) !== null && _this$$staffEl !== void 0 && _this$$staffEl.length) || !((_this$staff3 = this.staff) !== null && _this$staff3 !== void 0 && _this$staff3.removeNote)) return;
       var noteIds = this.$staffEl.find(".note").not(".preview").not(".hint").map(function (_, el) {
         return String(el.getAttribute("data-note-id") || "");
@@ -1141,7 +1215,7 @@ var BaseStaffGame = /*#__PURE__*/function () {
       noteIds.forEach(function (id) {
         var delay = Math.floor(Math.random() * 140); // tiny natural stagger
         setTimeout(function () {
-          _this15.staff.removeNote(id, {
+          _this17.staff.removeNote(id, {
             smoke: true
           });
         }, delay);
@@ -1174,7 +1248,7 @@ var BaseStaffGame = /*#__PURE__*/function () {
   }, {
     key: "_runGameTimerTick",
     value: function _runGameTimerTick() {
-      var _this16 = this;
+      var _this18 = this;
       if (!this._timerEndsAtMs) return;
       var prev = this._timerRemainingSec;
       var msLeft = this._timerEndsAtMs - Date.now();
@@ -1207,7 +1281,7 @@ var BaseStaffGame = /*#__PURE__*/function () {
       var nextChangeAt = this._timerEndsAtMs - (next - 1) * 1000;
       var delay = Math.max(16, nextChangeAt - Date.now());
       this._timerTimeoutId = setTimeout(function () {
-        return _this16._runGameTimerTick();
+        return _this18._runGameTimerTick();
       }, delay);
     }
   }, {
@@ -1296,30 +1370,30 @@ var BaseStaffGame = /*#__PURE__*/function () {
   }, {
     key: "_wireStaffTools",
     value: function _wireStaffTools() {
-      var _this17 = this;
+      var _this19 = this;
       this.staff.enableNoteDragAndClickDelete();
       this.staff.enableGhostClickCreate();
       this.staff.enableAccidentalDrag($("#accidentals .music-font__sharp, #accidentals .music-font__flat, #accidentals .music-font__natural"));
       this.staff.enableAccidentalDropOnStaff();
       this.$staffEl.off("staff:noteState._log.".concat(this.ns)).on("staff:noteState._log.".concat(this.ns), function (e, data) {
-        var full = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.spellNoteFromState)(_this17.staff, data.step, data.accidentalClass);
+        var full = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.spellNoteFromState)(_this19.staff, data.step, data.accidentalClass);
         var letterOnly = full.replace(/\d+$/, "");
-        var displayName = _this17._toDisplayNoteName(letterOnly);
-        if (_this17.showNoteNames) {
-          _this17.$staffEl.find(".note[data-note-id=\"".concat(data.noteId, "\"] .lettername")).html(displayName);
+        var displayName = _this19._toDisplayNoteName(letterOnly);
+        if (_this19.showNoteNames) {
+          _this19.$staffEl.find(".note[data-note-id=\"".concat(data.noteId, "\"] .lettername")).html(displayName);
         }
         if (data.source === "fixed") {
-          var _this17$_onFixedNoteS;
-          _this17._fixedNote = {
+          var _this19$_onFixedNoteS;
+          _this19._fixedNote = {
             letterWithAcc: letterOnly,
             letterOnly: letterOnly.replace(/[#b]+$/, "")
           };
-          _this17._fixedState = {
+          _this19._fixedState = {
             step: data.step,
             accidentalClass: data.accidentalClass || null,
             midi: data.midi
           };
-          (_this17$_onFixedNoteS = _this17._onFixedNoteState) === null || _this17$_onFixedNoteS === void 0 || _this17$_onFixedNoteS.call(_this17, data, full, letterOnly);
+          (_this19$_onFixedNoteS = _this19._onFixedNoteState) === null || _this19$_onFixedNoteS === void 0 || _this19$_onFixedNoteS.call(_this19, data, full, letterOnly);
         }
 
         // Keep your debug logging behavior
@@ -1328,46 +1402,46 @@ var BaseStaffGame = /*#__PURE__*/function () {
           midi: data.midi,
           noteId: data.noteId,
           step: data.step,
-          clef: _this17.staff.getClef()
+          clef: _this19.staff.getClef()
         });
       });
     }
   }, {
     key: "_wireControls",
     value: function _wireControls() {
-      var _this18 = this;
+      var _this20 = this;
       $("#clear").off("click.".concat(this.ns)).on("click.".concat(this.ns), function () {
-        return _this18.staff.clearNotes();
+        return _this20.staff.clearNotes();
       });
       this.$checkBtn.off("click.".concat(this.ns)).on("click.".concat(this.ns), function () {
-        return _this18._onCheck();
+        return _this20._onCheck();
       });
       this.$helpBtn.off("click.".concat(this.ns, "Help")).on("click.".concat(this.ns, "Help"), function () {
-        _this18._usedHintThisRound = true;
-        _this18._showHintNote();
-        _this18.$helpBtn.hide();
+        _this20._usedHintThisRound = true;
+        _this20._showHintNote();
+        _this20.$helpBtn.hide();
       });
       this.$skipBtn.off("click.".concat(this.ns, "Skip")).on("click.".concat(this.ns, "Skip"), function (e) {
         e.preventDefault();
-        _this18._finishRoundAsTimedOut();
+        _this20._finishRoundAsTimedOut();
       });
       if (!this._continueBound) {
         this._continueBound = true;
         $("#continue button").off("click.".concat(this.ns)).on("click.".concat(this.ns), function () {
           $("#continue").hide();
-          _this18._hideSkipRoundButton();
-          _this18._hideTimeUpMessage();
-          _this18._setTimedOutInteractivityDisabled(false);
-          _this18._resetRoundTimerIfEnabled();
-          _this18.prompt.setTone("blue");
-          _this18.$accidentals.removeClass("invisible");
-          _this18.newChallenge();
-          _this18._syncPianoKeyboardStartNote();
-          _this18._syncPianoKeyboardMarkerFromStaff();
-          _this18._armUiGates({
+          _this20._hideSkipRoundButton();
+          _this20._hideTimeUpMessage();
+          _this20._setTimedOutInteractivityDisabled(false);
+          _this20._resetRoundTimerIfEnabled();
+          _this20.prompt.setTone("blue");
+          _this20.$accidentals.removeClass("invisible");
+          _this20.newChallenge();
+          _this20._syncPianoKeyboardStartNote();
+          _this20._syncPianoKeyboardMarkerFromStaff();
+          _this20._armUiGates({
             resetInstructions: true
           });
-          _this18.$checkBtn.enable();
+          _this20.$checkBtn.enable();
         });
       }
     }
@@ -1404,9 +1478,9 @@ var BaseStaffGame = /*#__PURE__*/function () {
   }, {
     key: "_armUiGates",
     value: function _armUiGates() {
-      var _this19 = this;
-      var _ref3 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
-        resetInstructions = _ref3.resetInstructions;
+      var _this21 = this;
+      var _ref4 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+        resetInstructions = _ref4.resetInstructions;
       var needForInstructions = this._instructionsAfterUserNotes();
       var needForCheck = this._checkAfterUserNotes();
       if (resetInstructions) {
@@ -1416,12 +1490,12 @@ var BaseStaffGame = /*#__PURE__*/function () {
       if (needForCheck <= 0) $("#check").show().removeClass("invisible");else $("#check").hide().addClass("invisible");
       this._userNotesSinceGate = 0;
       var syncUiGate = function syncUiGate() {
-        var count = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : _this19._currentUserNoteCount();
-        var userNoteCount = Number.isFinite(count) ? count : _this19._currentUserNoteCount();
+        var count = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : _this21._currentUserNoteCount();
+        var userNoteCount = Number.isFinite(count) ? count : _this21._currentUserNoteCount();
         if (needForInstructions > 0 && userNoteCount < needForInstructions) {
-          _this19._restoreInstructions();
-        } else if (!_this19._instructionsRemoved && userNoteCount >= needForInstructions) {
-          _this19._removeInstructions();
+          _this21._restoreInstructions();
+        } else if (!_this21._instructionsRemoved && userNoteCount >= needForInstructions) {
+          _this21._removeInstructions();
         }
         if (needForCheck <= 0 || userNoteCount >= needForCheck) {
           $("#check").show().removeClass("invisible");
@@ -1431,15 +1505,15 @@ var BaseStaffGame = /*#__PURE__*/function () {
       };
       syncUiGate();
       this.$staffEl.off("staff:userNoteAdded._uiGate.".concat(this.ns, " staff:userNotesChanged._uiGate.").concat(this.ns)).on("staff:userNoteAdded._uiGate.".concat(this.ns), function () {
-        _this19._userNotesSinceGate += 1;
-        _this19._hideHelpButtonOnAnswerEdit();
+        _this21._userNotesSinceGate += 1;
+        _this21._hideHelpButtonOnAnswerEdit();
         syncUiGate();
       }).on("staff:userNotesChanged._uiGate.".concat(this.ns), function (e, data) {
-        _this19._hideHelpButtonOnAnswerEdit(data);
+        _this21._hideHelpButtonOnAnswerEdit(data);
         syncUiGate(Number(data === null || data === void 0 ? void 0 : data.count));
       });
       this.$staffEl.off("staff:noteState._hideHelp.".concat(this.ns)).on("staff:noteState._hideHelp.".concat(this.ns), function (e, data) {
-        _this19._hideHelpButtonOnAnswerEdit(data);
+        _this21._hideHelpButtonOnAnswerEdit(data);
       });
     }
 
@@ -1490,21 +1564,21 @@ var BaseStaffGame = /*#__PURE__*/function () {
   }, {
     key: "_removeAllHintNotes",
     value: function _removeAllHintNotes() {
-      var _this20 = this;
+      var _this22 = this;
       var ids = Array.isArray(this._activeHintIds) ? this._activeHintIds : [];
       ids.forEach(function (id) {
-        return _this20.staff.removeNote(id);
+        return _this22.staff.removeNote(id);
       });
       this._activeHintIds = [];
     }
   }, {
     key: "_removeAllUserNotesForHint",
     value: function _removeAllUserNotesForHint() {
-      var _this21 = this;
+      var _this23 = this;
       var $userNotes = this.$staffEl.find(".note").not(".fixed").not(".preview").not(".hint");
       $userNotes.each(function (_, el) {
         var id = el.getAttribute("data-note-id");
-        if (id) _this21.staff.removeNote(id);
+        if (id) _this23.staff.removeNote(id);
       });
     }
   }, {
@@ -1521,12 +1595,12 @@ var BaseStaffGame = /*#__PURE__*/function () {
   }, {
     key: "_attachHintBlinkRemoval",
     value: function _attachHintBlinkRemoval(noteId) {
-      var _this22 = this;
+      var _this24 = this;
       var $note = this.$staffEl.find(".note[data-note-id=\"".concat(noteId, "\"]"));
       if (!$note.length) return;
       $note.off("animationend.hint.".concat(noteId, " webkitAnimationEnd.hint.").concat(noteId)).one("animationend.hint.".concat(noteId, " webkitAnimationEnd.hint.").concat(noteId), function () {
-        _this22.staff.removeNote(noteId);
-        _this22._activeHintIds = (_this22._activeHintIds || []).filter(function (x) {
+        _this24.staff.removeNote(noteId);
+        _this24._activeHintIds = (_this24._activeHintIds || []).filter(function (x) {
           return x !== noteId;
         });
       });
@@ -1590,8 +1664,8 @@ var BaseStaffGame = /*#__PURE__*/function () {
   }, {
     key: "_successAnimation",
     value: function _successAnimation() {
-      var _ref4 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
-        isBonus = _ref4.isBonus;
+      var _ref5 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+        isBonus = _ref5.isBonus;
       if (isBonus) this._playSuccessSfxBonus();else this._playSuccessSfxBasic();
       this.$helpBtn.hide();
       this.$accidentals.addClass("invisible");
@@ -1601,18 +1675,18 @@ var BaseStaffGame = /*#__PURE__*/function () {
   }, {
     key: "_handleCorrectAnswerUi",
     value: function _handleCorrectAnswerUi() {
-      var _this23 = this;
-      var _ref5 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
-        _ref5$isBonus = _ref5.isBonus,
-        isBonus = _ref5$isBonus === void 0 ? false : _ref5$isBonus,
-        _ref5$earned = _ref5.earned,
-        earned = _ref5$earned === void 0 ? 0 : _ref5$earned,
-        _ref5$$prompt = _ref5.$prompt,
-        $prompt = _ref5$$prompt === void 0 ? this.prompt.$root : _ref5$$prompt,
-        _ref5$$extraHide = _ref5.$extraHide,
-        $extraHide = _ref5$$extraHide === void 0 ? $() : _ref5$$extraHide,
-        _ref5$finalDelayMs = _ref5.finalDelayMs,
-        finalDelayMs = _ref5$finalDelayMs === void 0 ? 1600 : _ref5$finalDelayMs;
+      var _this25 = this;
+      var _ref6 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+        _ref6$isBonus = _ref6.isBonus,
+        isBonus = _ref6$isBonus === void 0 ? false : _ref6$isBonus,
+        _ref6$earned = _ref6.earned,
+        earned = _ref6$earned === void 0 ? 0 : _ref6$earned,
+        _ref6$$prompt = _ref6.$prompt,
+        $prompt = _ref6$$prompt === void 0 ? this.prompt.$root : _ref6$$prompt,
+        _ref6$$extraHide = _ref6.$extraHide,
+        $extraHide = _ref6$$extraHide === void 0 ? $() : _ref6$$extraHide,
+        _ref6$finalDelayMs = _ref6.finalDelayMs,
+        finalDelayMs = _ref6$finalDelayMs === void 0 ? 1600 : _ref6$finalDelayMs;
       this._successAnimation({
         isBonus: isBonus
       });
@@ -1628,7 +1702,7 @@ var BaseStaffGame = /*#__PURE__*/function () {
         this._stats.finishedAtMs = Date.now();
         this.$checkBtn.text('Final results, let\'s see…');
         setTimeout(function () {
-          return _this23._showFinalResults();
+          return _this25._showFinalResults();
         }, finalDelayMs);
       } else {
         $("#check").hide();
@@ -1638,14 +1712,14 @@ var BaseStaffGame = /*#__PURE__*/function () {
   }, {
     key: "_runSuccessFeedbackTransition",
     value: function _runSuccessFeedbackTransition() {
-      var _this24 = this;
-      var _ref6 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
-        _ref6$$interval = _ref6.$interval,
-        $interval = _ref6$$interval === void 0 ? null : _ref6$$interval,
-        _ref6$delayMs = _ref6.delayMs,
-        delayMs = _ref6$delayMs === void 0 ? 800 : _ref6$delayMs,
-        _ref6$onDone = _ref6.onDone,
-        onDone = _ref6$onDone === void 0 ? null : _ref6$onDone;
+      var _this26 = this;
+      var _ref7 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+        _ref7$$interval = _ref7.$interval,
+        $interval = _ref7$$interval === void 0 ? null : _ref7$$interval,
+        _ref7$delayMs = _ref7.delayMs,
+        delayMs = _ref7$delayMs === void 0 ? 800 : _ref7$delayMs,
+        _ref7$onDone = _ref7.onDone,
+        onDone = _ref7$onDone === void 0 ? null : _ref7$onDone;
       if (this._successFeedbackTimeoutId != null) {
         clearTimeout(this._successFeedbackTimeoutId);
         this._successFeedbackTimeoutId = null;
@@ -1653,9 +1727,9 @@ var BaseStaffGame = /*#__PURE__*/function () {
       if ($interval !== null && $interval !== void 0 && $interval.length) $interval.hide();
       var safeDelay = Math.max(0, Number(delayMs) || 0);
       this._successFeedbackTimeoutId = setTimeout(function () {
-        var _this24$$feedback, _this24$$feedback$hid;
-        _this24._successFeedbackTimeoutId = null;
-        (_this24$$feedback = _this24.$feedback) === null || _this24$$feedback === void 0 || (_this24$$feedback$hid = _this24$$feedback.hide) === null || _this24$$feedback$hid === void 0 || _this24$$feedback$hid.call(_this24$$feedback);
+        var _this26$$feedback, _this26$$feedback$hid;
+        _this26._successFeedbackTimeoutId = null;
+        (_this26$$feedback = _this26.$feedback) === null || _this26$$feedback === void 0 || (_this26$$feedback$hid = _this26$$feedback.hide) === null || _this26$$feedback$hid === void 0 || _this26$$feedback$hid.call(_this26$$feedback);
         if ($interval !== null && $interval !== void 0 && $interval.length) $interval.show();
         if (typeof onDone === "function") onDone();
       }, safeDelay);
@@ -1746,8 +1820,8 @@ var BaseStaffGame = /*#__PURE__*/function () {
   }, {
     key: "_applyCorrectStreakForOutcome",
     value: function _applyCorrectStreakForOutcome() {
-      var _ref7 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
-        firstTry = _ref7.firstTry;
+      var _ref8 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+        firstTry = _ref8.firstTry;
       if (!firstTry) {
         this._clearCorrectStreak();
         return;
@@ -1805,20 +1879,48 @@ var BaseStaffGame = /*#__PURE__*/function () {
       return current;
     }
   }, {
+    key: "_isCheckFailTarget",
+    value: function _isCheckFailTarget($target) {
+      var _this$$checkBtn;
+      if (!($target !== null && $target !== void 0 && $target.length) || !((_this$$checkBtn = this.$checkBtn) !== null && _this$$checkBtn !== void 0 && _this$$checkBtn.length)) return false;
+      return $target.is(this.$checkBtn) || $target.has(this.$checkBtn).length > 0;
+    }
+  }, {
+    key: "_showCheckWrongState",
+    value: function _showCheckWrongState() {
+      var _this$$checkBtn2,
+        _this27 = this;
+      if (!((_this$$checkBtn2 = this.$checkBtn) !== null && _this$$checkBtn2 !== void 0 && _this$$checkBtn2.length)) return;
+      if (this._checkWrongStateTimeout != null) {
+        clearTimeout(this._checkWrongStateTimeout);
+        this._checkWrongStateTimeout = null;
+      }
+      this.$checkBtn.removeClass("animate__animated animate__shakeX").attr("state", "wrong").attr("disabled", "disabled").prop("disabled", true);
+      this._checkWrongStateTimeout = setTimeout(function () {
+        _this27.$checkBtn.attr("state", "waiting").removeAttr("disabled").prop("disabled", false);
+        _this27._checkWrongStateTimeout = null;
+      }, 2000);
+    }
+  }, {
     key: "_failAnimation",
     value: function _failAnimation($shakeTarget) {
-      var _this25 = this;
+      var _this28 = this;
       this._clearCorrectStreak();
       this._playFailSfx();
       this._removeInstructions();
       var $target = $shakeTarget || this.$checkWrap;
+      if (this._isCheckFailTarget($target)) {
+        $target.removeClass("animate__animated animate__shakeX");
+        this._showCheckWrongState();
+        return;
+      }
       $target.removeClass("animate__animated animate__shakeX");
       // eslint-disable-next-line no-unused-expressions
       $target[0] && $target[0].offsetWidth;
       $target.addClass("animate__animated animate__shakeX");
       $target.off("animationend._fail.".concat(this.ns, " webkitAnimationEnd._fail.").concat(this.ns, " oAnimationEnd._fail.").concat(this.ns, " MSAnimationEnd._fail.").concat(this.ns)).one("animationend._fail.".concat(this.ns, " webkitAnimationEnd._fail.").concat(this.ns, " oAnimationEnd._fail.").concat(this.ns, " MSAnimationEnd._fail.").concat(this.ns), function () {
         $target.removeClass("animate__animated animate__shakeX");
-        _this25.$checkBtn.enable();
+        _this28.$checkBtn.enable();
       });
     }
   }, {
@@ -1846,24 +1948,24 @@ var BaseStaffGame = /*#__PURE__*/function () {
   }, {
     key: "_hasConfiguredScoreDoubleBonus",
     value: function _hasConfiguredScoreDoubleBonus(accuracy) {
-      var _this26 = this;
+      var _this29 = this;
       if (Number(accuracy) !== 100) return false;
       var keys = BaseStaffGame.prototype._bonusPointSettingKeys.call(this);
       return keys.some(function (key) {
-        var _this26$opts;
-        return BaseStaffGame.prototype._normalizeOnOff.call(_this26, (_this26$opts = _this26.opts) === null || _this26$opts === void 0 ? void 0 : _this26$opts[key]);
+        var _this29$opts;
+        return BaseStaffGame.prototype._normalizeOnOff.call(_this29, (_this29$opts = _this29.opts) === null || _this29$opts === void 0 ? void 0 : _this29$opts[key]);
       });
     }
   }, {
     key: "_buildFinalScoreSummary",
     value: function _buildFinalScoreSummary() {
-      var _ref8 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
-        _ref8$basePoints = _ref8.basePoints,
-        basePoints = _ref8$basePoints === void 0 ? 0 : _ref8$basePoints,
-        _ref8$accuracy = _ref8.accuracy,
-        accuracy = _ref8$accuracy === void 0 ? 0 : _ref8$accuracy,
-        _ref8$perfectGame = _ref8.perfectGame,
-        perfectGame = _ref8$perfectGame === void 0 ? false : _ref8$perfectGame;
+      var _ref9 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+        _ref9$basePoints = _ref9.basePoints,
+        basePoints = _ref9$basePoints === void 0 ? 0 : _ref9$basePoints,
+        _ref9$accuracy = _ref9.accuracy,
+        accuracy = _ref9$accuracy === void 0 ? 0 : _ref9$accuracy,
+        _ref9$perfectGame = _ref9.perfectGame,
+        perfectGame = _ref9$perfectGame === void 0 ? false : _ref9$perfectGame;
       var normalizedBasePoints = Number(basePoints) || 0;
       var initialScore = perfectGame ? normalizedBasePoints * 2 : normalizedBasePoints;
       var settingsBonus = BaseStaffGame.prototype._hasConfiguredScoreDoubleBonus.call(this, accuracy);
@@ -1881,7 +1983,7 @@ var BaseStaffGame = /*#__PURE__*/function () {
       var _this$_stats$checksTo,
         _this$_stats$checksCo,
         _this$_stats$finished,
-        _this27 = this;
+        _this30 = this;
       if (this._isPracticeMode()) return;
       var total = Math.max(0, (_this$_stats$checksTo = this._stats.checksTotal) !== null && _this$_stats$checksTo !== void 0 ? _this$_stats$checksTo : 0);
       var correct = Math.max(0, (_this$_stats$checksCo = this._stats.checksCorrect) !== null && _this$_stats$checksCo !== void 0 ? _this$_stats$checksCo : 0);
@@ -1896,9 +1998,9 @@ var BaseStaffGame = /*#__PURE__*/function () {
       });
       if (perfectGame) {
         setTimeout(function () {
-          var _this27$$doublePoints, _this27$$doublePoints2;
-          (_this27$$doublePoints = _this27.$doublePoints) === null || _this27$$doublePoints === void 0 || (_this27$$doublePoints2 = _this27$$doublePoints.show) === null || _this27$$doublePoints2 === void 0 || _this27$$doublePoints2.call(_this27$$doublePoints);
-          _this27._playPerfectGameBonusSfx();
+          var _this30$$doublePoints, _this30$$doublePoints2;
+          (_this30$$doublePoints = _this30.$doublePoints) === null || _this30$$doublePoints === void 0 || (_this30$$doublePoints2 = _this30$$doublePoints.show) === null || _this30$$doublePoints2 === void 0 || _this30$$doublePoints2.call(_this30$$doublePoints);
+          _this30._playPerfectGameBonusSfx();
         }, 1750);
 
         // eslint-disable-next-line no-console
@@ -1929,14 +2031,14 @@ var BaseStaffGame = /*#__PURE__*/function () {
         durationSec: totalSeconds,
         settingsBonus: scoreSummary.settingsBonus,
         clearCountupTimers: function clearCountupTimers() {
-          return _this27._clearFinalCountupTimers();
+          return _this30._clearFinalCountupTimers();
         },
         countupTimers: this._finalCountupTimeouts,
         animateMetrics: function animateMetrics() {
-          return _this27._animateFinalMetricsWithSfx();
+          return _this30._animateFinalMetricsWithSfx();
         },
         playFinalSfx: function playFinalSfx() {
-          return _this27._playFinalSfx();
+          return _this30._playFinalSfx();
         }
       });
     }
@@ -2536,6 +2638,7 @@ var MemoryWizard = /*#__PURE__*/function (_BaseStaffGame) {
       }
       this._madeAnyMistake = true;
       this._madeMistakeThisRound = true;
+      this._shakeWrongUserStaffNotes();
       this._failAnimation(this.$checkWrap);
       this.$helpBtn.show();
     }

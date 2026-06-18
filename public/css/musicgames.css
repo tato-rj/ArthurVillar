@@ -12748,7 +12748,7 @@ textarea.form-control-lg {
   opacity: var(--bs-btn-disabled-opacity);
 }
 
-.btn-primary {
+.btn-primary, #controls #check button[state=waiting] {
   --bs-btn-color: #fff;
   --bs-btn-bg: #0d6efd;
   --bs-btn-border-color: #0d6efd;
@@ -25722,23 +25722,23 @@ h1, .h1 {
   background-color: white !important;
   border-color: white !important;
 }
-.btn-primary {
+.btn-primary, #controls #check button[state=waiting] {
   color: black !important;
   background-color: #ffe54c;
   border-color: black !important;
   border-radius: 2rem !important;
 }
-.btn-primary:hover {
+.btn-primary:hover, #controls #check button[state=waiting]:hover {
   color: black !important;
   background-color: rgb(255, 231.9631284916, 96.4);
 }
-.btn-primary:active {
+.btn-primary:active, #controls #check button[state=waiting]:active {
   background-color: rgb(255, 223.0737430168, 35.2) !important;
 }
-.btn-primary:focus {
+.btn-primary:focus, #controls #check button[state=waiting]:focus {
   background-color: #ffe54c;
 }
-.btn-primary:disabled {
+.btn-primary:disabled, #controls #check button[state=waiting]:disabled {
   background-color: rgb(255, 236.4078212291, 127) !important;
   border-color: rgb(25.5, 25.5, 25.5) !important;
 }
@@ -25994,23 +25994,23 @@ h1, .h1 {
   background-color: white !important;
   border-color: white !important;
 }
-.btn-red {
+.btn-red, #controls #check button[state=wrong], #controls #check button[state=wrong]:disabled {
   color: white !important;
   background-color: #ff4b4b;
   border-color: black !important;
   border-radius: 2rem !important;
 }
-.btn-red:hover {
+.btn-red:hover, #controls #check button[state=wrong]:hover {
   color: white !important;
   background-color: rgb(255, 95.4, 95.4);
 }
-.btn-red:active {
+.btn-red:active, #controls #check button[state=wrong]:active {
   background-color: rgb(255, 34.2, 34.2) !important;
 }
-.btn-red:focus {
+.btn-red:focus, #controls #check button[state=wrong]:focus {
   background-color: #ff4b4b;
 }
-.btn-red:disabled {
+.btn-red:disabled, #controls #check button[state=wrong]:disabled {
   background-color: #ff7e7e !important;
   border-color: rgb(25.5, 25.5, 25.5) !important;
 }
@@ -31260,6 +31260,18 @@ body {
 
 #controls {
   display: none;
+}
+
+#controls #check button[state=waiting]::before {
+  content: "Check my answer";
+}
+
+#controls #check button[state=wrong], #controls #check button[state=wrong]:disabled {
+  transform: translateY(0);
+}
+
+#controls #check button[state=wrong]::before {
+  content: "Ops, wrong answer...";
 }
 
 #staff-wrapper {

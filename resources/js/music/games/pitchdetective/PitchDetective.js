@@ -460,6 +460,7 @@ export class PitchDetective extends BaseStaffGame {
     if (notes.length !== 2) {
       this._madeAnyMistake = true;
       this._madeMistakeThisRound = true;
+      this._shakeWrongUserStaffNotes();
       this._failAnimation(this.$checkWrap);
       this.$helpBtn.show();
       return;
@@ -469,6 +470,7 @@ export class PitchDetective extends BaseStaffGame {
     if (!user) {
       this._madeAnyMistake = true;
       this._madeMistakeThisRound = true;
+      this._shakeWrongUserStaffNotes();
       this._failAnimation(this.$checkWrap);
       this.$helpBtn.show();
       return;
@@ -492,6 +494,7 @@ export class PitchDetective extends BaseStaffGame {
     } else {
       this._madeAnyMistake = true;
       this._madeMistakeThisRound = true;
+      this._shakeWrongUserStaffNotes();
       this._failAnimation(this.$checkWrap);
       this.$helpBtn.show();
     }

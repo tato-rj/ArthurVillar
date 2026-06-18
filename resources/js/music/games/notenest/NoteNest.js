@@ -982,6 +982,7 @@ export class NoteNest extends BaseStaffGame {
       this._failAnimation(this.$playNoteWrap);
       return;
     }
+    this._shakeWrongUserStaffNotes();
     this._failAnimation(this.$checkWrap);
     this.$helpBtn.show();
   }

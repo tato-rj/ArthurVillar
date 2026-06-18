@@ -665,6 +665,7 @@ _requiredUserNotesForChord(seventhType) {
       this._madeMistakeThisRound = true;
 
       this.prompt.setTone("red");
+      this._shakeWrongUserStaffNotes();
       this._failAnimation(this.$checkWrap);
 
       this.$checkBtn[0] && this.$checkBtn[0].blur && this.$checkBtn[0].blur();
@@ -692,6 +693,7 @@ _requiredUserNotesForChord(seventhType) {
         this._madeAnyMistake = true;
         this._madeMistakeThisRound = true;
         this.prompt.setTone("red");
+        this._shakeWrongUserStaffNotes();
         this._failAnimation(this.$checkWrap);
         this.$checkWrap
           .off(`animationend._failRestore.${this.ns} webkitAnimationEnd._failRestore.${this.ns}`)
@@ -737,6 +739,7 @@ _requiredUserNotesForChord(seventhType) {
       this._madeMistakeThisRound = true;
 
       this.prompt.setTone("red");
+      this._shakeWrongUserStaffNotes();
       this._failAnimation(this.$checkWrap);
 
       this.$checkWrap

@@ -148,6 +148,7 @@ export class BaseStaffGame {
     this._timerEndsAtMs = 0;
     this._finalMetricsSfxTimeouts = [];
     this._finalCountupTimeouts = [];
+    this._checkWrongStateTimeout = null;
     this._keyboardSyncPatched = false;
     this._keyboardAccidentalPreviewPatched = false;
 
@@ -235,6 +236,79 @@ export class BaseStaffGame {
       .filter(Boolean);
   }
 
+  _collectUserStaffNotes() {
+    return this._collectKeyboardSyncNotes()
+      .filter((note) => !note.fixed && Number.isFinite(note.step));
+  }
+
+  _normalizedAccidentalClass(value) {
+    return String(value || "");
+  }
+
+  _answerMatchesUserStaffNote(answer, note) {
+    if (!answer || !note) return false;
+    if (!Number.isFinite(answer.step) || !Number.isFinite(note.step)) return false;
+    return (
+      Number(answer.step) === Number(note.step) &&
+      this._normalizedAccidentalClass(answer.accidentalClass) === this._normalizedAccidentalClass(note.accidentalClass)
+    );
+  }
+
+  _wrongUserStaffNotes() {
+    const notes = this._collectUserStaffNotes();
+    if (!notes.length) return [];
+
+    const answers = this._computeHintAnswers?.() || [];
+    const remaining = Array.isArray(answers)
+      ? answers.filter((answer) => Number.isFinite(answer?.step))
+      : [];
+
+    if (!remaining.length) return notes;
+
+    const wrong = [];
+    notes.forEach((note) => {
+      const matchIndex = remaining.findIndex((answer) => this._answerMatchesUserStaffNote(answer, note));
+      if (matchIndex >= 0) {
+        remaining.splice(matchIndex, 1);
+      } else {
+        wrong.push(note);
+      }
+    });
+
+    return wrong;
+  }
+
+  _shakeUserStaffNotes(notes = null) {
+    const list = Array.isArray(notes) ? notes : this._collectUserStaffNotes();
+    if (!list.length) return;
+
+    list.forEach(({ noteId }) => {
+      if (!noteId) return;
+
+      const $targets = this.$staffEl
+        .find(`.note[data-note-id="${noteId}"], .accidental[data-for-note-id="${noteId}"], .ledger[data-for-note-id="${noteId}"]`);
+
+      if (!$targets.length) return;
+
+      $targets.removeClass("animate__animated animate__shakeX");
+      $targets.each((_, el) => {
+        // eslint-disable-next-line no-unused-expressions
+        el.offsetWidth;
+      });
+      $targets.addClass("animate__animated animate__shakeX");
+
+      $targets
+        .off(`animationend._wrongStaffNote.${this.ns} webkitAnimationEnd._wrongStaffNote.${this.ns} oAnimationEnd._wrongStaffNote.${this.ns} MSAnimationEnd._wrongStaffNote.${this.ns}`)
+        .one(`animationend._wrongStaffNote.${this.ns} webkitAnimationEnd._wrongStaffNote.${this.ns} oAnimationEnd._wrongStaffNote.${this.ns} MSAnimationEnd._wrongStaffNote.${this.ns}`, () => {
+          $targets.removeClass("animate__animated animate__shakeX");
+        });
+    });
+  }
+
+  _shakeWrongUserStaffNotes() {
+    this._shakeUserStaffNotes(this._wrongUserStaffNotes());
+  }
+
   _keyboardPrimaryNote(notes) {
     const list = Array.isArray(notes) ? notes : [];
     const userNotes = list.filter((note) => !note.fixed);
@@ -267,6 +341,7 @@ export class BaseStaffGame {
   }
 
   _keyboardMarkerLabelForNoteName(noteName) {
+    if (!this.showNoteNames) return "";
     const raw = String(noteName || "").trim();
     const match = raw.match(/^([A-G][#b]?)-?\d+$/);
     return this._toDisplayNoteName(match ? match[1] : raw);
@@ -1726,12 +1801,46 @@ export class BaseStaffGame {
     return current;
   }
 
+  _isCheckFailTarget($target) {
+    if (!$target?.length || !this.$checkBtn?.length) return false;
+    return $target.is(this.$checkBtn) || $target.has(this.$checkBtn).length > 0;
+  }
+
+  _showCheckWrongState() {
+    if (!this.$checkBtn?.length) return;
+
+    if (this._checkWrongStateTimeout != null) {
+      clearTimeout(this._checkWrongStateTimeout);
+      this._checkWrongStateTimeout = null;
+    }
+
+    this.$checkBtn
+      .removeClass("animate__animated animate__shakeX")
+      .attr("state", "wrong")
+      .attr("disabled", "disabled")
+      .prop("disabled", true);
+
+    this._checkWrongStateTimeout = setTimeout(() => {
+      this.$checkBtn
+        .attr("state", "waiting")
+        .removeAttr("disabled")
+        .prop("disabled", false);
+      this._checkWrongStateTimeout = null;
+    }, 2000);
+  }
+
   _failAnimation($shakeTarget) {
     this._clearCorrectStreak();
     this._playFailSfx();
     this._removeInstructions();
 
     const $target = $shakeTarget || this.$checkWrap;
+
+    if (this._isCheckFailTarget($target)) {
+      $target.removeClass("animate__animated animate__shakeX");
+      this._showCheckWrongState();
+      return;
+    }
 
     $target.removeClass("animate__animated animate__shakeX");
     // eslint-disable-next-line no-unused-expressions

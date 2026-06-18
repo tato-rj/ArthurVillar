@@ -147,6 +147,7 @@ export class NoteHunt extends BaseStaffGame {
 
     this._madeAnyMistake = true;
     this._madeMistakeThisRound = true;
+    this._shakeWrongUserStaffNotes();
     this._failAnimation(this.$checkWrap);
     this.$helpBtn.show();
   }
