@@ -15,6 +15,13 @@ export class OpenStaff {
     B: "Si",
   };
 
+  static VOICE_COLORS = [
+    "rgb(255, 229, 76)",
+    "rgb(79, 199, 232)",
+    "rgb(139, 118, 232)",
+    "rgb(92, 205, 128)",
+  ];
+
   constructor(options = {}) {
     const defaults = {
       staffEl: "#staff",
@@ -23,6 +30,7 @@ export class OpenStaff {
       solfege: false,
       showLabelOnTap: false,
       maxUserNotes: 1,
+      numOfVoices: 1,
       clefUrls: null,
       clef: null,
       clefs: null,
@@ -48,8 +56,10 @@ export class OpenStaff {
     this._pendingSuccessInstructions = false;
     this._screens = this._buildScreens();
     this._highlightIdCounter = 1;
+    this._activeHighlightId = null;
     this._holdSynth = null;
-    this._heldMidi = null;
+    this._heldMidiSignature = null;
+    this._heldToneNotes = [];
     this._holdSoundTimer = null;
     this._pendingHeldStep = null;
     this._pointer = {
@@ -329,6 +339,7 @@ export class OpenStaff {
   _clearHighlights() {
     this.$staffEl.find(".staff-highlight").remove();
     this.$staffEl.find(".ledger[data-for-highlight-id]").remove();
+    this._activeHighlightId = null;
     this._syncPianoKeyboardMarkerFromHighlight();
   }
 
@@ -364,16 +375,31 @@ export class OpenStaff {
       return;
     }
 
-    const highlightId = this._currentHighlightId();
-    const step = this._highlightStep(highlightId);
-    if (!highlightId || !Number.isFinite(step)) {
+    const highlights = this._highlightEntries();
+    if (!highlights.length) {
       this.keyboard.syncActiveKeys([]);
       return;
     }
 
-    const note = stepToLetterOctave(this.staff, step);
-    const $key = this.keyboard.keyForNote(note?.letter, null, note?.octave);
-    this.keyboard.syncActiveKeys($key.length ? [$key] : []);
+    const markerEntries = highlights
+      .map(({ id, step, voiceIndex }, index) => {
+        const note = stepToLetterOctave(this.staff, step);
+        const $key = index === 0
+          ? this.keyboard.keyForNote(note?.letter, null, note?.octave)
+          : this.keyboard.keyForNoteIfVisible(note?.letter, null, note?.octave);
+        const noteName = this._keyboardNoteNameFromStep(step);
+        const labelRevealed = !this._delaysNoteLabel() || this._isHighlightLabelRevealed(id);
+        return {
+          noteName,
+          markerLabel: labelRevealed ? this._stepName(step) : "",
+          tone: voiceIndex === 0 ? "primary" : "secondary",
+          markerColor: this._voiceColor(voiceIndex),
+          $key,
+        };
+      })
+      .filter((entry) => entry.noteName && entry.$key?.length);
+
+    this.keyboard.syncActiveMarkers(markerEntries);
   }
 
   _bindOpenStaffInteraction() {
@@ -405,21 +431,30 @@ export class OpenStaff {
           return;
         }
         this._pointer.targetId = highlightId;
+        this._activeHighlightId = highlightId;
         this._pointer.lastStep = this._highlightStep(highlightId);
         this._setHighlightDragging(highlightId, true);
         if (Number.isFinite(this._pointer.lastStep)) {
           this._playAndLogStep(this._pointer.lastStep, { sustain: true });
         }
       } else {
-        const existingHighlightId = this._currentHighlightId();
+        const sameStepHighlightId = this._highlightIdAtStep(pointerStep);
+        const existingHighlightId = sameStepHighlightId
+          || (this._highlightCount() >= this._maxUserHighlights()
+          ? this._currentHighlightId()
+          : "");
 
         if (existingHighlightId) {
+          const isSameStepHighlight = existingHighlightId === sameStepHighlightId;
           this._pointer.targetId = existingHighlightId;
-          this._pointer.createdOnPointerDown = true;
-          this._pointer.lastStep = pointerStep;
-          this._moveHighlightToStep(existingHighlightId, pointerStep, { revealLabel: false });
+          this._activeHighlightId = existingHighlightId;
+          this._pointer.createdOnPointerDown = !isSameStepHighlight;
+          this._pointer.lastStep = isSameStepHighlight ? this._highlightStep(existingHighlightId) : pointerStep;
+          if (!isSameStepHighlight) {
+            this._moveHighlightToStep(existingHighlightId, pointerStep, { revealLabel: false });
+          }
           this._setHighlightDragging(existingHighlightId, true);
-          this._playAndLogStep(pointerStep, { sustain: true });
+          this._playAndLogStep(this._pointer.lastStep, { sustain: true });
         } else {
           const createdId = this._createHighlight(pointerStep);
           if (!createdId) {
@@ -427,6 +462,7 @@ export class OpenStaff {
             return;
           }
           this._pointer.targetId = createdId;
+          this._activeHighlightId = createdId;
           this._pointer.createdOnPointerDown = true;
           this._pointer.lastStep = pointerStep;
           this._playAndLogStep(pointerStep, { sustain: true });
@@ -580,12 +616,68 @@ export class OpenStaff {
   }
 
   _maxUserHighlights() {
-    const value = Number(this.opts.maxUserNotes);
+    const value = this.opts.numOfVoices != null
+      ? Number(this.opts.numOfVoices)
+      : Number(this.opts.maxUserNotes);
     return Number.isFinite(value) ? Math.max(0, Math.floor(value)) : 1;
   }
 
   _highlightCount() {
     return this.$staffEl.find(".staff-highlight").length;
+  }
+
+  _highlightEntries() {
+    return this.$staffEl.find(".staff-highlight").toArray()
+      .map((el) => {
+        const $highlight = $(el);
+        const id = String($highlight.attr("data-highlight-id") || "");
+        const step = Number($highlight.attr("data-step"));
+        const voiceIndex = Number($highlight.attr("data-voice-index"));
+        if (!id || !Number.isFinite(step)) return null;
+        return {
+          id,
+          step,
+          voiceIndex: Number.isFinite(voiceIndex) ? voiceIndex : 0,
+          $highlight,
+        };
+      })
+      .filter(Boolean);
+  }
+
+  _highlightSteps() {
+    return this._highlightEntries()
+      .map((entry) => entry.step)
+      .filter((step) => Number.isFinite(step));
+  }
+
+  _highlightIdAtStep(step) {
+    if (!Number.isFinite(step)) return "";
+    const entry = this._highlightEntries()
+      .find((item) => item.step === step);
+    return entry?.id || "";
+  }
+
+  _nextVoiceIndex() {
+    const used = new Set(this._highlightEntries().map((entry) => entry.voiceIndex));
+    const max = Math.max(1, this._maxUserHighlights());
+    for (let i = 0; i < max; i += 1) {
+      if (!used.has(i)) return i;
+    }
+    return used.size;
+  }
+
+  _voiceColor(voiceIndex) {
+    const index = Number.isFinite(Number(voiceIndex)) ? Number(voiceIndex) : 0;
+    const colors = OpenStaff.VOICE_COLORS;
+    return colors[((index % colors.length) + colors.length) % colors.length];
+  }
+
+  _keyboardNoteNameFromStep(step) {
+    const note = stepToLetterOctave(this.staff, step);
+    const letter = String(note?.letter || "").trim().toUpperCase();
+    const octave = Number(note?.octave);
+    if (!letter || !Number.isFinite(octave) || !this.keyboard) return "";
+    return this.keyboard._noteNameFromMidi?.(this.staff._stepToMidi(step)) || `${letter}${octave}`;
   }
 
   _renderHighlightLedgers(highlightId, step) {
@@ -595,13 +687,14 @@ export class OpenStaff {
 
     const ledgerSteps = this.staff.ledgerStepsFor(step);
     const left = this.staff.centerX();
-    const isDragging = this.$staffEl
-      .find(`.staff-highlight[data-highlight-id="${highlightId}"]`)
-      .hasClass("dragging");
+    const $highlight = this.$staffEl.find(`.staff-highlight[data-highlight-id="${highlightId}"]`);
+    const isDragging = $highlight.hasClass("dragging");
+    const voiceIndex = Number($highlight.attr("data-voice-index"));
+    const voiceClass = `staff-highlight--voice-${((Number.isFinite(voiceIndex) ? voiceIndex : 0) % 4) + 1}`;
 
     ledgerSteps.forEach((ledgerStep) => {
       const $ledger = $("<div></div>")
-        .addClass("ledger")
+        .addClass(`ledger ${voiceClass}`)
         .attr("data-for-highlight-id", highlightId)
         .css({
           left: `${left}px`,
@@ -618,12 +711,14 @@ export class OpenStaff {
     if (this._highlightCount() >= this._maxUserHighlights()) return null;
 
     const id = `staffzone-highlight-${this._highlightIdCounter++}`;
+    const voiceIndex = this._nextVoiceIndex();
     const revealLabel = !this._delaysNoteLabel();
     const labelHtml = this._highlightLabelHtml(step, { revealLabel });
     $("<div></div>")
-      .addClass("staff-highlight rounded")
+      .addClass(`staff-highlight staff-highlight--voice-${(voiceIndex % 4) + 1} rounded`)
       .attr("data-highlight-id", id)
       .attr("data-step", step)
+      .attr("data-voice-index", voiceIndex)
       .attr("data-label-revealed", revealLabel ? "true" : "false")
       .css({ top: `${this._highlightTopForStep(step)}px` })
       .append(
@@ -635,6 +730,7 @@ export class OpenStaff {
       .appendTo(this.$staffEl);
 
     this._renderHighlightLedgers(id, step);
+    this._activeHighlightId = id;
     if (revealContinue) this._revealContinue();
     this._syncPianoKeyboardMarkerFromHighlight();
 
@@ -648,7 +744,16 @@ export class OpenStaff {
   }
 
   _currentHighlightId() {
-    return String(this.$staffEl.find(".staff-highlight").first().attr("data-highlight-id") || "");
+    if (
+      this._activeHighlightId
+      && this.$staffEl.find(`.staff-highlight[data-highlight-id="${this._activeHighlightId}"]`).length
+    ) {
+      return this._activeHighlightId;
+    }
+
+    const fallback = String(this.$staffEl.find(".staff-highlight").last().attr("data-highlight-id") || "");
+    this._activeHighlightId = fallback || null;
+    return fallback;
   }
 
   _moveCurrentHighlightBy(delta) {
@@ -690,6 +795,7 @@ export class OpenStaff {
       .find(".staff-highlight__label")
       .toggleClass("d-none", !labelHtml)
       .html(labelHtml);
+    this._syncPianoKeyboardMarkerFromHighlight();
   }
 
   _moveHighlightToStep(highlightId, step, { revealLabel = this._isHighlightLabelRevealed(highlightId) } = {}) {
@@ -736,6 +842,7 @@ export class OpenStaff {
     }
     this.$staffEl.find(`.ledger[data-for-highlight-id="${highlightId}"]`).remove();
     $highlight.remove();
+    if (this._activeHighlightId === highlightId) this._activeHighlightId = null;
     this._syncPianoKeyboardMarkerFromHighlight();
   }
 
@@ -746,9 +853,12 @@ export class OpenStaff {
     }
     this._pendingHeldStep = null;
     this._setHighlightSounding(null, false);
-    if (!this._holdSynth?.triggerRelease) return;
-    this._holdSynth.triggerRelease();
-    this._heldMidi = null;
+    if (this._holdSynth?.triggerRelease) {
+      if (this._heldToneNotes.length) this._holdSynth.triggerRelease(this._heldToneNotes);
+      else this._holdSynth.triggerRelease();
+    }
+    this._heldMidiSignature = null;
+    this._heldToneNotes = [];
   }
 
   async _ensureHoldSynth() {
@@ -756,30 +866,44 @@ export class OpenStaff {
     if (this._holdSynth) return;
 
     await Tone.start();
-    this._holdSynth = GameAudio.createStaffNoteSynth();
+    this._holdSynth = new Tone.PolySynth(Tone.Synth, {
+      oscillator: { type: "sine" },
+      envelope: { attack: 0.01, decay: 0.08, sustain: 0.6, release: 0.12 },
+      volume: GameAudio.SYNTH_VOLUME_DB.staffNote,
+    }).toDestination();
   }
 
-  async _startHeldStep(step, accidentalOffset = 0) {
+  async _startHeldStep(step) {
     if (!this._currentScreen?.playSound || !this._currentScreen?.clef || !Number.isFinite(step)) return;
 
     await this._ensureHoldSynth();
     if (!this._holdSynth) return;
     if (!this._pointer.active || this._pendingHeldStep !== step) return;
 
-    const midi = this.staff._stepToMidi(step) + (accidentalOffset || 0);
-    if (this._heldMidi === midi) return;
+    const midis = this._highlightMidis();
+    const signature = midis.join(",");
+    if (!signature || this._heldMidiSignature === signature) return;
 
-    if (this._holdSynth.triggerRelease) this._holdSynth.triggerRelease();
-    this._holdSynth.triggerAttack(Tone.Frequency(midi, "midi"), undefined, GameAudio.scale("staffNote", 1));
-    this._heldMidi = midi;
-    this._setHighlightSounding(this._pointer.targetId, true);
+    const toneNotes = midis.map((midi) => Tone.Frequency(midi, "midi").toNote());
+    if (this._holdSynth.triggerRelease) {
+      if (this._heldToneNotes.length) this._holdSynth.triggerRelease(this._heldToneNotes);
+      else this._holdSynth.triggerRelease();
+    }
+    this._holdSynth.triggerAttack(
+      toneNotes,
+      undefined,
+      GameAudio.scale("staffNote", 0.9),
+    );
+    this._heldMidiSignature = signature;
+    this._heldToneNotes = toneNotes;
+    this._setHighlightSounding(null, true);
   }
 
   _scheduleHeldStep(step) {
     if (!this._currentScreen?.playSound || !this._currentScreen?.clef || !Number.isFinite(step)) return;
 
     this._pendingHeldStep = step;
-    if (this._heldMidi != null) {
+    if (this._heldMidiSignature != null) {
       void this._startHeldStep(step, 0);
       return;
     }
@@ -796,7 +920,7 @@ export class OpenStaff {
     const noteName = this._stepName(step);
     if (this._currentScreen?.playSound && this._currentScreen?.clef) {
       if (sustain) this._scheduleHeldStep(step);
-      else void this.staff.playStep(step, 0);
+      else void this._playHighlightChord();
     }
     if (!this._currentScreen?.logNoteName) return;
 
@@ -805,6 +929,29 @@ export class OpenStaff {
       clef: this.staff.getClef(),
       step,
     });
+  }
+
+  _highlightMidis() {
+    return this._highlightSteps()
+      .map((highlightStep) => this.staff._stepToMidi(highlightStep))
+      .filter((midi) => Number.isFinite(midi))
+      .sort((a, b) => a - b);
+  }
+
+  async _playHighlightChord() {
+    if (!this._currentScreen?.playSound || !this._currentScreen?.clef) return;
+    const midis = this._highlightMidis();
+    if (!midis.length) return;
+
+    await this._ensureHoldSynth();
+    if (!this._holdSynth?.triggerAttackRelease) return;
+
+    this._holdSynth.triggerAttackRelease(
+      midis.map((midi) => Tone.Frequency(midi, "midi")),
+      0.5,
+      undefined,
+      GameAudio.scale("staffNote", 0.9),
+    );
   }
 }
 

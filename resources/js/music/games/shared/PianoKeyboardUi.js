@@ -247,7 +247,7 @@ export class PianoKeyboardUi {
 
     const entries = nextNoteNames.map((noteName) => {
       const $key = nextKeys.find(($candidate) => this.noteNameForKey($candidate) === noteName) || null;
-      return { noteName, tone: "primary", $key };
+      return { noteName, markerLabel: this._markerLabelFromNoteName(noteName), tone: "primary", $key };
     });
 
     return this.syncActiveMarkers(entries);
@@ -260,16 +260,23 @@ export class PianoKeyboardUi {
     list.forEach((entry) => {
       const noteName = String(entry.noteName || "").trim();
       if (!noteName) return;
-      nextMarkers.set(noteName, entry.tone === "secondary" ? "secondary" : "primary");
+      const hasMarkerLabel = Object.prototype.hasOwnProperty.call(entry, "markerLabel");
+      nextMarkers.set(noteName, {
+        tone: entry.tone === "secondary" ? "secondary" : "primary",
+        label: hasMarkerLabel
+          ? String(entry.markerLabel ?? "").trim()
+          : this._markerLabelFromNoteName(noteName),
+        color: String(entry.markerColor || "").trim(),
+      });
     });
 
     if (this._markerMapsEqual(this._activeMarkers, nextMarkers)) {
       list.forEach((entry) => {
         if (!entry?.$key?.length) return;
-        const tone = nextMarkers.get(String(entry.noteName || "").trim()) || "primary";
+        const marker = nextMarkers.get(String(entry.noteName || "").trim()) || {};
         const $marker = entry.$key.find(".key-marker").first();
-        this._applyMarkerTone($marker, tone);
-        this._showMarker($marker);
+        this._applyMarkerTone($marker, marker.tone, marker.color);
+        this._showMarker($marker, marker.label);
       });
       return this;
     }
@@ -280,11 +287,11 @@ export class PianoKeyboardUi {
     list.forEach((entry) => {
       if (!entry?.$key?.length) return;
       const noteName = String(entry.noteName || "").trim();
-      const tone = this._activeMarkers.get(noteName);
-      if (!noteName || !tone) return;
+      const marker = this._activeMarkers.get(noteName);
+      if (!noteName || !marker) return;
       const $marker = entry.$key.find(".key-marker").first();
-      this._applyMarkerTone($marker, tone);
-      this._showMarker($marker);
+      this._applyMarkerTone($marker, marker.tone, marker.color);
+      this._showMarker($marker, marker.label);
     });
 
     return this;
@@ -478,19 +485,24 @@ export class PianoKeyboardUi {
   }
 
   _hideAllMarkers() {
-    $(`${this.rootSelector} .key-marker`).hide();
+    $(`${this.rootSelector} .key-marker`)
+      .hide()
+      .find("span")
+      .text("")
+      .css({ backgroundColor: "", color: "" })
+      .removeClass("bg-primary bg-secondary");
   }
 
   _reapplyActiveMarkers() {
     this._hideAllMarkers();
     if (!(this._activeMarkers instanceof Map) || !this._activeMarkers.size) return;
 
-    this._activeMarkers.forEach((tone, noteName) => {
+    this._activeMarkers.forEach((marker, noteName) => {
       const $key = this._keyByNoteName(noteName);
       if (!$key.length) return;
       const $marker = $key.find(".key-marker").first();
-      this._applyMarkerTone($marker, tone);
-      this._showMarker($marker);
+      this._applyMarkerTone($marker, marker.tone, marker.color);
+      this._showMarker($marker, marker.label);
     });
   }
 
@@ -551,21 +563,33 @@ export class PianoKeyboardUi {
     if (!(a instanceof Map) || !(b instanceof Map)) return false;
     if (a.size !== b.size) return false;
     for (const [key, value] of a) {
-      if (b.get(key) !== value) return false;
+      const next = b.get(key);
+      if (!next || next.tone !== value.tone || next.label !== value.label || next.color !== value.color) return false;
     }
     return true;
   }
 
-  _applyMarkerTone($marker, tone) {
+  _markerLabelFromNoteName(noteName) {
+    const match = String(noteName || "").trim().match(/^([A-G][#b]?)-?\d+$/);
+    return match ? match[1] : String(noteName || "").trim();
+  }
+
+  _applyMarkerTone($marker, tone, color = "") {
     if (!$marker?.length) return;
     const $swatch = $marker.find("span").first();
     if (!$swatch.length) return;
     $swatch.removeClass("bg-primary bg-secondary");
+    $swatch.css({ backgroundColor: "", color: "" });
+    if (color) {
+      $swatch.css({ backgroundColor: color, color: "#111" });
+      return;
+    }
     $swatch.addClass(tone === "secondary" ? "bg-secondary" : "bg-primary");
   }
 
-  _showMarker($marker) {
+  _showMarker($marker, noteName = "") {
     if (!$marker?.length) return;
+    $marker.find("span").first().text(noteName || "");
     $marker.show();
   }
 

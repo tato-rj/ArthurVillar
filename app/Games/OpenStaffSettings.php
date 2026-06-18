@@ -37,6 +37,7 @@ class OpenStaffSettings extends GameFactory
     protected function defaults(): array
     {
         return [
+            'numOfVoices' => 1,
             'maxUserNotes' => 1,
             'clefs' => [],
             'sound' => true,

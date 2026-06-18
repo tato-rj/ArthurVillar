@@ -288,6 +288,13 @@ var BaseStaffGame = /*#__PURE__*/function () {
       return ((_this$keyboard$_noteN = (_this$keyboard = this.keyboard)._noteNameFromMidi) === null || _this$keyboard$_noteN === void 0 ? void 0 : _this$keyboard$_noteN.call(_this$keyboard, midi)) || "";
     }
   }, {
+    key: "_keyboardMarkerLabelForNoteName",
+    value: function _keyboardMarkerLabelForNoteName(noteName) {
+      var raw = String(noteName || "").trim();
+      var match = raw.match(/^([A-G][#b]?)-?\d+$/);
+      return this._toDisplayNoteName(match ? match[1] : raw);
+    }
+  }, {
     key: "_syncPianoKeyboardMarkerFromStaff",
     value: function _syncPianoKeyboardMarkerFromStaff() {
       var _this3 = this;
@@ -303,8 +310,10 @@ var BaseStaffGame = /*#__PURE__*/function () {
       var primaryState = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.stepToLetterOctave)(this.staff, primary.step);
       var keys = [this.keyboard.keyForNote(primaryState === null || primaryState === void 0 ? void 0 : primaryState.letter, primary.accidentalClass, primaryState === null || primaryState === void 0 ? void 0 : primaryState.octave)];
       var markerEntries = notes.map(function (note) {
+        var noteName = _this3._keyboardNoteNameForState(note.step, note.accidentalClass);
         return {
-          noteName: _this3._keyboardNoteNameForState(note.step, note.accidentalClass),
+          noteName: noteName,
+          markerLabel: _this3._keyboardMarkerLabelForNoteName(noteName),
           tone: note.fixed ? "secondary" : "primary",
           $key: note.noteId === primary.noteId ? keys[0] : null
         };
@@ -362,8 +371,10 @@ var BaseStaffGame = /*#__PURE__*/function () {
       var primaryAccidental = primary.noteId === noteId ? previewAccidentalClass : primary.accidentalClass;
       var keys = [this.keyboard.keyForNote(primaryState === null || primaryState === void 0 ? void 0 : primaryState.letter, primaryAccidental, primaryState === null || primaryState === void 0 ? void 0 : primaryState.octave)];
       var markerEntries = notes.map(function (note) {
+        var noteName = _this4._keyboardNoteNameForState(note.step, note.noteId === noteId ? previewAccidentalClass : note.accidentalClass);
         return {
-          noteName: _this4._keyboardNoteNameForState(note.step, note.noteId === noteId ? previewAccidentalClass : note.accidentalClass),
+          noteName: noteName,
+          markerLabel: _this4._keyboardMarkerLabelForNoteName(noteName),
           tone: note.fixed ? "secondary" : "primary",
           $key: note.noteId === primary.noteId ? keys[0] : null
         };
@@ -3274,6 +3285,7 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
         }) || null;
         return {
           noteName: noteName,
+          markerLabel: _this3._markerLabelFromNoteName(noteName),
           tone: "primary",
           $key: $key
         };
@@ -3287,18 +3299,24 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
       var list = Array.isArray(entries) ? entries.filter(Boolean) : [];
       var nextMarkers = new Map();
       list.forEach(function (entry) {
+        var _entry$markerLabel;
         var noteName = String(entry.noteName || "").trim();
         if (!noteName) return;
-        nextMarkers.set(noteName, entry.tone === "secondary" ? "secondary" : "primary");
+        var hasMarkerLabel = Object.prototype.hasOwnProperty.call(entry, "markerLabel");
+        nextMarkers.set(noteName, {
+          tone: entry.tone === "secondary" ? "secondary" : "primary",
+          label: hasMarkerLabel ? String((_entry$markerLabel = entry.markerLabel) !== null && _entry$markerLabel !== void 0 ? _entry$markerLabel : "").trim() : _this4._markerLabelFromNoteName(noteName),
+          color: String(entry.markerColor || "").trim()
+        });
       });
       if (this._markerMapsEqual(this._activeMarkers, nextMarkers)) {
         list.forEach(function (entry) {
           var _entry$$key;
           if (!(entry !== null && entry !== void 0 && (_entry$$key = entry.$key) !== null && _entry$$key !== void 0 && _entry$$key.length)) return;
-          var tone = nextMarkers.get(String(entry.noteName || "").trim()) || "primary";
+          var marker = nextMarkers.get(String(entry.noteName || "").trim()) || {};
           var $marker = entry.$key.find(".key-marker").first();
-          _this4._applyMarkerTone($marker, tone);
-          _this4._showMarker($marker);
+          _this4._applyMarkerTone($marker, marker.tone, marker.color);
+          _this4._showMarker($marker, marker.label);
         });
         return this;
       }
@@ -3308,11 +3326,11 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
         var _entry$$key2;
         if (!(entry !== null && entry !== void 0 && (_entry$$key2 = entry.$key) !== null && _entry$$key2 !== void 0 && _entry$$key2.length)) return;
         var noteName = String(entry.noteName || "").trim();
-        var tone = _this4._activeMarkers.get(noteName);
-        if (!noteName || !tone) return;
+        var marker = _this4._activeMarkers.get(noteName);
+        if (!noteName || !marker) return;
         var $marker = entry.$key.find(".key-marker").first();
-        _this4._applyMarkerTone($marker, tone);
-        _this4._showMarker($marker);
+        _this4._applyMarkerTone($marker, marker.tone, marker.color);
+        _this4._showMarker($marker, marker.label);
       });
       return this;
     }
@@ -3528,7 +3546,10 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
   }, {
     key: "_hideAllMarkers",
     value: function _hideAllMarkers() {
-      $("".concat(this.rootSelector, " .key-marker")).hide();
+      $("".concat(this.rootSelector, " .key-marker")).hide().find("span").text("").css({
+        backgroundColor: "",
+        color: ""
+      }).removeClass("bg-primary bg-secondary");
     }
   }, {
     key: "_reapplyActiveMarkers",
@@ -3536,12 +3557,12 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
       var _this5 = this;
       this._hideAllMarkers();
       if (!(this._activeMarkers instanceof Map) || !this._activeMarkers.size) return;
-      this._activeMarkers.forEach(function (tone, noteName) {
+      this._activeMarkers.forEach(function (marker, noteName) {
         var $key = _this5._keyByNoteName(noteName);
         if (!$key.length) return;
         var $marker = $key.find(".key-marker").first();
-        _this5._applyMarkerTone($marker, tone);
-        _this5._showMarker($marker);
+        _this5._applyMarkerTone($marker, marker.tone, marker.color);
+        _this5._showMarker($marker, marker.label);
       });
     }
   }, {
@@ -3605,7 +3626,8 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
           var _step$value = _slicedToArray(_step.value, 2),
             key = _step$value[0],
             value = _step$value[1];
-          if (b.get(key) !== value) return false;
+          var next = b.get(key);
+          if (!next || next.tone !== value.tone || next.label !== value.label || next.color !== value.color) return false;
         }
       } catch (err) {
         _iterator.e(err);
@@ -3615,18 +3637,38 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
       return true;
     }
   }, {
+    key: "_markerLabelFromNoteName",
+    value: function _markerLabelFromNoteName(noteName) {
+      var match = String(noteName || "").trim().match(/^([A-G][#b]?)-?\d+$/);
+      return match ? match[1] : String(noteName || "").trim();
+    }
+  }, {
     key: "_applyMarkerTone",
     value: function _applyMarkerTone($marker, tone) {
+      var color = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : "";
       if (!($marker !== null && $marker !== void 0 && $marker.length)) return;
       var $swatch = $marker.find("span").first();
       if (!$swatch.length) return;
       $swatch.removeClass("bg-primary bg-secondary");
+      $swatch.css({
+        backgroundColor: "",
+        color: ""
+      });
+      if (color) {
+        $swatch.css({
+          backgroundColor: color,
+          color: "#111"
+        });
+        return;
+      }
       $swatch.addClass(tone === "secondary" ? "bg-secondary" : "bg-primary");
     }
   }, {
     key: "_showMarker",
     value: function _showMarker($marker) {
+      var noteName = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "";
       if (!($marker !== null && $marker !== void 0 && $marker.length)) return;
+      $marker.find("span").first().text(noteName || "");
       $marker.show();
     }
   }, {

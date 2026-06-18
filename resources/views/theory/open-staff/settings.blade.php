@@ -2,6 +2,7 @@
 <form id="intervals-settings" method="GET" action="{{ $settings->gameUrl() }}">
   @component('theory.components.settings.section', ['title' => 'MATERIAL'])
     @include('theory.components.settings.multichoice', ['label' => 'Clefs', 'name' => 'clefs', 'options' => $settings->getClefs(), 'game' => $settings->gameName(), 'ucfirst' => true, 'singlechoice' => true])
+    @include('theory.components.settings.count', ['label' => 'Number of voices', 'name' => 'numOfVoices', 'min' => 1, 'max' => 4])
   @endcomponent
 
   @component('theory.components.settings.section', ['title' => 'PREFERENCES'])

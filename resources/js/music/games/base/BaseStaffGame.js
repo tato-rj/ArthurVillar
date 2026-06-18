@@ -266,6 +266,12 @@ export class BaseStaffGame {
     return this.keyboard._noteNameFromMidi?.(midi) || "";
   }
 
+  _keyboardMarkerLabelForNoteName(noteName) {
+    const raw = String(noteName || "").trim();
+    const match = raw.match(/^([A-G][#b]?)-?\d+$/);
+    return this._toDisplayNoteName(match ? match[1] : raw);
+  }
+
   _syncPianoKeyboardMarkerFromStaff() {
     if (!this.keyboard || !this.staff) return;
 
@@ -285,11 +291,15 @@ export class BaseStaffGame {
       ),
     ];
     const markerEntries = notes
-      .map((note) => ({
-        noteName: this._keyboardNoteNameForState(note.step, note.accidentalClass),
-        tone: note.fixed ? "secondary" : "primary",
-        $key: note.noteId === primary.noteId ? keys[0] : null,
-      }))
+      .map((note) => {
+        const noteName = this._keyboardNoteNameForState(note.step, note.accidentalClass);
+        return {
+          noteName,
+          markerLabel: this._keyboardMarkerLabelForNoteName(noteName),
+          tone: note.fixed ? "secondary" : "primary",
+          $key: note.noteId === primary.noteId ? keys[0] : null,
+        };
+      })
       .filter((entry) => entry.noteName);
 
     notes.forEach((note) => {
@@ -347,14 +357,18 @@ export class BaseStaffGame {
       ),
     ];
     const markerEntries = notes
-      .map((note) => ({
-        noteName: this._keyboardNoteNameForState(
+      .map((note) => {
+        const noteName = this._keyboardNoteNameForState(
           note.step,
           note.noteId === noteId ? previewAccidentalClass : note.accidentalClass,
-        ),
-        tone: note.fixed ? "secondary" : "primary",
-        $key: note.noteId === primary.noteId ? keys[0] : null,
-      }))
+        );
+        return {
+          noteName,
+          markerLabel: this._keyboardMarkerLabelForNoteName(noteName),
+          tone: note.fixed ? "secondary" : "primary",
+          $key: note.noteId === primary.noteId ? keys[0] : null,
+        };
+      })
       .filter((entry) => entry.noteName);
 
     notes.forEach((note) => {

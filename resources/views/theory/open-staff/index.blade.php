@@ -19,21 +19,27 @@
 
 <style>
 .staff-highlight {
+  --highlight-rgb: 255, 229, 76;
+  --highlight-sounding-rgb: 251, 141, 118;
   width: 93%;
   height: 20px;
-  background: rgba(255, 229, 76, 0.6);
+  background: rgba(var(--highlight-rgb), 0.6);
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
   transition: .2s;
 }
 
+.staff-highlight--voice-2 { --highlight-rgb: 79, 199, 232; --highlight-sounding-rgb: 251, 141, 118; }
+.staff-highlight--voice-3 { --highlight-rgb: 139, 118, 232; --highlight-sounding-rgb: 251, 141, 118; }
+.staff-highlight--voice-4 { --highlight-rgb: 92, 205, 128; --highlight-sounding-rgb: 251, 141, 118; }
+
 .staff-highlight.dragging {
-  background: rgba(255, 229, 76, 0.8) !important;
+  background: rgba(var(--highlight-rgb), 0.8) !important;
 }
 
 .staff-highlight.is-sounding {
-  background: rgba(251, 141, 118, 0.6) !important;
+  background: rgba(var(--highlight-sounding-rgb), 0.6) !important;
 }
 
 .staff-highlight.dragging .staff-highlight__label {
@@ -53,8 +59,13 @@
   padding: 0 6px;
   border-top-right-radius: 2rem;
   border-bottom-right-radius: 2rem;
-  background: rgba(255, 229, 76);
+  background: rgb(var(--highlight-rgb));
 }
+
+#staff .ledger.staff-highlight--voice-1 { background: rgb(255, 229, 76); }
+#staff .ledger.staff-highlight--voice-2 { background: rgb(79, 199, 232); }
+#staff .ledger.staff-highlight--voice-3 { background: rgb(139, 118, 232); }
+#staff .ledger.staff-highlight--voice-4 { background: rgb(92, 205, 128); }
 
 .progress, #score {display: none}
 </style>

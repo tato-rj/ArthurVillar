@@ -47,6 +47,7 @@ var OpenStaff = /*#__PURE__*/function () {
       solfege: false,
       showLabelOnTap: false,
       maxUserNotes: 1,
+      numOfVoices: 1,
       clefUrls: null,
       clef: null,
       clefs: null,
@@ -70,8 +71,10 @@ var OpenStaff = /*#__PURE__*/function () {
     this._pendingSuccessInstructions = false;
     this._screens = this._buildScreens();
     this._highlightIdCounter = 1;
+    this._activeHighlightId = null;
     this._holdSynth = null;
-    this._heldMidi = null;
+    this._heldMidiSignature = null;
+    this._heldToneNotes = [];
     this._holdSoundTimer = null;
     this._pendingHeldStep = null;
     this._pointer = {
@@ -335,6 +338,7 @@ var OpenStaff = /*#__PURE__*/function () {
     value: function _clearHighlights() {
       this.$staffEl.find(".staff-highlight").remove();
       this.$staffEl.find(".ledger[data-for-highlight-id]").remove();
+      this._activeHighlightId = null;
       this._syncPianoKeyboardMarkerFromHighlight();
     }
   }, {
@@ -361,124 +365,148 @@ var OpenStaff = /*#__PURE__*/function () {
   }, {
     key: "_syncPianoKeyboardMarkerFromHighlight",
     value: function _syncPianoKeyboardMarkerFromHighlight() {
-      var _this$_currentScreen5;
+      var _this$_currentScreen5,
+        _this6 = this;
       if (!this.keyboard) return;
       if (!((_this$_currentScreen5 = this._currentScreen) !== null && _this$_currentScreen5 !== void 0 && _this$_currentScreen5.clef)) {
         this.keyboard.syncActiveKeys([]);
         return;
       }
-      var highlightId = this._currentHighlightId();
-      var step = this._highlightStep(highlightId);
-      if (!highlightId || !Number.isFinite(step)) {
+      var highlights = this._highlightEntries();
+      if (!highlights.length) {
         this.keyboard.syncActiveKeys([]);
         return;
       }
-      var note = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.stepToLetterOctave)(this.staff, step);
-      var $key = this.keyboard.keyForNote(note === null || note === void 0 ? void 0 : note.letter, null, note === null || note === void 0 ? void 0 : note.octave);
-      this.keyboard.syncActiveKeys($key.length ? [$key] : []);
+      var markerEntries = highlights.map(function (_ref, index) {
+        var id = _ref.id,
+          step = _ref.step,
+          voiceIndex = _ref.voiceIndex;
+        var note = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.stepToLetterOctave)(_this6.staff, step);
+        var $key = index === 0 ? _this6.keyboard.keyForNote(note === null || note === void 0 ? void 0 : note.letter, null, note === null || note === void 0 ? void 0 : note.octave) : _this6.keyboard.keyForNoteIfVisible(note === null || note === void 0 ? void 0 : note.letter, null, note === null || note === void 0 ? void 0 : note.octave);
+        var noteName = _this6._keyboardNoteNameFromStep(step);
+        var labelRevealed = !_this6._delaysNoteLabel() || _this6._isHighlightLabelRevealed(id);
+        return {
+          noteName: noteName,
+          markerLabel: labelRevealed ? _this6._stepName(step) : "",
+          tone: voiceIndex === 0 ? "primary" : "secondary",
+          markerColor: _this6._voiceColor(voiceIndex),
+          $key: $key
+        };
+      }).filter(function (entry) {
+        var _entry$$key;
+        return entry.noteName && ((_entry$$key = entry.$key) === null || _entry$$key === void 0 ? void 0 : _entry$$key.length);
+      });
+      this.keyboard.syncActiveMarkers(markerEntries);
     }
   }, {
     key: "_bindOpenStaffInteraction",
     value: function _bindOpenStaffInteraction() {
-      var _this6 = this;
+      var _this7 = this;
       this.$staffEl.off(".".concat(this.ns));
       $(window).off("blur.".concat(this.ns));
       this.$staffEl.on("pointerdown.".concat(this.ns), function (e) {
-        var _this6$$staffEl$;
-        if (_this6._shouldBlockStaffInteraction()) return;
+        var _this7$$staffEl$;
+        if (_this7._shouldBlockStaffInteraction()) return;
         e.preventDefault();
         var _getPointerPageXY = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.getPointerPageXY)(e),
           pageY = _getPointerPageXY.y;
         var $highlight = $(e.target).closest(".staff-highlight");
-        var pointerStep = _this6._stepFromPageY(pageY);
-        _this6._pointer.active = true;
-        _this6._pointer.pointerId = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.getPointerId)(e);
-        _this6._pointer.targetId = null;
-        _this6._pointer.dragging = false;
-        _this6._pointer.createdOnPointerDown = false;
-        _this6._pointer.startPageY = pageY;
-        _this6._pointer.startTime = Date.now();
-        _this6._pointer.lastStep = null;
+        var pointerStep = _this7._stepFromPageY(pageY);
+        _this7._pointer.active = true;
+        _this7._pointer.pointerId = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.getPointerId)(e);
+        _this7._pointer.targetId = null;
+        _this7._pointer.dragging = false;
+        _this7._pointer.createdOnPointerDown = false;
+        _this7._pointer.startPageY = pageY;
+        _this7._pointer.startTime = Date.now();
+        _this7._pointer.lastStep = null;
         if ($highlight.length) {
           var highlightId = String($highlight.attr("data-highlight-id") || "");
           if (!highlightId) {
-            _this6._finishPointerInteraction();
+            _this7._finishPointerInteraction();
             return;
           }
-          _this6._pointer.targetId = highlightId;
-          _this6._pointer.lastStep = _this6._highlightStep(highlightId);
-          _this6._setHighlightDragging(highlightId, true);
-          if (Number.isFinite(_this6._pointer.lastStep)) {
-            _this6._playAndLogStep(_this6._pointer.lastStep, {
+          _this7._pointer.targetId = highlightId;
+          _this7._activeHighlightId = highlightId;
+          _this7._pointer.lastStep = _this7._highlightStep(highlightId);
+          _this7._setHighlightDragging(highlightId, true);
+          if (Number.isFinite(_this7._pointer.lastStep)) {
+            _this7._playAndLogStep(_this7._pointer.lastStep, {
               sustain: true
             });
           }
         } else {
-          var existingHighlightId = _this6._currentHighlightId();
+          var sameStepHighlightId = _this7._highlightIdAtStep(pointerStep);
+          var existingHighlightId = sameStepHighlightId || (_this7._highlightCount() >= _this7._maxUserHighlights() ? _this7._currentHighlightId() : "");
           if (existingHighlightId) {
-            _this6._pointer.targetId = existingHighlightId;
-            _this6._pointer.createdOnPointerDown = true;
-            _this6._pointer.lastStep = pointerStep;
-            _this6._moveHighlightToStep(existingHighlightId, pointerStep, {
-              revealLabel: false
-            });
-            _this6._setHighlightDragging(existingHighlightId, true);
-            _this6._playAndLogStep(pointerStep, {
+            var isSameStepHighlight = existingHighlightId === sameStepHighlightId;
+            _this7._pointer.targetId = existingHighlightId;
+            _this7._activeHighlightId = existingHighlightId;
+            _this7._pointer.createdOnPointerDown = !isSameStepHighlight;
+            _this7._pointer.lastStep = isSameStepHighlight ? _this7._highlightStep(existingHighlightId) : pointerStep;
+            if (!isSameStepHighlight) {
+              _this7._moveHighlightToStep(existingHighlightId, pointerStep, {
+                revealLabel: false
+              });
+            }
+            _this7._setHighlightDragging(existingHighlightId, true);
+            _this7._playAndLogStep(_this7._pointer.lastStep, {
               sustain: true
             });
           } else {
-            var createdId = _this6._createHighlight(pointerStep);
+            var createdId = _this7._createHighlight(pointerStep);
             if (!createdId) {
-              _this6._finishPointerInteraction();
+              _this7._finishPointerInteraction();
               return;
             }
-            _this6._pointer.targetId = createdId;
-            _this6._pointer.createdOnPointerDown = true;
-            _this6._pointer.lastStep = pointerStep;
-            _this6._playAndLogStep(pointerStep, {
+            _this7._pointer.targetId = createdId;
+            _this7._activeHighlightId = createdId;
+            _this7._pointer.createdOnPointerDown = true;
+            _this7._pointer.lastStep = pointerStep;
+            _this7._playAndLogStep(pointerStep, {
               sustain: true
             });
           }
-          if (!_this6._pointer.targetId) {
-            _this6._finishPointerInteraction();
+          if (!_this7._pointer.targetId) {
+            _this7._finishPointerInteraction();
             return;
           }
         }
-        var pointerId = _this6._pointer.pointerId;
-        if ((_this6$$staffEl$ = _this6.$staffEl[0]) !== null && _this6$$staffEl$ !== void 0 && _this6$$staffEl$.setPointerCapture && pointerId != null) {
-          _this6.$staffEl[0].setPointerCapture(pointerId);
+        var pointerId = _this7._pointer.pointerId;
+        if ((_this7$$staffEl$ = _this7.$staffEl[0]) !== null && _this7$$staffEl$ !== void 0 && _this7$$staffEl$.setPointerCapture && pointerId != null) {
+          _this7.$staffEl[0].setPointerCapture(pointerId);
         }
       });
       this.$staffEl.on("pointermove.".concat(this.ns), function (e) {
-        if (_this6._shouldBlockStaffInteraction()) return;
-        if (!_this6._pointer.active) return;
+        if (_this7._shouldBlockStaffInteraction()) return;
+        if (!_this7._pointer.active) return;
         var pointerId = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.getPointerId)(e);
-        if (_this6._pointer.pointerId != null && pointerId != null && pointerId !== _this6._pointer.pointerId) return;
+        if (_this7._pointer.pointerId != null && pointerId != null && pointerId !== _this7._pointer.pointerId) return;
         e.preventDefault();
         var _getPointerPageXY2 = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.getPointerPageXY)(e),
           pageY = _getPointerPageXY2.y;
-        var movedPx = Math.abs(pageY - _this6._pointer.startPageY);
-        if (!_this6._pointer.dragging && movedPx >= _this6._pointer.dragThresholdPx) {
-          _this6._pointer.dragging = true;
-          _this6._setHighlightDragging(_this6._pointer.targetId, true);
+        var movedPx = Math.abs(pageY - _this7._pointer.startPageY);
+        if (!_this7._pointer.dragging && movedPx >= _this7._pointer.dragThresholdPx) {
+          _this7._pointer.dragging = true;
+          _this7._setHighlightDragging(_this7._pointer.targetId, true);
         }
-        if (!_this6._pointer.dragging) return;
-        var step = _this6._stepFromPageY(pageY);
-        _this6._moveHighlightToStep(_this6._pointer.targetId, step);
-        if (step === _this6._pointer.lastStep) return;
-        _this6._pointer.lastStep = step;
-        _this6._revealContinue();
-        _this6._playAndLogStep(step, {
+        if (!_this7._pointer.dragging) return;
+        var step = _this7._stepFromPageY(pageY);
+        _this7._moveHighlightToStep(_this7._pointer.targetId, step);
+        if (step === _this7._pointer.lastStep) return;
+        _this7._pointer.lastStep = step;
+        _this7._revealContinue();
+        _this7._playAndLogStep(step, {
           sustain: true
         });
       });
       this.$staffEl.on("pointerup.".concat(this.ns, " pointercancel.").concat(this.ns), function (e) {
         var pointerId = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.getPointerId)(e);
-        if (_this6._pointer.pointerId != null && pointerId != null && pointerId !== _this6._pointer.pointerId) return;
-        _this6._finishPointerInteraction();
+        if (_this7._pointer.pointerId != null && pointerId != null && pointerId !== _this7._pointer.pointerId) return;
+        _this7._finishPointerInteraction();
       });
       $(window).on("blur.".concat(this.ns), function () {
-        _this6._finishPointerInteraction();
+        _this7._finishPointerInteraction();
       });
     }
   }, {
@@ -564,9 +592,9 @@ var OpenStaff = /*#__PURE__*/function () {
     key: "_highlightLabelHtml",
     value: function _highlightLabelHtml(step) {
       var _this$_currentScreen9, _this$_currentScreen0;
-      var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
-        _ref$revealLabel = _ref.revealLabel,
-        revealLabel = _ref$revealLabel === void 0 ? true : _ref$revealLabel;
+      var _ref2 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
+        _ref2$revealLabel = _ref2.revealLabel,
+        revealLabel = _ref2$revealLabel === void 0 ? true : _ref2$revealLabel;
       if (!((_this$_currentScreen9 = this._currentScreen) !== null && _this$_currentScreen9 !== void 0 && _this$_currentScreen9.showLabels)) return "";
       if (this._delaysNoteLabel() && !revealLabel) return "";
       if (!((_this$_currentScreen0 = this._currentScreen) !== null && _this$_currentScreen0 !== void 0 && _this$_currentScreen0.clef)) return this._stepPositionLabel(step);
@@ -587,7 +615,7 @@ var OpenStaff = /*#__PURE__*/function () {
   }, {
     key: "_maxUserHighlights",
     value: function _maxUserHighlights() {
-      var value = Number(this.opts.maxUserNotes);
+      var value = this.opts.numOfVoices != null ? Number(this.opts.numOfVoices) : Number(this.opts.maxUserNotes);
       return Number.isFinite(value) ? Math.max(0, Math.floor(value)) : 1;
     }
   }, {
@@ -596,40 +624,109 @@ var OpenStaff = /*#__PURE__*/function () {
       return this.$staffEl.find(".staff-highlight").length;
     }
   }, {
+    key: "_highlightEntries",
+    value: function _highlightEntries() {
+      return this.$staffEl.find(".staff-highlight").toArray().map(function (el) {
+        var $highlight = $(el);
+        var id = String($highlight.attr("data-highlight-id") || "");
+        var step = Number($highlight.attr("data-step"));
+        var voiceIndex = Number($highlight.attr("data-voice-index"));
+        if (!id || !Number.isFinite(step)) return null;
+        return {
+          id: id,
+          step: step,
+          voiceIndex: Number.isFinite(voiceIndex) ? voiceIndex : 0,
+          $highlight: $highlight
+        };
+      }).filter(Boolean);
+    }
+  }, {
+    key: "_highlightSteps",
+    value: function _highlightSteps() {
+      return this._highlightEntries().map(function (entry) {
+        return entry.step;
+      }).filter(function (step) {
+        return Number.isFinite(step);
+      });
+    }
+  }, {
+    key: "_highlightIdAtStep",
+    value: function _highlightIdAtStep(step) {
+      if (!Number.isFinite(step)) return "";
+      var entry = this._highlightEntries().find(function (item) {
+        return item.step === step;
+      });
+      return (entry === null || entry === void 0 ? void 0 : entry.id) || "";
+    }
+  }, {
+    key: "_nextVoiceIndex",
+    value: function _nextVoiceIndex() {
+      var used = new Set(this._highlightEntries().map(function (entry) {
+        return entry.voiceIndex;
+      }));
+      var max = Math.max(1, this._maxUserHighlights());
+      for (var i = 0; i < max; i += 1) {
+        if (!used.has(i)) return i;
+      }
+      return used.size;
+    }
+  }, {
+    key: "_voiceColor",
+    value: function _voiceColor(voiceIndex) {
+      var index = Number.isFinite(Number(voiceIndex)) ? Number(voiceIndex) : 0;
+      var colors = OpenStaff.VOICE_COLORS;
+      return colors[(index % colors.length + colors.length) % colors.length];
+    }
+  }, {
+    key: "_keyboardNoteNameFromStep",
+    value: function _keyboardNoteNameFromStep(step) {
+      var _this$keyboard$_noteN, _this$keyboard2;
+      var note = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.stepToLetterOctave)(this.staff, step);
+      var letter = String((note === null || note === void 0 ? void 0 : note.letter) || "").trim().toUpperCase();
+      var octave = Number(note === null || note === void 0 ? void 0 : note.octave);
+      if (!letter || !Number.isFinite(octave) || !this.keyboard) return "";
+      return ((_this$keyboard$_noteN = (_this$keyboard2 = this.keyboard)._noteNameFromMidi) === null || _this$keyboard$_noteN === void 0 ? void 0 : _this$keyboard$_noteN.call(_this$keyboard2, this.staff._stepToMidi(step))) || "".concat(letter).concat(octave);
+    }
+  }, {
     key: "_renderHighlightLedgers",
     value: function _renderHighlightLedgers(highlightId, step) {
-      var _this7 = this;
+      var _this8 = this;
       if (!highlightId) return;
       this.$staffEl.find(".ledger[data-for-highlight-id=\"".concat(highlightId, "\"]")).remove();
       var ledgerSteps = this.staff.ledgerStepsFor(step);
       var left = this.staff.centerX();
-      var isDragging = this.$staffEl.find(".staff-highlight[data-highlight-id=\"".concat(highlightId, "\"]")).hasClass("dragging");
+      var $highlight = this.$staffEl.find(".staff-highlight[data-highlight-id=\"".concat(highlightId, "\"]"));
+      var isDragging = $highlight.hasClass("dragging");
+      var voiceIndex = Number($highlight.attr("data-voice-index"));
+      var voiceClass = "staff-highlight--voice-".concat((Number.isFinite(voiceIndex) ? voiceIndex : 0) % 4 + 1);
       ledgerSteps.forEach(function (ledgerStep) {
-        var $ledger = $("<div></div>").addClass("ledger").attr("data-for-highlight-id", highlightId).css({
+        var $ledger = $("<div></div>").addClass("ledger ".concat(voiceClass)).attr("data-for-highlight-id", highlightId).css({
           left: "".concat(left, "px"),
-          top: "".concat(_this7.staff.stepToY(ledgerStep), "px")
+          top: "".concat(_this8.staff.stepToY(ledgerStep), "px")
         });
         if (isDragging) $ledger.addClass("dragging");
-        $ledger.appendTo(_this7.$staffEl);
+        $ledger.appendTo(_this8.$staffEl);
       });
     }
   }, {
     key: "_createHighlight",
     value: function _createHighlight(step) {
-      var _ref2 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
-        _ref2$revealContinue = _ref2.revealContinue,
-        revealContinue = _ref2$revealContinue === void 0 ? true : _ref2$revealContinue;
+      var _ref3 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
+        _ref3$revealContinue = _ref3.revealContinue,
+        revealContinue = _ref3$revealContinue === void 0 ? true : _ref3$revealContinue;
       if (!this.staff.isStepAllowed(step)) return null;
       if (this._highlightCount() >= this._maxUserHighlights()) return null;
       var id = "staffzone-highlight-".concat(this._highlightIdCounter++);
+      var voiceIndex = this._nextVoiceIndex();
       var revealLabel = !this._delaysNoteLabel();
       var labelHtml = this._highlightLabelHtml(step, {
         revealLabel: revealLabel
       });
-      $("<div></div>").addClass("staff-highlight rounded").attr("data-highlight-id", id).attr("data-step", step).attr("data-label-revealed", revealLabel ? "true" : "false").css({
+      $("<div></div>").addClass("staff-highlight staff-highlight--voice-".concat(voiceIndex % 4 + 1, " rounded")).attr("data-highlight-id", id).attr("data-step", step).attr("data-voice-index", voiceIndex).attr("data-label-revealed", revealLabel ? "true" : "false").css({
         top: "".concat(this._highlightTopForStep(step), "px")
       }).append($("<div></div>").addClass("staff-highlight__label").toggleClass("d-none", !labelHtml).html(labelHtml)).appendTo(this.$staffEl);
       this._renderHighlightLedgers(id, step);
+      this._activeHighlightId = id;
       if (revealContinue) this._revealContinue();
       this._syncPianoKeyboardMarkerFromHighlight();
       return id;
@@ -644,7 +741,12 @@ var OpenStaff = /*#__PURE__*/function () {
   }, {
     key: "_currentHighlightId",
     value: function _currentHighlightId() {
-      return String(this.$staffEl.find(".staff-highlight").first().attr("data-highlight-id") || "");
+      if (this._activeHighlightId && this.$staffEl.find(".staff-highlight[data-highlight-id=\"".concat(this._activeHighlightId, "\"]")).length) {
+        return this._activeHighlightId;
+      }
+      var fallback = String(this.$staffEl.find(".staff-highlight").last().attr("data-highlight-id") || "");
+      this._activeHighlightId = fallback || null;
+      return fallback;
     }
   }, {
     key: "_moveCurrentHighlightBy",
@@ -681,13 +783,14 @@ var OpenStaff = /*#__PURE__*/function () {
         revealLabel: revealLabel
       });
       $highlight.attr("data-label-revealed", revealLabel ? "true" : "false").find(".staff-highlight__label").toggleClass("d-none", !labelHtml).html(labelHtml);
+      this._syncPianoKeyboardMarkerFromHighlight();
     }
   }, {
     key: "_moveHighlightToStep",
     value: function _moveHighlightToStep(highlightId, step) {
-      var _ref3 = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
-        _ref3$revealLabel = _ref3.revealLabel,
-        revealLabel = _ref3$revealLabel === void 0 ? this._isHighlightLabelRevealed(highlightId) : _ref3$revealLabel;
+      var _ref4 = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
+        _ref4$revealLabel = _ref4.revealLabel,
+        revealLabel = _ref4$revealLabel === void 0 ? this._isHighlightLabelRevealed(highlightId) : _ref4$revealLabel;
       if (!highlightId || !this.staff.isStepAllowed(step)) return;
       var labelHtml = this._highlightLabelHtml(step, {
         revealLabel: revealLabel
@@ -714,9 +817,9 @@ var OpenStaff = /*#__PURE__*/function () {
   }, {
     key: "_removeHighlight",
     value: function _removeHighlight(highlightId) {
-      var _ref4 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
-        _ref4$smoke = _ref4.smoke,
-        smoke = _ref4$smoke === void 0 ? false : _ref4$smoke;
+      var _ref5 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
+        _ref5$smoke = _ref5.smoke,
+        smoke = _ref5$smoke === void 0 ? false : _ref5$smoke;
       if (!highlightId) return;
       var $highlight = this.$staffEl.find(".staff-highlight[data-highlight-id=\"".concat(highlightId, "\"]"));
       if (!$highlight.length) return;
@@ -728,6 +831,7 @@ var OpenStaff = /*#__PURE__*/function () {
       }
       this.$staffEl.find(".ledger[data-for-highlight-id=\"".concat(highlightId, "\"]")).remove();
       $highlight.remove();
+      if (this._activeHighlightId === highlightId) this._activeHighlightId = null;
       this._syncPianoKeyboardMarkerFromHighlight();
     }
   }, {
@@ -740,9 +844,11 @@ var OpenStaff = /*#__PURE__*/function () {
       }
       this._pendingHeldStep = null;
       this._setHighlightSounding(null, false);
-      if (!((_this$_holdSynth = this._holdSynth) !== null && _this$_holdSynth !== void 0 && _this$_holdSynth.triggerRelease)) return;
-      this._holdSynth.triggerRelease();
-      this._heldMidi = null;
+      if ((_this$_holdSynth = this._holdSynth) !== null && _this$_holdSynth !== void 0 && _this$_holdSynth.triggerRelease) {
+        if (this._heldToneNotes.length) this._holdSynth.triggerRelease(this._heldToneNotes);else this._holdSynth.triggerRelease();
+      }
+      this._heldMidiSignature = null;
+      this._heldToneNotes = [];
     }
   }, {
     key: "_ensureHoldSynth",
@@ -766,7 +872,18 @@ var OpenStaff = /*#__PURE__*/function () {
               _context.n = 3;
               return Tone.start();
             case 3:
-              this._holdSynth = _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_2__.GameAudio.createStaffNoteSynth();
+              this._holdSynth = new Tone.PolySynth(Tone.Synth, {
+                oscillator: {
+                  type: "sine"
+                },
+                envelope: {
+                  attack: 0.01,
+                  decay: 0.08,
+                  sustain: 0.6,
+                  release: 0.12
+                },
+                volume: _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_2__.GameAudio.SYNTH_VOLUME_DB.staffNote
+              }).toDestination();
             case 4:
               return _context.a(2);
           }
@@ -782,13 +899,10 @@ var OpenStaff = /*#__PURE__*/function () {
     value: function () {
       var _startHeldStep2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee2(step) {
         var _this$_currentScreen1, _this$_currentScreen10;
-        var accidentalOffset,
-          midi,
-          _args2 = arguments;
+        var midis, signature, toneNotes;
         return _regenerator().w(function (_context2) {
           while (1) switch (_context2.n) {
             case 0:
-              accidentalOffset = _args2.length > 1 && _args2[1] !== undefined ? _args2[1] : 0;
               if (!(!((_this$_currentScreen1 = this._currentScreen) !== null && _this$_currentScreen1 !== void 0 && _this$_currentScreen1.playSound) || !((_this$_currentScreen10 = this._currentScreen) !== null && _this$_currentScreen10 !== void 0 && _this$_currentScreen10.clef) || !Number.isFinite(step))) {
                 _context2.n = 1;
                 break;
@@ -810,17 +924,24 @@ var OpenStaff = /*#__PURE__*/function () {
               }
               return _context2.a(2);
             case 4:
-              midi = this.staff._stepToMidi(step) + (accidentalOffset || 0);
-              if (!(this._heldMidi === midi)) {
+              midis = this._highlightMidis();
+              signature = midis.join(",");
+              if (!(!signature || this._heldMidiSignature === signature)) {
                 _context2.n = 5;
                 break;
               }
               return _context2.a(2);
             case 5:
-              if (this._holdSynth.triggerRelease) this._holdSynth.triggerRelease();
-              this._holdSynth.triggerAttack(Tone.Frequency(midi, "midi"), undefined, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_2__.GameAudio.scale("staffNote", 1));
-              this._heldMidi = midi;
-              this._setHighlightSounding(this._pointer.targetId, true);
+              toneNotes = midis.map(function (midi) {
+                return Tone.Frequency(midi, "midi").toNote();
+              });
+              if (this._holdSynth.triggerRelease) {
+                if (this._heldToneNotes.length) this._holdSynth.triggerRelease(this._heldToneNotes);else this._holdSynth.triggerRelease();
+              }
+              this._holdSynth.triggerAttack(toneNotes, undefined, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_2__.GameAudio.scale("staffNote", 0.9));
+              this._heldMidiSignature = signature;
+              this._heldToneNotes = toneNotes;
+              this._setHighlightSounding(null, true);
             case 6:
               return _context2.a(2);
           }
@@ -836,30 +957,30 @@ var OpenStaff = /*#__PURE__*/function () {
     value: function _scheduleHeldStep(step) {
       var _this$_currentScreen11,
         _this$_currentScreen12,
-        _this8 = this;
+        _this9 = this;
       if (!((_this$_currentScreen11 = this._currentScreen) !== null && _this$_currentScreen11 !== void 0 && _this$_currentScreen11.playSound) || !((_this$_currentScreen12 = this._currentScreen) !== null && _this$_currentScreen12 !== void 0 && _this$_currentScreen12.clef) || !Number.isFinite(step)) return;
       this._pendingHeldStep = step;
-      if (this._heldMidi != null) {
+      if (this._heldMidiSignature != null) {
         void this._startHeldStep(step, 0);
         return;
       }
       if (this._holdSoundTimer) return;
       this._holdSoundTimer = window.setTimeout(function () {
-        _this8._holdSoundTimer = null;
-        if (!_this8._pointer.active) return;
-        void _this8._startHeldStep(_this8._pendingHeldStep, 0);
+        _this9._holdSoundTimer = null;
+        if (!_this9._pointer.active) return;
+        void _this9._startHeldStep(_this9._pendingHeldStep, 0);
       }, this._pointer.holdSoundDelayMs);
     }
   }, {
     key: "_playAndLogStep",
     value: function _playAndLogStep(step) {
       var _this$_currentScreen13, _this$_currentScreen14, _this$_currentScreen15;
-      var _ref5 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
-        _ref5$sustain = _ref5.sustain,
-        sustain = _ref5$sustain === void 0 ? false : _ref5$sustain;
+      var _ref6 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
+        _ref6$sustain = _ref6.sustain,
+        sustain = _ref6$sustain === void 0 ? false : _ref6$sustain;
       var noteName = this._stepName(step);
       if ((_this$_currentScreen13 = this._currentScreen) !== null && _this$_currentScreen13 !== void 0 && _this$_currentScreen13.playSound && (_this$_currentScreen14 = this._currentScreen) !== null && _this$_currentScreen14 !== void 0 && _this$_currentScreen14.clef) {
-        if (sustain) this._scheduleHeldStep(step);else void this.staff.playStep(step, 0);
+        if (sustain) this._scheduleHeldStep(step);else void this._playHighlightChord();
       }
       if (!((_this$_currentScreen15 = this._currentScreen) !== null && _this$_currentScreen15 !== void 0 && _this$_currentScreen15.logNoteName)) return;
 
@@ -869,6 +990,62 @@ var OpenStaff = /*#__PURE__*/function () {
         step: step
       });
     }
+  }, {
+    key: "_highlightMidis",
+    value: function _highlightMidis() {
+      var _this0 = this;
+      return this._highlightSteps().map(function (highlightStep) {
+        return _this0.staff._stepToMidi(highlightStep);
+      }).filter(function (midi) {
+        return Number.isFinite(midi);
+      }).sort(function (a, b) {
+        return a - b;
+      });
+    }
+  }, {
+    key: "_playHighlightChord",
+    value: function () {
+      var _playHighlightChord2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee3() {
+        var _this$_currentScreen16, _this$_currentScreen17, _this$_holdSynth2;
+        var midis;
+        return _regenerator().w(function (_context3) {
+          while (1) switch (_context3.n) {
+            case 0:
+              if (!(!((_this$_currentScreen16 = this._currentScreen) !== null && _this$_currentScreen16 !== void 0 && _this$_currentScreen16.playSound) || !((_this$_currentScreen17 = this._currentScreen) !== null && _this$_currentScreen17 !== void 0 && _this$_currentScreen17.clef))) {
+                _context3.n = 1;
+                break;
+              }
+              return _context3.a(2);
+            case 1:
+              midis = this._highlightMidis();
+              if (midis.length) {
+                _context3.n = 2;
+                break;
+              }
+              return _context3.a(2);
+            case 2:
+              _context3.n = 3;
+              return this._ensureHoldSynth();
+            case 3:
+              if ((_this$_holdSynth2 = this._holdSynth) !== null && _this$_holdSynth2 !== void 0 && _this$_holdSynth2.triggerAttackRelease) {
+                _context3.n = 4;
+                break;
+              }
+              return _context3.a(2);
+            case 4:
+              this._holdSynth.triggerAttackRelease(midis.map(function (midi) {
+                return Tone.Frequency(midi, "midi");
+              }), 0.5, undefined, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_2__.GameAudio.scale("staffNote", 0.9));
+            case 5:
+              return _context3.a(2);
+          }
+        }, _callee3, this);
+      }));
+      function _playHighlightChord() {
+        return _playHighlightChord2.apply(this, arguments);
+      }
+      return _playHighlightChord;
+    }()
   }]);
 }();
 _defineProperty(OpenStaff, "LETTER_TO_SOLFEGE", {
@@ -880,6 +1057,7 @@ _defineProperty(OpenStaff, "LETTER_TO_SOLFEGE", {
   A: "La",
   B: "Si"
 });
+_defineProperty(OpenStaff, "VOICE_COLORS", ["rgb(255, 229, 76)", "rgb(79, 199, 232)", "rgb(139, 118, 232)", "rgb(92, 205, 128)"]);
 function indexHasNext(index, total) {
   return index < total - 1;
 }
@@ -1962,6 +2140,7 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
         }) || null;
         return {
           noteName: noteName,
+          markerLabel: _this3._markerLabelFromNoteName(noteName),
           tone: "primary",
           $key: $key
         };
@@ -1975,18 +2154,24 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
       var list = Array.isArray(entries) ? entries.filter(Boolean) : [];
       var nextMarkers = new Map();
       list.forEach(function (entry) {
+        var _entry$markerLabel;
         var noteName = String(entry.noteName || "").trim();
         if (!noteName) return;
-        nextMarkers.set(noteName, entry.tone === "secondary" ? "secondary" : "primary");
+        var hasMarkerLabel = Object.prototype.hasOwnProperty.call(entry, "markerLabel");
+        nextMarkers.set(noteName, {
+          tone: entry.tone === "secondary" ? "secondary" : "primary",
+          label: hasMarkerLabel ? String((_entry$markerLabel = entry.markerLabel) !== null && _entry$markerLabel !== void 0 ? _entry$markerLabel : "").trim() : _this4._markerLabelFromNoteName(noteName),
+          color: String(entry.markerColor || "").trim()
+        });
       });
       if (this._markerMapsEqual(this._activeMarkers, nextMarkers)) {
         list.forEach(function (entry) {
           var _entry$$key;
           if (!(entry !== null && entry !== void 0 && (_entry$$key = entry.$key) !== null && _entry$$key !== void 0 && _entry$$key.length)) return;
-          var tone = nextMarkers.get(String(entry.noteName || "").trim()) || "primary";
+          var marker = nextMarkers.get(String(entry.noteName || "").trim()) || {};
           var $marker = entry.$key.find(".key-marker").first();
-          _this4._applyMarkerTone($marker, tone);
-          _this4._showMarker($marker);
+          _this4._applyMarkerTone($marker, marker.tone, marker.color);
+          _this4._showMarker($marker, marker.label);
         });
         return this;
       }
@@ -1996,11 +2181,11 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
         var _entry$$key2;
         if (!(entry !== null && entry !== void 0 && (_entry$$key2 = entry.$key) !== null && _entry$$key2 !== void 0 && _entry$$key2.length)) return;
         var noteName = String(entry.noteName || "").trim();
-        var tone = _this4._activeMarkers.get(noteName);
-        if (!noteName || !tone) return;
+        var marker = _this4._activeMarkers.get(noteName);
+        if (!noteName || !marker) return;
         var $marker = entry.$key.find(".key-marker").first();
-        _this4._applyMarkerTone($marker, tone);
-        _this4._showMarker($marker);
+        _this4._applyMarkerTone($marker, marker.tone, marker.color);
+        _this4._showMarker($marker, marker.label);
       });
       return this;
     }
@@ -2216,7 +2401,10 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
   }, {
     key: "_hideAllMarkers",
     value: function _hideAllMarkers() {
-      $("".concat(this.rootSelector, " .key-marker")).hide();
+      $("".concat(this.rootSelector, " .key-marker")).hide().find("span").text("").css({
+        backgroundColor: "",
+        color: ""
+      }).removeClass("bg-primary bg-secondary");
     }
   }, {
     key: "_reapplyActiveMarkers",
@@ -2224,12 +2412,12 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
       var _this5 = this;
       this._hideAllMarkers();
       if (!(this._activeMarkers instanceof Map) || !this._activeMarkers.size) return;
-      this._activeMarkers.forEach(function (tone, noteName) {
+      this._activeMarkers.forEach(function (marker, noteName) {
         var $key = _this5._keyByNoteName(noteName);
         if (!$key.length) return;
         var $marker = $key.find(".key-marker").first();
-        _this5._applyMarkerTone($marker, tone);
-        _this5._showMarker($marker);
+        _this5._applyMarkerTone($marker, marker.tone, marker.color);
+        _this5._showMarker($marker, marker.label);
       });
     }
   }, {
@@ -2293,7 +2481,8 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
           var _step$value = _slicedToArray(_step.value, 2),
             key = _step$value[0],
             value = _step$value[1];
-          if (b.get(key) !== value) return false;
+          var next = b.get(key);
+          if (!next || next.tone !== value.tone || next.label !== value.label || next.color !== value.color) return false;
         }
       } catch (err) {
         _iterator.e(err);
@@ -2303,18 +2492,38 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
       return true;
     }
   }, {
+    key: "_markerLabelFromNoteName",
+    value: function _markerLabelFromNoteName(noteName) {
+      var match = String(noteName || "").trim().match(/^([A-G][#b]?)-?\d+$/);
+      return match ? match[1] : String(noteName || "").trim();
+    }
+  }, {
     key: "_applyMarkerTone",
     value: function _applyMarkerTone($marker, tone) {
+      var color = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : "";
       if (!($marker !== null && $marker !== void 0 && $marker.length)) return;
       var $swatch = $marker.find("span").first();
       if (!$swatch.length) return;
       $swatch.removeClass("bg-primary bg-secondary");
+      $swatch.css({
+        backgroundColor: "",
+        color: ""
+      });
+      if (color) {
+        $swatch.css({
+          backgroundColor: color,
+          color: "#111"
+        });
+        return;
+      }
       $swatch.addClass(tone === "secondary" ? "bg-secondary" : "bg-primary");
     }
   }, {
     key: "_showMarker",
     value: function _showMarker($marker) {
+      var noteName = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "";
       if (!($marker !== null && $marker !== void 0 && $marker.length)) return;
+      $marker.find("span").first().text(noteName || "");
       $marker.show();
     }
   }, {
