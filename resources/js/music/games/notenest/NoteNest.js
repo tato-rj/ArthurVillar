@@ -113,7 +113,7 @@ export class NoteNest extends BaseStaffGame {
       if (detail) {
         const $target = this.$playFeedbackText?.length ? this.$playFeedbackText : $feedback.find(".d-center").first();
         const $detail = $('<span class="play-feedback-wrong-note ml-2 small"></span>');
-        const playedNoteMatch = String(detail).match(/^You played\s+([^\s.]+)(\.\.\.)?$/);
+        const playedNoteMatch = String(detail).match(/^You played\s+([^\s.]+)(.*)$/);
         if (playedNoteMatch) {
           $detail.append(document.createTextNode("You played "));
           $("<strong></strong>").text(playedNoteMatch[1]).appendTo($detail);
@@ -349,7 +349,10 @@ export class NoteNest extends BaseStaffGame {
       Number.isFinite(targetMidi) &&
       pitchClass(playedMidi) === pitchClass(targetMidi)
     ) {
-      return "You played the wrong octave...";
+      const playedName = this._playedNoteFeedbackNameWithoutOctave(playedMidi);
+      return playedName
+        ? `You played ${playedName} in the wrong octave...`
+        : "You played the wrong octave...";
     }
 
     const playedName = this._playedNoteFeedbackNameWithoutOctave(playedMidi);

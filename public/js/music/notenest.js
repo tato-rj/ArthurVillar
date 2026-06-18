@@ -2097,7 +2097,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
           var _this$$playFeedbackTe5, _this$$playFeedbackTe6;
           var _$target = (_this$$playFeedbackTe5 = this.$playFeedbackText) !== null && _this$$playFeedbackTe5 !== void 0 && _this$$playFeedbackTe5.length ? this.$playFeedbackText : $feedback.find(".d-center").first();
           var _$detail = $('<span class="play-feedback-wrong-note ml-2 small"></span>');
-          var playedNoteMatch = String(detail).match(/^You played\s+([^\s.]+)(\.\.\.)?$/);
+          var playedNoteMatch = String(detail).match(/^You played\s+([^\s.]+)(.*)$/);
           if (playedNoteMatch) {
             _$detail.append(document.createTextNode("You played "));
             $("<strong></strong>").text(playedNoteMatch[1]).appendTo(_$detail);
@@ -2337,7 +2337,8 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
         return (midi % 12 + 12) % 12;
       };
       if (Number.isFinite(playedMidi) && Number.isFinite(targetMidi) && pitchClass(playedMidi) === pitchClass(targetMidi)) {
-        return "You played the wrong octave...";
+        var _playedName = this._playedNoteFeedbackNameWithoutOctave(playedMidi);
+        return _playedName ? "You played ".concat(_playedName, " in the wrong octave...") : "You played the wrong octave...";
       }
       var playedName = this._playedNoteFeedbackNameWithoutOctave(playedMidi);
       return playedName ? "You played ".concat(playedName, "...") : "That was the wrong note...";
