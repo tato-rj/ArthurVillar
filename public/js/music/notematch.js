@@ -2246,7 +2246,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _base_BaseStaffGame_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../base/BaseStaffGame.js */ "./resources/js/music/games/base/BaseStaffGame.js");
 /* harmony import */ var _shared_challengeUtils_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../shared/challengeUtils.js */ "./resources/js/music/games/shared/challengeUtils.js");
-/* harmony import */ var _staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../staff/staffUtils.js */ "./resources/js/music/staff/staffUtils.js");
+/* harmony import */ var _shared_noteNames_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/noteNames.js */ "./resources/js/music/games/shared/noteNames.js");
+/* harmony import */ var _shared_playedNotePitch_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/playedNotePitch.js */ "./resources/js/music/games/shared/playedNotePitch.js");
+/* harmony import */ var _staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../staff/staffUtils.js */ "./resources/js/music/staff/staffUtils.js");
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
@@ -2272,6 +2274,8 @@ function _setPrototypeOf(t, e) { return _setPrototypeOf = Object.setPrototypeOf 
 function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
 function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
 function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+
+
 
 
 
@@ -2319,11 +2323,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
     _this._pitchStartFrame = null;
     _this._pitchOpenStartTimer = null;
     _this._pitchInputStarting = false;
-    _this._stablePitch = {
-      midi: null,
-      frequency: null,
-      count: 0
-    };
+    _this._stablePitch = (0,_shared_playedNotePitch_js__WEBPACK_IMPORTED_MODULE_3__.createStablePitchState)();
     _this._ignoreAppAudioUntil = 0;
     return _this;
   }
@@ -2345,8 +2345,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
   }, {
     key: "_isLikelyMobileDevice",
     value: function _isLikelyMobileDevice() {
-      var _window$matchMedia, _window, _window$navigator;
-      return ((_window$matchMedia = (_window = window).matchMedia) === null || _window$matchMedia === void 0 || (_window$matchMedia = _window$matchMedia.call(_window, "(pointer: coarse)")) === null || _window$matchMedia === void 0 ? void 0 : _window$matchMedia.matches) || /Android|iPhone|iPad|iPod/i.test(((_window$navigator = window.navigator) === null || _window$navigator === void 0 ? void 0 : _window$navigator.userAgent) || "");
+      return (0,_shared_playedNotePitch_js__WEBPACK_IMPORTED_MODULE_3__.isLikelyMobileDevice)();
     }
   }, {
     key: "_resetPlayedNote",
@@ -2584,9 +2583,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
   }, {
     key: "_midiToNoteName",
     value: function _midiToNoteName(midi) {
-      var _this$keyboard, _this$keyboard$_noteN;
-      if (!Number.isFinite(midi)) return "";
-      return ((_this$keyboard = this.keyboard) === null || _this$keyboard === void 0 || (_this$keyboard$_noteN = _this$keyboard._noteNameFromMidi) === null || _this$keyboard$_noteN === void 0 ? void 0 : _this$keyboard$_noteN.call(_this$keyboard, midi)) || "MIDI ".concat(midi);
+      return (0,_shared_noteNames_js__WEBPACK_IMPORTED_MODULE_2__.noteNameFromMidi)(midi);
     }
   }, {
     key: "_playedNoteFeedbackName",
@@ -2647,11 +2644,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
     value: function _ignoreAppAudioFor() {
       var durationMs = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 900;
       this._ignoreAppAudioUntil = Math.max(this._ignoreAppAudioUntil || 0, Date.now() + durationMs);
-      this._stablePitch = {
-        midi: null,
-        frequency: null,
-        count: 0
-      };
+      this._stablePitch = (0,_shared_playedNotePitch_js__WEBPACK_IMPORTED_MODULE_3__.createStablePitchState)();
     }
   }, {
     key: "_isIgnoringAppAudio",
@@ -2749,11 +2742,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       this._hideRecordedSoundActions();
       this._setPlaySoundModalStatus("Connecting...", "Getting the microphone ready.");
       this._setPlayIconState("idle");
-      this._stablePitch = {
-        midi: null,
-        frequency: null,
-        count: 0
-      };
+      this._stablePitch = (0,_shared_playedNotePitch_js__WEBPACK_IMPORTED_MODULE_3__.createStablePitchState)();
       if (this._pitchStartFrame) cancelAnimationFrame(this._pitchStartFrame);
       this._pitchStartFrame = requestAnimationFrame(function () {
         _this4._pitchStartFrame = null;
@@ -2783,11 +2772,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
         return Promise.resolve();
       }
       this._pitchInputStarting = true;
-      this._stablePitch = {
-        midi: null,
-        frequency: null,
-        count: 0
-      };
+      this._stablePitch = (0,_shared_playedNotePitch_js__WEBPACK_IMPORTED_MODULE_3__.createStablePitchState)();
       this._setPlaySoundModalStatus("Connecting...", "Getting the microphone ready.");
       return navigator.mediaDevices.getUserMedia({
         audio: {
@@ -2844,11 +2829,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       this._pitchAnalyser = null;
       this._pitchData = null;
       this._pitchInputStarting = false;
-      this._stablePitch = {
-        midi: null,
-        frequency: null,
-        count: 0
-      };
+      this._stablePitch = (0,_shared_playedNotePitch_js__WEBPACK_IMPORTED_MODULE_3__.createStablePitchState)();
       if (!keepIconState) this._setPlayIconState("idle");
     }
   }, {
@@ -2857,11 +2838,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       var _this6 = this;
       if (!this._pitchAnalyser || !this._pitchData || !this._pitchAudioContext) return;
       if (this._isIgnoringAppAudio()) {
-        this._stablePitch = {
-          midi: null,
-          frequency: null,
-          count: 0
-        };
+        this._stablePitch = (0,_shared_playedNotePitch_js__WEBPACK_IMPORTED_MODULE_3__.createStablePitchState)();
         this._pitchFrame = requestAnimationFrame(function () {
           return _this6._listenForPitch();
         });
@@ -2871,31 +2848,15 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       var pitch = this._detectPitch(this._pitchData, this._pitchAudioContext.sampleRate);
       var frequency = pitch === null || pitch === void 0 ? void 0 : pitch.frequency;
       if (Number.isFinite(frequency)) {
-        var midi = this._frequencyToMidi(frequency);
         this._setPlaySoundModalStatus("Listening...", "Keep holding the note.");
-        var semitoneDistance = Number.isFinite(this._stablePitch.frequency) ? Math.abs(12 * Math.log2(frequency / this._stablePitch.frequency)) : Infinity;
-        if (midi === this._stablePitch.midi || semitoneDistance <= 0.75) {
-          this._stablePitch.count += 1;
-          this._stablePitch.frequency = this._stablePitch.frequency * 0.75 + frequency * 0.25;
-          this._stablePitch.midi = this._frequencyToMidi(this._stablePitch.frequency);
-        } else {
-          this._stablePitch = {
-            midi: midi,
-            frequency: frequency,
-            count: 1
-          };
-        }
+        this._stablePitch = (0,_shared_playedNotePitch_js__WEBPACK_IMPORTED_MODULE_3__.updateStablePitchState)(this._stablePitch, frequency);
         if (this._stablePitch.count >= 3) {
           var stableMidi = this._frequencyToMidi(this._stablePitch.frequency);
           this._handlePlayedNoteHeard(stableMidi, this._midiToNoteName(stableMidi), this._stablePitch.frequency);
           return;
         }
       } else {
-        this._stablePitch = {
-          midi: null,
-          frequency: null,
-          count: 0
-        };
+        this._stablePitch = (0,_shared_playedNotePitch_js__WEBPACK_IMPORTED_MODULE_3__.createStablePitchState)();
       }
       this._pitchFrame = requestAnimationFrame(function () {
         return _this6._listenForPitch();
@@ -2904,76 +2865,14 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
   }, {
     key: "_frequencyToMidi",
     value: function _frequencyToMidi(frequency) {
-      return Math.round(69 + 12 * Math.log2(frequency / 440));
+      return (0,_shared_playedNotePitch_js__WEBPACK_IMPORTED_MODULE_3__.frequencyToMidi)(frequency);
     }
   }, {
     key: "_detectPitch",
     value: function _detectPitch(buffer, sampleRate) {
-      var isMobile = this._isLikelyMobileDevice();
-      var minRms = isMobile ? 0.0035 : 0.014;
-      var minPeak = isMobile ? 0.012 : 0.045;
-      var trimThreshold = isMobile ? 0.02 : 0.06;
-      var minConfidence = isMobile ? 0.1 : 0.16;
-      var rms = 0;
-      var peak = 0;
-      for (var i = 0; i < buffer.length; i += 1) {
-        var sample = Math.abs(buffer[i]);
-        rms += buffer[i] * buffer[i];
-        if (sample > peak) peak = sample;
-      }
-      rms = Math.sqrt(rms / buffer.length);
-      if (rms < minRms || peak < minPeak) return null;
-      var start = 0;
-      var end = buffer.length - 1;
-      var threshold = trimThreshold;
-      for (var _i = 0; _i < buffer.length / 2; _i += 1) {
-        if (Math.abs(buffer[_i]) < threshold) {
-          start = _i;
-          break;
-        }
-      }
-      for (var _i2 = 1; _i2 < buffer.length / 2; _i2 += 1) {
-        if (Math.abs(buffer[buffer.length - _i2]) < threshold) {
-          end = buffer.length - _i2;
-          break;
-        }
-      }
-      var trimmed = buffer.slice(start, end);
-      var trimmedSize = trimmed.length;
-      if (trimmedSize < 32) return null;
-      var minLag = Math.max(1, Math.floor(sampleRate / 2000));
-      var maxLag = Math.min(trimmedSize - 1, Math.ceil(sampleRate / 40));
-      var correlations = new Array(maxLag + 1).fill(0);
-      var zeroLag = 0;
-      for (var _i3 = 0; _i3 < trimmedSize; _i3 += 1) {
-        zeroLag += trimmed[_i3] * trimmed[_i3];
-      }
-      if (zeroLag <= 0) return null;
-      for (var lag = minLag; lag <= maxLag; lag += 1) {
-        for (var _i4 = 0; _i4 < trimmedSize - lag; _i4 += 1) {
-          correlations[lag] += trimmed[_i4] * trimmed[_i4 + lag];
-        }
-      }
-      var maxValue = -Infinity;
-      var maxPosition = -1;
-      for (var _i5 = minLag; _i5 <= maxLag; _i5 += 1) {
-        if (correlations[_i5] > maxValue) {
-          maxValue = correlations[_i5];
-          maxPosition = _i5;
-        }
-      }
-      if (maxPosition <= 0) return null;
-      if (maxValue / zeroLag < minConfidence) return null;
-      var x1 = correlations[maxPosition - 1] || 0;
-      var x2 = correlations[maxPosition] || 0;
-      var x3 = correlations[maxPosition + 1] || 0;
-      var divisor = 2 * x2 - x1 - x3;
-      var shift = divisor ? (x3 - x1) / (2 * divisor) : 0;
-      var frequency = sampleRate / (maxPosition + shift);
-      if (!Number.isFinite(frequency) || frequency < 40 || frequency > 2000) return null;
-      return {
-        frequency: frequency
-      };
+      return (0,_shared_playedNotePitch_js__WEBPACK_IMPORTED_MODULE_3__.detectPlayedNotePitch)(buffer, sampleRate, {
+        isMobile: this._isLikelyMobileDevice()
+      });
     }
   }, {
     key: "_targetAccidentalClass",
@@ -2984,7 +2883,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       var sharpWeight = Number(w.sharp);
       var flatWeight = Number(w.flat);
       if (Number.isFinite(naturalWeight) || Number.isFinite(sharpWeight) || Number.isFinite(flatWeight)) {
-        return (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_2__.pickWeighted)([{
+        return (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_4__.pickWeighted)([{
           value: null,
           weight: Number.isFinite(naturalWeight) ? naturalWeight : 0
         }, {
@@ -3031,7 +2930,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       var out = [];
       for (var step = minStep; step <= maxStep; step += 1) {
         if (step === target.step) continue;
-        var noteState = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_2__.stepToLetterOctave)(this.staff, step);
+        var noteState = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_4__.stepToLetterOctave)(this.staff, step);
         if (String((noteState === null || noteState === void 0 ? void 0 : noteState.letter) || "") !== String(target.letter || "")) continue;
         out.push(step);
       }
@@ -3103,7 +3002,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
     key: "_setPromptForTarget",
     value: function _setPromptForTarget(target) {
       if (!target) return;
-      var shortName = "".concat(this._displayNameForLetter(target.letter)).concat((0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_2__.accidentalClassToText)(target.accidentalClass));
+      var shortName = "".concat(this._displayNameForLetter(target.letter)).concat((0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_4__.accidentalClassToText)(target.accidentalClass));
       this.prompt.setShort(shortName, {
         html: true
       });
@@ -3121,7 +3020,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       var maxAttempts = 24;
       for (var attempt = 0; attempt < maxAttempts; attempt += 1) {
         var step = this._pickTargetStep();
-        var noteState = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_2__.stepToLetterOctave)(this.staff, step);
+        var noteState = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_4__.stepToLetterOctave)(this.staff, step);
         var target = {
           step: step,
           letter: noteState.letter,
@@ -3136,7 +3035,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
         }
       }
       var fallbackStep = this._pickTargetStep();
-      var fallbackState = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_2__.stepToLetterOctave)(this.staff, fallbackStep);
+      var fallbackState = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_4__.stepToLetterOctave)(this.staff, fallbackStep);
       return {
         step: fallbackStep,
         letter: fallbackState.letter,
@@ -3204,7 +3103,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
     value: function _isStaffNoteCorrect(note) {
       var target = this._targetNote;
       if (!target || !note) return false;
-      var noteState = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_2__.stepToLetterOctave)(this.staff, note.step);
+      var noteState = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_4__.stepToLetterOctave)(this.staff, note.step);
       return String((noteState === null || noteState === void 0 ? void 0 : noteState.letter) || "") === String(target.letter || "") && String(note.accidentalClass || "") === String(target.accidentalClass || "");
     }
   }, {
@@ -4100,6 +3999,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   PianoKeyboardUi: () => (/* binding */ PianoKeyboardUi)
 /* harmony export */ });
 /* harmony import */ var _GameAudio_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./GameAudio.js */ "./resources/js/music/games/shared/GameAudio.js");
+/* harmony import */ var _noteNames_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./noteNames.js */ "./resources/js/music/games/shared/noteNames.js");
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
 function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
@@ -4122,6 +4022,7 @@ function _createClass(e, r, t) { return r && _defineProperties(e.prototype, r), 
 function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
 function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
 function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+
 
 var PianoKeyboardUi = /*#__PURE__*/function () {
   function PianoKeyboardUi() {
@@ -4591,35 +4492,22 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
   }, {
     key: "_naturalMidiFromNoteName",
     value: function _naturalMidiFromNoteName(noteName) {
-      var m = String(noteName || "").trim().match(/^([A-G])(-?\d+)$/);
-      if (!m) return null;
-      return this._naturalMidiFromLetterOctave(m[1], Number(m[2]));
+      return (0,_noteNames_js__WEBPACK_IMPORTED_MODULE_1__.naturalMidiFromNoteName)(noteName);
     }
   }, {
     key: "_naturalMidiFromLetterOctave",
     value: function _naturalMidiFromLetterOctave(letter, octave) {
-      var pc = PianoKeyboardUi.NATURAL_PITCH_CLASS[String(letter || "").toUpperCase()];
-      if (!Number.isInteger(pc) || !Number.isFinite(octave)) return null;
-      return (octave + 1) * 12 + pc;
+      return (0,_noteNames_js__WEBPACK_IMPORTED_MODULE_1__.naturalMidiFromLetterOctave)(letter, octave);
     }
   }, {
     key: "_noteNameFromMidi",
     value: function _noteNameFromMidi(midi) {
-      if (!Number.isFinite(midi)) return "";
-      var pitchClass = (midi % 12 + 12) % 12;
-      var octave = Math.floor(midi / 12) - 1;
-      return "".concat(PianoKeyboardUi.PITCH_CLASS_TO_NOTE[pitchClass]).concat(octave);
+      return (0,_noteNames_js__WEBPACK_IMPORTED_MODULE_1__.noteNameFromMidi)(midi);
     }
   }, {
     key: "_naturalNoteNameFromMidi",
     value: function _naturalNoteNameFromMidi(midi) {
-      if (!Number.isFinite(midi)) return "";
-      var pitchClass = (midi % 12 + 12) % 12;
-      var octave = Math.floor(midi / 12) - 1;
-      var letter = Object.keys(PianoKeyboardUi.NATURAL_PITCH_CLASS).find(function (key) {
-        return PianoKeyboardUi.NATURAL_PITCH_CLASS[key] === pitchClass;
-      });
-      return letter ? "".concat(letter).concat(octave) : "";
+      return (0,_noteNames_js__WEBPACK_IMPORTED_MODULE_1__.naturalNoteNameFromMidi)(midi);
     }
   }, {
     key: "_keyByNoteName",
@@ -4836,17 +4724,9 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
     }()
   }]);
 }();
-_defineProperty(PianoKeyboardUi, "NATURAL_ORDER", ["C", "D", "E", "F", "G", "A", "B"]);
-_defineProperty(PianoKeyboardUi, "NATURAL_PITCH_CLASS", {
-  C: 0,
-  D: 2,
-  E: 4,
-  F: 5,
-  G: 7,
-  A: 9,
-  B: 11
-});
-_defineProperty(PianoKeyboardUi, "PITCH_CLASS_TO_NOTE", ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]);
+_defineProperty(PianoKeyboardUi, "NATURAL_ORDER", _noteNames_js__WEBPACK_IMPORTED_MODULE_1__.NATURAL_NOTE_ORDER);
+_defineProperty(PianoKeyboardUi, "NATURAL_PITCH_CLASS", _noteNames_js__WEBPACK_IMPORTED_MODULE_1__.NATURAL_PITCH_CLASS);
+_defineProperty(PianoKeyboardUi, "PITCH_CLASS_TO_NOTE", _noteNames_js__WEBPACK_IMPORTED_MODULE_1__.PITCH_CLASS_TO_NOTE);
 
 /***/ },
 
@@ -5464,6 +5344,188 @@ function playSnakeCellBreakBurstAtElement(targetEl) {
     }
   });
   new mojs.Timeline().add(yellowShards, blackBits).play();
+}
+
+/***/ },
+
+/***/ "./resources/js/music/games/shared/noteNames.js"
+/*!******************************************************!*\
+  !*** ./resources/js/music/games/shared/noteNames.js ***!
+  \******************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   NATURAL_NOTE_ORDER: () => (/* binding */ NATURAL_NOTE_ORDER),
+/* harmony export */   NATURAL_PITCH_CLASS: () => (/* binding */ NATURAL_PITCH_CLASS),
+/* harmony export */   PITCH_CLASS_TO_NOTE: () => (/* binding */ PITCH_CLASS_TO_NOTE),
+/* harmony export */   naturalMidiFromLetterOctave: () => (/* binding */ naturalMidiFromLetterOctave),
+/* harmony export */   naturalMidiFromNoteName: () => (/* binding */ naturalMidiFromNoteName),
+/* harmony export */   naturalNoteNameFromMidi: () => (/* binding */ naturalNoteNameFromMidi),
+/* harmony export */   noteNameFromMidi: () => (/* binding */ noteNameFromMidi),
+/* harmony export */   octaveFromMidi: () => (/* binding */ octaveFromMidi),
+/* harmony export */   pitchClassFromMidi: () => (/* binding */ pitchClassFromMidi)
+/* harmony export */ });
+var NATURAL_NOTE_ORDER = ["C", "D", "E", "F", "G", "A", "B"];
+var NATURAL_PITCH_CLASS = {
+  C: 0,
+  D: 2,
+  E: 4,
+  F: 5,
+  G: 7,
+  A: 9,
+  B: 11
+};
+var PITCH_CLASS_TO_NOTE = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+function pitchClassFromMidi(midi) {
+  if (!Number.isFinite(midi)) return null;
+  return (midi % 12 + 12) % 12;
+}
+function octaveFromMidi(midi) {
+  if (!Number.isFinite(midi)) return null;
+  return Math.floor(midi / 12) - 1;
+}
+function noteNameFromMidi(midi) {
+  var pitchClass = pitchClassFromMidi(midi);
+  var octave = octaveFromMidi(midi);
+  if (!Number.isInteger(pitchClass) || !Number.isFinite(octave)) return "";
+  return "".concat(PITCH_CLASS_TO_NOTE[pitchClass]).concat(octave);
+}
+function naturalNoteNameFromMidi(midi) {
+  var pitchClass = pitchClassFromMidi(midi);
+  var octave = octaveFromMidi(midi);
+  if (!Number.isInteger(pitchClass) || !Number.isFinite(octave)) return "";
+  var letter = Object.keys(NATURAL_PITCH_CLASS).find(function (key) {
+    return NATURAL_PITCH_CLASS[key] === pitchClass;
+  });
+  return letter ? "".concat(letter).concat(octave) : "";
+}
+function naturalMidiFromLetterOctave(letter, octave) {
+  var pitchClass = NATURAL_PITCH_CLASS[String(letter || "").toUpperCase()];
+  if (!Number.isInteger(pitchClass) || !Number.isFinite(octave)) return null;
+  return (octave + 1) * 12 + pitchClass;
+}
+function naturalMidiFromNoteName(noteName) {
+  var match = String(noteName || "").trim().match(/^([A-G])(-?\d+)$/);
+  if (!match) return null;
+  return naturalMidiFromLetterOctave(match[1], Number(match[2]));
+}
+
+/***/ },
+
+/***/ "./resources/js/music/games/shared/playedNotePitch.js"
+/*!************************************************************!*\
+  !*** ./resources/js/music/games/shared/playedNotePitch.js ***!
+  \************************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   createStablePitchState: () => (/* binding */ createStablePitchState),
+/* harmony export */   detectPlayedNotePitch: () => (/* binding */ detectPlayedNotePitch),
+/* harmony export */   frequencyToMidi: () => (/* binding */ frequencyToMidi),
+/* harmony export */   isLikelyMobileDevice: () => (/* binding */ isLikelyMobileDevice),
+/* harmony export */   updateStablePitchState: () => (/* binding */ updateStablePitchState)
+/* harmony export */ });
+function createStablePitchState() {
+  return {
+    midi: null,
+    frequency: null,
+    count: 0
+  };
+}
+function isLikelyMobileDevice() {
+  var _window$matchMedia, _window, _window$navigator;
+  return ((_window$matchMedia = (_window = window).matchMedia) === null || _window$matchMedia === void 0 || (_window$matchMedia = _window$matchMedia.call(_window, "(pointer: coarse)")) === null || _window$matchMedia === void 0 ? void 0 : _window$matchMedia.matches) || /Android|iPhone|iPad|iPod/i.test(((_window$navigator = window.navigator) === null || _window$navigator === void 0 ? void 0 : _window$navigator.userAgent) || "");
+}
+function frequencyToMidi(frequency) {
+  return Math.round(69 + 12 * Math.log2(frequency / 440));
+}
+function updateStablePitchState(stablePitch, frequency) {
+  var midi = frequencyToMidi(frequency);
+  var current = stablePitch || createStablePitchState();
+  var semitoneDistance = Number.isFinite(current.frequency) ? Math.abs(12 * Math.log2(frequency / current.frequency)) : Infinity;
+  if (midi === current.midi || semitoneDistance <= 0.75) {
+    var smoothedFrequency = current.frequency * 0.75 + frequency * 0.25;
+    return {
+      midi: frequencyToMidi(smoothedFrequency),
+      frequency: smoothedFrequency,
+      count: current.count + 1
+    };
+  }
+  return {
+    midi: midi,
+    frequency: frequency,
+    count: 1
+  };
+}
+function detectPlayedNotePitch(buffer, sampleRate) {
+  var _ref = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
+    _ref$isMobile = _ref.isMobile,
+    isMobile = _ref$isMobile === void 0 ? isLikelyMobileDevice() : _ref$isMobile;
+  var minRms = isMobile ? 0.0035 : 0.014;
+  var minPeak = isMobile ? 0.012 : 0.045;
+  var trimThreshold = isMobile ? 0.02 : 0.06;
+  var minConfidence = isMobile ? 0.1 : 0.16;
+  var rms = 0;
+  var peak = 0;
+  for (var i = 0; i < buffer.length; i += 1) {
+    var sample = Math.abs(buffer[i]);
+    rms += buffer[i] * buffer[i];
+    if (sample > peak) peak = sample;
+  }
+  rms = Math.sqrt(rms / buffer.length);
+  if (rms < minRms || peak < minPeak) return null;
+  var start = 0;
+  var end = buffer.length - 1;
+  for (var _i = 0; _i < buffer.length / 2; _i += 1) {
+    if (Math.abs(buffer[_i]) < trimThreshold) {
+      start = _i;
+      break;
+    }
+  }
+  for (var _i2 = 1; _i2 < buffer.length / 2; _i2 += 1) {
+    if (Math.abs(buffer[buffer.length - _i2]) < trimThreshold) {
+      end = buffer.length - _i2;
+      break;
+    }
+  }
+  var trimmed = buffer.slice(start, end);
+  var trimmedSize = trimmed.length;
+  if (trimmedSize < 32) return null;
+  var minLag = Math.max(1, Math.floor(sampleRate / 2000));
+  var maxLag = Math.min(trimmedSize - 1, Math.ceil(sampleRate / 40));
+  var correlations = new Array(maxLag + 1).fill(0);
+  var zeroLag = 0;
+  for (var _i3 = 0; _i3 < trimmedSize; _i3 += 1) {
+    zeroLag += trimmed[_i3] * trimmed[_i3];
+  }
+  if (zeroLag <= 0) return null;
+  for (var lag = minLag; lag <= maxLag; lag += 1) {
+    for (var _i4 = 0; _i4 < trimmedSize - lag; _i4 += 1) {
+      correlations[lag] += trimmed[_i4] * trimmed[_i4 + lag];
+    }
+  }
+  var maxValue = -Infinity;
+  var maxPosition = -1;
+  for (var _i5 = minLag; _i5 <= maxLag; _i5 += 1) {
+    if (correlations[_i5] > maxValue) {
+      maxValue = correlations[_i5];
+      maxPosition = _i5;
+    }
+  }
+  if (maxPosition <= 0) return null;
+  if (maxValue / zeroLag < minConfidence) return null;
+  var x1 = correlations[maxPosition - 1] || 0;
+  var x2 = correlations[maxPosition] || 0;
+  var x3 = correlations[maxPosition + 1] || 0;
+  var divisor = 2 * x2 - x1 - x3;
+  var shift = divisor ? (x3 - x1) / (2 * divisor) : 0;
+  var frequency = sampleRate / (maxPosition + shift);
+  if (!Number.isFinite(frequency) || frequency < 40 || frequency > 2000) return null;
+  return {
+    frequency: frequency
+  };
 }
 
 /***/ },

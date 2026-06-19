@@ -1,17 +1,18 @@
 import { GameAudio } from "./GameAudio.js";
+import {
+  NATURAL_NOTE_ORDER,
+  NATURAL_PITCH_CLASS,
+  PITCH_CLASS_TO_NOTE,
+  naturalMidiFromLetterOctave,
+  naturalMidiFromNoteName,
+  naturalNoteNameFromMidi,
+  noteNameFromMidi,
+} from "./noteNames.js";
 
 export class PianoKeyboardUi {
-  static NATURAL_ORDER = ["C", "D", "E", "F", "G", "A", "B"];
-  static NATURAL_PITCH_CLASS = {
-    C: 0,
-    D: 2,
-    E: 4,
-    F: 5,
-    G: 7,
-    A: 9,
-    B: 11,
-  };
-  static PITCH_CLASS_TO_NOTE = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+  static NATURAL_ORDER = NATURAL_NOTE_ORDER;
+  static NATURAL_PITCH_CLASS = NATURAL_PITCH_CLASS;
+  static PITCH_CLASS_TO_NOTE = PITCH_CLASS_TO_NOTE;
 
   constructor({
     rootSelector = "#keyboard",
@@ -452,31 +453,19 @@ export class PianoKeyboardUi {
   }
 
   _naturalMidiFromNoteName(noteName) {
-    const m = String(noteName || "").trim().match(/^([A-G])(-?\d+)$/);
-    if (!m) return null;
-    return this._naturalMidiFromLetterOctave(m[1], Number(m[2]));
+    return naturalMidiFromNoteName(noteName);
   }
 
   _naturalMidiFromLetterOctave(letter, octave) {
-    const pc = PianoKeyboardUi.NATURAL_PITCH_CLASS[String(letter || "").toUpperCase()];
-    if (!Number.isInteger(pc) || !Number.isFinite(octave)) return null;
-    return ((octave + 1) * 12) + pc;
+    return naturalMidiFromLetterOctave(letter, octave);
   }
 
   _noteNameFromMidi(midi) {
-    if (!Number.isFinite(midi)) return "";
-    const pitchClass = ((midi % 12) + 12) % 12;
-    const octave = Math.floor(midi / 12) - 1;
-    return `${PianoKeyboardUi.PITCH_CLASS_TO_NOTE[pitchClass]}${octave}`;
+    return noteNameFromMidi(midi);
   }
 
   _naturalNoteNameFromMidi(midi) {
-    if (!Number.isFinite(midi)) return "";
-    const pitchClass = ((midi % 12) + 12) % 12;
-    const octave = Math.floor(midi / 12) - 1;
-    const letter = Object.keys(PianoKeyboardUi.NATURAL_PITCH_CLASS)
-      .find((key) => PianoKeyboardUi.NATURAL_PITCH_CLASS[key] === pitchClass);
-    return letter ? `${letter}${octave}` : "";
+    return naturalNoteNameFromMidi(midi);
   }
 
   _keyByNoteName(noteName) {

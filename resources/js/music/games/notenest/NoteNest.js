@@ -1,5 +1,13 @@
 import { BaseStaffGame } from "../base/BaseStaffGame.js";
 import { normalizeClefPool, pickChallengeClef } from "../shared/challengeUtils.js";
+import { noteNameFromMidi } from "../shared/noteNames.js";
+import {
+  createStablePitchState,
+  detectPlayedNotePitch,
+  frequencyToMidi,
+  isLikelyMobileDevice,
+  updateStablePitchState,
+} from "../shared/playedNotePitch.js";
 import { accidentalClassToText, pickWeighted, stepToLetterOctave } from "../../staff/staffUtils.js";
 
 export class NoteNest extends BaseStaffGame {
@@ -59,7 +67,7 @@ export class NoteNest extends BaseStaffGame {
     this._pitchStartFrame = null;
     this._pitchOpenStartTimer = null;
     this._pitchInputStarting = false;
-    this._stablePitch = { midi: null, frequency: null, count: 0 };
+    this._stablePitch = createStablePitchState();
     this._ignoreAppAudioUntil = 0;
   }
 
@@ -76,8 +84,7 @@ export class NoteNest extends BaseStaffGame {
   }
 
   _isLikelyMobileDevice() {
-    return window.matchMedia?.("(pointer: coarse)")?.matches ||
-      /Android|iPhone|iPad|iPod/i.test(window.navigator?.userAgent || "");
+    return isLikelyMobileDevice();
   }
 
   _resetPlayedNote() {
@@ -310,8 +317,7 @@ export class NoteNest extends BaseStaffGame {
   }
 
   _midiToNoteName(midi) {
-    if (!Number.isFinite(midi)) return "";
-    return this.keyboard?._noteNameFromMidi?.(midi) || `MIDI ${midi}`;
+    return noteNameFromMidi(midi);
   }
 
   _playedNoteFeedbackName(midi) {
@@ -372,7 +378,7 @@ export class NoteNest extends BaseStaffGame {
       this._ignoreAppAudioUntil || 0,
       Date.now() + durationMs,
     );
-    this._stablePitch = { midi: null, frequency: null, count: 0 };
+    this._stablePitch = createStablePitchState();
   }
 
   _isIgnoringAppAudio() {
@@ -457,7 +463,7 @@ export class NoteNest extends BaseStaffGame {
     this._hideRecordedSoundActions();
     this._setPlaySoundModalStatus("Connecting...", "Getting the microphone ready.");
     this._setPlayIconState("idle");
-    this._stablePitch = { midi: null, frequency: null, count: 0 };
+    this._stablePitch = createStablePitchState();
     if (this._pitchStartFrame) cancelAnimationFrame(this._pitchStartFrame);
     this._pitchStartFrame = requestAnimationFrame(() => {
       this._pitchStartFrame = null;
@@ -488,7 +494,7 @@ export class NoteNest extends BaseStaffGame {
     }
 
     this._pitchInputStarting = true;
-    this._stablePitch = { midi: null, frequency: null, count: 0 };
+    this._stablePitch = createStablePitchState();
     this._setPlaySoundModalStatus("Connecting...", "Getting the microphone ready.");
 
     return navigator.mediaDevices.getUserMedia({
@@ -540,7 +546,7 @@ export class NoteNest extends BaseStaffGame {
     this._pitchAnalyser = null;
     this._pitchData = null;
     this._pitchInputStarting = false;
-    this._stablePitch = { midi: null, frequency: null, count: 0 };
+    this._stablePitch = createStablePitchState();
     if (!keepIconState) this._setPlayIconState("idle");
   }
 
@@ -548,7 +554,7 @@ export class NoteNest extends BaseStaffGame {
     if (!this._pitchAnalyser || !this._pitchData || !this._pitchAudioContext) return;
 
     if (this._isIgnoringAppAudio()) {
-      this._stablePitch = { midi: null, frequency: null, count: 0 };
+      this._stablePitch = createStablePitchState();
       this._pitchFrame = requestAnimationFrame(() => this._listenForPitch());
       return;
     }
@@ -558,20 +564,8 @@ export class NoteNest extends BaseStaffGame {
     const frequency = pitch?.frequency;
 
     if (Number.isFinite(frequency)) {
-      const midi = this._frequencyToMidi(frequency);
       this._setPlaySoundModalStatus("Listening...", "Keep holding the note.");
-
-      const semitoneDistance = Number.isFinite(this._stablePitch.frequency)
-        ? Math.abs(12 * Math.log2(frequency / this._stablePitch.frequency))
-        : Infinity;
-
-      if (midi === this._stablePitch.midi || semitoneDistance <= 0.75) {
-        this._stablePitch.count += 1;
-        this._stablePitch.frequency = ((this._stablePitch.frequency * 0.75) + (frequency * 0.25));
-        this._stablePitch.midi = this._frequencyToMidi(this._stablePitch.frequency);
-      } else {
-        this._stablePitch = { midi, frequency, count: 1 };
-      }
+      this._stablePitch = updateStablePitchState(this._stablePitch, frequency);
 
       if (this._stablePitch.count >= 3) {
         const stableMidi = this._frequencyToMidi(this._stablePitch.frequency);
@@ -579,96 +573,20 @@ export class NoteNest extends BaseStaffGame {
         return;
       }
     } else {
-      this._stablePitch = { midi: null, frequency: null, count: 0 };
+      this._stablePitch = createStablePitchState();
     }
 
     this._pitchFrame = requestAnimationFrame(() => this._listenForPitch());
   }
 
   _frequencyToMidi(frequency) {
-    return Math.round(69 + (12 * Math.log2(frequency / 440)));
+    return frequencyToMidi(frequency);
   }
 
   _detectPitch(buffer, sampleRate) {
-    const isMobile = this._isLikelyMobileDevice();
-    const minRms = isMobile ? 0.0035 : 0.014;
-    const minPeak = isMobile ? 0.012 : 0.045;
-    const trimThreshold = isMobile ? 0.02 : 0.06;
-    const minConfidence = isMobile ? 0.1 : 0.16;
-    let rms = 0;
-    let peak = 0;
-
-    for (let i = 0; i < buffer.length; i += 1) {
-      const sample = Math.abs(buffer[i]);
-      rms += buffer[i] * buffer[i];
-      if (sample > peak) peak = sample;
-    }
-
-    rms = Math.sqrt(rms / buffer.length);
-    if (rms < minRms || peak < minPeak) return null;
-
-    let start = 0;
-    let end = buffer.length - 1;
-    const threshold = trimThreshold;
-
-    for (let i = 0; i < buffer.length / 2; i += 1) {
-      if (Math.abs(buffer[i]) < threshold) {
-        start = i;
-        break;
-      }
-    }
-
-    for (let i = 1; i < buffer.length / 2; i += 1) {
-      if (Math.abs(buffer[buffer.length - i]) < threshold) {
-        end = buffer.length - i;
-        break;
-      }
-    }
-
-    const trimmed = buffer.slice(start, end);
-    const trimmedSize = trimmed.length;
-    if (trimmedSize < 32) return null;
-
-    const minLag = Math.max(1, Math.floor(sampleRate / 2000));
-    const maxLag = Math.min(trimmedSize - 1, Math.ceil(sampleRate / 40));
-    const correlations = new Array(maxLag + 1).fill(0);
-    let zeroLag = 0;
-
-    for (let i = 0; i < trimmedSize; i += 1) {
-      zeroLag += trimmed[i] * trimmed[i];
-    }
-
-    if (zeroLag <= 0) return null;
-
-    for (let lag = minLag; lag <= maxLag; lag += 1) {
-      for (let i = 0; i < trimmedSize - lag; i += 1) {
-        correlations[lag] += trimmed[i] * trimmed[i + lag];
-      }
-    }
-
-    let maxValue = -Infinity;
-    let maxPosition = -1;
-    for (let i = minLag; i <= maxLag; i += 1) {
-      if (correlations[i] > maxValue) {
-        maxValue = correlations[i];
-        maxPosition = i;
-      }
-    }
-
-    if (maxPosition <= 0) return null;
-    if ((maxValue / zeroLag) < minConfidence) return null;
-
-    const x1 = correlations[maxPosition - 1] || 0;
-    const x2 = correlations[maxPosition] || 0;
-    const x3 = correlations[maxPosition + 1] || 0;
-    const divisor = (2 * x2) - x1 - x3;
-    const shift = divisor ? (x3 - x1) / (2 * divisor) : 0;
-
-    const frequency = sampleRate / (maxPosition + shift);
-
-    if (!Number.isFinite(frequency) || frequency < 40 || frequency > 2000) return null;
-
-    return { frequency };
+    return detectPlayedNotePitch(buffer, sampleRate, {
+      isMobile: this._isLikelyMobileDevice(),
+    });
   }
 
   _targetAccidentalClass() {
