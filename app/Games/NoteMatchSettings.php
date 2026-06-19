@@ -14,7 +14,7 @@ class NoteMatchSettings extends GameFactory
 
     public function gameIcon(): string
     {
-        return 'microphone-lines';
+        return 'graduation-cap';
     }
 
     public function gameDescription() : string
