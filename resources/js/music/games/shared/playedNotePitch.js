@@ -2,6 +2,8 @@ export function createStablePitchState() {
   return { midi: null, frequency: null, count: 0 };
 }
 
+export const PLAYED_NOTE_STABLE_FRAME_COUNT = 5;
+
 export function isLikelyMobileDevice() {
   return window.matchMedia?.("(pointer: coarse)")?.matches ||
     /Android|iPhone|iPad|iPod/i.test(window.navigator?.userAgent || "");
@@ -18,7 +20,7 @@ export function updateStablePitchState(stablePitch, frequency) {
     ? Math.abs(12 * Math.log2(frequency / current.frequency))
     : Infinity;
 
-  if (midi === current.midi || semitoneDistance <= 0.75) {
+  if (midi === current.midi || semitoneDistance <= 0.45) {
     const smoothedFrequency = ((current.frequency * 0.75) + (frequency * 0.25));
     return {
       midi: frequencyToMidi(smoothedFrequency),
@@ -34,7 +36,7 @@ export function detectPlayedNotePitch(buffer, sampleRate, { isMobile = isLikelyM
   const minRms = isMobile ? 0.0035 : 0.014;
   const minPeak = isMobile ? 0.012 : 0.045;
   const trimThreshold = isMobile ? 0.02 : 0.06;
-  const minConfidence = isMobile ? 0.1 : 0.16;
+  const minConfidence = isMobile ? 0.18 : 0.24;
   let rms = 0;
   let peak = 0;
 
@@ -95,7 +97,8 @@ export function detectPlayedNotePitch(buffer, sampleRate, { isMobile = isLikelyM
   }
 
   if (maxPosition <= 0) return null;
-  if ((maxValue / zeroLag) < minConfidence) return null;
+  const confidence = maxValue / zeroLag;
+  if (confidence < minConfidence) return null;
 
   const x1 = correlations[maxPosition - 1] || 0;
   const x2 = correlations[maxPosition] || 0;

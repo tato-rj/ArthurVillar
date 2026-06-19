@@ -2674,7 +2674,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       if (Number.isFinite(frequency)) {
         this._setPlaySoundModalStatus("Listening...", "Keep holding the note.");
         this._stablePitch = (0,_shared_playedNotePitch_js__WEBPACK_IMPORTED_MODULE_3__.updateStablePitchState)(this._stablePitch, frequency);
-        if (this._stablePitch.count >= 3) {
+        if (this._stablePitch.count >= _shared_playedNotePitch_js__WEBPACK_IMPORTED_MODULE_3__.PLAYED_NOTE_STABLE_FRAME_COUNT) {
           var stableMidi = this._frequencyToMidi(this._stablePitch.frequency);
           this._handlePlayedNoteHeard(stableMidi, this._midiToNoteName(stableMidi), this._stablePitch.frequency);
           return;
@@ -5245,6 +5245,7 @@ function naturalMidiFromNoteName(noteName) {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   PLAYED_NOTE_STABLE_FRAME_COUNT: () => (/* binding */ PLAYED_NOTE_STABLE_FRAME_COUNT),
 /* harmony export */   createStablePitchState: () => (/* binding */ createStablePitchState),
 /* harmony export */   detectPlayedNotePitch: () => (/* binding */ detectPlayedNotePitch),
 /* harmony export */   frequencyToMidi: () => (/* binding */ frequencyToMidi),
@@ -5258,6 +5259,7 @@ function createStablePitchState() {
     count: 0
   };
 }
+var PLAYED_NOTE_STABLE_FRAME_COUNT = 5;
 function isLikelyMobileDevice() {
   var _window$matchMedia, _window, _window$navigator;
   return ((_window$matchMedia = (_window = window).matchMedia) === null || _window$matchMedia === void 0 || (_window$matchMedia = _window$matchMedia.call(_window, "(pointer: coarse)")) === null || _window$matchMedia === void 0 ? void 0 : _window$matchMedia.matches) || /Android|iPhone|iPad|iPod/i.test(((_window$navigator = window.navigator) === null || _window$navigator === void 0 ? void 0 : _window$navigator.userAgent) || "");
@@ -5269,7 +5271,7 @@ function updateStablePitchState(stablePitch, frequency) {
   var midi = frequencyToMidi(frequency);
   var current = stablePitch || createStablePitchState();
   var semitoneDistance = Number.isFinite(current.frequency) ? Math.abs(12 * Math.log2(frequency / current.frequency)) : Infinity;
-  if (midi === current.midi || semitoneDistance <= 0.75) {
+  if (midi === current.midi || semitoneDistance <= 0.45) {
     var smoothedFrequency = current.frequency * 0.75 + frequency * 0.25;
     return {
       midi: frequencyToMidi(smoothedFrequency),
@@ -5290,7 +5292,7 @@ function detectPlayedNotePitch(buffer, sampleRate) {
   var minRms = isMobile ? 0.0035 : 0.014;
   var minPeak = isMobile ? 0.012 : 0.045;
   var trimThreshold = isMobile ? 0.02 : 0.06;
-  var minConfidence = isMobile ? 0.1 : 0.16;
+  var minConfidence = isMobile ? 0.18 : 0.24;
   var rms = 0;
   var peak = 0;
   for (var i = 0; i < buffer.length; i += 1) {
@@ -5339,7 +5341,8 @@ function detectPlayedNotePitch(buffer, sampleRate) {
     }
   }
   if (maxPosition <= 0) return null;
-  if (maxValue / zeroLag < minConfidence) return null;
+  var confidence = maxValue / zeroLag;
+  if (confidence < minConfidence) return null;
   var x1 = correlations[maxPosition - 1] || 0;
   var x2 = correlations[maxPosition] || 0;
   var x3 = correlations[maxPosition + 1] || 0;

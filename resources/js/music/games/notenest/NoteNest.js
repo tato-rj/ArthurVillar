@@ -6,6 +6,7 @@ import {
   detectPlayedNotePitch,
   frequencyToMidi,
   isLikelyMobileDevice,
+  PLAYED_NOTE_STABLE_FRAME_COUNT,
   updateStablePitchState,
 } from "../shared/playedNotePitch.js";
 import { accidentalClassToText, pickWeighted, stepToLetterOctave } from "../../staff/staffUtils.js";
@@ -567,7 +568,7 @@ export class NoteNest extends BaseStaffGame {
       this._setPlaySoundModalStatus("Listening...", "Keep holding the note.");
       this._stablePitch = updateStablePitchState(this._stablePitch, frequency);
 
-      if (this._stablePitch.count >= 3) {
+      if (this._stablePitch.count >= PLAYED_NOTE_STABLE_FRAME_COUNT) {
         const stableMidi = this._frequencyToMidi(this._stablePitch.frequency);
         this._handlePlayedNoteHeard(stableMidi, this._midiToNoteName(stableMidi), this._stablePitch.frequency);
         return;
