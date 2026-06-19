@@ -25,6 +25,8 @@ Route::prefix('theory')->name('theory.')->group(function() {
 
 	Route::get('note-nest', 'TheoryController@noteNest')->name('note-nest.play');
 
+	Route::get('note-match', 'TheoryController@noteMatch')->name('note-match.play');
+
 	Route::get('memory-wizard', 'TheoryController@memoryWizard')->name('memory-wizard.play');
 
 	Route::get('beat-hero', 'TheoryController@beatHero')->name('beat-hero.play');

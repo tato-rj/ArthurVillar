@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Theory;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\Player;
-use App\Games\{IntervalsLabSettings, ChordsLabSettings, PitchDetectiveSettings, ChordDetectiveSettings, ToneTrekSettings, NotePythonSettings, KeysLabSettings, NoteNestSettings, MemoryWizardSettings, ModesMasterSettings, OpenStaffSettings, BeatHeroSettings};
+use App\Games\{IntervalsLabSettings, ChordsLabSettings, PitchDetectiveSettings, ChordDetectiveSettings, ToneTrekSettings, NotePythonSettings, KeysLabSettings, NoteNestSettings, NoteMatchSettings, MemoryWizardSettings, ModesMasterSettings, OpenStaffSettings, BeatHeroSettings};
 
 class TheoryController extends Controller
 {
@@ -68,6 +68,13 @@ class TheoryController extends Controller
         $settings = new NoteNestSettings($request->all());
 
         return view('theory.note-nest.index', compact('settings'));
+    }
+
+    public function noteMatch(Request $request)
+    {
+        $settings = new NoteMatchSettings($request->all());
+
+        return view('theory.note-match.index', compact('settings'));
     }
 
     public function memoryWizard(Request $request)

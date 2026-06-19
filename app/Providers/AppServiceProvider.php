@@ -44,6 +44,7 @@ class AppServiceProvider extends ServiceProvider
                     new \App\Games\NotePythonSettings,
                     new \App\Games\KeysLabSettings,
                     new \App\Games\NoteNestSettings,
+                    new \App\Games\NoteMatchSettings,
                     new \App\Games\MemoryWizardSettings,
                     new \App\Games\BeatHeroSettings
                 ])
