@@ -50,6 +50,12 @@ class RouteServiceProvider extends ServiceProvider
                 ->namespace($this->namespace . '\\Listening')
                 ->group(base_path('routes/listening.php'));
 
+            Route::middleware(['web', 'auth'])
+                ->domain('studio.'.config('app.url'))
+                ->namespace($this->namespace . '\\Studio')
+                ->name('studio.')
+                ->group(base_path('routes/studio.php'));
+
             Route::middleware('web')
                 ->namespace($this->namespace)
                 ->group(base_path('routes/web.php'));

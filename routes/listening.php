@@ -2,6 +2,10 @@
 
 use Illuminate\Support\Facades\Route;
 
+Route::get('/', function () {
+    return redirect()->away(config('app.url'));
+});
+
 Route::name('recordings.')->group(function() {
     Route::get('url/{recording}', 'PlayerController@url')->name('url');
 
