@@ -1110,7 +1110,7 @@ export class BaseStaffGame {
     const reachedEnd = this._updateProgressBar() >= 100;
     if (reachedEnd && !this._isPracticeMode()) {
       this._stats.finishedAtMs = Date.now();
-      this.$checkBtn.text('Final results, let\'s see…');
+      this.$checkBtn.attr("state", "final").empty();
       setTimeout(() => this._showFinalResults(), 1600);
       return;
     }
@@ -1651,7 +1651,7 @@ export class BaseStaffGame {
 
     if (this._updateProgressBar() >= 100) {
       this._stats.finishedAtMs = Date.now();
-      this.$checkBtn.text('Final results, let\'s see…');
+      this.$checkBtn.attr("state", "final").empty();
       setTimeout(() => this._showFinalResults(), finalDelayMs);
     } else {
       $("#check").hide();

@@ -162,7 +162,7 @@ export class ToneTrek {
     this._setTimedOutInteractivityDisabled(false);
     this.$finalOverlay.hide();
     this.$doublePoints?.hide?.();
-    this.$checkBtn.text("Check my answer");
+    this.$checkBtn.attr("state", "waiting").empty();
     this.$progressBar.data("progress", 0).css({ width: "0%" });
     this.$progressCounter.text(this._isPracticeMode() ? "Practice" : `0 of ${this.opts.numOfChallenges}`);
     if (this._isTimerEnabled()) this.$timer.show();
@@ -611,7 +611,7 @@ export class ToneTrek {
       this.$table.find('td.block input[name="note"]').prop("disabled", true);
       this.$helpBtn.hide();
       if (this._currentRound >= this.opts.numOfChallenges) {
-        this.$checkBtn.text("Final results, let's see...");
+        this.$checkBtn.attr("state", "final").empty();
         this.$checkWrap.hide();
         this.$continueWrap.hide();
         const tid = setTimeout(() => this._showFinalResults(), 1400);

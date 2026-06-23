@@ -30,7 +30,7 @@
     </div>
     <div id="tracks-container" class="row">
         <div class="col-lg-6 col-md-8 col-10 mx-auto">
-            <form method="POST" action="{{route('admin.recordings.update', $recording)}}" enctype="multipart/form-data" disable-on-submit>
+            <form method="POST" action="{{route('admin.listening.recordings.update', $recording)}}" enctype="multipart/form-data" disable-on-submit>
             	@csrf
             	@method('PATCH')
             	
@@ -63,7 +63,7 @@
                     @input(['label' => 'Year', 'type' => 'number', 'min' => 1400, 'grid' => 'col', 'name' => 'composed_in', 'value' => $recording->composed_in])
             	</div>
 
-                <div id="quill-event-edit" data-name="description" class="mb-4 form-control">
+                <div id="quill-event-edit" data-name="description" class="mb-4">
                     {!!$recording->description!!}
                 </div>
                 <textarea style="display: none" name="description">{!!$recording->description!!}</textarea>
@@ -90,7 +90,7 @@
             </form>
 
             <div class="text-center mt-3 pt-3" style="border-top: 4px dotted grey">
-            	@delete(['action' => route('admin.recordings.destroy', $recording), 'label' => 'Delete this recording'])
+            	@delete(['action' => route('admin.listening.recordings.destroy', $recording), 'label' => 'Delete this recording'])
             </div>
     	</div>
     </div>

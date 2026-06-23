@@ -1,5 +1,5 @@
 @modal(['title' => 'New recording', 'id' => 'create-recording-modal'])
-<form id="create-track" method="POST" action="{{route('admin.recordings.store')}}" enctype="multipart/form-data">
+<form id="create-track" method="POST" action="{{route('admin.listening.recordings.store')}}" enctype="multipart/form-data">
 	@csrf
 	
 	@input(['placeholder' => 'Name', 'name' => 'name', 'required' => true, 'value' => old('name')])
@@ -30,7 +30,7 @@
 		@input(['placeholder' => 'Year', 'type' => 'number', 'min' => 1400, 'grid' => 'col', 'name' => 'composed_in', 'value' => old('composed_in')])
 	</div>
 
-    <div id="quill-event-edit" data-name="description" class="mb-4 form-control">
+    <div id="quill-event-edit" data-name="description" class="mb-4">
         {!!old('description')!!}
     </div>
     <textarea style="display: none" name="description">{!!old('description')!!}</textarea>

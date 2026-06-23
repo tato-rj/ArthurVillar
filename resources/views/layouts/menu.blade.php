@@ -10,25 +10,22 @@
       <li class="nav-item">
         <a class="nav-link" href="{{route('admin.index')}}">Home</a>
       </li>
-      <li class="nav-item">
-        <a class="nav-link" href="{{route('admin.sound-effects.index')}}">Sound effects</a>
-      </li>
 
       <hr>
       <label class="opacity-4 mb-2 fw-bold" style="font-size: 75%;">LISTENING</label>
       <div class="ml-1">
         <li class="nav-item">
-          <a class="nav-link" href="{{route('admin.recordings.index')}}">Recordings</a>
+          <a class="nav-link" href="{{route('admin.listening.recordings.index')}}">Recordings</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{{route('admin.composers.index')}}">Composers</a>
+          {{-- <a class="nav-link" href="{{route('admin.composers.index')}}">Composers</a> --}}
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{{route('admin.playlists.index')}}">Playlists</a>
+          {{-- <a class="nav-link" href="{{route('admin.playlists.index')}}">Playlists</a> --}}
         </li>
         @if(local())
         <li class="nav-item">
-          <a class="nav-link" href="{{route('admin.youtube.create')}}">Youtube to mp3</a>
+          {{-- <a class="nav-link" href="{{route('admin.youtube.create')}}">Youtube to mp3</a> --}}
         </li>
         @endif
       </div>
@@ -37,13 +34,16 @@
       <label class="opacity-4 mb-2 fw-bold" style="font-size: 75%;">THEORY</label>
       <div class="ml-1">
         <li class="nav-item">
-          <a class="nav-link" href="{{route('admin.leaderboard.index')}}">Leaderboards</a>
+          {{-- <a class="nav-link" href="{{route('admin.leaderboard.index')}}">Leaderboards</a> --}}
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{{route('admin.recordings.index')}}">Tournaments</a>
+          {{-- <a class="nav-link" href="{{route('admin.recordings.index')}}">Tournaments</a> --}}
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{{route('admin.composers.index')}}">Stats</a>
+          {{-- <a class="nav-link" href="{{route('admin.composers.index')}}">Stats</a> --}}
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{route('admin.theory.sound-effects.index')}}">Sound effects</a>
         </li>
       </div>
 

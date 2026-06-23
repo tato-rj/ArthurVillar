@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Listening;
+namespace App\Http\Controllers\Admin;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -11,22 +11,11 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 class RecordingsController extends Controller
 {
     public function index()
-    {
+    {        
         $recordings = Recording::paginate(12);
         $playlists = Playlist::latest()->get();
 
         return view('admin.listening.recordings.index', compact(['recordings', 'playlists']));
-    }
-
-    public function qrcode(Request $request, Recording $recording)
-    {
-        $filename = str_slug($recording->nameWithComposer).'.png';
-
-        return response()->streamDownload(function () use ($request) {
-            $qrcode = QrCode::size(500)->format('png')->margin(1)->errorCorrection('M');
-
-            echo $qrcode->generate($request->url);
-        }, $filename, ['Content-Type' => 'image/png']);
     }
 
     public function store(Request $request)
@@ -60,13 +49,14 @@ class RecordingsController extends Controller
 
         return back()->with('success', 'The recording was successully uploaded');
     }
-
+    
     public function edit(Recording $recording)
     {
         $periods = Period::orderBy('starts_in')->get();
 
         return view('admin.listening.recordings.edit.index', compact(['recording', 'periods']));
     }
+
 
     public function update(Request $request, Recording $recording)
     {
@@ -115,6 +105,6 @@ class RecordingsController extends Controller
     {
         $recording->delete();
 
-        return redirect(route('admin.recordings.index'))->with('success', 'The recording was successfully deleted');
+        return redirect(route('admin.listening.recordings.index'))->with('success', 'The recording was successfully deleted');
     }
 }

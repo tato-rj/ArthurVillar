@@ -12748,7 +12748,7 @@ textarea.form-control-lg {
   opacity: var(--bs-btn-disabled-opacity);
 }
 
-.btn-primary, #controls #check button[state=waiting] {
+.btn-primary, #controls #check button[state=waiting], #controls #check button[state=final] {
   --bs-btn-color: #fff;
   --bs-btn-bg: #0d6efd;
   --bs-btn-border-color: #0d6efd;
@@ -25722,23 +25722,23 @@ h1, .h1 {
   background-color: white !important;
   border-color: white !important;
 }
-.btn-primary, #controls #check button[state=waiting] {
+.btn-primary, #controls #check button[state=waiting], #controls #check button[state=final] {
   color: black !important;
   background-color: #ffe54c;
   border-color: black !important;
   border-radius: 2rem !important;
 }
-.btn-primary:hover, #controls #check button[state=waiting]:hover {
+.btn-primary:hover, #controls #check button[state=waiting]:hover, #controls #check button[state=final]:hover {
   color: black !important;
   background-color: rgb(255, 231.9631284916, 96.4);
 }
-.btn-primary:active, #controls #check button[state=waiting]:active {
+.btn-primary:active, #controls #check button[state=waiting]:active, #controls #check button[state=final]:active {
   background-color: rgb(255, 223.0737430168, 35.2) !important;
 }
-.btn-primary:focus, #controls #check button[state=waiting]:focus {
+.btn-primary:focus, #controls #check button[state=waiting]:focus, #controls #check button[state=final]:focus {
   background-color: #ffe54c;
 }
-.btn-primary:disabled, #controls #check button[state=waiting]:disabled {
+.btn-primary:disabled, #controls #check button[state=waiting]:disabled, #controls #check button[state=final]:disabled {
   background-color: rgb(255, 236.4078212291, 127) !important;
   border-color: rgb(25.5, 25.5, 25.5) !important;
 }
@@ -31264,6 +31264,10 @@ body {
 
 #controls #check button[state=waiting]::before {
   content: "Check my answer";
+}
+
+#controls #check button[state=final]::before {
+  content: "Final results, let's see...";
 }
 
 #controls #check button[state=wrong], #controls #check button[state=wrong]:disabled {

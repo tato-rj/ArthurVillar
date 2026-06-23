@@ -108,12 +108,16 @@ body {
   display: none;
 }
 
-#controls #check button[state="waiting"] {
+#controls #check button[state="waiting"], #controls #check button[state="final"] {
   @extend .btn-primary;
 }
 
 #controls #check button[state="waiting"]::before {
   content: "Check my answer";
+}
+
+#controls #check button[state="final"]::before {
+  content: "Final results, let's see...";
 }
 
 #controls #check button[state="wrong"], #controls #check button[state="wrong"]:disabled {

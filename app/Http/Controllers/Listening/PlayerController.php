@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Listening;
 
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 use App\Models\{Recording, Playlist};
 use App\Token\Token;
 use Illuminate\Support\Str;
@@ -42,6 +43,6 @@ class PlayerController extends Controller
         $recording = Recording::find($request['recording_id']);
         $playlist = Playlist::find($request['playlist_id'] ?? null);
 
-        return view('admin.listening.recordings.play.index', compact(['recording', 'playlist']));
+        return view('listening.show', compact(['recording', 'playlist']));
     }
 }

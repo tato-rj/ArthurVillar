@@ -19,7 +19,7 @@
 	  			<div class="small fw-bold opacity-6">{{$playlist->recordings->count()}} pieces</div>
 	  		</div>
 		    @foreach($playlist->recordings as $recording)
-					@include('admin.listening.playlists.show.track')
+					@include('listening.components.playlist.track')
 		    @endforeach
 		</div>
 	</div>

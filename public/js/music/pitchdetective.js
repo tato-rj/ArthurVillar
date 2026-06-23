@@ -1152,7 +1152,7 @@ var BaseStaffGame = /*#__PURE__*/function () {
       var reachedEnd = this._updateProgressBar() >= 100;
       if (reachedEnd && !this._isPracticeMode()) {
         this._stats.finishedAtMs = Date.now();
-        this.$checkBtn.text('Final results, let\'s see…');
+        this.$checkBtn.attr("state", "final").empty();
         setTimeout(function () {
           return _this16._showFinalResults();
         }, 1600);
@@ -1700,7 +1700,7 @@ var BaseStaffGame = /*#__PURE__*/function () {
       if (earned > 0) this._showIncrement(earned);
       if (this._updateProgressBar() >= 100) {
         this._stats.finishedAtMs = Date.now();
-        this.$checkBtn.text('Final results, let\'s see…');
+        this.$checkBtn.attr("state", "final").empty();
         setTimeout(function () {
           return _this25._showFinalResults();
         }, finalDelayMs);
