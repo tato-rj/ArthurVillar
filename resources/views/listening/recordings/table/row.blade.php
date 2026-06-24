@@ -14,7 +14,7 @@
 
   @case('actions')
       @component('components.table.actions', [
-        'edit' => ['href' => route('admin.listening.recordings.edit', $recording)],
+        'edit' => ['href' => route('listening.recordings.edit', $recording)],
       ])
 
       <button class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#play-{{$recording->id}}-modal">@fa(['icon' => 'play', 'mr' => 0])</button>
@@ -23,7 +23,7 @@
       
       @endcomponent
 
-      @include('admin.listening.recordings.edit.playlists')
-      @include('admin.listening.recordings.play.modal')
+      @include('listening.recordings.edit.playlists')
+      @include('listening.recordings.play.modal')
       @break
 @endswitch

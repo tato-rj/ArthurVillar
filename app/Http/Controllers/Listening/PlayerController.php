@@ -33,7 +33,7 @@ class PlayerController extends Controller
         if ($referrer && Str::contains($referrer, 'admin.arthurvillar'))
             $params['qrcode'] = true;
 
-        return redirect(route('recordings.show', $params));
+        return redirect(route('listening.show', $params));
     }
 
     public function show($token)

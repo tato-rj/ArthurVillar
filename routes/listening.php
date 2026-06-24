@@ -3,16 +3,25 @@
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function() {
-    Route::get('', 'ListeningController@home')->name('home');
+    Route::get('', 'RecordingsController@home')->name('home');
+
+    Route::prefix('recordings')->name('recordings.')->group(function() {
+        Route::post('', 'RecordingsController@store')->name('store');
+
+        Route::prefix('{recording}')->group(function() {
+            Route::get('', 'RecordingsController@edit')->name('edit');
+
+            Route::patch('playlists', 'RecordingsController@playlists')->name('playlists');
+        });
+    });
 });
 
-// Route::name('recordings.')->group(function() {
-//     Route::get('url/{recording}', 'PlayerController@url')->name('url');
+Route::get('url/{recording}', 'PlayerController@url')->name('url');
 
-//     Route::get('qrcode', 'PlayerController@qrcode')->name('qrcode');
-    
-//     Route::middleware('token.play')->get('{token}', 'PlayerController@show')->name('show');
-// });
+Route::get('qrcode', 'PlayerController@qrcode')->name('qrcode');
+
+Route::middleware('token.play')->get('{token}', 'PlayerController@show')->name('show');
+
 
 
 // Route::name('recordings.')->group(function() {

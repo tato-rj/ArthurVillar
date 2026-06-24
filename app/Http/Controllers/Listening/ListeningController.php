@@ -10,14 +10,6 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class ListeningController extends Controller
 {
-    public function home()
-    {
-        $recordings = Recording::paginate(12);
-        $playlists = Playlist::latest()->get();
-
-        return view('admin.listening.recordings.index', compact(['recordings', 'playlists']));
-    }
-
     public function qrcode(Request $request, Recording $recording)
     {
         $filename = str_slug($recording->nameWithComposer).'.png';

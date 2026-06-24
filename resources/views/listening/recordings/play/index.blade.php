@@ -63,7 +63,7 @@ img {
 @if(request()->qrcode)
 <div class="position-absolute top-o left-0 w-100 mt-3 animate__animated animate__fadeInLeft">
   <div class="mb-2">
-    <a href="{{route('listening.recordings.qrcode', ['recording' => $recording, 'url' => url()->current()])}}" class="btn btn-sm btn-secondary">@fa(['icon' => 'qrcode'])Make QRCode</a>
+    <a href="{{route('admin.recordings.qrcode', ['recording' => $recording, 'url' => url()->current()])}}" class="btn btn-sm btn-secondary">@fa(['icon' => 'qrcode'])Make QRCode</a>
   </div>
 
   <div>
@@ -98,11 +98,11 @@ img {
   </div>
 </section>
 
-@include('listening.components.composer')
-@include('listening.components.about')
+@include('admin.listening.recordings.play.composer')
+@include('admin.listening.recordings.play.about')
 
 @isset($playlist)
-@include('listening.components.playlist.show')
+@include('admin.listening.playlists.show.index')
 @endisset
 @endsection
 

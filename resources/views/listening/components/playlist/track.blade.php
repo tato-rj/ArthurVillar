@@ -1,4 +1,4 @@
-<form method="POST" action="{{route('recordings.url', $recording)}}">
+<form method="GET" action="{{route('listening.url', $recording)}}">
 	@csrf
 	<input type="hidden" name="token" value="{{request()->token}}">
 	<div {{$recording->is($playingRecording) ? null : 'submit'}} class="track-container d-apart {{$loop->last ? null : 'border-bottom mb-2 pb-2'}}">

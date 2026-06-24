@@ -1,4 +1,4 @@
-@extends('layouts.app', ['title' => 'Listening'])
+@extends('layouts.app', ['title' => 'Recordings'])
 
 @push('header')
 <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.4.3/cropper.min.css">
@@ -15,10 +15,10 @@
 @endpush
 
 @section('content')
-{{-- <section class="container py-5">
+<section class="container py-5">
     <div class="row mb-4">
         @pagetitle([
-            'label' => 'Listening',
+            'label' => 'Recordings',
             'modal' => [
                 'target' => '#create-recording-modal',
                 'icon' => 'plus',
@@ -28,11 +28,11 @@
     </div>
     <div id="tracks-container" class="row">
         <div class="col-lg-8 col-md-10 col-12 mx-auto">
-            @include('admin.listening.recordings.table.results')
+            @include('listening.recordings.table.results')
         </div>
     </div>
 </section>
-@include('admin.listening.recordings.create') --}}
+@include('listening.recordings.create')
 @endsection
 
 @push('scripts')
