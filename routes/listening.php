@@ -11,7 +11,11 @@ Route::middleware('auth')->group(function() {
         Route::prefix('{recording}')->group(function() {
             Route::get('', 'RecordingsController@edit')->name('edit');
 
-            Route::patch('playlists', 'RecordingsController@playlists')->name('playlists');
+            Route::patch('', 'RecordingsController@update')->name('update');
+
+            Route::patch('sync-playlists', 'RecordingsController@syncPlaylists')->name('sync-playlists');
+
+            Route::delete('', 'RecordingsController@destroy')->name('destroy');
         });
     });
 });

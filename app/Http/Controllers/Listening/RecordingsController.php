@@ -54,7 +54,7 @@ class RecordingsController extends Controller
     {
         $periods = Period::orderBy('starts_in')->get();
 
-        return view('admin.listening.recordings.edit.index', compact(['recording', 'periods']));
+        return view('listening.recordings.edit.index', compact(['recording', 'periods']));
     }
 
 
@@ -94,7 +94,7 @@ class RecordingsController extends Controller
         return back()->with('success', 'The recording was successully updated');
     }
 
-    public function playlists(Request $request, Recording $recording)
+    public function syncPlaylists(Request $request, Recording $recording)
     {
         $recording->playlists()->sync($request->playlists);
         

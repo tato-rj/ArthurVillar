@@ -17,20 +17,11 @@
 @section('content')
 <section class="container py-5">
     <div class="row mb-4 text-center">
-        @pagetitle([
-            'label' => 'Edit recording',
-            'modal' => [
-                'target' => '#play-'.$recording->id.'-modal',
-                'icon' => 'play',
-                'label' => 'Play'
-            ]
-        ])
-      @include('admin.listening.recordings.play.modal')
-
+        @pagetitle(['label' => 'Edit recording'])
     </div>
     <div id="tracks-container" class="row">
         <div class="col-lg-6 col-md-8 col-10 mx-auto">
-            <form method="POST" action="{{route('admin.listening.recordings.update', $recording)}}" enctype="multipart/form-data" disable-on-submit>
+            <form method="POST" action="{{route('listening.recordings.update', $recording)}}" enctype="multipart/form-data" disable-on-submit>
             	@csrf
             	@method('PATCH')
             	
@@ -90,7 +81,7 @@
             </form>
 
             <div class="text-center mt-3 pt-3" style="border-top: 4px dotted grey">
-            	@delete(['action' => route('admin.listening.recordings.destroy', $recording), 'label' => 'Delete this recording'])
+            	@delete(['action' => route('listening.recordings.destroy', $recording), 'label' => 'Delete this recording'])
             </div>
     	</div>
     </div>

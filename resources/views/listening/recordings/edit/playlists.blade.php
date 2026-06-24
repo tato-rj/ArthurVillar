@@ -1,5 +1,5 @@
 @modal(['title' => 'Playlists', 'id' => 'addto-playlist-'.$recording->id.'-modal'])
-<form method="POST" action="{{route('listening.recordings.playlists', $recording)}}">
+<form method="POST" action="{{route('listening.recordings.sync-playlists', $recording)}}">
 	@method('PATCH')
 	@csrf
 
