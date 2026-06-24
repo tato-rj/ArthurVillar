@@ -9,9 +9,14 @@ use App\Games\{IntervalsLabSettings, ChordsLabSettings, PitchDetectiveSettings, 
 
 class TheoryController extends Controller
 {
-    public function index(Request $request)
+    public function home(Request $request)
     {
         return view('theory.index');
+    }
+
+    public function audio()
+    {
+        return view('theory.audio.index');
     }
 
     public function intervalsLab(Request $request)

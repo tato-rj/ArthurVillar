@@ -1,4 +1,4 @@
-@extends('layouts.app', ['title' => 'Admin Game Audio'])
+@extends('layouts.app', ['title' => 'Audio Control'])
 
 @push('header')
 
@@ -6,10 +6,10 @@
 
 @section('content')
 <section class="container py-5 text-center">
-        @pagetitle(['label' => 'Sound Effects'])
+        @pagetitle(['label' => 'Audio Control'])
 
         <div class="row" id="sound-effects-list">
-                @include('admin.sound-effects.sound')
+                @include('theory.audio.control')
         </div>
 </section>
 @endsection

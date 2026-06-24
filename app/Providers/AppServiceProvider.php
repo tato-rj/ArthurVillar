@@ -33,7 +33,7 @@ class AppServiceProvider extends ServiceProvider
             ]);
         });
 
-        \View::composer(['admin.leaderboards.index', 'theory.index'], function($view) {
+        \View::composer(['theory.leaderboards.index', 'theory.index'], function($view) {
             $view->with([
                 'games' => collect([
                     new \App\Games\IntervalsLabSettings,

@@ -2,5 +2,5 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', 'StudioController@index')->name('index');
+Route::get('/', 'StudioController@index')->name('home');
 

@@ -7,7 +7,7 @@
                 <div>
                     <div class="d-flex flex-wrap justify-content-end">
                         @foreach($settings->categories() as $category)
-                        <a href="{{route('theory.index', ['category' => $category])}}" class="link-none">
+                        <a href="{{route('theory.home', ['category' => $category])}}" class="link-none">
                             <div style="font-size: .7em" class="badge rounded-pill bg-light text-muted d-inline-block m-1">{{$category}}</div>
                         </a>
                         @endforeach

@@ -1,6 +1,7 @@
 @extends('layouts.app', ['title' => 'Leaderboards'])
 
 @push('header')
+<link href="{{ mix('css/musicgames.css') }}" rel="stylesheet">
 @endpush
 
 @section('content')
@@ -11,15 +12,8 @@
                 @foreach($games as $game)
                 <div class="col-lg-4 col-md-6 col-12 g-3">
                         <div class="border rounded p-2 bg-light leaderboard-wrapper">
-                                <div class="text-center border position-relative rounded bg-white py-2 mb-2">
+                                <div class="text-center border rounded bg-white py-2 mb-2">
                                         <h6 class="m-0">@fa(['icon' => $game->gameIcon(), 'fa_color' => $game->gameTheme()]){{$game->gameName()}}</h6>
-                                        <div class="position-absolute top-0 right-0">
-                                                <form method="POST" action="{{route('admin.leaderboard.fake')}}">
-                                                        @csrf
-                                                        <input type="hidden" name="game" value="{{$game->gameName()}}">
-                                                        <button type="submit" class="btn-raw h-100 p-2">@fa(['icon' => 'wand-magic-sparkles', 'mr' => 0])</button>
-                                                </form>
-                                        </div>
                                 </div>
 
                                 <div class="text-center mb-3">

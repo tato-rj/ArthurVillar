@@ -15,7 +15,7 @@
 @endpush
 
 @section('content')
-<section class="container py-5">
+{{-- <section class="container py-5">
     <div class="row mb-4">
         @pagetitle([
             'label' => 'Listening',
@@ -32,7 +32,7 @@
         </div>
     </div>
 </section>
-@include('admin.listening.recordings.create')
+@include('admin.listening.recordings.create') --}}
 @endsection
 
 @push('scripts')

@@ -31,27 +31,24 @@ class RouteServiceProvider extends ServiceProvider
 
         $this->routes(function () {
             Route::middleware('api')
-                ->domain(config('app.url'))
+                ->domain(config('app.domain'))
                 ->prefix('api')
                 ->group(base_path('routes/api.php'));
 
-            Route::middleware(['web', 'auth'])
-                ->domain('admin.'.config('app.url'))
-                ->namespace($this->namespace . '\\Admin')
-                ->group(base_path('routes/admin.php'));
-
             Route::middleware('web')
-                ->domain('theory.'.config('app.url'))
-                ->namespace($this->namespace . '\\Theory')
-                ->group(base_path('routes/theory.php'));
-
-            Route::middleware('web')
-                ->domain('listening.'.config('app.url'))
+                ->domain('listening.'.config('app.domain'))
                 ->namespace($this->namespace . '\\Listening')
+                ->name('listening.')
                 ->group(base_path('routes/listening.php'));
 
+            Route::middleware('web')
+                ->domain('theory.'.config('app.domain'))
+                ->namespace($this->namespace . '\\Theory')
+                ->name('theory.')
+                ->group(base_path('routes/theory.php'));
+
             Route::middleware(['web', 'auth'])
-                ->domain('studio.'.config('app.url'))
+                ->domain('studio.'.config('app.domain'))
                 ->namespace($this->namespace . '\\Studio')
                 ->name('studio.')
                 ->group(base_path('routes/studio.php'));

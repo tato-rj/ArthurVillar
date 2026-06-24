@@ -24,7 +24,7 @@
 	        		</div>
         			<div class="d-flex">
 						<button onclick="location.reload();" class="btn btn-white mr-1 w-100">@fa(['icon' => 'rotate-right'])Play again</button>
-						<a href="{{route('theory.index')}}" class="btn btn-white w-100 ml-1">@fa(['icon' => 'house'])Back home</a>
+						<a href="{{route('theory.home')}}" class="btn btn-white w-100 ml-1">@fa(['icon' => 'house'])Back home</a>
 					</div>
 				</div>
 			</div>

@@ -10,10 +10,8 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class ListeningController extends Controller
 {
-    public function index()
+    public function home()
     {
-        return 'listening';
-        
         $recordings = Recording::paginate(12);
         $playlists = Playlist::latest()->get();
 

@@ -9,6 +9,11 @@ use Carbon\CarbonInterval;
 
 class LeaderboardsController extends Controller
 {
+    public function index()
+    {
+        return view('theory.leaderboards.index');    
+    }
+
     public function store(Request $request)
     {
         $request->validate([
@@ -47,5 +52,12 @@ class LeaderboardsController extends Controller
     public function finalPoints(Request $request)
     {
         return (new Player)->calculateFinalScore($request);
+    }
+
+    public function destroy(Player $player)
+    {
+        $player->delete();
+
+        return back()->with('success', 'The entry was successully deleted');
     }
 }

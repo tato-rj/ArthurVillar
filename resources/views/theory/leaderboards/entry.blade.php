@@ -21,7 +21,7 @@
 		<div class="text-right mt-1">
 			<p class="text-grey mb-2" style="font-size: 70%;">{{$player->created_at->diffForHumans()}}</p>
 			<div>
-				<form method="POST" confirm action="{{route('admin.leaderboard.destroy', $player)}}">
+				<form method="POST" confirm action="{{route('theory.leaderboard.destroy', $player)}}">
 					@csrf
 					@method('DELETE')
 					<button type="submit" class="btn btn-sm btn-red text-nowrap">@fa(['icon' => 'trash-alt', 'mr' => 0])</button>

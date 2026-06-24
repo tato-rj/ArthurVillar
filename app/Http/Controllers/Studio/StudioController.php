@@ -9,6 +9,6 @@ class StudioController extends Controller
 {
     public function index()
     {
-        return 'studio';
+        return view('studio.index');
     }
 }

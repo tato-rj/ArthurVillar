@@ -39,13 +39,11 @@
     <body class="antialiased">
         @include('layouts.overlay')
 
-        @if(! isset($noMenu))
         <div class="position-absolute top-0 right-0 p-4 z-10">
             @auth
-            @include('layouts.menu')
+            @includeIf('layouts.menu.'.subdomain())
             @endauth
         </div>
-        @endif
 
         @yield('content')
 
