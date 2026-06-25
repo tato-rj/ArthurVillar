@@ -21,5 +21,5 @@
 			'label' => '',
 			'width' => '1%'
 		]],
-	'view' => 'admin.listening.composers.table.row'
+	'view' => 'listening.composers.table.row'
 ])

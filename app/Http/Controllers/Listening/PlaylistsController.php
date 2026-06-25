@@ -12,14 +12,14 @@ class PlaylistsController extends Controller
     {
         $playlists = Playlist::paginate(8);
 
-        return view('admin.listening.playlists.index', compact('playlists'));
+        return view('listening.playlists.index', compact('playlists'));
     }
 
     public function recordings(Playlist $playlist)
     {
         $playlists = Playlist::all();
 
-        return view('admin.listening.playlists.recordings.index', compact(['playlist', 'playlists']));
+        return view('listening.playlists.recordings.index', compact(['playlist', 'playlists']));
     }
 
     public function store(Request $request)

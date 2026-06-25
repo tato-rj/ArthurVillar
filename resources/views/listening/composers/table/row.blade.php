@@ -14,7 +14,7 @@
 
   @case('actions')
       @include('components.table.actions', [
-        'edit' => ['href' => route('admin.composers.edit', $composer)],
+        'edit' => ['href' => route('listening.composers.edit', $composer)],
       ])
       @break
 @endswitch

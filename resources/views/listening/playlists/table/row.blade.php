@@ -22,7 +22,7 @@
       ])
 
       @if($playlist->recordings()->exists())
-      <form class="d-inline-block" method="POST" target="_blank" action="{{route('recordings.url', $playlist->recordings->first())}}">
+      <form class="d-inline-block" method="POST" target="_blank" action="{{route('listening.url', $playlist->recordings->first())}}">
         @csrf
 
         <input type="hidden" name="playlist_id" value="{{$playlist->id}}">
@@ -31,8 +31,8 @@
       </form>
       @endif
 
-      <a class="btn btn-sm btn-secondary" href="{{route('admin.playlists.recordings', $playlist)}}">@fa(['icon' => 'list', 'mr' => 0])</a>
+      <a class="btn btn-sm btn-secondary" href="{{route('listening.playlists.recordings', $playlist)}}">@fa(['icon' => 'list', 'mr' => 0])</a>
       @endcomponent
-      @include('admin.listening.playlists.edit', $playlist)
+      @include('listening.playlists.edit', $playlist)
       @break
 @endswitch

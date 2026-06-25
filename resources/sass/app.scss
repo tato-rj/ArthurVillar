@@ -140,6 +140,7 @@ mark {
 }
 
 .ql-container {
+  @extend .rounded-bottom;
   border-top-left-radius: 0 !important;
   border-top-right-radius: 0 !important;
   border-color: #e9ebf0 !important;

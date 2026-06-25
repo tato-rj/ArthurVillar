@@ -16,6 +16,7 @@
 
 @section('content')
 <section class="container py-5">
+    {{ Breadcrumbs::render('listening.composers.edit', $composer) }}
     <div class="row mb-4">
         @pagetitle([
             'label' => $composer->name,
@@ -27,7 +28,7 @@
     </div>
     <div id="composers-container" class="row">
         <div class="col-lg-6 col-md-8 col-10 mx-auto">
-            <form method="POST" action="{{route('admin.composers.update', $composer)}}" enctype="multipart/form-data">
+            <form method="POST" action="{{route('listening.composers.update', $composer)}}" enctype="multipart/form-data">
                 @method('PATCH')
                 @csrf
                 
@@ -67,7 +68,7 @@
             </form>
 
             <div class="text-center mt-3 pt-3" style="border-top: 4px dotted grey">
-                @delete(['action' => route('admin.composers.destroy', $composer), 'label' => 'Delete this composer'])
+                @delete(['action' => route('listening.composers.destroy', $composer), 'label' => 'Delete this composer'])
             </div>
         </div>
     </div>

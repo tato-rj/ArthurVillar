@@ -16,8 +16,10 @@
 
 @section('content')
 <section class="container py-5">
+    {{ Breadcrumbs::render('listening.recordings.edit', $recording) }}
+
     <div class="row mb-4 text-center">
-        @pagetitle(['label' => 'Edit recording'])
+        @pagetitle(['label' => $recording->name])
     </div>
     <div id="tracks-container" class="row">
         <div class="col-lg-6 col-md-8 col-10 mx-auto">

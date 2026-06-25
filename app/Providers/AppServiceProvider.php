@@ -27,7 +27,7 @@ class AppServiceProvider extends ServiceProvider
             ]);
         });
 
-        \View::composer(['admin.listening.composers.create', 'admin.listening.composers.edit'], function($view) {
+        \View::composer(['listening.composers.create', 'listening.composers.edit'], function($view) {
             $view->with([
                 'countries' => Country::orderBy('name')->get()->groupByFirstLetter('name')
             ]);

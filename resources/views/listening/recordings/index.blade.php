@@ -61,5 +61,9 @@ quill.on('text-change', function(delta, oldDelta, source) {
 
   $('[name="'+$editor.data('name')+'"]').val($editor.find('.ql-editor').html());
 });
+
+$('#create-recording-modal form').on('submit', function() {
+  $(this).find('button[type="submit"]').disable();
+});
 </script>
 @endpush

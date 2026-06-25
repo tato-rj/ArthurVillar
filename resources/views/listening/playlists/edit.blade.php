@@ -1,6 +1,6 @@
 @modal(['title' => 'Edit playlist', 'id' => 'edit-playlist-'.$playlist->id.'-modal'])
 <div class="mb-4 pb-4" style="border-bottom: 4px dotted lightgrey;">
-	<form id="create-track" method="POST" action="{{route('admin.playlists.update', $playlist)}}">
+	<form id="create-track" method="POST" action="{{route('listening.playlists.update', $playlist)}}">
 		@method('PATCH')
 		@csrf
 
@@ -13,7 +13,7 @@
 </div>
 
 <div>
-	<form id="create-track" method="POST" action="{{route('admin.playlists.secret', $playlist)}}">
+	<form id="create-track" method="POST" action="{{route('listening.playlists.secret', $playlist)}}">
 		@method('PATCH')
 		@csrf
 
@@ -24,6 +24,6 @@
 </div>
 
 <div class="text-center mt-4"> 
-	@delete(['action' => route('admin.playlists.destroy', $playlist), 'label' => 'Delete this playlist'])
+	@delete(['action' => route('listening.playlists.destroy', $playlist), 'label' => 'Delete this playlist'])
 </div>
 @endmodal

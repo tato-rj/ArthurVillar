@@ -13,7 +13,7 @@ class YoutubeToMp3 extends Command
      *
      * @var string
      */
-    protected $signature = 'youtube:mp3 {url} {folder} {start} {end}';
+    protected $signature = 'youtube:mp3 {url} {folder} {start?} {end?}';
 
     /**
      * The console command description.
@@ -29,18 +29,22 @@ class YoutubeToMp3 extends Command
      */
     public function handle()
     {
-        $filename = $this->filename();
-        $filepath = storage_path('app/public/recordings') . '/' . $filename;
+        $basename = $this->basename();
+        $filename = $basename . '.mp3';
+        $directory = $this->directory();
+        $filepath = $directory . '/' . $filename;
         $start = $this->argument('start');
         $end = $this->argument('end');
 
         $arguments = [
-            env('YT_PATH'),
+            env('YT_PATH', 'yt-dlp'),
             '--ffmpeg-location', env('FFMPEG_PATH'),
+            '--js-runtimes', 'deno:/opt/homebrew/bin/deno',
+            '--extractor-args', 'youtube:player_client=web_safari,web',
+            '--no-playlist',
             '-x',
             '--audio-format', 'mp3',
-            '-o', $filepath,
-            $this->url(),
+            '-o', $directory . '/' . $basename . '.%(ext)s',
         ];
 
         if ($start && $end) {
@@ -49,26 +53,30 @@ class YoutubeToMp3 extends Command
             $arguments[] = $section;
         }
 
-        $process = new Process($arguments);
+        $arguments[] = $this->url();
 
-        $process->setWorkingDirectory($this->directory());
+        $process = new Process($arguments, null, $this->processEnvironment());
+
+        $process->setWorkingDirectory($directory);
 
         $process->setTimeout(600);
 
         try {
             $process->mustRun();
+            $this->applyFade($filepath);
 
             return $this->info($this->argument('folder') . '/' . $filename);
         } catch (ProcessFailedException $exception) {
-            $this->error($exception->getMessage());
+            $message = trim($process->getErrorOutput() ?: $process->getOutput() ?: $exception->getMessage());
+            $this->error($message);
             
             return 1;
         }
     }
 
-    public function filename()
+    public function basename()
     {
-        return \Str::uuid()->toString() . '.mp3';
+        return \Str::uuid()->toString();
     }
 
     public function directory()
@@ -78,6 +86,69 @@ class YoutubeToMp3 extends Command
         \File::makeDirectory($directory, 0755, true, true);
 
         return $directory;
+    }
+
+    public function processEnvironment()
+    {
+        $paths = array_filter([
+            dirname(env('YT_PATH', '')),
+            dirname(env('FFMPEG_PATH', '')),
+            '/opt/homebrew/bin',
+            '/usr/local/bin',
+            getenv('PATH'),
+        ]);
+
+        return ['PATH' => implode(PATH_SEPARATOR, array_unique($paths))];
+    }
+
+    public function applyFade($filepath)
+    {
+        $duration = $this->duration($filepath);
+
+        if ($duration <= 0) {
+            return;
+        }
+
+        $fadeInDuration = min(1, $duration);
+        $fadeOutDuration = min(2, $duration);
+        $fadeOutStart = max(0, $duration - $fadeOutDuration);
+        $fadedPath = $filepath . '.faded.mp3';
+
+        $process = new Process([
+            env('FFMPEG_PATH', 'ffmpeg'),
+            '-y',
+            '-i', $filepath,
+            '-af', sprintf(
+                'afade=t=in:st=0:d=%s,afade=t=out:st=%s:d=%s',
+                $fadeInDuration,
+                $fadeOutStart,
+                $fadeOutDuration
+            ),
+            $fadedPath,
+        ], null, $this->processEnvironment());
+
+        $process->setTimeout(600);
+        $process->mustRun();
+
+        \File::move($fadedPath, $filepath);
+    }
+
+    public function duration($filepath)
+    {
+        $ffprobePath = dirname(env('FFMPEG_PATH', 'ffmpeg')) . '/ffprobe';
+
+        $process = new Process([
+            $ffprobePath,
+            '-v', 'error',
+            '-show_entries', 'format=duration',
+            '-of', 'default=noprint_wrappers=1:nokey=1',
+            $filepath,
+        ], null, $this->processEnvironment());
+
+        $process->setTimeout(60);
+        $process->mustRun();
+
+        return (float) trim($process->getOutput());
     }
 
     public function url()

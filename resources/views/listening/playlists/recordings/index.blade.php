@@ -5,6 +5,8 @@
 
 @section('content')
 <section class="container py-5">
+	{{ Breadcrumbs::render('listening.playlists.recordings', $playlist) }}
+
     <div class="row mb-4">
         @pagetitle([
             'label' => $playlist->name,
@@ -43,7 +45,7 @@
 						'label' => '',
 						'width' => 'auto'
 					]],
-				'view' => 'admin.listening.playlists.recordings.row'
+				'view' => 'listening.playlists.recordings.row'
 			])
         </div>
     </div>

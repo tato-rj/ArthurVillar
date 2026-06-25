@@ -14,7 +14,7 @@ class ComposersController extends Controller
         $periods = Period::orderBy('starts_in')->get();
         $composers = Composer::orderBy('period_id')->paginate(8);
 
-        return view('admin.listening.composers.index', compact(['composers', 'periods']));
+        return view('listening.composers.index', compact(['composers', 'periods']));
     }
 
     public function store(Request $request)
@@ -56,7 +56,7 @@ class ComposersController extends Controller
     {
         $periods = Period::orderBy('starts_in')->get();
 
-        return view('admin.listening.composers.edit', compact(['composer', 'periods']));
+        return view('listening.composers.edit', compact(['composer', 'periods']));
     }
 
     public function update(Request $request, Composer $composer)

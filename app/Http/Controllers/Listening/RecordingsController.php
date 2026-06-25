@@ -10,7 +10,7 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class RecordingsController extends Controller
 {
-    public function home()
+    public function index()
     {        
         $recordings = Recording::paginate(12);
         $playlists = Playlist::latest()->get();
@@ -23,21 +23,25 @@ class RecordingsController extends Controller
         $request->validate([
             'name' => 'required',
             'cover' => 'sometimes|mimes:jpg,jpeg,png|max:500',
-            'audio' => 'required|mimes:mp3',
+            'youtube_url' => 'required|url',
+            'start_time' => 'nullable|string',
+            'end_time' => 'nullable|string',
             'period_id' => 'required',
             'composer_id' => 'required'
         ]);
+
+        $audioPath = $this->convertYoutubeToMp3($request);
 
         $recording = Recording::create([
             'name' => $request->name,
             'composer_id' => $request->composer_id,
             'artist' => $request->artist,
             'composed_in' => $request->composed_in,
-            'source_url' => $request->source_url,
+            'source_url' => $request->youtube_url,
             'description' => $request->description,
             'ensemble_type' => $request->ensemble_type,
             'period_id' => $request->period_id,
-            'audio_path' => $request->file('audio')->store('recordings/audio', 'public')
+            'audio_path' => $audioPath
         ]);
 
         if ($file = $request->file('cover'))
@@ -48,6 +52,23 @@ class RecordingsController extends Controller
                                                        ->upload()]);
 
         return back()->with('success', 'The recording was successully uploaded');
+    }
+
+    public function convertYoutubeToMp3(Request $request)
+    {
+        $code = \Artisan::call('youtube:mp3', [
+            'url' => $request->youtube_url,
+            'folder' => 'recordings/audio',
+            'start' => $request->start_time,
+            'end' => $request->end_time
+        ]);
+
+        $output = trim(\Artisan::output());
+
+        if ($code > 0)
+            back()->withInput()->withErrors(['youtube_url' => $output ?: 'The YouTube conversion failed.'])->throwResponse();
+
+        return $output;
     }
     
     public function edit(Recording $recording)
@@ -105,6 +126,6 @@ class RecordingsController extends Controller
     {
         $recording->delete();
 
-        return redirect(route('admin.listening.recordings.index'))->with('success', 'The recording was successfully deleted');
+        return redirect(route('listening.recordings.index'))->with('success', 'The recording was successfully deleted');
     }
 }

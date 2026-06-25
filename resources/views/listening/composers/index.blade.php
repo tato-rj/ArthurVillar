@@ -28,11 +28,11 @@
     </div>
     <div id="composers-container" class="row">
         <div class="col-lg-8 col-md-10 col-12 mx-auto">
-            @include('admin.listening.composers.table.results')
+            @include('listening.composers.table.results')
         </div>
     </div>
 </section>
-@include('admin.listening.composers.create')
+@include('listening.composers.create')
 @endsection
 
 @push('scripts')

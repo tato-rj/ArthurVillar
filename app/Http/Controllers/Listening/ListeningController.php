@@ -10,6 +10,11 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class ListeningController extends Controller
 {
+    public function home()
+    {
+        return redirect()->route('listening.recordings.index');    
+    }
+
     public function qrcode(Request $request, Recording $recording)
     {
         $filename = str_slug($recording->nameWithComposer).'.png';

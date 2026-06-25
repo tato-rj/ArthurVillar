@@ -6,9 +6,11 @@
   </div>
   <div class="offcanvas-body">
     <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
+      @isset($home)
       <li class="nav-item">
         <a class="nav-link" href="{{route($home)}}">Home</a>
       </li>
+      @endisset
 
       @foreach($routes as $route => $label)
       <li class="nav-item">

@@ -1,5 +1,5 @@
 @modal(['title' => 'New composer', 'id' => 'create-composer-modal'])
-<form id="create-track" method="POST" action="{{route('admin.composers.store')}}" enctype="multipart/form-data">
+<form id="create-track" method="POST" action="{{route('listening.composers.store')}}" enctype="multipart/form-data">
 	@csrf
 	
 	@cropper
