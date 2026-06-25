@@ -214,7 +214,6 @@ return [
     'aliases' => Facade::defaultAliases()->merge([
         'Image' => Intervention\Image\Facades\Image::class,
         'Table' => App\Tools\Table\Table::class,
-        'Breadcrumbs' => DaveJamesMiller\Breadcrumbs\Facades\Breadcrumbs::class,
         // 'ExampleClass' => App\Example\ExampleClass::class,
     ])->toArray(),
 
