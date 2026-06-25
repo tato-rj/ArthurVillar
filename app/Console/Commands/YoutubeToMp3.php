@@ -39,13 +39,19 @@ class YoutubeToMp3 extends Command
         $arguments = [
             env('YT_PATH', 'yt-dlp'),
             '--ffmpeg-location', env('FFMPEG_PATH'),
-            '--js-runtimes', 'deno:/opt/homebrew/bin/deno',
             '--extractor-args', 'youtube:player_client=web_safari,web',
             '--no-playlist',
             '-x',
             '--audio-format', 'mp3',
             '-o', $directory . '/' . $basename . '.%(ext)s',
         ];
+
+        if ($this->supportsJsRuntimes()) {
+            array_splice($arguments, 3, 0, [
+                '--js-runtimes',
+                'deno:' . env('DENO_PATH', 'deno'),
+            ]);
+        }
 
         if ($start && $end) {
             $section = '*'.$start.'-'.$end;
@@ -93,12 +99,27 @@ class YoutubeToMp3 extends Command
         $paths = array_filter([
             dirname(env('YT_PATH', '')),
             dirname(env('FFMPEG_PATH', '')),
+            dirname(env('DENO_PATH', '')),
             '/opt/homebrew/bin',
+            '/usr/bin',
             '/usr/local/bin',
             getenv('PATH'),
         ]);
 
         return ['PATH' => implode(PATH_SEPARATOR, array_unique($paths))];
+    }
+
+    public function supportsJsRuntimes()
+    {
+        $process = new Process([
+            env('YT_PATH', 'yt-dlp'),
+            '--help',
+        ], null, $this->processEnvironment());
+
+        $process->setTimeout(30);
+        $process->run();
+
+        return $process->isSuccessful() && strpos($process->getOutput(), '--js-runtimes') !== false;
     }
 
     public function applyFade($filepath)
