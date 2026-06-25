@@ -17,6 +17,30 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
+        \View::composer('layouts.menu.nav', function($view) {
+            $protocol = local() ? 'http://' : 'https://';
+
+            $view->with([
+                'subdomains' => [
+                    [
+                        'icon' => 'headphones',
+                        'label' => 'Listening',
+                        'url' => $protocol . 'listening.' . config('app.domain')
+                    ],
+                    [
+                        'icon' => 'calendar-days',
+                        'label' => 'Studio',
+                        'url' => $protocol . 'studio.' . config('app.domain')
+                    ],
+                    [
+                        'icon' => 'book',
+                        'label' => 'Theory',
+                        'url' => $protocol . 'theory.' . config('app.domain')
+                    ]
+                ]
+            ]);
+        });
+
         \View::composer(['listening.recordings.create', 'listening.recordings.edit.index', 'listening.playlists.recordings.index'], function($view) {
             $ensembles = ['solo', 'opera', 'vocal', 'choir', 'orchestral', 'chamber', 'concerto'];
             sort($ensembles);

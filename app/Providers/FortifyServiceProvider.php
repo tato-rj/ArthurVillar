@@ -35,7 +35,8 @@ class FortifyServiceProvider extends ServiceProvider
         });
 
         Fortify::registerView(function () {
-            return view('auth.register');
+            abort(404);
+            // return view('auth.register');
         });
 
         $this->app->singleton(LoginResponse::class, CustomLoginResponse::class);

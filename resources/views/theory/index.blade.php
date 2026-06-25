@@ -2,8 +2,6 @@
 
 @push('header')
 <link href="{{ mix('css/musicgames.css') }}" rel="stylesheet">
-<style>
-</style>
 @endpush
 
 @section('content')

@@ -2,10 +2,29 @@
 
 <div class="offcanvas border-0 offcanvas-end" style="width: auto; min-width: 220px;" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
   <div class="offcanvas-header d-apart">
-    <div class="opacity-8 small fw-bold">@fa(['icon' => $header['icon']]){{$header['title']}}</div>
+    <div class="position-relative w-100">
+      <ul class="subdomains-select border rounded-sm shadow-sm" aria-label="Switch website">
+        @php($currentSubdomain = subdomain())
+        @foreach($subdomains as $subdomain)
+        @php($isCurrentSubdomain = strtolower($subdomain['label']) == $currentSubdomain)
+        <li class="subdomain-option {{$isCurrentSubdomain ? 'is-current' : 'opacity-4'}} small fw-bold">
+          @if($isCurrentSubdomain)
+          <button type="button" class="subdomain-select-toggle" aria-expanded="false">
+            @fa(['icon' => $subdomain['icon'], 'mr' => 1]){{$subdomain['label']}}
+          </button>
+          @else
+          <a href="{{$subdomain['url']}}" class="subdomain-select-link">
+            @fa(['icon' => $subdomain['icon'], 'mr' => 1]){{$subdomain['label']}}
+          </a>
+          @endif
+        </li>
+        @endforeach
+      </ul>
+    </div>
+
     <button style="font-size: 70%" type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
   </div>
-  <div class="offcanvas-body pt-1">
+  <div class="offcanvas-body pt-3">
     <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
       @isset($home)
       <li class="nav-item">

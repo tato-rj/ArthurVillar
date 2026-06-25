@@ -30918,6 +30918,72 @@ input:checked + .slider:before {
   content: none;
 }
 
+ul.subdomains-select {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  position: absolute;
+  left: 0;
+  top: -12px;
+  min-width: 138px;
+  overflow: hidden;
+  background: white;
+  z-index: 2;
+}
+ul.subdomains-select .subdomain-option {
+  display: none;
+  margin: 0;
+}
+ul.subdomains-select .subdomain-option.is-current {
+  display: block;
+  color: currentColor;
+  order: -1;
+}
+ul.subdomains-select.is-open .subdomain-option {
+  display: block;
+}
+ul.subdomains-select.is-open .subdomain-select-toggle:after {
+  transform: translateY(0.12rem) rotate(225deg);
+}
+
+.subdomain-select-toggle,
+.subdomain-select-link {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: 100%;
+  padding: 0.5rem 0.65rem;
+  color: inherit;
+  line-height: 1;
+  text-align: left;
+  text-decoration: none;
+  background: transparent;
+  border: 0;
+}
+.subdomain-select-toggle:hover, .subdomain-select-toggle:focus,
+.subdomain-select-link:hover,
+.subdomain-select-link:focus {
+  color: inherit;
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.04);
+  outline: none;
+}
+
+.subdomain-select-toggle {
+  cursor: pointer;
+}
+.subdomain-select-toggle:after {
+  content: "";
+  width: 0.42rem;
+  height: 0.42rem;
+  margin-left: auto;
+  border-right: 1px solid currentColor;
+  border-bottom: 1px solid currentColor;
+  transform: translateY(-0.12rem) rotate(45deg);
+}
+
 .dropzone-container {
   min-height: 150px;
   position: relative;
@@ -31095,6 +31161,11 @@ input:checked + .slider:before {
   z-index: 100000;
   width: 100%;
   height: 100vh;
+}
+
+#overlay {
+  z-index: 10000;
+  background: rgba(255, 255, 255, 0.85);
 }
 
 [data-clipboard-text] {

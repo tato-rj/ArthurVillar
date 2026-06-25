@@ -6,7 +6,7 @@
 @section('content')
 <section class="container">
     <div class="h-100vh row align-items-center">
-        <div class="col-lg-4 col-md-6 col-10 mx-auto">
+        <div class="col-lg-3 col-md-4 col-8 mx-auto">
             <h1 class="mb-4">Login</h1>
             <form method="POST" action="{{route('login')}}">
                 @csrf
