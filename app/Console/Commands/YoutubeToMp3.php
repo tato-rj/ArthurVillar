@@ -53,6 +53,11 @@ class YoutubeToMp3 extends Command
             ]);
         }
 
+        if ($cookiesPath = env('YT_COOKIES_PATH')) {
+            $arguments[] = '--cookies';
+            $arguments[] = $cookiesPath;
+        }
+
         if ($start && $end) {
             $section = '*'.$start.'-'.$end;
             $arguments[] = '--download-sections';
