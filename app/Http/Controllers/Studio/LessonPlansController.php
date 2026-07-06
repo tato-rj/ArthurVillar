@@ -143,7 +143,7 @@ class LessonPlansController extends Controller
             'fee_amount' => ['nullable', 'string'],
             'payment_method' => ['nullable', 'string', 'max:255'],
             'location' => ['nullable', 'string', 'max:255'],
-            'status' => ['required', Rule::in(['active', 'paused', 'canceled'])],
+            // 'status' => ['required', Rule::in(['active', 'paused', 'canceled'])],
             'notes' => ['nullable', 'string'],
         ]);
     }
@@ -181,7 +181,7 @@ class LessonPlansController extends Controller
             'fee_amount' => $this->feeAmount($data['fee_amount'] ?? null),
             'payment_method' => $data['payment_method'] ?? null,
             'location' => $data['location'] ?: '',
-            'status' => $data['status'],
+            'status' => $data['status'] ?? 'active',
             'notes' => $data['notes'] ?? null,
         ];
     }
