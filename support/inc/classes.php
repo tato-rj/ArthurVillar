@@ -1,5 +1,10 @@
 <?php
 
+function payment()
+{
+	return new \App\Billing\Payment;
+}
+
 function bugreport($e)
 {
 	return \Bugsnag::notifyException($e);

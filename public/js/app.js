@@ -3277,11 +3277,22 @@ $(document).on('click', 'form[confirm] button[type="submit"]', function (e) {
 });
 $(document).ready(function () {
   new Inputmask({
-    "mask": "99:99:99"
-  }).mask(document.querySelectorAll('[name="start_time"], [name="end_time"]'));
+    "mask": "99:99"
+  }).mask(document.querySelectorAll('input[name="start_time"], input[name="end_time"], [data-mask="time"]'));
+  new Inputmask({
+    "mask": "(999) 999-9999"
+  }).mask(document.querySelectorAll('[data-mask="phone"]'));
+  new Inputmask({
+    alias: "numeric",
+    groupSeparator: ",",
+    prefix: "$ ",
+    autoGroup: true,
+    digits: 0,
+    rightAlign: false
+  }).mask(document.querySelectorAll('[data-mask="usd"]'));
   new Inputmask({
     "mask": "99/99/9999"
-  }).mask(document.querySelectorAll('[name="born_in"], [name="died_in"]'));
+  }).mask(document.querySelectorAll('[name="born_in"], [name="died_in"], [data-mask="date"]'));
 });
 
 /***/ },
@@ -45394,6 +45405,19 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ },
 
+/***/ "./resources/sass/studio.scss"
+/*!************************************!*\
+  !*** ./resources/sass/studio.scss ***!
+  \************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+// extracted by mini-css-extract-plugin
+
+
+/***/ },
+
 /***/ "./resources/sass/musicgames.scss"
 /*!****************************************!*\
   !*** ./resources/sass/musicgames.scss ***!
@@ -50547,6 +50571,7 @@ var create = module.exports.create;
 /******/ 		var installedChunks = {
 /******/ 			"/js/app": 0,
 /******/ 			"css/musicgames": 0,
+/******/ 			"css/studio": 0,
 /******/ 			"css/app": 0
 /******/ 		};
 /******/ 		
@@ -50597,9 +50622,10 @@ var create = module.exports.create;
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module depends on other loaded chunks and execution need to be delayed
-/******/ 	__webpack_require__.O(undefined, ["css/musicgames","css/app"], () => (__webpack_require__("./resources/js/app.js")))
-/******/ 	__webpack_require__.O(undefined, ["css/musicgames","css/app"], () => (__webpack_require__("./resources/sass/app.scss")))
-/******/ 	var __webpack_exports__ = __webpack_require__.O(undefined, ["css/musicgames","css/app"], () => (__webpack_require__("./resources/sass/musicgames.scss")))
+/******/ 	__webpack_require__.O(undefined, ["css/musicgames","css/studio","css/app"], () => (__webpack_require__("./resources/js/app.js")))
+/******/ 	__webpack_require__.O(undefined, ["css/musicgames","css/studio","css/app"], () => (__webpack_require__("./resources/sass/app.scss")))
+/******/ 	__webpack_require__.O(undefined, ["css/musicgames","css/studio","css/app"], () => (__webpack_require__("./resources/sass/studio.scss")))
+/******/ 	var __webpack_exports__ = __webpack_require__.O(undefined, ["css/musicgames","css/studio","css/app"], () => (__webpack_require__("./resources/sass/musicgames.scss")))
 /******/ 	__webpack_exports__ = __webpack_require__.O(__webpack_exports__);
 /******/ 	
 /******/ })()

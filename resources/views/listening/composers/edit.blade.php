@@ -57,7 +57,7 @@
                     @input(['label' => 'Died in', 'grid' => 'col', 'name' => 'died_in', 'value' => $composer->formatDate('died_in', 'm/d/Y')])
                 </div>
 
-                <div id="quill-event-edit" data-name="biography" class="mb-4 form-control">
+                <div id="quill-event-edit" data-name="biography" class="mb-4">
                     {!!$composer->biography!!}
                 </div>
                 <textarea style="display: none" name="biography">{!!$composer->biography!!}</textarea>

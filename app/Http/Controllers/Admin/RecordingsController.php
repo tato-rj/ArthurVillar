@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Models\{Recording, Period, Composer, Playlist};
+use App\Models\Listening\{Recording, Period, Composer, Playlist};
 use App\Tools\Cropper\ImageUpload;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 

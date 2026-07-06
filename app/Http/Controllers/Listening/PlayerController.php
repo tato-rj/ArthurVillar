@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Listening;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Models\{Recording, Playlist};
+use App\Models\Listening\{Recording, Playlist};
 use App\Token\Token;
 use Illuminate\Support\Str;
 

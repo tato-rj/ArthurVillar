@@ -25,9 +25,9 @@ function month($index)
 	return $array[$index - 1];
 }
 
-function weekday($index)
+function weekday($index = null)
 {
-	$array = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+	$array = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
 
-	return $array[$index];
+	return $index ? $array[$index] : $array;
 }

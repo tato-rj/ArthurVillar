@@ -30854,6 +30854,18 @@ input:checked + .slider:before {
   border-radius: 2rem !important;
 }
 
+.btn-floating .btn-white:hover {
+  background-color: white !important;
+}
+
+.btn-white:hover {
+  background-color: #f1f3f4 !important;
+}
+
+.btn-white:active {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+}
+
 .btn-transparent:hover {
   border-color: transparent !important;
   outline: none !important;
@@ -30920,6 +30932,7 @@ input:checked + .slider:before {
 
 ul.subdomains-select {
   display: flex;
+  border-radius: 0.9rem;
   flex-direction: column;
   list-style: none;
   padding: 0;
@@ -31363,6 +31376,77 @@ input[type=range].big-thumb {
 
 mark, .mark {
   padding: 0;
+}
+
+.studio-table-container {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.studio-table-container .dataTables_wrapper {
+  min-width: 720px;
+}
+.studio-table-container.studio-table-container-lg .dataTables_wrapper {
+  min-width: 860px;
+}
+
+.studio-table {
+  width: 100% !important;
+}
+.studio-table.dataTable thead > tr > th.sorting::before, .studio-table.dataTable thead > tr > th.sorting_asc::before, .studio-table.dataTable thead > tr > th.sorting_desc::before, .studio-table.dataTable thead > tr > td.sorting::before, .studio-table.dataTable thead > tr > td.sorting_asc::before, .studio-table.dataTable thead > tr > td.sorting_desc::before {
+  content: "\f0d8";
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+}
+.studio-table.dataTable thead > tr > th.sorting::after, .studio-table.dataTable thead > tr > th.sorting_asc::after, .studio-table.dataTable thead > tr > th.sorting_desc::after, .studio-table.dataTable thead > tr > td.sorting::after, .studio-table.dataTable thead > tr > td.sorting_asc::after, .studio-table.dataTable thead > tr > td.sorting_desc::after {
+  content: "\f0d7";
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+}
+.studio-table.dataTable thead > tr > th.sorting::before, .studio-table.dataTable thead > tr > th.sorting::after, .studio-table.dataTable thead > tr > td.sorting::before, .studio-table.dataTable thead > tr > td.sorting::after {
+  opacity: 0.25;
+}
+.studio-table.dataTable thead > tr > th.sorting_asc::before, .studio-table.dataTable thead > tr > th.sorting_desc::after, .studio-table.dataTable thead > tr > td.sorting_asc::before, .studio-table.dataTable thead > tr > td.sorting_desc::after {
+  opacity: 1;
+}
+.studio-table.dataTable thead > tr > th.sorting_asc::after, .studio-table.dataTable thead > tr > th.sorting_desc::before, .studio-table.dataTable thead > tr > td.sorting_asc::after, .studio-table.dataTable thead > tr > td.sorting_desc::before {
+  opacity: 0.25;
+}
+
+.studio-table-filters {
+  align-items: flex-end;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.studio-table-filters label {
+  color: #5f6368;
+  display: flex;
+  flex-direction: column;
+  font-size: 0.8rem;
+  font-weight: 700;
+  gap: 0.25rem;
+  margin: 0;
+  text-transform: uppercase;
+}
+.studio-table-filters input[type=date] {
+  background-color: #fff;
+  border: 1px solid #dfe3ea;
+  border-radius: 6px;
+  color: #202124;
+  font-size: 0.95rem;
+  min-height: 36px;
+  padding: 0.35rem 0.55rem;
+}
+
+.studio-table-actions {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.25rem;
+}
+.studio-table-actions form {
+  display: inline-flex;
+  margin: 0;
 }
 
 .ql-toolbar {

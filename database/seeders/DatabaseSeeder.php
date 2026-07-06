@@ -19,7 +19,10 @@ class DatabaseSeeder extends Seeder
             PeriodSeeder::class,
             RecordingSeeder::class,
             ContinentSeeder::class,
-            CountrySeeder::class
+            CountrySeeder::class,
+
+            StudentSeeder::class,
+            LessonPlanSeeder::class
         ]);
     }
 }

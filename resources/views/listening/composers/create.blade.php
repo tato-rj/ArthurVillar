@@ -27,7 +27,7 @@
 		@input(['placeholder' => 'Died in', 'grid' => 'col', 'name' => 'died_in', 'value' => old('died_in')])
 	</div>
 
-    <div id="quill-event-edit" data-name="biography" class="mb-4 form-control">
+    <div id="quill-event-edit" data-name="biography" class="mb-4">
         {!!old('biography')!!}
     </div>
     <textarea style="display: none" name="biography">{!!old('biography')!!}</textarea>

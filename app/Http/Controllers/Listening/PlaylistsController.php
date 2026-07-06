@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Listening;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Models\Playlist;
+use App\Models\Listening\Playlist;
 
 class PlaylistsController extends Controller
 {

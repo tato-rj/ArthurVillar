@@ -287,11 +287,24 @@ $(document).on('click', 'form[confirm] button[type="submit"]', function(e) {
 });
 
 $(document).ready(function() {
-    new Inputmask({"mask": "99:99:99"}).mask(
-        document.querySelectorAll('[name="start_time"], [name="end_time"]')
+    new Inputmask({"mask": "99:99"}).mask(
+        document.querySelectorAll('input[name="start_time"], input[name="end_time"], [data-mask="time"]')
     );
 
+    new Inputmask({"mask": "(999) 999-9999"}).mask(
+        document.querySelectorAll('[data-mask="phone"]')
+    );
+
+    new Inputmask({
+        alias: "numeric",
+        groupSeparator: ",",
+        prefix: "$ ",
+        autoGroup: true,
+        digits: 0,
+        rightAlign: false
+    }).mask(document.querySelectorAll('[data-mask="usd"]'));
+
     new Inputmask({"mask": "99/99/9999"}).mask(
-        document.querySelectorAll('[name="born_in"], [name="died_in"]')
+        document.querySelectorAll('[name="born_in"], [name="died_in"], [data-mask="date"]')
     );
 });

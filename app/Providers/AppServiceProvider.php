@@ -6,7 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\Paginator;
-use App\Models\{Period, Country};
+use App\Models\Listening\{Period, Country};
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -54,6 +54,12 @@ class AppServiceProvider extends ServiceProvider
         \View::composer(['listening.composers.create', 'listening.composers.edit'], function($view) {
             $view->with([
                 'countries' => Country::orderBy('name')->get()->groupByFirstLetter('name')
+            ]);
+        });
+
+        \View::composer(['studio.lessonPlans.create', 'studio.lessonPlans.edit'], function($view) {
+            $view->with([
+                'locations' => ['Home', 'Online', 'BKCM']
             ]);
         });
 

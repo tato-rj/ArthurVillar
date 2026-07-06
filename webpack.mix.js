@@ -12,6 +12,7 @@ const mix = require('laravel-mix');
  */
 
 mix.js('resources/js/app.js', 'public/js')
+    .js('resources/js/studio/index.js', 'public/js/studio')
     .js('resources/js/music/admin-soundeffects.js', 'public/js/music')
     .js('resources/js/music/games/intervalslab.js', 'public/js/music')
     .js('resources/js/music/games/chordslab.js', 'public/js/music')
@@ -26,7 +27,6 @@ mix.js('resources/js/app.js', 'public/js')
     .js('resources/js/music/games/openstaff.js', 'public/js/music')
     .js('resources/js/music/games/beathero.js', 'public/js/music')
     .sass('resources/sass/app.scss', 'public/css')
+    .sass('resources/sass/studio.scss', 'public/css')
     .sass('resources/sass/musicgames.scss', 'public/css')
-    .copyDirectory('resources/js/vendor', 'public/js/vendor')
-    .copyDirectory('resources/images', 'public/images')
     .version();

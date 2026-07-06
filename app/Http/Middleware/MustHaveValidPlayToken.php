@@ -5,7 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use App\Token\Token;
-use App\Models\Playlist;
+use App\Models\Listening\Playlist;
 
 class MustHaveValidPlayToken
 {

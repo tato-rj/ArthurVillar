@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Theory;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Player;
+use App\Models\Theory\Player;
 use Carbon\CarbonInterval;
 
 class LeaderboardsController extends Controller

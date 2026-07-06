@@ -30854,6 +30854,18 @@ input:checked + .slider:before {
   border-radius: 2rem !important;
 }
 
+.btn-floating .btn-white:hover {
+  background-color: white !important;
+}
+
+.btn-white:hover {
+  background-color: #f1f3f4 !important;
+}
+
+.btn-white:active {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+}
+
 .btn-transparent:hover {
   border-color: transparent !important;
   outline: none !important;
@@ -30920,6 +30932,7 @@ input:checked + .slider:before {
 
 ul.subdomains-select {
   display: flex;
+  border-radius: 0.9rem;
   flex-direction: column;
   list-style: none;
   padding: 0;

@@ -2,7 +2,7 @@
 
 namespace App\Token;
 
-use App\Models\Playlist;
+use App\Models\Listening\Playlist;
 
 class Token
 {

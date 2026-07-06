@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use App\Models\Recording;
+use App\Models\Listening\Recording;
 
 class RecordingSeeder extends Seeder
 {

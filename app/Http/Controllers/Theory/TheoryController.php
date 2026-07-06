@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Theory;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Models\Player;
+use App\Models\Theory\Player;
 use App\Games\{IntervalsLabSettings, ChordsLabSettings, PitchDetectiveSettings, ChordDetectiveSettings, ToneTrekSettings, NotePythonSettings, KeysLabSettings, NoteNestSettings, NoteMatchSettings, MemoryWizardSettings, ModesMasterSettings, OpenStaffSettings, BeatHeroSettings};
 
 class TheoryController extends Controller

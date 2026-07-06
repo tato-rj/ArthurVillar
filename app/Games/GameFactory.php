@@ -2,7 +2,7 @@
 
 namespace App\Games;
 
-use App\Models\Player;
+use App\Models\Theory\Player;
 
 abstract class GameFactory 
 {

@@ -1,13 +1,16 @@
 {
     "private": true,
     "scripts": {
+        "assets": "node scripts/copy-static-assets.js",
+        "predevelopment": "npm run assets",
         "dev": "npm run development",
-        "development": "mix",
+        "development": "NODE_OPTIONS=--max-old-space-size=8192 mix",
         "watch": "mix watch",
         "watch-poll": "mix watch -- --watch-options-poll=1000",
         "hot": "mix watch --hot",
+        "preproduction": "npm run assets",
         "prod": "npm run production",
-        "production": "mix --production"
+        "production": "NODE_OPTIONS=--max-old-space-size=8192 mix --production"
     },
     "devDependencies": {
         "@fortawesome/fontawesome-free": "^6.6.0",
@@ -26,6 +29,7 @@
         "sass-loader": "^12.4.0"
     },
     "dependencies": {
+        "@calendarjs/ce": "^1.1.0",
         "@mojs/core": "^1.7.1",
         "animate.css": "^4.1.1",
         "canvas-confetti": "^1.9.4",

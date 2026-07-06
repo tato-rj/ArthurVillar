@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Listening;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Models\{Composer, Period};
+use App\Models\Listening\{Composer, Period};
 use App\Tools\Cropper\ImageUpload;
 
 class ComposersController extends Controller
@@ -93,6 +93,6 @@ class ComposersController extends Controller
     {
         $composer->preventDeletionWith(['recordings'])->delete();
 
-        return redirect(route('admin.composers.index'))->with('success', 'The composer was successully deleted');
+        return redirect(route('listening.composers.index'))->with('success', 'The composer was successully deleted');
     }
 }

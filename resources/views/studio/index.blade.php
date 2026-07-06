@@ -1,12 +1,34 @@
 @extends('layouts.app', ['title' => 'Studio'])
 
 @push('header')
+<link href="/css/vendor/calendarjs.css" rel="stylesheet">
+<link href="{{ mix('css/studio.css') }}" rel="stylesheet">
+<style>
+.studio-calendar-main {
+    margin-right: 50px;
+}
+</style>
 @endpush
 
 @section('content')
-<section class="container">
+<section class="studio-calendar container-fluid px-4 py-3">
+	<div class="studio-calendar-body">
+		@include('studio.calendar.sidebar')
+		@include('studio.calendar.main')
+	</div>
 </section>
+
+@include('studio.lessons.modal')
 @endsection
 
 @push('scripts')
+<script>
+window.studioPlannedLessons = @json($plannedLessons);
+window.studioHolidays = @json($holidays);
+window.studioCalendarRange = @json($calendarRange);
+window.studioCsrfToken = @json(csrf_token());
+</script>
+<script src="/js/vendor/lemonadejs/lemonade.js"></script>
+<script src="/js/vendor/calendarjs/index.js"></script>
+<script src="{{ mix('js/studio/index.js') }}"></script>
 @endpush

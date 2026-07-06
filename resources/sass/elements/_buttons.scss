@@ -108,8 +108,18 @@
     background-color: white !important;
     border-color: black !important;
     border-radius: $corner-radius !important;
+}
 
+.btn-floating .btn-white:hover {
+    background-color: white !important;
+}
 
+.btn-white:hover {
+    background-color: #f1f3f4 !important;
+}
+
+.btn-white:active {
+    background-color: rgba(0,0,0,0.04) !important;
 }
 
 .btn-transparent {
