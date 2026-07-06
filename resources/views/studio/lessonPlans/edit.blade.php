@@ -60,16 +60,6 @@
 		@endselect
 	</div>
 
-	<div class="row">
-		@input(['label' => 'Location', 'name' => 'location', 'value' => $lessonPlan->location, 'grid' => 'col'])
-
-		@select(['label' => 'Status', 'name' => 'status', 'grid' => 'col'])
-			@foreach(['active', 'paused', 'canceled'] as $status)
-				@option(['name' => 'status', 'label' => ucfirst($status), 'value' => $status, 'selected' => $lessonPlan->status == $status])
-			@endforeach
-		@endselect
-	</div>
-
 	@submit(['label' => 'Submit', 'theme' => 'primary'])
 </form>
 @endmodal

@@ -62,16 +62,6 @@
 		@endselect
 	</div>
 
-	<div class="row">
-		@input(['placeholder' => 'Location', 'name' => 'location', 'value' => old('location'), 'grid' => 'col'])
-
-		@select(['placeholder' => 'Status', 'name' => 'status', 'grid' => 'col'])
-			@foreach(['active', 'paused', 'canceled'] as $status)
-				@option(['name' => 'status', 'label' => ucfirst($status), 'value' => $status, 'selected' => old('status', 'active') == $status])
-			@endforeach
-		@endselect
-	</div>
-
 	@submit(['label' => 'Submit', 'theme' => 'primary'])
 </form>
 @endmodal

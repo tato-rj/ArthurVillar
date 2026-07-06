@@ -21,8 +21,8 @@ class DatabaseSeeder extends Seeder
             ContinentSeeder::class,
             CountrySeeder::class,
 
-            StudentSeeder::class,
-            LessonPlanSeeder::class
+            // StudentSeeder::class,
+            // LessonPlanSeeder::class
         ]);
     }
 }
