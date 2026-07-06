@@ -31635,7 +31635,7 @@ form.form-borderless.form-light input.form-control:not([readonly]), form.form-bo
   min-height: 0;
   padding-top: 0.4rem;
   padding-bottom: 0.4rem;
-  height: auto;
+  height: 2.1rem;
 }
 
 .studio-month-weekdays {
