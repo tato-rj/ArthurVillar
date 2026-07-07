@@ -9,12 +9,10 @@
 
 		<div class="mb-2">
 			<h5 class="m-0">{{ucfirst($lessonPlan->weekdayName)}}</h5>
-			<div>
-			Start on {{$lessonPlan->starts_on->toFormattedDateString()}}
+			<div class="small text-muted">Start on {{$lessonPlan->starts_on->toFormattedDateString()}}</div>
 			@if($lessonPlan->ends_on)
-			End on {{$lessonPlan->ends_on->toFormattedDateString()}}
+			<div class="small text-muted">End on {{$lessonPlan->ends_on->toFormattedDateString()}}</div>
 			@endif
-			</div>
 		</div>
 
 		@if($current)
