@@ -30,6 +30,11 @@ class StudentsController extends Controller
         return back()->with('success', 'The student was successfully updated');
     }
 
+    public function edit(Student $student)
+    {
+        return view('studio.students.edit', compact('student'));
+    }
+
     private function validateStudent(Request $request)
     {
         return $request->validate([
@@ -39,6 +44,7 @@ class StudentsController extends Controller
             'email' => ['required', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:255'],
             'date_of_birth' => ['nullable', 'date_format:m/d/Y'],
+            'is_adult' => ['nullable', 'boolean'],
         ]);
     }
 

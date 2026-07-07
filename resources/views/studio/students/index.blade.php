@@ -33,29 +33,7 @@
     </div>
 </section>
 @include('studio.students.create')
-
-@modal(['title' => 'Edit student', 'id' => 'edit-student-modal'])
-<form id="edit-student-form" method="POST" action="">
-    @method('PATCH')
-    @csrf
-
-    <div class="row">
-        @input(['label' => 'First name', 'name' => 'first_name', 'required' => true, 'grid' => 'col'])
-        @input(['label' => 'Last name', 'name' => 'last_name', 'required' => true, 'grid' => 'col'])
-    </div>
-
-    @input(['label' => 'Parent name', 'name' => 'parent_name'])
-
-    @input(['label' => 'Email', 'name' => 'email', 'required' => true])
-
-    <div class="row">
-        @input(['label' => 'Phone', 'name' => 'phone', 'mask' => 'phone', 'grid' => 'col'])
-        @input(['label' => 'Date of birth', 'name' => 'date_of_birth', 'mask' => 'date', 'grid' => 'col'])
-    </div>
-
-    @submit(['label' => 'Submit', 'theme' => 'primary'])
-</form>
-@endmodal
+<div id="edit-student-modal-container"></div>
 @endsection
 
 @push('scripts')
@@ -138,11 +116,12 @@ $(function() {
                 render: function(data) {
                     const lessonPlanUrl = @json(route('studio.lessons.student', ['student' => '__student__'])).replace('__student__', data);
                     const deleteUrl = @json(route('studio.students.destroy', ['student' => '__student__'])).replace('__student__', data);
+                    const editUrl = @json(route('studio.students.edit', ['student' => '__student__'])).replace('__student__', data);
 
                     return `
                         <div class="studio-table-actions">
                             <a href="${lessonPlanUrl}" class="btn btn-sm btn-secondary rounded">@fa(['icon' => 'calendar-days', 'mr' => 0])</a>
-                            <button type="button" class="btn btn-sm btn-warning rounded js-edit-student" data-bs-toggle="modal" data-bs-target="#edit-student-modal">@fa(['icon' => 'pen-to-square', 'mr' => 0])</button>
+                            <button type="button" class="btn btn-sm btn-warning rounded js-edit-student" data-url="${editUrl}">@fa(['icon' => 'pen-to-square', 'mr' => 0])</button>
                             <form method="POST" action="${deleteUrl}" confirm>
                                 @csrf
                                 @method('DELETE')
@@ -156,17 +135,44 @@ $(function() {
     });
 
     $('#students-table').on('click', '.js-edit-student', function() {
-        const student = studentsTable.row($(this).closest('tr')).data();
-        const form = $('#edit-student-form');
-        const updateUrl = @json(route('studio.students.update', ['student' => '__student__'])).replace('__student__', student.id);
+        const url = $(this).data('url');
 
-        form.attr('action', updateUrl);
-        form.find('[name="first_name"]').val(student.first_name || '');
-        form.find('[name="last_name"]').val(student.last_name || '');
-        form.find('[name="parent_name"]').val(student.parent_name || '');
-        form.find('[name="email"]').val(student.email || '');
-        form.find('[name="phone"]').val(student.phone || '');
-        form.find('[name="date_of_birth"]').val(student.date_of_birth || '');
+        if (!url) {
+            return;
+        }
+
+        fetch(url, {
+            headers: {
+                Accept: 'text/html',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        })
+            .then(function(response) {
+                if (!response.ok) {
+                    throw new Error('Unable to load student form.');
+                }
+
+                return response.text();
+            })
+            .then(function(html) {
+                const container = $('#edit-student-modal-container');
+
+                container.html(html);
+
+                const modal = container.find('.modal').get(0);
+
+                if (window.bootstrap && window.bootstrap.Modal && typeof window.bootstrap.Modal.getOrCreateInstance === 'function') {
+                    window.bootstrap.Modal.getOrCreateInstance(modal).show();
+                    return;
+                }
+
+                if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
+                    window.jQuery(modal).modal('show');
+                }
+            })
+            .catch(function(error) {
+                console.error(error);
+            });
     });
 });
 </script>
