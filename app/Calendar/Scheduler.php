@@ -27,7 +27,7 @@ class Scheduler
 
     public function plannedLessons(array $range, bool $applyTeachingBreaks = true)
     {
-        $teachingBreakDates = $applyTeachingBreaks ? $this->teachingBreakDates($range) : collect();
+        $excludedProjectedDates = $applyTeachingBreaks ? $this->excludedProjectedLessonDates($range) : collect();
         $lessonPlans = LessonPlan::with([
             'student',
             'location',
@@ -51,16 +51,20 @@ class Scheduler
             })
             ->get();
 
-        return $lessonPlans->map(function (LessonPlan $lessonPlan) use ($range, $teachingBreakDates) {
+        return $lessonPlans->map(function (LessonPlan $lessonPlan) use ($range, $excludedProjectedDates) {
+            $occurrences = $this->occurrences($lessonPlan, $range, $excludedProjectedDates);
+
             return array_merge($lessonPlan->toArray(), [
-                'occurrences' => $this->occurrences($lessonPlan, $range, $teachingBreakDates),
+                'occurrences' => $occurrences,
             ]);
-        })->values();
+        })
+            ->filter(fn ($lessonPlan) => count($lessonPlan['occurrences'] ?? []) > 0)
+            ->values();
     }
 
-    private function occurrences(LessonPlan $lessonPlan, array $range, $teachingBreakDates = null)
+    private function occurrences(LessonPlan $lessonPlan, array $range, $excludedProjectedDates = null)
     {
-        $teachingBreakDates = $teachingBreakDates ?: collect();
+        $excludedProjectedDates = $excludedProjectedDates ?: collect();
         $start = Carbon::parse($range['start'])->startOfDay();
         $end = Carbon::parse($range['end'])->startOfDay();
         $startsOn = Carbon::parse($lessonPlan->starts_on)->startOfDay();
@@ -98,7 +102,7 @@ class Scheduler
         while ($occurrence->lte($end) && (! $endsOn || $occurrence->lte($endsOn))) {
             $occurrenceKey = $this->occurrenceKey($occurrence->toDateString(), $lessonPlan->start_time);
             $scheduledLesson = $lessonsByScheduledOccurrence->get($occurrenceKey);
-            $isTeachingBreak = $teachingBreakDates->has($occurrence->toDateString());
+            $isExcludedProjectedDate = $excludedProjectedDates->has($occurrence->toDateString());
 
             if ($overridesByOriginal->has($occurrenceKey) || ($scheduledLesson && ! $this->lessonStartsOnOccurrence($scheduledLesson, $occurrence, $lessonPlan->start_time))) {
                 $occurrence->addDays($intervalDays);
@@ -108,6 +112,12 @@ class Scheduler
 
             $lesson = $scheduledLesson ?: $this->lessonForOccurrence($lessonPlan, $occurrence, $lessonPlan->start_time);
 
+            if ($isExcludedProjectedDate && ! $lesson) {
+                $occurrence->addDays($intervalDays);
+
+                continue;
+            }
+
             $occurrences[] = [
                 'date' => $occurrence->toDateString(),
                 'start' => $lessonPlan->start_time,
@@ -116,7 +126,7 @@ class Scheduler
                 'original_start_time' => $lessonPlan->start_time,
                 'lesson_id' => $lesson ? $lesson->id : null,
                 'lesson_status' => $lesson ? $lesson->paymentStatus() : 'unconfirmed',
-                'calendar_status' => $isTeachingBreak ? 'break' : ($lesson ? $lesson->paymentStatus() : 'unconfirmed'),
+                'calendar_status' => $lesson ? $lesson->paymentStatus() : 'unconfirmed',
                 'fee_amount' => $lesson && $lesson->fee_amount ? $lesson->fee_amount : $lessonPlan->netFeeAmount(),
                 'canceled_by' => $lesson ? $lesson->canceled_by : '',
                 'lesson_edit_url' => $lesson ? route('studio.lessons.edit', $lesson) : '',
@@ -130,9 +140,8 @@ class Scheduler
             ->filter(function ($override) use ($start, $end) {
                 return Carbon::parse($override->new_date)->betweenIncluded($start, $end);
             })
-            ->each(function ($override) use (&$occurrences, $lessonPlan, $teachingBreakDates) {
+            ->each(function ($override) use (&$occurrences, $lessonPlan) {
                 $occurrence = Carbon::parse($override->new_date)->startOfDay();
-                $isTeachingBreak = $teachingBreakDates->has($occurrence->toDateString());
                 $lesson = $this->lessonForOccurrence($lessonPlan, $occurrence, $override->new_start_time);
 
                 $occurrences[] = [
@@ -146,7 +155,7 @@ class Scheduler
                     'lesson_status' => $lesson ? $lesson->paymentStatus() : 'unconfirmed',
                     'fee_amount' => $lesson && $lesson->fee_amount ? $lesson->fee_amount : $lessonPlan->netFeeAmount(),
                     'canceled_by' => $lesson ? $lesson->canceled_by : '',
-                    'calendar_status' => $isTeachingBreak ? 'break' : 'rescheduled',
+                    'calendar_status' => 'rescheduled',
                     'lesson_edit_url' => $lesson ? route('studio.lessons.edit', $lesson) : '',
                     'lesson_payment_url' => $lesson ? $lesson->paymentUrl : '',
                 ];
@@ -159,10 +168,9 @@ class Scheduler
                 return $lessonDate->betweenIncluded($start, $end)
                     && ! $this->lessonStartsOnOccurrence($lesson, Carbon::parse($lesson->scheduled_date ?: $lesson->starts_at), $lesson->scheduled_start_time ?: Carbon::parse($lesson->starts_at)->format('H:i'));
             })
-            ->each(function ($lesson) use (&$occurrences, $teachingBreakDates) {
+            ->each(function ($lesson) use (&$occurrences) {
                 $startTime = Carbon::parse($lesson->starts_at)->format('H:i');
                 $endTime = Carbon::parse($lesson->ends_at)->format('H:i');
-                $isTeachingBreak = $teachingBreakDates->has(Carbon::parse($lesson->starts_at)->toDateString());
 
                 $occurrences[] = [
                     'date' => Carbon::parse($lesson->starts_at)->toDateString(),
@@ -172,7 +180,7 @@ class Scheduler
                     'original_start_time' => $lesson->scheduled_start_time ?: LessonPlan::normalizeTime($startTime),
                     'lesson_id' => $lesson->id,
                     'lesson_status' => $lesson->paymentStatus(),
-                    'calendar_status' => $isTeachingBreak ? 'break' : $lesson->paymentStatus(),
+                    'calendar_status' => $lesson->paymentStatus(),
                     'fee_amount' => $lesson->fee_amount ?: ($lesson->lessonPlan ? $lesson->lessonPlan->fee_amount : null),
                     'canceled_by' => $lesson->canceled_by,
                     'lesson_edit_url' => route('studio.lessons.edit', $lesson),
@@ -252,6 +260,12 @@ class Scheduler
         return $dates;
     }
 
+    private function excludedProjectedLessonDates(array $range)
+    {
+        return $this->teachingBreakDates($range)
+            ->merge($this->holidayDates($range));
+    }
+
     private function lessonForOccurrence(LessonPlan $lessonPlan, Carbon $occurrence, $startTime)
     {
         $startMinutes = $this->timeMinutes($startTime);
@@ -304,6 +318,12 @@ class Scheduler
             ->unique(fn ($holiday) => $holiday['date'].' '.$holiday['title'])
             ->sortBy('date')
             ->values();
+    }
+
+    private function holidayDates(array $range)
+    {
+        return $this->holidays($range)
+            ->mapWithKeys(fn ($holiday) => [$holiday['date'] => true]);
     }
 
     public function range(Request $request)

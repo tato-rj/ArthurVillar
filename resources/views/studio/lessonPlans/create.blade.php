@@ -89,7 +89,7 @@ document.addEventListener('change', function(event) {
     }
 
     const proratedFee = hourlyFee * (duration / 60);
-    const roundedFee = Math.round(proratedFee / 5) * 5;
+    const roundedFee = Math.floor(proratedFee / 5) * 5;
 
     feeInput.value = roundedFee.toFixed(2).replace(/\\.00$/, '');
 });

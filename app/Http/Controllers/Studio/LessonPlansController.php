@@ -209,7 +209,7 @@ class LessonPlansController extends Controller
 
         $proratedDollars = ($location->fee_amount / 100) * ((int) $data['duration_minutes'] / 60);
 
-        return (int) round(round($proratedDollars / 5) * 5 * 100);
+        return (int) round(floor($proratedDollars / 5) * 5 * 100);
     }
 
     private function lessonPlanDate($value)

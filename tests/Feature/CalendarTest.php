@@ -4,7 +4,7 @@ namespace Tests\Feature;
 
 use Carbon\Carbon;
 use Tests\BaseTest;
-use App\Models\{Student, LessonPlan, Lesson, TeachingBreak};
+use App\Models\{Student, LessonPlan, Lesson, TeachingBreak, Holiday, ScheduleOverride};
 
 class CalendarTest extends BaseTest
 {
@@ -168,7 +168,7 @@ class CalendarTest extends BaseTest
     }
 
     /** @test */
-    public function teaching_breaks_show_on_the_calendar_and_mark_lessons_on_those_days()
+    public function teaching_breaks_show_on_the_calendar_and_exclude_projected_lessons_on_those_days()
     {
         Carbon::setTestNow(Carbon::parse('2026-07-07 12:00:00'));
 
@@ -196,12 +196,113 @@ class CalendarTest extends BaseTest
             'lesson_plans' => 1,
         ]))
             ->assertOk()
-            ->assertJsonPath('plannedLessons.0.occurrences.0.date', '2026-07-08')
-            ->assertJsonPath('plannedLessons.0.occurrences.0.lesson_status', 'unconfirmed')
-            ->assertJsonPath('plannedLessons.0.occurrences.0.calendar_status', 'break')
+            ->assertJsonCount(0, 'plannedLessons')
             ->assertJsonPath('teachingBreaks.0.title', 'Vacation')
             ->assertJsonPath('teachingBreaks.0.impact.lessons_count', 1)
             ->assertJsonPath('teachingBreaks.0.impact.fee_amount', 6000);
+
+        Carbon::setTestNow();
+    }
+
+    /** @test */
+    public function observed_holidays_exclude_projected_lessons_on_those_days()
+    {
+        LessonPlan::factory()->student($this->student)->create([
+            'weekday' => 6,
+            'start_time' => '15:30',
+            'starts_on' => '2026-12-04',
+            'recurrence_interval' => 1,
+        ]);
+
+        Holiday::factory()->fixed(12, 25)->create([
+            'title' => 'Christmas Day',
+            'is_observed' => true,
+        ]);
+
+        $this->signIn();
+
+        $this->getJson(route('studio.home', [
+            'view' => 'day',
+            'date' => '2026-12-25',
+            'lesson_plans' => 1,
+        ]))
+            ->assertOk()
+            ->assertJsonCount(0, 'plannedLessons')
+            ->assertJsonPath('holidays.0.title', 'Christmas Day');
+    }
+
+    /** @test */
+    public function confirmed_lessons_still_show_when_scheduled_from_the_lesson_model_on_an_observed_holiday()
+    {
+        $lessonPlan = LessonPlan::factory()->student($this->student)->create([
+            'weekday' => 6,
+            'start_time' => '15:30',
+            'starts_on' => '2026-12-04',
+            'recurrence_interval' => 1,
+        ]);
+
+        $lesson = Lesson::factory()->lessonPlan($lessonPlan)->create([
+            'starts_at' => '2026-12-25 15:30:00',
+            'ends_at' => '2026-12-25 16:15:00',
+            'paid_at' => null,
+        ]);
+
+        Holiday::factory()->fixed(12, 25)->create([
+            'title' => 'Christmas Day',
+            'is_observed' => true,
+        ]);
+
+        $this->signIn();
+
+        $this->getJson(route('studio.home', [
+            'view' => 'day',
+            'date' => '2026-12-25',
+            'lesson_plans' => 1,
+        ]))
+            ->assertOk()
+            ->assertJsonPath('plannedLessons.0.occurrences.0.lesson_id', $lesson->id)
+            ->assertJsonPath('plannedLessons.0.occurrences.0.calendar_status', 'unpaid');
+    }
+
+    /** @test */
+    public function rescheduled_lessons_still_show_when_the_new_date_is_inside_a_break()
+    {
+        Carbon::setTestNow(Carbon::parse('2026-07-07 12:00:00'));
+
+        $lessonPlan = LessonPlan::factory()->student($this->student)->create([
+            'weekday' => 4,
+            'start_time' => '15:30',
+            'duration_minutes' => 45,
+            'fee_amount' => 6000,
+            'starts_on' => '2026-07-01',
+            'recurrence_interval' => 1,
+        ]);
+
+        ScheduleOverride::factory()->lessonPlan($lessonPlan)->create([
+            'original_date' => '2026-07-08',
+            'original_start_time' => '15:30',
+            'new_date' => '2026-07-09',
+            'new_start_time' => '16:00',
+            'duration_minutes' => 45,
+        ]);
+
+        TeachingBreak::factory()->create([
+            'title' => 'Vacation',
+            'starts_on' => '2026-07-09',
+            'ends_on' => '2026-07-09',
+        ]);
+
+        $this->signIn();
+
+        $this->getJson(route('studio.home', [
+            'view' => 'day',
+            'date' => '2026-07-09',
+            'lesson_plans' => 1,
+        ]))
+            ->assertOk()
+            ->assertJsonPath('plannedLessons.0.occurrences.0.date', '2026-07-09')
+            ->assertJsonPath('plannedLessons.0.occurrences.0.start', '16:00')
+            ->assertJsonPath('plannedLessons.0.occurrences.0.calendar_status', 'rescheduled');
 
         Carbon::setTestNow();
     }
