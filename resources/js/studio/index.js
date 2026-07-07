@@ -100,13 +100,17 @@ const parseNullableDateString = function(value) {
     return value ? parseDateString(String(value).substring(0, 10)) : null;
 };
 
+const getDefaultCalendarView = function() {
+    return window.matchMedia && window.matchMedia('(max-width: 767.98px)').matches ? '3-days' : 'week';
+};
+
 const getUrlState = function() {
     const params = new URLSearchParams(window.location.search);
     const view = params.get('view');
     const date = params.get('date');
 
     return {
-        view: calendarViews.includes(view) ? view : 'week',
+        view: calendarViews.includes(view) ? view : getDefaultCalendarView(),
         date: parseUrlDate(date),
     };
 };

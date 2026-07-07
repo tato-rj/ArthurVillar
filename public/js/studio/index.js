@@ -132,12 +132,15 @@ var parseUrlDate = function parseUrlDate(value) {
 var parseNullableDateString = function parseNullableDateString(value) {
   return value ? parseDateString(String(value).substring(0, 10)) : null;
 };
+var getDefaultCalendarView = function getDefaultCalendarView() {
+  return window.matchMedia && window.matchMedia('(max-width: 767.98px)').matches ? '3-days' : 'week';
+};
 var getUrlState = function getUrlState() {
   var params = new URLSearchParams(window.location.search);
   var view = params.get('view');
   var date = params.get('date');
   return {
-    view: calendarViews.includes(view) ? view : 'week',
+    view: calendarViews.includes(view) ? view : getDefaultCalendarView(),
     date: parseUrlDate(date)
   };
 };
