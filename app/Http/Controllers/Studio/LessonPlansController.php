@@ -207,7 +207,9 @@ class LessonPlansController extends Controller
             return null;
         }
 
-        return (int) round($location->fee_amount * ((int) $data['duration_minutes'] / 60));
+        $proratedDollars = ($location->fee_amount / 100) * ((int) $data['duration_minutes'] / 60);
+
+        return (int) round(round($proratedDollars / 5) * 5 * 100);
     }
 
     private function lessonPlanDate($value)

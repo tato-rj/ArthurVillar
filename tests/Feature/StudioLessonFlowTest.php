@@ -60,10 +60,10 @@ class StudioLessonFlowTest extends BaseTest
     }
 
     /** @test */
-    public function it_calculates_the_lesson_plan_fee_from_the_location_hourly_fee_and_duration()
+    public function it_calculates_the_lesson_plan_fee_from_the_location_hourly_fee_duration_and_nearest_five_dollars()
     {
         $location = Location::factory()->create([
-            'fee_amount' => 8000,
+            'fee_amount' => 4800,
         ]);
 
         $this->signIn();
@@ -79,7 +79,7 @@ class StudioLessonFlowTest extends BaseTest
         $this->assertDatabaseHas('lesson_plans', [
             'location_id' => $location->id,
             'duration_minutes' => 30,
-            'fee_amount' => 4000,
+            'fee_amount' => 2500,
         ]);
     }
 

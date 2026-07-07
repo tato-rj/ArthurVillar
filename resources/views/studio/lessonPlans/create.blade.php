@@ -88,7 +88,10 @@ document.addEventListener('change', function(event) {
         return;
     }
 
-    feeInput.value = (hourlyFee * (duration / 60)).toFixed(2).replace(/\\.00$/, '');
+    const proratedFee = hourlyFee * (duration / 60);
+    const roundedFee = Math.round(proratedFee / 5) * 5;
+
+    feeInput.value = roundedFee.toFixed(2).replace(/\\.00$/, '');
 });
 </script>
 @endpush
