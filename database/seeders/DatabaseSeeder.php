@@ -22,7 +22,8 @@ class DatabaseSeeder extends Seeder
             CountrySeeder::class,
 
             StudentSeeder::class,
-            LessonPlanSeeder::class
+            LessonPlanSeeder::class,
+            TeachingBreakSeeder::class
         ]);
     }
 }

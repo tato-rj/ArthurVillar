@@ -339,6 +339,30 @@ mark {
   }
 }
 
+.studio-break-impact {
+  background: #f3f0fb;
+  color: #33214f;
+}
+
+.studio-break-lessons {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.studio-break-lesson {
+  background: #f8f9fb;
+  border: 1px solid #e6e8ef;
+  border-radius: 6px;
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.65rem 0.75rem;
+
+  span {
+    color: #5f6368;
+    font-size: 0.85rem;
+  }
+}
+
 .ql-toolbar {
   @extend .rounded-top, .text-left;
   border-color: #e9ebf0 !important;

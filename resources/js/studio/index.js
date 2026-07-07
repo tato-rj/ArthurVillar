@@ -10,6 +10,7 @@ const state = {
     customEvents: [],
     plannedLessons: [],
     holidays: [],
+    teachingBreaks: [],
     studentSearch: '',
     loadedRange: null,
     pendingRangeKey: null,
@@ -254,6 +255,7 @@ const fetchPlannedLessons = function(range) {
         .then(function(payload) {
             state.plannedLessons = Array.isArray(payload.plannedLessons) ? payload.plannedLessons : [];
             state.holidays = Array.isArray(payload.holidays) ? payload.holidays : [];
+            state.teachingBreaks = Array.isArray(payload.teachingBreaks) ? payload.teachingBreaks : [];
             state.loadedRange = normalizeRange(payload.calendarRange) || normalizedRange;
         })
         .catch(function(error) {
@@ -566,6 +568,27 @@ const getHolidaysForDate = function(date) {
     return getHolidaysForDateString(toDateString(date));
 };
 
+const getBreakDateString = function(teachingBreak, key) {
+    return String(teachingBreak && teachingBreak[key] ? teachingBreak[key] : '').substring(0, 10);
+};
+
+const isDateWithinBreak = function(dateString, teachingBreak) {
+    const startsOn = getBreakDateString(teachingBreak, 'starts_on');
+    const endsOn = getBreakDateString(teachingBreak, 'ends_on');
+
+    return startsOn && endsOn && dateString >= startsOn && dateString <= endsOn;
+};
+
+const getBreaksForDateString = function(dateString) {
+    return state.teachingBreaks.filter(function(teachingBreak) {
+        return isDateWithinBreak(dateString, teachingBreak);
+    });
+};
+
+const getBreaksForDate = function(date) {
+    return getBreaksForDateString(toDateString(date));
+};
+
 const eventTimeFormatter = new Intl.DateTimeFormat('en', {
     hour: 'numeric',
     minute: '2-digit',
@@ -643,11 +666,11 @@ const patchScheduleHolidays = function(calendar) {
 
     const visibleDates = getVisibleScheduleDates();
     const visibleDateStrings = visibleDates.map(toDateString);
-    const hasHoliday = visibleDates.some(function(date) {
-        return getHolidaysForDate(date).length > 0;
+    const hasBanner = visibleDates.some(function(date) {
+        return getHolidaysForDate(date).length > 0 || getBreaksForDate(date).length > 0;
     });
 
-    if (!hasHoliday) {
+    if (!hasBanner) {
         return;
     }
 
@@ -662,6 +685,7 @@ const patchScheduleHolidays = function(calendar) {
         const cell = document.createElement('td');
         const dateString = toDateString(date);
         const holidays = visibleDateStrings.includes(dateString) ? getHolidaysForDate(date) : [];
+        const teachingBreaks = visibleDateStrings.includes(dateString) ? getBreaksForDate(date) : [];
 
         cell.className = 'studio-schedule-holiday-cell';
         cell.dataset.date = dateString;
@@ -675,6 +699,16 @@ const patchScheduleHolidays = function(calendar) {
             cell.appendChild(item);
         });
 
+        teachingBreaks.forEach(function(teachingBreak) {
+            const item = document.createElement('button');
+
+            item.type = 'button';
+            item.className = 'studio-schedule-holiday studio-schedule-break';
+            item.textContent = teachingBreak.title;
+            item.dataset.eventGuid = `teaching-break-${teachingBreak.id}-${dateString}`;
+            cell.appendChild(item);
+        });
+
         row.appendChild(cell);
     });
 
@@ -684,7 +718,47 @@ const patchScheduleHolidays = function(calendar) {
 const getEventByGuid = function(guid) {
     return state.events.find(function(event) {
         return event.guid === guid;
-    }) || null;
+    }) || getTeachingBreakEventByGuid(guid);
+};
+
+const getTeachingBreakEvent = function(teachingBreak, dateString) {
+    const impact = teachingBreak.impact || {};
+
+    return {
+        guid: `teaching-break-${teachingBreak.id}-${dateString}`,
+        isBreak: true,
+        id: teachingBreak.id,
+        date: dateString,
+        title: teachingBreak.title || 'Teaching break',
+        reason: teachingBreak.reason || '',
+        startsOn: getBreakDateString(teachingBreak, 'starts_on'),
+        endsOn: getBreakDateString(teachingBreak, 'ends_on'),
+        missedLessonCount: impact.lessons_count || 0,
+        missedFeeAmount: impact.fee_amount || 0,
+        missedLessons: Array.isArray(impact.lessons) ? impact.lessons : [],
+    };
+};
+
+const getBreakEventsForDate = function(date) {
+    const dateString = toDateString(date);
+
+    return getBreaksForDateString(dateString).map(function(teachingBreak) {
+        return getTeachingBreakEvent(teachingBreak, dateString);
+    });
+};
+
+const getTeachingBreakEventByGuid = function(guid) {
+    const match = String(guid || '').match(/^teaching-break-(\d+)-(\d{4}-\d{2}-\d{2})$/);
+
+    if (!match) {
+        return null;
+    }
+
+    const teachingBreak = state.teachingBreaks.find(function(item) {
+        return Number(item.id) === Number(match[1]);
+    });
+
+    return teachingBreak ? getTeachingBreakEvent(teachingBreak, match[2]) : null;
 };
 
 const getCalendarEventElementsByGuid = function(guid) {
@@ -1030,6 +1104,86 @@ const openLessonModal = function(event) {
     }
 };
 
+const formatBreakDateRange = function(event) {
+    const startsOn = event && event.startsOn ? event.startsOn : (event && event.date ? event.date.substring(0, 10) : '');
+    const endsOn = event && event.endsOn ? event.endsOn : startsOn;
+
+    if (!startsOn) {
+        return '';
+    }
+
+    const startLabel = modalDateFormatter.format(parseDateString(startsOn));
+    const endLabel = endsOn && endsOn !== startsOn ? modalDateFormatter.format(parseDateString(endsOn)) : '';
+
+    return endLabel ? `${startLabel} - ${endLabel}` : startLabel;
+};
+
+const openTeachingBreakModal = function(event) {
+    const modal = document.getElementById('teaching-break-modal');
+
+    if (!modal || !event) {
+        return;
+    }
+
+    const title = modal.querySelector('.modal-title');
+    const dates = modal.querySelector('#teaching-break-dates');
+    const reason = modal.querySelector('#teaching-break-reason');
+    const impact = modal.querySelector('#teaching-break-impact');
+    const lessons = modal.querySelector('#teaching-break-lessons');
+    const missedLessons = Array.isArray(event.missedLessons) ? event.missedLessons : [];
+
+    if (title) {
+        title.textContent = event.title || 'Teaching break';
+    }
+
+    if (dates) {
+        dates.textContent = formatBreakDateRange(event);
+    }
+
+    if (reason) {
+        reason.textContent = event.reason || 'No reason added.';
+    }
+
+    if (impact) {
+        const count = Number(event.missedLessonCount || 0);
+        impact.textContent = `${count} ${count === 1 ? 'lesson' : 'lessons'} missed · ${paymentFormatter.format(Number(event.missedFeeAmount || 0) / 100)} missed`;
+    }
+
+    if (lessons) {
+        lessons.innerHTML = '';
+
+        if (!missedLessons.length) {
+            const empty = document.createElement('div');
+
+            empty.className = 'opacity-4';
+            empty.textContent = 'No lessons are currently scheduled during this break.';
+            lessons.appendChild(empty);
+        }
+
+        missedLessons.forEach(function(lesson) {
+            const row = document.createElement('div');
+            const name = document.createElement('strong');
+            const details = document.createElement('span');
+
+            row.className = 'studio-break-lesson';
+            name.textContent = lesson.student || 'Lesson';
+            details.textContent = `${lesson.date ? modalDateFormatter.format(parseDateString(String(lesson.date).substring(0, 10))) : ''} · ${formatModalEventTime(lesson.start)}-${formatModalEventTime(lesson.end)} · ${paymentFormatter.format(Number(lesson.fee_amount || 0) / 100)}`;
+            row.appendChild(name);
+            row.appendChild(details);
+            lessons.appendChild(row);
+        });
+    }
+
+    if (window.bootstrap && window.bootstrap.Modal && typeof window.bootstrap.Modal.getOrCreateInstance === 'function') {
+        window.bootstrap.Modal.getOrCreateInstance(modal).show();
+        return;
+    }
+
+    if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
+        window.jQuery(modal).modal('show');
+    }
+};
+
 const updateLessonModalState = function(modal, payload) {
     const edit = modal.querySelector('#lesson-edit');
     const taught = modal.querySelector('#lesson-taught');
@@ -1333,7 +1487,7 @@ const getEventDateTime = function(event, key) {
 };
 
 const getEventTimeStatus = function(event) {
-    if (!event || event.isHoliday) {
+    if (!event || event.isHoliday || event.isBreak) {
         return '';
     }
 
@@ -1708,7 +1862,7 @@ const getCalendarItemsForDate = function(date) {
         });
     });
 
-    return holidays.concat(getEventsForDate(date));
+    return holidays.concat(getBreakEventsForDate(date)).concat(getEventsForDate(date));
 };
 
 const renderMonthCalendar = function(calendar) {
@@ -1768,21 +1922,21 @@ const renderMonthCalendar = function(calendar) {
             const time = document.createElement('span');
             const title = document.createElement('span');
 
-            item.className = event.isHoliday ? 'studio-month-event studio-month-event-holiday' : 'studio-month-event';
+            item.className = event.isHoliday ? 'studio-month-event studio-month-event-holiday' : (event.isBreak ? 'studio-month-event studio-month-event-break' : 'studio-month-event');
             dot.className = 'studio-month-event-dot';
             time.className = 'studio-month-event-time';
             title.className = 'studio-month-event-title';
             item.dataset.eventGuid = event.guid || '';
-            item.dataset.lessonStatus = event.isHoliday ? 'holiday' : (event.calendarStatus || event.lessonStatus || 'unconfirmed');
+            item.dataset.lessonStatus = event.isHoliday ? 'holiday' : (event.isBreak ? 'teaching-break' : (event.calendarStatus || event.lessonStatus || 'unconfirmed'));
             dot.dataset.eventGuid = event.guid || '';
-            dot.dataset.lessonStatus = event.isHoliday ? 'holiday' : (event.calendarStatus || event.lessonStatus || 'unconfirmed');
+            dot.dataset.lessonStatus = event.isHoliday ? 'holiday' : (event.isBreak ? 'teaching-break' : (event.calendarStatus || event.lessonStatus || 'unconfirmed'));
             applyEventTimeStatusAttributes(item, event);
             applyEventTimeStatusAttributes(dot, event);
 
-            time.textContent = event.isHoliday ? '' : formatEventTime(event.start);
+            time.textContent = event.isHoliday || event.isBreak ? '' : formatEventTime(event.start);
             title.textContent = event.title || 'No title';
 
-            if (!event.isHoliday) {
+            if (!event.isHoliday && !event.isBreak) {
                 item.appendChild(dot);
                 item.appendChild(time);
             }
@@ -1864,14 +2018,14 @@ const renderScheduleAgenda = function(calendar) {
             const item = document.createElement(event.isHoliday ? 'div' : 'button');
             const title = document.createElement('span');
 
-            item.className = event.isHoliday ? 'studio-schedule-event studio-schedule-event-holiday' : 'studio-schedule-event';
+            item.className = event.isHoliday ? 'studio-schedule-event studio-schedule-event-holiday' : (event.isBreak ? 'studio-schedule-event studio-schedule-event-break' : 'studio-schedule-event');
             title.className = 'studio-schedule-event-title';
             title.textContent = event.title || 'No title';
             item.dataset.eventGuid = event.guid || '';
-            item.dataset.lessonStatus = event.isHoliday ? 'holiday' : (event.calendarStatus || event.lessonStatus || 'unconfirmed');
+            item.dataset.lessonStatus = event.isHoliday ? 'holiday' : (event.isBreak ? 'teaching-break' : (event.calendarStatus || event.lessonStatus || 'unconfirmed'));
             applyEventTimeStatusAttributes(item, event);
 
-            if (!event.isHoliday) {
+            if (!event.isHoliday && !event.isBreak) {
                 const time = document.createElement('span');
                 const duration = getEventDurationMinutes(event);
 
@@ -1885,6 +2039,10 @@ const renderScheduleAgenda = function(calendar) {
                 item.appendChild(title);
                 item.appendChild(time);
             } else {
+                if (event.isBreak) {
+                    item.type = 'button';
+                }
+
                 item.appendChild(title);
             }
 
@@ -1954,6 +2112,10 @@ const renderYearCalendar = function(calendar) {
 
             if (getHolidaysForDateString(dateString).length) {
                 button.classList.add('is-holiday');
+            }
+
+            if (getBreaksForDateString(dateString).length) {
+                button.classList.add('is-break');
             }
 
             grid.appendChild(button);
@@ -2090,6 +2252,7 @@ document.addEventListener('DOMContentLoaded', function() {
         ? window.studioPlannedLessons
         : (Array.isArray(window.studioLessonPlans) ? window.studioLessonPlans : []);
     state.holidays = Array.isArray(window.studioHolidays) ? window.studioHolidays : [];
+    state.teachingBreaks = Array.isArray(window.studioTeachingBreaks) ? window.studioTeachingBreaks : [];
     state.loadedRange = normalizeRange(window.studioCalendarRange);
 
     const urlState = getUrlState();
@@ -2530,7 +2693,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     calendar.addEventListener('click', function(e) {
-        const item = e.target.closest('.lm-schedule-item, .studio-month-event, .studio-schedule-event');
+        const item = e.target.closest('.lm-schedule-item, .studio-month-event, .studio-schedule-event, .studio-schedule-break');
 
         if (!item || item.classList.contains('studio-month-event-holiday') || item.classList.contains('studio-schedule-event-holiday')) {
             return;
@@ -2538,7 +2701,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
         e.preventDefault();
         e.stopPropagation();
-        openLessonModal(getEventByGuid(item.id || item.dataset.eventGuid));
+
+        const event = getEventByGuid(item.id || item.dataset.eventGuid);
+
+        if (event && event.isBreak) {
+            openTeachingBreakModal(event);
+            return;
+        }
+
+        openLessonModal(event);
     });
 
     calendar.addEventListener('click', function(e) {

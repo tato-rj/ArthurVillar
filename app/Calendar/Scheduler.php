@@ -3,7 +3,7 @@
 namespace App\Calendar;
 
 use Carbon\Carbon;
-use App\Models\LessonPlan;
+use App\Models\{LessonPlan, TeachingBreak};
 use Illuminate\Http\Request;
 use App\Calendar\Traits\Holidays;
 
@@ -20,12 +20,14 @@ class Scheduler
         return [
             'plannedLessons' => $this->plannedLessons($range),
             'holidays' => $this->holidays($range),
+            'teachingBreaks' => $this->teachingBreaks($range),
             'calendarRange' => $range,
         ];
     }
 
-    public function plannedLessons(array $range)
+    public function plannedLessons(array $range, bool $applyTeachingBreaks = true)
     {
+        $teachingBreakDates = $applyTeachingBreaks ? $this->teachingBreakDates($range) : collect();
         $lessonPlans = LessonPlan::with([
             'student',
             'lessons' => function ($query) use ($range) {
@@ -48,15 +50,16 @@ class Scheduler
             })
             ->get();
 
-        return $lessonPlans->map(function (LessonPlan $lessonPlan) use ($range) {
+        return $lessonPlans->map(function (LessonPlan $lessonPlan) use ($range, $teachingBreakDates) {
             return array_merge($lessonPlan->toArray(), [
-                'occurrences' => $this->occurrences($lessonPlan, $range),
+                'occurrences' => $this->occurrences($lessonPlan, $range, $teachingBreakDates),
             ]);
         })->values();
     }
 
-    private function occurrences(LessonPlan $lessonPlan, array $range)
+    private function occurrences(LessonPlan $lessonPlan, array $range, $teachingBreakDates = null)
     {
+        $teachingBreakDates = $teachingBreakDates ?: collect();
         $start = Carbon::parse($range['start'])->startOfDay();
         $end = Carbon::parse($range['end'])->startOfDay();
         $startsOn = Carbon::parse($lessonPlan->starts_on)->startOfDay();
@@ -95,6 +98,12 @@ class Scheduler
             $occurrenceKey = $this->occurrenceKey($occurrence->toDateString(), $lessonPlan->start_time);
             $scheduledLesson = $lessonsByScheduledOccurrence->get($occurrenceKey);
 
+            if ($teachingBreakDates->has($occurrence->toDateString())) {
+                $occurrence->addDays($intervalDays);
+
+                continue;
+            }
+
             if ($overridesByOriginal->has($occurrenceKey) || ($scheduledLesson && ! $this->lessonStartsOnOccurrence($scheduledLesson, $occurrence, $lessonPlan->start_time))) {
                 $occurrence->addDays($intervalDays);
 
@@ -124,8 +133,13 @@ class Scheduler
             ->filter(function ($override) use ($start, $end) {
                 return Carbon::parse($override->new_date)->betweenIncluded($start, $end);
             })
-            ->each(function ($override) use (&$occurrences, $lessonPlan) {
+            ->each(function ($override) use (&$occurrences, $lessonPlan, $teachingBreakDates) {
                 $occurrence = Carbon::parse($override->new_date)->startOfDay();
+
+                if ($teachingBreakDates->has($occurrence->toDateString())) {
+                    return;
+                }
+
                 $lesson = $this->lessonForOccurrence($lessonPlan, $occurrence, $override->new_start_time);
 
                 $occurrences[] = [
@@ -152,7 +166,11 @@ class Scheduler
                 return $lessonDate->betweenIncluded($start, $end)
                     && ! $this->lessonStartsOnOccurrence($lesson, Carbon::parse($lesson->scheduled_date ?: $lesson->starts_at), $lesson->scheduled_start_time ?: Carbon::parse($lesson->starts_at)->format('H:i'));
             })
-            ->each(function ($lesson) use (&$occurrences) {
+            ->each(function ($lesson) use (&$occurrences, $teachingBreakDates) {
+                if ($teachingBreakDates->has(Carbon::parse($lesson->starts_at)->toDateString())) {
+                    return;
+                }
+
                 $startTime = Carbon::parse($lesson->starts_at)->format('H:i');
                 $endTime = Carbon::parse($lesson->ends_at)->format('H:i');
 
@@ -172,6 +190,75 @@ class Scheduler
             });
 
         return $occurrences;
+    }
+
+    public function teachingBreaks(array $range)
+    {
+        return TeachingBreak::query()
+            ->overlapping($range['start'], $range['end'])
+            ->orderBy('starts_on')
+            ->get()
+            ->map(function (TeachingBreak $teachingBreak) {
+                return array_merge($teachingBreak->toArray(), [
+                    'impact' => $this->breakImpact($teachingBreak->starts_on, $teachingBreak->ends_on),
+                    'type' => 'teaching-break',
+                ]);
+            })
+            ->values();
+    }
+
+    public function breakImpact($startsOn, $endsOn)
+    {
+        $range = [
+            'start' => Carbon::parse($startsOn)->toDateString(),
+            'end' => Carbon::parse($endsOn)->toDateString(),
+        ];
+        $lessons = collect();
+
+        $this->plannedLessons($range, false)->each(function ($lessonPlan) use ($lessons) {
+            collect($lessonPlan['occurrences'] ?? [])->each(function ($occurrence) use ($lessonPlan, $lessons) {
+                if (($occurrence['lesson_status'] ?? '') === 'canceled') {
+                    return;
+                }
+
+                $lessons->push([
+                    'lesson_plan_id' => $lessonPlan['id'] ?? null,
+                    'student' => trim(($lessonPlan['student']['first_name'] ?? '').' '.($lessonPlan['student']['last_name'] ?? '')),
+                    'date' => $occurrence['date'] ?? null,
+                    'start' => $occurrence['start'] ?? null,
+                    'end' => $occurrence['end'] ?? null,
+                    'fee_amount' => (float) ($occurrence['fee_amount'] ?? $lessonPlan['fee_amount'] ?? 0),
+                ]);
+            });
+        });
+
+        return [
+            'lessons_count' => $lessons->count(),
+            'fee_amount' => $lessons->sum('fee_amount'),
+            'lessons' => $lessons
+                ->sortBy(fn ($lesson) => ($lesson['date'] ?? '').' '.($lesson['start'] ?? ''))
+                ->values(),
+        ];
+    }
+
+    private function teachingBreakDates(array $range)
+    {
+        $dates = collect();
+
+        TeachingBreak::query()
+            ->overlapping($range['start'], $range['end'])
+            ->get()
+            ->each(function (TeachingBreak $teachingBreak) use ($dates) {
+                $date = Carbon::parse($teachingBreak->starts_on)->startOfDay();
+                $end = Carbon::parse($teachingBreak->ends_on)->startOfDay();
+
+                while ($date->lte($end)) {
+                    $dates->put($date->toDateString(), true);
+                    $date->addDay();
+                }
+            });
+
+        return $dates;
     }
 
     private function lessonForOccurrence(LessonPlan $lessonPlan, Carbon $occurrence, $startTime)

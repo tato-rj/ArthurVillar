@@ -3,12 +3,56 @@
 namespace App\Http\Controllers\Studio;
 
 use App\Http\Controllers\Controller;
-use App\Models\{Lesson, Student};
+use App\Calendar\Scheduler;
+use App\Models\{Lesson, Student, TeachingBreak};
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 
 class TablesController extends Controller
 {
+    public function breaks(Scheduler $scheduler)
+    {
+        $breaks = TeachingBreak::query()
+            ->select([
+                'id',
+                'title',
+                'reason',
+                'starts_on',
+                'ends_on',
+            ]);
+
+        return DataTables::eloquent($breaks)
+            ->editColumn('starts_on', function (TeachingBreak $teachingBreak) {
+                return $teachingBreak->starts_on ? $teachingBreak->starts_on->toDateString() : null;
+            })
+            ->editColumn('ends_on', function (TeachingBreak $teachingBreak) {
+                return $teachingBreak->ends_on ? $teachingBreak->ends_on->toDateString() : null;
+            })
+            ->addColumn('lessons_count', function (TeachingBreak $teachingBreak) use ($scheduler) {
+                return $scheduler->breakImpact($teachingBreak->starts_on, $teachingBreak->ends_on)['lessons_count'];
+            })
+            ->addColumn('fee_amount', function (TeachingBreak $teachingBreak) use ($scheduler) {
+                return $scheduler->breakImpact($teachingBreak->starts_on, $teachingBreak->ends_on)['fee_amount'];
+            })
+            ->filterColumn('starts_on', function ($query, $keyword) {
+                $query->whereDate('starts_on', 'like', "%{$keyword}%");
+            })
+            ->filterColumn('ends_on', function ($query, $keyword) {
+                $query->whereDate('ends_on', 'like', "%{$keyword}%");
+            })
+            ->filterColumn('lessons_count', function () {
+                return;
+            })
+            ->filterColumn('fee_amount', function () {
+                return;
+            })
+            ->orderColumn('starts_on', 'starts_on $1')
+            ->orderColumn('ends_on', 'ends_on $1')
+            ->orderColumn('lessons_count', 'starts_on $1')
+            ->orderColumn('fee_amount', 'starts_on $1')
+            ->toJson();
+    }
+
     public function payments()
     {
         $driver = DB::connection()->getDriverName();

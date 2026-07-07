@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -16,8 +17,14 @@ class TeachingBreakFactory extends Factory
      */
     public function definition()
     {
+        $startsOn = Carbon::instance($this->faker->dateTimeBetween('+1 week', '+6 months'))->startOfDay();
+        $endsOn = $startsOn->copy()->addDays($this->faker->numberBetween(0, 10));
+
         return [
-            //
+            'title' => $this->faker->randomElement(['Vacation', 'Teaching trip', 'Studio break', 'Conference']),
+            'reason' => $this->faker->optional()->sentence(),
+            'starts_on' => $startsOn->toDateString(),
+            'ends_on' => $endsOn->toDateString(),
         ];
     }
 }

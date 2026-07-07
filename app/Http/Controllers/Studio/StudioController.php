@@ -10,16 +10,17 @@ class StudioController extends Controller
 {
     public function index(Request $request, Scheduler $scheduler)
     {
-        ['plannedLessons' => $plannedLessons, 'holidays' => $holidays, 'calendarRange' => $calendarRange] = $scheduler->payload($request);
+        ['plannedLessons' => $plannedLessons, 'holidays' => $holidays, 'teachingBreaks' => $teachingBreaks, 'calendarRange' => $calendarRange] = $scheduler->payload($request);
 
         if ($request->boolean('lesson_plans')) {
             return response()->json([
                 'plannedLessons' => $plannedLessons,
                 'holidays' => $holidays,
+                'teachingBreaks' => $teachingBreaks,
                 'calendarRange' => $calendarRange,
             ]);
         }
 
-        return view('studio.index', compact('plannedLessons', 'holidays', 'calendarRange'));
+        return view('studio.index', compact('plannedLessons', 'holidays', 'teachingBreaks', 'calendarRange'));
     }
 }

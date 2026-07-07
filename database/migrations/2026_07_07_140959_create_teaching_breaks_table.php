@@ -15,7 +15,13 @@ return new class extends Migration
     {
         Schema::create('teaching_breaks', function (Blueprint $table) {
             $table->id();
+            $table->string('title');
+            $table->text('reason')->nullable();
+            $table->date('starts_on');
+            $table->date('ends_on');
             $table->timestamps();
+
+            $table->index(['starts_on', 'ends_on']);
         });
     }
 

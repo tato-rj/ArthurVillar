@@ -36,6 +36,7 @@ Route::prefix('lesson-plans')->name('lesson-plans.')->group(function() {
 
 Route::prefix('breaks')->name('breaks.')->group(function() {
 	Route::get('', 'TeachingBreaksController@index')->name('index');
+	Route::get('impact', 'TeachingBreaksController@impact')->name('impact');
 
 	Route::post('', 'TeachingBreaksController@store')->name('store');
 
@@ -69,6 +70,7 @@ Route::prefix('lessons')->name('lessons.')->group(function() {
 });
 
 Route::prefix('tables')->name('tables.')->group(function() {
+	Route::get('breaks', 'TablesController@breaks')->name('breaks');
 	Route::get('lessons', 'TablesController@lessons')->name('lessons');
 	Route::get('payments', 'TablesController@payments')->name('payments');
 

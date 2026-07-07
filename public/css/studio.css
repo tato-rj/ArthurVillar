@@ -17035,7 +17035,7 @@ textarea.form-control-lg {
   display: table-cell !important;
 }
 
-.d-flex, #lesson-modal h4.modal-title, #lesson-modal .modal-title.h4, .d-apart, .d-center {
+.d-flex, #lesson-modal h4.modal-title, #lesson-modal .modal-title.h4, #teaching-break-modal h4.modal-title, #teaching-break-modal .modal-title.h4, .d-apart, .d-center {
   display: flex !important;
 }
 
@@ -17481,7 +17481,7 @@ textarea.form-control-lg {
   align-items: flex-end !important;
 }
 
-.align-items-center, #lesson-modal h4.modal-title, #lesson-modal .modal-title.h4, .d-apart, .d-center {
+.align-items-center, #lesson-modal h4.modal-title, #lesson-modal .modal-title.h4, #teaching-break-modal h4.modal-title, #teaching-break-modal .modal-title.h4, .d-apart, .d-center {
   align-items: center !important;
 }
 
@@ -31639,6 +31639,15 @@ form.form-borderless.form-light input.form-control:not([readonly]), form.form-bo
   height: 2.1rem;
 }
 
+.studio-schedule-event-break {
+  background: #7952b3;
+  color: #fff;
+  cursor: pointer;
+  min-height: 0;
+  padding-top: 0.6rem;
+  padding-bottom: 0.6rem;
+}
+
 .studio-month-weekdays {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -31748,12 +31757,25 @@ form.form-borderless.form-light input.form-control:not([readonly]), form.form-bo
   padding: 0.18rem 0.5rem;
 }
 
+.studio-month-event-break {
+  background: #7952b3;
+  border-radius: 0.35rem;
+  color: #fff;
+  display: block;
+  font-weight: 700;
+  padding: 0.18rem 0.5rem;
+}
+
 .studio-month-event:hover {
   background: rgba(0, 0, 0, 0.075);
 }
 
 .studio-month-event-holiday:hover {
   background: #0b8043;
+}
+
+.studio-month-event-break:hover {
+  background: #68449f;
 }
 
 .studio-month-event-dot {
@@ -31880,6 +31902,17 @@ form.form-borderless.form-light input.form-control:not([readonly]), form.form-bo
   width: 0.25rem;
 }
 
+.studio-year-day.is-break:not(.is-today)::before {
+  background: #7952b3;
+  border-radius: 50%;
+  bottom: 0;
+  content: "";
+  height: 0.25rem;
+  position: absolute;
+  transform: translateX(-0.22rem);
+  width: 0.25rem;
+}
+
 .lm-schedule thead td {
   font-size: 1.6em;
 }
@@ -31973,6 +32006,18 @@ form.form-borderless.form-light input.form-control:not([readonly]), form.form-bo
   white-space: nowrap;
 }
 
+.studio-schedule-break {
+  background: #7952b3;
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+}
+
+.studio-schedule-break:hover {
+  background: #68449f;
+}
+
 #calendar.studio-calendar-day-view .lm-schedule-pointer,
 #calendar.studio-calendar-three-days-view .lm-schedule-pointer,
 #calendar.studio-calendar-week-view .lm-schedule-pointer {
@@ -32000,6 +32045,21 @@ form.form-borderless.form-light input.form-control:not([readonly]), form.form-bo
   cursor: pointer !important;
   flex-direction: column;
   justify-content: normal;
+}
+
+#calendar .lm-schedule-item[data-lesson-status=teaching-break], #calendar .studio-month-event-dot[data-lesson-status=teaching-break], #calendar .studio-schedule-event[data-lesson-status=teaching-break] {
+  background: #7952b3;
+  color: #fff;
+}
+
+#teaching-break-modal h4.modal-title:before, #teaching-break-modal .modal-title.h4:before {
+  background: #7952b3;
+  border-radius: 50%;
+  content: "";
+  display: block;
+  height: 0.67rem;
+  margin-right: 8px;
+  width: 0.67rem;
 }
 
 #calendar .lm-schedule-item.is-short {

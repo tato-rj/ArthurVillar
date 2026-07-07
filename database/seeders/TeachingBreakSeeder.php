@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\TeachingBreak;
 use Illuminate\Database\Seeder;
 
 class TeachingBreakSeeder extends Seeder
@@ -14,6 +14,6 @@ class TeachingBreakSeeder extends Seeder
      */
     public function run()
     {
-        //
+        TeachingBreak::factory()->count(3)->create();
     }
 }

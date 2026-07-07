@@ -4,7 +4,11 @@
 	 	<div style="font-size: 70%" class="mb-2">
 			@if($current)
 			<div class="fw-bold bg-green rounded py-1 px-2 mb-1 text-white">CURRENT LESSON PLAN</div>
-			<div class="opacity-8">since {{$lessonPlan->starts_on->toFormattedDateString()}}</div>
+				@if($lessonPlan->ends_on)
+				<div class="opacity-8">{{$lessonPlan->starts_on->toFormattedDateString()}} to {{$lessonPlan->ends_on->toFormattedDateString()}}</div>
+				@else
+				<div class="opacity-8">since {{$lessonPlan->starts_on->toFormattedDateString()}}</div>
+				@endif
 			@else
 			<div class="fw-bold opacity-6">ended on {{$lessonPlan->ends_on->toFormattedDateString()}}</div>
 			@endif

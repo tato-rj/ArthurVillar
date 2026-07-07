@@ -19,12 +19,14 @@
 </section>
 
 @include('studio.lessons.modal')
+@include('studio.breaks.modal')
 @endsection
 
 @push('scripts')
 <script>
 window.studioPlannedLessons = @json($plannedLessons);
 window.studioHolidays = @json($holidays);
+window.studioTeachingBreaks = @json($teachingBreaks);
 window.studioCalendarRange = @json($calendarRange);
 window.studioCsrfToken = @json(csrf_token());
 </script>
