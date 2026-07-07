@@ -31525,7 +31525,7 @@ form.form-borderless.form-light input.form-control:not([readonly]), form.form-bo
   height: 100%;
   overflow-x: hidden;
   overflow-y: auto;
-  padding: 1.5rem 1.5rem 2rem;
+  padding: 1.5rem 1.5rem 0.8rem;
 }
 
 .studio-schedule-day {
@@ -31559,7 +31559,7 @@ form.form-borderless.form-light input.form-control:not([readonly]), form.form-bo
   align-items: center;
   border-radius: 50%;
   display: inline-flex;
-  font-size: 1.65rem;
+  font-size: 1.25rem;
   height: 3rem;
   justify-content: center;
   line-height: 1;
@@ -31620,12 +31620,12 @@ form.form-borderless.form-light input.form-control:not([readonly]), form.form-bo
 }
 
 .studio-schedule-event-title {
-  font-size: 1.05rem;
+  font-size: 0.9rem;
   font-weight: 800;
 }
 
 .studio-schedule-event-time {
-  font-size: 1rem;
+  font-size: 0.75rem;
   font-weight: 600;
 }
 
@@ -32263,13 +32263,13 @@ a#lesson-edit:hover {
     margin-bottom: 12px;
   }
   .studio-calendar-toolbar-today {
-    order: 1;
-  }
-  .studio-calendar-toolbar-views {
     order: 2;
   }
-  .studio-calendar-toolbar-controls {
+  .studio-calendar-toolbar-views {
     order: 3;
+  }
+  .studio-calendar-toolbar-controls {
+    order: 1;
     flex: 0 0 100% !important;
     max-width: 100%;
   }
