@@ -9,7 +9,6 @@
 
 		<div class="mb-2">
 			<h5 class="m-0">{{ucfirst($lessonPlan->weekdayName)}}</h5>
-			<div>{{$lessonPlan->recurrence}}</div>
 			<div>
 			Start on {{$lessonPlan->starts_on->toFormattedDateString()}}
 			@if($lessonPlan->ends_on)
@@ -22,6 +21,7 @@
 		<div class="mb-3">
 			<div class="mb-1">@fa(['icon' => 'piggy-bank', 'fa_color' => 'grey']){{$lessonPlan->payment_method}}</div>
 			<div class="mb-1">@fa(['icon' => 'money-bill-wave', 'fa_color' => 'grey']){{payment()->usd($lessonPlan->fee_amount)}}</div>
+			<div class="mb-1">@fa(['icon' => 'repeat', 'fa_color' => 'grey']){{$lessonPlan->recurrence}}</div>
 			<div>@fa(['icon' => 'clock', 'fa_color' => 'grey']){{$lessonPlan->startTime()->format('g:i A')}}</div>
 		</div>
 		@endif
