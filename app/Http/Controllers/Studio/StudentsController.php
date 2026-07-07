@@ -15,7 +15,6 @@ class StudentsController extends Controller
     {
         $plans = \App\Models\LessonPlan::all();
         foreach ($plans as $plan) {
-            dd($plan);
             $plan->update(['location_id' => 1]);
         }
         
