@@ -26,6 +26,8 @@
         <!-- Fonts -->
         @if(subdomain('studio'))
         <link href="{{asset('/favicon/favicon_studio.ico')}}" rel="icon" type="image/x-icon">
+        @elseif(subdomain('listening'))
+        <link href="{{asset('/favicon/favicon_listening.ico')}}" rel="icon" type="image/x-icon">
         @else
         <link href="{{asset('/favicon/favicon.ico')}}" rel="icon" type="image/x-icon">
         @endif

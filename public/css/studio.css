@@ -31274,6 +31274,7 @@ form.form-borderless.form-light input.form-control:not([readonly]), form.form-bo
   display: flex;
   gap: 1rem;
   min-height: 4.5rem;
+  flex-wrap: wrap;
 }
 
 .studio-calendar-button,
@@ -32257,6 +32258,20 @@ a#lesson-edit:hover {
   }
   .studio-calendar-main {
     margin-right: 0 !important;
+  }
+  .studio-calendar-toolbar {
+    margin-bottom: 12px;
+  }
+  .studio-calendar-toolbar-today {
+    order: 2;
+  }
+  .studio-calendar-toolbar-views {
+    order: 3;
+  }
+  .studio-calendar-toolbar-controls {
+    order: 1;
+    flex: 0 0 100% !important;
+    max-width: 100%;
   }
   .studio-year-calendar {
     gap: 2.5rem 3rem;
