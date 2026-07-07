@@ -31525,7 +31525,7 @@ form.form-borderless.form-light input.form-control:not([readonly]), form.form-bo
   height: 100%;
   overflow-x: hidden;
   overflow-y: auto;
-  padding: 1.5rem 1.5rem 0.8rem;
+  padding: 1rem 0.6rem;
 }
 
 .studio-schedule-day {
