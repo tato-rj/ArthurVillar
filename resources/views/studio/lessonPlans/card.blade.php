@@ -7,11 +7,13 @@
 			@endif
 		</div>
 
+		<h4 class="mb-2">{{ucfirst($lessonPlan->weekdayName)}}</h4>
+
 		<div class="mb-2">
-			<h5 class="m-0">{{ucfirst($lessonPlan->weekdayName)}}</h5>
 			<div class="small text-muted">Start on {{$lessonPlan->starts_on->toFormattedDateString()}}</div>
 			@if($lessonPlan->ends_on)
 			<div class="small text-muted">End on {{$lessonPlan->ends_on->toFormattedDateString()}}</div>
+			<div class="small text-muted">Total of {{$lessonPlan->projectedLessonCount()}} lessons</div>
 			@endif
 		</div>
 

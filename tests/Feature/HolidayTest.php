@@ -1,0 +1,63 @@
+<?php
+
+namespace Tests\Feature;
+
+use Tests\BaseTest;
+use App\Models\Holiday;
+
+class HolidayTest extends BaseTest
+{
+    /** @test */
+    public function it_shows_the_holidays_page()
+    {
+        Holiday::factory()->fixed(7, 4)->create([
+            'title' => 'Independence Day',
+            'is_observed' => true,
+        ]);
+
+        $this->signIn();
+
+        $this
+            ->get(route('studio.holidays.index'))
+            ->assertOk()
+            ->assertSee('Independence Day');
+    }
+
+    /** @test */
+    public function it_updates_whether_a_holiday_is_observed()
+    {
+        $holiday = Holiday::factory()->fixed(7, 4)->create([
+            'is_observed' => true,
+        ]);
+
+        $this->signIn();
+
+        $this
+            ->patch(route('studio.holidays.update', $holiday), [])
+            ->assertRedirect();
+
+        $this->assertFalse($holiday->fresh()->is_observed);
+    }
+
+    /** @test */
+    public function unobserved_holidays_do_not_show_on_the_calendar()
+    {
+        Holiday::factory()->fixed(7, 4)->create([
+            'title' => 'Independence Day',
+            'is_observed' => false,
+        ]);
+
+        $this->signIn();
+
+        $this
+            ->getJson(route('studio.home', [
+                'view' => 'day',
+                'date' => '2026-07-04',
+                'lesson_plans' => 1,
+            ]))
+            ->assertOk()
+            ->assertJsonMissing([
+                'title' => 'Independence Day',
+            ]);
+    }
+}

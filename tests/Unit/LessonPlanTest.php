@@ -3,7 +3,7 @@
 namespace Tests\Unit;
 
 use Tests\BaseTest;
-use App\Models\{Student, LessonPlan, Lesson, ScheduleOverride};
+use App\Models\{Student, LessonPlan, Lesson, ScheduleOverride, TeachingBreak, Holiday};
 use Carbon\Carbon;
 use InvalidArgumentException;
 
@@ -84,5 +84,49 @@ class LessonPlanTest extends BaseTest
 
         $this->assertTrue($matching->contains($weekly->id));
         $this->assertFalse($matching->contains($biweekly->id));
+    }
+
+    /** @test */
+    public function a_projected_lesson_count_is_null_when_the_plan_has_no_end_date()
+    {
+        $lessonPlan = LessonPlan::factory()->create([
+            'starts_on' => '2026-12-04',
+            'ends_on' => null,
+        ]);
+
+        $this->assertNull($lessonPlan->projectedLessonCount());
+    }
+
+    /** @test */
+    public function it_projects_lesson_count_after_discounting_breaks_cancellations_and_holidays()
+    {
+        $lessonPlan = LessonPlan::factory()->create([
+            'weekday' => 6,
+            'start_time' => '15:30',
+            'starts_on' => '2026-12-04',
+            'ends_on' => '2026-12-25',
+            'recurrence_interval' => 1,
+        ]);
+
+        TeachingBreak::factory()->create([
+            'starts_on' => '2026-12-11',
+            'ends_on' => '2026-12-11',
+        ]);
+
+        Holiday::factory()->fixed(12, 25)->create([
+            'title' => 'Christmas Day',
+            'is_observed' => true,
+        ]);
+
+        Lesson::factory()->lessonPlan($lessonPlan)->create([
+            'scheduled_date' => '2026-12-18',
+            'scheduled_start_time' => '15:30',
+            'starts_at' => '2026-12-18 15:30:00',
+            'ends_at' => '2026-12-18 16:15:00',
+            'canceled_at' => '2026-12-18 10:00:00',
+            'canceled_by' => 'student',
+        ]);
+
+        $this->assertSame(1, $lessonPlan->projectedLessonCount());
     }
 }

@@ -4,9 +4,12 @@ namespace App\Models;
 
 use Carbon\Carbon;
 use InvalidArgumentException;
+use App\Calendar\Traits\Holidays;
 
 class LessonPlan extends BaseModel
 {
+    use Holidays;
+
     public const WEEKDAYS = [
         1 => 'sunday',
         2 => 'monday',
@@ -71,6 +74,39 @@ class LessonPlan extends BaseModel
         return $this->location
             ? $this->location->netAmount($this->fee_amount)
             : $this->fee_amount;
+    }
+
+    public function projectedLessonCount()
+    {
+        if (! $this->ends_on) {
+            return null;
+        }
+
+        $start = Carbon::parse($this->starts_on)->startOfDay();
+        $end = Carbon::parse($this->ends_on)->startOfDay();
+
+        if ($end->lt($start)) {
+            return 0;
+        }
+
+        $excludedDates = $this->projectedLessonExcludedDates($start, $end);
+        $canceledOccurrences = $this->projectedLessonCanceledOccurrences($start, $end);
+        $occurrence = $start->copy()->addDays(($this->carbonWeekday() - $start->dayOfWeek + 7) % 7);
+        $intervalDays = max(1, (int) $this->recurrence_interval) * 7;
+        $count = 0;
+
+        while ($occurrence->lte($end)) {
+            $date = $occurrence->toDateString();
+            $key = $this->projectedLessonOccurrenceKey($date, $this->start_time);
+
+            if (! $excludedDates->has($date) && ! $canceledOccurrences->has($key)) {
+                $count++;
+            }
+
+            $occurrence->addDays($intervalDays);
+        }
+
+        return $count;
     }
 
     public function carbonWeekday()
@@ -326,6 +362,56 @@ class LessonPlan extends BaseModel
         if ($currentDate === $newDate && $currentStartTime === $newStartTime) {
             throw new InvalidArgumentException('The lesson is already scheduled for that time.');
         }
+    }
+
+    private function projectedLessonExcludedDates(Carbon $start, Carbon $end)
+    {
+        $dates = collect();
+
+        TeachingBreak::query()
+            ->overlapping($start->toDateString(), $end->toDateString())
+            ->get()
+            ->each(function (TeachingBreak $teachingBreak) use ($dates, $start, $end) {
+                $date = $teachingBreak->starts_on->copy()->max($start)->startOfDay();
+                $breakEnd = $teachingBreak->ends_on->copy()->min($end)->startOfDay();
+
+                while ($date->lte($breakEnd)) {
+                    $dates->put($date->toDateString(), true);
+                    $date->addDay();
+                }
+            });
+
+        for ($year = $start->year - 1; $year <= $end->year + 1; $year++) {
+            foreach ($this->nationalHolidays($year) as $holiday) {
+                if ($holiday['date']->betweenIncluded($start, $end)) {
+                    $dates->put($holiday['date']->toDateString(), true);
+                }
+            }
+        }
+
+        return $dates;
+    }
+
+    private function projectedLessonCanceledOccurrences(Carbon $start, Carbon $end)
+    {
+        return $this->lessons()
+            ->whereNotNull('canceled_at')
+            ->relevantBetween($start->toDateString(), $end->toDateString())
+            ->get()
+            ->mapWithKeys(function (Lesson $lesson) {
+                $date = $lesson->scheduled_date
+                    ? $lesson->scheduled_date->toDateString()
+                    : $lesson->starts_at->toDateString();
+                $startTime = $lesson->scheduled_start_time
+                    ?: $lesson->starts_at->format('H:i');
+
+                return [$this->projectedLessonOccurrenceKey($date, $startTime) => true];
+            });
+    }
+
+    private function projectedLessonOccurrenceKey($date, $startTime)
+    {
+        return Carbon::parse($date)->toDateString().' '.static::normalizeTime($startTime);
     }
 
     private function minutesBetween($startTime, $endTime)

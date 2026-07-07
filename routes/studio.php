@@ -63,6 +63,14 @@ Route::prefix('breaks')->name('breaks.')->group(function() {
 	});
 });
 
+Route::prefix('holidays')->name('holidays.')->group(function() {
+	Route::get('', 'HolidaysController@index')->name('index');
+
+	Route::prefix('{holiday}')->group(function() {
+		Route::patch('', 'HolidaysController@update')->name('update');
+	});
+});
+
 Route::prefix('locations')->name('locations.')->group(function() {
 	Route::get('', 'LocationsController@index')->name('index');
 

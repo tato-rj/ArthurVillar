@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             CountrySeeder::class,
 
             LocationsSeeder::class,
+            HolidaySeeder::class,
             StudentSeeder::class,
             LessonPlanSeeder::class,
             TeachingBreakSeeder::class,

@@ -306,41 +306,6 @@ class Scheduler
             ->values();
     }
 
-    private function nthWeekdayOfMonth(int $year, int $month, int $weekday, int $nth)
-    {
-        $date = Carbon::create($year, $month, 1)->startOfDay();
-
-        while ($date->dayOfWeek !== $weekday) {
-            $date->addDay();
-        }
-
-        return $date->addWeeks($nth - 1);
-    }
-
-    private function lastWeekdayOfMonth(int $year, int $month, int $weekday)
-    {
-        $date = Carbon::create($year, $month, 1)->endOfMonth()->startOfDay();
-
-        while ($date->dayOfWeek !== $weekday) {
-            $date->subDay();
-        }
-
-        return $date;
-    }
-
-    private function observedDate(Carbon $date)
-    {
-        if ($date->isSaturday()) {
-            return $date->copy()->subDay();
-        }
-
-        if ($date->isSunday()) {
-            return $date->copy()->addDay();
-        }
-
-        return $date->copy();
-    }
-
     public function range(Request $request)
     {
         $explicitRange = $this->explicitRange($request);
