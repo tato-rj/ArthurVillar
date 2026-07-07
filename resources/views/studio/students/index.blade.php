@@ -86,6 +86,7 @@ $(function() {
         processing: false,
         serverSide: true,
         autoWidth: false,
+        scrollX: true,
         ajax: @json(route('studio.tables.students')),
         columns: [
             {data: 'first_name', name: 'first_name'},

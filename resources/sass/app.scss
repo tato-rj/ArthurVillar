@@ -135,20 +135,68 @@ mark {
 }
 
 .studio-table-container {
+  width: 100%;
   max-width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+  overflow-x: visible;
 
   .dataTables_wrapper {
-    min-width: 720px;
+    min-width: 0;
+    width: 100%;
   }
 
-  &.studio-table-container-lg .dataTables_wrapper {
+  .dataTables_scroll {
+    max-width: 100%;
+  }
+
+  .dataTables_scrollHead,
+  .dataTables_scrollBody {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .dataTables_scrollHead {
+    overflow: hidden !important;
+  }
+
+  .dataTables_scrollBody {
+    overflow-x: auto !important;
+  }
+
+  &.studio-table-container-lg .studio-table {
     min-width: 860px;
+  }
+
+  .dataTables_length,
+  .dataTables_filter,
+  .dataTables_info,
+  .dataTables_paginate {
+    box-sizing: border-box;
+  }
+
+  .dataTables_length,
+  .dataTables_filter {
+    margin-bottom: 0.75rem;
+    text-align: left;
+  }
+
+  .dataTables_filter input {
+    max-width: 100%;
+  }
+
+  .dataTables_info {
+    white-space: normal;
+  }
+
+  .dataTables_paginate {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    justify-content: flex-end;
   }
 }
 
 .studio-table {
+  min-width: 720px;
   width: 100% !important;
 
   &.dataTable thead > tr > th.sorting::before,
@@ -192,6 +240,61 @@ mark {
   &.dataTable thead > tr > td.sorting_asc::after,
   &.dataTable thead > tr > td.sorting_desc::before {
     opacity: 0.25;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .studio-table-container {
+    .dataTables_length,
+    .dataTables_filter,
+    .dataTables_info,
+    .dataTables_paginate {
+      width: auto;
+    }
+
+    .dataTables_length label,
+    .dataTables_filter label {
+      align-items: center;
+      display: inline-flex;
+      gap: 0.35rem;
+      margin: 0;
+    }
+
+    .dataTables_filter input,
+    .dataTables_length select {
+      margin-left: 0;
+      margin-top: 0;
+    }
+
+    .dataTables_filter input {
+      max-width: 8.5rem;
+    }
+
+    .dataTables_length {
+      float: left !important;
+      text-align: left !important;
+    }
+
+    .dataTables_filter {
+      float: right !important;
+      text-align: right !important;
+    }
+
+    .dataTables_info {
+      clear: both;
+      float: left !important;
+      max-width: 42%;
+      text-align: left !important;
+    }
+
+    .dataTables_paginate {
+      float: right !important;
+      justify-content: flex-start;
+      margin-top: 0.75rem;
+      max-width: 58%;
+      text-align: right !important;
+      white-space: normal;
+    }
   }
 }
 

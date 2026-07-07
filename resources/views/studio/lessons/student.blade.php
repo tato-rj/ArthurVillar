@@ -97,6 +97,7 @@ $(function() {
         processing: false,
         serverSide: true,
         autoWidth: false,
+        scrollX: true,
         ajax: {
             url: @json(route('studio.tables.lessons')),
             data: {
