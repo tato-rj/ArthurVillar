@@ -8,6 +8,8 @@ input[type="range"].big-thumb {
   outline: none;
 }
 
+.dataTables_wrapper .dataTables_filter {margin-top: 0 !important}
+
 .btn-floating-group .btn-floating:not(:first-of-type, :last-of-type), .btn-floating-group .btn-floating:not(:first-of-type, :last-of-type) .btn {
   border-radius: 0 !important;
 }
