@@ -13,7 +13,11 @@ class StudentsController extends Controller
 {
     public function index()
     {
-        return \App\Models\LessonPlan::update(['location_id' => 1]);
+        $plans = \App\Models\LessonPlan::all();
+        foreach ($plans as $plan) {
+            $plan->update(['location_id' => 1]);
+        }
+        
         return view('studio.students.index');
     }
 
