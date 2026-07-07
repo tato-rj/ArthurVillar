@@ -42,6 +42,7 @@
 
 @push('scripts')
 <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+@include('studio.tables.state')
 <script>
 $(function() {
     const formatDate = function(value) {
@@ -70,7 +71,7 @@ $(function() {
         }).format(cents / 100);
     };
 
-    const paymentsTable = $('#payments-table').DataTable({
+    const paymentsTable = window.studioDataTableState.create('#payments-table', {
         processing: false,
         serverSide: true,
         autoWidth: false,
@@ -136,6 +137,17 @@ $(function() {
                 },
             },
         ],
+    }, {
+        restore: function(params) {
+            $('#payments-paid-from').val(params.get('paid_from') || '');
+            $('#payments-paid-to').val(params.get('paid_to') || '');
+        },
+        extraParams: function() {
+            return {
+                paid_from: $('#payments-paid-from').val(),
+                paid_to: $('#payments-paid-to').val(),
+            };
+        },
     });
 
     $('#payments-paid-from, #payments-paid-to').on('change', function() {

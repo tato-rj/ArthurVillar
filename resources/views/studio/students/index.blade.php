@@ -26,6 +26,7 @@
                     <th>Weekday</th>
                     <th>Duration</th>
                     <th>Fee</th>
+                    <th>Location</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -38,6 +39,7 @@
 
 @push('scripts')
 <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+@include('studio.tables.state')
 <script>
 $(function() {
     const capitalize = function(value) {
@@ -60,7 +62,7 @@ $(function() {
         }).format(cents / 100);
     };
 
-    const studentsTable = $('#students-table').DataTable({
+    const studentsTable = window.studioDataTableState.create('#students-table', {
         processing: false,
         serverSide: true,
         autoWidth: false,
@@ -105,6 +107,13 @@ $(function() {
                 name: 'fee_amount',
                 render: function(data) {
                     return formatFee(data);
+                },
+            },
+            {
+                data: 'location',
+                name: 'location',
+                render: function(data) {
+                    return data || '';
                 },
             },
             {

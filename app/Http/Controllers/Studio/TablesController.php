@@ -309,6 +309,7 @@ class TablesController extends Controller
                 DB::raw("$weekdayExpression as weekday"),
                 'current_lesson_plan.duration_minutes as duration_minutes',
                 'current_lesson_plan.fee_amount as fee_amount',
+                'current_lesson_plan.location as location',
             ]);
 
         return DataTables::eloquent($students)
@@ -364,6 +365,9 @@ class TablesController extends Controller
                     }
                 });
             })
+            ->filterColumn('location', function ($query, $keyword) {
+                $query->whereRaw('current_lesson_plan.location LIKE ?', ["%{$keyword}%"]);
+            })
             ->orderColumn('age', function ($query, $order) use ($driver) {
                 if ($driver === 'sqlite') {
                     $query->orderByRaw("CAST(strftime('%Y', 'now') - strftime('%Y', students.date_of_birth) - (strftime('%m-%d', 'now') < strftime('%m-%d', students.date_of_birth)) AS INTEGER) {$order}");
@@ -378,6 +382,7 @@ class TablesController extends Controller
             })
             ->orderColumn('duration_minutes', 'duration_minutes $1')
             ->orderColumn('fee_amount', 'fee_amount $1')
+            ->orderColumn('location', 'location $1')
             ->toJson();
     }
 }

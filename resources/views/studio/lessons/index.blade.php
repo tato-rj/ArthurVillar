@@ -32,6 +32,7 @@
 
 @push('scripts')
 <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+@include('studio.tables.state')
 <script>
 $(function() {
     const capitalize = function(value) {
@@ -78,7 +79,7 @@ $(function() {
         return `${hour}:${String(minutes).padStart(2, '0')} ${suffix}`;
     };
 
-    $('#lessons-table').DataTable({
+    window.studioDataTableState.create('#lessons-table', {
         processing: false,
         serverSide: true,
         autoWidth: false,
