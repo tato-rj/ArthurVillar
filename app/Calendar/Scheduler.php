@@ -30,6 +30,7 @@ class Scheduler
         $teachingBreakDates = $applyTeachingBreaks ? $this->teachingBreakDates($range) : collect();
         $lessonPlans = LessonPlan::with([
             'student',
+            'location',
             'lessons' => function ($query) use ($range) {
                 $query->relevantBetween($range['start'], $range['end']);
             },
@@ -116,7 +117,7 @@ class Scheduler
                 'lesson_id' => $lesson ? $lesson->id : null,
                 'lesson_status' => $lesson ? $lesson->paymentStatus() : 'unconfirmed',
                 'calendar_status' => $isTeachingBreak ? 'break' : ($lesson ? $lesson->paymentStatus() : 'unconfirmed'),
-                'fee_amount' => $lesson && $lesson->fee_amount ? $lesson->fee_amount : $lessonPlan->fee_amount,
+                'fee_amount' => $lesson && $lesson->fee_amount ? $lesson->fee_amount : $lessonPlan->netFeeAmount(),
                 'canceled_by' => $lesson ? $lesson->canceled_by : '',
                 'lesson_edit_url' => $lesson ? route('studio.lessons.edit', $lesson) : '',
                 'lesson_payment_url' => $lesson ? $lesson->paymentUrl : '',
@@ -143,7 +144,7 @@ class Scheduler
                     'schedule_override_id' => $override->id,
                     'lesson_id' => $lesson ? $lesson->id : null,
                     'lesson_status' => $lesson ? $lesson->paymentStatus() : 'unconfirmed',
-                    'fee_amount' => $lesson && $lesson->fee_amount ? $lesson->fee_amount : $lessonPlan->fee_amount,
+                    'fee_amount' => $lesson && $lesson->fee_amount ? $lesson->fee_amount : $lessonPlan->netFeeAmount(),
                     'canceled_by' => $lesson ? $lesson->canceled_by : '',
                     'calendar_status' => $isTeachingBreak ? 'break' : 'rescheduled',
                     'lesson_edit_url' => $lesson ? route('studio.lessons.edit', $lesson) : '',

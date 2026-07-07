@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             ContinentSeeder::class,
             CountrySeeder::class,
 
+            LocationsSeeder::class,
             StudentSeeder::class,
             LessonPlanSeeder::class,
             TeachingBreakSeeder::class,

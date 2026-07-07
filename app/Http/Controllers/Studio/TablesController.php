@@ -4,12 +4,39 @@ namespace App\Http\Controllers\Studio;
 
 use App\Http\Controllers\Controller;
 use App\Calendar\Scheduler;
-use App\Models\{Lesson, Student, TeachingBreak, WaitingList};
+use App\Models\{Lesson, Location, Student, TeachingBreak, WaitingList};
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 
 class TablesController extends Controller
 {
+    public function locations()
+    {
+        $locations = Location::query()
+            ->select([
+                'id',
+                'name',
+                'tax_withheld_percentage',
+                'is_active',
+                'notes',
+            ]);
+
+        return DataTables::eloquent($locations)
+            ->filterColumn('is_active', function ($query, $keyword) {
+                $keyword = strtolower(trim($keyword));
+
+                if ($keyword === 'active') {
+                    $query->where('is_active', true);
+                }
+
+                if ($keyword === 'inactive') {
+                    $query->where('is_active', false);
+                }
+            })
+            ->orderColumn('is_active', 'is_active $1')
+            ->toJson();
+    }
+
     public function waitingList()
     {
         $waitingList = WaitingList::query()
@@ -329,6 +356,7 @@ class TablesController extends Controller
                 $join->on('students.id', '=', 'current_lesson_plans.student_id');
             })
             ->leftJoin('lesson_plans as current_lesson_plan', 'current_lesson_plan.id', '=', 'current_lesson_plans.lesson_plan_id')
+            ->leftJoin('locations', 'locations.id', '=', 'current_lesson_plan.location_id')
             ->select([
                 'students.id',
                 'students.first_name',
@@ -340,7 +368,7 @@ class TablesController extends Controller
                 DB::raw("$weekdayExpression as weekday"),
                 'current_lesson_plan.duration_minutes as duration_minutes',
                 'current_lesson_plan.fee_amount as fee_amount',
-                'current_lesson_plan.location as location',
+                'locations.name as location',
             ]);
 
         return DataTables::eloquent($students)
@@ -397,7 +425,7 @@ class TablesController extends Controller
                 });
             })
             ->filterColumn('location', function ($query, $keyword) {
-                $query->whereRaw('current_lesson_plan.location LIKE ?', ["%{$keyword}%"]);
+                $query->whereRaw('locations.name LIKE ?', ["%{$keyword}%"]);
             })
             ->orderColumn('age', function ($query, $order) use ($driver) {
                 if ($driver === 'sqlite') {

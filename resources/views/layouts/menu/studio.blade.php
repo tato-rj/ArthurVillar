@@ -11,6 +11,7 @@
     'studio.lessons.index' => 'Lessons',
     'studio.payments.index' => 'Payments',
     'studio.breaks.index' => 'Breaks',
+    'studio.locations.index' => 'Locations',
     'studio.waiting-list.index' => 'Waiting list'
   ]
 ])

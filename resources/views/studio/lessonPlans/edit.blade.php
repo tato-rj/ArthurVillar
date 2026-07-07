@@ -6,9 +6,9 @@
 
 	<label class="small fw-bold opacity-6 mb-3">@fa(['icon' => 'calendar-day'])SCHEDULE</label>
 	
-	@select(['placeholder' => 'Location', 'name' => 'location', 'grid' => 'col', 'required' => true])
+	@select(['placeholder' => 'Location', 'name' => 'location_id', 'grid' => 'col', 'required' => true])
 		@foreach($locations as $location)
-			@option(['name' => 'location', 'label' => $location, 'value' => $location, 'selected' => $lessonPlan->location == $location])
+			@option(['name' => 'location_id', 'label' => $location->name, 'value' => $location->id, 'selected' => $lessonPlan->location_id == $location->id])
 		@endforeach
 	@endselect
 
@@ -37,7 +37,7 @@
 	<div class="row">
 		@select(['label' => 'Start time', 'name' => 'start_time', 'grid' => 'col'])
 			@foreach(timeslots(9, 21, 15) as $time)
-				@option(['name' => 'start_time', 'label' => $time, 'value' => $time, 'selected' => $lessonPlan->start_time == $time])
+				@option(['name' => 'start_time', 'label' => \App\Models\LessonPlan::timeLabel($time), 'value' => $time, 'selected' => $lessonPlan->start_time == $time])
 			@endforeach
 		@endselect
 

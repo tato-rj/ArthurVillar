@@ -37,7 +37,10 @@ return new class extends Migration
             $table->decimal('fee_amount', 8, 2)->nullable();
             $table->string('payment_method')->nullable();
 
-            $table->string('location');
+            $table->foreignId('location_id')
+                ->nullable()
+                ->constrained()
+                ->nullOnDelete();
 
             $table->string('status')->default('active');
             // active, paused, canceled

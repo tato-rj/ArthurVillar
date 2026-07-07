@@ -3,7 +3,7 @@
 namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use App\Models\Student;
+use App\Models\{Location, Student};
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\LessonPlan>
@@ -29,7 +29,7 @@ class LessonPlanFactory extends Factory
             'starts_on' => $this->faker->dateTimeThisYear()->format('Y-m-d'),
             'duration_minutes' => $duration,
             'fee_amount' => $this->faker->randomElement([3000, 4500, 6000]),
-            'location' => $this->faker->randomElement(['Home', 'Online', 'BKCM']),
+            'location_id' => Location::query()->inRandomOrder()->value('id') ?: Location::factory(),
             'payment_method' => $this->faker->randomElement(['Venmo', 'Zelle', 'Cash/check'])
         ];
     }

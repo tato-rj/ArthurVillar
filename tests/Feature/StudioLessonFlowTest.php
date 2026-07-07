@@ -4,7 +4,7 @@ namespace Tests\Feature;
 
 use Carbon\Carbon;
 use Tests\BaseTest;
-use App\Models\{Lesson, LessonPlan, ScheduleOverride, Student};
+use App\Models\{Lesson, LessonPlan, Location, ScheduleOverride, Student};
 
 class StudioLessonFlowTest extends BaseTest
 {
@@ -338,7 +338,7 @@ class StudioLessonFlowTest extends BaseTest
             'duration_minutes' => 45,
             'fee_amount' => '30',
             'payment_method' => 'cash',
-            'location' => '',
+            'location_id' => Location::factory()->create()->id,
             'status' => 'active',
             'notes' => '',
         ], $overrides);

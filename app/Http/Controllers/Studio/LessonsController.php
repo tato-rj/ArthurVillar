@@ -18,7 +18,7 @@ class LessonsController extends Controller
 
     public function student(Student $student)
     {
-        $student->load('lessonPlans');
+        $student->load('lessonPlans.location');
 
         return view('studio.lessons.student', compact('student'));
     }
@@ -90,7 +90,7 @@ class LessonsController extends Controller
             'scheduled_date' => $scheduledDate,
             'scheduled_start_time' => $scheduledStartTime,
             'ends_at' => $endsAt,
-            'fee_amount' => $lessonPlan->fee_amount,
+            'fee_amount' => $lessonPlan->netFeeAmount(),
         ]);
 
         if (! $lesson->scheduled_date || ! $lesson->scheduled_start_time) {

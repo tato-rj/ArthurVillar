@@ -35,23 +35,13 @@
 		<div class="studio-time-picker">
 			<select name="start_time" id="reschedule-lesson-start-time" aria-label="Start time">
 				@foreach(\App\Models\LessonPlan::timeOptions() as $value)
-					@php
-						[$hour, $minute] = array_map('intval', explode(':', $value));
-						$displayHour = $hour % 12 ?: 12;
-						$period = $hour < 12 ? 'am' : 'pm';
-					@endphp
-					<option value="{{$value}}">{{$displayHour}}:{{sprintf('%02d', $minute)}}{{$period}}</option>
+					<option value="{{$value}}">{{\App\Models\LessonPlan::timeLabel($value)}}</option>
 				@endforeach
 			</select>
 			<span>to</span>
 			<select name="end_time" id="reschedule-lesson-end-time" aria-label="End time">
 				@foreach(\App\Models\LessonPlan::timeOptions() as $value)
-					@php
-						[$hour, $minute] = array_map('intval', explode(':', $value));
-						$displayHour = $hour % 12 ?: 12;
-						$period = $hour < 12 ? 'am' : 'pm';
-					@endphp
-					<option value="{{$value}}">{{$displayHour}}:{{sprintf('%02d', $minute)}}{{$period}}</option>
+					<option value="{{$value}}">{{\App\Models\LessonPlan::timeLabel($value)}}</option>
 				@endforeach
 			</select>
 		</div>

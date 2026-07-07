@@ -1243,9 +1243,9 @@ var applyEventTimeStatusAttributes = function applyEventTimeStatusAttributes(ele
 var formatSelectTime = function formatSelectTime(value) {
   var match = normalizeTime(value).match(/^(\d{2}):(\d{2})/);
   var hour = Number(match[1]);
-  var period = hour < 12 ? 'am' : 'pm';
+  var period = hour < 12 ? 'AM' : 'PM';
   hour = hour % 12 || 12;
-  return "".concat(hour, ":").concat(match[2]).concat(period);
+  return "".concat(hour, ":").concat(match[2], " ").concat(period);
 };
 var formatDuration = function formatDuration(minutes) {
   if (minutes >= 60) {

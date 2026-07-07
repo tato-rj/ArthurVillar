@@ -15,6 +15,7 @@
 		@isset($mask) data-mask="{{$mask}}"@endisset 
 		@isset($min) min="{{$min}}"@endisset 
 		@isset($max) max="{{$max}}"@endisset 
+		@isset($step) step="{{$step}}"@endisset 
 		placeholder="{{$placeholder ?? null}}" 
 		name="{{$name}}"
 		

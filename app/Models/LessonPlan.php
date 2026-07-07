@@ -39,6 +39,11 @@ class LessonPlan extends BaseModel
         return $this->hasMany(Lesson::class);
     }
 
+    public function location()
+    {
+        return $this->belongsTo(Location::class);
+    }
+
     public function scheduleOverrides()
     {
         return $this->hasMany(ScheduleOverride::class);
@@ -59,6 +64,13 @@ class LessonPlan extends BaseModel
     public function getWeekdayNameAttribute()
     {
         return static::WEEKDAYS[(int) $this->weekday] ?? null;
+    }
+
+    public function netFeeAmount()
+    {
+        return $this->location
+            ? $this->location->netAmount($this->fee_amount)
+            : $this->fee_amount;
     }
 
     public function carbonWeekday()
@@ -244,6 +256,11 @@ class LessonPlan extends BaseModel
         }
 
         return $times;
+    }
+
+    public static function timeLabel($value)
+    {
+        return Carbon::createFromFormat('H:i', static::normalizeTime($value))->format('g:i A');
     }
 
     public function startTime()

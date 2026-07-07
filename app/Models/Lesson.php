@@ -46,7 +46,7 @@ class Lesson extends BaseModel
             'canceled_at' => null,
             'paid_at' => now(),
             'payment_method' => $this->lessonPlan->payment_method,
-            'fee_amount' => $this->lessonPlan->fee_amount
+            'fee_amount' => $this->lessonPlan->netFeeAmount()
         ]);
     }
 

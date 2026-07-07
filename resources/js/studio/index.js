@@ -1524,11 +1524,11 @@ const applyEventTimeStatusAttributes = function(element, event) {
 const formatSelectTime = function(value) {
     const match = normalizeTime(value).match(/^(\d{2}):(\d{2})/);
     let hour = Number(match[1]);
-    const period = hour < 12 ? 'am' : 'pm';
+    const period = hour < 12 ? 'AM' : 'PM';
 
     hour = hour % 12 || 12;
 
-    return `${hour}:${match[2]}${period}`;
+    return `${hour}:${match[2]} ${period}`;
 };
 
 const formatDuration = function(minutes) {

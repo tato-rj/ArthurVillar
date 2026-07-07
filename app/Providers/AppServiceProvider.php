@@ -6,6 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\Paginator;
+use App\Models\Location;
 use App\Models\Listening\{Period, Country};
 
 class AppServiceProvider extends ServiceProvider
@@ -59,7 +60,10 @@ class AppServiceProvider extends ServiceProvider
 
         \View::composer(['studio.lessonPlans.create', 'studio.lessonPlans.edit'], function($view) {
             $view->with([
-                'locations' => ['Home', 'Online', 'BKCM']
+                'locations' => Location::query()
+                    ->where('is_active', true)
+                    ->orderBy('name')
+                    ->get()
             ]);
         });
 

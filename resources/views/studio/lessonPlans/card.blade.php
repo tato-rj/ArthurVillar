@@ -26,6 +26,11 @@
 			<div class="mb-1">
 				@fa(['icon' => 'repeat', 'fa_color' => 'grey']){{$lessonPlan->recurrence}}
 			</div>
+			@if($lessonPlan->location)
+			<div class="mb-1">
+				@fa(['icon' => 'location-dot', 'fa_color' => 'grey']){{$lessonPlan->location->name}}
+			</div>
+			@endif
 			<div>
 				@fa(['icon' => 'clock', 'fa_color' => 'grey']){{$lessonPlan->startTime()->format('g:i A')}}
 			</div>
