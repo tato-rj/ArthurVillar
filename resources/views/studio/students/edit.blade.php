@@ -17,6 +17,13 @@
 		@input(['label' => 'Date of birth', 'name' => 'date_of_birth', 'value' => $student->date_of_birth ? \Carbon\Carbon::parse($student->date_of_birth)->format('m/d/Y') : null, 'mask' => 'date', 'grid' => 'col'])
 	</div>
 
+	<div class="form-check">
+	  <input class="form-check-input" type="checkbox" value="{{$student->is_adult}}" name="is_adult" id="is_adult">
+	  <label class="form-check-label" for="is_adult">
+	    Adult student?
+	  </label>
+	</div>
+
 	@submit(['label' => 'Submit', 'theme' => 'primary'])
 </form>
 @endmodal
