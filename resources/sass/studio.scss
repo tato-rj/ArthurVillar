@@ -1048,12 +1048,12 @@ a#lesson-edit:hover {
     .studio-calendar-main  {margin-right: 0 !important;}
     .studio-calendar-toolbar {margin-bottom: 12px;}
 
-    .studio-calendar-toolbar-today {order: 2;}
+    .studio-calendar-toolbar-today {order: 1;}
 
-    .studio-calendar-toolbar-views {order: 3;}
+    .studio-calendar-toolbar-views {order: 2;}
 
     .studio-calendar-toolbar-controls {
-        order: 1;
+        order: 3;
         flex: 0 0 100% !important;
         max-width: 100%;
     }

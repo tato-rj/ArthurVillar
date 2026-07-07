@@ -32263,13 +32263,13 @@ a#lesson-edit:hover {
     margin-bottom: 12px;
   }
   .studio-calendar-toolbar-today {
-    order: 2;
+    order: 1;
   }
   .studio-calendar-toolbar-views {
-    order: 3;
+    order: 2;
   }
   .studio-calendar-toolbar-controls {
-    order: 1;
+    order: 3;
     flex: 0 0 100% !important;
     max-width: 100%;
   }
