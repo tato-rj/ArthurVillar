@@ -11,6 +11,8 @@ class Student extends Model
 
     protected $dates = ['date_of_birth'];
 
+    protected $casts = ['is_adult' => 'boolean'];
+
     protected $guarded = [];
 
     protected static function booted()

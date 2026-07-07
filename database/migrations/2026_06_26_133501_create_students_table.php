@@ -24,6 +24,7 @@ return new class extends Migration
             $table->string('phone')->nullable();
 
             $table->string('status')->default('active');
+            $table->boolean('is_adult')->default(false);
 
             $table->text('notes')->nullable();
             $table->timestamps();

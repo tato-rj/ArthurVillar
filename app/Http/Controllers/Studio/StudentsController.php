@@ -50,6 +50,7 @@ class StudentsController extends Controller
             'parent_name' => $data['parent_name'] ?? null,
             'email' => $data['email'],
             'phone' => $data['phone'] ?? null,
+            'is_adult' => $data['is_adult'] ?? false,
             'date_of_birth' => ! empty($data['date_of_birth'])
                 ? Carbon::createFromFormat('m/d/Y', $data['date_of_birth'])->format('Y-m-d')
                 : null,

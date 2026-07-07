@@ -97,12 +97,7 @@ class Scheduler
         while ($occurrence->lte($end) && (! $endsOn || $occurrence->lte($endsOn))) {
             $occurrenceKey = $this->occurrenceKey($occurrence->toDateString(), $lessonPlan->start_time);
             $scheduledLesson = $lessonsByScheduledOccurrence->get($occurrenceKey);
-
-            if ($teachingBreakDates->has($occurrence->toDateString())) {
-                $occurrence->addDays($intervalDays);
-
-                continue;
-            }
+            $isTeachingBreak = $teachingBreakDates->has($occurrence->toDateString());
 
             if ($overridesByOriginal->has($occurrenceKey) || ($scheduledLesson && ! $this->lessonStartsOnOccurrence($scheduledLesson, $occurrence, $lessonPlan->start_time))) {
                 $occurrence->addDays($intervalDays);
@@ -120,6 +115,7 @@ class Scheduler
                 'original_start_time' => $lessonPlan->start_time,
                 'lesson_id' => $lesson ? $lesson->id : null,
                 'lesson_status' => $lesson ? $lesson->paymentStatus() : 'unconfirmed',
+                'calendar_status' => $isTeachingBreak ? 'break' : ($lesson ? $lesson->paymentStatus() : 'unconfirmed'),
                 'fee_amount' => $lesson && $lesson->fee_amount ? $lesson->fee_amount : $lessonPlan->fee_amount,
                 'canceled_by' => $lesson ? $lesson->canceled_by : '',
                 'lesson_edit_url' => $lesson ? route('studio.lessons.edit', $lesson) : '',
@@ -135,11 +131,7 @@ class Scheduler
             })
             ->each(function ($override) use (&$occurrences, $lessonPlan, $teachingBreakDates) {
                 $occurrence = Carbon::parse($override->new_date)->startOfDay();
-
-                if ($teachingBreakDates->has($occurrence->toDateString())) {
-                    return;
-                }
-
+                $isTeachingBreak = $teachingBreakDates->has($occurrence->toDateString());
                 $lesson = $this->lessonForOccurrence($lessonPlan, $occurrence, $override->new_start_time);
 
                 $occurrences[] = [
@@ -153,7 +145,7 @@ class Scheduler
                     'lesson_status' => $lesson ? $lesson->paymentStatus() : 'unconfirmed',
                     'fee_amount' => $lesson && $lesson->fee_amount ? $lesson->fee_amount : $lessonPlan->fee_amount,
                     'canceled_by' => $lesson ? $lesson->canceled_by : '',
-                    'calendar_status' => 'rescheduled',
+                    'calendar_status' => $isTeachingBreak ? 'break' : 'rescheduled',
                     'lesson_edit_url' => $lesson ? route('studio.lessons.edit', $lesson) : '',
                     'lesson_payment_url' => $lesson ? $lesson->paymentUrl : '',
                 ];
@@ -167,12 +159,9 @@ class Scheduler
                     && ! $this->lessonStartsOnOccurrence($lesson, Carbon::parse($lesson->scheduled_date ?: $lesson->starts_at), $lesson->scheduled_start_time ?: Carbon::parse($lesson->starts_at)->format('H:i'));
             })
             ->each(function ($lesson) use (&$occurrences, $teachingBreakDates) {
-                if ($teachingBreakDates->has(Carbon::parse($lesson->starts_at)->toDateString())) {
-                    return;
-                }
-
                 $startTime = Carbon::parse($lesson->starts_at)->format('H:i');
                 $endTime = Carbon::parse($lesson->ends_at)->format('H:i');
+                $isTeachingBreak = $teachingBreakDates->has(Carbon::parse($lesson->starts_at)->toDateString());
 
                 $occurrences[] = [
                     'date' => Carbon::parse($lesson->starts_at)->toDateString(),
@@ -182,6 +171,7 @@ class Scheduler
                     'original_start_time' => $lesson->scheduled_start_time ?: LessonPlan::normalizeTime($startTime),
                     'lesson_id' => $lesson->id,
                     'lesson_status' => $lesson->paymentStatus(),
+                    'calendar_status' => $isTeachingBreak ? 'break' : $lesson->paymentStatus(),
                     'fee_amount' => $lesson->fee_amount ?: ($lesson->lessonPlan ? $lesson->lessonPlan->fee_amount : null),
                     'canceled_by' => $lesson->canceled_by,
                     'lesson_edit_url' => route('studio.lessons.edit', $lesson),

@@ -168,7 +168,7 @@ class CalendarTest extends BaseTest
     }
 
     /** @test */
-    public function teaching_breaks_show_on_the_calendar_and_block_lessons_on_those_days()
+    public function teaching_breaks_show_on_the_calendar_and_mark_lessons_on_those_days()
     {
         Carbon::setTestNow(Carbon::parse('2026-07-07 12:00:00'));
 
@@ -196,7 +196,9 @@ class CalendarTest extends BaseTest
             'lesson_plans' => 1,
         ]))
             ->assertOk()
-            ->assertJsonPath('plannedLessons.0.occurrences', [])
+            ->assertJsonPath('plannedLessons.0.occurrences.0.date', '2026-07-08')
+            ->assertJsonPath('plannedLessons.0.occurrences.0.lesson_status', 'unconfirmed')
+            ->assertJsonPath('plannedLessons.0.occurrences.0.calendar_status', 'break')
             ->assertJsonPath('teachingBreaks.0.title', 'Vacation')
             ->assertJsonPath('teachingBreaks.0.impact.lessons_count', 1)
             ->assertJsonPath('teachingBreaks.0.impact.fee_amount', 6000);
