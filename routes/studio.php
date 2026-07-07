@@ -34,6 +34,18 @@ Route::prefix('lesson-plans')->name('lesson-plans.')->group(function() {
 	});
 });
 
+Route::prefix('breaks')->name('breaks.')->group(function() {
+	Route::get('', 'TeachingBreaksController@index')->name('index');
+
+	Route::post('', 'TeachingBreaksController@store')->name('store');
+
+	Route::prefix('{break}')->group(function() {
+		Route::patch('', 'TeachingBreaksController@update')->name('update');
+
+		Route::delete('', 'TeachingBreaksController@destroy')->name('destroy');
+	});
+});
+
 Route::prefix('payments')->name('payments.')->group(function() {
 	Route::get('', 'PaymentsController@index')->name('index');
 });

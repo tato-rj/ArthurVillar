@@ -72,8 +72,7 @@ var state = {
   rescheduleDurationMinutes: 15,
   rescheduleAnchor: null,
   rescheduleEndOptions: [],
-  paymentTotalCounters: {},
-  calendarSwipeSuppressClickUntil: 0
+  paymentTotalCounters: {}
 };
 var studioTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/New_York';
 var monthFormatter = new Intl.DateTimeFormat('en', {
@@ -1664,9 +1663,6 @@ var move = function move(direction) {
     setSelectedDate(addYears(state.date, direction));
   }
 };
-var isCalendarSwipeView = function isCalendarSwipeView() {
-  return state.view !== 'schedule';
-};
 document.addEventListener('DOMContentLoaded', function () {
   var calendar = document.getElementById('calendar');
   var label = document.querySelector('[data-calendar-label]');
@@ -1910,77 +1906,6 @@ document.addEventListener('DOMContentLoaded', function () {
       _render();
     });
   }
-  var swipeGesture = {
-    pointerId: null,
-    startX: 0,
-    startY: 0,
-    tracking: false,
-    suppressClick: false
-  };
-  var isCalendarSwipeTarget = function isCalendarSwipeTarget(target) {
-    if (target.closest('.studio-month-event, .studio-schedule-event, .lm-schedule-item')) {
-      return false;
-    }
-    if (target.closest('.studio-month-day, .studio-year-day')) {
-      return true;
-    }
-    return !target.closest('a, button, input, select, textarea, [contenteditable="true"], .lm-schedule-item, .studio-month-event, .studio-schedule-event');
-  };
-  var resetSwipeGesture = function resetSwipeGesture() {
-    swipeGesture.pointerId = null;
-    swipeGesture.tracking = false;
-  };
-  calendar.addEventListener('pointerdown', function (e) {
-    if (!isCalendarSwipeView() || !isCalendarSwipeTarget(e.target) || e.pointerType === 'mouse' && e.button !== 0) {
-      return;
-    }
-    swipeGesture.pointerId = e.pointerId;
-    swipeGesture.startX = e.clientX;
-    swipeGesture.startY = e.clientY;
-    swipeGesture.tracking = true;
-    if (calendar.setPointerCapture) {
-      calendar.setPointerCapture(e.pointerId);
-    }
-  });
-  calendar.addEventListener('pointermove', function (e) {
-    if (!swipeGesture.tracking || swipeGesture.pointerId !== e.pointerId) {
-      return;
-    }
-    var deltaX = e.clientX - swipeGesture.startX;
-    var deltaY = e.clientY - swipeGesture.startY;
-    if (Math.abs(deltaX) > 16 && Math.abs(deltaX) > Math.abs(deltaY) * 1.25) {
-      e.preventDefault();
-    }
-  });
-  calendar.addEventListener('pointerup', function (e) {
-    if (!swipeGesture.tracking || swipeGesture.pointerId !== e.pointerId) {
-      return;
-    }
-    var deltaX = e.clientX - swipeGesture.startX;
-    var deltaY = e.clientY - swipeGesture.startY;
-    var isSwipe = Math.abs(deltaX) >= 90 && Math.abs(deltaX) > Math.abs(deltaY) * 1.5;
-    resetSwipeGesture();
-    if (!isSwipe || !isCalendarSwipeView()) {
-      return;
-    }
-    swipeGesture.suppressClick = true;
-    state.calendarSwipeSuppressClickUntil = Date.now() + 400;
-    window.setTimeout(function () {
-      swipeGesture.suppressClick = false;
-    }, 450);
-    move(deltaX > 0 ? -1 : 1);
-    _render();
-  });
-  calendar.addEventListener('pointercancel', resetSwipeGesture);
-  calendar.addEventListener('click', function (e) {
-    if (!swipeGesture.suppressClick || Date.now() > state.calendarSwipeSuppressClickUntil) {
-      swipeGesture.suppressClick = false;
-      return;
-    }
-    swipeGesture.suppressClick = false;
-    e.preventDefault();
-    e.stopPropagation();
-  }, true);
   if (miniPrevious) {
     miniPrevious.addEventListener('click', function () {
       state.miniDate = addMonths(state.miniDate, -1);

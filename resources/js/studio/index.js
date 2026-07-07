@@ -21,7 +21,6 @@ const state = {
     rescheduleAnchor: null,
     rescheduleEndOptions: [],
     paymentTotalCounters: {},
-    calendarSwipeSuppressClickUntil: 0,
 };
 
 const studioTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/New_York';
@@ -2065,10 +2064,6 @@ const move = function(direction) {
     }
 };
 
-const isCalendarSwipeView = function() {
-    return state.view !== 'schedule';
-};
-
 document.addEventListener('DOMContentLoaded', function() {
     const calendar = document.getElementById('calendar');
     const label = document.querySelector('[data-calendar-label]');
@@ -2371,96 +2366,6 @@ document.addEventListener('DOMContentLoaded', function() {
             render();
         });
     }
-
-    const swipeGesture = {
-        pointerId: null,
-        startX: 0,
-        startY: 0,
-        tracking: false,
-        suppressClick: false,
-    };
-
-    const isCalendarSwipeTarget = function(target) {
-        if (target.closest('.studio-month-event, .studio-schedule-event, .lm-schedule-item')) {
-            return false;
-        }
-
-        if (target.closest('.studio-month-day, .studio-year-day')) {
-            return true;
-        }
-
-        return !target.closest('a, button, input, select, textarea, [contenteditable="true"], .lm-schedule-item, .studio-month-event, .studio-schedule-event');
-    };
-
-    const resetSwipeGesture = function() {
-        swipeGesture.pointerId = null;
-        swipeGesture.tracking = false;
-    };
-
-    calendar.addEventListener('pointerdown', function(e) {
-        if (!isCalendarSwipeView() || !isCalendarSwipeTarget(e.target) || (e.pointerType === 'mouse' && e.button !== 0)) {
-            return;
-        }
-
-        swipeGesture.pointerId = e.pointerId;
-        swipeGesture.startX = e.clientX;
-        swipeGesture.startY = e.clientY;
-        swipeGesture.tracking = true;
-
-        if (calendar.setPointerCapture) {
-            calendar.setPointerCapture(e.pointerId);
-        }
-    });
-
-    calendar.addEventListener('pointermove', function(e) {
-        if (!swipeGesture.tracking || swipeGesture.pointerId !== e.pointerId) {
-            return;
-        }
-
-        const deltaX = e.clientX - swipeGesture.startX;
-        const deltaY = e.clientY - swipeGesture.startY;
-
-        if (Math.abs(deltaX) > 16 && Math.abs(deltaX) > Math.abs(deltaY) * 1.25) {
-            e.preventDefault();
-        }
-    });
-
-    calendar.addEventListener('pointerup', function(e) {
-        if (!swipeGesture.tracking || swipeGesture.pointerId !== e.pointerId) {
-            return;
-        }
-
-        const deltaX = e.clientX - swipeGesture.startX;
-        const deltaY = e.clientY - swipeGesture.startY;
-        const isSwipe = Math.abs(deltaX) >= 90 && Math.abs(deltaX) > Math.abs(deltaY) * 1.5;
-
-        resetSwipeGesture();
-
-        if (!isSwipe || !isCalendarSwipeView()) {
-            return;
-        }
-
-        swipeGesture.suppressClick = true;
-        state.calendarSwipeSuppressClickUntil = Date.now() + 400;
-        window.setTimeout(function() {
-            swipeGesture.suppressClick = false;
-        }, 450);
-        move(deltaX > 0 ? -1 : 1);
-        render();
-    });
-
-    calendar.addEventListener('pointercancel', resetSwipeGesture);
-
-    calendar.addEventListener('click', function(e) {
-        if (!swipeGesture.suppressClick || Date.now() > state.calendarSwipeSuppressClickUntil) {
-            swipeGesture.suppressClick = false;
-            return;
-        }
-
-        swipeGesture.suppressClick = false;
-        e.preventDefault();
-        e.stopPropagation();
-    }, true);
 
     if (miniPrevious) {
         miniPrevious.addEventListener('click', function() {
