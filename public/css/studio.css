@@ -31490,6 +31490,7 @@ form.form-borderless.form-light input.form-control:not([readonly]), form.form-bo
   height: calc(100vh - 6.75rem);
   min-height: 34rem;
   min-width: 0;
+  touch-action: pan-y;
 }
 
 #calendar .lm-calendar {
@@ -31989,6 +31990,10 @@ form.form-borderless.form-light input.form-control:not([readonly]), form.form-bo
   height: 14px;
   margin: -6px 0 0 -6px;
   width: 14px;
+}
+
+#calendar .lm-schedule-item[past-event], #calendar .studio-month-event[past-event] {
+  opacity: 0.6;
 }
 
 #calendar .lm-schedule-item {

@@ -72,7 +72,8 @@ var state = {
   rescheduleDurationMinutes: 15,
   rescheduleAnchor: null,
   rescheduleEndOptions: [],
-  paymentTotalCounters: {}
+  paymentTotalCounters: {},
+  calendarSwipeSuppressClickUntil: 0
 };
 var studioTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/New_York';
 var monthFormatter = new Intl.DateTimeFormat('en', {
@@ -539,6 +540,7 @@ var patchScheduleItems = function patchScheduleItems(calendar) {
     if (event && event.calendarStatus) {
       item.setAttribute('data-lesson-status', event.calendarStatus);
     }
+    applyEventTimeStatusAttributes(item, event);
   });
 };
 var patchScheduleHolidays = function patchScheduleHolidays(calendar) {
@@ -889,8 +891,10 @@ var updateLessonModalState = function updateLessonModalState(modal, payload) {
   var calendarStatus = event && event.calendarStatus ? event.calendarStatus : status;
   getCalendarEventElementsByGuid(modal.dataset.eventGuid).forEach(function (item) {
     item.setAttribute('data-lesson-status', calendarStatus);
+    applyEventTimeStatusAttributes(item, event);
     item.querySelectorAll('[data-lesson-status]').forEach(function (child) {
       child.setAttribute('data-lesson-status', calendarStatus);
+      applyEventTimeStatusAttributes(child, event);
     });
   });
   renderCalendarPaymentTotals();
@@ -1077,6 +1081,41 @@ var addMinutesToTime = function addMinutesToTime(value, minutes) {
   var match = normalizeTime(value).match(/^(\d{2}):(\d{2})/);
   var total = Number(match[1]) * 60 + Number(match[2]) + Number(minutes || 0);
   return minutesToTime(total);
+};
+var getEventDateTime = function getEventDateTime(event, key) {
+  if (!event || !event.date || !event[key]) {
+    return null;
+  }
+  var date = parseDateString(String(event.date).substring(0, 10));
+  var parts = normalizeTime(event[key]).split(':').map(Number);
+  date.setHours(parts[0] || 0, parts[1] || 0, 0, 0);
+  return date;
+};
+var getEventTimeStatus = function getEventTimeStatus(event) {
+  if (!event || event.isHoliday) {
+    return '';
+  }
+  var start = getEventDateTime(event, 'start');
+  var end = getEventDateTime(event, 'end');
+  var now = new Date();
+  if (!start || !end) {
+    return '';
+  }
+  if (start < now && end < now) {
+    return 'past';
+  }
+  if (start > now && end > now) {
+    return 'future';
+  }
+  return '';
+};
+var applyEventTimeStatusAttributes = function applyEventTimeStatusAttributes(element, event) {
+  if (!element) {
+    return;
+  }
+  var status = getEventTimeStatus(event);
+  element.toggleAttribute('past-event', status === 'past');
+  element.toggleAttribute('future-event', status === 'future');
 };
 var formatSelectTime = function formatSelectTime(value) {
   var match = normalizeTime(value).match(/^(\d{2}):(\d{2})/);
@@ -1398,6 +1437,8 @@ var renderMonthCalendar = function renderMonthCalendar(calendar) {
       item.dataset.lessonStatus = event.isHoliday ? 'holiday' : event.calendarStatus || event.lessonStatus || 'unconfirmed';
       dot.dataset.eventGuid = event.guid || '';
       dot.dataset.lessonStatus = event.isHoliday ? 'holiday' : event.calendarStatus || event.lessonStatus || 'unconfirmed';
+      applyEventTimeStatusAttributes(item, event);
+      applyEventTimeStatusAttributes(dot, event);
       time.textContent = event.isHoliday ? '' : formatEventTime(event.start);
       title.textContent = event.title || 'No title';
       if (!event.isHoliday) {
@@ -1472,6 +1513,7 @@ var renderScheduleAgenda = function renderScheduleAgenda(calendar) {
       title.textContent = event.title || 'No title';
       item.dataset.eventGuid = event.guid || '';
       item.dataset.lessonStatus = event.isHoliday ? 'holiday' : event.calendarStatus || event.lessonStatus || 'unconfirmed';
+      applyEventTimeStatusAttributes(item, event);
       if (!event.isHoliday) {
         var time = document.createElement('span');
         var duration = getEventDurationMinutes(event);
@@ -1508,6 +1550,7 @@ var renderYearCalendar = function renderYearCalendar(calendar) {
     var weekdaysRow = document.createElement('div');
     var grid = document.createElement('div');
     monthElement.className = 'studio-year-month';
+    monthElement.dataset.date = toDateString(monthDate);
     title.textContent = monthNameFormatter.format(monthDate);
     weekdaysRow.className = 'studio-year-weekdays';
     grid.className = 'studio-year-grid';
@@ -1620,6 +1663,9 @@ var move = function move(direction) {
   } else {
     setSelectedDate(addYears(state.date, direction));
   }
+};
+var isCalendarSwipeView = function isCalendarSwipeView() {
+  return state.view !== 'schedule';
 };
 document.addEventListener('DOMContentLoaded', function () {
   var calendar = document.getElementById('calendar');
@@ -1864,6 +1910,77 @@ document.addEventListener('DOMContentLoaded', function () {
       _render();
     });
   }
+  var swipeGesture = {
+    pointerId: null,
+    startX: 0,
+    startY: 0,
+    tracking: false,
+    suppressClick: false
+  };
+  var isCalendarSwipeTarget = function isCalendarSwipeTarget(target) {
+    if (target.closest('.studio-month-event, .studio-schedule-event, .lm-schedule-item')) {
+      return false;
+    }
+    if (target.closest('.studio-month-day, .studio-year-day')) {
+      return true;
+    }
+    return !target.closest('a, button, input, select, textarea, [contenteditable="true"], .lm-schedule-item, .studio-month-event, .studio-schedule-event');
+  };
+  var resetSwipeGesture = function resetSwipeGesture() {
+    swipeGesture.pointerId = null;
+    swipeGesture.tracking = false;
+  };
+  calendar.addEventListener('pointerdown', function (e) {
+    if (!isCalendarSwipeView() || !isCalendarSwipeTarget(e.target) || e.pointerType === 'mouse' && e.button !== 0) {
+      return;
+    }
+    swipeGesture.pointerId = e.pointerId;
+    swipeGesture.startX = e.clientX;
+    swipeGesture.startY = e.clientY;
+    swipeGesture.tracking = true;
+    if (calendar.setPointerCapture) {
+      calendar.setPointerCapture(e.pointerId);
+    }
+  });
+  calendar.addEventListener('pointermove', function (e) {
+    if (!swipeGesture.tracking || swipeGesture.pointerId !== e.pointerId) {
+      return;
+    }
+    var deltaX = e.clientX - swipeGesture.startX;
+    var deltaY = e.clientY - swipeGesture.startY;
+    if (Math.abs(deltaX) > 16 && Math.abs(deltaX) > Math.abs(deltaY) * 1.25) {
+      e.preventDefault();
+    }
+  });
+  calendar.addEventListener('pointerup', function (e) {
+    if (!swipeGesture.tracking || swipeGesture.pointerId !== e.pointerId) {
+      return;
+    }
+    var deltaX = e.clientX - swipeGesture.startX;
+    var deltaY = e.clientY - swipeGesture.startY;
+    var isSwipe = Math.abs(deltaX) >= 90 && Math.abs(deltaX) > Math.abs(deltaY) * 1.5;
+    resetSwipeGesture();
+    if (!isSwipe || !isCalendarSwipeView()) {
+      return;
+    }
+    swipeGesture.suppressClick = true;
+    state.calendarSwipeSuppressClickUntil = Date.now() + 400;
+    window.setTimeout(function () {
+      swipeGesture.suppressClick = false;
+    }, 450);
+    move(deltaX > 0 ? -1 : 1);
+    _render();
+  });
+  calendar.addEventListener('pointercancel', resetSwipeGesture);
+  calendar.addEventListener('click', function (e) {
+    if (!swipeGesture.suppressClick || Date.now() > state.calendarSwipeSuppressClickUntil) {
+      swipeGesture.suppressClick = false;
+      return;
+    }
+    swipeGesture.suppressClick = false;
+    e.preventDefault();
+    e.stopPropagation();
+  }, true);
   if (miniPrevious) {
     miniPrevious.addEventListener('click', function () {
       state.miniDate = addMonths(state.miniDate, -1);
@@ -2002,10 +2119,11 @@ document.addEventListener('DOMContentLoaded', function () {
   });
   calendar.addEventListener('click', function (e) {
     var day = e.target.closest('.studio-year-day');
-    if (!day || state.view !== 'year') {
+    var month = e.target.closest('.studio-year-month');
+    if (!day && !month || state.view !== 'year') {
       return;
     }
-    setSelectedDate(parseDateString(day.dataset.date));
+    setSelectedDate(parseDateString(day ? day.dataset.date : month.dataset.date));
     state.view = 'month';
     _render();
   });
