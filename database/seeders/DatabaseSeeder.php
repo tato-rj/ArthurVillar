@@ -23,7 +23,8 @@ class DatabaseSeeder extends Seeder
 
             StudentSeeder::class,
             LessonPlanSeeder::class,
-            TeachingBreakSeeder::class
+            TeachingBreakSeeder::class,
+            WaitingListSeeder::class
         ]);
     }
 }

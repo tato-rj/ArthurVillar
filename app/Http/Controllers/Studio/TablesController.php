@@ -4,12 +4,43 @@ namespace App\Http\Controllers\Studio;
 
 use App\Http\Controllers\Controller;
 use App\Calendar\Scheduler;
-use App\Models\{Lesson, Student, TeachingBreak};
+use App\Models\{Lesson, Student, TeachingBreak, WaitingList};
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 
 class TablesController extends Controller
 {
+    public function waitingList()
+    {
+        $waitingList = WaitingList::query()
+            ->select([
+                'id',
+                'first_name',
+                'last_name',
+                'parent_name',
+                'email',
+                'phone',
+                'is_adult',
+                'notes',
+                'created_at',
+            ]);
+
+        return DataTables::eloquent($waitingList)
+            ->filterColumn('is_adult', function ($query, $keyword) {
+                $keyword = strtolower($keyword);
+
+                if (str_contains('adult', $keyword)) {
+                    $query->where('is_adult', true);
+                }
+
+                if (str_contains('child', $keyword) || str_contains('minor', $keyword)) {
+                    $query->where('is_adult', false);
+                }
+            })
+            ->orderColumn('is_adult', 'is_adult $1')
+            ->toJson();
+    }
+
     public function breaks(Scheduler $scheduler)
     {
         $breaks = TeachingBreak::query()

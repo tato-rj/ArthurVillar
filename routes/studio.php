@@ -22,6 +22,20 @@ Route::prefix('students')->name('students.')->group(function() {
 	});
 });
 
+Route::prefix('waiting-list')->name('waiting-list.')->group(function() {
+	Route::get('', 'WaitingListController@index')->name('index');
+
+	Route::post('', 'WaitingListController@store')->name('store');
+
+	Route::prefix('{waitingList}')->group(function() {
+		Route::get('edit', 'WaitingListController@edit')->name('edit');
+		Route::post('convert', 'WaitingListController@convert')->name('convert');
+
+		Route::patch('', 'WaitingListController@update')->name('update');
+		Route::delete('', 'WaitingListController@destroy')->name('destroy');
+	});
+});
+
 Route::prefix('lesson-plans')->name('lesson-plans.')->group(function() {
 	Route::post('', 'LessonPlansController@store')->name('store');
 
@@ -77,4 +91,5 @@ Route::prefix('tables')->name('tables.')->group(function() {
 	Route::get('payments', 'TablesController@payments')->name('payments');
 
 	Route::get('students', 'TablesController@students')->name('students');
+	Route::get('waiting-list', 'TablesController@waitingList')->name('waiting-list');
 });
