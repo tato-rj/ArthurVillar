@@ -7,7 +7,7 @@
 
 	@select(['placeholder' => 'Location', 'name' => 'location_id', 'grid' => 'col', 'required' => true])
 		@foreach($locations as $location)
-			@option(['name' => 'location_id', 'label' => $location->name, 'value' => $location->id, 'selected' => old('location_id') == $location->id])
+			@option(['name' => 'location_id', 'label' => $location->name, 'value' => $location->id, 'selected' => old('location_id') == $location->id, 'data' => ['fee-amount' => $location->feeAmountForInput()]])
 		@endforeach
 	@endselect
 
@@ -65,3 +65,31 @@
 	@submit(['label' => 'Submit', 'theme' => 'primary'])
 </form>
 @endmodal
+
+@once
+@push('scripts')
+<script>
+document.addEventListener('change', function(event) {
+    const trigger = event.target.closest('select[name="location_id"], select[name="duration_minutes"]');
+
+    if (!trigger) {
+        return;
+    }
+
+    const form = trigger.closest('form');
+    const locationSelect = form ? form.querySelector('select[name="location_id"]') : null;
+    const durationSelect = form ? form.querySelector('select[name="duration_minutes"]') : null;
+    const feeInput = form ? form.querySelector('input[name="fee_amount"]') : null;
+    const selectedOption = locationSelect ? locationSelect.options[locationSelect.selectedIndex] : null;
+    const hourlyFee = selectedOption ? Number(selectedOption.dataset.feeAmount || 0) : 0;
+    const duration = durationSelect ? Number(durationSelect.value || 0) : 0;
+
+    if (!feeInput || !hourlyFee || !duration) {
+        return;
+    }
+
+    feeInput.value = (hourlyFee * (duration / 60)).toFixed(2).replace(/\\.00$/, '');
+});
+</script>
+@endpush
+@endonce

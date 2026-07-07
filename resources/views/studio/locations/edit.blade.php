@@ -6,6 +6,14 @@
 	@input(['label' => 'Name', 'name' => 'name', 'required' => true, 'value' => $location->name])
 
 	@input([
+		'label' => 'Hourly fee',
+		'name' => 'fee_amount',
+		'value' => $location->feeAmountForInput(),
+		'mask' => 'usd',
+		'info' => 'Hourly rate used to calculate lesson-plan fees at this location.'
+	])
+
+	@input([
 		'label' => 'Tax withheld',
 		'name' => 'tax_withheld_percentage',
 		'value' => $location->tax_withheld_percentage,

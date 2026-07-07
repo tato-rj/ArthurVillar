@@ -5,6 +5,7 @@ namespace App\Models;
 class Location extends BaseModel
 {
     protected $casts = [
+        'fee_amount' => 'integer',
         'tax_withheld_percentage' => 'decimal:2',
         'is_active' => 'boolean',
     ];
@@ -23,5 +24,10 @@ class Location extends BaseModel
         $withheld = max(0, min(100, (float) $this->tax_withheld_percentage));
 
         return (int) round($amount * ((100 - $withheld) / 100));
+    }
+
+    public function feeAmountForInput()
+    {
+        return $this->fee_amount ? ($this->fee_amount / 100) : null;
     }
 }

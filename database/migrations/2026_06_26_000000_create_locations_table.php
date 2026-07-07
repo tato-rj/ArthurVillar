@@ -16,6 +16,7 @@ return new class extends Migration
         Schema::create('locations', function (Blueprint $table) {
             $table->id();
             $table->string('name')->unique();
+            $table->decimal('fee_amount', 8, 2)->nullable();
             $table->decimal('tax_withheld_percentage', 5, 2)->default(0);
             $table->boolean('is_active')->default(true);
             $table->text('notes')->nullable();

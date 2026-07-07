@@ -21,6 +21,7 @@ class LocationFactory extends Factory
 
         return [
             'name' => $name,
+            'fee_amount' => $this->faker->randomElement([3000, 4500, 6000]),
             'tax_withheld_percentage' => 0,
             'is_active' => true,
             'notes' => null,

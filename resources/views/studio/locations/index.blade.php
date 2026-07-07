@@ -22,6 +22,7 @@
             <thead>
                 <tr>
                     <th>Name</th>
+                    <th>Hourly fee</th>
                     <th>Tax withheld</th>
                     <th>Status</th>
                     <th>Actions</th>
@@ -48,6 +49,20 @@ $(function() {
         })}%`;
     };
 
+    const formatFee = function(value) {
+        const cents = Number(value || 0);
+
+        if (!cents) {
+            return '';
+        }
+
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD',
+            maximumFractionDigits: 0,
+        }).format(cents / 100);
+    };
+
     const locationsTable = window.studioDataTableState.create('#locations-table', {
         processing: false,
         serverSide: true,
@@ -66,6 +81,13 @@ $(function() {
         ajax: @json(route('studio.tables.locations')),
         columns: [
             {data: 'name', name: 'name'},
+            {
+                data: 'fee_amount',
+                name: 'fee_amount',
+                render: function(data) {
+                    return formatFee(data);
+                },
+            },
             {
                 data: 'tax_withheld_percentage',
                 name: 'tax_withheld_percentage',

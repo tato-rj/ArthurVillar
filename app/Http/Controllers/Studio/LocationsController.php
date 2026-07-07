@@ -49,6 +49,7 @@ class LocationsController extends Controller
                 'max:255',
                 Rule::unique('locations')->ignore($location),
             ],
+            'fee_amount' => ['nullable', 'string'],
             'tax_withheld_percentage' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'is_active' => ['nullable', 'boolean'],
             'notes' => ['nullable', 'string'],
@@ -59,9 +60,17 @@ class LocationsController extends Controller
     {
         return [
             'name' => $data['name'],
+            'fee_amount' => $this->feeAmount($data['fee_amount'] ?? null),
             'tax_withheld_percentage' => $data['tax_withheld_percentage'] ?? 0,
             'is_active' => $data['is_active'] ?? false,
             'notes' => $data['notes'] ?? null,
         ];
+    }
+
+    private function feeAmount($value)
+    {
+        $value = preg_replace('/[^0-9]/', '', (string) $value);
+
+        return $value === '' ? null : ((int) $value) * 100;
     }
 }

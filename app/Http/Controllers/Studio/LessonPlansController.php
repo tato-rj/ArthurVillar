@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Studio;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Models\{LessonPlan, Student};
+use App\Models\{LessonPlan, Location, Student};
 use InvalidArgumentException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -178,7 +178,7 @@ class LessonPlansController extends Controller
                 : null,
             'start_time' => $data['start_time'],
             'duration_minutes' => $data['duration_minutes'],
-            'fee_amount' => $this->feeAmount($data['fee_amount'] ?? null),
+            'fee_amount' => $this->lessonFeeAmount($data),
             'payment_method' => $data['payment_method'] ?? null,
             'location_id' => $data['location_id'],
             'status' => $data['status'] ?? 'active',
@@ -191,6 +191,23 @@ class LessonPlansController extends Controller
         $value = preg_replace('/[^0-9]/', '', (string) $value);
 
         return $value === '' ? null : ((int) $value) * 100;
+    }
+
+    private function lessonFeeAmount(array $data)
+    {
+        $feeAmount = $this->feeAmount($data['fee_amount'] ?? null);
+
+        if ($feeAmount !== null) {
+            return $feeAmount;
+        }
+
+        $location = Location::find($data['location_id'] ?? null);
+
+        if (! $location || ! $location->fee_amount || empty($data['duration_minutes'])) {
+            return null;
+        }
+
+        return (int) round($location->fee_amount * ((int) $data['duration_minutes'] / 60));
     }
 
     private function lessonPlanDate($value)

@@ -16,6 +16,7 @@ class TablesController extends Controller
             ->select([
                 'id',
                 'name',
+                'fee_amount',
                 'tax_withheld_percentage',
                 'is_active',
                 'notes',

@@ -60,6 +60,30 @@ class StudioLessonFlowTest extends BaseTest
     }
 
     /** @test */
+    public function it_calculates_the_lesson_plan_fee_from_the_location_hourly_fee_and_duration()
+    {
+        $location = Location::factory()->create([
+            'fee_amount' => 8000,
+        ]);
+
+        $this->signIn();
+
+        $this
+            ->post(route('studio.lesson-plans.store'), $this->lessonPlanPayload([
+                'duration_minutes' => 30,
+                'fee_amount' => '',
+                'location_id' => $location->id,
+            ]))
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('lesson_plans', [
+            'location_id' => $location->id,
+            'duration_minutes' => 30,
+            'fee_amount' => 4000,
+        ]);
+    }
+
+    /** @test */
     public function it_reschedules_a_single_lesson_occurrence()
     {
         $lessonPlan = LessonPlan::factory()->create([

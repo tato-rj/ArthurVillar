@@ -8,7 +8,7 @@
 	
 	@select(['placeholder' => 'Location', 'name' => 'location_id', 'grid' => 'col', 'required' => true])
 		@foreach($locations as $location)
-			@option(['name' => 'location_id', 'label' => $location->name, 'value' => $location->id, 'selected' => $lessonPlan->location_id == $location->id])
+			@option(['name' => 'location_id', 'label' => $location->name, 'value' => $location->id, 'selected' => $lessonPlan->location_id == $location->id, 'data' => ['fee-amount' => $location->feeAmountForInput()]])
 		@endforeach
 	@endselect
 

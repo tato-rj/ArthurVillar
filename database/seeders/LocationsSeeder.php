@@ -15,9 +15,9 @@ class LocationsSeeder extends Seeder
     public function run()
     {
         collect([
-            ['name' => 'Home', 'tax_withheld_percentage' => 0],
-            ['name' => 'BKCM', 'tax_withheld_percentage' => 30],
-            ['name' => 'Online', 'tax_withheld_percentage' => 0],
+            ['name' => 'Home', 'fee_amount' => 6000, 'tax_withheld_percentage' => 0],
+            ['name' => 'BKCM', 'fee_amount' => 6000, 'tax_withheld_percentage' => 30],
+            ['name' => 'Online', 'fee_amount' => 6000, 'tax_withheld_percentage' => 0],
         ])->each(function ($location) {
             Location::updateOrCreate(
                 ['name' => $location['name']],

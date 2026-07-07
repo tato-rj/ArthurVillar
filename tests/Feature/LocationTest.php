@@ -12,6 +12,7 @@ class LocationTest extends BaseTest
     {
         Location::factory()->create([
             'name' => 'BKCM',
+            'fee_amount' => 6000,
             'tax_withheld_percentage' => 30,
             'is_active' => true,
         ]);
@@ -23,7 +24,28 @@ class LocationTest extends BaseTest
             ->assertOk()
             ->assertJsonFragment([
                 'name' => 'BKCM',
+                'fee_amount' => 6000,
             ]);
+    }
+
+    /** @test */
+    public function it_stores_a_default_fee_amount_for_a_location()
+    {
+        $this->signIn();
+
+        $this
+            ->post(route('studio.locations.store'), [
+                'name' => 'Home',
+                'fee_amount' => '75',
+                'tax_withheld_percentage' => 0,
+                'is_active' => 1,
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('locations', [
+            'name' => 'Home',
+            'fee_amount' => 7500,
+        ]);
     }
 
     /** @test */
