@@ -32040,7 +32040,8 @@ form.form-borderless.form-light input.form-control:not([readonly]), form.form-bo
 #calendar .lm-schedule-item[past-event],
 #calendar .studio-month-event[past-event],
 #calendar .studio-schedule-event[past-event],
-#calendar .studio-schedule-holiday-cell[past-event] {
+#calendar .studio-schedule-holiday-cell[past-event],
+#calendar .studio-month-event-holiday[past-event] {
   opacity: 0.6;
 }
 
