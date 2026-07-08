@@ -62,6 +62,59 @@ class LessonsController extends Controller
         return back()->with('success', 'The lesson was successfully canceled');
     }
 
+    public function revert(Request $request)
+    {
+        $data = $request->validate([
+            'lesson_id' => ['nullable', 'exists:lessons,id'],
+            'schedule_override_id' => ['nullable', 'exists:schedule_overrides,id'],
+        ]);
+
+        abort_if(empty($data['lesson_id']) && empty($data['schedule_override_id']), 422, 'There is no lesson action to revert.');
+
+        $payload = [
+            'status' => 'unconfirmed',
+            'canceled_by' => '',
+            'lesson_id' => $data['lesson_id'] ?? '',
+            'schedule_override_deleted' => false,
+            'lesson_reverted' => false,
+            'lesson_deleted' => false,
+        ];
+
+        if (! empty($data['schedule_override_id'])) {
+            $payload['schedule_override_deleted'] = ScheduleOverride::whereKey($data['schedule_override_id'])->delete() > 0;
+        }
+
+        if (! empty($data['lesson_id'])) {
+            $lesson = Lesson::findOrFail($data['lesson_id']);
+
+            if ($lesson->canceled_at || ! $lesson->paid_at) {
+                $lesson->delete();
+
+                $payload['lesson_reverted'] = true;
+                $payload['lesson_deleted'] = true;
+                $payload['lesson_id'] = '';
+                $payload['status'] = 'unconfirmed';
+                $payload['canceled_by'] = '';
+                $payload['edit_url'] = '';
+                $payload['payment_url'] = '';
+            } else {
+                $lesson->update([
+                    'paid_at' => null,
+                    'payment_method' => null,
+                    'fee_amount' => $lesson->lessonPlan ? $lesson->lessonPlan->netFeeAmount() : $lesson->fee_amount,
+                ]);
+
+                $payload['lesson_reverted'] = true;
+                $payload['status'] = $lesson->fresh()->paymentStatus();
+                $payload['canceled_by'] = '';
+                $payload['edit_url'] = route('studio.lessons.edit', $lesson);
+                $payload['payment_url'] = $lesson->paymentUrl;
+            }
+        }
+
+        return response()->json($payload);
+    }
+
     private function lessonFromRequest(Request $request)
     {
         $data = $request->validate([

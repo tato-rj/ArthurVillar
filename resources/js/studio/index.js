@@ -964,7 +964,7 @@ const populateLessonModal = function(modal, event) {
     const date = modal.querySelector('#lesson-date');
     const time = modal.querySelector('#lesson-time');
     const recurrence = modal.querySelector('#lesson-recurrence');
-    const edit = modal.querySelector('#lesson-edit');
+    const revert = modal.querySelector('#lesson-revert');
     const taught = modal.querySelector('#lesson-taught');
     const cancelLesson = modal.querySelector('#cancel-lesson-button');
     const confirmPayment = modal.querySelector('#confirm-payment');
@@ -996,8 +996,11 @@ const populateLessonModal = function(modal, event) {
         recurrence.textContent = event && event.recurrence ? event.recurrence : '';
     }
 
-    if (edit) {
-        edit.setAttribute('href', event && event.lessonEditUrl ? event.lessonEditUrl : '');
+    if (revert) {
+        const canRevert = !!(event && (event.scheduleOverrideId || event.lessonId));
+
+        revert.style.display = canRevert ? 'inline-flex' : 'none';
+        revert.disabled = !canRevert;
     }
 
     if (taught) {
@@ -1210,7 +1213,7 @@ const openTeachingBreakModal = function(event) {
 };
 
 const updateLessonModalState = function(modal, payload) {
-    const edit = modal.querySelector('#lesson-edit');
+    const revert = modal.querySelector('#lesson-revert');
     const taught = modal.querySelector('#lesson-taught');
     const cancelLesson = modal.querySelector('#cancel-lesson-button');
     const event = getEventByGuid(modal.dataset.eventGuid);
@@ -1223,12 +1226,10 @@ const updateLessonModalState = function(modal, payload) {
     modal.dataset.lessonStatus = status;
     modal.dataset.lessonCanceledBy = payload && payload.canceled_by ? payload.canceled_by : '';
 
-    if (lessonId) {
+    if (payload && payload.lesson_deleted) {
+        modal.dataset.lessonId = '';
+    } else if (lessonId) {
         modal.dataset.lessonId = lessonId;
-    }
-
-    if (edit && editUrl) {
-        edit.setAttribute('href', editUrl);
     }
 
     if (taught) {
@@ -1250,10 +1251,17 @@ const updateLessonModalState = function(modal, payload) {
         event.calendarStatus = payload && payload.schedule_override_deleted ? status : (event.calendarStatus === 'rescheduled' ? 'rescheduled' : status);
         event['data-lesson-status'] = event.calendarStatus;
         event.canceledBy = payload && payload.canceled_by ? payload.canceled_by : '';
-        event.lessonEditUrl = editUrl || event.lessonEditUrl || '';
-        event.paymentUrl = paymentUrl || event.paymentUrl || '';
-        event.lessonId = lessonId || event.lessonId || '';
+        event.lessonEditUrl = payload && payload.lesson_deleted ? '' : (editUrl || event.lessonEditUrl || '');
+        event.paymentUrl = payload && payload.lesson_deleted ? '' : (paymentUrl || event.paymentUrl || '');
+        event.lessonId = payload && payload.lesson_deleted ? '' : (lessonId || event.lessonId || '');
         event.scheduleOverrideId = payload && payload.schedule_override_deleted ? '' : event.scheduleOverrideId;
+    }
+
+    if (revert) {
+        const canRevert = !!(event && (event.scheduleOverrideId || event.lessonId));
+
+        revert.style.display = canRevert ? 'inline-flex' : 'none';
+        revert.disabled = !canRevert;
     }
 
     const calendarStatus = event && event.calendarStatus ? event.calendarStatus : status;
@@ -1281,6 +1289,117 @@ const getLessonOccurrencePayload = function(modal) {
         scheduled_start_time: modal.dataset.originalStartTime || modal.dataset.eventStart || '',
         schedule_override_id: modal.dataset.scheduleOverrideId || '',
     };
+};
+
+const revertScheduleOverrideInState = function(event) {
+    if (!event || !event.lessonPlanId || !event.scheduleOverrideId) {
+        return;
+    }
+
+    const lessonPlan = state.plannedLessons.find(function(plan) {
+        return String(plan.id) === String(event.lessonPlanId);
+    });
+
+    if (!lessonPlan || !Array.isArray(lessonPlan.occurrences)) {
+        return;
+    }
+
+    lessonPlan.occurrences = lessonPlan.occurrences.filter(function(occurrence) {
+        return String(occurrence.schedule_override_id || '') !== String(event.scheduleOverrideId);
+    });
+
+    if (!lessonPlan.occurrences.some(function(occurrence) {
+        return occurrence.date === event.originalDate
+            && normalizeTime(occurrence.start || lessonPlan.start_time) === normalizeTime(event.originalStartTime || event.start);
+    })) {
+        const start = normalizeTime(event.originalStartTime || lessonPlan.start_time);
+
+        lessonPlan.occurrences.push({
+            date: event.originalDate || event.date,
+            start,
+            end: addMinutesToTime(start, lessonPlan.duration_minutes),
+            original_date: event.originalDate || event.date,
+            original_start_time: start,
+            lesson_id: '',
+            lesson_status: 'unconfirmed',
+            calendar_status: 'unconfirmed',
+            fee_amount: event.feeAmount || lessonPlan.fee_amount || 0,
+            canceled_by: '',
+            lesson_edit_url: '',
+            lesson_payment_url: '',
+        });
+    }
+};
+
+const revertLessonInState = function(event, lessonId) {
+    if (!event || !event.lessonPlanId || !lessonId) {
+        return;
+    }
+
+    const lessonPlan = state.plannedLessons.find(function(plan) {
+        return String(plan.id) === String(event.lessonPlanId);
+    });
+
+    if (!lessonPlan || !Array.isArray(lessonPlan.occurrences)) {
+        return;
+    }
+
+    lessonPlan.occurrences = lessonPlan.occurrences.map(function(occurrence) {
+        if (String(occurrence.lesson_id || '') !== String(lessonId)) {
+            return occurrence;
+        }
+
+        return Object.assign({}, occurrence, {
+            lesson_id: '',
+            lesson_status: 'unconfirmed',
+            calendar_status: occurrence.schedule_override_id ? 'rescheduled' : 'unconfirmed',
+            canceled_by: '',
+            lesson_edit_url: '',
+            lesson_payment_url: '',
+        });
+    });
+};
+
+const revertLessonAction = function(button) {
+    const modal = button.closest('#lesson-modal');
+    const url = button.dataset.url;
+
+    if (!modal || !url || (!modal.dataset.lessonId && !modal.dataset.scheduleOverrideId)) {
+        return;
+    }
+
+    button.disabled = true;
+    preserveButtonLabel(button);
+    button.textContent = 'Reverting...';
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': window.studioCsrfToken || '',
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: JSON.stringify({
+            lesson_id: modal.dataset.lessonId || '',
+            schedule_override_id: modal.dataset.scheduleOverrideId || '',
+        }),
+    })
+        .then(function(response) {
+            if (!response.ok) {
+                throw new Error('Unable to revert lesson action.');
+            }
+
+            return response.json();
+        })
+        .then(function() {
+            window.location.reload();
+        })
+        .catch(function(error) {
+            console.error(error);
+            button.disabled = false;
+            restoreButtonLabel(button);
+        });
 };
 
 const storeTaughtLesson = function(button) {
@@ -1313,14 +1432,8 @@ const storeTaughtLesson = function(button) {
 
             return response.json();
         })
-        .then(function(payload) {
-            updateLessonModalState(modal, payload);
-            resetLessonModalState(modal);
-
-            if (button) {
-                button.disabled = false;
-                restoreButtonLabel(button);
-            }
+        .then(function() {
+            window.location.reload();
         })
         .catch(function(error) {
             console.error(error);
@@ -1357,10 +1470,8 @@ const confirmLessonPayment = function(button) {
 
             return response.json();
         })
-        .then(function(payload) {
-            updateLessonModalState(modal, payload);
-            button.disabled = false;
-            restoreButtonLabel(button);
+        .then(function() {
+            window.location.reload();
         })
         .catch(function(error) {
             console.error(error);
@@ -2621,6 +2732,15 @@ document.addEventListener('DOMContentLoaded', function() {
         confirmPayment.addEventListener('click', function(e) {
             e.preventDefault();
             confirmLessonPayment(confirmPayment);
+        });
+    }
+
+    const lessonRevert = document.getElementById('lesson-revert');
+
+    if (lessonRevert) {
+        lessonRevert.addEventListener('click', function(e) {
+            e.preventDefault();
+            revertLessonAction(lessonRevert);
         });
     }
 

@@ -94,6 +94,8 @@ Route::prefix('lessons')->name('lessons.')->group(function() {
 
 	Route::post('cancel', 'LessonsController@cancel')->name('cancel');
 
+	Route::post('revert', 'LessonsController@revert')->name('revert');
+
 	Route::prefix('{lesson}')->group(function() {
 		Route::get('', 'LessonsController@edit')->name('edit');
 

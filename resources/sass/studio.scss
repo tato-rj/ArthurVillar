@@ -808,7 +808,7 @@
 }
 
 #lesson-modal[data-lesson-status="unconfirmed"] {
-    a#lesson-edit, #confirm-payment {
+    #lesson-revert, #confirm-payment {
         display: none;
     }
 }
@@ -826,12 +826,12 @@
     }
 }
 
-a#lesson-edit {
-    font-size: 1.3rem;
+#lesson-revert {
+    font-size: 1.45rem;
     opacity: .6;
 }
 
-a#lesson-edit:hover {
+#lesson-revert:hover {
     opacity: 1;
 }
 

@@ -439,6 +439,116 @@ class StudioLessonFlowTest extends BaseTest
         $this->assertSame('15:30', $lesson->scheduled_start_time);
     }
 
+    /** @test */
+    public function reverting_a_canceled_lesson_deletes_the_lesson_so_the_plan_occurrence_returns()
+    {
+        $lessonPlan = LessonPlan::factory()->create();
+        $lesson = Lesson::factory()->lessonPlan($lessonPlan)->create([
+            'canceled_at' => '2026-07-08 12:00:00',
+            'canceled_by' => 'student',
+            'paid_at' => null,
+        ]);
+
+        $this->signIn();
+
+        $this->postJson(route('studio.lessons.revert'), [
+            'lesson_id' => $lesson->id,
+            'schedule_override_id' => '',
+        ])
+            ->assertOk()
+            ->assertJsonPath('status', 'unconfirmed')
+            ->assertJsonPath('lesson_reverted', true)
+            ->assertJsonPath('lesson_deleted', true)
+            ->assertJsonPath('lesson_id', '');
+
+        $this->assertDatabaseMissing('lessons', ['id' => $lesson->id]);
+    }
+
+    /** @test */
+    public function reverting_an_unpaid_lesson_deletes_the_lesson_so_the_plan_occurrence_returns()
+    {
+        $lessonPlan = LessonPlan::factory()->create();
+        $lesson = Lesson::factory()->lessonPlan($lessonPlan)->create([
+            'paid_at' => null,
+            'canceled_at' => null,
+        ]);
+
+        $this->signIn();
+
+        $this->postJson(route('studio.lessons.revert'), [
+            'lesson_id' => $lesson->id,
+            'schedule_override_id' => '',
+        ])
+            ->assertOk()
+            ->assertJsonPath('status', 'unconfirmed')
+            ->assertJsonPath('lesson_reverted', true)
+            ->assertJsonPath('lesson_deleted', true)
+            ->assertJsonPath('lesson_id', '');
+
+        $this->assertDatabaseMissing('lessons', ['id' => $lesson->id]);
+    }
+
+    /** @test */
+    public function reverting_a_paid_lesson_keeps_the_lesson_and_marks_it_unpaid()
+    {
+        $lessonPlan = LessonPlan::factory()->create([
+            'fee_amount' => 6000,
+            'payment_method' => 'Venmo',
+        ]);
+        $lesson = Lesson::factory()->lessonPlan($lessonPlan)->paid(6000)->create([
+            'payment_method' => 'Venmo',
+            'canceled_at' => null,
+        ]);
+
+        $this->signIn();
+
+        $this->postJson(route('studio.lessons.revert'), [
+            'lesson_id' => $lesson->id,
+            'schedule_override_id' => '',
+        ])
+            ->assertOk()
+            ->assertJsonPath('status', 'unpaid')
+            ->assertJsonPath('lesson_reverted', true)
+            ->assertJsonPath('lesson_deleted', false)
+            ->assertJsonPath('lesson_id', $lesson->id);
+
+        $lesson->refresh();
+
+        $this->assertNull($lesson->paid_at);
+        $this->assertNull($lesson->payment_method);
+        $this->assertSame('unpaid', $lesson->paymentStatus());
+    }
+
+    /** @test */
+    public function reverting_a_rescheduled_lesson_deletes_the_schedule_override()
+    {
+        $lessonPlan = LessonPlan::factory()->create([
+            'weekday' => 4,
+            'start_time' => '15:30',
+            'duration_minutes' => 45,
+            'starts_on' => '2026-07-01',
+        ]);
+        $override = ScheduleOverride::factory()->lessonPlan($lessonPlan)->create([
+            'original_date' => '2026-07-08',
+            'original_start_time' => '15:30',
+            'new_date' => '2026-07-09',
+            'new_start_time' => '16:00',
+            'duration_minutes' => 30,
+        ]);
+
+        $this->signIn();
+
+        $this->postJson(route('studio.lessons.revert'), [
+            'lesson_id' => '',
+            'schedule_override_id' => $override->id,
+        ])
+            ->assertOk()
+            ->assertJsonPath('schedule_override_deleted', true)
+            ->assertJsonPath('status', 'unconfirmed');
+
+        $this->assertDatabaseMissing('schedule_overrides', ['id' => $override->id]);
+    }
+
     private function lessonPlanPayload(array $overrides = [])
     {
         return array_merge([
