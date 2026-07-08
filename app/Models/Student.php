@@ -26,7 +26,7 @@ class Student extends Model
 
     public function lessonPlans()
     {
-        return $this->hasMany(LessonPlan::class)->latest();
+        return $this->hasMany(LessonPlan::class)->orderByDesc('starts_on');
     }
 
     public function lessons()
