@@ -31457,117 +31457,6 @@ form.form-borderless.form-light input.form-control:not([readonly]), form.form-bo
   border: 0.5px solid rgb(251, 230, 105);
 }
 
-#ui-datepicker-div {
-  z-index: 2000 !important;
-}
-
-.ui-datepicker {
-  background: #fff;
-  border: 1px solid #dfe3ea;
-  border-radius: 8px;
-  box-shadow: 0 12px 32px rgba(32, 33, 36, 0.18);
-  padding: 0.75rem;
-}
-
-.ui-datepicker-header {
-  align-items: center;
-  display: flex;
-  gap: 0.75rem;
-  justify-content: space-between;
-  margin-bottom: 0.5rem;
-}
-
-.ui-datepicker-title {
-  font-weight: 700;
-  order: 2;
-}
-
-.ui-datepicker-prev,
-.ui-datepicker-next {
-  align-items: center;
-  border-radius: 50%;
-  color: #3c4043;
-  cursor: pointer;
-  display: inline-flex;
-  height: 2rem;
-  justify-content: center;
-  width: 2rem;
-}
-
-.ui-datepicker-prev {
-  order: 1;
-}
-
-.ui-datepicker-next {
-  order: 3;
-}
-
-.ui-datepicker-prev:hover,
-.ui-datepicker-next:hover {
-  background: #f1f3f4;
-}
-
-.ui-datepicker-prev span,
-.ui-datepicker-next span {
-  display: none;
-}
-
-.ui-datepicker-prev:before {
-  content: "‹";
-  font-size: 1.6rem;
-  line-height: 1;
-}
-
-.ui-datepicker-next:before {
-  content: "›";
-  font-size: 1.6rem;
-  line-height: 1;
-}
-
-.ui-datepicker-calendar {
-  border-collapse: collapse;
-  font-size: 0.9rem;
-}
-
-.ui-datepicker-calendar th,
-.ui-datepicker-calendar td {
-  height: 2rem;
-  text-align: center;
-  width: 2rem;
-}
-
-.ui-datepicker-calendar th {
-  color: #5f6368;
-  font-weight: 700;
-}
-
-.ui-datepicker-calendar a,
-.ui-datepicker-calendar span {
-  align-items: center;
-  border-radius: 50%;
-  color: #202124;
-  display: inline-flex;
-  height: 1.8rem;
-  justify-content: center;
-  text-decoration: none;
-  width: 1.8rem;
-}
-
-.ui-datepicker-calendar a:hover {
-  background: #e8f0fe;
-}
-
-.ui-datepicker-calendar .ui-state-active {
-  background: #0b57d0;
-  color: #fff;
-}
-
-.ui-datepicker-calendar .ui-datepicker-unselectable span,
-.ui-datepicker-calendar .studio-lesson-plan-date-disabled span {
-  color: #c0c5cc;
-  cursor: not-allowed;
-}
-
 .studio-calendar-search {
   align-items: center;
   background: #e9eef7;
@@ -31828,6 +31717,7 @@ form.form-borderless.form-light input.form-control:not([readonly]), form.form-bo
 
 .studio-month-day.is-muted {
   color: #8b9199;
+  background: rgba(0, 0, 0, 0.03);
 }
 
 .studio-month-day.is-today .studio-month-day-number {

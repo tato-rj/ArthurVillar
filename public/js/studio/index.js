@@ -462,10 +462,22 @@ var isEventInsideVisibleRange = function isEventInsideVisibleRange(event) {
   var date = parseDateString(String(event.date).substring(0, 10));
   return date >= range.start && date <= range.end;
 };
+var isEventInsidePaymentRange = function isEventInsidePaymentRange(event) {
+  if (!event || !event.date) {
+    return false;
+  }
+  if (state.view !== 'month') {
+    return isEventInsideVisibleRange(event);
+  }
+  var date = parseDateString(String(event.date).substring(0, 10));
+  var start = createLocalDate(state.date.getFullYear(), state.date.getMonth(), 1);
+  var end = createLocalDate(state.date.getFullYear(), state.date.getMonth() + 1, 0);
+  return date >= start && date <= end;
+};
 var getVisiblePaymentEvents = function getVisiblePaymentEvents() {
   return getVisibleCalendarEvents().filter(function (event) {
     if (state.view !== 'schedule') {
-      return isEventInsideVisibleRange(event);
+      return isEventInsidePaymentRange(event);
     }
     return event.date === toDateString(state.date);
   }).filter(function (event) {

@@ -515,11 +515,27 @@ const isEventInsideVisibleRange = function(event) {
     return date >= range.start && date <= range.end;
 };
 
+const isEventInsidePaymentRange = function(event) {
+    if (!event || !event.date) {
+        return false;
+    }
+
+    if (state.view !== 'month') {
+        return isEventInsideVisibleRange(event);
+    }
+
+    const date = parseDateString(String(event.date).substring(0, 10));
+    const start = createLocalDate(state.date.getFullYear(), state.date.getMonth(), 1);
+    const end = createLocalDate(state.date.getFullYear(), state.date.getMonth() + 1, 0);
+
+    return date >= start && date <= end;
+};
+
 const getVisiblePaymentEvents = function() {
     return getVisibleCalendarEvents()
         .filter(function(event) {
             if (state.view !== 'schedule') {
-                return isEventInsideVisibleRange(event);
+                return isEventInsidePaymentRange(event);
             }
 
             return event.date === toDateString(state.date);
