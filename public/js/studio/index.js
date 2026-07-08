@@ -1123,8 +1123,6 @@ var revertLessonAction = function revertLessonAction(button) {
     return;
   }
   button.disabled = true;
-  preserveButtonLabel(button);
-  button.textContent = 'Reverting...';
   fetch(url, {
     method: 'POST',
     headers: {
@@ -1158,8 +1156,6 @@ var storeTaughtLesson = function storeTaughtLesson(button) {
     return;
   }
   button.disabled = true;
-  preserveButtonLabel(button);
-  button.textContent = 'Saving...';
   fetch(url, {
     method: 'POST',
     headers: {
@@ -1189,8 +1185,6 @@ var confirmLessonPayment = function confirmLessonPayment(button) {
     return;
   }
   button.disabled = true;
-  preserveButtonLabel(button);
-  button.textContent = 'Saving...';
   fetch(url, {
     method: 'POST',
     headers: {

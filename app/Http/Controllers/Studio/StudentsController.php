@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Studio;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Models\Student;
+use App\Models\{Student, WaitingList};
 use Illuminate\Validation\Rule;
 
 class StudentsController extends Controller
@@ -17,7 +17,13 @@ class StudentsController extends Controller
 
     public function store(Request $request)
     {
-        Student::create($this->studentAttributes($this->validateStudent($request)));
+        $data = $this->validateStudent($request);
+
+        Student::create($this->studentAttributes($data));
+
+        if (! empty($data['waiting_list_id'])) {
+            WaitingList::whereKey($data['waiting_list_id'])->delete();
+        }
 
         return back()->with('success', 'The student was successfully added');
     }
@@ -45,6 +51,8 @@ class StudentsController extends Controller
             'phone' => ['nullable', 'string', 'max:255'],
             'date_of_birth' => ['nullable', 'date_format:m/d/Y'],
             'is_adult' => ['nullable', 'boolean'],
+            'notes' => ['nullable', 'string'],
+            'waiting_list_id' => ['nullable', 'exists:waiting_lists,id'],
         ]);
     }
 
@@ -58,6 +66,7 @@ class StudentsController extends Controller
             'email' => $data['email'],
             'phone' => $data['phone'] ?? null,
             'is_adult' => $data['is_adult'] ?? false,
+            'notes' => $data['notes'] ?? null,
             'date_of_birth' => ! empty($data['date_of_birth'])
                 ? Carbon::createFromFormat('m/d/Y', $data['date_of_birth'])->format('Y-m-d')
                 : null,

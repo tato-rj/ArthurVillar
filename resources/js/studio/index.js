@@ -1369,8 +1369,6 @@ const revertLessonAction = function(button) {
     }
 
     button.disabled = true;
-    preserveButtonLabel(button);
-    button.textContent = 'Reverting...';
 
     fetch(url, {
         method: 'POST',
@@ -1412,8 +1410,6 @@ const storeTaughtLesson = function(button) {
     }
 
     button.disabled = true;
-    preserveButtonLabel(button);
-    button.textContent = 'Saving...';
 
     fetch(url, {
         method: 'POST',
@@ -1451,8 +1447,6 @@ const confirmLessonPayment = function(button) {
     }
 
     button.disabled = true;
-    preserveButtonLabel(button);
-    button.textContent = 'Saving...';
 
     fetch(url, {
         method: 'POST',

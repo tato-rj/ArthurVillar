@@ -34,6 +34,7 @@
 </section>
 
 @include('studio.waiting-list.create')
+@include('studio.students.create')
 <div id="edit-waiting-list-modal-container"></div>
 @endsection
 
@@ -42,6 +43,68 @@
 @include('studio.tables.state')
 <script>
 $(function() {
+    const escapeAttribute = function(value) {
+        return String(value || '')
+            .replace(/&/g, '&amp;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+    };
+
+    const showModal = function(modal) {
+        if (!modal) {
+            return;
+        }
+
+        if (window.bootstrap && window.bootstrap.Modal && typeof window.bootstrap.Modal.getOrCreateInstance === 'function') {
+            window.bootstrap.Modal.getOrCreateInstance(modal).show();
+            return;
+        }
+
+        if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
+            window.jQuery(modal).modal('show');
+        }
+    };
+
+    const populateStudentCreateModal = function(entry) {
+        const modal = document.getElementById('create-student-modal');
+        const form = modal ? modal.querySelector('form') : null;
+
+        if (!form) {
+            return;
+        }
+
+        form.reset();
+
+        const values = {
+            waiting_list_id: entry.id || '',
+            first_name: entry.first_name || '',
+            last_name: entry.last_name || '',
+            parent_name: entry.parent_name || '',
+            email: entry.email || '',
+            phone: entry.phone || '',
+            notes: entry.notes || '',
+        };
+
+        Object.keys(values).forEach(function(name) {
+            const input = form.querySelector(`[name="${name}"]`);
+
+            if (input) {
+                input.value = values[name];
+            }
+        });
+
+        const isAdult = form.querySelector('[name="is_adult"]');
+
+        if (isAdult) {
+            isAdult.checked = Boolean(Number(entry.is_adult));
+            isAdult.value = '1';
+        }
+
+        showModal(modal);
+    };
+
     const waitingListTable = window.studioDataTableState.create('#waiting-list-table', {
         processing: false,
         serverSide: true,
@@ -94,17 +157,14 @@ $(function() {
                 orderable: false,
                 searchable: false,
                 className: 'text-right',
-                render: function(data) {
+                render: function(data, type, row) {
                     const editUrl = @json(route('studio.waiting-list.edit', ['waitingList' => '__waitingList__'])).replace('__waitingList__', data);
-                    const convertUrl = @json(route('studio.waiting-list.convert', ['waitingList' => '__waitingList__'])).replace('__waitingList__', data);
                     const deleteUrl = @json(route('studio.waiting-list.destroy', ['waitingList' => '__waitingList__'])).replace('__waitingList__', data);
+                    const waitingListEntry = escapeAttribute(JSON.stringify(row || {}));
 
                     return `
                         <div class="studio-table-actions">
-                            <form method="POST" action="${convertUrl}" onsubmit="return confirm('Convert this lead into a student?')">
-                                @csrf
-                                <button type="submit" class="btn btn-sm btn-green rounded">@fa(['icon' => 'user-plus', 'mr' => 0])</button>
-                            </form>
+                            <button type="button" class="btn btn-sm btn-green rounded js-create-student-from-waiting-list" data-waiting-list="${waitingListEntry}">@fa(['icon' => 'user-plus', 'mr' => 0])</button>
                             <button type="button" class="btn btn-sm btn-warning rounded js-edit-waiting-list" data-url="${editUrl}">@fa(['icon' => 'pen-to-square', 'mr' => 0])</button>
                             <form method="POST" action="${deleteUrl}" confirm>
                                 @csrf
@@ -116,6 +176,20 @@ $(function() {
                 },
             },
         ],
+    });
+
+    $('#waiting-list-table').on('click', '.js-create-student-from-waiting-list', function() {
+        const data = $(this).attr('data-waiting-list');
+
+        if (!data) {
+            return;
+        }
+
+        try {
+            populateStudentCreateModal(JSON.parse(data));
+        } catch (error) {
+            console.error(error);
+        }
     });
 
     $('#waiting-list-table').on('click', '.js-edit-waiting-list', function() {
@@ -145,14 +219,7 @@ $(function() {
 
                 const modal = container.find('.modal').get(0);
 
-                if (window.bootstrap && window.bootstrap.Modal && typeof window.bootstrap.Modal.getOrCreateInstance === 'function') {
-                    window.bootstrap.Modal.getOrCreateInstance(modal).show();
-                    return;
-                }
-
-                if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
-                    window.jQuery(modal).modal('show');
-                }
+                showModal(modal);
             })
             .catch(function(error) {
                 console.error(error);

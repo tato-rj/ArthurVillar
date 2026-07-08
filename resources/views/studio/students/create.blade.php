@@ -1,6 +1,8 @@
 @modal(['title' => 'New student', 'id' => 'create-student-modal'])
 <form method="POST" action="{{route('studio.students.store')}}">
 	@csrf
+	<input type="hidden" name="waiting_list_id" value="{{old('waiting_list_id')}}">
+	<input type="hidden" name="notes" value="{{old('notes')}}">
 
 	<div class="row"> 
 		@input(['placeholder' => 'First name', 'name' => 'first_name', 'required' => true, 'value' => old('first_name'), 'grid' => 'col'])
