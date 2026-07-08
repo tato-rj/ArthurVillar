@@ -794,7 +794,10 @@
     width: 14px;
 }
 
-#calendar .lm-schedule-item[past-event], #calendar .studio-month-event[past-event], #calendar .studio-schedule-event[past-event] {
+#calendar .lm-schedule-item[past-event], 
+#calendar .studio-month-event[past-event], 
+#calendar .studio-schedule-event[past-event],
+#calendar .studio-schedule-holiday-cell[past-event] {
     opacity: .6;
 } 
 

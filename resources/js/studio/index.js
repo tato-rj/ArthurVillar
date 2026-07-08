@@ -690,6 +690,7 @@ const patchScheduleHolidays = function(calendar) {
         cell.className = 'studio-schedule-holiday-cell';
         cell.dataset.date = dateString;
         cell.classList.toggle('studio-schedule-hidden-column', !visibleDateStrings.includes(dateString));
+        applyDateStatusAttributes(cell, dateString);
 
         holidays.forEach(function(holiday) {
             const item = document.createElement('span');
@@ -1527,6 +1528,17 @@ const applyEventTimeStatusAttributes = function(element, event) {
 
     element.toggleAttribute('past-event', status === 'past');
     element.toggleAttribute('future-event', status === 'future');
+};
+
+const applyDateStatusAttributes = function(element, dateString) {
+    if (!element || !dateString) {
+        return;
+    }
+
+    const today = todayString();
+
+    element.toggleAttribute('past-event', dateString < today);
+    element.toggleAttribute('future-event', dateString > today);
 };
 
 const formatSelectTime = function(value) {

@@ -596,6 +596,7 @@ var patchScheduleHolidays = function patchScheduleHolidays(calendar) {
     cell.className = 'studio-schedule-holiday-cell';
     cell.dataset.date = dateString;
     cell.classList.toggle('studio-schedule-hidden-column', !visibleDateStrings.includes(dateString));
+    applyDateStatusAttributes(cell, dateString);
     holidays.forEach(function (holiday) {
       var item = document.createElement('span');
       item.className = 'studio-schedule-holiday';
@@ -1246,6 +1247,14 @@ var applyEventTimeStatusAttributes = function applyEventTimeStatusAttributes(ele
   var status = getEventTimeStatus(event);
   element.toggleAttribute('past-event', status === 'past');
   element.toggleAttribute('future-event', status === 'future');
+};
+var applyDateStatusAttributes = function applyDateStatusAttributes(element, dateString) {
+  if (!element || !dateString) {
+    return;
+  }
+  var today = todayString();
+  element.toggleAttribute('past-event', dateString < today);
+  element.toggleAttribute('future-event', dateString > today);
 };
 var formatSelectTime = function formatSelectTime(value) {
   var match = normalizeTime(value).match(/^(\d{2}):(\d{2})/);
