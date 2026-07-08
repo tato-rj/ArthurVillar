@@ -70,6 +70,30 @@ class StudentsTableTest extends BaseTest
             ->assertJsonMissing(['first_name' => 'Young']);
     }
 
+    /** @test */
+    public function it_uses_a_stable_tie_breaker_when_many_sorted_rows_share_the_same_value()
+    {
+        $students = collect(range(1, 6))->map(function ($number) {
+            return Student::factory()->create([
+                'first_name' => "Student {$number}",
+                'last_name' => 'Same',
+                'gender' => 'female',
+            ]);
+        });
+
+        $this->signIn();
+
+        $rows = $this->json('GET', route('studio.tables.students'), $this->studentTableRequest([
+            'start' => 0,
+            'length' => 6,
+            'order' => [
+                ['column' => 2, 'dir' => 'asc'],
+            ],
+        ]))->assertOk()->json('data');
+
+        $this->assertSame($students->pluck('id')->all(), collect($rows)->pluck('id')->all());
+    }
+
     private function studentTableColumns(): array
     {
         return collect([
@@ -95,5 +119,19 @@ class StudentsTableTest extends BaseTest
                 ],
             ];
         })->all();
+    }
+
+    private function studentTableRequest(array $overrides = []): array
+    {
+        return array_replace_recursive([
+            'draw' => 1,
+            'start' => 0,
+            'length' => 10,
+            'search' => [
+                'value' => '',
+                'regex' => 'false',
+            ],
+            'columns' => $this->studentTableColumns(),
+        ], $overrides);
     }
 }

@@ -394,21 +394,28 @@ class TablesController extends Controller
                     $query->where('students.is_adult', false);
                 }
             })
+            ->orderColumn('first_name', 'students.first_name $1, students.id $1')
+            ->orderColumn('last_name', 'students.last_name $1, students.id $1')
+            ->orderColumn('gender', 'students.gender $1, students.id $1')
             ->orderColumn('age', function ($query, $order) use ($driver) {
                 if ($driver === 'sqlite') {
                     $query->orderByRaw("CAST(strftime('%Y', 'now') - strftime('%Y', students.date_of_birth) - (strftime('%m-%d', 'now') < strftime('%m-%d', students.date_of_birth)) AS INTEGER) {$order}");
+                    $query->orderBy('students.id', $order);
 
                     return;
                 }
 
                 $query->orderByRaw("TIMESTAMPDIFF(YEAR, students.date_of_birth, CURDATE()) {$order}");
+                $query->orderBy('students.id', $order);
             })
             ->orderColumn('weekday', function ($query, $order) {
                 $query->orderByRaw("current_lesson_plan.weekday IS NULL, current_lesson_plan.weekday {$order}");
+                $query->orderBy('students.id', $order);
             })
-            ->orderColumn('duration_minutes', 'duration_minutes $1')
-            ->orderColumn('fee_amount', 'fee_amount $1')
-            ->orderColumn('location', 'location $1')
+            ->orderColumn('duration_minutes', 'duration_minutes $1, students.id $1')
+            ->orderColumn('fee_amount', 'fee_amount $1, students.id $1')
+            ->orderColumn('location', 'location $1, students.id $1')
+            ->orderColumn('is_adult', 'students.is_adult $1, students.id $1')
             ->toJson();
     }
 }
