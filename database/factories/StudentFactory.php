@@ -19,6 +19,7 @@ class StudentFactory extends Factory
         return [
             'first_name' => $this->faker->firstName(),
             'last_name' => $this->faker->lastName(),
+            'gender' => $this->faker->randomElement(['male', 'female']),
             'email' => $this->faker->unique()->safeEmail(),
             'date_of_birth' => $this->faker
                                     ->dateTimeBetween('2009-01-01', now()->subYears(5))

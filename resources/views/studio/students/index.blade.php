@@ -22,11 +22,13 @@
                 <tr>
                     <th>First name</th>
                     <th>Last name</th>
+                    <th>Gender</th>
                     <th>Age</th>
                     <th>Weekday</th>
                     <th>Duration</th>
                     <th>Fee</th>
                     <th>Location</th>
+                    <th>Adult</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -82,6 +84,13 @@ $(function() {
             {data: 'first_name', name: 'first_name'},
             {data: 'last_name', name: 'last_name'},
             {
+                data: 'gender',
+                name: 'gender',
+                render: function(data) {
+                    return capitalize(data);
+                },
+            },
+            {
                 data: 'age',
                 name: 'age',
                 render: function(data) {
@@ -115,6 +124,11 @@ $(function() {
                 render: function(data) {
                     return data || '';
                 },
+            },
+            {
+                data: 'is_adult',
+                name: 'is_adult',
+                visible: false,
             },
             {
                 data: 'id',

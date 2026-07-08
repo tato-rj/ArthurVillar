@@ -6,8 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\Student;
-use Illuminate\Support\Facades\DB;
-use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Validation\Rule;
 
 class StudentsController extends Controller
 {
@@ -40,6 +39,7 @@ class StudentsController extends Controller
         return $request->validate([
             'first_name' => ['required', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
+            'gender' => ['required', Rule::in(['male', 'female'])],
             'parent_name' => ['nullable', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:255'],
@@ -53,6 +53,7 @@ class StudentsController extends Controller
         return [
             'first_name' => $data['first_name'],
             'last_name' => $data['last_name'],
+            'gender' => $data['gender'],
             'parent_name' => $data['parent_name'] ?? null,
             'email' => $data['email'],
             'phone' => $data['phone'] ?? null,

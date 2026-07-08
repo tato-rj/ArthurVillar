@@ -7,6 +7,12 @@
 		@input(['placeholder' => 'Last name', 'name' => 'last_name', 'required' => true, 'value' => old('last_name'), 'grid' => 'col'])
 	</div>
 
+	@select(['placeholder' => 'Gender', 'name' => 'gender', 'required' => true])
+		@foreach(['female' => 'Female', 'male' => 'Male'] as $value => $label)
+			@option(['name' => 'gender', 'label' => $label, 'value' => $value, 'selected' => old('gender') === $value])
+		@endforeach
+	@endselect
+
 	@input(['placeholder' => 'Parent name', 'name' => 'parent_name', 'value' => old('parent_name')])
 
 	@input(['placeholder' => 'Email', 'name' => 'email', 'value' => old('email'), 'required' => true])

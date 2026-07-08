@@ -311,9 +311,11 @@ class TablesController extends Controller
                 'students.id',
                 'students.first_name',
                 'students.last_name',
+                'students.gender',
                 'students.parent_name',
                 'students.email',
                 'students.phone',
+                'students.is_adult',
                 'students.date_of_birth',
                 DB::raw("$weekdayExpression as weekday"),
                 'current_lesson_plan.duration_minutes as duration_minutes',
@@ -376,6 +378,21 @@ class TablesController extends Controller
             })
             ->filterColumn('location', function ($query, $keyword) {
                 $query->whereRaw('locations.name LIKE ?', ["%{$keyword}%"]);
+            })
+            ->filterColumn('is_adult', function ($query, $keyword) {
+                $keyword = strtolower(trim($keyword));
+
+                if ($keyword === '') {
+                    return;
+                }
+
+                if (str_contains('adult', $keyword)) {
+                    $query->where('students.is_adult', true);
+                }
+
+                if (str_contains('child', $keyword) || str_contains('minor', $keyword)) {
+                    $query->where('students.is_adult', false);
+                }
             })
             ->orderColumn('age', function ($query, $order) use ($driver) {
                 if ($driver === 'sqlite') {

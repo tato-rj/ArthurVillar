@@ -8,6 +8,12 @@
 		@input(['label' => 'Last name', 'name' => 'last_name', 'required' => true, 'value' => $student->last_name, 'grid' => 'col'])
 	</div>
 
+	@select(['label' => 'Gender', 'name' => 'gender', 'required' => true])
+		@foreach(['female' => 'Female', 'male' => 'Male'] as $value => $label)
+			@option(['name' => 'gender', 'label' => $label, 'value' => $value, 'selected' => $student->gender === $value])
+		@endforeach
+	@endselect
+
 	@input(['label' => 'Parent name', 'name' => 'parent_name', 'value' => $student->parent_name])
 
 	@input(['label' => 'Email', 'name' => 'email', 'value' => $student->email, 'required' => true])
