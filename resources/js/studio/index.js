@@ -37,11 +37,6 @@ const shortMonthFormatter = new Intl.DateTimeFormat('en', {
     timeZone: studioTimeZone,
 });
 
-const monthNameFormatter = new Intl.DateTimeFormat('en', {
-    month: 'long',
-    timeZone: studioTimeZone,
-});
-
 const dayFormatter = new Intl.DateTimeFormat('en', {
     month: 'long',
     day: 'numeric',
@@ -51,7 +46,7 @@ const dayFormatter = new Intl.DateTimeFormat('en', {
 
 const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const monthWeekdays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-const calendarViews = ['schedule', 'day', '3-days', 'week', 'month', 'year'];
+const calendarViews = ['schedule', 'day', '3-days', 'week', 'month'];
 const scheduleStart = '08:00';
 const scheduleEnd = '22:00';
 
@@ -199,9 +194,11 @@ const getVisibleDateRange = function() {
         };
     }
 
+    const start = startOfWeek(state.date);
+
     return {
-        start: createLocalDate(state.date.getFullYear(), 0, 1),
-        end: createLocalDate(state.date.getFullYear(), 11, 31),
+        start,
+        end: addDays(start, 6),
     };
 };
 
@@ -2110,79 +2107,6 @@ const renderScheduleAgenda = function(calendar) {
     return wrapper;
 };
 
-const renderYearCalendar = function(calendar) {
-    const today = todayString();
-    const selected = toDateString(state.date);
-    const year = state.date.getFullYear();
-    const wrapper = document.createElement('div');
-
-    wrapper.className = 'studio-year-calendar';
-
-    for (let month = 0; month < 12; month++) {
-        const monthDate = createLocalDate(year, month, 1);
-        const gridStart = startOfMonthGrid(monthDate);
-        const monthElement = document.createElement('section');
-        const title = document.createElement('h2');
-        const weekdaysRow = document.createElement('div');
-        const grid = document.createElement('div');
-
-        monthElement.className = 'studio-year-month';
-        monthElement.dataset.date = toDateString(monthDate);
-        title.textContent = monthNameFormatter.format(monthDate);
-        weekdaysRow.className = 'studio-year-weekdays';
-        grid.className = 'studio-year-grid';
-
-        weekdays.forEach(function(day) {
-            const heading = document.createElement('div');
-
-            heading.textContent = day.charAt(0);
-            weekdaysRow.appendChild(heading);
-        });
-
-        for (let i = 0; i < 42; i++) {
-            const date = addDays(gridStart, i);
-            const dateString = toDateString(date);
-            const button = document.createElement('button');
-
-            button.type = 'button';
-            button.className = 'studio-year-day';
-            button.dataset.date = dateString;
-            button.textContent = date.getDate();
-
-            if (date.getMonth() !== month) {
-                button.classList.add('is-muted');
-            }
-
-            if (dateString === selected) {
-                button.classList.add('is-selected');
-            }
-
-            if (dateString === today) {
-                button.classList.add('is-today');
-            }
-
-            if (getHolidaysForDateString(dateString).length) {
-                button.classList.add('is-holiday');
-            }
-
-            if (getBreaksForDateString(dateString).length) {
-                button.classList.add('is-break');
-            }
-
-            applyDateStatusAttributes(button, dateString);
-
-            grid.appendChild(button);
-        }
-
-        monthElement.appendChild(title);
-        monthElement.appendChild(weekdaysRow);
-        monthElement.appendChild(grid);
-        wrapper.appendChild(monthElement);
-    }
-
-    calendar.appendChild(wrapper);
-};
-
 const cloneDate = function(date) {
     return createLocalDate(date.getFullYear(), date.getMonth(), date.getDate());
 };
@@ -2199,14 +2123,6 @@ const addMonths = function(date, months) {
     const next = cloneDate(date);
 
     next.setMonth(next.getMonth() + months);
-
-    return next;
-};
-
-const addYears = function(date, years) {
-    const next = cloneDate(date);
-
-    next.setFullYear(next.getFullYear() + years);
 
     return next;
 };
@@ -2262,11 +2178,7 @@ const getLabel = function() {
         return getWeekLabel(state.date);
     }
 
-    if (state.view === 'month') {
-        return monthFormatter.format(state.date);
-    }
-
-    return String(state.date.getFullYear());
+    return monthFormatter.format(state.date);
 };
 
 const move = function(direction) {
@@ -2278,8 +2190,6 @@ const move = function(direction) {
         setSelectedDate(addDays(state.date, direction * 7));
     } else if (state.view === 'month' || state.view === 'schedule') {
         setSelectedDate(addMonths(state.date, direction));
-    } else {
-        setSelectedDate(addYears(state.date, direction));
     }
 };
 
@@ -2482,7 +2392,6 @@ document.addEventListener('DOMContentLoaded', function() {
         calendar.classList.toggle('studio-calendar-three-days-view', state.view === '3-days');
         calendar.classList.toggle('studio-calendar-week-view', state.view === 'week');
         calendar.classList.toggle('studio-calendar-month-view', state.view === 'month');
-        calendar.classList.toggle('studio-calendar-year-view', state.view === 'year');
         calendar.classList.toggle('studio-calendar-schedule-view', state.view === 'schedule');
 
         syncCalendarEvents();
@@ -2547,9 +2456,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
             return;
         }
-
-        state.instance = null;
-        renderYearCalendar(calendar);
     };
 
     if (today) {
@@ -2763,19 +2669,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         openLessonModal(event);
-    });
-
-    calendar.addEventListener('click', function(e) {
-        const day = e.target.closest('.studio-year-day');
-        const month = e.target.closest('.studio-year-month');
-
-        if ((!day && !month) || state.view !== 'year') {
-            return;
-        }
-
-        setSelectedDate(parseDateString(day ? day.dataset.date : month.dataset.date));
-        state.view = 'month';
-        render();
     });
 
     render();

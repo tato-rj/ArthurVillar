@@ -30,7 +30,6 @@
 					<option value="3-days">3 Days</option>
 					<option value="week" selected>Week</option>
 					<option value="month">Month</option>
-					<option value="year">Year</option>
 				</select>
 				<i class="fa-solid fa-caret-down" aria-hidden="true"></i>
 			</label>

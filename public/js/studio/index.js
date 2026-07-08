@@ -85,10 +85,6 @@ var shortMonthFormatter = new Intl.DateTimeFormat('en', {
   month: 'short',
   timeZone: studioTimeZone
 });
-var monthNameFormatter = new Intl.DateTimeFormat('en', {
-  month: 'long',
-  timeZone: studioTimeZone
-});
 var dayFormatter = new Intl.DateTimeFormat('en', {
   month: 'long',
   day: 'numeric',
@@ -97,7 +93,7 @@ var dayFormatter = new Intl.DateTimeFormat('en', {
 });
 var weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 var monthWeekdays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-var calendarViews = ['schedule', 'day', '3-days', 'week', 'month', 'year'];
+var calendarViews = ['schedule', 'day', '3-days', 'week', 'month'];
 var scheduleStart = '08:00';
 var scheduleEnd = '22:00';
 var scheduleGridViews = ['day', '3-days', 'week'];
@@ -182,10 +178,10 @@ var setSelectedDate = function setSelectedDate(date) {
 };
 var getVisibleDateRange = function getVisibleDateRange() {
   if (state.view === 'schedule') {
-    var start = createLocalDate(state.date.getFullYear(), state.date.getMonth() - 1, 1);
+    var _start = createLocalDate(state.date.getFullYear(), state.date.getMonth() - 1, 1);
     var end = createLocalDate(state.date.getFullYear(), state.date.getMonth() + 5, 0);
     return {
-      start: start,
+      start: _start,
       end: end
     };
   }
@@ -202,22 +198,23 @@ var getVisibleDateRange = function getVisibleDateRange() {
     };
   }
   if (state.view === 'week') {
-    var _start = startOfWeek(state.date);
+    var _start2 = startOfWeek(state.date);
     return {
-      start: _start,
-      end: addDays(_start, 6)
+      start: _start2,
+      end: addDays(_start2, 6)
     };
   }
   if (state.view === 'month') {
-    var _start2 = startOfMonthGrid(state.date);
+    var _start3 = startOfMonthGrid(state.date);
     return {
-      start: _start2,
-      end: addDays(_start2, 41)
+      start: _start3,
+      end: addDays(_start3, 41)
     };
   }
+  var start = startOfWeek(state.date);
   return {
-    start: createLocalDate(state.date.getFullYear(), 0, 1),
-    end: createLocalDate(state.date.getFullYear(), 11, 31)
+    start: start,
+    end: addDays(start, 6)
   };
 };
 var getCalendarEventRange = function getCalendarEventRange() {
@@ -1702,65 +1699,6 @@ var renderScheduleAgenda = function renderScheduleAgenda(calendar) {
   calendar.appendChild(wrapper);
   return wrapper;
 };
-var renderYearCalendar = function renderYearCalendar(calendar) {
-  var today = todayString();
-  var selected = toDateString(state.date);
-  var year = state.date.getFullYear();
-  var wrapper = document.createElement('div');
-  wrapper.className = 'studio-year-calendar';
-  var _loop2 = function _loop2() {
-    var monthDate = createLocalDate(year, month, 1);
-    var gridStart = startOfMonthGrid(monthDate);
-    var monthElement = document.createElement('section');
-    var title = document.createElement('h2');
-    var weekdaysRow = document.createElement('div');
-    var grid = document.createElement('div');
-    monthElement.className = 'studio-year-month';
-    monthElement.dataset.date = toDateString(monthDate);
-    title.textContent = monthNameFormatter.format(monthDate);
-    weekdaysRow.className = 'studio-year-weekdays';
-    grid.className = 'studio-year-grid';
-    weekdays.forEach(function (day) {
-      var heading = document.createElement('div');
-      heading.textContent = day.charAt(0);
-      weekdaysRow.appendChild(heading);
-    });
-    for (var i = 0; i < 42; i++) {
-      var date = addDays(gridStart, i);
-      var dateString = toDateString(date);
-      var button = document.createElement('button');
-      button.type = 'button';
-      button.className = 'studio-year-day';
-      button.dataset.date = dateString;
-      button.textContent = date.getDate();
-      if (date.getMonth() !== month) {
-        button.classList.add('is-muted');
-      }
-      if (dateString === selected) {
-        button.classList.add('is-selected');
-      }
-      if (dateString === today) {
-        button.classList.add('is-today');
-      }
-      if (getHolidaysForDateString(dateString).length) {
-        button.classList.add('is-holiday');
-      }
-      if (getBreaksForDateString(dateString).length) {
-        button.classList.add('is-break');
-      }
-      applyDateStatusAttributes(button, dateString);
-      grid.appendChild(button);
-    }
-    monthElement.appendChild(title);
-    monthElement.appendChild(weekdaysRow);
-    monthElement.appendChild(grid);
-    wrapper.appendChild(monthElement);
-  };
-  for (var month = 0; month < 12; month++) {
-    _loop2();
-  }
-  calendar.appendChild(wrapper);
-};
 var cloneDate = function cloneDate(date) {
   return createLocalDate(date.getFullYear(), date.getMonth(), date.getDate());
 };
@@ -1772,11 +1710,6 @@ var addDays = function addDays(date, days) {
 var addMonths = function addMonths(date, months) {
   var next = cloneDate(date);
   next.setMonth(next.getMonth() + months);
-  return next;
-};
-var addYears = function addYears(date, years) {
-  var next = cloneDate(date);
-  next.setFullYear(next.getFullYear() + years);
   return next;
 };
 var startOfMonthGrid = function startOfMonthGrid(date) {
@@ -1816,10 +1749,7 @@ var getLabel = function getLabel() {
   if (state.view === 'week') {
     return getWeekLabel(state.date);
   }
-  if (state.view === 'month') {
-    return monthFormatter.format(state.date);
-  }
-  return String(state.date.getFullYear());
+  return monthFormatter.format(state.date);
 };
 var move = function move(direction) {
   if (state.view === 'day') {
@@ -1830,8 +1760,6 @@ var move = function move(direction) {
     setSelectedDate(addDays(state.date, direction * 7));
   } else if (state.view === 'month' || state.view === 'schedule') {
     setSelectedDate(addMonths(state.date, direction));
-  } else {
-    setSelectedDate(addYears(state.date, direction));
   }
 };
 document.addEventListener('DOMContentLoaded', function () {
@@ -1990,7 +1918,6 @@ document.addEventListener('DOMContentLoaded', function () {
     calendar.classList.toggle('studio-calendar-three-days-view', state.view === '3-days');
     calendar.classList.toggle('studio-calendar-week-view', state.view === 'week');
     calendar.classList.toggle('studio-calendar-month-view', state.view === 'month');
-    calendar.classList.toggle('studio-calendar-year-view', state.view === 'year');
     calendar.classList.toggle('studio-calendar-schedule-view', state.view === 'schedule');
     syncCalendarEvents();
     renderCalendarPaymentTotals();
@@ -2045,8 +1972,6 @@ document.addEventListener('DOMContentLoaded', function () {
       renderMonthCalendar(calendar);
       return;
     }
-    state.instance = null;
-    renderYearCalendar(calendar);
   };
   if (today) {
     today.addEventListener('click', function () {
@@ -2218,16 +2143,6 @@ document.addEventListener('DOMContentLoaded', function () {
       return;
     }
     openLessonModal(event);
-  });
-  calendar.addEventListener('click', function (e) {
-    var day = e.target.closest('.studio-year-day');
-    var month = e.target.closest('.studio-year-month');
-    if (!day && !month || state.view !== 'year') {
-      return;
-    }
-    setSelectedDate(parseDateString(day ? day.dataset.date : month.dataset.date));
-    state.view = 'month';
-    _render();
   });
   _render();
 });

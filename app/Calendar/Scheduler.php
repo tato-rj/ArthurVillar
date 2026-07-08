@@ -11,7 +11,7 @@ class Scheduler
 {
     use Holidays;
     
-    private const VIEWS = ['schedule', 'day', '3-days', 'week', 'month', 'year'];
+    private const VIEWS = ['schedule', 'day', '3-days', 'week', 'month'];
 
     public function payload(Request $request)
     {
@@ -364,9 +364,6 @@ class Scheduler
         } elseif ($view === 'month') {
             $start = $date->copy()->startOfMonth()->startOfWeek(Carbon::SUNDAY);
             $end = $start->copy()->addDays(41);
-        } elseif ($view === 'year') {
-            $start = $date->copy()->startOfYear();
-            $end = $date->copy()->endOfYear();
         } else {
             $start = $date->copy()->startOfWeek(Carbon::SUNDAY);
             $end = $start->copy()->addDays(6);
