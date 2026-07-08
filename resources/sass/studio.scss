@@ -756,6 +756,7 @@
 
 #calendar .lm-schedule-item[data-lesson-status="canceled"], #calendar .studio-month-event-dot[data-lesson-status="canceled"], #calendar .studio-schedule-event[data-lesson-status="canceled"] {
     @extend .bg-transparent, .text-light, .border-light;
+    text-decoration: line-through;
 }
 
 #calendar .lm-schedule-item[data-lesson-status="teaching-break"], #calendar .studio-month-event-dot[data-lesson-status="teaching-break"], #calendar .studio-schedule-event[data-lesson-status="teaching-break"] {

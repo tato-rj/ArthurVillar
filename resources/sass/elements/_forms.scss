@@ -52,6 +52,34 @@ form {
 	// }
 }
 
+.form-control-phone {
+	gap: .35rem;
+	overflow: hidden;
+
+	input {
+		min-width: 0;
+	}
+}
+
+.phone-country-code-select {
+	align-self: stretch;
+	background-color: transparent;
+	border: 0;
+	border-right: 1px solid rgba(0, 0, 0, .14);
+	border-radius: 0;
+	color: inherit;
+	cursor: pointer;
+	flex: 0 0 auto;
+	font: inherit;
+	max-width: 6.75rem;
+	outline: 0;
+	padding: 0 .55rem 0 0;
+}
+
+.phone-country-code-select:focus {
+	outline: 0;
+}
+
 .form-check-input[type=checkbox] {
     border-radius: $corner-radius;
 }

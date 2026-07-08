@@ -31232,6 +31232,33 @@ form.form-borderless.form-light input.form-control:not([readonly]), form.form-bo
   background: #edf2f7;
 }
 
+.form-control-phone {
+  gap: 0.35rem;
+  overflow: hidden;
+}
+.form-control-phone input {
+  min-width: 0;
+}
+
+.phone-country-code-select {
+  align-self: stretch;
+  background-color: transparent;
+  border: 0;
+  border-right: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 0;
+  color: inherit;
+  cursor: pointer;
+  flex: 0 0 auto;
+  font: inherit;
+  max-width: 6.75rem;
+  outline: 0;
+  padding: 0 0.55rem 0 0;
+}
+
+.phone-country-code-select:focus {
+  outline: 0;
+}
+
 .form-check-input[type=checkbox] {
   border-radius: 2rem;
 }
@@ -31964,6 +31991,10 @@ form.form-borderless.form-light input.form-control:not([readonly]), form.form-bo
   cursor: pointer !important;
   flex-direction: column;
   justify-content: normal;
+}
+
+#calendar .lm-schedule-item[data-lesson-status=canceled], #calendar .studio-month-event-dot[data-lesson-status=canceled], #calendar .studio-schedule-event[data-lesson-status=canceled] {
+  text-decoration: line-through;
 }
 
 #calendar .lm-schedule-item[data-lesson-status=teaching-break], #calendar .studio-month-event-dot[data-lesson-status=teaching-break], #calendar .studio-schedule-event[data-lesson-status=teaching-break] {
