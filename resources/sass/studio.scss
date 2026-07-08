@@ -443,6 +443,7 @@
     min-width: 0;
     overflow: hidden;
     padding: 0;
+    position: relative;
     text-align: left;
 }
 
@@ -482,6 +483,17 @@
 .studio-month-day.is-selected:not(.is-today) .studio-month-day-number {
     background: #e8f0fe;
     color: #0b57d0;
+}
+
+.studio-month-overlap-alert {
+    color: #d93025;
+    font-size: 0.88rem;
+    line-height: 1;
+    pointer-events: none;
+    position: absolute;
+    right: 0.45rem;
+    top: 0.45rem;
+    z-index: 1;
 }
 
 .studio-month-events {
@@ -716,6 +728,10 @@
     } 
 }
 
+#calendar .lm-schedule-item:not([past-event]), #calendar .studio-schedule-event:not([past-event]) {
+    @extend .shadow;
+}
+
 #calendar .lm-schedule-item {
     cursor: pointer !important;
     flex-direction: column;
@@ -745,6 +761,12 @@
 #calendar .lm-schedule-item[data-lesson-status="teaching-break"], #calendar .studio-month-event-dot[data-lesson-status="teaching-break"], #calendar .studio-schedule-event[data-lesson-status="teaching-break"] {
     background: #7952b3;
     color: #fff;
+}
+
+#calendar .lm-schedule-item[overlapping-event],
+#calendar .studio-schedule-event[overlapping-event] {
+    border: 2px solid #d93025 !important;
+    box-sizing: border-box;
 }
 
 #teaching-break-modal h4.modal-title {

@@ -657,6 +657,7 @@ const patchScheduleItems = function(calendar) {
         }
 
         applyEventTimeStatusAttributes(item, event);
+        applyEventOverlapAttribute(item, event);
     });
 };
 
@@ -1569,6 +1570,53 @@ const applyCalendarItemStatusAttributes = function(element, event, fallbackDateS
     applyEventTimeStatusAttributes(element, event);
 };
 
+const getOverlappingTimedEventGuids = function(events) {
+    const timedEvents = events
+        .filter(function(event) {
+            return event && event.guid && !event.isHoliday && !event.isBreak && event.start && event.end;
+        })
+        .map(function(event) {
+            return {
+                guid: event.guid,
+                start: getTimeMinutes(event.start),
+                end: getTimeMinutes(event.end),
+            };
+        })
+        .filter(function(event) {
+            return event.end > event.start;
+        });
+    const guids = new Set();
+
+    timedEvents.forEach(function(event, index) {
+        timedEvents.slice(index + 1).forEach(function(otherEvent) {
+            if (event.start < otherEvent.end && otherEvent.start < event.end) {
+                guids.add(event.guid);
+                guids.add(otherEvent.guid);
+            }
+        });
+    });
+
+    return guids;
+};
+
+const isOverlappingTimedEvent = function(event) {
+    if (!event || !event.guid || event.isHoliday || event.isBreak || !event.date) {
+        return false;
+    }
+
+    const date = parseDateString(String(event.date).substring(0, 10));
+
+    return getOverlappingTimedEventGuids(getEventsForDate(date)).has(event.guid);
+};
+
+const applyEventOverlapAttribute = function(element, event) {
+    if (!element) {
+        return;
+    }
+
+    element.toggleAttribute('overlapping-event', isOverlappingTimedEvent(event));
+};
+
 const formatSelectTime = function(value) {
     const match = normalizeTime(value).match(/^(\d{2}):(\d{2})/);
     let hour = Number(match[1]);
@@ -1913,6 +1961,34 @@ const getCalendarItemsForDate = function(date) {
     return holidays.concat(getBreakEventsForDate(date)).concat(getEventsForDate(date));
 };
 
+const hasOverlappingTimedEvents = function(events) {
+    let latestEnd = null;
+
+    return events
+        .filter(function(event) {
+            return event && !event.isHoliday && !event.isBreak && event.start && event.end;
+        })
+        .map(function(event) {
+            return {
+                start: getTimeMinutes(event.start),
+                end: getTimeMinutes(event.end),
+            };
+        })
+        .filter(function(event) {
+            return event.end > event.start;
+        })
+        .sort(function(a, b) {
+            return a.start - b.start || a.end - b.end;
+        })
+        .some(function(event) {
+            const overlaps = latestEnd !== null && event.start < latestEnd;
+
+            latestEnd = latestEnd === null ? event.end : Math.max(latestEnd, event.end);
+
+            return overlaps;
+        });
+};
+
 const renderMonthCalendar = function(calendar) {
     const today = todayString();
     const selected = toDateString(state.date);
@@ -1940,6 +2016,7 @@ const renderMonthCalendar = function(calendar) {
         const cell = document.createElement('button');
         const day = document.createElement('span');
         const list = document.createElement('span');
+        const hasOverlaps = hasOverlappingTimedEvents(events);
 
         cell.type = 'button';
         cell.className = 'studio-month-day';
@@ -1963,6 +2040,14 @@ const renderMonthCalendar = function(calendar) {
             : date.getDate();
 
         list.className = 'studio-month-events';
+
+        if (hasOverlaps) {
+            const alert = document.createElement('i');
+
+            alert.className = 'fa-solid fa-circle-exclamation studio-month-overlap-alert';
+            alert.setAttribute('aria-hidden', 'true');
+            cell.appendChild(alert);
+        }
 
         events.slice(0, 4).forEach(function(event) {
             const item = document.createElement('span');
@@ -2072,6 +2157,7 @@ const renderScheduleAgenda = function(calendar) {
             item.dataset.eventGuid = event.guid || '';
             item.dataset.lessonStatus = event.isHoliday ? 'holiday' : (event.isBreak ? 'teaching-break' : (event.calendarStatus || event.lessonStatus || 'unconfirmed'));
             applyCalendarItemStatusAttributes(item, event, dateString);
+            applyEventOverlapAttribute(item, event);
 
             if (!event.isHoliday && !event.isBreak) {
                 const time = document.createElement('span');

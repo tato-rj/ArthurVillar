@@ -570,6 +570,7 @@ var patchScheduleItems = function patchScheduleItems(calendar) {
       item.setAttribute('data-lesson-status', event.calendarStatus);
     }
     applyEventTimeStatusAttributes(item, event);
+    applyEventOverlapAttribute(item, event);
   });
 };
 var patchScheduleHolidays = function patchScheduleHolidays(calendar) {
@@ -1277,6 +1278,42 @@ var applyCalendarItemStatusAttributes = function applyCalendarItemStatusAttribut
   }
   applyEventTimeStatusAttributes(element, event);
 };
+var getOverlappingTimedEventGuids = function getOverlappingTimedEventGuids(events) {
+  var timedEvents = events.filter(function (event) {
+    return event && event.guid && !event.isHoliday && !event.isBreak && event.start && event.end;
+  }).map(function (event) {
+    return {
+      guid: event.guid,
+      start: getTimeMinutes(event.start),
+      end: getTimeMinutes(event.end)
+    };
+  }).filter(function (event) {
+    return event.end > event.start;
+  });
+  var guids = new Set();
+  timedEvents.forEach(function (event, index) {
+    timedEvents.slice(index + 1).forEach(function (otherEvent) {
+      if (event.start < otherEvent.end && otherEvent.start < event.end) {
+        guids.add(event.guid);
+        guids.add(otherEvent.guid);
+      }
+    });
+  });
+  return guids;
+};
+var isOverlappingTimedEvent = function isOverlappingTimedEvent(event) {
+  if (!event || !event.guid || event.isHoliday || event.isBreak || !event.date) {
+    return false;
+  }
+  var date = parseDateString(String(event.date).substring(0, 10));
+  return getOverlappingTimedEventGuids(getEventsForDate(date)).has(event.guid);
+};
+var applyEventOverlapAttribute = function applyEventOverlapAttribute(element, event) {
+  if (!element) {
+    return;
+  }
+  element.toggleAttribute('overlapping-event', isOverlappingTimedEvent(event));
+};
 var formatSelectTime = function formatSelectTime(value) {
   var match = normalizeTime(value).match(/^(\d{2}):(\d{2})/);
   var hour = Number(match[1]);
@@ -1546,6 +1583,25 @@ var getCalendarItemsForDate = function getCalendarItemsForDate(date) {
   });
   return holidays.concat(getBreakEventsForDate(date)).concat(getEventsForDate(date));
 };
+var hasOverlappingTimedEvents = function hasOverlappingTimedEvents(events) {
+  var latestEnd = null;
+  return events.filter(function (event) {
+    return event && !event.isHoliday && !event.isBreak && event.start && event.end;
+  }).map(function (event) {
+    return {
+      start: getTimeMinutes(event.start),
+      end: getTimeMinutes(event.end)
+    };
+  }).filter(function (event) {
+    return event.end > event.start;
+  }).sort(function (a, b) {
+    return a.start - b.start || a.end - b.end;
+  }).some(function (event) {
+    var overlaps = latestEnd !== null && event.start < latestEnd;
+    latestEnd = latestEnd === null ? event.end : Math.max(latestEnd, event.end);
+    return overlaps;
+  });
+};
 var renderMonthCalendar = function renderMonthCalendar(calendar) {
   var today = todayString();
   var selected = toDateString(state.date);
@@ -1569,6 +1625,7 @@ var renderMonthCalendar = function renderMonthCalendar(calendar) {
     var cell = document.createElement('button');
     var day = document.createElement('span');
     var list = document.createElement('span');
+    var hasOverlaps = hasOverlappingTimedEvents(events);
     cell.type = 'button';
     cell.className = 'studio-month-day';
     cell.dataset.date = dateString;
@@ -1584,6 +1641,12 @@ var renderMonthCalendar = function renderMonthCalendar(calendar) {
     day.className = 'studio-month-day-number';
     day.textContent = date.getDate() === 1 ? "".concat(shortMonthFormatter.format(date), " ").concat(date.getDate()) : date.getDate();
     list.className = 'studio-month-events';
+    if (hasOverlaps) {
+      var alert = document.createElement('i');
+      alert.className = 'fa-solid fa-circle-exclamation studio-month-overlap-alert';
+      alert.setAttribute('aria-hidden', 'true');
+      cell.appendChild(alert);
+    }
     events.slice(0, 4).forEach(function (event) {
       var item = document.createElement('span');
       var dot = document.createElement('span');
@@ -1674,6 +1737,7 @@ var renderScheduleAgenda = function renderScheduleAgenda(calendar) {
       item.dataset.eventGuid = event.guid || '';
       item.dataset.lessonStatus = event.isHoliday ? 'holiday' : event.isBreak ? 'teaching-break' : event.calendarStatus || event.lessonStatus || 'unconfirmed';
       applyCalendarItemStatusAttributes(item, event, dateString);
+      applyEventOverlapAttribute(item, event);
       if (!event.isHoliday && !event.isBreak) {
         var time = document.createElement('span');
         var duration = getEventDurationMinutes(event);
