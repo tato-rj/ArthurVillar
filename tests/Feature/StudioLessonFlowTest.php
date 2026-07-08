@@ -60,6 +60,64 @@ class StudioLessonFlowTest extends BaseTest
     }
 
     /** @test */
+    public function it_duplicates_a_current_lesson_plan_without_dates()
+    {
+        $lessonPlan = LessonPlan::factory()->create([
+            'starts_on' => '2026-07-01',
+            'ends_on' => null,
+            'status' => 'active',
+            'weekday' => 4,
+            'start_time' => '15:30',
+            'duration_minutes' => 45,
+            'recurrence_interval' => 2,
+            'fee_amount' => 6000,
+            'payment_method' => 'Venmo',
+            'notes' => 'Keep all settings.',
+        ]);
+
+        $this->signIn();
+
+        $this->post(route('studio.lesson-plans.duplicate', $lessonPlan))
+            ->assertRedirect();
+
+        $duplicate = LessonPlan::where('id', '!=', $lessonPlan->id)->firstOrFail();
+
+        $this->assertSame($lessonPlan->student_id, $duplicate->student_id);
+        $this->assertSame(4, $duplicate->weekday);
+        $this->assertSame('15:30', $duplicate->start_time);
+        $this->assertSame(45, $duplicate->duration_minutes);
+        $this->assertSame(2, $duplicate->recurrence_interval);
+        $this->assertEquals(6000, $duplicate->fee_amount);
+        $this->assertSame('Venmo', $duplicate->payment_method);
+        $this->assertSame('Keep all settings.', $duplicate->notes);
+        $this->assertNull($duplicate->starts_on);
+        $this->assertNull($duplicate->ends_on);
+        $this->assertFalse($duplicate->isCurrent());
+    }
+
+    /** @test */
+    public function undated_lesson_plans_do_not_block_creating_a_current_lesson_plan()
+    {
+        $student = Student::factory()->create();
+
+        LessonPlan::factory()->create([
+            'student_id' => $student->id,
+            'starts_on' => null,
+            'ends_on' => null,
+            'status' => 'active',
+        ]);
+
+        $this->signIn();
+
+        $this->post(route('studio.lesson-plans.store'), $this->lessonPlanPayload([
+            'student_id' => $student->id,
+            'starts_on' => '07/06/2026',
+        ]))->assertRedirect();
+
+        $this->assertSame(2, LessonPlan::where('student_id', $student->id)->count());
+    }
+
+    /** @test */
     public function it_calculates_the_lesson_plan_fee_from_the_location_hourly_fee_duration_and_lower_five_dollars()
     {
         $location = Location::factory()->create([

@@ -10,7 +10,13 @@
 		<h4 class="mb-2">{{ucfirst($lessonPlan->weekdayName)}}</h4>
 
 		<div class="mb-2">
-			<div class="small text-muted">Start on {{$lessonPlan->starts_on->toFormattedDateString()}}</div>
+			<div class="small text-muted">
+				@if($lessonPlan->starts_on)
+					Start on {{$lessonPlan->starts_on->toFormattedDateString()}}
+				@else
+					No start date set
+				@endif
+			</div>
 			@if($lessonPlan->ends_on)
 			<div class="small text-muted">End on {{$lessonPlan->ends_on->toFormattedDateString()}}</div>
 			<div class="small text-muted">Total of {{$lessonPlan->projectedLessonCount()}} lessons</div>
@@ -40,27 +46,28 @@
 		@endif
 
 		<div>
+			<button type="button" class="btn btn-sm rounded btn-warning w-100 mb-2" data-bs-toggle="modal" data-bs-target="#edit-lessonPlan-{{$lessonPlan->id}}-modal">
+				@fa(['icon' => 'pencil', 'mr' => 1])Edit
+			</button>
+
 			@if($current)
 			<div class="d-flex">
-				<button type="button" class="btn btn-sm rounded btn-warning w-100 mb-2 mr-1" data-bs-toggle="modal" data-bs-target="#edit-lessonPlan-{{$lessonPlan->id}}-modal">
-					@fa(['icon' => 'pencil', 'mr' => 1])Edit
-				</button>
-				<form method="POST" action="{{route('studio.lesson-plans.close', $lessonPlan)}}" class="w-100 ml-1" confirm>
+				<form method="POST" action="{{route('studio.lesson-plans.close', $lessonPlan)}}" class="w-100" confirm>
 					@csrf
 					<button type="submit" class="btn btn-sm btn-white rounded w-100 mb-2">
 						End
 					</button>
 				</form>
 			</div>
-			@else
+			@endif
+
 			<form method="POST" action="{{route('studio.lesson-plans.duplicate', $lessonPlan)}}">
 				@csrf
 				<button type="submit" class="btn btn-sm rounded btn-white w-100 mb-2">
 					@fa(['icon' => 'copy'])Duplicate
 				</button>
 			</form>
-			@endif
-
+			
 			<form method="POST" action="{{route('studio.lesson-plans.destroy', $lessonPlan)}}" confirm>
 				@csrf
 				@method('DELETE')

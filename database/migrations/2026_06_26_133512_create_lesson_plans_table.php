@@ -31,7 +31,7 @@ return new class extends Migration
             // 1 = every week
             // 2 = every other week
 
-            $table->date('starts_on');
+            $table->date('starts_on')->nullable();
             $table->date('ends_on')->nullable();
 
             $table->decimal('fee_amount', 8, 2)->nullable();

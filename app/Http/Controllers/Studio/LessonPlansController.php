@@ -26,10 +26,9 @@ class LessonPlansController extends Controller
 
     public function duplicate(LessonPlan $lessonPlan)
     {
-        $this->validateStudentDoesNotHaveCurrentLessonPlan($lessonPlan->student_id);
-
         $duplicate = $lessonPlan->replicate();
         $duplicate->fill([
+            'starts_on' => null,
             'ends_on' => null,
             'status' => 'active',
         ]);
@@ -136,7 +135,7 @@ class LessonPlansController extends Controller
             'student_id' => ['required', 'exists:students,id'],
             'weekday' => ['required', 'integer', 'between:1,7'],
             'recurrence_interval' => ['required', 'integer', 'min:1'],
-            'starts_on' => ['required', 'date'],
+            'starts_on' => ['nullable', 'date'],
             'ends_on' => ['nullable', 'date'],
             'start_time' => ['required', 'date_format:H:i', Rule::in(LessonPlan::timeOptions())],
             'duration_minutes' => ['required', 'integer', 'min:15'],
@@ -152,6 +151,7 @@ class LessonPlansController extends Controller
     {
         $hasCurrentLessonPlan = LessonPlan::where('student_id', $studentId)
             ->where('status', 'active')
+            ->whereNotNull('starts_on')
             ->where(function ($query) {
                 $query
                     ->whereNull('ends_on')
@@ -172,7 +172,9 @@ class LessonPlansController extends Controller
             'student_id' => $lessonPlan ? $lessonPlan->student_id : $data['student_id'],
             'weekday' => $data['weekday'],
             'recurrence_interval' => $data['recurrence_interval'],
-            'starts_on' => $this->lessonPlanDate($data['starts_on']),
+            'starts_on' => ! empty($data['starts_on'])
+                ? $this->lessonPlanDate($data['starts_on'])
+                : null,
             'ends_on' => ! empty($data['ends_on'])
                 ? $this->lessonPlanDate($data['ends_on'])
                 : null,
