@@ -27,9 +27,9 @@
 	</div>
 
 	<div class="row">
-		@input(['label' => 'Starts on', 'name' => 'starts_on', 'value' => optional($lessonPlan->starts_on)->format('Y-m-d'), 'type' => 'date', 'grid' => 'col'])
+		@input(['label' => 'Starts on', 'name' => 'starts_on', 'type' => 'date', 'value' => optional($lessonPlan->starts_on)->format('Y-m-d'), 'grid' => 'col'])
 
-		@input(['label' => 'Ends on', 'name' => 'ends_on', 'value' => optional($lessonPlan->ends_on)->format('Y-m-d'), 'type' => 'date', 'grid' => 'col'])
+		@input(['label' => 'Ends on', 'name' => 'ends_on', 'type' => 'date', 'value' => optional($lessonPlan->ends_on)->format('Y-m-d'), 'grid' => 'col'])
 	</div>
 
 	<label class="small fw-bold opacity-6 mb-3">@fa(['icon' => 'clock'])TIME</label>

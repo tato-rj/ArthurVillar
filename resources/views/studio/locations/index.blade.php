@@ -33,6 +33,51 @@
 </section>
 
 @include('studio.locations.create')
+@modal(['title' => 'Location details', 'id' => 'location-info-modal'])
+<div>
+    <h3 id="location-info-name" class="h5 mb-3"></h3>
+
+    <div class="row mb-3">
+        <div class="col-6 col-md-4 mb-3">
+            <div class="small opacity-4">Students</div>
+            <div id="location-info-students-count" class="h4 mb-0"></div>
+        </div>
+
+        <div class="col-6 col-md-4 mb-3">
+            <div class="small opacity-4">Avg length</div>
+            <div id="location-info-average-length" class="h4 mb-0"></div>
+        </div>
+
+        <div class="col-6 col-md-4 mb-3">
+            <div class="small opacity-4">Avg fee</div>
+            <div id="location-info-average-fee" class="h4 mb-0"></div>
+        </div>
+
+        <div class="col-6 col-md-4 mb-3">
+            <div class="small opacity-4">Weekly gross</div>
+            <div id="location-info-weekly-gross" class="h4 mb-0"></div>
+        </div>
+
+        <div class="col-6 col-md-4 mb-3">
+            <div class="small opacity-4">Weekly net</div>
+            <div id="location-info-weekly-net" class="h4 mb-0"></div>
+        </div>
+
+        <div class="col-6 col-md-4 mb-3">
+            <div class="small opacity-4">Monthly net</div>
+            <div id="location-info-monthly-net" class="h4 mb-0"></div>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        @fa(['icon' => 'percent', 'classes' => 'opacity-4'])
+        <span id="location-info-tax"></span>
+    </div>
+
+    <div class="font-weight-bold mb-2">Current lesson plans</div>
+    <div id="location-info-lessons" class="studio-break-lessons"></div>
+</div>
+@endmodal
 <div id="edit-location-modal-container"></div>
 @endsection
 
@@ -49,11 +94,11 @@ $(function() {
         })}%`;
     };
 
-    const formatFee = function(value) {
+    const formatFee = function(value, emptyValue = '') {
         const cents = Number(value || 0);
 
         if (!cents) {
-            return '';
+            return emptyValue;
         }
 
         return new Intl.NumberFormat('en-US', {
@@ -61,6 +106,53 @@ $(function() {
             currency: 'USD',
             maximumFractionDigits: 0,
         }).format(cents / 100);
+    };
+
+    const formatDuration = function(value) {
+        const minutes = Math.round(Number(value || 0));
+
+        if (!minutes) {
+            return '-';
+        }
+
+        return `${minutes} min`;
+    };
+
+    const formatTime = function(value) {
+        if (!value) {
+            return '';
+        }
+
+        const parts = String(value).split(':');
+        const hour = Number(parts[0] || 0);
+        const minute = Number(parts[1] || 0);
+        const suffix = hour >= 12 ? 'PM' : 'AM';
+        const hour12 = hour % 12 || 12;
+
+        return `${hour12}:${String(minute).padStart(2, '0')} ${suffix}`;
+    };
+
+    const escapeHtml = function(value) {
+        return String(value || '').replace(/[&<>"']/g, function(character) {
+            return {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;',
+            }[character];
+        });
+    };
+
+    const showModal = function(modal) {
+        if (window.bootstrap && window.bootstrap.Modal && typeof window.bootstrap.Modal.getOrCreateInstance === 'function') {
+            window.bootstrap.Modal.getOrCreateInstance(modal).show();
+            return;
+        }
+
+        if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
+            window.jQuery(modal).modal('show');
+        }
     };
 
     const locationsTable = window.studioDataTableState.create('#locations-table', {
@@ -114,6 +206,7 @@ $(function() {
 
                     return `
                         <div class="studio-table-actions">
+                            <button type="button" class="btn btn-sm btn-primary rounded js-location-info">@fa(['icon' => 'circle-info', 'mr' => 0])</button>
                             <button type="button" class="btn btn-sm btn-warning rounded js-edit-location" data-url="${editUrl}">@fa(['icon' => 'pen-to-square', 'mr' => 0])</button>
                             <form method="POST" action="${deleteUrl}" confirm>
                                 @csrf
@@ -125,6 +218,40 @@ $(function() {
                 },
             },
         ],
+    });
+
+    $('#locations-table').on('click', '.js-location-info', function() {
+        const location = locationsTable.row($(this).closest('tr')).data();
+        const info = location.info || {};
+        const students = info.students || [];
+        const modal = $('#location-info-modal');
+
+        modal.find('#location-info-name').text(location.name || 'Location');
+        modal.find('#location-info-students-count').text(Number(info.students_count || 0));
+        modal.find('#location-info-average-length').text(formatDuration(info.average_lesson_length));
+        modal.find('#location-info-average-fee').text(formatFee(info.average_lesson_fee, '$0'));
+        modal.find('#location-info-weekly-gross').text(formatFee(info.weekly_gross_income, '$0'));
+        modal.find('#location-info-weekly-net').text(formatFee(info.weekly_net_income, '$0'));
+        modal.find('#location-info-monthly-net').text(formatFee(info.monthly_net_projection, '$0'));
+        modal.find('#location-info-tax').text(`${formatFee(info.weekly_tax_withheld, '$0')} withheld per week at ${formatPercentage(location.tax_withheld_percentage)}`);
+
+        modal.find('#location-info-lessons').html(students.length
+            ? students.map(function(student) {
+                return `
+                    <div class="studio-break-lesson">
+                        <div class="font-weight-bold">${escapeHtml(student.name || 'Student')}</div>
+                        <div class="opacity-4">
+                            ${escapeHtml(student.weekday || '')} ${formatTime(student.start_time)}
+                            · ${formatDuration(student.duration_minutes)}
+                            · ${formatFee(student.fee_amount, '$0')}
+                            · ${escapeHtml(student.recurrence || '')}
+                        </div>
+                    </div>
+                `;
+            }).join('')
+            : '<div class="opacity-4">No current active lesson plans for this location.</div>');
+
+        showModal(modal.get(0));
     });
 
     $('#locations-table').on('click', '.js-edit-location', function() {
@@ -154,14 +281,7 @@ $(function() {
 
                 const modal = container.find('.modal').get(0);
 
-                if (window.bootstrap && window.bootstrap.Modal && typeof window.bootstrap.Modal.getOrCreateInstance === 'function') {
-                    window.bootstrap.Modal.getOrCreateInstance(modal).show();
-                    return;
-                }
-
-                if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
-                    window.jQuery(modal).modal('show');
-                }
+                showModal(modal);
             })
             .catch(function(error) {
                 console.error(error);

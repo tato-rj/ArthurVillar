@@ -3,7 +3,8 @@
 namespace Tests\Feature;
 
 use Tests\BaseTest;
-use App\Models\{Lesson, LessonPlan, Location};
+use Carbon\Carbon;
+use App\Models\{Lesson, LessonPlan, Location, Student};
 
 class LocationTest extends BaseTest
 {
@@ -26,6 +27,79 @@ class LocationTest extends BaseTest
                 'name' => 'BKCM',
                 'fee_amount' => 6000,
             ]);
+    }
+
+    /** @test */
+    public function it_includes_current_lesson_plan_info_for_location_rows()
+    {
+        Carbon::setTestNow('2026-07-08 12:00:00');
+
+        $location = Location::factory()->create([
+            'name' => 'BKCM',
+            'tax_withheld_percentage' => 20,
+        ]);
+        $otherLocation = Location::factory()->create();
+        $maria = Student::factory()->create([
+            'first_name' => 'Maria',
+            'last_name' => 'Silva',
+        ]);
+        $john = Student::factory()->create([
+            'first_name' => 'John',
+            'last_name' => 'Stone',
+        ]);
+
+        LessonPlan::factory()->student($maria)->create([
+            'location_id' => $location->id,
+            'weekday' => 3,
+            'start_time' => '15:00',
+            'duration_minutes' => 60,
+            'fee_amount' => 6000,
+            'recurrence_interval' => 1,
+            'starts_on' => '2026-07-01',
+            'ends_on' => '2026-08-01',
+            'status' => 'active',
+        ]);
+        LessonPlan::factory()->student($john)->create([
+            'location_id' => $location->id,
+            'weekday' => 5,
+            'start_time' => '16:00',
+            'duration_minutes' => 30,
+            'fee_amount' => 3000,
+            'recurrence_interval' => 2,
+            'starts_on' => '2026-07-01',
+            'ends_on' => '2026-08-01',
+            'status' => 'active',
+        ]);
+        LessonPlan::factory()->create([
+            'location_id' => $location->id,
+            'starts_on' => null,
+            'ends_on' => null,
+            'fee_amount' => 10000,
+            'status' => 'active',
+        ]);
+        LessonPlan::factory()->create([
+            'location_id' => $otherLocation->id,
+            'starts_on' => '2026-07-01',
+            'ends_on' => '2026-08-01',
+            'fee_amount' => 10000,
+            'status' => 'active',
+        ]);
+
+        $this->signIn();
+
+        $row = collect($this->getJson(route('studio.tables.locations'))->assertOk()->json('data'))
+            ->firstWhere('id', $location->id);
+
+        $this->assertSame(2, $row['info']['students_count']);
+        $this->assertSame(2, $row['info']['lesson_plans_count']);
+        $this->assertEquals(45, $row['info']['average_lesson_length']);
+        $this->assertEquals(4500, $row['info']['average_lesson_fee']);
+        $this->assertSame(7500, $row['info']['weekly_gross_income']);
+        $this->assertSame(6000, $row['info']['weekly_net_income']);
+        $this->assertSame(1500, $row['info']['weekly_tax_withheld']);
+        $this->assertSame(['Maria Silva', 'John Stone'], collect($row['info']['students'])->pluck('name')->all());
+
+        Carbon::setTestNow();
     }
 
     /** @test */

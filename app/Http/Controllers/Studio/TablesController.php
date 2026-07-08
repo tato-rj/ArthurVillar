@@ -12,7 +12,20 @@ class TablesController extends Controller
 {
     public function locations()
     {
+        $today = today()->toDateString();
+
         $locations = Location::query()
+            ->with([
+                'lessonPlans' => function ($query) use ($today) {
+                    $query
+                        ->with('student')
+                        ->where('status', 'active')
+                        ->whereNotNull('starts_on')
+                        ->whereNotNull('ends_on')
+                        ->whereDate('starts_on', '<', $today)
+                        ->whereDate('ends_on', '>', $today);
+                },
+            ])
             ->select([
                 'id',
                 'name',
@@ -33,6 +46,43 @@ class TablesController extends Controller
                 if ($keyword === 'inactive') {
                     $query->where('is_active', false);
                 }
+            })
+            ->addColumn('info', function (Location $location) {
+                $lessonPlans = $location->lessonPlans;
+                $weeklyGrossIncome = $lessonPlans->sum(function ($lessonPlan) {
+                    return (int) $lessonPlan->fee_amount / max(1, (int) $lessonPlan->recurrence_interval);
+                });
+                $weeklyNetIncome = $lessonPlans->sum(function ($lessonPlan) use ($location) {
+                    return $location->netAmount((int) $lessonPlan->fee_amount) / max(1, (int) $lessonPlan->recurrence_interval);
+                });
+
+                return [
+                    'students_count' => $lessonPlans->pluck('student_id')->unique()->count(),
+                    'lesson_plans_count' => $lessonPlans->count(),
+                    'average_lesson_length' => $lessonPlans->avg('duration_minutes'),
+                    'average_lesson_fee' => $lessonPlans->avg('fee_amount'),
+                    'weekly_gross_income' => (int) round($weeklyGrossIncome),
+                    'weekly_net_income' => (int) round($weeklyNetIncome),
+                    'weekly_tax_withheld' => (int) round($weeklyGrossIncome - $weeklyNetIncome),
+                    'monthly_gross_projection' => (int) round($weeklyGrossIncome * 52 / 12),
+                    'monthly_net_projection' => (int) round($weeklyNetIncome * 52 / 12),
+                    'students' => $lessonPlans
+                        ->sortBy([
+                            ['weekday', 'asc'],
+                            ['start_time', 'asc'],
+                        ])
+                        ->map(function ($lessonPlan) {
+                            return [
+                                'name' => trim(($lessonPlan->student->first_name ?? '').' '.($lessonPlan->student->last_name ?? '')),
+                                'weekday' => ucfirst($lessonPlan->weekdayName ?? ''),
+                                'start_time' => $lessonPlan->start_time,
+                                'duration_minutes' => (int) $lessonPlan->duration_minutes,
+                                'fee_amount' => (int) $lessonPlan->fee_amount,
+                                'recurrence' => $lessonPlan->recurrence,
+                            ];
+                        })
+                        ->values(),
+                ];
             })
             ->orderColumn('is_active', 'is_active $1')
             ->toJson();

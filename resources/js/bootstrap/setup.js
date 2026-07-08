@@ -6,6 +6,7 @@ try {
     window.$ = window.jQuery = require('jquery');
     require("jquery-ui/ui/widgets/draggable");
     require("jquery-ui/ui/widgets/droppable");
+    require("jquery-ui/ui/widgets/datepicker");
     require("jquery-ui-touch-punch");
     
     require('bootstrap');
@@ -30,4 +31,3 @@ try {
 //     encrypted:true,
 //     forceTLS: true
 // });
-

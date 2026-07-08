@@ -307,4 +307,5 @@ $(document).ready(function() {
     new Inputmask({"mask": "99/99/9999"}).mask(
         document.querySelectorAll('[name="born_in"], [name="died_in"], [data-mask="date"]')
     );
+
 });
