@@ -3,7 +3,7 @@
 namespace Tests\Unit;
 
 use Tests\BaseTest;
-use App\Models\{Student, LessonPlan, Lesson, ScheduleOverride, TeachingBreak, Holiday};
+use App\Models\{Student, LessonPlan, Lesson, ScheduleOverride, TeachingBreak, Holiday, Location};
 use Carbon\Carbon;
 use InvalidArgumentException;
 
@@ -128,5 +128,39 @@ class LessonPlanTest extends BaseTest
         ]);
 
         $this->assertSame(1, $lessonPlan->projectedLessonCount());
+    }
+
+    /** @test */
+    public function location_specific_breaks_only_discount_matching_lesson_plans_from_projected_counts()
+    {
+        $blockedLocation = Location::factory()->create();
+        $openLocation = Location::factory()->create();
+
+        $blockedLessonPlan = LessonPlan::factory()->create([
+            'location_id' => $blockedLocation->id,
+            'weekday' => 6,
+            'start_time' => '15:30',
+            'starts_on' => '2026-12-04',
+            'ends_on' => '2026-12-11',
+            'recurrence_interval' => 1,
+        ]);
+
+        $openLessonPlan = LessonPlan::factory()->create([
+            'location_id' => $openLocation->id,
+            'weekday' => 6,
+            'start_time' => '15:30',
+            'starts_on' => '2026-12-04',
+            'ends_on' => '2026-12-11',
+            'recurrence_interval' => 1,
+        ]);
+
+        $teachingBreak = TeachingBreak::factory()->create([
+            'starts_on' => '2026-12-11',
+            'ends_on' => '2026-12-11',
+        ]);
+        $teachingBreak->locations()->attach($blockedLocation);
+
+        $this->assertSame(1, $blockedLessonPlan->projectedLessonCount());
+        $this->assertSame(2, $openLessonPlan->projectedLessonCount());
     }
 }

@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use Tests\BaseTest;
+use Carbon\Carbon;
 use App\Models\Holiday;
 
 class HolidayTest extends BaseTest
@@ -83,5 +84,35 @@ class HolidayTest extends BaseTest
             ->assertOk()
             ->assertJsonPath('holidays.0.title', 'Easter Sunday')
             ->assertJsonPath('holidays.0.date', '2026-04-05');
+    }
+
+    /** @test */
+    public function holidays_page_shows_the_next_upcoming_date_for_each_holiday()
+    {
+        Carbon::setTestNow(Carbon::parse('2026-07-08 12:00:00'));
+
+        Holiday::create([
+            'slug' => 'easter-sunday',
+            'title' => 'Easter Sunday',
+            'rule' => Holiday::EASTER,
+            'is_observed' => true,
+            'observes_substitute_date' => false,
+        ]);
+
+        Holiday::factory()->nthWeekday(9, Carbon::MONDAY, 1)->create([
+            'title' => 'Labor Day',
+            'is_observed' => true,
+        ]);
+
+        $this->signIn();
+
+        $this
+            ->get(route('studio.holidays.index'))
+            ->assertOk()
+            ->assertSeeInOrder(['Labor Day', 'Sep 7, 2026', 'Easter Sunday', 'Mar 28, 2027'])
+            ->assertSee('Easter Sunday')
+            ->assertSee('Mar 28, 2027');
+
+        Carbon::setTestNow();
     }
 }

@@ -733,6 +733,7 @@ const getTeachingBreakEvent = function(teachingBreak, dateString) {
         reason: teachingBreak.reason || '',
         startsOn: getBreakDateString(teachingBreak, 'starts_on'),
         endsOn: getBreakDateString(teachingBreak, 'ends_on'),
+        locations: Array.isArray(teachingBreak.locations) ? teachingBreak.locations : [],
         missedLessonCount: impact.lessons_count || 0,
         missedFeeAmount: impact.fee_amount || 0,
         missedLessons: Array.isArray(impact.lessons) ? impact.lessons : [],
@@ -1128,6 +1129,7 @@ const openTeachingBreakModal = function(event) {
     const title = modal.querySelector('.modal-title');
     const dates = modal.querySelector('#teaching-break-dates');
     const reason = modal.querySelector('#teaching-break-reason');
+    const locations = modal.querySelector('#teaching-break-locations');
     const impact = modal.querySelector('#teaching-break-impact');
     const lessons = modal.querySelector('#teaching-break-lessons');
     const missedLessons = Array.isArray(event.missedLessons) ? event.missedLessons : [];
@@ -1142,6 +1144,12 @@ const openTeachingBreakModal = function(event) {
 
     if (reason) {
         reason.textContent = event.reason || 'No reason added.';
+    }
+
+    if (locations) {
+        locations.textContent = Array.isArray(event.locations) && event.locations.length
+            ? event.locations.map(function(location) { return location.name; }).join(', ')
+            : 'All locations';
     }
 
     if (impact) {

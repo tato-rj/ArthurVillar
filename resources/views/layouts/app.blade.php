@@ -20,7 +20,16 @@
           @if(local())
           (Local)
           @endif
-          {{$title ?? config('app.name')}}
+
+          @if(isset($title))
+            @if($subdomain = subdomain())
+            {{ucfirst($subdomain) . ' | ' . $title}}
+            @else
+            {{$title}}
+            @endif
+          @else
+          {{config('app.name')}}
+          @endif
         </title>
 
         <!-- Fonts -->

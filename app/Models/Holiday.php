@@ -68,6 +68,24 @@ class Holiday extends BaseModel
         throw new \InvalidArgumentException('Unsupported holiday rule.');
     }
 
+    public function nextDate(Carbon $from = null)
+    {
+        $from = ($from ?: now())->copy()->startOfDay();
+
+        for ($year = $from->year; $year <= $from->year + 5; $year++) {
+            $date = $this->datesForYear($year)
+                ->pluck('date')
+                ->sort()
+                ->first(fn (Carbon $date) => $date->gte($from));
+
+            if ($date) {
+                return $date;
+            }
+        }
+
+        return $this->dateForYear($from->year + 1);
+    }
+
     private function nthWeekdayOfMonth($year, $month, $weekday, $weekNumber)
     {
         $date = Carbon::create($year, $month, 1)->startOfDay();

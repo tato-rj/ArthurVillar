@@ -11,11 +11,10 @@ class HolidaysController extends Controller
     public function index()
     {
         $holidays = Holiday::query()
-            ->orderBy('month')
-            ->orderBy('day')
-            ->orderBy('week_number')
             ->orderBy('title')
-            ->get();
+            ->get()
+            ->sortBy(fn (Holiday $holiday) => $holiday->nextDate()->toDateString())
+            ->values();
 
         return view('studio.holidays.index', compact('holidays'));
     }

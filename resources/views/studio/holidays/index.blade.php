@@ -17,7 +17,7 @@
 
             <div>
                 <h5 class="mb-1">{{$holiday->title}}</h5>
-                <p class="small text-muted mb-0">{{$holiday->dateForYear(now()->year)->toFormattedDateString()}}</p>
+                <p class="small text-muted mb-0">{{$holiday->nextDate()->toFormattedDateString()}}</p>
             </div>
 
             <label class="switch mb-0">

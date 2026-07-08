@@ -4,7 +4,7 @@ namespace Tests\Feature;
 
 use Carbon\Carbon;
 use Tests\BaseTest;
-use App\Models\{Student, LessonPlan, Lesson, TeachingBreak, Holiday, ScheduleOverride};
+use App\Models\{Student, LessonPlan, Lesson, TeachingBreak, Holiday, Location, ScheduleOverride};
 
 class CalendarTest extends BaseTest
 {
@@ -168,6 +168,30 @@ class CalendarTest extends BaseTest
     }
 
     /** @test */
+    public function it_stores_the_locations_a_teaching_break_applies_to()
+    {
+        Carbon::setTestNow(Carbon::parse('2026-07-07 12:00:00'));
+
+        $location = Location::factory()->create();
+
+        $this->signIn();
+
+        $this->post(route('studio.breaks.store'), [
+            'title' => 'Location break',
+            'reason' => 'Only this location is closed',
+            'starts_on' => '2026-07-08',
+            'ends_on' => '2026-07-08',
+            'location_ids' => [$location->id],
+        ])->assertRedirect();
+
+        $teachingBreak = TeachingBreak::where('title', 'Location break')->firstOrFail();
+
+        $this->assertTrue($teachingBreak->locations()->whereKey($location)->exists());
+
+        Carbon::setTestNow();
+    }
+
+    /** @test */
     public function teaching_breaks_show_on_the_calendar_and_exclude_projected_lessons_on_those_days()
     {
         Carbon::setTestNow(Carbon::parse('2026-07-07 12:00:00'));
@@ -200,6 +224,68 @@ class CalendarTest extends BaseTest
             ->assertJsonPath('teachingBreaks.0.title', 'Vacation')
             ->assertJsonPath('teachingBreaks.0.impact.lessons_count', 1)
             ->assertJsonPath('teachingBreaks.0.impact.fee_amount', 6000);
+
+        Carbon::setTestNow();
+    }
+
+    /** @test */
+    public function teaching_breaks_can_apply_to_specific_locations()
+    {
+        Carbon::setTestNow(Carbon::parse('2026-07-07 12:00:00'));
+
+        $blockedLocation = Location::factory()->create(['name' => 'BKCM']);
+        $openLocation = Location::factory()->create(['name' => 'Online']);
+        $blockedStudent = Student::factory()->create(['first_name' => 'Blocked']);
+        $openStudent = Student::factory()->create(['first_name' => 'Open']);
+
+        LessonPlan::factory()->student($blockedStudent)->create([
+            'location_id' => $blockedLocation->id,
+            'weekday' => 4,
+            'start_time' => '15:30',
+            'duration_minutes' => 45,
+            'fee_amount' => 6000,
+            'starts_on' => '2026-07-01',
+            'recurrence_interval' => 1,
+        ]);
+
+        LessonPlan::factory()->student($openStudent)->create([
+            'location_id' => $openLocation->id,
+            'weekday' => 4,
+            'start_time' => '16:30',
+            'duration_minutes' => 45,
+            'fee_amount' => 6000,
+            'starts_on' => '2026-07-01',
+            'recurrence_interval' => 1,
+        ]);
+
+        $teachingBreak = TeachingBreak::factory()->create([
+            'title' => 'BKCM break',
+            'starts_on' => '2026-07-08',
+            'ends_on' => '2026-07-08',
+        ]);
+        $teachingBreak->locations()->attach($blockedLocation);
+
+        $this->signIn();
+
+        $this->getJson(route('studio.home', [
+            'view' => 'week',
+            'date' => '2026-07-08',
+            'lesson_plans' => 1,
+        ]))
+            ->assertOk()
+            ->assertJsonMissing(['first_name' => 'Blocked'])
+            ->assertJsonFragment(['first_name' => 'Open'])
+            ->assertJsonPath('teachingBreaks.0.locations.0.name', 'BKCM')
+            ->assertJsonPath('teachingBreaks.0.impact.lessons_count', 1);
+
+        $this->getJson(route('studio.breaks.impact', [
+            'starts_on' => '2026-07-08',
+            'ends_on' => '2026-07-08',
+            'location_ids' => [$blockedLocation->id],
+        ]))
+            ->assertOk()
+            ->assertJsonPath('lessons_count', 1)
+            ->assertJsonPath('lessons.0.student', trim($blockedStudent->first_name.' '.$blockedStudent->last_name));
 
         Carbon::setTestNow();
     }

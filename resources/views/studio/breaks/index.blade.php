@@ -22,6 +22,7 @@
             <thead>
                 <tr>
                     <th>Title</th>
+                    <th>Locations</th>
                     <th>Starts on</th>
                     <th>Ends on</th>
                     <th>Lessons missed</th>
@@ -96,6 +97,9 @@ $(function() {
         const url = new URL(@json(route('studio.breaks.impact')), window.location.origin);
         url.searchParams.set('starts_on', startsOn);
         url.searchParams.set('ends_on', endsOn);
+        form.find('[name="location_ids[]"]:checked').each(function() {
+            url.searchParams.append('location_ids[]', this.value);
+        });
 
         summary.text('Calculating...');
 
@@ -136,9 +140,10 @@ $(function() {
             },
         },
         ajax: @json(route('studio.tables.breaks')),
-        order: [[1, 'asc']],
+        order: [[2, 'asc']],
         columns: [
             {data: 'title', name: 'title'},
+            {data: 'locations_label', name: 'locations_label'},
             {
                 data: 'starts_on',
                 name: 'starts_on',
@@ -214,10 +219,14 @@ $(function() {
         form.find('[name="reason"]').val(teachingBreak.reason || '');
         form.find('[name="starts_on"]').val(teachingBreak.starts_on || '');
         form.find('[name="ends_on"]').val(teachingBreak.ends_on || '');
+        form.find('[name="location_ids[]"]').prop('checked', false);
+        (teachingBreak.locations || []).forEach(function(location) {
+            form.find(`[name="location_ids[]"][value="${location.id}"]`).prop('checked', true);
+        });
         updateBreakImpact(form);
     });
 
-    $('.studio-break-form [name="starts_on"], .studio-break-form [name="ends_on"]').on('change', function() {
+    $('.studio-break-form [name="starts_on"], .studio-break-form [name="ends_on"], .studio-break-form [name="location_ids[]"]').on('change', function() {
         updateBreakImpact($(this).closest('form'));
     });
 

@@ -10,6 +10,11 @@
         <span id="teaching-break-reason"></span>
     </div>
 
+    <div class="mb-3">
+        @fa(['icon' => 'location-dot', 'classes' => 'opacity-4'])
+        <span id="teaching-break-locations"></span>
+    </div>
+
     <div class="studio-break-impact rounded p-3 mb-3">
         <div class="font-weight-bold" id="teaching-break-impact"></div>
     </div>

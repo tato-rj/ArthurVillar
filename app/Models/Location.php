@@ -15,6 +15,11 @@ class Location extends BaseModel
         return $this->hasMany(LessonPlan::class);
     }
 
+    public function teachingBreaks()
+    {
+        return $this->belongsToMany(TeachingBreak::class)->withTimestamps();
+    }
+
     public function netAmount($amount)
     {
         if (! $amount) {

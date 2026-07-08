@@ -5,25 +5,34 @@ namespace App\Http\Controllers\Studio;
 use App\Calendar\Scheduler;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Models\TeachingBreak;
+use App\Models\{Location, TeachingBreak};
 
 class TeachingBreaksController extends Controller
 {
     public function index()
     {
-        return view('studio.breaks.index');
+        $locations = Location::query()
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
+        return view('studio.breaks.index', compact('locations'));
     }
 
     public function store(Request $request)
     {
-        TeachingBreak::create($this->validatedBreak($request));
+        $data = $this->validatedBreak($request);
+        $break = TeachingBreak::create($this->breakAttributes($data));
+        $break->locations()->sync($data['location_ids'] ?? []);
 
         return back()->with('success', 'The teaching break was successfully created');
     }
 
     public function update(Request $request, TeachingBreak $break)
     {
-        $break->update($this->validatedBreak($request));
+        $data = $this->validatedBreak($request);
+        $break->update($this->breakAttributes($data));
+        $break->locations()->sync($data['location_ids'] ?? []);
 
         return back()->with('success', 'The teaching break was successfully updated');
     }
@@ -40,9 +49,11 @@ class TeachingBreaksController extends Controller
         $data = $request->validate([
             'starts_on' => ['required', 'date_format:Y-m-d', 'after_or_equal:today'],
             'ends_on' => ['required', 'date_format:Y-m-d', 'after_or_equal:starts_on'],
+            'location_ids' => ['nullable', 'array'],
+            'location_ids.*' => ['integer', 'exists:locations,id'],
         ]);
 
-        return response()->json($scheduler->breakImpact($data['starts_on'], $data['ends_on']));
+        return response()->json($scheduler->breakImpact($data['starts_on'], $data['ends_on'], $data['location_ids'] ?? []));
     }
 
     private function validatedBreak(Request $request)
@@ -52,6 +63,13 @@ class TeachingBreaksController extends Controller
             'reason' => ['nullable', 'string'],
             'starts_on' => ['required', 'date_format:Y-m-d', 'after_or_equal:today'],
             'ends_on' => ['required', 'date_format:Y-m-d', 'after_or_equal:starts_on'],
+            'location_ids' => ['nullable', 'array'],
+            'location_ids.*' => ['integer', 'exists:locations,id'],
         ]);
+    }
+
+    private function breakAttributes(array $data)
+    {
+        return collect($data)->except('location_ids')->all();
     }
 }

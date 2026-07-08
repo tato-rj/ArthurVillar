@@ -72,6 +72,7 @@ class TablesController extends Controller
     public function breaks(Scheduler $scheduler)
     {
         $breaks = TeachingBreak::query()
+            ->with('locations')
             ->select([
                 'id',
                 'title',
@@ -87,17 +88,46 @@ class TablesController extends Controller
             ->editColumn('ends_on', function (TeachingBreak $teachingBreak) {
                 return $teachingBreak->ends_on ? $teachingBreak->ends_on->toDateString() : null;
             })
+            ->addColumn('locations', function (TeachingBreak $teachingBreak) {
+                return $teachingBreak->locations
+                    ->map(fn ($location) => ['id' => $location->id, 'name' => $location->name])
+                    ->values();
+            })
+            ->addColumn('locations_label', function (TeachingBreak $teachingBreak) {
+                return $teachingBreak->locations->isEmpty()
+                    ? 'All locations'
+                    : $teachingBreak->locations->pluck('name')->join(', ');
+            })
             ->addColumn('lessons_count', function (TeachingBreak $teachingBreak) use ($scheduler) {
-                return $scheduler->breakImpact($teachingBreak->starts_on, $teachingBreak->ends_on)['lessons_count'];
+                return $scheduler->breakImpact(
+                    $teachingBreak->starts_on,
+                    $teachingBreak->ends_on,
+                    $teachingBreak->locations->pluck('id')->all()
+                )['lessons_count'];
             })
             ->addColumn('fee_amount', function (TeachingBreak $teachingBreak) use ($scheduler) {
-                return $scheduler->breakImpact($teachingBreak->starts_on, $teachingBreak->ends_on)['fee_amount'];
+                return $scheduler->breakImpact(
+                    $teachingBreak->starts_on,
+                    $teachingBreak->ends_on,
+                    $teachingBreak->locations->pluck('id')->all()
+                )['fee_amount'];
             })
             ->filterColumn('starts_on', function ($query, $keyword) {
                 $query->whereDate('starts_on', 'like', "%{$keyword}%");
             })
             ->filterColumn('ends_on', function ($query, $keyword) {
                 $query->whereDate('ends_on', 'like', "%{$keyword}%");
+            })
+            ->filterColumn('locations_label', function ($query, $keyword) {
+                $query->where(function ($query) use ($keyword) {
+                    if (str_contains(strtolower('All locations'), strtolower($keyword))) {
+                        $query->whereDoesntHave('locations');
+                    }
+
+                    $query->orWhereHas('locations', function ($query) use ($keyword) {
+                        $query->where('name', 'like', "%{$keyword}%");
+                    });
+                });
             })
             ->filterColumn('lessons_count', function () {
                 return;
@@ -107,6 +137,7 @@ class TablesController extends Controller
             })
             ->orderColumn('starts_on', 'starts_on $1')
             ->orderColumn('ends_on', 'ends_on $1')
+            ->orderColumn('locations_label', 'starts_on $1')
             ->orderColumn('lessons_count', 'starts_on $1')
             ->orderColumn('fee_amount', 'starts_on $1')
             ->toJson();

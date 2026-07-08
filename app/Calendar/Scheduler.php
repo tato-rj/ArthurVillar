@@ -27,7 +27,7 @@ class Scheduler
 
     public function plannedLessons(array $range, bool $applyTeachingBreaks = true)
     {
-        $excludedProjectedDates = $applyTeachingBreaks ? $this->excludedProjectedLessonDates($range) : collect();
+        $excludedProjectedDates = $applyTeachingBreaks ? $this->excludedProjectedLessonDates($range) : $this->emptyProjectedLessonExclusions();
         $lessonPlans = LessonPlan::with([
             'student',
             'location',
@@ -64,7 +64,7 @@ class Scheduler
 
     private function occurrences(LessonPlan $lessonPlan, array $range, $excludedProjectedDates = null)
     {
-        $excludedProjectedDates = $excludedProjectedDates ?: collect();
+        $excludedProjectedDates = $excludedProjectedDates ?: $this->emptyProjectedLessonExclusions();
         $start = Carbon::parse($range['start'])->startOfDay();
         $end = Carbon::parse($range['end'])->startOfDay();
         $startsOn = Carbon::parse($lessonPlan->starts_on)->startOfDay();
@@ -102,7 +102,7 @@ class Scheduler
         while ($occurrence->lte($end) && (! $endsOn || $occurrence->lte($endsOn))) {
             $occurrenceKey = $this->occurrenceKey($occurrence->toDateString(), $lessonPlan->start_time);
             $scheduledLesson = $lessonsByScheduledOccurrence->get($occurrenceKey);
-            $isExcludedProjectedDate = $excludedProjectedDates->has($occurrence->toDateString());
+            $isExcludedProjectedDate = $this->isExcludedProjectedLessonDate($occurrence, $lessonPlan, $excludedProjectedDates);
 
             if ($overridesByOriginal->has($occurrenceKey) || ($scheduledLesson && ! $this->lessonStartsOnOccurrence($scheduledLesson, $occurrence, $lessonPlan->start_time))) {
                 $occurrence->addDays($intervalDays);
@@ -194,27 +194,37 @@ class Scheduler
     public function teachingBreaks(array $range)
     {
         return TeachingBreak::query()
+            ->with('locations')
             ->overlapping($range['start'], $range['end'])
             ->orderBy('starts_on')
             ->get()
             ->map(function (TeachingBreak $teachingBreak) {
                 return array_merge($teachingBreak->toArray(), [
-                    'impact' => $this->breakImpact($teachingBreak->starts_on, $teachingBreak->ends_on),
+                    'impact' => $this->breakImpact(
+                        $teachingBreak->starts_on,
+                        $teachingBreak->ends_on,
+                        $teachingBreak->locations->pluck('id')->all()
+                    ),
                     'type' => 'teaching-break',
                 ]);
             })
             ->values();
     }
 
-    public function breakImpact($startsOn, $endsOn)
+    public function breakImpact($startsOn, $endsOn, array $locationIds = [])
     {
         $range = [
             'start' => Carbon::parse($startsOn)->toDateString(),
             'end' => Carbon::parse($endsOn)->toDateString(),
         ];
         $lessons = collect();
+        $locationIds = collect($locationIds)->filter()->map(fn ($id) => (int) $id)->values();
 
-        $this->plannedLessons($range, false)->each(function ($lessonPlan) use ($lessons) {
+        $this->plannedLessons($range, false)->each(function ($lessonPlan) use ($lessons, $locationIds) {
+            if ($locationIds->isNotEmpty() && ! $locationIds->contains((int) ($lessonPlan['location_id'] ?? 0))) {
+                return;
+            }
+
             collect($lessonPlan['occurrences'] ?? [])->each(function ($occurrence) use ($lessonPlan, $lessons) {
                 if (($occurrence['lesson_status'] ?? '') === 'canceled') {
                     return;
@@ -240,30 +250,35 @@ class Scheduler
         ];
     }
 
-    private function teachingBreakDates(array $range)
-    {
-        $dates = collect();
-
-        TeachingBreak::query()
-            ->overlapping($range['start'], $range['end'])
-            ->get()
-            ->each(function (TeachingBreak $teachingBreak) use ($dates) {
-                $date = Carbon::parse($teachingBreak->starts_on)->startOfDay();
-                $end = Carbon::parse($teachingBreak->ends_on)->startOfDay();
-
-                while ($date->lte($end)) {
-                    $dates->put($date->toDateString(), true);
-                    $date->addDay();
-                }
-            });
-
-        return $dates;
-    }
-
     private function excludedProjectedLessonDates(array $range)
     {
-        return $this->teachingBreakDates($range)
-            ->merge($this->holidayDates($range));
+        return [
+            'holidays' => $this->holidayDates($range),
+            'teachingBreaks' => TeachingBreak::query()
+                ->with('locations')
+                ->overlapping($range['start'], $range['end'])
+                ->get(),
+        ];
+    }
+
+    private function emptyProjectedLessonExclusions()
+    {
+        return [
+            'holidays' => collect(),
+            'teachingBreaks' => collect(),
+        ];
+    }
+
+    private function isExcludedProjectedLessonDate(Carbon $date, LessonPlan $lessonPlan, array $excludedProjectedDates)
+    {
+        if (($excludedProjectedDates['holidays'] ?? collect())->has($date->toDateString())) {
+            return true;
+        }
+
+        return ($excludedProjectedDates['teachingBreaks'] ?? collect())->contains(function (TeachingBreak $teachingBreak) use ($date, $lessonPlan) {
+            return $date->betweenIncluded($teachingBreak->starts_on, $teachingBreak->ends_on)
+                && $teachingBreak->appliesToLocation($lessonPlan->location_id);
+        });
     }
 
     private function lessonForOccurrence(LessonPlan $lessonPlan, Carbon $occurrence, $startTime)

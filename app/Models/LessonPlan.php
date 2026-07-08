@@ -369,9 +369,14 @@ class LessonPlan extends BaseModel
         $dates = collect();
 
         TeachingBreak::query()
+            ->with('locations')
             ->overlapping($start->toDateString(), $end->toDateString())
             ->get()
             ->each(function (TeachingBreak $teachingBreak) use ($dates, $start, $end) {
+                if (! $teachingBreak->appliesToLocation($this->location_id)) {
+                    return;
+                }
+
                 $date = $teachingBreak->starts_on->copy()->max($start)->startOfDay();
                 $breakEnd = $teachingBreak->ends_on->copy()->min($end)->startOfDay();
 
