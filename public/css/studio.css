@@ -31902,6 +31902,10 @@ form.form-borderless.form-light input.form-control:not([readonly]), form.form-bo
   z-index: 3;
 }
 
+.studio-schedule-holiday-cell > *:not(:last-child) {
+  margin-bottom: 2px;
+}
+
 #calendar.studio-calendar-day-view .lm-schedule thead td.studio-schedule-holiday-zone,
 #calendar.studio-calendar-day-view .lm-schedule thead td.studio-schedule-holiday-cell {
   padding: 0.28rem;
