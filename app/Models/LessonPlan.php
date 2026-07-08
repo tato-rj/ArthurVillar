@@ -65,9 +65,11 @@ class LessonPlan extends BaseModel
             return false;
         }
 
-        $today = today();
+        $today = today()->startOfDay();
+        $startsOn = $this->starts_on->copy()->startOfDay();
+        $endsOn = $this->ends_on->copy()->startOfDay();
 
-        return $this->starts_on->lt($today) && $this->ends_on->gt($today);
+        return $startsOn->lte($today) && $endsOn->gte($today);
     }
 
     public function getWeekdayNameAttribute()

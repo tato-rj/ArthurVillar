@@ -61,6 +61,18 @@ class StudentTest extends BaseTest
     }
 
     /** @test */
+    public function a_student_current_lesson_plan_includes_plans_starting_today()
+    {
+        $lessonPlan = LessonPlan::factory()->student($this->student)->create([
+            'starts_on' => today()->toDateString(),
+            'ends_on' => today()->addMonth()->toDateString(),
+        ]);
+
+        $this->assertTrue($lessonPlan->is($this->student->currentLessonPlan()));
+        $this->assertTrue($lessonPlan->is($this->student->load('lessonPlans')->currentLessonPlan()));
+    }
+
+    /** @test */
     public function deleting_a_student_deletes_its_lesson_plans_schedule_overrides_and_lessons()
     {
         $lessonPlan = LessonPlan::factory()->student($this->student)->create();

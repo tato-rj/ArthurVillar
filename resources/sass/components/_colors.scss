@@ -246,5 +246,5 @@
 }
 
 .btn-warning {
-	@extend .text-dark;
+	@extend .text-dark, .border, .border-black;
 }

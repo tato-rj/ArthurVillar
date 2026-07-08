@@ -54,8 +54,8 @@ class Student extends Model
             ->where('status', 'active')
             ->whereNotNull('starts_on')
             ->whereNotNull('ends_on')
-            ->whereDate('starts_on', '<', $today->toDateString())
-            ->whereDate('ends_on', '>', $today->toDateString())
+            ->whereDate('starts_on', '<=', $today->toDateString())
+            ->whereDate('ends_on', '>=', $today->toDateString())
             ->latest('starts_on')
             ->first();
     }

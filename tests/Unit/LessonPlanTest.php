@@ -85,12 +85,12 @@ class LessonPlanTest extends BaseTest
             'ends_on' => null,
         ])->isCurrent());
 
-        $this->assertFalse(LessonPlan::factory()->make([
+        $this->assertTrue(LessonPlan::factory()->make([
             'starts_on' => '2026-07-08',
             'ends_on' => '2026-07-31',
         ])->isCurrent());
 
-        $this->assertFalse(LessonPlan::factory()->make([
+        $this->assertTrue(LessonPlan::factory()->make([
             'starts_on' => '2026-07-01',
             'ends_on' => '2026-07-08',
         ])->isCurrent());
