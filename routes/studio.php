@@ -85,10 +85,6 @@ Route::prefix('locations')->name('locations.')->group(function() {
 	});
 });
 
-Route::prefix('payments')->name('payments.')->group(function() {
-	Route::get('', 'PaymentsController@index')->name('index');
-});
-
 Route::prefix('lessons')->name('lessons.')->group(function() {
 	Route::get('', 'LessonsController@index')->name('index');
 
@@ -111,7 +107,6 @@ Route::prefix('tables')->name('tables.')->group(function() {
 	Route::get('breaks', 'TablesController@breaks')->name('breaks');
 	Route::get('lessons', 'TablesController@lessons')->name('lessons');
 	Route::get('locations', 'TablesController@locations')->name('locations');
-	Route::get('payments', 'TablesController@payments')->name('payments');
 
 	Route::get('students', 'TablesController@students')->name('students');
 	Route::get('waiting-list', 'TablesController@waitingList')->name('waiting-list');

@@ -4,9 +4,8 @@
   <div class="offcanvas-header d-apart">
     <div class="position-relative w-100">
       <ul class="subdomains-select border rounded-sm" aria-label="Switch website">
-        @php($currentSubdomain = subdomain())
         @foreach($subdomains as $subdomain)
-        @php($isCurrentSubdomain = strtolower($subdomain['label']) == $currentSubdomain)
+        @php($isCurrentSubdomain = strtolower($subdomain['label']) == subdomain())
         <li class="subdomain-option {{$isCurrentSubdomain ? 'is-current' : 'opacity-4'}} small fw-bold">
           @if($isCurrentSubdomain)
           <button type="button" class="subdomain-select-toggle" aria-expanded="false">
@@ -34,12 +33,15 @@
 
       @foreach($routes as $route => $label)
       <li class="nav-item">
-        <a class="nav-link" href="{{route($route)}}">{{$label}}</a>
+        <a class="nav-link" href="{{route($route)}}">{{str_replace('*', '', $label)}}</a>
       </li>
+
+      @if(str_contains($label, '*'))
+      <hr>
+      @endif
       @endforeach
 
-      <hr>
-      <li class="nav-item">
+      <li class="nav-item mt-3">
         @include('auth.logout')
       </li>
     </ul>

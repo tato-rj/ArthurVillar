@@ -143,94 +143,6 @@ class TablesController extends Controller
             ->toJson();
     }
 
-    public function payments()
-    {
-        $driver = DB::connection()->getDriverName();
-        $lessonDateExpression = $driver === 'sqlite'
-            ? "COALESCE(lessons.scheduled_date, date(lessons.starts_at))"
-            : "COALESCE(lessons.scheduled_date, DATE(lessons.starts_at))";
-        $paidDateExpression = $driver === 'sqlite'
-            ? "date(lessons.paid_at)"
-            : "DATE(lessons.paid_at)";
-        $studentExpression = $driver === 'sqlite'
-            ? "students.first_name || ' ' || COALESCE(students.last_name, '')"
-            : "CONCAT(students.first_name, ' ', COALESCE(students.last_name, ''))";
-
-        $payments = Lesson::query()
-            ->join('students', 'students.id', '=', 'lessons.student_id')
-            ->whereNotNull('lessons.paid_at')
-            ->when(request('paid_from'), function ($query, $date) {
-                $query->whereDate('lessons.paid_at', '>=', $date);
-            })
-            ->when(request('paid_to'), function ($query, $date) {
-                $query->whereDate('lessons.paid_at', '<=', $date);
-            })
-            ->select([
-                'lessons.id',
-                'lessons.fee_amount',
-                'lessons.payment_method',
-                'lessons.paid_at',
-                DB::raw("$studentExpression as student"),
-                DB::raw("$paidDateExpression as paid_on"),
-                DB::raw("$lessonDateExpression as lesson_date"),
-            ]);
-
-        return DataTables::eloquent($payments)
-            ->editColumn('paid_on', function (Lesson $lesson) {
-                return $lesson->paid_on
-                    ? carbon($lesson->paid_on)->toDateString()
-                    : null;
-            })
-            ->editColumn('lesson_date', function (Lesson $lesson) {
-                return $lesson->lesson_date
-                    ? carbon($lesson->lesson_date)->toDateString()
-                    : null;
-            })
-            ->filterColumn('student', function ($query, $keyword) use ($studentExpression) {
-                $query->whereRaw("$studentExpression LIKE ?", ["%{$keyword}%"]);
-            })
-            ->filterColumn('paid_on', function ($query, $keyword) use ($paidDateExpression, $driver) {
-                $formattedDate = $driver === 'sqlite'
-                    ? "strftime('%m/%d/%Y', $paidDateExpression)"
-                    : "DATE_FORMAT($paidDateExpression, '%m/%d/%Y')";
-
-                $query->where(function ($query) use ($keyword, $paidDateExpression, $formattedDate) {
-                    $query
-                        ->whereRaw("$paidDateExpression LIKE ?", ["%{$keyword}%"])
-                        ->orWhereRaw("$formattedDate LIKE ?", ["%{$keyword}%"]);
-                });
-            })
-            ->filterColumn('lesson_date', function ($query, $keyword) use ($lessonDateExpression, $driver) {
-                $formattedDate = $driver === 'sqlite'
-                    ? "strftime('%m/%d/%Y', $lessonDateExpression)"
-                    : "DATE_FORMAT($lessonDateExpression, '%m/%d/%Y')";
-
-                $query->where(function ($query) use ($keyword, $lessonDateExpression, $formattedDate) {
-                    $query
-                        ->whereRaw("$lessonDateExpression LIKE ?", ["%{$keyword}%"])
-                        ->orWhereRaw("$formattedDate LIKE ?", ["%{$keyword}%"]);
-                });
-            })
-            ->filterColumn('fee_amount', function ($query, $keyword) {
-                $numericKeyword = preg_replace('/[^0-9.]/', '', $keyword);
-
-                $query->where(function ($query) use ($keyword, $numericKeyword) {
-                    $query->whereRaw("CONCAT('$', CAST(lessons.fee_amount / 100 AS CHAR)) LIKE ?", ["%{$keyword}%"]);
-
-                    if ($numericKeyword !== '') {
-                        $query->orWhereRaw('CAST(lessons.fee_amount / 100 AS CHAR) LIKE ?', ["%{$numericKeyword}%"])
-                            ->orWhereRaw('CAST(lessons.fee_amount AS CHAR) LIKE ?', ["%{$numericKeyword}%"]);
-                    }
-                });
-            })
-            ->orderColumn('student', 'student $1')
-            ->orderColumn('paid_on', 'lessons.paid_at $1')
-            ->orderColumn('lesson_date', "$lessonDateExpression $1")
-            ->orderColumn('fee_amount', 'fee_amount $1')
-            ->orderColumn('payment_method', 'payment_method $1')
-            ->toJson();
-    }
-
     public function lessons()
     {
         $driver = DB::connection()->getDriverName();
@@ -263,6 +175,12 @@ class TablesController extends Controller
             ->join('students', 'students.id', '=', 'lessons.student_id')
             ->when(request('student_id'), function ($query, $studentId) {
                 $query->where('lessons.student_id', $studentId);
+            })
+            ->when(request('paid_from'), function ($query, $date) {
+                $query->whereDate('lessons.paid_at', '>=', $date);
+            })
+            ->when(request('paid_to'), function ($query, $date) {
+                $query->whereDate('lessons.paid_at', '<=', $date);
             })
             ->select([
                 'lessons.id',

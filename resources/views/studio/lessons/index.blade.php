@@ -12,6 +12,18 @@
         ])
     </div>
 
+    <div class="studio-table-filters mb-3">
+        <label>
+            <span>From</span>
+            <input type="date" id="lessons-paid-from">
+        </label>
+        <label>
+            <span>To</span>
+            <input type="date" id="lessons-paid-to">
+        </label>
+        <button type="button" id="lessons-clear-dates" class="btn btn-sm btn-secondary rounded">Clear</button>
+    </div>
+
     <div id="lessons-container" class="studio-table-container studio-table-container-lg">
         <table id="lessons-table" class="display studio-table">
             <thead>
@@ -79,7 +91,7 @@ $(function() {
         return `${hour}:${String(minutes).padStart(2, '0')} ${suffix}`;
     };
 
-    window.studioDataTableState.create('#lessons-table', {
+    const lessonsTable = window.studioDataTableState.create('#lessons-table', {
         processing: false,
         serverSide: true,
         autoWidth: false,
@@ -94,7 +106,13 @@ $(function() {
                 next: '<i class="fas fa-angle-right mr-0"></i>',
             },
         },
-        ajax: @json(route('studio.tables.lessons')),
+        ajax: {
+            url: @json(route('studio.tables.lessons')),
+            data: function(data) {
+                data.paid_from = $('#lessons-paid-from').val();
+                data.paid_to = $('#lessons-paid-to').val();
+            },
+        },
         columns: [
             {data: 'student', name: 'student'},
             {
@@ -160,6 +178,26 @@ $(function() {
                 },
             },
         ],
+    }, {
+        restore: function(params) {
+            $('#lessons-paid-from').val(params.get('paid_from') || '');
+            $('#lessons-paid-to').val(params.get('paid_to') || '');
+        },
+        extraParams: function() {
+            return {
+                paid_from: $('#lessons-paid-from').val(),
+                paid_to: $('#lessons-paid-to').val(),
+            };
+        },
+    });
+
+    $('#lessons-paid-from, #lessons-paid-to').on('change', function() {
+        lessonsTable.ajax.reload();
+    });
+
+    $('#lessons-clear-dates').on('click', function() {
+        $('#lessons-paid-from, #lessons-paid-to').val('');
+        lessonsTable.ajax.reload();
     });
 });
 </script>
