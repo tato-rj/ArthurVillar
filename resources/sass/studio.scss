@@ -794,13 +794,31 @@
     width: 14px;
 }
 
-#calendar .lm-schedule-item[past-event], 
-#calendar .studio-month-event[past-event], 
-#calendar .studio-schedule-event[past-event],
-#calendar .studio-schedule-holiday-cell[past-event],
-#calendar .studio-month-event-holiday[past-event] {
-    opacity: .6;
-} 
+
+
+    // .lm-schedule-item[past-event], 
+    // .studio-month-event[past-event], 
+    // .studio-schedule-event[past-event],
+    // .studio-month-event-holiday[past-event] {
+    //     opacity: .6 !important;
+    // }
+
+#calendar {
+    .studio-schedule-break[past-event],
+    .studio-month-event-break[past-event],
+    .studio-month-event-dot[past-event],
+    .studio-schedule-event-break[past-event],
+    .studio-schedule-event-holiday[past-event],
+    .studio-schedule-holiday[past-event],
+    .studio-month-event-holiday[past-event],
+    .studio-schedule-holiday-cell[past-event],
+    .lm-schedule-item[past-event], 
+    .studio-month-event[past-event], 
+    .studio-schedule-event[past-event],
+    .studio-month-event-holiday[past-event] {
+        opacity: .6;
+    } 
+}
 
 #calendar .lm-schedule-item {
     cursor: pointer !important;

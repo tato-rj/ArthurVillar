@@ -32037,10 +32037,17 @@ form.form-borderless.form-light input.form-control:not([readonly]), form.form-bo
   width: 14px;
 }
 
+#calendar .studio-schedule-break[past-event],
+#calendar .studio-month-event-break[past-event],
+#calendar .studio-month-event-dot[past-event],
+#calendar .studio-schedule-event-break[past-event],
+#calendar .studio-schedule-event-holiday[past-event],
+#calendar .studio-schedule-holiday[past-event],
+#calendar .studio-month-event-holiday[past-event],
+#calendar .studio-schedule-holiday-cell[past-event],
 #calendar .lm-schedule-item[past-event],
 #calendar .studio-month-event[past-event],
 #calendar .studio-schedule-event[past-event],
-#calendar .studio-schedule-holiday-cell[past-event],
 #calendar .studio-month-event-holiday[past-event] {
   opacity: 0.6;
 }

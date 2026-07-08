@@ -697,6 +697,7 @@ const patchScheduleHolidays = function(calendar) {
 
             item.className = 'studio-schedule-holiday';
             item.textContent = holiday.title;
+            applyDateStatusAttributes(item, dateString);
             cell.appendChild(item);
         });
 
@@ -707,6 +708,7 @@ const patchScheduleHolidays = function(calendar) {
             item.className = 'studio-schedule-holiday studio-schedule-break';
             item.textContent = teachingBreak.title;
             item.dataset.eventGuid = `teaching-break-${teachingBreak.id}-${dateString}`;
+            applyDateStatusAttributes(item, dateString);
             cell.appendChild(item);
         });
 
@@ -1541,6 +1543,19 @@ const applyDateStatusAttributes = function(element, dateString) {
     element.toggleAttribute('future-event', dateString > today);
 };
 
+const applyCalendarItemStatusAttributes = function(element, event, fallbackDateString) {
+    if (!element) {
+        return;
+    }
+
+    if (event && (event.isHoliday || event.isBreak)) {
+        applyDateStatusAttributes(element, event.date || fallbackDateString);
+        return;
+    }
+
+    applyEventTimeStatusAttributes(element, event);
+};
+
 const formatSelectTime = function(value) {
     const match = normalizeTime(value).match(/^(\d{2}):(\d{2})/);
     let hour = Number(match[1]);
@@ -1950,8 +1965,8 @@ const renderMonthCalendar = function(calendar) {
             item.dataset.lessonStatus = event.isHoliday ? 'holiday' : (event.isBreak ? 'teaching-break' : (event.calendarStatus || event.lessonStatus || 'unconfirmed'));
             dot.dataset.eventGuid = event.guid || '';
             dot.dataset.lessonStatus = event.isHoliday ? 'holiday' : (event.isBreak ? 'teaching-break' : (event.calendarStatus || event.lessonStatus || 'unconfirmed'));
-            applyEventTimeStatusAttributes(item, event);
-            applyEventTimeStatusAttributes(dot, event);
+            applyCalendarItemStatusAttributes(item, event, dateString);
+            applyCalendarItemStatusAttributes(dot, event, dateString);
 
             time.textContent = event.isHoliday || event.isBreak ? '' : formatEventTime(event.start);
             title.textContent = event.title || 'No title';
@@ -2043,7 +2058,7 @@ const renderScheduleAgenda = function(calendar) {
             title.textContent = event.title || 'No title';
             item.dataset.eventGuid = event.guid || '';
             item.dataset.lessonStatus = event.isHoliday ? 'holiday' : (event.isBreak ? 'teaching-break' : (event.calendarStatus || event.lessonStatus || 'unconfirmed'));
-            applyEventTimeStatusAttributes(item, event);
+            applyCalendarItemStatusAttributes(item, event, dateString);
 
             if (!event.isHoliday && !event.isBreak) {
                 const time = document.createElement('span');
@@ -2137,6 +2152,8 @@ const renderYearCalendar = function(calendar) {
             if (getBreaksForDateString(dateString).length) {
                 button.classList.add('is-break');
             }
+
+            applyDateStatusAttributes(button, dateString);
 
             grid.appendChild(button);
         }
