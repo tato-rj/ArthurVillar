@@ -40,6 +40,12 @@ class HolidaySeeder extends Seeder
                 'week_number' => 3,
             ],
             [
+                'slug' => 'easter-sunday',
+                'title' => 'Easter Sunday',
+                'rule' => Holiday::EASTER,
+                'observes_substitute_date' => false,
+            ],
+            [
                 'slug' => 'memorial-day',
                 'title' => 'Memorial Day',
                 'rule' => Holiday::LAST_WEEKDAY,

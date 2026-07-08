@@ -9,6 +9,7 @@ class Holiday extends BaseModel
     public const FIXED_DATE = 'fixed_date';
     public const NTH_WEEKDAY = 'nth_weekday';
     public const LAST_WEEKDAY = 'last_weekday';
+    public const EASTER = 'easter';
 
     protected $casts = [
         'is_observed' => 'boolean',
@@ -58,6 +59,10 @@ class Holiday extends BaseModel
 
         if ($this->rule === static::LAST_WEEKDAY) {
             return $this->lastWeekdayOfMonth($year, $this->month, $this->weekday);
+        }
+
+        if ($this->rule === static::EASTER) {
+            return Carbon::createFromTimestamp(easter_date($year))->startOfDay();
         }
 
         throw new \InvalidArgumentException('Unsupported holiday rule.');

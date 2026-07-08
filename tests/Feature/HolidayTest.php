@@ -60,4 +60,28 @@ class HolidayTest extends BaseTest
                 'title' => 'Independence Day',
             ]);
     }
+
+    /** @test */
+    public function easter_sunday_can_be_observed_on_the_calendar()
+    {
+        Holiday::create([
+            'slug' => 'easter-sunday',
+            'title' => 'Easter Sunday',
+            'rule' => Holiday::EASTER,
+            'is_observed' => true,
+            'observes_substitute_date' => false,
+        ]);
+
+        $this->signIn();
+
+        $this
+            ->getJson(route('studio.home', [
+                'view' => 'day',
+                'date' => '2026-04-05',
+                'lesson_plans' => 1,
+            ]))
+            ->assertOk()
+            ->assertJsonPath('holidays.0.title', 'Easter Sunday')
+            ->assertJsonPath('holidays.0.date', '2026-04-05');
+    }
 }
