@@ -41,11 +41,23 @@ class Student extends Model
     
     public function currentLessonPlan()
     {
+        $today = today();
+
         if ($this->relationLoaded('lessonPlans')) {
-            return $this->lessonPlans->sortByDesc('created_at')->first();
+            return $this->lessonPlans
+                ->filter(fn (LessonPlan $lessonPlan) => $lessonPlan->isCurrent())
+                ->sortByDesc('starts_on')
+                ->first();
         }
 
-        return $this->lessonPlans()->latest()->first();
+        return $this->lessonPlans()
+            ->where('status', 'active')
+            ->whereNotNull('starts_on')
+            ->whereNotNull('ends_on')
+            ->whereDate('starts_on', '<', $today->toDateString())
+            ->whereDate('ends_on', '>', $today->toDateString())
+            ->latest('starts_on')
+            ->first();
     }
 
     public function getAgeAttribute()

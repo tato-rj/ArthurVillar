@@ -26,7 +26,7 @@
 	</div>
 
 	<div class="row"> 
-		@input(['placeholder' => 'Starts on', 'name' => 'starts_on', 'value' => old('starts_on'), 'type' => 'date', 'grid' => 'col', 'required' => true])
+		@input(['placeholder' => 'Starts on', 'name' => 'starts_on', 'value' => old('starts_on'), 'type' => 'date', 'grid' => 'col'])
 
 		@input(['placeholder' => 'Ends on', 'name' => 'ends_on', 'value' => old('ends_on'), 'type' => 'date', 'grid' => 'col'])
 	</div>

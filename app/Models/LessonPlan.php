@@ -61,7 +61,13 @@ class LessonPlan extends BaseModel
 
     public function isCurrent()
     {
-        return ! is_null($this->starts_on) && (is_null($this->ends_on) || $this->ends_on->gt(now()));
+        if (! $this->starts_on || ! $this->ends_on) {
+            return false;
+        }
+
+        $today = today();
+
+        return $this->starts_on->lt($today) && $this->ends_on->gt($today);
     }
 
     public function getWeekdayNameAttribute()

@@ -287,6 +287,7 @@ class TablesController extends Controller
     public function students()
     {
         $driver = DB::connection()->getDriverName();
+        $today = today()->toDateString();
         $weekdayExpression = "CASE current_lesson_plan.weekday
             WHEN 1 THEN 'sunday'
             WHEN 2 THEN 'monday'
@@ -299,6 +300,11 @@ class TablesController extends Controller
 
         $currentLessonPlans = DB::table('lesson_plans')
             ->select('student_id', DB::raw('MAX(id) as lesson_plan_id'))
+            ->where('status', 'active')
+            ->whereNotNull('starts_on')
+            ->whereNotNull('ends_on')
+            ->whereDate('starts_on', '<', $today)
+            ->whereDate('ends_on', '>', $today)
             ->groupBy('student_id');
 
         $students = Student::query()

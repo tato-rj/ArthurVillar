@@ -25,7 +25,10 @@ class StudentTest extends BaseTest
     /** @test */
     public function a_student_has_many_lessons()
     {
-        LessonPlan::factory()->student($this->student)->create();
+        LessonPlan::factory()->student($this->student)->create([
+            'starts_on' => today()->subMonth()->toDateString(),
+            'ends_on' => today()->addMonth()->toDateString(),
+        ]);
 
         Lesson::factory()->student($this->student)->create();
         Lesson::factory()->student($this->student)->paid($this->student->currentLessonPlan()->fee_amount)->create();
@@ -36,7 +39,10 @@ class StudentTest extends BaseTest
     /** @test */
     public function a_student_has_many_paid_and_unpaid_lessons()
     {
-        LessonPlan::factory()->student($this->student)->create();
+        LessonPlan::factory()->student($this->student)->create([
+            'starts_on' => today()->subMonth()->toDateString(),
+            'ends_on' => today()->addMonth()->toDateString(),
+        ]);
 
         Lesson::factory()->student($this->student)->create();
         Lesson::factory()->student($this->student)->paid($this->student->currentLessonPlan()->fee_amount)->create();

@@ -17,7 +17,7 @@ class LessonPlansController extends Controller
     {
         $data = $this->validateLessonPlan($request);
 
-        $this->validateStudentDoesNotHaveCurrentLessonPlan($data['student_id']);
+        $this->validateLessonPlanDoesNotOverlap($data['student_id'], $data['starts_on'] ?? null, $data['ends_on'] ?? null);
 
         LessonPlan::create($this->lessonPlanAttributes($data));
 
@@ -48,7 +48,11 @@ class LessonPlansController extends Controller
 
     public function update(Request $request, LessonPlan $lessonPlan)
     {
-        $lessonPlan->update($this->lessonPlanAttributes($this->validateLessonPlan($request), $lessonPlan));
+        $data = $this->validateLessonPlan($request);
+
+        $this->validateLessonPlanDoesNotOverlap($lessonPlan->student_id, $data['starts_on'] ?? null, $data['ends_on'] ?? null, $lessonPlan);
+
+        $lessonPlan->update($this->lessonPlanAttributes($data, $lessonPlan));
 
         return back()->with('success', 'The lesson plan was successfully updated');
     }
@@ -136,7 +140,7 @@ class LessonPlansController extends Controller
             'weekday' => ['required', 'integer', 'between:1,7'],
             'recurrence_interval' => ['required', 'integer', 'min:1'],
             'starts_on' => ['nullable', 'date'],
-            'ends_on' => ['nullable', 'date'],
+            'ends_on' => ['nullable', 'date', 'after_or_equal:starts_on'],
             'start_time' => ['required', 'date_format:H:i', Rule::in(LessonPlan::timeOptions())],
             'duration_minutes' => ['required', 'integer', 'min:15'],
             'fee_amount' => ['nullable', 'string'],
@@ -147,21 +151,29 @@ class LessonPlansController extends Controller
         ]);
     }
 
-    private function validateStudentDoesNotHaveCurrentLessonPlan($studentId)
+    private function validateLessonPlanDoesNotOverlap($studentId, $startsOn, $endsOn, LessonPlan $ignoreLessonPlan = null)
     {
-        $hasCurrentLessonPlan = LessonPlan::where('student_id', $studentId)
+        if (empty($startsOn) || empty($endsOn)) {
+            return;
+        }
+
+        $startsOn = $this->lessonPlanDate($startsOn);
+        $endsOn = $this->lessonPlanDate($endsOn);
+
+        $hasOverlappingLessonPlan = LessonPlan::where('student_id', $studentId)
             ->where('status', 'active')
             ->whereNotNull('starts_on')
-            ->where(function ($query) {
-                $query
-                    ->whereNull('ends_on')
-                    ->orWhereDate('ends_on', '>', now()->toDateString());
+            ->whereNotNull('ends_on')
+            ->when($ignoreLessonPlan, function ($query) use ($ignoreLessonPlan) {
+                $query->whereKeyNot($ignoreLessonPlan->getKey());
             })
+            ->whereDate('starts_on', '<=', $endsOn)
+            ->whereDate('ends_on', '>=', $startsOn)
             ->exists();
 
-        if ($hasCurrentLessonPlan) {
+        if ($hasOverlappingLessonPlan) {
             throw ValidationException::withMessages([
-                'student_id' => 'There is already an active lesson plan.',
+                'starts_on' => 'This lesson plan overlaps with another lesson plan.',
             ]);
         }
     }

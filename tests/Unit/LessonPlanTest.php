@@ -66,6 +66,39 @@ class LessonPlanTest extends BaseTest
     }
 
     /** @test */
+    public function it_is_current_only_when_today_is_inside_a_complete_date_range()
+    {
+        Carbon::setTestNow(Carbon::parse('2026-07-08 12:00:00'));
+
+        $this->assertTrue(LessonPlan::factory()->make([
+            'starts_on' => '2026-07-01',
+            'ends_on' => '2026-07-31',
+        ])->isCurrent());
+
+        $this->assertFalse(LessonPlan::factory()->make([
+            'starts_on' => null,
+            'ends_on' => '2026-07-31',
+        ])->isCurrent());
+
+        $this->assertFalse(LessonPlan::factory()->make([
+            'starts_on' => '2026-07-01',
+            'ends_on' => null,
+        ])->isCurrent());
+
+        $this->assertFalse(LessonPlan::factory()->make([
+            'starts_on' => '2026-07-08',
+            'ends_on' => '2026-07-31',
+        ])->isCurrent());
+
+        $this->assertFalse(LessonPlan::factory()->make([
+            'starts_on' => '2026-07-01',
+            'ends_on' => '2026-07-08',
+        ])->isCurrent());
+
+        Carbon::setTestNow();
+    }
+
+    /** @test */
     public function it_queries_lesson_plans_that_have_an_occurrence_inside_a_date_range()
     {
         $weekly = LessonPlan::factory()->create([

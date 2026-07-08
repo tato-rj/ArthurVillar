@@ -9,27 +9,57 @@ use App\Models\{Lesson, LessonPlan, Location, ScheduleOverride, Student};
 class StudioLessonFlowTest extends BaseTest
 {
     /** @test */
-    public function it_does_not_create_a_lesson_plan_when_the_student_already_has_a_current_active_plan()
+    public function it_does_not_create_a_lesson_plan_that_overlaps_another_complete_lesson_plan()
     {
         $student = Student::factory()->create();
 
         LessonPlan::factory()->student($student)->create([
             'status' => 'active',
-            'starts_on' => today()->subWeek()->toDateString(),
-            'ends_on' => null,
+            'starts_on' => '2026-07-01',
+            'ends_on' => '2026-09-01',
         ]);
 
         $this->signIn();
 
         $response = $this->from(route('studio.students.index'))->post(route('studio.lesson-plans.store'), $this->lessonPlanPayload([
             'student_id' => $student->id,
+            'starts_on' => '07/15/2026',
+            'ends_on' => '08/15/2026',
         ]));
 
         $response
             ->assertRedirect(route('studio.students.index'))
-            ->assertSessionHasErrors(['student_id' => 'There is already an active lesson plan.']);
+            ->assertSessionHasErrors(['starts_on' => 'This lesson plan overlaps with another lesson plan.']);
 
         $this->assertCount(1, $student->lessonPlans()->get());
+    }
+
+    /** @test */
+    public function it_does_not_update_a_lesson_plan_to_overlap_another_complete_lesson_plan()
+    {
+        $student = Student::factory()->create();
+        $existingLessonPlan = LessonPlan::factory()->student($student)->create([
+            'starts_on' => '2026-07-01',
+            'ends_on' => '2026-09-01',
+        ]);
+        $lessonPlan = LessonPlan::factory()->student($student)->create([
+            'starts_on' => null,
+            'ends_on' => null,
+        ]);
+
+        $this->signIn();
+
+        $this->from(route('studio.lessons.student', $student))
+            ->patch(route('studio.lesson-plans.update', $lessonPlan), $this->lessonPlanPayload([
+                'student_id' => $student->id,
+                'starts_on' => '08/01/2026',
+                'ends_on' => '08/31/2026',
+            ]))
+            ->assertRedirect(route('studio.lessons.student', $student))
+            ->assertSessionHasErrors(['starts_on' => 'This lesson plan overlaps with another lesson plan.']);
+
+        $this->assertSame('2026-07-01', $existingLessonPlan->fresh()->starts_on->toDateString());
+        $this->assertNull($lessonPlan->fresh()->starts_on);
     }
 
     /** @test */
@@ -50,6 +80,7 @@ class StudioLessonFlowTest extends BaseTest
         $response = $this->post(route('studio.lesson-plans.store'), $this->lessonPlanPayload([
             'student_id' => $student->id,
             'starts_on' => '07/05/2026',
+            'ends_on' => '08/05/2026',
         ]));
 
         $response->assertRedirect();
