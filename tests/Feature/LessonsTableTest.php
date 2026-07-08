@@ -69,4 +69,30 @@ class LessonsTableTest extends BaseTest
             ->assertJsonFragment(['student' => 'First Lesson'])
             ->assertJsonFragment(['student' => 'Second Lesson']);
     }
+
+    /** @test */
+    public function it_shows_canceled_lessons_as_canceled_instead_of_unpaid()
+    {
+        $student = Student::factory()->create([
+            'first_name' => 'Canceled',
+            'last_name' => 'Lesson',
+        ]);
+        $lessonPlan = LessonPlan::factory()->student($student)->create();
+
+        Lesson::factory()->lessonPlan($lessonPlan)->create([
+            'canceled_at' => '2026-07-15 12:00:00',
+            'canceled_by' => 'teacher',
+            'paid_at' => null,
+        ]);
+
+        $this->signIn();
+
+        $this->getJson(route('studio.tables.lessons'))
+            ->assertOk()
+            ->assertJsonFragment([
+                'student' => 'Canceled Lesson',
+                'payment' => 'Canceled',
+                'payment_class' => 'text-light',
+            ]);
+    }
 }

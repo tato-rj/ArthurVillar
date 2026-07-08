@@ -238,6 +238,8 @@ class TablesController extends Controller
                 'lessons.ends_at',
                 'lessons.fee_amount',
                 'lessons.paid_at',
+                'lessons.canceled_at',
+                'lessons.canceled_by',
                 DB::raw("$studentExpression as student"),
                 DB::raw("$dateExpression as scheduled_date"),
                 DB::raw("$timeExpression as start_time"),
@@ -253,12 +255,20 @@ class TablesController extends Controller
                     : null;
             })
             ->addColumn('payment', function (Lesson $lesson) {
+                if ($lesson->paymentStatus() === 'canceled') {
+                    return 'Canceled';
+                }
+
                 return $lesson->paid_at
                     ? $lesson->paid_at->toFormattedDateString()
                     : 'Unpaid';
             })
             ->addColumn('payment_class', function (Lesson $lesson) {
-                return $lesson->paid_at ? 'text-green' : 'text-red';
+                return match ($lesson->paymentStatus()) {
+                    'paid' => 'text-green',
+                    'canceled' => 'text-light',
+                    default => 'text-red',
+                };
             })
             ->filterColumn('student', function ($query, $keyword) use ($studentExpression) {
                 $query->whereRaw("$studentExpression LIKE ?", ["%{$keyword}%"]);
@@ -308,11 +318,24 @@ class TablesController extends Controller
 
                 $query->where(function ($query) use ($keyword, $driver) {
                     if ($keyword !== 'paid' && str_contains('unpaid', $keyword)) {
-                        $query->orWhereNull('lessons.paid_at');
+                        $query->orWhere(function ($query) {
+                            $query
+                                ->whereNull('lessons.paid_at')
+                                ->whereNull('lessons.canceled_at');
+                        });
                     }
 
                     if (str_contains('paid', $keyword)) {
-                        $query->orWhereNotNull('lessons.paid_at');
+                        $query
+                            ->orWhere(function ($query) {
+                                $query
+                                    ->whereNotNull('lessons.paid_at')
+                                    ->whereNull('lessons.canceled_at');
+                            });
+                    }
+
+                    if (str_contains('canceled', $keyword) || str_contains('cancelled', $keyword)) {
+                        $query->orWhereNotNull('lessons.canceled_at');
                     }
 
                     if ($keyword !== '') {
