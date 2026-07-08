@@ -23,6 +23,12 @@
 		@input(['label' => 'Date of birth', 'name' => 'date_of_birth', 'value' => $student->date_of_birth ? \Carbon\Carbon::parse($student->date_of_birth)->format('m/d/Y') : null, 'mask' => 'date', 'grid' => 'col'])
 	</div>
 
+	<div class="form-group text-left">
+		@label(['label' => 'Notes'])
+		<textarea class="form-control rounded no-resize" name="notes" rows="5">{{$student->notes}}</textarea>
+		@feedback(['input' => 'notes'])
+	</div>
+
 	<div class="form-check">
 	  <input class="form-check-input" type="checkbox" value="1" name="is_adult" id="is_adult_{{$student->id}}" {{iftrue($student->is_adult, 'checked')}}>
 	  <label class="form-check-label" for="is_adult_{{$student->id}}">
