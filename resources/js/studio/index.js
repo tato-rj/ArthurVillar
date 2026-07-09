@@ -1,5 +1,4 @@
 const calendarjs = window.calendarjs;
-const CountUp = require('countup.js').CountUp;
 
 const state = {
     date: null,
@@ -11,6 +10,7 @@ const state = {
     plannedLessons: [],
     locations: [],
     selectedLocationIds: [],
+    visibleEventsByDate: null,
     holidays: [],
     teachingBreaks: [],
     studentSearch: '',
@@ -24,6 +24,7 @@ const state = {
     rescheduleAnchor: null,
     rescheduleEndOptions: [],
     paymentTotalCounters: {},
+    calendarFetchId: 0,
     didAutoNowScroll: false,
 };
 
@@ -245,6 +246,9 @@ const fetchPlannedLessons = function(range) {
     url.searchParams.set('range_end', normalizedRange.end);
     url.searchParams.set('lesson_plans', '1');
     state.pendingRangeKey = rangeKey;
+    state.calendarFetchId += 1;
+
+    const fetchId = state.calendarFetchId;
 
     return fetch(url, {
         headers: {
@@ -259,17 +263,25 @@ const fetchPlannedLessons = function(range) {
             return response.json();
         })
         .then(function(payload) {
+            if (fetchId !== state.calendarFetchId || getRangeKey(getVisibleDateRange()) !== rangeKey) {
+                return;
+            }
+
             state.plannedLessons = Array.isArray(payload.plannedLessons) ? payload.plannedLessons : [];
             state.holidays = Array.isArray(payload.holidays) ? payload.holidays : [];
             state.teachingBreaks = Array.isArray(payload.teachingBreaks) ? payload.teachingBreaks : [];
             state.loadedRange = normalizeRange(payload.calendarRange) || normalizedRange;
         })
         .catch(function(error) {
+            if (fetchId !== state.calendarFetchId) {
+                return;
+            }
+
             console.error(error);
             state.loadedRange = normalizedRange;
         })
         .finally(function() {
-            if (state.pendingRangeKey === rangeKey) {
+            if (state.pendingRangeKey === rangeKey && fetchId === state.calendarFetchId) {
                 state.pendingRangeKey = null;
             }
         });
@@ -476,6 +488,38 @@ const getVisibleCalendarEvents = function() {
         .filter(eventMatchesLocationFilter);
 };
 
+const getVisibleEventsByDate = function() {
+    if (state.visibleEventsByDate) {
+        return state.visibleEventsByDate;
+    }
+
+    const eventsByDate = {};
+
+    getVisibleCalendarEvents().forEach(function(event) {
+        if (!event || !event.date) {
+            return;
+        }
+
+        const dateString = String(event.date).substring(0, 10);
+
+        if (!eventsByDate[dateString]) {
+            eventsByDate[dateString] = [];
+        }
+
+        eventsByDate[dateString].push(event);
+    });
+
+    Object.keys(eventsByDate).forEach(function(dateString) {
+        eventsByDate[dateString].sort(function(a, b) {
+            return String(a.start || '').localeCompare(String(b.start || ''));
+        });
+    });
+
+    state.visibleEventsByDate = eventsByDate;
+
+    return eventsByDate;
+};
+
 const paymentFormatter = new Intl.NumberFormat('en-US', {
     currency: 'USD',
     maximumFractionDigits: 0,
@@ -489,12 +533,6 @@ const paymentCountUpOptions = {
 
 const randomBetween = function(min, max) {
     return min + (Math.random() * (max - min));
-};
-
-const getNaturalCountUpOptions = function(options) {
-    return Object.assign({
-        duration: randomBetween(0.55, 1.05),
-    }, options);
 };
 
 const getEventFeeAmount = function(event) {
@@ -529,42 +567,75 @@ const renderCountTotal = function(key, element, value, options, fallbackFormatte
         return;
     }
 
-    const number = Number(value || 0);
+    const number = Number(value);
     const counter = state.paymentTotalCounters[key];
     const startVal = counter && counter.element === element
         ? counter.value
         : Number(element.dataset.countValue || 0);
     const safeStartVal = Number.isFinite(startVal) ? startVal : 0;
     const safeNumber = Number.isFinite(number) ? number : 0;
-    const formatter = typeof fallbackFormatter === 'function'
-        ? fallbackFormatter
-        : function(nextValue) {
-            return String(nextValue);
-        };
+    const formatter = options && typeof options.formattingFn === 'function'
+        ? options.formattingFn
+        : (typeof fallbackFormatter === 'function'
+            ? fallbackFormatter
+            : function(nextValue) {
+                return String(nextValue);
+            });
 
-    if (!CountUp) {
+    if (counter && counter.frame) {
+        cancelAnimationFrame(counter.frame);
+    }
+
+    if (Math.abs(safeNumber - safeStartVal) < 0.001) {
         element.textContent = formatter(safeNumber);
         element.dataset.countValue = String(safeNumber);
+        state.paymentTotalCounters[key] = {
+            element,
+            frame: null,
+            value: safeNumber,
+        };
 
         return;
     }
 
-    const instance = new CountUp(element, safeNumber, getNaturalCountUpOptions(Object.assign({}, options, {
-        startVal: safeStartVal,
-    })));
+    const duration = Math.round(randomBetween(520, 980));
+    const start = window.performance && typeof window.performance.now === 'function'
+        ? window.performance.now()
+        : Date.now();
+    const change = safeNumber - safeStartVal;
+    const easeOutCubic = function(progress) {
+        return 1 - Math.pow(1 - progress, 3);
+    };
+    const renderFrame = function(now) {
+        const elapsed = now - start;
+        const progress = Math.min(1, Math.max(0, elapsed / duration));
+        const nextValue = safeStartVal + (change * easeOutCubic(progress));
+        const safeNextValue = Number.isFinite(nextValue) ? nextValue : safeNumber;
+        const latest = state.paymentTotalCounters[key];
 
-    if (instance.error) {
-        element.textContent = formatter(safeNumber);
-    } else {
-        instance.start();
-    }
+        if (!latest || latest.element !== element) {
+            return;
+        }
+
+        element.textContent = formatter(progress >= 1 ? safeNumber : safeNextValue);
+        element.dataset.countValue = String(safeNextValue);
+        latest.value = safeNextValue;
+
+        if (progress < 1) {
+            latest.frame = requestAnimationFrame(renderFrame);
+            return;
+        }
+
+        latest.frame = null;
+        latest.value = safeNumber;
+        element.dataset.countValue = String(safeNumber);
+    };
 
     state.paymentTotalCounters[key] = {
         element,
-        instance,
-        value: safeNumber,
+        frame: requestAnimationFrame(renderFrame),
+        value: safeStartVal,
     };
-    element.dataset.countValue = String(safeNumber);
 };
 
 const renderPaymentTotal = function(key, element, cents) {
@@ -1817,13 +1888,13 @@ const syncEvents = function(instance) {
 };
 
 const normalizeTime = function(value) {
-    const match = String(value || '').trim().match(/^(\d{2}):(\d{2})$/);
+    const match = String(value || '').trim().match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
 
     if (!match || Number(match[1]) > 23 || Number(match[2]) > 59 || Number(match[2]) % 15 !== 0) {
         throw new Error('Lesson times must use HH:MM on 15-minute intervals.');
     }
 
-    return `${match[1]}:${match[2]}`;
+    return `${String(Number(match[1])).padStart(2, '0')}:${match[2]}`;
 };
 
 const minutesToTime = function(minutes) {
@@ -2285,6 +2356,7 @@ const getPlannedLessonEvents = function(range) {
 
 const syncCalendarEvents = function() {
     state.events = normalizeScheduleEvents(state.customEvents).concat(getPlannedLessonEvents(getCalendarEventRange()));
+    state.visibleEventsByDate = null;
 };
 
 const createStudioEvent = function(date) {
@@ -2301,13 +2373,7 @@ const createStudioEvent = function(date) {
 const getEventsForDate = function(date) {
     const dateString = toDateString(date);
 
-    return getVisibleCalendarEvents()
-        .filter(function(event) {
-            return event.date && event.date.substring(0, 10) === dateString;
-        })
-        .sort(function(a, b) {
-            return String(a.start || '').localeCompare(String(b.start || ''));
-        });
+    return getVisibleEventsByDate()[dateString] || [];
 };
 
 const getCalendarItemsForDate = function(date) {
@@ -2728,7 +2794,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 return normalizeLocationId(input.value);
             })
             .filter(Boolean);
-        const allIds = getAllLocationIds();
 
         state.selectedLocationIds = checkedIds;
 
