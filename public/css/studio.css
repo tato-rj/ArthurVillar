@@ -31543,7 +31543,7 @@ form.form-borderless.form-light input.form-control:not([readonly]), form.form-bo
 .studio-calendar-search[selected], .studio-calendar-search[selected]:hover, .studio-calendar-search[selected]:focus, .studio-calendar-search[selected]:active, .studio-calendar-search[selected]:focus-within {
   background: #e9eef7 !important;
 }
-.studio-calendar-search .fa {
+.studio-calendar-search i {
   opacity: 0.4;
 }
 
