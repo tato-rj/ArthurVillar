@@ -9,8 +9,8 @@
 	</div>
 
 	@select(['label' => 'Gender', 'name' => 'gender', 'required' => true])
-		@foreach(['female' => 'Female', 'male' => 'Male'] as $value => $label)
-			@option(['name' => 'gender', 'label' => $label, 'value' => $value, 'selected' => $student->gender === $value])
+		@foreach(['female' => 'Female', 'male' => 'Male'] as $value => $genderLabel)
+			@option(['name' => 'gender', 'label' => $genderLabel, 'value' => $value, 'selected' => $student->gender === $value])
 		@endforeach
 	@endselect
 
