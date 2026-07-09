@@ -2425,6 +2425,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const miniNext = document.querySelector('[data-mini-next]');
     const lessonModal = document.getElementById('lesson-modal');
     const studentSearch = document.querySelector('.studio-calendar-sidebar input[name="search"]');
+    const offcanvasViews = document.getElementById('calendar-offcanvas-views');
     const offcanvasViewItems = Array.from(document.querySelectorAll('[data-calendar-offcanvas-view]'));
 
     if (!calendar) {
@@ -2475,6 +2476,28 @@ document.addEventListener('DOMContentLoaded', function() {
         state.view = nextView;
         syncViewControls();
         render();
+    };
+
+    const closeCalendarViewsOffcanvas = function() {
+        if (!offcanvasViews) {
+            return;
+        }
+
+        if (window.bootstrap && window.bootstrap.Offcanvas && typeof window.bootstrap.Offcanvas.getOrCreateInstance === 'function') {
+            window.bootstrap.Offcanvas.getOrCreateInstance(offcanvasViews).hide();
+            return;
+        }
+
+        if (window.bootstrap && window.bootstrap.Offcanvas) {
+            new window.bootstrap.Offcanvas(offcanvasViews).hide();
+            return;
+        }
+
+        const close = offcanvasViews.querySelector('.offcanvas-header [data-bs-dismiss="offcanvas"]');
+
+        if (close) {
+            close.click();
+        }
     };
 
     syncViewControls();
@@ -2736,6 +2759,7 @@ document.addEventListener('DOMContentLoaded', function() {
         item.addEventListener('click', function(e) {
             e.preventDefault();
             setCalendarView(item.dataset.calendarOffcanvasView);
+            closeCalendarViewsOffcanvas();
         });
     });
 
