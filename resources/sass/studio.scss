@@ -28,11 +28,11 @@
 .studio-calendar-toolbar {
     align-items: center;
     display: flex;
-    justify-content: space-between;
+    // justify-content: space-between;
     gap: 1rem;
     margin-bottom: 12px;
     // min-height: 4.5rem;
-    flex-wrap: wrap;
+    // flex-wrap: wrap;
 }
 
 .studio-calendar-button,
@@ -61,6 +61,11 @@
     color: #3c4043;
     font-size: 1.25rem;
     width: 2.75rem;
+}
+
+.studio-calendar-today {
+    padding-right: 1.5rem;
+    padding-left: 1.5rem;
 }
 
 .studio-calendar-button,
@@ -1052,8 +1057,13 @@
     .studio-calendar-body {display: block !important}
     .studio-calendar-main  {margin-right: 0 !important;}
     .studio-calendar-toolbar-views {padding-right: 40px;}
+    .studio-calendar-label {display: none !important}
+    .studio-calendar-today {
+        padding-right: .75rem !important;
+        padding-left: .75rem !important;
+    }
 
-    // .studio-calendar-toolbar-today {order: 2;}
+    .studio-calendar-toolbar {gap: .5rem;}
 
     // .studio-calendar-toolbar-views {order: 3;}
 

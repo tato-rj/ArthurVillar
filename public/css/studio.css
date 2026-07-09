@@ -31272,10 +31272,8 @@ form.form-borderless.form-light input.form-control:not([readonly]), form.form-bo
 .studio-calendar-toolbar {
   align-items: center;
   display: flex;
-  justify-content: space-between;
   gap: 1rem;
   margin-bottom: 12px;
-  flex-wrap: wrap;
 }
 
 .studio-calendar-button,
@@ -31304,6 +31302,11 @@ form.form-borderless.form-light input.form-control:not([readonly]), form.form-bo
   color: #3c4043;
   font-size: 1.25rem;
   width: 2.75rem;
+}
+
+.studio-calendar-today {
+  padding-right: 1.5rem;
+  padding-left: 1.5rem;
 }
 
 .studio-calendar-button,
@@ -32251,5 +32254,15 @@ form.form-borderless.form-light input.form-control:not([readonly]), form.form-bo
   }
   .studio-calendar-toolbar-views {
     padding-right: 40px;
+  }
+  .studio-calendar-label {
+    display: none !important;
+  }
+  .studio-calendar-today {
+    padding-right: 0.75rem !important;
+    padding-left: 0.75rem !important;
+  }
+  .studio-calendar-toolbar {
+    gap: 0.5rem;
   }
 }
