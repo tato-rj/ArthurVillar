@@ -28,6 +28,10 @@ window.studioPlannedLessons = @json($plannedLessons);
 window.studioHolidays = @json($holidays);
 window.studioTeachingBreaks = @json($teachingBreaks);
 window.studioCalendarRange = @json($calendarRange);
+window.studioLocations = @json($locations->map(fn ($location) => [
+	'id' => $location->id,
+	'name' => $location->name,
+])->values());
 window.studioCsrfToken = @json(csrf_token());
 </script>
 <script src="/js/vendor/lemonadejs/lemonade.js"></script>

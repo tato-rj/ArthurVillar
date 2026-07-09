@@ -9,6 +9,8 @@ const state = {
     events: [],
     customEvents: [],
     plannedLessons: [],
+    locations: [],
+    selectedLocationIds: [],
     holidays: [],
     teachingBreaks: [],
     studentSearch: '',
@@ -423,8 +425,55 @@ const getAgendaEventHeight = function(event) {
     return `${Math.min(10, Math.max(3.75, 2 + (duration / 15)))}rem`;
 };
 
+const normalizeLocationId = function(value) {
+    const number = Number(value);
+
+    return Number.isFinite(number) && number > 0 ? number : null;
+};
+
+const getAllLocationIds = function() {
+    return state.locations.map(function(location) {
+        return normalizeLocationId(location.id);
+    }).filter(Boolean);
+};
+
+const getSelectedLocationIds = function() {
+    return state.selectedLocationIds;
+};
+
+const isLocationFilterActive = function() {
+    const allIds = getAllLocationIds();
+
+    return allIds.length && state.selectedLocationIds.length < allIds.length;
+};
+
+const locationIsSelected = function(locationId) {
+    const selectedIds = getSelectedLocationIds();
+    const normalized = normalizeLocationId(locationId);
+
+    return !normalized || selectedIds.includes(normalized);
+};
+
+const eventMatchesLocationFilter = function(event) {
+    if (!isLocationFilterActive() || event.isHoliday) {
+        return true;
+    }
+
+    if (event.isBreak) {
+        const locations = Array.isArray(event.locations) ? event.locations : [];
+
+        return !locations.length || locations.some(function(location) {
+            return locationIsSelected(location.id);
+        });
+    }
+
+    return locationIsSelected(event.locationId);
+};
+
 const getVisibleCalendarEvents = function() {
-    return state.events.filter(isEventInsideScheduleWindow);
+    return state.events
+        .filter(isEventInsideScheduleWindow)
+        .filter(eventMatchesLocationFilter);
 };
 
 const paymentFormatter = new Intl.NumberFormat('en-US', {
@@ -532,6 +581,45 @@ const renderPaymentTotal = function(key, element, cents) {
     });
 };
 
+const formatHoursMinutes = function(minutes) {
+    const safeMinutes = Number.isFinite(Number(minutes)) ? Math.round(Number(minutes)) : 0;
+    const hours = Math.floor(safeMinutes / 60);
+    const remainingMinutes = safeMinutes % 60;
+
+    if (hours && remainingMinutes) {
+        return `${hours}h ${remainingMinutes}m`;
+    }
+
+    if (hours) {
+        return `${hours}h`;
+    }
+
+    return `${remainingMinutes}m`;
+};
+
+const formatQuarterHours = function(minutes) {
+    const safeMinutes = Number.isFinite(Number(minutes)) ? Number(minutes) : 0;
+    const hours = Math.round((safeMinutes / 60) * 4) / 4;
+
+    return `${Number(hours.toFixed(2))}h`;
+};
+
+const getVisibleAverageHoursDayCount = function() {
+    if (state.view === '3-days') {
+        return 3;
+    }
+
+    if (state.view === 'week') {
+        return 7;
+    }
+
+    if (state.view === 'month') {
+        return createLocalDate(state.date.getFullYear(), state.date.getMonth() + 1, 0).getDate();
+    }
+
+    return 0;
+};
+
 const isEventInsideVisibleRange = function(event) {
     if (!event || !event.date) {
         return false;
@@ -578,8 +666,9 @@ const renderCalendarPaymentTotals = function() {
     const confirmed = document.querySelector('[data-calendar-confirmed-payment]');
     const lessonsCount = document.querySelector('[data-calendar-lessons-count]');
     const hoursCount = document.querySelector('[data-calendar-hours-count]');
+    const averageHours = document.querySelector('[data-calendar-average-hours]');
 
-    if (!expected && !confirmed && !lessonsCount && !hoursCount) {
+    if (!expected && !confirmed && !lessonsCount && !hoursCount && !averageHours) {
         return;
     }
 
@@ -619,20 +708,34 @@ const renderCalendarPaymentTotals = function() {
 
         return String(Math.round(Number.isFinite(number) ? number : 0));
     });
-    renderCountTotal('hours', hoursCount, totals.minutes / 60, {
-        decimalPlaces: 1,
+    renderCountTotal('hours', hoursCount, totals.minutes, {
+        decimalPlaces: 0,
         formattingFn: function(value) {
-            const number = Number(value);
-            const hours = Number.isFinite(number) ? number : 0;
-
-            return `${Number(hours.toFixed(1))}h`;
+            return formatHoursMinutes(value);
         },
     }, function(value) {
-        const number = Number(value);
-        const hours = Number.isFinite(number) ? number : 0;
-
-        return `${Number(hours.toFixed(1))}h`;
+        return formatHoursMinutes(value);
     });
+
+    if (averageHours) {
+        const dayCount = getVisibleAverageHoursDayCount();
+        const container = averageHours.closest('.mb-3') || averageHours.parentElement;
+
+        if (container) {
+            container.style.display = dayCount ? '' : 'none';
+        }
+
+        if (dayCount) {
+            renderCountTotal('average-hours', averageHours, totals.minutes / dayCount, {
+                decimalPlaces: 0,
+                formattingFn: function(value) {
+                    return `${formatQuarterHours(value)}/day`;
+                },
+            }, function(value) {
+                return `${formatQuarterHours(value)}/day`;
+            });
+        }
+    }
 };
 
 const getHolidaysForDateString = function(dateString) {
@@ -658,7 +761,19 @@ const isDateWithinBreak = function(dateString, teachingBreak) {
 
 const getBreaksForDateString = function(dateString) {
     return state.teachingBreaks.filter(function(teachingBreak) {
-        return isDateWithinBreak(dateString, teachingBreak);
+        if (!isDateWithinBreak(dateString, teachingBreak)) {
+            return false;
+        }
+
+        if (!isLocationFilterActive()) {
+            return true;
+        }
+
+        const locations = Array.isArray(teachingBreak.locations) ? teachingBreak.locations : [];
+
+        return !locations.length || locations.some(function(location) {
+            return locationIsSelected(location.id);
+        });
     });
 };
 
@@ -1018,6 +1133,15 @@ const getEventStartDateTime = function(event) {
 };
 
 const canUseLessonActionButtons = function(event) {
+    if (event && event.date) {
+        const eventDate = parseDateString(String(event.date).substring(0, 10));
+        const today = getTodayDate();
+
+        if (isValidDate(eventDate)) {
+            return eventDate <= today;
+        }
+    }
+
     const startsAt = getEventStartDateTime(event);
 
     return startsAt ? startsAt <= new Date() : false;
@@ -2030,8 +2154,18 @@ const lessonMatchesStudentSearch = function(lesson) {
     return firstName.includes(query) || lastName.includes(query) || fullName.includes(query);
 };
 
+const lessonMatchesLocationFilter = function(lesson) {
+    if (!isLocationFilterActive()) {
+        return true;
+    }
+
+    return locationIsSelected(lesson.location_id);
+};
+
 const getFilteredPlannedLessons = function() {
-    return state.plannedLessons.filter(lessonMatchesStudentSearch);
+    return state.plannedLessons
+        .filter(lessonMatchesStudentSearch)
+        .filter(lessonMatchesLocationFilter);
 };
 
 const getFirstOccurrenceDate = function(startsOn, weekday) {
@@ -2073,6 +2207,8 @@ const getPlannedLessonEvents = function(range) {
                     calendarStatus: occurrence.calendar_status || occurrence.lesson_status || 'unconfirmed',
                     'data-lesson-status': occurrence.calendar_status || occurrence.lesson_status || 'unconfirmed',
                     feeAmount: occurrence.fee_amount || lesson.fee_amount || 0,
+                    locationId: normalizeLocationId(lesson.location_id),
+                    locationName: lesson.location && lesson.location.name ? lesson.location.name : '',
                     canceledBy: occurrence.canceled_by || '',
                     lessonEditUrl: occurrence.lesson_edit_url || '',
                     paymentUrl: occurrence.lesson_payment_url || occurrence.payment_url || '',
@@ -2131,6 +2267,8 @@ const getPlannedLessonEvents = function(range) {
                 calendarStatus: lessonStatus,
                 'data-lesson-status': lessonStatus,
                 feeAmount: confirmedLesson && confirmedLesson.fee_amount ? confirmedLesson.fee_amount : (lesson.fee_amount || 0),
+                locationId: normalizeLocationId(lesson.location_id),
+                locationName: lesson.location && lesson.location.name ? lesson.location.name : '',
                 canceledBy: confirmedLesson && confirmedLesson.canceled_by ? confirmedLesson.canceled_by : '',
                 lessonEditUrl: getLessonEditUrl(confirmedLesson),
                 paymentUrl: getLessonPaymentUrl(confirmedLesson),
@@ -2523,6 +2661,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const calendarInsights = document.getElementById('studio-calendar-insights');
     const calendarInsightsSidebarTarget = document.querySelector('[data-calendar-insights-sidebar-target]');
     const calendarInsightsOffcanvasTarget = document.querySelector('[data-calendar-insights-offcanvas-target]');
+    const locationFilters = document.querySelector('[data-calendar-location-filters]');
+    const calendarFilter = document.querySelector('.studio-calendar-filter');
 
     if (!calendar) {
         return;
@@ -2533,6 +2673,7 @@ document.addEventListener('DOMContentLoaded', function() {
         : (Array.isArray(window.studioLessonPlans) ? window.studioLessonPlans : []);
     state.holidays = Array.isArray(window.studioHolidays) ? window.studioHolidays : [];
     state.teachingBreaks = Array.isArray(window.studioTeachingBreaks) ? window.studioTeachingBreaks : [];
+    state.locations = Array.isArray(window.studioLocations) ? window.studioLocations : [];
     state.loadedRange = normalizeRange(window.studioCalendarRange);
 
     const urlState = getUrlState();
@@ -2575,6 +2716,66 @@ document.addEventListener('DOMContentLoaded', function() {
         if (calendarInsights.parentElement !== target) {
             target.appendChild(calendarInsights);
         }
+    };
+
+    const syncLocationFilterState = function() {
+        if (!locationFilters) {
+            return;
+        }
+
+        const checkedIds = Array.from(locationFilters.querySelectorAll('input[data-calendar-location-filter]:checked'))
+            .map(function(input) {
+                return normalizeLocationId(input.value);
+            })
+            .filter(Boolean);
+        const allIds = getAllLocationIds();
+
+        state.selectedLocationIds = checkedIds;
+
+        if (calendarFilter) {
+            calendarFilter.toggleAttribute('selected', isLocationFilterActive());
+        }
+    };
+
+    const renderLocationFilters = function() {
+        if (!locationFilters) {
+            return;
+        }
+
+        locationFilters.innerHTML = '';
+
+        if (!state.locations.length) {
+            const empty = document.createElement('div');
+
+            empty.className = 'small opacity-4';
+            empty.textContent = 'No locations';
+            locationFilters.appendChild(empty);
+            return;
+        }
+
+        state.locations.forEach(function(location) {
+            const id = `calendar-location-filter-${location.id}`;
+            const label = document.createElement('label');
+            const input = document.createElement('input');
+            const text = document.createElement('span');
+
+            label.className = 'studio-calendar-filter-option';
+            label.setAttribute('for', id);
+
+            input.type = 'checkbox';
+            input.id = id;
+            input.value = location.id;
+            input.checked = true;
+            input.dataset.calendarLocationFilter = '';
+
+            text.textContent = location.name || 'Location';
+
+            label.appendChild(input);
+            label.appendChild(text);
+            locationFilters.appendChild(label);
+        });
+
+        syncLocationFilterState();
     };
 
     const setCalendarView = function(nextView) {
@@ -2920,6 +3121,17 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    if (locationFilters) {
+        locationFilters.addEventListener('change', function(e) {
+            if (!e.target.matches('input[data-calendar-location-filter]')) {
+                return;
+            }
+
+            syncLocationFilterState();
+            render();
+        });
+    }
+
     if (calendarSearchToggle) {
         calendarSearchToggle.addEventListener('click', function(e) {
             e.preventDefault();
@@ -3135,5 +3347,6 @@ document.addEventListener('DOMContentLoaded', function() {
         openLessonModal(event);
     });
 
+    renderLocationFilters();
     render();
 });

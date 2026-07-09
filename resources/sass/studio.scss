@@ -308,7 +308,8 @@
 .studio-calendar-toolbar[searching] {
     .studio-calendar-toolbar-today,
     .studio-calendar-toolbar-controls,
-    .studio-calendar-toolbar-views {
+    .studio-calendar-toolbar-views,
+    .studio-calendar-filter {
         display: none !important;
     }
 
@@ -316,6 +317,54 @@
         flex: 1 1 100% !important;
         max-width: none !important;
         width: 100% !important;
+    }
+}
+
+.studio-calendar-filter {
+    flex: 0 0 auto;
+}
+
+.studio-calendar-filter-toggle {
+    border-radius: 999px;
+    color: #5f6368;
+    min-height: 2.5rem;
+    min-width: 2.5rem;
+    transition: .2s;
+
+    &:hover,
+    &:focus {
+        background: #e9eef7;
+    }
+}
+
+.studio-calendar-filter[selected] .studio-calendar-filter-toggle {
+    background: #e8f0fe;
+    color: #0b57d0;
+}
+
+.studio-calendar-filter-menu {
+    border: 0;
+    border-radius: .75rem;
+    box-shadow: 0 .75rem 2rem rgba(32, 33, 36, .18);
+    min-width: 14rem;
+}
+
+.studio-calendar-filter-option {
+    align-items: center;
+    border-radius: .5rem;
+    cursor: pointer;
+    display: flex;
+    gap: .6rem;
+    margin: 0;
+    padding: .45rem .25rem;
+    white-space: nowrap;
+
+    &:hover {
+        background: #f1f3f4;
+    }
+
+    input {
+        accent-color: #0b57d0;
     }
 }
 

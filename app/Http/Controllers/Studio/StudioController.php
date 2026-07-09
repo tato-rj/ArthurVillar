@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Studio;
 
 use App\Calendar\Scheduler;
+use App\Models\Location;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 
@@ -21,6 +22,11 @@ class StudioController extends Controller
             ]);
         }
 
-        return view('studio.index', compact('plannedLessons', 'holidays', 'teachingBreaks', 'calendarRange'));
+        $locations = Location::query()
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
+        return view('studio.index', compact('plannedLessons', 'holidays', 'teachingBreaks', 'calendarRange', 'locations'));
     }
 }

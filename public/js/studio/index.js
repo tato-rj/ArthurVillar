@@ -61,6 +61,8 @@ var state = {
   events: [],
   customEvents: [],
   plannedLessons: [],
+  locations: [],
+  selectedLocationIds: [],
   holidays: [],
   teachingBreaks: [],
   studentSearch: '',
@@ -392,8 +394,41 @@ var getAgendaEventHeight = function getAgendaEventHeight(event) {
   var duration = getEventDurationMinutes(event);
   return "".concat(Math.min(10, Math.max(3.75, 2 + duration / 15)), "rem");
 };
+var normalizeLocationId = function normalizeLocationId(value) {
+  var number = Number(value);
+  return Number.isFinite(number) && number > 0 ? number : null;
+};
+var getAllLocationIds = function getAllLocationIds() {
+  return state.locations.map(function (location) {
+    return normalizeLocationId(location.id);
+  }).filter(Boolean);
+};
+var getSelectedLocationIds = function getSelectedLocationIds() {
+  return state.selectedLocationIds;
+};
+var isLocationFilterActive = function isLocationFilterActive() {
+  var allIds = getAllLocationIds();
+  return allIds.length && state.selectedLocationIds.length < allIds.length;
+};
+var locationIsSelected = function locationIsSelected(locationId) {
+  var selectedIds = getSelectedLocationIds();
+  var normalized = normalizeLocationId(locationId);
+  return !normalized || selectedIds.includes(normalized);
+};
+var eventMatchesLocationFilter = function eventMatchesLocationFilter(event) {
+  if (!isLocationFilterActive() || event.isHoliday) {
+    return true;
+  }
+  if (event.isBreak) {
+    var locations = Array.isArray(event.locations) ? event.locations : [];
+    return !locations.length || locations.some(function (location) {
+      return locationIsSelected(location.id);
+    });
+  }
+  return locationIsSelected(event.locationId);
+};
 var getVisibleCalendarEvents = function getVisibleCalendarEvents() {
-  return state.events.filter(isEventInsideScheduleWindow);
+  return state.events.filter(isEventInsideScheduleWindow).filter(eventMatchesLocationFilter);
 };
 var paymentFormatter = new Intl.NumberFormat('en-US', {
   currency: 'USD',
@@ -474,6 +509,35 @@ var renderPaymentTotal = function renderPaymentTotal(key, element, cents) {
     return paymentFormatter.format(Number.isFinite(number) ? number : 0);
   });
 };
+var formatHoursMinutes = function formatHoursMinutes(minutes) {
+  var safeMinutes = Number.isFinite(Number(minutes)) ? Math.round(Number(minutes)) : 0;
+  var hours = Math.floor(safeMinutes / 60);
+  var remainingMinutes = safeMinutes % 60;
+  if (hours && remainingMinutes) {
+    return "".concat(hours, "h ").concat(remainingMinutes, "m");
+  }
+  if (hours) {
+    return "".concat(hours, "h");
+  }
+  return "".concat(remainingMinutes, "m");
+};
+var formatQuarterHours = function formatQuarterHours(minutes) {
+  var safeMinutes = Number.isFinite(Number(minutes)) ? Number(minutes) : 0;
+  var hours = Math.round(safeMinutes / 60 * 4) / 4;
+  return "".concat(Number(hours.toFixed(2)), "h");
+};
+var getVisibleAverageHoursDayCount = function getVisibleAverageHoursDayCount() {
+  if (state.view === '3-days') {
+    return 3;
+  }
+  if (state.view === 'week') {
+    return 7;
+  }
+  if (state.view === 'month') {
+    return createLocalDate(state.date.getFullYear(), state.date.getMonth() + 1, 0).getDate();
+  }
+  return 0;
+};
 var isEventInsideVisibleRange = function isEventInsideVisibleRange(event) {
   if (!event || !event.date) {
     return false;
@@ -509,7 +573,8 @@ var renderCalendarPaymentTotals = function renderCalendarPaymentTotals() {
   var confirmed = document.querySelector('[data-calendar-confirmed-payment]');
   var lessonsCount = document.querySelector('[data-calendar-lessons-count]');
   var hoursCount = document.querySelector('[data-calendar-hours-count]');
-  if (!expected && !confirmed && !lessonsCount && !hoursCount) {
+  var averageHours = document.querySelector('[data-calendar-average-hours]');
+  if (!expected && !confirmed && !lessonsCount && !hoursCount && !averageHours) {
     return;
   }
   var totals = getVisiblePaymentEvents().reduce(function (carry, event) {
@@ -541,18 +606,31 @@ var renderCalendarPaymentTotals = function renderCalendarPaymentTotals() {
     var number = Number(value);
     return String(Math.round(Number.isFinite(number) ? number : 0));
   });
-  renderCountTotal('hours', hoursCount, totals.minutes / 60, {
-    decimalPlaces: 1,
+  renderCountTotal('hours', hoursCount, totals.minutes, {
+    decimalPlaces: 0,
     formattingFn: function formattingFn(value) {
-      var number = Number(value);
-      var hours = Number.isFinite(number) ? number : 0;
-      return "".concat(Number(hours.toFixed(1)), "h");
+      return formatHoursMinutes(value);
     }
   }, function (value) {
-    var number = Number(value);
-    var hours = Number.isFinite(number) ? number : 0;
-    return "".concat(Number(hours.toFixed(1)), "h");
+    return formatHoursMinutes(value);
   });
+  if (averageHours) {
+    var dayCount = getVisibleAverageHoursDayCount();
+    var container = averageHours.closest('.mb-3') || averageHours.parentElement;
+    if (container) {
+      container.style.display = dayCount ? '' : 'none';
+    }
+    if (dayCount) {
+      renderCountTotal('average-hours', averageHours, totals.minutes / dayCount, {
+        decimalPlaces: 0,
+        formattingFn: function formattingFn(value) {
+          return "".concat(formatQuarterHours(value), "/day");
+        }
+      }, function (value) {
+        return "".concat(formatQuarterHours(value), "/day");
+      });
+    }
+  }
 };
 var getHolidaysForDateString = function getHolidaysForDateString(dateString) {
   return state.holidays.filter(function (holiday) {
@@ -572,7 +650,16 @@ var isDateWithinBreak = function isDateWithinBreak(dateString, teachingBreak) {
 };
 var getBreaksForDateString = function getBreaksForDateString(dateString) {
   return state.teachingBreaks.filter(function (teachingBreak) {
-    return isDateWithinBreak(dateString, teachingBreak);
+    if (!isDateWithinBreak(dateString, teachingBreak)) {
+      return false;
+    }
+    if (!isLocationFilterActive()) {
+      return true;
+    }
+    var locations = Array.isArray(teachingBreak.locations) ? teachingBreak.locations : [];
+    return !locations.length || locations.some(function (location) {
+      return locationIsSelected(location.id);
+    });
   });
 };
 var getBreaksForDate = function getBreaksForDate(date) {
@@ -843,6 +930,13 @@ var getEventStartDateTime = function getEventStartDateTime(event) {
   return isValidDate(date) ? date : null;
 };
 var canUseLessonActionButtons = function canUseLessonActionButtons(event) {
+  if (event && event.date) {
+    var eventDate = parseDateString(String(event.date).substring(0, 10));
+    var today = getTodayDate();
+    if (isValidDate(eventDate)) {
+      return eventDate <= today;
+    }
+  }
   var startsAt = getEventStartDateTime(event);
   return startsAt ? startsAt <= new Date() : false;
 };
@@ -1638,8 +1732,14 @@ var lessonMatchesStudentSearch = function lessonMatchesStudentSearch(lesson) {
   var fullName = [firstName, lastName].filter(Boolean).join(' ');
   return firstName.includes(query) || lastName.includes(query) || fullName.includes(query);
 };
+var lessonMatchesLocationFilter = function lessonMatchesLocationFilter(lesson) {
+  if (!isLocationFilterActive()) {
+    return true;
+  }
+  return locationIsSelected(lesson.location_id);
+};
 var getFilteredPlannedLessons = function getFilteredPlannedLessons() {
-  return state.plannedLessons.filter(lessonMatchesStudentSearch);
+  return state.plannedLessons.filter(lessonMatchesStudentSearch).filter(lessonMatchesLocationFilter);
 };
 var getFirstOccurrenceDate = function getFirstOccurrenceDate(startsOn, weekday) {
   var start = cloneDate(startsOn);
@@ -1674,6 +1774,8 @@ var getPlannedLessonEvents = function getPlannedLessonEvents(range) {
           calendarStatus: occurrence.calendar_status || occurrence.lesson_status || 'unconfirmed',
           'data-lesson-status': occurrence.calendar_status || occurrence.lesson_status || 'unconfirmed',
           feeAmount: occurrence.fee_amount || lesson.fee_amount || 0,
+          locationId: normalizeLocationId(lesson.location_id),
+          locationName: lesson.location && lesson.location.name ? lesson.location.name : '',
           canceledBy: occurrence.canceled_by || '',
           lessonEditUrl: occurrence.lesson_edit_url || '',
           paymentUrl: occurrence.lesson_payment_url || occurrence.payment_url || '',
@@ -1722,6 +1824,8 @@ var getPlannedLessonEvents = function getPlannedLessonEvents(range) {
         calendarStatus: lessonStatus,
         'data-lesson-status': lessonStatus,
         feeAmount: confirmedLesson && confirmedLesson.fee_amount ? confirmedLesson.fee_amount : lesson.fee_amount || 0,
+        locationId: normalizeLocationId(lesson.location_id),
+        locationName: lesson.location && lesson.location.name ? lesson.location.name : '',
         canceledBy: confirmedLesson && confirmedLesson.canceled_by ? confirmedLesson.canceled_by : '',
         lessonEditUrl: getLessonEditUrl(confirmedLesson),
         paymentUrl: getLessonPaymentUrl(confirmedLesson),
@@ -2028,12 +2132,15 @@ document.addEventListener('DOMContentLoaded', function () {
   var calendarInsights = document.getElementById('studio-calendar-insights');
   var calendarInsightsSidebarTarget = document.querySelector('[data-calendar-insights-sidebar-target]');
   var calendarInsightsOffcanvasTarget = document.querySelector('[data-calendar-insights-offcanvas-target]');
+  var locationFilters = document.querySelector('[data-calendar-location-filters]');
+  var calendarFilter = document.querySelector('.studio-calendar-filter');
   if (!calendar) {
     return;
   }
   state.plannedLessons = Array.isArray(window.studioPlannedLessons) ? window.studioPlannedLessons : Array.isArray(window.studioLessonPlans) ? window.studioLessonPlans : [];
   state.holidays = Array.isArray(window.studioHolidays) ? window.studioHolidays : [];
   state.teachingBreaks = Array.isArray(window.studioTeachingBreaks) ? window.studioTeachingBreaks : [];
+  state.locations = Array.isArray(window.studioLocations) ? window.studioLocations : [];
   state.loadedRange = normalizeRange(window.studioCalendarRange);
   var urlState = getUrlState();
   state.view = urlState.view;
@@ -2065,6 +2172,50 @@ document.addEventListener('DOMContentLoaded', function () {
     if (calendarInsights.parentElement !== target) {
       target.appendChild(calendarInsights);
     }
+  };
+  var syncLocationFilterState = function syncLocationFilterState() {
+    if (!locationFilters) {
+      return;
+    }
+    var checkedIds = Array.from(locationFilters.querySelectorAll('input[data-calendar-location-filter]:checked')).map(function (input) {
+      return normalizeLocationId(input.value);
+    }).filter(Boolean);
+    var allIds = getAllLocationIds();
+    state.selectedLocationIds = checkedIds;
+    if (calendarFilter) {
+      calendarFilter.toggleAttribute('selected', isLocationFilterActive());
+    }
+  };
+  var renderLocationFilters = function renderLocationFilters() {
+    if (!locationFilters) {
+      return;
+    }
+    locationFilters.innerHTML = '';
+    if (!state.locations.length) {
+      var empty = document.createElement('div');
+      empty.className = 'small opacity-4';
+      empty.textContent = 'No locations';
+      locationFilters.appendChild(empty);
+      return;
+    }
+    state.locations.forEach(function (location) {
+      var id = "calendar-location-filter-".concat(location.id);
+      var label = document.createElement('label');
+      var input = document.createElement('input');
+      var text = document.createElement('span');
+      label.className = 'studio-calendar-filter-option';
+      label.setAttribute('for', id);
+      input.type = 'checkbox';
+      input.id = id;
+      input.value = location.id;
+      input.checked = true;
+      input.dataset.calendarLocationFilter = '';
+      text.textContent = location.name || 'Location';
+      label.appendChild(input);
+      label.appendChild(text);
+      locationFilters.appendChild(label);
+    });
+    syncLocationFilterState();
   };
   var setCalendarView = function setCalendarView(nextView) {
     if (!nextView || nextView === state.view) {
@@ -2340,6 +2491,15 @@ document.addEventListener('DOMContentLoaded', function () {
       _render();
     });
   }
+  if (locationFilters) {
+    locationFilters.addEventListener('change', function (e) {
+      if (!e.target.matches('input[data-calendar-location-filter]')) {
+        return;
+      }
+      syncLocationFilterState();
+      _render();
+    });
+  }
   if (calendarSearchToggle) {
     calendarSearchToggle.addEventListener('click', function (e) {
       e.preventDefault();
@@ -2512,6 +2672,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     openLessonModal(event);
   });
+  renderLocationFilters();
   _render();
 });
 })();
