@@ -964,6 +964,10 @@ const populateLessonModal = function(modal, event) {
     const date = modal.querySelector('#lesson-date');
     const time = modal.querySelector('#lesson-time');
     const recurrence = modal.querySelector('#lesson-recurrence');
+    const meetingUrl = modal.querySelector('#meeting-url');
+    const meetingUrlLink = meetingUrl ? meetingUrl.querySelector('a') : null;
+    const notesUrl = modal.querySelector('#notes-url');
+    const notesUrlLink = notesUrl ? notesUrl.querySelector('a') : null;
     const revert = modal.querySelector('#lesson-revert');
     const taught = modal.querySelector('#lesson-taught');
     const cancelLesson = modal.querySelector('#cancel-lesson-button');
@@ -994,6 +998,26 @@ const populateLessonModal = function(modal, event) {
 
     if (recurrence) {
         recurrence.textContent = event && event.recurrence ? event.recurrence : '';
+    }
+
+    if (meetingUrl && meetingUrlLink) {
+        if (event && event.meetingUrl) {
+            meetingUrl.style.display = 'block';
+            meetingUrlLink.href = event.meetingUrl;
+        } else {
+            meetingUrl.style.display = 'none';
+            meetingUrlLink.removeAttribute('href');
+        }
+    }
+
+    if (notesUrl && notesUrlLink) {
+        if (event && event.notesUrl) {
+            notesUrl.style.display = 'block';
+            notesUrlLink.href = event.notesUrl;
+        } else {
+            notesUrl.style.display = 'none';
+            notesUrlLink.removeAttribute('href');
+        }
     }
 
     if (revert) {
@@ -1963,6 +1987,8 @@ const getPlannedLessonEvents = function(range) {
                     canceledBy: occurrence.canceled_by || '',
                     lessonEditUrl: occurrence.lesson_edit_url || '',
                     paymentUrl: occurrence.lesson_payment_url || occurrence.payment_url || '',
+                    meetingUrl: occurrence.meeting_url || lesson.meeting_url || '',
+                    notesUrl: occurrence.notes_url || lesson.notes_url || '',
                 });
             });
 
@@ -2019,6 +2045,8 @@ const getPlannedLessonEvents = function(range) {
                 canceledBy: confirmedLesson && confirmedLesson.canceled_by ? confirmedLesson.canceled_by : '',
                 lessonEditUrl: getLessonEditUrl(confirmedLesson),
                 paymentUrl: getLessonPaymentUrl(confirmedLesson),
+                meetingUrl: lesson.meeting_url || '',
+                notesUrl: lesson.notes_url || '',
             });
 
             occurrence = addDays(occurrence, intervalDays);
