@@ -2424,7 +2424,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const miniPrevious = document.querySelector('[data-mini-prev]');
     const miniNext = document.querySelector('[data-mini-next]');
     const lessonModal = document.getElementById('lesson-modal');
-    const studentSearch = document.querySelector('.studio-calendar-sidebar input[name="search"]');
+    const calendarSearch = document.querySelector('.studio-calendar-search');
+    const calendarToolbar = calendarSearch ? calendarSearch.closest('.studio-calendar-toolbar') : null;
+    const calendarSearchToggle = calendarSearch ? calendarSearch.querySelector('[data-calendar-search-toggle]') : null;
+    const calendarSearchClear = calendarSearch ? calendarSearch.querySelector('[data-calendar-search-clear]') : null;
+    const studentSearch = calendarSearch ? calendarSearch.querySelector('input[name="search"]') : null;
     const offcanvasViews = document.getElementById('calendar-offcanvas-views');
     const offcanvasViewItems = Array.from(document.querySelectorAll('[data-calendar-offcanvas-view]'));
 
@@ -2475,6 +2479,42 @@ document.addEventListener('DOMContentLoaded', function() {
 
         state.view = nextView;
         syncViewControls();
+        render();
+    };
+
+    const openCalendarSearch = function() {
+        if (!calendarSearch) {
+            return;
+        }
+
+        calendarSearch.setAttribute('selected', '');
+
+        if (calendarToolbar) {
+            calendarToolbar.setAttribute('searching', '');
+        }
+
+        if (studentSearch) {
+            studentSearch.focus();
+        }
+    };
+
+    const closeCalendarSearch = function() {
+        if (calendarSearch) {
+            calendarSearch.removeAttribute('selected');
+        }
+
+        if (calendarToolbar) {
+            calendarToolbar.removeAttribute('searching');
+        }
+    };
+
+    const clearCalendarSearch = function() {
+        if (studentSearch) {
+            studentSearch.value = '';
+        }
+
+        state.studentSearch = '';
+        closeCalendarSearch();
         render();
     };
 
@@ -2767,6 +2807,34 @@ document.addEventListener('DOMContentLoaded', function() {
         studentSearch.addEventListener('input', function() {
             state.studentSearch = this.value;
             render();
+        });
+    }
+
+    if (calendarSearchToggle) {
+        calendarSearchToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            openCalendarSearch();
+        });
+    }
+
+    if (calendarSearchClear) {
+        calendarSearchClear.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            clearCalendarSearch();
+        });
+    }
+
+    if (calendarSearch) {
+        calendarSearch.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!calendarSearch.contains(e.target)) {
+                closeCalendarSearch();
+            }
         });
     }
 

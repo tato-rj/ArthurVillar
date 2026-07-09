@@ -1948,7 +1948,11 @@ document.addEventListener('DOMContentLoaded', function () {
   var miniPrevious = document.querySelector('[data-mini-prev]');
   var miniNext = document.querySelector('[data-mini-next]');
   var lessonModal = document.getElementById('lesson-modal');
-  var studentSearch = document.querySelector('.studio-calendar-sidebar input[name="search"]');
+  var calendarSearch = document.querySelector('.studio-calendar-search');
+  var calendarToolbar = calendarSearch ? calendarSearch.closest('.studio-calendar-toolbar') : null;
+  var calendarSearchToggle = calendarSearch ? calendarSearch.querySelector('[data-calendar-search-toggle]') : null;
+  var calendarSearchClear = calendarSearch ? calendarSearch.querySelector('[data-calendar-search-clear]') : null;
+  var studentSearch = calendarSearch ? calendarSearch.querySelector('input[name="search"]') : null;
   var offcanvasViews = document.getElementById('calendar-offcanvas-views');
   var offcanvasViewItems = Array.from(document.querySelectorAll('[data-calendar-offcanvas-view]'));
   if (!calendar) {
@@ -1987,6 +1991,34 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     state.view = nextView;
     syncViewControls();
+    _render();
+  };
+  var openCalendarSearch = function openCalendarSearch() {
+    if (!calendarSearch) {
+      return;
+    }
+    calendarSearch.setAttribute('selected', '');
+    if (calendarToolbar) {
+      calendarToolbar.setAttribute('searching', '');
+    }
+    if (studentSearch) {
+      studentSearch.focus();
+    }
+  };
+  var closeCalendarSearch = function closeCalendarSearch() {
+    if (calendarSearch) {
+      calendarSearch.removeAttribute('selected');
+    }
+    if (calendarToolbar) {
+      calendarToolbar.removeAttribute('searching');
+    }
+  };
+  var clearCalendarSearch = function clearCalendarSearch() {
+    if (studentSearch) {
+      studentSearch.value = '';
+    }
+    state.studentSearch = '';
+    closeCalendarSearch();
     _render();
   };
   var closeCalendarViewsOffcanvas = function closeCalendarViewsOffcanvas() {
@@ -2221,6 +2253,30 @@ document.addEventListener('DOMContentLoaded', function () {
     studentSearch.addEventListener('input', function () {
       state.studentSearch = this.value;
       _render();
+    });
+  }
+  if (calendarSearchToggle) {
+    calendarSearchToggle.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      openCalendarSearch();
+    });
+  }
+  if (calendarSearchClear) {
+    calendarSearchClear.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      clearCalendarSearch();
+    });
+  }
+  if (calendarSearch) {
+    calendarSearch.addEventListener('click', function (e) {
+      e.stopPropagation();
+    });
+    document.addEventListener('click', function (e) {
+      if (!calendarSearch.contains(e.target)) {
+        closeCalendarSearch();
+      }
     });
   }
   if (miniPrevious) {

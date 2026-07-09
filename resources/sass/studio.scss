@@ -239,29 +239,76 @@
     border: .5px solid rgba(251,230,105);
 }
 
-.studio-calendar-search {
+.studio-calendar-toolbar input[name="search"],
+.studio-calendar-toolbar .studio-calendar-search-clear {
+    display: none;
+}
+
+.studio-calendar-search[selected] {
+    @extend .btn, .rounded, .border-0;
     align-items: center;
-    background: #e9eef7;
-    color: #5f6368;
     display: grid;
-    gap: 0.75rem;
-    grid-template-columns: auto minmax(0, 1fr);
-    min-height: 46.3px;
-    padding: 0 1.25rem;
+    flex: 1 1 100%;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    width: 100%;
+
+    .fa {
+        opacity: .4;
+    }
+
+    .studio-calendar-search-clear {
+        color: #5f6368;
+        display: block;
+    }
+
+    input {
+        background: transparent;
+        border: 0;
+        color: #202124;
+        font: inherit;
+        min-width: 0;
+        outline: 0;
+        display: block !important;
+
+        &::placeholder {
+            color: #5f6368;
+            opacity: 1;
+        }
+    }
 }
 
-.studio-calendar-search input {
+.studio-calendar-search {
+    transition: .2s;
     background: transparent;
-    border: 0;
-    color: #202124;
-    font: inherit;
-    min-width: 0;
-    outline: 0;
+    border: none;
+    box-shadow: none;
+    color: #5f6368;
+
+    &[selected],
+    &[selected]:hover,
+    &[selected]:focus,
+    &[selected]:active,
+    &[selected]:focus-within {
+        background: #e9eef7 !important;
+    }
+
+    .fa {
+        opacity: .4;
+    }
 }
 
-.studio-calendar-search input::placeholder {
-    color: #5f6368;
-    opacity: 1;
+.studio-calendar-toolbar[searching] {
+    .studio-calendar-toolbar-today,
+    .studio-calendar-toolbar-controls,
+    .studio-calendar-toolbar-views {
+        display: none !important;
+    }
+
+    .studio-calendar-toolbar-search {
+        flex: 1 1 100% !important;
+        max-width: none !important;
+        width: 100% !important;
+    }
 }
 
 #calendar {
@@ -1071,7 +1118,7 @@
 @media (max-width: 1000px) {
     .studio-calendar-sidebar {display: none !important}
     .studio-calendar-body {display: block !important}
-    .studio-calendar-main  {margin-right: 0 !important;}
+    .studio-calendar-main  {margin-right: 0 !important}
     .studio-calendar-toolbar-views {display: none !important}
     .studio-calendar-label {display: none !important}
     .studio-calendar-today {
@@ -1080,8 +1127,11 @@
         padding-left: .75rem !important;
     }
     .studio-calendar-view-offcanvas-control {display: block}
-    .studio-calendar-toolbar {gap: .5rem;}
-    .studio-calendar-toolbar-views {order: 2;}
+    .studio-calendar-toolbar {
+        gap: .5rem;
+        padding-right: 40px;
+    }
+    .studio-calendar-toolbar-views {order: 2}
 
     .studio-calendar-toolbar-controls {
         // order: 1;

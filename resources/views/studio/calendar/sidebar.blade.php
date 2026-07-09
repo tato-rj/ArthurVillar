@@ -23,11 +23,11 @@
 		<div class="studio-mini-calendar-grid" data-mini-grid></div>
 	</div>
 
-	<label class="studio-calendar-search rounded">
+{{-- 	<label class="studio-calendar-search rounded">
 		@fa(['icon' => 'user-group', 'mr' => 0])
 		<span class="sr-only">Search for people</span>
 		<input type="search" name="search" placeholder="Search for people">
-	</label>
+	</label> --}}
 
 	<div id="studio-calendar-payments" class="mt-3">
 		<div class="text-center">
