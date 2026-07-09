@@ -22,7 +22,7 @@ const state = {
     rescheduleAnchor: null,
     rescheduleEndOptions: [],
     paymentTotalCounters: {},
-    didInitialNowScroll: false,
+    didAutoNowScroll: false,
 };
 
 const studioTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/New_York';
@@ -50,6 +50,7 @@ const monthWeekdays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 const calendarViews = ['schedule', 'day', '3-days', 'week', 'month'];
 const scheduleStart = '08:00';
 const scheduleEnd = '22:00';
+const sidebarHiddenQuery = '(max-width: 1000px)';
 
 const scheduleGridViews = ['day', '3-days', 'week'];
 
@@ -99,6 +100,10 @@ const parseNullableDateString = function(value) {
 
 const getDefaultCalendarView = function() {
     return window.matchMedia && window.matchMedia('(max-width: 767.98px)').matches ? '3-days' : 'week';
+};
+
+const isSidebarHiddenViewport = function() {
+    return window.matchMedia && window.matchMedia(sidebarHiddenQuery).matches;
 };
 
 const getUrlState = function() {
@@ -153,6 +158,7 @@ const getTodayDate = function() {
 const setSelectedDate = function(date) {
     state.date = cloneDate(date);
     state.miniDate = cloneDate(state.date);
+    state.didAutoNowScroll = false;
 };
 
 const getVisibleDateRange = function() {
@@ -429,8 +435,17 @@ const paymentFormatter = new Intl.NumberFormat('en-US', {
 
 const paymentCountUpOptions = {
     decimalPlaces: 0,
-    duration: 0.55,
     prefix: '$',
+};
+
+const randomBetween = function(min, max) {
+    return min + (Math.random() * (max - min));
+};
+
+const getNaturalCountUpOptions = function(options) {
+    return Object.assign({
+        duration: randomBetween(0.55, 1.05),
+    }, options);
 };
 
 const getEventFeeAmount = function(event) {
@@ -460,36 +475,37 @@ const renderLessonModalTitle = function(title, event) {
     title.appendChild(fee);
 };
 
-const renderPaymentTotal = function(key, element, cents) {
+const renderCountTotal = function(key, element, value, options, fallbackFormatter) {
     if (!element) {
         return;
     }
 
-    const dollars = cents / 100;
+    const number = Number(value || 0);
     const counter = state.paymentTotalCounters[key];
+    const startVal = counter && counter.element === element
+        ? counter.value
+        : Number(element.dataset.countValue || 0);
+    const safeStartVal = Number.isFinite(startVal) ? startVal : 0;
+    const safeNumber = Number.isFinite(number) ? number : 0;
+    const formatter = typeof fallbackFormatter === 'function'
+        ? fallbackFormatter
+        : function(nextValue) {
+            return String(nextValue);
+        };
 
     if (!CountUp) {
-        element.textContent = paymentFormatter.format(dollars);
-        element.dataset.paymentValue = String(dollars);
+        element.textContent = formatter(safeNumber);
+        element.dataset.countValue = String(safeNumber);
 
         return;
     }
 
-    if (counter && counter.element === element) {
-        counter.instance.update(dollars);
-        counter.value = dollars;
-        element.dataset.paymentValue = String(dollars);
-
-        return;
-    }
-
-    const startVal = Number(element.dataset.paymentValue || 0);
-    const instance = new CountUp(element, dollars, Object.assign({}, paymentCountUpOptions, {
-        startVal: Number.isFinite(startVal) ? startVal : 0,
-    }));
+    const instance = new CountUp(element, safeNumber, getNaturalCountUpOptions(Object.assign({}, options, {
+        startVal: safeStartVal,
+    })));
 
     if (instance.error) {
-        element.textContent = paymentFormatter.format(dollars);
+        element.textContent = formatter(safeNumber);
     } else {
         instance.start();
     }
@@ -497,9 +513,23 @@ const renderPaymentTotal = function(key, element, cents) {
     state.paymentTotalCounters[key] = {
         element,
         instance,
-        value: dollars,
+        value: safeNumber,
     };
-    element.dataset.paymentValue = String(dollars);
+    element.dataset.countValue = String(safeNumber);
+};
+
+const renderPaymentTotal = function(key, element, cents) {
+    renderCountTotal(key, element, cents / 100, Object.assign({}, paymentCountUpOptions, {
+        formattingFn: function(value) {
+            const number = Number(value);
+
+            return paymentFormatter.format(Number.isFinite(number) ? number : 0);
+        },
+    }), function(value) {
+        const number = Number(value);
+
+        return paymentFormatter.format(Number.isFinite(number) ? number : 0);
+    });
 };
 
 const isEventInsideVisibleRange = function(event) {
@@ -546,8 +576,10 @@ const getVisiblePaymentEvents = function() {
 const renderCalendarPaymentTotals = function() {
     const expected = document.querySelector('[data-calendar-expected-payment]');
     const confirmed = document.querySelector('[data-calendar-confirmed-payment]');
+    const lessonsCount = document.querySelector('[data-calendar-lessons-count]');
+    const hoursCount = document.querySelector('[data-calendar-hours-count]');
 
-    if (!expected && !confirmed) {
+    if (!expected && !confirmed && !lessonsCount && !hoursCount) {
         return;
     }
 
@@ -556,6 +588,8 @@ const renderCalendarPaymentTotals = function() {
 
         if (event.lessonStatus !== 'canceled' && event.calendarStatus !== 'canceled') {
             carry.expected += feeAmount;
+            carry.lessons += 1;
+            carry.minutes += getEventDurationMinutes(event);
         }
 
         if (event.lessonStatus === 'paid') {
@@ -566,10 +600,39 @@ const renderCalendarPaymentTotals = function() {
     }, {
         confirmed: 0,
         expected: 0,
+        lessons: 0,
+        minutes: 0,
     });
 
     renderPaymentTotal('expected', expected, totals.expected);
     renderPaymentTotal('confirmed', confirmed, totals.confirmed);
+
+    renderCountTotal('lessons', lessonsCount, totals.lessons, {
+        decimalPlaces: 0,
+        formattingFn: function(value) {
+            const number = Number(value);
+
+            return String(Math.round(Number.isFinite(number) ? number : 0));
+        },
+    }, function(value) {
+        const number = Number(value);
+
+        return String(Math.round(Number.isFinite(number) ? number : 0));
+    });
+    renderCountTotal('hours', hoursCount, totals.minutes / 60, {
+        decimalPlaces: 1,
+        formattingFn: function(value) {
+            const number = Number(value);
+            const hours = Number.isFinite(number) ? number : 0;
+
+            return `${Number(hours.toFixed(1))}h`;
+        },
+    }, function(value) {
+        const number = Number(value);
+        const hours = Number.isFinite(number) ? number : 0;
+
+        return `${Number(hours.toFixed(1))}h`;
+    });
 };
 
 const getHolidaysForDateString = function(dateString) {
@@ -1538,7 +1601,7 @@ const patchSchedulePointer = function(calendar) {
 };
 
 const scrollScheduleToNow = function(calendar) {
-    if (state.didInitialNowScroll || !scheduleGridViews.includes(state.view)) {
+    if (state.didAutoNowScroll || !scheduleGridViews.includes(state.view)) {
         return;
     }
 
@@ -1556,7 +1619,7 @@ const scrollScheduleToNow = function(calendar) {
     }
 
     schedule.scrollTop = Math.max(0, pointerTop - (schedule.clientHeight / 2));
-    state.didInitialNowScroll = true;
+    state.didAutoNowScroll = true;
 };
 
 const disconnectScheduleObserver = function() {
@@ -2457,6 +2520,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const studentSearch = calendarSearch ? calendarSearch.querySelector('input[name="search"]') : null;
     const offcanvasViews = document.getElementById('calendar-offcanvas-views');
     const offcanvasViewItems = Array.from(document.querySelectorAll('[data-calendar-offcanvas-view]'));
+    const calendarInsights = document.getElementById('studio-calendar-insights');
+    const calendarInsightsSidebarTarget = document.querySelector('[data-calendar-insights-sidebar-target]');
+    const calendarInsightsOffcanvasTarget = document.querySelector('[data-calendar-insights-offcanvas-target]');
 
     if (!calendar) {
         return;
@@ -2497,6 +2563,20 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     };
 
+    const syncCalendarInsightsPlacement = function() {
+        if (!calendarInsights || !calendarInsightsSidebarTarget || !calendarInsightsOffcanvasTarget) {
+            return;
+        }
+
+        const target = isSidebarHiddenViewport()
+            ? calendarInsightsOffcanvasTarget
+            : calendarInsightsSidebarTarget;
+
+        if (calendarInsights.parentElement !== target) {
+            target.appendChild(calendarInsights);
+        }
+    };
+
     const setCalendarView = function(nextView) {
         if (!nextView || nextView === state.view) {
             syncViewControls();
@@ -2504,6 +2584,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         state.view = nextView;
+        state.didAutoNowScroll = false;
         syncViewControls();
         render();
     };
@@ -2567,6 +2648,9 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     syncViewControls();
+    syncCalendarInsightsPlacement();
+
+    window.addEventListener('resize', syncCalendarInsightsPlacement);
 
     if (studentSearch) {
         state.studentSearch = studentSearch.value;

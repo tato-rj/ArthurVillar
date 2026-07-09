@@ -29,20 +29,24 @@
 		<input type="search" name="search" placeholder="Search for people">
 	</label> --}}
 
-	<div id="studio-calendar-payments" class="mt-3">
-		<div class="text-center">
-			<div class="pb-4 mb-4 border-bottom">
-				<div class="opacity-4">
-					<h3 class="m-0" data-calendar-expected-payment>$0</h3>
-					<label class="small fw-bold">EXPECTED</label>
-				</div>
+	<div data-calendar-insights-sidebar-target></div>
+
+	<div id="studio-calendar-insights" class="">
+		<div class="mb-3">
+			<h5 class="m-0" data-calendar-lessons-count>0</h5>
+			<label class="small">LESSONS</label>
+		</div>
+		<div class="mb-3">
+			<h5 class="m-0" data-calendar-hours-count>0h</h5>
+			<label class="small">HOURS</label>
+		</div>
+		<div class="mb-3">
+			<div class="d-flex align-items-center">
+				<h5 class="m-0" data-calendar-confirmed-payment>$0</h5>
+				<span class="small fw-bold mx-2 opacity-4">/</span>
+				<p class="m-0 opacity-4" data-calendar-expected-payment>$0</p>
 			</div>
-			<div class="px-4">
-				<div class="">
-					<h3 class="m-0" data-calendar-confirmed-payment>$0</h3>
-					<label class="small text-green fw-bold">CONFIRMED</label>
-				</div>
-			</div>
+			<label class="small">INCOME</label>
 		</div>
 	</div>
 </aside>

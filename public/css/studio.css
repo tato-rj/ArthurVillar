@@ -18640,7 +18640,7 @@ textarea.form-control-lg {
   pointer-events: auto !important;
 }
 
-.rounded, .studio-calendar-search[selected], .studio-calendar-offcanvas-views li, form .form-control, form .form-select, .dropzone-container, .dropzone {
+.rounded, .studio-calendar-search[selected], form .form-control, form .form-select, .dropzone-container, .dropzone {
   border-radius: var(--bs-border-radius) !important;
 }
 
@@ -18721,7 +18721,7 @@ textarea.form-control-lg {
   border-top-right-radius: var(--bs-border-radius-pill) !important;
 }
 
-.rounded-end, .rounded-right {
+.rounded-end, .rounded-right, .studio-calendar-offcanvas-views li {
   border-top-right-radius: var(--bs-border-radius) !important;
   border-bottom-right-radius: var(--bs-border-radius) !important;
 }
@@ -24835,7 +24835,7 @@ h1, .h1 {
   font-size: 2em;
 }
 
-.rounded, .studio-calendar-search[selected], .studio-calendar-offcanvas-views li, form .form-control, form .form-select, .dropzone-container, .dropzone {
+.rounded, .studio-calendar-search[selected], form .form-control, form .form-select, .dropzone-container, .dropzone {
   border-radius: 2rem !important;
 }
 
@@ -24844,7 +24844,7 @@ h1, .h1 {
   border-top-right-radius: 2rem !important;
 }
 
-.rounded-right {
+.rounded-right, .studio-calendar-offcanvas-views li {
   border-top-right-radius: 2rem !important;
   border-bottom-right-radius: 2rem !important;
 }
@@ -31305,13 +31305,19 @@ body {
 }
 
 .studio-calendar-offcanvas-views li {
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
 }
 .studio-calendar-offcanvas-views li[selected] {
   background: rgba(0, 0, 0, 0.05);
-  padding-left: 1rem;
-  padding-right: 1rem;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+.studio-calendar-offcanvas-insights {
+  border-top: 1px solid #e0e4ea;
+  margin-top: 0.75rem;
+  padding: 1rem;
 }
 
 .studio-calendar-view-offcanvas-control {

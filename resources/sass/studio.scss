@@ -39,16 +39,22 @@
 
 .studio-calendar-offcanvas-views {
     li {
-        @extend .rounded, .cursor-pointer;
-        padding-left: 0.5rem;
-        padding-right: 0.5rem;
+        @extend .rounded-right, .cursor-pointer;
+        padding-left: 1rem;
+        padding-right: 1rem;
 
         &[selected] {
             background: rgba(0,0,0,0.05);
-            padding-left: 1rem;
-            padding-right: 1rem;
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
         }
     }
+}
+
+.studio-calendar-offcanvas-insights {
+    border-top: 1px solid #e0e4ea;
+    margin-top: .75rem;
+    padding: 1rem;
 }
 
 .studio-calendar-view-offcanvas-control {display: none}

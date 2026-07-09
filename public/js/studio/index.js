@@ -74,7 +74,7 @@ var state = {
   rescheduleAnchor: null,
   rescheduleEndOptions: [],
   paymentTotalCounters: {},
-  didInitialNowScroll: false
+  didAutoNowScroll: false
 };
 var studioTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/New_York';
 var monthFormatter = new Intl.DateTimeFormat('en', {
@@ -97,6 +97,7 @@ var monthWeekdays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 var calendarViews = ['schedule', 'day', '3-days', 'week', 'month'];
 var scheduleStart = '08:00';
 var scheduleEnd = '22:00';
+var sidebarHiddenQuery = '(max-width: 1000px)';
 var scheduleGridViews = ['day', '3-days', 'week'];
 var createLocalDate = function createLocalDate(year, month, day) {
   return new Date(year, month, day, 12, 0, 0, 0);
@@ -132,6 +133,9 @@ var parseNullableDateString = function parseNullableDateString(value) {
 };
 var getDefaultCalendarView = function getDefaultCalendarView() {
   return window.matchMedia && window.matchMedia('(max-width: 767.98px)').matches ? '3-days' : 'week';
+};
+var isSidebarHiddenViewport = function isSidebarHiddenViewport() {
+  return window.matchMedia && window.matchMedia(sidebarHiddenQuery).matches;
 };
 var getUrlState = function getUrlState() {
   var params = new URLSearchParams(window.location.search);
@@ -176,6 +180,7 @@ var getTodayDate = function getTodayDate() {
 var setSelectedDate = function setSelectedDate(date) {
   state.date = cloneDate(date);
   state.miniDate = cloneDate(state.date);
+  state.didAutoNowScroll = false;
 };
 var getVisibleDateRange = function getVisibleDateRange() {
   if (state.view === 'schedule') {
@@ -397,8 +402,15 @@ var paymentFormatter = new Intl.NumberFormat('en-US', {
 });
 var paymentCountUpOptions = {
   decimalPlaces: 0,
-  duration: 0.55,
   prefix: '$'
+};
+var randomBetween = function randomBetween(min, max) {
+  return min + Math.random() * (max - min);
+};
+var getNaturalCountUpOptions = function getNaturalCountUpOptions(options) {
+  return Object.assign({
+    duration: randomBetween(0.55, 1.05)
+  }, options);
 };
 var getEventFeeAmount = function getEventFeeAmount(event) {
   var amount = Number(event && event.feeAmount ? event.feeAmount : 0);
@@ -419,38 +431,48 @@ var renderLessonModalTitle = function renderLessonModalTitle(title, event) {
   fee.textContent = paymentFormatter.format(feeAmount / 100);
   title.appendChild(fee);
 };
-var renderPaymentTotal = function renderPaymentTotal(key, element, cents) {
+var renderCountTotal = function renderCountTotal(key, element, value, options, fallbackFormatter) {
   if (!element) {
     return;
   }
-  var dollars = cents / 100;
+  var number = Number(value || 0);
   var counter = state.paymentTotalCounters[key];
+  var startVal = counter && counter.element === element ? counter.value : Number(element.dataset.countValue || 0);
+  var safeStartVal = Number.isFinite(startVal) ? startVal : 0;
+  var safeNumber = Number.isFinite(number) ? number : 0;
+  var formatter = typeof fallbackFormatter === 'function' ? fallbackFormatter : function (nextValue) {
+    return String(nextValue);
+  };
   if (!CountUp) {
-    element.textContent = paymentFormatter.format(dollars);
-    element.dataset.paymentValue = String(dollars);
+    element.textContent = formatter(safeNumber);
+    element.dataset.countValue = String(safeNumber);
     return;
   }
-  if (counter && counter.element === element) {
-    counter.instance.update(dollars);
-    counter.value = dollars;
-    element.dataset.paymentValue = String(dollars);
-    return;
-  }
-  var startVal = Number(element.dataset.paymentValue || 0);
-  var instance = new CountUp(element, dollars, Object.assign({}, paymentCountUpOptions, {
-    startVal: Number.isFinite(startVal) ? startVal : 0
-  }));
+  var instance = new CountUp(element, safeNumber, getNaturalCountUpOptions(Object.assign({}, options, {
+    startVal: safeStartVal
+  })));
   if (instance.error) {
-    element.textContent = paymentFormatter.format(dollars);
+    element.textContent = formatter(safeNumber);
   } else {
     instance.start();
   }
   state.paymentTotalCounters[key] = {
     element: element,
     instance: instance,
-    value: dollars
+    value: safeNumber
   };
-  element.dataset.paymentValue = String(dollars);
+  element.dataset.countValue = String(safeNumber);
+};
+var renderPaymentTotal = function renderPaymentTotal(key, element, cents) {
+  renderCountTotal(key, element, cents / 100, Object.assign({}, paymentCountUpOptions, {
+    formattingFn: function formattingFn(value) {
+      var number = Number(value);
+      return paymentFormatter.format(Number.isFinite(number) ? number : 0);
+    }
+  }), function (value) {
+    var number = Number(value);
+    return paymentFormatter.format(Number.isFinite(number) ? number : 0);
+  });
 };
 var isEventInsideVisibleRange = function isEventInsideVisibleRange(event) {
   if (!event || !event.date) {
@@ -485,13 +507,17 @@ var getVisiblePaymentEvents = function getVisiblePaymentEvents() {
 var renderCalendarPaymentTotals = function renderCalendarPaymentTotals() {
   var expected = document.querySelector('[data-calendar-expected-payment]');
   var confirmed = document.querySelector('[data-calendar-confirmed-payment]');
-  if (!expected && !confirmed) {
+  var lessonsCount = document.querySelector('[data-calendar-lessons-count]');
+  var hoursCount = document.querySelector('[data-calendar-hours-count]');
+  if (!expected && !confirmed && !lessonsCount && !hoursCount) {
     return;
   }
   var totals = getVisiblePaymentEvents().reduce(function (carry, event) {
     var feeAmount = getEventFeeAmount(event);
     if (event.lessonStatus !== 'canceled' && event.calendarStatus !== 'canceled') {
       carry.expected += feeAmount;
+      carry.lessons += 1;
+      carry.minutes += getEventDurationMinutes(event);
     }
     if (event.lessonStatus === 'paid') {
       carry.confirmed += feeAmount;
@@ -499,10 +525,34 @@ var renderCalendarPaymentTotals = function renderCalendarPaymentTotals() {
     return carry;
   }, {
     confirmed: 0,
-    expected: 0
+    expected: 0,
+    lessons: 0,
+    minutes: 0
   });
   renderPaymentTotal('expected', expected, totals.expected);
   renderPaymentTotal('confirmed', confirmed, totals.confirmed);
+  renderCountTotal('lessons', lessonsCount, totals.lessons, {
+    decimalPlaces: 0,
+    formattingFn: function formattingFn(value) {
+      var number = Number(value);
+      return String(Math.round(Number.isFinite(number) ? number : 0));
+    }
+  }, function (value) {
+    var number = Number(value);
+    return String(Math.round(Number.isFinite(number) ? number : 0));
+  });
+  renderCountTotal('hours', hoursCount, totals.minutes / 60, {
+    decimalPlaces: 1,
+    formattingFn: function formattingFn(value) {
+      var number = Number(value);
+      var hours = Number.isFinite(number) ? number : 0;
+      return "".concat(Number(hours.toFixed(1)), "h");
+    }
+  }, function (value) {
+    var number = Number(value);
+    var hours = Number.isFinite(number) ? number : 0;
+    return "".concat(Number(hours.toFixed(1)), "h");
+  });
 };
 var getHolidaysForDateString = function getHolidaysForDateString(dateString) {
   return state.holidays.filter(function (holiday) {
@@ -1260,7 +1310,7 @@ var patchSchedulePointer = function patchSchedulePointer(calendar) {
   }
 };
 var scrollScheduleToNow = function scrollScheduleToNow(calendar) {
-  if (state.didInitialNowScroll || !scheduleGridViews.includes(state.view)) {
+  if (state.didAutoNowScroll || !scheduleGridViews.includes(state.view)) {
     return;
   }
   var schedule = calendar.querySelector('.lm-schedule');
@@ -1273,7 +1323,7 @@ var scrollScheduleToNow = function scrollScheduleToNow(calendar) {
     return;
   }
   schedule.scrollTop = Math.max(0, pointerTop - schedule.clientHeight / 2);
-  state.didInitialNowScroll = true;
+  state.didAutoNowScroll = true;
 };
 var disconnectScheduleObserver = function disconnectScheduleObserver() {
   if (state.scheduleObserver) {
@@ -1975,6 +2025,9 @@ document.addEventListener('DOMContentLoaded', function () {
   var studentSearch = calendarSearch ? calendarSearch.querySelector('input[name="search"]') : null;
   var offcanvasViews = document.getElementById('calendar-offcanvas-views');
   var offcanvasViewItems = Array.from(document.querySelectorAll('[data-calendar-offcanvas-view]'));
+  var calendarInsights = document.getElementById('studio-calendar-insights');
+  var calendarInsightsSidebarTarget = document.querySelector('[data-calendar-insights-sidebar-target]');
+  var calendarInsightsOffcanvasTarget = document.querySelector('[data-calendar-insights-offcanvas-target]');
   if (!calendar) {
     return;
   }
@@ -2004,12 +2057,22 @@ document.addEventListener('DOMContentLoaded', function () {
       });
     });
   };
+  var syncCalendarInsightsPlacement = function syncCalendarInsightsPlacement() {
+    if (!calendarInsights || !calendarInsightsSidebarTarget || !calendarInsightsOffcanvasTarget) {
+      return;
+    }
+    var target = isSidebarHiddenViewport() ? calendarInsightsOffcanvasTarget : calendarInsightsSidebarTarget;
+    if (calendarInsights.parentElement !== target) {
+      target.appendChild(calendarInsights);
+    }
+  };
   var setCalendarView = function setCalendarView(nextView) {
     if (!nextView || nextView === state.view) {
       syncViewControls();
       return;
     }
     state.view = nextView;
+    state.didAutoNowScroll = false;
     syncViewControls();
     _render();
   };
@@ -2059,6 +2122,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   };
   syncViewControls();
+  syncCalendarInsightsPlacement();
+  window.addEventListener('resize', syncCalendarInsightsPlacement);
   if (studentSearch) {
     state.studentSearch = studentSearch.value;
   }
