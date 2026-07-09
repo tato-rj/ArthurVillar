@@ -41,3 +41,8 @@ $colors: prepend($colors, (dark: (white, $dark-color)));
 @import "../responsive/lg";
 @import "../responsive/xl";
 @import "../responsive/xs";
+
+html,
+body {
+    touch-action: manipulation;
+}
