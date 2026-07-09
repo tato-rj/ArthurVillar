@@ -18619,7 +18619,7 @@ textarea.form-control-lg {
   pointer-events: auto !important;
 }
 
-.rounded, form .form-control, form .form-select, .dropzone-container, .dropzone {
+.rounded, .studio-calendar-offcanvas-views li, form .form-control, form .form-select, .dropzone-container, .dropzone {
   border-radius: var(--bs-border-radius) !important;
 }
 
@@ -24814,7 +24814,7 @@ h1, .h1 {
   font-size: 2em;
 }
 
-.rounded, form .form-control, form .form-select, .dropzone-container, .dropzone {
+.rounded, .studio-calendar-offcanvas-views li, form .form-control, form .form-select, .dropzone-container, .dropzone {
   border-radius: 2rem !important;
 }
 
@@ -30836,7 +30836,7 @@ input:checked + .slider:before {
   box-shadow: none !important;
 }
 
-.cursor-pointer {
+.cursor-pointer, .studio-calendar-offcanvas-views li {
   cursor: pointer;
 }
 
@@ -31274,6 +31274,20 @@ form.form-borderless.form-light input.form-control:not([readonly]), form.form-bo
   display: flex;
   gap: 1rem;
   margin-bottom: 12px;
+}
+
+.studio-calendar-offcanvas-views li {
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+.studio-calendar-offcanvas-views li[selected] {
+  background: rgba(0, 0, 0, 0.05);
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.studio-calendar-view-offcanvas-control {
+  display: none;
 }
 
 .studio-calendar-button,
@@ -32253,16 +32267,23 @@ form.form-borderless.form-light input.form-control:not([readonly]), form.form-bo
     margin-right: 0 !important;
   }
   .studio-calendar-toolbar-views {
-    padding-right: 40px;
+    display: none !important;
   }
   .studio-calendar-label {
     display: none !important;
   }
   .studio-calendar-today {
+    order: 3;
     padding-right: 0.75rem !important;
     padding-left: 0.75rem !important;
   }
+  .studio-calendar-view-offcanvas-control {
+    display: block;
+  }
   .studio-calendar-toolbar {
     gap: 0.5rem;
+  }
+  .studio-calendar-toolbar-views {
+    order: 2;
   }
 }

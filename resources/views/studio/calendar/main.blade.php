@@ -1,6 +1,11 @@
 <div class="studio-calendar-main">
 	<div class="studio-calendar-toolbar" aria-label="Calendar controls">
 
+		<div class="studio-calendar-view-offcanvas-control">
+			<button data-bs-toggle="offcanvas" href="#calendar-offcanvas-views" class="btn btn-raw px-3">
+				@fa(['icon' => 'ellipsis-vertical', 'mr' => 0, 'fa_size' => 'xl'])
+			</button>	
+		</div>
 {{-- 		<div class="btn-group">
 			<button type="button" class="studio-calendar-icon-button" data-calendar-prev aria-label="Previous">
 				<i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
@@ -49,3 +54,5 @@
 
 	<div id="calendar"></div>
 </div>
+
+@include('studio.calendar.views')

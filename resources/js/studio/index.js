@@ -2425,6 +2425,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const miniNext = document.querySelector('[data-mini-next]');
     const lessonModal = document.getElementById('lesson-modal');
     const studentSearch = document.querySelector('.studio-calendar-sidebar input[name="search"]');
+    const offcanvasViewItems = Array.from(document.querySelectorAll('[data-calendar-offcanvas-view]'));
 
     if (!calendar) {
         return;
@@ -2448,9 +2449,35 @@ document.addEventListener('DOMContentLoaded', function() {
         state.miniDate = cloneDate(state.date);
     }
 
-    if (view) {
-        view.value = state.view;
-    }
+    const syncViewControls = function() {
+        if (view) {
+            view.value = state.view;
+        }
+
+        offcanvasViewItems.forEach(function(item) {
+            const selected = item.dataset.calendarOffcanvasView === state.view;
+
+            item.toggleAttribute('selected', selected);
+            item.classList.toggle('is-selected', selected);
+
+            item.querySelectorAll('button').forEach(function(button) {
+                button.setAttribute('aria-pressed', selected ? 'true' : 'false');
+            });
+        });
+    };
+
+    const setCalendarView = function(nextView) {
+        if (!nextView || nextView === state.view) {
+            syncViewControls();
+            return;
+        }
+
+        state.view = nextView;
+        syncViewControls();
+        render();
+    };
+
+    syncViewControls();
 
     if (studentSearch) {
         state.studentSearch = studentSearch.value;
@@ -2584,6 +2611,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const render = function() {
         const visibleRange = getVisibleDateRange();
 
+        syncViewControls();
         updateCalendarUrl();
 
         if (!isRangeLoaded(visibleRange)) {
@@ -2700,10 +2728,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (view) {
         view.addEventListener('change', function() {
-            state.view = this.value;
-            render();
+            setCalendarView(this.value);
         });
     }
+
+    offcanvasViewItems.forEach(function(item) {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            setCalendarView(item.dataset.calendarOffcanvasView);
+        });
+    });
 
     if (studentSearch) {
         studentSearch.addEventListener('input', function() {
