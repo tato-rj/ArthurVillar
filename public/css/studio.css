@@ -32377,7 +32377,7 @@ body {
     padding-right: 3.5rem;
     padding-left: 1.5rem;
   }
-  .lm-schedule {
+  .lm-schedule, .studio-month-calendar {
     border-radius: 0 !important;
     border-right: 0 !important;
     border-left: 0 !important;
