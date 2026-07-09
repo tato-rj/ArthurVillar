@@ -28,8 +28,10 @@
 .studio-calendar-toolbar {
     align-items: center;
     display: flex;
+    justify-content: space-between;
     gap: 1rem;
-    min-height: 4.5rem;
+    margin-bottom: 12px;
+    // min-height: 4.5rem;
     flex-wrap: wrap;
 }
 
@@ -1049,16 +1051,16 @@
     .studio-calendar-sidebar {display: none !important}
     .studio-calendar-body {display: block !important}
     .studio-calendar-main  {margin-right: 0 !important;}
-    .studio-calendar-toolbar {margin-bottom: 12px;}
+    .studio-calendar-toolbar-views {padding-right: 40px;}
 
-    .studio-calendar-toolbar-today {order: 2;}
+    // .studio-calendar-toolbar-today {order: 2;}
 
-    .studio-calendar-toolbar-views {order: 3;}
+    // .studio-calendar-toolbar-views {order: 3;}
 
     .studio-calendar-toolbar-controls {
-        order: 1;
-        flex: 0 0 100% !important;
-        max-width: 100%;
+        // order: 1;
+        // flex: 0 0 100% !important;
+        // max-width: 100%;
     }
 }
 
