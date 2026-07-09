@@ -11,7 +11,7 @@
 @endpush
 
 @section('content')
-<section class="studio-calendar container-fluid px-4 py-3">
+<section class="studio-calendar container-fluid py-3">
 	<div class="studio-calendar-body">
 		@include('studio.calendar.sidebar')
 		@include('studio.calendar.main')

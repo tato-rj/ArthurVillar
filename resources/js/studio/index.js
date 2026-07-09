@@ -22,6 +22,7 @@ const state = {
     rescheduleAnchor: null,
     rescheduleEndOptions: [],
     paymentTotalCounters: {},
+    didInitialNowScroll: false,
 };
 
 const studioTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/New_York';
@@ -1536,6 +1537,28 @@ const patchSchedulePointer = function(calendar) {
     }
 };
 
+const scrollScheduleToNow = function(calendar) {
+    if (state.didInitialNowScroll || !scheduleGridViews.includes(state.view)) {
+        return;
+    }
+
+    const schedule = calendar.querySelector('.lm-schedule');
+    const pointer = schedule ? schedule.querySelector('.lm-schedule-pointer') : null;
+
+    if (!schedule || !pointer || pointer.style.display === 'none') {
+        return;
+    }
+
+    const pointerTop = Number.parseFloat(pointer.style.top);
+
+    if (!Number.isFinite(pointerTop)) {
+        return;
+    }
+
+    schedule.scrollTop = Math.max(0, pointerTop - (schedule.clientHeight / 2));
+    state.didInitialNowScroll = true;
+};
+
 const disconnectScheduleObserver = function() {
     if (state.scheduleObserver) {
         state.scheduleObserver.disconnect();
@@ -1569,6 +1592,9 @@ const patchSchedule = function(calendar) {
     patchScheduleItems(calendar);
     patchScheduleHolidays(calendar);
     patchSchedulePointer(calendar);
+    requestAnimationFrame(function() {
+        scrollScheduleToNow(calendar);
+    });
     watchScheduleChanges(calendar);
 };
 
