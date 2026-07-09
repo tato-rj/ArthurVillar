@@ -287,57 +287,13 @@ $(document).on('click', 'form[confirm] button[type="submit"]', function(e) {
 });
 
 $(document).ready(function() {
-    const initializePhoneInputs = function(scope) {
-        const root = scope || document;
-
-        root.querySelectorAll('[data-mask="phone"]').forEach(function(input) {
-            if (input.dataset.phoneInputReady === 'true') {
-                return;
-            }
-
-            const wrapper = input.closest('.form-control-phone');
-            const countryCode = wrapper ? wrapper.querySelector('[data-phone-country-code]') : null;
-
-            const applyMask = function() {
-                if (input.inputmask) {
-                    input.inputmask.remove();
-                }
-
-                if (!countryCode || countryCode.value === '+1') {
-                    new Inputmask({"mask": "(999) 999-9999"}).mask(input);
-                    return;
-                }
-
-                input.setAttribute('inputmode', 'tel');
-            };
-
-            if (countryCode) {
-                countryCode.addEventListener('change', applyMask);
-            }
-
-            input.dataset.phoneInputReady = 'true';
-            applyMask();
-        });
-    };
-
     new Inputmask({"mask": "99:99"}).mask(
         document.querySelectorAll('input[name="start_time"], input[name="end_time"], [data-mask="time"]')
     );
 
-    initializePhoneInputs(document);
-
-    new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
-            mutation.addedNodes.forEach(function(node) {
-                if (node.nodeType === Node.ELEMENT_NODE) {
-                    initializePhoneInputs(node);
-                }
-            });
-        });
-    }).observe(document.body, {
-        childList: true,
-        subtree: true,
-    });
+    new Inputmask({"mask": "(999) 999-9999"}).mask(
+        document.querySelectorAll('[data-mask="phone"]')
+    );
 
     new Inputmask({
         alias: "numeric",

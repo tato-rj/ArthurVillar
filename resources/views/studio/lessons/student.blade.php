@@ -17,6 +17,44 @@
         ])
     </div>
 
+    @php($currentPlan = $student->currentLessonPlan())
+    @if($currentPlan)
+    <div class="row mb-3">
+        <div class="col-lg-8 col-md-10 col-12 mx-auto row">
+        <div class="col-6 col-md-4 mb-3">
+            <div class="small opacity-4">@fa(['icon' => 'piggy-bank', 'fa_color' => 'grey'])Payment method</div>
+            <div class="h4 mb-0">{{$currentPlan->payment_method}}</div>
+        </div>
+
+        <div class="col-6 col-md-4 mb-3">
+            <div class="small opacity-4">@fa(['icon' => 'money-bill-wave', 'fa_color' => 'grey'])Fee amount</div>
+            <div class="h4 mb-0">{{payment()->usd($currentPlan->fee_amount)}}</div>
+        </div>
+
+        <div class="col-6 col-md-4 mb-3">
+            <div class="small opacity-4">@fa(['icon' => 'repeat', 'fa_color' => 'grey'])Recurrence</div>
+            <div class="h4 mb-0">{{$currentPlan->recurrence}}</div>
+        </div>
+
+        <div class="col-6 col-md-4 mb-3">
+            <div class="small opacity-4">@fa(['icon' => 'location-dot', 'fa_color' => 'grey'])Location</div>
+            <div class="h4 mb-0">{{$currentPlan->location->name}}</div>
+        </div>
+
+        <div class="col-6 col-md-4 mb-3">
+            <div class="small opacity-4">@fa(['icon' => 'clock', 'fa_color' => 'grey'])Time</div>
+            <div class="h4 mb-0">{{$currentPlan->startTime()->format('g:i A')}}</div>
+        </div>
+
+        <div class="col-6 col-md-4 mb-3">
+            <div class="small opacity-4">@fa(['icon' => 'calculator', 'fa_color' => 'grey'])Number of lessons</div>
+            <div class="h4 mb-0">{{$currentPlan->projectedLessonCount()}}</div>
+        </div>
+    </div>
+    </div>
+
+    @endif
+
     <div class="d-flex flex-wrap mb-5">
         @foreach($student->lessonPlans as $lessonPlan)
         @include('studio.lessonPlans.card')

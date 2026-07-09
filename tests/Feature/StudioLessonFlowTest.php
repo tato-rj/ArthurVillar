@@ -173,6 +173,48 @@ class StudioLessonFlowTest extends BaseTest
     }
 
     /** @test */
+    public function it_stores_lesson_plan_urls_and_only_keeps_meeting_url_for_online_locations()
+    {
+        $student = Student::factory()->create();
+        $online = Location::factory()->create(['name' => 'Online']);
+        $home = Location::factory()->create(['name' => 'Home']);
+
+        $this->signIn();
+
+        $this->post(route('studio.lesson-plans.store'), $this->lessonPlanPayload([
+            'student_id' => $student->id,
+            'location_id' => $online->id,
+            'meeting_url' => 'https://zoom.us/j/123456789',
+            'notes_url' => 'https://example.com/lesson-notes',
+            'starts_on' => '07/06/2026',
+            'ends_on' => '08/06/2026',
+        ]))->assertRedirect();
+
+        $this->assertDatabaseHas('lesson_plans', [
+            'student_id' => $student->id,
+            'location_id' => $online->id,
+            'meeting_url' => 'https://zoom.us/j/123456789',
+            'notes_url' => 'https://example.com/lesson-notes',
+        ]);
+
+        $this->post(route('studio.lesson-plans.store'), $this->lessonPlanPayload([
+            'student_id' => $student->id,
+            'location_id' => $home->id,
+            'meeting_url' => 'https://zoom.us/j/987654321',
+            'notes_url' => 'https://example.com/home-notes',
+            'starts_on' => '09/06/2026',
+            'ends_on' => '10/06/2026',
+        ]))->assertRedirect();
+
+        $this->assertDatabaseHas('lesson_plans', [
+            'student_id' => $student->id,
+            'location_id' => $home->id,
+            'meeting_url' => null,
+            'notes_url' => 'https://example.com/home-notes',
+        ]);
+    }
+
+    /** @test */
     public function it_reschedules_a_single_lesson_occurrence()
     {
         $lessonPlan = LessonPlan::factory()->create([

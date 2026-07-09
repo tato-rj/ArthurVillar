@@ -37,15 +37,6 @@ class LessonPlansController extends Controller
         return back()->with('success', 'The lesson plan was successfully duplicated');
     }
 
-    public function close(LessonPlan $lessonPlan)
-    {
-        $lessonPlan->update([
-            'ends_on' => now()->toDateString(),
-        ]);
-
-        return back()->with('success', 'The lesson plan was successfully closed');
-    }
-
     public function update(Request $request, LessonPlan $lessonPlan)
     {
         $data = $this->validateLessonPlan($request);
@@ -146,6 +137,8 @@ class LessonPlansController extends Controller
             'fee_amount' => ['nullable', 'string'],
             'payment_method' => ['nullable', 'string', 'max:255'],
             'location_id' => ['required', 'exists:locations,id'],
+            'meeting_url' => ['nullable', 'url', 'max:2048'],
+            'notes_url' => ['nullable', 'url', 'max:2048'],
             // 'status' => ['required', Rule::in(['active', 'paused', 'canceled'])],
             'notes' => ['nullable', 'string'],
         ]);
@@ -195,6 +188,8 @@ class LessonPlansController extends Controller
             'fee_amount' => $this->lessonFeeAmount($data),
             'payment_method' => $data['payment_method'] ?? null,
             'location_id' => $data['location_id'],
+            'meeting_url' => $this->isOnlineLocation($data['location_id']) ? ($data['meeting_url'] ?? null) : null,
+            'notes_url' => $data['notes_url'] ?? null,
             'status' => $data['status'] ?? 'active',
             'notes' => $data['notes'] ?? null,
         ];
@@ -241,5 +236,12 @@ class LessonPlansController extends Controller
         }
 
         return Carbon::parse($value)->format('Y-m-d');
+    }
+
+    private function isOnlineLocation($locationId)
+    {
+        $location = Location::find($locationId);
+
+        return $location && strtolower($location->name) === 'online';
     }
 }

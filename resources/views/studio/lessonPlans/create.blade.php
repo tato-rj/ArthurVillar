@@ -7,9 +7,15 @@
 
 	@select(['placeholder' => 'Location', 'name' => 'location_id', 'grid' => 'col', 'required' => true])
 		@foreach($locations as $location)
-			@option(['name' => 'location_id', 'label' => $location->name, 'value' => $location->id, 'selected' => old('location_id') == $location->id, 'data' => ['fee-amount' => $location->feeAmountForInput()]])
+			@option(['name' => 'location_id', 'label' => $location->name, 'value' => $location->id, 'selected' => old('location_id') == $location->id, 'data' => ['fee-amount' => $location->feeAmountForInput(), 'is-online' => strtolower($location->name) === 'online' ? 1 : 0]])
 		@endforeach
 	@endselect
+
+	<div class="lesson-plan-meeting-url-field">
+		@input(['placeholder' => 'Meeting URL', 'name' => 'meeting_url', 'type' => 'url', 'value' => old('meeting_url')])
+	</div>
+
+	@input(['placeholder' => 'Notes URL', 'name' => 'notes_url', 'type' => 'url', 'value' => old('notes_url')])
 
 	<div class="row"> 
 		@select(['placeholder' => 'Weekday', 'name' => 'weekday', 'grid' => 'col', 'required' => true])
@@ -85,6 +91,7 @@ document.addEventListener('change', function(event) {
     const duration = durationSelect ? Number(durationSelect.value || 0) : 0;
 
     if (!feeInput || !hourlyFee || !duration) {
+        updateLessonPlanMeetingUrlVisibility(form, trigger.matches('select[name="location_id"]'));
         return;
     }
 
@@ -92,6 +99,34 @@ document.addEventListener('change', function(event) {
     const roundedFee = Math.floor(proratedFee / 5) * 5;
 
     feeInput.value = roundedFee.toFixed(2).replace(/\\.00$/, '');
+    updateLessonPlanMeetingUrlVisibility(form, trigger.matches('select[name="location_id"]'));
+});
+
+function updateLessonPlanMeetingUrlVisibility(form, shouldEmpty) {
+    const locationSelect = form ? form.querySelector('select[name="location_id"]') : null;
+    const meetingUrlField = form ? form.querySelector('.lesson-plan-meeting-url-field') : null;
+    const meetingUrlInput = meetingUrlField ? meetingUrlField.querySelector('input[name="meeting_url"]') : null;
+    const selectedOption = locationSelect ? locationSelect.options[locationSelect.selectedIndex] : null;
+    const isOnline = selectedOption && selectedOption.dataset.isOnline === '1';
+
+    if (!meetingUrlField || !meetingUrlInput) {
+        return;
+    }
+
+    meetingUrlField.style.display = isOnline ? '' : 'none';
+    meetingUrlInput.disabled = !isOnline;
+
+    if (!isOnline || shouldEmpty) {
+        meetingUrlInput.value = '';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('form').forEach(function(form) {
+        if (form.querySelector('select[name="location_id"]') && form.querySelector('input[name="meeting_url"]')) {
+            updateLessonPlanMeetingUrlVisibility(form, false);
+        }
+    });
 });
 </script>
 @endpush

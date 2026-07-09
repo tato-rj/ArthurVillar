@@ -30,7 +30,9 @@ class LessonPlanFactory extends Factory
             'duration_minutes' => $duration,
             'fee_amount' => $this->faker->randomElement([3000, 4500, 6000]),
             'location_id' => Location::query()->inRandomOrder()->value('id') ?: Location::factory(),
-            'payment_method' => $this->faker->randomElement(['Venmo', 'Zelle', 'Cash/check'])
+            'payment_method' => $this->faker->randomElement(['Venmo', 'Zelle', 'Cash/check']),
+            'meeting_url' => null,
+            'notes_url' => null,
         ];
     }
 

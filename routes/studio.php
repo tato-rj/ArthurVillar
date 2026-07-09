@@ -42,7 +42,6 @@ Route::prefix('lesson-plans')->name('lesson-plans.')->group(function() {
 	Route::post('reschedule', 'LessonPlansController@reschedule')->name('reschedule');
 
 	Route::prefix('{lessonPlan}')->group(function() {
-		Route::post('close', 'LessonPlansController@close')->name('close');
 		Route::post('duplicate', 'LessonPlansController@duplicate')->name('duplicate');
 
 		Route::patch('', 'LessonPlansController@update')->name('update');

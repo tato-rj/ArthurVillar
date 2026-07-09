@@ -8,9 +8,15 @@
 	
 	@select(['placeholder' => 'Location', 'name' => 'location_id', 'grid' => 'col', 'required' => true])
 		@foreach($locations as $location)
-			@option(['name' => 'location_id', 'label' => $location->name, 'value' => $location->id, 'selected' => $lessonPlan->location_id == $location->id, 'data' => ['fee-amount' => $location->feeAmountForInput()]])
+			@option(['name' => 'location_id', 'label' => $location->name, 'value' => $location->id, 'selected' => $lessonPlan->location_id == $location->id, 'data' => ['fee-amount' => $location->feeAmountForInput(), 'is-online' => strtolower($location->name) === 'online' ? 1 : 0]])
 		@endforeach
 	@endselect
+
+	<div class="lesson-plan-meeting-url-field">
+		@input(['label' => 'Meeting URL', 'name' => 'meeting_url', 'type' => 'url', 'value' => $lessonPlan->meeting_url])
+	</div>
+
+	@input(['label' => 'Notes URL', 'name' => 'notes_url', 'type' => 'url', 'value' => $lessonPlan->notes_url])
 
 	<div class="row">
 		@select(['label' => 'Weekday', 'name' => 'weekday', 'grid' => 'col'])

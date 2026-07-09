@@ -17,7 +17,8 @@ class LessonPlanSeeder extends Seeder
     {
         foreach (Student::all() as $student) {
             LessonPlan::factory()->student($student)->create([
-                'starts_on' => now()->subMonth()
+                'starts_on' => now()->subMonths(random_int(1,6)),
+                'ends_on' => now()->addMonths(random_int(1,6))
             ]);
         }
     }

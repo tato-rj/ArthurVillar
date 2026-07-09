@@ -19,47 +19,13 @@
 			</div>
 			@if($lessonPlan->ends_on)
 			<div class="small text-muted">End on {{$lessonPlan->ends_on->toFormattedDateString()}}</div>
-			<div class="small text-muted">Total of {{$lessonPlan->projectedLessonCount()}} lessons</div>
 			@endif
 		</div>
-
-		@if($current)
-		<div class="mb-3">
-			<div class="mb-1">
-				@fa(['icon' => 'piggy-bank', 'fa_color' => 'grey']){{$lessonPlan->payment_method}}
-			</div>
-			<div class="mb-1">
-				@fa(['icon' => 'money-bill-wave', 'fa_color' => 'grey']){{payment()->usd($lessonPlan->fee_amount)}}
-			</div>
-			<div class="mb-1">
-				@fa(['icon' => 'repeat', 'fa_color' => 'grey']){{$lessonPlan->recurrence}}
-			</div>
-			@if($lessonPlan->location)
-			<div class="mb-1">
-				@fa(['icon' => 'location-dot', 'fa_color' => 'grey']){{$lessonPlan->location->name}}
-			</div>
-			@endif
-			<div>
-				@fa(['icon' => 'clock', 'fa_color' => 'grey']){{$lessonPlan->startTime()->format('g:i A')}}
-			</div>
-		</div>
-		@endif
-
+		
 		<div>
 			<button type="button" class="btn btn-sm rounded btn-warning w-100 mb-2" data-bs-toggle="modal" data-bs-target="#edit-lessonPlan-{{$lessonPlan->id}}-modal">
 				@fa(['icon' => 'pencil', 'mr' => 1])Edit
 			</button>
-
-			@if($current)
-			<div class="d-flex">
-				<form method="POST" action="{{route('studio.lesson-plans.close', $lessonPlan)}}" class="w-100" confirm>
-					@csrf
-					<button type="submit" class="btn btn-sm btn-white rounded w-100 mb-2">
-						End
-					</button>
-				</form>
-			</div>
-			@endif
 
 			<form method="POST" action="{{route('studio.lesson-plans.duplicate', $lessonPlan)}}">
 				@csrf
