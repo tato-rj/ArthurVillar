@@ -22,11 +22,11 @@
 
 <div>
 	<div id="meeting-url" class="mt-3">
-		<a target="_blank" href="" class="text-green">@fa(['icon' => 'video'])Meeting url</a>	
+		<a target="_blank" href="" class="text-warning">@fa(['icon' => 'video'])Meeting url</a>	
 	</div>
 
 	<div id="notes-url" class="mt-1">
-		<a target="_blank" href="" class="text-green">@fa(['icon' => 'file-pen'])Notes url</a>	
+		<a target="_blank" href="" class="text-warning">@fa(['icon' => 'file-pen'])Notes url</a>	
 	</div>
 </div>
 
