@@ -10,12 +10,14 @@
 			@option(['name' => 'location_id', 'label' => $location->name, 'value' => $location->id, 'selected' => old('location_id') == $location->id, 'data' => ['fee-amount' => $location->feeAmountForInput(), 'is-online' => strtolower($location->name) === 'online' ? 1 : 0]])
 		@endforeach
 	@endselect
-
+	
 	<div class="lesson-plan-meeting-url-field">
 		@input(['placeholder' => 'Meeting URL', 'name' => 'meeting_url', 'type' => 'url', 'value' => old('meeting_url')])
 	</div>
 
-	@input(['placeholder' => 'Notes URL', 'name' => 'notes_url', 'type' => 'url', 'value' => old('notes_url')])
+	<div class="lesson-plan-notes-url-field">
+		@input(['placeholder' => 'Notes URL', 'name' => 'notes_url', 'type' => 'url', 'value' => old('notes_url')])
+	</div>
 
 	<div class="row"> 
 		@select(['placeholder' => 'Weekday', 'name' => 'weekday', 'grid' => 'col', 'required' => true])
@@ -105,19 +107,24 @@ document.addEventListener('change', function(event) {
 function updateLessonPlanMeetingUrlVisibility(form, shouldEmpty) {
     const locationSelect = form ? form.querySelector('select[name="location_id"]') : null;
     const meetingUrlField = form ? form.querySelector('.lesson-plan-meeting-url-field') : null;
+    const notesUrlField = form ? form.querySelector('.lesson-plan-notes-url-field') : null;
     const meetingUrlInput = meetingUrlField ? meetingUrlField.querySelector('input[name="meeting_url"]') : null;
+    const notesUrlInput = notesUrlField ? notesUrlField.querySelector('input[name="notes_url"]') : null;
     const selectedOption = locationSelect ? locationSelect.options[locationSelect.selectedIndex] : null;
     const isOnline = selectedOption && selectedOption.dataset.isOnline === '1';
 
-    if (!meetingUrlField || !meetingUrlInput) {
+    if (!meetingUrlField || !meetingUrlInput || !notesUrlField || !notesUrlInput) {
         return;
     }
 
     meetingUrlField.style.display = isOnline ? '' : 'none';
+    notesUrlField.style.display = isOnline ? '' : 'none';
     meetingUrlInput.disabled = !isOnline;
+    notesUrlInput.disabled = !isOnline;
 
     if (!isOnline || shouldEmpty) {
         meetingUrlInput.value = '';
+        notesUrlInput.value = '';
     }
 }
 

@@ -173,7 +173,7 @@ class StudioLessonFlowTest extends BaseTest
     }
 
     /** @test */
-    public function it_stores_lesson_plan_urls_and_only_keeps_meeting_url_for_online_locations()
+    public function it_stores_lesson_plan_urls_only_for_online_locations()
     {
         $student = Student::factory()->create();
         $online = Location::factory()->create(['name' => 'Online']);
@@ -210,7 +210,7 @@ class StudioLessonFlowTest extends BaseTest
             'student_id' => $student->id,
             'location_id' => $home->id,
             'meeting_url' => null,
-            'notes_url' => 'https://example.com/home-notes',
+            'notes_url' => null,
         ]);
     }
 

@@ -189,7 +189,7 @@ class LessonPlansController extends Controller
             'payment_method' => $data['payment_method'] ?? null,
             'location_id' => $data['location_id'],
             'meeting_url' => $this->isOnlineLocation($data['location_id']) ? ($data['meeting_url'] ?? null) : null,
-            'notes_url' => $data['notes_url'] ?? null,
+            'notes_url' => $this->isOnlineLocation($data['location_id']) ? ($data['notes_url'] ?? null) : null,
             'status' => $data['status'] ?? 'active',
             'notes' => $data['notes'] ?? null,
         ];

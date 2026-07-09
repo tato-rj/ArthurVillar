@@ -16,7 +16,9 @@
 		@input(['label' => 'Meeting URL', 'name' => 'meeting_url', 'type' => 'url', 'value' => $lessonPlan->meeting_url])
 	</div>
 
-	@input(['label' => 'Notes URL', 'name' => 'notes_url', 'type' => 'url', 'value' => $lessonPlan->notes_url])
+	<div class="lesson-plan-notes-url-field">
+		@input(['label' => 'Notes URL', 'name' => 'notes_url', 'type' => 'url', 'value' => $lessonPlan->notes_url])
+	</div>
 
 	<div class="row">
 		@select(['label' => 'Weekday', 'name' => 'weekday', 'grid' => 'col'])
