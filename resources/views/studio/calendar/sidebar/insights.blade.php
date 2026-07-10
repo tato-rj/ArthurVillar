@@ -7,7 +7,7 @@
 		</div>
 		<div class="mb-3">
 			<h6 class="m-0" data-calendar-hours-count>0h</h6>
-			<label style="font-size: .75em;">HOURS</label>
+			<label style="font-size: .75em;">TIME</label>
 		</div>
 		<div class="mb-3" style="display: none;">
 			<h6 class="m-0" data-calendar-average-hours>0/day</h6>
