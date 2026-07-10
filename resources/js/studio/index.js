@@ -2916,10 +2916,31 @@ const syncSingleLessonFee = function(form) {
     feeInput.value = roundedFee.toFixed(2).replace(/\.00$/, '');
 };
 
+const getSingleLessonPlanDefaultDate = function() {
+    if (!state.date) {
+        return todayString();
+    }
+
+    if (state.view === 'month') {
+        return toDateString(createLocalDate(state.date.getFullYear(), state.date.getMonth(), 1));
+    }
+
+    return toDateString(getVisibleDateRange().start);
+};
+
+const syncSingleLessonPlanModalDate = function(modal) {
+    const dateInput = modal ? modal.querySelector('input[name="scheduled_date"]') : null;
+
+    if (dateInput) {
+        dateInput.value = getSingleLessonPlanDefaultDate();
+    }
+};
+
 const initializeSingleLessonPlanForms = function() {
     document.querySelectorAll('[data-single-lesson-plan-form]').forEach(function(form) {
         const locationSelect = form.querySelector('select[name="location_id"]');
         const durationSelect = form.querySelector('select[name="duration_minutes"]');
+        const modal = form.closest('#create-single-lesson-plan-modal');
 
         setSingleLessonOnlineFields(form, false);
 
@@ -2937,6 +2958,12 @@ const initializeSingleLessonPlanForms = function() {
         if (durationSelect) {
             durationSelect.addEventListener('change', function() {
                 syncSingleLessonFee(form);
+            });
+        }
+
+        if (modal) {
+            modal.addEventListener('show.bs.modal', function() {
+                syncSingleLessonPlanModalDate(modal);
             });
         }
     });

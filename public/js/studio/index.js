@@ -2276,10 +2276,26 @@ var syncSingleLessonFee = function syncSingleLessonFee(form) {
   var roundedFee = Math.floor(proratedFee / 5) * 5;
   feeInput.value = roundedFee.toFixed(2).replace(/\.00$/, '');
 };
+var getSingleLessonPlanDefaultDate = function getSingleLessonPlanDefaultDate() {
+  if (!state.date) {
+    return todayString();
+  }
+  if (state.view === 'month') {
+    return toDateString(createLocalDate(state.date.getFullYear(), state.date.getMonth(), 1));
+  }
+  return toDateString(getVisibleDateRange().start);
+};
+var syncSingleLessonPlanModalDate = function syncSingleLessonPlanModalDate(modal) {
+  var dateInput = modal ? modal.querySelector('input[name="scheduled_date"]') : null;
+  if (dateInput) {
+    dateInput.value = getSingleLessonPlanDefaultDate();
+  }
+};
 var initializeSingleLessonPlanForms = function initializeSingleLessonPlanForms() {
   document.querySelectorAll('[data-single-lesson-plan-form]').forEach(function (form) {
     var locationSelect = form.querySelector('select[name="location_id"]');
     var durationSelect = form.querySelector('select[name="duration_minutes"]');
+    var modal = form.closest('#create-single-lesson-plan-modal');
     setSingleLessonOnlineFields(form, false);
     if (locationSelect && durationSelect) {
       syncSingleLessonFee(form);
@@ -2293,6 +2309,11 @@ var initializeSingleLessonPlanForms = function initializeSingleLessonPlanForms()
     if (durationSelect) {
       durationSelect.addEventListener('change', function () {
         syncSingleLessonFee(form);
+      });
+    }
+    if (modal) {
+      modal.addEventListener('show.bs.modal', function () {
+        syncSingleLessonPlanModalDate(modal);
       });
     }
   });
