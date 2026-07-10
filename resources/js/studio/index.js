@@ -335,6 +335,10 @@ const getDateRangeDates = function(range) {
 };
 
 const getScheduleValue = function() {
+    if (state.view === '2-days') {
+        return toDateString(state.date);
+    }
+
     if (scheduleGridViews.includes(state.view)) {
         return toDateString(addDays(state.date, 1));
     }
