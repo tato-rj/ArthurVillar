@@ -48,11 +48,11 @@ var dayFormatter = new Intl.DateTimeFormat('en', {
 });
 var weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 var monthWeekdays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-var calendarViews = ['schedule', 'day', '3-days', 'week', 'month'];
+var calendarViews = ['schedule', 'day', '2-days', 'week', 'month'];
 var scheduleStart = '08:00';
 var scheduleEnd = '22:00';
 var sidebarHiddenQuery = '(max-width: 1000px)';
-var scheduleGridViews = ['day', '3-days', 'week'];
+var scheduleGridViews = ['day', '2-days', 'week'];
 var createLocalDate = function createLocalDate(year, month, day) {
   return new Date(year, month, day, 12, 0, 0, 0);
 };
@@ -86,14 +86,15 @@ var parseNullableDateString = function parseNullableDateString(value) {
   return value ? parseDateString(String(value).substring(0, 10)) : null;
 };
 var getDefaultCalendarView = function getDefaultCalendarView() {
-  return window.matchMedia && window.matchMedia('(max-width: 767.98px)').matches ? '3-days' : 'week';
+  return window.matchMedia && window.matchMedia('(max-width: 767.98px)').matches ? '2-days' : 'week';
 };
 var isSidebarHiddenViewport = function isSidebarHiddenViewport() {
   return window.matchMedia && window.matchMedia(sidebarHiddenQuery).matches;
 };
 var getUrlState = function getUrlState() {
   var params = new URLSearchParams(window.location.search);
-  var view = params.get('view');
+  var requestedView = params.get('view');
+  var view = requestedView === '3-days' ? '2-days' : requestedView;
   var date = params.get('date');
   return {
     view: calendarViews.includes(view) ? view : getDefaultCalendarView(),
@@ -151,10 +152,10 @@ var getVisibleDateRange = function getVisibleDateRange() {
       end: cloneDate(state.date)
     };
   }
-  if (state.view === '3-days') {
+  if (state.view === '2-days') {
     return {
       start: cloneDate(state.date),
-      end: addDays(state.date, 2)
+      end: addDays(state.date, 1)
     };
   }
   if (state.view === 'week') {
@@ -238,9 +239,9 @@ var getVisibleScheduleDates = function getVisibleScheduleDates() {
   if (state.view === 'day') {
     return [cloneDate(state.date)];
   }
-  if (state.view === '3-days') {
+  if (state.view === '2-days') {
     return Array.from({
-      length: 3
+      length: 2
     }, function (_, index) {
       return addDays(state.date, index);
     });
@@ -253,7 +254,7 @@ var getVisibleScheduleDates = function getVisibleScheduleDates() {
   });
 };
 var getScheduleGridDates = function getScheduleGridDates() {
-  if (state.view === '3-days' || state.view === 'week') {
+  if (state.view === '2-days' || state.view === 'week') {
     var start = startOfWeek(state.date);
     return Array.from({
       length: 7
@@ -533,8 +534,8 @@ var formatQuarterHours = function formatQuarterHours(minutes) {
   return "".concat(Number(hours.toFixed(2)), "h");
 };
 var getVisibleAverageHoursDayCount = function getVisibleAverageHoursDayCount() {
-  if (state.view === '3-days') {
-    return 3;
+  if (state.view === '2-days') {
+    return 2;
   }
   if (state.view === 'week') {
     return 7;
@@ -2094,8 +2095,8 @@ var getLabel = function getLabel() {
   if (state.view === 'day') {
     return dayFormatter.format(state.date);
   }
-  if (state.view === '3-days') {
-    return getRangeLabel(state.date, addDays(state.date, 2));
+  if (state.view === '2-days') {
+    return getRangeLabel(state.date, addDays(state.date, 1));
   }
   if (state.view === 'week') {
     return getWeekLabel(state.date);
@@ -2105,8 +2106,8 @@ var getLabel = function getLabel() {
 var move = function move(direction) {
   if (state.view === 'day') {
     setSelectedDate(addDays(state.date, direction));
-  } else if (state.view === '3-days') {
-    setSelectedDate(addDays(state.date, direction * 3));
+  } else if (state.view === '2-days') {
+    setSelectedDate(addDays(state.date, direction * 2));
   } else if (state.view === 'week') {
     setSelectedDate(addDays(state.date, direction * 7));
   } else if (state.view === 'month' || state.view === 'schedule') {
@@ -2399,7 +2400,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     calendar.innerHTML = '';
     calendar.classList.toggle('studio-calendar-day-view', state.view === 'day');
-    calendar.classList.toggle('studio-calendar-three-days-view', state.view === '3-days');
+    calendar.classList.toggle('studio-calendar-two-days-view', state.view === '2-days');
     calendar.classList.toggle('studio-calendar-week-view', state.view === 'week');
     calendar.classList.toggle('studio-calendar-month-view', state.view === 'month');
     calendar.classList.toggle('studio-calendar-schedule-view', state.view === 'schedule');
@@ -2419,7 +2420,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     if (scheduleGridViews.includes(state.view)) {
       state.instance = calendarjs.Schedule(calendar, {
-        type: state.view === '3-days' ? 'week' : state.view,
+        type: state.view === '2-days' ? 'week' : state.view,
         value: getScheduleValue(),
         data: normalizeScheduleEvents(getVisibleCalendarEvents()),
         validRange: [scheduleStart, scheduleEnd],
@@ -2653,7 +2654,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }, true);
   calendar.addEventListener('click', function (e) {
     var day = e.target.closest('.lm-schedule tbody td[data-date]');
-    if (!day || !['3-days', 'week'].includes(state.view) || e.target.closest('.lm-schedule-item')) {
+    if (!day || !['2-days', 'week'].includes(state.view) || e.target.closest('.lm-schedule-item')) {
       return;
     }
     setSelectedDate(parseDateString(day.dataset.date));

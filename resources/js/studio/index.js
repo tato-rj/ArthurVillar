@@ -50,12 +50,12 @@ const dayFormatter = new Intl.DateTimeFormat('en', {
 
 const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const monthWeekdays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-const calendarViews = ['schedule', 'day', '3-days', 'week', 'month'];
+const calendarViews = ['schedule', 'day', '2-days', 'week', 'month'];
 const scheduleStart = '08:00';
 const scheduleEnd = '22:00';
 const sidebarHiddenQuery = '(max-width: 1000px)';
 
-const scheduleGridViews = ['day', '3-days', 'week'];
+const scheduleGridViews = ['day', '2-days', 'week'];
 
 const createLocalDate = function(year, month, day) {
     return new Date(year, month, day, 12, 0, 0, 0);
@@ -102,7 +102,7 @@ const parseNullableDateString = function(value) {
 };
 
 const getDefaultCalendarView = function() {
-    return window.matchMedia && window.matchMedia('(max-width: 767.98px)').matches ? '3-days' : 'week';
+    return window.matchMedia && window.matchMedia('(max-width: 767.98px)').matches ? '2-days' : 'week';
 };
 
 const isSidebarHiddenViewport = function() {
@@ -111,7 +111,8 @@ const isSidebarHiddenViewport = function() {
 
 const getUrlState = function() {
     const params = new URLSearchParams(window.location.search);
-    const view = params.get('view');
+    const requestedView = params.get('view');
+    const view = requestedView === '3-days' ? '2-days' : requestedView;
     const date = params.get('date');
 
     return {
@@ -179,10 +180,10 @@ const getVisibleDateRange = function() {
         };
     }
 
-    if (state.view === '3-days') {
+    if (state.view === '2-days') {
         return {
             start: cloneDate(state.date),
-            end: addDays(state.date, 2),
+            end: addDays(state.date, 1),
         };
     }
 
@@ -292,8 +293,8 @@ const getVisibleScheduleDates = function() {
         return [cloneDate(state.date)];
     }
 
-    if (state.view === '3-days') {
-        return Array.from({ length: 3 }, function(_, index) {
+    if (state.view === '2-days') {
+        return Array.from({ length: 2 }, function(_, index) {
             return addDays(state.date, index);
         });
     }
@@ -306,7 +307,7 @@ const getVisibleScheduleDates = function() {
 };
 
 const getScheduleGridDates = function() {
-    if (state.view === '3-days' || state.view === 'week') {
+    if (state.view === '2-days' || state.view === 'week') {
         const start = startOfWeek(state.date);
 
         return Array.from({ length: 7 }, function(_, index) {
@@ -680,8 +681,8 @@ const formatQuarterHours = function(minutes) {
 };
 
 const getVisibleAverageHoursDayCount = function() {
-    if (state.view === '3-days') {
-        return 3;
+    if (state.view === '2-days') {
+        return 2;
     }
 
     if (state.view === 'week') {
@@ -2686,8 +2687,8 @@ const getLabel = function() {
         return dayFormatter.format(state.date);
     }
 
-    if (state.view === '3-days') {
-        return getRangeLabel(state.date, addDays(state.date, 2));
+    if (state.view === '2-days') {
+        return getRangeLabel(state.date, addDays(state.date, 1));
     }
 
     if (state.view === 'week') {
@@ -2700,8 +2701,8 @@ const getLabel = function() {
 const move = function(direction) {
     if (state.view === 'day') {
         setSelectedDate(addDays(state.date, direction));
-    } else if (state.view === '3-days') {
-        setSelectedDate(addDays(state.date, direction * 3));
+    } else if (state.view === '2-days') {
+        setSelectedDate(addDays(state.date, direction * 2));
     } else if (state.view === 'week') {
         setSelectedDate(addDays(state.date, direction * 7));
     } else if (state.view === 'month' || state.view === 'schedule') {
@@ -3079,7 +3080,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         calendar.innerHTML = '';
         calendar.classList.toggle('studio-calendar-day-view', state.view === 'day');
-        calendar.classList.toggle('studio-calendar-three-days-view', state.view === '3-days');
+        calendar.classList.toggle('studio-calendar-two-days-view', state.view === '2-days');
         calendar.classList.toggle('studio-calendar-week-view', state.view === 'week');
         calendar.classList.toggle('studio-calendar-month-view', state.view === 'month');
         calendar.classList.toggle('studio-calendar-schedule-view', state.view === 'schedule');
@@ -3106,7 +3107,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (scheduleGridViews.includes(state.view)) {
             state.instance = calendarjs.Schedule(calendar, {
-                type: state.view === '3-days' ? 'week' : state.view,
+                type: state.view === '2-days' ? 'week' : state.view,
                 value: getScheduleValue(),
                 data: normalizeScheduleEvents(getVisibleCalendarEvents()),
                 validRange: [scheduleStart, scheduleEnd],
@@ -3387,7 +3388,7 @@ document.addEventListener('DOMContentLoaded', function() {
     calendar.addEventListener('click', function(e) {
         const day = e.target.closest('.lm-schedule tbody td[data-date]');
 
-        if (!day || !['3-days', 'week'].includes(state.view) || e.target.closest('.lm-schedule-item')) {
+        if (!day || !['2-days', 'week'].includes(state.view) || e.target.closest('.lm-schedule-item')) {
             return;
         }
 

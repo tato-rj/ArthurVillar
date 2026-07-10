@@ -11,7 +11,7 @@ class Scheduler
 {
     use Holidays;
     
-    private const VIEWS = ['schedule', 'day', '3-days', 'week', 'month'];
+    private const VIEWS = ['schedule', 'day', '2-days', 'week', 'month'];
 
     public function payload(Request $request)
     {
@@ -355,9 +355,9 @@ class Scheduler
         if ($view === 'day') {
             $start = $date->copy();
             $end = $date->copy();
-        } elseif ($view === '3-days') {
+        } elseif ($view === '2-days') {
             $start = $date->copy();
-            $end = $date->copy()->addDays(2);
+            $end = $date->copy()->addDay();
         } elseif ($view === 'schedule') {
             $start = $date->copy()->startOfMonth()->subMonth();
             $end = $date->copy()->startOfMonth()->addMonths(4)->endOfMonth();
@@ -375,6 +375,10 @@ class Scheduler
     public function view(Request $request)
     {
         $view = $request->query('view', 'week');
+
+        if ($view === '3-days') {
+            return '2-days';
+        }
 
         return in_array($view, self::VIEWS, true) ? $view : 'week';
     }

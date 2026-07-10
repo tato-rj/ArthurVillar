@@ -10,8 +10,8 @@
       <li class="nav-item py-2 mb-2" data-calendar-offcanvas-view="day">
         <button type="button" class="btn btn-raw" data-bs-dismiss="offcanvas">@fa(['icon' => 'square', 'fa_type' => 'r'])Day</button>
       </li>
-      <li class="nav-item py-2 mb-2" data-calendar-offcanvas-view="3-days">
-        <button type="button" class="btn btn-raw" data-bs-dismiss="offcanvas">@fa(['icon' => 'table-columns'])3 day</button>
+      <li class="nav-item py-2 mb-2" data-calendar-offcanvas-view="2-days">
+        <button type="button" class="btn btn-raw" data-bs-dismiss="offcanvas">@fa(['icon' => 'table-columns'])2 days</button>
       </li>
       <li class="nav-item py-2 mb-2" data-calendar-offcanvas-view="week">
         <button type="button" class="btn btn-raw" data-bs-dismiss="offcanvas">@fa(['icon' => 'table-list'])Week</button>

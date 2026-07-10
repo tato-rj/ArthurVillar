@@ -377,7 +377,7 @@
 }
 
 #calendar.studio-calendar-day-view .lm-schedule,
-#calendar.studio-calendar-three-days-view .lm-schedule,
+#calendar.studio-calendar-two-days-view .lm-schedule,
 #calendar.studio-calendar-week-view .lm-schedule {
     background: #fff;
     border: 1px solid #dfe3eb;
@@ -714,7 +714,7 @@
     padding-left: 20px;
 }
 
-#calendar.studio-calendar-three-days-view .lm-schedule thead td,
+#calendar.studio-calendar-two-days-view .lm-schedule thead td,
 #calendar.studio-calendar-week-view .lm-schedule thead td {
     text-align: center;
 }
@@ -723,7 +723,7 @@
     display: none !important;
 }
 
-#calendar.studio-calendar-three-days-view .lm-schedule tbody td[data-date],
+#calendar.studio-calendar-two-days-view .lm-schedule tbody td[data-date],
 #calendar.studio-calendar-week-view .lm-schedule tbody td[data-date] {
     border-left: 1px solid var(--lm-border-color-light, #e9e9e9);
 }
@@ -769,8 +769,8 @@
     text-align: left;
 }
 
-#calendar.studio-calendar-three-days-view .lm-schedule thead td.studio-schedule-holiday-zone,
-#calendar.studio-calendar-three-days-view .lm-schedule thead td.studio-schedule-holiday-cell,
+#calendar.studio-calendar-two-days-view .lm-schedule thead td.studio-schedule-holiday-zone,
+#calendar.studio-calendar-two-days-view .lm-schedule thead td.studio-schedule-holiday-cell,
 #calendar.studio-calendar-week-view .lm-schedule thead td.studio-schedule-holiday-zone,
 #calendar.studio-calendar-week-view .lm-schedule thead td.studio-schedule-holiday-cell {
     padding: 0.28rem;
@@ -815,7 +815,7 @@
 }
 
 #calendar.studio-calendar-day-view .lm-schedule-pointer,
-#calendar.studio-calendar-three-days-view .lm-schedule-pointer,
+#calendar.studio-calendar-two-days-view .lm-schedule-pointer,
 #calendar.studio-calendar-week-view .lm-schedule-pointer {
     background: #d93025;
     height: 2px;
@@ -823,7 +823,7 @@
 }
 
 #calendar.studio-calendar-day-view .lm-schedule-pointer::before,
-#calendar.studio-calendar-three-days-view .lm-schedule-pointer::before,
+#calendar.studio-calendar-two-days-view .lm-schedule-pointer::before,
 #calendar.studio-calendar-week-view .lm-schedule-pointer::before {
     background: #d93025;
     border: 0;
@@ -1171,15 +1171,21 @@
 }
 
 @media (max-width: 1000px) {
+    i.fa-bars, i.fa-ellipsis-vertical {font-size: 100%}
+    .studio-calendar-filter-toggle {min-width: 1rem}
+    .studio-calendar-nav i {font-size: 85%}
+    .studio-calendar-today {font-size: 85%}
+    .studio-calendar-icon-button {width: 1.5rem}
     .studio-calendar {
         padding-right: 0 !important;
         padding-left: 0 !important;
     }
-
     .studio-calendar-toolbar {
         gap: .5rem;
         padding-right: 3.5rem;
-        padding-left: 1.5rem;
+        padding-left: 1rem;
+
+        .studio-calendar-filter i, .studio-calendar-search i {font-size: 85% !important}
     }
     .lm-schedule, .studio-month-calendar {
         border-radius: 0 !important;
