@@ -31274,6 +31274,10 @@ body {
   --lm-background-color-header: rgba(254, 247, 210);
 }
 
+input[type=date] {
+  text-align: left;
+}
+
 .studio-calendar {
   min-height: 100vh;
   padding-right: 1.5rem;
