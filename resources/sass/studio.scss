@@ -814,6 +814,68 @@
     background: #68449f;
 }
 
+button.single-lesson-plan-create {
+    @extend .shadow, .bg-primary, .rounded-sm, .border, .border-black;
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    z-index: 1000;
+    width: 40px;
+    height: 40px;
+}
+
+.studio-student-combobox {
+    position: relative;
+}
+
+.studio-student-combobox-control {
+    cursor: text;
+}
+
+.studio-student-combobox-control input {
+    background: transparent;
+    outline: 0;
+}
+
+.studio-student-combobox-menu {
+    @extend .shadow, .rounded-sm, .border;
+    background: #fff;
+    display: none;
+    left: 0;
+    max-height: 230px;
+    overflow-y: auto;
+    padding: 0.35rem;
+    position: absolute;
+    right: 0;
+    top: calc(100% + 0.35rem);
+    z-index: 1060;
+}
+
+.studio-student-combobox[open] .studio-student-combobox-menu {
+    display: block;
+}
+
+.studio-student-combobox-option {
+    @extend .btn-raw;
+    border-radius: 0.35rem;
+    color: #25282b;
+    display: block;
+    padding: 0.65rem 0.75rem;
+    text-align: left;
+    width: 100%;
+}
+
+.studio-student-combobox-option:hover,
+.studio-student-combobox-option:focus {
+    background: #eef3fb;
+}
+
+.studio-student-combobox-empty {
+    color: #6c757d;
+    font-size: 0.9rem;
+    padding: 0.65rem 0.75rem;
+}
+
 #calendar.studio-calendar-day-view .lm-schedule-pointer,
 #calendar.studio-calendar-two-days-view .lm-schedule-pointer,
 #calendar.studio-calendar-week-view .lm-schedule-pointer {

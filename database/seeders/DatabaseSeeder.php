@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
             HolidaySeeder::class,
             StudentSeeder::class,
             LessonPlanSeeder::class,
+            SingleLessonPlanSeeder::class,
             TeachingBreakSeeder::class,
             WaitingListSeeder::class
         ]);

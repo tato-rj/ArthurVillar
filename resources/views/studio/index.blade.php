@@ -25,6 +25,7 @@
 @push('scripts')
 <script>
 window.studioPlannedLessons = @json($plannedLessons);
+window.studioSingleLessonPlans = @json($singleLessonPlans);
 window.studioHolidays = @json($holidays);
 window.studioTeachingBreaks = @json($teachingBreaks);
 window.studioCalendarRange = @json($calendarRange);

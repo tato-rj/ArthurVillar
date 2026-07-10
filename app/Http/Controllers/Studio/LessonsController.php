@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Studio;
 
-use App\Models\{Lesson, LessonPlan, Student};
+use App\Models\{Lesson, LessonPlan, SingleLessonPlan, Student};
 use App\Models\ScheduleOverride;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -38,6 +38,22 @@ class LessonsController extends Controller
 
     public function cancel(Request $request)
     {
+        if ($request->filled('single_lesson_plan_id')) {
+            $data = $request->validate([
+                'single_lesson_plan_id' => ['required', 'exists:single_lesson_plans,id'],
+            ]);
+
+            SingleLessonPlan::whereKey($data['single_lesson_plan_id'])->delete();
+
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'single_lesson_plan_deleted' => true,
+                ]);
+            }
+
+            return back()->with('success', 'The single lesson was successfully canceled');
+        }
+
         $data = $request->validate([
             'canceled_by' => ['required', Rule::in(['teacher', 'student'])],
         ]);
@@ -118,7 +134,8 @@ class LessonsController extends Controller
     private function lessonFromRequest(Request $request)
     {
         $data = $request->validate([
-            'lesson_plan_id' => ['required', 'exists:lesson_plans,id'],
+            'lesson_plan_id' => ['nullable', 'required_without:single_lesson_plan_id', 'exists:lesson_plans,id'],
+            'single_lesson_plan_id' => ['nullable', 'required_without:lesson_plan_id', 'exists:single_lesson_plans,id'],
             'date' => ['required', 'date_format:Y-m-d'],
             'start' => ['required', 'date_format:H:i', Rule::in(LessonPlan::timeOptions())],
             'end' => ['nullable', 'date_format:H:i', Rule::in(LessonPlan::timeOptions())],
@@ -127,6 +144,15 @@ class LessonsController extends Controller
             'schedule_override_id' => ['nullable', 'exists:schedule_overrides,id'],
         ]);
 
+        if (! empty($data['single_lesson_plan_id'])) {
+            return $this->singleLessonFromRequest($data);
+        }
+
+        return $this->recurringLessonFromRequest($data);
+    }
+
+    private function recurringLessonFromRequest(array $data)
+    {
         $lessonPlan = LessonPlan::findOrFail($data['lesson_plan_id']);
         $startsAt = Carbon::createFromFormat('Y-m-d H:i', $data['date'].' '.$data['start']);
         $endsAt = $data['end']
@@ -164,6 +190,42 @@ class LessonsController extends Controller
         return [
             'model' => $lesson,
             'schedule_override_deleted' => $scheduleOverrideDeleted,
+        ];
+    }
+
+    private function singleLessonFromRequest(array $data)
+    {
+        $singleLessonPlan = SingleLessonPlan::with(['student', 'location'])->findOrFail($data['single_lesson_plan_id']);
+        $startsAt = Carbon::createFromFormat('Y-m-d H:i', $data['date'].' '.$data['start']);
+        $endsAt = $data['end']
+            ? Carbon::createFromFormat('Y-m-d H:i', $data['date'].' '.$data['end'])
+            : $startsAt->copy()->addMinutes($singleLessonPlan->duration_minutes);
+        $scheduledDate = $data['scheduled_date'] ?? $singleLessonPlan->scheduled_date->toDateString();
+        $scheduledStartTime = $data['scheduled_start_time'] ?? $singleLessonPlan->start_time;
+
+        $lesson = Lesson::firstOrCreate([
+            'lesson_plan_id' => null,
+            'student_id' => $singleLessonPlan->student_id,
+            'starts_at' => $startsAt,
+        ], [
+            'scheduled_date' => $scheduledDate,
+            'scheduled_start_time' => $scheduledStartTime,
+            'ends_at' => $endsAt,
+            'fee_amount' => $singleLessonPlan->netFeeAmount(),
+            'payment_method' => $singleLessonPlan->payment_method,
+            'notes' => $singleLessonPlan->notes,
+        ]);
+
+        if (! $lesson->scheduled_date || ! $lesson->scheduled_start_time) {
+            $lesson->update([
+                'scheduled_date' => $scheduledDate,
+                'scheduled_start_time' => $scheduledStartTime,
+            ]);
+        }
+
+        return [
+            'model' => $lesson,
+            'schedule_override_deleted' => false,
         ];
     }
 

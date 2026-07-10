@@ -3,7 +3,7 @@
 namespace App\Calendar;
 
 use Carbon\Carbon;
-use App\Models\{LessonPlan, TeachingBreak};
+use App\Models\{LessonPlan, SingleLessonPlan, TeachingBreak};
 use Illuminate\Http\Request;
 use App\Calendar\Traits\Holidays;
 
@@ -19,10 +19,65 @@ class Scheduler
 
         return [
             'plannedLessons' => $this->plannedLessons($range),
+            'singleLessonPlans' => $this->singleLessonPlans($range),
             'holidays' => $this->holidays($range),
             'teachingBreaks' => $this->teachingBreaks($range),
             'calendarRange' => $range,
         ];
+    }
+
+    public function singleLessonPlans(array $range)
+    {
+        return SingleLessonPlan::query()
+            ->with([
+                'student',
+                'location',
+                'student.lessons' => function ($query) use ($range) {
+                    $query
+                        ->whereNull('lesson_plan_id')
+                        ->relevantBetween($range['start'], $range['end']);
+                },
+            ])
+            ->scheduledBetween($range['start'], $range['end'])
+            ->orderBy('scheduled_date')
+            ->orderBy('start_time')
+            ->get()
+            ->map(function (SingleLessonPlan $singleLessonPlan) {
+                $date = $singleLessonPlan->scheduled_date->toDateString();
+                $startTime = $singleLessonPlan->start_time;
+                $lesson = $singleLessonPlan->student->lessons->first(function ($lesson) use ($date, $startTime) {
+                    $scheduledDate = $lesson->scheduled_date
+                        ? Carbon::parse($lesson->scheduled_date)->toDateString()
+                        : Carbon::parse($lesson->starts_at)->toDateString();
+                    $scheduledStartTime = $lesson->scheduled_start_time
+                        ? LessonPlan::normalizeTime($lesson->scheduled_start_time)
+                        : Carbon::parse($lesson->starts_at)->format('H:i');
+
+                    return $scheduledDate === $date && $scheduledStartTime === $startTime;
+                });
+
+                return array_merge($singleLessonPlan->toArray(), [
+                    'type' => 'single-lesson-plan',
+                    'occurrences' => [[
+                        'date' => $date,
+                        'start' => $startTime,
+                        'end' => LessonPlan::addMinutesToTime($startTime, $singleLessonPlan->duration_minutes),
+                        'original_date' => $date,
+                        'original_start_time' => $startTime,
+                        'single_lesson_plan_id' => $singleLessonPlan->id,
+                        'lesson_id' => $lesson ? $lesson->id : null,
+                        'lesson_status' => $lesson ? $lesson->paymentStatus() : 'unconfirmed',
+                        'calendar_status' => $lesson ? $lesson->paymentStatus() : 'unconfirmed',
+                        'fee_amount' => $lesson && $lesson->fee_amount ? $lesson->fee_amount : $singleLessonPlan->netFeeAmount(),
+                        'canceled_by' => $lesson ? $lesson->canceled_by : '',
+                        'lesson_edit_url' => $lesson ? route('studio.lessons.edit', $lesson) : '',
+                        'lesson_payment_url' => $lesson ? $lesson->paymentUrl : '',
+                        'meeting_url' => $singleLessonPlan->meeting_url,
+                        'notes_url' => $singleLessonPlan->notes_url,
+                    ]],
+                ]);
+            })
+            ->values();
     }
 
     public function plannedLessons(array $range, bool $applyTeachingBreaks = true)

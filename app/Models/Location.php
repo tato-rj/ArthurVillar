@@ -15,6 +15,11 @@ class Location extends BaseModel
         return $this->hasMany(LessonPlan::class);
     }
 
+    public function singleLessonPlans()
+    {
+        return $this->hasMany(SingleLessonPlan::class);
+    }
+
     public function teachingBreaks()
     {
         return $this->belongsToMany(TeachingBreak::class)->withTimestamps();

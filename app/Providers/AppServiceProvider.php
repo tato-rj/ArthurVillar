@@ -6,7 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\Paginator;
-use App\Models\Location;
+use App\Models\{Location, Student};
 use App\Models\Listening\{Period, Country};
 
 class AppServiceProvider extends ServiceProvider
@@ -58,11 +58,20 @@ class AppServiceProvider extends ServiceProvider
             ]);
         });
 
-        \View::composer(['studio.lessonPlans.create', 'studio.lessonPlans.edit'], function($view) {
+        \View::composer(['studio.lessonPlans.create', 'studio.lessonPlans.edit', 'studio.singleLessonPlans.create'], function($view) {
             $view->with([
                 'locations' => Location::query()
                     ->where('is_active', true)
                     ->orderBy('name')
+                    ->get()
+            ]);
+        });
+
+        \View::composer('studio.singleLessonPlans.create', function($view) {
+            $view->with([
+                'students' => Student::query()
+                    ->orderBy('first_name')
+                    ->orderBy('last_name')
                     ->get()
             ]);
         });

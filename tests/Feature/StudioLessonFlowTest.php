@@ -4,7 +4,8 @@ namespace Tests\Feature;
 
 use Carbon\Carbon;
 use Tests\BaseTest;
-use App\Models\{Lesson, LessonPlan, Location, ScheduleOverride, Student};
+use App\Calendar\Scheduler;
+use App\Models\{Lesson, LessonPlan, Location, ScheduleOverride, SingleLessonPlan, Student};
 
 class StudioLessonFlowTest extends BaseTest
 {
@@ -443,6 +444,35 @@ class StudioLessonFlowTest extends BaseTest
     }
 
     /** @test */
+    public function canceling_a_single_lesson_plan_deletes_the_plan_without_a_cancel_reason()
+    {
+        $singleLessonPlan = SingleLessonPlan::factory()->create([
+            'scheduled_date' => '2026-07-15',
+            'start_time' => '15:30',
+            'duration_minutes' => 45,
+        ]);
+
+        $this->signIn();
+
+        $response = $this->from(route('studio.home'))->post(route('studio.lessons.cancel'), [
+            'single_lesson_plan_id' => $singleLessonPlan->id,
+            'date' => '2026-07-15',
+            'start' => '15:30',
+            'end' => '16:15',
+            'scheduled_date' => '2026-07-15',
+            'scheduled_start_time' => '15:30',
+            'schedule_override_id' => '',
+        ]);
+
+        $response
+            ->assertRedirect(route('studio.home'))
+            ->assertSessionHas('success', 'The single lesson was successfully canceled');
+
+        $this->assertDatabaseMissing('single_lesson_plans', ['id' => $singleLessonPlan->id]);
+        $this->assertDatabaseCount('lessons', 0);
+    }
+
+    /** @test */
     public function canceling_a_rescheduled_lesson_deletes_the_schedule_override()
     {
         $lessonPlan = LessonPlan::factory()->create([
@@ -531,6 +561,41 @@ class StudioLessonFlowTest extends BaseTest
     }
 
     /** @test */
+    public function reverting_an_unpaid_single_lesson_deletes_only_the_confirmed_lesson()
+    {
+        $singleLessonPlan = SingleLessonPlan::factory()->create([
+            'scheduled_date' => '2026-07-15',
+            'start_time' => '15:30',
+            'duration_minutes' => 45,
+        ]);
+        $lesson = Lesson::factory()->create([
+            'student_id' => $singleLessonPlan->student_id,
+            'lesson_plan_id' => null,
+            'starts_at' => '2026-07-15 15:30:00',
+            'ends_at' => '2026-07-15 16:15:00',
+            'scheduled_date' => '2026-07-15',
+            'scheduled_start_time' => '15:30',
+            'paid_at' => null,
+            'canceled_at' => null,
+        ]);
+
+        $this->signIn();
+
+        $this->postJson(route('studio.lessons.revert'), [
+            'lesson_id' => $lesson->id,
+            'schedule_override_id' => '',
+        ])
+            ->assertOk()
+            ->assertJsonPath('status', 'unconfirmed')
+            ->assertJsonPath('lesson_reverted', true)
+            ->assertJsonPath('lesson_deleted', true)
+            ->assertJsonPath('lesson_id', '');
+
+        $this->assertDatabaseHas('single_lesson_plans', ['id' => $singleLessonPlan->id]);
+        $this->assertDatabaseMissing('lessons', ['id' => $lesson->id]);
+    }
+
+    /** @test */
     public function reverting_a_paid_lesson_keeps_the_lesson_and_marks_it_unpaid()
     {
         $lessonPlan = LessonPlan::factory()->create([
@@ -589,6 +654,79 @@ class StudioLessonFlowTest extends BaseTest
             ->assertJsonPath('status', 'unconfirmed');
 
         $this->assertDatabaseMissing('schedule_overrides', ['id' => $override->id]);
+    }
+
+    /** @test */
+    public function confirming_a_single_lesson_plan_creates_a_single_lesson_and_keeps_the_pending_plan()
+    {
+        $location = Location::factory()->create([
+            'tax_withheld_percentage' => 25,
+        ]);
+        $singleLessonPlan = SingleLessonPlan::factory()->create([
+            'location_id' => $location->id,
+            'scheduled_date' => '2026-07-15',
+            'start_time' => '15:30',
+            'duration_minutes' => 45,
+            'fee_amount' => 8000,
+            'payment_method' => 'Venmo',
+            'notes' => 'One-off makeup lesson.',
+        ]);
+
+        $this->signIn();
+
+        $this->postJson(route('studio.lessons.store'), [
+            'single_lesson_plan_id' => $singleLessonPlan->id,
+            'date' => '2026-07-15',
+            'start' => '15:30',
+            'end' => '16:15',
+            'scheduled_date' => '2026-07-15',
+            'scheduled_start_time' => '15:30',
+        ])
+            ->assertOk()
+            ->assertJsonPath('status', 'unpaid')
+            ->assertJsonMissing(['single_lesson_plan_deleted' => true]);
+
+        $this->assertDatabaseHas('single_lesson_plans', ['id' => $singleLessonPlan->id]);
+        $this->assertDatabaseHas('lessons', [
+            'student_id' => $singleLessonPlan->student_id,
+            'lesson_plan_id' => null,
+            'scheduled_date' => '2026-07-15 00:00:00',
+            'scheduled_start_time' => '15:30',
+            'fee_amount' => 6000,
+            'payment_method' => 'Venmo',
+            'notes' => 'One-off makeup lesson.',
+        ]);
+    }
+
+    /** @test */
+    public function calendar_payload_marks_a_confirmed_single_lesson_plan_as_unpaid()
+    {
+        $singleLessonPlan = SingleLessonPlan::factory()->create([
+            'scheduled_date' => '2026-07-15',
+            'start_time' => '15:30',
+            'duration_minutes' => 45,
+        ]);
+        $lesson = Lesson::factory()->create([
+            'student_id' => $singleLessonPlan->student_id,
+            'lesson_plan_id' => null,
+            'starts_at' => '2026-07-15 15:30:00',
+            'ends_at' => '2026-07-15 16:15:00',
+            'scheduled_date' => '2026-07-15',
+            'scheduled_start_time' => '15:30',
+            'paid_at' => null,
+            'canceled_at' => null,
+        ]);
+
+        $singleLesson = app(Scheduler::class)->singleLessonPlans([
+            'start' => '2026-07-01',
+            'end' => '2026-07-31',
+        ])->first();
+        $occurrence = $singleLesson['occurrences'][0];
+
+        $this->assertSame($singleLessonPlan->id, $occurrence['single_lesson_plan_id']);
+        $this->assertSame($lesson->id, $occurrence['lesson_id']);
+        $this->assertSame('unpaid', $occurrence['lesson_status']);
+        $this->assertSame('unpaid', $occurrence['calendar_status']);
     }
 
     private function lessonPlanPayload(array $overrides = [])

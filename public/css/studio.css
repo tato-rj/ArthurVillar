@@ -17068,7 +17068,7 @@ textarea.form-control-lg {
   display: none !important;
 }
 
-.shadow, #calendar .lm-schedule-item:not([past-event]), #calendar .studio-schedule-event:not([past-event]), .studio-calendar-filter-menu, .hover-shadow:hover {
+.shadow, #calendar .lm-schedule-item:not([past-event]), #calendar .studio-schedule-event:not([past-event]), .studio-student-combobox-menu, button.single-lesson-plan-create, .studio-calendar-filter-menu, .hover-shadow:hover {
   box-shadow: var(--bs-box-shadow) !important;
 }
 
@@ -17196,7 +17196,7 @@ textarea.form-control-lg {
   transform: translateY(-50%) !important;
 }
 
-.border, .studio-calendar-filter-menu, .btn-warning {
+.border, .studio-student-combobox-menu, button.single-lesson-plan-create, .studio-calendar-filter-menu, .btn-warning {
   border: var(--bs-border-width) var(--bs-border-style) var(--bs-border-color) !important;
 }
 
@@ -17276,7 +17276,7 @@ textarea.form-control-lg {
   border-color: rgba(var(--bs-dark-rgb), var(--bs-border-opacity)) !important;
 }
 
-.border-black, .btn-warning {
+.border-black, button.single-lesson-plan-create, .btn-warning {
   --bs-border-opacity: 1;
   border-color: rgba(var(--bs-black-rgb), var(--bs-border-opacity)) !important;
 }
@@ -18488,7 +18488,7 @@ textarea.form-control-lg {
   --bs-link-underline-opacity: 1;
 }
 
-.bg-primary, .studio-mini-calendar-date.is-selected {
+.bg-primary, button.single-lesson-plan-create, .studio-mini-calendar-date.is-selected {
   --bs-bg-opacity: 1;
   background-color: rgba(var(--bs-primary-rgb), var(--bs-bg-opacity)) !important;
 }
@@ -24859,7 +24859,7 @@ h1, .h1 {
   border-bottom-left-radius: 2rem !important;
 }
 
-.rounded-sm, .studio-time-picker select, .studio-date-picker, .studio-calendar-filter-menu {
+.rounded-sm, .studio-time-picker select, .studio-date-picker, .studio-student-combobox-menu, button.single-lesson-plan-create, .studio-calendar-filter-menu {
   border-radius: 0.25rem !important;
 }
 
@@ -25074,7 +25074,7 @@ h1, .h1 {
   display: none !important;
 }
 
-.bg-primary, .studio-mini-calendar-date.is-selected {
+.bg-primary, button.single-lesson-plan-create, .studio-mini-calendar-date.is-selected {
   background: #ffe54c !important;
   color: black;
 }
@@ -25100,7 +25100,7 @@ h1, .h1 {
   background: #262626;
   color: white;
 }
-.bg-primary, .studio-mini-calendar-date.is-selected {
+.bg-primary, button.single-lesson-plan-create, .studio-mini-calendar-date.is-selected {
   background: #ffe54c;
   color: black;
 }
@@ -29687,7 +29687,7 @@ h1, .h1 {
   border-bottom-right-radius: 0 !important;
 }
 
-.shadow, #calendar .lm-schedule-item:not([past-event]), #calendar .studio-schedule-event:not([past-event]), .studio-calendar-filter-menu, .hover-shadow:hover {
+.shadow, #calendar .lm-schedule-item:not([past-event]), #calendar .studio-schedule-event:not([past-event]), .studio-student-combobox-menu, button.single-lesson-plan-create, .studio-calendar-filter-menu, .hover-shadow:hover {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
 }
 .shadow-sm, .hover-shadow-sm:hover {
@@ -30861,7 +30861,7 @@ input:checked + .slider:before {
   cursor: pointer;
 }
 
-.btn-raw {
+.btn-raw, .studio-student-combobox-option {
   background: 0 0;
   border: none;
   padding: 0;
@@ -32047,6 +32047,65 @@ body {
 
 .studio-schedule-break:hover {
   background: #68449f;
+}
+
+button.single-lesson-plan-create {
+  position: absolute;
+  bottom: 15px;
+  right: 15px;
+  z-index: 1000;
+  width: 40px;
+  height: 40px;
+}
+
+.studio-student-combobox {
+  position: relative;
+}
+
+.studio-student-combobox-control {
+  cursor: text;
+}
+
+.studio-student-combobox-control input {
+  background: transparent;
+  outline: 0;
+}
+
+.studio-student-combobox-menu {
+  background: #fff;
+  display: none;
+  left: 0;
+  max-height: 230px;
+  overflow-y: auto;
+  padding: 0.35rem;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.35rem);
+  z-index: 1060;
+}
+
+.studio-student-combobox[open] .studio-student-combobox-menu {
+  display: block;
+}
+
+.studio-student-combobox-option {
+  border-radius: 0.35rem;
+  color: #25282b;
+  display: block;
+  padding: 0.65rem 0.75rem;
+  text-align: left;
+  width: 100%;
+}
+
+.studio-student-combobox-option:hover,
+.studio-student-combobox-option:focus {
+  background: #eef3fb;
+}
+
+.studio-student-combobox-empty {
+  color: #6c757d;
+  font-size: 0.9rem;
+  padding: 0.65rem 0.75rem;
 }
 
 #calendar.studio-calendar-day-view .lm-schedule-pointer,

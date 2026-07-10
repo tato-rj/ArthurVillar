@@ -8,6 +8,7 @@ const state = {
     events: [],
     customEvents: [],
     plannedLessons: [],
+    singleLessonPlans: [],
     locations: [],
     selectedLocationIds: [],
     visibleEventsByDate: null,
@@ -269,6 +270,7 @@ const fetchPlannedLessons = function(range) {
             }
 
             state.plannedLessons = Array.isArray(payload.plannedLessons) ? payload.plannedLessons : [];
+            state.singleLessonPlans = Array.isArray(payload.singleLessonPlans) ? payload.singleLessonPlans : [];
             state.holidays = Array.isArray(payload.holidays) ? payload.holidays : [];
             state.teachingBreaks = Array.isArray(payload.teachingBreaks) ? payload.teachingBreaks : [];
             state.loadedRange = normalizeRange(payload.calendarRange) || normalizedRange;
@@ -733,7 +735,7 @@ const getVisiblePaymentEvents = function() {
             return event.date === toDateString(state.date);
         })
         .filter(function(event) {
-            return event.lessonPlanId && !event.isHoliday;
+            return (event.lessonPlanId || event.singleLessonPlanId) && !event.isHoliday;
         });
 };
 
@@ -1239,11 +1241,14 @@ const populateLessonModal = function(modal, event) {
     const rescheduleOriginalDate = modal.querySelector('#reschedule-lesson-original-date');
     const rescheduleOriginalStartTime = modal.querySelector('#reschedule-lesson-original-start-time');
     const rescheduleDate = modal.querySelector('#reschedule-lesson-date');
+    const rescheduleForm = modal.querySelector('#reschedule-lesson form');
     const rescheduleLessonPlan = modal.querySelector('#reschedule-lesson [name="lesson_plan_id"]');
     const rescheduleStartTime = modal.querySelector('#reschedule-lesson-start-time');
     const rescheduleEndTime = modal.querySelector('#reschedule-lesson-end-time');
     const cancelLessonForm = modal.querySelector('#cancel-lesson form');
     const lessonPlanId = event && event.lessonPlanId ? event.lessonPlanId : '';
+    const singleLessonPlanId = event && event.singleLessonPlanId ? event.singleLessonPlanId : '';
+    const hasLessonSource = !!(lessonPlanId || singleLessonPlanId);
     const eventDate = event && event.date ? event.date.substring(0, 10) : todayString();
     const canUseActions = canUseLessonActionButtons(event);
 
@@ -1293,15 +1298,15 @@ const populateLessonModal = function(modal, event) {
 
     if (taught) {
         preserveButtonLabel(taught);
-        taught.disabled = !event || !event.lessonPlanId;
+        taught.disabled = !event || !hasLessonSource;
         taught.style.display = canUseActions ? '' : 'none';
         restoreButtonLabel(taught);
     }
 
     if (cancelLesson) {
         preserveButtonLabel(cancelLesson);
-        cancelLesson.disabled = !event || !event.lessonPlanId || (event.lessonStatus === 'canceled');
-        cancelLesson.style.display = event && event.lessonPlanId ? '' : 'none';
+        cancelLesson.disabled = !event || !hasLessonSource || (event.lessonStatus === 'canceled');
+        cancelLesson.style.display = hasLessonSource ? '' : 'none';
         restoreButtonLabel(cancelLesson);
     }
 
@@ -1328,9 +1333,26 @@ const populateLessonModal = function(modal, event) {
         rescheduleLessonPlan.value = lessonPlanId;
     }
 
+    const rescheduleSingleLessonPlan = modal.querySelector('#reschedule-lesson [name="single_lesson_plan_id"]');
+
+    if (rescheduleSingleLessonPlan) {
+        rescheduleSingleLessonPlan.value = singleLessonPlanId;
+    }
+
+    if (rescheduleForm) {
+        rescheduleForm.action = singleLessonPlanId && rescheduleForm.dataset.singleAction
+            ? rescheduleForm.dataset.singleAction
+            : (rescheduleForm.dataset.recurringAction || rescheduleForm.action);
+    }
+
     if (cancelLessonForm) {
+        const recurringCancelFields = cancelLessonForm.querySelector('[data-recurring-cancel-fields]');
+        const singleCancelWarning = cancelLessonForm.querySelector('[data-single-cancel-warning]');
+        const cancelReasonInputs = cancelLessonForm.querySelectorAll('input[name="canceled_by"]');
+        const isSingleLessonCancel = !!singleLessonPlanId;
         const cancelFormPayload = {
             lesson_plan_id: lessonPlanId,
+            single_lesson_plan_id: singleLessonPlanId,
             date: eventDate,
             start: event && event.start ? normalizeTime(event.start) : '',
             end: event && event.end ? normalizeTime(event.end) : '',
@@ -1345,6 +1367,18 @@ const populateLessonModal = function(modal, event) {
             if (input) {
                 input.value = cancelFormPayload[name];
             }
+        });
+
+        if (recurringCancelFields) {
+            recurringCancelFields.hidden = isSingleLessonCancel;
+        }
+
+        if (singleCancelWarning) {
+            singleCancelWarning.hidden = !isSingleLessonCancel;
+        }
+
+        cancelReasonInputs.forEach(function(input) {
+            input.disabled = isSingleLessonCancel;
         });
     }
 
@@ -1386,6 +1420,7 @@ const openLessonModal = function(event) {
         modal.dataset.eventStart = event.start || '';
         modal.dataset.eventEnd = event.end || '';
         modal.dataset.lessonPlanId = event.lessonPlanId || '';
+        modal.dataset.singleLessonPlanId = event.singleLessonPlanId || '';
         modal.dataset.lessonId = event.lessonId || '';
         modal.dataset.scheduleOverrideId = event.scheduleOverrideId || '';
         modal.dataset.originalDate = event.originalDate || event.date || '';
@@ -1397,6 +1432,7 @@ const openLessonModal = function(event) {
         modal.dataset.eventStart = '';
         modal.dataset.eventEnd = '';
         modal.dataset.lessonPlanId = '';
+        modal.dataset.singleLessonPlanId = '';
         modal.dataset.lessonId = '';
         modal.dataset.scheduleOverrideId = '';
         modal.dataset.originalDate = '';
@@ -1570,6 +1606,7 @@ const updateLessonModalState = function(modal, payload) {
 const getLessonOccurrencePayload = function(modal) {
     return {
         lesson_plan_id: modal.dataset.lessonPlanId || '',
+        single_lesson_plan_id: modal.dataset.singleLessonPlanId || '',
         date: modal.dataset.eventDate || '',
         start: modal.dataset.eventStart || '',
         end: modal.dataset.eventEnd || '',
@@ -1620,12 +1657,12 @@ const revertScheduleOverrideInState = function(event) {
 };
 
 const revertLessonInState = function(event, lessonId) {
-    if (!event || !event.lessonPlanId || !lessonId) {
+    if (!event || !lessonId) {
         return;
     }
 
-    const lessonPlan = state.plannedLessons.find(function(plan) {
-        return String(plan.id) === String(event.lessonPlanId);
+    const lessonPlan = state.plannedLessons.concat(state.singleLessonPlans).find(function(plan) {
+        return String(plan.id) === String(event.lessonPlanId || event.singleLessonPlanId);
     });
 
     if (!lessonPlan || !Array.isArray(lessonPlan.occurrences)) {
@@ -1692,8 +1729,9 @@ const storeTaughtLesson = function(button) {
     const modal = button.closest('#lesson-modal');
     const url = button.dataset.url;
     const lessonPlanId = modal ? modal.dataset.lessonPlanId : '';
+    const singleLessonPlanId = modal ? modal.dataset.singleLessonPlanId : '';
 
-    if (!modal || !url || !lessonPlanId) {
+    if (!modal || !url || (!lessonPlanId && !singleLessonPlanId)) {
         return;
     }
 
@@ -2239,7 +2277,7 @@ const lessonMatchesLocationFilter = function(lesson) {
 };
 
 const getFilteredPlannedLessons = function() {
-    return state.plannedLessons
+    return state.plannedLessons.concat(state.singleLessonPlans)
         .filter(lessonMatchesStudentSearch)
         .filter(lessonMatchesLocationFilter);
 };
@@ -2256,6 +2294,8 @@ const getPlannedLessonEvents = function(range) {
     const events = [];
 
     getFilteredPlannedLessons().forEach(function(lesson) {
+        const isSingleLessonPlan = lesson.type === 'single-lesson-plan';
+
         if (Array.isArray(lesson.occurrences)) {
             lesson.occurrences.forEach(function(occurrence) {
                 const dateString = occurrence.date || '';
@@ -2272,11 +2312,13 @@ const getPlannedLessonEvents = function(range) {
                     start,
                     end: normalizeTime(occurrence.end || addMinutesToTime(lesson.start_time, lesson.duration_minutes)),
                     color: '#2fbb7f',
-                    guid: `planned-lesson-${lesson.id}-${dateString}-${start}`,
-                    lessonPlanId: lesson.id,
+                    guid: `${isSingleLessonPlan ? 'single-lesson-plan' : 'planned-lesson'}-${lesson.id}-${dateString}-${start}`,
+                    lessonPlanId: isSingleLessonPlan ? '' : lesson.id,
+                    singleLessonPlanId: occurrence.single_lesson_plan_id || (isSingleLessonPlan ? lesson.id : ''),
                     lessonId: occurrence.lesson_id || '',
                     scheduleOverrideId: occurrence.schedule_override_id || '',
-                    recurrence: lesson.recurrence || '',
+                    recurrence: isSingleLessonPlan ? 'Single lesson' : (lesson.recurrence || ''),
+                    isSingleLessonPlan,
                     originalDate: occurrence.original_date || dateString,
                     originalStartTime: occurrence.original_start_time || start,
                     lessonStatus: occurrence.lesson_status || 'unconfirmed',
@@ -2293,6 +2335,10 @@ const getPlannedLessonEvents = function(range) {
                 });
             });
 
+            return;
+        }
+
+        if (isSingleLessonPlan) {
             return;
         }
 
@@ -2710,6 +2756,192 @@ const move = function(direction) {
     }
 };
 
+const filterStudentComboboxOptions = function(combobox) {
+    const input = combobox.querySelector('[data-student-combobox-input]');
+    const options = Array.from(combobox.querySelectorAll('[data-student-combobox-option]'));
+    const empty = combobox.querySelector('[data-student-combobox-empty]');
+    const query = input ? input.value.trim().toLowerCase() : '';
+    let visibleCount = 0;
+
+    options.forEach(function(option) {
+        const name = String(option.dataset.studentName || option.textContent || '').toLowerCase();
+        const isVisible = !query || name.includes(query);
+
+        option.hidden = !isVisible;
+
+        if (isVisible) {
+            visibleCount += 1;
+        }
+    });
+
+    if (empty) {
+        empty.hidden = visibleCount > 0;
+    }
+};
+
+const openStudentCombobox = function(combobox) {
+    combobox.setAttribute('open', '');
+    filterStudentComboboxOptions(combobox);
+};
+
+const closeStudentCombobox = function(combobox) {
+    combobox.removeAttribute('open');
+};
+
+const initializeStudentComboboxes = function() {
+    const comboboxes = Array.from(document.querySelectorAll('[data-student-combobox]'));
+
+    comboboxes.forEach(function(combobox) {
+        const input = combobox.querySelector('[data-student-combobox-input]');
+        const value = combobox.querySelector('[data-student-combobox-value]');
+        const options = Array.from(combobox.querySelectorAll('[data-student-combobox-option]'));
+
+        if (!input || !value) {
+            return;
+        }
+
+        input.addEventListener('focus', function() {
+            openStudentCombobox(combobox);
+        });
+
+        input.addEventListener('click', function() {
+            openStudentCombobox(combobox);
+        });
+
+        input.addEventListener('input', function() {
+            value.value = '';
+            input.setCustomValidity('');
+            openStudentCombobox(combobox);
+        });
+
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeStudentCombobox(combobox);
+                input.blur();
+            }
+        });
+
+        options.forEach(function(option) {
+            option.addEventListener('click', function() {
+                input.value = option.dataset.studentName || option.textContent.trim();
+                value.value = option.dataset.studentId || '';
+                input.setCustomValidity('');
+                closeStudentCombobox(combobox);
+            });
+        });
+
+        const form = combobox.closest('form');
+
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                if (!value.value) {
+                    const typedName = input.value.trim().toLowerCase();
+                    const exactMatch = options.find(function(option) {
+                        return String(option.dataset.studentName || '').toLowerCase() === typedName;
+                    });
+
+                    if (exactMatch) {
+                        input.value = exactMatch.dataset.studentName || exactMatch.textContent.trim();
+                        value.value = exactMatch.dataset.studentId || '';
+                    }
+                }
+
+                if (!value.value) {
+                    e.preventDefault();
+                    input.setCustomValidity('Select a student from the list.');
+                    input.reportValidity();
+                    openStudentCombobox(combobox);
+                    return;
+                }
+
+                input.setCustomValidity('');
+            });
+        }
+    });
+
+    document.addEventListener('click', function(e) {
+        comboboxes.forEach(function(combobox) {
+            if (!combobox.contains(e.target)) {
+                closeStudentCombobox(combobox);
+            }
+        });
+    });
+};
+
+const getSelectedLocationOption = function(form) {
+    const locationSelect = form ? form.querySelector('select[name="location_id"]') : null;
+
+    return locationSelect ? locationSelect.options[locationSelect.selectedIndex] : null;
+};
+
+const singleLessonLocationIsOnline = function(form) {
+    const selectedOption = getSelectedLocationOption(form);
+
+    return selectedOption && selectedOption.dataset.isOnline === '1';
+};
+
+const setSingleLessonOnlineFields = function(form, shouldEmpty) {
+    const fields = form ? Array.from(form.querySelectorAll('.single-lesson-plan-online-field')) : [];
+    const isOnline = singleLessonLocationIsOnline(form);
+
+    fields.forEach(function(field) {
+        const input = field.querySelector('input');
+
+        field.style.display = isOnline ? '' : 'none';
+
+        if (input) {
+            input.disabled = !isOnline;
+
+            if (!isOnline || shouldEmpty) {
+                input.value = '';
+            }
+        }
+    });
+};
+
+const syncSingleLessonFee = function(form) {
+    const selectedOption = getSelectedLocationOption(form);
+    const durationSelect = form ? form.querySelector('select[name="duration_minutes"]') : null;
+    const feeInput = form ? form.querySelector('input[name="fee_amount"]') : null;
+    const hourlyFee = selectedOption ? Number(selectedOption.dataset.feeAmount || 0) : 0;
+    const duration = durationSelect ? Number(durationSelect.value || 0) : 0;
+
+    if (!feeInput || !hourlyFee || !duration) {
+        return;
+    }
+
+    const proratedFee = hourlyFee * (duration / 60);
+    const roundedFee = Math.floor(proratedFee / 5) * 5;
+
+    feeInput.value = roundedFee.toFixed(2).replace(/\.00$/, '');
+};
+
+const initializeSingleLessonPlanForms = function() {
+    document.querySelectorAll('[data-single-lesson-plan-form]').forEach(function(form) {
+        const locationSelect = form.querySelector('select[name="location_id"]');
+        const durationSelect = form.querySelector('select[name="duration_minutes"]');
+
+        setSingleLessonOnlineFields(form, false);
+
+        if (locationSelect && durationSelect) {
+            syncSingleLessonFee(form);
+        }
+
+        if (locationSelect) {
+            locationSelect.addEventListener('change', function() {
+                syncSingleLessonFee(form);
+                setSingleLessonOnlineFields(form, true);
+            });
+        }
+
+        if (durationSelect) {
+            durationSelect.addEventListener('change', function() {
+                syncSingleLessonFee(form);
+            });
+        }
+    });
+};
+
 document.addEventListener('DOMContentLoaded', function() {
     const calendar = document.getElementById('calendar');
     const label = document.querySelector('[data-calendar-label]');
@@ -2739,9 +2971,13 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
 
+    initializeStudentComboboxes();
+    initializeSingleLessonPlanForms();
+
     state.plannedLessons = Array.isArray(window.studioPlannedLessons)
         ? window.studioPlannedLessons
         : (Array.isArray(window.studioLessonPlans) ? window.studioLessonPlans : []);
+    state.singleLessonPlans = Array.isArray(window.studioSingleLessonPlans) ? window.studioSingleLessonPlans : [];
     state.holidays = Array.isArray(window.studioHolidays) ? window.studioHolidays : [];
     state.teachingBreaks = Array.isArray(window.studioTeachingBreaks) ? window.studioTeachingBreaks : [];
     state.locations = Array.isArray(window.studioLocations) ? window.studioLocations : [];

@@ -1,7 +1,8 @@
 <div id="reschedule-lesson">
-	<form method="POST" action="{{route('studio.lesson-plans.reschedule')}}">
+	<form method="POST" action="{{route('studio.lesson-plans.reschedule')}}" data-recurring-action="{{route('studio.lesson-plans.reschedule')}}" data-single-action="{{route('studio.single-lesson-plans.reschedule')}}">
 		@csrf
 		<input type="hidden" name="lesson_plan_id">
+		<input type="hidden" name="single_lesson_plan_id">
 		<input type="hidden" name="original_date" id="reschedule-lesson-original-date">
 		<input type="hidden" name="original_start_time" id="reschedule-lesson-original-start-time">
 		<input type="hidden" name="date" id="reschedule-lesson-date">

@@ -49,6 +49,18 @@ Route::prefix('lesson-plans')->name('lesson-plans.')->group(function() {
 	});
 });
 
+Route::prefix('single-lesson-plans')->name('single-lesson-plans.')->group(function() {
+	Route::post('', 'SingleLessonPlansController@store')->name('store');
+
+	Route::post('reschedule', 'SingleLessonPlansController@reschedule')->name('reschedule');
+
+	Route::prefix('{singleLessonPlan}')->group(function() {
+		Route::patch('', 'SingleLessonPlansController@update')->name('update');
+
+		Route::delete('', 'SingleLessonPlansController@destroy')->name('destroy');
+	});
+});
+
 Route::prefix('breaks')->name('breaks.')->group(function() {
 	Route::get('', 'TeachingBreaksController@index')->name('index');
 	Route::get('impact', 'TeachingBreaksController@impact')->name('impact');

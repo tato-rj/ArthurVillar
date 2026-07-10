@@ -20,6 +20,7 @@ class Student extends Model
         static::deleting(function (Student $student) {
             $student->scheduleOverrides()->delete();
             $student->lessons()->delete();
+            $student->singleLessonPlans()->delete();
             $student->lessonPlans()->delete();
         });
     }
@@ -27,6 +28,11 @@ class Student extends Model
     public function lessonPlans()
     {
         return $this->hasMany(LessonPlan::class)->orderBy('starts_on');
+    }
+
+    public function singleLessonPlans()
+    {
+        return $this->hasMany(SingleLessonPlan::class)->orderBy('scheduled_date');
     }
 
     public function lessons()
