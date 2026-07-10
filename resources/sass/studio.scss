@@ -98,11 +98,11 @@
     transition: .2s;
 }
 
-.studio-calendar-button:hover,
-.studio-calendar-icon-button:hover,
-.studio-calendar-view:hover {
-    background: #f1f3f4;
-}
+// .studio-calendar-button:hover,
+// .studio-calendar-icon-button:hover,
+// .studio-calendar-view:hover {
+//     background: #f1f3f4;
+// }
 
 .studio-calendar-button:focus,
 .studio-calendar-icon-button:focus,
@@ -1174,8 +1174,8 @@
     i.fa-bars, i.fa-ellipsis-vertical {font-size: 100%}
     i.fa-bars {margin-top: 13px;}
     .studio-calendar-filter-toggle {min-width: 1rem}
-    .studio-calendar-nav i {font-size: 85%}
-    .studio-calendar-today {font-size: 85%}
+    .studio-calendar-nav i {font-size: 90%}
+    .studio-calendar-today {font-size: 90%}
     .studio-calendar-icon-button {width: 1.5rem}
     .studio-calendar {
         padding-right: 0 !important;
@@ -1186,7 +1186,7 @@
         padding-right: 3.5rem;
         padding-left: 1rem;
 
-        .studio-calendar-filter i, .studio-calendar-search i {font-size: 85% !important}
+        .studio-calendar-filter i, .studio-calendar-search i {font-size: 90% !important}
     }
     .lm-schedule, .studio-month-calendar {
         border-radius: 0 !important;

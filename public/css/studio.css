@@ -31363,12 +31363,6 @@ body {
   transition: 0.2s;
 }
 
-.studio-calendar-button:hover,
-.studio-calendar-icon-button:hover,
-.studio-calendar-view:hover {
-  background: #f1f3f4;
-}
-
 .studio-calendar-button:focus,
 .studio-calendar-icon-button:focus,
 .studio-calendar-view:focus-within {
@@ -32372,10 +32366,10 @@ body {
     min-width: 1rem;
   }
   .studio-calendar-nav i {
-    font-size: 85%;
+    font-size: 90%;
   }
   .studio-calendar-today {
-    font-size: 85%;
+    font-size: 90%;
   }
   .studio-calendar-icon-button {
     width: 1.5rem;
@@ -32390,7 +32384,7 @@ body {
     padding-left: 1rem;
   }
   .studio-calendar-toolbar .studio-calendar-filter i, .studio-calendar-toolbar .studio-calendar-search i {
-    font-size: 85% !important;
+    font-size: 90% !important;
   }
   .lm-schedule, .studio-month-calendar {
     border-radius: 0 !important;
