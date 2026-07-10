@@ -1,6 +1,6 @@
 {
-  "name": "App",
-  "short_name": "App",
+  "name": "Studio Calendar",
+  "short_name": "Studio Calendar",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
