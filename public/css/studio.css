@@ -32420,7 +32420,7 @@ button.single-lesson-plan-create {
 
 @media (max-width: 1000px) {
   i.fa-bars, i.fa-ellipsis-vertical {
-    font-size: 100%;
+    font-size: 110%;
   }
   i.fa-bars {
     margin-top: 13px;
@@ -32433,9 +32433,6 @@ button.single-lesson-plan-create {
   }
   .studio-calendar-today {
     font-size: 90%;
-  }
-  .studio-calendar-icon-button {
-    width: 1.5rem;
   }
   .studio-calendar {
     padding-right: 0 !important;
