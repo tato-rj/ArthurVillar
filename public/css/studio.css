@@ -32365,6 +32365,9 @@ body {
   i.fa-bars, i.fa-ellipsis-vertical {
     font-size: 100%;
   }
+  i.fa-bars {
+    margin-top: 13px;
+  }
   .studio-calendar-filter-toggle {
     min-width: 1rem;
   }
