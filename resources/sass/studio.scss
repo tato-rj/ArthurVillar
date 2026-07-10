@@ -907,19 +907,19 @@ button.single-lesson-plan-create {
     // }
 
 #calendar {
-    .studio-schedule-break[past-event],
-    .studio-month-event-break[past-event],
-    .studio-month-event-dot[past-event],
-    .studio-schedule-event-break[past-event],
-    .studio-schedule-event-holiday[past-event],
-    .studio-schedule-holiday[past-event],
-    .studio-month-event-holiday[past-event],
-    .studio-schedule-holiday-cell[past-event],
-    .lm-schedule-item[past-event], 
-    .studio-month-event[past-event], 
-    .studio-schedule-event[past-event],
-    .studio-month-event-holiday[past-event] {
-        opacity: .6;
+    .studio-schedule-break[past-event]:not([data-lesson-status="unpaid"]):not([data-lesson-status="paid"]),
+    .studio-month-event-break[past-event]:not([data-lesson-status="unpaid"]):not([data-lesson-status="paid"]),
+    .studio-month-event-dot[past-event]:not([data-lesson-status="unpaid"]):not([data-lesson-status="paid"]),
+    .studio-schedule-event-break[past-event]:not([data-lesson-status="unpaid"]):not([data-lesson-status="paid"]),
+    .studio-schedule-event-holiday[past-event]:not([data-lesson-status="unpaid"]):not([data-lesson-status="paid"]),
+    .studio-schedule-holiday[past-event]:not([data-lesson-status="unpaid"]):not([data-lesson-status="paid"]),
+    .studio-month-event-holiday[past-event]:not([data-lesson-status="unpaid"]):not([data-lesson-status="paid"]),
+    .studio-schedule-holiday-cell[past-event]:not([data-lesson-status="unpaid"]):not([data-lesson-status="paid"]),
+    .lm-schedule-item[past-event]:not([data-lesson-status="unpaid"]):not([data-lesson-status="paid"]), 
+    .studio-month-event[past-event]:not([data-lesson-status="unpaid"]):not([data-lesson-status="paid"]), 
+    .studio-schedule-event[past-event]:not([data-lesson-status="unpaid"]):not([data-lesson-status="paid"]),
+    .studio-month-event-holiday[past-event]:not([data-lesson-status="unpaid"]):not([data-lesson-status="paid"]) {
+        opacity: .4;
     } 
 }
 
