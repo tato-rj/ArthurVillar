@@ -1,3 +1,9 @@
+<link rel="manifest" href="{{asset('/favicon/studio/manifest.json')}}">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="App">
+
 <link rel="apple-touch-icon" sizes="57x57" href="{{asset('/favicon/studio/apple-icon-57x57.png')}}">
 <link rel="apple-touch-icon" sizes="60x60" href="{{asset('/favicon/studio/apple-icon-60x60.png')}}">
 <link rel="apple-touch-icon" sizes="72x72" href="{{asset('/favicon/studio/apple-icon-72x72.png')}}">
@@ -11,7 +17,6 @@
 <link rel="icon" type="image/png" sizes="32x32" href="{{asset('/favicon/studio/favicon-32x32.png')}}">
 <link rel="icon" type="image/png" sizes="96x96" href="{{asset('/favicon/studio/favicon-96x96.png')}}">
 <link rel="icon" type="image/png" sizes="16x16" href="{{asset('/favicon/studio/favicon-16x16.png')}}">
-<link rel="manifest" href="{{asset('/favicon/studio/manifest.json')}}">
 <meta name="msapplication-TileColor" content="#ffffff">
 <meta name="msapplication-TileImage" content="{{asset('/favicon/studio/ms-icon-144x144.png')}}">
 <meta name="theme-color" content="#ffffff">
@@ -25,8 +30,8 @@
 <link rel="apple-touch-startup-image" media="screen and (device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)" href="{{asset('/favicon/studio/iPhone_17e__iPhone_16e__iPhone_14__iPhone_13_Pro__iPhone_13__iPhone_12_Pro__iPhone_12_landscape.png')}}">
 <link rel="apple-touch-startup-image" media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)" href="{{asset('/favicon/studio/iPhone_13_mini__iPhone_12_mini__iPhone_11_Pro__iPhone_XS__iPhone_X_landscape.png')}}">
 <link rel="apple-touch-startup-image" media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)" href="{{asset('/favicon/studio/iPhone_11_Pro_Max__iPhone_XS_Max_landscape.png')}}">
-<link rel="apple-touch-startup-image" media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" href="{{('/favicon/studio/iPhone_11__iPhone_XR_landscape.png')}}">
-<link rel="apple-touch-startup-image" media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)" href="{{('/favicon/studio/iPhone_8_Plus__iPhone_7_Plus__iPhone_6s_Plus__iPhone_6_Plus_landscape.png')}}">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" href="{{asset('/favicon/studio/iPhone_11__iPhone_XR_landscape.png')}}">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)" href="{{asset('/favicon/studio/iPhone_8_Plus__iPhone_7_Plus__iPhone_6s_Plus__iPhone_6_Plus_landscape.png')}}">
 <link rel="apple-touch-startup-image" media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" href="{{asset('/favicon/studio/iPhone_8__iPhone_7__iPhone_6s__iPhone_6__4.7__iPhone_SE_landscape.png')}}">
 <link rel="apple-touch-startup-image" media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" href="{{asset('/favicon/studio/4__iPhone_SE__iPod_touch_5th_generation_and_later_landscape.png')}}">
 <link rel="apple-touch-startup-image" media="screen and (device-width: 1032px) and (device-height: 1376px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" href="{{asset('/favicon/studio/13__iPad_Pro_M4_landscape.png')}}">
