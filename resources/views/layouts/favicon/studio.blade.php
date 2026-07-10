@@ -1,3 +1,21 @@
+<link rel="apple-touch-icon" sizes="57x57" href="{{asset('/favicon/studio/apple-icon-57x57.png')}}">
+<link rel="apple-touch-icon" sizes="60x60" href="{{asset('/favicon/studio/apple-icon-60x60.png')}}">
+<link rel="apple-touch-icon" sizes="72x72" href="{{asset('/favicon/studio/apple-icon-72x72.png')}}">
+<link rel="apple-touch-icon" sizes="76x76" href="{{asset('/favicon/studio/apple-icon-76x76.png')}}">
+<link rel="apple-touch-icon" sizes="114x114" href="{{asset('/favicon/studio/apple-icon-114x114.png')}}">
+<link rel="apple-touch-icon" sizes="120x120" href="{{asset('/favicon/studio/apple-icon-120x120.png')}}">
+<link rel="apple-touch-icon" sizes="144x144" href="{{asset('/favicon/studio/apple-icon-144x144.png')}}">
+<link rel="apple-touch-icon" sizes="152x152" href="{{asset('/favicon/studio/apple-icon-152x152.png')}}">
+<link rel="apple-touch-icon" sizes="180x180" href="{{asset('/favicon/studio/apple-icon-180x180.png')}}">
+<link rel="icon" type="image/png" sizes="192x192"  href="{{asset('/favicon/studio/android-icon-192x192.png')}}">
+<link rel="icon" type="image/png" sizes="32x32" href="{{asset('/favicon/studio/favicon-32x32.png')}}">
+<link rel="icon" type="image/png" sizes="96x96" href="{{asset('/favicon/studio/favicon-96x96.png')}}">
+<link rel="icon" type="image/png" sizes="16x16" href="{{asset('/favicon/studio/favicon-16x16.png')}}">
+<link rel="manifest" href="{{asset('/favicon/studio/manifest.json')}}">
+<meta name="msapplication-TileColor" content="#ffffff">
+<meta name="msapplication-TileImage" content="{{asset('/favicon/studio/ms-icon-144x144.png')}}">
+<meta name="theme-color" content="#ffffff">
+
  <link rel="apple-touch-startup-image" media="screen and (device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)" href="{{asset('/favicon/studio/iPhone_17_Pro_Max__iPhone_16_Pro_Max_landscape.png')}}">
 <link rel="apple-touch-startup-image" media="screen and (device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)" href="{{asset('/favicon/studio/iPhone_17_Pro__iPhone_17__iPhone_16_Pro_landscape.png')}}">
 <link rel="apple-touch-startup-image" media="screen and (device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)" href="{{asset('/favicon/studio/iPhone_16_Plus__iPhone_15_Pro_Max__iPhone_15_Plus__iPhone_14_Pro_Max_landscape.png')}}">
@@ -42,21 +60,3 @@
 <link rel="apple-touch-startup-image" media="screen and (device-width: 810px) and (device-height: 1080px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="{{asset('/favicon/studio/10.2__iPad_portrait.png')}}">
 <link rel="apple-touch-startup-image" media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="{{asset('/favicon/studio/9.7__iPad_Pro__7.9__iPad_mini__9.7__iPad_Air__9.7__iPad_portrait.png')}}">
 <link rel="apple-touch-startup-image" media="screen and (device-width: 744px) and (device-height: 1133px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="{{asset('/favicon/studio/8.3__iPad_Mini_portrait.png')}}">
-
-<link rel="apple-touch-icon" sizes="57x57" href="{{asset('/favicon/studio/apple-icon-57x57.png')}}">
-<link rel="apple-touch-icon" sizes="60x60" href="{{asset('/favicon/studio/apple-icon-60x60.png')}}">
-<link rel="apple-touch-icon" sizes="72x72" href="{{asset('/favicon/studio/apple-icon-72x72.png')}}">
-<link rel="apple-touch-icon" sizes="76x76" href="{{asset('/favicon/studio/apple-icon-76x76.png')}}">
-<link rel="apple-touch-icon" sizes="114x114" href="{{asset('/favicon/studio/apple-icon-114x114.png')}}">
-<link rel="apple-touch-icon" sizes="120x120" href="{{asset('/favicon/studio/apple-icon-120x120.png')}}">
-<link rel="apple-touch-icon" sizes="144x144" href="{{asset('/favicon/studio/apple-icon-144x144.png')}}">
-<link rel="apple-touch-icon" sizes="152x152" href="{{asset('/favicon/studio/apple-icon-152x152.png')}}">
-<link rel="apple-touch-icon" sizes="180x180" href="{{asset('/favicon/studio/apple-icon-180x180.png')}}">
-<link rel="icon" type="image/png" sizes="192x192"  href="{{asset('/favicon/studio/android-icon-192x192.png')}}">
-<link rel="icon" type="image/png" sizes="32x32" href="{{asset('/favicon/studio/favicon-32x32.png')}}">
-<link rel="icon" type="image/png" sizes="96x96" href="{{asset('/favicon/studio/favicon-96x96.png')}}">
-<link rel="icon" type="image/png" sizes="16x16" href="{{asset('/favicon/studio/favicon-16x16.png')}}">
-<link rel="manifest" href="{{asset('/favicon/studio/manifest.json')}}">
-<meta name="msapplication-TileColor" content="#ffffff">
-<meta name="msapplication-TileImage" content="{{asset('/favicon/studio/ms-icon-144x144.png')}}">
-<meta name="theme-color" content="#ffffff">
