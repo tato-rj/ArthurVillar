@@ -40,6 +40,11 @@ class Student extends Model
         return $this->hasMany(Lesson::class);   
     }
 
+    public function location()
+    {
+        return $this->belongsTo(Location::class);
+    }
+
     public function scheduleOverrides()
     {
         return $this->hasManyThrough(ScheduleOverride::class, LessonPlan::class);

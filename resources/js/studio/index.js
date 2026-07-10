@@ -2788,6 +2788,53 @@ const closeStudentCombobox = function(combobox) {
     combobox.removeAttribute('open');
 };
 
+const syncFormLocationFromStudentOption = function(option) {
+    const form = option ? option.closest('form') : null;
+    const locationSelect = form ? form.querySelector('select[name="location_id"]') : null;
+    const studentLocationId = option ? option.dataset.studentLocationId : null;
+
+    if (!locationSelect || !studentLocationId) {
+        return;
+    }
+
+    const matchingOption = Array.from(locationSelect.options).find(function(locationOption) {
+        return String(locationOption.value) === String(studentLocationId);
+    });
+
+    if (!matchingOption) {
+        return;
+    }
+
+    locationSelect.value = studentLocationId;
+    locationSelect.dispatchEvent(new Event('change', {bubbles: true}));
+};
+
+const syncFormPaymentMethodFromStudentOption = function(option) {
+    const form = option ? option.closest('form') : null;
+    const paymentMethodSelect = form ? form.querySelector('select[name="payment_method"]') : null;
+    const studentPaymentMethod = option ? option.dataset.studentPaymentMethod : null;
+
+    if (!paymentMethodSelect || !studentPaymentMethod) {
+        return;
+    }
+
+    const matchingOption = Array.from(paymentMethodSelect.options).find(function(paymentOption) {
+        return String(paymentOption.value) === String(studentPaymentMethod);
+    });
+
+    if (!matchingOption) {
+        return;
+    }
+
+    paymentMethodSelect.value = studentPaymentMethod;
+    paymentMethodSelect.dispatchEvent(new Event('change', {bubbles: true}));
+};
+
+const syncFormDefaultsFromStudentOption = function(option) {
+    syncFormLocationFromStudentOption(option);
+    syncFormPaymentMethodFromStudentOption(option);
+};
+
 const initializeStudentComboboxes = function() {
     const comboboxes = Array.from(document.querySelectorAll('[data-student-combobox]'));
 
@@ -2826,6 +2873,7 @@ const initializeStudentComboboxes = function() {
                 input.value = option.dataset.studentName || option.textContent.trim();
                 value.value = option.dataset.studentId || '';
                 input.setCustomValidity('');
+                syncFormDefaultsFromStudentOption(option);
                 closeStudentCombobox(combobox);
             });
         });
@@ -2843,6 +2891,7 @@ const initializeStudentComboboxes = function() {
                     if (exactMatch) {
                         input.value = exactMatch.dataset.studentName || exactMatch.textContent.trim();
                         value.value = exactMatch.dataset.studentId || '';
+                        syncFormDefaultsFromStudentOption(exactMatch);
                     }
                 }
 

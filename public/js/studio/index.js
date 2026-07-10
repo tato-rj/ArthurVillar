@@ -2175,6 +2175,46 @@ var openStudentCombobox = function openStudentCombobox(combobox) {
 var closeStudentCombobox = function closeStudentCombobox(combobox) {
   combobox.removeAttribute('open');
 };
+var syncFormLocationFromStudentOption = function syncFormLocationFromStudentOption(option) {
+  var form = option ? option.closest('form') : null;
+  var locationSelect = form ? form.querySelector('select[name="location_id"]') : null;
+  var studentLocationId = option ? option.dataset.studentLocationId : null;
+  if (!locationSelect || !studentLocationId) {
+    return;
+  }
+  var matchingOption = Array.from(locationSelect.options).find(function (locationOption) {
+    return String(locationOption.value) === String(studentLocationId);
+  });
+  if (!matchingOption) {
+    return;
+  }
+  locationSelect.value = studentLocationId;
+  locationSelect.dispatchEvent(new Event('change', {
+    bubbles: true
+  }));
+};
+var syncFormPaymentMethodFromStudentOption = function syncFormPaymentMethodFromStudentOption(option) {
+  var form = option ? option.closest('form') : null;
+  var paymentMethodSelect = form ? form.querySelector('select[name="payment_method"]') : null;
+  var studentPaymentMethod = option ? option.dataset.studentPaymentMethod : null;
+  if (!paymentMethodSelect || !studentPaymentMethod) {
+    return;
+  }
+  var matchingOption = Array.from(paymentMethodSelect.options).find(function (paymentOption) {
+    return String(paymentOption.value) === String(studentPaymentMethod);
+  });
+  if (!matchingOption) {
+    return;
+  }
+  paymentMethodSelect.value = studentPaymentMethod;
+  paymentMethodSelect.dispatchEvent(new Event('change', {
+    bubbles: true
+  }));
+};
+var syncFormDefaultsFromStudentOption = function syncFormDefaultsFromStudentOption(option) {
+  syncFormLocationFromStudentOption(option);
+  syncFormPaymentMethodFromStudentOption(option);
+};
 var initializeStudentComboboxes = function initializeStudentComboboxes() {
   var comboboxes = Array.from(document.querySelectorAll('[data-student-combobox]'));
   comboboxes.forEach(function (combobox) {
@@ -2206,6 +2246,7 @@ var initializeStudentComboboxes = function initializeStudentComboboxes() {
         input.value = option.dataset.studentName || option.textContent.trim();
         value.value = option.dataset.studentId || '';
         input.setCustomValidity('');
+        syncFormDefaultsFromStudentOption(option);
         closeStudentCombobox(combobox);
       });
     });
@@ -2220,6 +2261,7 @@ var initializeStudentComboboxes = function initializeStudentComboboxes() {
           if (exactMatch) {
             input.value = exactMatch.dataset.studentName || exactMatch.textContent.trim();
             value.value = exactMatch.dataset.studentId || '';
+            syncFormDefaultsFromStudentOption(exactMatch);
           }
         }
         if (!value.value) {

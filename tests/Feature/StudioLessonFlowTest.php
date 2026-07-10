@@ -174,6 +174,29 @@ class StudioLessonFlowTest extends BaseTest
     }
 
     /** @test */
+    public function it_stores_a_students_default_location()
+    {
+        $location = Location::factory()->create();
+
+        $this->signIn();
+
+        $this->post(route('studio.students.store'), [
+            'first_name' => 'Nora',
+            'last_name' => 'Villa',
+            'gender' => 'female',
+            'email' => 'nora@example.com',
+            'location_id' => $location->id,
+            'payment_method' => 'Venmo',
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('students', [
+            'email' => 'nora@example.com',
+            'location_id' => $location->id,
+            'payment_method' => 'Venmo',
+        ]);
+    }
+
+    /** @test */
     public function it_stores_lesson_plan_urls_only_for_online_locations()
     {
         $student = Student::factory()->create();

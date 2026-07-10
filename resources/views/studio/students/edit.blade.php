@@ -18,6 +18,18 @@
 
 	@input(['label' => 'Email', 'name' => 'email', 'value' => $student->email, 'required' => true])
 
+	@select(['label' => 'Default location', 'name' => 'location_id'])
+		@foreach($locations ?? [] as $location)
+			@option(['name' => 'location_id', 'label' => $location->name, 'value' => $location->id, 'selected' => $student->location_id == $location->id])
+		@endforeach
+	@endselect
+
+	@select(['label' => 'Default payment method', 'name' => 'payment_method'])
+		@foreach(payment()->methods() as $method)
+			@option(['name' => 'payment_method', 'label' => $method, 'value' => $method, 'selected' => $student->payment_method == $method])
+		@endforeach
+	@endselect
+
 	<div class="row"> 
 		@input(['label' => 'Phone', 'name' => 'phone', 'value' => $student->phone, 'mask' => 'phone', 'grid' => 'col'])
 		@input(['label' => 'Date of birth', 'name' => 'date_of_birth', 'value' => $student->date_of_birth ? \Carbon\Carbon::parse($student->date_of_birth)->format('m/d/Y') : null, 'mask' => 'date', 'grid' => 'col'])

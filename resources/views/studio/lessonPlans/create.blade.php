@@ -7,7 +7,7 @@
 
 	@select(['placeholder' => 'Location', 'name' => 'location_id', 'grid' => 'col', 'required' => true])
 		@foreach($locations as $location)
-			@option(['name' => 'location_id', 'label' => $location->name, 'value' => $location->id, 'selected' => old('location_id') == $location->id, 'data' => ['fee-amount' => $location->feeAmountForInput(), 'is-online' => strtolower($location->name) === 'online' ? 1 : 0]])
+			@option(['name' => 'location_id', 'label' => $location->name, 'value' => $location->id, 'selected' => old('location_id', $student->location_id) == $location->id, 'data' => ['fee-amount' => $location->feeAmountForInput(), 'is-online' => strtolower($location->name) === 'online' ? 1 : 0]])
 		@endforeach
 	@endselect
 	
@@ -65,7 +65,7 @@
 
 		@select(['placeholder' => 'Payment method', 'name' => 'payment_method', 'grid' => 'col'])
 			@foreach(payment()->methods() as $method)
-				@option(['name' => 'payment_method', 'label' => $method, 'value' => $method, 'selected' => old('payment_method') == $method])
+				@option(['name' => 'payment_method', 'label' => $method, 'value' => $method, 'selected' => old('payment_method', $student->payment_method) == $method])
 			@endforeach
 		@endselect
 	</div>

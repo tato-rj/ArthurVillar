@@ -47,7 +47,9 @@
 						class="studio-student-combobox-option"
 						data-student-combobox-option
 						data-student-id="{{$student->id}}"
-						data-student-name="{{$studentName}}">
+						data-student-name="{{$studentName}}"
+						data-student-location-id="{{$student->location_id}}"
+						data-student-payment-method="{{$student->payment_method}}">
 						{{$studentName}}
 					</button>
 				@endforeach

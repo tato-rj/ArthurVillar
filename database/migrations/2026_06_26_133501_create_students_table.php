@@ -24,6 +24,13 @@ return new class extends Migration
             $table->string('email')->nullable();
             $table->string('phone')->nullable();
 
+            $table->foreignId('location_id')
+                ->nullable()
+                ->constrained()
+                ->nullOnDelete();
+                
+            $table->string('payment_method')->nullable();
+
             $table->string('status')->default('active');
             $table->boolean('is_adult')->default(false);
 

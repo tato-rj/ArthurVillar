@@ -58,7 +58,7 @@ class AppServiceProvider extends ServiceProvider
             ]);
         });
 
-        \View::composer(['studio.lessonPlans.create', 'studio.lessonPlans.edit', 'studio.singleLessonPlans.create'], function($view) {
+        \View::composer(['studio.lessonPlans.create', 'studio.lessonPlans.edit', 'studio.singleLessonPlans.create', 'studio.students.create', 'studio.students.edit'], function($view) {
             $view->with([
                 'locations' => Location::query()
                     ->where('is_active', true)
@@ -70,6 +70,7 @@ class AppServiceProvider extends ServiceProvider
         \View::composer('studio.singleLessonPlans.create', function($view) {
             $view->with([
                 'students' => Student::query()
+                    ->with('location')
                     ->orderBy('first_name')
                     ->orderBy('last_name')
                     ->get()

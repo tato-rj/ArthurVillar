@@ -50,6 +50,8 @@ class StudentsController extends Controller
             'email' => ['required', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:255'],
             'date_of_birth' => ['nullable', 'date_format:m/d/Y'],
+            'location_id' => ['nullable', 'exists:locations,id'],
+            'payment_method' => ['nullable', 'string', 'max:255'],
             'is_adult' => ['nullable', 'boolean'],
             'notes' => ['nullable', 'string'],
             'waiting_list_id' => ['nullable', 'exists:waiting_lists,id'],
@@ -65,6 +67,8 @@ class StudentsController extends Controller
             'parent_name' => $data['parent_name'] ?? null,
             'email' => $data['email'],
             'phone' => $data['phone'] ?? null,
+            'location_id' => $data['location_id'] ?? null,
+            'payment_method' => $data['payment_method'] ?? null,
             'is_adult' => $data['is_adult'] ?? false,
             'notes' => $data['notes'] ?? null,
             'date_of_birth' => ! empty($data['date_of_birth'])
