@@ -32,15 +32,14 @@
           @endif
         </title>
 
-        <!-- Fonts -->
         @if(subdomain('studio'))
-        <link href="{{asset('/favicon/favicon_studio.ico')}}" rel="icon" type="image/x-icon">
+            @include('layouts.favicon.studio')
         @elseif(subdomain('listening'))
-        <link href="{{asset('/favicon/favicon_listening.ico')}}" rel="icon" type="image/x-icon">
+            @include('layouts.favicon.listening')
         @elseif(subdomain('theory'))
-        <link href="{{asset('/favicon/favicon_theory.ico')}}" rel="icon" type="image/x-icon">
+            @include('layouts.favicon.theory')
         @else
-        <link href="{{asset('/favicon/favicon.ico')}}" rel="icon" type="image/x-icon">
+            <link href="{{asset('/favicon/favicon.ico')}}" rel="icon" type="image/x-icon">
         @endif
         
         <link href="{{ mix('css/app.css') }}" rel="stylesheet">

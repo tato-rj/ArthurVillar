@@ -331,10 +331,10 @@
     min-width: 2.5rem;
     transition: .2s;
 
-    &:hover,
-    &:focus {
-        background: #e9eef7;
-    }
+    // &:hover,
+    // &:focus {
+    //     background: #e9eef7;
+    // }
 }
 
 .studio-calendar-filter[selected] .studio-calendar-filter-toggle {
@@ -343,9 +343,7 @@
 }
 
 .studio-calendar-filter-menu {
-    border: 0;
-    border-radius: .75rem;
-    box-shadow: 0 .75rem 2rem rgba(32, 33, 36, .18);
+    @extend .rounded-sm, .border, .shadow;
     min-width: 14rem;
 }
 

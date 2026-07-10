@@ -665,6 +665,10 @@ const formatHoursMinutes = function(minutes) {
         return `${hours}h`;
     }
 
+    if (!remainingMinutes) {
+        return '0h';
+    }
+
     return `${remainingMinutes}m`;
 };
 
