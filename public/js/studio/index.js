@@ -298,7 +298,7 @@ var getDateRangeDates = function getDateRangeDates(range) {
 };
 var getScheduleValue = function getScheduleValue() {
   if (state.view === '2-days') {
-    return toDateString(getTwoDaysBackingStart());
+    return toDateString(addDays(getTwoDaysBackingStart(), 1));
   }
   if (scheduleGridViews.includes(state.view)) {
     return toDateString(addDays(state.date, 1));
