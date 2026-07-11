@@ -1367,3 +1367,9 @@ button.single-lesson-plan-create[selected] i {
     .studio-calendar-view-offcanvas-control {display: block}
     .studio-calendar-toolbar-views {order: 2}
 }
+
+@media (display-mode: standalone) {
+  .hide-in-webapp {
+    display: none;
+  }
+}

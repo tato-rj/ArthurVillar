@@ -32570,3 +32570,8 @@ button.single-lesson-plan-create[selected] i {
     order: 2;
   }
 }
+@media (display-mode: standalone) {
+  .hide-in-webapp {
+    display: none;
+  }
+}

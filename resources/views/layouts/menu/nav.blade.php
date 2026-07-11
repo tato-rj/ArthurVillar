@@ -2,7 +2,7 @@
 
 <div class="offcanvas border-0 offcanvas-end" style="width: auto; min-width: 220px;" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
   <div class="offcanvas-header d-apart">
-    <div class="position-relative w-100">
+    <div class="position-relative w-100 hide-in-webapp">
       <ul class="subdomains-select border rounded-sm" aria-label="Switch website">
         @foreach($subdomains as $subdomain)
         @php($isCurrentSubdomain = strtolower($subdomain['label']) == subdomain())
