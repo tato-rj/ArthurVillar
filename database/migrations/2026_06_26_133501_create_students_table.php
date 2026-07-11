@@ -29,7 +29,6 @@ return new class extends Migration
                 ->constrained()
                 ->nullOnDelete();
 
-            $table->decimal('fee_amount', 8, 2)->nullable();
             $table->string('payment_method')->nullable();
 
             $table->string('status')->default('active');

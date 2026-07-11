@@ -24,9 +24,6 @@
                     <th>Last name</th>
                     <th>Gender</th>
                     <th>Age</th>
-                    <th>Weekday</th>
-                    <th>Duration</th>
-                    <th>Fee</th>
                     <th>Location</th>
                     <th>Adult</th>
                     <th>Actions</th>
@@ -48,20 +45,6 @@ $(function() {
         value = String(value || '');
 
         return value ? value.charAt(0).toUpperCase() + value.slice(1) : '';
-    };
-
-    const formatFee = function(value) {
-        const cents = Number(value || 0);
-
-        if (!cents) {
-            return '';
-        }
-
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: 'USD',
-            maximumFractionDigits: 0,
-        }).format(cents / 100);
     };
 
     const studentsTable = window.studioDataTableState.create('#students-table', {
@@ -95,27 +78,6 @@ $(function() {
                 name: 'age',
                 render: function(data) {
                     return data || '';
-                },
-            },
-            {
-                data: 'weekday',
-                name: 'weekday',
-                render: function(data) {
-                    return capitalize(data);
-                },
-            },
-            {
-                data: 'duration_minutes',
-                name: 'duration_minutes',
-                render: function(data) {
-                    return data ? `${data} min` : '';
-                },
-            },
-            {
-                data: 'fee_amount',
-                name: 'fee_amount',
-                render: function(data) {
-                    return formatFee(data);
                 },
             },
             {

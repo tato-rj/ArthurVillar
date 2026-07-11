@@ -31,8 +31,6 @@
 		@endforeach
 	@endselect
 
-	@input(['placeholder' => 'Default fee', 'name' => 'fee_amount', 'value' => old('fee_amount'), 'mask' => 'usd'])
-
 	<div class="row"> 
 		@input(['placeholder' => 'Phone', 'name' => 'phone', 'value' => old('phone'), 'mask' => 'phone', 'grid' => 'col'])
 		@input(['placeholder' => 'Date of birth', 'name' => 'date_of_birth', 'value' => old('date_of_birth'), 'mask' => 'date', 'grid' => 'col'])

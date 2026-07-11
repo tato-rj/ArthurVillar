@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Studio;
 
 use App\Http\Controllers\Controller;
-use App\Models\{LessonPlan, Location, SingleLessonPlan, Student};
+use App\Models\{LessonPlan, Location, SingleLessonPlan};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -128,12 +128,6 @@ class SingleLessonPlansController extends Controller
 
         if ($feeAmount !== null) {
             return $feeAmount;
-        }
-
-        $student = Student::find($data['student_id'] ?? null);
-
-        if ($student && $student->fee_amount) {
-            return $student->fee_amount;
         }
 
         $location = Location::find($data['location_id'] ?? null);

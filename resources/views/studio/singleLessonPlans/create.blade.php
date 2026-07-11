@@ -25,7 +25,7 @@
 		: '';
 @endphp
 
-<form method="POST" action="{{route('studio.single-lesson-plans.store')}}" data-single-lesson-plan-form data-student-fee-amount="{{$selectedStudent ? $selectedStudent->feeAmountForInput() : ''}}">
+<form method="POST" action="{{route('studio.single-lesson-plans.store')}}" data-single-lesson-plan-form>
 	@csrf
 
 	<label class="small fw-bold opacity-6 mb-3">@fa(['icon' => 'user'])STUDENT</label>
@@ -61,7 +61,6 @@
 						data-student-id="{{$student->id}}"
 						data-student-name="{{$studentName}}"
 						data-student-location-id="{{$student->location_id}}"
-						data-student-fee-amount="{{$student->feeAmountForInput()}}"
 						data-student-payment-method="{{$student->payment_method}}">
 						{{$studentName}}
 					</button>
@@ -113,7 +112,7 @@
 	<label class="small fw-bold opacity-6 mb-3">@fa(['icon' => 'money-bill-wave'])PAYMENT</label>
 
 	<div class="row">
-		@input(['placeholder' => 'Fee', 'name' => 'fee_amount', 'value' => old('fee_amount', $selectedStudent ? $selectedStudent->feeAmountForInput() : null), 'mask' => 'usd', 'grid' => 'col'])
+		@input(['placeholder' => 'Fee', 'name' => 'fee_amount', 'value' => old('fee_amount'), 'mask' => 'usd', 'grid' => 'col'])
 
 		@select(['placeholder' => 'Payment method', 'name' => 'payment_method', 'grid' => 'col'])
 			@foreach(payment()->methods() as $method)

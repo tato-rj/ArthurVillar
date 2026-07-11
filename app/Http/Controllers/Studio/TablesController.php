@@ -360,32 +360,9 @@ class TablesController extends Controller
     public function students()
     {
         $driver = DB::connection()->getDriverName();
-        $today = today()->toDateString();
-        $weekdayExpression = "CASE current_lesson_plan.weekday
-            WHEN 1 THEN 'sunday'
-            WHEN 2 THEN 'monday'
-            WHEN 3 THEN 'tuesday'
-            WHEN 4 THEN 'wednesday'
-            WHEN 5 THEN 'thursday'
-            WHEN 6 THEN 'friday'
-            WHEN 7 THEN 'saturday'
-        END";
-
-        $currentLessonPlans = DB::table('lesson_plans')
-            ->select('student_id', DB::raw('MAX(id) as lesson_plan_id'))
-            ->where('status', 'active')
-            ->whereNotNull('starts_on')
-            ->whereNotNull('ends_on')
-            ->whereDate('starts_on', '<', $today)
-            ->whereDate('ends_on', '>', $today)
-            ->groupBy('student_id');
 
         $students = Student::query()
-            ->leftJoinSub($currentLessonPlans, 'current_lesson_plans', function ($join) {
-                $join->on('students.id', '=', 'current_lesson_plans.student_id');
-            })
-            ->leftJoin('lesson_plans as current_lesson_plan', 'current_lesson_plan.id', '=', 'current_lesson_plans.lesson_plan_id')
-            ->leftJoin('locations', 'locations.id', '=', 'current_lesson_plan.location_id')
+            ->leftJoin('locations', 'locations.id', '=', 'students.location_id')
             ->select([
                 'students.id',
                 'students.first_name',
@@ -396,9 +373,6 @@ class TablesController extends Controller
                 'students.phone',
                 'students.is_adult',
                 'students.date_of_birth',
-                DB::raw("$weekdayExpression as weekday"),
-                'current_lesson_plan.duration_minutes as duration_minutes',
-                'current_lesson_plan.fee_amount as fee_amount',
                 'locations.name as location',
             ]);
 
@@ -428,32 +402,6 @@ class TablesController extends Controller
                 }
 
                 $query->whereRaw('CAST(TIMESTAMPDIFF(YEAR, students.date_of_birth, CURDATE()) AS CHAR) LIKE ?', ["%{$numericKeyword}%"]);
-            })
-            ->filterColumn('weekday', function ($query, $keyword) use ($weekdayExpression) {
-                $query->whereRaw("$weekdayExpression LIKE ?", ["%{$keyword}%"]);
-            })
-            ->filterColumn('duration_minutes', function ($query, $keyword) {
-                $numericKeyword = preg_replace('/[^0-9.]/', '', $keyword);
-
-                $query->where(function ($query) use ($keyword, $numericKeyword) {
-                    $query->whereRaw("CONCAT(COALESCE(current_lesson_plan.duration_minutes, ''), ' min') LIKE ?", ["%{$keyword}%"]);
-
-                    if ($numericKeyword !== '') {
-                        $query->orWhereRaw('CAST(current_lesson_plan.duration_minutes AS CHAR) LIKE ?', ["%{$numericKeyword}%"]);
-                    }
-                });
-            })
-            ->filterColumn('fee_amount', function ($query, $keyword) {
-                $numericKeyword = preg_replace('/[^0-9.]/', '', $keyword);
-
-                $query->where(function ($query) use ($keyword, $numericKeyword) {
-                    $query->whereRaw("CONCAT('$', CAST(current_lesson_plan.fee_amount / 100 AS CHAR)) LIKE ?", ["%{$keyword}%"]);
-
-                    if ($numericKeyword !== '') {
-                        $query->orWhereRaw('CAST(current_lesson_plan.fee_amount / 100 AS CHAR) LIKE ?', ["%{$numericKeyword}%"])
-                            ->orWhereRaw('CAST(current_lesson_plan.fee_amount AS CHAR) LIKE ?', ["%{$numericKeyword}%"]);
-                    }
-                });
             })
             ->filterColumn('location', function ($query, $keyword) {
                 $query->whereRaw('locations.name LIKE ?', ["%{$keyword}%"]);
@@ -487,12 +435,6 @@ class TablesController extends Controller
                 $query->orderByRaw("TIMESTAMPDIFF(YEAR, students.date_of_birth, CURDATE()) {$order}");
                 $query->orderBy('students.id', $order);
             })
-            ->orderColumn('weekday', function ($query, $order) {
-                $query->orderByRaw("current_lesson_plan.weekday IS NULL, current_lesson_plan.weekday {$order}");
-                $query->orderBy('students.id', $order);
-            })
-            ->orderColumn('duration_minutes', 'duration_minutes $1, students.id $1')
-            ->orderColumn('fee_amount', 'fee_amount $1, students.id $1')
             ->orderColumn('location', 'location $1, students.id $1')
             ->orderColumn('is_adult', 'students.is_adult $1, students.id $1')
             ->toJson();

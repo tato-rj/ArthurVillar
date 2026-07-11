@@ -30,8 +30,6 @@
 		@endforeach
 	@endselect
 
-	@input(['label' => 'Default fee', 'name' => 'fee_amount', 'value' => $student->feeAmountForInput(), 'mask' => 'usd'])
-
 	<div class="row"> 
 		@input(['label' => 'Phone', 'name' => 'phone', 'value' => $student->phone, 'mask' => 'phone', 'grid' => 'col'])
 		@input(['label' => 'Date of birth', 'name' => 'date_of_birth', 'value' => $student->date_of_birth ? \Carbon\Carbon::parse($student->date_of_birth)->format('m/d/Y') : null, 'mask' => 'date', 'grid' => 'col'])
