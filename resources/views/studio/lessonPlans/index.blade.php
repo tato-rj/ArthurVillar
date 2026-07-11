@@ -310,6 +310,7 @@ $(function() {
             {
                 data: 'status_order',
                 name: 'status_order',
+                searchable: false,
                 render: function(data, type, row) {
                     return capitalize(row.status);
                 },

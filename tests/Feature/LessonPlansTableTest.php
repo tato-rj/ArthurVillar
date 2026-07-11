@@ -63,6 +63,42 @@ class LessonPlansTableTest extends BaseTest
         Carbon::setTestNow();
     }
 
+    /** @test */
+    public function it_searches_lesson_plans_without_querying_the_dynamic_status_order_as_a_column()
+    {
+        Carbon::setTestNow(Carbon::parse('2026-07-08 12:00:00'));
+
+        $student = Student::factory()->create([
+            'first_name' => 'Searchable',
+            'last_name' => 'Student',
+        ]);
+
+        LessonPlan::factory()->create([
+            'starts_on' => '2026-07-01',
+            'ends_on' => '2026-07-31',
+            'start_time' => '16:00',
+        ]);
+
+        LessonPlan::factory()->student($student)->create([
+            'starts_on' => '2026-06-01',
+            'ends_on' => '2026-06-30',
+            'start_time' => '16:00',
+        ]);
+
+        $this->signIn();
+
+        $response = $this->getJson(route('studio.tables.lesson-plans', $this->lessonPlanTableRequest([
+            'search' => [
+                'value' => 'Searchable',
+                'regex' => 'false',
+            ],
+        ])))->assertOk();
+
+        $this->assertSame(['Searchable Student'], collect($response->json('data'))->pluck('student')->all());
+
+        Carbon::setTestNow();
+    }
+
     private function lessonPlanTableColumns(): array
     {
         return collect([
@@ -84,7 +120,7 @@ class LessonPlansTableTest extends BaseTest
                     ? 'id'
                     : $name,
                 'name' => $name,
-                'searchable' => $name === 'actions' ? 'false' : 'true',
+                'searchable' => in_array($name, ['actions', 'status_order']) ? 'false' : 'true',
                 'orderable' => $name === 'actions' ? 'false' : 'true',
                 'search' => [
                     'value' => '',

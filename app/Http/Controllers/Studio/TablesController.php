@@ -79,6 +79,15 @@ class TablesController extends Controller
             ->filterColumn('location', function ($query, $keyword) {
                 $query->where('locations.name', 'LIKE', "%{$keyword}%");
             })
+            ->filterColumn('status_order', function ($query, $keyword) use ($statusOrderExpression) {
+                $status = strtolower(trim($keyword));
+
+                if ($status === 'inactive') {
+                    $query->whereRaw("{$statusOrderExpression} = 1");
+                } elseif ($status === 'active') {
+                    $query->whereRaw("{$statusOrderExpression} = 0");
+                }
+            })
             ->filterColumn('duration_minutes', function ($query, $keyword) use ($durationSearchExpression) {
                 $numericKeyword = preg_replace('/[^0-9.]/', '', $keyword);
 
