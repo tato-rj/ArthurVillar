@@ -74,7 +74,15 @@ class LessonPlan extends BaseModel
         $startsOn = $this->starts_on->copy()->startOfDay();
         $endsOn = $this->ends_on->copy()->startOfDay();
 
-        return $startsOn->lte($today) && $endsOn->gte($today)
+        if ($startsOn->lte($today) && $endsOn->gte($today)) {
+            return 'active';
+        }
+
+        if ($startsOn->lte($today)) {
+            return 'inactive';
+        }
+
+        return $this->isClosestUpcomingPlan($today)
             ? 'active'
             : 'inactive';
     }
@@ -82,6 +90,25 @@ class LessonPlan extends BaseModel
     public function setStatusAttribute($value)
     {
         unset($this->attributes['status']);
+    }
+
+    private function isClosestUpcomingPlan(Carbon $today)
+    {
+        if (! $this->student_id || ! $this->getKey()) {
+            return false;
+        }
+
+        $closestUpcomingPlanId = static::query()
+            ->where('student_id', $this->student_id)
+            ->whereNotNull('starts_on')
+            ->whereNotNull('ends_on')
+            ->whereDate('starts_on', '>', $today->toDateString())
+            ->orderBy('starts_on')
+            ->orderBy('start_time')
+            ->orderBy('id')
+            ->value('id');
+
+        return (int) $closestUpcomingPlanId === (int) $this->getKey();
     }
 
     public function getWeekdayNameAttribute()

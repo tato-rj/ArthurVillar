@@ -52,22 +52,54 @@ class Student extends Model
     
     public function currentLessonPlan()
     {
-        $today = today();
+        $today = today()->startOfDay();
 
         if ($this->relationLoaded('lessonPlans')) {
-            return $this->lessonPlans
-                ->filter(fn (LessonPlan $lessonPlan) => $lessonPlan->isCurrent())
-                ->sortByDesc('starts_on')
+            $currentLessonPlan = $this->lessonPlans
+                ->filter(fn (LessonPlan $lessonPlan) => $this->lessonPlanIsCurrentToday($lessonPlan, $today))
+                ->sortByDesc(fn (LessonPlan $lessonPlan) => $lessonPlan->starts_on->toDateString())
+                ->first();
+
+            return $currentLessonPlan ?: $this->lessonPlans
+                ->filter(fn (LessonPlan $lessonPlan) => $this->lessonPlanIsUpcoming($lessonPlan, $today))
+                ->sortBy(fn (LessonPlan $lessonPlan) => implode(' ', [
+                    $lessonPlan->starts_on->toDateString(),
+                    $lessonPlan->start_time,
+                    str_pad($lessonPlan->id, 10, '0', STR_PAD_LEFT),
+                ]))
                 ->first();
         }
 
-        return $this->lessonPlans()
+        $currentLessonPlan = $this->lessonPlans()
             ->whereNotNull('starts_on')
             ->whereNotNull('ends_on')
             ->whereDate('starts_on', '<=', $today->toDateString())
             ->whereDate('ends_on', '>=', $today->toDateString())
             ->latest('starts_on')
             ->first();
+
+        return $currentLessonPlan ?: $this->lessonPlans()
+            ->whereNotNull('starts_on')
+            ->whereNotNull('ends_on')
+            ->whereDate('starts_on', '>', $today->toDateString())
+            ->orderBy('starts_on')
+            ->orderBy('start_time')
+            ->first();
+    }
+
+    private function lessonPlanIsCurrentToday(LessonPlan $lessonPlan, $today)
+    {
+        return $lessonPlan->starts_on
+            && $lessonPlan->ends_on
+            && $lessonPlan->starts_on->copy()->startOfDay()->lte($today)
+            && $lessonPlan->ends_on->copy()->startOfDay()->gte($today);
+    }
+
+    private function lessonPlanIsUpcoming(LessonPlan $lessonPlan, $today)
+    {
+        return $lessonPlan->starts_on
+            && $lessonPlan->ends_on
+            && $lessonPlan->starts_on->copy()->startOfDay()->gt($today);
     }
 
     public function getAgeAttribute()

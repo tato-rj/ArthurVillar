@@ -66,7 +66,7 @@ class LessonPlanTest extends BaseTest
     }
 
     /** @test */
-    public function it_is_current_only_when_today_is_inside_a_complete_date_range()
+    public function it_is_current_when_today_is_inside_a_complete_date_range()
     {
         Carbon::setTestNow(Carbon::parse('2026-07-08 12:00:00'));
 
@@ -94,6 +94,38 @@ class LessonPlanTest extends BaseTest
             'starts_on' => '2026-07-01',
             'ends_on' => '2026-07-08',
         ])->isCurrent());
+
+        Carbon::setTestNow();
+    }
+
+    /** @test */
+    public function the_closest_upcoming_complete_plan_is_also_active()
+    {
+        Carbon::setTestNow(Carbon::parse('2026-07-08 12:00:00'));
+
+        $student = Student::factory()->create();
+
+        $closestUpcomingPlan = LessonPlan::factory()->student($student)->create([
+            'starts_on' => '2026-07-15',
+            'ends_on' => '2026-08-15',
+            'start_time' => '16:00',
+        ]);
+
+        $laterUpcomingPlan = LessonPlan::factory()->student($student)->create([
+            'starts_on' => '2026-07-22',
+            'ends_on' => '2026-08-22',
+            'start_time' => '16:00',
+        ]);
+
+        $incompleteUpcomingPlan = LessonPlan::factory()->student($student)->create([
+            'starts_on' => '2026-07-10',
+            'ends_on' => null,
+            'start_time' => '16:00',
+        ]);
+
+        $this->assertTrue($closestUpcomingPlan->fresh()->isCurrent());
+        $this->assertFalse($laterUpcomingPlan->fresh()->isCurrent());
+        $this->assertFalse($incompleteUpcomingPlan->fresh()->isCurrent());
 
         Carbon::setTestNow();
     }

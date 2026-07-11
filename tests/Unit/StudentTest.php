@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use Tests\BaseTest;
 use App\Models\{Student, LessonPlan, Lesson, ScheduleOverride};
+use Carbon\Carbon;
 
 class StudentTest extends BaseTest
 {
@@ -70,6 +71,39 @@ class StudentTest extends BaseTest
 
         $this->assertTrue($lessonPlan->is($this->student->currentLessonPlan()));
         $this->assertTrue($lessonPlan->is($this->student->load('lessonPlans')->currentLessonPlan()));
+    }
+
+    /** @test */
+    public function a_student_current_lesson_plan_falls_back_to_the_closest_upcoming_plan()
+    {
+        Carbon::setTestNow(Carbon::parse('2026-07-08 12:00:00'));
+
+        $laterUpcomingPlan = LessonPlan::factory()->student($this->student)->create([
+            'starts_on' => '2026-07-29',
+            'ends_on' => '2026-08-29',
+            'start_time' => '16:00',
+        ]);
+
+        $closestUpcomingPlan = LessonPlan::factory()->student($this->student)->create([
+            'starts_on' => '2026-07-15',
+            'ends_on' => '2026-08-15',
+            'start_time' => '16:00',
+        ]);
+
+        LessonPlan::factory()->student($this->student)->create([
+            'starts_on' => null,
+            'ends_on' => '2026-07-14',
+            'start_time' => '16:00',
+        ]);
+
+        $this->assertTrue($closestUpcomingPlan->is($this->student->currentLessonPlan()));
+        $this->assertFalse($laterUpcomingPlan->is($this->student->currentLessonPlan()));
+
+        $this->student->load('lessonPlans');
+
+        $this->assertTrue($closestUpcomingPlan->is($this->student->currentLessonPlan()));
+
+        Carbon::setTestNow();
     }
 
     /** @test */
