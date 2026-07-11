@@ -141,6 +141,48 @@ class TablesController extends Controller
         $feeCentsCastExpression = $driver === 'sqlite'
             ? 'CAST(lesson_plans.fee_amount AS TEXT)'
             : 'CAST(lesson_plans.fee_amount AS CHAR)';
+        $today = DB::connection()->getPdo()->quote(today()->toDateString());
+        $currentPlanCondition = "lesson_plans.starts_on IS NOT NULL
+            AND lesson_plans.ends_on IS NOT NULL
+            AND DATE(lesson_plans.starts_on) <= {$today}
+            AND DATE(lesson_plans.ends_on) >= {$today}";
+        $currentSiblingCondition = "current_lesson_plans.student_id = lesson_plans.student_id
+            AND current_lesson_plans.starts_on IS NOT NULL
+            AND current_lesson_plans.ends_on IS NOT NULL
+            AND DATE(current_lesson_plans.starts_on) <= {$today}
+            AND DATE(current_lesson_plans.ends_on) >= {$today}";
+        $upcomingPlanCondition = "lesson_plans.starts_on IS NOT NULL
+            AND lesson_plans.ends_on IS NOT NULL
+            AND DATE(lesson_plans.starts_on) > {$today}";
+        $closestUpcomingPlanId = "(
+            SELECT upcoming_lesson_plans.id
+            FROM lesson_plans upcoming_lesson_plans
+            WHERE upcoming_lesson_plans.student_id = lesson_plans.student_id
+                AND upcoming_lesson_plans.starts_on IS NOT NULL
+                AND upcoming_lesson_plans.ends_on IS NOT NULL
+                AND DATE(upcoming_lesson_plans.starts_on) > {$today}
+            ORDER BY upcoming_lesson_plans.starts_on, upcoming_lesson_plans.start_time, upcoming_lesson_plans.id
+            LIMIT 1
+        )";
+        $statusOrderExpression = "CASE
+            WHEN ({$currentPlanCondition}) THEN 0
+            WHEN ({$upcomingPlanCondition})
+                AND NOT EXISTS (
+                    SELECT 1
+                    FROM lesson_plans current_lesson_plans
+                    WHERE {$currentSiblingCondition}
+                )
+                AND lesson_plans.id = {$closestUpcomingPlanId}
+            THEN 0
+            ELSE 1
+        END";
+        $orderColumnIndex = request('order.0.column');
+        $orderColumnName = $orderColumnIndex !== null
+            ? (request("columns.{$orderColumnIndex}.name") ?: request("columns.{$orderColumnIndex}.data"))
+            : null;
+        $statusOrderDirection = $orderColumnName === 'status_order'
+            ? (request('order.0.dir') === 'desc' ? 'desc' : 'asc')
+            : null;
 
         $lessonPlans = LessonPlan::query()
             ->join('students', 'students.id', '=', 'lesson_plans.student_id')
@@ -157,6 +199,13 @@ class TablesController extends Controller
             })
             ->when(request('starts_to'), function ($query, $date) {
                 $query->whereDate('lesson_plans.starts_on', '<=', $date);
+            })
+            ->when($statusOrderDirection, function ($query, $direction) use ($statusOrderExpression) {
+                $query
+                    ->orderByRaw("{$statusOrderExpression} {$direction}")
+                    ->orderBy('lesson_plans.starts_on', $direction)
+                    ->orderBy('lesson_plans.start_time', $direction)
+                    ->orderBy('lesson_plans.id', $direction);
             })
             ->select([
                 'lesson_plans.id',
@@ -177,6 +226,7 @@ class TablesController extends Controller
                 DB::raw('locations.name as location'),
                 DB::raw("$weekdayExpression as weekday_name"),
                 DB::raw("$recurrenceExpression as recurrence"),
+                DB::raw("{$statusOrderExpression} as status_order"),
             ]);
 
         return DataTables::eloquent($lessonPlans)
@@ -232,6 +282,7 @@ class TablesController extends Controller
             ->orderColumn('weekday_name', 'lesson_plans.weekday $1')
             ->orderColumn('recurrence', 'lesson_plans.recurrence_interval $1')
             ->orderColumn('location', 'location $1')
+            ->orderColumn('status_order', false)
             ->toJson();
     }
 

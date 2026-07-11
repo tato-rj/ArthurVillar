@@ -308,10 +308,10 @@ $(function() {
                 },
             },
             {
-                data: 'status',
-                name: 'status',
-                render: function(data) {
-                    return capitalize(data);
+                data: 'status_order',
+                name: 'status_order',
+                render: function(data, type, row) {
+                    return capitalize(row.status);
                 },
             },
             {
