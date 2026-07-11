@@ -25108,7 +25108,7 @@ h1, .h1 {
   background: #4b4b4b;
   color: white;
 }
-.bg-grey, #lesson-modal[data-lesson-status=canceled] h4.modal-title:before, #lesson-modal[data-lesson-status=canceled] .modal-title.h4:before, #lesson-modal[data-lesson-status=unconfirmed] h4.modal-title:before, #lesson-modal[data-lesson-status=unconfirmed] .modal-title.h4:before, #calendar .lm-schedule-item[data-lesson-status=unconfirmed], #calendar .studio-month-event-dot[data-lesson-status=unconfirmed], #calendar .studio-schedule-event[data-lesson-status=unconfirmed] {
+.bg-grey, #lesson-modal[data-lesson-status=canceled] h4.modal-title:before, #lesson-modal[data-lesson-status=canceled] .modal-title.h4:before, #lesson-modal[data-lesson-status=unconfirmed] h4.modal-title:before, #lesson-modal[data-lesson-status=unconfirmed] .modal-title.h4:before, #month-day-events-modal .studio-month-event-dot[data-lesson-status=canceled], #calendar .lm-schedule-item[data-lesson-status=unconfirmed], .studio-month-event-dot[data-lesson-status=unconfirmed], #calendar .studio-schedule-event[data-lesson-status=unconfirmed] {
   background: #6b7280;
   color: white;
 }
@@ -25116,11 +25116,11 @@ h1, .h1 {
   background: #78716c;
   color: white;
 }
-.bg-red, #lesson-modal[data-lesson-status=unpaid] h4.modal-title:before, #lesson-modal[data-lesson-status=unpaid] .modal-title.h4:before, #calendar .lm-schedule-item[data-lesson-status=unpaid], #calendar .studio-month-event-dot[data-lesson-status=unpaid], #calendar .studio-schedule-event[data-lesson-status=unpaid] {
+.bg-red, #lesson-modal[data-lesson-status=unpaid] h4.modal-title:before, #lesson-modal[data-lesson-status=unpaid] .modal-title.h4:before, #calendar .lm-schedule-item[data-lesson-status=unpaid], .studio-month-event-dot[data-lesson-status=unpaid], #calendar .studio-schedule-event[data-lesson-status=unpaid] {
   background: #ff4b4b;
   color: white;
 }
-.bg-orange, #calendar .lm-schedule-item[data-lesson-status=rescheduled], #calendar .studio-month-event-dot[data-lesson-status=rescheduled], #calendar .studio-schedule-event[data-lesson-status=rescheduled] {
+.bg-orange, #calendar .lm-schedule-item[data-lesson-status=rescheduled], .studio-month-event-dot[data-lesson-status=rescheduled], #calendar .studio-schedule-event[data-lesson-status=rescheduled] {
   background: #ff9600;
   color: white;
 }
@@ -25128,7 +25128,7 @@ h1, .h1 {
   background: #ffc800;
   color: white;
 }
-.bg-green, #lesson-modal[data-lesson-status=paid] h4.modal-title:before, #lesson-modal[data-lesson-status=paid] .modal-title.h4:before, #calendar .lm-schedule-item[data-lesson-status=paid], #calendar .studio-month-event-dot[data-lesson-status=paid], #calendar .studio-schedule-event[data-lesson-status=paid] {
+.bg-green, #lesson-modal[data-lesson-status=paid] h4.modal-title:before, #lesson-modal[data-lesson-status=paid] .modal-title.h4:before, #calendar .lm-schedule-item[data-lesson-status=paid], .studio-month-event-dot[data-lesson-status=paid], #calendar .studio-schedule-event[data-lesson-status=paid] {
   background: #58cc02;
   color: white;
 }
@@ -31933,13 +31933,40 @@ input[type=date] {
 
 .studio-month-more {
   color: #202124;
-  font-size: 0.92rem;
+  cursor: pointer;
+  display: inline-block;
+  font-size: 0.72rem;
+  width: 100%;
   font-weight: 700;
   line-height: 1.2;
   min-width: 0;
   overflow: hidden;
+  padding: 0.1rem 0.4rem;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.studio-month-more:hover {
+  background: rgba(0, 0, 0, 0.075);
+  border-radius: 0.35rem;
+}
+
+.studio-month-day-events-modal-list {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.studio-month-day-events-modal-list .studio-month-event {
+  border-radius: 0.35rem;
+  cursor: pointer;
+  font-size: 1rem;
+  margin-bottom: 0;
+  padding: 0.35rem 0.5rem;
+}
+
+.studio-month-day-events-modal-list .studio-month-event-holiday,
+.studio-month-day-events-modal-list .studio-month-event-break {
+  padding: 0.45rem 0.65rem;
 }
 
 .lm-schedule thead td {
@@ -32163,7 +32190,7 @@ button.single-lesson-plan-create {
   z-index: 0;
 }
 
-#calendar .lm-schedule-item[data-lesson-status=teaching-break], #calendar .studio-month-event-dot[data-lesson-status=teaching-break], #calendar .studio-schedule-event[data-lesson-status=teaching-break] {
+#calendar .lm-schedule-item[data-lesson-status=teaching-break], .studio-month-event-dot[data-lesson-status=teaching-break], #calendar .studio-schedule-event[data-lesson-status=teaching-break] {
   background: #7952b3;
   color: #fff;
 }

@@ -1975,6 +1975,74 @@ var hasOverlappingTimedEvents = function hasOverlappingTimedEvents(events) {
     return overlaps;
   });
 };
+var createMonthEventElement = function createMonthEventElement(event, dateString) {
+  var item = document.createElement('span');
+  var dot = document.createElement('span');
+  var time = document.createElement('span');
+  var title = document.createElement('span');
+  item.className = event.isHoliday ? 'studio-month-event studio-month-event-holiday' : event.isBreak ? 'studio-month-event studio-month-event-break' : 'studio-month-event';
+  dot.className = 'studio-month-event-dot';
+  time.className = 'studio-month-event-time';
+  title.className = 'studio-month-event-title';
+  item.dataset.eventGuid = event.guid || '';
+  item.dataset.lessonStatus = event.isHoliday ? 'holiday' : event.isBreak ? 'teaching-break' : event.calendarStatus || event.lessonStatus || 'unconfirmed';
+  dot.dataset.eventGuid = event.guid || '';
+  dot.dataset.lessonStatus = event.isHoliday ? 'holiday' : event.isBreak ? 'teaching-break' : event.calendarStatus || event.lessonStatus || 'unconfirmed';
+  applyCalendarItemStatusAttributes(item, event, dateString);
+  applyCalendarItemStatusAttributes(dot, event, dateString);
+  time.textContent = event.isHoliday || event.isBreak ? '' : formatEventTime(event.start);
+  title.textContent = event.title || 'No title';
+  if (!event.isHoliday && !event.isBreak) {
+    item.appendChild(dot);
+    item.appendChild(time);
+  }
+  item.appendChild(title);
+  return item;
+};
+var hideBootstrapModal = function hideBootstrapModal(modal) {
+  if (!modal) {
+    return;
+  }
+  if (window.bootstrap && window.bootstrap.Modal && typeof window.bootstrap.Modal.getOrCreateInstance === 'function') {
+    window.bootstrap.Modal.getOrCreateInstance(modal).hide();
+    return;
+  }
+  if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
+    window.jQuery(modal).modal('hide');
+  }
+};
+var showBootstrapModal = function showBootstrapModal(modal) {
+  if (!modal) {
+    return;
+  }
+  if (window.bootstrap && window.bootstrap.Modal && typeof window.bootstrap.Modal.getOrCreateInstance === 'function') {
+    window.bootstrap.Modal.getOrCreateInstance(modal).show();
+    return;
+  }
+  if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
+    window.jQuery(modal).modal('show');
+  }
+};
+var openMonthDayEventsModal = function openMonthDayEventsModal(dateString) {
+  var modal = document.getElementById('month-day-events-modal');
+  if (!modal) {
+    return;
+  }
+  var title = modal.querySelector('.modal-title');
+  var list = modal.querySelector('[data-month-day-events-list]');
+  var date = parseDateString(dateString);
+  var events = getCalendarItemsForDate(date);
+  if (title) {
+    title.textContent = dayFormatter.format(date);
+  }
+  if (list) {
+    list.innerHTML = '';
+    events.forEach(function (event) {
+      list.appendChild(createMonthEventElement(event, dateString));
+    });
+  }
+  showBootstrapModal(modal);
+};
 var renderMonthCalendar = function renderMonthCalendar(calendar) {
   var today = todayString();
   var selected = toDateString(state.date);
@@ -1995,13 +2063,15 @@ var renderMonthCalendar = function renderMonthCalendar(calendar) {
     var date = addDays(gridStart, i);
     var dateString = toDateString(date);
     var events = getCalendarItemsForDate(date);
-    var cell = document.createElement('button');
+    var cell = document.createElement('div');
     var day = document.createElement('span');
     var list = document.createElement('span');
     var hasOverlaps = hasOverlappingTimedEvents(events);
-    cell.type = 'button';
+    var visibleEventCount = events.length >= 5 ? 3 : 4;
     cell.className = 'studio-month-day';
     cell.dataset.date = dateString;
+    cell.setAttribute('role', 'button');
+    cell.tabIndex = 0;
     if (date.getMonth() !== month) {
       cell.classList.add('is-muted');
     }
@@ -2020,34 +2090,16 @@ var renderMonthCalendar = function renderMonthCalendar(calendar) {
       alert.setAttribute('aria-hidden', 'true');
       cell.appendChild(alert);
     }
-    events.slice(0, 4).forEach(function (event) {
-      var item = document.createElement('span');
-      var dot = document.createElement('span');
-      var time = document.createElement('span');
-      var title = document.createElement('span');
-      item.className = event.isHoliday ? 'studio-month-event studio-month-event-holiday' : event.isBreak ? 'studio-month-event studio-month-event-break' : 'studio-month-event';
-      dot.className = 'studio-month-event-dot';
-      time.className = 'studio-month-event-time';
-      title.className = 'studio-month-event-title';
-      item.dataset.eventGuid = event.guid || '';
-      item.dataset.lessonStatus = event.isHoliday ? 'holiday' : event.isBreak ? 'teaching-break' : event.calendarStatus || event.lessonStatus || 'unconfirmed';
-      dot.dataset.eventGuid = event.guid || '';
-      dot.dataset.lessonStatus = event.isHoliday ? 'holiday' : event.isBreak ? 'teaching-break' : event.calendarStatus || event.lessonStatus || 'unconfirmed';
-      applyCalendarItemStatusAttributes(item, event, dateString);
-      applyCalendarItemStatusAttributes(dot, event, dateString);
-      time.textContent = event.isHoliday || event.isBreak ? '' : formatEventTime(event.start);
-      title.textContent = event.title || 'No title';
-      if (!event.isHoliday && !event.isBreak) {
-        item.appendChild(dot);
-        item.appendChild(time);
-      }
-      item.appendChild(title);
-      list.appendChild(item);
+    events.slice(0, visibleEventCount).forEach(function (event) {
+      list.appendChild(createMonthEventElement(event, dateString));
     });
     if (events.length > 4) {
       var more = document.createElement('span');
       more.className = 'studio-month-more';
-      more.textContent = "".concat(events.length - 4, " more");
+      more.dataset.monthMoreDate = dateString;
+      more.setAttribute('role', 'button');
+      more.tabIndex = 0;
+      more.textContent = "".concat(events.length - visibleEventCount, " more");
       list.appendChild(more);
     }
     cell.appendChild(day);
@@ -2938,6 +2990,13 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!day || state.view !== 'month') {
       return;
     }
+    var more = e.target.closest('.studio-month-more');
+    if (more) {
+      e.preventDefault();
+      e.stopPropagation();
+      openMonthDayEventsModal(more.dataset.monthMoreDate || day.dataset.date);
+      return;
+    }
     if (!e.target.closest('.studio-month-event')) {
       setSelectedDate(parseDateString(day.dataset.date));
       state.view = 'week';
@@ -2973,6 +3032,27 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     openLessonModal(event);
   });
+  var monthDayEventsModal = document.getElementById('month-day-events-modal');
+  if (monthDayEventsModal) {
+    monthDayEventsModal.addEventListener('click', function (e) {
+      var item = e.target.closest('.studio-month-event, .studio-schedule-break');
+      if (!item || item.classList.contains('studio-month-event-holiday')) {
+        return;
+      }
+      e.preventDefault();
+      e.stopPropagation();
+      var event = getEventByGuid(item.dataset.eventGuid);
+      if (!event) {
+        return;
+      }
+      hideBootstrapModal(monthDayEventsModal);
+      if (event.isBreak) {
+        openTeachingBreakModal(event);
+        return;
+      }
+      openLessonModal(event);
+    });
+  }
   renderLocationFilters();
   _render();
 });

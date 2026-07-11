@@ -696,13 +696,40 @@ input[type="date"] {text-align: left;}
 
 .studio-month-more {
     color: #202124;
-    font-size: 0.92rem;
+    cursor: pointer;
+    display: inline-block;
+    font-size: 0.72rem;
+    width: 100%;
     font-weight: 700;
     line-height: 1.2;
     min-width: 0;
     overflow: hidden;
+    padding: 0.1rem 0.4rem;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.studio-month-more:hover {
+    background: rgba(0,0,0,0.075);
+    border-radius: 0.35rem;
+}
+
+.studio-month-day-events-modal-list {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.studio-month-day-events-modal-list .studio-month-event {
+    border-radius: 0.35rem;
+    cursor: pointer;
+    font-size: 1rem;
+    margin-bottom: 0;
+    padding: 0.35rem 0.5rem;
+}
+
+.studio-month-day-events-modal-list .studio-month-event-holiday,
+.studio-month-day-events-modal-list .studio-month-event-break {
+    padding: 0.45rem 0.65rem;
 }
 
 .lm-schedule thead td {
@@ -939,19 +966,19 @@ button.single-lesson-plan-create {
     overflow: hidden;
 }
 
-#calendar .lm-schedule-item[data-lesson-status="unconfirmed"], #calendar .studio-month-event-dot[data-lesson-status="unconfirmed"], #calendar .studio-schedule-event[data-lesson-status="unconfirmed"] {
+#calendar .lm-schedule-item[data-lesson-status="unconfirmed"], .studio-month-event-dot[data-lesson-status="unconfirmed"], #calendar .studio-schedule-event[data-lesson-status="unconfirmed"] {
     @extend .bg-grey;
 }
 
-#calendar .lm-schedule-item[data-lesson-status="rescheduled"], #calendar .studio-month-event-dot[data-lesson-status="rescheduled"], #calendar .studio-schedule-event[data-lesson-status="rescheduled"] {
+#calendar .lm-schedule-item[data-lesson-status="rescheduled"], .studio-month-event-dot[data-lesson-status="rescheduled"], #calendar .studio-schedule-event[data-lesson-status="rescheduled"] {
     @extend .bg-orange;
 }
 
-#calendar .lm-schedule-item[data-lesson-status="unpaid"], #calendar .studio-month-event-dot[data-lesson-status="unpaid"], #calendar .studio-schedule-event[data-lesson-status="unpaid"] {
+#calendar .lm-schedule-item[data-lesson-status="unpaid"], .studio-month-event-dot[data-lesson-status="unpaid"], #calendar .studio-schedule-event[data-lesson-status="unpaid"] {
     @extend .bg-red;
 }
 
-#calendar .lm-schedule-item[data-lesson-status="paid"], #calendar .studio-month-event-dot[data-lesson-status="paid"], #calendar .studio-schedule-event[data-lesson-status="paid"] {
+#calendar .lm-schedule-item[data-lesson-status="paid"], .studio-month-event-dot[data-lesson-status="paid"], #calendar .studio-schedule-event[data-lesson-status="paid"] {
     @extend .bg-green;
 }
 
@@ -961,7 +988,11 @@ button.single-lesson-plan-create {
     z-index: 0;
 }
 
-#calendar .lm-schedule-item[data-lesson-status="teaching-break"], #calendar .studio-month-event-dot[data-lesson-status="teaching-break"], #calendar .studio-schedule-event[data-lesson-status="teaching-break"] {
+#month-day-events-modal .studio-month-event-dot[data-lesson-status="canceled"] {
+    @extend .bg-grey;
+}
+
+#calendar .lm-schedule-item[data-lesson-status="teaching-break"], .studio-month-event-dot[data-lesson-status="teaching-break"], #calendar .studio-schedule-event[data-lesson-status="teaching-break"] {
     background: #7952b3;
     color: #fff;
 }

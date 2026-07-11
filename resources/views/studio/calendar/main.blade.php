@@ -7,3 +7,4 @@
 </div>
 
 @include('studio.calendar.views')
+@include('studio.calendar.day-events-modal')
