@@ -5,13 +5,6 @@
 <link href="{{ mix('css/studio.css') }}" rel="stylesheet">
 
 <style>
-td[data-status="inactive"] {
-    color: rgba(0,0,0,0.3);
-}
-
-td[data-status="inactive"]:first-of-type {
-    color: blue;
-}
 </style>
 @endpush
 

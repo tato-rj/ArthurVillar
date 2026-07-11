@@ -5,6 +5,7 @@
 }
 
 input[type="date"] {text-align: left;}
+td {white-space: nowrap;}
 
 .studio-calendar {
     min-height: 100vh;
@@ -846,6 +847,28 @@ input[type="date"] {text-align: left;}
 
 .studio-schedule-break:hover {
     background: #68449f;
+}
+
+.lesson-plans-table {
+    td[data-status="inactive"] {color: rgba(0,0,0,0.3);}
+
+    td:first-of-type:before {
+        @extend .rounded-circle;
+        content: '';
+        width: 8px;
+        height: 8px;
+        display: inline-block;
+        margin-right: 6px;
+        margin-bottom: 1px;
+
+        &[data-status="active"]:first-of-type:before {
+            @extend .bg-green;
+        }
+
+        &[data-status="inactive"]:first-of-type:before {
+            @extend .bg-light;
+        }
+    }
 }
 
 button.single-lesson-plan-create {

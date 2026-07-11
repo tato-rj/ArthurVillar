@@ -18518,7 +18518,7 @@ textarea.form-control-lg {
   background-color: rgba(var(--bs-danger-rgb), var(--bs-bg-opacity)) !important;
 }
 
-.bg-light, .studio-time-picker select, .studio-date-picker {
+.bg-light, .studio-time-picker select, .studio-date-picker, .lesson-plans-table td:first-of-type:before[data-status=inactive]:first-of-type:before {
   --bs-bg-opacity: 1;
   background-color: rgba(var(--bs-light-rgb), var(--bs-bg-opacity)) !important;
 }
@@ -18668,7 +18668,7 @@ textarea.form-control-lg {
   border-radius: var(--bs-border-radius-xxl) !important;
 }
 
-.rounded-circle {
+.rounded-circle, .lesson-plans-table td:first-of-type:before {
   border-radius: 50% !important;
 }
 
@@ -25092,7 +25092,7 @@ h1, .h1 {
   background: #374151;
   color: white;
 }
-.bg-light, .studio-time-picker select, .studio-date-picker {
+.bg-light, .studio-time-picker select, .studio-date-picker, .lesson-plans-table td:first-of-type:before[data-status=inactive]:first-of-type:before {
   background: #b9bec7;
   color: dark;
 }
@@ -25128,7 +25128,7 @@ h1, .h1 {
   background: #ffc800;
   color: white;
 }
-.bg-green, #lesson-modal[data-lesson-status=paid] h4.modal-title:before, #lesson-modal[data-lesson-status=paid] .modal-title.h4:before, #calendar .lm-schedule-item[data-lesson-status=paid], .studio-month-event-dot[data-lesson-status=paid], #calendar .studio-schedule-event[data-lesson-status=paid] {
+.bg-green, #lesson-modal[data-lesson-status=paid] h4.modal-title:before, #lesson-modal[data-lesson-status=paid] .modal-title.h4:before, #calendar .lm-schedule-item[data-lesson-status=paid], .studio-month-event-dot[data-lesson-status=paid], #calendar .studio-schedule-event[data-lesson-status=paid], .lesson-plans-table td:first-of-type:before[data-status=active]:first-of-type:before {
   background: #58cc02;
   color: white;
 }
@@ -31278,6 +31278,10 @@ input[type=date] {
   text-align: left;
 }
 
+td {
+  white-space: nowrap;
+}
+
 .studio-calendar {
   min-height: 100vh;
   padding-right: 1.5rem;
@@ -32085,6 +32089,17 @@ input[type=date] {
   background: #68449f;
 }
 
+.lesson-plans-table td[data-status=inactive] {
+  color: rgba(0, 0, 0, 0.3);
+}
+.lesson-plans-table td:first-of-type:before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  display: inline-block;
+  margin-right: 6px;
+  margin-bottom: 1px;
+}
 button.single-lesson-plan-create {
   position: absolute;
   bottom: 20px;
