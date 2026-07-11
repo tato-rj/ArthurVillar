@@ -160,6 +160,8 @@ class TablesController extends Controller
             })
             ->select([
                 'lesson_plans.id',
+                'lesson_plans.student_id',
+                'lesson_plans.location_id',
                 'lesson_plans.weekday',
                 'lesson_plans.start_time',
                 'lesson_plans.duration_minutes',
@@ -168,7 +170,10 @@ class TablesController extends Controller
                 'lesson_plans.ends_on',
                 'lesson_plans.fee_amount',
                 'lesson_plans.payment_method',
+                'lesson_plans.meeting_url',
+                'lesson_plans.notes_url',
                 'lesson_plans.status',
+                'lesson_plans.notes',
                 DB::raw("$studentExpression as student"),
                 DB::raw('locations.name as location'),
                 DB::raw("$weekdayExpression as weekday_name"),

@@ -136,6 +136,70 @@ $(function() {
         });
     };
 
+    const setFormFieldValue = function(form, name, value) {
+        const field = form ? form.querySelector(`[name="${name}"]`) : null;
+
+        if (field) {
+            field.value = value == null ? '' : value;
+        }
+    };
+
+    const formatFeeInput = function(value) {
+        const cents = Number(value || 0);
+
+        if (!cents) {
+            return '';
+        }
+
+        const dollars = cents / 100;
+
+        return Number.isInteger(dollars) ? String(dollars) : String(dollars.toFixed(2));
+    };
+
+    const openDuplicateLessonPlanModal = function(lessonPlan) {
+        const modal = document.getElementById('create-calendar-lesson-plan-modal');
+        const form = modal ? modal.querySelector('form') : null;
+
+        if (!modal || !form || !lessonPlan) {
+            return;
+        }
+
+        form.reset();
+
+        const studentInput = form.querySelector('[data-student-combobox-input]');
+        const studentValue = form.querySelector('[data-student-combobox-value]');
+
+        if (studentInput) {
+            studentInput.value = lessonPlan.student || '';
+            studentInput.setCustomValidity('');
+        }
+
+        if (studentValue) {
+            studentValue.value = lessonPlan.student_id || '';
+        }
+
+        setFormFieldValue(form, 'location_id', lessonPlan.location_id);
+        setFormFieldValue(form, 'weekday', lessonPlan.weekday);
+        setFormFieldValue(form, 'recurrence_interval', lessonPlan.recurrence_interval);
+        setFormFieldValue(form, 'starts_on', '');
+        setFormFieldValue(form, 'ends_on', '');
+        setFormFieldValue(form, 'start_time', lessonPlan.start_time);
+        setFormFieldValue(form, 'duration_minutes', lessonPlan.duration_minutes);
+        setFormFieldValue(form, 'fee_amount', formatFeeInput(lessonPlan.fee_amount));
+        setFormFieldValue(form, 'payment_method', lessonPlan.payment_method);
+        setFormFieldValue(form, 'meeting_url', lessonPlan.meeting_url);
+        setFormFieldValue(form, 'notes_url', lessonPlan.notes_url);
+        setFormFieldValue(form, 'notes', lessonPlan.notes);
+
+        setLessonPlanOnlineFields(form, false);
+
+        if (window.studioLessonPlanCreateForms && typeof window.studioLessonPlanCreateForms.initialize === 'function') {
+            window.studioLessonPlanCreateForms.initialize(modal);
+        }
+
+        showModal(modal);
+    };
+
     const lessonPlansTable = window.studioDataTableState.create('#lesson-plans-table', {
         processing: false,
         serverSide: true,
@@ -256,6 +320,7 @@ $(function() {
 
                     return `
                         <div class="studio-table-actions">
+                            <button type="button" class="btn btn-sm btn-secondary rounded js-duplicate-lesson-plan">@fa(['icon' => 'copy', 'mr' => 0])</button>
                             <button type="button" class="btn btn-sm btn-warning rounded js-edit-lesson-plan" data-url="${editUrl}">@fa(['icon' => 'pen-to-square', 'mr' => 0])</button>
                             <form method="POST" action="${deleteUrl}" confirm>
                                 @csrf
@@ -287,6 +352,10 @@ $(function() {
     $('#lesson-plans-clear-dates').on('click', function() {
         $('#lesson-plans-starts-from, #lesson-plans-starts-to').val('');
         lessonPlansTable.ajax.reload();
+    });
+
+    $('#lesson-plans-table').on('click', '.js-duplicate-lesson-plan', function() {
+        openDuplicateLessonPlanModal(lessonPlansTable.row($(this).closest('tr')).data());
     });
 
     $('#lesson-plans-table').on('click', '.js-edit-lesson-plan', function() {
