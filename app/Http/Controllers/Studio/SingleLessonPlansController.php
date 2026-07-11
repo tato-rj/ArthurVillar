@@ -11,6 +11,18 @@ use InvalidArgumentException;
 
 class SingleLessonPlansController extends Controller
 {
+    public function index()
+    {
+        return view('studio.singleLessonPlans.index');
+    }
+
+    public function edit(SingleLessonPlan $singleLessonPlan)
+    {
+        $singleLessonPlan->load('student', 'location');
+
+        return view('studio.singleLessonPlans.edit', compact('singleLessonPlan'));
+    }
+
     public function store(Request $request)
     {
         $data = $this->validateSingleLessonPlan($request);

@@ -1,5 +1,6 @@
 @modal(['title' => 'Edit lesson plan', 'id' => 'edit-lessonPlan-'.$lessonPlan->id.'-modal'])
-<form method="POST" action="{{route('studio.lesson-plans.update', $lessonPlan)}}">
+@php($lessonPlanIsOnline = optional($lessonPlan->location)->name && strtolower($lessonPlan->location->name) === 'online')
+<form method="POST" action="{{route('studio.lesson-plans.update', $lessonPlan)}}" data-lesson-plan-form>
 	@csrf
 	@method('PATCH')
 	<input type="hidden" name="student_id" value="{{$lessonPlan->student_id}}">
@@ -12,12 +13,12 @@
 		@endforeach
 	@endselect
 
-	<div class="lesson-plan-meeting-url-field">
-		@input(['label' => 'Meeting URL', 'name' => 'meeting_url', 'type' => 'url', 'value' => $lessonPlan->meeting_url])
+	<div class="lesson-plan-online-field lesson-plan-meeting-url-field" @unless($lessonPlanIsOnline) style="display: none;" @endunless>
+		@input(['label' => 'Meeting URL', 'name' => 'meeting_url', 'type' => 'url', 'value' => $lessonPlan->meeting_url, 'disabled' => ! $lessonPlanIsOnline])
 	</div>
 
-	<div class="lesson-plan-notes-url-field">
-		@input(['label' => 'Notes URL', 'name' => 'notes_url', 'type' => 'url', 'value' => $lessonPlan->notes_url])
+	<div class="lesson-plan-online-field lesson-plan-notes-url-field" @unless($lessonPlanIsOnline) style="display: none;" @endunless>
+		@input(['label' => 'Notes URL', 'name' => 'notes_url', 'type' => 'url', 'value' => $lessonPlan->notes_url, 'disabled' => ! $lessonPlanIsOnline])
 	</div>
 
 	<div class="row">

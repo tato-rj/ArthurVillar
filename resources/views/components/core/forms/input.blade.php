@@ -1,7 +1,9 @@
 <div class="form-group text-left {{$grid ?? null}}">
-	@isset($label)
-    @label(['icon' => $labelIcon ?? null])
-    @endisset
+	@php($inputLabel = $label ?? (($type ?? 'text') === 'date' ? ($placeholder ?? null) : null))
+
+	@if($inputLabel)
+    @label(['label' => $inputLabel, 'icon' => $labelIcon ?? null])
+    @endif
 
     <div class="form-control form-control-{{$size ?? null}} d-flex align-items-center {{$classes ?? null}}">
     	<div>

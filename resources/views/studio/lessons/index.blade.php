@@ -8,7 +8,7 @@
 <section class="container py-5">
     <div class="row mb-4">
         @pagetitle([
-            'label' => 'Lessons',
+            'label' => 'Confirmed Lessons'
         ])
     </div>
 

@@ -98,8 +98,10 @@ $(function() {
                 orderable: false,
                 searchable: false,
                 className: 'text-right',
-                render: function(data) {
-                    const lessonPlanUrl = @json(route('studio.lessons.student', ['student' => '__student__'])).replace('__student__', data);
+                render: function(data, type, row) {
+                    const lessonPlansIndexUrl = @json(route('studio.lesson-plans.index'));
+                    const studentName = [row.first_name, row.last_name].filter(Boolean).join(' ');
+                    const lessonPlanUrl = `${lessonPlansIndexUrl}?search=${encodeURIComponent(studentName)}`;
                     const deleteUrl = @json(route('studio.students.destroy', ['student' => '__student__'])).replace('__student__', data);
                     const editUrl = @json(route('studio.students.edit', ['student' => '__student__'])).replace('__student__', data);
 

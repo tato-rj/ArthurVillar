@@ -4,12 +4,230 @@ namespace App\Http\Controllers\Studio;
 
 use App\Http\Controllers\Controller;
 use App\Calendar\Scheduler;
-use App\Models\{Lesson, Location, Student, TeachingBreak, WaitingList};
+use App\Models\{Lesson, LessonPlan, Location, SingleLessonPlan, Student, TeachingBreak, WaitingList};
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 
 class TablesController extends Controller
 {
+    public function singleLessonPlans()
+    {
+        $driver = DB::connection()->getDriverName();
+        $studentExpression = $driver === 'sqlite'
+            ? "students.first_name || ' ' || COALESCE(students.last_name, '')"
+            : "CONCAT(students.first_name, ' ', COALESCE(students.last_name, ''))";
+        $weekdayExpression = "CASE ".($driver === 'sqlite' ? "CAST(strftime('%w', single_lesson_plans.scheduled_date) AS INTEGER) + 1" : 'DAYOFWEEK(single_lesson_plans.scheduled_date)')."
+            WHEN 1 THEN 'sunday'
+            WHEN 2 THEN 'monday'
+            WHEN 3 THEN 'tuesday'
+            WHEN 4 THEN 'wednesday'
+            WHEN 5 THEN 'thursday'
+            WHEN 6 THEN 'friday'
+            WHEN 7 THEN 'saturday'
+        END";
+        $weekdayOrderExpression = $driver === 'sqlite'
+            ? "CAST(strftime('%w', single_lesson_plans.scheduled_date) AS INTEGER) + 1"
+            : 'DAYOFWEEK(single_lesson_plans.scheduled_date)';
+        $durationSearchExpression = $driver === 'sqlite'
+            ? "single_lesson_plans.duration_minutes || ' min'"
+            : "CONCAT(single_lesson_plans.duration_minutes, ' min')";
+        $feeSearchExpression = $driver === 'sqlite'
+            ? "'$' || CAST(single_lesson_plans.fee_amount / 100 AS TEXT)"
+            : "CONCAT('$', CAST(single_lesson_plans.fee_amount / 100 AS CHAR))";
+        $feeCastExpression = $driver === 'sqlite'
+            ? 'CAST(single_lesson_plans.fee_amount / 100 AS TEXT)'
+            : 'CAST(single_lesson_plans.fee_amount / 100 AS CHAR)';
+        $feeCentsCastExpression = $driver === 'sqlite'
+            ? 'CAST(single_lesson_plans.fee_amount AS TEXT)'
+            : 'CAST(single_lesson_plans.fee_amount AS CHAR)';
+
+        $singleLessonPlans = SingleLessonPlan::query()
+            ->join('students', 'students.id', '=', 'single_lesson_plans.student_id')
+            ->leftJoin('locations', 'locations.id', '=', 'single_lesson_plans.location_id')
+            ->when(request('scheduled_from'), function ($query, $date) {
+                $query->whereDate('single_lesson_plans.scheduled_date', '>=', $date);
+            })
+            ->when(request('scheduled_to'), function ($query, $date) {
+                $query->whereDate('single_lesson_plans.scheduled_date', '<=', $date);
+            })
+            ->select([
+                'single_lesson_plans.id',
+                'single_lesson_plans.scheduled_date',
+                'single_lesson_plans.start_time',
+                'single_lesson_plans.duration_minutes',
+                'single_lesson_plans.fee_amount',
+                'single_lesson_plans.payment_method',
+                'single_lesson_plans.status',
+                DB::raw("$studentExpression as student"),
+                DB::raw('locations.name as location'),
+                DB::raw("$weekdayExpression as weekday"),
+                DB::raw("$weekdayOrderExpression as weekday_order"),
+            ]);
+
+        return DataTables::eloquent($singleLessonPlans)
+            ->editColumn('scheduled_date', function (SingleLessonPlan $singleLessonPlan) {
+                return $singleLessonPlan->scheduled_date
+                    ? $singleLessonPlan->scheduled_date->toDateString()
+                    : null;
+            })
+            ->filterColumn('student', function ($query, $keyword) use ($studentExpression) {
+                $query->whereRaw("$studentExpression LIKE ?", ["%{$keyword}%"]);
+            })
+            ->filterColumn('weekday', function ($query, $keyword) use ($weekdayExpression) {
+                $query->whereRaw("$weekdayExpression LIKE ?", ["%{$keyword}%"]);
+            })
+            ->filterColumn('location', function ($query, $keyword) {
+                $query->where('locations.name', 'LIKE', "%{$keyword}%");
+            })
+            ->filterColumn('duration_minutes', function ($query, $keyword) use ($durationSearchExpression) {
+                $numericKeyword = preg_replace('/[^0-9.]/', '', $keyword);
+
+                $query->where(function ($query) use ($keyword, $numericKeyword, $durationSearchExpression) {
+                    $query->whereRaw("$durationSearchExpression LIKE ?", ["%{$keyword}%"]);
+
+                    if ($numericKeyword !== '') {
+                        $query->orWhereRaw('CAST(single_lesson_plans.duration_minutes AS CHAR) LIKE ?', ["%{$numericKeyword}%"]);
+                    }
+                });
+            })
+            ->filterColumn('fee_amount', function ($query, $keyword) use ($feeSearchExpression, $feeCastExpression, $feeCentsCastExpression) {
+                $numericKeyword = preg_replace('/[^0-9.]/', '', $keyword);
+
+                $query->where(function ($query) use ($keyword, $numericKeyword, $feeSearchExpression, $feeCastExpression, $feeCentsCastExpression) {
+                    $query->whereRaw("$feeSearchExpression LIKE ?", ["%{$keyword}%"]);
+
+                    if ($numericKeyword !== '') {
+                        $query->orWhereRaw("$feeCastExpression LIKE ?", ["%{$numericKeyword}%"])
+                            ->orWhereRaw("$feeCentsCastExpression LIKE ?", ["%{$numericKeyword}%"]);
+                    }
+                });
+            })
+            ->orderColumn('student', 'student $1')
+            ->orderColumn('scheduled_date', 'single_lesson_plans.scheduled_date $1')
+            ->orderColumn('weekday', 'weekday_order $1')
+            ->orderColumn('location', 'location $1')
+            ->toJson();
+    }
+
+    public function lessonPlans()
+    {
+        $driver = DB::connection()->getDriverName();
+        $studentExpression = $driver === 'sqlite'
+            ? "students.first_name || ' ' || COALESCE(students.last_name, '')"
+            : "CONCAT(students.first_name, ' ', COALESCE(students.last_name, ''))";
+        $weekdayExpression = "CASE lesson_plans.weekday
+            WHEN 1 THEN 'sunday'
+            WHEN 2 THEN 'monday'
+            WHEN 3 THEN 'tuesday'
+            WHEN 4 THEN 'wednesday'
+            WHEN 5 THEN 'thursday'
+            WHEN 6 THEN 'friday'
+            WHEN 7 THEN 'saturday'
+        END";
+        $recurrenceExpression = "CASE lesson_plans.recurrence_interval
+            WHEN 1 THEN 'Every week'
+            WHEN 2 THEN 'Every other week'
+            ELSE ''
+        END";
+        $durationSearchExpression = $driver === 'sqlite'
+            ? "lesson_plans.duration_minutes || ' min'"
+            : "CONCAT(lesson_plans.duration_minutes, ' min')";
+        $feeSearchExpression = $driver === 'sqlite'
+            ? "'$' || CAST(lesson_plans.fee_amount / 100 AS TEXT)"
+            : "CONCAT('$', CAST(lesson_plans.fee_amount / 100 AS CHAR))";
+        $feeCastExpression = $driver === 'sqlite'
+            ? 'CAST(lesson_plans.fee_amount / 100 AS TEXT)'
+            : 'CAST(lesson_plans.fee_amount / 100 AS CHAR)';
+        $feeCentsCastExpression = $driver === 'sqlite'
+            ? 'CAST(lesson_plans.fee_amount AS TEXT)'
+            : 'CAST(lesson_plans.fee_amount AS CHAR)';
+
+        $lessonPlans = LessonPlan::query()
+            ->join('students', 'students.id', '=', 'lesson_plans.student_id')
+            ->leftJoin('locations', 'locations.id', '=', 'lesson_plans.location_id')
+            ->when(request('starts_from') || request('starts_to'), function ($query) {
+                $query->whereNotNull('lesson_plans.starts_on');
+            })
+            ->when(request('starts_from'), function ($query, $date) {
+                $query->where(function ($query) use ($date) {
+                    $query
+                        ->whereNull('lesson_plans.ends_on')
+                        ->orWhereDate('lesson_plans.ends_on', '>=', $date);
+                });
+            })
+            ->when(request('starts_to'), function ($query, $date) {
+                $query->whereDate('lesson_plans.starts_on', '<=', $date);
+            })
+            ->select([
+                'lesson_plans.id',
+                'lesson_plans.weekday',
+                'lesson_plans.start_time',
+                'lesson_plans.duration_minutes',
+                'lesson_plans.recurrence_interval',
+                'lesson_plans.starts_on',
+                'lesson_plans.ends_on',
+                'lesson_plans.fee_amount',
+                'lesson_plans.payment_method',
+                'lesson_plans.status',
+                DB::raw("$studentExpression as student"),
+                DB::raw('locations.name as location'),
+                DB::raw("$weekdayExpression as weekday_name"),
+                DB::raw("$recurrenceExpression as recurrence"),
+            ]);
+
+        return DataTables::eloquent($lessonPlans)
+            ->editColumn('starts_on', function (LessonPlan $lessonPlan) {
+                return $lessonPlan->starts_on
+                    ? $lessonPlan->starts_on->toDateString()
+                    : null;
+            })
+            ->editColumn('ends_on', function (LessonPlan $lessonPlan) {
+                return $lessonPlan->ends_on
+                    ? $lessonPlan->ends_on->toDateString()
+                    : null;
+            })
+            ->filterColumn('student', function ($query, $keyword) use ($studentExpression) {
+                $query->whereRaw("$studentExpression LIKE ?", ["%{$keyword}%"]);
+            })
+            ->filterColumn('weekday_name', function ($query, $keyword) use ($weekdayExpression) {
+                $query->whereRaw("$weekdayExpression LIKE ?", ["%{$keyword}%"]);
+            })
+            ->filterColumn('recurrence', function ($query, $keyword) use ($recurrenceExpression) {
+                $query->whereRaw("$recurrenceExpression LIKE ?", ["%{$keyword}%"]);
+            })
+            ->filterColumn('location', function ($query, $keyword) {
+                $query->where('locations.name', 'LIKE', "%{$keyword}%");
+            })
+            ->filterColumn('duration_minutes', function ($query, $keyword) use ($durationSearchExpression) {
+                $numericKeyword = preg_replace('/[^0-9.]/', '', $keyword);
+
+                $query->where(function ($query) use ($keyword, $numericKeyword, $durationSearchExpression) {
+                    $query->whereRaw("$durationSearchExpression LIKE ?", ["%{$keyword}%"]);
+
+                    if ($numericKeyword !== '') {
+                        $query->orWhereRaw('CAST(lesson_plans.duration_minutes AS CHAR) LIKE ?', ["%{$numericKeyword}%"]);
+                    }
+                });
+            })
+            ->filterColumn('fee_amount', function ($query, $keyword) use ($feeSearchExpression, $feeCastExpression, $feeCentsCastExpression) {
+                $numericKeyword = preg_replace('/[^0-9.]/', '', $keyword);
+
+                $query->where(function ($query) use ($keyword, $numericKeyword, $feeSearchExpression, $feeCastExpression, $feeCentsCastExpression) {
+                    $query->whereRaw("$feeSearchExpression LIKE ?", ["%{$keyword}%"]);
+
+                    if ($numericKeyword !== '') {
+                        $query->orWhereRaw("$feeCastExpression LIKE ?", ["%{$numericKeyword}%"])
+                            ->orWhereRaw("$feeCentsCastExpression LIKE ?", ["%{$numericKeyword}%"]);
+                    }
+                });
+            })
+            ->orderColumn('student', 'student $1')
+            ->orderColumn('weekday_name', 'lesson_plans.weekday $1')
+            ->orderColumn('recurrence', 'lesson_plans.recurrence_interval $1')
+            ->orderColumn('location', 'location $1')
+            ->toJson();
+    }
+
     public function locations()
     {
         $today = today()->toDateString();
@@ -223,6 +441,7 @@ class TablesController extends Controller
 
         $lessons = Lesson::query()
             ->join('students', 'students.id', '=', 'lessons.student_id')
+            ->whereNull('lessons.canceled_at')
             ->when(request('student_id'), function ($query, $studentId) {
                 $query->where('lessons.student_id', $studentId);
             })

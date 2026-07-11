@@ -80,4 +80,11 @@ class Student extends Model
         return carbon($this->date_of_birth)->age;
     }
 
+    public function getFullNameAttribute()
+    {
+        return trim(collect([$this->first_name, $this->last_name])
+            ->filter()
+            ->implode(' '));
+    }
+
 }

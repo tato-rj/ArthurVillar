@@ -1,5 +1,5 @@
 @modal(['title' => 'New lesson plan', 'id' => 'create-lessonPlan-modal'])
-<form method="POST" action="{{route('studio.lesson-plans.store')}}">
+<form method="POST" action="{{route('studio.lesson-plans.store')}}" data-lesson-plan-form>
 	@csrf
 	<input type="hidden" name="student_id" value="{{$student->id}}">
 
@@ -11,11 +11,11 @@
 		@endforeach
 	@endselect
 	
-	<div class="lesson-plan-meeting-url-field">
+	<div class="lesson-plan-online-field lesson-plan-meeting-url-field">
 		@input(['placeholder' => 'Meeting URL', 'name' => 'meeting_url', 'type' => 'url', 'value' => old('meeting_url')])
 	</div>
 
-	<div class="lesson-plan-notes-url-field">
+	<div class="lesson-plan-online-field lesson-plan-notes-url-field">
 		@input(['placeholder' => 'Notes URL', 'name' => 'notes_url', 'type' => 'url', 'value' => old('notes_url')])
 	</div>
 
@@ -73,73 +73,3 @@
 	@submit(['label' => 'Submit', 'theme' => 'primary'])
 </form>
 @endmodal
-
-@once
-@push('scripts')
-<script>
-document.addEventListener('change', function(event) {
-    const trigger = event.target.closest('select[name="location_id"], select[name="duration_minutes"]');
-
-    if (!trigger) {
-        return;
-    }
-
-    const form = trigger.closest('form');
-    const locationSelect = form ? form.querySelector('select[name="location_id"]') : null;
-    const durationSelect = form ? form.querySelector('select[name="duration_minutes"]') : null;
-    const feeInput = form ? form.querySelector('input[name="fee_amount"]') : null;
-    const selectedOption = locationSelect ? locationSelect.options[locationSelect.selectedIndex] : null;
-    const hourlyFee = selectedOption ? Number(selectedOption.dataset.feeAmount || 0) : 0;
-    const duration = durationSelect ? Number(durationSelect.value || 0) : 0;
-
-    if (!feeInput) {
-        updateLessonPlanMeetingUrlVisibility(form, trigger.matches('select[name="location_id"]'));
-        return;
-    }
-
-    if (!hourlyFee || !duration) {
-        updateLessonPlanMeetingUrlVisibility(form, trigger.matches('select[name="location_id"]'));
-        return;
-    }
-
-    const proratedFee = hourlyFee * (duration / 60);
-    const roundedFee = Math.floor(proratedFee / 5) * 5;
-
-    feeInput.value = roundedFee.toFixed(2).replace(/\\.00$/, '');
-    updateLessonPlanMeetingUrlVisibility(form, trigger.matches('select[name="location_id"]'));
-});
-
-function updateLessonPlanMeetingUrlVisibility(form, shouldEmpty) {
-    const locationSelect = form ? form.querySelector('select[name="location_id"]') : null;
-    const meetingUrlField = form ? form.querySelector('.lesson-plan-meeting-url-field') : null;
-    const notesUrlField = form ? form.querySelector('.lesson-plan-notes-url-field') : null;
-    const meetingUrlInput = meetingUrlField ? meetingUrlField.querySelector('input[name="meeting_url"]') : null;
-    const notesUrlInput = notesUrlField ? notesUrlField.querySelector('input[name="notes_url"]') : null;
-    const selectedOption = locationSelect ? locationSelect.options[locationSelect.selectedIndex] : null;
-    const isOnline = selectedOption && selectedOption.dataset.isOnline === '1';
-
-    if (!meetingUrlField || !meetingUrlInput || !notesUrlField || !notesUrlInput) {
-        return;
-    }
-
-    meetingUrlField.style.display = isOnline ? '' : 'none';
-    notesUrlField.style.display = isOnline ? '' : 'none';
-    meetingUrlInput.disabled = !isOnline;
-    notesUrlInput.disabled = !isOnline;
-
-    if (!isOnline || shouldEmpty) {
-        meetingUrlInput.value = '';
-        notesUrlInput.value = '';
-    }
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('form').forEach(function(form) {
-        if (form.querySelector('select[name="location_id"]') && form.querySelector('input[name="meeting_url"]')) {
-            updateLessonPlanMeetingUrlVisibility(form, false);
-        }
-    });
-});
-</script>
-@endpush
-@endonce

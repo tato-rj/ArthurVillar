@@ -7,11 +7,17 @@
   'routes' => 
   [
     'studio.home' => 'Calendar*',
-
     'studio.students.index' => 'Students',
-    'studio.lessons.index' => 'Lessons',
-    'studio.breaks.index' => 'Breaks*',
-    'studio.locations.index' => 'Locations',
+    [
+      'label' => 'Lessons',
+      'children' => [
+          'studio.lesson-plans.index' => 'Recurring',
+          'studio.single-lesson-plans.index' => 'Single',
+          'studio.lessons.index' => 'Confirmed',
+      ],
+    ],
+    'studio.locations.index' => 'Locations*',
+    'studio.breaks.index' => 'Breaks',
     'studio.holidays.index' => 'Holidays',
     'studio.waiting-list.index' => 'Waiting list'
   ]

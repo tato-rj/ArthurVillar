@@ -31,15 +31,54 @@
       </li>
       @endisset
 
-      @foreach($routes as $route => $label)
-      <li class="nav-item">
-        <a class="nav-link" href="{{route($route)}}">{{str_replace('*', '', $label)}}</a>
-      </li>
+@foreach($routes as $route => $item)
 
-      @if(str_contains($label, '*'))
-      <hr>
-      @endif
-      @endforeach
+    @if(is_array($item))
+        @php($collapseId = 'menu-collapse-' . $loop->index)
+
+        <li class="nav-item">
+            <a
+                class="nav-link collapsed"
+                data-bs-toggle="collapse"
+                href="#{{ $collapseId }}"
+                role="button"
+                aria-expanded="false"
+                aria-controls="{{ $collapseId }}"
+            >
+                {{ $item['label'] }}
+            </a>
+
+            <ul
+                id="{{ $collapseId }}"
+                class="collapse list-unstyled ms-3"
+            >
+                @foreach($item['children'] as $childRoute => $childLabel)
+                    <li class="nav-item">
+                        <a
+                            class="nav-link border-left border-lighter border-4 py-1 px-2"
+                            href="{{ route($childRoute) }}"
+                        >
+                            {{ $childLabel }}
+                        </a>
+                    </li>
+                @endforeach
+            </ul>
+        </li>
+
+        @continue
+    @endif
+
+    <li class="nav-item">
+        <a class="nav-link" href="{{ route($route) }}">
+            {{ str_replace('*', '', $item) }}
+        </a>
+    </li>
+
+    @if(str_contains($item, '*'))
+        <hr>
+    @endif
+
+@endforeach
 
       <li class="nav-item mt-3">
         @include('auth.logout')

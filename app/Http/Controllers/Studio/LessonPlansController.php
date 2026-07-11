@@ -13,6 +13,16 @@ use Illuminate\Validation\ValidationException;
 
 class LessonPlansController extends Controller
 {
+    public function index()
+    {
+        return view('studio.lessonPlans.index');
+    }
+
+    public function edit(LessonPlan $lessonPlan)
+    {
+        return view('studio.lessonPlans.edit', compact('lessonPlan'));
+    }
+
     public function store(Request $request)
     {
         $data = $this->validateLessonPlan($request);

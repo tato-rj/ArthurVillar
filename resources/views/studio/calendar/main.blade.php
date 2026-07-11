@@ -3,8 +3,7 @@
 
 	<div id="calendar"></div>
 
-	@include('studio.singleLessonPlans.create')
-	@include('studio.lessonPlans.calendar-create')
+	@include('studio.calendar.create-lesson-overlay')
 </div>
 
 @include('studio.calendar.views')

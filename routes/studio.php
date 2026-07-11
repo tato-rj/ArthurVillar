@@ -37,11 +37,15 @@ Route::prefix('waiting-list')->name('waiting-list.')->group(function() {
 });
 
 Route::prefix('lesson-plans')->name('lesson-plans.')->group(function() {
+	Route::get('', 'LessonPlansController@index')->name('index');
+
 	Route::post('', 'LessonPlansController@store')->name('store');
 
 	Route::post('reschedule', 'LessonPlansController@reschedule')->name('reschedule');
 
 	Route::prefix('{lessonPlan}')->group(function() {
+		Route::get('edit', 'LessonPlansController@edit')->name('edit');
+
 		Route::post('duplicate', 'LessonPlansController@duplicate')->name('duplicate');
 
 		Route::patch('', 'LessonPlansController@update')->name('update');
@@ -50,11 +54,15 @@ Route::prefix('lesson-plans')->name('lesson-plans.')->group(function() {
 });
 
 Route::prefix('single-lesson-plans')->name('single-lesson-plans.')->group(function() {
+	Route::get('', 'SingleLessonPlansController@index')->name('index');
+
 	Route::post('', 'SingleLessonPlansController@store')->name('store');
 
 	Route::post('reschedule', 'SingleLessonPlansController@reschedule')->name('reschedule');
 
 	Route::prefix('{singleLessonPlan}')->group(function() {
+		Route::get('edit', 'SingleLessonPlansController@edit')->name('edit');
+
 		Route::patch('', 'SingleLessonPlansController@update')->name('update');
 
 		Route::delete('', 'SingleLessonPlansController@destroy')->name('destroy');
@@ -118,8 +126,10 @@ Route::prefix('lessons')->name('lessons.')->group(function() {
 
 Route::prefix('tables')->name('tables.')->group(function() {
 	Route::get('breaks', 'TablesController@breaks')->name('breaks');
+	Route::get('lesson-plans', 'TablesController@lessonPlans')->name('lesson-plans');
 	Route::get('lessons', 'TablesController@lessons')->name('lessons');
 	Route::get('locations', 'TablesController@locations')->name('locations');
+	Route::get('single-lesson-plans', 'TablesController@singleLessonPlans')->name('single-lesson-plans');
 
 	Route::get('students', 'TablesController@students')->name('students');
 	Route::get('waiting-list', 'TablesController@waitingList')->name('waiting-list');

@@ -2,6 +2,7 @@
 
 @push('header')
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
+<link href="{{ mix('css/studio.css') }}" rel="stylesheet">
 @endpush
 
 @section('content')
@@ -86,6 +87,7 @@
 @push('scripts')
 <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
 @include('studio.tables.state')
+@include('studio.lessonPlans.create-scripts')
 <script>
 $(function() {
     const capitalize = function(value) {
