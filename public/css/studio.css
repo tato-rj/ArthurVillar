@@ -31531,6 +31531,9 @@ td {
   display: block;
 }
 .studio-calendar-search[selected] input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+       appearance: none;
   background: transparent;
   border: 0;
   color: #202124;
@@ -31546,6 +31549,11 @@ td {
 .studio-calendar-search[selected] input::placeholder {
   color: #5f6368;
   opacity: 1;
+}
+.studio-calendar-search[selected] input::-webkit-search-cancel-button, .studio-calendar-search[selected] input::-webkit-search-decoration, .studio-calendar-search[selected] input::-webkit-search-results-button, .studio-calendar-search[selected] input::-webkit-search-results-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+  display: none;
 }
 
 .studio-calendar-search {
