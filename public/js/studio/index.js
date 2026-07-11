@@ -255,8 +255,29 @@ var getVisibleScheduleDates = function getVisibleScheduleDates() {
     return addDays(start, index);
   });
 };
+var getTwoDaysBackingStart = function getTwoDaysBackingStart() {
+  return startOfWeek(state.date);
+};
+var getTwoDaysBackingDateForIndex = function getTwoDaysBackingDateForIndex(index) {
+  return addDays(getTwoDaysBackingStart(), index);
+};
+var getTwoDaysBackingDateForVisibleDate = function getTwoDaysBackingDateForVisibleDate(dateString) {
+  var visibleIndex = getVisibleScheduleDates().map(toDateString).indexOf(String(dateString).substring(0, 10));
+  if (visibleIndex < 0) {
+    return null;
+  }
+  return toDateString(getTwoDaysBackingDateForIndex(visibleIndex));
+};
 var getScheduleGridDates = function getScheduleGridDates() {
-  if (state.view === '2-days' || state.view === 'week') {
+  if (state.view === '2-days') {
+    var visibleDates = getVisibleScheduleDates();
+    return Array.from({
+      length: 7
+    }, function (_, index) {
+      return visibleDates[index] ? cloneDate(visibleDates[index]) : addDays(getTwoDaysBackingStart(), index);
+    });
+  }
+  if (state.view === 'week') {
     var start = startOfWeek(state.date);
     return Array.from({
       length: 7
@@ -278,7 +299,7 @@ var getDateRangeDates = function getDateRangeDates(range) {
 };
 var getScheduleValue = function getScheduleValue() {
   if (state.view === '2-days') {
-    return toDateString(state.date);
+    return toDateString(getTwoDaysBackingStart());
   }
   if (scheduleGridViews.includes(state.view)) {
     return toDateString(addDays(state.date, 1));
@@ -395,6 +416,21 @@ var eventMatchesLocationFilter = function eventMatchesLocationFilter(event) {
 };
 var getVisibleCalendarEvents = function getVisibleCalendarEvents() {
   return state.events.filter(isEventInsideScheduleWindow).filter(eventMatchesLocationFilter);
+};
+var getScheduleRenderEvents = function getScheduleRenderEvents() {
+  var events = getVisibleCalendarEvents();
+  if (state.view !== '2-days') {
+    return events;
+  }
+  return events.filter(isEventInsideVisibleRange).map(function (event) {
+    var backingDate = getTwoDaysBackingDateForVisibleDate(event.date);
+    if (!backingDate) {
+      return null;
+    }
+    return Object.assign({}, event, {
+      date: backingDate
+    });
+  }).filter(Boolean);
 };
 var getVisibleEventsByDate = function getVisibleEventsByDate() {
   if (state.visibleEventsByDate) {
@@ -1508,7 +1544,8 @@ var normalizeScheduleEvents = function normalizeScheduleEvents(events) {
   });
 };
 var isPlannedLessonEvent = function isPlannedLessonEvent(event) {
-  return String(event.guid || '').indexOf('planned-lesson-') === 0;
+  var guid = String(event.guid || '');
+  return guid.indexOf('planned-lesson-') === 0 || guid.indexOf('single-lesson-plan-') === 0;
 };
 var syncEvents = function syncEvents(instance) {
   if (!instance || typeof instance.getData !== 'function') {
@@ -2674,7 +2711,7 @@ document.addEventListener('DOMContentLoaded', function () {
       state.instance = calendarjs.Schedule(calendar, {
         type: state.view === '2-days' ? 'week' : state.view,
         value: getScheduleValue(),
-        data: normalizeScheduleEvents(getVisibleCalendarEvents()),
+        data: normalizeScheduleEvents(getScheduleRenderEvents()),
         validRange: [scheduleStart, scheduleEnd],
         onbeforeinsert: function onbeforeinsert() {
           return false;

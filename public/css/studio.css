@@ -32150,10 +32150,12 @@ button.single-lesson-plan-create {
   cursor: pointer !important;
   flex-direction: column;
   justify-content: normal;
+  overflow: hidden;
 }
 
 #calendar .lm-schedule-item[data-lesson-status=canceled], #calendar .studio-month-event-dot[data-lesson-status=canceled], #calendar .studio-schedule-event[data-lesson-status=canceled] {
   text-decoration: line-through;
+  z-index: 0;
 }
 
 #calendar .lm-schedule-item[data-lesson-status=teaching-break], #calendar .studio-month-event-dot[data-lesson-status=teaching-break], #calendar .studio-schedule-event[data-lesson-status=teaching-break] {

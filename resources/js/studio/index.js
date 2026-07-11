@@ -308,8 +308,34 @@ const getVisibleScheduleDates = function() {
     });
 };
 
+const getTwoDaysBackingStart = function() {
+    return startOfWeek(state.date);
+};
+
+const getTwoDaysBackingDateForIndex = function(index) {
+    return addDays(getTwoDaysBackingStart(), index);
+};
+
+const getTwoDaysBackingDateForVisibleDate = function(dateString) {
+    const visibleIndex = getVisibleScheduleDates().map(toDateString).indexOf(String(dateString).substring(0, 10));
+
+    if (visibleIndex < 0) {
+        return null;
+    }
+
+    return toDateString(getTwoDaysBackingDateForIndex(visibleIndex));
+};
+
 const getScheduleGridDates = function() {
-    if (state.view === '2-days' || state.view === 'week') {
+    if (state.view === '2-days') {
+        const visibleDates = getVisibleScheduleDates();
+
+        return Array.from({ length: 7 }, function(_, index) {
+            return visibleDates[index] ? cloneDate(visibleDates[index]) : addDays(getTwoDaysBackingStart(), index);
+        });
+    }
+
+    if (state.view === 'week') {
         const start = startOfWeek(state.date);
 
         return Array.from({ length: 7 }, function(_, index) {
@@ -336,7 +362,7 @@ const getDateRangeDates = function(range) {
 
 const getScheduleValue = function() {
     if (state.view === '2-days') {
-        return toDateString(state.date);
+        return toDateString(getTwoDaysBackingStart());
     }
 
     if (scheduleGridViews.includes(state.view)) {
@@ -493,6 +519,29 @@ const getVisibleCalendarEvents = function() {
     return state.events
         .filter(isEventInsideScheduleWindow)
         .filter(eventMatchesLocationFilter);
+};
+
+const getScheduleRenderEvents = function() {
+    const events = getVisibleCalendarEvents();
+
+    if (state.view !== '2-days') {
+        return events;
+    }
+
+    return events
+        .filter(isEventInsideVisibleRange)
+        .map(function(event) {
+            const backingDate = getTwoDaysBackingDateForVisibleDate(event.date);
+
+            if (!backingDate) {
+                return null;
+            }
+
+            return Object.assign({}, event, {
+                date: backingDate,
+            });
+        })
+        .filter(Boolean);
 };
 
 const getVisibleEventsByDate = function() {
@@ -1921,7 +1970,9 @@ const normalizeScheduleEvents = function(events) {
 };
 
 const isPlannedLessonEvent = function(event) {
-    return String(event.guid || '').indexOf('planned-lesson-') === 0;
+    const guid = String(event.guid || '');
+
+    return guid.indexOf('planned-lesson-') === 0 || guid.indexOf('single-lesson-plan-') === 0;
 };
 
 const syncEvents = function(instance) {
@@ -3425,7 +3476,7 @@ document.addEventListener('DOMContentLoaded', function() {
             state.instance = calendarjs.Schedule(calendar, {
                 type: state.view === '2-days' ? 'week' : state.view,
                 value: getScheduleValue(),
-                data: normalizeScheduleEvents(getVisibleCalendarEvents()),
+                data: normalizeScheduleEvents(getScheduleRenderEvents()),
                 validRange: [scheduleStart, scheduleEnd],
                 onbeforeinsert: function() {
                     return false;
