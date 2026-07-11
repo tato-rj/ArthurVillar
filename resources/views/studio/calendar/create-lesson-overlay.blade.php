@@ -15,4 +15,4 @@
 </button>
 
 @include('studio.singleLessonPlans.create')
-@include('studio.lessonPlans.calendar-create')
+@include('studio.lessonPlans.create')

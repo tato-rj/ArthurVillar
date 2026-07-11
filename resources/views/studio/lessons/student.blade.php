@@ -11,7 +11,7 @@
         @pagetitle([
             'label' => str_possessive($student->first_name).' lessons',
             'modal' => [
-                'target' => '#create-lessonPlan-modal',
+                'target' => '#create-calendar-lesson-plan-modal',
                 'icon' => 'plus',
                 'label' => 'New lesson plan'
             ]

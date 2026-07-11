@@ -52,7 +52,7 @@
     </div>
 </section>
 <div id="edit-lesson-plan-modal-container"></div>
-@include('studio.lessonPlans.calendar-create')
+@include('studio.lessonPlans.create')
 @endsection
 
 @push('scripts')

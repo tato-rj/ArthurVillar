@@ -58,7 +58,7 @@ class AppServiceProvider extends ServiceProvider
             ]);
         });
 
-        \View::composer(['studio.lessonPlans.create', 'studio.lessonPlans.edit', 'studio.lessonPlans.calendar-create', 'studio.singleLessonPlans.create', 'studio.singleLessonPlans.edit', 'studio.students.create', 'studio.students.edit'], function($view) {
+        \View::composer(['studio.lessonPlans.create', 'studio.lessonPlans.edit', 'studio.singleLessonPlans.create', 'studio.singleLessonPlans.edit', 'studio.students.create', 'studio.students.edit'], function($view) {
             $view->with([
                 'locations' => Location::query()
                     ->where('is_active', true)
@@ -67,7 +67,7 @@ class AppServiceProvider extends ServiceProvider
             ]);
         });
 
-        \View::composer(['studio.singleLessonPlans.create', 'studio.lessonPlans.calendar-create'], function($view) {
+        \View::composer(['studio.singleLessonPlans.create', 'studio.lessonPlans.create'], function($view) {
             $view->with([
                 'students' => Student::query()
                     ->with('location')
