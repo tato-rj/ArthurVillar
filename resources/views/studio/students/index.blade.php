@@ -98,16 +98,12 @@ $(function() {
                 orderable: false,
                 searchable: false,
                 className: 'text-right',
-                render: function(data, type, row) {
-                    const lessonPlansIndexUrl = @json(route('studio.lesson-plans.index'));
-                    const studentName = [row.first_name, row.last_name].filter(Boolean).join(' ');
-                    const lessonPlanUrl = `${lessonPlansIndexUrl}?search=${encodeURIComponent(studentName)}`;
+                render: function(data) {
                     const deleteUrl = @json(route('studio.students.destroy', ['student' => '__student__'])).replace('__student__', data);
                     const editUrl = @json(route('studio.students.edit', ['student' => '__student__'])).replace('__student__', data);
 
                     return `
                         <div class="studio-table-actions">
-                            <a href="${lessonPlanUrl}" class="btn btn-sm btn-secondary rounded">@fa(['icon' => 'calendar-days', 'mr' => 0])</a>
                             <button type="button" class="btn btn-sm btn-warning rounded js-edit-student" data-url="${editUrl}">@fa(['icon' => 'pen-to-square', 'mr' => 0])</button>
                             <form method="POST" action="${deleteUrl}" confirm>
                                 @csrf
