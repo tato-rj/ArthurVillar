@@ -25,7 +25,7 @@ class LessonPlan extends BaseModel
         'ends_on',
     ];
 
-    protected $appends = ['recurrence', 'weekdayName'];
+    protected $appends = ['recurrence', 'status', 'weekdayName'];
 
     protected $recurrence_labels = [
         1 => 'Every week',
@@ -61,15 +61,27 @@ class LessonPlan extends BaseModel
 
     public function isCurrent()
     {
+        return $this->status === 'active';
+    }
+
+    public function getStatusAttribute()
+    {
         if (! $this->starts_on || ! $this->ends_on) {
-            return false;
+            return 'inactive';
         }
 
         $today = today()->startOfDay();
         $startsOn = $this->starts_on->copy()->startOfDay();
         $endsOn = $this->ends_on->copy()->startOfDay();
 
-        return $startsOn->lte($today) && $endsOn->gte($today);
+        return $startsOn->lte($today) && $endsOn->gte($today)
+            ? 'active'
+            : 'inactive';
+    }
+
+    public function setStatusAttribute($value)
+    {
+        unset($this->attributes['status']);
     }
 
     public function getWeekdayNameAttribute()

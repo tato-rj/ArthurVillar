@@ -40,7 +40,6 @@ class LessonPlansController extends Controller
         $duplicate->fill([
             'starts_on' => null,
             'ends_on' => null,
-            'status' => 'active',
         ]);
         $duplicate->save();
 
@@ -149,7 +148,6 @@ class LessonPlansController extends Controller
             'location_id' => ['required', 'exists:locations,id'],
             'meeting_url' => ['nullable', 'url', 'max:2048'],
             'notes_url' => ['nullable', 'url', 'max:2048'],
-            // 'status' => ['required', Rule::in(['active', 'paused', 'canceled'])],
             'notes' => ['nullable', 'string'],
         ]);
     }
@@ -164,7 +162,6 @@ class LessonPlansController extends Controller
         $endsOn = $this->lessonPlanDate($endsOn);
 
         $hasOverlappingLessonPlan = LessonPlan::where('student_id', $studentId)
-            ->where('status', 'active')
             ->whereNotNull('starts_on')
             ->whereNotNull('ends_on')
             ->when($ignoreLessonPlan, function ($query) use ($ignoreLessonPlan) {
@@ -200,7 +197,6 @@ class LessonPlansController extends Controller
             'location_id' => $data['location_id'],
             'meeting_url' => $this->isOnlineLocation($data['location_id']) ? ($data['meeting_url'] ?? null) : null,
             'notes_url' => $this->isOnlineLocation($data['location_id']) ? ($data['notes_url'] ?? null) : null,
-            'status' => $data['status'] ?? 'active',
             'notes' => $data['notes'] ?? null,
         ];
     }

@@ -172,7 +172,6 @@ class TablesController extends Controller
                 'lesson_plans.payment_method',
                 'lesson_plans.meeting_url',
                 'lesson_plans.notes_url',
-                'lesson_plans.status',
                 'lesson_plans.notes',
                 DB::raw("$studentExpression as student"),
                 DB::raw('locations.name as location'),
@@ -190,6 +189,9 @@ class TablesController extends Controller
                 return $lessonPlan->ends_on
                     ? $lessonPlan->ends_on->toDateString()
                     : null;
+            })
+            ->addColumn('status', function (LessonPlan $lessonPlan) {
+                return $lessonPlan->status;
             })
             ->filterColumn('student', function ($query, $keyword) use ($studentExpression) {
                 $query->whereRaw("$studentExpression LIKE ?", ["%{$keyword}%"]);
@@ -242,11 +244,10 @@ class TablesController extends Controller
                 'lessonPlans' => function ($query) use ($today) {
                     $query
                         ->with('student')
-                        ->where('status', 'active')
                         ->whereNotNull('starts_on')
                         ->whereNotNull('ends_on')
-                        ->whereDate('starts_on', '<', $today)
-                        ->whereDate('ends_on', '>', $today);
+                        ->whereDate('starts_on', '<=', $today)
+                        ->whereDate('ends_on', '>=', $today);
                 },
             ])
             ->select([

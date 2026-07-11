@@ -62,7 +62,6 @@ class Student extends Model
         }
 
         return $this->lessonPlans()
-            ->where('status', 'active')
             ->whereNotNull('starts_on')
             ->whereNotNull('ends_on')
             ->whereDate('starts_on', '<=', $today->toDateString())

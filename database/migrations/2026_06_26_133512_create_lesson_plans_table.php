@@ -44,14 +44,11 @@ return new class extends Migration
                 ->constrained()
                 ->nullOnDelete();
 
-            $table->string('status')->default('active');
-            // active, paused, canceled
-
             $table->text('notes')->nullable();
 
             $table->timestamps();
 
-            $table->index(['student_id', 'status']);
+            $table->index('student_id');
         });
     }
 
