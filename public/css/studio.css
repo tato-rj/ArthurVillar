@@ -31962,6 +31962,11 @@ input[type=date] {
   display: none !important;
 }
 
+#calendar.studio-calendar-two-days-view .lm-schedule thead tr td:nth-child(n+4),
+#calendar.studio-calendar-two-days-view .lm-schedule tbody tr td:nth-child(n+4) {
+  display: none !important;
+}
+
 #calendar.studio-calendar-two-days-view .lm-schedule tbody td[data-date],
 #calendar.studio-calendar-week-view .lm-schedule tbody td[data-date] {
   border-left: 1px solid var(--lm-border-color-light, #e9e9e9);

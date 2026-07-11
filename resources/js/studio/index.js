@@ -326,24 +326,26 @@ const getTwoDaysBackingDateForVisibleDate = function(dateString) {
     return toDateString(getTwoDaysBackingDateForIndex(visibleIndex));
 };
 
-const getScheduleGridDates = function() {
+const getScheduleDateForGridIndex = function(index) {
     if (state.view === '2-days') {
         const visibleDates = getVisibleScheduleDates();
 
-        return Array.from({ length: 7 }, function(_, index) {
-            return visibleDates[index] ? cloneDate(visibleDates[index]) : addDays(getTwoDaysBackingStart(), index);
-        });
+        return visibleDates[index] ? cloneDate(visibleDates[index]) : getTwoDaysBackingDateForIndex(index);
     }
 
     if (state.view === 'week') {
-        const start = startOfWeek(state.date);
-
-        return Array.from({ length: 7 }, function(_, index) {
-            return addDays(start, index);
-        });
+        return addDays(startOfWeek(state.date), index);
     }
 
-    return getVisibleScheduleDates();
+    return getVisibleScheduleDates()[index] ? cloneDate(getVisibleScheduleDates()[index]) : null;
+};
+
+const getScheduleGridDates = function() {
+    const length = state.view === 'day' ? 1 : 7;
+
+    return Array.from({ length }, function(_, index) {
+        return getScheduleDateForGridIndex(index);
+    }).filter(Boolean);
 };
 
 const getDateRangeDates = function(range) {
@@ -379,10 +381,10 @@ const patchScheduleHeaders = function(calendar) {
     const firstScheduleRow = schedule ? schedule.querySelector('tbody tr') : null;
     const columns = firstScheduleRow ? firstScheduleRow.querySelectorAll('td[data-date]') : [];
     const gridDates = getScheduleGridDates();
-    const visibleDateStrings = getVisibleScheduleDates().map(toDateString);
 
     headers.forEach(function(header) {
         header.removeAttribute('data-selected');
+        header.removeAttribute('data-real-date');
         header.classList.remove('studio-schedule-hidden-column');
     });
 
@@ -396,10 +398,11 @@ const patchScheduleHeaders = function(calendar) {
         const dateString = toDateString(date);
         const columnX = column.getAttribute('data-x');
         const header = headers[index + 1];
-        const isHidden = !visibleDateStrings.includes(dateString);
+        const isHidden = state.view === '2-days' && index > 1;
 
         schedule.querySelectorAll(`tbody td[data-x="${columnX}"]`).forEach(function(cell) {
             cell.setAttribute('data-date', dateString);
+            cell.setAttribute('data-real-date', dateString);
             cell.classList.toggle('studio-schedule-hidden-column', isHidden);
         });
 
@@ -410,6 +413,7 @@ const patchScheduleHeaders = function(calendar) {
         header.classList.toggle('studio-schedule-hidden-column', isHidden);
         header.textContent = String(date.getDate()).padStart(2, '0');
         header.setAttribute('data-weekday', weekdays[date.getDay()]);
+        header.setAttribute('data-real-date', dateString);
 
         if (dateString === todayString()) {
             header.setAttribute('data-selected', 'true');
@@ -1008,12 +1012,14 @@ const patchScheduleHolidays = function(calendar) {
     getScheduleGridDates().forEach(function(date) {
         const cell = document.createElement('td');
         const dateString = toDateString(date);
-        const holidays = visibleDateStrings.includes(dateString) ? getHolidaysForDate(date) : [];
-        const teachingBreaks = visibleDateStrings.includes(dateString) ? getBreaksForDate(date) : [];
+        const isVisible = state.view !== '2-days' || visibleDateStrings.includes(dateString);
+        const holidays = isVisible ? getHolidaysForDate(date) : [];
+        const teachingBreaks = isVisible ? getBreaksForDate(date) : [];
 
         cell.className = 'studio-schedule-holiday-cell';
         cell.dataset.date = dateString;
-        cell.classList.toggle('studio-schedule-hidden-column', !visibleDateStrings.includes(dateString));
+        cell.dataset.realDate = dateString;
+        cell.classList.toggle('studio-schedule-hidden-column', !isVisible);
         applyDateStatusAttributes(cell, dateString);
 
         holidays.forEach(function(holiday) {
@@ -2081,10 +2087,24 @@ const applyCalendarItemStatusAttributes = function(element, event, fallbackDateS
     applyEventTimeStatusAttributes(element, event);
 };
 
+const isCanceledCalendarEvent = function(event) {
+    return event && (event.lessonStatus === 'canceled' || event.calendarStatus === 'canceled' || event['data-lesson-status'] === 'canceled');
+};
+
+const isConflictEligibleTimedEvent = function(event) {
+    return event
+        && event.guid
+        && !event.isHoliday
+        && !event.isBreak
+        && !isCanceledCalendarEvent(event)
+        && event.start
+        && event.end;
+};
+
 const getOverlappingTimedEventGuids = function(events) {
     const timedEvents = events
         .filter(function(event) {
-            return event && event.guid && !event.isHoliday && !event.isBreak && event.start && event.end;
+            return isConflictEligibleTimedEvent(event);
         })
         .map(function(event) {
             return {
@@ -2111,7 +2131,7 @@ const getOverlappingTimedEventGuids = function(events) {
 };
 
 const isOverlappingTimedEvent = function(event) {
-    if (!event || !event.guid || event.isHoliday || event.isBreak || !event.date) {
+    if (!isConflictEligibleTimedEvent(event) || !event.date) {
         return false;
     }
 
@@ -2498,7 +2518,7 @@ const hasOverlappingTimedEvents = function(events) {
 
     return events
         .filter(function(event) {
-            return event && !event.isHoliday && !event.isBreak && event.start && event.end;
+            return isConflictEligibleTimedEvent(event);
         })
         .map(function(event) {
             return {
@@ -3759,7 +3779,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        setSelectedDate(parseDateString(day.dataset.date));
+        setSelectedDate(parseDateString(day.dataset.realDate || day.dataset.date));
         state.view = 'day';
         render();
     });
