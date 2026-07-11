@@ -11,7 +11,10 @@ class Student extends Model
 
     protected $dates = ['date_of_birth'];
 
-    protected $casts = ['is_adult' => 'boolean'];
+    protected $casts = [
+        'fee_amount' => 'integer',
+        'is_adult' => 'boolean',
+    ];
 
     protected $guarded = [];
 
@@ -78,6 +81,11 @@ class Student extends Model
         }
 
         return carbon($this->date_of_birth)->age;
+    }
+
+    public function feeAmountForInput()
+    {
+        return $this->fee_amount ? ($this->fee_amount / 100) : null;
     }
 
 }

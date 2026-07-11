@@ -2972,9 +2972,29 @@ const syncFormPaymentMethodFromStudentOption = function(option) {
     paymentMethodSelect.dispatchEvent(new Event('change', {bubbles: true}));
 };
 
+const syncFormFeeFromStudentOption = function(option) {
+    const form = option ? option.closest('form') : null;
+    const feeInput = form ? form.querySelector('input[name="fee_amount"]') : null;
+    const studentFeeAmount = option ? option.dataset.studentFeeAmount : null;
+
+    if (!form || !feeInput) {
+        return;
+    }
+
+    form.dataset.studentFeeAmount = studentFeeAmount || '';
+
+    if (!studentFeeAmount) {
+        return;
+    }
+
+    feeInput.value = studentFeeAmount;
+    feeInput.dispatchEvent(new Event('change', {bubbles: true}));
+};
+
 const syncFormDefaultsFromStudentOption = function(option) {
     syncFormLocationFromStudentOption(option);
     syncFormPaymentMethodFromStudentOption(option);
+    syncFormFeeFromStudentOption(option);
 };
 
 const initializeStudentComboboxes = function() {
@@ -3094,10 +3114,20 @@ const syncSingleLessonFee = function(form) {
     const selectedOption = getSelectedLocationOption(form);
     const durationSelect = form ? form.querySelector('select[name="duration_minutes"]') : null;
     const feeInput = form ? form.querySelector('input[name="fee_amount"]') : null;
+    const studentFee = form ? Number(form.dataset.studentFeeAmount || 0) : 0;
     const hourlyFee = selectedOption ? Number(selectedOption.dataset.feeAmount || 0) : 0;
     const duration = durationSelect ? Number(durationSelect.value || 0) : 0;
 
-    if (!feeInput || !hourlyFee || !duration) {
+    if (!feeInput) {
+        return;
+    }
+
+    if (studentFee) {
+        feeInput.value = studentFee.toFixed(2).replace(/\.00$/, '');
+        return;
+    }
+
+    if (!hourlyFee || !duration) {
         return;
     }
 
@@ -3183,10 +3213,20 @@ const syncLessonPlanFee = function(form) {
     const selectedOption = getSelectedLocationOption(form);
     const durationSelect = form ? form.querySelector('select[name="duration_minutes"]') : null;
     const feeInput = form ? form.querySelector('input[name="fee_amount"]') : null;
+    const studentFee = form ? Number(form.dataset.studentFeeAmount || 0) : 0;
     const hourlyFee = selectedOption ? Number(selectedOption.dataset.feeAmount || 0) : 0;
     const duration = durationSelect ? Number(durationSelect.value || 0) : 0;
 
-    if (!feeInput || !hourlyFee || !duration) {
+    if (!feeInput) {
+        return;
+    }
+
+    if (studentFee) {
+        feeInput.value = studentFee.toFixed(2).replace(/\.00$/, '');
+        return;
+    }
+
+    if (!hourlyFee || !duration) {
         return;
     }
 

@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Location;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -24,6 +25,9 @@ class StudentFactory extends Factory
             'date_of_birth' => $this->faker
                                     ->dateTimeBetween('2009-01-01', now()->subYears(5))
                                     ->format('Y-m-d'),
+            'location_id' => Location::query()->inRandomOrder()->value('id') ?: Location::factory(),
+            'fee_amount' => $this->faker->randomElement([3000, 4500, 6000]),
+            'payment_method' => $this->faker->randomElement(['Venmo', 'Zelle', 'Cash/check']),
         ];
     }
 }

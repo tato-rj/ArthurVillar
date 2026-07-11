@@ -210,6 +210,12 @@ class LessonPlansController extends Controller
             return $feeAmount;
         }
 
+        $student = Student::find($data['student_id'] ?? null);
+
+        if ($student && $student->fee_amount) {
+            return $student->fee_amount;
+        }
+
         $location = Location::find($data['location_id'] ?? null);
 
         if (! $location || ! $location->fee_amount || empty($data['duration_minutes'])) {

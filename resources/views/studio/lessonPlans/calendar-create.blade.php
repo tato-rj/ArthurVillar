@@ -1,16 +1,16 @@
 @modal(['title' => 'New recurring lesson', 'id' => 'create-calendar-lesson-plan-modal'])
-<form method="POST" action="{{route('studio.lesson-plans.store')}}" data-lesson-plan-form>
-	@csrf
+@php
+	$oldStudentId = old('student_id');
+	$selectedStudent = isset($students)
+		? $students->first(fn ($student) => (string) $student->id === (string) $oldStudentId)
+		: null;
+	$selectedStudentName = $selectedStudent
+		? trim($selectedStudent->first_name . ' ' . $selectedStudent->last_name)
+		: '';
+@endphp
 
-	@php
-		$oldStudentId = old('student_id');
-		$selectedStudent = isset($students)
-			? $students->first(fn ($student) => (string) $student->id === (string) $oldStudentId)
-			: null;
-		$selectedStudentName = $selectedStudent
-			? trim($selectedStudent->first_name . ' ' . $selectedStudent->last_name)
-			: '';
-	@endphp
+<form method="POST" action="{{route('studio.lesson-plans.store')}}" data-lesson-plan-form data-student-fee-amount="{{$selectedStudent ? $selectedStudent->feeAmountForInput() : ''}}">
+	@csrf
 
 	<label class="small fw-bold opacity-6 mb-3">@fa(['icon' => 'user'])STUDENT</label>
 
@@ -45,6 +45,7 @@
 						data-student-id="{{$student->id}}"
 						data-student-name="{{$studentName}}"
 						data-student-location-id="{{$student->location_id}}"
+						data-student-fee-amount="{{$student->feeAmountForInput()}}"
 						data-student-payment-method="{{$student->payment_method}}">
 						{{$studentName}}
 					</button>
@@ -61,7 +62,7 @@
 
 	@select(['placeholder' => 'Location', 'name' => 'location_id', 'grid' => 'col', 'required' => true])
 		@foreach($locations as $location)
-			@option(['name' => 'location_id', 'label' => $location->name, 'value' => $location->id, 'selected' => old('location_id') == $location->id, 'data' => ['fee-amount' => $location->feeAmountForInput(), 'is-online' => strtolower($location->name) === 'online' ? 1 : 0]])
+			@option(['name' => 'location_id', 'label' => $location->name, 'value' => $location->id, 'selected' => old('location_id', optional($selectedStudent)->location_id) == $location->id, 'data' => ['fee-amount' => $location->feeAmountForInput(), 'is-online' => strtolower($location->name) === 'online' ? 1 : 0]])
 		@endforeach
 	@endselect
 	
@@ -111,11 +112,11 @@
 
 	<label class="small fw-bold opacity-6 mb-3">@fa(['icon' => 'money-bill-wave'])PAYMENT</label>
 	<div class="row"> 
-		@input(['placeholder' => 'Fee', 'name' => 'fee_amount', 'value' => old('fee_amount'), 'mask' => 'usd', 'grid' => 'col'])
+		@input(['placeholder' => 'Fee', 'name' => 'fee_amount', 'value' => old('fee_amount', $selectedStudent ? $selectedStudent->feeAmountForInput() : null), 'mask' => 'usd', 'grid' => 'col'])
 
 		@select(['placeholder' => 'Payment method', 'name' => 'payment_method', 'grid' => 'col'])
 			@foreach(payment()->methods() as $method)
-				@option(['name' => 'payment_method', 'label' => $method, 'value' => $method, 'selected' => old('payment_method') == $method])
+				@option(['name' => 'payment_method', 'label' => $method, 'value' => $method, 'selected' => old('payment_method', optional($selectedStudent)->payment_method) == $method])
 			@endforeach
 		@endselect
 	</div>

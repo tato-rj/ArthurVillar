@@ -1,5 +1,5 @@
 @modal(['title' => 'New lesson plan', 'id' => 'create-lessonPlan-modal'])
-<form method="POST" action="{{route('studio.lesson-plans.store')}}">
+<form method="POST" action="{{route('studio.lesson-plans.store')}}" data-student-fee-amount="{{$student->feeAmountForInput()}}">
 	@csrf
 	<input type="hidden" name="student_id" value="{{$student->id}}">
 
@@ -61,7 +61,7 @@
 
 	<label class="small fw-bold opacity-6 mb-3">@fa(['icon' => 'money-bill-wave'])PAYMENT</label>
 	<div class="row"> 
-		@input(['placeholder' => 'Fee', 'name' => 'fee_amount', 'value' => old('fee_amount'), 'mask' => 'usd', 'grid' => 'col'])
+		@input(['placeholder' => 'Fee', 'name' => 'fee_amount', 'value' => old('fee_amount', $student->feeAmountForInput()), 'mask' => 'usd', 'grid' => 'col'])
 
 		@select(['placeholder' => 'Payment method', 'name' => 'payment_method', 'grid' => 'col'])
 			@foreach(payment()->methods() as $method)
@@ -89,10 +89,22 @@ document.addEventListener('change', function(event) {
     const durationSelect = form ? form.querySelector('select[name="duration_minutes"]') : null;
     const feeInput = form ? form.querySelector('input[name="fee_amount"]') : null;
     const selectedOption = locationSelect ? locationSelect.options[locationSelect.selectedIndex] : null;
+    const studentFee = form ? Number(form.dataset.studentFeeAmount || 0) : 0;
     const hourlyFee = selectedOption ? Number(selectedOption.dataset.feeAmount || 0) : 0;
     const duration = durationSelect ? Number(durationSelect.value || 0) : 0;
 
-    if (!feeInput || !hourlyFee || !duration) {
+    if (!feeInput) {
+        updateLessonPlanMeetingUrlVisibility(form, trigger.matches('select[name="location_id"]'));
+        return;
+    }
+
+    if (studentFee) {
+        feeInput.value = studentFee.toFixed(2).replace(/\\.00$/, '');
+        updateLessonPlanMeetingUrlVisibility(form, trigger.matches('select[name="location_id"]'));
+        return;
+    }
+
+    if (!hourlyFee || !duration) {
         updateLessonPlanMeetingUrlVisibility(form, trigger.matches('select[name="location_id"]'));
         return;
     }

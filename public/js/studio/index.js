@@ -2312,9 +2312,26 @@ var syncFormPaymentMethodFromStudentOption = function syncFormPaymentMethodFromS
     bubbles: true
   }));
 };
+var syncFormFeeFromStudentOption = function syncFormFeeFromStudentOption(option) {
+  var form = option ? option.closest('form') : null;
+  var feeInput = form ? form.querySelector('input[name="fee_amount"]') : null;
+  var studentFeeAmount = option ? option.dataset.studentFeeAmount : null;
+  if (!form || !feeInput) {
+    return;
+  }
+  form.dataset.studentFeeAmount = studentFeeAmount || '';
+  if (!studentFeeAmount) {
+    return;
+  }
+  feeInput.value = studentFeeAmount;
+  feeInput.dispatchEvent(new Event('change', {
+    bubbles: true
+  }));
+};
 var syncFormDefaultsFromStudentOption = function syncFormDefaultsFromStudentOption(option) {
   syncFormLocationFromStudentOption(option);
   syncFormPaymentMethodFromStudentOption(option);
+  syncFormFeeFromStudentOption(option);
 };
 var initializeStudentComboboxes = function initializeStudentComboboxes() {
   var comboboxes = Array.from(document.querySelectorAll('[data-student-combobox]'));
@@ -2410,9 +2427,17 @@ var syncSingleLessonFee = function syncSingleLessonFee(form) {
   var selectedOption = getSelectedLocationOption(form);
   var durationSelect = form ? form.querySelector('select[name="duration_minutes"]') : null;
   var feeInput = form ? form.querySelector('input[name="fee_amount"]') : null;
+  var studentFee = form ? Number(form.dataset.studentFeeAmount || 0) : 0;
   var hourlyFee = selectedOption ? Number(selectedOption.dataset.feeAmount || 0) : 0;
   var duration = durationSelect ? Number(durationSelect.value || 0) : 0;
-  if (!feeInput || !hourlyFee || !duration) {
+  if (!feeInput) {
+    return;
+  }
+  if (studentFee) {
+    feeInput.value = studentFee.toFixed(2).replace(/\.00$/, '');
+    return;
+  }
+  if (!hourlyFee || !duration) {
     return;
   }
   var proratedFee = hourlyFee * (duration / 60);
@@ -2479,9 +2504,17 @@ var syncLessonPlanFee = function syncLessonPlanFee(form) {
   var selectedOption = getSelectedLocationOption(form);
   var durationSelect = form ? form.querySelector('select[name="duration_minutes"]') : null;
   var feeInput = form ? form.querySelector('input[name="fee_amount"]') : null;
+  var studentFee = form ? Number(form.dataset.studentFeeAmount || 0) : 0;
   var hourlyFee = selectedOption ? Number(selectedOption.dataset.feeAmount || 0) : 0;
   var duration = durationSelect ? Number(durationSelect.value || 0) : 0;
-  if (!feeInput || !hourlyFee || !duration) {
+  if (!feeInput) {
+    return;
+  }
+  if (studentFee) {
+    feeInput.value = studentFee.toFixed(2).replace(/\.00$/, '');
+    return;
+  }
+  if (!hourlyFee || !duration) {
     return;
   }
   var proratedFee = hourlyFee * (duration / 60);

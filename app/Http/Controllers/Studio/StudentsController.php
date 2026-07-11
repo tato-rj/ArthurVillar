@@ -51,6 +51,7 @@ class StudentsController extends Controller
             'phone' => ['nullable', 'string', 'max:255'],
             'date_of_birth' => ['nullable', 'date_format:m/d/Y'],
             'location_id' => ['nullable', 'exists:locations,id'],
+            'fee_amount' => ['nullable', 'string'],
             'payment_method' => ['nullable', 'string', 'max:255'],
             'is_adult' => ['nullable', 'boolean'],
             'notes' => ['nullable', 'string'],
@@ -68,6 +69,7 @@ class StudentsController extends Controller
             'email' => $data['email'],
             'phone' => $data['phone'] ?? null,
             'location_id' => $data['location_id'] ?? null,
+            'fee_amount' => $this->feeAmount($data['fee_amount'] ?? null),
             'payment_method' => $data['payment_method'] ?? null,
             'is_adult' => $data['is_adult'] ?? false,
             'notes' => $data['notes'] ?? null,
@@ -75,6 +77,13 @@ class StudentsController extends Controller
                 ? Carbon::createFromFormat('m/d/Y', $data['date_of_birth'])->format('Y-m-d')
                 : null,
         ];
+    }
+
+    private function feeAmount($value)
+    {
+        $value = preg_replace('/[^0-9]/', '', (string) $value);
+
+        return $value === '' ? null : ((int) $value) * 100;
     }
 
     public function destroy(Student $student)
