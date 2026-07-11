@@ -98,6 +98,18 @@ class LessonPlan extends BaseModel
             return false;
         }
 
+        $hasCurrentPlan = static::query()
+            ->where('student_id', $this->student_id)
+            ->whereNotNull('starts_on')
+            ->whereNotNull('ends_on')
+            ->whereDate('starts_on', '<=', $today->toDateString())
+            ->whereDate('ends_on', '>=', $today->toDateString())
+            ->exists();
+
+        if ($hasCurrentPlan) {
+            return false;
+        }
+
         $closestUpcomingPlanId = static::query()
             ->where('student_id', $this->student_id)
             ->whereNotNull('starts_on')

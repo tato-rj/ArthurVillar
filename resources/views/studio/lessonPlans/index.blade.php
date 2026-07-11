@@ -3,6 +3,16 @@
 @push('header')
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
 <link href="{{ mix('css/studio.css') }}" rel="stylesheet">
+
+<style>
+td[data-status="inactive"] {
+    color: rgba(0,0,0,0.3);
+}
+
+td[data-status="inactive"]:first-of-type {
+    color: blue;
+}
+</style>
 @endpush
 
 @section('content')
@@ -221,6 +231,9 @@ $(function() {
                 data.starts_from = $('#lesson-plans-starts-from').val();
                 data.starts_to = $('#lesson-plans-starts-to').val();
             },
+        },
+        createdRow: function(row, data) {
+            $('td', row).attr('data-status', data.status || 'inactive');
         },
         columns: [
             {data: 'student', name: 'student'},

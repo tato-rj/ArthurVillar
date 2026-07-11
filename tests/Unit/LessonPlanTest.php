@@ -131,6 +131,38 @@ class LessonPlanTest extends BaseTest
     }
 
     /** @test */
+    public function upcoming_plans_are_inactive_when_any_plan_is_current()
+    {
+        Carbon::setTestNow(Carbon::parse('2026-07-08 12:00:00'));
+
+        $student = Student::factory()->create();
+
+        $currentPlan = LessonPlan::factory()->student($student)->create([
+            'starts_on' => '2026-07-01',
+            'ends_on' => '2026-07-31',
+            'start_time' => '16:00',
+        ]);
+
+        $secondCurrentPlan = LessonPlan::factory()->student($student)->create([
+            'starts_on' => '2026-07-08',
+            'ends_on' => '2026-08-08',
+            'start_time' => '17:00',
+        ]);
+
+        $closestUpcomingPlan = LessonPlan::factory()->student($student)->create([
+            'starts_on' => '2026-07-15',
+            'ends_on' => '2026-08-15',
+            'start_time' => '16:00',
+        ]);
+
+        $this->assertTrue($currentPlan->fresh()->isCurrent());
+        $this->assertTrue($secondCurrentPlan->fresh()->isCurrent());
+        $this->assertFalse($closestUpcomingPlan->fresh()->isCurrent());
+
+        Carbon::setTestNow();
+    }
+
+    /** @test */
     public function it_queries_lesson_plans_that_have_an_occurrence_inside_a_date_range()
     {
         $weekly = LessonPlan::factory()->create([
