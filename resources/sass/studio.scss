@@ -849,7 +849,7 @@ td {white-space: nowrap;}
     background: #68449f;
 }
 
-.lesson-plans-table {
+#lesson-plans-table {
     td[data-status="inactive"] {color: rgba(0,0,0,0.3);}
 
     td:first-of-type:before {
@@ -860,14 +860,14 @@ td {white-space: nowrap;}
         display: inline-block;
         margin-right: 6px;
         margin-bottom: 1px;
+    }
 
-        &[data-status="active"]:first-of-type:before {
-            @extend .bg-green;
-        }
+    td[data-status="active"]:first-of-type:before {
+        @extend .bg-green;
+    }
 
-        &[data-status="inactive"]:first-of-type:before {
-            @extend .bg-light;
-        }
+    td[data-status="inactive"]:first-of-type:before {
+        background: rgba(0,0,0,0.2);
     }
 }
 
