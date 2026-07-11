@@ -853,9 +853,68 @@ button.single-lesson-plan-create {
     position: absolute;
     bottom: 20px;
     right: 20px;
-    z-index: 1000;
+    z-index: 1;
     width: 50px;
     height: 50px;
+}
+
+button.single-lesson-plan-create i {
+    transition: transform 0.16s ease;
+}
+
+button.single-lesson-plan-create[selected] {
+    background: #a8c7fa !important;
+    border-color: #a8c7fa !important;
+    color: #083b7a;
+    z-index: 1051;
+}
+
+button.single-lesson-plan-create[selected] i {
+    transform: rotate(45deg);
+}
+
+.studio-calendar-create-menu {
+    display: none;
+    position: absolute;
+    bottom: 84px;
+    right: 20px;
+    z-index: 10000;
+}
+
+.studio-calendar-create-menu[selected] {
+    align-items: flex-end;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+}
+
+.studio-calendar-create-menu-option {
+    @extend .shadow, .btn-raw;
+    align-items: center;
+    background: #0b57d0;
+    border: 0;
+    border-radius: 999px;
+    color: #fff;
+    display: inline-flex;
+    font-size: 1rem;
+    font-weight: 700;
+    gap: 0.35rem;
+    justify-content: flex-start;
+    line-height: 1;
+    min-height: 3.25rem;
+    padding: 0 1.3rem;
+    text-align: left;
+}
+
+.studio-calendar-create-menu-option:hover,
+.studio-calendar-create-menu-option:focus {
+    background: #174ea6;
+    color: #fff;
+}
+
+.studio-calendar-create-menu-option i {
+    font-size: 1.2rem;
+    width: 1.4rem;
 }
 
 .studio-student-combobox {

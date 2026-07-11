@@ -2461,6 +2461,54 @@ var initializeSingleLessonPlanForms = function initializeSingleLessonPlanForms()
     }
   });
 };
+var setLessonPlanOnlineFields = function setLessonPlanOnlineFields(form, shouldEmpty) {
+  var fields = form ? Array.from(form.querySelectorAll('.lesson-plan-online-field')) : [];
+  var isOnline = singleLessonLocationIsOnline(form);
+  fields.forEach(function (field) {
+    var input = field.querySelector('input');
+    field.style.display = isOnline ? '' : 'none';
+    if (input) {
+      input.disabled = !isOnline;
+      if (!isOnline || shouldEmpty) {
+        input.value = '';
+      }
+    }
+  });
+};
+var syncLessonPlanFee = function syncLessonPlanFee(form) {
+  var selectedOption = getSelectedLocationOption(form);
+  var durationSelect = form ? form.querySelector('select[name="duration_minutes"]') : null;
+  var feeInput = form ? form.querySelector('input[name="fee_amount"]') : null;
+  var hourlyFee = selectedOption ? Number(selectedOption.dataset.feeAmount || 0) : 0;
+  var duration = durationSelect ? Number(durationSelect.value || 0) : 0;
+  if (!feeInput || !hourlyFee || !duration) {
+    return;
+  }
+  var proratedFee = hourlyFee * (duration / 60);
+  var roundedFee = Math.floor(proratedFee / 5) * 5;
+  feeInput.value = roundedFee.toFixed(2).replace(/\.00$/, '');
+};
+var initializeLessonPlanForms = function initializeLessonPlanForms() {
+  document.querySelectorAll('[data-lesson-plan-form]').forEach(function (form) {
+    var locationSelect = form.querySelector('select[name="location_id"]');
+    var durationSelect = form.querySelector('select[name="duration_minutes"]');
+    setLessonPlanOnlineFields(form, false);
+    if (locationSelect && durationSelect) {
+      syncLessonPlanFee(form);
+    }
+    if (locationSelect) {
+      locationSelect.addEventListener('change', function () {
+        syncLessonPlanFee(form);
+        setLessonPlanOnlineFields(form, true);
+      });
+    }
+    if (durationSelect) {
+      durationSelect.addEventListener('change', function () {
+        syncLessonPlanFee(form);
+      });
+    }
+  });
+};
 document.addEventListener('DOMContentLoaded', function () {
   var calendar = document.getElementById('calendar');
   var label = document.querySelector('[data-calendar-label]');
@@ -2484,12 +2532,18 @@ document.addEventListener('DOMContentLoaded', function () {
   var calendarInsightsSidebarTarget = document.querySelector('[data-calendar-insights-sidebar-target]');
   var calendarInsightsOffcanvasTarget = document.querySelector('[data-calendar-insights-offcanvas-target]');
   var locationFilters = document.querySelector('[data-calendar-location-filters]');
+  var calendarCreateMenu = document.querySelector('[data-calendar-create-menu]');
+  var calendarCreateToggle = document.querySelector('[data-calendar-create-toggle]');
+  var calendarCreateSingle = document.querySelector('[data-calendar-create-single]');
+  var calendarCreateRecurring = document.querySelector('[data-calendar-create-recurring]');
   var calendarFilter = document.querySelector('.studio-calendar-filter');
+  var calendarCreateBackdrop = null;
   if (!calendar) {
     return;
   }
   initializeStudentComboboxes();
   initializeSingleLessonPlanForms();
+  initializeLessonPlanForms();
   state.plannedLessons = Array.isArray(window.studioPlannedLessons) ? window.studioPlannedLessons : Array.isArray(window.studioLessonPlans) ? window.studioLessonPlans : [];
   state.singleLessonPlans = Array.isArray(window.studioSingleLessonPlans) ? window.studioSingleLessonPlans : [];
   state.holidays = Array.isArray(window.studioHolidays) ? window.studioHolidays : [];
@@ -2518,6 +2572,92 @@ document.addEventListener('DOMContentLoaded', function () {
       });
     });
   };
+  var removeCalendarCreateBackdrop = function removeCalendarCreateBackdrop(immediate) {
+    if (!calendarCreateBackdrop) {
+      return;
+    }
+    var backdrop = calendarCreateBackdrop;
+    calendarCreateBackdrop = null;
+    backdrop.classList.remove('show');
+    var _removeBackdrop = function removeBackdrop() {
+      backdrop.removeEventListener('transitionend', _removeBackdrop);
+      backdrop.remove();
+    };
+    if (immediate) {
+      _removeBackdrop();
+      return;
+    }
+    backdrop.addEventListener('transitionend', _removeBackdrop);
+    window.setTimeout(_removeBackdrop, 180);
+  };
+  var showCalendarCreateBackdrop = function showCalendarCreateBackdrop() {
+    if (calendarCreateBackdrop) {
+      return;
+    }
+    calendarCreateBackdrop = document.createElement('div');
+    calendarCreateBackdrop.className = 'modal-backdrop fade';
+    calendarCreateBackdrop.setAttribute('data-calendar-create-backdrop', '');
+    document.body.appendChild(calendarCreateBackdrop);
+    calendarCreateBackdrop.addEventListener('click', closeCalendarCreateMenu);
+    window.requestAnimationFrame(function () {
+      if (calendarCreateBackdrop) {
+        calendarCreateBackdrop.classList.add('show');
+      }
+    });
+  };
+  var setCalendarCreateMenuOpen = function setCalendarCreateMenuOpen(isOpen, options) {
+    if (!calendarCreateMenu || !calendarCreateToggle) {
+      return;
+    }
+    calendarCreateMenu.toggleAttribute('selected', isOpen);
+    calendarCreateToggle.toggleAttribute('selected', isOpen);
+    calendarCreateToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    if (isOpen) {
+      showCalendarCreateBackdrop();
+    } else {
+      removeCalendarCreateBackdrop(options && options.immediate);
+    }
+  };
+  function closeCalendarCreateMenu(options) {
+    setCalendarCreateMenuOpen(false, options);
+  }
+  ;
+  var openCalendarCreateModal = function openCalendarCreateModal(modalId) {
+    closeCalendarCreateMenu({
+      immediate: true
+    });
+    showBootstrapModal(document.getElementById(modalId));
+  };
+  if (calendarCreateToggle) {
+    calendarCreateToggle.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      setCalendarCreateMenuOpen(!(calendarCreateMenu && calendarCreateMenu.hasAttribute('selected')));
+    });
+  }
+  if (calendarCreateSingle) {
+    calendarCreateSingle.addEventListener('click', function () {
+      openCalendarCreateModal('create-single-lesson-plan-modal');
+    });
+  }
+  if (calendarCreateRecurring) {
+    calendarCreateRecurring.addEventListener('click', function () {
+      openCalendarCreateModal('create-calendar-lesson-plan-modal');
+    });
+  }
+  if (calendarCreateMenu) {
+    calendarCreateMenu.addEventListener('click', function (e) {
+      e.stopPropagation();
+    });
+  }
+  document.addEventListener('click', function (e) {
+    if (!calendarCreateMenu || !calendarCreateToggle || !calendarCreateMenu.hasAttribute('selected')) {
+      return;
+    }
+    if (!calendarCreateMenu.contains(e.target) && !calendarCreateToggle.contains(e.target)) {
+      closeCalendarCreateMenu();
+    }
+  });
   var syncCalendarInsightsPlacement = function syncCalendarInsightsPlacement() {
     if (!calendarInsights || !calendarInsightsSidebarTarget || !calendarInsightsOffcanvasTarget) {
       return;

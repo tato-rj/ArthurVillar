@@ -1,21 +1,5 @@
-<div class="studio-calendar-create-menu" data-calendar-create-menu>
-	<button type="button" class="studio-calendar-create-menu-option" data-calendar-create-single>
-		@fa(['icon' => 'calendar-day', 'mr' => 2])
-		Single Lesson
-	</button>
-
-	<button type="button" class="studio-calendar-create-menu-option" data-calendar-create-recurring>
-		@fa(['icon' => 'repeat', 'mr' => 2])
-		Recurring Lesson
-	</button>
-</div>
-
-<button type="button" class="btn-raw single-lesson-plan-create" data-calendar-create-toggle aria-label="Create lesson">
-	@fa(['icon' => 'plus', 'mr' => 0])
-</button>
-
-@modal(['title' => 'Add a lesson', 'id' => 'create-single-lesson-plan-modal'])
-<form method="POST" action="{{route('studio.single-lesson-plans.store')}}" data-single-lesson-plan-form>
+@modal(['title' => 'New recurring lesson', 'id' => 'create-calendar-lesson-plan-modal'])
+<form method="POST" action="{{route('studio.lesson-plans.store')}}" data-lesson-plan-form>
 	@csrf
 
 	@php
@@ -75,43 +59,58 @@
 
 	<label class="small fw-bold opacity-6 mb-3">@fa(['icon' => 'calendar-day'])SCHEDULE</label>
 
-	@select(['placeholder' => 'Location', 'name' => 'location_id', 'required' => true])
+	@select(['placeholder' => 'Location', 'name' => 'location_id', 'grid' => 'col', 'required' => true])
 		@foreach($locations as $location)
 			@option(['name' => 'location_id', 'label' => $location->name, 'value' => $location->id, 'selected' => old('location_id') == $location->id, 'data' => ['fee-amount' => $location->feeAmountForInput(), 'is-online' => strtolower($location->name) === 'online' ? 1 : 0]])
 		@endforeach
 	@endselect
-
-	<div class="single-lesson-plan-online-field">
+	
+	<div class="lesson-plan-online-field">
 		@input(['placeholder' => 'Meeting URL', 'name' => 'meeting_url', 'type' => 'url', 'value' => old('meeting_url')])
 	</div>
 
-	<div class="single-lesson-plan-online-field">
+	<div class="lesson-plan-online-field">
 		@input(['placeholder' => 'Notes URL', 'name' => 'notes_url', 'type' => 'url', 'value' => old('notes_url')])
 	</div>
 
-	<div class="row">
-		@input(['placeholder' => 'Date', 'name' => 'scheduled_date', 'type' => 'date', 'value' => old('scheduled_date', today()->toDateString()), 'grid' => 'col', 'required' => true])
+	<div class="row"> 
+		@select(['placeholder' => 'Weekday', 'name' => 'weekday', 'grid' => 'col', 'required' => true])
+			@foreach(weekday() as $day)
+				@option(['name' => 'weekday', 'label' => ucfirst($day), 'value' => $loop->iteration, 'selected' => old('weekday') == $loop->iteration])
+			@endforeach
+		@endselect
+
+		@select(['placeholder' => 'Frequency', 'name' => 'recurrence_interval', 'grid' => 'col', 'required' => true])
+			@foreach(['Every week', 'Every other week'] as $frequency)
+				@option(['name' => 'recurrence_interval', 'label' => $frequency, 'value' => $loop->iteration, 'selected' => old('recurrence_interval') == $loop->iteration])
+			@endforeach
+		@endselect
+	</div>
+
+	<div class="row"> 
+		@input(['placeholder' => 'Starts on', 'name' => 'starts_on', 'type' => 'date', 'value' => old('starts_on'), 'grid' => 'col'])
+
+		@input(['placeholder' => 'Ends on', 'name' => 'ends_on', 'type' => 'date', 'value' => old('ends_on'), 'grid' => 'col'])
 	</div>
 
 	<label class="small fw-bold opacity-6 mb-3">@fa(['icon' => 'clock'])TIME</label>
 
-	<div class="row">
+	<div class="row"> 
 		@select(['placeholder' => 'Start time', 'name' => 'start_time', 'grid' => 'col', 'required' => true])
-			@foreach(timeslots(8, 21, 15) as $time)
+			@foreach(timeslots(9, 21, 15) as $time)
 				@option(['name' => 'start_time', 'label' => \App\Models\LessonPlan::timeLabel($time), 'value' => $time, 'selected' => old('start_time') == $time])
 			@endforeach
 		@endselect
 
 		@select(['placeholder' => 'Duration', 'name' => 'duration_minutes', 'grid' => 'col', 'required' => true])
 			@foreach([30, 45, 60, 90] as $duration)
-				@option(['name' => 'duration_minutes', 'label' => $duration . ' min', 'value' => $duration, 'selected' => old('duration_minutes', 30) == $duration])
+				@option(['name' => 'duration_minutes', 'label' => $duration . ' min', 'value' => $duration, 'selected' => old('duration_minutes') == $duration])
 			@endforeach
 		@endselect
 	</div>
 
 	<label class="small fw-bold opacity-6 mb-3">@fa(['icon' => 'money-bill-wave'])PAYMENT</label>
-
-	<div class="row">
+	<div class="row"> 
 		@input(['placeholder' => 'Fee', 'name' => 'fee_amount', 'value' => old('fee_amount'), 'mask' => 'usd', 'grid' => 'col'])
 
 		@select(['placeholder' => 'Payment method', 'name' => 'payment_method', 'grid' => 'col'])

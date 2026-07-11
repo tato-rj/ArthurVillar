@@ -4,6 +4,7 @@
 	<div id="calendar"></div>
 
 	@include('studio.singleLessonPlans.create')
+	@include('studio.lessonPlans.calendar-create')
 </div>
 
 @include('studio.calendar.views')
