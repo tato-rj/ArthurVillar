@@ -62,7 +62,7 @@
 	<div class="row">
 		@input(['label' => 'Fee', 'name' => 'fee_amount', 'value' => $lessonPlan->fee_amount ? ($lessonPlan->fee_amount / 100) : null, 'mask' => 'usd', 'grid' => 'col'])
 
-		@select(['label' => 'Payment method', 'name' => 'payment_method', 'grid' => 'col'])
+		@select(['label' => 'Payment method', 'placeholder' => '', 'name' => 'payment_method', 'grid' => 'col'])
 			@foreach(payment()->methods() as $method)
 				@option(['name' => 'payment_method', 'label' => $method, 'value' => $method, 'selected' => $lessonPlan->payment_method == $method])
 			@endforeach
