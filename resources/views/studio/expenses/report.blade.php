@@ -58,7 +58,7 @@
     </div>
 
     <div>
-        <p>@fa(['icon' => 'piggy-bank'])On average, you are making <span class="fw-bold" id="average-income">{{$money($averageIncome)}}</span> and potentially saving <span class="fw-bold" id="average-savings">{{$money($averageSavings)}}</span>.</p>
+        <p>@fa(['icon' => 'piggy-bank'])On average, you are making <span class="fw-bold" id="average-income">{{$money($averageIncome)}}</span> and potentially saving <span class="fw-bold" id="average-savings">{{$money($averageSavings)}}</span> each month.</p>
     </div>
 </section>
 @endsection
