@@ -30,7 +30,7 @@
         <a href="{{route('studio.expenses.report')}}" class="btn btn-sm btn-secondary rounded">Clear</a>
     </form>
 
-    <div class="studio-table-container studio-table-container-lg">
+    <div class="studio-table-container studio-table-container-lg mb-4">
         <table class="table table-striped table-hover align-middle studio-table">
             <thead>
                 <tr>
@@ -55,6 +55,10 @@
                 @endforeach
             </tbody>
         </table>
+    </div>
+
+    <div>
+        <p>@fa(['icon' => 'piggy-bank'])On average, you are making <span class="fw-bold" id="average-income">{{$money($averageIncome)}}</span> and potentially saving <span class="fw-bold" id="average-savings">{{$money($averageSavings)}}</span>.</p>
     </div>
 </section>
 @endsection

@@ -41,8 +41,10 @@ class ExpensesController extends Controller
                 'confirmed_net' => $isFinished ? $confirmedIncome - $expenses : null,
             ];
         });
+        $averageIncome = (int) round($months->avg('expected_income') ?? 0);
+        $averageSavings = (int) round($months->avg('expected_net') ?? 0);
 
-        return view('studio.expenses.report', compact('months', 'startsFrom', 'startsTo'));
+        return view('studio.expenses.report', compact('months', 'startsFrom', 'startsTo', 'averageIncome', 'averageSavings'));
     }
 
     public function store(Request $request)
