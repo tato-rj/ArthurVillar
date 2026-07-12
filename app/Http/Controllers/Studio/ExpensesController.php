@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Studio;
 
 use Carbon\Carbon;
-use App\Models\{Expense, Lesson};
+use App\Models\{Expense, Lesson, Location};
 use App\Calendar\Scheduler;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -19,15 +19,17 @@ class ExpensesController extends Controller
     public function report(Scheduler $scheduler)
     {
         [$startsFrom, $startsTo] = $this->reportMonthRange(request());
+        $simulation = $this->incomeSimulation(request());
+        $locations = Location::query()->orderBy('name')->get();
         $monthCount = $startsFrom->diffInMonths($startsTo);
-        $months = collect(range(0, $monthCount))->map(function ($offset) use ($scheduler, $startsFrom) {
+        $months = collect(range(0, $monthCount))->map(function ($offset) use ($scheduler, $startsFrom, $simulation) {
             $start = $startsFrom->copy()->addMonths($offset);
             $end = $start->copy()->endOfMonth();
             $range = [
                 'start' => $start->toDateString(),
                 'end' => $end->toDateString(),
             ];
-            $expectedIncome = $this->expectedIncome($scheduler, $range);
+            $expectedIncome = $this->expectedIncome($scheduler, $range, $simulation);
             $confirmedIncome = $this->confirmedIncome($start, $end);
             $expenses = $this->expensesForMonth($start, $end);
             $isFinished = $end->lt(today()->startOfDay());
@@ -43,8 +45,9 @@ class ExpensesController extends Controller
         });
         $averageIncome = (int) round($months->avg('expected_income') ?? 0);
         $averageSavings = (int) round($months->avg('expected_net') ?? 0);
+        $simulationEnabled = count($simulation) > 0;
 
-        return view('studio.expenses.report', compact('months', 'startsFrom', 'startsTo', 'averageIncome', 'averageSavings'));
+        return view('studio.expenses.report', compact('months', 'startsFrom', 'startsTo', 'averageIncome', 'averageSavings', 'locations', 'simulation', 'simulationEnabled'));
     }
 
     public function store(Request $request)
@@ -126,22 +129,55 @@ class ExpensesController extends Controller
             : null;
     }
 
-    private function expectedIncome(Scheduler $scheduler, array $range)
+    private function expectedIncome(Scheduler $scheduler, array $range, array $simulation = [])
     {
         $lessonPlans = $scheduler->plannedLessons($range);
         $singleLessonPlans = $scheduler->singleLessonPlans($range);
 
         return $lessonPlans
             ->concat($singleLessonPlans)
-            ->sum(function ($plan) {
-                return collect($plan['occurrences'] ?? [])->sum(function ($occurrence) {
+            ->sum(function ($plan) use ($simulation) {
+                $multiplier = $this->incomeSimulationMultiplier($plan, $simulation);
+
+                return collect($plan['occurrences'] ?? [])->sum(function ($occurrence) use ($multiplier) {
                     if (($occurrence['lesson_status'] ?? '') === 'canceled' || ($occurrence['calendar_status'] ?? '') === 'canceled') {
                         return 0;
                     }
 
-                    return (int) ($occurrence['fee_amount'] ?? 0);
+                    return (int) round(((int) ($occurrence['fee_amount'] ?? 0)) * $multiplier);
                 });
             });
+    }
+
+    private function incomeSimulation(Request $request)
+    {
+        return collect($request->query('simulation', []))
+            ->mapWithKeys(function ($percentage, $locationId) {
+                if (! is_numeric($percentage)) {
+                    return [];
+                }
+
+                $locationId = (int) $locationId;
+                $percentage = max(0, (float) $percentage);
+
+                if (! $locationId || $percentage <= 0) {
+                    return [];
+                }
+
+                return [$locationId => $percentage];
+            })
+            ->all();
+    }
+
+    private function incomeSimulationMultiplier(array $plan, array $simulation)
+    {
+        $locationId = (int) ($plan['location_id'] ?? 0);
+
+        if (! $locationId || ! isset($simulation[$locationId])) {
+            return 1;
+        }
+
+        return 1 + ($simulation[$locationId] / 100);
     }
 
     private function confirmedIncome(Carbon $start, Carbon $end)

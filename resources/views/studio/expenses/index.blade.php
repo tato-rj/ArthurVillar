@@ -37,6 +37,7 @@
 <div id="edit-expense-modal-container"></div>
 @endsection
 
+
 @push('scripts')
 <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
 @include('studio.tables.state')
