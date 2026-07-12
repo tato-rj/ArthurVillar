@@ -517,6 +517,11 @@ td {white-space: nowrap;}
     font-weight: 800;
 }
 
+.studio-birthday-icon {
+    display: inline-block;
+    margin-right: .3rem;
+}
+
 .studio-schedule-event-time {
     font-size: .75rem;
     font-weight: 600;
@@ -1121,6 +1126,12 @@ button.single-lesson-plan-create[selected] i {
     height: auto;
     font-weight: bold;
     margin: 0;
+}
+
+#calendar .lm-schedule-item[data-birthday-this-week]:before {
+    content: "\f1fd  " attr(data-birthday-title);
+    font-family: "Font Awesome 6 Free", Arial, sans-serif;
+    font-weight: 900;
 }
 
 #calendar .lm-schedule-item:after {

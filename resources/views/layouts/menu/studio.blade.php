@@ -16,9 +16,16 @@
           'studio.lessons.index' => 'Confirmed',
       ],
     ],
-    'studio.locations.index' => 'Locations*',
+    'studio.locations.index' => 'Locations',
+    'studio.waiting-list.index' => 'Waiting list*',
+    [
+      'label' => 'Finances',
+      'children' => [
+          'studio.expenses.index' => 'Expenses',
+          'studio.expenses.report' => 'Report'
+      ],
+    ],
     'studio.breaks.index' => 'Breaks',
-    'studio.holidays.index' => 'Holidays',
-    'studio.waiting-list.index' => 'Waiting list'
+    'studio.holidays.index' => 'Holidays'
   ]
 ])

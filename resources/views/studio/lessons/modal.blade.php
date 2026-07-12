@@ -6,6 +6,9 @@
 <div>
 	<div id="lesson-status" class="rounded px-2 py-0 alert small mb-3"></div>
 
+	<div id="lesson-birthday" class="mb-1 text-blue" style="display: none">
+		@fa(['icon' => 'cake-candles']) Birthday <span></span>
+	</div>
 	<div class="mb-1">
 		@fa(['icon' => 'calendar-day', 'classes' => 'opacity-4'])
 		<span id="lesson-date"></span>
@@ -14,7 +17,7 @@
 		@fa(['icon' => 'clock', 'classes' => 'opacity-4'])
 		<span id="lesson-time"></span>
 	</div>
-	<div>
+	<div class="mb-1">
 		@fa(['icon' => 'repeat', 'classes' => 'opacity-4'])
 		<span id="lesson-recurrence"></span>
 	</div>

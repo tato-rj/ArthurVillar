@@ -56,10 +56,11 @@ class CalendarTest extends BaseTest
         $this->get(route('studio.home', [
             'view' => 'week',
             'date' => '2026-07-08',
+            'lesson_plans' => 1,
         ]))
             ->assertOk()
-            ->assertSee('Visible')
-            ->assertDontSee('Hidden');
+            ->assertJsonFragment(['first_name' => 'Visible'])
+            ->assertJsonMissing(['first_name' => 'Hidden']);
     }
 
     /** @test */

@@ -9,6 +9,8 @@ class Student extends Model
 {
     use HasFactory;
 
+    protected $birthdayWindow = 5; //in before and after days
+
     protected $dates = ['date_of_birth'];
 
     protected $casts = ['is_adult' => 'boolean'];
@@ -23,6 +25,11 @@ class Student extends Model
             $student->singleLessonPlans()->delete();
             $student->lessonPlans()->delete();
         });
+    }
+
+    public static function birthdayWindow()
+    {
+        return (new static)->birthdayWindow;
     }
 
     public function lessonPlans()

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Studio;
 
 use App\Calendar\Scheduler;
 use App\Models\Location;
+use App\Models\Student;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 
@@ -33,7 +34,8 @@ class StudioController extends Controller
             ->where('is_active', true)
             ->orderBy('name')
             ->get();
+        $birthdayWindow = Student::birthdayWindow();
 
-        return view('studio.index', compact('plannedLessons', 'singleLessonPlans', 'holidays', 'teachingBreaks', 'calendarRange', 'locations'));
+        return view('studio.index', compact('plannedLessons', 'singleLessonPlans', 'holidays', 'teachingBreaks', 'calendarRange', 'locations', 'birthdayWindow'));
     }
 }

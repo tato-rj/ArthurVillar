@@ -29,6 +29,7 @@ window.studioSingleLessonPlans = @json($singleLessonPlans);
 window.studioHolidays = @json($holidays);
 window.studioTeachingBreaks = @json($teachingBreaks);
 window.studioCalendarRange = @json($calendarRange);
+window.studioBirthdayWindow = @json($birthdayWindow);
 window.studioLocations = @json($locations->map(fn ($location) => [
 	'id' => $location->id,
 	'name' => $location->name,

@@ -27,6 +27,7 @@ const state = {
     paymentTotalCounters: {},
     calendarFetchId: 0,
     didAutoNowScroll: false,
+    birthdayWindow: 5,
 };
 
 const studioTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/New_York';
@@ -39,6 +40,11 @@ const monthFormatter = new Intl.DateTimeFormat('en', {
 
 const shortMonthFormatter = new Intl.DateTimeFormat('en', {
     month: 'short',
+    timeZone: studioTimeZone,
+});
+
+const birthdayMonthFormatter = new Intl.DateTimeFormat('en', {
+    month: 'long',
     timeZone: studioTimeZone,
 });
 
@@ -55,6 +61,7 @@ const calendarViews = ['schedule', 'day', '2-days', 'week', 'month'];
 const scheduleStart = '08:00';
 const scheduleEnd = '22:00';
 const sidebarHiddenQuery = '(max-width: 1000px)';
+const dayMilliseconds = 24 * 60 * 60 * 1000;
 
 const scheduleGridViews = ['day', '2-days', 'week'];
 
@@ -86,6 +93,12 @@ const isDateString = function(value) {
 
 const isValidDate = function(date) {
     return date instanceof Date && !Number.isNaN(date.getTime());
+};
+
+const normalizeBirthdayWindow = function(value) {
+    const windowDays = Number(value);
+
+    return Number.isFinite(windowDays) && windowDays >= 0 ? Math.floor(windowDays) : 5;
 };
 
 const parseUrlDate = function(value) {
@@ -796,18 +809,51 @@ const getVisiblePaymentEvents = function() {
         });
 };
 
+const formatNameList = function(names) {
+    if (!names.length) {
+        return '';
+    }
+
+    if (names.length === 1) {
+        return names[0];
+    }
+
+    if (names.length === 2) {
+        return `${names[0]} and ${names[1]}`;
+    }
+
+    return `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
+};
+
+const renderCalendarBirthdayInsights = function(container, names) {
+    if (!container) {
+        return;
+    }
+
+    const label = container.querySelector('span');
+    const formattedNames = formatNameList(names);
+
+    container.style.display = formattedNames ? '' : 'none';
+
+    if (label) {
+        label.textContent = formattedNames;
+    }
+};
+
 const renderCalendarPaymentTotals = function() {
     const expected = document.querySelector('[data-calendar-expected-payment]');
     const confirmed = document.querySelector('[data-calendar-confirmed-payment]');
     const lessonsCount = document.querySelector('[data-calendar-lessons-count]');
     const hoursCount = document.querySelector('[data-calendar-hours-count]');
     const averageHours = document.querySelector('[data-calendar-average-hours]');
+    const birthdayInsights = document.getElementById('studio-calendar-insights-birthdays');
 
-    if (!expected && !confirmed && !lessonsCount && !hoursCount && !averageHours) {
+    if (!expected && !confirmed && !lessonsCount && !hoursCount && !averageHours && !birthdayInsights) {
         return;
     }
 
-    const totals = getVisiblePaymentEvents().reduce(function(carry, event) {
+    const visiblePaymentEvents = getVisiblePaymentEvents();
+    const totals = visiblePaymentEvents.reduce(function(carry, event) {
         const feeAmount = getEventFeeAmount(event);
 
         if (event.lessonStatus !== 'canceled' && event.calendarStatus !== 'canceled') {
@@ -827,6 +873,22 @@ const renderCalendarPaymentTotals = function() {
         lessons: 0,
         minutes: 0,
     });
+    const birthdayNames = [];
+    const birthdayNameKeys = new Set();
+
+    visiblePaymentEvents.forEach(function(event) {
+        const name = event.studentFirstName || '';
+        const key = name.toLowerCase();
+
+        if (!name || !event.hasBirthdayNearEvent || birthdayNameKeys.has(key)) {
+            return;
+        }
+
+        birthdayNameKeys.add(key);
+        birthdayNames.push(name);
+    });
+
+    renderCalendarBirthdayInsights(birthdayInsights, birthdayNames);
 
     renderPaymentTotal('expected', expected, totals.expected);
     renderPaymentTotal('confirmed', confirmed, totals.confirmed);
@@ -961,10 +1023,11 @@ const patchScheduleItems = function(calendar) {
         const end = item.getAttribute('data-end');
         const duration = getTimeMinutes(end) - getTimeMinutes(start);
         const isShort = duration <= 30;
-        const event = getEventByGuid(item.id || item.dataset.eventGuid);
+        const event = getEventByScheduleItem(item);
 
         item.classList.toggle('is-short', isShort);
         item.setAttribute('data-display-time', isShort ? formatEventTime(start) : `${formatEventTime(start)} - ${formatEventTime(end)}`);
+        patchScheduleItemBirthdayIcon(item, event);
 
         if (event && event.calendarStatus) {
             item.setAttribute('data-lesson-status', event.calendarStatus);
@@ -1052,6 +1115,27 @@ const getEventByGuid = function(guid) {
     return state.events.find(function(event) {
         return event.guid === guid;
     }) || getTeachingBreakEventByGuid(guid);
+};
+
+const getEventByScheduleItem = function(item) {
+    const event = getEventByGuid(item.id || item.dataset.eventGuid);
+
+    if (event || !item) {
+        return event;
+    }
+
+    const cell = item.closest('td[data-date]');
+    const date = cell ? cell.dataset.date : '';
+    const start = normalizeTime(item.getAttribute('data-start') || '08:00');
+    const end = normalizeTime(item.getAttribute('data-end') || '08:15');
+    const title = item.getAttribute('data-title') || '';
+
+    return state.events.find(function(candidate) {
+        return candidate.date === date
+            && candidate.start === start
+            && candidate.end === end
+            && candidate.title === title;
+    });
 };
 
 const getTeachingBreakEvent = function(teachingBreak, dateString) {
@@ -1289,6 +1373,8 @@ const populateLessonModal = function(modal, event) {
     const date = modal.querySelector('#lesson-date');
     const time = modal.querySelector('#lesson-time');
     const recurrence = modal.querySelector('#lesson-recurrence');
+    const birthday = modal.querySelector('#lesson-birthday');
+    const birthdayLabel = birthday ? birthday.querySelector('span') : null;
     const meetingUrl = modal.querySelector('#meeting-url');
     const meetingUrlLink = meetingUrl ? meetingUrl.querySelector('a') : null;
     const notesUrl = modal.querySelector('#notes-url');
@@ -1326,6 +1412,16 @@ const populateLessonModal = function(modal, event) {
 
     if (recurrence) {
         recurrence.textContent = event && event.recurrence ? event.recurrence : '';
+    }
+
+    if (birthday && birthdayLabel) {
+        if (event && event.birthdayModalLabel) {
+            birthday.style.display = '';
+            birthdayLabel.textContent = event.birthdayModalLabel;
+        } else {
+            birthday.style.display = 'none';
+            birthdayLabel.textContent = '';
+        }
     }
 
     if (meetingUrl && meetingUrlLink) {
@@ -2324,6 +2420,146 @@ const getStudentName = function(student) {
     return [student.first_name, student.last_name].filter(Boolean).join(' ') || 'No title';
 };
 
+const getStudentFirstName = function(student) {
+    return student && student.first_name ? String(student.first_name).trim() : '';
+};
+
+const studentHasBirthdayInWeek = function(student, dateString) {
+    if (!student || !student.date_of_birth || !isDateString(dateString)) {
+        return false;
+    }
+
+    const birthDate = parseNullableDateString(student.date_of_birth);
+
+    if (!birthDate) {
+        return false;
+    }
+
+    const eventDate = parseDateString(dateString);
+    const weekStart = startOfWeek(eventDate);
+    const weekEnd = addDays(weekStart, 6);
+    const years = Array.from(new Set([weekStart.getFullYear(), weekEnd.getFullYear()]));
+
+    return years.some(function(year) {
+        const birthday = createLocalDate(year, birthDate.getMonth(), birthDate.getDate());
+
+        return birthday >= weekStart && birthday <= weekEnd;
+    });
+};
+
+const getOrdinalSuffix = function(day) {
+    if (day >= 11 && day <= 13) {
+        return 'th';
+    }
+
+    switch (day % 10) {
+        case 1:
+            return 'st';
+        case 2:
+            return 'nd';
+        case 3:
+            return 'rd';
+        default:
+            return 'th';
+    }
+};
+
+const formatBirthdayModalDate = function(date) {
+    return `${birthdayMonthFormatter.format(date)} ${date.getDate()}${getOrdinalSuffix(date.getDate())}`;
+};
+
+const getStudentBirthdayModalLabel = function(student, dateString) {
+    if (!student || !student.date_of_birth || !isDateString(dateString)) {
+        return '';
+    }
+
+    const birthDate = parseNullableDateString(student.date_of_birth);
+
+    if (!birthDate) {
+        return '';
+    }
+
+    const eventDate = parseDateString(dateString);
+    const years = [eventDate.getFullYear() - 1, eventDate.getFullYear(), eventDate.getFullYear() + 1];
+    let closestBirthday = null;
+    let closestDiff = null;
+
+    years.forEach(function(year) {
+        const birthday = createLocalDate(year, birthDate.getMonth(), birthDate.getDate());
+        const diff = Math.round((birthday.getTime() - eventDate.getTime()) / dayMilliseconds);
+
+        if (Math.abs(diff) <= state.birthdayWindow && (closestDiff === null || Math.abs(diff) < Math.abs(closestDiff))) {
+            closestBirthday = birthday;
+            closestDiff = diff;
+        }
+    });
+
+    if (!closestBirthday) {
+        return '';
+    }
+
+    if (closestDiff === 0) {
+        return 'today!';
+    }
+
+    if (closestDiff === -1) {
+        return 'yesterday!';
+    }
+
+    if (closestDiff === 1) {
+        return 'tomorrow!';
+    }
+
+    return `on ${formatBirthdayModalDate(closestBirthday)}`;
+};
+
+const studentHasBirthdayNearEvent = function(student, dateString) {
+    return Boolean(getStudentBirthdayModalLabel(student, dateString));
+};
+
+const createBirthdayIcon = function() {
+    const icon = document.createElement('i');
+
+    icon.className = 'fa-solid fa-cake-candles studio-birthday-icon';
+    icon.setAttribute('aria-hidden', 'true');
+
+    return icon;
+};
+
+const renderEventTitle = function(element, event, fallback) {
+    if (!element) {
+        return;
+    }
+
+    element.textContent = '';
+
+    if (event && event.hasBirthdayThisWeek && !event.isHoliday && !event.isBreak) {
+        element.appendChild(createBirthdayIcon());
+    }
+
+    element.appendChild(document.createTextNode((event && event.title) || fallback || 'No title'));
+};
+
+const patchScheduleItemBirthdayIcon = function(item, event) {
+    if (!item) {
+        return;
+    }
+
+    Array.from(item.children).forEach(function(child) {
+        if (child.classList && child.classList.contains('studio-birthday-icon')) {
+            child.remove();
+        }
+    });
+
+    item.removeAttribute('data-birthday-this-week');
+    item.removeAttribute('data-birthday-title');
+
+    if (event && event.hasBirthdayThisWeek && !event.isHoliday && !event.isBreak) {
+        item.setAttribute('data-birthday-this-week', 'true');
+        item.setAttribute('data-birthday-title', event.title || item.getAttribute('data-title') || '');
+    }
+};
+
 const normalizeStudentSearch = function(value) {
     return String(value || '').trim().toLowerCase();
 };
@@ -2407,6 +2643,10 @@ const getPlannedLessonEvents = function(range) {
                     paymentUrl: occurrence.lesson_payment_url || occurrence.payment_url || '',
                     meetingUrl: occurrence.meeting_url || lesson.meeting_url || '',
                     notesUrl: occurrence.notes_url || lesson.notes_url || '',
+                    studentFirstName: getStudentFirstName(lesson.student),
+                    hasBirthdayThisWeek: studentHasBirthdayInWeek(lesson.student, dateString),
+                    hasBirthdayNearEvent: studentHasBirthdayNearEvent(lesson.student, dateString),
+                    birthdayModalLabel: getStudentBirthdayModalLabel(lesson.student, dateString),
                 });
             });
 
@@ -2471,6 +2711,10 @@ const getPlannedLessonEvents = function(range) {
                 paymentUrl: getLessonPaymentUrl(confirmedLesson),
                 meetingUrl: lesson.meeting_url || '',
                 notesUrl: lesson.notes_url || '',
+                studentFirstName: getStudentFirstName(lesson.student),
+                hasBirthdayThisWeek: studentHasBirthdayInWeek(lesson.student, dateString),
+                hasBirthdayNearEvent: studentHasBirthdayNearEvent(lesson.student, dateString),
+                birthdayModalLabel: getStudentBirthdayModalLabel(lesson.student, dateString),
             });
 
             occurrence = addDays(occurrence, intervalDays);
@@ -2559,7 +2803,7 @@ const createMonthEventElement = function(event, dateString) {
     applyCalendarItemStatusAttributes(dot, event, dateString);
 
     time.textContent = event.isHoliday || event.isBreak ? '' : formatEventTime(event.start);
-    title.textContent = event.title || 'No title';
+    renderEventTitle(title, event, 'No title');
 
     if (!event.isHoliday && !event.isBreak) {
         item.appendChild(dot);
@@ -2772,7 +3016,7 @@ const renderScheduleAgenda = function(calendar) {
 
             item.className = event.isHoliday ? 'studio-schedule-event studio-schedule-event-holiday' : (event.isBreak ? 'studio-schedule-event studio-schedule-event-break' : 'studio-schedule-event');
             title.className = 'studio-schedule-event-title';
-            title.textContent = event.title || 'No title';
+            renderEventTitle(title, event, 'No title');
             item.dataset.eventGuid = event.guid || '';
             item.dataset.lessonStatus = event.isHoliday ? 'holiday' : (event.isBreak ? 'teaching-break' : (event.calendarStatus || event.lessonStatus || 'unconfirmed'));
             applyCalendarItemStatusAttributes(item, event, dateString);
@@ -3276,6 +3520,7 @@ document.addEventListener('DOMContentLoaded', function() {
     state.teachingBreaks = Array.isArray(window.studioTeachingBreaks) ? window.studioTeachingBreaks : [];
     state.locations = Array.isArray(window.studioLocations) ? window.studioLocations : [];
     state.loadedRange = normalizeRange(window.studioCalendarRange);
+    state.birthdayWindow = normalizeBirthdayWindow(window.studioBirthdayWindow);
 
     const urlState = getUrlState();
     state.view = urlState.view;
@@ -4049,7 +4294,9 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         e.stopPropagation();
 
-        const event = getEventByGuid(item.id || item.dataset.eventGuid);
+        const event = item.classList.contains('lm-schedule-item')
+            ? getEventByScheduleItem(item)
+            : getEventByGuid(item.id || item.dataset.eventGuid);
 
         if (event && event.isBreak) {
             openTeachingBreakModal(event);

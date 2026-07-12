@@ -4,12 +4,67 @@ namespace App\Http\Controllers\Studio;
 
 use App\Http\Controllers\Controller;
 use App\Calendar\Scheduler;
-use App\Models\{Lesson, LessonPlan, Location, SingleLessonPlan, Student, TeachingBreak, WaitingList};
+use App\Models\{Expense, Lesson, LessonPlan, Location, SingleLessonPlan, Student, TeachingBreak, WaitingList};
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 
 class TablesController extends Controller
 {
+    public function expenses()
+    {
+        $driver = DB::connection()->getDriverName();
+        $recurrenceExpression = "CASE expenses.recurrence
+            WHEN 'weekly' THEN 'Weekly'
+            WHEN 'monthly' THEN 'Monthly'
+            ELSE 'One-time'
+        END";
+        $amountSearchExpression = $driver === 'sqlite'
+            ? "'$' || CAST(expenses.amount / 100 AS TEXT)"
+            : "CONCAT('$', CAST(expenses.amount / 100 AS CHAR))";
+        $amountCastExpression = $driver === 'sqlite'
+            ? 'CAST(expenses.amount / 100 AS TEXT)'
+            : 'CAST(expenses.amount / 100 AS CHAR)';
+        $amountCentsCastExpression = $driver === 'sqlite'
+            ? 'CAST(expenses.amount AS TEXT)'
+            : 'CAST(expenses.amount AS CHAR)';
+
+        $expenses = Expense::query()
+            ->select([
+                'expenses.id',
+                'expenses.name',
+                'expenses.amount',
+                'expenses.recurrence',
+                'expenses.spent_on',
+                'expenses.notes',
+                DB::raw("$recurrenceExpression as recurrence_label"),
+            ]);
+
+        return DataTables::eloquent($expenses)
+            ->editColumn('spent_on', function (Expense $expense) {
+                return $expense->spent_on
+                    ? $expense->spent_on->toDateString()
+                    : null;
+            })
+            ->filterColumn('amount', function ($query, $keyword) use ($amountSearchExpression, $amountCastExpression, $amountCentsCastExpression) {
+                $numericKeyword = preg_replace('/[^0-9.]/', '', $keyword);
+
+                $query->where(function ($query) use ($keyword, $numericKeyword, $amountSearchExpression, $amountCastExpression, $amountCentsCastExpression) {
+                    $query->whereRaw("$amountSearchExpression LIKE ?", ["%{$keyword}%"]);
+
+                    if ($numericKeyword !== '') {
+                        $query->orWhereRaw("$amountCastExpression LIKE ?", ["%{$numericKeyword}%"])
+                            ->orWhereRaw("$amountCentsCastExpression LIKE ?", ["%{$numericKeyword}%"]);
+                    }
+                });
+            })
+            ->filterColumn('recurrence_label', function ($query, $keyword) use ($recurrenceExpression) {
+                $query->whereRaw("$recurrenceExpression LIKE ?", ["%{$keyword}%"]);
+            })
+            ->orderColumn('recurrence_label', 'expenses.recurrence $1')
+            ->orderColumn('spent_on', 'expenses.spent_on $1')
+            ->toJson();
+    }
+
     public function singleLessonPlans()
     {
         $driver = DB::connection()->getDriverName();

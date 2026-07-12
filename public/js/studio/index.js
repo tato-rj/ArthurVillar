@@ -29,7 +29,8 @@ var state = {
   rescheduleEndOptions: [],
   paymentTotalCounters: {},
   calendarFetchId: 0,
-  didAutoNowScroll: false
+  didAutoNowScroll: false,
+  birthdayWindow: 5
 };
 var studioTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/New_York';
 var monthFormatter = new Intl.DateTimeFormat('en', {
@@ -39,6 +40,10 @@ var monthFormatter = new Intl.DateTimeFormat('en', {
 });
 var shortMonthFormatter = new Intl.DateTimeFormat('en', {
   month: 'short',
+  timeZone: studioTimeZone
+});
+var birthdayMonthFormatter = new Intl.DateTimeFormat('en', {
+  month: 'long',
   timeZone: studioTimeZone
 });
 var dayFormatter = new Intl.DateTimeFormat('en', {
@@ -53,6 +58,7 @@ var calendarViews = ['schedule', 'day', '2-days', 'week', 'month'];
 var scheduleStart = '08:00';
 var scheduleEnd = '22:00';
 var sidebarHiddenQuery = '(max-width: 1000px)';
+var dayMilliseconds = 24 * 60 * 60 * 1000;
 var scheduleGridViews = ['day', '2-days', 'week'];
 var createLocalDate = function createLocalDate(year, month, day) {
   return new Date(year, month, day, 12, 0, 0, 0);
@@ -75,6 +81,10 @@ var isDateString = function isDateString(value) {
 };
 var isValidDate = function isValidDate(date) {
   return date instanceof Date && !Number.isNaN(date.getTime());
+};
+var normalizeBirthdayWindow = function normalizeBirthdayWindow(value) {
+  var windowDays = Number(value);
+  return Number.isFinite(windowDays) && windowDays >= 0 ? Math.floor(windowDays) : 5;
 };
 var parseUrlDate = function parseUrlDate(value) {
   if (!isDateString(value)) {
@@ -617,16 +627,41 @@ var getVisiblePaymentEvents = function getVisiblePaymentEvents() {
     return (event.lessonPlanId || event.singleLessonPlanId) && !event.isHoliday;
   });
 };
+var formatNameList = function formatNameList(names) {
+  if (!names.length) {
+    return '';
+  }
+  if (names.length === 1) {
+    return names[0];
+  }
+  if (names.length === 2) {
+    return "".concat(names[0], " and ").concat(names[1]);
+  }
+  return "".concat(names.slice(0, -1).join(', '), " and ").concat(names[names.length - 1]);
+};
+var renderCalendarBirthdayInsights = function renderCalendarBirthdayInsights(container, names) {
+  if (!container) {
+    return;
+  }
+  var label = container.querySelector('span');
+  var formattedNames = formatNameList(names);
+  container.style.display = formattedNames ? '' : 'none';
+  if (label) {
+    label.textContent = formattedNames;
+  }
+};
 var renderCalendarPaymentTotals = function renderCalendarPaymentTotals() {
   var expected = document.querySelector('[data-calendar-expected-payment]');
   var confirmed = document.querySelector('[data-calendar-confirmed-payment]');
   var lessonsCount = document.querySelector('[data-calendar-lessons-count]');
   var hoursCount = document.querySelector('[data-calendar-hours-count]');
   var averageHours = document.querySelector('[data-calendar-average-hours]');
-  if (!expected && !confirmed && !lessonsCount && !hoursCount && !averageHours) {
+  var birthdayInsights = document.getElementById('studio-calendar-insights-birthdays');
+  if (!expected && !confirmed && !lessonsCount && !hoursCount && !averageHours && !birthdayInsights) {
     return;
   }
-  var totals = getVisiblePaymentEvents().reduce(function (carry, event) {
+  var visiblePaymentEvents = getVisiblePaymentEvents();
+  var totals = visiblePaymentEvents.reduce(function (carry, event) {
     var feeAmount = getEventFeeAmount(event);
     if (event.lessonStatus !== 'canceled' && event.calendarStatus !== 'canceled') {
       carry.expected += feeAmount;
@@ -643,6 +678,18 @@ var renderCalendarPaymentTotals = function renderCalendarPaymentTotals() {
     lessons: 0,
     minutes: 0
   });
+  var birthdayNames = [];
+  var birthdayNameKeys = new Set();
+  visiblePaymentEvents.forEach(function (event) {
+    var name = event.studentFirstName || '';
+    var key = name.toLowerCase();
+    if (!name || !event.hasBirthdayNearEvent || birthdayNameKeys.has(key)) {
+      return;
+    }
+    birthdayNameKeys.add(key);
+    birthdayNames.push(name);
+  });
+  renderCalendarBirthdayInsights(birthdayInsights, birthdayNames);
   renderPaymentTotal('expected', expected, totals.expected);
   renderPaymentTotal('confirmed', confirmed, totals.confirmed);
   renderCountTotal('lessons', lessonsCount, totals.lessons, {
@@ -750,9 +797,10 @@ var patchScheduleItems = function patchScheduleItems(calendar) {
     var end = item.getAttribute('data-end');
     var duration = getTimeMinutes(end) - getTimeMinutes(start);
     var isShort = duration <= 30;
-    var event = getEventByGuid(item.id || item.dataset.eventGuid);
+    var event = getEventByScheduleItem(item);
     item.classList.toggle('is-short', isShort);
     item.setAttribute('data-display-time', isShort ? formatEventTime(start) : "".concat(formatEventTime(start), " - ").concat(formatEventTime(end)));
+    patchScheduleItemBirthdayIcon(item, event);
     if (event && event.calendarStatus) {
       item.setAttribute('data-lesson-status', event.calendarStatus);
     }
@@ -820,6 +868,20 @@ var getEventByGuid = function getEventByGuid(guid) {
   return state.events.find(function (event) {
     return event.guid === guid;
   }) || getTeachingBreakEventByGuid(guid);
+};
+var getEventByScheduleItem = function getEventByScheduleItem(item) {
+  var event = getEventByGuid(item.id || item.dataset.eventGuid);
+  if (event || !item) {
+    return event;
+  }
+  var cell = item.closest('td[data-date]');
+  var date = cell ? cell.dataset.date : '';
+  var start = normalizeTime(item.getAttribute('data-start') || '08:00');
+  var end = normalizeTime(item.getAttribute('data-end') || '08:15');
+  var title = item.getAttribute('data-title') || '';
+  return state.events.find(function (candidate) {
+    return candidate.date === date && candidate.start === start && candidate.end === end && candidate.title === title;
+  });
 };
 var getTeachingBreakEvent = function getTeachingBreakEvent(teachingBreak, dateString) {
   var impact = teachingBreak.impact || {};
@@ -996,6 +1058,8 @@ var populateLessonModal = function populateLessonModal(modal, event) {
   var date = modal.querySelector('#lesson-date');
   var time = modal.querySelector('#lesson-time');
   var recurrence = modal.querySelector('#lesson-recurrence');
+  var birthday = modal.querySelector('#lesson-birthday');
+  var birthdayLabel = birthday ? birthday.querySelector('span') : null;
   var meetingUrl = modal.querySelector('#meeting-url');
   var meetingUrlLink = meetingUrl ? meetingUrl.querySelector('a') : null;
   var notesUrl = modal.querySelector('#notes-url');
@@ -1028,6 +1092,15 @@ var populateLessonModal = function populateLessonModal(modal, event) {
   }
   if (recurrence) {
     recurrence.textContent = event && event.recurrence ? event.recurrence : '';
+  }
+  if (birthday && birthdayLabel) {
+    if (event && event.birthdayModalLabel) {
+      birthday.style.display = '';
+      birthdayLabel.textContent = event.birthdayModalLabel;
+    } else {
+      birthday.style.display = 'none';
+      birthdayLabel.textContent = '';
+    }
   }
   if (meetingUrl && meetingUrlLink) {
     if (event && event.meetingUrl) {
@@ -1804,6 +1877,113 @@ var getStudentName = function getStudentName(student) {
   }
   return [student.first_name, student.last_name].filter(Boolean).join(' ') || 'No title';
 };
+var getStudentFirstName = function getStudentFirstName(student) {
+  return student && student.first_name ? String(student.first_name).trim() : '';
+};
+var studentHasBirthdayInWeek = function studentHasBirthdayInWeek(student, dateString) {
+  if (!student || !student.date_of_birth || !isDateString(dateString)) {
+    return false;
+  }
+  var birthDate = parseNullableDateString(student.date_of_birth);
+  if (!birthDate) {
+    return false;
+  }
+  var eventDate = parseDateString(dateString);
+  var weekStart = startOfWeek(eventDate);
+  var weekEnd = addDays(weekStart, 6);
+  var years = Array.from(new Set([weekStart.getFullYear(), weekEnd.getFullYear()]));
+  return years.some(function (year) {
+    var birthday = createLocalDate(year, birthDate.getMonth(), birthDate.getDate());
+    return birthday >= weekStart && birthday <= weekEnd;
+  });
+};
+var getOrdinalSuffix = function getOrdinalSuffix(day) {
+  if (day >= 11 && day <= 13) {
+    return 'th';
+  }
+  switch (day % 10) {
+    case 1:
+      return 'st';
+    case 2:
+      return 'nd';
+    case 3:
+      return 'rd';
+    default:
+      return 'th';
+  }
+};
+var formatBirthdayModalDate = function formatBirthdayModalDate(date) {
+  return "".concat(birthdayMonthFormatter.format(date), " ").concat(date.getDate()).concat(getOrdinalSuffix(date.getDate()));
+};
+var getStudentBirthdayModalLabel = function getStudentBirthdayModalLabel(student, dateString) {
+  if (!student || !student.date_of_birth || !isDateString(dateString)) {
+    return '';
+  }
+  var birthDate = parseNullableDateString(student.date_of_birth);
+  if (!birthDate) {
+    return '';
+  }
+  var eventDate = parseDateString(dateString);
+  var years = [eventDate.getFullYear() - 1, eventDate.getFullYear(), eventDate.getFullYear() + 1];
+  var closestBirthday = null;
+  var closestDiff = null;
+  years.forEach(function (year) {
+    var birthday = createLocalDate(year, birthDate.getMonth(), birthDate.getDate());
+    var diff = Math.round((birthday.getTime() - eventDate.getTime()) / dayMilliseconds);
+    if (Math.abs(diff) <= state.birthdayWindow && (closestDiff === null || Math.abs(diff) < Math.abs(closestDiff))) {
+      closestBirthday = birthday;
+      closestDiff = diff;
+    }
+  });
+  if (!closestBirthday) {
+    return '';
+  }
+  if (closestDiff === 0) {
+    return 'today!';
+  }
+  if (closestDiff === -1) {
+    return 'yesterday!';
+  }
+  if (closestDiff === 1) {
+    return 'tomorrow!';
+  }
+  return "on ".concat(formatBirthdayModalDate(closestBirthday));
+};
+var studentHasBirthdayNearEvent = function studentHasBirthdayNearEvent(student, dateString) {
+  return Boolean(getStudentBirthdayModalLabel(student, dateString));
+};
+var createBirthdayIcon = function createBirthdayIcon() {
+  var icon = document.createElement('i');
+  icon.className = 'fa-solid fa-cake-candles studio-birthday-icon';
+  icon.setAttribute('aria-hidden', 'true');
+  return icon;
+};
+var renderEventTitle = function renderEventTitle(element, event, fallback) {
+  if (!element) {
+    return;
+  }
+  element.textContent = '';
+  if (event && event.hasBirthdayThisWeek && !event.isHoliday && !event.isBreak) {
+    element.appendChild(createBirthdayIcon());
+  }
+  element.appendChild(document.createTextNode(event && event.title || fallback || 'No title'));
+};
+var patchScheduleItemBirthdayIcon = function patchScheduleItemBirthdayIcon(item, event) {
+  if (!item) {
+    return;
+  }
+  Array.from(item.children).forEach(function (child) {
+    if (child.classList && child.classList.contains('studio-birthday-icon')) {
+      child.remove();
+    }
+  });
+  item.removeAttribute('data-birthday-this-week');
+  item.removeAttribute('data-birthday-title');
+  if (event && event.hasBirthdayThisWeek && !event.isHoliday && !event.isBreak) {
+    item.setAttribute('data-birthday-this-week', 'true');
+    item.setAttribute('data-birthday-title', event.title || item.getAttribute('data-title') || '');
+  }
+};
 var normalizeStudentSearch = function normalizeStudentSearch(value) {
   return String(value || '').trim().toLowerCase();
 };
@@ -1869,7 +2049,11 @@ var getPlannedLessonEvents = function getPlannedLessonEvents(range) {
           lessonEditUrl: occurrence.lesson_edit_url || '',
           paymentUrl: occurrence.lesson_payment_url || occurrence.payment_url || '',
           meetingUrl: occurrence.meeting_url || lesson.meeting_url || '',
-          notesUrl: occurrence.notes_url || lesson.notes_url || ''
+          notesUrl: occurrence.notes_url || lesson.notes_url || '',
+          studentFirstName: getStudentFirstName(lesson.student),
+          hasBirthdayThisWeek: studentHasBirthdayInWeek(lesson.student, dateString),
+          hasBirthdayNearEvent: studentHasBirthdayNearEvent(lesson.student, dateString),
+          birthdayModalLabel: getStudentBirthdayModalLabel(lesson.student, dateString)
         });
       });
       return;
@@ -1922,7 +2106,11 @@ var getPlannedLessonEvents = function getPlannedLessonEvents(range) {
         lessonEditUrl: getLessonEditUrl(confirmedLesson),
         paymentUrl: getLessonPaymentUrl(confirmedLesson),
         meetingUrl: lesson.meeting_url || '',
-        notesUrl: lesson.notes_url || ''
+        notesUrl: lesson.notes_url || '',
+        studentFirstName: getStudentFirstName(lesson.student),
+        hasBirthdayThisWeek: studentHasBirthdayInWeek(lesson.student, dateString),
+        hasBirthdayNearEvent: studentHasBirthdayNearEvent(lesson.student, dateString),
+        birthdayModalLabel: getStudentBirthdayModalLabel(lesson.student, dateString)
       });
       occurrence = addDays(occurrence, intervalDays);
     }
@@ -1991,7 +2179,7 @@ var createMonthEventElement = function createMonthEventElement(event, dateString
   applyCalendarItemStatusAttributes(item, event, dateString);
   applyCalendarItemStatusAttributes(dot, event, dateString);
   time.textContent = event.isHoliday || event.isBreak ? '' : formatEventTime(event.start);
-  title.textContent = event.title || 'No title';
+  renderEventTitle(title, event, 'No title');
   if (!event.isHoliday && !event.isBreak) {
     item.appendChild(dot);
     item.appendChild(time);
@@ -2158,7 +2346,7 @@ var renderScheduleAgenda = function renderScheduleAgenda(calendar) {
       var title = document.createElement('span');
       item.className = event.isHoliday ? 'studio-schedule-event studio-schedule-event-holiday' : event.isBreak ? 'studio-schedule-event studio-schedule-event-break' : 'studio-schedule-event';
       title.className = 'studio-schedule-event-title';
-      title.textContent = event.title || 'No title';
+      renderEventTitle(title, event, 'No title');
       item.dataset.eventGuid = event.guid || '';
       item.dataset.lessonStatus = event.isHoliday ? 'holiday' : event.isBreak ? 'teaching-break' : event.calendarStatus || event.lessonStatus || 'unconfirmed';
       applyCalendarItemStatusAttributes(item, event, dateString);
@@ -2556,6 +2744,7 @@ document.addEventListener('DOMContentLoaded', function () {
   state.teachingBreaks = Array.isArray(window.studioTeachingBreaks) ? window.studioTeachingBreaks : [];
   state.locations = Array.isArray(window.studioLocations) ? window.studioLocations : [];
   state.loadedRange = normalizeRange(window.studioCalendarRange);
+  state.birthdayWindow = normalizeBirthdayWindow(window.studioBirthdayWindow);
   var urlState = getUrlState();
   state.view = urlState.view;
   if (isValidDate(urlState.date)) {
@@ -3171,7 +3360,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     e.preventDefault();
     e.stopPropagation();
-    var event = getEventByGuid(item.id || item.dataset.eventGuid);
+    var event = item.classList.contains('lm-schedule-item') ? getEventByScheduleItem(item) : getEventByGuid(item.id || item.dataset.eventGuid);
     if (event && event.isBreak) {
       openTeachingBreakModal(event);
       return;
