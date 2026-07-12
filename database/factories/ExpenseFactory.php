@@ -18,11 +18,16 @@ class ExpenseFactory extends Factory
     {
         $recurrence = $this->faker->randomElement([null, 'weekly', 'monthly']);
 
+        $startsOn = $recurrence
+            ? $this->faker->optional()->date()
+            : $this->faker->date();
+
         return [
             'name' => $this->faker->words(2, true),
             'amount' => $this->faker->numberBetween(10, 500) * 100,
             'recurrence' => $recurrence,
-            'spent_on' => $recurrence ? null : $this->faker->date(),
+            'starts_on' => $startsOn,
+            'ends_on' => $startsOn ? $this->faker->optional()->dateTimeBetween($startsOn, '+1 year')->format('Y-m-d') : null,
             'notes' => $this->faker->optional()->sentence(),
         ];
     }

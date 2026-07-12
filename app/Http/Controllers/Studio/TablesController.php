@@ -34,15 +34,21 @@ class TablesController extends Controller
                 'expenses.name',
                 'expenses.amount',
                 'expenses.recurrence',
-                'expenses.spent_on',
+                'expenses.starts_on',
+                'expenses.ends_on',
                 'expenses.notes',
                 DB::raw("$recurrenceExpression as recurrence_label"),
             ]);
 
         return DataTables::eloquent($expenses)
-            ->editColumn('spent_on', function (Expense $expense) {
-                return $expense->spent_on
-                    ? $expense->spent_on->toDateString()
+            ->editColumn('starts_on', function (Expense $expense) {
+                return $expense->starts_on
+                    ? $expense->starts_on->toDateString()
+                    : null;
+            })
+            ->editColumn('ends_on', function (Expense $expense) {
+                return $expense->ends_on
+                    ? $expense->ends_on->toDateString()
                     : null;
             })
             ->filterColumn('amount', function ($query, $keyword) use ($amountSearchExpression, $amountCastExpression, $amountCentsCastExpression) {
@@ -61,7 +67,8 @@ class TablesController extends Controller
                 $query->whereRaw("$recurrenceExpression LIKE ?", ["%{$keyword}%"]);
             })
             ->orderColumn('recurrence_label', 'expenses.recurrence $1')
-            ->orderColumn('spent_on', 'expenses.spent_on $1')
+            ->orderColumn('starts_on', 'expenses.starts_on $1')
+            ->orderColumn('ends_on', 'expenses.ends_on $1')
             ->toJson();
     }
 

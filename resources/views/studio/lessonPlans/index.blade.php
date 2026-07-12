@@ -353,12 +353,12 @@ $(function() {
     });
 
     $('#lesson-plans-starts-from, #lesson-plans-starts-to').on('change', function() {
-        lessonPlansTable.ajax.reload();
+        lessonPlansTable.ajax.reload(null, true);
     });
 
     $('#lesson-plans-clear-dates').on('click', function() {
         $('#lesson-plans-starts-from, #lesson-plans-starts-to').val('');
-        lessonPlansTable.ajax.reload();
+        lessonPlansTable.ajax.reload(null, true);
     });
 
     $('#lesson-plans-table').on('click', '.js-duplicate-lesson-plan', function() {

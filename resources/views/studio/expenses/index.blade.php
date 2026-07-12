@@ -24,7 +24,8 @@
                     <th>Name</th>
                     <th>Amount</th>
                     <th>Repeats</th>
-                    <th>Date</th>
+                    <th>Starts on</th>
+                    <th>Ends on</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -41,14 +42,13 @@
 @include('studio.tables.state')
 <script>
 $(function() {
-    const formatDate = function(value) {
+    const formatMonth = function(value) {
         if (!value) {
             return '';
         }
 
         return new Intl.DateTimeFormat('en-US', {
-            month: 'short',
-            day: 'numeric',
+            month: 'long',
             year: 'numeric',
         }).format(new Date(`${value}T00:00:00`));
     };
@@ -109,14 +109,25 @@ $(function() {
             },
             {data: 'recurrence_label', name: 'recurrence_label'},
             {
-                data: 'spent_on',
-                name: 'spent_on',
+                data: 'starts_on',
+                name: 'starts_on',
                 render: function(data, type) {
                     if (type === 'sort' || type === 'type') {
                         return data || '';
                     }
 
-                    return formatDate(data);
+                    return formatMonth(data);
+                },
+            },
+            {
+                data: 'ends_on',
+                name: 'ends_on',
+                render: function(data, type) {
+                    if (type === 'sort' || type === 'type') {
+                        return data || '';
+                    }
+
+                    return formatMonth(data);
                 },
             },
             {

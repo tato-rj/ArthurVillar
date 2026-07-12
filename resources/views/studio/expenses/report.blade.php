@@ -18,7 +18,7 @@
         ])
     </div>
 
-    <form method="GET" class="studio-table-filters mb-3">
+    <form method="GET" class="studio-table-filters mb-3" id="financial-report-filters">
         <label>
             <span>From</span>
             <input type="month" name="starts_from" value="{{$startsFrom->format('Y-m')}}">
@@ -27,7 +27,6 @@
             <span>To</span>
             <input type="month" name="starts_to" value="{{$startsTo->format('Y-m')}}">
         </label>
-        <button type="submit" class="btn btn-sm btn-primary rounded">Apply</button>
         <a href="{{route('studio.expenses.report')}}" class="btn btn-sm btn-secondary rounded">Clear</a>
     </form>
 
@@ -59,3 +58,21 @@
     </div>
 </section>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const filters = document.getElementById('financial-report-filters');
+
+    if (!filters) {
+        return;
+    }
+
+    filters.querySelectorAll('input[type="month"]').forEach(function(input) {
+        input.addEventListener('change', function() {
+            filters.submit();
+        });
+    });
+});
+</script>
+@endpush

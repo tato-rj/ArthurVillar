@@ -31526,7 +31526,8 @@ mark, .mark {
   margin: 0;
   text-transform: uppercase;
 }
-.studio-table-filters input[type=date] {
+.studio-table-filters input[type=date],
+.studio-table-filters input[type=month] {
   background-color: #fff;
   border: 1px solid #dfe3ea;
   border-radius: 6px;

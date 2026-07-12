@@ -31274,7 +31274,8 @@ body {
   --lm-background-color-header: rgba(254, 247, 210);
 }
 
-input[type=date] {
+input[type=date],
+input[type=month] {
   text-align: left;
 }
 

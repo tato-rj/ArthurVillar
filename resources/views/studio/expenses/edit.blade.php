@@ -19,13 +19,23 @@
 		<option value="monthly" {{iftrue($expense->recurrence === 'monthly', 'selected')}}>Monthly</option>
 	@endselect
 
-	@input([
-		'label' => 'Date',
-		'name' => 'spent_on',
-		'type' => 'date',
-		'value' => optional($expense->spent_on)->toDateString(),
-		'info' => 'Use this only for one-time expenses.'
-	])
+	<div class="row">
+		@input([
+			'label' => 'Starts on',
+			'name' => 'starts_on',
+			'type' => 'month',
+			'value' => optional($expense->starts_on)->format('Y-m'),
+			'grid' => 'col'
+		])
+
+		@input([
+			'label' => 'Ends on',
+			'name' => 'ends_on',
+			'type' => 'month',
+			'value' => optional($expense->ends_on)->format('Y-m'),
+			'grid' => 'col'
+		])
+	</div>
 
 	@textarea(['label' => 'Notes', 'name' => 'notes', 'value' => $expense->notes, 'rows' => 4])
 

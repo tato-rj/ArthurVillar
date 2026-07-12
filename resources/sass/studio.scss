@@ -4,7 +4,8 @@
   --lm-background-color-header: rgba(254, 247, 210);
 }
 
-input[type="date"] {text-align: left;}
+input[type="date"],
+input[type="month"] {text-align: left;}
 td {white-space: nowrap;}
 
 .studio-calendar {

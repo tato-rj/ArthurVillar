@@ -19,11 +19,13 @@ return new class extends Migration
             $table->decimal('amount', 8, 2);
             $table->string('recurrence')->nullable();
             // weekly, monthly, or null for one-time expenses.
-            $table->date('spent_on')->nullable();
+            $table->date('starts_on')->nullable();
+            $table->date('ends_on')->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();
 
-            $table->index(['recurrence', 'spent_on']);
+            $table->index('recurrence');
+            $table->index(['starts_on', 'ends_on']);
         });
     }
 

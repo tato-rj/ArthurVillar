@@ -73,13 +73,22 @@ class ExpensesController extends Controller
 
     private function validatedExpense(Request $request)
     {
-        return $request->validate([
+        $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'amount' => ['required', 'string'],
             'recurrence' => ['nullable', Rule::in(array_keys(Expense::RECURRENCES))],
-            'spent_on' => ['nullable', 'date', 'required_without:recurrence'],
+            'starts_on' => ['nullable', 'date_format:Y-m', 'required_without:recurrence'],
+            'ends_on' => ['nullable', 'date_format:Y-m'],
             'notes' => ['nullable', 'string'],
         ]);
+
+        if (! empty($data['starts_on']) && ! empty($data['ends_on']) && $data['ends_on'] < $data['starts_on']) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'ends_on' => 'The ends on month must be after or equal to the starts on month.',
+            ]);
+        }
+
+        return $data;
     }
 
     private function expenseAttributes(array $data)
@@ -88,7 +97,8 @@ class ExpensesController extends Controller
             'name' => $data['name'],
             'amount' => $this->amount($data['amount']),
             'recurrence' => $data['recurrence'] ?? null,
-            'spent_on' => empty($data['recurrence']) ? ($data['spent_on'] ?? null) : null,
+            'starts_on' => $this->monthStart($data['starts_on'] ?? null),
+            'ends_on' => $this->monthEnd($data['ends_on'] ?? null),
             'notes' => $data['notes'] ?? null,
         ];
     }
@@ -98,6 +108,20 @@ class ExpensesController extends Controller
         $value = preg_replace('/[^0-9]/', '', (string) $value);
 
         return $value === '' ? null : ((int) $value) * 100;
+    }
+
+    private function monthStart($value)
+    {
+        return $value
+            ? Carbon::createFromFormat('Y-m', $value)->startOfMonth()->toDateString()
+            : null;
+    }
+
+    private function monthEnd($value)
+    {
+        return $value
+            ? Carbon::createFromFormat('Y-m', $value)->endOfMonth()->toDateString()
+            : null;
     }
 
     private function expectedIncome(Scheduler $scheduler, array $range)
@@ -132,14 +156,16 @@ class ExpensesController extends Controller
     {
         $oneTime = Expense::query()
             ->whereNull('recurrence')
-            ->whereDate('spent_on', '>=', $start->toDateString())
-            ->whereDate('spent_on', '<=', $end->toDateString())
+            ->whereDate('starts_on', '>=', $start->toDateString())
+            ->whereDate('starts_on', '<=', $end->toDateString())
             ->sum('amount');
         $monthly = Expense::query()
             ->where('recurrence', 'monthly')
+            ->activeDuring($start, $end)
             ->sum('amount');
         $weeklyAverage = Expense::query()
             ->where('recurrence', 'weekly')
+            ->activeDuring($start, $end)
             ->sum('amount') * 52 / 12;
 
         return (int) round($oneTime + $monthly + $weeklyAverage);

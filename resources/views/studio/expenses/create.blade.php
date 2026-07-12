@@ -18,13 +18,23 @@
 		<option value="monthly" {{iftrue(old('recurrence') === 'monthly', 'selected')}}>Monthly</option>
 	@endselect
 
-	@input([
-		'placeholder' => 'Date',
-		'name' => 'spent_on',
-		'type' => 'date',
-		'value' => old('spent_on'),
-		'info' => 'Use this only for one-time expenses.'
-	])
+	<div class="row">
+		@input([
+			'placeholder' => 'Starts on',
+			'name' => 'starts_on',
+			'type' => 'month',
+			'value' => old('starts_on'),
+			'grid' => 'col'
+		])
+
+		@input([
+			'placeholder' => 'Ends on',
+			'name' => 'ends_on',
+			'type' => 'month',
+			'value' => old('ends_on'),
+			'grid' => 'col'
+		])
+	</div>
 
 	@textarea(['label' => 'Notes', 'name' => 'notes', 'value' => old('notes'), 'rows' => 4])
 

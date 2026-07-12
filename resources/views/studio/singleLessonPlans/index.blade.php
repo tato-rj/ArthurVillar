@@ -285,12 +285,12 @@ $(function() {
     });
 
     $('#single-lesson-plans-scheduled-from, #single-lesson-plans-scheduled-to').on('change', function() {
-        singleLessonPlansTable.ajax.reload();
+        singleLessonPlansTable.ajax.reload(null, true);
     });
 
     $('#single-lesson-plans-clear-dates').on('click', function() {
         $('#single-lesson-plans-scheduled-from, #single-lesson-plans-scheduled-to').val('');
-        singleLessonPlansTable.ajax.reload();
+        singleLessonPlansTable.ajax.reload(null, true);
     });
 
     $('#single-lesson-plans-table').on('click', '.js-edit-single-lesson-plan', function() {
