@@ -45,7 +45,7 @@
                 aria-expanded="false"
                 aria-controls="{{ $collapseId }}"
             >
-                {{ $item['label'] }}
+                {{ str_replace('*', '', $item['label']) }}
             </a>
 
             <ul
@@ -64,6 +64,10 @@
                 @endforeach
             </ul>
         </li>
+
+        @if(str_contains($item['label'], '*'))
+            <hr>
+        @endif
 
         @continue
     @endif
