@@ -81,12 +81,13 @@ $(function() {
                 orderable: false,
                 searchable: false,
                 className: 'text-right',
-                render: function(data) {
+                render: function(data, type, row) {
                     const editUrl = @json(route('studio.venues.edit', ['venue' => '__venue__'])).replace('__venue__', data);
                     const deleteUrl = @json(route('studio.venues.destroy', ['venue' => '__venue__'])).replace('__venue__', data);
 
                     return `
                         <div class="studio-table-actions">
+                            <a target="_blank" rel="noopener noreferrer" href="${row.google_maps_url}" class="btn btn-sm btn-secondary rounded">@fa(['icon' => 'location-dot', 'mr' => 0])</a>
                             <button type="button" class="btn btn-sm btn-warning rounded js-edit-venue" data-url="${editUrl}">@fa(['icon' => 'pen-to-square', 'mr' => 0])</button>
                             <form method="POST" action="${deleteUrl}" confirm>
                                 @csrf

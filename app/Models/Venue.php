@@ -25,4 +25,11 @@ class Venue extends Model
             $this->postal_code,
         ])->filter()->implode(', ');
     }
+
+    public function googleMapsUrl()
+    {
+        $query = $this->full_address ?: $this->name;
+
+        return 'https://www.google.com/maps/search/?api=1&query='.rawurlencode($query);
+    }
 }

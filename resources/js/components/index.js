@@ -1,1 +1,2 @@
 require('./alerts');
+require('./form');
