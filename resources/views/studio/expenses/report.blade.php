@@ -57,9 +57,7 @@
                     <th>Month</th>
                     <th>Total expenses</th>
                     <th>Expected income</th>
-                    <th>Confirmed income</th>
                     <th>Expected net</th>
-                    <th>Confirmed net</th>
                 </tr>
             </thead>
             <tbody>
@@ -68,9 +66,7 @@
                         <td>{{$month['month']}}</td>
                         <td>{{$money($month['expenses'])}}</td>
                         <td>{{$money($month['expected_income'])}}</td>
-                        <td>{{$money($month['confirmed_income'])}}</td>
                         <td class="{{$month['expected_net'] < 0 ? 'text-red' : 'text-green'}}">{{$money($month['expected_net'])}}</td>
-                        <td class="{{is_null($month['confirmed_net']) ? '' : ($month['confirmed_net'] < 0 ? 'text-red' : 'text-green')}}">{{$money($month['confirmed_net'])}}</td>
                     </tr>
                 @endforeach
             </tbody>

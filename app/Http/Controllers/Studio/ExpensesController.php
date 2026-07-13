@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Studio;
 
 use Carbon\Carbon;
-use App\Models\{Expense, Lesson, Location};
+use App\Models\{Expense, Location};
 use App\Calendar\Scheduler;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -30,17 +30,13 @@ class ExpensesController extends Controller
                 'end' => $end->toDateString(),
             ];
             $expectedIncome = $this->expectedIncome($scheduler, $range, $simulation);
-            $confirmedIncome = $this->confirmedIncome($start, $end);
             $expenses = $this->expensesForMonth($start, $end);
-            $isFinished = $end->lt(today()->startOfDay());
 
             return [
                 'month' => $start->format('F Y'),
                 'expenses' => $expenses,
                 'expected_income' => $expectedIncome,
-                'confirmed_income' => $confirmedIncome,
                 'expected_net' => $expectedIncome - $expenses,
-                'confirmed_net' => $isFinished ? $confirmedIncome - $expenses : null,
             ];
         });
         $averageIncome = (int) round($months->avg('expected_income') ?? 0);
@@ -178,16 +174,6 @@ class ExpensesController extends Controller
         }
 
         return 1 + ($simulation[$locationId] / 100);
-    }
-
-    private function confirmedIncome(Carbon $start, Carbon $end)
-    {
-        return (int) Lesson::query()
-            ->whereNull('canceled_at')
-            ->whereNotNull('paid_at')
-            ->whereDate('starts_at', '>=', $start->toDateString())
-            ->whereDate('starts_at', '<=', $end->toDateString())
-            ->sum('fee_amount');
     }
 
     private function expensesForMonth(Carbon $start, Carbon $end)
