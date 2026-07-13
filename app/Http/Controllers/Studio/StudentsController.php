@@ -40,6 +40,17 @@ class StudentsController extends Controller
         return view('studio.students.edit', compact('student'));
     }
 
+    public function missedLessons(Student $student)
+    {
+        $lessonPlan = $student->currentLessonPlan();
+
+        abort_unless($lessonPlan, 404);
+
+        $missedDates = $lessonPlan->missedLessonDates();
+
+        return view('studio.students.missed-lessons', compact('student', 'lessonPlan', 'missedDates'));
+    }
+
     private function validateStudent(Request $request)
     {
         return $request->validate([

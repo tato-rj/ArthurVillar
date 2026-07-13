@@ -14,6 +14,8 @@ Route::prefix('students')->name('students.')->group(function() {
 	Route::post('', 'StudentsController@store')->name('store');
 
 	Route::prefix('{student}')->group(function() {
+		Route::get('missed-lessons', 'StudentsController@missedLessons')->name('missed-lessons');
+
 		Route::get('edit', 'StudentsController@edit')->name('edit');
 
 		Route::patch('', 'StudentsController@update')->name('update');

@@ -168,6 +168,71 @@ class LessonPlan extends BaseModel
         return $count;
     }
 
+    public function missedLessonDates(Carbon $from = null)
+    {
+        if (! $this->starts_on || ! $this->ends_on) {
+            return collect();
+        }
+
+        $start = Carbon::parse($this->starts_on)->startOfDay();
+        $from = ($from ?: today())->copy()->startOfDay();
+        $start = $start->max($from);
+        $end = Carbon::parse($this->ends_on)->startOfDay();
+
+        if ($end->lt($start)) {
+            return collect();
+        }
+
+        $missedDates = collect();
+        $addMissedDate = function (Carbon $date, $type, $title) use ($missedDates, $start, $end) {
+            if (! $date->betweenIncluded($start, $end) || ! $this->occursOn($date)) {
+                return;
+            }
+
+            $key = $date->toDateString();
+            $missedDate = $missedDates->get($key, [
+                'date' => $key,
+                'reasons' => [],
+            ]);
+            $missedDate['reasons'][] = [
+                'type' => $type,
+                'title' => $title,
+            ];
+            $missedDate['reasons'] = collect($missedDate['reasons'])
+                ->unique(fn ($reason) => $reason['type'].'|'.$reason['title'])
+                ->values()
+                ->all();
+
+            $missedDates->put($key, $missedDate);
+        };
+
+        TeachingBreak::query()
+            ->with('locations')
+            ->overlapping($start->toDateString(), $end->toDateString())
+            ->get()
+            ->each(function (TeachingBreak $teachingBreak) use ($addMissedDate, $start, $end) {
+                if (! $teachingBreak->appliesToLocation($this->location_id)) {
+                    return;
+                }
+
+                $date = $teachingBreak->starts_on->copy()->max($start)->startOfDay();
+                $breakEnd = $teachingBreak->ends_on->copy()->min($end)->startOfDay();
+
+                while ($date->lte($breakEnd)) {
+                    $addMissedDate($date->copy(), 'break', $teachingBreak->title);
+                    $date->addDay();
+                }
+            });
+
+        for ($year = $start->year - 1; $year <= $end->year + 1; $year++) {
+            foreach ($this->nationalHolidays($year) as $holiday) {
+                $addMissedDate($holiday['date'], 'holiday', $holiday['title']);
+            }
+        }
+
+        return $missedDates->sortKeys()->values();
+    }
+
     public function carbonWeekday()
     {
         return static::toCarbonWeekday($this->weekday);

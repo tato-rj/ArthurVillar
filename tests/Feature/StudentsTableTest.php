@@ -2,11 +2,84 @@
 
 namespace Tests\Feature;
 
-use App\Models\Student;
+use Carbon\Carbon;
+use App\Models\{Holiday, LessonPlan, Location, Student, TeachingBreak};
 use Tests\BaseTest;
 
 class StudentsTableTest extends BaseTest
 {
+    /** @test */
+    public function it_identifies_students_with_a_current_lesson_plan_for_the_actions_column()
+    {
+        Carbon::setTestNow('2026-07-01 12:00:00');
+
+        $scheduledStudent = Student::factory()->create(['first_name' => 'Scheduled']);
+        $unscheduledStudent = Student::factory()->create(['first_name' => 'Unscheduled']);
+        LessonPlan::factory()->student($scheduledStudent)->create([
+            'weekday' => 4,
+            'starts_on' => '2026-07-01',
+            'ends_on' => '2026-07-31',
+        ]);
+        $this->signIn();
+
+        $rows = collect($this->getJson(route('studio.tables.students'))->assertOk()->json('data'));
+
+        $this->assertTrue($rows->firstWhere('id', $scheduledStudent->id)['has_current_lesson_plan']);
+        $this->assertFalse($rows->firstWhere('id', $unscheduledStudent->id)['has_current_lesson_plan']);
+
+        Carbon::setTestNow();
+    }
+
+    /** @test */
+    public function it_lists_future_lesson_dates_missed_for_holidays_and_applicable_breaks()
+    {
+        Carbon::setTestNow('2026-07-01 12:00:00');
+
+        $location = Location::factory()->create();
+        $otherLocation = Location::factory()->create();
+        $student = Student::factory()->create(['first_name' => 'Nora', 'last_name' => 'Stone']);
+        LessonPlan::factory()->student($student)->create([
+            'location_id' => $location->id,
+            'weekday' => 4,
+            'start_time' => '15:30',
+            'starts_on' => '2026-07-01',
+            'ends_on' => '2026-07-31',
+            'recurrence_interval' => 1,
+        ]);
+        Holiday::factory()->fixed(7, 8)->create([
+            'title' => 'Summer Holiday',
+            'observes_substitute_date' => false,
+        ]);
+        Holiday::factory()->fixed(7, 9)->create([
+            'title' => 'Thursday Holiday',
+            'observes_substitute_date' => false,
+        ]);
+        TeachingBreak::factory()->create([
+            'title' => 'Studio Vacation',
+            'starts_on' => '2026-07-15',
+            'ends_on' => '2026-07-15',
+        ]);
+        $otherBreak = TeachingBreak::factory()->create([
+            'title' => 'Other Location Break',
+            'starts_on' => '2026-07-22',
+            'ends_on' => '2026-07-22',
+        ]);
+        $otherBreak->locations()->attach($otherLocation);
+        $this->signIn();
+
+        $this->get(route('studio.students.missed-lessons', $student))
+            ->assertOk()
+            ->assertSee('Nora Stone missed lessons')
+            ->assertSee('Wednesday, July 8, 2026')
+            ->assertSee('Holiday: Summer Holiday')
+            ->assertSee('Wednesday, July 15, 2026')
+            ->assertSee('Break: Studio Vacation')
+            ->assertDontSee('Thursday Holiday')
+            ->assertDontSee('Other Location Break');
+
+        Carbon::setTestNow();
+    }
+
     /** @test */
     public function it_requires_a_valid_gender_when_creating_a_student()
     {

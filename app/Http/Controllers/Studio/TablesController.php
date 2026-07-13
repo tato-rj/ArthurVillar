@@ -755,6 +755,7 @@ class TablesController extends Controller
         $driver = DB::connection()->getDriverName();
 
         $students = Student::query()
+            ->with('lessonPlans')
             ->leftJoin('locations', 'locations.id', '=', 'students.location_id')
             ->select([
                 'students.id',
@@ -777,6 +778,9 @@ class TablesController extends Controller
             })
             ->addColumn('age', function (Student $student) {
                 return $student->age;
+            })
+            ->addColumn('has_current_lesson_plan', function (Student $student) {
+                return (bool) $student->currentLessonPlan();
             })
             ->filterColumn('age', function ($query, $keyword) use ($driver) {
                 $numericKeyword = preg_replace('/[^0-9]/', '', $keyword);

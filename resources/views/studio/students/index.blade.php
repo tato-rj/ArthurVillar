@@ -33,6 +33,7 @@
     </div>
 </section>
 @include('studio.students.create')
+<div id="student-missed-lessons-modal-container"></div>
 <div id="edit-student-modal-container"></div>
 @endsection
 
@@ -41,6 +42,17 @@
 @include('studio.tables.state')
 <script>
 $(function() {
+    const showModal = function(modal) {
+        if (window.bootstrap && window.bootstrap.Modal && typeof window.bootstrap.Modal.getOrCreateInstance === 'function') {
+            window.bootstrap.Modal.getOrCreateInstance(modal).show();
+            return;
+        }
+
+        if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
+            window.jQuery(modal).modal('show');
+        }
+    };
+
     const capitalize = function(value) {
         value = String(value || '');
 
@@ -98,12 +110,17 @@ $(function() {
                 orderable: false,
                 searchable: false,
                 className: 'text-right',
-                render: function(data) {
+                render: function(data, type, row) {
                     const deleteUrl = @json(route('studio.students.destroy', ['student' => '__student__'])).replace('__student__', data);
                     const editUrl = @json(route('studio.students.edit', ['student' => '__student__'])).replace('__student__', data);
+                    const missedLessonsUrl = @json(route('studio.students.missed-lessons', ['student' => '__student__'])).replace('__student__', data);
+                    const missedLessonsButton = row.has_current_lesson_plan
+                        ? `<button type="button" class="btn btn-sm btn-secondary rounded js-student-missed-lessons" data-url="${missedLessonsUrl}">@fa(['icon' => 'calendar-day', 'mr' => 0])</button>`
+                        : '';
 
                     return `
                         <div class="studio-table-actions">
+                            ${missedLessonsButton}
                             <button type="button" class="btn btn-sm btn-warning rounded js-edit-student" data-url="${editUrl}">@fa(['icon' => 'pen-to-square', 'mr' => 0])</button>
                             <form method="POST" action="${deleteUrl}" confirm>
                                 @csrf
@@ -115,6 +132,28 @@ $(function() {
                 },
             },
         ],
+    });
+
+    $('#students-table').on('click', '.js-student-missed-lessons', function() {
+        fetch($(this).data('url'), {
+            headers: {
+                Accept: 'text/html',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        })
+            .then(function(response) {
+                if (!response.ok) {
+                    throw new Error('Unable to load missed lessons.');
+                }
+
+                return response.text();
+            })
+            .then(function(html) {
+                const container = document.getElementById('student-missed-lessons-modal-container');
+                container.innerHTML = html;
+                showModal(container.querySelector('.modal'));
+            })
+            .catch(console.error);
     });
 
     $('#students-table').on('click', '.js-edit-student', function() {
@@ -144,14 +183,7 @@ $(function() {
 
                 const modal = container.find('.modal').get(0);
 
-                if (window.bootstrap && window.bootstrap.Modal && typeof window.bootstrap.Modal.getOrCreateInstance === 'function') {
-                    window.bootstrap.Modal.getOrCreateInstance(modal).show();
-                    return;
-                }
-
-                if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
-                    window.jQuery(modal).modal('show');
-                }
+                showModal(modal);
             })
             .catch(function(error) {
                 console.error(error);
