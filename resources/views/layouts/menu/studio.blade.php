@@ -19,7 +19,7 @@
     'studio.waiting-list.index' => 'Waiting list*',
     'studio.recitals.index' => 'Recitals',
     [
-      'label' => 'Locations',
+      'label' => 'Locations*',
       'children' => [
           'studio.locations.index' => 'Studios',
           'studio.venues.index' => 'Venues'

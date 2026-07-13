@@ -1,4 +1,4 @@
-@extends('layouts.app', ['title' => 'Studio Locations'])
+@extends('layouts.app', ['title' => 'Locations'])
 
 @push('header')
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
