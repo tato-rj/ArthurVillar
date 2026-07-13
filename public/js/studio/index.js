@@ -17,6 +17,7 @@ var state = {
   visibleEventsByDate: null,
   holidays: [],
   teachingBreaks: [],
+  recitals: [],
   studentSearch: '',
   loadedRange: null,
   pendingRangeKey: null,
@@ -234,6 +235,7 @@ var fetchPlannedLessons = function fetchPlannedLessons(range) {
     state.singleLessonPlans = Array.isArray(payload.singleLessonPlans) ? payload.singleLessonPlans : [];
     state.holidays = Array.isArray(payload.holidays) ? payload.holidays : [];
     state.teachingBreaks = Array.isArray(payload.teachingBreaks) ? payload.teachingBreaks : [];
+    state.recitals = Array.isArray(payload.recitals) ? payload.recitals : [];
     state.loadedRange = normalizeRange(payload.calendarRange) || normalizedRange;
   })["catch"](function (error) {
     if (fetchId !== state.calendarFetchId) {
@@ -761,6 +763,14 @@ var getBreaksForDateString = function getBreaksForDateString(dateString) {
 var getBreaksForDate = function getBreaksForDate(date) {
   return getBreaksForDateString(toDateString(date));
 };
+var getRecitalsForDateString = function getRecitalsForDateString(dateString) {
+  return state.recitals.filter(function (recital) {
+    return String(recital.date || '').substring(0, 10) === dateString;
+  });
+};
+var getRecitalsForDate = function getRecitalsForDate(date) {
+  return getRecitalsForDateString(toDateString(date));
+};
 var eventTimeFormatter = new Intl.DateTimeFormat('en', {
   hour: 'numeric',
   minute: '2-digit',
@@ -823,7 +833,7 @@ var patchScheduleHolidays = function patchScheduleHolidays(calendar) {
   var visibleDates = getVisibleScheduleDates();
   var visibleDateStrings = visibleDates.map(toDateString);
   var hasBanner = visibleDates.some(function (date) {
-    return getHolidaysForDate(date).length > 0 || getBreaksForDate(date).length > 0;
+    return getHolidaysForDate(date).length > 0 || getBreaksForDate(date).length > 0 || getRecitalsForDate(date).length > 0;
   });
   if (!hasBanner) {
     return;
@@ -839,6 +849,7 @@ var patchScheduleHolidays = function patchScheduleHolidays(calendar) {
     var isVisible = state.view !== '2-days' || visibleDateStrings.includes(dateString);
     var holidays = isVisible ? getHolidaysForDate(date) : [];
     var teachingBreaks = isVisible ? getBreaksForDate(date) : [];
+    var recitals = isVisible ? getRecitalsForDate(date) : [];
     cell.className = 'studio-schedule-holiday-cell';
     cell.dataset.date = dateString;
     cell.dataset.realDate = dateString;
@@ -860,6 +871,15 @@ var patchScheduleHolidays = function patchScheduleHolidays(calendar) {
       applyDateStatusAttributes(item, dateString);
       cell.appendChild(item);
     });
+    recitals.forEach(function (recital) {
+      var item = document.createElement('button');
+      item.type = 'button';
+      item.className = 'studio-schedule-holiday studio-schedule-recital';
+      item.textContent = "".concat(formatEventTime(recital.start_time), " ").concat(recital.name);
+      item.dataset.eventGuid = "recital-".concat(recital.id, "-").concat(dateString);
+      applyDateStatusAttributes(item, dateString);
+      cell.appendChild(item);
+    });
     row.appendChild(cell);
   });
   thead.appendChild(row);
@@ -867,7 +887,7 @@ var patchScheduleHolidays = function patchScheduleHolidays(calendar) {
 var getEventByGuid = function getEventByGuid(guid) {
   return state.events.find(function (event) {
     return event.guid === guid;
-  }) || getTeachingBreakEventByGuid(guid);
+  }) || getTeachingBreakEventByGuid(guid) || getRecitalEventByGuid(guid);
 };
 var getEventByScheduleItem = function getEventByScheduleItem(item) {
   var event = getEventByGuid(item.id || item.dataset.eventGuid);
@@ -915,6 +935,32 @@ var getTeachingBreakEventByGuid = function getTeachingBreakEventByGuid(guid) {
     return Number(item.id) === Number(match[1]);
   });
   return teachingBreak ? getTeachingBreakEvent(teachingBreak, match[2]) : null;
+};
+var getRecitalEvent = function getRecitalEvent(recital) {
+  var dateString = String(recital.date || '').substring(0, 10);
+  return {
+    guid: "recital-".concat(recital.id, "-").concat(dateString),
+    isRecital: true,
+    id: recital.id,
+    date: dateString,
+    start: recital.start_time,
+    title: recital.name || 'Recital',
+    venue: recital.venue || null,
+    students: Array.isArray(recital.students) ? recital.students : []
+  };
+};
+var getRecitalEventsForDate = function getRecitalEventsForDate(date) {
+  return getRecitalsForDate(date).map(getRecitalEvent);
+};
+var getRecitalEventByGuid = function getRecitalEventByGuid(guid) {
+  var match = String(guid || '').match(/^recital-(\d+)-(\d{4}-\d{2}-\d{2})$/);
+  if (!match) {
+    return null;
+  }
+  var recital = state.recitals.find(function (item) {
+    return Number(item.id) === Number(match[1]);
+  });
+  return recital ? getRecitalEvent(recital) : null;
 };
 var getCalendarEventElementsByGuid = function getCalendarEventElementsByGuid(guid) {
   if (!guid) {
@@ -1301,6 +1347,48 @@ var openTeachingBreakModal = function openTeachingBreakModal(event) {
       row.appendChild(name);
       row.appendChild(details);
       lessons.appendChild(row);
+    });
+  }
+  if (window.bootstrap && window.bootstrap.Modal && typeof window.bootstrap.Modal.getOrCreateInstance === 'function') {
+    window.bootstrap.Modal.getOrCreateInstance(modal).show();
+    return;
+  }
+  if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
+    window.jQuery(modal).modal('show');
+  }
+};
+var openRecitalModal = function openRecitalModal(event) {
+  var modal = document.getElementById('recital-modal');
+  if (!modal || !event) {
+    return;
+  }
+  var title = modal.querySelector('.modal-title');
+  var date = modal.querySelector('#recital-date');
+  var time = modal.querySelector('#recital-time');
+  var venue = modal.querySelector('#recital-venue');
+  var participants = modal.querySelector('#recital-participants');
+  var students = Array.isArray(event.students) ? event.students : [];
+  if (title) title.textContent = event.title || 'Recital';
+  if (date) date.textContent = event.date ? modalDateFormatter.format(parseDateString(event.date)) : '';
+  if (time) time.textContent = formatModalEventTime(event.start);
+  if (venue) {
+    var venueName = event.venue && event.venue.name ? event.venue.name : 'No venue specified';
+    var address = event.venue && event.venue.address ? event.venue.address : '';
+    venue.textContent = address ? "".concat(venueName, " \xB7 ").concat(address) : venueName;
+  }
+  if (participants) {
+    participants.innerHTML = '';
+    if (!students.length) {
+      var empty = document.createElement('div');
+      empty.className = 'opacity-4';
+      empty.textContent = 'No participating students.';
+      participants.appendChild(empty);
+    }
+    students.forEach(function (student) {
+      var row = document.createElement('div');
+      row.className = 'studio-break-lesson';
+      row.textContent = student.name || 'Student';
+      participants.appendChild(row);
     });
   }
   if (window.bootstrap && window.bootstrap.Modal && typeof window.bootstrap.Modal.getOrCreateInstance === 'function') {
@@ -2128,7 +2216,7 @@ var getCalendarItemsForDate = function getCalendarItemsForDate(date) {
       isHoliday: true
     });
   });
-  return holidays.concat(getBreakEventsForDate(date)).concat(getEventsForDate(date));
+  return holidays.concat(getBreakEventsForDate(date)).concat(getRecitalEventsForDate(date)).concat(getEventsForDate(date));
 };
 var hasOverlappingTimedEvents = function hasOverlappingTimedEvents(events) {
   var latestEnd = null;
@@ -2154,22 +2242,22 @@ var createMonthEventElement = function createMonthEventElement(event, dateString
   var dot = document.createElement('span');
   var time = document.createElement('span');
   var title = document.createElement('span');
-  item.className = event.isHoliday ? 'studio-month-event studio-month-event-holiday' : event.isBreak ? 'studio-month-event studio-month-event-break' : 'studio-month-event';
+  item.className = event.isHoliday ? 'studio-month-event studio-month-event-holiday' : event.isBreak ? 'studio-month-event studio-month-event-break' : event.isRecital ? 'studio-month-event studio-month-event-recital' : 'studio-month-event';
   dot.className = 'studio-month-event-dot';
   time.className = 'studio-month-event-time';
   title.className = 'studio-month-event-title';
   item.dataset.eventGuid = event.guid || '';
-  item.dataset.lessonStatus = event.isHoliday ? 'holiday' : event.isBreak ? 'teaching-break' : event.calendarStatus || event.lessonStatus || 'unconfirmed';
+  item.dataset.lessonStatus = event.isHoliday ? 'holiday' : event.isBreak ? 'teaching-break' : event.isRecital ? 'recital' : event.calendarStatus || event.lessonStatus || 'unconfirmed';
   dot.dataset.eventGuid = event.guid || '';
-  dot.dataset.lessonStatus = event.isHoliday ? 'holiday' : event.isBreak ? 'teaching-break' : event.calendarStatus || event.lessonStatus || 'unconfirmed';
+  dot.dataset.lessonStatus = event.isHoliday ? 'holiday' : event.isBreak ? 'teaching-break' : event.isRecital ? 'recital' : event.calendarStatus || event.lessonStatus || 'unconfirmed';
   applyCalendarItemStatusAttributes(item, event, dateString);
   applyCalendarItemStatusAttributes(dot, event, dateString);
   time.textContent = event.isHoliday || event.isBreak ? '' : formatEventTime(event.start);
   renderEventTitle(title, event, 'No title');
-  if (!event.isHoliday && !event.isBreak) {
+  if (!event.isHoliday && !event.isBreak && !event.isRecital) {
     item.appendChild(dot);
-    item.appendChild(time);
   }
+  if (!event.isHoliday && !event.isBreak) item.appendChild(time);
   item.appendChild(title);
   return item;
 };
@@ -2330,14 +2418,14 @@ var renderScheduleAgenda = function renderScheduleAgenda(calendar) {
     items.forEach(function (event) {
       var item = document.createElement(event.isHoliday ? 'div' : 'button');
       var title = document.createElement('span');
-      item.className = event.isHoliday ? 'studio-schedule-event studio-schedule-event-holiday' : event.isBreak ? 'studio-schedule-event studio-schedule-event-break' : 'studio-schedule-event';
+      item.className = event.isHoliday ? 'studio-schedule-event studio-schedule-event-holiday' : event.isBreak ? 'studio-schedule-event studio-schedule-event-break' : event.isRecital ? 'studio-schedule-event studio-schedule-recital' : 'studio-schedule-event';
       title.className = 'studio-schedule-event-title';
       renderEventTitle(title, event, 'No title');
       item.dataset.eventGuid = event.guid || '';
-      item.dataset.lessonStatus = event.isHoliday ? 'holiday' : event.isBreak ? 'teaching-break' : event.calendarStatus || event.lessonStatus || 'unconfirmed';
+      item.dataset.lessonStatus = event.isHoliday ? 'holiday' : event.isBreak ? 'teaching-break' : event.isRecital ? 'recital' : event.calendarStatus || event.lessonStatus || 'unconfirmed';
       applyCalendarItemStatusAttributes(item, event, dateString);
       applyEventOverlapAttribute(item, event);
-      if (!event.isHoliday && !event.isBreak) {
+      if (!event.isHoliday && !event.isBreak && !event.isRecital) {
         var time = document.createElement('span');
         var duration = getEventDurationMinutes(event);
         item.type = 'button';
@@ -2348,10 +2436,16 @@ var renderScheduleAgenda = function renderScheduleAgenda(calendar) {
         item.appendChild(title);
         item.appendChild(time);
       } else {
-        if (event.isBreak) {
+        if (event.isBreak || event.isRecital) {
           item.type = 'button';
         }
         item.appendChild(title);
+        if (event.isRecital) {
+          var _time = document.createElement('span');
+          _time.className = 'studio-schedule-event-time';
+          _time.textContent = formatAgendaEventTime(event.start);
+          item.appendChild(_time);
+        }
       }
       list.appendChild(item);
     });
@@ -2728,6 +2822,7 @@ document.addEventListener('DOMContentLoaded', function () {
   state.singleLessonPlans = Array.isArray(window.studioSingleLessonPlans) ? window.studioSingleLessonPlans : [];
   state.holidays = Array.isArray(window.studioHolidays) ? window.studioHolidays : [];
   state.teachingBreaks = Array.isArray(window.studioTeachingBreaks) ? window.studioTeachingBreaks : [];
+  state.recitals = Array.isArray(window.studioRecitals) ? window.studioRecitals : [];
   state.locations = Array.isArray(window.studioLocations) ? window.studioLocations : [];
   state.loadedRange = normalizeRange(window.studioCalendarRange);
   state.birthdayWindow = normalizeBirthdayWindow(window.studioBirthdayWindow);
@@ -3340,7 +3435,7 @@ document.addEventListener('DOMContentLoaded', function () {
     _render();
   });
   calendar.addEventListener('click', function (e) {
-    var item = e.target.closest('.lm-schedule-item, .studio-month-event, .studio-schedule-event, .studio-schedule-break');
+    var item = e.target.closest('.lm-schedule-item, .studio-month-event, .studio-schedule-event, .studio-schedule-break, .studio-schedule-recital');
     if (!item || item.classList.contains('studio-month-event-holiday') || item.classList.contains('studio-schedule-event-holiday')) {
       return;
     }
@@ -3351,12 +3446,16 @@ document.addEventListener('DOMContentLoaded', function () {
       openTeachingBreakModal(event);
       return;
     }
+    if (event && event.isRecital) {
+      openRecitalModal(event);
+      return;
+    }
     openLessonModal(event);
   });
   var monthDayEventsModal = document.getElementById('month-day-events-modal');
   if (monthDayEventsModal) {
     monthDayEventsModal.addEventListener('click', function (e) {
-      var item = e.target.closest('.studio-month-event, .studio-schedule-break');
+      var item = e.target.closest('.studio-month-event, .studio-schedule-break, .studio-schedule-recital');
       if (!item || item.classList.contains('studio-month-event-holiday')) {
         return;
       }
@@ -3369,6 +3468,10 @@ document.addEventListener('DOMContentLoaded', function () {
       hideBootstrapModal(monthDayEventsModal);
       if (event.isBreak) {
         openTeachingBreakModal(event);
+        return;
+      }
+      if (event.isRecital) {
+        openRecitalModal(event);
         return;
       }
       openLessonModal(event);

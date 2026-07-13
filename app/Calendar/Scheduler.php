@@ -3,7 +3,7 @@
 namespace App\Calendar;
 
 use Carbon\Carbon;
-use App\Models\{LessonPlan, SingleLessonPlan, TeachingBreak};
+use App\Models\{LessonPlan, Recital, SingleLessonPlan, Student, TeachingBreak};
 use Illuminate\Http\Request;
 use App\Calendar\Traits\Holidays;
 
@@ -22,6 +22,7 @@ class Scheduler
             'singleLessonPlans' => $this->singleLessonPlans($range),
             'holidays' => $this->holidays($range),
             'teachingBreaks' => $this->teachingBreaks($range),
+            'recitals' => $this->recitals($range),
             'calendarRange' => $range,
         ];
     }
@@ -262,6 +263,37 @@ class Scheduler
                     ),
                     'type' => 'teaching-break',
                 ]);
+            })
+            ->values();
+    }
+
+    public function recitals(array $range)
+    {
+        return Recital::query()
+            ->with(['venue', 'students' => function ($query) {
+                $query->orderBy('first_name')->orderBy('last_name');
+            }])
+            ->whereBetween('date', [$range['start'], $range['end']])
+            ->orderBy('date')
+            ->orderBy('start_time')
+            ->get()
+            ->map(function (Recital $recital) {
+                return [
+                    'id' => $recital->id,
+                    'name' => $recital->name,
+                    'date' => $recital->date->toDateString(),
+                    'start_time' => $recital->start_time,
+                    'venue' => $recital->venue ? [
+                        'id' => $recital->venue->id,
+                        'name' => $recital->venue->name,
+                        'address' => $recital->venue->full_address,
+                    ] : null,
+                    'students' => $recital->students->map(fn (Student $student) => [
+                        'id' => $student->id,
+                        'name' => $student->full_name,
+                    ])->values(),
+                    'type' => 'recital',
+                ];
             })
             ->values();
     }

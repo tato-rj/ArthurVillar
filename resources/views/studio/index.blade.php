@@ -20,6 +20,7 @@
 
 @include('studio.lessons.modal')
 @include('studio.breaks.modal')
+@include('studio.recitals.modal')
 @endsection
 
 @push('scripts')
@@ -28,6 +29,7 @@ window.studioPlannedLessons = @json($plannedLessons);
 window.studioSingleLessonPlans = @json($singleLessonPlans);
 window.studioHolidays = @json($holidays);
 window.studioTeachingBreaks = @json($teachingBreaks);
+window.studioRecitals = @json($recitals);
 window.studioCalendarRange = @json($calendarRange);
 window.studioBirthdayWindow = @json($birthdayWindow);
 window.studioLocations = @json($locations->map(fn ($location) => [

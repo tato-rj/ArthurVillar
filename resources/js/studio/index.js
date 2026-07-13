@@ -14,6 +14,7 @@ const state = {
     visibleEventsByDate: null,
     holidays: [],
     teachingBreaks: [],
+    recitals: [],
     studentSearch: '',
     loadedRange: null,
     pendingRangeKey: null,
@@ -286,6 +287,7 @@ const fetchPlannedLessons = function(range) {
             state.singleLessonPlans = Array.isArray(payload.singleLessonPlans) ? payload.singleLessonPlans : [];
             state.holidays = Array.isArray(payload.holidays) ? payload.holidays : [];
             state.teachingBreaks = Array.isArray(payload.teachingBreaks) ? payload.teachingBreaks : [];
+            state.recitals = Array.isArray(payload.recitals) ? payload.recitals : [];
             state.loadedRange = normalizeRange(payload.calendarRange) || normalizedRange;
         })
         .catch(function(error) {
@@ -978,6 +980,16 @@ const getBreaksForDate = function(date) {
     return getBreaksForDateString(toDateString(date));
 };
 
+const getRecitalsForDateString = function(dateString) {
+    return state.recitals.filter(function(recital) {
+        return String(recital.date || '').substring(0, 10) === dateString;
+    });
+};
+
+const getRecitalsForDate = function(date) {
+    return getRecitalsForDateString(toDateString(date));
+};
+
 const eventTimeFormatter = new Intl.DateTimeFormat('en', {
     hour: 'numeric',
     minute: '2-digit',
@@ -1058,7 +1070,7 @@ const patchScheduleHolidays = function(calendar) {
     const visibleDates = getVisibleScheduleDates();
     const visibleDateStrings = visibleDates.map(toDateString);
     const hasBanner = visibleDates.some(function(date) {
-        return getHolidaysForDate(date).length > 0 || getBreaksForDate(date).length > 0;
+        return getHolidaysForDate(date).length > 0 || getBreaksForDate(date).length > 0 || getRecitalsForDate(date).length > 0;
     });
 
     if (!hasBanner) {
@@ -1078,6 +1090,7 @@ const patchScheduleHolidays = function(calendar) {
         const isVisible = state.view !== '2-days' || visibleDateStrings.includes(dateString);
         const holidays = isVisible ? getHolidaysForDate(date) : [];
         const teachingBreaks = isVisible ? getBreaksForDate(date) : [];
+        const recitals = isVisible ? getRecitalsForDate(date) : [];
 
         cell.className = 'studio-schedule-holiday-cell';
         cell.dataset.date = dateString;
@@ -1105,6 +1118,17 @@ const patchScheduleHolidays = function(calendar) {
             cell.appendChild(item);
         });
 
+        recitals.forEach(function(recital) {
+            const item = document.createElement('button');
+
+            item.type = 'button';
+            item.className = 'studio-schedule-holiday studio-schedule-recital';
+            item.textContent = `${formatEventTime(recital.start_time)} ${recital.name}`;
+            item.dataset.eventGuid = `recital-${recital.id}-${dateString}`;
+            applyDateStatusAttributes(item, dateString);
+            cell.appendChild(item);
+        });
+
         row.appendChild(cell);
     });
 
@@ -1114,7 +1138,7 @@ const patchScheduleHolidays = function(calendar) {
 const getEventByGuid = function(guid) {
     return state.events.find(function(event) {
         return event.guid === guid;
-    }) || getTeachingBreakEventByGuid(guid);
+    }) || getTeachingBreakEventByGuid(guid) || getRecitalEventByGuid(guid);
 };
 
 const getEventByScheduleItem = function(item) {
@@ -1177,6 +1201,39 @@ const getTeachingBreakEventByGuid = function(guid) {
     });
 
     return teachingBreak ? getTeachingBreakEvent(teachingBreak, match[2]) : null;
+};
+
+const getRecitalEvent = function(recital) {
+    const dateString = String(recital.date || '').substring(0, 10);
+
+    return {
+        guid: `recital-${recital.id}-${dateString}`,
+        isRecital: true,
+        id: recital.id,
+        date: dateString,
+        start: recital.start_time,
+        title: recital.name || 'Recital',
+        venue: recital.venue || null,
+        students: Array.isArray(recital.students) ? recital.students : [],
+    };
+};
+
+const getRecitalEventsForDate = function(date) {
+    return getRecitalsForDate(date).map(getRecitalEvent);
+};
+
+const getRecitalEventByGuid = function(guid) {
+    const match = String(guid || '').match(/^recital-(\d+)-(\d{4}-\d{2}-\d{2})$/);
+
+    if (!match) {
+        return null;
+    }
+
+    const recital = state.recitals.find(function(item) {
+        return Number(item.id) === Number(match[1]);
+    });
+
+    return recital ? getRecitalEvent(recital) : null;
 };
 
 const getCalendarEventElementsByGuid = function(guid) {
@@ -1678,6 +1735,57 @@ const openTeachingBreakModal = function(event) {
             row.appendChild(name);
             row.appendChild(details);
             lessons.appendChild(row);
+        });
+    }
+
+    if (window.bootstrap && window.bootstrap.Modal && typeof window.bootstrap.Modal.getOrCreateInstance === 'function') {
+        window.bootstrap.Modal.getOrCreateInstance(modal).show();
+        return;
+    }
+
+    if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
+        window.jQuery(modal).modal('show');
+    }
+};
+
+const openRecitalModal = function(event) {
+    const modal = document.getElementById('recital-modal');
+
+    if (!modal || !event) {
+        return;
+    }
+
+    const title = modal.querySelector('.modal-title');
+    const date = modal.querySelector('#recital-date');
+    const time = modal.querySelector('#recital-time');
+    const venue = modal.querySelector('#recital-venue');
+    const participants = modal.querySelector('#recital-participants');
+    const students = Array.isArray(event.students) ? event.students : [];
+
+    if (title) title.textContent = event.title || 'Recital';
+    if (date) date.textContent = event.date ? modalDateFormatter.format(parseDateString(event.date)) : '';
+    if (time) time.textContent = formatModalEventTime(event.start);
+    if (venue) {
+        const venueName = event.venue && event.venue.name ? event.venue.name : 'No venue specified';
+        const address = event.venue && event.venue.address ? event.venue.address : '';
+        venue.textContent = address ? `${venueName} · ${address}` : venueName;
+    }
+
+    if (participants) {
+        participants.innerHTML = '';
+
+        if (!students.length) {
+            const empty = document.createElement('div');
+            empty.className = 'opacity-4';
+            empty.textContent = 'No participating students.';
+            participants.appendChild(empty);
+        }
+
+        students.forEach(function(student) {
+            const row = document.createElement('div');
+            row.className = 'studio-break-lesson';
+            row.textContent = student.name || 'Student';
+            participants.appendChild(row);
         });
     }
 
@@ -2734,7 +2842,7 @@ const getCalendarItemsForDate = function(date) {
         });
     });
 
-    return holidays.concat(getBreakEventsForDate(date)).concat(getEventsForDate(date));
+    return holidays.concat(getBreakEventsForDate(date)).concat(getRecitalEventsForDate(date)).concat(getEventsForDate(date));
 };
 
 const hasOverlappingTimedEvents = function(events) {
@@ -2771,24 +2879,29 @@ const createMonthEventElement = function(event, dateString) {
     const time = document.createElement('span');
     const title = document.createElement('span');
 
-    item.className = event.isHoliday ? 'studio-month-event studio-month-event-holiday' : (event.isBreak ? 'studio-month-event studio-month-event-break' : 'studio-month-event');
+    item.className = event.isHoliday
+        ? 'studio-month-event studio-month-event-holiday'
+        : (event.isBreak
+            ? 'studio-month-event studio-month-event-break'
+            : (event.isRecital ? 'studio-month-event studio-month-event-recital' : 'studio-month-event'));
     dot.className = 'studio-month-event-dot';
     time.className = 'studio-month-event-time';
     title.className = 'studio-month-event-title';
     item.dataset.eventGuid = event.guid || '';
-    item.dataset.lessonStatus = event.isHoliday ? 'holiday' : (event.isBreak ? 'teaching-break' : (event.calendarStatus || event.lessonStatus || 'unconfirmed'));
+    item.dataset.lessonStatus = event.isHoliday ? 'holiday' : (event.isBreak ? 'teaching-break' : (event.isRecital ? 'recital' : (event.calendarStatus || event.lessonStatus || 'unconfirmed')));
     dot.dataset.eventGuid = event.guid || '';
-    dot.dataset.lessonStatus = event.isHoliday ? 'holiday' : (event.isBreak ? 'teaching-break' : (event.calendarStatus || event.lessonStatus || 'unconfirmed'));
+    dot.dataset.lessonStatus = event.isHoliday ? 'holiday' : (event.isBreak ? 'teaching-break' : (event.isRecital ? 'recital' : (event.calendarStatus || event.lessonStatus || 'unconfirmed')));
     applyCalendarItemStatusAttributes(item, event, dateString);
     applyCalendarItemStatusAttributes(dot, event, dateString);
 
     time.textContent = event.isHoliday || event.isBreak ? '' : formatEventTime(event.start);
     renderEventTitle(title, event, 'No title');
 
-    if (!event.isHoliday && !event.isBreak) {
+    if (!event.isHoliday && !event.isBreak && !event.isRecital) {
         item.appendChild(dot);
-        item.appendChild(time);
     }
+
+    if (!event.isHoliday && !event.isBreak) item.appendChild(time);
 
     item.appendChild(title);
 
@@ -2994,15 +3107,19 @@ const renderScheduleAgenda = function(calendar) {
             const item = document.createElement(event.isHoliday ? 'div' : 'button');
             const title = document.createElement('span');
 
-            item.className = event.isHoliday ? 'studio-schedule-event studio-schedule-event-holiday' : (event.isBreak ? 'studio-schedule-event studio-schedule-event-break' : 'studio-schedule-event');
+            item.className = event.isHoliday
+                ? 'studio-schedule-event studio-schedule-event-holiday'
+                : (event.isBreak
+                    ? 'studio-schedule-event studio-schedule-event-break'
+                    : (event.isRecital ? 'studio-schedule-event studio-schedule-recital' : 'studio-schedule-event'));
             title.className = 'studio-schedule-event-title';
             renderEventTitle(title, event, 'No title');
             item.dataset.eventGuid = event.guid || '';
-            item.dataset.lessonStatus = event.isHoliday ? 'holiday' : (event.isBreak ? 'teaching-break' : (event.calendarStatus || event.lessonStatus || 'unconfirmed'));
+            item.dataset.lessonStatus = event.isHoliday ? 'holiday' : (event.isBreak ? 'teaching-break' : (event.isRecital ? 'recital' : (event.calendarStatus || event.lessonStatus || 'unconfirmed')));
             applyCalendarItemStatusAttributes(item, event, dateString);
             applyEventOverlapAttribute(item, event);
 
-            if (!event.isHoliday && !event.isBreak) {
+            if (!event.isHoliday && !event.isBreak && !event.isRecital) {
                 const time = document.createElement('span');
                 const duration = getEventDurationMinutes(event);
 
@@ -3016,11 +3133,18 @@ const renderScheduleAgenda = function(calendar) {
                 item.appendChild(title);
                 item.appendChild(time);
             } else {
-                if (event.isBreak) {
+                if (event.isBreak || event.isRecital) {
                     item.type = 'button';
                 }
 
                 item.appendChild(title);
+
+                if (event.isRecital) {
+                    const time = document.createElement('span');
+                    time.className = 'studio-schedule-event-time';
+                    time.textContent = formatAgendaEventTime(event.start);
+                    item.appendChild(time);
+                }
             }
 
             list.appendChild(item);
@@ -3498,6 +3622,7 @@ document.addEventListener('DOMContentLoaded', function() {
     state.singleLessonPlans = Array.isArray(window.studioSingleLessonPlans) ? window.studioSingleLessonPlans : [];
     state.holidays = Array.isArray(window.studioHolidays) ? window.studioHolidays : [];
     state.teachingBreaks = Array.isArray(window.studioTeachingBreaks) ? window.studioTeachingBreaks : [];
+    state.recitals = Array.isArray(window.studioRecitals) ? window.studioRecitals : [];
     state.locations = Array.isArray(window.studioLocations) ? window.studioLocations : [];
     state.loadedRange = normalizeRange(window.studioCalendarRange);
     state.birthdayWindow = normalizeBirthdayWindow(window.studioBirthdayWindow);
@@ -4265,7 +4390,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     calendar.addEventListener('click', function(e) {
-        const item = e.target.closest('.lm-schedule-item, .studio-month-event, .studio-schedule-event, .studio-schedule-break');
+        const item = e.target.closest('.lm-schedule-item, .studio-month-event, .studio-schedule-event, .studio-schedule-break, .studio-schedule-recital');
 
         if (!item || item.classList.contains('studio-month-event-holiday') || item.classList.contains('studio-schedule-event-holiday')) {
             return;
@@ -4283,6 +4408,11 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        if (event && event.isRecital) {
+            openRecitalModal(event);
+            return;
+        }
+
         openLessonModal(event);
     });
 
@@ -4290,7 +4420,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (monthDayEventsModal) {
         monthDayEventsModal.addEventListener('click', function(e) {
-            const item = e.target.closest('.studio-month-event, .studio-schedule-break');
+            const item = e.target.closest('.studio-month-event, .studio-schedule-break, .studio-schedule-recital');
 
             if (!item || item.classList.contains('studio-month-event-holiday')) {
                 return;
@@ -4309,6 +4439,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (event.isBreak) {
                 openTeachingBreakModal(event);
+                return;
+            }
+
+            if (event.isRecital) {
+                openRecitalModal(event);
                 return;
             }
 

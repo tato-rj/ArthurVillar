@@ -676,6 +676,15 @@ td {white-space: nowrap;}
     padding: 0.18rem 0.5rem;
 }
 
+.studio-month-event-recital {
+    background: #c26401;
+    border-radius: 0.35rem;
+    color: #fff;
+    display: block;
+    font-weight: 700;
+    padding: 0.18rem 0.5rem;
+}
+
 .studio-month-event:hover {
     background: rgba(0,0,0,0.075);
 }
@@ -686,6 +695,10 @@ td {white-space: nowrap;}
 
 .studio-month-event-break:hover {
     background: #68449f;
+}
+
+.studio-month-event-recital:hover {
+    background: #a95300;
 }
 
 .studio-month-event-dot {
@@ -741,7 +754,8 @@ td {white-space: nowrap;}
 }
 
 .studio-month-day-events-modal-list .studio-month-event-holiday,
-.studio-month-day-events-modal-list .studio-month-event-break {
+.studio-month-day-events-modal-list .studio-month-event-break,
+.studio-month-day-events-modal-list .studio-month-event-recital {
     padding: 0.45rem 0.65rem;
 }
 
@@ -859,6 +873,18 @@ td {white-space: nowrap;}
 
 .studio-schedule-break:hover {
     background: #68449f;
+}
+
+.studio-schedule-recital {
+    background: #c26401;
+    border: 0;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+}
+
+.studio-schedule-recital:hover {
+    background: #a95300;
 }
 
 #lesson-plans-table {
@@ -1004,6 +1030,25 @@ button.single-lesson-plan-create[selected] i {
     padding: 0.65rem 0.75rem;
 }
 
+.recital-participant-list {
+    border: 1px solid #dee2e6;
+    border-radius: 0.35rem;
+    max-height: 280px;
+    overflow-y: auto;
+    padding: 0.35rem 0.75rem;
+}
+
+.recital-participant-row {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    padding: 0.45rem 0;
+}
+
+.recital-participant-row + .recital-participant-row {
+    border-top: 1px solid #edf0f3;
+}
+
 #calendar.studio-calendar-day-view .lm-schedule-pointer,
 #calendar.studio-calendar-two-days-view .lm-schedule-pointer,
 #calendar.studio-calendar-week-view .lm-schedule-pointer {
@@ -1103,6 +1148,20 @@ button.single-lesson-plan-create[selected] i {
 
 #teaching-break-modal h4.modal-title:before {
     background: #7952b3;
+    border-radius: 50%;
+    content: "";
+    display: block;
+    height: 0.67rem;
+    margin-right: 8px;
+    width: 0.67rem;
+}
+
+#recital-modal h4.modal-title {
+    @extend .d-flex, .align-items-center;
+}
+
+#recital-modal h4.modal-title:before {
+    background: #c26401;
     border-radius: 50%;
     content: "";
     display: block;

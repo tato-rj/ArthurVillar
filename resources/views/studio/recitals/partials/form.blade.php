@@ -1,0 +1,40 @@
+@input([
+    'label' => 'Name',
+    'name' => 'name',
+    'required' => true,
+    'value' => $recital->name ?? old('name'),
+])
+
+<div class="row">
+    @input([
+        'label' => 'Date',
+        'name' => 'date',
+        'type' => 'date',
+        'grid' => 'col',
+        'required' => true,
+        'value' => isset($recital) && $recital->date ? $recital->date->toDateString() : old('date'),
+    ])
+
+    @input([
+        'label' => 'Start time',
+        'name' => 'start_time',
+        'type' => 'time',
+        'grid' => 'col',
+        'required' => true,
+        'value' => isset($recital) ? substr($recital->start_time, 0, 5) : old('start_time'),
+    ])
+</div>
+
+@select(['placeholder' => 'Venue (optional)', 'name' => 'venue_id'])
+    @option(['name' => 'venue_id', 'label' => 'No venue specified', 'value' => '', 'selected' => empty($recital->venue_id)])
+    @foreach($venues as $venue)
+        @option([
+            'name' => 'venue_id',
+            'label' => $venue->name,
+            'value' => $venue->id,
+            'selected' => isset($recital) && $recital->venue_id == $venue->id,
+        ])
+    @endforeach
+@endselect
+
+@submit(['label' => 'Confirm', 'theme' => 'primary'])

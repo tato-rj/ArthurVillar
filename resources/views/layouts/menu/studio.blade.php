@@ -16,8 +16,17 @@
           'studio.lessons.index' => 'Confirmed',
       ],
     ],
-    'studio.locations.index' => 'Locations',
     'studio.waiting-list.index' => 'Waiting list*',
+    [
+      'label' => 'Recitals',
+      'children' => [
+          'studio.recitals.index' => 'Events',
+          'studio.venues.index' => 'Venues'
+      ],
+    ],
+    'studio.locations.index' => 'Locations*',
+    'studio.breaks.index' => 'Breaks',
+    'studio.holidays.index' => 'Holidays',
     [
       'label' => 'Finances',
       'children' => [
@@ -25,7 +34,5 @@
           'studio.expenses.report' => 'Report'
       ],
     ],
-    'studio.breaks.index' => 'Breaks',
-    'studio.holidays.index' => 'Holidays'
   ]
 ])

@@ -104,6 +104,32 @@ Route::prefix('locations')->name('locations.')->group(function() {
 	});
 });
 
+Route::prefix('recitals')->name('recitals.')->group(function() {
+	Route::get('', 'RecitalsController@index')->name('index');
+
+	Route::post('', 'RecitalsController@store')->name('store');
+
+	Route::prefix('{recital}')->group(function() {
+		Route::get('edit', 'RecitalsController@edit')->name('edit');
+		Route::patch('students', 'RecitalsController@updateStudents')->name('students.update');
+
+		Route::patch('', 'RecitalsController@update')->name('update');
+
+		Route::delete('', 'RecitalsController@destroy')->name('destroy');
+	});
+});
+
+Route::prefix('venues')->name('venues.')->group(function() {
+	Route::get('', 'VenuesController@index')->name('index');
+	Route::post('', 'VenuesController@store')->name('store');
+
+	Route::prefix('{venue}')->group(function() {
+		Route::get('edit', 'VenuesController@edit')->name('edit');
+		Route::patch('', 'VenuesController@update')->name('update');
+		Route::delete('', 'VenuesController@destroy')->name('destroy');
+	});
+});
+
 Route::prefix('expenses')->name('expenses.')->group(function() {
 	Route::get('', 'ExpensesController@index')->name('index');
 
@@ -146,6 +172,8 @@ Route::prefix('tables')->name('tables.')->group(function() {
 	Route::get('lesson-plans', 'TablesController@lessonPlans')->name('lesson-plans');
 	Route::get('lessons', 'TablesController@lessons')->name('lessons');
 	Route::get('locations', 'TablesController@locations')->name('locations');
+	Route::get('recitals', 'TablesController@recitals')->name('recitals');
+	Route::get('venues', 'TablesController@venues')->name('venues');
 	Route::get('single-lesson-plans', 'TablesController@singleLessonPlans')->name('single-lesson-plans');
 
 	Route::get('students', 'TablesController@students')->name('students');

@@ -52,6 +52,11 @@ class Student extends Model
         return $this->belongsTo(Location::class);
     }
 
+    public function recitals()
+    {
+        return $this->belongsToMany(Recital::class)->withTimestamps();
+    }
+
     public function scheduleOverrides()
     {
         return $this->hasManyThrough(ScheduleOverride::class, LessonPlan::class);

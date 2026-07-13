@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Studio;
 
 use App\Http\Controllers\Controller;
 use App\Calendar\Scheduler;
-use App\Models\{Expense, Lesson, LessonPlan, Location, SingleLessonPlan, Student, TeachingBreak, WaitingList};
+use App\Models\{Expense, Lesson, LessonPlan, Location, Recital, SingleLessonPlan, Student, TeachingBreak, Venue, WaitingList};
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -422,6 +422,72 @@ class TablesController extends Controller
                 ];
             })
             ->orderColumn('is_active', 'is_active $1')
+            ->toJson();
+    }
+
+    public function recitals()
+    {
+        $recitals = Recital::query()
+            ->with(['venue', 'students' => function ($query) {
+                $query->orderBy('first_name')->orderBy('last_name');
+            }])
+            ->select(['id', 'name', 'date', 'start_time', 'venue_id']);
+
+        return DataTables::eloquent($recitals)
+            ->editColumn('date', function (Recital $recital) {
+                return $recital->date ? $recital->date->toDateString() : null;
+            })
+            ->addColumn('venue', function (Recital $recital) {
+                return optional($recital->venue)->name;
+            })
+            ->editColumn('students', function (Recital $recital) {
+                return $recital->students->map(function (Student $student) {
+                    return [
+                        'id' => $student->id,
+                        'name' => $student->full_name,
+                    ];
+                })->values()->all();
+            })
+            ->addColumn('students_count', fn (Recital $recital) => $recital->students->count())
+            ->filterColumn('venue', function ($query, $keyword) {
+                $query->whereHas('venue', function ($query) use ($keyword) {
+                    $query->where('name', 'like', "%{$keyword}%");
+                });
+            })
+            ->filterColumn('students_count', function () {
+                return;
+            })
+            ->orderColumn('date', 'date $1')
+            ->orderColumn('start_time', 'start_time $1')
+            ->orderColumn('venue', 'venue_id $1')
+            ->orderColumn('students_count', 'date $1')
+            ->toJson();
+    }
+
+    public function venues()
+    {
+        $venues = Venue::query()->select([
+            'id',
+            'name',
+            'address_line_1',
+            'address_line_2',
+            'city',
+            'state',
+            'postal_code',
+        ]);
+
+        return DataTables::eloquent($venues)
+            ->addColumn('address', function (Venue $venue) {
+                return collect([$venue->address_line_1, $venue->address_line_2])->filter()->implode(', ');
+            })
+            ->filterColumn('address', function ($query, $keyword) {
+                $query->where(function ($query) use ($keyword) {
+                    foreach (['address_line_1', 'address_line_2'] as $column) {
+                        $query->orWhere($column, 'like', "%{$keyword}%");
+                    }
+                });
+            })
+            ->orderColumn('address', 'address_line_1 $1')
             ->toJson();
     }
 

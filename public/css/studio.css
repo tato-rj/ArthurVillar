@@ -17056,7 +17056,7 @@ textarea.form-control-lg {
   display: table-cell !important;
 }
 
-.d-flex, #lesson-modal h4.modal-title, #lesson-modal .modal-title.h4, #teaching-break-modal h4.modal-title, #teaching-break-modal .modal-title.h4, .d-apart, .d-center {
+.d-flex, #lesson-modal h4.modal-title, #lesson-modal .modal-title.h4, #recital-modal h4.modal-title, #recital-modal .modal-title.h4, #teaching-break-modal h4.modal-title, #teaching-break-modal .modal-title.h4, .d-apart, .d-center {
   display: flex !important;
 }
 
@@ -17502,7 +17502,7 @@ textarea.form-control-lg {
   align-items: flex-end !important;
 }
 
-.align-items-center, #lesson-modal h4.modal-title, #lesson-modal .modal-title.h4, #teaching-break-modal h4.modal-title, #teaching-break-modal .modal-title.h4, .d-apart, .d-center {
+.align-items-center, #lesson-modal h4.modal-title, #lesson-modal .modal-title.h4, #recital-modal h4.modal-title, #recital-modal .modal-title.h4, #teaching-break-modal h4.modal-title, #teaching-break-modal .modal-title.h4, .d-apart, .d-center {
   align-items: center !important;
 }
 
@@ -31913,6 +31913,15 @@ td {
   padding: 0.18rem 0.5rem;
 }
 
+.studio-month-event-recital {
+  background: #c26401;
+  border-radius: 0.35rem;
+  color: #fff;
+  display: block;
+  font-weight: 700;
+  padding: 0.18rem 0.5rem;
+}
+
 .studio-month-event:hover {
   background: rgba(0, 0, 0, 0.075);
 }
@@ -31923,6 +31932,10 @@ td {
 
 .studio-month-event-break:hover {
   background: #68449f;
+}
+
+.studio-month-event-recital:hover {
+  background: #a95300;
 }
 
 .studio-month-event-dot {
@@ -31978,7 +31991,8 @@ td {
 }
 
 .studio-month-day-events-modal-list .studio-month-event-holiday,
-.studio-month-day-events-modal-list .studio-month-event-break {
+.studio-month-day-events-modal-list .studio-month-event-break,
+.studio-month-day-events-modal-list .studio-month-event-recital {
   padding: 0.45rem 0.65rem;
 }
 
@@ -32096,6 +32110,18 @@ td {
 
 .studio-schedule-break:hover {
   background: #68449f;
+}
+
+.studio-schedule-recital {
+  background: #c26401;
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+}
+
+.studio-schedule-recital:hover {
+  background: #a95300;
 }
 
 #lesson-plans-table td[data-status=inactive] {
@@ -32230,6 +32256,25 @@ button.single-lesson-plan-create[selected] i {
   padding: 0.65rem 0.75rem;
 }
 
+.recital-participant-list {
+  border: 1px solid #dee2e6;
+  border-radius: 0.35rem;
+  max-height: 280px;
+  overflow-y: auto;
+  padding: 0.35rem 0.75rem;
+}
+
+.recital-participant-row {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  padding: 0.45rem 0;
+}
+
+.recital-participant-row + .recital-participant-row {
+  border-top: 1px solid #edf0f3;
+}
+
 #calendar.studio-calendar-day-view .lm-schedule-pointer,
 #calendar.studio-calendar-two-days-view .lm-schedule-pointer,
 #calendar.studio-calendar-week-view .lm-schedule-pointer {
@@ -32289,6 +32334,16 @@ button.single-lesson-plan-create[selected] i {
 
 #teaching-break-modal h4.modal-title:before, #teaching-break-modal .modal-title.h4:before {
   background: #7952b3;
+  border-radius: 50%;
+  content: "";
+  display: block;
+  height: 0.67rem;
+  margin-right: 8px;
+  width: 0.67rem;
+}
+
+#recital-modal h4.modal-title:before, #recital-modal .modal-title.h4:before {
+  background: #c26401;
   border-radius: 50%;
   content: "";
   display: block;
