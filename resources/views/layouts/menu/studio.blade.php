@@ -17,14 +17,14 @@
       ],
     ],
     'studio.waiting-list.index' => 'Waiting list*',
+    'studio.recitals.index' => 'Recitals',
     [
-      'label' => 'Recitals',
+      'label' => 'Locations*',
       'children' => [
-          'studio.recitals.index' => 'Events',
+          'studio.locations.index' => 'Studios',
           'studio.venues.index' => 'Venues'
       ],
     ],
-    'studio.locations.index' => 'Locations*',
     'studio.breaks.index' => 'Breaks',
     'studio.holidays.index' => 'Holidays',
     [

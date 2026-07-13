@@ -1,4 +1,4 @@
-@extends('layouts.app', ['title' => 'Locations'])
+@extends('layouts.app', ['title' => 'Studio Locations'])
 
 @push('header')
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
@@ -8,11 +8,11 @@
 <section class="container py-5">
     <div class="row mb-4">
         @pagetitle([
-            'label' => 'Locations',
+            'label' => 'Studio Locations',
             'modal' => [
                 'target' => '#create-location-modal',
                 'icon' => 'plus',
-                'label' => 'New location'
+                'label' => 'New studio location'
             ]
         ])
     </div>
