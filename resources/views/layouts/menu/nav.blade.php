@@ -1,8 +1,8 @@
-<button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-label="Toggle navigation">@fa(['icon' => 'bars', 'mr' => 0, 'fa_size' => 'xl'])</button>
+<button class="navbar-toggler hide-in-webapp" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-label="Toggle navigation">@fa(['icon' => 'bars', 'mr' => 0, 'fa_size' => 'xl'])</button>
 
 <div class="offcanvas border-0 offcanvas-end" style="width: auto; min-width: 220px;" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
   <div class="offcanvas-header d-apart">
-    <div class="position-relative w-100 hide-in-webapp">
+    <div class="position-relative w-100">
       <ul class="subdomains-select border rounded-sm" aria-label="Switch website">
         @foreach($subdomains as $subdomain)
         @php($isCurrentSubdomain = strtolower($subdomain['label']) == subdomain())
