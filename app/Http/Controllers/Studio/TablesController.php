@@ -469,27 +469,14 @@ class TablesController extends Controller
         $venues = Venue::query()->select([
             'id',
             'name',
-            'address_line_1',
-            'address_line_2',
+            'address',
             'city',
             'state',
             'postal_code',
+            'map_url',
         ]);
 
         return DataTables::eloquent($venues)
-            ->addColumn('address', function (Venue $venue) {
-                return collect([$venue->address_line_1, $venue->address_line_2])->filter()->implode(', ');
-            })
-            ->addColumn('google_maps_url', fn (Venue $venue) => $venue->googleMapsUrl())
-            ->filterColumn('address', function ($query, $keyword) {
-                $query->where(function ($query) use ($keyword) {
-                    foreach (['address_line_1', 'address_line_2'] as $column) {
-                        $query->orWhere($column, 'like', "%{$keyword}%");
-                    }
-                });
-            })
-            ->orderColumn('address', 'address_line_1 $1')
-            ->rawColumns(['google_maps_url'])
             ->toJson();
     }
 

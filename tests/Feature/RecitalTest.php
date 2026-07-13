@@ -96,7 +96,7 @@ class RecitalTest extends BaseTest
     {
         $venue = Venue::factory()->create([
             'name' => 'Concert Hall',
-            'address_line_1' => '10 Music Avenue',
+            'address' => '10 Music Avenue',
             'city' => 'Brooklyn',
             'state' => 'NY',
             'postal_code' => '11201',

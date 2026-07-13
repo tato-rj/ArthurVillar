@@ -11,11 +11,11 @@ return new class extends Migration
         Schema::create('venues', function (Blueprint $table) {
             $table->id();
             $table->string('name')->unique();
-            $table->string('address_line_1')->nullable();
-            $table->string('address_line_2')->nullable();
+            $table->string('address')->nullable();
             $table->string('city')->nullable();
             $table->string('state', 100)->nullable();
             $table->string('postal_code', 20)->nullable();
+            $table->string('map_url', 2048)->nullable();
             $table->timestamps();
         });
     }

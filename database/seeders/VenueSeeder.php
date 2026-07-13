@@ -12,10 +12,11 @@ class VenueSeeder extends Seeder
         collect([
             [
                 'name' => 'Studio Recital Hall',
-                'address_line_1' => '123 Main Street',
+                'address' => '123 Main Street',
                 'city' => 'New York',
                 'state' => 'NY',
                 'postal_code' => '10001',
+                'map_url' => 'https://maps.google.com/?q=123+Main+Street+New+York+NY+10001',
             ],
         ])->each(function (array $venue) {
             Venue::updateOrCreate(['name' => $venue['name']], $venue);

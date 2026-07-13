@@ -13,11 +13,11 @@ class VenueFactory extends Factory
     {
         return [
             'name' => $this->faker->unique()->company().' Hall',
-            'address_line_1' => $this->faker->streetAddress(),
-            'address_line_2' => null,
+            'address' => $this->faker->streetAddress(),
             'city' => $this->faker->city(),
             'state' => $this->faker->stateAbbr(),
             'postal_code' => $this->faker->postcode(),
+            'map_url' => null,
         ];
     }
 }

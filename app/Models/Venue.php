@@ -19,17 +19,9 @@ class Venue extends Model
     public function getFullAddressAttribute()
     {
         return collect([
-            $this->address_line_1,
-            $this->address_line_2,
+            $this->address,
             collect([$this->city, $this->state])->filter()->implode(', '),
             $this->postal_code,
         ])->filter()->implode(', ');
-    }
-
-    public function googleMapsUrl()
-    {
-        $query = $this->full_address ?: $this->name;
-
-        return 'https://www.google.com/maps/search/?api=1&query='.rawurlencode($query);
     }
 }

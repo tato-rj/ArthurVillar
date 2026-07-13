@@ -6,15 +6,9 @@
 ])
 
 @input([
-    'label' => 'Address line 1',
-    'name' => 'address_line_1',
-    'value' => $venue->address_line_1 ?? old('address_line_1'),
-])
-
-@input([
-    'label' => 'Address line 2',
-    'name' => 'address_line_2',
-    'value' => $venue->address_line_2 ?? old('address_line_2'),
+    'label' => 'Address',
+    'name' => 'address',
+    'value' => $venue->address ?? old('address'),
 ])
 
 <div class="row">
@@ -37,6 +31,13 @@
     'label' => 'Postal code',
     'name' => 'postal_code',
     'value' => $venue->postal_code ?? old('postal_code'),
+])
+
+@input([
+    'label' => 'Map URL',
+    'name' => 'map_url',
+    'type' => 'url',
+    'value' => $venue->map_url ?? old('map_url'),
 ])
 
 @submit(['label' => 'Confirm', 'theme' => 'primary'])
