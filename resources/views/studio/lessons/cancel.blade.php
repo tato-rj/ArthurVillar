@@ -26,6 +26,30 @@
 			</div>
 		</div>
 
+		<div class="my-4 bg-light rounded p-3" data-recurring-cancel-fields>
+			<p class="mb-1">Delete which event?</p>
+			<div class="form-check">
+			  <input class="form-check-input" type="radio" name="cancelation_type" id="this-event" value="current" checked>
+			  <label class="form-check-label" for="this-event">
+			    This event only
+			  </label>
+			</div>
+
+			<div class="form-check">
+			  <input class="form-check-input" type="radio" name="cancelation_type" id="this-and-following" value="future">
+			  <label class="form-check-label" for="this-and-following">
+			    This and all following events
+			  </label>
+			</div>
+
+			<div class="form-check">
+			  <input class="form-check-input" type="radio" name="cancelation_type" id="all-events" value="all">
+			  <label class="form-check-label" for="all-events">
+			    All events
+			  </label>
+			</div>
+		</div>
+
 		<div class="my-4" data-single-cancel-warning hidden>
 			<p class="mb-0 text-red">This action cannot be undone. Are you sure?</p>
 		</div>

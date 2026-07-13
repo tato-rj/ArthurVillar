@@ -535,6 +535,78 @@ class StudioLessonFlowTest extends BaseTest
     }
 
     /** @test */
+    public function canceling_this_and_following_lessons_ends_the_lesson_plan_before_the_selected_occurrence()
+    {
+        $lessonPlan = LessonPlan::factory()->create([
+            'weekday' => 4,
+            'start_time' => '15:30',
+            'duration_minutes' => 45,
+            'starts_on' => '2026-07-01',
+            'ends_on' => null,
+        ]);
+        $override = ScheduleOverride::factory()->lessonPlan($lessonPlan)->create([
+            'original_date' => '2026-07-22',
+            'original_start_time' => '15:30',
+            'new_date' => '2026-07-23',
+            'new_start_time' => '16:00',
+            'duration_minutes' => 30,
+        ]);
+
+        $this->signIn();
+
+        $response = $this->from(route('studio.home'))->post(route('studio.lessons.cancel'), [
+            'lesson_plan_id' => $lessonPlan->id,
+            'date' => '2026-07-15',
+            'start' => '15:30',
+            'end' => '16:15',
+            'scheduled_date' => '2026-07-15',
+            'scheduled_start_time' => '15:30',
+            'schedule_override_id' => '',
+            'cancelation_type' => 'future',
+        ]);
+
+        $response
+            ->assertRedirect(route('studio.home'))
+            ->assertSessionHas('success', 'This and all following lessons were successfully canceled');
+
+        $lessonPlan->refresh();
+
+        $this->assertSame('2026-07-08', $lessonPlan->ends_on->toDateString());
+        $this->assertDatabaseMissing('schedule_overrides', ['id' => $override->id]);
+        $this->assertDatabaseCount('lessons', 0);
+    }
+
+    /** @test */
+    public function canceling_all_lessons_deletes_the_lesson_plan()
+    {
+        $lessonPlan = LessonPlan::factory()->create([
+            'weekday' => 4,
+            'start_time' => '15:30',
+            'duration_minutes' => 45,
+            'starts_on' => '2026-07-01',
+        ]);
+
+        $this->signIn();
+
+        $response = $this->from(route('studio.home'))->post(route('studio.lessons.cancel'), [
+            'lesson_plan_id' => $lessonPlan->id,
+            'date' => '2026-07-15',
+            'start' => '15:30',
+            'end' => '16:15',
+            'scheduled_date' => '2026-07-15',
+            'scheduled_start_time' => '15:30',
+            'schedule_override_id' => '',
+            'cancelation_type' => 'all',
+        ]);
+
+        $response
+            ->assertRedirect(route('studio.home'))
+            ->assertSessionHas('success', 'All lessons in this plan were successfully canceled');
+
+        $this->assertDatabaseMissing('lesson_plans', ['id' => $lessonPlan->id]);
+    }
+
+    /** @test */
     public function reverting_a_canceled_lesson_deletes_the_lesson_so_the_plan_occurrence_returns()
     {
         $lessonPlan = LessonPlan::factory()->create();

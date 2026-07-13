@@ -247,6 +247,26 @@ class LessonPlan extends BaseModel
         return $newLessonPlan;
     }
 
+    public function endBeforeOccurrence($date)
+    {
+        $date = Carbon::parse($date)->startOfDay();
+        $endsOn = $this->previousOccurrenceBefore($date);
+
+        $this->update([
+            'ends_on' => $endsOn->toDateString(),
+        ]);
+
+        $this->scheduleOverrides()
+            ->where(function ($query) use ($date) {
+                $query
+                    ->whereDate('original_date', '>=', $date->toDateString())
+                    ->orWhereDate('new_date', '>=', $date->toDateString());
+            })
+            ->delete();
+
+        return $this;
+    }
+
     public function scopeOccurringBetween($query, $startDate, $endDate)
     {
         $start = Carbon::parse($startDate)->startOfDay();

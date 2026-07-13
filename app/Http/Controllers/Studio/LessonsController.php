@@ -6,6 +6,7 @@ use App\Models\{Lesson, LessonPlan, SingleLessonPlan, Student};
 use App\Models\ScheduleOverride;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Validation\Rule;
 
@@ -38,6 +39,10 @@ class LessonsController extends Controller
 
     public function cancel(Request $request)
     {
+        $request->merge([
+            'cancelation_type' => $request->input('cancelation_type', 'current'),
+        ]);
+
         if ($request->filled('single_lesson_plan_id')) {
             $data = $request->validate([
                 'single_lesson_plan_id' => ['required', 'exists:single_lesson_plans,id'],
@@ -55,8 +60,43 @@ class LessonsController extends Controller
         }
 
         $data = $request->validate([
-            'canceled_by' => ['required', Rule::in(['teacher', 'student'])],
+            'lesson_plan_id' => ['required', 'exists:lesson_plans,id'],
+            'date' => ['required', 'date_format:Y-m-d'],
+            'scheduled_date' => ['nullable', 'date_format:Y-m-d'],
+            'cancelation_type' => ['required', Rule::in(['current', 'future', 'all'])],
+            'canceled_by' => ['required_if:cancelation_type,current', 'nullable', Rule::in(['teacher', 'student'])],
         ]);
+
+        if ($data['cancelation_type'] === 'future') {
+            $lessonPlan = LessonPlan::findOrFail($data['lesson_plan_id']);
+            $cancelFrom = $data['scheduled_date'] ?? $data['date'];
+
+            DB::transaction(function () use ($lessonPlan, $cancelFrom) {
+                $lessonPlan->endBeforeOccurrence($cancelFrom);
+            });
+
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'lesson_plan_id' => $lessonPlan->id,
+                    'lesson_plan_ended' => true,
+                ]);
+            }
+
+            return back()->with('success', 'This and all following lessons were successfully canceled');
+        }
+
+        if ($data['cancelation_type'] === 'all') {
+            LessonPlan::whereKey($data['lesson_plan_id'])->delete();
+
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'lesson_plan_id' => $data['lesson_plan_id'],
+                    'lesson_plan_deleted' => true,
+                ]);
+            }
+
+            return back()->with('success', 'All lessons in this plan were successfully canceled');
+        }
 
         $lesson = $this->lessonFromRequest($request);
 

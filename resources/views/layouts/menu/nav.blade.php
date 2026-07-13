@@ -55,7 +55,7 @@
                 @foreach($item['children'] as $childRoute => $childLabel)
                     <li class="nav-item">
                         <a
-                            class="nav-link border-left border-lighter border-4 py-1 px-2"
+                            class="nav-link border-left border-lighter border-4 p-2"
                             href="{{ route($childRoute) }}"
                         >
                             {{ $childLabel }}

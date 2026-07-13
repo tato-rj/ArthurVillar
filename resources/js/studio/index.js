@@ -1027,7 +1027,7 @@ const patchScheduleItems = function(calendar) {
 
         item.classList.toggle('is-short', isShort);
         item.setAttribute('data-display-time', isShort ? formatEventTime(start) : `${formatEventTime(start)} - ${formatEventTime(end)}`);
-        patchScheduleItemBirthdayIcon(item, event);
+        clearScheduleItemBirthdayDecoration(item);
 
         if (event && event.calendarStatus) {
             item.setAttribute('data-lesson-status', event.calendarStatus);
@@ -1501,7 +1501,7 @@ const populateLessonModal = function(modal, event) {
     }
 
     if (cancelLessonForm) {
-        const recurringCancelFields = cancelLessonForm.querySelector('[data-recurring-cancel-fields]');
+        const recurringCancelFields = cancelLessonForm.querySelectorAll('[data-recurring-cancel-fields]');
         const singleCancelWarning = cancelLessonForm.querySelector('[data-single-cancel-warning]');
         const cancelReasonInputs = cancelLessonForm.querySelectorAll('input[name="canceled_by"]');
         const isSingleLessonCancel = !!singleLessonPlanId;
@@ -1524,9 +1524,9 @@ const populateLessonModal = function(modal, event) {
             }
         });
 
-        if (recurringCancelFields) {
-            recurringCancelFields.hidden = isSingleLessonCancel;
-        }
+        recurringCancelFields.forEach(function(fieldset) {
+            fieldset.hidden = isSingleLessonCancel;
+        });
 
         if (singleCancelWarning) {
             singleCancelWarning.hidden = !isSingleLessonCancel;
@@ -2517,30 +2517,15 @@ const studentHasBirthdayNearEvent = function(student, dateString) {
     return Boolean(getStudentBirthdayModalLabel(student, dateString));
 };
 
-const createBirthdayIcon = function() {
-    const icon = document.createElement('i');
-
-    icon.className = 'fa-solid fa-cake-candles studio-birthday-icon';
-    icon.setAttribute('aria-hidden', 'true');
-
-    return icon;
-};
-
 const renderEventTitle = function(element, event, fallback) {
     if (!element) {
         return;
     }
 
-    element.textContent = '';
-
-    if (event && event.hasBirthdayThisWeek && !event.isHoliday && !event.isBreak) {
-        element.appendChild(createBirthdayIcon());
-    }
-
-    element.appendChild(document.createTextNode((event && event.title) || fallback || 'No title'));
+    element.textContent = (event && event.title) || fallback || 'No title';
 };
 
-const patchScheduleItemBirthdayIcon = function(item, event) {
+const clearScheduleItemBirthdayDecoration = function(item) {
     if (!item) {
         return;
     }
@@ -2553,11 +2538,6 @@ const patchScheduleItemBirthdayIcon = function(item, event) {
 
     item.removeAttribute('data-birthday-this-week');
     item.removeAttribute('data-birthday-title');
-
-    if (event && event.hasBirthdayThisWeek && !event.isHoliday && !event.isBreak) {
-        item.setAttribute('data-birthday-this-week', 'true');
-        item.setAttribute('data-birthday-title', event.title || item.getAttribute('data-title') || '');
-    }
 };
 
 const normalizeStudentSearch = function(value) {
