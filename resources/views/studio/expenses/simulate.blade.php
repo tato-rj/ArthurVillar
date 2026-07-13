@@ -7,7 +7,7 @@
     <div class="d-grid gap-3 mb-4">
         @foreach($locations as $location)
             <label class="d-flex align-items-center justify-content-between gap-3 mb-0">
-                <span class="fw-bold">{{$location->name}}</span>
+                <span class="fw-bold">{{$location->name}} {{payment()->usd($location->fee_amount)}}</span>
                 <span class="input-group" style="max-width: 150px;">
                     <input
                         type="number"
