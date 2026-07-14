@@ -32600,6 +32600,9 @@ button.single-lesson-plan-create[selected] i {
   i.fa-bars {
     margin-top: 13px;
   }
+  .studio-date-range {
+    width: 100%;
+  }
   .studio-calendar-filter-toggle {
     min-width: 1rem;
   }
