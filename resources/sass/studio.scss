@@ -777,6 +777,18 @@ td {white-space: nowrap;}
     z-index: 8;
 }
 
+.studio-schedule-swipe-preview::after {
+    background: var(--lm-border-color, #ddd);
+    bottom: 0;
+    content: '';
+    height: 1px;
+    left: 0;
+    pointer-events: none;
+    position: absolute;
+    right: 0;
+    z-index: 20;
+}
+
 .studio-schedule-swipe-track {
     display: flex;
     height: 100%;
@@ -795,8 +807,18 @@ td {white-space: nowrap;}
 .studio-schedule-swipe-gutter,
 .studio-schedule-swipe-day {
     background: var(--lm-background-color, #fff);
-    border-bottom: 1px solid var(--lm-border-color, #ddd);
     box-sizing: border-box;
+    position: relative;
+}
+
+.studio-schedule-swipe-gutter::after,
+.studio-schedule-swipe-day::after {
+    border-bottom: 1px solid var(--lm-border-color, #ddd);
+    bottom: 0;
+    content: '';
+    left: 0;
+    position: absolute;
+    width: 100%;
 }
 
 .studio-schedule-swipe-day {
@@ -809,7 +831,10 @@ td {white-space: nowrap;}
 
 .studio-schedule-swipe-day.is-today {
     background: var(--lm-background-color-header, #ececec);
-    border-bottom-color: rgba(251, 230, 105, 1);
+}
+
+.studio-schedule-swipe-day.is-today::after {
+    border: 0.5px solid rgba(251, 230, 105, 1);
 }
 
 .studio-schedule-swipe-weekday {

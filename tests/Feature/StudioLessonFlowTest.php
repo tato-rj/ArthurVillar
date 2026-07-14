@@ -794,6 +794,61 @@ class StudioLessonFlowTest extends BaseTest
     }
 
     /** @test */
+    public function calendar_modal_can_reschedule_a_lesson_with_json()
+    {
+        $lessonPlan = LessonPlan::factory()->create([
+            'weekday' => 4,
+            'start_time' => '15:30',
+            'duration_minutes' => 45,
+            'starts_on' => '2026-07-01',
+        ]);
+
+        $this->signIn();
+
+        $this->postJson(route('studio.lesson-plans.reschedule'), [
+            'lesson_plan_id' => $lessonPlan->id,
+            'original_date' => '2026-07-08',
+            'original_start_time' => '15:30',
+            'date' => '2026-07-09',
+            'start_time' => '16:00',
+            'end_time' => '16:45',
+            'is_permanent' => 0,
+        ])
+            ->assertOk()
+            ->assertJsonPath('lesson_plan_id', $lessonPlan->id)
+            ->assertJsonPath('date', '2026-07-09')
+            ->assertJsonPath('start_time', '16:00')
+            ->assertJsonPath('is_permanent', false);
+    }
+
+    /** @test */
+    public function calendar_modal_can_cancel_a_lesson_with_json()
+    {
+        $lessonPlan = LessonPlan::factory()->create([
+            'weekday' => 4,
+            'start_time' => '15:30',
+            'duration_minutes' => 45,
+            'starts_on' => '2026-07-01',
+        ]);
+
+        $this->signIn();
+
+        $this->postJson(route('studio.lessons.cancel'), [
+            'lesson_plan_id' => $lessonPlan->id,
+            'date' => '2026-07-08',
+            'start' => '15:30',
+            'end' => '16:15',
+            'scheduled_date' => '2026-07-08',
+            'scheduled_start_time' => '15:30',
+            'cancelation_type' => 'current',
+            'canceled_by' => 'student',
+        ])
+            ->assertOk()
+            ->assertJsonPath('status', 'canceled')
+            ->assertJsonPath('canceled_by', 'student');
+    }
+
+    /** @test */
     public function calendar_payload_marks_a_confirmed_single_lesson_plan_as_unpaid()
     {
         $singleLessonPlan = SingleLessonPlan::factory()->create([

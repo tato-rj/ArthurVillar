@@ -1311,6 +1311,89 @@ const restoreButtonLabel = function(button) {
     }
 };
 
+const getResponseErrorMessage = function(payload, fallback) {
+    if (payload && payload.message) {
+        return payload.message;
+    }
+
+    if (payload && payload.errors) {
+        const firstError = Object.values(payload.errors).find(function(errors) {
+            return Array.isArray(errors) && errors.length;
+        });
+
+        if (firstError) {
+            return firstError[0];
+        }
+    }
+
+    return fallback;
+};
+
+const requestJson = function(url, options, fallbackError) {
+    return fetch(url, options).then(function(response) {
+        return response.json().catch(function() {
+            return {};
+        }).then(function(payload) {
+            if (!response.ok) {
+                throw new Error(getResponseErrorMessage(payload, fallbackError));
+            }
+
+            return payload;
+        });
+    });
+};
+
+const showLessonActionError = function(modal, message) {
+    const error = modal ? modal.querySelector('[data-lesson-action-error]') : null;
+
+    if (!error) {
+        return;
+    }
+
+    error.textContent = message || 'Unable to update this lesson.';
+    error.hidden = false;
+};
+
+const clearLessonActionError = function(modal) {
+    const error = modal ? modal.querySelector('[data-lesson-action-error]') : null;
+
+    if (!error) {
+        return;
+    }
+
+    error.textContent = '';
+    error.hidden = true;
+};
+
+const hideLessonModal = function(modal) {
+    if (!modal) {
+        return;
+    }
+
+    if (window.bootstrap && window.bootstrap.Modal && typeof window.bootstrap.Modal.getOrCreateInstance === 'function') {
+        window.bootstrap.Modal.getOrCreateInstance(modal).hide();
+        return;
+    }
+
+    if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
+        window.jQuery(modal).modal('hide');
+    }
+};
+
+const finishLessonModalMutation = function(modal, refreshCalendar, keepOpen) {
+    const guid = modal ? modal.dataset.eventGuid : '';
+
+    return refreshCalendar().then(function() {
+        const updatedEvent = guid ? getEventByGuid(guid) : null;
+
+        if (keepOpen && updatedEvent) {
+            openLessonModal(updatedEvent);
+        } else {
+            hideLessonModal(modal);
+        }
+    });
+};
+
 const getLessonForOccurrence = function(lessonPlan, dateString, startTime) {
     const lessons = Array.isArray(lessonPlan.lessons) ? lessonPlan.lessons : [];
     const lessonPlanId = Number(lessonPlan.id);
@@ -1374,6 +1457,7 @@ const resetLessonModalState = function(modal) {
 
     modal.classList.remove('is-canceling', 'is-rescheduling');
     state.rescheduleAnchor = null;
+    clearLessonActionError(modal);
 };
 
 const showLessonRescheduleForm = function(modal) {
@@ -1969,7 +2053,7 @@ const revertLessonInState = function(event, lessonId) {
     });
 };
 
-const revertLessonAction = function(button) {
+const revertLessonAction = function(button, refreshCalendar) {
     const modal = button.closest('#lesson-modal');
     const url = button.dataset.url;
 
@@ -1978,8 +2062,9 @@ const revertLessonAction = function(button) {
     }
 
     button.disabled = true;
+    clearLessonActionError(modal);
 
-    fetch(url, {
+    requestJson(url, {
         method: 'POST',
         headers: {
             'Accept': 'application/json',
@@ -1991,25 +2076,21 @@ const revertLessonAction = function(button) {
             lesson_id: modal.dataset.lessonId || '',
             schedule_override_id: modal.dataset.scheduleOverrideId || '',
         }),
-    })
-        .then(function(response) {
-            if (!response.ok) {
-                throw new Error('Unable to revert lesson action.');
-            }
+    }, 'Unable to revert lesson action.')
+        .then(function(payload) {
+            updateLessonModalState(modal, payload);
 
-            return response.json();
-        })
-        .then(function() {
-            window.location.reload();
+            return finishLessonModalMutation(modal, refreshCalendar, true);
         })
         .catch(function(error) {
             console.error(error);
             button.disabled = false;
             restoreButtonLabel(button);
+            showLessonActionError(modal, error.message);
         });
 };
 
-const storeTaughtLesson = function(button) {
+const storeTaughtLesson = function(button, refreshCalendar) {
     const modal = button.closest('#lesson-modal');
     const url = button.dataset.url;
     const lessonPlanId = modal ? modal.dataset.lessonPlanId : '';
@@ -2020,8 +2101,9 @@ const storeTaughtLesson = function(button) {
     }
 
     button.disabled = true;
+    clearLessonActionError(modal);
 
-    fetch(url, {
+    requestJson(url, {
         method: 'POST',
         headers: {
             'Accept': 'application/json',
@@ -2030,25 +2112,21 @@ const storeTaughtLesson = function(button) {
             'X-Requested-With': 'XMLHttpRequest',
         },
         body: JSON.stringify(getLessonOccurrencePayload(modal)),
-    })
-        .then(function(response) {
-            if (!response.ok) {
-                throw new Error('Unable to store lesson.');
-            }
+    }, 'Unable to confirm lesson.')
+        .then(function(payload) {
+            updateLessonModalState(modal, payload);
 
-            return response.json();
-        })
-        .then(function() {
-            window.location.reload();
+            return finishLessonModalMutation(modal, refreshCalendar, true);
         })
         .catch(function(error) {
             console.error(error);
             button.disabled = false;
             restoreButtonLabel(button);
+            showLessonActionError(modal, error.message);
         });
 };
 
-const confirmLessonPayment = function(button) {
+const confirmLessonPayment = function(button, refreshCalendar) {
     const modal = button.closest('#lesson-modal');
     const url = button.dataset.url;
 
@@ -2057,8 +2135,9 @@ const confirmLessonPayment = function(button) {
     }
 
     button.disabled = true;
+    clearLessonActionError(modal);
 
-    fetch(url, {
+    requestJson(url, {
         method: 'POST',
         headers: {
             'Accept': 'application/json',
@@ -2066,21 +2145,61 @@ const confirmLessonPayment = function(button) {
             'X-CSRF-TOKEN': window.studioCsrfToken || '',
             'X-Requested-With': 'XMLHttpRequest',
         },
-    })
-        .then(function(response) {
-            if (!response.ok) {
-                throw new Error('Unable to confirm payment.');
-            }
+    }, 'Unable to confirm payment.')
+        .then(function(payload) {
+            updateLessonModalState(modal, payload);
 
-            return response.json();
-        })
-        .then(function() {
-            window.location.reload();
+            return finishLessonModalMutation(modal, refreshCalendar, true);
         })
         .catch(function(error) {
             console.error(error);
             button.disabled = false;
             restoreButtonLabel(button);
+            showLessonActionError(modal, error.message);
+        });
+};
+
+const submitLessonModalForm = function(form, refreshCalendar) {
+    const modal = form ? form.closest('#lesson-modal') : null;
+    const submit = form ? form.querySelector('button[type="submit"], input[type="submit"]') : null;
+    const isReschedule = !!(form && form.closest('#reschedule-lesson'));
+
+    if (!modal || !form.action) {
+        return;
+    }
+
+    if (submit) {
+        preserveButtonLabel(submit);
+        submit.disabled = true;
+    }
+
+    clearLessonActionError(modal);
+
+    requestJson(form.action, {
+        method: String(form.method || 'POST').toUpperCase(),
+        headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': window.studioCsrfToken || '',
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: new FormData(form),
+    }, isReschedule ? 'Unable to reschedule lesson.' : 'Unable to cancel lesson.')
+        .then(function(payload) {
+            if (!isReschedule && payload && payload.status) {
+                updateLessonModalState(modal, payload);
+            }
+
+            return finishLessonModalMutation(modal, refreshCalendar, !isReschedule);
+        })
+        .catch(function(error) {
+            console.error(error);
+
+            if (submit) {
+                submit.disabled = false;
+                restoreButtonLabel(submit);
+            }
+
+            showLessonActionError(modal, error.message);
         });
 };
 
@@ -4360,6 +4479,29 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
+    const refreshCalendarAfterLessonMutation = function() {
+        const schedule = calendar.querySelector('.lm-schedule');
+        const scrollTop = schedule ? schedule.scrollTop : 0;
+        const scrollLeft = schedule ? schedule.scrollLeft : 0;
+        const visibleRange = getVisibleDateRange();
+
+        state.loadedRange = null;
+        state.pendingRangeKey = null;
+
+        return fetchPlannedLessons(visibleRange).then(function() {
+            render();
+
+            requestAnimationFrame(function() {
+                const refreshedSchedule = calendar.querySelector('.lm-schedule');
+
+                if (refreshedSchedule) {
+                    refreshedSchedule.scrollTop = scrollTop;
+                    refreshedSchedule.scrollLeft = scrollLeft;
+                }
+            });
+        });
+    };
+
     if (today) {
         today.addEventListener('click', function() {
             setSelectedDate(getTodayDate());
@@ -4478,7 +4620,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (lessonTaught) {
         lessonTaught.addEventListener('click', function(e) {
             e.preventDefault();
-            storeTaughtLesson(lessonTaught);
+            storeTaughtLesson(lessonTaught, refreshCalendarAfterLessonMutation);
         });
     }
 
@@ -4487,7 +4629,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (confirmPayment) {
         confirmPayment.addEventListener('click', function(e) {
             e.preventDefault();
-            confirmLessonPayment(confirmPayment);
+            confirmLessonPayment(confirmPayment, refreshCalendarAfterLessonMutation);
         });
     }
 
@@ -4496,7 +4638,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (lessonRevert) {
         lessonRevert.addEventListener('click', function(e) {
             e.preventDefault();
-            revertLessonAction(lessonRevert);
+            revertLessonAction(lessonRevert, refreshCalendarAfterLessonMutation);
         });
     }
 
@@ -4511,6 +4653,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (lessonModal) {
         const rescheduleButton = lessonModal.querySelector('#reschedule-lesson-button');
+        const rescheduleForm = lessonModal.querySelector('#reschedule-lesson form');
+        const cancelForm = lessonModal.querySelector('#cancel-lesson form');
         const reschedulePrevious = lessonModal.querySelector('[data-reschedule-datepicker-prev]');
         const rescheduleNext = lessonModal.querySelector('[data-reschedule-datepicker-next]');
         const rescheduleGrid = lessonModal.querySelector('[data-reschedule-datepicker-grid]');
@@ -4524,6 +4668,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 showLessonRescheduleForm(lessonModal);
             });
         }
+
+        [rescheduleForm, cancelForm].filter(Boolean).forEach(function(form) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                submitLessonModalForm(form, refreshCalendarAfterLessonMutation);
+            });
+        });
 
         lessonModal.addEventListener('hidden.bs.modal', function() {
             resetLessonModalState(lessonModal);

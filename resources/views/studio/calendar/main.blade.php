@@ -2,7 +2,6 @@
 	@include('studio.calendar.header')
 
 	<div id="calendar"></div>
-
 	@include('studio.calendar.create-lesson-overlay')
 </div>
 
