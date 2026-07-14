@@ -505,6 +505,26 @@ td {white-space: nowrap;}
     text-align: left;
 }
 
+.studio-calendar-lesson-fade-in {
+    animation: studio-calendar-lesson-fade-in 180ms ease-out var(--studio-lesson-fade-delay, 0ms) both;
+}
+
+@keyframes studio-calendar-lesson-fade-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: var(--studio-lesson-fade-opacity, 1);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .studio-calendar-lesson-fade-in {
+        animation: none;
+    }
+}
+
 .studio-schedule-event-title,
 .studio-schedule-event-time {
     min-width: 0;
@@ -777,18 +797,6 @@ td {white-space: nowrap;}
     z-index: 8;
 }
 
-.studio-schedule-swipe-preview::after {
-    background: var(--lm-border-color, #ddd);
-    bottom: 0;
-    content: '';
-    height: 1px;
-    left: 0;
-    pointer-events: none;
-    position: absolute;
-    right: 0;
-    z-index: 20;
-}
-
 .studio-schedule-swipe-track {
     display: flex;
     height: 100%;
@@ -811,16 +819,6 @@ td {white-space: nowrap;}
     position: relative;
 }
 
-.studio-schedule-swipe-gutter::after,
-.studio-schedule-swipe-day::after {
-    border-bottom: 1px solid var(--lm-border-color, #ddd);
-    bottom: 0;
-    content: '';
-    left: 0;
-    position: absolute;
-    width: 100%;
-}
-
 .studio-schedule-swipe-day {
     color: var(--studio-swipe-color, inherit);
     display: block;
@@ -835,6 +833,12 @@ td {white-space: nowrap;}
 
 .studio-schedule-swipe-day.is-today::after {
     border: 0.5px solid rgba(251, 230, 105, 1);
+    bottom: 0;
+    content: '';
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
 }
 
 .studio-schedule-swipe-weekday {
@@ -856,11 +860,19 @@ td {white-space: nowrap;}
 #calendar.studio-calendar-day-view .lm-schedule thead td {
     text-align: left;
     padding-left: 20px;
+    cursor: grab;
 }
 
 #calendar.studio-calendar-two-days-view .lm-schedule thead td,
 #calendar.studio-calendar-week-view .lm-schedule thead td {
     text-align: center;
+    cursor: grab;
+}
+
+
+html.studio-schedule-header-grabbing,
+html.studio-schedule-header-grabbing * {
+    cursor: grabbing !important;
 }
 
 #calendar .lm-schedule .studio-schedule-hidden-column {
@@ -1195,6 +1207,22 @@ button.single-lesson-plan-create[selected] i {
     flex-direction: column;
     justify-content: normal;
     overflow: hidden;
+}
+
+#calendar .lm-schedule-item > .event-icon {
+    font-size: 0.92em;
+    line-height: 1;
+    opacity: .65;
+    position: absolute;
+    right: 5px;
+    top: 6px;
+    z-index: -1;
+}
+
+#calendar .lm-schedule-item::before {
+    box-sizing: border-box;
+    padding-right: 1.25rem;
+    width: 100%;
 }
 
 #calendar .lm-schedule-item[data-lesson-status="unconfirmed"], .studio-month-event-dot[data-lesson-status="unconfirmed"], #calendar .studio-schedule-event[data-lesson-status="unconfirmed"] {

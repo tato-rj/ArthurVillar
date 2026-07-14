@@ -1033,6 +1033,20 @@ const formatAgendaEventTime = function(time) {
     return formatModalEventTime(time).toUpperCase();
 };
 
+const getLessonLocationIcon = function(locationName) {
+    const location = String(locationName || '').trim().toLowerCase();
+
+    if (location.includes('home')) {
+        return 'house';
+    }
+
+    if (location.includes('online')) {
+        return 'globe';
+    }
+
+    return 'building';
+};
+
 const patchScheduleItems = function(calendar) {
     calendar.querySelectorAll('.lm-schedule-item').forEach(function(item) {
         const start = item.getAttribute('data-start');
@@ -1040,6 +1054,17 @@ const patchScheduleItems = function(calendar) {
         const duration = getTimeMinutes(end) - getTimeMinutes(start);
         const isShort = duration <= 30;
         const event = getEventByScheduleItem(item);
+        let locationIcon = item.querySelector(':scope > .event-icon');
+
+        if (!locationIcon) {
+            locationIcon = document.createElement('span');
+            locationIcon.className = 'event-icon';
+            locationIcon.innerHTML = '<i class="fa-solid" aria-hidden="true"></i>';
+            item.appendChild(locationIcon);
+        }
+
+        locationIcon.querySelector('i').className = `fa-solid fa-${getLessonLocationIcon(event ? event.locationName : '')}`;
+        locationIcon.title = event && event.locationName ? event.locationName : '';
 
         item.classList.toggle('is-short', isShort);
         item.setAttribute('data-display-time', isShort ? formatEventTime(start) : `${formatEventTime(start)} - ${formatEventTime(end)}`);
@@ -1051,6 +1076,29 @@ const patchScheduleItems = function(calendar) {
 
         applyEventTimeStatusAttributes(item, event);
         applyEventOverlapAttribute(item, event);
+    });
+};
+
+const animateCalendarLessonItems = function(calendar) {
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        return;
+    }
+
+    const nonLessonStatuses = ['holiday', 'teaching-break', 'recital'];
+    const lessonItems = Array.from(calendar.querySelectorAll('.lm-schedule-item, .studio-month-event, .studio-schedule-event')).filter(function(item) {
+        return !nonLessonStatuses.includes(item.dataset.lessonStatus || '') && item.dataset.lessonFadeAnimated !== 'true';
+    });
+
+    lessonItems.forEach(function(item, index) {
+        item.dataset.lessonFadeAnimated = 'true';
+        item.style.setProperty('--studio-lesson-fade-delay', `${index * 50}ms`);
+        item.style.setProperty('--studio-lesson-fade-opacity', window.getComputedStyle(item).opacity || '1');
+        item.classList.add('studio-calendar-lesson-fade-in');
+        item.addEventListener('animationend', function() {
+            item.classList.remove('studio-calendar-lesson-fade-in');
+            item.style.removeProperty('--studio-lesson-fade-delay');
+            item.style.removeProperty('--studio-lesson-fade-opacity');
+        }, { once: true });
     });
 };
 
@@ -2296,6 +2344,7 @@ const patchSchedule = function(calendar) {
     patchScheduleItems(calendar);
     patchScheduleHolidays(calendar);
     patchSchedulePointer(calendar);
+    animateCalendarLessonItems(calendar);
     requestAnimationFrame(function() {
         scrollScheduleToNow(calendar);
     });
@@ -3426,7 +3475,9 @@ const createScheduleSwipePreview = function(calendar) {
     viewport.style.left = `${schedule.scrollLeft}px`;
     viewport.style.top = `${schedule.scrollTop + headerRect.top - scheduleRect.top}px`;
     viewport.style.width = `${width}px`;
-    viewport.style.height = `${height}px`;
+    // Leave the header's own bottom pixel uncovered. Its td::after border then
+    // remains on the non-moving sticky header layer while the preview slides.
+    viewport.style.height = `${Math.max(0, height - 1)}px`;
     viewport.style.setProperty('--studio-swipe-number-size', sampleHeaderStyle.fontSize);
     viewport.style.setProperty('--studio-swipe-number-weight', sampleHeaderStyle.fontWeight);
     viewport.style.setProperty('--studio-swipe-number-line-height', sampleHeaderStyle.lineHeight);
@@ -3506,6 +3557,7 @@ const bindScheduleHeaderSwipe = function(calendar, navigate) {
         );
 
         gesture = null;
+        document.documentElement.classList.remove('studio-schedule-header-grabbing');
 
         if (!current.preview) {
             return;
@@ -3546,6 +3598,7 @@ const bindScheduleHeaderSwipe = function(calendar, navigate) {
             dragging: false,
             preview: null,
         };
+        document.documentElement.classList.add('studio-schedule-header-grabbing');
 
         if (typeof headerRow.setPointerCapture === 'function') {
             headerRow.setPointerCapture(event.pointerId);
