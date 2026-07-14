@@ -21,16 +21,14 @@
         ])
     </div>
 
-    <div class="studio-table-filters mb-3">
-        <label>
-            <span>From</span>
-            <input type="date" id="lesson-plans-starts-from">
-        </label>
-        <label>
-            <span>To</span>
-            <input type="date" id="lesson-plans-starts-to">
-        </label>
-        <button type="button" id="lesson-plans-clear-dates" class="btn btn-sm btn-secondary rounded">Clear</button>
+    <div class="studio-table-filters mb-3" id="lesson-plans-starts-range">
+        @daterange([
+            'fromId' => 'lesson-plans-starts-from',
+            'toId' => 'lesson-plans-starts-to',
+            'fromValue' => request('starts_from'),
+            'toValue' => request('starts_to'),
+            'placeholder' => 'Filter by active date range',
+        ])
     </div>
 
     <div id="lesson-plans-container" class="studio-table-container studio-table-container-lg">
@@ -352,12 +350,7 @@ $(function() {
         },
     });
 
-    $('#lesson-plans-starts-from, #lesson-plans-starts-to').on('change', function() {
-        lessonPlansTable.ajax.reload(null, true);
-    });
-
-    $('#lesson-plans-clear-dates').on('click', function() {
-        $('#lesson-plans-starts-from, #lesson-plans-starts-to').val('');
+    $('#lesson-plans-starts-range').on('date-range:change', function() {
         lessonPlansTable.ajax.reload(null, true);
     });
 

@@ -137,5 +137,6 @@ class AppServiceProvider extends ServiceProvider
         \Blade::include('components.delete');
         \Blade::include('components.pagetitle');
         \Blade::include('components.cropper');
+        \Blade::include('components.date-range', 'daterange');
     }
 }

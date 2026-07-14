@@ -287,6 +287,7 @@ class Scheduler
                         'id' => $recital->venue->id,
                         'name' => $recital->venue->name,
                         'address' => $recital->venue->full_address,
+                        'map_url' => $recital->venue->map_url,
                     ] : null,
                     'students' => $recital->students->map(fn (Student $student) => [
                         'id' => $student->id,

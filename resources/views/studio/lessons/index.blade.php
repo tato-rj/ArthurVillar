@@ -12,16 +12,14 @@
         ])
     </div>
 
-    <div class="studio-table-filters mb-3">
-        <label>
-            <span>From</span>
-            <input type="date" id="lessons-paid-from">
-        </label>
-        <label>
-            <span>To</span>
-            <input type="date" id="lessons-paid-to">
-        </label>
-        <button type="button" id="lessons-clear-dates" class="btn btn-sm btn-secondary rounded">Clear</button>
+    <div class="studio-table-filters mb-3" id="lessons-paid-range">
+        @daterange([
+            'fromId' => 'lessons-paid-from',
+            'toId' => 'lessons-paid-to',
+            'fromValue' => request('paid_from'),
+            'toValue' => request('paid_to'),
+            'placeholder' => 'Filter by payment date',
+        ])
     </div>
 
     <div id="lessons-container" class="studio-table-container studio-table-container-lg">
@@ -191,12 +189,7 @@ $(function() {
         },
     });
 
-    $('#lessons-paid-from, #lessons-paid-to').on('change', function() {
-        lessonsTable.ajax.reload();
-    });
-
-    $('#lessons-clear-dates').on('click', function() {
-        $('#lessons-paid-from, #lessons-paid-to').val('');
+    $('#lessons-paid-range').on('date-range:change', function() {
         lessonsTable.ajax.reload();
     });
 });

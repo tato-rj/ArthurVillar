@@ -1768,7 +1768,24 @@ const openRecitalModal = function(event) {
     if (venue) {
         const venueName = event.venue && event.venue.name ? event.venue.name : 'No venue specified';
         const address = event.venue && event.venue.address ? event.venue.address : '';
-        venue.textContent = address ? `${venueName} · ${address}` : venueName;
+        const mapUrl = event.venue && event.venue.map_url ? event.venue.map_url : '';
+
+        venue.innerHTML = '';
+
+        if (mapUrl) {
+            const link = document.createElement('a');
+            link.href = mapUrl;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            link.textContent = venueName;
+            venue.appendChild(link);
+        } else {
+            venue.appendChild(document.createTextNode(venueName));
+        }
+
+        if (address) {
+            venue.appendChild(document.createTextNode(` · ${address}`));
+        }
     }
 
     if (participants) {

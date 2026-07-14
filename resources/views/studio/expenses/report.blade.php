@@ -27,14 +27,14 @@
         @foreach($simulation as $locationId => $percentage)
             <input type="hidden" name="simulation[{{$locationId}}]" value="{{$percentage}}">
         @endforeach
-        <label>
-            <span>From</span>
-            <input type="month" name="starts_from" value="{{$startsFrom->format('Y-m')}}">
-        </label>
-        <label>
-            <span>To</span>
-            <input type="month" name="starts_to" value="{{$startsTo->format('Y-m')}}">
-        </label>
+        @daterange([
+            'fromName' => 'starts_from',
+            'toName' => 'starts_to',
+            'fromValue' => $startsFrom->format('Y-m'),
+            'toValue' => $startsTo->format('Y-m'),
+            'output' => 'month',
+            'placeholder' => 'Select report range',
+        ])
         <a href="{{route('studio.expenses.report')}}" class="btn btn-sm btn-secondary rounded">Clear</a>
     </form>
 
@@ -90,10 +90,8 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
 
-    filters.querySelectorAll('input[type="month"]').forEach(function(input) {
-        input.addEventListener('change', function() {
-            filters.submit();
-        });
+    filters.querySelector('[data-date-range]').addEventListener('date-range:change', function() {
+        filters.submit();
     });
 });
 </script>

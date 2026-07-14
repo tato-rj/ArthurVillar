@@ -358,7 +358,7 @@ td {white-space: nowrap;}
 }
 
 .studio-calendar-filter-menu {
-    @extend .rounded-sm, .border, .shadow;
+    @extend .rounded-sm, .border, .shadow-lg;
     min-width: 14rem;
 }
 
@@ -1047,6 +1047,10 @@ button.single-lesson-plan-create[selected] i {
 
 .recital-participant-row + .recital-participant-row {
     border-top: 1px solid #edf0f3;
+}
+
+#recital-venue a {
+    @extend .text-red;
 }
 
 #calendar.studio-calendar-day-view .lm-schedule-pointer,

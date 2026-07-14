@@ -100,6 +100,7 @@ class RecitalTest extends BaseTest
             'city' => 'Brooklyn',
             'state' => 'NY',
             'postal_code' => '11201',
+            'map_url' => 'https://maps.google.com/?q=Concert+Hall',
         ]);
         $student = Student::factory()->create(['first_name' => 'Ana', 'last_name' => 'Costa']);
         $recital = Recital::factory()->create([
@@ -120,6 +121,7 @@ class RecitalTest extends BaseTest
         $this->assertSame('Fall Recital', $event['name']);
         $this->assertSame('Concert Hall', $event['venue']['name']);
         $this->assertSame('10 Music Avenue, Brooklyn, NY, 11201', $event['venue']['address']);
+        $this->assertSame('https://maps.google.com/?q=Concert+Hall', $event['venue']['map_url']);
         $this->assertSame('Ana Costa', $event['students'][0]['name']);
     }
 }

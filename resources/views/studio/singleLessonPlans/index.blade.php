@@ -18,16 +18,14 @@
         ])
     </div>
 
-    <div class="studio-table-filters mb-3">
-        <label>
-            <span>From</span>
-            <input type="date" id="single-lesson-plans-scheduled-from">
-        </label>
-        <label>
-            <span>To</span>
-            <input type="date" id="single-lesson-plans-scheduled-to">
-        </label>
-        <button type="button" id="single-lesson-plans-clear-dates" class="btn btn-sm btn-secondary rounded">Clear</button>
+    <div class="studio-table-filters mb-3" id="single-lesson-plans-scheduled-range">
+        @daterange([
+            'fromId' => 'single-lesson-plans-scheduled-from',
+            'toId' => 'single-lesson-plans-scheduled-to',
+            'fromValue' => request('scheduled_from'),
+            'toValue' => request('scheduled_to'),
+            'placeholder' => 'Filter by scheduled date',
+        ])
     </div>
 
     <div id="single-lesson-plans-container" class="studio-table-container studio-table-container-lg">
@@ -284,12 +282,7 @@ $(function() {
         },
     });
 
-    $('#single-lesson-plans-scheduled-from, #single-lesson-plans-scheduled-to').on('change', function() {
-        singleLessonPlansTable.ajax.reload(null, true);
-    });
-
-    $('#single-lesson-plans-clear-dates').on('click', function() {
-        $('#single-lesson-plans-scheduled-from, #single-lesson-plans-scheduled-to').val('');
+    $('#single-lesson-plans-scheduled-range').on('date-range:change', function() {
         singleLessonPlansTable.ajax.reload(null, true);
     });
 
