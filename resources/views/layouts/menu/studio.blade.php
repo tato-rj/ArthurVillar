@@ -27,6 +27,7 @@
     ],
     'studio.breaks.index' => 'Breaks',
     'studio.holidays.index' => 'Holidays',
+    'studio.events.index' => 'Events',
     [
       'label' => 'Finances',
       'children' => [

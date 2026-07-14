@@ -505,6 +505,37 @@ td {white-space: nowrap;}
     text-align: left;
 }
 
+#calendar .studio-calendar-general-event,
+#calendar .studio-month-event-general,
+#calendar .studio-schedule-event-general {
+    @extend .bg-purple;
+}
+
+#calendar .studio-calendar-general-event::before {
+    padding-right: 0;
+}
+
+#calendar .studio-month-event-general {
+    border-radius: 0.35rem;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    padding-top: 0.18rem;
+    padding-bottom: 0.18rem;
+}
+
+#calendar .studio-month-event-general .studio-month-event-time {
+    color: inherit;
+}
+
+#calendar .studio-month-event-general:hover {
+    background: #ce82ff;
+}
+
+.studio-general-event-notes {
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+
 .studio-calendar-lesson-fade-in {
     animation: studio-calendar-lesson-fade-in 180ms ease-out var(--studio-lesson-fade-delay, 0ms) both;
 }
@@ -1396,7 +1427,9 @@ button.single-lesson-plan-create[selected] i {
 }
 
 #reschedule-lesson,
-#cancel-lesson {
+#cancel-lesson,
+#reschedule-general-event,
+#cancel-general-event {
     display: none;
 }
 
@@ -1415,6 +1448,25 @@ button.single-lesson-plan-create[selected] i {
 
 #lesson-modal.is-canceling {
     #cancel-lesson {
+        display: block;
+    }
+}
+
+#general-event-modal.is-rescheduling,
+#general-event-modal.is-canceling {
+    #general-event-details {
+        display: none;
+    }
+}
+
+#general-event-modal.is-rescheduling {
+    #reschedule-general-event {
+        display: block;
+    }
+}
+
+#general-event-modal.is-canceling {
+    #cancel-general-event {
         display: block;
     }
 }

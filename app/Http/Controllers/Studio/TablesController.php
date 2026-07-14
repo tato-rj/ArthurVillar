@@ -4,12 +4,33 @@ namespace App\Http\Controllers\Studio;
 
 use App\Http\Controllers\Controller;
 use App\Calendar\Scheduler;
-use App\Models\{Expense, Lesson, LessonPlan, Location, Recital, SingleLessonPlan, Student, TeachingBreak, Venue, WaitingList};
+use App\Models\{Event, Expense, Lesson, LessonPlan, Location, Recital, SingleLessonPlan, Student, TeachingBreak, Venue, WaitingList};
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 
 class TablesController extends Controller
 {
+    public function events()
+    {
+        $events = Event::query()->select([
+            'id',
+            'name',
+            'scheduled_date',
+            'starts_at',
+            'ends_at',
+            'notes',
+        ]);
+
+        return DataTables::eloquent($events)
+            ->editColumn('scheduled_date', function (Event $event) {
+                return $event->scheduled_date ? $event->scheduled_date->toDateString() : null;
+            })
+            ->orderColumn('scheduled_date', 'scheduled_date $1')
+            ->orderColumn('starts_at', 'starts_at $1')
+            ->orderColumn('ends_at', 'ends_at $1')
+            ->toJson();
+    }
+
     public function expenses()
     {
         $driver = DB::connection()->getDriverName();

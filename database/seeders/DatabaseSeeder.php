@@ -29,6 +29,7 @@ class DatabaseSeeder extends Seeder
             TeachingBreakSeeder::class,
             VenueSeeder::class,
             RecitalSeeder::class,
+            EventSeeder::class,
             WaitingListSeeder::class
         ]);
     }

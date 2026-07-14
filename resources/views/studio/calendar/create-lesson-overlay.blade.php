@@ -8,6 +8,11 @@
 		@fa(['icon' => 'repeat', 'mr' => 2])
 		Recurring Lesson
 	</button>
+
+	<button type="button" class="studio-calendar-create-menu-option" data-calendar-create-event>
+		@fa(['icon' => 'thumbtack', 'mr' => 2])
+		General Event
+	</button>
 </div>
 
 <button type="button" class="btn-raw single-lesson-plan-create" data-calendar-create-toggle aria-label="Create lesson">
@@ -16,3 +21,4 @@
 
 @include('studio.singleLessonPlans.create')
 @include('studio.lessonPlans.create')
+@include('studio.events.create')

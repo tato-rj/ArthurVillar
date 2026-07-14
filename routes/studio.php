@@ -148,6 +148,21 @@ Route::prefix('expenses')->name('expenses.')->group(function() {
 	});
 });
 
+Route::prefix('events')->name('events.')->group(function() {
+	Route::get('', 'EventsController@index')->name('index');
+
+	Route::post('', 'EventsController@store')->name('store');
+
+	Route::prefix('{event}')->group(function() {
+		Route::get('edit', 'EventsController@edit')->name('edit');
+		Route::patch('reschedule', 'EventsController@reschedule')->name('reschedule');
+
+		Route::patch('', 'EventsController@update')->name('update');
+
+		Route::delete('', 'EventsController@destroy')->name('destroy');
+	});
+});
+
 Route::prefix('lessons')->name('lessons.')->group(function() {
 	Route::get('', 'LessonsController@index')->name('index');
 
@@ -171,6 +186,7 @@ Route::prefix('lessons')->name('lessons.')->group(function() {
 Route::prefix('tables')->name('tables.')->group(function() {
 	Route::get('breaks', 'TablesController@breaks')->name('breaks');
 	Route::get('expenses', 'TablesController@expenses')->name('expenses');
+	Route::get('events', 'TablesController@events')->name('events');
 	Route::get('lesson-plans', 'TablesController@lessonPlans')->name('lesson-plans');
 	Route::get('lessons', 'TablesController@lessons')->name('lessons');
 	Route::get('locations', 'TablesController@locations')->name('locations');

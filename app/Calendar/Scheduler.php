@@ -3,7 +3,7 @@
 namespace App\Calendar;
 
 use Carbon\Carbon;
-use App\Models\{LessonPlan, Recital, SingleLessonPlan, Student, TeachingBreak};
+use App\Models\{Event, LessonPlan, Recital, SingleLessonPlan, Student, TeachingBreak};
 use Illuminate\Http\Request;
 use App\Calendar\Traits\Holidays;
 
@@ -23,6 +23,7 @@ class Scheduler
             'holidays' => $this->holidays($range),
             'teachingBreaks' => $this->teachingBreaks($range),
             'recitals' => $this->recitals($range),
+            'generalEvents' => $this->generalEvents($range),
             'calendarRange' => $range,
         ];
     }
@@ -296,6 +297,17 @@ class Scheduler
                     'type' => 'recital',
                 ];
             })
+            ->values();
+    }
+
+    public function generalEvents(array $range)
+    {
+        return Event::query()
+            ->whereBetween('scheduled_date', [$range['start'], $range['end']])
+            ->orderBy('scheduled_date')
+            ->orderBy('starts_at')
+            ->get()
+            ->map(fn (Event $event) => $event->calendarPayload())
             ->values();
     }
 

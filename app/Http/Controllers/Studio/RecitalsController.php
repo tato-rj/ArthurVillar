@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Studio;
 
 use App\Http\Controllers\Controller;
+use App\Models\Event;
 use App\Models\Recital;
 use App\Models\Student;
 use App\Models\Venue;
@@ -64,7 +65,7 @@ class RecitalsController extends Controller
         return $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'date' => ['required', 'date'],
-            'start_time' => ['required', 'date_format:H:i'],
+            'start_time' => ['required', 'date_format:H:i', Rule::in(Event::timeOptions())],
             'venue_id' => ['nullable', 'integer', Rule::exists('venues', 'id')],
         ]);
     }

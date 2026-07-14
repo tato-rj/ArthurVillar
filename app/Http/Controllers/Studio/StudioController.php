@@ -18,6 +18,7 @@ class StudioController extends Controller
             'holidays' => $holidays,
             'teachingBreaks' => $teachingBreaks,
             'recitals' => $recitals,
+            'generalEvents' => $generalEvents,
             'calendarRange' => $calendarRange,
         ] = $scheduler->payload($request);
 
@@ -28,6 +29,7 @@ class StudioController extends Controller
                 'holidays' => $holidays,
                 'teachingBreaks' => $teachingBreaks,
                 'recitals' => $recitals,
+                'generalEvents' => $generalEvents,
                 'calendarRange' => $calendarRange,
             ]);
         }
@@ -38,6 +40,6 @@ class StudioController extends Controller
             ->get();
         $birthdayWindow = Student::birthdayWindow();
 
-        return view('studio.index', compact('plannedLessons', 'singleLessonPlans', 'holidays', 'teachingBreaks', 'recitals', 'calendarRange', 'locations', 'birthdayWindow'));
+        return view('studio.index', compact('plannedLessons', 'singleLessonPlans', 'holidays', 'teachingBreaks', 'recitals', 'generalEvents', 'calendarRange', 'locations', 'birthdayWindow'));
     }
 }

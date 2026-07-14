@@ -33,18 +33,18 @@
 			<div class="studio-date-picker-grid" data-reschedule-datepicker-grid></div>
 		</div>
 
-		<div class="studio-time-picker">
-			<select name="start_time" id="reschedule-lesson-start-time" aria-label="Start time">
+		<div class="row mb-4">
+			@select(['label' => 'Starts at', 'name' => 'start_time', 'id' => 'reschedule-lesson-start-time', 'grid' => 'col', 'required' => true])
 				@foreach(\App\Models\LessonPlan::timeOptions() as $value)
-					<option value="{{$value}}">{{\App\Models\LessonPlan::timeLabel($value)}}</option>
+					@option(['name' => 'start_time', 'label' => \App\Models\LessonPlan::timeLabel($value), 'value' => $value])
 				@endforeach
-			</select>
-			<span>to</span>
-			<select name="end_time" id="reschedule-lesson-end-time" aria-label="End time">
+			@endselect
+
+			@select(['label' => 'Ends at', 'name' => 'end_time', 'id' => 'reschedule-lesson-end-time', 'grid' => 'col', 'required' => true])
 				@foreach(\App\Models\LessonPlan::timeOptions() as $value)
-					<option value="{{$value}}">{{\App\Models\LessonPlan::timeLabel($value)}}</option>
+					@option(['name' => 'end_time', 'label' => \App\Models\LessonPlan::timeLabel($value), 'value' => $value])
 				@endforeach
-			</select>
+			@endselect
 		</div>
 
 		<div class="mb-4">

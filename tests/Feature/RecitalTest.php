@@ -21,6 +21,8 @@ class RecitalTest extends BaseTest
             ->assertSee('New recital')
             ->assertSee(mix('css/studio.css'), false)
             ->assertSee('recital-participants-modal', false)
+            ->assertDontSee('type="time"', false)
+            ->assertSee('name="start_time"', false)
             ->assertSee('Maria Silva');
     }
 
@@ -73,6 +75,18 @@ class RecitalTest extends BaseTest
             [$students[1]->id, $students[2]->id],
             $recital->fresh()->students()->pluck('students.id')->all()
         );
+    }
+
+    /** @test */
+    public function recital_times_must_use_fifteen_minute_intervals()
+    {
+        $this->signIn();
+
+        $this->post(route('studio.recitals.store'), [
+            'name' => 'Spring Recital',
+            'date' => '2026-08-15',
+            'start_time' => '18:10',
+        ])->assertSessionHasErrors('start_time');
     }
 
     /** @test */

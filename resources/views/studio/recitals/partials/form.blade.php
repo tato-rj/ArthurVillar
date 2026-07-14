@@ -15,14 +15,11 @@
         'value' => isset($recital) && $recital->date ? $recital->date->toDateString() : old('date'),
     ])
 
-    @input([
-        'label' => 'Start time',
-        'name' => 'start_time',
-        'type' => 'time',
-        'grid' => 'col',
-        'required' => true,
-        'value' => isset($recital) ? substr($recital->start_time, 0, 5) : old('start_time'),
-    ])
+    @select(['label' => 'Start time', 'name' => 'start_time', 'grid' => 'col', 'required' => true])
+        @foreach(\App\Models\Event::timeOptions() as $time)
+            @option(['name' => 'start_time', 'label' => \App\Models\Event::timeLabel($time), 'value' => $time, 'selected' => isset($recital) && substr($recital->start_time, 0, 5) === $time])
+        @endforeach
+    @endselect
 </div>
 
 @select(['placeholder' => 'Venue (optional)', 'name' => 'venue_id'])
