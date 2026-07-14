@@ -1463,7 +1463,7 @@ button.single-lesson-plan-create[selected] i {
 }
 
 @media (display-mode: standalone) {
-  .hide-in-webapp {
-    display: none;
-  }
+    .studio-calendar-toolbar {
+        padding-right: 1rem !important;
+    }
 }
