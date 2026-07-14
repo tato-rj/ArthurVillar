@@ -306,17 +306,21 @@ const fetchPlannedLessons = function(range) {
 };
 
 const getVisibleScheduleDates = function() {
-    if (state.view === 'day') {
-        return [cloneDate(state.date)];
+    return getScheduleDatesForAnchor(state.date, state.view);
+};
+
+const getScheduleDatesForAnchor = function(anchor, view) {
+    if (view === 'day') {
+        return [cloneDate(anchor)];
     }
 
-    if (state.view === '2-days') {
+    if (view === '2-days') {
         return Array.from({ length: 2 }, function(_, index) {
-            return addDays(state.date, index);
+            return addDays(anchor, index);
         });
     }
 
-    const start = startOfWeek(state.date);
+    const start = startOfWeek(anchor);
 
     return Array.from({ length: 7 }, function(_, index) {
         return addDays(start, index);
@@ -3263,6 +3267,197 @@ const move = function(direction) {
     }
 };
 
+const getScheduleSwipeAnchor = function(direction) {
+    if (state.view === 'day') {
+        return addDays(state.date, direction);
+    }
+
+    if (state.view === '2-days') {
+        return addDays(state.date, direction * 2);
+    }
+
+    return addDays(state.date, direction * 7);
+};
+
+const createScheduleSwipePreview = function(calendar) {
+    const schedule = calendar.querySelector('.lm-schedule');
+    const headerRow = schedule ? schedule.querySelector('thead tr:not(.studio-schedule-holiday-row)') : null;
+    const visibleHeaders = headerRow
+        ? Array.from(headerRow.querySelectorAll('td')).filter(function(header) {
+            return header.offsetParent !== null;
+        })
+        : [];
+
+    if (!schedule || !headerRow || visibleHeaders.length < 2) {
+        return null;
+    }
+
+    const scheduleRect = schedule.getBoundingClientRect();
+    const headerRect = headerRow.getBoundingClientRect();
+    const width = schedule.clientWidth;
+    const height = headerRect.height;
+    const gutterWidth = visibleHeaders[0].getBoundingClientRect().width;
+    const viewport = document.createElement('div');
+    const track = document.createElement('div');
+
+    viewport.className = 'studio-schedule-swipe-preview';
+    viewport.dataset.scheduleSwipePreview = '';
+    viewport.style.left = `${schedule.scrollLeft}px`;
+    viewport.style.top = `${schedule.scrollTop + headerRect.top - scheduleRect.top}px`;
+    viewport.style.width = `${width}px`;
+    viewport.style.height = `${height}px`;
+    track.className = 'studio-schedule-swipe-track';
+    track.style.transform = `translate3d(${-width}px, 0, 0)`;
+
+    [-1, 0, 1].forEach(function(direction) {
+        const anchor = direction === 0 ? state.date : getScheduleSwipeAnchor(direction);
+        const dates = getScheduleDatesForAnchor(anchor, state.view);
+        const panel = document.createElement('div');
+        const gutter = document.createElement('div');
+
+        panel.className = 'studio-schedule-swipe-panel';
+        panel.style.width = `${width}px`;
+        panel.style.height = `${height}px`;
+        panel.style.gridTemplateColumns = `${gutterWidth}px repeat(${dates.length}, minmax(0, 1fr))`;
+        gutter.className = 'studio-schedule-swipe-gutter';
+        panel.appendChild(gutter);
+
+        dates.forEach(function(date) {
+            const cell = document.createElement('div');
+            const weekday = document.createElement('span');
+            const day = document.createElement('span');
+
+            cell.className = 'studio-schedule-swipe-day';
+            cell.classList.toggle('is-today', toDateString(date) === todayString());
+            weekday.className = 'studio-schedule-swipe-weekday';
+            weekday.textContent = weekdays[date.getDay()];
+            day.className = 'studio-schedule-swipe-number';
+            day.textContent = String(date.getDate()).padStart(2, '0');
+            cell.appendChild(weekday);
+            cell.appendChild(day);
+            panel.appendChild(cell);
+        });
+
+        track.appendChild(panel);
+    });
+
+    viewport.appendChild(track);
+    schedule.appendChild(viewport);
+
+    return { viewport, track, width };
+};
+
+const bindScheduleHeaderSwipe = function(calendar, navigate) {
+    let gesture = null;
+
+    const removePreview = function(preview) {
+        if (preview && preview.viewport.parentNode) {
+            preview.viewport.remove();
+        }
+    };
+
+    const finish = function(event, canceled) {
+        if (!gesture || (event.pointerId !== undefined && event.pointerId !== gesture.pointerId)) {
+            return;
+        }
+
+        const current = gesture;
+        const elapsed = Math.max(1, event.timeStamp - current.startedAt);
+        const velocity = current.deltaX / elapsed;
+        const threshold = Math.min(90, current.preview ? current.preview.width * 0.18 : 90);
+        const shouldNavigate = !canceled && current.dragging && (
+            Math.abs(current.deltaX) >= threshold ||
+            (Math.abs(current.deltaX) >= 24 && Math.abs(velocity) >= 0.45)
+        );
+
+        gesture = null;
+
+        if (!current.preview) {
+            return;
+        }
+
+        current.preview.track.classList.add('is-settling');
+
+        if (!shouldNavigate) {
+            current.preview.track.style.transform = `translate3d(${-current.preview.width}px, 0, 0)`;
+            window.setTimeout(function() {
+                removePreview(current.preview);
+            }, 240);
+            return;
+        }
+
+        const direction = current.deltaX < 0 ? 1 : -1;
+        const destination = direction > 0 ? -current.preview.width * 2 : 0;
+
+        current.preview.track.style.transform = `translate3d(${destination}px, 0, 0)`;
+        window.setTimeout(function() {
+            navigate(direction);
+        }, 220);
+    };
+
+    calendar.addEventListener('pointerdown', function(event) {
+        const headerRow = event.target.closest('.lm-schedule thead tr:not(.studio-schedule-holiday-row)');
+
+        if (!headerRow || !scheduleGridViews.includes(state.view) || event.button !== 0 || !event.isPrimary) {
+            return;
+        }
+
+        gesture = {
+            pointerId: event.pointerId,
+            startedAt: event.timeStamp,
+            startX: event.clientX,
+            startY: event.clientY,
+            deltaX: 0,
+            dragging: false,
+            preview: null,
+        };
+
+        if (typeof headerRow.setPointerCapture === 'function') {
+            headerRow.setPointerCapture(event.pointerId);
+        }
+    });
+
+    calendar.addEventListener('pointermove', function(event) {
+        if (!gesture || event.pointerId !== gesture.pointerId) {
+            return;
+        }
+
+        const deltaX = event.clientX - gesture.startX;
+        const deltaY = event.clientY - gesture.startY;
+
+        if (!gesture.dragging) {
+            if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 7) {
+                finish(event, true);
+                return;
+            }
+
+            if (Math.abs(deltaX) < 7) {
+                return;
+            }
+
+            gesture.dragging = true;
+            gesture.preview = createScheduleSwipePreview(calendar);
+
+            if (!gesture.preview) {
+                finish(event, true);
+                return;
+            }
+        }
+
+        event.preventDefault();
+        gesture.deltaX = Math.max(-gesture.preview.width, Math.min(gesture.preview.width, deltaX));
+        gesture.preview.track.style.transform = `translate3d(${-gesture.preview.width + gesture.deltaX}px, 0, 0)`;
+    });
+
+    calendar.addEventListener('pointerup', function(event) {
+        finish(event, false);
+    });
+
+    calendar.addEventListener('pointercancel', function(event) {
+        finish(event, true);
+    });
+};
+
 const filterStudentComboboxOptions = function(combobox) {
     const input = combobox.querySelector('[data-student-combobox-input]');
     const options = Array.from(combobox.querySelectorAll('[data-student-combobox-option]'));
@@ -4169,6 +4364,11 @@ document.addEventListener('DOMContentLoaded', function() {
             render();
         });
     }
+
+    bindScheduleHeaderSwipe(calendar, function(direction) {
+        move(direction);
+        render();
+    });
 
     if (view) {
         view.addEventListener('change', function() {

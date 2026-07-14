@@ -765,6 +765,65 @@ td {white-space: nowrap;}
     padding-bottom: 10px;
 }
 
+.lm-schedule thead tr:not(.studio-schedule-holiday-row) {
+    touch-action: pan-y;
+}
+
+.studio-schedule-swipe-preview {
+    background: var(--lm-background-color, #fff);
+    overflow: hidden;
+    pointer-events: none;
+    position: absolute;
+    z-index: 8;
+}
+
+.studio-schedule-swipe-track {
+    display: flex;
+    height: 100%;
+    will-change: transform;
+}
+
+.studio-schedule-swipe-track.is-settling {
+    transition: transform 220ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.studio-schedule-swipe-panel {
+    display: grid;
+    flex: 0 0 auto;
+}
+
+.studio-schedule-swipe-gutter,
+.studio-schedule-swipe-day {
+    background: var(--lm-background-color, #fff);
+    border-bottom: 1px solid var(--lm-border-color, #ddd);
+    box-sizing: border-box;
+}
+
+.studio-schedule-swipe-day {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+}
+
+.studio-schedule-swipe-day.is-today {
+    background: var(--lm-background-color-header, #ececec);
+    border-bottom-color: rgba(251, 230, 105, 1);
+}
+
+.studio-schedule-swipe-weekday {
+    font-size: 0.8rem;
+    line-height: 1;
+    padding-bottom: 6px;
+    text-transform: uppercase;
+}
+
+.studio-schedule-swipe-number {
+    font-size: 1.6rem;
+    line-height: 1;
+}
+
 #calendar.studio-calendar-day-view .lm-schedule thead td {
     text-align: left;
     padding-left: 20px;

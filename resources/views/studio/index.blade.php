@@ -7,6 +7,7 @@
 .studio-calendar-main {
     margin-right: 50px;
 }
+
 </style>
 @endpush
 
