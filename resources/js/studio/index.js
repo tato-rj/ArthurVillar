@@ -3297,6 +3297,8 @@ const createScheduleSwipePreview = function(calendar) {
     const width = schedule.clientWidth;
     const height = headerRect.height;
     const gutterWidth = visibleHeaders[0].getBoundingClientRect().width;
+    const sampleHeaderStyle = window.getComputedStyle(visibleHeaders[1]);
+    const sampleWeekdayStyle = window.getComputedStyle(visibleHeaders[1], '::before');
     const viewport = document.createElement('div');
     const track = document.createElement('div');
 
@@ -3306,6 +3308,20 @@ const createScheduleSwipePreview = function(calendar) {
     viewport.style.top = `${schedule.scrollTop + headerRect.top - scheduleRect.top}px`;
     viewport.style.width = `${width}px`;
     viewport.style.height = `${height}px`;
+    viewport.style.setProperty('--studio-swipe-number-size', sampleHeaderStyle.fontSize);
+    viewport.style.setProperty('--studio-swipe-number-weight', sampleHeaderStyle.fontWeight);
+    viewport.style.setProperty('--studio-swipe-number-line-height', sampleHeaderStyle.lineHeight);
+    viewport.style.setProperty('--studio-swipe-weekday-size', sampleWeekdayStyle.fontSize);
+    viewport.style.setProperty('--studio-swipe-weekday-weight', sampleWeekdayStyle.fontWeight);
+    viewport.style.setProperty('--studio-swipe-weekday-line-height', sampleWeekdayStyle.lineHeight);
+    viewport.style.setProperty('--studio-swipe-weekday-spacing', sampleWeekdayStyle.paddingBottom);
+    viewport.style.setProperty('--studio-swipe-padding-top', sampleHeaderStyle.paddingTop);
+    viewport.style.setProperty('--studio-swipe-padding-right', sampleHeaderStyle.paddingRight);
+    viewport.style.setProperty('--studio-swipe-padding-bottom', sampleHeaderStyle.paddingBottom);
+    viewport.style.setProperty('--studio-swipe-padding-left', sampleHeaderStyle.paddingLeft);
+    viewport.style.setProperty('--studio-swipe-text-align', sampleHeaderStyle.textAlign);
+    viewport.style.setProperty('--studio-swipe-font-family', sampleHeaderStyle.fontFamily);
+    viewport.style.setProperty('--studio-swipe-color', sampleHeaderStyle.color);
     track.className = 'studio-schedule-swipe-track';
     track.style.transform = `translate3d(${-width}px, 0, 0)`;
 

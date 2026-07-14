@@ -800,11 +800,11 @@ td {white-space: nowrap;}
 }
 
 .studio-schedule-swipe-day {
-    align-items: center;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    text-align: center;
+    color: var(--studio-swipe-color, inherit);
+    display: block;
+    font-family: var(--studio-swipe-font-family, inherit);
+    padding: var(--studio-swipe-padding-top, 10px) var(--studio-swipe-padding-right, 0) var(--studio-swipe-padding-bottom, 10px) var(--studio-swipe-padding-left, 0);
+    text-align: var(--studio-swipe-text-align, center);
 }
 
 .studio-schedule-swipe-day.is-today {
@@ -813,15 +813,19 @@ td {white-space: nowrap;}
 }
 
 .studio-schedule-swipe-weekday {
-    font-size: 0.8rem;
-    line-height: 1;
-    padding-bottom: 6px;
+    display: block;
+    font-size: var(--studio-swipe-weekday-size, 0.64rem);
+    font-weight: var(--studio-swipe-weekday-weight, 400);
+    line-height: var(--studio-swipe-weekday-line-height, normal);
+    padding-bottom: var(--studio-swipe-weekday-spacing, 6px);
     text-transform: uppercase;
 }
 
 .studio-schedule-swipe-number {
-    font-size: 1.6rem;
-    line-height: 1;
+    display: block;
+    font-size: var(--studio-swipe-number-size, 1.28rem);
+    font-weight: var(--studio-swipe-number-weight, 400);
+    line-height: var(--studio-swipe-number-line-height, normal);
 }
 
 #calendar.studio-calendar-day-view .lm-schedule thead td {
