@@ -31,6 +31,7 @@ const state = {
     calendarFetchId: 0,
     didAutoNowScroll: false,
     birthdayWindow: 5,
+    suppressNextScheduleAnimation: false,
 };
 
 const studioTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/New_York';
@@ -1091,18 +1092,27 @@ const patchScheduleItems = function(calendar) {
 };
 
 const animateCalendarLessonItems = function(calendar) {
-    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (state.suppressNextScheduleAnimation) {
+        calendar.querySelectorAll('.lm-schedule-item, .studio-month-event, .studio-schedule-event').forEach(function(item) {
+            item.dataset.lessonFadeAnimated = 'true';
+        });
+        state.suppressNextScheduleAnimation = false;
         return;
     }
 
-    const nonLessonStatuses = ['holiday', 'teaching-break', 'recital', 'general-event'];
+    if (!scheduleGridViews.includes(state.view)
+        || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) {
+        return;
+    }
+
+    const nonLessonStatuses = ['holiday', 'teaching-break', 'recital'];
     const lessonItems = Array.from(calendar.querySelectorAll('.lm-schedule-item, .studio-month-event, .studio-schedule-event')).filter(function(item) {
         return !nonLessonStatuses.includes(item.dataset.lessonStatus || '') && item.dataset.lessonFadeAnimated !== 'true';
     });
 
     lessonItems.forEach(function(item, index) {
         item.dataset.lessonFadeAnimated = 'true';
-        item.style.setProperty('--studio-lesson-fade-delay', `${index * 50}ms`);
+        item.style.setProperty('--studio-lesson-fade-delay', `${index * 30}ms`);
         item.style.setProperty('--studio-lesson-fade-opacity', window.getComputedStyle(item).opacity || '1');
         item.classList.add('studio-calendar-lesson-fade-in');
         item.addEventListener('animationend', function() {
@@ -4870,6 +4880,7 @@ document.addEventListener('DOMContentLoaded', function() {
         state.pendingRangeKey = null;
 
         return fetchPlannedLessons(visibleRange).then(function() {
+            state.suppressNextScheduleAnimation = true;
             render();
 
             requestAnimationFrame(function() {
