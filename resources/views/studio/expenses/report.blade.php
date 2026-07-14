@@ -35,7 +35,6 @@
             'output' => 'month',
             'placeholder' => 'Select report range',
         ])
-        <a href="{{route('studio.expenses.report')}}" class="btn btn-sm btn-secondary rounded">Clear</a>
     </form>
 
     @if($simulationEnabled)
