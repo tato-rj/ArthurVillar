@@ -23,6 +23,7 @@
 @include('studio.breaks.modal')
 @include('studio.recitals.modal')
 @include('studio.events.modal')
+<div id="calendar-edit-modal-container"></div>
 @endsection
 
 @push('scripts')
@@ -33,6 +34,8 @@ window.studioHolidays = @json($holidays);
 window.studioTeachingBreaks = @json($teachingBreaks);
 window.studioRecitals = @json($recitals);
 window.studioGeneralEvents = @json($generalEvents);
+window.studioLessonPlanEditUrlTemplate = @json(route('studio.lesson-plans.edit', ['lessonPlan' => '__lesson_plan__']));
+window.studioSingleLessonPlanEditUrlTemplate = @json(route('studio.single-lesson-plans.edit', ['singleLessonPlan' => '__single_lesson_plan__']));
 window.studioCalendarRange = @json($calendarRange);
 window.studioBirthdayWindow = @json($birthdayWindow);
 window.studioLocations = @json($locations->map(fn ($location) => [

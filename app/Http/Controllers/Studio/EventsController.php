@@ -30,6 +30,13 @@ class EventsController extends Controller
     {
         $event->update($this->validatedEvent($request));
 
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'The event was successfully updated',
+                'event' => $event->fresh()->calendarPayload(),
+            ]);
+        }
+
         return back()->with('success', 'The event was successfully updated');
     }
 

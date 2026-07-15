@@ -1321,6 +1321,7 @@ const getGeneralEvent = function(generalEvent) {
         end: normalizeTime(generalEvent.ends_at),
         title: generalEvent.name || 'Event',
         notes: generalEvent.notes || '',
+        editUrl: generalEvent.edit_url || '',
         rescheduleUrl: generalEvent.reschedule_url || '',
         destroyUrl: generalEvent.destroy_url || '',
         calendarStatus: 'general-event',
@@ -1398,6 +1399,15 @@ const getLessonEditUrl = function(lesson) {
     }
 
     return `${storeUrl.replace(/\/$/, '')}/${lesson.id}`;
+};
+
+const getLessonPlanModalEditUrl = function(isSingleLessonPlan, id) {
+    const template = isSingleLessonPlan
+        ? window.studioSingleLessonPlanEditUrlTemplate
+        : window.studioLessonPlanEditUrlTemplate;
+    const placeholder = isSingleLessonPlan ? '__single_lesson_plan__' : '__lesson_plan__';
+
+    return template && id ? String(template).replace(placeholder, id) : '';
 };
 
 const getLessonPaymentUrl = function(lesson) {
@@ -1675,6 +1685,7 @@ const populateLessonModal = function(modal, event) {
     const notesUrl = modal.querySelector('#notes-url');
     const notesUrlLink = notesUrl ? notesUrl.querySelector('a') : null;
     const revert = modal.querySelector('#lesson-revert');
+    const edit = modal.querySelector('#lesson-edit');
     const taught = modal.querySelector('#lesson-taught');
     const cancelLesson = modal.querySelector('#cancel-lesson-button');
     const confirmPayment = modal.querySelector('#confirm-payment');
@@ -1744,6 +1755,12 @@ const populateLessonModal = function(modal, event) {
 
         revert.style.display = canRevert ? 'inline-flex' : 'none';
         revert.disabled = !canRevert;
+    }
+
+    if (edit) {
+        edit.dataset.url = event && event.calendarEditUrl ? event.calendarEditUrl : '';
+        edit.style.display = edit.dataset.url ? 'inline-flex' : 'none';
+        edit.disabled = !edit.dataset.url;
     }
 
     if (taught) {
@@ -2160,6 +2177,7 @@ const openGeneralEventModal = function(event) {
     const date = modal.querySelector('#general-event-date');
     const time = modal.querySelector('#general-event-time');
     const notes = modal.querySelector('#general-event-notes');
+    const edit = modal.querySelector('#event-edit');
     const rescheduleForm = modal.querySelector('#reschedule-general-event form');
     const cancelForm = modal.querySelector('#cancel-general-event form');
     const rescheduleDate = modal.querySelector('#reschedule-general-event-date');
@@ -2174,6 +2192,11 @@ const openGeneralEventModal = function(event) {
         ? `${formatModalEventTime(event.start)} - ${formatModalEventTime(event.end)}`
         : formatModalEventTime(event.start);
     if (notes) renderNotesWithLinks(notes, event.notes);
+    if (edit) {
+        edit.dataset.url = event.editUrl || '';
+        edit.style.display = edit.dataset.url ? 'inline-flex' : 'none';
+        edit.disabled = !edit.dataset.url;
+    }
 
     modal.dataset.eventGuid = event.guid || '';
     modal.dataset.eventId = event.id || '';
@@ -3217,6 +3240,7 @@ const getPlannedLessonEvents = function(range) {
                     locationId: normalizeLocationId(lesson.location_id),
                     locationName: lesson.location && lesson.location.name ? lesson.location.name : '',
                     canceledBy: occurrence.canceled_by || '',
+                    calendarEditUrl: getLessonPlanModalEditUrl(isSingleLessonPlan, lesson.id),
                     lessonEditUrl: occurrence.lesson_edit_url || '',
                     paymentUrl: occurrence.lesson_payment_url || occurrence.payment_url || '',
                     meetingUrl: occurrence.meeting_url || lesson.meeting_url || '',
@@ -3285,6 +3309,7 @@ const getPlannedLessonEvents = function(range) {
                 locationId: normalizeLocationId(lesson.location_id),
                 locationName: lesson.location && lesson.location.name ? lesson.location.name : '',
                 canceledBy: confirmedLesson && confirmedLesson.canceled_by ? confirmedLesson.canceled_by : '',
+                calendarEditUrl: getLessonPlanModalEditUrl(false, lesson.id),
                 lessonEditUrl: getLessonEditUrl(confirmedLesson),
                 paymentUrl: getLessonPaymentUrl(confirmedLesson),
                 meetingUrl: lesson.meeting_url || '',
@@ -3432,6 +3457,145 @@ const showBootstrapModal = function(modal) {
     if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
         window.jQuery(modal).modal('show');
     }
+};
+
+const showCalendarEditError = function(modal, message) {
+    if (!modal) {
+        return;
+    }
+
+    let error = modal.querySelector('[data-calendar-edit-error]');
+
+    if (!error) {
+        error = document.createElement('div');
+        error.className = 'alert alert-danger small mb-3';
+        error.setAttribute('data-calendar-edit-error', '');
+        modal.querySelector('.modal-body').prepend(error);
+    }
+
+    error.textContent = message || 'Unable to update this item.';
+    error.hidden = false;
+};
+
+const initializeCalendarEditModal = function(modal) {
+    if (!modal) {
+        return;
+    }
+
+    initializeSingleLessonPlanForms(modal);
+    initializeLessonPlanForms(modal);
+
+    const currencyInputs = modal.querySelectorAll('[data-mask="usd"]');
+
+    if (currencyInputs.length && typeof window.Inputmask === 'function') {
+        new window.Inputmask({
+            alias: 'numeric',
+            groupSeparator: ',',
+            prefix: '$ ',
+            autoGroup: true,
+            digits: 0,
+            rightAlign: false,
+        }).mask(currencyInputs);
+    }
+};
+
+const loadCalendarEditModal = function(button, sourceModal, container) {
+    const url = button ? button.dataset.url : '';
+
+    if (!button || !url || !container) {
+        return;
+    }
+
+    button.disabled = true;
+
+    fetch(url, {
+        headers: {
+            'Accept': 'text/html',
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+    })
+        .then(function(response) {
+            if (!response.ok) {
+                throw new Error('Unable to load the edit form.');
+            }
+
+            return response.text();
+        })
+        .then(function(html) {
+            let didShow = false;
+
+            container.innerHTML = html;
+
+            const editModal = container.querySelector('.modal');
+            const showEditModal = function() {
+                if (didShow || !editModal) {
+                    return;
+                }
+
+                didShow = true;
+                initializeCalendarEditModal(editModal);
+                showBootstrapModal(editModal);
+            };
+
+            button.disabled = false;
+
+            if (sourceModal && sourceModal.classList.contains('show')) {
+                sourceModal.addEventListener('hidden.bs.modal', showEditModal, { once: true });
+                hideBootstrapModal(sourceModal);
+                window.setTimeout(showEditModal, 250);
+                return;
+            }
+
+            showEditModal();
+        })
+        .catch(function(error) {
+            console.error(error);
+            button.disabled = false;
+
+            if (sourceModal && sourceModal.id === 'lesson-modal') {
+                showLessonActionError(sourceModal, error.message);
+            } else {
+                showGeneralEventActionError(sourceModal, error.message);
+            }
+        });
+};
+
+const submitCalendarEditForm = function(form, refreshCalendar) {
+    const modal = form ? form.closest('.modal') : null;
+    const submit = form ? form.querySelector('button[type="submit"], input[type="submit"]') : null;
+
+    if (!form || !form.action || !modal) {
+        return;
+    }
+
+    if (submit) {
+        preserveButtonLabel(submit);
+        submit.disabled = true;
+    }
+
+    requestJson(form.action, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': window.studioCsrfToken || '',
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: new FormData(form),
+    }, 'Unable to update this item.')
+        .then(function() {
+            hideBootstrapModal(modal);
+            return refreshCalendar();
+        })
+        .catch(function(error) {
+            console.error(error);
+
+            if (submit) {
+                submit.disabled = false;
+                restoreButtonLabel(submit);
+            }
+
+            showCalendarEditError(modal, error.message);
+        });
 };
 
 const openMonthDayEventsModal = function(dateString) {
@@ -4188,8 +4352,14 @@ const syncSingleLessonPlanModalDate = function(modal) {
     }
 };
 
-const initializeSingleLessonPlanForms = function() {
-    document.querySelectorAll('[data-single-lesson-plan-form]').forEach(function(form) {
+const initializeSingleLessonPlanForms = function(root) {
+    (root || document).querySelectorAll('[data-single-lesson-plan-form]').forEach(function(form) {
+        if (form.dataset.calendarFormInitialized === 'true') {
+            return;
+        }
+
+        form.dataset.calendarFormInitialized = 'true';
+
         const locationSelect = form.querySelector('select[name="location_id"]');
         const durationSelect = form.querySelector('select[name="duration_minutes"]');
         const modal = form.closest('#create-single-lesson-plan-modal');
@@ -4261,8 +4431,14 @@ const syncLessonPlanFee = function(form) {
     feeInput.value = roundedFee.toFixed(2).replace(/\.00$/, '');
 };
 
-const initializeLessonPlanForms = function() {
-    document.querySelectorAll('[data-lesson-plan-form]').forEach(function(form) {
+const initializeLessonPlanForms = function(root) {
+    (root || document).querySelectorAll('[data-lesson-plan-form]').forEach(function(form) {
+        if (form.dataset.calendarFormInitialized === 'true') {
+            return;
+        }
+
+        form.dataset.calendarFormInitialized = 'true';
+
         const locationSelect = form.querySelector('select[name="location_id"]');
         const durationSelect = form.querySelector('select[name="duration_minutes"]');
 
@@ -4300,6 +4476,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const miniNext = document.querySelector('[data-mini-next]');
     const lessonModal = document.getElementById('lesson-modal');
     const generalEventModal = document.getElementById('general-event-modal');
+    const calendarEditModalContainer = document.getElementById('calendar-edit-modal-container');
     const calendarSearch = document.querySelector('.studio-calendar-search');
     const calendarToolbar = calendarSearch ? calendarSearch.closest('.studio-calendar-toolbar') : null;
     const calendarSearchToggle = calendarSearch ? calendarSearch.querySelector('[data-calendar-search-toggle]') : null;
@@ -5045,6 +5222,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    const lessonEdit = document.getElementById('lesson-edit');
+
+    if (lessonEdit) {
+        lessonEdit.addEventListener('click', function(e) {
+            e.preventDefault();
+            loadCalendarEditModal(lessonEdit, lessonModal, calendarEditModalContainer);
+        });
+    }
+
     const cancelLessonButton = document.getElementById('cancel-lesson-button');
 
     if (cancelLessonButton) {
@@ -5134,6 +5320,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (generalEventModal) {
+        const editButton = generalEventModal.querySelector('#event-edit');
         const cancelButton = generalEventModal.querySelector('#cancel-general-event-button');
         const rescheduleButton = generalEventModal.querySelector('#reschedule-general-event-button');
         const rescheduleForm = generalEventModal.querySelector('#reschedule-general-event form');
@@ -5144,6 +5331,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const rescheduleDate = generalEventModal.querySelector('#reschedule-general-event-date');
         const rescheduleStartTime = generalEventModal.querySelector('#reschedule-general-event-start-time');
         const rescheduleEndTime = generalEventModal.querySelector('#reschedule-general-event-end-time');
+
+        if (editButton) {
+            editButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                loadCalendarEditModal(editButton, generalEventModal, calendarEditModalContainer);
+            });
+        }
 
         if (cancelButton) {
             cancelButton.addEventListener('click', function() {
@@ -5216,6 +5410,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 syncRescheduleTimePicker(rescheduleStartTime, rescheduleEndTime, 'end');
             });
         }
+    }
+
+    if (calendarEditModalContainer) {
+        calendarEditModalContainer.addEventListener('submit', function(e) {
+            const form = e.target.closest('form');
+
+            if (!form || !calendarEditModalContainer.contains(form)) {
+                return;
+            }
+
+            e.preventDefault();
+            submitCalendarEditForm(form, refreshCalendarAfterLessonMutation);
+        });
     }
 
     calendar.addEventListener('click', function(e) {

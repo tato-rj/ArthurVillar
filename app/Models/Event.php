@@ -42,6 +42,7 @@ class Event extends Model
             'ends_at' => $this->ends_at,
             'notes' => $this->notes,
             'type' => 'general-event',
+            'edit_url' => route('studio.events.edit', $this),
             'reschedule_url' => route('studio.events.reschedule', $this),
             'destroy_url' => route('studio.events.destroy', $this),
         ];

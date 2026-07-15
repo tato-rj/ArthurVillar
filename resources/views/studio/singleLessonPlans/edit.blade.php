@@ -1,6 +1,6 @@
 @modal(['title' => 'Edit single lesson', 'id' => 'edit-single-lesson-plan-'.$singleLessonPlan->id.'-modal'])
 @php($singleLessonPlanIsOnline = optional($singleLessonPlan->location)->name && strtolower($singleLessonPlan->location->name) === 'online')
-<form method="POST" action="{{route('studio.single-lesson-plans.update', $singleLessonPlan)}}">
+<form method="POST" action="{{route('studio.single-lesson-plans.update', $singleLessonPlan)}}" data-single-lesson-plan-form>
 	@csrf
 	@method('PATCH')
 	<input type="hidden" name="student_id" value="{{$singleLessonPlan->student_id}}">

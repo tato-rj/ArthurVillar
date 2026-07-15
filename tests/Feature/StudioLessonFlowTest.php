@@ -822,6 +822,24 @@ class StudioLessonFlowTest extends BaseTest
     }
 
     /** @test */
+    public function calendar_lesson_edit_uses_the_existing_plan_edit_modals()
+    {
+        $lessonPlan = LessonPlan::factory()->create();
+        $singleLessonPlan = SingleLessonPlan::factory()->create();
+        $this->signIn();
+
+        $this->get(route('studio.lesson-plans.edit', $lessonPlan))
+            ->assertOk()
+            ->assertSee('edit-lessonPlan-'.$lessonPlan->id.'-modal', false)
+            ->assertSee('data-lesson-plan-form', false);
+
+        $this->get(route('studio.single-lesson-plans.edit', $singleLessonPlan))
+            ->assertOk()
+            ->assertSee('edit-single-lesson-plan-'.$singleLessonPlan->id.'-modal', false)
+            ->assertSee('data-single-lesson-plan-form', false);
+    }
+
+    /** @test */
     public function calendar_modal_can_cancel_a_lesson_with_json()
     {
         $lessonPlan = LessonPlan::factory()->create([

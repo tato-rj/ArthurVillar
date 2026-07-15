@@ -1,4 +1,8 @@
 @modal(['title' => '', 'id' => 'general-event-modal', 'data' => ['general-event' => 'true']])
+@slot('headerButtons')
+<button id="event-edit" class="btn btn-raw mr-1" type="button">@fa(['icon' => 'pen'])</button>
+@endslot
+
 <div class="alert alert-danger small mb-3" data-general-event-action-error hidden></div>
 
 <div id="general-event-details">

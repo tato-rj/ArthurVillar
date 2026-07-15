@@ -122,6 +122,35 @@ class EventTest extends BaseTest
     }
 
     /** @test */
+    public function calendar_modal_can_load_and_edit_an_event_with_json()
+    {
+        $event = Event::factory()->create([
+            'name' => 'Lunch meeting',
+            'scheduled_date' => '2026-08-15',
+            'starts_at' => '12:00',
+            'ends_at' => '13:00',
+            'notes' => 'Original notes',
+        ]);
+        $this->signIn();
+
+        $this->get(route('studio.events.edit', $event))
+            ->assertOk()
+            ->assertSee('edit-event-'.$event->id.'-modal', false);
+
+        $this->patchJson(route('studio.events.update', $event), [
+            'name' => 'Updated lunch meeting',
+            'scheduled_date' => '2026-08-16',
+            'starts_at' => '12:15',
+            'ends_at' => '13:30',
+            'notes' => 'Updated notes',
+        ])
+            ->assertOk()
+            ->assertJsonPath('event.id', $event->id)
+            ->assertJsonPath('event.name', 'Updated lunch meeting')
+            ->assertJsonPath('event.edit_url', route('studio.events.edit', $event));
+    }
+
+    /** @test */
     public function calendar_modal_can_cancel_an_event_with_json()
     {
         $event = Event::factory()->create();
@@ -174,6 +203,7 @@ class EventTest extends BaseTest
         $this->assertCount(1, $payload['generalEvents']);
         $this->assertSame('Studio meeting', $payload['generalEvents'][0]['name']);
         $this->assertSame('2026-10-20', $payload['generalEvents'][0]['scheduled_date']);
+        $this->assertSame(route('studio.events.edit', $payload['generalEvents'][0]['id']), $payload['generalEvents'][0]['edit_url']);
         $this->assertSame('https://example.com/agenda', str($payload['generalEvents'][0]['notes'])->after('Agenda at ')->toString());
     }
 
@@ -190,6 +220,11 @@ class EventTest extends BaseTest
         ]))
             ->assertOk()
             ->assertSee('general-event-modal', false)
+            ->assertSee('event-edit', false)
+            ->assertSee('lesson-edit', false)
+            ->assertSee('calendar-edit-modal-container', false)
+            ->assertSee('studioLessonPlanEditUrlTemplate', false)
+            ->assertSee('studioSingleLessonPlanEditUrlTemplate', false)
             ->assertSee('cancel-general-event-button', false)
             ->assertSee('reschedule-general-event-button', false)
             ->assertSee('reschedule-general-event-date', false)

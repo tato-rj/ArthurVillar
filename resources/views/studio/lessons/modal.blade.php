@@ -1,5 +1,6 @@
 @modal(['title' => '', 'id' => 'lesson-modal', 'data' => ['lesson-status' => 'unconfirmed']])
 @slot('headerButtons')
+<button id="lesson-edit" class="btn btn-raw mr-1" type="button">@fa(['icon' => 'pen'])</button>
 <button id="lesson-revert" class="btn btn-raw mr-1" data-url="{{route('studio.lessons.revert')}}" type="button">@fa(['icon' => 'rotate-left', 'mr' => 0])</button>
 @endslot
 

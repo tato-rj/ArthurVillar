@@ -1364,12 +1364,17 @@ button.single-lesson-plan-create[selected] i {
     }
 }
 
+#lesson-edit, #event-edit {
+    font-size: 1.35rem;
+    opacity: .6;
+}
+
 #lesson-revert {
     font-size: 1.45rem;
     opacity: .6;
 }
 
-#lesson-revert:hover {
+#lesson-revert:hover, #lesson-edit:hover, #event-edit:hover {
     opacity: 1;
 }
 
