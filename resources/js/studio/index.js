@@ -4493,6 +4493,29 @@ const initializeLessonPlanForms = function(root) {
 };
 
 document.addEventListener('DOMContentLoaded', function() {
+	document.addEventListener('click', function(e) {
+		const button = e.target.closest('.setting-undo');
+
+		if (!button) {
+			return;
+		}
+
+		const input = document.getElementById(button.dataset.settingTarget);
+
+		if (!input || typeof button.dataset.settingOriginal === 'undefined') {
+			return;
+		}
+
+		if (input.type === 'checkbox') {
+			input.checked = button.dataset.settingOriginal === 'true';
+		} else {
+			input.value = button.dataset.settingOriginal;
+		}
+
+		input.dispatchEvent(new Event('input', { bubbles: true }));
+		input.dispatchEvent(new Event('change', { bubbles: true }));
+	});
+
     const calendar = document.getElementById('calendar');
     const label = document.querySelector('[data-calendar-label]');
     const today = document.querySelector('[data-calendar-today]');

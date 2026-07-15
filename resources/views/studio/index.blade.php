@@ -4,6 +4,10 @@
 <link href="/css/vendor/calendarjs.css" rel="stylesheet">
 <link href="{{ mix('css/studio.css') }}" rel="stylesheet">
 <style>
+:root {
+    --studio-unconfirmed-lesson-color: {{$unconfirmedLessonColor}};
+}
+
 .studio-calendar-main {
     margin-right: 50px;
 }

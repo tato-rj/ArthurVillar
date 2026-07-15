@@ -13,8 +13,8 @@ class SettingsController extends Controller
     public function update(Request $request)
     {
         $request->validate([
-            'calendar_show_nearby_birthdays' => ['required', 'boolean'],
             'calendar_show_insights' => ['required', 'boolean'],
+            'unconfirmed_lesson_color' => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'calendar_show_cancelled' => ['required', 'boolean'],
             'calendar_add_transparency_to_past_events' => ['required', 'boolean'],
             'calendar_highlight_conflicting_events' => ['required', 'boolean'],
@@ -22,15 +22,15 @@ class SettingsController extends Controller
         ]);
 
         Settings::setValue(
-            'calendar.show_nearby_birthdays',
-            $request->boolean('calendar_show_nearby_birthdays'),
+            'calendar.show_insights',
+            $request->boolean('calendar_show_insights'),
             Settings::TYPE_BOOLEAN
         );
 
         Settings::setValue(
-            'calendar.show_insights',
-            $request->boolean('calendar_show_insights'),
-            Settings::TYPE_BOOLEAN
+            'appearance.unconfirmed_lesson_color',
+            strtolower($request->input('unconfirmed_lesson_color')),
+            Settings::TYPE_STRING
         );
 
         Settings::setValue(

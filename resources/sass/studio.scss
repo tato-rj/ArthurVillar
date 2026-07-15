@@ -1260,7 +1260,8 @@ button.single-lesson-plan-create[selected] i {
 }
 
 #calendar .lm-schedule-item[data-lesson-status="unconfirmed"], .studio-month-event-dot[data-lesson-status="unconfirmed"], #calendar .studio-schedule-event[data-lesson-status="unconfirmed"] {
-    @extend .bg-grey;
+    background: var(--studio-unconfirmed-lesson-color, #6b7280);
+    color: white;
 }
 
 #calendar .lm-schedule-item[data-lesson-status="rescheduled"], .studio-month-event-dot[data-lesson-status="rescheduled"], #calendar .studio-schedule-event[data-lesson-status="rescheduled"] {
@@ -1399,7 +1400,10 @@ button.single-lesson-plan-create[selected] i {
 }
 
 #lesson-modal[data-lesson-status="unconfirmed"] {
-    h4.modal-title:before {@extend .bg-grey, .opacity-4}
+    h4.modal-title:before {
+        @extend .opacity-4;
+        background: var(--studio-unconfirmed-lesson-color, #6b7280);
+    }
     div#lesson-status {display: none}
     span#lesson-date, span#lesson-time, span#lesson-recurrence {opacity: .4; font-style: italic;}
     // div#lesson-attendance {@extend .d-flex}
@@ -1626,6 +1630,36 @@ button.single-lesson-plan-create[selected] i {
 
 .studio-settings-option .form-check-input,
 .studio-settings-option .form-check-label {
+    cursor: pointer;
+}
+
+.studio-settings-color-control {
+    align-items: center;
+    display: inline-flex;
+    height: calc(1.5em + .75rem + 2px);
+    padding: .25rem .5rem;
+}
+
+.studio-settings-color-picker {
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    height: 1.75rem;
+    padding: 0;
+    width: 2.25rem;
+}
+
+.studio-settings-color-picker::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+.studio-settings-color-picker::-webkit-color-swatch,
+.studio-settings-color-picker::-moz-color-swatch {
+    border: 0;
+    border-radius: .2rem;
+}
+
+.setting-undo {
     cursor: pointer;
 }
 

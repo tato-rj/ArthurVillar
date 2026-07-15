@@ -1,13 +1,11 @@
 	<div data-calendar-insights-sidebar-target></div>
 
 	<div id="studio-calendar-insights" class="">
-		@if($showNearbyBirthdays)
+		<h6 class="mb-3">Insights</h6>
 		<div id="studio-calendar-insights-birthdays" style="display: none;" class="mb-3 text-blue">
 			@fa(['icon' => 'cake-candles'])Happy birthday to <span>Jhon, Mark and Jane</span>
 		</div>
-		@endif
 
-		@if($showCalendarInsights)
 		<div class="mb-3">
 			<h6 class="m-0" data-calendar-lessons-count>0</h6>
 			<label style="font-size: .75em;">LESSONS</label>
@@ -28,5 +26,4 @@
 			</div>
 			<label style="font-size: .75em;">INCOME</label>
 		</div>
-		@endif
 	</div>

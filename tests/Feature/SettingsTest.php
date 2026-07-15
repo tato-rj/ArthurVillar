@@ -17,7 +17,11 @@ class SettingsTest extends BaseTest
 
         $this->get(route('studio.home'))
             ->assertOk()
-            ->assertSeeInOrder(['Display options', 'Show nearby birthdays', 'Show calendar insights', 'View options'])
+            ->assertSeeInOrder(['Display options', 'Show calendar insights', 'Appearance', 'Unconfirmed lessons', 'View options'])
+            ->assertSee('type="color"', false)
+            ->assertSee('value="#6b7280"', false)
+			->assertSee('data-setting-original="#6b7280"', false)
+			->assertSee('data-setting-target="unconfirmed-lesson-color"', false)
             ->assertSee('View options')
             ->assertSee('Show cancelled lessons')
             ->assertSee('Add transparency to past events')
@@ -35,8 +39,8 @@ class SettingsTest extends BaseTest
 
         $this->from(route('studio.home'))
             ->patch(route('studio.settings.update'), [
-                'calendar_show_nearby_birthdays' => false,
                 'calendar_show_insights' => false,
+                'unconfirmed_lesson_color' => '#3057D5',
                 'calendar_show_cancelled' => true,
                 'calendar_add_transparency_to_past_events' => false,
                 'calendar_highlight_conflicting_events' => false,
@@ -46,14 +50,14 @@ class SettingsTest extends BaseTest
             ->assertSessionHas('success', 'Settings updated');
 
         $this->assertDatabaseHas('settings', [
-            'key' => 'calendar.show_nearby_birthdays',
+            'key' => 'calendar.show_insights',
             'value' => 'false',
             'type' => Settings::TYPE_BOOLEAN,
         ]);
         $this->assertDatabaseHas('settings', [
-            'key' => 'calendar.show_insights',
-            'value' => 'false',
-            'type' => Settings::TYPE_BOOLEAN,
+            'key' => 'appearance.unconfirmed_lesson_color',
+            'value' => '#3057d5',
+            'type' => Settings::TYPE_STRING,
         ]);
         $this->assertDatabaseHas('settings', [
             'key' => 'calendar.show_cancelled',
@@ -95,23 +99,36 @@ class SettingsTest extends BaseTest
     }
 
     /** @test */
-    public function sidebar_features_follow_the_display_preferences_independently()
+    public function the_unconfirmed_lesson_color_is_exposed_to_the_calendar_styles()
     {
         $this->signIn();
 
-        Settings::setValue('calendar.show_nearby_birthdays', false, Settings::TYPE_BOOLEAN);
+        $this->get(route('studio.home'))
+            ->assertOk()
+            ->assertSee('--studio-unconfirmed-lesson-color: #6b7280;', false);
+
+        Settings::setValue('appearance.unconfirmed_lesson_color', '#3057d5');
 
         $this->get(route('studio.home'))
             ->assertOk()
-            ->assertDontSee('studio-calendar-insights-birthdays', false)
-            ->assertSee('data-calendar-lessons-count', false);
+            ->assertSee('--studio-unconfirmed-lesson-color: #3057d5;', false);
+    }
 
-        Settings::setValue('calendar.show_nearby_birthdays', true, Settings::TYPE_BOOLEAN);
-        Settings::setValue('calendar.show_insights', false, Settings::TYPE_BOOLEAN);
+    /** @test */
+    public function calendar_insights_and_nearby_birthdays_follow_the_display_preference()
+    {
+        $this->signIn();
 
         $this->get(route('studio.home'))
             ->assertOk()
             ->assertSee('studio-calendar-insights-birthdays', false)
+            ->assertSee('data-calendar-lessons-count', false);
+
+        Settings::setValue('calendar.show_insights', false, Settings::TYPE_BOOLEAN);
+
+        $this->get(route('studio.home'))
+            ->assertOk()
+            ->assertDontSee('studio-calendar-insights-birthdays', false)
             ->assertDontSee('data-calendar-lessons-count', false);
     }
 

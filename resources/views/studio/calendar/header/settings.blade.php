@@ -11,19 +11,6 @@
 			<section class="studio-settings-section" aria-labelledby="settings-display-options-title">
 				<h6 id="settings-display-options-title">Display options</h6>
 
-				<input type="hidden" name="calendar_show_nearby_birthdays" value="0">
-				<div class="form-check studio-settings-option">
-					<input
-						class="form-check-input"
-						id="calendar-show-nearby-birthdays"
-						name="calendar_show_nearby_birthdays"
-						type="checkbox"
-						value="1"
-						{{iftrue(old('calendar_show_nearby_birthdays', $showNearbyBirthdays), 'checked')}}
-					>
-					<label class="form-check-label" for="calendar-show-nearby-birthdays">Show nearby birthdays</label>
-				</div>
-
 				<input type="hidden" name="calendar_show_insights" value="0">
 				<div class="form-check studio-settings-option">
 					<input
@@ -35,6 +22,33 @@
 						{{iftrue(old('calendar_show_insights', $showCalendarInsights), 'checked')}}
 					>
 					<label class="form-check-label" for="calendar-show-insights">Show calendar insights</label>
+				</div>
+			</section>
+
+			<section class="studio-settings-section" aria-labelledby="settings-appearance-title">
+				<h6 id="settings-appearance-title">Appearance</h6>
+
+				<div class="d-apart mb-3">
+					<div class="d-flex align-items-center">
+						<div class="studio-settings-color-control">
+							<input
+								class="studio-settings-color-picker rounded"
+								id="unconfirmed-lesson-color"
+								name="unconfirmed_lesson_color"
+								title="Choose the color for unconfirmed lessons"
+								type="color"
+								value="{{old('unconfirmed_lesson_color', $unconfirmedLessonColor)}}"
+							>
+						</div>
+						<label class="form-label ml-2 mb-0" for="unconfirmed-lesson-color">Unconfirmed lessons</label>
+					</div>
+					<button
+						class="btn-raw setting-undo"
+						data-setting-original="#6b7280"
+						data-setting-target="unconfirmed-lesson-color"
+						title="Restore the original color"
+						type="button"
+					>@fa(['icon' => 'redo'])</button>
 				</div>
 			</section>
 
