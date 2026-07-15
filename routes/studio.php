@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', 'StudioController@index')->name('home');
 
+Route::patch('settings', 'SettingsController@update')->name('settings.update');
+
 Route::get('financial-report', 'StudioController@report')->name('financial.report');
 
 Route::prefix('push-subscriptions')->name('push-subscriptions.')->group(function() {

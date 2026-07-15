@@ -94,7 +94,6 @@ td {white-space: nowrap;}
     border-radius: 50%;
     color: #3c4043;
     font-size: 1.25rem;
-    width: 2.75rem;
 }
 
 .studio-calendar-today {
@@ -348,8 +347,6 @@ td {white-space: nowrap;}
 .studio-calendar-filter-toggle {
     border-radius: 999px;
     color: #5f6368;
-    min-height: 2.5rem;
-    min-width: 2.5rem;
     transition: .2s;
 
     // &:hover,
@@ -1218,7 +1215,7 @@ button.single-lesson-plan-create[selected] i {
     //     opacity: .6 !important;
     // }
 
-#calendar {
+#calendar[data-transparent-past-events] {
     .studio-schedule-break[past-event]:not([data-lesson-status="unpaid"]):not([data-lesson-status="paid"]),
     .studio-month-event-break[past-event]:not([data-lesson-status="unpaid"]):not([data-lesson-status="paid"]),
     .studio-month-event-dot[past-event]:not([data-lesson-status="unpaid"]):not([data-lesson-status="paid"]),
@@ -1293,8 +1290,8 @@ button.single-lesson-plan-create[selected] i {
     color: #fff;
 }
 
-#calendar .lm-schedule-item[overlapping-event],
-#calendar .studio-schedule-event[overlapping-event] {
+#calendar[data-highlight-conflicting-events] .lm-schedule-item[overlapping-event],
+#calendar[data-highlight-conflicting-events] .studio-schedule-event[overlapping-event] {
     border: 2px solid #d93025 !important;
     box-sizing: border-box;
 }
@@ -1608,6 +1605,32 @@ button.single-lesson-plan-create[selected] i {
     font-weight: 500;
 }
 
+.studio-calendar-settings {
+    flex: 0 0 auto;
+}
+
+.studio-settings-section {
+    @extend .mb-3;
+}
+
+// .studio-settings-section h5 {
+//     color: #3c4043;
+//     font-size: 1.3rem;
+//     font-weight: 400;
+//     margin-bottom: 1.25rem;
+// }
+
+.studio-settings-option {
+    @extend .mb-1;
+}
+
+.studio-settings-option .form-check-input,
+.studio-settings-option .form-check-label {
+    cursor: pointer;
+}
+
+.form-check-label {margin-top: 2px}
+
 @media (max-width: 1000px) {
     i.fa-bars, i.fa-ellipsis-vertical {font-size: 110%}
     i.fa-bars {margin-top: 13px;}
@@ -1621,11 +1644,12 @@ button.single-lesson-plan-create[selected] i {
         padding-left: 0 !important;
     }
     .studio-calendar-toolbar {
-        gap: .5rem;
         padding-right: 3.5rem;
         padding-left: 1rem;
 
-        .studio-calendar-filter i, .studio-calendar-search i {font-size: 90% !important}
+        .studio-calendar-filter i,
+        .studio-calendar-settings i,
+        .studio-calendar-search i {font-size: 90% !important}
     }
     .lm-schedule, .studio-month-calendar {
         border-radius: 0 !important;

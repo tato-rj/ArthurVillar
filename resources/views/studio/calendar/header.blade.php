@@ -10,4 +10,5 @@
 		@include('studio.calendar.header.views')
 		@include('studio.calendar.header.search')
 		@include('studio.calendar.header.filters')
+		@include('studio.calendar.header.settings')
 	</div>

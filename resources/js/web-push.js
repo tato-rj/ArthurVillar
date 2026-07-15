@@ -13,8 +13,8 @@ if (config) {
 
     const setStatus = function(message, enabled) {
         document.querySelectorAll('[data-web-push-status]').forEach(function(element) {
-            element.textContent = message;
-            element.classList.toggle('text-success', enabled === true);
+            element.textContent = enabled === true ? '' : message;
+            element.hidden = enabled === true;
             element.classList.toggle('text-danger', enabled === false);
         });
 

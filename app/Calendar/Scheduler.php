@@ -2,30 +2,56 @@
 
 namespace App\Calendar;
 
-use Carbon\Carbon;
-use App\Models\{Event, LessonPlan, Recital, SingleLessonPlan, Student, TeachingBreak};
-use Illuminate\Http\Request;
 use App\Calendar\Traits\Holidays;
+use App\Models\Event;
+use App\Models\LessonPlan;
+use App\Models\Recital;
+use App\Models\Settings;
+use App\Models\SingleLessonPlan;
+use App\Models\Student;
+use App\Models\TeachingBreak;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class Scheduler
 {
     use Holidays;
-    
+
     private const VIEWS = ['schedule', 'day', '2-days', 'week', 'month'];
 
     public function payload(Request $request)
     {
         $range = $this->range($request);
+        $showCancelledLessons = Settings::getValue('calendar.show_cancelled', false);
 
         return [
-            'plannedLessons' => $this->plannedLessons($range),
-            'singleLessonPlans' => $this->singleLessonPlans($range),
+            'plannedLessons' => $this->applyCancelledLessonPreference($this->plannedLessons($range), $showCancelledLessons),
+            'singleLessonPlans' => $this->applyCancelledLessonPreference($this->singleLessonPlans($range), $showCancelledLessons),
             'holidays' => $this->holidays($range),
             'teachingBreaks' => $this->teachingBreaks($range),
             'recitals' => $this->recitals($range),
             'generalEvents' => $this->generalEvents($range),
             'calendarRange' => $range,
         ];
+    }
+
+    private function applyCancelledLessonPreference($lessonPlans, bool $showCancelledLessons)
+    {
+        if ($showCancelledLessons) {
+            return $lessonPlans;
+        }
+
+        return $lessonPlans
+            ->map(function ($lessonPlan) {
+                $lessonPlan['occurrences'] = collect($lessonPlan['occurrences'] ?? [])
+                    ->reject(fn ($occurrence) => ($occurrence['lesson_status'] ?? null) === 'canceled')
+                    ->values()
+                    ->all();
+
+                return $lessonPlan;
+            })
+            ->filter(fn ($lessonPlan) => count($lessonPlan['occurrences']) > 0)
+            ->values();
     }
 
     public function singleLessonPlans(array $range)
@@ -393,7 +419,7 @@ class Scheduler
 
     private function occurrenceKey($date, $startTime)
     {
-        return Carbon::parse($date)->toDateString() . ' ' . LessonPlan::normalizeTime($startTime);
+        return Carbon::parse($date)->toDateString().' '.LessonPlan::normalizeTime($startTime);
     }
 
     private function lessonStartsOnOccurrence($lesson, Carbon $occurrence, $startTime)

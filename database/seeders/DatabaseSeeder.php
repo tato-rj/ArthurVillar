@@ -30,7 +30,8 @@ class DatabaseSeeder extends Seeder
             VenueSeeder::class,
             RecitalSeeder::class,
             EventSeeder::class,
-            WaitingListSeeder::class
+            WaitingListSeeder::class,
+            SettingsSeeder::class,
         ]);
     }
 }
