@@ -17,10 +17,14 @@ class SettingsTest extends BaseTest
 
         $this->get(route('studio.home'))
             ->assertOk()
+            ->assertSeeInOrder(['Display options', 'Show nearby birthdays', 'Show calendar insights', 'View options'])
             ->assertSee('View options')
             ->assertSee('Show cancelled lessons')
             ->assertSee('Add transparency to past events')
             ->assertSee('Highlight conflicting events')
+            ->assertSee('Notifications default')
+            ->assertSee('At the event time')
+            ->assertSee('15 minutes before')
             ->assertSee('calendar_show_cancelled', false);
     }
 
@@ -31,13 +35,26 @@ class SettingsTest extends BaseTest
 
         $this->from(route('studio.home'))
             ->patch(route('studio.settings.update'), [
+                'calendar_show_nearby_birthdays' => false,
+                'calendar_show_insights' => false,
                 'calendar_show_cancelled' => true,
                 'calendar_add_transparency_to_past_events' => false,
                 'calendar_highlight_conflicting_events' => false,
+                'default_event_notification_minutes_before' => 120,
             ])
             ->assertRedirect(route('studio.home'))
             ->assertSessionHas('success', 'Settings updated');
 
+        $this->assertDatabaseHas('settings', [
+            'key' => 'calendar.show_nearby_birthdays',
+            'value' => 'false',
+            'type' => Settings::TYPE_BOOLEAN,
+        ]);
+        $this->assertDatabaseHas('settings', [
+            'key' => 'calendar.show_insights',
+            'value' => 'false',
+            'type' => Settings::TYPE_BOOLEAN,
+        ]);
         $this->assertDatabaseHas('settings', [
             'key' => 'calendar.show_cancelled',
             'value' => 'true',
@@ -53,6 +70,11 @@ class SettingsTest extends BaseTest
             'key' => 'calendar.highlight_conflicting_events',
             'value' => 'false',
             'type' => Settings::TYPE_BOOLEAN,
+        ]);
+        $this->assertDatabaseHas('settings', [
+            'key' => 'notifications.default_event_minutes_before',
+            'value' => '120',
+            'type' => Settings::TYPE_INTEGER,
         ]);
     }
 
@@ -70,6 +92,27 @@ class SettingsTest extends BaseTest
         $this->get(route('studio.home'))
             ->assertOk()
             ->assertDontSee('data-transparent-past-events', false);
+    }
+
+    /** @test */
+    public function sidebar_features_follow_the_display_preferences_independently()
+    {
+        $this->signIn();
+
+        Settings::setValue('calendar.show_nearby_birthdays', false, Settings::TYPE_BOOLEAN);
+
+        $this->get(route('studio.home'))
+            ->assertOk()
+            ->assertDontSee('studio-calendar-insights-birthdays', false)
+            ->assertSee('data-calendar-lessons-count', false);
+
+        Settings::setValue('calendar.show_nearby_birthdays', true, Settings::TYPE_BOOLEAN);
+        Settings::setValue('calendar.show_insights', false, Settings::TYPE_BOOLEAN);
+
+        $this->get(route('studio.home'))
+            ->assertOk()
+            ->assertSee('studio-calendar-insights-birthdays', false)
+            ->assertDontSee('data-calendar-lessons-count', false);
     }
 
     /** @test */
@@ -135,5 +178,17 @@ class SettingsTest extends BaseTest
         $this->assertSame('#3057d5', Settings::getValue('theme.primary_color'));
         $this->assertSame(20, Settings::getValue('dashboard.items_per_page'));
         $this->assertFalse(Settings::getValue('theme.dark_mode'));
+    }
+
+    /** @test */
+    public function the_notification_preference_becomes_the_default_for_new_events()
+    {
+        Settings::setValue('notifications.default_event_minutes_before', 30, Settings::TYPE_INTEGER);
+
+        $this->assertSame(30, \App\Models\Event::defaultNotificationMinutesBefore());
+
+        Settings::setValue('notifications.default_event_minutes_before', -1, Settings::TYPE_INTEGER);
+
+        $this->assertNull(\App\Models\Event::defaultNotificationMinutesBefore());
     }
 }

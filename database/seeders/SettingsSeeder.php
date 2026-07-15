@@ -15,6 +15,22 @@ class SettingsSeeder extends Seeder
     public function run()
     {
         Settings::query()->firstOrCreate(
+            ['key' => 'calendar.show_nearby_birthdays'],
+            [
+                'value' => 'true',
+                'type' => Settings::TYPE_BOOLEAN,
+            ]
+        );
+
+        Settings::query()->firstOrCreate(
+            ['key' => 'calendar.show_insights'],
+            [
+                'value' => 'true',
+                'type' => Settings::TYPE_BOOLEAN,
+            ]
+        );
+
+        Settings::query()->firstOrCreate(
             ['key' => 'calendar.show_cancelled'],
             [
                 'value' => 'false',
@@ -35,6 +51,14 @@ class SettingsSeeder extends Seeder
             [
                 'value' => 'true',
                 'type' => Settings::TYPE_BOOLEAN,
+            ]
+        );
+
+        Settings::query()->firstOrCreate(
+            ['key' => 'notifications.default_event_minutes_before'],
+            [
+                'value' => '-1',
+                'type' => Settings::TYPE_INTEGER,
             ]
         );
     }

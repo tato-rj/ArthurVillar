@@ -37,6 +37,13 @@ class Event extends Model
         ];
     }
 
+    public static function defaultNotificationMinutesBefore(): ?int
+    {
+        $minutes = (int) Settings::getValue('notifications.default_event_minutes_before', -1);
+
+        return array_key_exists($minutes, static::notificationOptions()) ? $minutes : null;
+    }
+
     public static function timeOptions(): array
     {
         $times = [];

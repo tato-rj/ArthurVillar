@@ -35,8 +35,9 @@
 ])
 
 @php
-    $notificationEnabled = old('send_notification', isset($event) && $event->notification_user_id !== null);
-    $notificationMinutes = old('notification_minutes_before', $event->notification_minutes_before ?? 15);
+    $defaultNotificationMinutes = \App\Models\Event::defaultNotificationMinutesBefore();
+    $notificationEnabled = old('send_notification', isset($event) ? $event->notification_user_id !== null : $defaultNotificationMinutes !== null);
+    $notificationMinutes = old('notification_minutes_before', isset($event) ? ($event->notification_minutes_before ?? 15) : ($defaultNotificationMinutes ?? 15));
     $notificationId = 'event-notification-'.($event->id ?? 'new');
 @endphp
 
