@@ -13,6 +13,7 @@ const state = {
     selectedLocationIds: [],
     visibleEventsByDate: null,
     holidays: [],
+    showHolidays: true,
     teachingBreaks: [],
     recitals: [],
     generalEvents: [],
@@ -23,6 +24,7 @@ const state = {
     scheduleObserver: null,
     schedulePatchFrame: null,
     scheduleLabelFrame: null,
+    schedulePointerTimer: null,
     rescheduleDatePickerDate: null,
     generalEventRescheduleDatePickerDate: null,
     rescheduleDurationMinutes: 15,
@@ -120,7 +122,16 @@ const parseNullableDateString = function(value) {
 };
 
 const getDefaultCalendarView = function() {
-    return window.matchMedia && window.matchMedia('(max-width: 767.98px)').matches ? '2-days' : 'week';
+    const isMobile = window.matchMedia && window.matchMedia('(max-width: 767.98px)').matches;
+    const configuredView = isMobile
+        ? window.studioDefaultMobileCalendarView
+        : window.studioDefaultDesktopCalendarView;
+
+    if (calendarViews.includes(configuredView)) {
+        return configuredView;
+    }
+
+    return isMobile ? '2-days' : 'week';
 };
 
 const isSidebarHiddenViewport = function() {
@@ -946,6 +957,10 @@ const renderCalendarPaymentTotals = function() {
 };
 
 const getHolidaysForDateString = function(dateString) {
+    if (!state.showHolidays) {
+        return [];
+    }
+
     return state.holidays.filter(function(holiday) {
         return holiday.date === dateString;
     });
@@ -2607,7 +2622,10 @@ const patchSchedulePointer = function(calendar) {
 
     const now = new Date();
     const minutesPerDivision = 15;
-    const minutes = (now.getHours() * 60) + now.getMinutes();
+    const minutes = (now.getHours() * 60)
+        + now.getMinutes()
+        + (now.getSeconds() / 60)
+        + (now.getMilliseconds() / 60000);
     const slot = Math.floor(minutes / minutesPerDivision);
     const slotOffset = (minutes % minutesPerDivision) / minutesPerDivision;
     const cell = schedule.querySelector(`tbody td[data-date="${todayString()}"][data-y="${slot}"]:not(.lm-schedule-disabled)`);
@@ -4562,6 +4580,7 @@ document.addEventListener('DOMContentLoaded', function() {
         : (Array.isArray(window.studioLessonPlans) ? window.studioLessonPlans : []);
     state.singleLessonPlans = Array.isArray(window.studioSingleLessonPlans) ? window.studioSingleLessonPlans : [];
     state.holidays = Array.isArray(window.studioHolidays) ? window.studioHolidays : [];
+    state.showHolidays = window.studioShowHolidays !== false;
     state.teachingBreaks = Array.isArray(window.studioTeachingBreaks) ? window.studioTeachingBreaks : [];
     state.recitals = Array.isArray(window.studioRecitals) ? window.studioRecitals : [];
     state.generalEvents = Array.isArray(window.studioGeneralEvents) ? window.studioGeneralEvents : [];
@@ -4775,24 +4794,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
         state.locations.forEach(function(location) {
             const id = `calendar-location-filter-${location.id}`;
+            const option = document.createElement('div');
             const label = document.createElement('label');
             const input = document.createElement('input');
-            const text = document.createElement('span');
 
-            label.className = 'studio-calendar-filter-option';
+            option.className = 'form-check studio-calendar-filter-option';
+            label.className = 'form-check-label';
             label.setAttribute('for', id);
 
             input.type = 'checkbox';
+            input.className = 'form-check-input';
             input.id = id;
             input.value = location.id;
             input.checked = true;
             input.dataset.calendarLocationFilter = '';
 
-            text.textContent = location.name || 'Location';
+            label.textContent = location.name || 'Location';
 
-            label.appendChild(input);
-            label.appendChild(text);
-            locationFilters.appendChild(label);
+            option.appendChild(input);
+            option.appendChild(label);
+            locationFilters.appendChild(option);
         });
 
         syncLocationFilterState();
@@ -5595,4 +5616,37 @@ document.addEventListener('DOMContentLoaded', function() {
     renderLocationFilters();
     syncEventTypeFilterState();
     render();
+
+    const stopSchedulePointerClock = function() {
+        if (state.schedulePointerTimer) {
+            window.clearTimeout(state.schedulePointerTimer);
+            state.schedulePointerTimer = null;
+        }
+    };
+
+    const updateSchedulePointerClock = function() {
+        stopSchedulePointerClock();
+
+        if (document.hidden) {
+            return;
+        }
+
+        if (scheduleGridViews.includes(state.view)) {
+            patchSchedulePointer(calendar);
+        }
+
+        const nextSecondDelay = Math.max(50, 1000 - (Date.now() % 1000));
+        state.schedulePointerTimer = window.setTimeout(updateSchedulePointerClock, nextSecondDelay);
+    };
+
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            stopSchedulePointerClock();
+            return;
+        }
+
+        updateSchedulePointerClock();
+    });
+
+    updateSchedulePointerClock();
 });

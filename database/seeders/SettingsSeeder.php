@@ -23,9 +23,65 @@ class SettingsSeeder extends Seeder
         );
 
         Settings::query()->firstOrCreate(
+            ['key' => 'calendar.show_holidays'],
+            [
+                'value' => 'true',
+                'type' => Settings::TYPE_BOOLEAN,
+            ]
+        );
+
+        Settings::query()->firstOrCreate(
+            ['key' => 'calendar.default_desktop_view'],
+            [
+                'value' => 'week',
+                'type' => Settings::TYPE_STRING,
+            ]
+        );
+
+        Settings::query()->firstOrCreate(
+            ['key' => 'calendar.default_mobile_view'],
+            [
+                'value' => '2-days',
+                'type' => Settings::TYPE_STRING,
+            ]
+        );
+
+        Settings::query()->firstOrCreate(
             ['key' => 'appearance.unconfirmed_lesson_color'],
             [
                 'value' => '#6b7280',
+                'type' => Settings::TYPE_STRING,
+            ]
+        );
+
+        Settings::query()->firstOrCreate(
+            ['key' => 'appearance.unpaid_lesson_color'],
+            [
+                'value' => '#ff4b4b',
+                'type' => Settings::TYPE_STRING,
+            ]
+        );
+
+        Settings::query()->firstOrCreate(
+            ['key' => 'appearance.paid_lesson_color'],
+            [
+                'value' => '#58cc02',
+                'type' => Settings::TYPE_STRING,
+            ]
+        );
+
+        Settings::query()->firstOrCreate(
+            ['key' => 'appearance.canceled_lesson_color'],
+            [
+                'value' => '#ffffff',
+                'type' => Settings::TYPE_STRING,
+            ]
+        );
+
+        Settings::query()->firstOrCreate(
+            ['key' => 'appearance.general_event_color'],
+            [
+                'value' => '#ce82ff',
                 'type' => Settings::TYPE_STRING,
             ]
         );

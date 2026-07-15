@@ -3,21 +3,27 @@
     @label
   @endisset
 
-  <select 
-    class="form-select form-select-{{$size ?? null}}" 
-    name="{{$name}}" 
-    @isset($id)id="{{$id}}"@endisset 
-    {{iftrue($required ?? null, 'required data-required')}}
-    {{iftrue($disabled ?? null, 'disabled')}}
-    {{iftrue($readonly ?? null, 'readonly')}}>
-    
-    @isset($placeholder)
-    <option selected disabled value="">{{$placeholder}}</option>
+  <div class="form-select-control {{iftrue(isset($icon), 'has-icon')}}">
+    @isset($icon)
+      @fa(['icon' => $icon, 'mr' => 0, 'classes' => 'form-select-icon'])
     @endisset
 
-    {{$slot}}
+    <select
+      class="form-select form-select-{{$size ?? null}}"
+      name="{{$name}}"
+      @isset($id)id="{{$id}}"@endisset
+      {{iftrue($required ?? null, 'required data-required')}}
+      {{iftrue($disabled ?? null, 'disabled')}}
+      {{iftrue($readonly ?? null, 'readonly')}}>
 
-  </select>
+      @isset($placeholder)
+      <option selected disabled value="">{{$placeholder}}</option>
+      @endisset
+
+      {{$slot}}
+
+    </select>
+  </div>
   
   @isset($info)
   <div class="form-text text-white text-left mt-2 fw-bold">@fa(['icon' => 'exclamation-circle']){{$info}}</div>

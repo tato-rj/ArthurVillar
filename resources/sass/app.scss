@@ -8,6 +8,15 @@ input[type="range"].big-thumb {
   outline: none;
 }
 
+.form-select-control.has-icon .form-select {
+    padding-left: 2.35rem !important;
+}
+
+.form-select-control>.form-select-icon {
+  color: inherit;
+  opacity: .4;
+}
+
 .border-right-0 {
   border-top-right-radius: 0 !important;
   border-bottom-right-radius: 0 !important;

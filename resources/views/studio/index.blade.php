@@ -6,6 +6,10 @@
 <style>
 :root {
     --studio-unconfirmed-lesson-color: {{$unconfirmedLessonColor}};
+    --studio-unpaid-lesson-color: {{$unpaidLessonColor}};
+    --studio-paid-lesson-color: {{$paidLessonColor}};
+    --studio-canceled-lesson-color: {{$canceledLessonColor}};
+    --studio-general-event-color: {{$generalEventColor}};
 }
 
 .studio-calendar-main {
@@ -42,6 +46,9 @@ window.studioLessonPlanEditUrlTemplate = @json(route('studio.lesson-plans.edit',
 window.studioSingleLessonPlanEditUrlTemplate = @json(route('studio.single-lesson-plans.edit', ['singleLessonPlan' => '__single_lesson_plan__']));
 window.studioCalendarRange = @json($calendarRange);
 window.studioBirthdayWindow = @json($birthdayWindow);
+window.studioShowHolidays = @json($showHolidays);
+window.studioDefaultDesktopCalendarView = @json($defaultDesktopCalendarView);
+window.studioDefaultMobileCalendarView = @json($defaultMobileCalendarView);
 window.studioLocations = @json($locations->map(fn ($location) => [
 	'id' => $location->id,
 	'name' => $location->name,

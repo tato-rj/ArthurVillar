@@ -14,7 +14,14 @@ class SettingsController extends Controller
     {
         $request->validate([
             'calendar_show_insights' => ['required', 'boolean'],
+            'calendar_show_holidays' => ['required', 'boolean'],
+            'calendar_default_desktop_view' => ['required', Rule::in(['schedule', 'day', '2-days', 'week', 'month'])],
+            'calendar_default_mobile_view' => ['required', Rule::in(['schedule', 'day', '2-days', 'week', 'month'])],
             'unconfirmed_lesson_color' => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
+            'unpaid_lesson_color' => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
+            'paid_lesson_color' => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
+            'canceled_lesson_color' => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
+            'general_event_color' => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'calendar_show_cancelled' => ['required', 'boolean'],
             'calendar_add_transparency_to_past_events' => ['required', 'boolean'],
             'calendar_highlight_conflicting_events' => ['required', 'boolean'],
@@ -28,8 +35,50 @@ class SettingsController extends Controller
         );
 
         Settings::setValue(
+            'calendar.show_holidays',
+            $request->boolean('calendar_show_holidays'),
+            Settings::TYPE_BOOLEAN
+        );
+
+        Settings::setValue(
+            'calendar.default_desktop_view',
+            $request->input('calendar_default_desktop_view'),
+            Settings::TYPE_STRING
+        );
+
+        Settings::setValue(
+            'calendar.default_mobile_view',
+            $request->input('calendar_default_mobile_view'),
+            Settings::TYPE_STRING
+        );
+
+        Settings::setValue(
             'appearance.unconfirmed_lesson_color',
             strtolower($request->input('unconfirmed_lesson_color')),
+            Settings::TYPE_STRING
+        );
+
+        Settings::setValue(
+            'appearance.unpaid_lesson_color',
+            strtolower($request->input('unpaid_lesson_color')),
+            Settings::TYPE_STRING
+        );
+
+        Settings::setValue(
+            'appearance.paid_lesson_color',
+            strtolower($request->input('paid_lesson_color')),
+            Settings::TYPE_STRING
+        );
+
+        Settings::setValue(
+            'appearance.canceled_lesson_color',
+            strtolower($request->input('canceled_lesson_color')),
+            Settings::TYPE_STRING
+        );
+
+        Settings::setValue(
+            'appearance.general_event_color',
+            strtolower($request->input('general_event_color')),
             Settings::TYPE_STRING
         );
 

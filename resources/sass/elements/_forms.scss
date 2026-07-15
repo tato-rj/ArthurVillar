@@ -52,6 +52,24 @@ form {
 	// }
 }
 
+.form-select-control {
+	position: relative;
+}
+
+.form-select-control > .form-select-icon {
+	color: #6c757d;
+	left: .85rem;
+	pointer-events: none;
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+	z-index: 1;
+}
+
+.form-select-control.has-icon .form-select {
+	padding-left: 2.65rem;
+}
+
 .form-check-input[type=checkbox] {
     border-radius: $corner-radius;
 }

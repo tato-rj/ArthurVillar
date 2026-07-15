@@ -10,7 +10,7 @@
 		'name' => 'fee_amount',
 		'value' => $location->feeAmountForInput(),
 		'mask' => 'usd',
-		'info' => 'Hourly rate used to calculate lesson-plan fees at this location.'
+		'info' => 'Hourly rate used to calculate the fees for recurring lessons.'
 	])
 
 	@input([
@@ -21,7 +21,7 @@
 		'min' => 0,
 		'max' => 100,
 		'step' => '0.01',
-		'info' => 'Percentage withheld from confirmed lesson payments at this location.'
+		'info' => 'Percentage withheld from confirmed lesson payments.'
 	])
 
 	<div class="form-check mb-3">
