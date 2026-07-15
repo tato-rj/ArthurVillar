@@ -21,6 +21,7 @@ class EventTest extends BaseTest
             ->assertSee('New event')
             ->assertSee('events-table', false)
             ->assertSee('create-event-modal', false)
+            ->assertDontSee('<th>Notes</th>', false)
             ->assertDontSee('type="time"', false)
             ->assertSee('name="starts_at"', false)
             ->assertSee('name="ends_at"', false)
