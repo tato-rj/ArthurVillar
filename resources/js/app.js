@@ -3,6 +3,7 @@ require('./helpers');
 require('./extensions');
 require('./components');
 require('./utilities');
+require('./web-push');
 
 document.addEventListener("touchstart", () => {}, { passive: true });
 

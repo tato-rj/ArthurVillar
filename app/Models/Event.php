@@ -5,6 +5,7 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Event extends Model
 {
@@ -14,7 +15,27 @@ class Event extends Model
 
     protected $casts = [
         'scheduled_date' => 'date',
+        'notification_sent_at' => 'datetime',
     ];
+
+    public function notificationUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'notification_user_id');
+    }
+
+    public static function notificationOptions(): array
+    {
+        return [
+            0 => 'At the event time',
+            5 => '5 minutes before',
+            10 => '10 minutes before',
+            15 => '15 minutes before',
+            30 => '30 minutes before',
+            60 => '1 hour before',
+            120 => '2 hours before',
+            1440 => '1 day before',
+        ];
+    }
 
     public static function timeOptions(): array
     {
@@ -41,6 +62,7 @@ class Event extends Model
             'starts_at' => $this->starts_at,
             'ends_at' => $this->ends_at,
             'notes' => $this->notes,
+            'notification_minutes_before' => $this->notification_minutes_before,
             'type' => 'general-event',
             'edit_url' => route('studio.events.edit', $this),
             'reschedule_url' => route('studio.events.reschedule', $this),

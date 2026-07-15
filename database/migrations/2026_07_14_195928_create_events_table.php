@@ -20,6 +20,9 @@ return new class extends Migration
             $table->time('starts_at');
             $table->time('ends_at');
             $table->text('notes')->nullable();
+            $table->foreignId('notification_user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->unsignedSmallInteger('notification_minutes_before')->nullable();
+            $table->timestamp('notification_sent_at')->nullable();
             $table->timestamps();
         });
     }

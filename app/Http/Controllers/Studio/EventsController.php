@@ -16,7 +16,7 @@ class EventsController extends Controller
 
     public function store(Request $request)
     {
-        Event::create($this->validatedEvent($request));
+        Event::create($this->eventAttributes($request));
 
         return back()->with('success', 'The event was successfully added');
     }
@@ -28,7 +28,7 @@ class EventsController extends Controller
 
     public function update(Request $request, Event $event)
     {
-        $event->update($this->validatedEvent($request));
+        $event->update($this->eventAttributes($request));
 
         if ($request->expectsJson()) {
             return response()->json([
@@ -46,7 +46,7 @@ class EventsController extends Controller
             'scheduled_date' => ['required', 'date'],
             'starts_at' => ['required', 'date_format:H:i', Rule::in(Event::timeOptions())],
             'ends_at' => ['required', 'date_format:H:i', Rule::in(Event::timeOptions()), 'after:starts_at'],
-        ]));
+        ]) + ['notification_sent_at' => null]);
 
         if ($request->expectsJson()) {
             return response()->json([
@@ -72,14 +72,34 @@ class EventsController extends Controller
         return back()->with('success', 'The event was successfully deleted');
     }
 
-    private function validatedEvent(Request $request)
+    private function eventAttributes(Request $request): array
     {
-        return $request->validate([
+        $attributes = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'scheduled_date' => ['required', 'date'],
             'starts_at' => ['required', 'date_format:H:i', Rule::in(Event::timeOptions())],
             'ends_at' => ['required', 'date_format:H:i', Rule::in(Event::timeOptions()), 'after:starts_at'],
             'notes' => ['nullable', 'string'],
+            'send_notification' => ['nullable', 'boolean'],
+            'notification_minutes_before' => [
+                Rule::requiredIf($request->boolean('send_notification')),
+                'nullable',
+                'integer',
+                Rule::in(array_keys(Event::notificationOptions())),
+            ],
         ]);
+
+        unset($attributes['send_notification']);
+
+        if ($request->boolean('send_notification')) {
+            $attributes['notification_user_id'] = $request->user()->id;
+            $attributes['notification_sent_at'] = null;
+        } else {
+            $attributes['notification_user_id'] = null;
+            $attributes['notification_minutes_before'] = null;
+            $attributes['notification_sent_at'] = null;
+        }
+
+        return $attributes;
     }
 }

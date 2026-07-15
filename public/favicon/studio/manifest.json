@@ -1,6 +1,7 @@
 {
   "name": "Studio Calendar",
   "short_name": "Studio Calendar",
+  "id": "/",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

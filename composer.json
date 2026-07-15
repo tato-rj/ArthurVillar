@@ -10,6 +10,7 @@
         "guzzlehttp/guzzle": "^7.2",
         "intervention/image": "^2.6",
         "james-heinrich/getid3": "^1.9",
+        "laravel-notification-channels/webpush": "^7.1",
         "laravel/fortify": "^1.19",
         "laravel/framework": "^9.19",
         "laravel/helpers": "^1.7",

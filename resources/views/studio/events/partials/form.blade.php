@@ -34,4 +34,45 @@
     'rows' => 5,
 ])
 
+@php
+    $notificationEnabled = old('send_notification', isset($event) && $event->notification_user_id !== null);
+    $notificationMinutes = old('notification_minutes_before', $event->notification_minutes_before ?? 15);
+    $notificationId = 'event-notification-'.($event->id ?? 'new');
+@endphp
+
+<div class="border rounded p-3 mb-3" data-event-notification-settings>
+    <div class="form-check mb-2">
+        <input type="hidden" name="send_notification" value="0">
+        <input
+            class="form-check-input"
+            type="checkbox"
+            name="send_notification"
+            value="1"
+            id="{{$notificationId}}"
+            data-event-notification-toggle
+            {{iftrue($notificationEnabled, 'checked')}}>
+        <label class="form-check-label" for="{{$notificationId}}">Send me a notification</label>
+    </div>
+
+    <div data-event-notification-options {{iftrue(!$notificationEnabled, 'hidden')}}>
+        @select(['label' => 'Notify me', 'name' => 'notification_minutes_before'])
+            @foreach(\App\Models\Event::notificationOptions() as $minutes => $label)
+                @option([
+                    'name' => 'notification_minutes_before',
+                    'label' => $label,
+                    'value' => $minutes,
+                    'selected' => (string) $notificationMinutes === (string) $minutes,
+                ])
+            @endforeach
+        @endselect
+
+        <button type="button" class="btn btn-outline-primary btn-sm" data-enable-push-notifications>
+            @fa(['icon' => 'bell']) Enable notifications on this device
+        </button>
+        <div class="form-text mt-2" data-web-push-status>
+            Notifications must be enabled on at least one device.
+        </div>
+    </div>
+</div>
+
 @submit(['label' => 'Confirm', 'theme' => 'primary'])

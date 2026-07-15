@@ -6,6 +6,11 @@ Route::get('/', 'StudioController@index')->name('home');
 
 Route::get('financial-report', 'StudioController@report')->name('financial.report');
 
+Route::prefix('push-subscriptions')->name('push-subscriptions.')->group(function() {
+	Route::post('', 'PushSubscriptionsController@store')->name('store');
+	Route::delete('', 'PushSubscriptionsController@destroy')->name('destroy');
+});
+
 Route::prefix('students')->name('students.')->group(function() {
 	Route::get('', 'StudentsController@index')->name('index');
 

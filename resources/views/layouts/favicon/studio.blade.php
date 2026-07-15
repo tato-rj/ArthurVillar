@@ -1,4 +1,17 @@
 <link rel="manifest" href="{{asset('/favicon/studio/manifest.json')}}">
+@auth
+@php
+    $webPushConfig = [
+        'publicKey' => config('webpush.vapid.public_key'),
+        'subscribeUrl' => route('studio.push-subscriptions.store'),
+        'unsubscribeUrl' => route('studio.push-subscriptions.destroy'),
+        'serviceWorkerUrl' => asset('/service-worker.js'),
+    ];
+@endphp
+<script>
+window.webPushConfig = @json($webPushConfig);
+</script>
+@endauth
 
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">

@@ -4,6 +4,9 @@ namespace Tests\Feature;
 
 use App\Calendar\Scheduler;
 use App\Models\Event;
+use App\Notifications\EventReminder;
+use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\Notification;
 use Tests\BaseTest;
 
 class EventTest extends BaseTest
@@ -234,5 +237,118 @@ class EventTest extends BaseTest
             ->assertSee('calendar-event-type-recurring', false)
             ->assertSee('calendar-event-type-single', false)
             ->assertSee('calendar-event-type-general', false);
+    }
+
+    /** @test */
+    public function an_event_can_send_a_notification_to_the_user_who_enabled_it()
+    {
+        $user = $this->signIn();
+
+        $this->post(route('studio.events.store'), [
+            'name' => 'Doctor appointment',
+            'scheduled_date' => '2026-08-15',
+            'starts_at' => '12:00',
+            'ends_at' => '13:00',
+            'send_notification' => '1',
+            'notification_minutes_before' => '15',
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('events', [
+            'name' => 'Doctor appointment',
+            'notification_user_id' => $user->id,
+            'notification_minutes_before' => 15,
+            'notification_sent_at' => null,
+        ]);
+    }
+
+    /** @test */
+    public function a_device_push_subscription_can_be_saved_and_removed()
+    {
+        $user = $this->signIn();
+        $payload = [
+            'endpoint' => 'https://push.example.com/subscription/123',
+            'keys' => [
+                'p256dh' => 'public-key',
+                'auth' => 'auth-token',
+            ],
+            'content_encoding' => 'aes128gcm',
+        ];
+
+        $this->postJson(route('studio.push-subscriptions.store'), $payload)->assertOk();
+
+        $this->assertDatabaseHas('push_subscriptions', [
+            'subscribable_id' => $user->id,
+            'subscribable_type' => $user->getMorphClass(),
+            'endpoint' => $payload['endpoint'],
+            'public_key' => 'public-key',
+            'auth_token' => 'auth-token',
+        ]);
+
+        $this->deleteJson(route('studio.push-subscriptions.destroy'), [
+            'endpoint' => $payload['endpoint'],
+        ])->assertOk();
+
+        $this->assertDatabaseMissing('push_subscriptions', ['endpoint' => $payload['endpoint']]);
+    }
+
+    /** @test */
+    public function the_scheduler_sends_a_due_event_reminder_once()
+    {
+        Notification::fake();
+        CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-08-15 11:50:00', config('studio.timezone')));
+
+        $user = $this->signIn();
+        $user->updatePushSubscription(
+            'https://push.example.com/subscription/123',
+            'public-key',
+            'auth-token',
+            'aes128gcm'
+        );
+        $event = Event::factory()->create([
+            'name' => 'Lunch meeting',
+            'scheduled_date' => '2026-08-15',
+            'starts_at' => '12:00',
+            'ends_at' => '13:00',
+            'notification_user_id' => $user->id,
+            'notification_minutes_before' => 15,
+            'notification_sent_at' => null,
+        ]);
+
+        $this->artisan('studio:send-event-reminders')->assertSuccessful();
+        $this->artisan('studio:send-event-reminders')->assertSuccessful();
+
+        Notification::assertSentToTimes($user, EventReminder::class, 1);
+        $this->assertNotNull($event->fresh()->notification_sent_at);
+
+        CarbonImmutable::setTestNow();
+    }
+
+    /** @test */
+    public function an_event_can_notify_at_its_start_time()
+    {
+        Notification::fake();
+        CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-08-15 12:00:00', config('studio.timezone')));
+
+        $user = $this->signIn();
+        $user->updatePushSubscription(
+            'https://push.example.com/subscription/at-start',
+            'public-key',
+            'auth-token',
+            'aes128gcm'
+        );
+        $event = Event::factory()->create([
+            'scheduled_date' => '2026-08-15',
+            'starts_at' => '12:00',
+            'ends_at' => '13:00',
+            'notification_user_id' => $user->id,
+            'notification_minutes_before' => 0,
+        ]);
+
+        $this->artisan('studio:send-event-reminders')->assertSuccessful();
+
+        Notification::assertSentTo($user, EventReminder::class);
+        $this->assertNotNull($event->fresh()->notification_sent_at);
+
+        CarbonImmutable::setTestNow();
     }
 }
