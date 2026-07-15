@@ -80,16 +80,6 @@
 			<section class="studio-settings-section" aria-labelledby="settings-calendar-initial-view-title">
 				<h6 id="settings-calendar-initial-view-title">Calendar initial view</h6>
 
-				@php($calendarViewOptions = [
-					'schedule' => 'Schedule',
-					'day' => 'Day',
-					'2-days' => '2 Days',
-					'week' => 'Week',
-					'month' => 'Month',
-				])
-				@php($selectedDesktopCalendarView = old('calendar_default_desktop_view', $defaultDesktopCalendarView))
-				@php($selectedMobileCalendarView = old('calendar_default_mobile_view', $defaultMobileCalendarView))
-
 				@select(['icon' => 'desktop', 'name' => 'calendar_default_desktop_view', 'id' => 'calendar-default-desktop-view'])
 					@foreach($calendarViewOptions as $calendarView => $calendarViewLabel)
 						<option value="{{$calendarView}}" {{iftrue($selectedDesktopCalendarView === $calendarView, 'selected')}}>{{$calendarViewLabel}}</option>
@@ -106,14 +96,6 @@
 			<section class="studio-settings-section" aria-labelledby="settings-appearance-title">
 				<h6 id="settings-appearance-title">Appearance</h6>
 
-				@php($appearanceSettings = [
-					['id' => 'unconfirmed-lesson-color', 'name' => 'unconfirmed_lesson_color', 'label' => 'Unconfirmed lessons', 'value' => $unconfirmedLessonColor, 'default' => '#6b7280'],
-					['id' => 'unpaid-lesson-color', 'name' => 'unpaid_lesson_color', 'label' => 'Unpaid lessons', 'value' => $unpaidLessonColor, 'default' => '#ff4b4b'],
-					['id' => 'paid-lesson-color', 'name' => 'paid_lesson_color', 'label' => 'Paid lessons', 'value' => $paidLessonColor, 'default' => '#58cc02'],
-					['id' => 'canceled-lesson-color', 'name' => 'canceled_lesson_color', 'label' => 'Canceled lessons', 'value' => $canceledLessonColor, 'default' => '#ffffff'],
-					['id' => 'general-event-color', 'name' => 'general_event_color', 'label' => 'General events', 'value' => $generalEventColor, 'default' => '#ce82ff'],
-				])
-
 				@foreach($appearanceSettings as $appearanceSetting)
 					<div class="d-apart mb-3">
 						<div class="d-flex align-items-center">
@@ -124,7 +106,7 @@
 									name="{{$appearanceSetting['name']}}"
 									title="Choose the color for {{strtolower($appearanceSetting['label'])}}"
 									type="color"
-									value="{{old($appearanceSetting['name'], $appearanceSetting['value'])}}"
+									value="{{$appearanceSetting['value']}}"
 								>
 							</div>
 							<label class="form-label ml-2 mb-0" for="{{$appearanceSetting['id']}}">{{$appearanceSetting['label']}}</label>
@@ -144,7 +126,6 @@
 				<h6 id="settings-notification-preferences-title">Notifications default</h6>
 
 				@select(['name' => 'default_event_notification_minutes_before', 'icon' => 'bell'])
-					@php($selectedNotificationPreference = (int) old('default_event_notification_minutes_before', $defaultEventNotificationMinutesBefore))
 					<option value="-1" {{iftrue($selectedNotificationPreference === -1, 'selected')}}>Off</option>
 					@foreach(\App\Models\Event::notificationOptions() as $minutes => $label)
 						<option value="{{$minutes}}" {{iftrue($selectedNotificationPreference === (int) $minutes, 'selected')}}>{{$label}}</option>
