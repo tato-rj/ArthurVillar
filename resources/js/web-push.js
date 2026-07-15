@@ -121,5 +121,23 @@ if (config) {
                 setStatus('Could not check notification status on this device.', false);
             });
         }
+
+        const observer = new MutationObserver(function(mutations) {
+            const addedNotificationForm = mutations.some(function(mutation) {
+                return Array.from(mutation.addedNodes).some(function(node) {
+                    return node.nodeType === Node.ELEMENT_NODE
+                        && (node.matches('[data-event-notification-settings]')
+                            || node.querySelector('[data-event-notification-settings]'));
+                });
+            });
+
+            if (addedNotificationForm) {
+                refreshStatus().catch(function() {
+                    setStatus('Could not check notification status on this device.', false);
+                });
+            }
+        });
+
+        observer.observe(document.body, {childList: true, subtree: true});
     });
 }
