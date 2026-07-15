@@ -8,6 +8,12 @@ input[type="date"],
 input[type="month"] {text-align: left;}
 td {white-space: nowrap;}
 
+.studio-general-event-notes {
+    @extend .bg-light, .p-3, .rounded, .border;
+    
+    a {@extend .text-red}
+}
+
 .studio-calendar {
     min-height: 100vh;
     padding-right: 1.5rem;
