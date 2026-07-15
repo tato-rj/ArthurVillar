@@ -15,13 +15,13 @@
 
 <div class="row">
     @select(['label' => 'Starts at', 'name' => 'starts_at', 'grid' => 'col', 'required' => true])
-        @foreach(\App\Models\Event::timeOptions() as $time)
+        @foreach(timeslots(9, 21, 15) as $time)
             @option(['name' => 'starts_at', 'label' => \App\Models\Event::timeLabel($time), 'value' => $time, 'selected' => isset($event) && substr($event->starts_at, 0, 5) === $time])
         @endforeach
     @endselect
 
     @select(['label' => 'Ends at', 'name' => 'ends_at', 'grid' => 'col', 'required' => true])
-        @foreach(\App\Models\Event::timeOptions() as $time)
+        @foreach(timeslots(9, 21, 15) as $time)
             @option(['name' => 'ends_at', 'label' => \App\Models\Event::timeLabel($time), 'value' => $time, 'selected' => isset($event) && substr($event->ends_at, 0, 5) === $time])
         @endforeach
     @endselect
@@ -40,7 +40,7 @@
     $notificationId = 'event-notification-'.($event->id ?? 'new');
 @endphp
 
-<div class="border rounded p-3 mb-3" data-event-notification-settings>
+<div class="mb-3" data-event-notification-settings>
     <div class="form-check mb-2">
         <input type="hidden" name="send_notification" value="0">
         <input
@@ -51,11 +51,11 @@
             id="{{$notificationId}}"
             data-event-notification-toggle
             {{iftrue($notificationEnabled, 'checked')}}>
-        <label class="form-check-label" for="{{$notificationId}}">Send me a notification</label>
+        <label class="form-check-label align-middle" for="{{$notificationId}}">Send me a notification</label>
     </div>
 
-    <div data-event-notification-options {{iftrue(!$notificationEnabled, 'hidden')}}>
-        @select(['label' => 'Notify me', 'name' => 'notification_minutes_before'])
+    <div data-event-notification-options {{iftrue(!$notificationEnabled, 'hidden')}} class="text-center">
+        @select(['name' => 'notification_minutes_before'])
             @foreach(\App\Models\Event::notificationOptions() as $minutes => $label)
                 @option([
                     'name' => 'notification_minutes_before',
@@ -66,7 +66,7 @@
             @endforeach
         @endselect
 
-        <button type="button" class="btn btn-outline-primary btn-sm" data-enable-push-notifications>
+        <button type="button" class="btn btn-outline-warning rounded btn-sm" data-enable-push-notifications>
             @fa(['icon' => 'bell']) Enable notifications on this device
         </button>
         <div class="form-text mt-2" data-web-push-status>

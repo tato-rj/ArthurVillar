@@ -10,13 +10,19 @@
         @fa(['icon' => 'calendar-day', 'classes' => 'opacity-4'])
         <span id="general-event-date"></span>
     </div>
-    <div class="mb-3">
+    <div class="mb-2">
         @fa(['icon' => 'clock', 'classes' => 'opacity-4'])
         <span id="general-event-time"></span>
     </div>
+    <div class="mb-2" hidden>
+        @fa(['icon' => 'bell', 'classes' => 'opacity-4'])
+        <span id="general-event-notification"></span>
+    </div>
 
-    <div class="small font-weight-bold opacity-6 mb-2">NOTES</div>
-    <div id="general-event-notes" class="studio-general-event-notes"></div>
+    <div data-general-event-notes-section hidden>
+        <div class="small font-weight-bold opacity-6 mb-2 mt-3">NOTES</div>
+        <div id="general-event-notes" class="studio-general-event-notes"></div>
+    </div>
 
     <div id="general-event-controls" class="d-flex mt-4">
         <button type="button" id="cancel-general-event-button" class="btn btn-outline-dark w-100 mr-1">Cancel</button>

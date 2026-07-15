@@ -1321,6 +1321,7 @@ const getGeneralEvent = function(generalEvent) {
         end: normalizeTime(generalEvent.ends_at),
         title: generalEvent.name || 'Event',
         notes: generalEvent.notes || '',
+        notificationMinutesBefore: generalEvent.notification_minutes_before,
         editUrl: generalEvent.edit_url || '',
         rescheduleUrl: generalEvent.reschedule_url || '',
         destroyUrl: generalEvent.destroy_url || '',
@@ -2080,8 +2081,6 @@ const renderNotesWithLinks = function(element, notes) {
     element.innerHTML = '';
 
     if (!text) {
-        element.textContent = 'No notes added.';
-        element.classList.add('opacity-4');
         return;
     }
 
@@ -2109,6 +2108,29 @@ const renderNotesWithLinks = function(element, notes) {
     }
 
     element.appendChild(document.createTextNode(text.slice(cursor)));
+};
+
+const formatGeneralEventNotification = function(minutes) {
+    if (minutes === null || minutes === undefined || minutes === '') {
+        return '';
+    }
+
+    const value = Number(minutes);
+
+    if (value === 0) {
+        return 'At the event time';
+    }
+
+    if (value === 1440) {
+        return '1 day before';
+    }
+
+    if (value >= 60 && value % 60 === 0) {
+        const hours = value / 60;
+        return `${hours} ${hours === 1 ? 'hour' : 'hours'} before`;
+    }
+
+    return `${value} ${value === 1 ? 'minute' : 'minutes'} before`;
 };
 
 const clearGeneralEventActionError = function(modal) {
@@ -2176,7 +2198,9 @@ const openGeneralEventModal = function(event) {
     const title = modal.querySelector('.modal-title');
     const date = modal.querySelector('#general-event-date');
     const time = modal.querySelector('#general-event-time');
+    const notification = modal.querySelector('#general-event-notification');
     const notes = modal.querySelector('#general-event-notes');
+    const notesSection = modal.querySelector('[data-general-event-notes-section]');
     const edit = modal.querySelector('#event-edit');
     const rescheduleForm = modal.querySelector('#reschedule-general-event form');
     const cancelForm = modal.querySelector('#cancel-general-event form');
@@ -2191,6 +2215,11 @@ const openGeneralEventModal = function(event) {
     if (time) time.textContent = event.start && event.end
         ? `${formatModalEventTime(event.start)} - ${formatModalEventTime(event.end)}`
         : formatModalEventTime(event.start);
+    if (notification) {
+        notification.textContent = formatGeneralEventNotification(event.notificationMinutesBefore);
+        notification.parentElement.hidden = !notification.textContent;
+    }
+    if (notesSection) notesSection.hidden = !String(event.notes || '').trim();
     if (notes) renderNotesWithLinks(notes, event.notes);
     if (edit) {
         edit.dataset.url = event.editUrl || '';

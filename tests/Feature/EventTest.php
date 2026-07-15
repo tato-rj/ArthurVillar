@@ -190,12 +190,16 @@ class EventTest extends BaseTest
     /** @test */
     public function it_includes_general_events_in_the_calendar_range()
     {
+        $user = $this->signIn();
+
         Event::factory()->create([
             'name' => 'Studio meeting',
             'scheduled_date' => '2026-10-20',
             'starts_at' => '15:00',
             'ends_at' => '16:30',
             'notes' => 'Agenda at https://example.com/agenda',
+            'notification_user_id' => $user->id,
+            'notification_minutes_before' => 120,
         ]);
         Event::factory()->create(['scheduled_date' => '2026-11-20']);
 
@@ -207,6 +211,7 @@ class EventTest extends BaseTest
         $this->assertCount(1, $payload['generalEvents']);
         $this->assertSame('Studio meeting', $payload['generalEvents'][0]['name']);
         $this->assertSame('2026-10-20', $payload['generalEvents'][0]['scheduled_date']);
+        $this->assertSame(120, $payload['generalEvents'][0]['notification_minutes_before']);
         $this->assertSame(route('studio.events.edit', $payload['generalEvents'][0]['id']), $payload['generalEvents'][0]['edit_url']);
         $this->assertSame('https://example.com/agenda', str($payload['generalEvents'][0]['notes'])->after('Agenda at ')->toString());
     }
@@ -224,6 +229,8 @@ class EventTest extends BaseTest
         ]))
             ->assertOk()
             ->assertSee('general-event-modal', false)
+            ->assertSee('general-event-notification', false)
+            ->assertSee('data-general-event-notes-section', false)
             ->assertSee('event-edit', false)
             ->assertSee('lesson-edit', false)
             ->assertSee('calendar-edit-modal-container', false)
