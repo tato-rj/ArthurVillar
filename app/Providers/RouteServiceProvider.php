@@ -53,6 +53,12 @@ class RouteServiceProvider extends ServiceProvider
                 ->name('studio.')
                 ->group(base_path('routes/studio.php'));
 
+            Route::middleware(['web', 'auth'])
+                ->domain('schedule.'.config('app.domain'))
+                ->namespace($this->namespace . '\\Schedule')
+                ->name('schedule.')
+                ->group(base_path('routes/schedule.php'));
+
             Route::middleware('web')
                 ->namespace($this->namespace)
                 ->group(base_path('routes/web.php'));
