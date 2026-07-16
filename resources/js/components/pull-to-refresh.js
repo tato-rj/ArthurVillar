@@ -36,6 +36,16 @@ const initializePullToRefresh = function() {
     }
 
     let touchTarget = null;
+    const interactiveSelector = [
+        'a',
+        'button',
+        'input',
+        'select',
+        'textarea',
+        'label',
+        '[role="button"]',
+        '[contenteditable="true"]',
+    ].join(', ');
 
     document.addEventListener('touchstart', function(event) {
         touchTarget = event.touches.length === 1 && event.target instanceof Element
@@ -47,6 +57,10 @@ const initializePullToRefresh = function() {
         mainElement: 'body',
         shouldPullToRefresh: function() {
             if (!touchTarget || window.scrollY > 0 || document.documentElement.scrollTop > 0) {
+                return false;
+            }
+
+            if (touchTarget.closest(interactiveSelector)) {
                 return false;
             }
 
