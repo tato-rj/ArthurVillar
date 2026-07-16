@@ -36,6 +36,7 @@ const initializePullToRefresh = function() {
     }
 
     let touchTarget = null;
+    let isExcludedTouch = false;
     const interactiveSelector = [
         'a',
         'button',
@@ -46,12 +47,35 @@ const initializePullToRefresh = function() {
         '[role="button"]',
         '[contenteditable="true"]',
     ].join(', ');
+    const overlaySelector = '.modal.show, .offcanvas.show, .dropdown-menu.show';
 
     document.addEventListener('touchstart', function(event) {
         touchTarget = event.touches.length === 1 && event.target instanceof Element
             ? event.target
             : null;
+        isExcludedTouch = Boolean(touchTarget && touchTarget.closest(`${interactiveSelector}, ${overlaySelector}`));
+
+        if (isExcludedTouch) {
+            event.stopPropagation();
+        }
     }, { passive: true });
+
+    document.addEventListener('touchmove', function(event) {
+        if (isExcludedTouch) {
+            event.stopPropagation();
+        }
+    }, { passive: true });
+
+    const finishExcludedTouch = function(event) {
+        if (isExcludedTouch) {
+            event.stopPropagation();
+        }
+
+        isExcludedTouch = false;
+    };
+
+    document.addEventListener('touchend', finishExcludedTouch, { passive: true });
+    document.addEventListener('touchcancel', finishExcludedTouch, { passive: true });
 
     PullToRefresh.init({
         mainElement: 'body',
@@ -64,7 +88,7 @@ const initializePullToRefresh = function() {
                 return false;
             }
 
-            if (touchTarget.closest('.modal.show, .offcanvas.show, .dropdown-menu.show')) {
+            if (touchTarget.closest(overlaySelector)) {
                 return false;
             }
 
