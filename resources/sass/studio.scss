@@ -1379,12 +1379,10 @@ button.single-lesson-plan-create[selected] i {
 }
 
 #lesson-edit, #event-edit {
-    // font-size: 1.35rem;
     opacity: .6;
 }
 
 #lesson-revert {
-    // font-size: 1.45rem;
     opacity: .6;
 }
 
@@ -1406,6 +1404,13 @@ button.single-lesson-plan-create[selected] i {
 }
 
 #lesson-modal {
+    button.btn-close {
+        font-size: 1.5rem !important;
+        padding-bottom: 0;
+        padding-top: 0;
+        margin-top: -5px;
+    }
+
     #meeting-url, #notes-url {display: none}
 }
 
