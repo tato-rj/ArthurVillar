@@ -31309,6 +31309,10 @@ input[type=range].big-thumb {
   margin-top: 0 !important;
 }
 
+.modal .btn-close {
+  font-size: 1.5rem;
+}
+
 .btn-floating-group .btn-floating:not(:first-of-type, :last-of-type), .btn-floating-group .btn-floating:not(:first-of-type, :last-of-type) .btn {
   border-radius: 0 !important;
 }
