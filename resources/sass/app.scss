@@ -762,6 +762,52 @@ textarea.no-resize {
   box-shadow: 0 12px 25px -2px rgba(0, 0, 0, 0.1) !important;
 }
 
+.app-pull-to-refresh {
+  align-items: center;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, .2);
+  color: #0b57d0;
+  display: flex;
+  height: 2.4rem;
+  justify-content: center;
+  left: 50%;
+  opacity: 0;
+  pointer-events: none;
+  position: fixed;
+  top: env(safe-area-inset-top, 0);
+  transform: translate3d(-50%, var(--app-pull-refresh-y, -3rem), 0);
+  transition: opacity .16s ease, transform .18s ease;
+  width: 2.4rem;
+  z-index: 2000;
+}
+
+.app-pull-to-refresh.is-pulling {
+  transition: none;
+}
+
+.app-pull-to-refresh > i {
+  transition: transform .16s ease;
+}
+
+.app-pull-to-refresh.is-ready > i {
+  transform: rotate(180deg);
+}
+
+.app-pull-to-refresh.is-refreshing > i {
+  animation: app-pull-to-refresh-spin .7s linear infinite;
+}
+
+html.app-is-pulling-to-refresh {
+  overscroll-behavior-y: none;
+}
+
+@keyframes app-pull-to-refresh-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @media (display-mode: standalone) {
   .hide-in-webapp {
     display: none;
