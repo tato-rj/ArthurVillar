@@ -1,5 +1,5 @@
 <div class="studio-calendar-settings">
-	<button type="button" class="btn-raw studio-calendar-icon-button px-4" data-bs-toggle="modal" data-bs-target="#settings-modal" aria-label="Open settings">
+	<button type="button" class="btn-raw studio-calendar-icon-button px-2" data-bs-toggle="modal" data-bs-target="#settings-modal" aria-label="Open settings">
 		@fa(['icon' => 'gear', 'mr' => 0, 'fa_color' => 'black'])
 	</button>
 

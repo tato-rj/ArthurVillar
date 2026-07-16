@@ -8,7 +8,9 @@
 		@include('studio.calendar.header.today')
 		@include('studio.calendar.header.controls')
 		@include('studio.calendar.header.views')
-		@include('studio.calendar.header.search')
-		@include('studio.calendar.header.filters')
-		@include('studio.calendar.header.settings')
+		<div class="d-flex align-items-center w-100 justify-content-end">
+			@include('studio.calendar.header.search')
+			@include('studio.calendar.header.filters')
+			@include('studio.calendar.header.settings')
+		</div>
 	</div>

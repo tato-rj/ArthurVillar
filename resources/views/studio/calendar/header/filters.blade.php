@@ -1,5 +1,5 @@
 		<div class="studio-calendar-filter dropdown">
-			<button type="button" class="btn-raw studio-calendar-filter-toggle" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" aria-label="Filter calendar">
+			<button type="button" class="btn-raw studio-calendar-filter-toggle px-2" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" aria-label="Filter calendar">
 				@fa(['icon' => 'filter', 'mr' => 0, 'fa_color' => 'black'])
 			</button>
 			<div class="dropdown-menu dropdown-menu-end studio-calendar-filter-menu p-3">
