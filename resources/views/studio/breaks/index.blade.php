@@ -5,6 +5,8 @@
 @endpush
 
 @section('content')
+@include('studio.calendar.home-icon')
+
 <section class="container py-5">
     <div class="row mb-4">
         @pagetitle([

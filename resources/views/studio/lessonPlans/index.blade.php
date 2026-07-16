@@ -1,4 +1,4 @@
-@extends('layouts.app', ['title' => 'Lesson Plans'])
+@extends('layouts.app', ['title' => 'Recurring Lesson Plans'])
 
 @push('header')
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
@@ -9,6 +9,7 @@
 @endpush
 
 @section('content')
+@include('studio.calendar.home-icon')
 <section class="container py-5">
     <div class="row mb-4">
         @pagetitle([
