@@ -1056,7 +1056,7 @@ var getGeneralEvent = function getGeneralEvent(generalEvent) {
   };
 };
 var getGeneralEventCalendarEvents = function getGeneralEventCalendarEvents() {
-  return state.generalEvents.map(getGeneralEvent);
+  return state.generalEvents.filter(generalEventMatchesCalendarSearch).map(getGeneralEvent);
 };
 var getGeneralEventByGuid = function getGeneralEventByGuid(guid) {
   var match = String(guid || '').match(/^general-event-(\d+)-(\d{4}-\d{2}-\d{2})$/);
@@ -2552,6 +2552,13 @@ var clearScheduleItemBirthdayDecoration = function clearScheduleItemBirthdayDeco
 };
 var normalizeStudentSearch = function normalizeStudentSearch(value) {
   return String(value || '').trim().toLowerCase();
+};
+var generalEventMatchesCalendarSearch = function generalEventMatchesCalendarSearch(event) {
+  var query = normalizeStudentSearch(state.studentSearch);
+  if (query.length < 3) {
+    return true;
+  }
+  return String(event.event_type || '').toLowerCase().includes(query);
 };
 var lessonMatchesStudentSearch = function lessonMatchesStudentSearch(lesson) {
   var query = normalizeStudentSearch(state.studentSearch);

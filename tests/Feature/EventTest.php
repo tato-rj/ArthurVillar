@@ -216,6 +216,7 @@ class EventTest extends BaseTest
 
         Event::factory()->create([
             'name' => 'Calendar meeting',
+            'type' => 'Meeting',
             'scheduled_date' => '2026-10-20',
             'starts_at' => '15:00',
             'ends_at' => '16:30',
@@ -233,6 +234,7 @@ class EventTest extends BaseTest
         $this->assertCount(1, $payload['generalEvents']);
         $this->assertSame('Calendar meeting', $payload['generalEvents'][0]['name']);
         $this->assertSame('2026-10-20', $payload['generalEvents'][0]['scheduled_date']);
+        $this->assertSame('Meeting', $payload['generalEvents'][0]['event_type']);
         $this->assertSame(120, $payload['generalEvents'][0]['notification_minutes_before']);
         $this->assertSame(route('calendar.events.edit', $payload['generalEvents'][0]['id']), $payload['generalEvents'][0]['edit_url']);
         $this->assertSame('https://example.com/agenda', str($payload['generalEvents'][0]['notes'])->after('Agenda at ')->toString());

@@ -1347,7 +1347,9 @@ const getGeneralEvent = function(generalEvent) {
 };
 
 const getGeneralEventCalendarEvents = function() {
-    return state.generalEvents.map(getGeneralEvent);
+    return state.generalEvents
+        .filter(generalEventMatchesCalendarSearch)
+        .map(getGeneralEvent);
 };
 
 const getGeneralEventByGuid = function(guid) {
@@ -3290,6 +3292,16 @@ const clearScheduleItemBirthdayDecoration = function(item) {
 
 const normalizeStudentSearch = function(value) {
     return String(value || '').trim().toLowerCase();
+};
+
+const generalEventMatchesCalendarSearch = function(event) {
+    const query = normalizeStudentSearch(state.studentSearch);
+
+    if (query.length < 3) {
+        return true;
+    }
+
+    return String(event.event_type || '').toLowerCase().includes(query);
 };
 
 const lessonMatchesStudentSearch = function(lesson) {

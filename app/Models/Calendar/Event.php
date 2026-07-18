@@ -48,6 +48,7 @@ class Event extends BaseModel
             'music' => 'Concert',
             'briefcase-medical' => 'Doctor',
             'utensils' => 'Restaurant',
+            'scissors' => 'Haircut'
         ];
     }
 
