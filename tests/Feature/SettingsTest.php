@@ -2,10 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Models\Lesson;
-use App\Models\LessonPlan;
-use App\Models\Settings;
-use App\Models\Student;
+use App\Models\Calendar\{Lesson, LessonPlan, Settings, Student};
 use Tests\BaseTest;
 
 class SettingsTest extends BaseTest
@@ -15,7 +12,7 @@ class SettingsTest extends BaseTest
     {
         $this->signIn();
 
-        $this->get(route('studio.home'))
+        $this->get(route('calendar.home'))
             ->assertOk()
             ->assertSeeInOrder(['View options', 'Show calendar insights', 'Show holidays', 'Show cancelled lessons', 'Calendar initial view', 'fa-desktop', 'fa-mobile', 'Appearance', 'Unconfirmed lessons'])
             ->assertDontSee('Display options')
@@ -56,8 +53,8 @@ class SettingsTest extends BaseTest
     {
         $this->signIn();
 
-        $this->from(route('studio.home'))
-            ->patch(route('studio.settings.update'), [
+        $this->from(route('calendar.home'))
+            ->patch(route('calendar.settings.update'), [
                 'calendar_show_insights' => false,
                 'calendar_show_holidays' => false,
                 'calendar_default_desktop_view' => 'month',
@@ -72,7 +69,7 @@ class SettingsTest extends BaseTest
                 'calendar_highlight_conflicting_events' => false,
                 'default_event_notification_minutes_before' => 120,
             ])
-            ->assertRedirect(route('studio.home'))
+            ->assertRedirect(route('calendar.home'))
             ->assertSessionHas('success', 'Settings updated');
 
         $this->assertDatabaseHas('settings', [
@@ -148,13 +145,13 @@ class SettingsTest extends BaseTest
     {
         $this->signIn();
 
-        $this->get(route('studio.home'))
+        $this->get(route('calendar.home'))
             ->assertOk()
             ->assertSee('data-transparent-past-events', false);
 
         Settings::setValue('calendar.add_transparency_to_past_events', false, Settings::TYPE_BOOLEAN);
 
-        $this->get(route('studio.home'))
+        $this->get(route('calendar.home'))
             ->assertOk()
             ->assertDontSee('data-transparent-past-events', false);
     }
@@ -164,18 +161,18 @@ class SettingsTest extends BaseTest
     {
         $this->signIn();
 
-        $this->get(route('studio.home'))
+        $this->get(route('calendar.home'))
             ->assertOk()
-            ->assertSee('window.studioDefaultDesktopCalendarView = "week";', false)
-            ->assertSee('window.studioDefaultMobileCalendarView = "2-days";', false);
+            ->assertSee('window.calendarDefaultDesktopCalendarView = "week";', false)
+            ->assertSee('window.calendarDefaultMobileCalendarView = "2-days";', false);
 
         Settings::setValue('calendar.default_desktop_view', 'month');
         Settings::setValue('calendar.default_mobile_view', 'day');
 
-        $this->get(route('studio.home'))
+        $this->get(route('calendar.home'))
             ->assertOk()
-            ->assertSee('window.studioDefaultDesktopCalendarView = "month";', false)
-            ->assertSee('window.studioDefaultMobileCalendarView = "day";', false);
+            ->assertSee('window.calendarDefaultDesktopCalendarView = "month";', false)
+            ->assertSee('window.calendarDefaultMobileCalendarView = "day";', false);
     }
 
     /** @test */
@@ -183,13 +180,13 @@ class SettingsTest extends BaseTest
     {
         $this->signIn();
 
-        $this->get(route('studio.home'))
+        $this->get(route('calendar.home'))
             ->assertOk()
-            ->assertSee('--studio-unconfirmed-lesson-color: #6b7280;', false)
-            ->assertSee('--studio-unpaid-lesson-color: #ff4b4b;', false)
-            ->assertSee('--studio-paid-lesson-color: #58cc02;', false)
-            ->assertSee('--studio-canceled-lesson-color: #ffffff;', false)
-            ->assertSee('--studio-general-event-color: #ce82ff;', false);
+            ->assertSee('--calendar-unconfirmed-lesson-color: #6b7280;', false)
+            ->assertSee('--calendar-unpaid-lesson-color: #ff4b4b;', false)
+            ->assertSee('--calendar-paid-lesson-color: #58cc02;', false)
+            ->assertSee('--calendar-canceled-lesson-color: #ffffff;', false)
+            ->assertSee('--calendar-general-event-color: #ce82ff;', false);
 
         Settings::setValue('appearance.unconfirmed_lesson_color', '#3057d5');
         Settings::setValue('appearance.unpaid_lesson_color', '#aa0000');
@@ -197,13 +194,13 @@ class SettingsTest extends BaseTest
         Settings::setValue('appearance.canceled_lesson_color', '#777777');
         Settings::setValue('appearance.general_event_color', '#9900aa');
 
-        $this->get(route('studio.home'))
+        $this->get(route('calendar.home'))
             ->assertOk()
-            ->assertSee('--studio-unconfirmed-lesson-color: #3057d5;', false)
-            ->assertSee('--studio-unpaid-lesson-color: #aa0000;', false)
-            ->assertSee('--studio-paid-lesson-color: #00aa00;', false)
-            ->assertSee('--studio-canceled-lesson-color: #777777;', false)
-            ->assertSee('--studio-general-event-color: #9900aa;', false);
+            ->assertSee('--calendar-unconfirmed-lesson-color: #3057d5;', false)
+            ->assertSee('--calendar-unpaid-lesson-color: #aa0000;', false)
+            ->assertSee('--calendar-paid-lesson-color: #00aa00;', false)
+            ->assertSee('--calendar-canceled-lesson-color: #777777;', false)
+            ->assertSee('--calendar-general-event-color: #9900aa;', false);
     }
 
     /** @test */
@@ -211,16 +208,16 @@ class SettingsTest extends BaseTest
     {
         $this->signIn();
 
-        $this->get(route('studio.home'))
+        $this->get(route('calendar.home'))
             ->assertOk()
-            ->assertSee('studio-calendar-insights-birthdays', false)
+            ->assertSee('calendar-calendar-insights-birthdays', false)
             ->assertSee('data-calendar-lessons-count', false);
 
         Settings::setValue('calendar.show_insights', false, Settings::TYPE_BOOLEAN);
 
-        $this->get(route('studio.home'))
+        $this->get(route('calendar.home'))
             ->assertOk()
-            ->assertDontSee('studio-calendar-insights-birthdays', false)
+            ->assertDontSee('calendar-calendar-insights-birthdays', false)
             ->assertDontSee('data-calendar-lessons-count', false);
     }
 
@@ -229,15 +226,15 @@ class SettingsTest extends BaseTest
     {
         $this->signIn();
 
-        $this->get(route('studio.home'))
+        $this->get(route('calendar.home'))
             ->assertOk()
-            ->assertSee('window.studioShowHolidays = true;', false);
+            ->assertSee('window.calendarShowHolidays = true;', false);
 
         Settings::setValue('calendar.show_holidays', false, Settings::TYPE_BOOLEAN);
 
-        $this->get(route('studio.home'))
+        $this->get(route('calendar.home'))
             ->assertOk()
-            ->assertSee('window.studioShowHolidays = false;', false);
+            ->assertSee('window.calendarShowHolidays = false;', false);
     }
 
     /** @test */
@@ -245,13 +242,13 @@ class SettingsTest extends BaseTest
     {
         $this->signIn();
 
-        $this->get(route('studio.home'))
+        $this->get(route('calendar.home'))
             ->assertOk()
             ->assertSee('data-highlight-conflicting-events', false);
 
         Settings::setValue('calendar.highlight_conflicting_events', false, Settings::TYPE_BOOLEAN);
 
-        $this->get(route('studio.home'))
+        $this->get(route('calendar.home'))
             ->assertOk()
             ->assertDontSee('data-highlight-conflicting-events', false);
     }
@@ -276,7 +273,7 @@ class SettingsTest extends BaseTest
 
         $this->signIn();
 
-        $calendarUrl = route('studio.home', [
+        $calendarUrl = route('calendar.home', [
             'view' => 'week',
             'date' => '2026-07-08',
             'lesson_plans' => 1,
@@ -310,10 +307,10 @@ class SettingsTest extends BaseTest
     {
         Settings::setValue('notifications.default_event_minutes_before', 30, Settings::TYPE_INTEGER);
 
-        $this->assertSame(30, \App\Models\Event::defaultNotificationMinutesBefore());
+        $this->assertSame(30, \App\Models\Calendar\Event::defaultNotificationMinutesBefore());
 
         Settings::setValue('notifications.default_event_minutes_before', -1, Settings::TYPE_INTEGER);
 
-        $this->assertNull(\App\Models\Event::defaultNotificationMinutesBefore());
+        $this->assertNull(\App\Models\Calendar\Event::defaultNotificationMinutesBefore());
     }
 }

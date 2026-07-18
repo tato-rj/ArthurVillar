@@ -3,7 +3,7 @@
 namespace Tests\Unit;
 
 use Tests\BaseTest;
-use App\Models\{Student, LessonPlan, Lesson};
+use App\Models\Calendar\{Student, LessonPlan, Lesson};
 
 class LessonTest extends BaseTest
 {

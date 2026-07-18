@@ -2,7 +2,7 @@
 
 namespace App\Calendar\Traits;
 
-use App\Models\Holiday;
+use App\Models\Calendar\Holiday;
 
 trait Holidays {
     private function nationalHolidays(int $year)

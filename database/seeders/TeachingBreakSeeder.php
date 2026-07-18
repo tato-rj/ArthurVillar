@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\TeachingBreak;
+use App\Models\Calendar\TeachingBreak;
 use Illuminate\Database\Seeder;
 
 class TeachingBreakSeeder extends Seeder

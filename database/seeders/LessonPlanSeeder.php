@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use App\Models\{Student, LessonPlan};
+use App\Models\Calendar\{Student, LessonPlan};
 
 class LessonPlanSeeder extends Seeder
 {

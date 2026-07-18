@@ -173,7 +173,7 @@ mark {
     padding: 0;
 }
 
-.studio-table-container {
+.calendar-table-container {
   width: 100%;
   max-width: 100%;
   overflow-x: visible;
@@ -200,7 +200,7 @@ mark {
     overflow-x: auto !important;
   }
 
-  &.studio-table-container-lg .studio-table {
+  &.calendar-table-container-lg .calendar-table {
     min-width: 860px;
   }
 
@@ -234,7 +234,7 @@ mark {
   }
 }
 
-.studio-table {
+.calendar-table {
   min-width: 720px;
   width: 100% !important;
 
@@ -283,7 +283,7 @@ mark {
 }
 
 @media (max-width: 767.98px) {
-  .studio-table-container {
+  .calendar-table-container {
     .dataTables_length,
     .dataTables_filter,
     .dataTables_info,
@@ -337,7 +337,7 @@ mark {
   }
 }
 
-.studio-table-filters {
+.calendar-table-filters {
   align-items: flex-end;
   display: flex;
   flex-wrap: wrap;
@@ -366,14 +366,14 @@ mark {
   }
 }
 
-.studio-date-range {
+.calendar-date-range {
   color: #202124;
   position: relative;
   width: min(100%, 310px);
   z-index: 9;
 }
 
-.studio-date-range-toggle {
+.calendar-date-range-toggle {
   align-items: center;
   background: #fff;
   border: 1px solid #aaa;
@@ -395,7 +395,7 @@ mark {
   }
 }
 
-.studio-date-range-popover {
+.calendar-date-range-popover {
   @extend .shadow-lg;
   background: #fff;
   border: 1px solid #e2e5eb;
@@ -412,7 +412,7 @@ mark {
   }
 }
 
-.studio-date-range-header {
+.calendar-date-range-header {
   align-items: center;
   display: grid;
   grid-template-columns: 36px 1fr 36px;
@@ -420,7 +420,7 @@ mark {
   text-align: center;
 }
 
-.studio-date-range-nav {
+.calendar-date-range-nav {
   align-items: center;
   border-radius: 50%;
   display: inline-flex;
@@ -433,13 +433,13 @@ mark {
   }
 }
 
-.studio-date-range-weekdays,
-.studio-date-range-grid {
+.calendar-date-range-weekdays,
+.calendar-date-range-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
 }
 
-.studio-date-range-weekdays span {
+.calendar-date-range-weekdays span {
   color: #8a909b;
   font-size: 0.7rem;
   font-weight: 700;
@@ -447,7 +447,7 @@ mark {
   text-align: center;
 }
 
-.studio-date-range-day {
+.calendar-date-range-day {
   aspect-ratio: 1;
   background: transparent;
   border: 0;
@@ -481,7 +481,7 @@ mark {
   }
 }
 
-.studio-date-range-footer {
+.calendar-date-range-footer {
   align-items: center;
   border-top: 1px solid #eceef2;
   display: flex;
@@ -497,13 +497,13 @@ mark {
 }
 
 @media (max-width: 420px) {
-  .studio-date-range-popover {
+  .calendar-date-range-popover {
     max-width: calc(100vw - 2rem);
     width: 310px;
   }
 }
 
-.studio-table-actions {
+.calendar-table-actions {
   align-items: center;
   display: inline-flex;
   gap: 0.25rem;
@@ -514,17 +514,17 @@ mark {
   }
 }
 
-.studio-break-impact {
+.calendar-break-impact {
   background: #f3f0fb;
   color: #33214f;
 }
 
-.studio-break-lessons {
+.calendar-break-lessons {
   display: grid;
   gap: 0.5rem;
 }
 
-.studio-break-lesson {
+.calendar-break-lesson {
   background: #f8f9fb;
   border: 1px solid #e6e8ef;
   border-radius: 6px;

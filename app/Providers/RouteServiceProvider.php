@@ -20,6 +20,7 @@ class RouteServiceProvider extends ServiceProvider
     public const HOME = '/';
 
     protected $namespace = 'App\\Http\\Controllers';
+
     /**
      * Define your route model bindings, pattern filters, and other route configuration.
      *
@@ -37,27 +38,27 @@ class RouteServiceProvider extends ServiceProvider
 
             Route::middleware('web')
                 ->domain('listening.'.config('app.domain'))
-                ->namespace($this->namespace . '\\Listening')
+                ->namespace($this->namespace.'\\Listening')
                 ->name('listening.')
                 ->group(base_path('routes/listening.php'));
 
             Route::middleware('web')
                 ->domain('theory.'.config('app.domain'))
-                ->namespace($this->namespace . '\\Theory')
+                ->namespace($this->namespace.'\\Theory')
                 ->name('theory.')
                 ->group(base_path('routes/theory.php'));
 
-            Route::middleware(['web', 'auth'])
-                ->domain('studio.'.config('app.domain'))
-                ->namespace($this->namespace . '\\Studio')
-                ->name('studio.')
-                ->group(base_path('routes/studio.php'));
+            Route::middleware(['web', 'signed'])
+                ->domain('calendar.'.config('app.domain'))
+                ->namespace($this->namespace.'\\Calendar')
+                ->name('calendar.')
+                ->group(base_path('routes/calendar-public.php'));
 
             Route::middleware(['web', 'auth'])
-                ->domain('schedule.'.config('app.domain'))
-                ->namespace($this->namespace . '\\Schedule')
-                ->name('schedule.')
-                ->group(base_path('routes/schedule.php'));
+                ->domain('calendar.'.config('app.domain'))
+                ->namespace($this->namespace.'\\Calendar')
+                ->name('calendar.')
+                ->group(base_path('routes/calendar.php'));
 
             Route::middleware('web')
                 ->namespace($this->namespace)

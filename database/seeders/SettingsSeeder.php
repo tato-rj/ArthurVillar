@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\Settings;
+use App\Models\Calendar\Settings;
 use Illuminate\Database\Seeder;
 
 class SettingsSeeder extends Seeder

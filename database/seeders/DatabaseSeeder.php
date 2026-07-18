@@ -32,6 +32,7 @@ class DatabaseSeeder extends Seeder
             EventSeeder::class,
             WaitingListSeeder::class,
             SettingsSeeder::class,
+            InvitationSeeder::class,
         ]);
     }
 }

@@ -12,9 +12,9 @@ class DateRangeFilterTest extends BaseTest
         $this->signIn();
 
         collect([
-            [route('studio.lessons.index'), 'lessons-paid-from', 'lessons-paid-to'],
-            [route('studio.lesson-plans.index'), 'lesson-plans-starts-from', 'lesson-plans-starts-to'],
-            [route('studio.single-lesson-plans.index'), 'single-lesson-plans-scheduled-from', 'single-lesson-plans-scheduled-to'],
+            [route('calendar.lessons.index'), 'lessons-paid-from', 'lessons-paid-to'],
+            [route('calendar.lesson-plans.index'), 'lesson-plans-starts-from', 'lesson-plans-starts-to'],
+            [route('calendar.single-lesson-plans.index'), 'single-lesson-plans-scheduled-from', 'single-lesson-plans-scheduled-to'],
         ])->each(function ($filter) {
             $this->get($filter[0])
                 ->assertOk()
@@ -30,7 +30,7 @@ class DateRangeFilterTest extends BaseTest
     {
         $this->signIn();
 
-        $this->get(route('studio.expenses.report', [
+        $this->get(route('calendar.expenses.report', [
             'starts_from' => '2026-07',
             'starts_to' => '2026-09',
         ]))

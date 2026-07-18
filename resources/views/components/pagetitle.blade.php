@@ -16,4 +16,10 @@
             <button class="btn  btn-outline-secondary" data-bs-toggle="modal" data-bs-target="{{$modal['target']}}">@fa(['icon' => $modal['icon']]){{$modal['label']}}</button>
         </div>
 	@endisset
+
+	@isset($link)
+        <div class="mt-2">
+            <a class="btn btn-outline-secondary" href="{{$link['url']}}">@fa(['icon' => $link['icon']]){{$link['label']}}</a>
+        </div>
+	@endisset
 </div>

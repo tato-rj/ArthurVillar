@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\{SingleLessonPlan, Student};
+use App\Models\Calendar\{SingleLessonPlan, Student};
 use Illuminate\Database\Seeder;
 
 class SingleLessonPlanSeeder extends Seeder

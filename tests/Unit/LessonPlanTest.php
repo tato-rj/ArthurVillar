@@ -3,7 +3,7 @@
 namespace Tests\Unit;
 
 use Tests\BaseTest;
-use App\Models\{Student, LessonPlan, Lesson, ScheduleOverride, TeachingBreak, Holiday, Location};
+use App\Models\Calendar\{Student, LessonPlan, Lesson, ScheduleOverride, TeachingBreak, Holiday, Location};
 use Carbon\Carbon;
 use InvalidArgumentException;
 

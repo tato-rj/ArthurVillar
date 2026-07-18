@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\Venue;
+use App\Models\Calendar\Venue;
 use Illuminate\Database\Seeder;
 
 class VenueSeeder extends Seeder
@@ -11,7 +11,7 @@ class VenueSeeder extends Seeder
     {
         collect([
             [
-                'name' => 'Studio Recital Hall',
+                'name' => 'Calendar Recital Hall',
                 'address' => '123 Main Street',
                 'city' => 'New York',
                 'state' => 'NY',

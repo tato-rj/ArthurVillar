@@ -12,7 +12,7 @@ class ListeningController extends Controller
 {
     public function home()
     {
-        return redirect()->route('listening.recordings.index');    
+        return redirect()->route('listening.recordings.index');
     }
 
     public function qrcode(Request $request, Recording $recording)

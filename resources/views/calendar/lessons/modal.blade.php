@@ -1,0 +1,44 @@
+@modal(['title' => '', 'id' => 'lesson-modal', 'data' => ['lesson-status' => 'unconfirmed']])
+@slot('headerButtons')
+<button id="lesson-edit" class="btn btn-raw" type="button">@fa(['icon' => 'pen'])</button>
+<button id="lesson-revert" class="btn btn-raw" data-url="{{route('calendar.lessons.revert')}}" type="button">@fa(['icon' => 'rotate-left', 'mr' => 0])</button>
+@endslot
+
+<div>
+	<div id="lesson-status" class="rounded px-2 py-0 alert small mb-3"></div>
+	<div class="alert alert-danger small mb-3" data-lesson-action-error hidden></div>
+
+	<div id="lesson-birthday" class="mb-1 text-blue" style="display: none">
+		@fa(['icon' => 'cake-candles']) Birthday <span></span>
+	</div>
+	<div class="mb-1">
+		@fa(['icon' => 'calendar-day', 'classes' => 'opacity-4'])
+		<span id="lesson-date"></span>
+	</div>
+	<div class="mb-1">
+		@fa(['icon' => 'clock', 'classes' => 'opacity-4'])
+		<span id="lesson-time"></span>
+	</div>
+	<div class="mb-1">
+		@fa(['icon' => 'repeat', 'classes' => 'opacity-4'])
+		<span id="lesson-recurrence"></span>
+	</div>
+</div>
+
+<div>
+	<div id="meeting-url" class="mt-3">
+		<a target="_blank" href="" class="text-warning">@fa(['icon' => 'video'])Meeting url</a>	
+	</div>
+
+	<div id="notes-url" class="mt-1">
+		<a target="_blank" href="" class="text-warning">@fa(['icon' => 'file-pen'])Notes url</a>	
+	</div>
+</div>
+
+@include('calendar.lessons.reschedule')
+
+@include('calendar.lessons.cancel')
+
+@include('calendar.lessons.controls')
+
+@endmodal

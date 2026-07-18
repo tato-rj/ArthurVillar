@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Calendar\Scheduler;
-use App\Models\Event;
+use App\Models\Calendar\Event;
 use App\Notifications\EventReminder;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Notification;
@@ -16,7 +16,7 @@ class EventTest extends BaseTest
     {
         $this->signIn();
 
-        $this->get(route('studio.events.index'))
+        $this->get(route('calendar.events.index'))
             ->assertOk()
             ->assertSee('New event')
             ->assertSee('events-table', false)
@@ -25,10 +25,10 @@ class EventTest extends BaseTest
             ->assertDontSee('type="time"', false)
             ->assertSee('name="starts_at"', false)
             ->assertSee('name="ends_at"', false)
-            ->assertSee('value="05:00"', false)
-            ->assertSee('value="05:15"', false)
-            ->assertSee('value="05:30"', false)
-            ->assertSee('value="05:45"', false);
+            ->assertSee('value="09:00"', false)
+            ->assertSee('value="09:15"', false)
+            ->assertSee('value="09:30"', false)
+            ->assertSee('value="09:45"', false);
     }
 
     /** @test */
@@ -36,7 +36,7 @@ class EventTest extends BaseTest
     {
         $this->signIn();
 
-        $this->post(route('studio.events.store'), [
+        $this->post(route('calendar.events.store'), [
             'name' => 'Dinner reservation',
             'scheduled_date' => '2026-08-15',
             'starts_at' => '18:30',
@@ -46,7 +46,7 @@ class EventTest extends BaseTest
 
         $event = Event::where('name', 'Dinner reservation')->firstOrFail();
 
-        $this->patch(route('studio.events.update', $event), [
+        $this->patch(route('calendar.events.update', $event), [
             'name' => 'Dinner with friends',
             'scheduled_date' => '2026-08-16',
             'starts_at' => '19:00',
@@ -63,7 +63,7 @@ class EventTest extends BaseTest
         ]);
         $this->assertSame('2026-08-16', $event->fresh()->scheduled_date->toDateString());
 
-        $this->delete(route('studio.events.destroy', $event))->assertRedirect();
+        $this->delete(route('calendar.events.destroy', $event))->assertRedirect();
         $this->assertDatabaseMissing('events', ['id' => $event->id]);
     }
 
@@ -72,7 +72,7 @@ class EventTest extends BaseTest
     {
         $this->signIn();
 
-        $this->post(route('studio.events.store'), [
+        $this->post(route('calendar.events.store'), [
             'name' => 'Appointment',
             'scheduled_date' => '2026-08-15',
             'starts_at' => '14:00',
@@ -85,7 +85,7 @@ class EventTest extends BaseTest
     {
         $this->signIn();
 
-        $this->post(route('studio.events.store'), [
+        $this->post(route('calendar.events.store'), [
             'name' => 'Appointment',
             'scheduled_date' => '2026-08-15',
             'starts_at' => '14:10',
@@ -105,7 +105,7 @@ class EventTest extends BaseTest
         ]);
         $this->signIn();
 
-        $this->patchJson(route('studio.events.reschedule', $event), [
+        $this->patchJson(route('calendar.events.reschedule', $event), [
             'scheduled_date' => '2026-08-18',
             'starts_at' => '13:30',
             'ends_at' => '14:45',
@@ -137,11 +137,11 @@ class EventTest extends BaseTest
         ]);
         $this->signIn();
 
-        $this->get(route('studio.events.edit', $event))
+        $this->get(route('calendar.events.edit', $event))
             ->assertOk()
             ->assertSee('edit-event-'.$event->id.'-modal', false);
 
-        $this->patchJson(route('studio.events.update', $event), [
+        $this->patchJson(route('calendar.events.update', $event), [
             'name' => 'Updated lunch meeting',
             'scheduled_date' => '2026-08-16',
             'starts_at' => '12:15',
@@ -151,7 +151,7 @@ class EventTest extends BaseTest
             ->assertOk()
             ->assertJsonPath('event.id', $event->id)
             ->assertJsonPath('event.name', 'Updated lunch meeting')
-            ->assertJsonPath('event.edit_url', route('studio.events.edit', $event));
+            ->assertJsonPath('event.edit_url', route('calendar.events.edit', $event));
     }
 
     /** @test */
@@ -160,7 +160,7 @@ class EventTest extends BaseTest
         $event = Event::factory()->create();
         $this->signIn();
 
-        $this->deleteJson(route('studio.events.destroy', $event))
+        $this->deleteJson(route('calendar.events.destroy', $event))
             ->assertOk()
             ->assertJsonPath('event_id', $event->id);
 
@@ -168,7 +168,7 @@ class EventTest extends BaseTest
     }
 
     /** @test */
-    public function it_serves_events_to_the_studio_table()
+    public function it_serves_events_to_the_calendar_table()
     {
         Event::factory()->create([
             'name' => 'Dentist appointment',
@@ -179,7 +179,7 @@ class EventTest extends BaseTest
         ]);
         $this->signIn();
 
-        $row = collect($this->getJson(route('studio.tables.events'))->assertOk()->json('data'))
+        $row = collect($this->getJson(route('calendar.tables.events'))->assertOk()->json('data'))
             ->firstWhere('name', 'Dentist appointment');
 
         $this->assertSame('2026-09-10', $row['scheduled_date']);
@@ -193,7 +193,7 @@ class EventTest extends BaseTest
         $user = $this->signIn();
 
         Event::factory()->create([
-            'name' => 'Studio meeting',
+            'name' => 'Calendar meeting',
             'scheduled_date' => '2026-10-20',
             'starts_at' => '15:00',
             'ends_at' => '16:30',
@@ -209,10 +209,10 @@ class EventTest extends BaseTest
         ]));
 
         $this->assertCount(1, $payload['generalEvents']);
-        $this->assertSame('Studio meeting', $payload['generalEvents'][0]['name']);
+        $this->assertSame('Calendar meeting', $payload['generalEvents'][0]['name']);
         $this->assertSame('2026-10-20', $payload['generalEvents'][0]['scheduled_date']);
         $this->assertSame(120, $payload['generalEvents'][0]['notification_minutes_before']);
-        $this->assertSame(route('studio.events.edit', $payload['generalEvents'][0]['id']), $payload['generalEvents'][0]['edit_url']);
+        $this->assertSame(route('calendar.events.edit', $payload['generalEvents'][0]['id']), $payload['generalEvents'][0]['edit_url']);
         $this->assertSame('https://example.com/agenda', str($payload['generalEvents'][0]['notes'])->after('Agenda at ')->toString());
     }
 
@@ -221,7 +221,7 @@ class EventTest extends BaseTest
     {
         $this->signIn();
 
-        $this->get(route('studio.home', [
+        $this->get(route('calendar.home', [
             'view' => 'week',
             'date' => '2026-10-20',
             'range_start' => '2026-10-18',
@@ -234,8 +234,8 @@ class EventTest extends BaseTest
             ->assertSee('event-edit', false)
             ->assertSee('lesson-edit', false)
             ->assertSee('calendar-edit-modal-container', false)
-            ->assertSee('studioLessonPlanEditUrlTemplate', false)
-            ->assertSee('studioSingleLessonPlanEditUrlTemplate', false)
+            ->assertSee('calendarLessonPlanEditUrlTemplate', false)
+            ->assertSee('calendarSingleLessonPlanEditUrlTemplate', false)
             ->assertSee('cancel-general-event-button', false)
             ->assertSee('reschedule-general-event-button', false)
             ->assertSee('reschedule-general-event-date', false)
@@ -252,7 +252,7 @@ class EventTest extends BaseTest
     {
         $user = $this->signIn();
 
-        $this->post(route('studio.events.store'), [
+        $this->post(route('calendar.events.store'), [
             'name' => 'Doctor appointment',
             'scheduled_date' => '2026-08-15',
             'starts_at' => '12:00',
@@ -282,7 +282,7 @@ class EventTest extends BaseTest
             'content_encoding' => 'aes128gcm',
         ];
 
-        $this->postJson(route('studio.push-subscriptions.store'), $payload)->assertOk();
+        $this->postJson(route('calendar.push-subscriptions.store'), $payload)->assertOk();
 
         $this->assertDatabaseHas('push_subscriptions', [
             'subscribable_id' => $user->id,
@@ -292,7 +292,7 @@ class EventTest extends BaseTest
             'auth_token' => 'auth-token',
         ]);
 
-        $this->deleteJson(route('studio.push-subscriptions.destroy'), [
+        $this->deleteJson(route('calendar.push-subscriptions.destroy'), [
             'endpoint' => $payload['endpoint'],
         ])->assertOk();
 
@@ -303,7 +303,7 @@ class EventTest extends BaseTest
     public function the_scheduler_sends_a_due_event_reminder_once()
     {
         Notification::fake();
-        CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-08-15 11:50:00', config('studio.timezone')));
+        CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-08-15 11:50:00', config('calendar.timezone')));
 
         $user = $this->signIn();
         $user->updatePushSubscription(
@@ -322,8 +322,8 @@ class EventTest extends BaseTest
             'notification_sent_at' => null,
         ]);
 
-        $this->artisan('studio:send-event-reminders')->assertSuccessful();
-        $this->artisan('studio:send-event-reminders')->assertSuccessful();
+        $this->artisan('calendar:send-event-reminders')->assertSuccessful();
+        $this->artisan('calendar:send-event-reminders')->assertSuccessful();
 
         Notification::assertSentToTimes($user, EventReminder::class, 1);
         $this->assertNotNull($event->fresh()->notification_sent_at);
@@ -335,7 +335,7 @@ class EventTest extends BaseTest
     public function an_event_can_notify_at_its_start_time()
     {
         Notification::fake();
-        CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-08-15 12:00:00', config('studio.timezone')));
+        CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-08-15 12:00:00', config('calendar.timezone')));
 
         $user = $this->signIn();
         $user->updatePushSubscription(
@@ -352,7 +352,7 @@ class EventTest extends BaseTest
             'notification_minutes_before' => 0,
         ]);
 
-        $this->artisan('studio:send-event-reminders')->assertSuccessful();
+        $this->artisan('calendar:send-event-reminders')->assertSuccessful();
 
         Notification::assertSentTo($user, EventReminder::class);
         $this->assertNotNull($event->fresh()->notification_sent_at);

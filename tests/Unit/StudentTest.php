@@ -3,7 +3,7 @@
 namespace Tests\Unit;
 
 use Tests\BaseTest;
-use App\Models\{Student, LessonPlan, Lesson, ScheduleOverride};
+use App\Models\Calendar\{Student, LessonPlan, Lesson, ScheduleOverride};
 use Carbon\Carbon;
 
 class StudentTest extends BaseTest

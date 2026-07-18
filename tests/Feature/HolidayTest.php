@@ -4,7 +4,7 @@ namespace Tests\Feature;
 
 use Tests\BaseTest;
 use Carbon\Carbon;
-use App\Models\Holiday;
+use App\Models\Calendar\Holiday;
 
 class HolidayTest extends BaseTest
 {
@@ -19,7 +19,7 @@ class HolidayTest extends BaseTest
         $this->signIn();
 
         $this
-            ->get(route('studio.holidays.index'))
+            ->get(route('calendar.holidays.index'))
             ->assertOk()
             ->assertSee('Independence Day');
     }
@@ -34,7 +34,7 @@ class HolidayTest extends BaseTest
         $this->signIn();
 
         $this
-            ->patch(route('studio.holidays.update', $holiday), [])
+            ->patch(route('calendar.holidays.update', $holiday), [])
             ->assertRedirect();
 
         $this->assertFalse($holiday->fresh()->is_observed);
@@ -51,7 +51,7 @@ class HolidayTest extends BaseTest
         $this->signIn();
 
         $this
-            ->getJson(route('studio.home', [
+            ->getJson(route('calendar.home', [
                 'view' => 'day',
                 'date' => '2026-07-04',
                 'lesson_plans' => 1,
@@ -76,7 +76,7 @@ class HolidayTest extends BaseTest
         $this->signIn();
 
         $this
-            ->getJson(route('studio.home', [
+            ->getJson(route('calendar.home', [
                 'view' => 'day',
                 'date' => '2026-04-05',
                 'lesson_plans' => 1,
@@ -107,7 +107,7 @@ class HolidayTest extends BaseTest
         $this->signIn();
 
         $this
-            ->get(route('studio.holidays.index'))
+            ->get(route('calendar.holidays.index'))
             ->assertOk()
             ->assertSeeInOrder(['Labor Day', 'Sep 7, 2026', 'Easter Sunday', 'Mar 28, 2027'])
             ->assertSee('Easter Sunday')

@@ -128,7 +128,7 @@ const initializeDateRange = function(element) {
          const button = document.createElement('button');
 
          button.type = 'button';
-         button.className = 'studio-date-range-day';
+         button.className = 'calendar-date-range-day';
          button.textContent = date.getDate();
          button.dataset.date = key;
          button.classList.toggle('is-outside', date.getMonth() !== first.getMonth());
@@ -243,6 +243,6 @@ document.addEventListener('DOMContentLoaded', function() {
    document.querySelectorAll(dateRangeSelector).forEach(initializeDateRange);
 });
 
-window.studioDateRanges = {
+window.calendarDateRanges = {
    initialize: initializeDateRange
 };

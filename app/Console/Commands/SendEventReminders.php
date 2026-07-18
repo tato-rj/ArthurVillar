@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Event;
+use App\Models\Calendar\Event;
 use App\Notifications\EventReminder;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
@@ -10,13 +10,13 @@ use Throwable;
 
 class SendEventReminders extends Command
 {
-    protected $signature = 'studio:send-event-reminders';
+    protected $signature = 'calendar:send-event-reminders';
 
     protected $description = 'Send due Web Push reminders for general events';
 
     public function handle(): int
     {
-        $now = CarbonImmutable::now(config('studio.timezone'));
+        $now = CarbonImmutable::now(config('calendar.timezone'));
         $sent = 0;
 
         Event::query()
@@ -30,7 +30,7 @@ class SendEventReminders extends Command
                     $startsAt = CarbonImmutable::createFromFormat(
                         'Y-m-d H:i',
                         $event->scheduled_date->toDateString().' '.substr($event->starts_at, 0, 5),
-                        config('studio.timezone')
+                        config('calendar.timezone')
                     );
                     $remindAt = $startsAt->subMinutes($event->notification_minutes_before);
 

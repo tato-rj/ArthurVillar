@@ -1,0 +1,22 @@
+@import "bootstrap/setup";
+
+ul.invitation-responder-list[data-response="yes"] li:before {
+    @extend .bg-green;
+}
+
+ul.invitation-responder-list[data-response="maybe"] li:before {
+    @extend .bg-yellow;
+}
+
+.invitation-responder-list li {
+    @extend .py-1, .px-2;
+    border: 0 !important;
+    justify-content: left !important;
+
+    &:before {
+        @extend .rounded, .mr-2;
+        content: '';
+        width: 8px;
+        height: 8px;
+    }
+}

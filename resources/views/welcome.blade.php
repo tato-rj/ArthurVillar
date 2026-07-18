@@ -15,7 +15,7 @@
                 <a href="https://bkcm.org/suzuki-faculty/" target="_blank" class="btn-fancy mb-3">Brooklyn Conservatory of Music</a>
             </div>
             <div>
-                <a href="https://pianolessonsinjerseycity.com/" target="_blank" class="btn-fancy mb-3">Private piano studio</a>
+                <a href="https://pianolessonsinjerseycity.com/" target="_blank" class="btn-fancy mb-3">Private piano calendar</a>
             </div>
             <div>
                 <a href="https://pianolit.com/" target="_blank" class="btn-fancy mb-3">PianoLIT</a>

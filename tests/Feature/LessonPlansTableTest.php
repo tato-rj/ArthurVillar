@@ -4,7 +4,7 @@ namespace Tests\Feature;
 
 use Carbon\Carbon;
 use Tests\BaseTest;
-use App\Models\{LessonPlan, Student};
+use App\Models\Calendar\{LessonPlan, Student};
 
 class LessonPlansTableTest extends BaseTest
 {
@@ -42,13 +42,13 @@ class LessonPlansTableTest extends BaseTest
 
         $this->signIn();
 
-        $ascendingResponse = $this->getJson(route('studio.tables.lesson-plans', $this->lessonPlanTableRequest([
+        $ascendingResponse = $this->getJson(route('calendar.tables.lesson-plans', $this->lessonPlanTableRequest([
             'order' => [
                 ['column' => 10, 'dir' => 'asc'],
             ],
         ])))->assertOk();
 
-        $descendingResponse = $this->getJson(route('studio.tables.lesson-plans', $this->lessonPlanTableRequest([
+        $descendingResponse = $this->getJson(route('calendar.tables.lesson-plans', $this->lessonPlanTableRequest([
             'order' => [
                 ['column' => 10, 'dir' => 'desc'],
             ],
@@ -87,7 +87,7 @@ class LessonPlansTableTest extends BaseTest
 
         $this->signIn();
 
-        $response = $this->getJson(route('studio.tables.lesson-plans', $this->lessonPlanTableRequest([
+        $response = $this->getJson(route('calendar.tables.lesson-plans', $this->lessonPlanTableRequest([
             'search' => [
                 'value' => 'Searchable',
                 'regex' => 'false',

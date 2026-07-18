@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\Holiday;
+use App\Models\Calendar\Holiday;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 

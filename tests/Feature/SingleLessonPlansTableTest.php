@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use Tests\BaseTest;
-use App\Models\{SingleLessonPlan, Student};
+use App\Models\Calendar\{SingleLessonPlan, Student};
 
 class SingleLessonPlansTableTest extends BaseTest
 {
@@ -22,7 +22,7 @@ class SingleLessonPlansTableTest extends BaseTest
 
         $this->signIn();
 
-        $response = $this->getJson(route('studio.tables.single-lesson-plans', $this->singleLessonPlanTableRequest()))
+        $response = $this->getJson(route('calendar.tables.single-lesson-plans', $this->singleLessonPlanTableRequest()))
             ->assertOk();
 
         $this->assertSame(['Single Lesson'], collect($response->json('data'))->pluck('student')->all());

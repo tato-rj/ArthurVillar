@@ -2,7 +2,7 @@
 
 namespace App\Notifications;
 
-use App\Models\Event;
+use App\Models\Calendar\Event;
 use Illuminate\Notifications\Notification;
 use NotificationChannels\WebPush\WebPushChannel;
 use NotificationChannels\WebPush\WebPushMessage;
@@ -24,7 +24,7 @@ class EventReminder extends Notification
     public function toWebPush($notifiable, $notification): WebPushMessage
     {
         $time = Event::timeLabel(substr($this->event->starts_at, 0, 5));
-        $url = route('studio.home', [
+        $url = route('calendar.home', [
             'view' => 'day',
             'date' => $this->event->scheduled_date->toDateString(),
         ]);
@@ -32,8 +32,8 @@ class EventReminder extends Notification
         return (new WebPushMessage)
             ->title($this->event->name)
             ->body('Starts at '.$time)
-            ->icon('/favicon/studio/android-icon-192x192.png')
-            ->badge('/favicon/studio/android-icon-192x192.png')
+            ->icon('/favicon/calendar/android-icon-192x192.png')
+            ->badge('/favicon/calendar/android-icon-192x192.png')
             ->tag('event-reminder-'.$this->event->id)
             ->data(['url' => $url])
             ->options(['TTL' => 3600]);

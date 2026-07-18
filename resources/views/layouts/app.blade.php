@@ -32,12 +32,8 @@
           @endif
         </title>
 
-        @if(subdomain('studio'))
-            @include('layouts.favicon.studio')
-        @elseif(subdomain('listening'))
-            @include('layouts.favicon.listening')
-        @elseif(subdomain('theory'))
-            @include('layouts.favicon.theory')
+        @if(\View::exists('layouts.favicon.'.subdomain()))
+            @include('layouts.favicon.'.subdomain())
         @else
             <link href="{{asset('/favicon/favicon.ico')}}" rel="icon" type="image/x-icon">
         @endif

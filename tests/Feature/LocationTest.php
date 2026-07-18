@@ -4,12 +4,12 @@ namespace Tests\Feature;
 
 use Tests\BaseTest;
 use Carbon\Carbon;
-use App\Models\{Lesson, LessonPlan, Location, Student};
+use App\Models\Calendar\{Lesson, LessonPlan, Location, Student};
 
 class LocationTest extends BaseTest
 {
     /** @test */
-    public function it_serves_locations_to_the_studio_table()
+    public function it_serves_locations_to_the_calendar_table()
     {
         Location::factory()->create([
             'name' => 'BKCM',
@@ -21,7 +21,7 @@ class LocationTest extends BaseTest
         $this->signIn();
 
         $this
-            ->getJson(route('studio.tables.locations'))
+            ->getJson(route('calendar.tables.locations'))
             ->assertOk()
             ->assertJsonFragment([
                 'name' => 'BKCM',
@@ -87,7 +87,7 @@ class LocationTest extends BaseTest
 
         $this->signIn();
 
-        $row = collect($this->getJson(route('studio.tables.locations'))->assertOk()->json('data'))
+        $row = collect($this->getJson(route('calendar.tables.locations'))->assertOk()->json('data'))
             ->firstWhere('id', $location->id);
 
         $this->assertSame(2, $row['info']['students_count']);
@@ -108,7 +108,7 @@ class LocationTest extends BaseTest
         $this->signIn();
 
         $this
-            ->post(route('studio.locations.store'), [
+            ->post(route('calendar.locations.store'), [
                 'name' => 'Home',
                 'fee_amount' => '75',
                 'tax_withheld_percentage' => 0,
@@ -137,7 +137,7 @@ class LocationTest extends BaseTest
 
         $this->signIn();
 
-        $this->postJson(route('studio.lessons.payment.store', $lesson))->assertOk();
+        $this->postJson(route('calendar.lessons.payment.store', $lesson))->assertOk();
 
         $this->assertDatabaseHas('lessons', [
             'id' => $lesson->id,

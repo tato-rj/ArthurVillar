@@ -6,7 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\Paginator;
-use App\Models\{Location, Student};
+use App\Models\Calendar\{Location, Student};
 use App\Models\Listening\{Period, Country};
 
 class AppServiceProvider extends ServiceProvider
@@ -30,8 +30,13 @@ class AppServiceProvider extends ServiceProvider
                     ],
                     [
                         'icon' => 'calendar-days',
-                        'label' => 'Studio',
-                        'url' => $protocol . 'studio.' . config('app.domain')
+                        'label' => 'Calendar',
+                        'url' => $protocol . 'calendar.' . config('app.domain')
+                    ],
+                    [
+                        'icon' => 'users',
+                        'label' => 'Schedule',
+                        'url' => $protocol . 'schedule.' . config('app.domain')
                     ],
                     [
                         'icon' => 'book',
@@ -58,7 +63,7 @@ class AppServiceProvider extends ServiceProvider
             ]);
         });
 
-        \View::composer(['studio.lessonPlans.create', 'studio.lessonPlans.edit', 'studio.singleLessonPlans.create', 'studio.singleLessonPlans.edit', 'studio.students.create', 'studio.students.edit'], function($view) {
+        \View::composer(['calendar.lessonPlans.create', 'calendar.lessonPlans.edit', 'calendar.singleLessonPlans.create', 'calendar.singleLessonPlans.edit', 'calendar.students.create', 'calendar.students.edit'], function($view) {
             $view->with([
                 'locations' => Location::query()
                     ->where('is_active', true)
@@ -67,7 +72,7 @@ class AppServiceProvider extends ServiceProvider
             ]);
         });
 
-        \View::composer(['studio.singleLessonPlans.create', 'studio.lessonPlans.create'], function($view) {
+        \View::composer(['calendar.singleLessonPlans.create', 'calendar.lessonPlans.create'], function($view) {
             $view->with([
                 'students' => Student::query()
                     ->with('location')

@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use Carbon\Carbon;
-use App\Models\{Holiday, LessonPlan, Location, Student, TeachingBreak};
+use App\Models\Calendar\{Holiday, LessonPlan, Location, Student, TeachingBreak};
 use Tests\BaseTest;
 
 class StudentsTableTest extends BaseTest
@@ -22,7 +22,7 @@ class StudentsTableTest extends BaseTest
         ]);
         $this->signIn();
 
-        $rows = collect($this->getJson(route('studio.tables.students'))->assertOk()->json('data'));
+        $rows = collect($this->getJson(route('calendar.tables.students'))->assertOk()->json('data'));
 
         $this->assertTrue($rows->firstWhere('id', $scheduledStudent->id)['has_current_lesson_plan']);
         $this->assertFalse($rows->firstWhere('id', $unscheduledStudent->id)['has_current_lesson_plan']);
@@ -55,7 +55,7 @@ class StudentsTableTest extends BaseTest
             'observes_substitute_date' => false,
         ]);
         TeachingBreak::factory()->create([
-            'title' => 'Studio Vacation',
+            'title' => 'Calendar Vacation',
             'starts_on' => '2026-07-15',
             'ends_on' => '2026-07-15',
         ]);
@@ -67,13 +67,13 @@ class StudentsTableTest extends BaseTest
         $otherBreak->locations()->attach($otherLocation);
         $this->signIn();
 
-        $this->get(route('studio.students.missed-lessons', $student))
+        $this->get(route('calendar.students.missed-lessons', $student))
             ->assertOk()
             ->assertSee('Nora Stone missed lessons')
             ->assertSee('Wednesday, July 8, 2026')
             ->assertSee('Holiday: Summer Holiday')
             ->assertSee('Wednesday, July 15, 2026')
-            ->assertSee('Break: Studio Vacation')
+            ->assertSee('Break: Calendar Vacation')
             ->assertDontSee('Thursday Holiday')
             ->assertDontSee('Other Location Break');
 
@@ -85,23 +85,23 @@ class StudentsTableTest extends BaseTest
     {
         $this->signIn();
 
-        $this->from(route('studio.students.index'))
-            ->post(route('studio.students.store'), [
+        $this->from(route('calendar.students.index'))
+            ->post(route('calendar.students.store'), [
                 'first_name' => 'Nora',
                 'last_name' => 'Stone',
                 'email' => 'nora@example.com',
             ])
-            ->assertRedirect(route('studio.students.index'))
+            ->assertRedirect(route('calendar.students.index'))
             ->assertSessionHasErrors('gender');
 
-        $this->from(route('studio.students.index'))
-            ->post(route('studio.students.store'), [
+        $this->from(route('calendar.students.index'))
+            ->post(route('calendar.students.store'), [
                 'first_name' => 'Nora',
                 'last_name' => 'Stone',
                 'gender' => 'female',
                 'email' => 'nora@example.com',
             ])
-            ->assertRedirect(route('studio.students.index'));
+            ->assertRedirect(route('calendar.students.index'));
 
         $this->assertDatabaseHas('students', [
             'first_name' => 'Nora',
@@ -128,7 +128,7 @@ class StudentsTableTest extends BaseTest
 
         $this->signIn();
 
-        $this->getJson(route('studio.tables.students', [
+        $this->getJson(route('calendar.tables.students', [
             'draw' => 1,
             'start' => 0,
             'length' => 10,
@@ -156,7 +156,7 @@ class StudentsTableTest extends BaseTest
 
         $this->signIn();
 
-        $rows = $this->json('GET', route('studio.tables.students'), $this->studentTableRequest([
+        $rows = $this->json('GET', route('calendar.tables.students'), $this->studentTableRequest([
             'start' => 0,
             'length' => 6,
             'order' => [

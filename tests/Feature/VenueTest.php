@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Models\Venue;
+use App\Models\Calendar\Venue;
 use Tests\BaseTest;
 
 class VenueTest extends BaseTest
@@ -12,7 +12,7 @@ class VenueTest extends BaseTest
     {
         $this->signIn();
 
-        $this->get(route('studio.venues.index'))
+        $this->get(route('calendar.venues.index'))
             ->assertOk()
             ->assertSee('New venue')
             ->assertSee('create-venue-modal', false);
@@ -23,7 +23,7 @@ class VenueTest extends BaseTest
     {
         $this->signIn();
 
-        $this->post(route('studio.venues.store'), [
+        $this->post(route('calendar.venues.store'), [
             'name' => 'Carnegie Room',
             'address' => '10 Music Avenue',
             'city' => 'Brooklyn',
@@ -34,7 +34,7 @@ class VenueTest extends BaseTest
 
         $venue = Venue::where('name', 'Carnegie Room')->firstOrFail();
 
-        $this->patch(route('studio.venues.update', $venue), [
+        $this->patch(route('calendar.venues.update', $venue), [
             'name' => 'Carnegie Hall',
             'address' => '11 Music Avenue',
             'city' => 'New York',
@@ -51,12 +51,12 @@ class VenueTest extends BaseTest
             'map_url' => 'https://maps.google.com/?q=Carnegie+Hall',
         ]);
 
-        $this->delete(route('studio.venues.destroy', $venue))->assertRedirect();
+        $this->delete(route('calendar.venues.destroy', $venue))->assertRedirect();
         $this->assertDatabaseMissing('venues', ['id' => $venue->id]);
     }
 
     /** @test */
-    public function it_serves_venues_to_the_studio_table()
+    public function it_serves_venues_to_the_calendar_table()
     {
         $venue = Venue::factory()->create([
             'name' => 'Performance Space',
@@ -68,7 +68,7 @@ class VenueTest extends BaseTest
         ]);
         $this->signIn();
 
-        $row = collect($this->getJson(route('studio.tables.venues'))->assertOk()->json('data'))
+        $row = collect($this->getJson(route('calendar.tables.venues'))->assertOk()->json('data'))
             ->firstWhere('id', $venue->id);
 
         $this->assertSame('Performance Space', $row['name']);

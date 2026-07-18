@@ -2,8 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\Recital;
-use App\Models\Student;
+use App\Models\Calendar\{Recital, Student};
 use Illuminate\Database\Seeder;
 
 class RecitalSeeder extends Seeder

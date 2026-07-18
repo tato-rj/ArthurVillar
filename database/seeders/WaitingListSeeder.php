@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\WaitingList;
+use App\Models\Calendar\WaitingList;
 use Illuminate\Database\Seeder;
 
 class WaitingListSeeder extends Seeder

@@ -3,9 +3,7 @@
 namespace Tests\Feature;
 
 use App\Calendar\Scheduler;
-use App\Models\Recital;
-use App\Models\Student;
-use App\Models\Venue;
+use App\Models\Calendar\{Recital, Student, Venue};
 use Tests\BaseTest;
 
 class RecitalTest extends BaseTest
@@ -16,10 +14,10 @@ class RecitalTest extends BaseTest
         Student::factory()->create(['first_name' => 'Maria', 'last_name' => 'Silva']);
         $this->signIn();
 
-        $this->get(route('studio.recitals.index'))
+        $this->get(route('calendar.recitals.index'))
             ->assertOk()
             ->assertSee('New recital')
-            ->assertSee(mix('css/studio.css'), false)
+            ->assertSee(mix('css/calendar.css'), false)
             ->assertSee('recital-participants-modal', false)
             ->assertDontSee('type="time"', false)
             ->assertSee('name="start_time"', false)
@@ -32,7 +30,7 @@ class RecitalTest extends BaseTest
         $venue = Venue::factory()->create();
         $this->signIn();
 
-        $this->post(route('studio.recitals.store'), [
+        $this->post(route('calendar.recitals.store'), [
             'name' => 'Spring Recital',
             'date' => '2026-08-15',
             'start_time' => '18:30',
@@ -41,7 +39,7 @@ class RecitalTest extends BaseTest
 
         $recital = Recital::where('name', 'Spring Recital')->firstOrFail();
 
-        $this->patch(route('studio.recitals.update', $recital), [
+        $this->patch(route('calendar.recitals.update', $recital), [
             'name' => 'Summer Recital',
             'date' => '2026-08-16',
             'start_time' => '19:00',
@@ -55,7 +53,7 @@ class RecitalTest extends BaseTest
         ]);
         $this->assertSame('2026-08-16', $recital->fresh()->date->toDateString());
 
-        $this->delete(route('studio.recitals.destroy', $recital))->assertRedirect();
+        $this->delete(route('calendar.recitals.destroy', $recital))->assertRedirect();
         $this->assertDatabaseMissing('recitals', ['id' => $recital->id]);
     }
 
@@ -67,7 +65,7 @@ class RecitalTest extends BaseTest
         $recital->students()->attach($students[0]);
         $this->signIn();
 
-        $this->patch(route('studio.recitals.students.update', $recital), [
+        $this->patch(route('calendar.recitals.students.update', $recital), [
             'student_ids' => [$students[1]->id, $students[2]->id],
         ])->assertRedirect();
 
@@ -82,7 +80,7 @@ class RecitalTest extends BaseTest
     {
         $this->signIn();
 
-        $this->post(route('studio.recitals.store'), [
+        $this->post(route('calendar.recitals.store'), [
             'name' => 'Spring Recital',
             'date' => '2026-08-15',
             'start_time' => '18:10',
@@ -90,17 +88,17 @@ class RecitalTest extends BaseTest
     }
 
     /** @test */
-    public function it_serves_recitals_and_participants_to_the_studio_table()
+    public function it_serves_recitals_and_participants_to_the_calendar_table()
     {
-        $recital = Recital::factory()->create(['name' => 'Studio Showcase']);
+        $recital = Recital::factory()->create(['name' => 'Calendar Showcase']);
         $student = Student::factory()->create(['first_name' => 'Maria', 'last_name' => 'Silva']);
         $recital->students()->attach($student);
         $this->signIn();
 
-        $row = collect($this->getJson(route('studio.tables.recitals'))->assertOk()->json('data'))
+        $row = collect($this->getJson(route('calendar.tables.recitals'))->assertOk()->json('data'))
             ->firstWhere('id', $recital->id);
 
-        $this->assertSame('Studio Showcase', $row['name']);
+        $this->assertSame('Calendar Showcase', $row['name']);
         $this->assertSame(1, $row['students_count']);
         $this->assertSame('Maria Silva', $row['students'][0]['name']);
     }

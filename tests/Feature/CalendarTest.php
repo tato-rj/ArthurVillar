@@ -4,7 +4,7 @@ namespace Tests\Feature;
 
 use Carbon\Carbon;
 use Tests\BaseTest;
-use App\Models\{Student, LessonPlan, Lesson, TeachingBreak, Holiday, Location, ScheduleOverride};
+use App\Models\Calendar\{Student, LessonPlan, Lesson, TeachingBreak, Holiday, Location, ScheduleOverride};
 
 class CalendarTest extends BaseTest
 {
@@ -27,7 +27,7 @@ class CalendarTest extends BaseTest
 
         $this->signIn();
         
-        $this->get(route('studio.home', [
+        $this->get(route('calendar.home', [
             'view' => 'week',
             'date' => $date->toDateString(),
         ]))->assertOk()->assertSee($this->student->first_name);
@@ -53,7 +53,7 @@ class CalendarTest extends BaseTest
 
         $this->signIn();
 
-        $this->get(route('studio.home', [
+        $this->get(route('calendar.home', [
             'view' => 'week',
             'date' => '2026-07-08',
             'lesson_plans' => 1,
@@ -83,7 +83,7 @@ class CalendarTest extends BaseTest
 
         $this->signIn();
 
-        $this->getJson(route('studio.home', [
+        $this->getJson(route('calendar.home', [
             'view' => 'week',
             'date' => '2026-07-08',
             'lesson_plans' => 1,
@@ -102,7 +102,7 @@ class CalendarTest extends BaseTest
     {
         $this->signIn();
 
-        $this->getJson(route('studio.home', [
+        $this->getJson(route('calendar.home', [
             'view' => 'schedule',
             'date' => '2026-07-05',
             'lesson_plans' => 1,
@@ -121,14 +121,14 @@ class CalendarTest extends BaseTest
 
         $this->signIn();
 
-        $this->from(route('studio.breaks.index'))
-            ->post(route('studio.breaks.store'), [
+        $this->from(route('calendar.breaks.index'))
+            ->post(route('calendar.breaks.store'), [
                 'title' => 'Past break',
                 'reason' => 'Already happened',
                 'starts_on' => '2026-07-06',
                 'ends_on' => '2026-07-08',
             ])
-            ->assertRedirect(route('studio.breaks.index'))
+            ->assertRedirect(route('calendar.breaks.index'))
             ->assertSessionHasErrors('starts_on');
 
         $this->assertDatabaseMissing('teaching_breaks', [
@@ -154,7 +154,7 @@ class CalendarTest extends BaseTest
 
         $this->signIn();
 
-        $this->getJson(route('studio.breaks.impact', [
+        $this->getJson(route('calendar.breaks.impact', [
             'starts_on' => '2026-07-08',
             'ends_on' => '2026-07-08',
         ]))
@@ -177,7 +177,7 @@ class CalendarTest extends BaseTest
 
         $this->signIn();
 
-        $this->post(route('studio.breaks.store'), [
+        $this->post(route('calendar.breaks.store'), [
             'title' => 'Location break',
             'reason' => 'Only this location is closed',
             'starts_on' => '2026-07-08',
@@ -215,7 +215,7 @@ class CalendarTest extends BaseTest
 
         $this->signIn();
 
-        $this->getJson(route('studio.home', [
+        $this->getJson(route('calendar.home', [
             'view' => 'week',
             'date' => '2026-07-08',
             'lesson_plans' => 1,
@@ -268,7 +268,7 @@ class CalendarTest extends BaseTest
 
         $this->signIn();
 
-        $this->getJson(route('studio.home', [
+        $this->getJson(route('calendar.home', [
             'view' => 'week',
             'date' => '2026-07-08',
             'lesson_plans' => 1,
@@ -279,7 +279,7 @@ class CalendarTest extends BaseTest
             ->assertJsonPath('teachingBreaks.0.locations.0.name', 'BKCM')
             ->assertJsonPath('teachingBreaks.0.impact.lessons_count', 1);
 
-        $this->getJson(route('studio.breaks.impact', [
+        $this->getJson(route('calendar.breaks.impact', [
             'starts_on' => '2026-07-08',
             'ends_on' => '2026-07-08',
             'location_ids' => [$blockedLocation->id],
@@ -308,7 +308,7 @@ class CalendarTest extends BaseTest
 
         $this->signIn();
 
-        $this->getJson(route('studio.home', [
+        $this->getJson(route('calendar.home', [
             'view' => 'day',
             'date' => '2026-12-25',
             'lesson_plans' => 1,
@@ -341,7 +341,7 @@ class CalendarTest extends BaseTest
 
         $this->signIn();
 
-        $this->getJson(route('studio.home', [
+        $this->getJson(route('calendar.home', [
             'view' => 'day',
             'date' => '2026-12-25',
             'lesson_plans' => 1,
@@ -381,7 +381,7 @@ class CalendarTest extends BaseTest
 
         $this->signIn();
 
-        $this->getJson(route('studio.home', [
+        $this->getJson(route('calendar.home', [
             'view' => 'day',
             'date' => '2026-07-09',
             'lesson_plans' => 1,

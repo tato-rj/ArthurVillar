@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use Tests\BaseTest;
-use App\Models\{Student, WaitingList};
+use App\Models\Calendar\{Student, WaitingList};
 
 class WaitingListTest extends BaseTest
 {
@@ -23,8 +23,8 @@ class WaitingListTest extends BaseTest
         $this->signIn();
 
         $this
-            ->post(route('studio.waiting-list.convert', $waitingList))
-            ->assertRedirect(route('studio.students.index'))
+            ->post(route('calendar.waiting-list.convert', $waitingList))
+            ->assertRedirect(route('calendar.students.index'))
             ->assertSessionHas('success', 'Nora was successfully converted into a student');
 
         $this->assertDatabaseMissing('waiting_lists', [
@@ -57,8 +57,8 @@ class WaitingListTest extends BaseTest
 
         $this->signIn();
 
-        $this->from(route('studio.waiting-list.index'))
-            ->post(route('studio.students.store'), [
+        $this->from(route('calendar.waiting-list.index'))
+            ->post(route('calendar.students.store'), [
                 'waiting_list_id' => $waitingList->id,
                 'first_name' => 'Lia',
                 'last_name' => 'Mason',
@@ -69,7 +69,7 @@ class WaitingListTest extends BaseTest
                 'is_adult' => true,
                 'notes' => 'Available after 5pm.',
             ])
-            ->assertRedirect(route('studio.waiting-list.index'))
+            ->assertRedirect(route('calendar.waiting-list.index'))
             ->assertSessionHas('success', 'The student was successfully added');
 
         $this->assertDatabaseMissing('waiting_lists', [
@@ -89,7 +89,7 @@ class WaitingListTest extends BaseTest
     }
 
     /** @test */
-    public function it_serves_waiting_list_entries_to_the_studio_table()
+    public function it_serves_waiting_list_entries_to_the_calendar_table()
     {
         WaitingList::factory()->create([
             'first_name' => 'Lia',
@@ -100,7 +100,7 @@ class WaitingListTest extends BaseTest
         $this->signIn();
 
         $this
-            ->getJson(route('studio.tables.waiting-list'))
+            ->getJson(route('calendar.tables.waiting-list'))
             ->assertOk()
             ->assertJsonFragment([
                 'first_name' => 'Lia',

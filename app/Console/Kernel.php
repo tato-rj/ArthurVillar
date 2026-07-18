@@ -14,7 +14,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('studio:send-event-reminders')->everyMinute()->withoutOverlapping();
+        $schedule->command('calendar:send-event-reminders')->everyMinute()->withoutOverlapping();
     }
 
     /**

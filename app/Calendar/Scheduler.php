@@ -3,13 +3,7 @@
 namespace App\Calendar;
 
 use App\Calendar\Traits\Holidays;
-use App\Models\Event;
-use App\Models\LessonPlan;
-use App\Models\Recital;
-use App\Models\Settings;
-use App\Models\SingleLessonPlan;
-use App\Models\Student;
-use App\Models\TeachingBreak;
+use App\Models\Calendar\{Event, LessonPlan, Recital, Settings, SingleLessonPlan, Student, TeachingBreak};
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -98,7 +92,7 @@ class Scheduler
                         'calendar_status' => $lesson ? $lesson->paymentStatus() : 'unconfirmed',
                         'fee_amount' => $lesson && $lesson->fee_amount ? $lesson->fee_amount : $singleLessonPlan->netFeeAmount(),
                         'canceled_by' => $lesson ? $lesson->canceled_by : '',
-                        'lesson_edit_url' => $lesson ? route('studio.lessons.edit', $lesson) : '',
+                        'lesson_edit_url' => $lesson ? route('calendar.lessons.edit', $lesson) : '',
                         'lesson_payment_url' => $lesson ? $lesson->paymentUrl : '',
                         'meeting_url' => $singleLessonPlan->meeting_url,
                         'notes_url' => $singleLessonPlan->notes_url,
@@ -212,7 +206,7 @@ class Scheduler
                 'calendar_status' => $lesson ? $lesson->paymentStatus() : 'unconfirmed',
                 'fee_amount' => $lesson && $lesson->fee_amount ? $lesson->fee_amount : $lessonPlan->netFeeAmount(),
                 'canceled_by' => $lesson ? $lesson->canceled_by : '',
-                'lesson_edit_url' => $lesson ? route('studio.lessons.edit', $lesson) : '',
+                'lesson_edit_url' => $lesson ? route('calendar.lessons.edit', $lesson) : '',
                 'lesson_payment_url' => $lesson ? $lesson->paymentUrl : '',
             ];
 
@@ -239,7 +233,7 @@ class Scheduler
                     'fee_amount' => $lesson && $lesson->fee_amount ? $lesson->fee_amount : $lessonPlan->netFeeAmount(),
                     'canceled_by' => $lesson ? $lesson->canceled_by : '',
                     'calendar_status' => 'rescheduled',
-                    'lesson_edit_url' => $lesson ? route('studio.lessons.edit', $lesson) : '',
+                    'lesson_edit_url' => $lesson ? route('calendar.lessons.edit', $lesson) : '',
                     'lesson_payment_url' => $lesson ? $lesson->paymentUrl : '',
                 ];
             });
@@ -266,7 +260,7 @@ class Scheduler
                     'calendar_status' => $lesson->paymentStatus(),
                     'fee_amount' => $lesson->fee_amount ?: ($lesson->lessonPlan ? $lesson->lessonPlan->fee_amount : null),
                     'canceled_by' => $lesson->canceled_by,
-                    'lesson_edit_url' => route('studio.lessons.edit', $lesson),
+                    'lesson_edit_url' => route('calendar.lessons.edit', $lesson),
                     'lesson_payment_url' => $lesson->paymentUrl,
                 ];
             });

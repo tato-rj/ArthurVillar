@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use Tests\BaseTest;
-use App\Models\{Lesson, LessonPlan, Student};
+use App\Models\Calendar\{Lesson, LessonPlan, Student};
 
 class LessonsTableTest extends BaseTest
 {
@@ -31,7 +31,7 @@ class LessonsTableTest extends BaseTest
 
         $this->signIn();
 
-        $this->getJson(route('studio.tables.lessons', [
+        $this->getJson(route('calendar.tables.lessons', [
             'paid_from' => '2026-07-01',
             'paid_to' => '2026-07-12',
         ]))
@@ -64,7 +64,7 @@ class LessonsTableTest extends BaseTest
 
         $this->signIn();
 
-        $this->getJson(route('studio.tables.lessons'))
+        $this->getJson(route('calendar.tables.lessons'))
             ->assertOk()
             ->assertJsonFragment(['student' => 'First Lesson'])
             ->assertJsonFragment(['student' => 'Second Lesson']);
@@ -87,7 +87,7 @@ class LessonsTableTest extends BaseTest
 
         $this->signIn();
 
-        $this->getJson(route('studio.tables.lessons'))
+        $this->getJson(route('calendar.tables.lessons'))
             ->assertOk()
             ->assertJsonMissing(['student' => 'Canceled Lesson']);
     }
