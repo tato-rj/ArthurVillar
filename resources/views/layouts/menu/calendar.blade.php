@@ -17,6 +17,7 @@
           'calendar.lessons.index' => 'Confirmed',
       ],
     ],
+    'calendar.events.index' => 'Events',
     'calendar.waiting-list.index' => 'Waiting list*',
     'calendar.recitals.index' => 'Recitals',
     [
@@ -28,7 +29,6 @@
     ],
     'calendar.breaks.index' => 'Breaks',
     'calendar.holidays.index' => 'Holidays',
-    'calendar.events.index' => 'Events',
     [
       'label' => 'Finances',
       'children' => [
