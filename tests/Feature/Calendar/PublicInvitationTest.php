@@ -23,7 +23,7 @@ class PublicInvitationTest extends BaseTest
         parse_str(parse_url($url, PHP_URL_QUERY), $query);
 
         $this->assertSame('calendar.'.config('app.domain'), parse_url($url, PHP_URL_HOST));
-        $this->assertSame('/invitations/'.$invitation->public_id, parse_url($url, PHP_URL_PATH));
+        $this->assertSame('/invitations/'.$invitation->public_id.'/respond', parse_url($url, PHP_URL_PATH));
 
         $this->assertSame(
             now()->addDays(30)->timestamp,

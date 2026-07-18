@@ -17055,7 +17055,7 @@ textarea.form-control-lg {
   box-shadow: var(--bs-box-shadow-sm) !important;
 }
 
-.shadow-lg, .studio-date-range-popover, .hover-shadow-lg:hover {
+.shadow-lg, .calendar-date-range-popover, .hover-shadow-lg:hover {
   box-shadow: var(--bs-box-shadow-lg) !important;
 }
 
@@ -29672,7 +29672,7 @@ h1, .h1 {
 .shadow-sm, .hover-shadow-sm:hover {
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1) !important;
 }
-.shadow-lg, .studio-date-range-popover, .hover-shadow-lg:hover {
+.shadow-lg, .calendar-date-range-popover, .hover-shadow-lg:hover {
   box-shadow: 0 12px 25px -2px rgba(0, 0, 0, 0.1) !important;
 }
 .shadow-xl, .btn-float, .btn-float:focus, .hover-shadow-xl:hover {
@@ -31442,49 +31442,49 @@ mark, .mark {
   padding: 0;
 }
 
-.studio-table-container {
+.calendar-table-container {
   width: 100%;
   max-width: 100%;
   overflow-x: visible;
 }
-.studio-table-container .dataTables_wrapper {
+.calendar-table-container .dataTables_wrapper {
   min-width: 0;
   width: 100%;
 }
-.studio-table-container .dataTables_scroll {
+.calendar-table-container .dataTables_scroll {
   max-width: 100%;
 }
-.studio-table-container .dataTables_scrollHead,
-.studio-table-container .dataTables_scrollBody {
+.calendar-table-container .dataTables_scrollHead,
+.calendar-table-container .dataTables_scrollBody {
   -webkit-overflow-scrolling: touch;
 }
-.studio-table-container .dataTables_scrollHead {
+.calendar-table-container .dataTables_scrollHead {
   overflow: hidden !important;
 }
-.studio-table-container .dataTables_scrollBody {
+.calendar-table-container .dataTables_scrollBody {
   overflow-x: auto !important;
 }
-.studio-table-container.studio-table-container-lg .studio-table {
+.calendar-table-container.calendar-table-container-lg .calendar-table {
   min-width: 860px;
 }
-.studio-table-container .dataTables_length,
-.studio-table-container .dataTables_filter,
-.studio-table-container .dataTables_info,
-.studio-table-container .dataTables_paginate {
+.calendar-table-container .dataTables_length,
+.calendar-table-container .dataTables_filter,
+.calendar-table-container .dataTables_info,
+.calendar-table-container .dataTables_paginate {
   box-sizing: border-box;
 }
-.studio-table-container .dataTables_length,
-.studio-table-container .dataTables_filter {
+.calendar-table-container .dataTables_length,
+.calendar-table-container .dataTables_filter {
   margin-bottom: 0.75rem;
   text-align: left;
 }
-.studio-table-container .dataTables_filter input {
+.calendar-table-container .dataTables_filter input {
   max-width: 100%;
 }
-.studio-table-container .dataTables_info {
+.calendar-table-container .dataTables_info {
   white-space: normal;
 }
-.studio-table-container .dataTables_paginate {
+.calendar-table-container .dataTables_paginate {
   align-items: center;
   display: flex;
   flex-wrap: wrap;
@@ -31492,67 +31492,67 @@ mark, .mark {
   justify-content: flex-end;
 }
 
-.studio-table {
+.calendar-table {
   min-width: 720px;
   width: 100% !important;
 }
-.studio-table.dataTable thead > tr > th.sorting::before, .studio-table.dataTable thead > tr > th.sorting_asc::before, .studio-table.dataTable thead > tr > th.sorting_desc::before, .studio-table.dataTable thead > tr > td.sorting::before, .studio-table.dataTable thead > tr > td.sorting_asc::before, .studio-table.dataTable thead > tr > td.sorting_desc::before {
+.calendar-table.dataTable thead > tr > th.sorting::before, .calendar-table.dataTable thead > tr > th.sorting_asc::before, .calendar-table.dataTable thead > tr > th.sorting_desc::before, .calendar-table.dataTable thead > tr > td.sorting::before, .calendar-table.dataTable thead > tr > td.sorting_asc::before, .calendar-table.dataTable thead > tr > td.sorting_desc::before {
   content: "\f0d8";
   font-family: "Font Awesome 6 Free";
   font-weight: 900;
 }
-.studio-table.dataTable thead > tr > th.sorting::after, .studio-table.dataTable thead > tr > th.sorting_asc::after, .studio-table.dataTable thead > tr > th.sorting_desc::after, .studio-table.dataTable thead > tr > td.sorting::after, .studio-table.dataTable thead > tr > td.sorting_asc::after, .studio-table.dataTable thead > tr > td.sorting_desc::after {
+.calendar-table.dataTable thead > tr > th.sorting::after, .calendar-table.dataTable thead > tr > th.sorting_asc::after, .calendar-table.dataTable thead > tr > th.sorting_desc::after, .calendar-table.dataTable thead > tr > td.sorting::after, .calendar-table.dataTable thead > tr > td.sorting_asc::after, .calendar-table.dataTable thead > tr > td.sorting_desc::after {
   content: "\f0d7";
   font-family: "Font Awesome 6 Free";
   font-weight: 900;
 }
-.studio-table.dataTable thead > tr > th.sorting::before, .studio-table.dataTable thead > tr > th.sorting::after, .studio-table.dataTable thead > tr > td.sorting::before, .studio-table.dataTable thead > tr > td.sorting::after {
+.calendar-table.dataTable thead > tr > th.sorting::before, .calendar-table.dataTable thead > tr > th.sorting::after, .calendar-table.dataTable thead > tr > td.sorting::before, .calendar-table.dataTable thead > tr > td.sorting::after {
   opacity: 0.25;
 }
-.studio-table.dataTable thead > tr > th.sorting_asc::before, .studio-table.dataTable thead > tr > th.sorting_desc::after, .studio-table.dataTable thead > tr > td.sorting_asc::before, .studio-table.dataTable thead > tr > td.sorting_desc::after {
+.calendar-table.dataTable thead > tr > th.sorting_asc::before, .calendar-table.dataTable thead > tr > th.sorting_desc::after, .calendar-table.dataTable thead > tr > td.sorting_asc::before, .calendar-table.dataTable thead > tr > td.sorting_desc::after {
   opacity: 1;
 }
-.studio-table.dataTable thead > tr > th.sorting_asc::after, .studio-table.dataTable thead > tr > th.sorting_desc::before, .studio-table.dataTable thead > tr > td.sorting_asc::after, .studio-table.dataTable thead > tr > td.sorting_desc::before {
+.calendar-table.dataTable thead > tr > th.sorting_asc::after, .calendar-table.dataTable thead > tr > th.sorting_desc::before, .calendar-table.dataTable thead > tr > td.sorting_asc::after, .calendar-table.dataTable thead > tr > td.sorting_desc::before {
   opacity: 0.25;
 }
 
 @media (max-width: 767.98px) {
-  .studio-table-container .dataTables_length,
-  .studio-table-container .dataTables_filter,
-  .studio-table-container .dataTables_info,
-  .studio-table-container .dataTables_paginate {
+  .calendar-table-container .dataTables_length,
+  .calendar-table-container .dataTables_filter,
+  .calendar-table-container .dataTables_info,
+  .calendar-table-container .dataTables_paginate {
     width: auto;
   }
-  .studio-table-container .dataTables_length label,
-  .studio-table-container .dataTables_filter label {
+  .calendar-table-container .dataTables_length label,
+  .calendar-table-container .dataTables_filter label {
     align-items: center;
     display: inline-flex;
     gap: 0.35rem;
     margin: 0;
   }
-  .studio-table-container .dataTables_filter input,
-  .studio-table-container .dataTables_length select {
+  .calendar-table-container .dataTables_filter input,
+  .calendar-table-container .dataTables_length select {
     margin-left: 0;
     margin-top: 0;
   }
-  .studio-table-container .dataTables_filter input {
+  .calendar-table-container .dataTables_filter input {
     max-width: 8.5rem;
   }
-  .studio-table-container .dataTables_length {
+  .calendar-table-container .dataTables_length {
     float: left !important;
     text-align: left !important;
   }
-  .studio-table-container .dataTables_filter {
+  .calendar-table-container .dataTables_filter {
     float: right !important;
     text-align: right !important;
   }
-  .studio-table-container .dataTables_info {
+  .calendar-table-container .dataTables_info {
     clear: both;
     float: left !important;
     max-width: 42%;
     text-align: left !important;
   }
-  .studio-table-container .dataTables_paginate {
+  .calendar-table-container .dataTables_paginate {
     float: right !important;
     justify-content: flex-start;
     margin-top: 0.75rem;
@@ -31561,13 +31561,13 @@ mark, .mark {
     white-space: normal;
   }
 }
-.studio-table-filters {
+.calendar-table-filters {
   align-items: flex-end;
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
 }
-.studio-table-filters label {
+.calendar-table-filters label {
   color: #5f6368;
   display: flex;
   flex-direction: column;
@@ -31577,8 +31577,8 @@ mark, .mark {
   margin: 0;
   text-transform: uppercase;
 }
-.studio-table-filters input[type=date],
-.studio-table-filters input[type=month] {
+.calendar-table-filters input[type=date],
+.calendar-table-filters input[type=month] {
   background-color: #fff;
   border: 1px solid #dfe3ea;
   border-radius: 6px;
@@ -31588,14 +31588,14 @@ mark, .mark {
   padding: 0.35rem 0.55rem;
 }
 
-.studio-date-range {
+.calendar-date-range {
   color: #202124;
   position: relative;
   width: min(100%, 310px);
   z-index: 9;
 }
 
-.studio-date-range-toggle {
+.calendar-date-range-toggle {
   align-items: center;
   background: #fff;
   border: 1px solid #aaa;
@@ -31610,13 +31610,13 @@ mark, .mark {
   text-align: left;
   width: 100%;
 }
-.studio-date-range-toggle span {
+.calendar-date-range-toggle span {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.studio-date-range-popover {
+.calendar-date-range-popover {
   background: #fff;
   border: 1px solid #e2e5eb;
   border-radius: 10px;
@@ -31627,11 +31627,11 @@ mark, .mark {
   top: 100%;
   width: 310px;
 }
-.studio-date-range-popover[hidden] {
+.calendar-date-range-popover[hidden] {
   display: none;
 }
 
-.studio-date-range-header {
+.calendar-date-range-header {
   align-items: center;
   display: grid;
   grid-template-columns: 36px 1fr 36px;
@@ -31639,7 +31639,7 @@ mark, .mark {
   text-align: center;
 }
 
-.studio-date-range-nav {
+.calendar-date-range-nav {
   align-items: center;
   border-radius: 50%;
   display: inline-flex;
@@ -31647,17 +31647,17 @@ mark, .mark {
   justify-content: center;
   width: 34px;
 }
-.studio-date-range-nav:hover {
+.calendar-date-range-nav:hover {
   background: #f1f3f7;
 }
 
-.studio-date-range-weekdays,
-.studio-date-range-grid {
+.calendar-date-range-weekdays,
+.calendar-date-range-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
 }
 
-.studio-date-range-weekdays span {
+.calendar-date-range-weekdays span {
   color: #8a909b;
   font-size: 0.7rem;
   font-weight: 700;
@@ -31665,7 +31665,7 @@ mark, .mark {
   text-align: center;
 }
 
-.studio-date-range-day {
+.calendar-date-range-day {
   aspect-ratio: 1;
   background: transparent;
   border: 0;
@@ -31674,26 +31674,26 @@ mark, .mark {
   padding: 0;
   position: relative;
 }
-.studio-date-range-day:hover {
+.calendar-date-range-day:hover {
   background: #eee9f8;
 }
-.studio-date-range-day.is-outside {
+.calendar-date-range-day.is-outside {
   color: #b6bac2;
 }
-.studio-date-range-day.is-in-range {
+.calendar-date-range-day.is-in-range {
   background: #eee9f8;
   color: #33214f;
 }
-.studio-date-range-day.is-start, .studio-date-range-day.is-end {
+.calendar-date-range-day.is-start, .calendar-date-range-day.is-end {
   background: #6f4ca5;
   color: #fff;
   font-weight: 700;
 }
-.studio-date-range-day.is-today:not(.is-start):not(.is-end) {
+.calendar-date-range-day.is-today:not(.is-start):not(.is-end) {
   box-shadow: inset 0 0 0 1px #6f4ca5;
 }
 
-.studio-date-range-footer {
+.calendar-date-range-footer {
   align-items: center;
   border-top: 1px solid #eceef2;
   display: flex;
@@ -31702,38 +31702,38 @@ mark, .mark {
   margin-top: 0.6rem;
   padding-top: 0.65rem;
 }
-.studio-date-range-footer span {
+.calendar-date-range-footer span {
   color: #747a84;
   font-size: 0.75rem;
 }
 
 @media (max-width: 420px) {
-  .studio-date-range-popover {
+  .calendar-date-range-popover {
     max-width: calc(100vw - 2rem);
     width: 310px;
   }
 }
-.studio-table-actions {
+.calendar-table-actions {
   align-items: center;
   display: inline-flex;
   gap: 0.25rem;
 }
-.studio-table-actions form {
+.calendar-table-actions form {
   display: inline-flex;
   margin: 0;
 }
 
-.studio-break-impact {
+.calendar-break-impact {
   background: #f3f0fb;
   color: #33214f;
 }
 
-.studio-break-lessons {
+.calendar-break-lessons {
   display: grid;
   gap: 0.5rem;
 }
 
-.studio-break-lesson {
+.calendar-break-lesson {
   background: #f8f9fb;
   border: 1px solid #e6e8ef;
   border-radius: 6px;
@@ -31741,7 +31741,7 @@ mark, .mark {
   gap: 0.15rem;
   padding: 0.65rem 0.75rem;
 }
-.studio-break-lesson span {
+.calendar-break-lesson span {
   color: #5f6368;
   font-size: 0.85rem;
 }

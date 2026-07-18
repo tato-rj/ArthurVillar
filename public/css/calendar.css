@@ -8436,7 +8436,7 @@
   --fa:"\e5ae";
 }
 
-.fa-calendarvinari {
+.fa-studiovinari {
   --fa:"\f3f8";
 }
 
@@ -12190,7 +12190,7 @@ textarea.form-control-lg {
   clip: rect(0, 0, 0, 0);
   pointer-events: none;
 }
-.btn-check[disabled] + .btn, .btn-check[disabled] + .calendar-calendar-search[selected], .btn-check:disabled + .btn, .btn-check:disabled + .calendar-calendar-search[selected] {
+.btn-check[disabled] + .btn, .btn-check[disabled] + .invitation-offscreen-indicator, .btn-check[disabled] + .invitation-duration-option, .btn-check[disabled] + .calendar-calendar-search[selected], .btn-check:disabled + .btn, .btn-check:disabled + .invitation-offscreen-indicator, .btn-check:disabled + .invitation-duration-option, .btn-check:disabled + .calendar-calendar-search[selected] {
   pointer-events: none;
   filter: none;
   opacity: 0.65;
@@ -12416,11 +12416,11 @@ textarea.form-control-lg {
 .input-group > .form-floating:focus-within {
   z-index: 5;
 }
-.input-group .btn, .input-group .calendar-calendar-search[selected] {
+.input-group .btn, .input-group .invitation-offscreen-indicator, .input-group .invitation-duration-option, .input-group .calendar-calendar-search[selected] {
   position: relative;
   z-index: 2;
 }
-.input-group .btn:focus, .input-group .calendar-calendar-search[selected]:focus {
+.input-group .btn:focus, .input-group .invitation-offscreen-indicator:focus, .input-group .invitation-duration-option:focus, .input-group .calendar-calendar-search[selected]:focus {
   z-index: 5;
 }
 
@@ -12443,6 +12443,8 @@ textarea.form-control-lg {
 .input-group-lg > .form-select,
 .input-group-lg > .input-group-text,
 .input-group-lg > .btn,
+.input-group-lg > .invitation-offscreen-indicator,
+.input-group-lg > .invitation-duration-option,
 .input-group-lg > .calendar-calendar-search[selected] {
   padding: 0.5rem 1rem;
   font-size: 1.25rem;
@@ -12453,6 +12455,8 @@ textarea.form-control-lg {
 .input-group-sm > .form-select,
 .input-group-sm > .input-group-text,
 .input-group-sm > .btn,
+.input-group-sm > .invitation-offscreen-indicator,
+.input-group-sm > .invitation-duration-option,
 .input-group-sm > .calendar-calendar-search[selected] {
   padding: 0.25rem 0.5rem;
   font-size: 0.875rem;
@@ -12669,7 +12673,7 @@ textarea.form-control-lg {
   z-index: 4;
 }
 
-.btn, .calendar-calendar-search[selected] {
+.btn, .invitation-offscreen-indicator, .invitation-duration-option, .calendar-calendar-search[selected] {
   --bs-btn-padding-x: 0.75rem;
   --bs-btn-padding-y: 0.375rem;
   --bs-btn-font-family: ;
@@ -12705,44 +12709,44 @@ textarea.form-control-lg {
   transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 @media (prefers-reduced-motion: reduce) {
-  .btn, .calendar-calendar-search[selected] {
+  .btn, .invitation-offscreen-indicator, .invitation-duration-option, .calendar-calendar-search[selected] {
     transition: none;
   }
 }
-.btn:hover, .calendar-calendar-search[selected]:hover {
+.btn:hover, .invitation-offscreen-indicator:hover, .invitation-duration-option:hover, .calendar-calendar-search[selected]:hover {
   color: var(--bs-btn-hover-color);
   background-color: var(--bs-btn-hover-bg);
   border-color: var(--bs-btn-hover-border-color);
 }
-.btn-check + .btn:hover, .btn-check + .calendar-calendar-search[selected]:hover {
+.btn-check + .btn:hover, .btn-check + .invitation-offscreen-indicator:hover, .btn-check + .invitation-duration-option:hover, .btn-check + .calendar-calendar-search[selected]:hover {
   color: var(--bs-btn-color);
   background-color: var(--bs-btn-bg);
   border-color: var(--bs-btn-border-color);
 }
-.btn:focus-visible, .calendar-calendar-search[selected]:focus-visible {
+.btn:focus-visible, .invitation-offscreen-indicator:focus-visible, .invitation-duration-option:focus-visible, .calendar-calendar-search[selected]:focus-visible {
   color: var(--bs-btn-hover-color);
   background-color: var(--bs-btn-hover-bg);
   border-color: var(--bs-btn-hover-border-color);
   outline: 0;
   box-shadow: var(--bs-btn-focus-box-shadow);
 }
-.btn-check:focus-visible + .btn, .btn-check:focus-visible + .calendar-calendar-search[selected] {
+.btn-check:focus-visible + .btn, .btn-check:focus-visible + .invitation-offscreen-indicator, .btn-check:focus-visible + .invitation-duration-option, .btn-check:focus-visible + .calendar-calendar-search[selected] {
   border-color: var(--bs-btn-hover-border-color);
   outline: 0;
   box-shadow: var(--bs-btn-focus-box-shadow);
 }
-.btn-check:checked + .btn, .btn-check:checked + .calendar-calendar-search[selected], :not(.btn-check) + .btn:active, :not(.btn-check) + .calendar-calendar-search[selected]:active, .btn:first-child:active, .calendar-calendar-search[selected]:first-child:active, .btn.active, .active.calendar-calendar-search[selected], .btn.show, .show.calendar-calendar-search[selected] {
+.btn-check:checked + .btn, .btn-check:checked + .invitation-offscreen-indicator, .btn-check:checked + .invitation-duration-option, .btn-check:checked + .calendar-calendar-search[selected], :not(.btn-check) + .btn:active, :not(.btn-check) + .invitation-offscreen-indicator:active, :not(.btn-check) + .invitation-duration-option:active, :not(.btn-check) + .calendar-calendar-search[selected]:active, .btn:first-child:active, .invitation-offscreen-indicator:first-child:active, .invitation-duration-option:first-child:active, .calendar-calendar-search[selected]:first-child:active, .btn.active, .active.invitation-offscreen-indicator, .active.invitation-duration-option, .active.calendar-calendar-search[selected], .btn.show, .show.invitation-offscreen-indicator, .show.invitation-duration-option, .show.calendar-calendar-search[selected] {
   color: var(--bs-btn-active-color);
   background-color: var(--bs-btn-active-bg);
   border-color: var(--bs-btn-active-border-color);
 }
-.btn-check:checked + .btn:focus-visible, .btn-check:checked + .calendar-calendar-search[selected]:focus-visible, :not(.btn-check) + .btn:active:focus-visible, :not(.btn-check) + .calendar-calendar-search[selected]:active:focus-visible, .btn:first-child:active:focus-visible, .calendar-calendar-search[selected]:first-child:active:focus-visible, .btn.active:focus-visible, .active.calendar-calendar-search[selected]:focus-visible, .btn.show:focus-visible, .show.calendar-calendar-search[selected]:focus-visible {
+.btn-check:checked + .btn:focus-visible, .btn-check:checked + .invitation-offscreen-indicator:focus-visible, .btn-check:checked + .invitation-duration-option:focus-visible, .btn-check:checked + .calendar-calendar-search[selected]:focus-visible, :not(.btn-check) + .btn:active:focus-visible, :not(.btn-check) + .invitation-offscreen-indicator:active:focus-visible, :not(.btn-check) + .invitation-duration-option:active:focus-visible, :not(.btn-check) + .calendar-calendar-search[selected]:active:focus-visible, .btn:first-child:active:focus-visible, .invitation-offscreen-indicator:first-child:active:focus-visible, .invitation-duration-option:first-child:active:focus-visible, .calendar-calendar-search[selected]:first-child:active:focus-visible, .btn.active:focus-visible, .active.invitation-offscreen-indicator:focus-visible, .active.invitation-duration-option:focus-visible, .active.calendar-calendar-search[selected]:focus-visible, .btn.show:focus-visible, .show.invitation-offscreen-indicator:focus-visible, .show.invitation-duration-option:focus-visible, .show.calendar-calendar-search[selected]:focus-visible {
   box-shadow: var(--bs-btn-focus-box-shadow);
 }
-.btn-check:checked:focus-visible + .btn, .btn-check:checked:focus-visible + .calendar-calendar-search[selected] {
+.btn-check:checked:focus-visible + .btn, .btn-check:checked:focus-visible + .invitation-offscreen-indicator, .btn-check:checked:focus-visible + .invitation-duration-option, .btn-check:checked:focus-visible + .calendar-calendar-search[selected] {
   box-shadow: var(--bs-btn-focus-box-shadow);
 }
-.btn:disabled, .calendar-calendar-search[selected]:disabled, .btn.disabled, .disabled.calendar-calendar-search[selected], fieldset:disabled .btn, fieldset:disabled .calendar-calendar-search[selected] {
+.btn:disabled, .invitation-offscreen-indicator:disabled, .invitation-duration-option:disabled, .calendar-calendar-search[selected]:disabled, .btn.disabled, .disabled.invitation-offscreen-indicator, .disabled.invitation-duration-option, .disabled.calendar-calendar-search[selected], fieldset:disabled .btn, fieldset:disabled .invitation-offscreen-indicator, fieldset:disabled .invitation-duration-option, fieldset:disabled .calendar-calendar-search[selected] {
   color: var(--bs-btn-disabled-color);
   pointer-events: none;
   background-color: var(--bs-btn-disabled-bg);
@@ -12767,7 +12771,8 @@ textarea.form-control-lg {
   --bs-btn-disabled-border-color: #0d6efd;
 }
 
-.btn-secondary {
+.btn-secondary, .invitation-duration-option:hover,
+.invitation-duration-option.active {
   --bs-btn-color: #fff;
   --bs-btn-bg: #6c757d;
   --bs-btn-border-color: #6c757d;
@@ -12903,7 +12908,7 @@ textarea.form-control-lg {
   --bs-gradient: none;
 }
 
-.btn-outline-secondary {
+.btn-outline-secondary, .invitation-duration-option:not(:hover):not(.active) {
   --bs-btn-color: #6c757d;
   --bs-btn-border-color: #6c757d;
   --bs-btn-hover-color: #fff;
@@ -13044,14 +13049,14 @@ textarea.form-control-lg {
   color: var(--bs-btn-hover-color);
 }
 
-.btn-lg, .btn-group-lg > .btn, .btn-group-lg > .calendar-calendar-search[selected] {
+.btn-lg, .btn-group-lg > .btn, .btn-group-lg > .invitation-offscreen-indicator, .btn-group-lg > .invitation-duration-option, .btn-group-lg > .calendar-calendar-search[selected] {
   --bs-btn-padding-y: 0.5rem;
   --bs-btn-padding-x: 1rem;
   --bs-btn-font-size: 1.25rem;
   --bs-btn-border-radius: var(--bs-border-radius-lg);
 }
 
-.btn-sm, .btn-group-sm > .btn, .btn-group-sm > .calendar-calendar-search[selected] {
+.btn-sm, .btn-group-sm > .btn, .btn-group-sm > .invitation-offscreen-indicator, .btn-group-sm > .invitation-duration-option, .btn-group-sm > .calendar-calendar-search[selected] {
   --bs-btn-padding-y: 0.25rem;
   --bs-btn-padding-x: 0.5rem;
   --bs-btn-font-size: 0.875rem;
@@ -13418,34 +13423,58 @@ textarea.form-control-lg {
   display: inline-flex;
   vertical-align: middle;
 }
-.btn-group > .btn, .btn-group > .calendar-calendar-search[selected],
+.btn-group > .btn, .btn-group > .invitation-offscreen-indicator, .btn-group > .invitation-duration-option, .btn-group > .calendar-calendar-search[selected],
 .btn-group-vertical > .btn,
+.btn-group-vertical > .invitation-offscreen-indicator,
+.btn-group-vertical > .invitation-duration-option,
 .btn-group-vertical > .calendar-calendar-search[selected] {
   position: relative;
   flex: 1 1 auto;
 }
-.btn-group > .btn-check:checked + .btn, .btn-group > .btn-check:checked + .calendar-calendar-search[selected],
+.btn-group > .btn-check:checked + .btn, .btn-group > .btn-check:checked + .invitation-offscreen-indicator, .btn-group > .btn-check:checked + .invitation-duration-option, .btn-group > .btn-check:checked + .calendar-calendar-search[selected],
 .btn-group > .btn-check:focus + .btn,
+.btn-group > .btn-check:focus + .invitation-offscreen-indicator,
+.btn-group > .btn-check:focus + .invitation-duration-option,
 .btn-group > .btn-check:focus + .calendar-calendar-search[selected],
 .btn-group > .btn:hover,
+.btn-group > .invitation-offscreen-indicator:hover,
+.btn-group > .invitation-duration-option:hover,
 .btn-group > .calendar-calendar-search[selected]:hover,
 .btn-group > .btn:focus,
+.btn-group > .invitation-offscreen-indicator:focus,
+.btn-group > .invitation-duration-option:focus,
 .btn-group > .calendar-calendar-search[selected]:focus,
 .btn-group > .btn:active,
+.btn-group > .invitation-offscreen-indicator:active,
+.btn-group > .invitation-duration-option:active,
 .btn-group > .calendar-calendar-search[selected]:active,
 .btn-group > .btn.active,
+.btn-group > .active.invitation-offscreen-indicator,
+.btn-group > .active.invitation-duration-option,
 .btn-group > .active.calendar-calendar-search[selected],
 .btn-group-vertical > .btn-check:checked + .btn,
+.btn-group-vertical > .btn-check:checked + .invitation-offscreen-indicator,
+.btn-group-vertical > .btn-check:checked + .invitation-duration-option,
 .btn-group-vertical > .btn-check:checked + .calendar-calendar-search[selected],
 .btn-group-vertical > .btn-check:focus + .btn,
+.btn-group-vertical > .btn-check:focus + .invitation-offscreen-indicator,
+.btn-group-vertical > .btn-check:focus + .invitation-duration-option,
 .btn-group-vertical > .btn-check:focus + .calendar-calendar-search[selected],
 .btn-group-vertical > .btn:hover,
+.btn-group-vertical > .invitation-offscreen-indicator:hover,
+.btn-group-vertical > .invitation-duration-option:hover,
 .btn-group-vertical > .calendar-calendar-search[selected]:hover,
 .btn-group-vertical > .btn:focus,
+.btn-group-vertical > .invitation-offscreen-indicator:focus,
+.btn-group-vertical > .invitation-duration-option:focus,
 .btn-group-vertical > .calendar-calendar-search[selected]:focus,
 .btn-group-vertical > .btn:active,
+.btn-group-vertical > .invitation-offscreen-indicator:active,
+.btn-group-vertical > .invitation-duration-option:active,
 .btn-group-vertical > .calendar-calendar-search[selected]:active,
 .btn-group-vertical > .btn.active,
+.btn-group-vertical > .active.invitation-offscreen-indicator,
+.btn-group-vertical > .active.invitation-duration-option,
 .btn-group-vertical > .active.calendar-calendar-search[selected] {
   z-index: 1;
 }
@@ -13462,22 +13491,30 @@ textarea.form-control-lg {
 .btn-group {
   border-radius: var(--bs-border-radius);
 }
-.btn-group > :not(.btn-check:first-child) + .btn, .btn-group > :not(.btn-check:first-child) + .calendar-calendar-search[selected],
+.btn-group > :not(.btn-check:first-child) + .btn, .btn-group > :not(.btn-check:first-child) + .invitation-offscreen-indicator, .btn-group > :not(.btn-check:first-child) + .invitation-duration-option, .btn-group > :not(.btn-check:first-child) + .calendar-calendar-search[selected],
 .btn-group > .btn-group:not(:first-child) {
   margin-left: calc(-1 * var(--bs-border-width));
 }
-.btn-group > .btn:not(:last-child):not(.dropdown-toggle), .btn-group > .calendar-calendar-search[selected]:not(:last-child):not(.dropdown-toggle),
+.btn-group > .btn:not(:last-child):not(.dropdown-toggle), .btn-group > .invitation-offscreen-indicator:not(:last-child):not(.dropdown-toggle), .btn-group > .invitation-duration-option:not(:last-child):not(.dropdown-toggle), .btn-group > .calendar-calendar-search[selected]:not(:last-child):not(.dropdown-toggle),
 .btn-group > .btn.dropdown-toggle-split:first-child,
+.btn-group > .dropdown-toggle-split.invitation-offscreen-indicator:first-child,
+.btn-group > .dropdown-toggle-split.invitation-duration-option:first-child,
 .btn-group > .dropdown-toggle-split.calendar-calendar-search[selected]:first-child,
 .btn-group > .btn-group:not(:last-child) > .btn,
+.btn-group > .btn-group:not(:last-child) > .invitation-offscreen-indicator,
+.btn-group > .btn-group:not(:last-child) > .invitation-duration-option,
 .btn-group > .btn-group:not(:last-child) > .calendar-calendar-search[selected] {
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
 }
-.btn-group > .btn:nth-child(n+3), .btn-group > .calendar-calendar-search[selected]:nth-child(n+3),
+.btn-group > .btn:nth-child(n+3), .btn-group > .invitation-offscreen-indicator:nth-child(n+3), .btn-group > .invitation-duration-option:nth-child(n+3), .btn-group > .calendar-calendar-search[selected]:nth-child(n+3),
 .btn-group > :not(.btn-check) + .btn,
+.btn-group > :not(.btn-check) + .invitation-offscreen-indicator,
+.btn-group > :not(.btn-check) + .invitation-duration-option,
 .btn-group > :not(.btn-check) + .calendar-calendar-search[selected],
 .btn-group > .btn-group:not(:first-child) > .btn,
+.btn-group > .btn-group:not(:first-child) > .invitation-offscreen-indicator,
+.btn-group > .btn-group:not(:first-child) > .invitation-duration-option,
 .btn-group > .btn-group:not(:first-child) > .calendar-calendar-search[selected] {
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
@@ -13494,12 +13531,12 @@ textarea.form-control-lg {
   margin-right: 0;
 }
 
-.btn-sm + .dropdown-toggle-split, .btn-group-sm > .btn + .dropdown-toggle-split, .btn-group-sm > .calendar-calendar-search[selected] + .dropdown-toggle-split {
+.btn-sm + .dropdown-toggle-split, .btn-group-sm > .btn + .dropdown-toggle-split, .btn-group-sm > .invitation-offscreen-indicator + .dropdown-toggle-split, .btn-group-sm > .invitation-duration-option + .dropdown-toggle-split, .btn-group-sm > .calendar-calendar-search[selected] + .dropdown-toggle-split {
   padding-right: 0.375rem;
   padding-left: 0.375rem;
 }
 
-.btn-lg + .dropdown-toggle-split, .btn-group-lg > .btn + .dropdown-toggle-split, .btn-group-lg > .calendar-calendar-search[selected] + .dropdown-toggle-split {
+.btn-lg + .dropdown-toggle-split, .btn-group-lg > .btn + .dropdown-toggle-split, .btn-group-lg > .invitation-offscreen-indicator + .dropdown-toggle-split, .btn-group-lg > .invitation-duration-option + .dropdown-toggle-split, .btn-group-lg > .calendar-calendar-search[selected] + .dropdown-toggle-split {
   padding-right: 0.75rem;
   padding-left: 0.75rem;
 }
@@ -13509,24 +13546,30 @@ textarea.form-control-lg {
   align-items: flex-start;
   justify-content: center;
 }
-.btn-group-vertical > .btn, .btn-group-vertical > .calendar-calendar-search[selected],
+.btn-group-vertical > .btn, .btn-group-vertical > .invitation-offscreen-indicator, .btn-group-vertical > .invitation-duration-option, .btn-group-vertical > .calendar-calendar-search[selected],
 .btn-group-vertical > .btn-group {
   width: 100%;
 }
-.btn-group-vertical > .btn:not(:first-child), .btn-group-vertical > .calendar-calendar-search[selected]:not(:first-child),
+.btn-group-vertical > .btn:not(:first-child), .btn-group-vertical > .invitation-offscreen-indicator:not(:first-child), .btn-group-vertical > .invitation-duration-option:not(:first-child), .btn-group-vertical > .calendar-calendar-search[selected]:not(:first-child),
 .btn-group-vertical > .btn-group:not(:first-child) {
   margin-top: calc(-1 * var(--bs-border-width));
 }
-.btn-group-vertical > .btn:not(:last-child):not(.dropdown-toggle), .btn-group-vertical > .calendar-calendar-search[selected]:not(:last-child):not(.dropdown-toggle),
+.btn-group-vertical > .btn:not(:last-child):not(.dropdown-toggle), .btn-group-vertical > .invitation-offscreen-indicator:not(:last-child):not(.dropdown-toggle), .btn-group-vertical > .invitation-duration-option:not(:last-child):not(.dropdown-toggle), .btn-group-vertical > .calendar-calendar-search[selected]:not(:last-child):not(.dropdown-toggle),
 .btn-group-vertical > .btn-group:not(:last-child) > .btn,
+.btn-group-vertical > .btn-group:not(:last-child) > .invitation-offscreen-indicator,
+.btn-group-vertical > .btn-group:not(:last-child) > .invitation-duration-option,
 .btn-group-vertical > .btn-group:not(:last-child) > .calendar-calendar-search[selected] {
   border-bottom-right-radius: 0;
   border-bottom-left-radius: 0;
 }
-.btn-group-vertical > .btn:nth-child(n+3), .btn-group-vertical > .calendar-calendar-search[selected]:nth-child(n+3),
+.btn-group-vertical > .btn:nth-child(n+3), .btn-group-vertical > .invitation-offscreen-indicator:nth-child(n+3), .btn-group-vertical > .invitation-duration-option:nth-child(n+3), .btn-group-vertical > .calendar-calendar-search[selected]:nth-child(n+3),
 .btn-group-vertical > :not(.btn-check) + .btn,
+.btn-group-vertical > :not(.btn-check) + .invitation-offscreen-indicator,
+.btn-group-vertical > :not(.btn-check) + .invitation-duration-option,
 .btn-group-vertical > :not(.btn-check) + .calendar-calendar-search[selected],
 .btn-group-vertical > .btn-group:not(:first-child) > .btn,
+.btn-group-vertical > .btn-group:not(:first-child) > .invitation-offscreen-indicator,
+.btn-group-vertical > .btn-group:not(:first-child) > .invitation-duration-option,
 .btn-group-vertical > .btn-group:not(:first-child) > .calendar-calendar-search[selected] {
   border-top-left-radius: 0;
   border-top-right-radius: 0;
@@ -14566,7 +14609,7 @@ textarea.form-control-lg {
   display: none;
 }
 
-.btn .badge, .calendar-calendar-search[selected] .badge {
+.btn .badge, .invitation-offscreen-indicator .badge, .invitation-duration-option .badge, .calendar-calendar-search[selected] .badge {
   position: relative;
   top: -1px;
 }
@@ -16518,7 +16561,7 @@ textarea.form-control-lg {
   background-color: currentcolor;
   opacity: 0.5;
 }
-.placeholder.btn::before, .placeholder.calendar-calendar-search[selected]::before {
+.placeholder.btn::before, .placeholder.invitation-offscreen-indicator::before, .placeholder.invitation-duration-option::before, .placeholder.calendar-calendar-search[selected]::before {
   display: inline-block;
   content: "";
 }
@@ -17068,7 +17111,7 @@ textarea.form-control-lg {
   display: none !important;
 }
 
-.shadow, #calendar .lm-schedule-item:not([past-event]), #calendar .calendar-schedule-event:not([past-event]), .calendar-student-combobox-menu, .calendar-calendar-create-menu-option, button.single-lesson-plan-create, .hover-shadow:hover {
+.shadow, .invitation-offscreen-indicator, #calendar .lm-schedule-item:not([past-event]), #calendar .calendar-schedule-event:not([past-event]), .calendar-student-combobox-menu, .calendar-calendar-create-menu-option, button.single-lesson-plan-create, .hover-shadow:hover {
   box-shadow: var(--bs-box-shadow) !important;
 }
 
@@ -17848,7 +17891,7 @@ textarea.form-control-lg {
   padding-left: 1rem !important;
 }
 
-.px-4, .btn-wide, .btn-lg, .btn-group-lg > .btn, .btn-group-lg > .calendar-calendar-search[selected] {
+.px-4, .btn-wide, .invitation-duration-option, .btn-lg, .btn-group-lg > .btn, .btn-group-lg > .invitation-offscreen-indicator, .btn-group-lg > .invitation-duration-option, .btn-group-lg > .calendar-calendar-search[selected] {
   padding-right: 1.5rem !important;
   padding-left: 1.5rem !important;
 }
@@ -25675,48 +25718,52 @@ h1, .h1 {
   background-color: white !important;
   border-color: white !important;
 }
-.btn-secondary {
+.btn-secondary, .invitation-duration-option:hover,
+.invitation-duration-option.active {
   color: white !important;
   background-color: #262626;
   border-color: black !important;
   border-radius: 2rem !important;
 }
-.btn-secondary:hover {
+.btn-secondary:hover, .invitation-duration-option:hover {
   color: white !important;
   background-color: rgb(48.2, 48.2, 48.2);
 }
-.btn-secondary:active {
+.btn-secondary:active, .invitation-duration-option:active:hover,
+.invitation-duration-option.active:active {
   background-color: rgb(17.6, 17.6, 17.6) !important;
 }
-.btn-secondary:focus {
+.btn-secondary:focus, .invitation-duration-option:focus:hover,
+.invitation-duration-option.active:focus {
   background-color: #262626;
 }
-.btn-secondary:disabled {
+.btn-secondary:disabled, .invitation-duration-option:disabled:hover,
+.invitation-duration-option.active:disabled {
   background-color: rgb(63.5, 63.5, 63.5) !important;
   border-color: rgb(25.5, 25.5, 25.5) !important;
 }
-.btn-outline-secondary {
+.btn-outline-secondary, .invitation-duration-option:not(:hover):not(.active) {
   color: #262626;
   background-color: transparent;
   border-color: #262626;
   border-radius: 2rem !important;
 }
-.btn-outline-secondary:hover {
+.btn-outline-secondary:hover, .invitation-duration-option:hover:not(:hover):not(.active) {
   color: white;
   background-color: #262626;
   border-color: #262626;
 }
-.btn-outline-secondary:active {
+.btn-outline-secondary:active, .invitation-duration-option:active:not(:hover):not(.active) {
   color: white !important;
   background-color: rgb(32.9, 32.9, 32.9) !important;
   border-color: rgb(32.9, 32.9, 32.9) !important;
 }
-.btn-outline-secondary:focus {
+.btn-outline-secondary:focus, .invitation-duration-option:focus:not(:hover):not(.active) {
   color: #262626;
   background-color: transparent;
   border-color: #262626;
 }
-.btn-outline-secondary:disabled {
+.btn-outline-secondary:disabled, .invitation-duration-option:disabled:not(:hover):not(.active) {
   color: rgb(63.5, 63.5, 63.5) !important;
   background-color: transparent !important;
   border-color: rgb(63.5, 63.5, 63.5) !important;
@@ -29687,7 +29734,7 @@ h1, .h1 {
   border-bottom-right-radius: 0 !important;
 }
 
-.shadow, #calendar .lm-schedule-item:not([past-event]), #calendar .calendar-schedule-event:not([past-event]), .calendar-student-combobox-menu, .calendar-calendar-create-menu-option, button.single-lesson-plan-create, .hover-shadow:hover {
+.shadow, .invitation-offscreen-indicator, #calendar .lm-schedule-item:not([past-event]), #calendar .calendar-schedule-event:not([past-event]), .calendar-student-combobox-menu, .calendar-calendar-create-menu-option, button.single-lesson-plan-create, .hover-shadow:hover {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
 }
 .shadow-sm, .hover-shadow-sm:hover {
@@ -30817,18 +30864,18 @@ input:checked + .slider:before {
   left: 0px;
 }
 
-.btn-floating .btn, .btn-floating .calendar-calendar-search[selected] {
+.btn-floating .btn, .btn-floating .invitation-offscreen-indicator, .btn-floating .invitation-duration-option, .btn-floating .calendar-calendar-search[selected] {
   transform: translateY(-0.25em);
   transition: transform 0.1s ease;
 }
 
 /* pressed */
-.btn-floating .btn:active, .btn-floating .calendar-calendar-search[selected]:active {
+.btn-floating .btn:active, .btn-floating .invitation-offscreen-indicator:active, .btn-floating .invitation-duration-option:active, .btn-floating .calendar-calendar-search[selected]:active {
   transform: translateY(0);
 }
 
 /* disabled looks the same */
-.btn-floating .btn:disabled, .btn-floating .calendar-calendar-search[selected]:disabled {
+.btn-floating .btn:disabled, .btn-floating .invitation-offscreen-indicator:disabled, .btn-floating .invitation-duration-option:disabled, .btn-floating .calendar-calendar-search[selected]:disabled {
   opacity: 1;
   transform: translateY(-0.25em);
   filter: none;
@@ -30837,7 +30884,7 @@ input:checked + .slider:before {
 }
 
 /* prevent any visual change on click when disabled */
-.btn-floating .btn:disabled:active, .btn-floating .calendar-calendar-search[selected]:disabled:active {
+.btn-floating .btn:disabled:active, .btn-floating .invitation-offscreen-indicator:disabled:active, .btn-floating .invitation-duration-option:disabled:active, .btn-floating .calendar-calendar-search[selected]:disabled:active {
   transform: translateY(-0.25em);
 }
 
@@ -30868,22 +30915,22 @@ input:checked + .slider:before {
   -webkit-text-stroke: 0;
 }
 
-.btn-white {
+.btn-white, .invitation-offscreen-indicator {
   color: black;
   background-color: white !important;
   border-color: black !important;
   border-radius: 2rem !important;
 }
 
-.btn-floating .btn-white:hover {
+.btn-floating .btn-white:hover, .btn-floating .invitation-offscreen-indicator:hover {
   background-color: white !important;
 }
 
-.btn-white:hover {
+.btn-white:hover, .invitation-offscreen-indicator:hover {
   background-color: #f1f3f4 !important;
 }
 
-.btn-white:active {
+.btn-white:active, .invitation-offscreen-indicator:active {
   background-color: rgba(0, 0, 0, 0.04) !important;
 }
 
@@ -32291,7 +32338,7 @@ button.single-lesson-plan-create {
   position: absolute;
   bottom: 20px;
   right: 20px;
-  z-index: 1;
+  z-index: 5;
   width: 50px;
   height: 50px;
 }
@@ -32913,4 +32960,326 @@ button.single-lesson-plan-create[selected] i {
   .calendar-calendar-toolbar {
     padding-right: 1rem !important;
   }
+}
+.invitation-duration-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.invitation-custom-duration {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: 260px;
+}
+
+.invitation-calendar-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.invitation-calendar-nav {
+  position: relative;
+  width: 38px;
+  height: 38px;
+}
+
+.invitation-overflow-count {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  min-width: 25px;
+  height: 25px;
+  padding: 0 5px;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  background: #111;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 21px;
+  text-align: center;
+  z-index: 10;
+}
+
+.invitation-calendar-label {
+  margin: 0 0 0 0.6rem;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.invitation-calendar-shell {
+  position: relative;
+  border: 1px solid #e1e4e8;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.invitation-calendar-overlays {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 8;
+}
+
+.invitation-offscreen-indicator {
+  position: absolute;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  transform: translateX(-50%);
+  pointer-events: auto;
+}
+
+.invitation-offscreen-indicator .invitation-overflow-count {
+  top: -11px;
+  right: -12px;
+}
+
+#invitation-calendar {
+  --lm-main-color: #07883a;
+  --lm-main-color-deep: #07883a;
+  --lm-border-outline: #0d6efd;
+}
+
+#invitation-calendar .lm-schedule {
+  max-height: 640px;
+  min-height: 520px;
+}
+
+#invitation-calendar .lm-schedule thead td {
+  font-size: 1.8em;
+  padding-top: 14px;
+  padding-bottom: 14px;
+}
+
+#invitation-calendar .lm-schedule thead td[data-weekday],
+#invitation-calendar .lm-schedule tbody td[data-date] {
+  border-left: 1px solid #dfe3e8;
+}
+
+#invitation-calendar .lm-schedule tbody tr.lm-schedule-hour > td {
+  border-top: 1px solid #d8dde3;
+}
+
+#invitation-calendar .lm-schedule tbody tr:nth-child(4n+3) > td {
+  border-top: 1px dashed #e1e5ea;
+}
+
+#invitation-calendar .lm-schedule tbody td.invitation-past-slot {
+  background: #eceeef;
+  cursor: not-allowed;
+}
+
+#invitation-calendar .lm-schedule-pointer {
+  background-color: #07883a;
+}
+
+#invitation-calendar .lm-schedule-pointer:before {
+  background-color: #07883a;
+}
+
+#invitation-calendar .lm-schedule-item {
+  --lm-schedule-background: #07883a;
+  border: 2px solid #fff;
+  border-radius: 5px;
+  padding: 4px 30px 4px 7px;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+}
+
+#invitation-calendar .lm-schedule-item:active {
+  cursor: grabbing;
+}
+
+#invitation-calendar .lm-schedule-item:before {
+  display: none;
+}
+
+#invitation-calendar .lm-schedule-item:after {
+  content: attr(data-start) " – " attr(data-end);
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+#invitation-calendar .invitation-option-delete {
+  position: absolute;
+  top: 4px;
+  right: 5px;
+  width: 23px;
+  height: 23px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.2);
+  color: #fff;
+  line-height: 23px;
+  z-index: 2;
+}
+
+#invitation-calendar .invitation-option-delete:hover {
+  background: rgba(0, 0, 0, 0.42);
+}
+
+.invitation-calendar-help {
+  color: #6c757d;
+  font-size: 0.92rem;
+}
+
+.invitation-calendar-error {
+  display: none;
+}
+
+.invitation-calendar-error.is-visible {
+  display: block;
+}
+
+@media (max-width: 767.98px) {
+  .invitation-calendar-toolbar {
+    flex-wrap: wrap;
+  }
+  .invitation-calendar-label {
+    width: 100%;
+    margin: 0.25rem 0 0;
+  }
+  .invitation-calendar-shell {
+    overflow-x: auto;
+  }
+  #invitation-calendar {
+    min-width: 820px;
+  }
+}
+input[name=name] {
+  border-top: 0;
+  border-left: 0;
+  border-right: 0;
+  border-bottom: 1px solid lightgrey;
+  font-size: 1.1rem;
+}
+
+.invitation-response-option {
+  display: grid;
+  grid-template-columns: 52px minmax(180px, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+  border: 1px solid #d8dce1;
+  background: #f8f9fa;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.invitation-response-option[data-state=yes] {
+  border-color: #addbb7;
+  background: #dcf8df;
+}
+
+.invitation-response-option[data-state=maybe] {
+  border-color: #e2cd77;
+  background: #fff6cf;
+}
+
+.invitation-response-choice {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 2px solid #6c757d;
+  background: #fff;
+  color: #6c757d;
+  font-size: 1rem;
+}
+
+.invitation-response-choice .fa-xmark, .invitation-instructions-option[data-state=blank] {
+  opacity: 0.3;
+}
+
+.invitation-response-option[data-state=yes] .invitation-response-choice, .invitation-instructions-option[data-state=yes] {
+  border-color: #087457;
+  background: #087457;
+  color: #fff;
+}
+
+.invitation-response-option[data-state=maybe] .invitation-response-choice, .invitation-instructions-option[data-state=maybe] {
+  border-color: #c99700;
+  background: #f2c94c;
+  color: #4a3a00;
+}
+
+.invitation-response-time {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.invitation-response-summary {
+  padding: 0.35rem 0.5rem;
+  border: 0;
+  background: transparent;
+  color: #0b62c4;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.invitation-response-summary:hover,
+.invitation-response-summary:focus {
+  color: #074b95;
+  text-decoration: underline;
+}
+
+.invitation-responder-list {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.invitation-responder-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid #edf0f2;
+}
+
+.invitation-responder-list li:last-child {
+  border-bottom: 0;
+}
+
+@media (max-width: 575.98px) {
+  .invitation-response-option {
+    grid-template-columns: 42px 1fr auto;
+    gap: 0.75rem;
+    padding: 0.85rem;
+  }
+  .invitation-response-summary {
+    font-size: 0.82rem;
+  }
+}
+.invitation-instructions-option {
+  font-size: 0.8rem;
+  width: 22px;
+  height: 22px;
+  border: 1px solid;
+}
+
+#invitation-responses-content h5, #invitation-responses-content .h5 {
+  font-size: 100%;
+}
+
+.invitation-result[data-status=winner] {
+  border-color: #58cc02 !important;
+  border-left: 6px solid;
+}
+
+.invitation-result[data-status=second-best] {
+  border-color: #ffc800 !important;
+  border-left: 6px solid;
+}
+
+.invitation-result-name {
+  display: inline-block;
 }

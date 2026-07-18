@@ -1720,3 +1720,351 @@ button.single-lesson-plan-create[selected] i {
         padding-right: 1rem !important;
     }
 }
+
+// Invitation form page
+.invitation-duration-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .65rem;
+}
+
+.invitation-duration-option {
+    @extend .btn, .btn-wide;
+}
+
+.invitation-duration-option:not(:hover):not(.active) {
+    @extend .btn-outline-secondary;
+}
+
+.invitation-duration-option:hover,
+.invitation-duration-option.active {
+    @extend .btn-secondary;
+}
+
+.invitation-custom-duration {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    max-width: 260px;
+}
+
+.invitation-calendar-toolbar {
+    display: flex;
+    align-items: center;
+    gap: .65rem;
+}
+
+.invitation-calendar-nav {
+    position: relative;
+    width: 38px;
+    height: 38px;
+}
+
+.invitation-overflow-count {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    min-width: 25px;
+    height: 25px;
+    padding: 0 5px;
+    border: 2px solid #fff;
+    border-radius: 999px;
+    background: #111;
+    color: #fff;
+    font-size: .75rem;
+    font-weight: 700;
+    line-height: 21px;
+    text-align: center;
+    z-index: 10;
+}
+
+.invitation-calendar-label {
+    margin: 0 0 0 .6rem;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.invitation-calendar-shell {
+    position: relative;
+    border: 1px solid #e1e4e8;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #fff;
+}
+
+.invitation-calendar-overlays {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 8;
+}
+
+.invitation-offscreen-indicator {
+    @extend .btn, .btn-white, .shadow;
+    position: absolute;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    transform: translateX(-50%);
+    pointer-events: auto;
+}
+
+.invitation-offscreen-indicator .invitation-overflow-count {
+    top: -11px;
+    right: -12px;
+}
+
+#invitation-calendar {
+    --lm-main-color: #07883a;
+    --lm-main-color-deep: #07883a;
+    --lm-border-outline: #0d6efd;
+}
+
+#invitation-calendar .lm-schedule {
+    max-height: 640px;
+    min-height: 520px;
+}
+
+#invitation-calendar .lm-schedule thead td {
+    font-size: 1.8em;
+    padding-top: 14px;
+    padding-bottom: 14px;
+}
+
+#invitation-calendar .lm-schedule thead td[data-weekday],
+#invitation-calendar .lm-schedule tbody td[data-date] {
+    border-left: 1px solid #dfe3e8;
+}
+
+#invitation-calendar .lm-schedule tbody tr.lm-schedule-hour > td {
+    border-top: 1px solid #d8dde3;
+}
+
+#invitation-calendar .lm-schedule tbody tr:nth-child(4n + 3) > td {
+    border-top: 1px dashed #e1e5ea;
+}
+
+#invitation-calendar .lm-schedule tbody td.invitation-past-slot {
+    background: #eceeef;
+    cursor: not-allowed;
+}
+
+#invitation-calendar .lm-schedule-pointer {
+    background-color: #07883a;
+}
+
+#invitation-calendar .lm-schedule-pointer:before {
+    background-color: #07883a;
+}
+
+#invitation-calendar .lm-schedule-item {
+    --lm-schedule-background: #07883a;
+    border: 2px solid #fff;
+    border-radius: 5px;
+    padding: 4px 30px 4px 7px;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+}
+
+#invitation-calendar .lm-schedule-item:active {
+    cursor: grabbing;
+}
+
+#invitation-calendar .lm-schedule-item:before {
+    display: none;
+}
+
+#invitation-calendar .lm-schedule-item:after {
+    content: attr(data-start) ' – ' attr(data-end);
+    margin: 0;
+    font-size: .82rem;
+    font-weight: 700;
+}
+
+#invitation-calendar .invitation-option-delete {
+    position: absolute;
+    top: 4px;
+    right: 5px;
+    width: 23px;
+    height: 23px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, .2);
+    color: #fff;
+    line-height: 23px;
+    z-index: 2;
+}
+
+#invitation-calendar .invitation-option-delete:hover {
+    background: rgba(0, 0, 0, .42);
+}
+
+.invitation-calendar-help {
+    color: #6c757d;
+    font-size: .92rem;
+}
+
+.invitation-calendar-error {
+    display: none;
+}
+
+.invitation-calendar-error.is-visible {
+    display: block;
+}
+
+@media (max-width: 767.98px) {
+    .invitation-calendar-toolbar {
+        flex-wrap: wrap;
+    }
+
+    .invitation-calendar-label {
+        width: 100%;
+        margin: .25rem 0 0;
+    }
+
+    .invitation-calendar-shell {
+        overflow-x: auto;
+    }
+
+    #invitation-calendar {
+        min-width: 820px;
+    }
+}
+
+// Invitation public page
+input[name="name"] {
+    border-top: 0;
+    border-left: 0;
+    border-right: 0;
+    border-bottom: 1px solid lightgrey;
+    font-size: 1.1rem;
+}
+
+.invitation-response-option {
+    display: grid;
+    grid-template-columns: 52px minmax(180px, 1fr) auto;
+    align-items: center;
+    gap: 1rem;
+    border: 1px solid #d8dce1;
+    background: #f8f9fa;
+    cursor: pointer;
+    transition: background-color .15s ease, border-color .15s ease;
+}
+
+.invitation-response-option[data-state="yes"] {
+    border-color: #addbb7;
+    background: #dcf8df;
+}
+
+.invitation-response-option[data-state="maybe"] {
+    border-color: #e2cd77;
+    background: #fff6cf;
+}
+
+.invitation-response-choice {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 2px solid #6c757d;
+    background: #fff;
+    color: #6c757d;
+    font-size: 1rem;
+}
+
+.invitation-response-choice .fa-xmark, .invitation-instructions-option[data-state="blank"] {
+    opacity: .3;
+}
+
+.invitation-response-option[data-state="yes"] .invitation-response-choice, .invitation-instructions-option[data-state="yes"] {
+    border-color: #087457;
+    background: #087457;
+    color: #fff;
+}
+
+.invitation-response-option[data-state="maybe"] .invitation-response-choice, .invitation-instructions-option[data-state="maybe"] {
+    border-color: #c99700;
+    background: #f2c94c;
+    color: #4a3a00;
+}
+
+.invitation-response-time {
+    font-size: 1.15rem;
+    font-weight: 700;
+}
+
+.invitation-response-summary {
+    padding: .35rem .5rem;
+    border: 0;
+    background: transparent;
+    color: #0b62c4;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.invitation-response-summary:hover,
+.invitation-response-summary:focus {
+    color: #074b95;
+    text-decoration: underline;
+}
+
+.invitation-responder-list {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.invitation-responder-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: .65rem 0;
+    border-bottom: 1px solid #edf0f2;
+}
+
+.invitation-responder-list li:last-child {
+    border-bottom: 0;
+}
+
+@media (max-width: 575.98px) {
+    .invitation-response-option {
+        grid-template-columns: 42px 1fr auto;
+        gap: .75rem;
+        padding: .85rem;
+    }
+
+    .invitation-response-summary {
+        font-size: .82rem;
+    }
+}
+
+.invitation-instructions-option {
+    font-size: .8rem;
+    width: 22px;
+    height: 22px;
+    border: 1px solid;
+}
+
+#invitation-responses-content h5 {
+    font-size: 100%;
+}
+
+
+
+// Invitation results page
+.invitation-result[data-status="winner"] {
+    border-color: #58cc02 !important;
+    border-left: 6px solid;
+}
+
+.invitation-result[data-status="second-best"] {
+    border-color: #ffc800 !important;
+    border-left: 6px solid;
+}
+
+.invitation-result-name {
+    display: inline-block;
+}

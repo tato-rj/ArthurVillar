@@ -9,12 +9,13 @@ Route::patch('settings', 'SettingsController@update')->name('settings.update');
 Route::get('financial-report', 'CalendarController@report')->name('financial.report');
 
 Route::prefix('invitations')->name('invitations.')->group(function() {
-	Route::get('', 'InvitationsController@index')->name('index');
-	Route::get('edit/{invitation?}', 'InvitationsController@edit')->name('edit');
+	Route::get('index', 'InvitationsController@index')->name('index');
+	Route::get('', 'CreateInvitationController')->name('create');
 	Route::post('', 'InvitationsController@store')->name('store');
 
 	Route::prefix('{invitation}')->group(function() {
 		Route::get('responses', 'InvitationsController@results')->name('results');
+		Route::get('', 'InvitationsController@edit')->name('edit');
 		Route::patch('', 'InvitationsController@update')->name('update');
 		Route::delete('', 'InvitationsController@destroy')->name('destroy');
 	});

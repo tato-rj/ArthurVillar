@@ -18,7 +18,7 @@ class InvitationIndexTest extends BaseTest
         $this->get(route('calendar.invitations.index'))
             ->assertOk()
             ->assertSee('Invitations')
-            ->assertSee(route('calendar.invitations.edit'), false)
+            ->assertSee(route('calendar.invitations.create'), false)
             ->assertSee('New invitation')
             ->assertSee('Copy public link')
             ->assertSee('View responses')
@@ -75,7 +75,7 @@ class InvitationIndexTest extends BaseTest
         $this->assertSame(45, $response->json('data.0.duration_minutes'));
         $this->assertSame(1, $response->json('data.0.options_count'));
         $this->assertSame(2, $response->json('data.0.participants_count'));
-        $this->assertStringContainsString('/invitations/'.$invitation->public_id, $response->json('data.0.public_url'));
+        $this->assertStringContainsString('/invitations/'.$invitation->public_id.'/respond', $response->json('data.0.public_url'));
         $this->assertStringContainsString('signature=', $response->json('data.0.public_url'));
     }
 
@@ -113,6 +113,7 @@ class InvitationIndexTest extends BaseTest
 
         $this->get(route('calendar.invitations.results', $invitation))
             ->assertOk()
+            ->assertSee('invitation-results-modal')
             ->assertSee('Team planning')
             ->assertSee('2')
             ->assertSee('people responded')
@@ -191,6 +192,66 @@ class InvitationIndexTest extends BaseTest
     }
 
     /** @test */
+    public function it_marks_exactly_tied_options_as_winners_without_a_second_best()
+    {
+        $invitation = Invitation::factory()->create();
+        $firstWinner = InvitationOption::factory()->for($invitation)->create([
+            'starts_at' => '2026-08-05 10:00:00',
+        ]);
+        $secondWinner = InvitationOption::factory()->for($invitation)->create([
+            'starts_at' => '2026-08-05 11:00:00',
+        ]);
+        $other = InvitationOption::factory()->for($invitation)->create([
+            'starts_at' => '2026-08-05 12:00:00',
+        ]);
+
+        $participants = collect(range(1, 3))->map(function ($number) use ($invitation) {
+            return InvitationParticipant::create([
+                'invitation_id' => $invitation->id,
+                'name' => "Tied Guest {$number}",
+            ]);
+        });
+
+        foreach ([$firstWinner, $secondWinner] as $winner) {
+            foreach ([0, 1] as $index) {
+                InvitationVote::create([
+                    'invitation_participant_id' => $participants[$index]->id,
+                    'invitation_option_id' => $winner->id,
+                    'status' => InvitationVote::YES,
+                ]);
+            }
+
+            InvitationVote::create([
+                'invitation_participant_id' => $participants[2]->id,
+                'invitation_option_id' => $winner->id,
+                'status' => InvitationVote::MAYBE,
+            ]);
+        }
+
+        InvitationVote::create([
+            'invitation_participant_id' => $participants[0]->id,
+            'invitation_option_id' => $other->id,
+            'status' => InvitationVote::YES,
+        ]);
+
+        $this->signIn();
+
+        $content = $this->get(route('calendar.invitations.results', $invitation))
+            ->assertOk()
+            ->getContent();
+
+        $this->assertStringContainsString(
+            'data-option-id="'.$firstWinner->id.'" data-status="winner"',
+            $content
+        );
+        $this->assertStringContainsString(
+            'data-option-id="'.$secondWinner->id.'" data-status="winner"',
+            $content
+        );
+        $this->assertStringNotContainsString('data-status="second-best"', $content);
+    }
+
+    /** @test */
     public function invitation_options_are_removed_with_their_invitation()
     {
         $invitation = Invitation::factory()->create();
@@ -227,6 +288,20 @@ class InvitationIndexTest extends BaseTest
             ->get()
             ->map(fn (InvitationOption $option) => $option->starts_at->format('Y-m-d H:i:s'))
             ->all());
+    }
+
+    /** @test */
+    public function it_displays_a_separate_create_page()
+    {
+        $this->signIn();
+
+        $this->get(route('calendar.invitations.create'))
+            ->assertOk()
+            ->assertSee('New Invitation')
+            ->assertSee(route('calendar.invitations.store'), false)
+            ->assertSee('Create invitation');
+
+        $this->assertSame('/invitations', route('calendar.invitations.create', [], false));
     }
 
     /** @test */
@@ -288,7 +363,15 @@ class InvitationIndexTest extends BaseTest
             ->assertSee('Edit Invitation')
             ->assertSee('Lunch meeting')
             ->assertSee('Pick a convenient afternoon.')
-            ->assertSee('2026-08-10T13:30');
+            ->assertSee('2026-08-10T13:30')
+            ->assertSee("const scheduleStart = '08:00';", false)
+            ->assertSee("const scheduleEnd = '22:00';", false)
+            ->assertSee('validRange: [scheduleStart, scheduleEnd]', false);
+
+        $this->assertSame(
+            '/invitations/'.$invitation->getRouteKey(),
+            route('calendar.invitations.edit', $invitation, false)
+        );
     }
 
     /** @test */
@@ -296,7 +379,7 @@ class InvitationIndexTest extends BaseTest
     {
         $this->signIn();
 
-        $this->from(route('calendar.invitations.edit'))
+        $this->from(route('calendar.invitations.create'))
             ->post(route('calendar.invitations.store'), [
                 'title' => 'Duplicate times',
                 'duration_minutes' => 30,
@@ -305,7 +388,7 @@ class InvitationIndexTest extends BaseTest
                     '2026-08-05T10:00',
                 ],
             ])
-            ->assertRedirect(route('calendar.invitations.edit'))
+            ->assertRedirect(route('calendar.invitations.create'))
             ->assertSessionHasErrors('options.1');
 
         $this->assertDatabaseCount('invitations', 0);

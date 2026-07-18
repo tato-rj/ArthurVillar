@@ -11,7 +11,7 @@
         @pagetitle([
             'label' => 'Invitations',
             'link' => [
-                'url' => route('calendar.invitations.edit'),
+                'url' => route('calendar.invitations.create'),
                 'icon' => 'plus',
                 'label' => 'New invitation',
             ],
@@ -32,6 +32,8 @@
             </thead>
         </table>
     </div>
+
+    <div id="invitation-results-modal-container"></div>
 </section>
 @endsection
 
@@ -40,6 +42,17 @@
 @include('calendar.tables.state')
 <script>
 $(function() {
+    const showModal = function(modal) {
+        if (window.bootstrap && window.bootstrap.Modal && typeof window.bootstrap.Modal.getOrCreateInstance === 'function') {
+            window.bootstrap.Modal.getOrCreateInstance(modal).show();
+            return;
+        }
+
+        if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
+            window.jQuery(modal).modal('show');
+        }
+    };
+
     const formatDate = function(value) {
         if (!value) {
             return '';
@@ -102,7 +115,7 @@ $(function() {
                     return `
                         <div class="calendar-table-actions">
                             <button type="button" class="btn btn-sm btn-secondary rounded js-copy-invitation-url" data-url="${row.public_url}" title="Copy public link" aria-label="Copy public link">@fa(['icon' => 'copy', 'mr' => 0])</button>
-                            <a class="btn btn-sm btn-primary rounded" href="${resultsUrl}" title="View responses" aria-label="View responses">@fa(['icon' => 'chart-bar', 'mr' => 0])</a>
+                            <button type="button" class="btn btn-sm btn-primary rounded js-view-invitation-results" data-url="${resultsUrl}" title="View responses" aria-label="View responses">@fa(['icon' => 'chart-bar', 'mr' => 0])</button>
                             <a class="btn btn-sm btn-warning rounded" href="${editUrl}" title="Edit invitation" aria-label="Edit invitation">@fa(['icon' => 'pen-to-square', 'mr' => 0])</a>
                             <form method="POST" action="${deleteUrl}" confirm>
                                 @csrf
@@ -149,6 +162,36 @@ $(function() {
                 button.classList.add('btn-secondary');
             }, 1500);
         });
+    });
+
+    $('#invitations-table').on('click', '.js-view-invitation-results', function() {
+        const button = this;
+
+        button.disabled = true;
+
+        fetch(button.dataset.url, {
+            headers: {
+                Accept: 'text/html',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        })
+            .then(function(response) {
+                if (!response.ok) {
+                    throw new Error('Unable to load invitation responses.');
+                }
+
+                return response.text();
+            })
+            .then(function(html) {
+                const container = document.getElementById('invitation-results-modal-container');
+
+                container.innerHTML = html;
+                showModal(container.querySelector('.modal'));
+            })
+            .catch(console.error)
+            .finally(function() {
+                button.disabled = false;
+            });
     });
 });
 </script>

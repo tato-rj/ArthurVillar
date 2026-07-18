@@ -16,9 +16,9 @@ class InvitationsController extends Controller
         return view('calendar.invitations.index');
     }
 
-    public function edit(?Invitation $invitation = null)
+    public function edit(Invitation $invitation)
     {
-        $invitation?->load(['options' => function ($query) {
+        $invitation->load(['options' => function ($query) {
             $query->orderBy('starts_at');
         }]);
 
@@ -43,7 +43,7 @@ class InvitationsController extends Controller
                     ->orderBy('starts_at');
             }]);
 
-        $winner = $invitation->options
+        $rankedOptions = $invitation->options
             ->sort(function (InvitationOption $first, InvitationOption $second) {
                 $yesComparison = $second->yes_responses_count <=> $first->yes_responses_count;
 
@@ -56,11 +56,21 @@ class InvitationsController extends Controller
 
                 return ($secondTotal <=> $firstTotal)
                     ?: ($first->starts_at->timestamp <=> $second->starts_at->timestamp);
-            })
+            });
+
+        $topOption = $rankedOptions
             ->first(fn (InvitationOption $option) => $option->yes_responses_count > 0);
 
-        $secondBest = $invitation->options
-            ->reject(fn (InvitationOption $option) => $option->is($winner))
+        $winners = $topOption
+            ? $rankedOptions->filter(function (InvitationOption $option) use ($topOption) {
+                return $option->yes_responses_count === $topOption->yes_responses_count
+                    && $option->maybe_responses_count === $topOption->maybe_responses_count;
+            })
+            : collect();
+
+        $secondBest = $winners->count() === 1
+            ? $invitation->options
+            ->reject(fn (InvitationOption $option) => $winners->contains('id', $option->id))
             ->sort(function (InvitationOption $first, InvitationOption $second) {
                 $firstTotal = $first->yes_responses_count + $first->maybe_responses_count;
                 $secondTotal = $second->yes_responses_count + $second->maybe_responses_count;
@@ -75,14 +85,15 @@ class InvitationsController extends Controller
             })
             ->first(function (InvitationOption $option) {
                 return ($option->yes_responses_count + $option->maybe_responses_count) > 0;
-            });
+            })
+            : null;
 
-        $winnerOptionId = $winner?->id;
+        $winnerOptionIds = $winners->modelKeys();
         $secondBestOptionId = $secondBest?->id;
 
         return view('calendar.invitations.results', compact(
             'invitation',
-            'winnerOptionId',
+            'winnerOptionIds',
             'secondBestOptionId'
         ));
     }
@@ -112,9 +123,7 @@ class InvitationsController extends Controller
             $this->syncOptions($invitation, $data['options']);
         });
 
-        return redirect()
-            ->route('calendar.invitations.index')
-            ->with('success', 'The invitation was successfully updated');
+        return back()->with('success', 'The invitation was successfully updated');
     }
 
     public function destroy(Invitation $invitation)

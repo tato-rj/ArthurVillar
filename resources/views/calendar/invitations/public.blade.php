@@ -2,129 +2,7 @@
 
 @push('header')
 <link href="{{ mix('css/schedule.css') }}" rel="stylesheet">
-<style>
-    input[name="name"] {
-        border-top: 0;
-        border-left: 0;
-        border-right: 0;
-        border-bottom: 1px solid lightgrey;
-        font-size: 1.1rem;
-    }
-
-    .invitation-response-option {
-        display: grid;
-        grid-template-columns: 52px minmax(180px, 1fr) auto;
-        align-items: center;
-        gap: 1rem;
-        {{-- min-height: 76px; --}}
-        {{-- padding: 1rem 1.25rem; --}}
-        border: 1px solid #d8dce1;
-        {{-- border-radius: 6px; --}}
-        background: #f8f9fa;
-        cursor: pointer;
-        transition: background-color .15s ease, border-color .15s ease;
-    }
-
-    .invitation-response-option[data-state="yes"] {
-        border-color: #addbb7;
-        background: #dcf8df;
-    }
-
-    .invitation-response-option[data-state="maybe"] {
-        border-color: #e2cd77;
-        background: #fff6cf;
-    }
-
-    .invitation-response-choice {
-        width: 32px;
-        height: 32px;
-        padding: 0;
-        border: 2px solid #6c757d;
-        background: #fff;
-        color: #6c757d;
-        font-size: 1rem;
-    }
-
-    .invitation-response-choice .fa-xmark, .invitation-instructions-option[data-state="blank"] {
-        opacity: .3;
-    }
-
-    .invitation-response-option[data-state="yes"] .invitation-response-choice, .invitation-instructions-option[data-state="yes"] {
-        border-color: #087457;
-        background: #087457;
-        color: #fff;
-    }
-
-    .invitation-response-option[data-state="maybe"] .invitation-response-choice, .invitation-instructions-option[data-state="maybe"] {
-        border-color: #c99700;
-        background: #f2c94c;
-        color: #4a3a00;
-    }
-
-    .invitation-response-time {
-        font-size: 1.15rem;
-        font-weight: 700;
-    }
-
-    .invitation-response-summary {
-        padding: .35rem .5rem;
-        border: 0;
-        background: transparent;
-        color: #0b62c4;
-        font-weight: 600;
-        white-space: nowrap;
-        cursor: pointer;
-    }
-
-    .invitation-response-summary:hover,
-    .invitation-response-summary:focus {
-        color: #074b95;
-        text-decoration: underline;
-    }
-
-    .invitation-responder-list {
-        padding: 0;
-        margin: 0;
-        list-style: none;
-    }
-
-    .invitation-responder-list li {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: .65rem 0;
-        border-bottom: 1px solid #edf0f2;
-    }
-
-    .invitation-responder-list li:last-child {
-        border-bottom: 0;
-    }
-
-    @media (max-width: 575.98px) {
-        .invitation-response-option {
-            grid-template-columns: 42px 1fr auto;
-            gap: .75rem;
-            padding: .85rem;
-        }
-
-        .invitation-response-summary {
-            font-size: .82rem;
-        }
-    }
-
-    .invitation-instructions-option {
-        font-size: .8rem;
-        width: 22px;
-        height: 22px;
-        border: 1px solid;
-    }
-
-    #invitation-responses-content h5 {
-        font-size: 100%;
-    }
-
-
-</style>
+<link href="{{ mix('css/calendar.css') }}" rel="stylesheet">
 @endpush
 
 @section('content')
@@ -133,7 +11,6 @@
         <div class="col-lg-8 col-md-10 col-12 mx-auto">
             <div class="mb-4 text-center px-4">
                 <h1 class="mb-0">{{ $invitation->title }}</h1>
-                {{-- <p class="text-muted">Click once for Yes, twice for Maybe, or leave an option empty for No.</p> --}}
                 @if($invitation->description)
                     <p class="text-muted mb-0 mt-2">{{ $invitation->description }}</p>
                 @endif
@@ -218,13 +95,13 @@
                                                 <p class="text-muted mb-0">No one has responded for this time yet.</p>
                                             @else
                                                 @if($yesResponses->isNotEmpty())
-                                                    <h5 class="mb-2 alert-green rounded px-2 py-1 border border-green d-inline-block">YES</h5>
+                                                    <h5 class="mb-1">YES</h5>
                                                     <ul class="invitation-responder-list" data-response="yes">
                                                         @foreach($yesResponses as $response)
                                                             <li>
                                                                 <span>{{ $response->participant->name }}</span>
                                                                 @if($participant?->is($response->participant))
-                                                                    <small class="text-muted">You</small>
+                                                                    <small class="ml-2 text-muted">(You)</small>
                                                                 @endif
                                                             </li>
                                                         @endforeach
@@ -236,13 +113,13 @@
                                                 @endif
 
                                                 @if($maybeResponses->isNotEmpty())
-                                                    <h5 class="mb-2 alert-yellow rounded px-2 py-1 border border-yellow d-inline-block">MAYBE</h5>
+                                                    <h5 class="mb-1">MAYBE</h5>
                                                     <ul class="invitation-responder-list" data-response="maybe">
                                                         @foreach($maybeResponses as $response)
                                                             <li>
                                                                 <span>{{ $response->participant->name }}</span>
                                                                 @if($participant?->is($response->participant))
-                                                                    <small class="text-muted">You</small>
+                                                                    <small class="ml-2 text-muted">You</small>
                                                                 @endif
                                                             </li>
                                                         @endforeach

@@ -3449,7 +3449,7 @@ var initializeDateRange = function initializeDateRange(element) {
       var key = dateKey(date);
       var button = document.createElement('button');
       button.type = 'button';
-      button.className = 'studio-date-range-day';
+      button.className = 'calendar-date-range-day';
       button.textContent = date.getDate();
       button.dataset.date = key;
       button.classList.toggle('is-outside', date.getMonth() !== first.getMonth());
@@ -3537,7 +3537,7 @@ var initializeDateRange = function initializeDateRange(element) {
 document.addEventListener('DOMContentLoaded', function () {
   document.querySelectorAll(dateRangeSelector).forEach(initializeDateRange);
 });
-window.studioDateRanges = {
+window.calendarDateRanges = {
   initialize: initializeDateRange
 };
 
@@ -45951,10 +45951,10 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ },
 
-/***/ "./resources/sass/studio.scss"
-/*!************************************!*\
-  !*** ./resources/sass/studio.scss ***!
-  \************************************/
+/***/ "./resources/sass/calendar.scss"
+/*!**************************************!*\
+  !*** ./resources/sass/calendar.scss ***!
+  \**************************************/
 (__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -51554,7 +51554,7 @@ var create = module.exports.create;
 /******/ 			"/js/app": 0,
 /******/ 			"css/musicgames": 0,
 /******/ 			"css/schedule": 0,
-/******/ 			"css/studio": 0,
+/******/ 			"css/calendar": 0,
 /******/ 			"css/app": 0
 /******/ 		};
 /******/ 		
@@ -51605,11 +51605,11 @@ var create = module.exports.create;
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module depends on other loaded chunks and execution need to be delayed
-/******/ 	__webpack_require__.O(undefined, ["css/musicgames","css/schedule","css/studio","css/app"], () => (__webpack_require__("./resources/js/app.js")))
-/******/ 	__webpack_require__.O(undefined, ["css/musicgames","css/schedule","css/studio","css/app"], () => (__webpack_require__("./resources/sass/app.scss")))
-/******/ 	__webpack_require__.O(undefined, ["css/musicgames","css/schedule","css/studio","css/app"], () => (__webpack_require__("./resources/sass/studio.scss")))
-/******/ 	__webpack_require__.O(undefined, ["css/musicgames","css/schedule","css/studio","css/app"], () => (__webpack_require__("./resources/sass/schedule.scss")))
-/******/ 	var __webpack_exports__ = __webpack_require__.O(undefined, ["css/musicgames","css/schedule","css/studio","css/app"], () => (__webpack_require__("./resources/sass/musicgames.scss")))
+/******/ 	__webpack_require__.O(undefined, ["css/musicgames","css/schedule","css/calendar","css/app"], () => (__webpack_require__("./resources/js/app.js")))
+/******/ 	__webpack_require__.O(undefined, ["css/musicgames","css/schedule","css/calendar","css/app"], () => (__webpack_require__("./resources/sass/app.scss")))
+/******/ 	__webpack_require__.O(undefined, ["css/musicgames","css/schedule","css/calendar","css/app"], () => (__webpack_require__("./resources/sass/calendar.scss")))
+/******/ 	__webpack_require__.O(undefined, ["css/musicgames","css/schedule","css/calendar","css/app"], () => (__webpack_require__("./resources/sass/schedule.scss")))
+/******/ 	var __webpack_exports__ = __webpack_require__.O(undefined, ["css/musicgames","css/schedule","css/calendar","css/app"], () => (__webpack_require__("./resources/sass/musicgames.scss")))
 /******/ 	__webpack_exports__ = __webpack_require__.O(__webpack_exports__);
 /******/ 	
 /******/ })()
