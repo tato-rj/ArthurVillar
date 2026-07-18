@@ -80,6 +80,7 @@ class Event extends BaseModel
             'notification_minutes_before' => $this->notification_minutes_before,
             'type' => 'general-event',
             'event_type' => $this->type,
+            'event_type_icon' => array_search($this->type, static::typeOptions(), true) ?: null,
             'edit_url' => route('calendar.events.edit', $this),
             'reschedule_url' => route('calendar.events.reschedule', $this),
             'destroy_url' => route('calendar.events.destroy', $this),

@@ -14,6 +14,10 @@
         @fa(['icon' => 'clock', 'classes' => 'opacity-4'])
         <span id="general-event-time"></span>
     </div>
+    <div class="mb-2" data-general-event-type-section hidden>
+        <i id="general-event-type-icon" class="fas opacity-4 mr-2 t-2" aria-hidden="true"></i>
+        <span id="general-event-type"></span>
+    </div>
     <div class="mb-2" hidden>
         @fa(['icon' => 'bell', 'classes' => 'opacity-4'])
         <span id="general-event-notification"></span>

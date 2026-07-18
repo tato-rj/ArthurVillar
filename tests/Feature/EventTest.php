@@ -25,6 +25,7 @@ class EventTest extends BaseTest
             ->assertDontSee('type="time"', false)
             ->assertSee('name="starts_at"', false)
             ->assertSee('name="ends_at"', false)
+            ->assertSee('<th>Type</th>', false)
             ->assertSee('value="09:00"', false)
             ->assertSee('value="09:15"', false)
             ->assertSee('value="09:30"', false)
@@ -197,6 +198,7 @@ class EventTest extends BaseTest
             'scheduled_date' => '2026-09-10',
             'starts_at' => '10:00',
             'ends_at' => '11:00',
+            'type' => 'Doctor',
             'notes' => 'Bring insurance card',
         ]);
         $this->signIn();
@@ -206,6 +208,7 @@ class EventTest extends BaseTest
 
         $this->assertSame('2026-09-10', $row['scheduled_date']);
         $this->assertSame('10:00', substr($row['starts_at'], 0, 5));
+        $this->assertSame('Doctor', $row['type']);
         $this->assertSame('Bring insurance card', $row['notes']);
     }
 
@@ -235,6 +238,7 @@ class EventTest extends BaseTest
         $this->assertSame('Calendar meeting', $payload['generalEvents'][0]['name']);
         $this->assertSame('2026-10-20', $payload['generalEvents'][0]['scheduled_date']);
         $this->assertSame('Meeting', $payload['generalEvents'][0]['event_type']);
+        $this->assertSame('users', $payload['generalEvents'][0]['event_type_icon']);
         $this->assertSame(120, $payload['generalEvents'][0]['notification_minutes_before']);
         $this->assertSame(route('calendar.events.edit', $payload['generalEvents'][0]['id']), $payload['generalEvents'][0]['edit_url']);
         $this->assertSame('https://example.com/agenda', str($payload['generalEvents'][0]['notes'])->after('Agenda at ')->toString());
@@ -254,6 +258,7 @@ class EventTest extends BaseTest
             ->assertOk()
             ->assertSee('general-event-modal', false)
             ->assertSee('general-event-notification', false)
+            ->assertSee('data-general-event-type-section', false)
             ->assertSee('data-general-event-notes-section', false)
             ->assertSee('event-edit', false)
             ->assertSee('lesson-edit', false)

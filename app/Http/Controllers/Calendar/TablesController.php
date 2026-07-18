@@ -44,6 +44,7 @@ class TablesController extends Controller
             'scheduled_date',
             'starts_at',
             'ends_at',
+            'type',
             'notes',
         ]);
 

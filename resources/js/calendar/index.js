@@ -1335,6 +1335,8 @@ const getGeneralEvent = function(generalEvent) {
         start: normalizeTime(generalEvent.starts_at),
         end: normalizeTime(generalEvent.ends_at),
         title: generalEvent.name || 'Event',
+        eventType: generalEvent.event_type || '',
+        eventTypeIcon: generalEvent.event_type_icon || '',
         notes: generalEvent.notes || '',
         notificationMinutesBefore: generalEvent.notification_minutes_before,
         editUrl: generalEvent.edit_url || '',
@@ -2258,6 +2260,9 @@ const openGeneralEventModal = function(event) {
     const title = modal.querySelector('.modal-title');
     const date = modal.querySelector('#general-event-date');
     const time = modal.querySelector('#general-event-time');
+    const eventType = modal.querySelector('#general-event-type');
+    const eventTypeIcon = modal.querySelector('#general-event-type-icon');
+    const eventTypeSection = modal.querySelector('[data-general-event-type-section]');
     const notification = modal.querySelector('#general-event-notification');
     const notes = modal.querySelector('#general-event-notes');
     const notesSection = modal.querySelector('[data-general-event-notes-section]');
@@ -2275,6 +2280,12 @@ const openGeneralEventModal = function(event) {
     if (time) time.textContent = event.start && event.end
         ? `${formatModalEventTime(event.start)} - ${formatModalEventTime(event.end)}`
         : formatModalEventTime(event.start);
+    if (eventType) eventType.textContent = event.eventType || '';
+    if (eventTypeIcon) {
+        eventTypeIcon.className = `fas opacity-4 mr-2 t-2${event.eventTypeIcon ? ` fa-${event.eventTypeIcon}` : ''}`;
+        eventTypeIcon.hidden = !event.eventTypeIcon;
+    }
+    if (eventTypeSection) eventTypeSection.hidden = !event.eventType;
     if (notification) {
         notification.textContent = formatGeneralEventNotification(event.notificationMinutesBefore);
         notification.parentElement.hidden = !notification.textContent;

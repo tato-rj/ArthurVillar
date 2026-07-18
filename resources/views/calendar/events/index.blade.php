@@ -26,6 +26,7 @@
                     <th>Date</th>
                     <th>Starts at</th>
                     <th>Ends at</th>
+                    <th>Type</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -86,6 +87,7 @@ $(function() {
             {data: 'scheduled_date', name: 'scheduled_date', render: function(data, type) { return type === 'display' ? formatDate(data) : data; }},
             {data: 'starts_at', name: 'starts_at', render: function(data, type) { return type === 'display' ? formatTime(data) : data; }},
             {data: 'ends_at', name: 'ends_at', render: function(data, type) { return type === 'display' ? formatTime(data) : data; }},
+            {data: 'type', name: 'type', defaultContent: ''},
             {
                 data: 'id', name: 'actions', orderable: false, searchable: false, className: 'text-right',
                 render: function(data) {

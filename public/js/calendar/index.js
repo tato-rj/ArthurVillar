@@ -1045,6 +1045,8 @@ var getGeneralEvent = function getGeneralEvent(generalEvent) {
     start: normalizeTime(generalEvent.starts_at),
     end: normalizeTime(generalEvent.ends_at),
     title: generalEvent.name || 'Event',
+    eventType: generalEvent.event_type || '',
+    eventTypeIcon: generalEvent.event_type_icon || '',
     notes: generalEvent.notes || '',
     notificationMinutesBefore: generalEvent.notification_minutes_before,
     editUrl: generalEvent.edit_url || '',
@@ -1758,6 +1760,9 @@ var openGeneralEventModal = function openGeneralEventModal(event) {
   var title = modal.querySelector('.modal-title');
   var date = modal.querySelector('#general-event-date');
   var time = modal.querySelector('#general-event-time');
+  var eventType = modal.querySelector('#general-event-type');
+  var eventTypeIcon = modal.querySelector('#general-event-type-icon');
+  var eventTypeSection = modal.querySelector('[data-general-event-type-section]');
   var notification = modal.querySelector('#general-event-notification');
   var notes = modal.querySelector('#general-event-notes');
   var notesSection = modal.querySelector('[data-general-event-notes-section]');
@@ -1771,6 +1776,12 @@ var openGeneralEventModal = function openGeneralEventModal(event) {
   if (title) title.textContent = event.title || 'Event';
   if (date) date.textContent = event.date ? modalDateFormatter.format(parseDateString(event.date)) : '';
   if (time) time.textContent = event.start && event.end ? "".concat(formatModalEventTime(event.start), " - ").concat(formatModalEventTime(event.end)) : formatModalEventTime(event.start);
+  if (eventType) eventType.textContent = event.eventType || '';
+  if (eventTypeIcon) {
+    eventTypeIcon.className = "fas opacity-4 mr-2 t-2".concat(event.eventTypeIcon ? " fa-".concat(event.eventTypeIcon) : '');
+    eventTypeIcon.hidden = !event.eventTypeIcon;
+  }
+  if (eventTypeSection) eventTypeSection.hidden = !event.eventType;
   if (notification) {
     notification.textContent = formatGeneralEventNotification(event.notificationMinutesBefore);
     notification.parentElement.hidden = !notification.textContent;
