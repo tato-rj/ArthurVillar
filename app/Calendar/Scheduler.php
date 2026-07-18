@@ -3,7 +3,14 @@
 namespace App\Calendar;
 
 use App\Calendar\Traits\Holidays;
-use App\Models\Calendar\{Event, LessonPlan, Recital, Settings, SingleLessonPlan, Student, TeachingBreak};
+use App\Models\Calendar\EarlyPayment;
+use App\Models\Calendar\Event;
+use App\Models\Calendar\LessonPlan;
+use App\Models\Calendar\Recital;
+use App\Models\Calendar\Settings;
+use App\Models\Calendar\SingleLessonPlan;
+use App\Models\Calendar\Student;
+use App\Models\Calendar\TeachingBreak;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -54,6 +61,7 @@ class Scheduler
             ->with([
                 'student',
                 'location',
+                'earlyPayments',
                 'student.lessons' => function ($query) use ($range) {
                     $query
                         ->whereNull('lesson_plan_id')
@@ -77,8 +85,15 @@ class Scheduler
 
                     return $scheduledDate === $date && $scheduledStartTime === $startTime;
                 });
+                $earlyPayment = $lesson ? null : $singleLessonPlan->earlyPayments->first();
+                $lessonStatus = $lesson
+                    ? $lesson->paymentStatus()
+                    : ($earlyPayment ? 'early-payment' : 'unconfirmed');
 
-                return array_merge($singleLessonPlan->toArray(), [
+                $payload = $singleLessonPlan->toArray();
+                unset($payload['early_payments']);
+
+                return array_merge($payload, [
                     'type' => 'single-lesson-plan',
                     'occurrences' => [[
                         'date' => $date,
@@ -88,8 +103,9 @@ class Scheduler
                         'original_start_time' => $startTime,
                         'single_lesson_plan_id' => $singleLessonPlan->id,
                         'lesson_id' => $lesson ? $lesson->id : null,
-                        'lesson_status' => $lesson ? $lesson->paymentStatus() : 'unconfirmed',
-                        'calendar_status' => $lesson ? $lesson->paymentStatus() : 'unconfirmed',
+                        'lesson_status' => $lessonStatus,
+                        'calendar_status' => $lessonStatus,
+                        'early_payment_id' => $earlyPayment ? $earlyPayment->id : null,
                         'fee_amount' => $lesson && $lesson->fee_amount ? $lesson->fee_amount : $singleLessonPlan->netFeeAmount(),
                         'canceled_by' => $lesson ? $lesson->canceled_by : '',
                         'lesson_edit_url' => $lesson ? route('calendar.lessons.edit', $lesson) : '',
@@ -108,6 +124,7 @@ class Scheduler
         $lessonPlans = LessonPlan::with([
             'student',
             'location',
+            'earlyPayments',
             'lessons' => function ($query) use ($range) {
                 $query->relevantBetween($range['start'], $range['end']);
             },
@@ -130,8 +147,10 @@ class Scheduler
 
         return $lessonPlans->map(function (LessonPlan $lessonPlan) use ($range, $excludedProjectedDates) {
             $occurrences = $this->occurrences($lessonPlan, $range, $excludedProjectedDates);
+            $payload = $lessonPlan->toArray();
+            unset($payload['early_payments']);
 
-            return array_merge($lessonPlan->toArray(), [
+            return array_merge($payload, [
                 'occurrences' => $occurrences,
             ]);
         })
@@ -188,6 +207,14 @@ class Scheduler
             }
 
             $lesson = $scheduledLesson ?: $this->lessonForOccurrence($lessonPlan, $occurrence, $lessonPlan->start_time);
+            $earlyPayment = $lesson ? null : $this->earlyPaymentForOccurrence(
+                $lessonPlan->earlyPayments,
+                $occurrence->toDateString(),
+                $lessonPlan->start_time
+            );
+            $lessonStatus = $lesson
+                ? $lesson->paymentStatus()
+                : ($earlyPayment ? 'early-payment' : 'unconfirmed');
 
             if ($isExcludedProjectedDate && ! $lesson) {
                 $occurrence->addDays($intervalDays);
@@ -202,8 +229,9 @@ class Scheduler
                 'original_date' => $occurrence->toDateString(),
                 'original_start_time' => $lessonPlan->start_time,
                 'lesson_id' => $lesson ? $lesson->id : null,
-                'lesson_status' => $lesson ? $lesson->paymentStatus() : 'unconfirmed',
-                'calendar_status' => $lesson ? $lesson->paymentStatus() : 'unconfirmed',
+                'lesson_status' => $lessonStatus,
+                'calendar_status' => $lessonStatus,
+                'early_payment_id' => $earlyPayment ? $earlyPayment->id : null,
                 'fee_amount' => $lesson && $lesson->fee_amount ? $lesson->fee_amount : $lessonPlan->netFeeAmount(),
                 'canceled_by' => $lesson ? $lesson->canceled_by : '',
                 'lesson_edit_url' => $lesson ? route('calendar.lessons.edit', $lesson) : '',
@@ -220,6 +248,14 @@ class Scheduler
             ->each(function ($override) use (&$occurrences, $lessonPlan) {
                 $occurrence = Carbon::parse($override->new_date)->startOfDay();
                 $lesson = $this->lessonForOccurrence($lessonPlan, $occurrence, $override->new_start_time);
+                $earlyPayment = $lesson ? null : $this->earlyPaymentForOccurrence(
+                    $lessonPlan->earlyPayments,
+                    $override->original_date,
+                    $override->original_start_time
+                );
+                $lessonStatus = $lesson
+                    ? $lesson->paymentStatus()
+                    : ($earlyPayment ? 'early-payment' : 'unconfirmed');
 
                 $occurrences[] = [
                     'date' => $override->new_date,
@@ -229,10 +265,11 @@ class Scheduler
                     'original_start_time' => $override->original_start_time,
                     'schedule_override_id' => $override->id,
                     'lesson_id' => $lesson ? $lesson->id : null,
-                    'lesson_status' => $lesson ? $lesson->paymentStatus() : 'unconfirmed',
+                    'lesson_status' => $lessonStatus,
+                    'early_payment_id' => $earlyPayment ? $earlyPayment->id : null,
                     'fee_amount' => $lesson && $lesson->fee_amount ? $lesson->fee_amount : $lessonPlan->netFeeAmount(),
                     'canceled_by' => $lesson ? $lesson->canceled_by : '',
-                    'calendar_status' => 'rescheduled',
+                    'calendar_status' => $earlyPayment ? 'early-payment' : 'rescheduled',
                     'lesson_edit_url' => $lesson ? route('calendar.lessons.edit', $lesson) : '',
                     'lesson_payment_url' => $lesson ? $lesson->paymentUrl : '',
                 ];
@@ -266,6 +303,17 @@ class Scheduler
             });
 
         return $occurrences;
+    }
+
+    private function earlyPaymentForOccurrence($earlyPayments, $scheduledDate, $scheduledStartTime)
+    {
+        $date = Carbon::parse($scheduledDate)->toDateString();
+        $startTime = LessonPlan::normalizeTime($scheduledStartTime);
+
+        return $earlyPayments->first(function (EarlyPayment $earlyPayment) use ($date, $startTime) {
+            return $earlyPayment->scheduled_date->toDateString() === $date
+                && $earlyPayment->scheduled_start_time === $startTime;
+        });
     }
 
     public function teachingBreaks(array $range)

@@ -2,10 +2,16 @@
 
 namespace Tests\Feature;
 
+use App\Calendar\Scheduler;
+use App\Models\Calendar\EarlyPayment;
+use App\Models\Calendar\Lesson;
+use App\Models\Calendar\LessonPlan;
+use App\Models\Calendar\Location;
+use App\Models\Calendar\ScheduleOverride;
+use App\Models\Calendar\SingleLessonPlan;
+use App\Models\Calendar\Student;
 use Carbon\Carbon;
 use Tests\BaseTest;
-use App\Calendar\Scheduler;
-use App\Models\Calendar\{Lesson, LessonPlan, Location, ScheduleOverride, SingleLessonPlan, Student};
 
 class CalendarLessonFlowTest extends BaseTest
 {
@@ -791,6 +797,163 @@ class CalendarLessonFlowTest extends BaseTest
             'payment_method' => 'Venmo',
             'notes' => 'One-off makeup lesson.',
         ]);
+    }
+
+    /** @test */
+    public function it_records_an_early_payment_for_a_future_lesson_occurrence()
+    {
+        Carbon::setTestNow('2026-07-10 12:00:00');
+        $lessonPlan = LessonPlan::factory()->create();
+
+        $this->signIn();
+
+        $response = $this->postJson(route('calendar.lessons.early-payments.store'), [
+            'lesson_plan_id' => $lessonPlan->id,
+            'single_lesson_plan_id' => '',
+            'date' => '2026-07-15',
+            'scheduled_date' => '2026-07-15',
+            'scheduled_start_time' => '15:30',
+        ]);
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('status', 'early-payment');
+
+        $earlyPayment = EarlyPayment::findOrFail($response->json('early_payment_id'));
+
+        $this->assertSame($lessonPlan->id, $earlyPayment->lesson_plan_id);
+        $this->assertSame('2026-07-15', $earlyPayment->scheduled_date->toDateString());
+        $this->assertSame('15:30', $earlyPayment->scheduled_start_time);
+        $this->assertDatabaseCount('lessons', 0);
+
+        Carbon::setTestNow();
+    }
+
+    /** @test */
+    public function confirming_a_lesson_consumes_its_early_payment_and_marks_the_lesson_paid()
+    {
+        Carbon::setTestNow('2026-07-15 16:30:00');
+        $lessonPlan = LessonPlan::factory()->create([
+            'fee_amount' => 6000,
+            'payment_method' => 'Venmo',
+        ]);
+        $earlyPayment = EarlyPayment::create([
+            'lesson_plan_id' => $lessonPlan->id,
+            'scheduled_date' => '2026-07-15',
+            'scheduled_start_time' => '15:30',
+        ]);
+
+        $this->signIn();
+
+        $response = $this->postJson(route('calendar.lessons.store'), [
+            'lesson_plan_id' => $lessonPlan->id,
+            'single_lesson_plan_id' => '',
+            'date' => '2026-07-15',
+            'start' => '15:30',
+            'end' => '16:15',
+            'scheduled_date' => '2026-07-15',
+            'scheduled_start_time' => '15:30',
+        ]);
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('status', 'paid')
+            ->assertJsonPath('early_payment_consumed', true)
+            ->assertJsonPath('early_payment_id', '');
+
+        $lesson = Lesson::findOrFail($response->json('lesson_id'));
+
+        $this->assertNotNull($lesson->paid_at);
+        $this->assertSame('Venmo', $lesson->payment_method);
+        $this->assertDatabaseMissing('early_payments', ['id' => $earlyPayment->id]);
+
+        Carbon::setTestNow();
+    }
+
+    /** @test */
+    public function confirming_a_single_lesson_consumes_its_early_payment()
+    {
+        Carbon::setTestNow('2026-07-15 16:30:00');
+        $singleLessonPlan = SingleLessonPlan::factory()->create([
+            'scheduled_date' => '2026-07-15',
+            'start_time' => '15:30',
+            'duration_minutes' => 45,
+            'payment_method' => 'Cash',
+        ]);
+        $earlyPayment = EarlyPayment::create([
+            'single_lesson_plan_id' => $singleLessonPlan->id,
+            'scheduled_date' => '2026-07-15',
+            'scheduled_start_time' => '15:30',
+        ]);
+
+        $this->signIn();
+
+        $response = $this->postJson(route('calendar.lessons.store'), [
+            'lesson_plan_id' => '',
+            'single_lesson_plan_id' => $singleLessonPlan->id,
+            'date' => '2026-07-15',
+            'start' => '15:30',
+            'end' => '16:15',
+            'scheduled_date' => '2026-07-15',
+            'scheduled_start_time' => '15:30',
+        ]);
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('status', 'paid')
+            ->assertJsonPath('early_payment_consumed', true);
+
+        $this->assertNotNull(Lesson::findOrFail($response->json('lesson_id'))->paid_at);
+        $this->assertDatabaseMissing('early_payments', ['id' => $earlyPayment->id]);
+
+        Carbon::setTestNow();
+    }
+
+    /** @test */
+    public function reverting_an_early_payment_restores_the_occurrence_to_unconfirmed()
+    {
+        $earlyPayment = EarlyPayment::factory()->create();
+
+        $this->signIn();
+
+        $this->postJson(route('calendar.lessons.revert'), [
+            'lesson_id' => '',
+            'schedule_override_id' => '',
+            'early_payment_id' => $earlyPayment->id,
+        ])
+            ->assertOk()
+            ->assertJsonPath('status', 'unconfirmed')
+            ->assertJsonPath('early_payment_deleted', true)
+            ->assertJsonPath('early_payment_id', '');
+
+        $this->assertDatabaseMissing('early_payments', ['id' => $earlyPayment->id]);
+    }
+
+    /** @test */
+    public function calendar_payload_marks_a_future_occurrence_with_an_early_payment()
+    {
+        $lessonPlan = LessonPlan::factory()->create([
+            'weekday' => 4,
+            'start_time' => '15:30',
+            'duration_minutes' => 45,
+            'starts_on' => '2026-07-01',
+        ]);
+        $earlyPayment = EarlyPayment::create([
+            'lesson_plan_id' => $lessonPlan->id,
+            'scheduled_date' => '2026-07-15',
+            'scheduled_start_time' => '15:30',
+        ]);
+
+        $lessonPlanPayload = app(Scheduler::class)->plannedLessons([
+            'start' => '2026-07-15',
+            'end' => '2026-07-15',
+        ])->first();
+        $occurrence = $lessonPlanPayload['occurrences'][0];
+
+        $this->assertSame('early-payment', $occurrence['lesson_status']);
+        $this->assertSame('early-payment', $occurrence['calendar_status']);
+        $this->assertSame($earlyPayment->id, $occurrence['early_payment_id']);
+        $this->assertNull($occurrence['lesson_id']);
     }
 
     /** @test */

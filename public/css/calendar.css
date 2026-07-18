@@ -17071,7 +17071,7 @@ textarea.form-control-lg {
   display: inline !important;
 }
 
-.d-inline-block, #lesson-modal[data-lesson-status=canceled] div#lesson-status, #lesson-modal[data-lesson-status=paid] div#lesson-status, #lesson-modal[data-lesson-status=unpaid] div#lesson-status {
+.d-inline-block, #lesson-modal[data-lesson-status=canceled] div#lesson-status, #lesson-modal[data-lesson-status=early-payment] div#lesson-status, #lesson-modal[data-lesson-status=paid] div#lesson-status, #lesson-modal[data-lesson-status=unpaid] div#lesson-status {
   display: inline-block !important;
 }
 
@@ -25271,7 +25271,7 @@ h1, .h1 {
   background: #a16207;
   color: white;
 }
-.bg-green-lighter, .alert-green, #lesson-modal[data-lesson-status=paid] div#lesson-status {
+.bg-green-lighter, .alert-green, #lesson-modal[data-lesson-status=early-payment] div#lesson-status, #lesson-modal[data-lesson-status=paid] div#lesson-status {
   background: #f0fdf4;
   color: dark;
 }
@@ -25390,7 +25390,7 @@ h1, .h1 {
 .text-yellow, .alert-yellow {
   color: #ffc800 !important;
 }
-.text-green, .alert-green, #lesson-modal[data-lesson-status=paid] div#lesson-status {
+.text-green, .alert-green, #lesson-modal[data-lesson-status=early-payment] div#lesson-status, #lesson-modal[data-lesson-status=paid] div#lesson-status {
   color: #58cc02 !important;
 }
 .text-teal, .alert-teal {
@@ -25553,7 +25553,7 @@ h1, .h1 {
   border-color: rgba(255, 200, 0, 0.2);
   border-width: 1px;
 }
-.alert-green, #lesson-modal[data-lesson-status=paid] div#lesson-status {
+.alert-green, #lesson-modal[data-lesson-status=early-payment] div#lesson-status, #lesson-modal[data-lesson-status=paid] div#lesson-status {
   border-color: rgba(88, 204, 2, 0.2);
   border-width: 1px;
 }
@@ -32542,6 +32542,11 @@ button.single-lesson-plan-create[selected] i {
   color: white;
 }
 
+#calendar .lm-schedule-item[data-lesson-status=early-payment], .calendar-month-event-dot[data-lesson-status=early-payment], #calendar .calendar-schedule-event[data-lesson-status=early-payment] {
+  background: var(--calendar-paid-lesson-color, #58cc02);
+  color: white;
+}
+
 #calendar .lm-schedule-item[data-lesson-status=canceled], #calendar .calendar-month-event-dot[data-lesson-status=canceled], #calendar .calendar-schedule-event[data-lesson-status=canceled] {
   background: var(--calendar-canceled-lesson-color, #ffffff);
   text-decoration: line-through;
@@ -32608,6 +32613,10 @@ button.single-lesson-plan-create[selected] i {
 }
 
 #lesson-modal[data-lesson-status=paid] #confirm-payment {
+  display: none;
+}
+
+#lesson-modal[data-lesson-status=early-payment] #confirm-payment, #lesson-modal[data-lesson-status=early-payment] #early-payment {
   display: none;
 }
 
@@ -32679,6 +32688,16 @@ button.single-lesson-plan-create[selected] i {
   display: none;
 }
 #lesson-modal[data-lesson-status=paid] button#confirm-payment {
+  display: none;
+}
+
+#lesson-modal[data-lesson-status=early-payment] h4.modal-title:before, #lesson-modal[data-lesson-status=early-payment] .modal-title.h4:before {
+  background: var(--calendar-paid-lesson-color, #58cc02);
+}
+#lesson-modal[data-lesson-status=early-payment] div#lesson-status:after {
+  content: "Early payment recorded";
+}
+#lesson-modal[data-lesson-status=early-payment] button#confirm-payment, #lesson-modal[data-lesson-status=early-payment] button#early-payment {
   display: none;
 }
 

@@ -2,10 +2,10 @@
 
 namespace App\Models\Calendar;
 
+use App\Calendar\Traits\Holidays;
 use App\Models\BaseModel;
 use Carbon\Carbon;
 use InvalidArgumentException;
-use App\Calendar\Traits\Holidays;
 
 class LessonPlan extends BaseModel
 {
@@ -22,7 +22,7 @@ class LessonPlan extends BaseModel
     ];
 
     protected $dates = [
-        'starts_on', 
+        'starts_on',
         'ends_on',
     ];
 
@@ -43,6 +43,11 @@ class LessonPlan extends BaseModel
         return $this->hasMany(Lesson::class);
     }
 
+    public function earlyPayments()
+    {
+        return $this->hasMany(EarlyPayment::class);
+    }
+
     public function location()
     {
         return $this->belongsTo(Location::class);
@@ -56,7 +61,7 @@ class LessonPlan extends BaseModel
     public function scopeFor($query, Student $student)
     {
         $this->create([
-            'student_id' => $student->id
+            'student_id' => $student->id,
         ]);
     }
 
@@ -347,21 +352,21 @@ class LessonPlan extends BaseModel
         return $query
             ->where('recurrence_interval', '>', 0)
             ->whereDate('starts_on', '<=', $end->toDateString())
-            ->where(function($query) use ($start) {
+            ->where(function ($query) use ($start) {
                 $query
                     ->whereNull('ends_on')
                     ->orWhereDate('ends_on', '>=', $start->toDateString());
             })
-            ->where(function($query) use ($start, $end, $driver) {
+            ->where(function ($query) use ($start, $end, $driver) {
                 for ($date = $start->copy(); $date->lte($end); $date->addDay()) {
                     $dateString = $date->toDateString();
                     $weekday = static::fromCarbonWeekday($date->dayOfWeek);
 
-                    $query->orWhere(function($query) use ($dateString, $weekday, $driver) {
+                    $query->orWhere(function ($query) use ($dateString, $weekday, $driver) {
                         $query
                             ->where('weekday', $weekday)
                             ->whereDate('starts_on', '<=', $dateString)
-                            ->where(function($query) use ($dateString) {
+                            ->where(function ($query) use ($dateString) {
                                 $query
                                     ->whereNull('ends_on')
                                     ->orWhereDate('ends_on', '>=', $dateString);

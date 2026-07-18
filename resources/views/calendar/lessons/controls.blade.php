@@ -3,6 +3,10 @@
 		@fa(['icon' => 'money-bill-wave'])Confirm payment
 	</button>
 
+	<button id="early-payment" data-url="{{route('calendar.lessons.early-payments.store')}}" type="button" class="btn btn-outline-green w-100 mb-2">
+		@fa(['icon' => 'money-bill-wave'])Early payment
+	</button>
+
 	<div id="lesson-attendance" class="">
 		<button id="lesson-taught" data-url="{{route('calendar.lessons.store')}}" class="btn btn-primary w-100 mb-2">@fa(['icon' => 'calendar-check'])Lesson taught
 		</button>

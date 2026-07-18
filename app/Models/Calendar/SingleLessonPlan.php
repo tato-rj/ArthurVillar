@@ -22,6 +22,11 @@ class SingleLessonPlan extends BaseModel
         return $this->belongsTo(Location::class);
     }
 
+    public function earlyPayments()
+    {
+        return $this->hasMany(EarlyPayment::class);
+    }
+
     public function netFeeAmount()
     {
         return $this->location

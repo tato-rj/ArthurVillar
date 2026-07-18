@@ -2,11 +2,16 @@
 
 namespace App\Http\Controllers\Calendar;
 
-use App\Models\Calendar\{Lesson, LessonPlan, SingleLessonPlan, Student, ScheduleOverride};
+use App\Http\Controllers\Controller;
+use App\Models\Calendar\EarlyPayment;
+use App\Models\Calendar\Lesson;
+use App\Models\Calendar\LessonPlan;
+use App\Models\Calendar\ScheduleOverride;
+use App\Models\Calendar\SingleLessonPlan;
+use App\Models\Calendar\Student;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Http\Controllers\Controller;
 use Illuminate\Validation\Rule;
 
 class LessonsController extends Controller
@@ -25,7 +30,30 @@ class LessonsController extends Controller
 
     public function store(Request $request)
     {
-        $lesson = $this->lessonFromRequest($request);
+        $result = DB::transaction(function () use ($request) {
+            $lesson = $this->lessonFromRequest($request);
+            $earlyPayment = EarlyPayment::query()
+                ->forOccurrence(
+                    $request->input('lesson_plan_id'),
+                    $request->input('single_lesson_plan_id'),
+                    $request->input('scheduled_date', $request->input('date')),
+                    $request->input('scheduled_start_time', $request->input('start'))
+                )
+                ->lockForUpdate()
+                ->first();
+
+            if ($earlyPayment) {
+                $lesson['model']->pay();
+                $earlyPayment->delete();
+            }
+
+            return [
+                'lesson' => $lesson,
+                'early_payment_consumed' => (bool) $earlyPayment,
+            ];
+        });
+
+        $lesson = $result['lesson'];
 
         return response()->json([
             'lesson_id' => $lesson['model']->id,
@@ -33,6 +61,8 @@ class LessonsController extends Controller
             'edit_url' => route('calendar.lessons.edit', $lesson['model']),
             'payment_url' => $lesson['model']->paymentUrl,
             'schedule_override_deleted' => $lesson['schedule_override_deleted'],
+            'early_payment_id' => '',
+            'early_payment_consumed' => $result['early_payment_consumed'],
         ]);
     }
 
@@ -122,9 +152,14 @@ class LessonsController extends Controller
         $data = $request->validate([
             'lesson_id' => ['nullable', 'exists:lessons,id'],
             'schedule_override_id' => ['nullable', 'exists:schedule_overrides,id'],
+            'early_payment_id' => ['nullable', 'exists:early_payments,id'],
         ]);
 
-        abort_if(empty($data['lesson_id']) && empty($data['schedule_override_id']), 422, 'There is no lesson action to revert.');
+        abort_if(
+            empty($data['lesson_id']) && empty($data['schedule_override_id']) && empty($data['early_payment_id']),
+            422,
+            'There is no lesson action to revert.'
+        );
 
         $payload = [
             'status' => 'unconfirmed',
@@ -133,7 +168,16 @@ class LessonsController extends Controller
             'schedule_override_deleted' => false,
             'lesson_reverted' => false,
             'lesson_deleted' => false,
+            'early_payment_id' => $data['early_payment_id'] ?? '',
+            'early_payment_deleted' => false,
         ];
+
+        if (! empty($data['early_payment_id'])) {
+            $payload['early_payment_deleted'] = EarlyPayment::whereKey($data['early_payment_id'])->delete() > 0;
+            $payload['early_payment_id'] = '';
+
+            return response()->json($payload);
+        }
 
         if (! empty($data['schedule_override_id'])) {
             $payload['schedule_override_deleted'] = ScheduleOverride::whereKey($data['schedule_override_id'])->delete() > 0;

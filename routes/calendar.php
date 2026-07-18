@@ -194,6 +194,8 @@ Route::prefix('lessons')->name('lessons.')->group(function() {
 
 	Route::post('revert', 'LessonsController@revert')->name('revert');
 
+	Route::post('early-payments', 'EarlyPaymentsController@store')->name('early-payments.store');
+
 	Route::prefix('{lesson}')->group(function() {
 		Route::get('', 'LessonsController@edit')->name('edit');
 
