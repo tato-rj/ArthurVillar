@@ -27,6 +27,38 @@
     @endselect
 </div>
 
+@php
+    $selectedType = old('type', $event->type ?? null);
+    $typeInputSuffix = $event->id ?? 'new';
+@endphp
+
+<div class="form-group">
+    @label(['label' => 'Type'])
+    <div class="d-flex flex-wrap gap-1" data-event-type-options>
+        @foreach(\App\Models\Calendar\Event::typeOptions() as $typeIcon => $typeName)
+            @php
+                $typeInputId = 'event-type-'.\Illuminate\Support\Str::slug($typeName).'-'.$typeInputSuffix;
+                $typeSelected = $selectedType === $typeName;
+            @endphp
+            <input
+                class="sr-only"
+                type="radio"
+                name="type"
+                id="{{$typeInputId}}"
+                value="{{$typeName}}"
+                data-event-type-input
+                {{iftrue($typeSelected, 'checked')}}>
+            <label
+                for="{{$typeInputId}}"
+                class="btn {{$typeSelected ? 'btn-secondary' : 'btn-outline-secondary'}} btn-sm btn-wide rounded-sm d-center"
+                data-event-type-option>
+                @fa(['icon' => $typeIcon])
+                <span>{{$typeName}}</span>
+            </label>
+        @endforeach
+    </div>
+</div>
+
 @textarea([
     'label' => 'Notes',
     'name' => 'notes',

@@ -2,10 +2,9 @@
 
 namespace App\Models\Calendar;
 
-use App\Models\{BaseModel, User};
+use App\Models\BaseModel;
+use App\Models\User;
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Event extends BaseModel
@@ -41,6 +40,17 @@ class Event extends BaseModel
         return array_key_exists($minutes, static::notificationOptions()) ? $minutes : null;
     }
 
+    public static function typeOptions(): array
+    {
+        return [
+            'users' => 'Meeting',
+            'masks-theater' => 'Theater',
+            'music' => 'Concert',
+            'briefcase-medical' => 'Doctor',
+            'utensils' => 'Restaurant',
+        ];
+    }
+
     public static function timeOptions(): array
     {
         $times = [];
@@ -68,6 +78,7 @@ class Event extends BaseModel
             'notes' => $this->notes,
             'notification_minutes_before' => $this->notification_minutes_before,
             'type' => 'general-event',
+            'event_type' => $this->type,
             'edit_url' => route('calendar.events.edit', $this),
             'reschedule_url' => route('calendar.events.reschedule', $this),
             'destroy_url' => route('calendar.events.destroy', $this),

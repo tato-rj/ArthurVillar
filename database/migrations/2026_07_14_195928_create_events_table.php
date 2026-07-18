@@ -19,6 +19,7 @@ return new class extends Migration
             $table->date('scheduled_date');
             $table->time('starts_at');
             $table->time('ends_at');
+            $table->text('type')->nullable();
             $table->text('notes')->nullable();
             $table->foreignId('notification_user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->unsignedSmallInteger('notification_minutes_before')->nullable();

@@ -41,6 +41,7 @@ class EventTest extends BaseTest
             'scheduled_date' => '2026-08-15',
             'starts_at' => '18:30',
             'ends_at' => '20:00',
+            'type' => 'Restaurant',
             'notes' => 'Reservation details https://example.com/reservation',
         ])->assertRedirect();
 
@@ -51,6 +52,7 @@ class EventTest extends BaseTest
             'scheduled_date' => '2026-08-16',
             'starts_at' => '19:00',
             'ends_at' => '21:00',
+            'type' => 'Meeting',
             'notes' => 'Updated notes',
         ])->assertRedirect();
 
@@ -59,12 +61,27 @@ class EventTest extends BaseTest
             'name' => 'Dinner with friends',
             'starts_at' => '19:00',
             'ends_at' => '21:00',
+            'type' => 'Meeting',
             'notes' => 'Updated notes',
         ]);
         $this->assertSame('2026-08-16', $event->fresh()->scheduled_date->toDateString());
 
         $this->delete(route('calendar.events.destroy', $event))->assertRedirect();
         $this->assertDatabaseMissing('events', ['id' => $event->id]);
+    }
+
+    /** @test */
+    public function event_type_must_be_one_of_the_available_options()
+    {
+        $this->signIn();
+
+        $this->post(route('calendar.events.store'), [
+            'name' => 'Appointment',
+            'scheduled_date' => '2026-08-15',
+            'starts_at' => '14:00',
+            'ends_at' => '15:00',
+            'type' => 'Unsupported type',
+        ])->assertSessionHasErrors('type');
     }
 
     /** @test */
@@ -133,24 +150,29 @@ class EventTest extends BaseTest
             'scheduled_date' => '2026-08-15',
             'starts_at' => '12:00',
             'ends_at' => '13:00',
+            'type' => 'Meeting',
             'notes' => 'Original notes',
         ]);
         $this->signIn();
 
         $this->get(route('calendar.events.edit', $event))
             ->assertOk()
-            ->assertSee('edit-event-'.$event->id.'-modal', false);
+            ->assertSee('edit-event-'.$event->id.'-modal', false)
+            ->assertSee('value="Meeting"', false)
+            ->assertSee('btn btn-secondary btn-sm btn-wide', false);
 
         $this->patchJson(route('calendar.events.update', $event), [
             'name' => 'Updated lunch meeting',
             'scheduled_date' => '2026-08-16',
             'starts_at' => '12:15',
             'ends_at' => '13:30',
+            'type' => 'Doctor',
             'notes' => 'Updated notes',
         ])
             ->assertOk()
             ->assertJsonPath('event.id', $event->id)
             ->assertJsonPath('event.name', 'Updated lunch meeting')
+            ->assertJsonPath('event.event_type', 'Doctor')
             ->assertJsonPath('event.edit_url', route('calendar.events.edit', $event));
     }
 

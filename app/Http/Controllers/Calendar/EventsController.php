@@ -79,6 +79,7 @@ class EventsController extends Controller
             'scheduled_date' => ['required', 'date'],
             'starts_at' => ['required', 'date_format:H:i', Rule::in(Event::timeOptions())],
             'ends_at' => ['required', 'date_format:H:i', Rule::in(Event::timeOptions()), 'after:starts_at'],
+            'type' => ['nullable', Rule::in(array_values(Event::typeOptions()))],
             'notes' => ['nullable', 'string'],
             'send_notification' => ['nullable', 'boolean'],
             'notification_minutes_before' => [

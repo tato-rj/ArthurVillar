@@ -3543,6 +3543,31 @@ window.calendarDateRanges = {
 
 /***/ },
 
+/***/ "./resources/js/components/event-type.js"
+/*!***********************************************!*\
+  !*** ./resources/js/components/event-type.js ***!
+  \***********************************************/
+() {
+
+function refreshEventTypeButtons(group) {
+  group.querySelectorAll('[data-event-type-input]').forEach(function (input) {
+    var label = input.nextElementSibling;
+    if (!label || !label.matches('[data-event-type-option]')) {
+      return;
+    }
+    label.classList.toggle('btn-secondary', input.checked);
+    label.classList.toggle('btn-outline-secondary', !input.checked);
+  });
+}
+document.addEventListener('change', function (event) {
+  if (!event.target.matches('[data-event-type-input]')) {
+    return;
+  }
+  refreshEventTypeButtons(event.target.closest('[data-event-type-options]'));
+});
+
+/***/ },
+
 /***/ "./resources/js/components/form.js"
 /*!*****************************************!*\
   !*** ./resources/js/components/form.js ***!
@@ -3609,6 +3634,7 @@ $(document).on('click', '.btn[data-trigger="loader"]', function () {
 
 __webpack_require__(/*! ./alerts */ "./resources/js/components/alerts.js");
 __webpack_require__(/*! ./date-range */ "./resources/js/components/date-range.js");
+__webpack_require__(/*! ./event-type */ "./resources/js/components/event-type.js");
 __webpack_require__(/*! ./form */ "./resources/js/components/form.js");
 __webpack_require__(/*! ./pull-to-refresh */ "./resources/js/components/pull-to-refresh.js");
 
