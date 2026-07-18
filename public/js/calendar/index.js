@@ -1126,6 +1126,30 @@ var restoreButtonLabel = function restoreButtonLabel(button) {
     button.innerHTML = button.dataset.defaultHtml;
   }
 };
+var setFormSubmitting = function setFormSubmitting(form, isSubmitting) {
+  if (!form) {
+    return;
+  }
+  form.querySelectorAll('button:not([type]), button[type="submit"], input[type="submit"], input[type="image"]').forEach(function (submit) {
+    if (isSubmitting) {
+      if (submit.disabled) {
+        return;
+      }
+      preserveButtonLabel(submit);
+      submit.dataset.calendarDisabledOnSubmit = 'true';
+      submit.disabled = true;
+      submit.setAttribute('aria-disabled', 'true');
+      return;
+    }
+    if (submit.dataset.calendarDisabledOnSubmit !== 'true') {
+      return;
+    }
+    submit.disabled = false;
+    submit.removeAttribute('aria-disabled');
+    delete submit.dataset.calendarDisabledOnSubmit;
+    restoreButtonLabel(submit);
+  });
+};
 var getResponseErrorMessage = function getResponseErrorMessage(payload, fallback) {
   if (payload && payload.message) {
     return payload.message;
@@ -1764,15 +1788,11 @@ var openGeneralEventModal = function openGeneralEventModal(event) {
 };
 var submitGeneralEventModalForm = function submitGeneralEventModalForm(form, refreshCalendar) {
   var modal = form ? form.closest('#general-event-modal') : null;
-  var submit = form ? form.querySelector('button[type="submit"], input[type="submit"]') : null;
   var isReschedule = !!(form && form.closest('#reschedule-general-event'));
   if (!modal || !form.action) {
     return;
   }
-  if (submit) {
-    preserveButtonLabel(submit);
-    submit.disabled = true;
-  }
+  setFormSubmitting(form, true);
   clearGeneralEventActionError(modal);
   requestJson(form.action, {
     method: 'POST',
@@ -1788,11 +1808,9 @@ var submitGeneralEventModalForm = function submitGeneralEventModalForm(form, ref
     });
   })["catch"](function (error) {
     console.error(error);
-    if (submit) {
-      submit.disabled = false;
-      restoreButtonLabel(submit);
-    }
     showGeneralEventActionError(modal, error.message);
+  })["finally"](function () {
+    setFormSubmitting(form, false);
   });
 };
 var updateLessonModalState = function updateLessonModalState(modal, payload) {
@@ -2005,15 +2023,11 @@ var confirmLessonPayment = function confirmLessonPayment(button, refreshCalendar
 };
 var submitLessonModalForm = function submitLessonModalForm(form, refreshCalendar) {
   var modal = form ? form.closest('#lesson-modal') : null;
-  var submit = form ? form.querySelector('button[type="submit"], input[type="submit"]') : null;
   var isReschedule = !!(form && form.closest('#reschedule-lesson'));
   if (!modal || !form.action) {
     return;
   }
-  if (submit) {
-    preserveButtonLabel(submit);
-    submit.disabled = true;
-  }
+  setFormSubmitting(form, true);
   clearLessonActionError(modal);
   requestJson(form.action, {
     method: String(form.method || 'POST').toUpperCase(),
@@ -2030,11 +2044,9 @@ var submitLessonModalForm = function submitLessonModalForm(form, refreshCalendar
     return finishLessonModalMutation(modal, refreshCalendar, !isReschedule);
   })["catch"](function (error) {
     console.error(error);
-    if (submit) {
-      submit.disabled = false;
-      restoreButtonLabel(submit);
-    }
     showLessonActionError(modal, error.message);
+  })["finally"](function () {
+    setFormSubmitting(form, false);
   });
 };
 var patchSchedulePointer = function patchSchedulePointer(calendar) {
@@ -2802,14 +2814,10 @@ var loadCalendarEditModal = function loadCalendarEditModal(button, sourceModal, 
 };
 var submitCalendarEditForm = function submitCalendarEditForm(form, refreshCalendar) {
   var modal = form ? form.closest('.modal') : null;
-  var submit = form ? form.querySelector('button[type="submit"], input[type="submit"]') : null;
   if (!form || !form.action || !modal) {
     return;
   }
-  if (submit) {
-    preserveButtonLabel(submit);
-    submit.disabled = true;
-  }
+  setFormSubmitting(form, true);
   requestJson(form.action, {
     method: 'POST',
     headers: {
@@ -2823,11 +2831,9 @@ var submitCalendarEditForm = function submitCalendarEditForm(form, refreshCalend
     return refreshCalendar();
   })["catch"](function (error) {
     console.error(error);
-    if (submit) {
-      submit.disabled = false;
-      restoreButtonLabel(submit);
-    }
     showCalendarEditError(modal, error.message);
+  })["finally"](function () {
+    setFormSubmitting(form, false);
   });
 };
 var openMonthDayEventsModal = function openMonthDayEventsModal(dateString) {

@@ -1444,6 +1444,35 @@ const restoreButtonLabel = function(button) {
     }
 };
 
+const setFormSubmitting = function(form, isSubmitting) {
+    if (!form) {
+        return;
+    }
+
+    form.querySelectorAll('button:not([type]), button[type="submit"], input[type="submit"], input[type="image"]').forEach(function(submit) {
+        if (isSubmitting) {
+            if (submit.disabled) {
+                return;
+            }
+
+            preserveButtonLabel(submit);
+            submit.dataset.calendarDisabledOnSubmit = 'true';
+            submit.disabled = true;
+            submit.setAttribute('aria-disabled', 'true');
+            return;
+        }
+
+        if (submit.dataset.calendarDisabledOnSubmit !== 'true') {
+            return;
+        }
+
+        submit.disabled = false;
+        submit.removeAttribute('aria-disabled');
+        delete submit.dataset.calendarDisabledOnSubmit;
+        restoreButtonLabel(submit);
+    });
+};
+
 const getResponseErrorMessage = function(payload, fallback) {
     if (payload && payload.message) {
         return payload.message;
@@ -2269,17 +2298,13 @@ const openGeneralEventModal = function(event) {
 
 const submitGeneralEventModalForm = function(form, refreshCalendar) {
     const modal = form ? form.closest('#general-event-modal') : null;
-    const submit = form ? form.querySelector('button[type="submit"], input[type="submit"]') : null;
     const isReschedule = !!(form && form.closest('#reschedule-general-event'));
 
     if (!modal || !form.action) {
         return;
     }
 
-    if (submit) {
-        preserveButtonLabel(submit);
-        submit.disabled = true;
-    }
+    setFormSubmitting(form, true);
 
     clearGeneralEventActionError(modal);
 
@@ -2299,13 +2324,10 @@ const submitGeneralEventModalForm = function(form, refreshCalendar) {
         })
         .catch(function(error) {
             console.error(error);
-
-            if (submit) {
-                submit.disabled = false;
-                restoreButtonLabel(submit);
-            }
-
             showGeneralEventActionError(modal, error.message);
+        })
+        .finally(function() {
+            setFormSubmitting(form, false);
         });
 };
 
@@ -2566,17 +2588,13 @@ const confirmLessonPayment = function(button, refreshCalendar) {
 
 const submitLessonModalForm = function(form, refreshCalendar) {
     const modal = form ? form.closest('#lesson-modal') : null;
-    const submit = form ? form.querySelector('button[type="submit"], input[type="submit"]') : null;
     const isReschedule = !!(form && form.closest('#reschedule-lesson'));
 
     if (!modal || !form.action) {
         return;
     }
 
-    if (submit) {
-        preserveButtonLabel(submit);
-        submit.disabled = true;
-    }
+    setFormSubmitting(form, true);
 
     clearLessonActionError(modal);
 
@@ -2598,13 +2616,10 @@ const submitLessonModalForm = function(form, refreshCalendar) {
         })
         .catch(function(error) {
             console.error(error);
-
-            if (submit) {
-                submit.disabled = false;
-                restoreButtonLabel(submit);
-            }
-
             showLessonActionError(modal, error.message);
+        })
+        .finally(function() {
+            setFormSubmitting(form, false);
         });
 };
 
@@ -3609,16 +3624,12 @@ const loadCalendarEditModal = function(button, sourceModal, container) {
 
 const submitCalendarEditForm = function(form, refreshCalendar) {
     const modal = form ? form.closest('.modal') : null;
-    const submit = form ? form.querySelector('button[type="submit"], input[type="submit"]') : null;
 
     if (!form || !form.action || !modal) {
         return;
     }
 
-    if (submit) {
-        preserveButtonLabel(submit);
-        submit.disabled = true;
-    }
+    setFormSubmitting(form, true);
 
     requestJson(form.action, {
         method: 'POST',
@@ -3635,13 +3646,10 @@ const submitCalendarEditForm = function(form, refreshCalendar) {
         })
         .catch(function(error) {
             console.error(error);
-
-            if (submit) {
-                submit.disabled = false;
-                restoreButtonLabel(submit);
-            }
-
             showCalendarEditError(modal, error.message);
+        })
+        .finally(function() {
+            setFormSubmitting(form, false);
         });
 };
 

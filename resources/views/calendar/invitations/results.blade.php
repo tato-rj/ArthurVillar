@@ -3,7 +3,7 @@
         <p class="text-muted mb-4">{{ $invitation->description }}</p>
     @endif
 
-    <div class="text-center mb-4 invitation-results-response-count">
+    <div class="mb-4 invitation-results-response-count">
         <strong>@fa(['icon' => 'users']){{ $invitation->participants_count }}</strong>
         {{ Str::plural('person', $invitation->participants_count) }} responded
     </div>
@@ -27,7 +27,7 @@
                         <h6 class="mb-0">
                             {{ $option->starts_at->format('g:i A') }} to {{ $endsAt->format('g:i A') }}
                         </h6>
-                        <h6 class="mb-0">
+                        <h6 class="mb-0 small">
                             @if($resultStatus === 'winner')
                                 <span class="text-green">@fa(['icon' => 'trophy'])WINNER</span>
                             @elseif($resultStatus === 'second-best')
