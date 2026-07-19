@@ -3762,8 +3762,10 @@ const openMonthDayEventsModal = function(dateString) {
 
     const title = modal.querySelector('.modal-title');
     const list = modal.querySelector('[data-month-day-events-list]');
+    const conflict = modal.querySelector('[data-month-day-events-conflict]');
     const date = parseDateString(dateString);
     const events = getCalendarItemsForDate(date);
+    const overlappingEventGuids = getOverlappingTimedEventGuids(events);
 
     if (title) {
         title.textContent = dayFormatter.format(date);
@@ -3771,11 +3773,35 @@ const openMonthDayEventsModal = function(dateString) {
 
     if (list) {
         list.innerHTML = '';
+        const specialEvents = events.filter(function(event) {
+            return event.isHoliday || event.isBreak || event.isRecital;
+        });
+        const regularEvents = events.filter(function(event) {
+            return !event.isHoliday && !event.isBreak && !event.isRecital;
+        });
+        const appendEvent = function(container, event) {
+            const item = createMonthEventElement(event, dateString);
 
-        events.forEach(function(event) {
-            list.appendChild(createMonthEventElement(event, dateString));
+            item.toggleAttribute('overlapping-event', overlappingEventGuids.has(event.guid));
+            container.appendChild(item);
+        };
+
+        if (specialEvents.length) {
+            const specialEventsContainer = document.createElement('div');
+
+            specialEventsContainer.className = 'calendar-month-day-events-special d-flex flex-wrap gap-1';
+            specialEvents.forEach(function(event) {
+                appendEvent(specialEventsContainer, event);
+            });
+            list.appendChild(specialEventsContainer);
+        }
+
+        regularEvents.forEach(function(event) {
+            appendEvent(list, event);
         });
     }
+
+    if (conflict) conflict.hidden = overlappingEventGuids.size === 0;
 
     showBootstrapModal(modal);
 };

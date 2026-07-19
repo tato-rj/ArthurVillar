@@ -257,6 +257,7 @@ class EventTest extends BaseTest
         ]))
             ->assertOk()
             ->assertSee('general-event-modal', false)
+            ->assertSee('data-month-day-events-conflict', false)
             ->assertSee('general-event-notification', false)
             ->assertSee('data-general-event-type-section', false)
             ->assertSee('data-general-event-notes-section', false)

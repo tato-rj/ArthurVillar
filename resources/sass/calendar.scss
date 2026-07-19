@@ -806,12 +806,38 @@ button.setting-undo {
     gap: 0.5rem;
 }
 
+.calendar-month-day-events-conflict {
+    align-items: center;
+    color: #d93025;
+    display: flex;
+    font-size: 0.9rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+}
+
+#month-day-events-modal .calendar-month-event[overlapping-event] {
+    @extend .border, .border-red;
+}
+
+.calendar-month-day-events-special {
+    @extend .mb-3;
+}
+
+.calendar-month-day-events-special .calendar-month-event {
+    flex: 0 0 auto;
+}
+
 .calendar-month-day-events-modal-list .calendar-month-event {
     border-radius: 0.35rem;
     cursor: pointer;
     font-size: 1rem;
     margin-bottom: 0;
     padding: 0.35rem 0.5rem;
+}
+
+.calendar-month-day-events-modal-list .calendar-month-event-general {
+    background: var(--calendar-general-event-color, #ce82ff);
+    color: white;
 }
 
 .calendar-month-day-events-modal-list .calendar-month-event-holiday,

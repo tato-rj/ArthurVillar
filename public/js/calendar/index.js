@@ -2915,17 +2915,39 @@ var openMonthDayEventsModal = function openMonthDayEventsModal(dateString) {
   }
   var title = modal.querySelector('.modal-title');
   var list = modal.querySelector('[data-month-day-events-list]');
+  var conflict = modal.querySelector('[data-month-day-events-conflict]');
   var date = parseDateString(dateString);
   var events = getCalendarItemsForDate(date);
+  var overlappingEventGuids = getOverlappingTimedEventGuids(events);
   if (title) {
     title.textContent = dayFormatter.format(date);
   }
   if (list) {
     list.innerHTML = '';
-    events.forEach(function (event) {
-      list.appendChild(createMonthEventElement(event, dateString));
+    var specialEvents = events.filter(function (event) {
+      return event.isHoliday || event.isBreak || event.isRecital;
+    });
+    var regularEvents = events.filter(function (event) {
+      return !event.isHoliday && !event.isBreak && !event.isRecital;
+    });
+    var appendEvent = function appendEvent(container, event) {
+      var item = createMonthEventElement(event, dateString);
+      item.toggleAttribute('overlapping-event', overlappingEventGuids.has(event.guid));
+      container.appendChild(item);
+    };
+    if (specialEvents.length) {
+      var specialEventsContainer = document.createElement('div');
+      specialEventsContainer.className = 'calendar-month-day-events-special d-flex flex-wrap gap-1';
+      specialEvents.forEach(function (event) {
+        appendEvent(specialEventsContainer, event);
+      });
+      list.appendChild(specialEventsContainer);
+    }
+    regularEvents.forEach(function (event) {
+      appendEvent(list, event);
     });
   }
+  if (conflict) conflict.hidden = overlappingEventGuids.size === 0;
   showBootstrapModal(modal);
 };
 var renderMonthCalendar = function renderMonthCalendar(calendar) {
