@@ -22,6 +22,7 @@ class InvitationIndexTest extends BaseTest
             ->assertSee('New invitation')
             ->assertSee('Copy public link')
             ->assertSee('View responses')
+            ->assertSee('No responses yet')
             ->assertSee('Delete invitation');
     }
 
@@ -77,6 +78,18 @@ class InvitationIndexTest extends BaseTest
         $this->assertSame(2, $response->json('data.0.participants_count'));
         $this->assertStringContainsString('/invitations/'.$invitation->public_id.'/respond', $response->json('data.0.public_url'));
         $this->assertStringContainsString('signature=', $response->json('data.0.public_url'));
+    }
+
+    /** @test */
+    public function invitations_without_responses_return_a_zero_participant_count()
+    {
+        $invitation = Invitation::factory()->create();
+        $this->signIn();
+
+        $row = collect($this->getJson(route('calendar.tables.invitations'))->assertOk()->json('data'))
+            ->firstWhere('id', $invitation->id);
+
+        $this->assertSame(0, $row['participants_count']);
     }
 
     /** @test */

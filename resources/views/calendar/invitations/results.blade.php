@@ -1,8 +1,4 @@
 @modal(['title' => $invitation->title, 'id' => 'invitation-results-modal'])
-    @if($invitation->description)
-        <p class="text-muted mb-4">{{ $invitation->description }}</p>
-    @endif
-
     <div class="mb-4 invitation-results-response-count">
         <strong>@fa(['icon' => 'users']){{ $invitation->participants_count }}</strong>
         {{ Str::plural('person', $invitation->participants_count) }} responded
@@ -24,14 +20,14 @@
 
                 <div class="invitation-result rounded-sm p-3 border-5 mb-3 bg-light" data-option-id="{{ $option->id }}"@if($resultStatus) data-status="{{ $resultStatus }}"@endif>
                     <div class="d-apart mb-3">
-                        <h6 class="mb-0">
+                        <h6 class="mb-0 small">
                             {{ $option->starts_at->format('g:i A') }} to {{ $endsAt->format('g:i A') }}
                         </h6>
                         <h6 class="mb-0 small">
                             @if($resultStatus === 'winner')
-                                <span class="text-green">@fa(['icon' => 'trophy'])WINNER</span>
+                                <span class="text-green">@fa(['icon' => 'trophy', 'mr' => 0])</span>
                             @elseif($resultStatus === 'second-best')
-                                <span class="text-yellow">SECOND BEST</span>
+                                <span class="text-yellow">@fa(['icon' => 'medal', 'mr' => 0])</span>
                             @endif
                         </h6>
                     </div>

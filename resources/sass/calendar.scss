@@ -820,7 +820,7 @@ button.setting-undo {
 }
 
 .calendar-month-day-events-special {
-    @extend .mb-3;
+    @extend .mb-2;
 }
 
 .calendar-month-day-events-special .calendar-month-event {
@@ -2098,17 +2098,15 @@ input[name="name"] {
     font-size: 100%;
 }
 
-
-
 // Invitation results page
 .invitation-result[data-status="winner"] {
     border-color: #58cc02 !important;
-    border-left: 6px solid;
+    border-top: 6px solid;
 }
 
 .invitation-result[data-status="second-best"] {
     border-color: #ffc800 !important;
-    border-left: 6px solid;
+    border-top: 6px solid;
 }
 
 .invitation-result-name {

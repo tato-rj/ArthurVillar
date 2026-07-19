@@ -17799,11 +17799,11 @@ textarea.form-control-lg {
   margin-bottom: 0.25rem !important;
 }
 
-.mb-2 {
+.mb-2, .calendar-month-day-events-special {
   margin-bottom: 0.5rem !important;
 }
 
-.mb-3, .calendar-month-day-events-special, form .form-group {
+.mb-3, form .form-group {
   margin-bottom: 1rem !important;
 }
 
@@ -33309,12 +33309,12 @@ input[name=name] {
 
 .invitation-result[data-status=winner] {
   border-color: #58cc02 !important;
-  border-left: 6px solid;
+  border-top: 6px solid;
 }
 
 .invitation-result[data-status=second-best] {
   border-color: #ffc800 !important;
-  border-left: 6px solid;
+  border-top: 6px solid;
 }
 
 .invitation-result-name {
