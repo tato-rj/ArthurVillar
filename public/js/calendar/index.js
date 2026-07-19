@@ -835,21 +835,23 @@ var patchScheduleItems = function patchScheduleItems(calendar) {
     var duration = getTimeMinutes(end) - getTimeMinutes(start);
     var isShort = duration <= 30;
     var event = getEventByScheduleItem(item);
-    var locationIcon = item.querySelector(':scope > .event-icon');
-    if (event && event.isGeneralEvent) {
-      if (locationIcon) {
-        locationIcon.remove();
-        locationIcon = null;
+    var iconName = event && event.isGeneralEvent ? event.eventTypeIcon : getLessonLocationIcon(event ? event.locationName : '');
+    var iconTitle = event && event.isGeneralEvent ? event.eventType : event && event.locationName ? event.locationName : '';
+    var eventIcon = item.querySelector(':scope > .event-icon');
+    if (!iconName) {
+      if (eventIcon) {
+        eventIcon.remove();
+        eventIcon = null;
       }
-    } else if (!locationIcon) {
-      locationIcon = document.createElement('span');
-      locationIcon.className = 'event-icon';
-      locationIcon.innerHTML = '<i class="fa-solid" aria-hidden="true"></i>';
-      item.appendChild(locationIcon);
+    } else if (!eventIcon) {
+      eventIcon = document.createElement('span');
+      eventIcon.className = 'event-icon';
+      eventIcon.innerHTML = '<i class="fa-solid" aria-hidden="true"></i>';
+      item.appendChild(eventIcon);
     }
-    if (locationIcon) {
-      locationIcon.querySelector('i').className = "fa-solid fa-".concat(getLessonLocationIcon(event ? event.locationName : ''));
-      locationIcon.title = event && event.locationName ? event.locationName : '';
+    if (eventIcon) {
+      eventIcon.querySelector('i').className = "fa-solid fa-".concat(iconName);
+      eventIcon.title = iconTitle;
     }
     item.classList.toggle('is-short', isShort);
     item.classList.toggle('calendar-calendar-general-event', Boolean(event && event.isGeneralEvent));

@@ -1073,23 +1073,29 @@ const patchScheduleItems = function(calendar) {
         const duration = getTimeMinutes(end) - getTimeMinutes(start);
         const isShort = duration <= 30;
         const event = getEventByScheduleItem(item);
-        let locationIcon = item.querySelector(':scope > .event-icon');
+        const iconName = event && event.isGeneralEvent
+            ? event.eventTypeIcon
+            : getLessonLocationIcon(event ? event.locationName : '');
+        const iconTitle = event && event.isGeneralEvent
+            ? event.eventType
+            : (event && event.locationName ? event.locationName : '');
+        let eventIcon = item.querySelector(':scope > .event-icon');
 
-        if (event && event.isGeneralEvent) {
-            if (locationIcon) {
-                locationIcon.remove();
-                locationIcon = null;
+        if (!iconName) {
+            if (eventIcon) {
+                eventIcon.remove();
+                eventIcon = null;
             }
-        } else if (!locationIcon) {
-            locationIcon = document.createElement('span');
-            locationIcon.className = 'event-icon';
-            locationIcon.innerHTML = '<i class="fa-solid" aria-hidden="true"></i>';
-            item.appendChild(locationIcon);
+        } else if (!eventIcon) {
+            eventIcon = document.createElement('span');
+            eventIcon.className = 'event-icon';
+            eventIcon.innerHTML = '<i class="fa-solid" aria-hidden="true"></i>';
+            item.appendChild(eventIcon);
         }
 
-        if (locationIcon) {
-            locationIcon.querySelector('i').className = `fa-solid fa-${getLessonLocationIcon(event ? event.locationName : '')}`;
-            locationIcon.title = event && event.locationName ? event.locationName : '';
+        if (eventIcon) {
+            eventIcon.querySelector('i').className = `fa-solid fa-${iconName}`;
+            eventIcon.title = iconTitle;
         }
 
         item.classList.toggle('is-short', isShort);
