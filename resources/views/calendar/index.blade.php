@@ -1,4 +1,4 @@
-@extends('layouts.app', ['title' => 'Calendar'])
+@extends('layouts.app', ['title' => 'Studio'])
 
 @push('header')
 <link href="/css/vendor/calendarjs.css" rel="stylesheet">

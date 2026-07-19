@@ -23,7 +23,7 @@
 
           @if(isset($title))
             @if($subdomain = subdomain())
-            {{ucfirst($subdomain) . ' | ' . $title}}
+            {{$title . ' | ' . ucfirst($subdomain)}}
             @else
             {{$title}}
             @endif
