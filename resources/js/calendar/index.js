@@ -1236,9 +1236,17 @@ const getEventByGuid = function(guid) {
 };
 
 const getEventByScheduleItem = function(item) {
+    if (!item) {
+        return null;
+    }
+
+    if (item.event) {
+        return item.event;
+    }
+
     const event = getEventByGuid(item.id || item.dataset.eventGuid);
 
-    if (event || !item) {
+    if (event) {
         return event;
     }
 
@@ -4705,6 +4713,15 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
 
+    let scheduleItemHold = null;
+    let suppressedScheduleItemClick = null;
+    let scheduleHoldNavigationSuppressedUntil = 0;
+
+    const isScheduleHoldNavigationSuppressed = function() {
+        return Boolean(scheduleItemHold && scheduleItemHold.active)
+            || Date.now() < scheduleHoldNavigationSuppressedUntil;
+    };
+
     initializeStudentComboboxes();
     initializeSingleLessonPlanForms();
     initializeLessonPlanForms();
@@ -5216,11 +5233,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 value: getScheduleValue(),
                 data: normalizeScheduleEvents(getScheduleRenderEvents()),
                 validRange: [scheduleStart, scheduleEnd],
+                overlap: true,
                 onbeforeinsert: function() {
                     return false;
                 },
                 onbeforechangeevent: function(instance, detail) {
-                    if (detail && detail.action) {
+                    if (detail && detail.action && !(detail.element && detail.element.hasAttribute('holding-event'))) {
                         return false;
                     }
                 },
@@ -5280,6 +5298,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (today) {
         today.addEventListener('click', function() {
+            if (isScheduleHoldNavigationSuppressed()) {
+                return;
+            }
+
             setSelectedDate(getTodayDate());
             render();
         });
@@ -5287,6 +5309,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (previous) {
         previous.addEventListener('click', function() {
+            if (isScheduleHoldNavigationSuppressed()) {
+                return;
+            }
+
             move(-1);
             render();
         });
@@ -5294,18 +5320,31 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (next) {
         next.addEventListener('click', function() {
+            if (isScheduleHoldNavigationSuppressed()) {
+                return;
+            }
+
             move(1);
             render();
         });
     }
 
     bindScheduleHeaderSwipe(calendar, function(direction) {
+        if (isScheduleHoldNavigationSuppressed()) {
+            return;
+        }
+
         move(direction);
         render();
     });
 
     if (view) {
         view.addEventListener('change', function() {
+            if (isScheduleHoldNavigationSuppressed()) {
+                syncViewControls();
+                return;
+            }
+
             setCalendarView(this.value);
         });
     }
@@ -5313,6 +5352,10 @@ document.addEventListener('DOMContentLoaded', function() {
     offcanvasViewItems.forEach(function(item) {
         item.addEventListener('click', function(e) {
             e.preventDefault();
+            if (isScheduleHoldNavigationSuppressed()) {
+                return;
+            }
+
             setCalendarView(item.dataset.calendarOffcanvasView);
             closeCalendarViewsOffcanvas();
         });
@@ -5377,6 +5420,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (miniPrevious) {
         miniPrevious.addEventListener('click', function() {
+            if (isScheduleHoldNavigationSuppressed()) {
+                return;
+            }
+
             state.miniDate = addMonths(state.miniDate, -1);
             renderMiniCalendar();
         });
@@ -5384,6 +5431,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (miniNext) {
         miniNext.addEventListener('click', function() {
+            if (isScheduleHoldNavigationSuppressed()) {
+                return;
+            }
+
             state.miniDate = addMonths(state.miniDate, 1);
             renderMiniCalendar();
         });
@@ -5391,6 +5442,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (miniGrid) {
         miniGrid.addEventListener('click', function(e) {
+            if (isScheduleHoldNavigationSuppressed()) {
+                return;
+            }
+
             const button = e.target.closest('[data-date]');
 
             if (!button) {
@@ -5665,14 +5720,139 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     calendar.addEventListener('mousedown', function(e) {
-        if (!e.target.closest('.lm-schedule-item')) {
+        const item = e.target.closest('.lm-schedule-item');
+
+        if (!item || item.hasAttribute('holding-event')) {
             return;
         }
 
         e.stopPropagation();
     }, true);
 
+    const clearScheduleItemHold = function(pointerId) {
+        if (!scheduleItemHold || (pointerId !== undefined && pointerId !== scheduleItemHold.pointerId)) {
+            return;
+        }
+
+        window.clearTimeout(scheduleItemHold.timer);
+        if (scheduleItemHold.active) {
+            scheduleHoldNavigationSuppressedUntil = Date.now() + 750;
+            const suppressedItem = scheduleItemHold.item;
+
+            suppressedScheduleItemClick = suppressedItem;
+            window.setTimeout(function() {
+                if (suppressedScheduleItemClick === suppressedItem) {
+                    suppressedScheduleItemClick = null;
+                }
+            }, 0);
+        }
+        scheduleItemHold.item.removeAttribute('original-event');
+        if (scheduleItemHold.clone) {
+            scheduleItemHold.clone.remove();
+        }
+        const schedule = scheduleItemHold.item.closest('.lm-schedule');
+        if (schedule) {
+            schedule.style.removeProperty('cursor');
+        }
+        scheduleItemHold = null;
+    };
+
+    calendar.addEventListener('pointerdown', function(e) {
+        const item = e.target.closest('.lm-schedule-item');
+
+        if (!item || !scheduleGridViews.includes(state.view) || e.button !== 0 || !e.isPrimary) {
+            return;
+        }
+
+        clearScheduleItemHold();
+        scheduleItemHold = {
+            item,
+            pointerId: e.pointerId,
+            startX: e.clientX,
+            startY: e.clientY,
+            active: false,
+            clone: null,
+            timer: window.setTimeout(function() {
+                if (!scheduleItemHold || scheduleItemHold.item !== item || !item.isConnected) {
+                    return;
+                }
+
+                const clone = item.cloneNode(true);
+                const event = item.event;
+                const schedule = item.closest('.lm-schedule');
+
+                if (!event || !schedule) {
+                    clearScheduleItemHold(e.pointerId);
+                    return;
+                }
+
+                clone.removeAttribute('id');
+                clone.setAttribute('holding-event', '');
+                clone.setAttribute('aria-hidden', 'true');
+                clone.event = event;
+                clone.date = item.date || event.date;
+                clone.weekday = item.weekday !== undefined ? item.weekday : event.weekday;
+                clone.start = item.start || event.start;
+                clone.end = item.end || event.end;
+                item.setAttribute('original-event', '');
+                item.parentElement.appendChild(clone);
+
+                scheduleItemHold.active = true;
+                scheduleItemHold.clone = clone;
+                scheduleHoldNavigationSuppressedUntil = Number.POSITIVE_INFINITY;
+                schedule.style.cursor = 'move';
+                clone.dispatchEvent(new MouseEvent('mousedown', {
+                    bubbles: true,
+                    cancelable: true,
+                    view: window,
+                    button: 0,
+                    buttons: 1,
+                    clientX: e.clientX,
+                    clientY: e.clientY,
+                }));
+            }, 600),
+        };
+    });
+
+    calendar.addEventListener('pointermove', function(e) {
+        if (!scheduleItemHold || scheduleItemHold.pointerId !== e.pointerId || scheduleItemHold.active) {
+            return;
+        }
+
+        if (Math.abs(e.clientX - scheduleItemHold.startX) > 8 || Math.abs(e.clientY - scheduleItemHold.startY) > 8) {
+            clearScheduleItemHold(e.pointerId);
+        }
+    });
+
+    document.addEventListener('pointerup', function(e) {
+        if (!scheduleItemHold || scheduleItemHold.pointerId !== e.pointerId || !scheduleItemHold.active) {
+            clearScheduleItemHold(e.pointerId);
+        }
+    });
+
+    document.addEventListener('mouseup', function() {
+        if (scheduleItemHold && scheduleItemHold.active) {
+            window.setTimeout(function() {
+                clearScheduleItemHold();
+            }, 0);
+        }
+    });
+
+    document.addEventListener('pointercancel', function(e) {
+        clearScheduleItemHold(e.pointerId);
+    });
+
+    window.addEventListener('blur', function() {
+        clearScheduleItemHold();
+    });
+
     calendar.addEventListener('click', function(e) {
+        if (isScheduleHoldNavigationSuppressed()) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            return;
+        }
+
         const day = e.target.closest('.lm-schedule tbody td[data-date]');
 
         if (!day || !['2-days', 'week'].includes(state.view) || e.target.closest('.lm-schedule-item')) {
@@ -5688,6 +5868,19 @@ document.addEventListener('DOMContentLoaded', function() {
         const item = e.target.closest('.lm-schedule-item, .calendar-month-event, .calendar-schedule-event, .calendar-schedule-break, .calendar-schedule-recital');
 
         if (!item || item.classList.contains('calendar-month-event-holiday') || item.classList.contains('calendar-schedule-event-holiday')) {
+            return;
+        }
+
+        if (item.hasAttribute('holding-event')) {
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+        }
+
+        if (item.classList.contains('lm-schedule-item') && suppressedScheduleItemClick === item) {
+            suppressedScheduleItemClick = null;
+            e.preventDefault();
+            e.stopPropagation();
             return;
         }
 

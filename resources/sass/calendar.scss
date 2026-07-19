@@ -1274,6 +1274,16 @@ button.single-lesson-plan-create[selected] i {
     flex-direction: column;
     justify-content: normal;
     overflow: hidden;
+    transition: .2s;
+
+    &[holding-event] {
+        transform: scale(1.08);
+        border-radius: 0;
+    }
+
+    &[original-event] {
+        opacity: .5;
+    }
 }
 
 #calendar .lm-schedule-item > .event-icon {

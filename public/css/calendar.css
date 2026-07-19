@@ -32527,6 +32527,15 @@ button.single-lesson-plan-create[selected] i {
   flex-direction: column;
   justify-content: normal;
   overflow: hidden;
+  transition: 0.2s;
+}
+#calendar .lm-schedule-item[holding-event] {
+  transition: 0.2s;
+  transform: scale(1.08);
+  border-radius: 0;
+}
+#calendar .lm-schedule-item[original-event] {
+  opacity: 0.5;
 }
 
 #calendar .lm-schedule-item > .event-icon {
