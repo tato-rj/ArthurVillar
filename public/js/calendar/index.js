@@ -4483,6 +4483,57 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     e.stopPropagation();
   }, true);
+  var removeScheduleHoldTime = function removeScheduleHoldTime(hold) {
+    if (!hold) {
+      return;
+    }
+    if (hold.timeMarkerFrame) {
+      window.cancelAnimationFrame(hold.timeMarkerFrame);
+      hold.timeMarkerFrame = null;
+    }
+    if (hold.timeMarker) {
+      hold.timeMarker.remove();
+      hold.timeMarker = null;
+    }
+    hold.timeMarkerRow = null;
+  };
+  var updateScheduleHoldTime = function updateScheduleHoldTime(hold) {
+    if (!hold || hold !== scheduleItemHold || !hold.active || !hold.clone) {
+      return;
+    }
+    var row = hold.clone.closest('tr');
+    var gutter = row && row.cells.length ? row.cells[0] : null;
+    if (!gutter) {
+      removeScheduleHoldTime(hold);
+      return;
+    }
+    if (gutter.querySelector(':scope > .lm-schedule-index')) {
+      removeScheduleHoldTime(hold);
+      return;
+    }
+    if (hold.timeMarkerRow !== row) {
+      if (hold.timeMarker) {
+        hold.timeMarker.remove();
+      }
+      hold.timeMarker = document.createElement('span');
+      hold.timeMarker.className = 'calendar-schedule-holding-time';
+      gutter.appendChild(hold.timeMarker);
+      hold.timeMarkerRow = row;
+    }
+    hold.timeMarker.textContent = formatEventTime(hold.clone.getAttribute('data-start') || hold.clone.start).replace(/(?:am|pm)$/i, '');
+  };
+  var queueScheduleHoldTimeUpdate = function queueScheduleHoldTimeUpdate(hold) {
+    if (!hold || hold !== scheduleItemHold) {
+      return;
+    }
+    if (hold.timeMarkerFrame) {
+      window.cancelAnimationFrame(hold.timeMarkerFrame);
+    }
+    hold.timeMarkerFrame = window.requestAnimationFrame(function () {
+      hold.timeMarkerFrame = null;
+      updateScheduleHoldTime(hold);
+    });
+  };
   var clearScheduleItemHold = function clearScheduleItemHold(pointerId) {
     if (!scheduleItemHold || pointerId !== undefined && pointerId !== scheduleItemHold.pointerId) {
       return;
@@ -4498,6 +4549,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
       }, 0);
     }
+    removeScheduleHoldTime(scheduleItemHold);
     scheduleItemHold.item.removeAttribute('original-event');
     if (scheduleItemHold.clone) {
       scheduleItemHold.clone.remove();
@@ -4528,6 +4580,9 @@ document.addEventListener('DOMContentLoaded', function () {
       pointerType: e.pointerType,
       active: false,
       clone: null,
+      timeMarker: null,
+      timeMarkerRow: null,
+      timeMarkerFrame: null,
       schedule: null,
       scheduleTouchAction: '',
       scheduleOverscrollBehavior: '',
@@ -4576,6 +4631,7 @@ document.addEventListener('DOMContentLoaded', function () {
           clientX: e.clientX,
           clientY: e.clientY
         }));
+        queueScheduleHoldTimeUpdate(scheduleItemHold);
       }, 600)
     };
   });
@@ -4596,6 +4652,7 @@ document.addEventListener('DOMContentLoaded', function () {
           clientY: e.clientY
         }));
       }
+      queueScheduleHoldTimeUpdate(scheduleItemHold);
       return;
     }
     if (Math.abs(e.clientX - scheduleItemHold.startX) > 8 || Math.abs(e.clientY - scheduleItemHold.startY) > 8) {
