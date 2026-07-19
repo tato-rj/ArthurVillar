@@ -23,12 +23,12 @@
         <span id="general-event-notification"></span>
     </div>
 
-    <div data-general-event-notes-section hidden>
+    <div data-general-event-notes-section hidden class="mb-3">
         <div class="small font-weight-bold opacity-6 mb-2 mt-3">NOTES</div>
         <div id="general-event-notes" class="calendar-general-event-notes"></div>
     </div>
 
-    <div id="general-event-controls" class="d-flex mt-4">
+    <div id="general-event-controls" class="d-flex mt-3">
         <button type="button" id="cancel-general-event-button" class="btn btn-outline-dark w-100 mr-1">Cancel</button>
         <button type="button" id="reschedule-general-event-button" class="btn btn-outline-red w-100 ml-1">Reschedule</button>
     </div>
@@ -40,7 +40,7 @@
         @method('PATCH')
         <input type="hidden" name="scheduled_date" id="reschedule-general-event-date">
 
-        <div class="calendar-date-picker" data-general-event-reschedule-datepicker>
+        <div class="calendar-date-picker" data-general-event-reschedule-datepicker data-reschedule-date-fields>
             <div class="calendar-date-picker-header">
                 <h3 data-general-event-reschedule-datepicker-label></h3>
                 <div class="calendar-date-picker-nav">
@@ -66,7 +66,7 @@
             <div class="calendar-date-picker-grid" data-general-event-reschedule-datepicker-grid></div>
         </div>
 
-        <div class="row mb-4">
+        <div class="row mb-2" data-reschedule-time-fields>
             @select(['label' => 'Starts at', 'name' => 'starts_at', 'id' => 'reschedule-general-event-start-time', 'grid' => 'col', 'required' => true])
                 @foreach(\App\Models\Calendar\Event::timeOptions() as $value)
                     @option(['name' => 'starts_at', 'label' => \App\Models\Calendar\Event::timeLabel($value), 'value' => $value])

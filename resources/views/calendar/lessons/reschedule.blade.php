@@ -7,7 +7,7 @@
 		<input type="hidden" name="original_start_time" id="reschedule-lesson-original-start-time">
 		<input type="hidden" name="date" id="reschedule-lesson-date">
 
-		<div class="calendar-date-picker" data-reschedule-datepicker>
+		<div class="calendar-date-picker" data-reschedule-datepicker data-reschedule-date-fields>
 			<div class="calendar-date-picker-header">
 				<h3 data-reschedule-datepicker-label></h3>
 				<div class="calendar-date-picker-nav">
@@ -33,7 +33,7 @@
 			<div class="calendar-date-picker-grid" data-reschedule-datepicker-grid></div>
 		</div>
 
-		<div class="row mb-4">
+		<div class="row" data-reschedule-time-fields>
 			@select(['label' => 'Starts at', 'name' => 'start_time', 'id' => 'reschedule-lesson-start-time', 'grid' => 'col', 'required' => true])
 				@foreach(\App\Models\Calendar\LessonPlan::timeOptions() as $value)
 					@option(['name' => 'start_time', 'label' => \App\Models\Calendar\LessonPlan::timeLabel($value), 'value' => $value])
@@ -47,7 +47,7 @@
 			@endselect
 		</div>
 
-		<div class="mb-4">
+		<div class="my-4" data-reschedule-permanence>
 			<p class="mb-1">Is this change permanent?</p>
 			<div class="form-check">
 			  <input class="form-check-input" type="radio" name="is_permanent" id="is_permanent_radio-1" value="0" checked>

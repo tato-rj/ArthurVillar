@@ -1067,7 +1067,7 @@ const getLessonLocationIcon = function(locationName) {
 };
 
 const patchScheduleItems = function(calendar) {
-    calendar.querySelectorAll('.lm-schedule-item').forEach(function(item) {
+    calendar.querySelectorAll('.lm-schedule-item:not([holding-event])').forEach(function(item) {
         const start = item.getAttribute('data-start');
         const end = item.getAttribute('data-end');
         const duration = getTimeMinutes(end) - getTimeMinutes(start);
@@ -1103,8 +1103,11 @@ const patchScheduleItems = function(calendar) {
         item.setAttribute('data-display-time', isShort ? formatEventTime(start) : `${formatEventTime(start)} - ${formatEventTime(end)}`);
         clearScheduleItemBirthdayDecoration(item);
 
-        if (event && event.calendarStatus) {
-            item.setAttribute('data-lesson-status', event.calendarStatus);
+        if (event) {
+            item.setAttribute(
+                'data-lesson-status',
+                event.calendarStatus || event.lessonStatus || (event.isGeneralEvent ? 'general-event' : 'unconfirmed')
+            );
         }
 
         applyEventTimeStatusAttributes(item, event);
@@ -1678,7 +1681,8 @@ const resetLessonModalState = function(modal) {
         return;
     }
 
-    modal.classList.remove('is-canceling', 'is-rescheduling');
+    modal.classList.remove('is-canceling', 'is-rescheduling', 'is-drop-rescheduling');
+    delete modal.dataset.dropRecurring;
     state.rescheduleAnchor = null;
     clearLessonActionError(modal);
 };
@@ -1945,8 +1949,9 @@ const populateLessonModal = function(modal, event) {
     modal.dataset.lessonCanceledBy = event && event.canceledBy ? event.canceledBy : '';
 };
 
-const openLessonModal = function(event) {
+const openLessonModal = function(event, options) {
     const modal = document.getElementById('lesson-modal');
+    const settings = options || {};
 
     if (!modal) {
         return;
@@ -1954,6 +1959,13 @@ const openLessonModal = function(event) {
 
     resetLessonModalState(modal);
     populateLessonModal(modal, event);
+    modal.updatedScheduleItem = settings.updatedItem || null;
+
+    if (settings.openReschedule) {
+        modal.classList.add('is-drop-rescheduling');
+        modal.dataset.dropRecurring = event && event.lessonPlanId ? 'true' : 'false';
+        showLessonRescheduleForm(modal);
+    }
 
     if (event) {
         modal.dataset.eventGuid = event.guid || '';
@@ -2236,7 +2248,7 @@ const resetGeneralEventModalState = function(modal) {
         return;
     }
 
-    modal.classList.remove('is-canceling', 'is-rescheduling');
+    modal.classList.remove('is-canceling', 'is-rescheduling', 'is-drop-rescheduling');
     state.rescheduleAnchor = null;
     clearGeneralEventActionError(modal);
 
@@ -2264,8 +2276,9 @@ const showGeneralEventCancelForm = function(modal) {
     modal.classList.add('is-canceling');
 };
 
-const openGeneralEventModal = function(event) {
+const openGeneralEventModal = function(event, options) {
     const modal = document.getElementById('general-event-modal');
+    const settings = options || {};
 
     if (!modal || !event) {
         return;
@@ -2288,6 +2301,7 @@ const openGeneralEventModal = function(event) {
     const rescheduleEndTime = modal.querySelector('#reschedule-general-event-end-time');
 
     resetGeneralEventModalState(modal);
+    modal.updatedScheduleItem = settings.updatedItem || null;
 
     if (title) title.textContent = event.title || 'Event';
     if (date) date.textContent = event.date ? modalDateFormatter.format(parseDateString(event.date)) : '';
@@ -2333,6 +2347,11 @@ const openGeneralEventModal = function(event) {
     );
     state.generalEventRescheduleDatePickerDate = parseDateString(event.date || todayString());
     renderGeneralEventRescheduleDatePicker(modal);
+
+    if (settings.openReschedule) {
+        modal.classList.add('is-drop-rescheduling');
+        showGeneralEventRescheduleForm(modal);
+    }
 
     showBootstrapModal(modal);
 };
@@ -2995,12 +3014,14 @@ const getOverlappingTimedEventGuids = function(events) {
     return guids;
 };
 
-const isOverlappingTimedEvent = function(event) {
-    if (!isConflictEligibleTimedEvent(event) || !event.date) {
+const isOverlappingTimedEvent = function(event, visibleDate) {
+    const eventDate = visibleDate || (event && event.date);
+
+    if (!isConflictEligibleTimedEvent(event) || !eventDate) {
         return false;
     }
 
-    const date = parseDateString(String(event.date).substring(0, 10));
+    const date = parseDateString(String(eventDate).substring(0, 10));
 
     return getOverlappingTimedEventGuids(getEventsForDate(date)).has(event.guid);
 };
@@ -3010,7 +3031,12 @@ const applyEventOverlapAttribute = function(element, event) {
         return;
     }
 
-    element.toggleAttribute('overlapping-event', isOverlappingTimedEvent(event));
+    const cell = element.closest('td[data-date]');
+    const visibleDate = cell
+        ? (cell.getAttribute('data-real-date') || cell.getAttribute('data-date'))
+        : '';
+
+    element.toggleAttribute('overlapping-event', isOverlappingTimedEvent(event, visibleDate));
 };
 
 const formatSelectTime = function(value) {
@@ -5242,6 +5268,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         return false;
                     }
                 },
+                onbeforechange: function(instance, detail) {
+                    if (scheduleItemHold && scheduleItemHold.active && detail && detail.action === 'updateEvent') {
+                        return false;
+                    }
+                },
                 oncreate: function(instance) {
                     syncEvents(instance);
                     queueSchedulePatch(calendar);
@@ -5537,11 +5568,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         lessonModal.addEventListener('hidden.bs.modal', function() {
+            restoreUpdatedScheduleItem(lessonModal.updatedScheduleItem);
+            lessonModal.updatedScheduleItem = null;
             resetLessonModalState(lessonModal);
         });
 
         if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
             window.jQuery(lessonModal).on('hidden.bs.modal', function() {
+                restoreUpdatedScheduleItem(lessonModal.updatedScheduleItem);
+                lessonModal.updatedScheduleItem = null;
                 resetLessonModalState(lessonModal);
             });
         }
@@ -5630,11 +5665,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         generalEventModal.addEventListener('hidden.bs.modal', function() {
+            restoreUpdatedScheduleItem(generalEventModal.updatedScheduleItem);
+            generalEventModal.updatedScheduleItem = null;
             resetGeneralEventModalState(generalEventModal);
         });
 
         if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
             window.jQuery(generalEventModal).on('hidden.bs.modal', function() {
+                restoreUpdatedScheduleItem(generalEventModal.updatedScheduleItem);
+                generalEventModal.updatedScheduleItem = null;
                 resetGeneralEventModalState(generalEventModal);
             });
         }
@@ -5792,11 +5831,173 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     };
 
+    const finishScheduleNativeDrag = function(hold, clientX, clientY, commitVisualDrop) {
+        if (!hold || !hold.active || hold.nativeDragFinished) {
+            return;
+        }
+
+        hold.commitVisualDrop = Boolean(commitVisualDrop);
+        hold.finishingNativeDrag = true;
+        hold.nativeDragFinished = true;
+        document.dispatchEvent(new MouseEvent('mouseup', {
+            bubbles: true,
+            cancelable: true,
+            view: window,
+            button: 0,
+            buttons: 0,
+            clientX: clientX === undefined ? hold.lastX : clientX,
+            clientY: clientY === undefined ? hold.lastY : clientY,
+        }));
+    };
+
+    const restoreUpdatedScheduleItem = function(item) {
+        const original = item && item.scheduleOriginalPosition;
+
+        if (!item || !original || !item.isConnected || !original.cell || !original.cell.isConnected) {
+            return;
+        }
+
+        Object.keys(original.attributes).forEach(function(attribute) {
+            const value = original.attributes[attribute];
+
+            if (value === null) {
+                item.removeAttribute(attribute);
+            } else {
+                item.setAttribute(attribute, value);
+            }
+        });
+
+        item.start = original.start;
+        item.end = original.end;
+        item.date = original.date;
+        item.weekday = original.weekday;
+        item.event.start = original.eventStart;
+        item.event.end = original.eventEnd;
+        item.event.date = original.eventDate;
+        item.event.weekday = original.eventWeekday;
+        if (original.eventOriginalDate === undefined) {
+            delete item.event.originalDate;
+        } else {
+            item.event.originalDate = original.eventOriginalDate;
+        }
+        if (original.eventOriginalStartTime === undefined) {
+            delete item.event.originalStartTime;
+        } else {
+            item.event.originalStartTime = original.eventOriginalStartTime;
+        }
+        original.cell.appendChild(item);
+        item.removeAttribute('updated-event');
+        delete item.scheduleOriginalPosition;
+    };
+
+    const getScheduleItemGuid = function(item) {
+        const event = getEventByScheduleItem(item);
+
+        return String((event && event.guid) || (item && (item.id || item.dataset.eventGuid)) || '');
+    };
+
+    const removeDuplicateScheduleItems = function(schedule, item) {
+        const guid = getScheduleItemGuid(item);
+
+        if (!schedule || !guid) {
+            return;
+        }
+
+        schedule.querySelectorAll('.lm-schedule-item').forEach(function(candidate) {
+            if (candidate !== item && getScheduleItemGuid(candidate) === guid) {
+                candidate.remove();
+            }
+        });
+    };
+
+    const applyScheduleVisualDrop = function(hold) {
+        if (!hold || !hold.commitVisualDrop || !hold.clone || !hold.item || !hold.item.event) {
+            return;
+        }
+
+        const target = hold.clone.parentElement;
+
+        if (!target || target.tagName !== 'TD' || !hold.schedule || !hold.schedule.contains(target)) {
+            return;
+        }
+
+        const wasMoved = target !== hold.originCell;
+
+        if (wasMoved && !hold.item.scheduleOriginalPosition) {
+            hold.item.scheduleOriginalPosition = {
+                cell: hold.originCell,
+                attributes: ['data-x', 'data-height', 'data-start', 'data-end'].reduce(function(attributes, attribute) {
+                    attributes[attribute] = hold.item.getAttribute(attribute);
+                    return attributes;
+                }, {}),
+                start: hold.item.start,
+                end: hold.item.end,
+                date: hold.item.date,
+                weekday: hold.item.weekday,
+                eventStart: hold.item.event.start,
+                eventEnd: hold.item.event.end,
+                eventDate: hold.item.event.date,
+                eventWeekday: hold.item.event.weekday,
+                visibleDate: hold.originCell.getAttribute('data-real-date')
+                    || hold.originCell.getAttribute('data-date'),
+                eventOriginalDate: hold.item.event.originalDate,
+                eventOriginalStartTime: hold.item.event.originalStartTime,
+            };
+        }
+
+        const start = hold.clone.getAttribute('data-start') || hold.clone.start;
+        const end = hold.clone.getAttribute('data-end') || hold.clone.end;
+        const date = target.getAttribute('data-real-date')
+            || target.getAttribute('data-date')
+            || hold.clone.date;
+        const weekday = hold.clone.weekday;
+
+        ['data-x', 'data-height', 'data-start', 'data-end'].forEach(function(attribute) {
+            const value = hold.clone.getAttribute(attribute);
+
+            if (value === null) {
+                hold.item.removeAttribute(attribute);
+            } else {
+                hold.item.setAttribute(attribute, value);
+            }
+        });
+
+        hold.item.start = start;
+        hold.item.end = end;
+        hold.item.date = date;
+        hold.item.weekday = weekday;
+        if (hold.item.scheduleOriginalPosition) {
+            hold.item.event.originalDate = hold.item.event.originalDate
+                || hold.item.scheduleOriginalPosition.visibleDate
+                || hold.item.scheduleOriginalPosition.eventDate;
+            hold.item.event.originalStartTime = hold.item.event.originalStartTime || hold.item.scheduleOriginalPosition.eventStart;
+        }
+        hold.item.event.start = start;
+        hold.item.event.end = end;
+
+        if (date) {
+            hold.item.event.date = date;
+        }
+        if (weekday !== undefined) {
+            hold.item.event.weekday = weekday;
+        }
+
+        target.appendChild(hold.item);
+        removeDuplicateScheduleItems(hold.schedule, hold.item);
+        if (hold.item.scheduleOriginalPosition && target !== hold.item.scheduleOriginalPosition.cell) {
+            hold.item.setAttribute('updated-event', '');
+        } else {
+            hold.item.removeAttribute('updated-event');
+            delete hold.item.scheduleOriginalPosition;
+        }
+    };
+
     const clearScheduleItemHold = function(pointerId) {
         if (!scheduleItemHold || (pointerId !== undefined && pointerId !== scheduleItemHold.pointerId)) {
             return;
         }
 
+        finishScheduleNativeDrag(scheduleItemHold);
         window.clearTimeout(scheduleItemHold.timer);
         if (scheduleItemHold.active) {
             scheduleHoldNavigationSuppressedUntil = Date.now() + 750;
@@ -5809,6 +6010,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }, 0);
         }
+        applyScheduleVisualDrop(scheduleItemHold);
         removeScheduleHoldTime(scheduleItemHold);
         scheduleItemHold.item.removeAttribute('original-event');
         if (scheduleItemHold.clone) {
@@ -5816,6 +6018,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         const schedule = scheduleItemHold.schedule || scheduleItemHold.item.closest('.lm-schedule');
         if (schedule) {
+            schedule.querySelectorAll('.lm-schedule-item[holding-event]').forEach(function(item) {
+                item.remove();
+            });
             schedule.style.removeProperty('cursor');
             schedule.style.touchAction = scheduleItemHold.scheduleTouchAction || '';
             schedule.style.overscrollBehavior = scheduleItemHold.scheduleOverscrollBehavior || '';
@@ -5826,24 +6031,38 @@ document.addEventListener('DOMContentLoaded', function() {
             && scheduleItemHold.item.hasPointerCapture(scheduleItemHold.pointerId)) {
             scheduleItemHold.item.releasePointerCapture(scheduleItemHold.pointerId);
         }
+        const shouldPatchSchedule = scheduleItemHold.active;
         scheduleItemHold = null;
+        if (shouldPatchSchedule && scheduleGridViews.includes(state.view)) {
+            queueSchedulePatch(calendar);
+        }
     };
 
     calendar.addEventListener('pointerdown', function(e) {
         const item = e.target.closest('.lm-schedule-item');
 
-        if (!item || !scheduleGridViews.includes(state.view) || e.button !== 0 || !e.isPrimary) {
+        if (!item
+            || item.getAttribute('data-lesson-status') === 'canceled'
+            || !scheduleGridViews.includes(state.view)
+            || e.button !== 0
+            || !e.isPrimary) {
             return;
         }
 
         clearScheduleItemHold();
         scheduleItemHold = {
             item,
+            originCell: item.parentElement,
             pointerId: e.pointerId,
             startX: e.clientX,
             startY: e.clientY,
+            lastX: e.clientX,
+            lastY: e.clientY,
             pointerType: e.pointerType,
             active: false,
+            commitVisualDrop: false,
+            finishingNativeDrag: false,
+            nativeDragFinished: false,
             clone: null,
             timeMarker: null,
             timeMarkerRow: null,
@@ -5874,6 +6093,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 clone.weekday = item.weekday !== undefined ? item.weekday : event.weekday;
                 clone.start = item.start || event.start;
                 clone.end = item.end || event.end;
+                disconnectScheduleObserver();
+                if (state.schedulePatchFrame) {
+                    window.cancelAnimationFrame(state.schedulePatchFrame);
+                    state.schedulePatchFrame = null;
+                }
                 item.setAttribute('original-event', '');
                 item.parentElement.appendChild(clone);
 
@@ -5910,6 +6134,9 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        scheduleItemHold.lastX = e.clientX;
+        scheduleItemHold.lastY = e.clientY;
+
         if (scheduleItemHold.active) {
             e.preventDefault();
             if (scheduleItemHold.pointerType !== 'mouse') {
@@ -5938,15 +6165,7 @@ document.addEventListener('DOMContentLoaded', function() {
             && scheduleItemHold.active
             && scheduleItemHold.pointerType !== 'mouse') {
             e.preventDefault();
-            document.dispatchEvent(new MouseEvent('mouseup', {
-                bubbles: true,
-                cancelable: true,
-                view: window,
-                button: 0,
-                buttons: 0,
-                clientX: e.clientX,
-                clientY: e.clientY,
-            }));
+            finishScheduleNativeDrag(scheduleItemHold, e.clientX, e.clientY, true);
             return;
         }
 
@@ -5957,6 +6176,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.addEventListener('mouseup', function() {
         if (scheduleItemHold && scheduleItemHold.active) {
+            if (!scheduleItemHold.finishingNativeDrag) {
+                scheduleItemHold.commitVisualDrop = true;
+            }
+            scheduleItemHold.finishingNativeDrag = false;
+            scheduleItemHold.nativeDragFinished = true;
             window.setTimeout(function() {
                 clearScheduleItemHold();
             }, 0);
@@ -5968,15 +6192,7 @@ document.addEventListener('DOMContentLoaded', function() {
             && scheduleItemHold.pointerId === e.pointerId
             && scheduleItemHold.active
             && scheduleItemHold.pointerType !== 'mouse') {
-            document.dispatchEvent(new MouseEvent('mouseup', {
-                bubbles: true,
-                cancelable: true,
-                view: window,
-                button: 0,
-                buttons: 0,
-                clientX: e.clientX,
-                clientY: e.clientY,
-            }));
+            finishScheduleNativeDrag(scheduleItemHold, e.clientX, e.clientY);
         }
         clearScheduleItemHold(e.pointerId);
     });
@@ -6029,6 +6245,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const event = item.classList.contains('lm-schedule-item')
             ? getEventByScheduleItem(item)
             : getEventByGuid(item.id || item.dataset.eventGuid);
+        const updatedItem = item.hasAttribute('updated-event') ? item : null;
 
         if (event && event.isBreak) {
             openTeachingBreakModal(event);
@@ -6041,11 +6258,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         if (event && event.isGeneralEvent) {
-            openGeneralEventModal(event);
+            openGeneralEventModal(event, {
+                openReschedule: Boolean(updatedItem),
+                updatedItem,
+            });
             return;
         }
 
-        openLessonModal(event);
+        openLessonModal(event, {
+            openReschedule: Boolean(updatedItem),
+            updatedItem,
+        });
     });
 
     const monthDayEventsModal = document.getElementById('month-day-events-modal');

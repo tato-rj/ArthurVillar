@@ -289,7 +289,7 @@ class LessonPlan extends BaseModel
         $newDate = Carbon::parse($attributes['date'])->toDateString();
         $newStartTime = static::normalizeTime($attributes['start_time']);
         $duration = $this->minutesBetween($newStartTime, $attributes['end_time']);
-        $endsOn = $this->previousOccurrenceBefore($newDate);
+        $endsOn = $this->previousOccurrenceBefore($originalDate);
 
         if (! $this->occursOn($originalDate)) {
             throw new InvalidArgumentException('The selected date is not an occurrence of this lesson plan.');
@@ -313,7 +313,31 @@ class LessonPlan extends BaseModel
             'ends_on' => $endsOn->toDateString(),
         ]);
 
-        $this->scheduleOverrides()->delete();
+        $intervalDays = max(1, (int) $this->recurrence_interval) * 7;
+        $permanentOccurrence = Carbon::parse($originalDate)->startOfDay();
+        $newFirstOccurrence = Carbon::parse($newDate)->startOfDay();
+
+        $this->scheduleOverrides()
+            ->whereDate('original_date', '>=', $originalDate)
+            ->get()
+            ->each(function (ScheduleOverride $override) use (
+                $intervalDays,
+                $newFirstOccurrence,
+                $newLessonPlan,
+                $newStartTime,
+                $permanentOccurrence
+            ) {
+                $occurrenceOffset = intdiv(
+                    $permanentOccurrence->diffInDays(Carbon::parse($override->original_date)->startOfDay()),
+                    $intervalDays
+                );
+
+                $override->forceFill([
+                    'lesson_plan_id' => $newLessonPlan->id,
+                    'original_date' => $newFirstOccurrence->copy()->addDays($occurrenceOffset * $intervalDays)->toDateString(),
+                    'original_start_time' => $newStartTime,
+                ])->save();
+            });
 
         return $newLessonPlan;
     }

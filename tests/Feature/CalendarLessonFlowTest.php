@@ -410,7 +410,18 @@ class CalendarLessonFlowTest extends BaseTest
             'recurrence_interval' => 1,
         ]);
 
-        ScheduleOverride::factory()->lessonPlan($lessonPlan)->create();
+        $pastOverride = ScheduleOverride::factory()->lessonPlan($lessonPlan)->create([
+            'original_date' => '2026-07-01',
+            'original_start_time' => '15:30',
+            'new_date' => '2026-07-02',
+            'new_start_time' => '16:00',
+        ]);
+        $futureOverride = ScheduleOverride::factory()->lessonPlan($lessonPlan)->create([
+            'original_date' => '2026-07-22',
+            'original_start_time' => '15:30',
+            'new_date' => '2026-07-23',
+            'new_start_time' => '17:00',
+        ]);
 
         $this->signIn();
 
@@ -429,12 +440,30 @@ class CalendarLessonFlowTest extends BaseTest
             ->whereKeyNot($lessonPlan->id)
             ->firstOrFail();
 
-        $this->assertSame('2026-07-08', $lessonPlan->ends_on->toDateString());
+        $this->assertSame('2026-07-01', $lessonPlan->ends_on->toDateString());
         $this->assertSame('2026-07-10', $newLessonPlan->starts_on->toDateString());
         $this->assertSame(6, (int) $newLessonPlan->weekday);
         $this->assertSame('16:00', $newLessonPlan->start_time);
         $this->assertSame(60, (int) $newLessonPlan->duration_minutes);
-        $this->assertSame(0, $lessonPlan->scheduleOverrides()->count());
+
+        $this->assertDatabaseHas('schedule_overrides', [
+            'id' => $pastOverride->id,
+            'lesson_plan_id' => $lessonPlan->id,
+            'original_date' => '2026-07-01',
+            'original_start_time' => '15:30',
+            'new_date' => '2026-07-02',
+            'new_start_time' => '16:00',
+        ]);
+        $this->assertDatabaseHas('schedule_overrides', [
+            'id' => $futureOverride->id,
+            'lesson_plan_id' => $newLessonPlan->id,
+            'original_date' => '2026-07-24',
+            'original_start_time' => '16:00',
+            'new_date' => '2026-07-23',
+            'new_start_time' => '17:00',
+        ]);
+        $this->assertSame(1, $lessonPlan->scheduleOverrides()->count());
+        $this->assertSame(1, $newLessonPlan->scheduleOverrides()->count());
     }
 
     /** @test */

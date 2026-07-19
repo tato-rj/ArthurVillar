@@ -2,6 +2,7 @@
 
 :root {
   --lm-background-color-header: rgba(254, 247, 210);
+  --lm-orange: #ff9600;
 }
 
 input[type="date"],
@@ -519,6 +520,16 @@ button.setting-undo {
 #calendar .calendar-schedule-event-general {
     background: var(--calendar-general-event-color, #ce82ff);
     color: white;
+
+    &[updated-event] {
+        background: repeating-linear-gradient(
+                      45deg,
+                      rgb(from var(--calendar-general-event-color, #ce82ff) r g b / 80%),
+                      rgb(from var(--calendar-general-event-color, #ce82ff) r g b / 80%) 10px,
+                      var(--calendar-general-event-color, #ce82ff) 10px,
+                      var(--calendar-general-event-color, #ce82ff) 20px
+                    );
+    }
 }
 
 #calendar .calendar-calendar-general-event::before {
@@ -1296,7 +1307,11 @@ button.single-lesson-plan-create[selected] i {
     justify-content: normal;
     overflow: hidden;
     touch-action: none;
-    transition: .2s;
+    transition: opacity .2s, transform .2s, border-radius .2s;
+
+    &:not([data-lesson-status]) {
+        visibility: hidden;
+    }
 
     &[holding-event] {
         transform: scale(1.08);
@@ -1327,25 +1342,75 @@ button.single-lesson-plan-create[selected] i {
 #calendar .lm-schedule-item[data-lesson-status="unconfirmed"], .calendar-month-event-dot[data-lesson-status="unconfirmed"], #calendar .calendar-schedule-event[data-lesson-status="unconfirmed"] {
     background: var(--calendar-unconfirmed-lesson-color, #6b7280);
     color: white;
+
+    &[updated-event] {
+        background: repeating-linear-gradient(
+                      45deg,
+                      rgb(from var(--calendar-unconfirmed-lesson-color, #6b7280) r g b / 80%),
+                      rgb(from var(--calendar-unconfirmed-lesson-color, #6b7280) r g b / 80%) 10px,
+                      var(--calendar-unconfirmed-lesson-color, #6b7280) 10px,
+                      var(--calendar-unconfirmed-lesson-color, #6b7280) 20px
+                    );
+    }
 }
 
 #calendar .lm-schedule-item[data-lesson-status="rescheduled"], .calendar-month-event-dot[data-lesson-status="rescheduled"], #calendar .calendar-schedule-event[data-lesson-status="rescheduled"] {
-    @extend .bg-orange;
+    background: var(--lm-orange);
+
+    &[updated-event] {
+        background: repeating-linear-gradient(
+                      45deg,
+                      rgb(from var(--lm-orange, #ff9600) r g b / 80%),
+                      rgb(from var(--lm-orange, #ff9600) r g b / 80%) 10px,
+                      var(--lm-orange, #ff9600) 10px,
+                      var(--lm-orange, #ff9600) 20px
+                    );
+    }
 }
 
 #calendar .lm-schedule-item[data-lesson-status="unpaid"], .calendar-month-event-dot[data-lesson-status="unpaid"], #calendar .calendar-schedule-event[data-lesson-status="unpaid"] {
     background: var(--calendar-unpaid-lesson-color, #ff4b4b);
     color: white;
+
+    &[updated-event] {
+        background: repeating-linear-gradient(
+                      45deg,
+                      rgb(from var(--calendar-unpaid-lesson-color, #ff4b4b) r g b / 80%),
+                      rgb(from var(--calendar-unpaid-lesson-color, #ff4b4b) r g b / 80%) 10px,
+                      var(--calendar-unpaid-lesson-color, #ff4b4b) 10px,
+                      var(--calendar-unpaid-lesson-color, #ff4b4b) 20px
+                    );
+    }
 }
 
 #calendar .lm-schedule-item[data-lesson-status="paid"], .calendar-month-event-dot[data-lesson-status="paid"], #calendar .calendar-schedule-event[data-lesson-status="paid"] {
     background: var(--calendar-paid-lesson-color, #58cc02);
     color: white;
+
+    &[updated-event] {
+        background: repeating-linear-gradient(
+                      45deg,
+                      rgb(from var(--calendar-paid-lesson-color, #58cc02) r g b / 80%),
+                      rgb(from var(--calendar-paid-lesson-color, #58cc02) r g b / 80%) 10px,
+                      var(--calendar-paid-lesson-color, #58cc02) 10px,
+                      var(--calendar-paid-lesson-color, #58cc02) 20px
+                    );
+    }
 }
 
 #calendar .lm-schedule-item[data-lesson-status="early-payment"], .calendar-month-event-dot[data-lesson-status="early-payment"], #calendar .calendar-schedule-event[data-lesson-status="early-payment"] {
     background: var(--calendar-paid-lesson-color, #58cc02);
     color: white;
+
+    &[updated-event] {
+        background: repeating-linear-gradient(
+                      45deg,
+                      rgb(from var(--calendar-paid-lesson-color, #58cc02) r g b / 80%),
+                      rgb(from var(--calendar-paid-lesson-color, #58cc02) r g b / 80%) 10px,
+                      var(--calendar-paid-lesson-color, #58cc02) 10px,
+                      var(--calendar-paid-lesson-color, #58cc02) 20px
+                    );
+    }
 }
 
 #calendar .lm-schedule-item[data-lesson-status="canceled"], #calendar .calendar-month-event-dot[data-lesson-status="canceled"], #calendar .calendar-schedule-event[data-lesson-status="canceled"] {
@@ -1414,6 +1479,7 @@ button.single-lesson-plan-create[selected] i {
 #calendar .lm-schedule-item:after {
     content: attr(data-display-time);
     margin: 0;
+    display: none;
 }
 
 #lesson-summary i {
@@ -1538,8 +1604,18 @@ button.single-lesson-plan-create[selected] i {
 }
 
 #lesson-modal.is-rescheduling,
-#lesson-modal.is-canceling {
-    #lesson-controls {
+#lesson-modal.is-canceling,
+#general-event-modal.is-rescheduling,
+#general-event-modal.is-canceling {
+    #lesson-controls,
+    #general-event-controls {
+        display: none !important;
+    }
+}
+
+#lesson-modal.is-rescheduling,
+#general-event-modal.is-rescheduling {
+    #header-buttons {
         display: none;
     }
 }
@@ -1556,13 +1632,6 @@ button.single-lesson-plan-create[selected] i {
     }
 }
 
-#general-event-modal.is-rescheduling,
-#general-event-modal.is-canceling {
-    #general-event-details {
-        display: none;
-    }
-}
-
 #general-event-modal.is-rescheduling {
     #reschedule-general-event {
         display: block;
@@ -1571,6 +1640,24 @@ button.single-lesson-plan-create[selected] i {
 
 #general-event-modal.is-canceling {
     #cancel-general-event {
+        display: block;
+    }
+}
+
+#lesson-modal.is-drop-rescheduling,
+#general-event-modal.is-drop-rescheduling {
+    [data-reschedule-date-fields],
+    [data-reschedule-time-fields] {
+        display: none;
+    }
+}
+
+#lesson-modal.is-drop-rescheduling {
+    [data-reschedule-permanence] {
+        display: none;
+    }
+
+    &[data-drop-recurring="true"] [data-reschedule-permanence] {
         display: block;
     }
 }
