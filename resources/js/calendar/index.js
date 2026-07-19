@@ -1073,6 +1073,10 @@ const patchScheduleItems = function(calendar) {
         const duration = getTimeMinutes(end) - getTimeMinutes(start);
         const isShort = duration <= 30;
         const event = getEventByScheduleItem(item);
+        const cell = item.closest('td[data-date]');
+        const visibleDate = cell
+            ? (cell.getAttribute('data-real-date') || cell.getAttribute('data-date'))
+            : '';
         const iconName = event && event.isGeneralEvent
             ? event.eventTypeIcon
             : getLessonLocationIcon(event ? event.locationName : '');
@@ -1110,7 +1114,7 @@ const patchScheduleItems = function(calendar) {
             );
         }
 
-        applyEventTimeStatusAttributes(item, event);
+        applyEventTimeStatusAttributes(item, event, visibleDate);
         applyEventOverlapAttribute(item, event);
     });
 };
@@ -2899,12 +2903,14 @@ const addMinutesToTime = function(value, minutes) {
     return minutesToTime(total);
 };
 
-const getEventDateTime = function(event, key) {
-    if (!event || !event.date || !event[key]) {
+const getEventDateTime = function(event, key, visibleDate) {
+    const eventDate = visibleDate || (event && event.date);
+
+    if (!event || !eventDate || !event[key]) {
         return null;
     }
 
-    const date = parseDateString(String(event.date).substring(0, 10));
+    const date = parseDateString(String(eventDate).substring(0, 10));
     const parts = normalizeTime(event[key]).split(':').map(Number);
 
     date.setHours(parts[0] || 0, parts[1] || 0, 0, 0);
@@ -2912,13 +2918,13 @@ const getEventDateTime = function(event, key) {
     return date;
 };
 
-const getEventTimeStatus = function(event) {
+const getEventTimeStatus = function(event, visibleDate) {
     if (!event || event.isHoliday || event.isBreak) {
         return '';
     }
 
-    const start = getEventDateTime(event, 'start');
-    const end = getEventDateTime(event, 'end');
+    const start = getEventDateTime(event, 'start', visibleDate);
+    const end = getEventDateTime(event, 'end', visibleDate);
     const now = new Date();
 
     if (!start || !end) {
@@ -2936,12 +2942,12 @@ const getEventTimeStatus = function(event) {
     return '';
 };
 
-const applyEventTimeStatusAttributes = function(element, event) {
+const applyEventTimeStatusAttributes = function(element, event, visibleDate) {
     if (!element) {
         return;
     }
 
-    const status = getEventTimeStatus(event);
+    const status = getEventTimeStatus(event, visibleDate);
 
     element.toggleAttribute('past-event', status === 'past');
     element.toggleAttribute('future-event', status === 'future');

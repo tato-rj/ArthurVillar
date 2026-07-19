@@ -1,1 +1,4998 @@
-(()=>{var e=window.calendarjs,t={date:null,miniDate:null,view:"week",instance:null,events:[],customEvents:[],plannedLessons:[],singleLessonPlans:[],locations:[],selectedLocationIds:[],visibleEventsByDate:null,holidays:[],showHolidays:!0,teachingBreaks:[],recitals:[],generalEvents:[],selectedEventTypes:["recurring","single","general"],studentSearch:"",loadedRange:null,pendingRangeKey:null,scheduleObserver:null,schedulePatchFrame:null,scheduleLabelFrame:null,schedulePointerTimer:null,rescheduleDatePickerDate:null,generalEventRescheduleDatePickerDate:null,rescheduleDurationMinutes:15,rescheduleAnchor:null,paymentTotalCounters:{},calendarFetchId:0,didAutoNowScroll:!1,birthdayWindow:5,suppressNextScheduleAnimation:!1},n=Intl.DateTimeFormat().resolvedOptions().timeZone||"America/New_York",a=new Intl.DateTimeFormat("en",{month:"long",timeZone:n,year:"numeric"}),r=new Intl.DateTimeFormat("en",{month:"short",timeZone:n}),i=new Intl.DateTimeFormat("en",{month:"long",timeZone:n}),l=new Intl.DateTimeFormat("en",{month:"long",day:"numeric",timeZone:n,year:"numeric"}),o=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],d=["SUN","MON","TUE","WED","THU","FRI","SAT"],s=["schedule","day","2-days","week","month"],c="08:00",u="22:00",m=["day","2-days","week"],f=function(e,t,n){return new Date(e,t,n,12,0,0,0)},v=function(e){var t=e.getFullYear(),n=String(e.getMonth()+1).padStart(2,"0"),a=String(e.getDate()).padStart(2,"0");return"".concat(t,"-").concat(n,"-").concat(a)},h=function(){return v(k())},p=function(e){var t=String(e).split("-").map(Number);return f(t[0],t[1]-1,t[2])},y=function(e){return/^\d{4}-\d{2}-\d{2}$/.test(String(e||""))},g=function(e){return e instanceof Date&&!Number.isNaN(e.getTime())},w=function(e){if(!y(e))return null;var t=p(e);return v(t)===e?t:null},b=function(e){return e?p(String(e).substring(0,10)):null},S=function(){var e=new URL(window.location.href);e.searchParams.set("view",t.view),e.searchParams.set("date",v(t.date)),window.history.replaceState({calendarView:t.view,calendarDate:v(t.date)},"",e)},E=function(e){return e&&e.start&&e.end?{start:"string"==typeof e.start?e.start:v(e.start),end:"string"==typeof e.end?e.end:v(e.end)}:null},A=function(e){var t=E(e);return t?"".concat(t.start,":").concat(t.end):""},L=function(e){return A(t.loadedRange)===A(e)},k=function(){var e=new Date;return f(e.getFullYear(),e.getMonth(),e.getDate())},C=function(e){t.date=Bt(e),t.miniDate=Bt(t.date),t.didAutoNowScroll=!1},q=function(){if("schedule"===t.view)return{start:f(t.date.getFullYear(),t.date.getMonth()-1,1),end:f(t.date.getFullYear(),t.date.getMonth()+5,0)};if("day"===t.view)return{start:Bt(t.date),end:Bt(t.date)};if("2-days"===t.view)return{start:Bt(t.date),end:Rt(t.date,1)};if("week"===t.view){var e=jt(t.date);return{start:e,end:Rt(e,6)}}if("month"===t.view){var n=Ut(t.date);return{start:n,end:Rt(n,41)}}var a=jt(t.date);return{start:a,end:Rt(a,6)}},D=function(e){var n=E(e);if(!n)return Promise.resolve();var a=A(n);if(t.pendingRangeKey===a)return Promise.resolve();var r=new URL(window.location.href);r.searchParams.set("view",t.view),r.searchParams.set("date",v(t.date)),r.searchParams.set("range_start",n.start),r.searchParams.set("range_end",n.end),r.searchParams.set("lesson_plans","1"),t.pendingRangeKey=a,t.calendarFetchId+=1;var i=t.calendarFetchId;return fetch(r,{headers:{Accept:"application/json"}}).then(function(e){if(!e.ok)throw new Error("Unable to load calendar lessons.");return e.json()}).then(function(e){i===t.calendarFetchId&&A(q())===a&&(t.plannedLessons=Array.isArray(e.plannedLessons)?e.plannedLessons:[],t.singleLessonPlans=Array.isArray(e.singleLessonPlans)?e.singleLessonPlans:[],t.holidays=Array.isArray(e.holidays)?e.holidays:[],t.teachingBreaks=Array.isArray(e.teachingBreaks)?e.teachingBreaks:[],t.recitals=Array.isArray(e.recitals)?e.recitals:[],t.generalEvents=Array.isArray(e.generalEvents)?e.generalEvents:[],t.loadedRange=E(e.calendarRange)||n)}).catch(function(e){i===t.calendarFetchId&&(console.error(e),t.loadedRange=n)}).finally(function(){t.pendingRangeKey===a&&i===t.calendarFetchId&&(t.pendingRangeKey=null)})},N=function(){return I(t.date,t.view)},I=function(e,t){if("day"===t)return[Bt(e)];if("2-days"===t)return Array.from({length:2},function(t,n){return Rt(e,n)});var n=jt(e);return Array.from({length:7},function(e,t){return Rt(n,t)})},M=function(){return jt(t.date)},_=function(e){return Rt(M(),e)},x=function(){var e="day"===t.view?1:7;return Array.from({length:e},function(e,n){return function(e){if("2-days"===t.view){var n=N();return n[e]?Bt(n[e]):_(e)}return"week"===t.view?Rt(jt(t.date),e):N()[e]?Bt(N()[e]):null}(n)}).filter(Boolean)},P=function(e){e.querySelectorAll(".lm-schedule-index").forEach(function(e){e.textContent=function(e){var t=String(e).trim(),n=t.match(/^(\d{1,2})(?::\d{2})/);if(!n)return t;var a=Number(n[1]),r=a>=12?"PM":"AM";return"".concat(a%12||12," ").concat(r)}(e.textContent)})},T=function(e){var t=String(e||"").match(/^(\d{1,2}):(\d{2})/);return t?60*Number(t[1])+Number(t[2]):0},F=function(e){var t=T(e.start);return t>=T(c)&&t<T(u)},O=function(e){return e&&e.start&&e.end?Math.max(15,T(e.end)-T(e.start)):30},B=function(e){var t=Number(e);return Number.isFinite(t)&&t>0?t:null},R=function(){var e=t.locations.map(function(e){return B(e.id)}).filter(Boolean);return e.length&&t.selectedLocationIds.length<e.length},H=function(e){var n=t.selectedLocationIds,a=B(e);return!a||n.includes(a)},U=function(e){if(!R()||e.isHoliday)return!0;if(e.isBreak){var t=Array.isArray(e.locations)?e.locations:[];return!t.length||t.some(function(e){return H(e.id)})}return H(e.locationId)},j=function(){return t.events.filter(F).filter(U)},X=function(){var e=j();return"2-days"!==t.view?e:e.filter(z).map(function(e){var t,n,a=(t=e.date,(n=N().map(v).indexOf(String(t).substring(0,10)))<0?null:v(_(n)));return a?Object.assign({},e,{date:a}):null}).filter(Boolean)},Y=new Intl.NumberFormat("en-US",{currency:"USD",maximumFractionDigits:0,style:"currency"}),G={decimalPlaces:0,prefix:"$"},Q=function(e){var t=Number(e&&e.feeAmount?e.feeAmount:0);return Number.isFinite(t)?t:0},W=function(e,n,a,r,i){if(n){var l=Number(a),o=t.paymentTotalCounters[e],d=o&&o.element===n?o.value:Number(n.dataset.countValue||0),s=Number.isFinite(d)?d:0,c=Number.isFinite(l)?l:0,u=r&&"function"==typeof r.formattingFn?r.formattingFn:"function"==typeof i?i:function(e){return String(e)};if(o&&o.frame&&cancelAnimationFrame(o.frame),Math.abs(c-s)<.001)return n.textContent=u(c),n.dataset.countValue=String(c),void(t.paymentTotalCounters[e]={element:n,frame:null,value:c});var m,f,v=Math.round((f=980,(m=520)+Math.random()*(f-m))),h=window.performance&&"function"==typeof window.performance.now?window.performance.now():Date.now(),p=c-s,y=function(a){var r=a-h,i=Math.min(1,Math.max(0,r/v)),l=s+p*function(e){return 1-Math.pow(1-e,3)}(i),o=Number.isFinite(l)?l:c,d=t.paymentTotalCounters[e];d&&d.element===n&&(n.textContent=u(i>=1?c:o),n.dataset.countValue=String(o),d.value=o,i<1?d.frame=requestAnimationFrame(y):(d.frame=null,d.value=c,n.dataset.countValue=String(c)))};t.paymentTotalCounters[e]={element:n,frame:requestAnimationFrame(y),value:s}}},V=function(e,t,n){W(e,t,n/100,Object.assign({},G,{formattingFn:function(e){var t=Number(e);return Y.format(Number.isFinite(t)?t:0)}}),function(e){var t=Number(e);return Y.format(Number.isFinite(t)?t:0)})},K=function(e){var t=Number.isFinite(Number(e))?Math.round(Number(e)):0,n=Math.floor(t/60),a=t%60;return n&&a?"".concat(n,"h ").concat(a,"m"):n?"".concat(n,"h"):a?"".concat(a,"m"):"0h"},$=function(e){var t=Number.isFinite(Number(e))?Number(e):0,n=Math.round(t/60*4)/4;return"".concat(Number(n.toFixed(2)),"h")},z=function(e){if(!e||!e.date)return!1;var t=q(),n=p(String(e.date).substring(0,10));return n>=t.start&&n<=t.end},Z=function(){return j().filter(function(e){return"schedule"!==t.view?function(e){if(!e||!e.date)return!1;if("month"!==t.view)return z(e);var n=p(String(e.date).substring(0,10)),a=f(t.date.getFullYear(),t.date.getMonth(),1),r=f(t.date.getFullYear(),t.date.getMonth()+1,0);return n>=a&&n<=r}(e):e.date===v(t.date)}).filter(function(e){return(e.lessonPlanId||e.singleLessonPlanId)&&!e.isHoliday})},J=function(){var e=document.querySelector("[data-calendar-expected-payment]"),n=document.querySelector("[data-calendar-confirmed-payment]"),a=document.querySelector("[data-calendar-lessons-count]"),r=document.querySelector("[data-calendar-hours-count]"),i=document.querySelector("[data-calendar-average-hours]"),l=document.getElementById("calendar-calendar-insights-birthdays");if(e||n||a||r||i||l){var o=Z(),d=o.reduce(function(e,t){var n=Q(t);return"canceled"!==t.lessonStatus&&"canceled"!==t.calendarStatus&&(e.expected+=n,e.lessons+=1,e.minutes+=O(t)),"paid"===t.lessonStatus&&(e.confirmed+=n),e},{confirmed:0,expected:0,lessons:0,minutes:0}),s=[],c=new Set;if(o.forEach(function(e){var t=e.studentFirstName||"",n=t.toLowerCase();t&&e.hasBirthdayNearEvent&&!c.has(n)&&(c.add(n),s.push(t))}),function(e,t){if(e){var n=e.querySelector("span"),a=function(e){return e.length?1===e.length?e[0]:2===e.length?"".concat(e[0]," and ").concat(e[1]):"".concat(e.slice(0,-1).join(", ")," and ").concat(e[e.length-1]):""}(t);e.style.display=a?"":"none",n&&(n.textContent=a)}}(l,s),V("expected",e,d.expected),V("confirmed",n,d.confirmed),W("lessons",a,d.lessons,{decimalPlaces:0,formattingFn:function(e){var t=Number(e);return String(Math.round(Number.isFinite(t)?t:0))}},function(e){var t=Number(e);return String(Math.round(Number.isFinite(t)?t:0))}),W("hours",r,d.minutes,{decimalPlaces:0,formattingFn:function(e){return K(e)}},function(e){return K(e)}),i){var u="2-days"===t.view?2:"week"===t.view?7:"month"===t.view?f(t.date.getFullYear(),t.date.getMonth()+1,0).getDate():0,m=i.closest(".mb-3")||i.parentElement;m&&(m.style.display=u?"":"none"),u&&W("average-hours",i,d.minutes/u,{decimalPlaces:0,formattingFn:function(e){return"".concat($(e),"/day")}},function(e){return"".concat($(e),"/day")})}}},ee=function(e){return n=v(e),t.showHolidays?t.holidays.filter(function(e){return e.date===n}):[];var n},te=function(e,t){return String(e&&e[t]?e[t]:"").substring(0,10)},ne=function(e){return t.teachingBreaks.filter(function(t){if(!function(e,t){var n=te(t,"starts_on"),a=te(t,"ends_on");return n&&a&&e>=n&&e<=a}(e,t))return!1;if(!R())return!0;var n=Array.isArray(t.locations)?t.locations:[];return!n.length||n.some(function(e){return H(e.id)})})},ae=function(e){return ne(v(e))},re=function(e){return n=v(e),t.recitals.filter(function(e){return String(e.date||"").substring(0,10)===n});var n},ie=new Intl.DateTimeFormat("en",{hour:"numeric",minute:"2-digit",timeZone:n}),le=new Intl.DateTimeFormat("en",{weekday:"long",month:"long",day:"numeric",timeZone:n}),oe=function(e){if(!e)return"";var t=e.split(":").map(Number),n=new Date(2e3,0,1,t[0]||0,t[1]||0);return ie.format(n).replace(":00","").replace(/\s/g,"").toLowerCase()},de=function(e){if(!e)return"";var t=e.split(":").map(Number),n=new Date(2e3,0,1,t[0]||0,t[1]||0);return ie.format(n).replace(/\s/g,"").toLowerCase()},se=function(e){return de(e).toUpperCase()},ce=function(e){e.querySelectorAll(".lm-schedule-item:not([holding-event])").forEach(function(e){var t,n,a=e.getAttribute("data-start"),r=e.getAttribute("data-end"),i=T(r)-T(a)<=30,l=me(e),o=l&&l.isGeneralEvent?l.eventTypeIcon:(t=l?l.locationName:"",(n=String(t||"").trim().toLowerCase()).includes("home")?"house":n.includes("online")?"globe":"building"),d=l&&l.isGeneralEvent?l.eventType:l&&l.locationName?l.locationName:"",s=e.querySelector(":scope > .event-icon");o?s||((s=document.createElement("span")).className="event-icon",s.innerHTML='<i class="fa-solid" aria-hidden="true"></i>',e.appendChild(s)):s&&(s.remove(),s=null),s&&(s.querySelector("i").className="fa-solid fa-".concat(o),s.title=d),e.classList.toggle("is-short",i),e.classList.toggle("calendar-calendar-general-event",Boolean(l&&l.isGeneralEvent)),e.setAttribute("data-display-time",i?oe(a):"".concat(oe(a)," - ").concat(oe(r))),Et(e),l&&e.setAttribute("data-lesson-status",l.calendarStatus||l.lessonStatus||(l.isGeneralEvent?"general-event":"unconfirmed")),rt(e,l),st(e,l)})},ue=function(e){return t.events.find(function(t){return t.guid===e})||ve(e)||pe(e)||ge(e)},me=function(e){if(!e)return null;if(e.event)return e.event;var n=ue(e.id||e.dataset.eventGuid);if(n)return n;var a=e.closest("td[data-date]"),r=a?a.dataset.date:"",i=et(e.getAttribute("data-start")||"08:00"),l=et(e.getAttribute("data-end")||"08:15"),o=e.getAttribute("data-title")||"";return t.events.find(function(e){return e.date===r&&e.start===i&&e.end===l&&e.title===o})},fe=function(e,t){var n=e.impact||{};return{guid:"teaching-break-".concat(e.id,"-").concat(t),isBreak:!0,id:e.id,date:t,title:e.title||"Teaching break",reason:e.reason||"",startsOn:te(e,"starts_on"),endsOn:te(e,"ends_on"),locations:Array.isArray(e.locations)?e.locations:[],missedLessonCount:n.lessons_count||0,missedFeeAmount:n.fee_amount||0,missedLessons:Array.isArray(n.lessons)?n.lessons:[]}},ve=function(e){var n=String(e||"").match(/^teaching-break-(\d+)-(\d{4}-\d{2}-\d{2})$/);if(!n)return null;var a=t.teachingBreaks.find(function(e){return Number(e.id)===Number(n[1])});return a?fe(a,n[2]):null},he=function(e){var t=String(e.date||"").substring(0,10);return{guid:"recital-".concat(e.id,"-").concat(t),isRecital:!0,id:e.id,date:t,start:e.start_time,title:e.name||"Recital",venue:e.venue||null,students:Array.isArray(e.students)?e.students:[]}},pe=function(e){var n=String(e||"").match(/^recital-(\d+)-(\d{4}-\d{2}-\d{2})$/);if(!n)return null;var a=t.recitals.find(function(e){return Number(e.id)===Number(n[1])});return a?he(a):null},ye=function(e){var t=String(e.scheduled_date||"").substring(0,10);return{guid:"general-event-".concat(e.id,"-").concat(t),isGeneralEvent:!0,id:e.id,date:t,start:et(e.starts_at),end:et(e.ends_at),title:e.name||"Event",eventType:e.event_type||"",eventTypeIcon:e.event_type_icon||"",notes:e.notes||"",notificationMinutesBefore:e.notification_minutes_before,editUrl:e.edit_url||"",rescheduleUrl:e.reschedule_url||"",destroyUrl:e.destroy_url||"",calendarStatus:"general-event",lessonStatus:"general-event","data-lesson-status":"general-event"}},ge=function(e){var n=String(e||"").match(/^general-event-(\d+)-(\d{4}-\d{2}-\d{2})$/);if(!n)return null;var a=t.generalEvents.find(function(e){return Number(e.id)===Number(n[1])});return a?ye(a):null},we=function(e){return e?e.canceled_at?"canceled":e.paid_at?"paid":"unpaid":"unconfirmed"},be=function(e){return T(function(e){var t=String(e||"").match(/[T\s](\d{1,2}):(\d{2})/);return t?"".concat(String(Number(t[1])).padStart(2,"0"),":").concat(t[2]):""}(e))},Se=function(e){var t=document.getElementById("lesson-taught"),n=t?t.dataset.url:"";return e&&e.id&&n?"".concat(n.replace(/\/$/,""),"/").concat(e.id):""},Ee=function(e,t){var n=e?window.calendarSingleLessonPlanEditUrlTemplate:window.calendarLessonPlanEditUrlTemplate,a=e?"__single_lesson_plan__":"__lesson_plan__";return n&&t?String(n).replace(a,t):""},Ae=function(e){var t=Se(e);return t?"".concat(t.replace(/\/$/,""),"/payments"):""},Le=function(e){e&&!e.dataset.defaultHtml&&(e.dataset.defaultHtml=e.innerHTML)},ke=function(e){e&&e.dataset.defaultHtml&&(e.innerHTML=e.dataset.defaultHtml)},Ce=function(e,t){e&&e.querySelectorAll('button:not([type]), button[type="submit"], input[type="submit"], input[type="image"]').forEach(function(e){if(t){if(e.disabled)return;return Le(e),e.dataset.calendarDisabledOnSubmit="true",e.disabled=!0,void e.setAttribute("aria-disabled","true")}"true"===e.dataset.calendarDisabledOnSubmit&&(e.disabled=!1,e.removeAttribute("aria-disabled"),delete e.dataset.calendarDisabledOnSubmit,ke(e))})},qe=function(e,t,n){return fetch(e,t).then(function(e){return e.json().catch(function(){return{}}).then(function(t){if(!e.ok)throw new Error(function(e,t){if(e&&e.message)return e.message;if(e&&e.errors){var n=Object.values(e.errors).find(function(e){return Array.isArray(e)&&e.length});if(n)return n[0]}return t}(t,n));return t})})},De=function(e,t){var n=e?e.querySelector("[data-lesson-action-error]"):null;n&&(n.textContent=t||"Unable to update this lesson.",n.hidden=!1)},Ne=function(e){var t=e?e.querySelector("[data-lesson-action-error]"):null;t&&(t.textContent="",t.hidden=!0)},Ie=function(e,t,n){var a=e?e.dataset.eventGuid:"";return t().then(function(){var t=a?ue(a):null;n&&t?Be(t):function(e){e&&(window.bootstrap&&window.bootstrap.Modal&&"function"==typeof window.bootstrap.Modal.getOrCreateInstance?window.bootstrap.Modal.getOrCreateInstance(e).hide():window.jQuery&&"function"==typeof window.jQuery.fn.modal&&window.jQuery(e).modal("hide"))}(e)})},Me=function(e,t,n){var a=Array.isArray(e.lessons)?e.lessons:[],r=Number(e.id),i=T(n);return a.find(function(e){var n,a,l=(n=e.starts_at,((a=String(n||"").match(/^(\d{4}-\d{2}-\d{2})/))?a[1]:"")===t),o=be(e.starts_at)===i,d=!e.lesson_plan_id||Number(e.lesson_plan_id)===r;return l&&o&&d})||null},_e=function(e){var n=e.querySelector("[data-reschedule-datepicker-label]"),r=e.querySelector("[data-reschedule-datepicker-grid]"),i=e.querySelector("#reschedule-lesson-date");if(n&&r&&t.rescheduleDatePickerDate){var l=i&&i.value?i.value:v(t.rescheduleDatePickerDate),o=Ut(t.rescheduleDatePickerDate),d=h();n.textContent=a.format(t.rescheduleDatePickerDate),r.innerHTML="";for(var s=0;s<42;s++){var c=Rt(o,s),u=v(c),m=document.createElement("button");m.type="button",m.className="calendar-date-picker-day",m.textContent=c.getDate(),m.dataset.date=u,c.getMonth()!==t.rescheduleDatePickerDate.getMonth()&&m.classList.add("is-muted"),u===l&&m.classList.add("is-selected"),u===d&&m.classList.add("is-today"),r.appendChild(m)}}},xe=function(e){var n=e.querySelector("[data-general-event-reschedule-datepicker-label]"),r=e.querySelector("[data-general-event-reschedule-datepicker-grid]"),i=e.querySelector("#reschedule-general-event-date"),l=t.generalEventRescheduleDatePickerDate;if(n&&r&&l){var o=i&&i.value?i.value:v(l),d=Ut(l),s=h();n.textContent=a.format(l),r.innerHTML="";for(var c=0;c<42;c++){var u=Rt(d,c),m=v(u),f=document.createElement("button");f.type="button",f.className="calendar-date-picker-day",f.textContent=u.getDate(),f.dataset.date=m,u.getMonth()!==l.getMonth()&&f.classList.add("is-muted"),m===o&&f.classList.add("is-selected"),m===s&&f.classList.add("is-today"),r.appendChild(f)}}},Pe=function(e){e&&(e.classList.remove("is-canceling","is-rescheduling","is-drop-rescheduling"),delete e.dataset.dropRecurring,t.rescheduleAnchor=null,Ne(e))},Te=function(e){e&&(e.classList.remove("is-canceling"),e.classList.add("is-rescheduling"))},Fe=function(e){if(e&&e.date){var t=p(String(e.date).substring(0,10)),n=k();if(g(t))return t<=n}var a=function(e){if(!e||!e.date||!e.start)return null;var t=String(e.date).substring(0,10).split("-").map(Number),n=et(e.start).split(":").map(Number),a=new Date(t[0],t[1]-1,t[2],n[0],n[1],0,0);return g(a)?a:null}(e);return!!a&&a<=new Date},Oe=function(e,n){var a=e.querySelector(".modal-title"),r=e.querySelector("#lesson-date"),i=e.querySelector("#lesson-time"),l=e.querySelector("#lesson-recurrence"),o=e.querySelector("#lesson-birthday"),d=o?o.querySelector("span"):null,s=e.querySelector("#meeting-url"),c=s?s.querySelector("a"):null,u=e.querySelector("#notes-url"),m=u?u.querySelector("a"):null,f=e.querySelector("#lesson-revert"),v=e.querySelector("#lesson-edit"),y=e.querySelector("#lesson-taught"),g=e.querySelector("#cancel-lesson-button"),w=e.querySelector("#confirm-payment"),b=e.querySelector("#early-payment"),S=e.querySelector("#reschedule-lesson-original-date"),E=e.querySelector("#reschedule-lesson-original-start-time"),A=e.querySelector("#reschedule-lesson-date"),L=e.querySelector("#reschedule-lesson form"),k=e.querySelector('#reschedule-lesson [name="lesson_plan_id"]'),C=e.querySelector("#reschedule-lesson-start-time"),q=e.querySelector("#reschedule-lesson-end-time"),D=e.querySelector("#cancel-lesson form"),N=n&&n.lessonPlanId?n.lessonPlanId:"",I=n&&n.singleLessonPlanId?n.singleLessonPlanId:"",M=!(!N&&!I),_=n&&n.date?n.date.substring(0,10):h(),x=Fe(n);if(function(e,t){if(e){var n=Q(t);if(e.textContent="",e.appendChild(document.createTextNode(t&&t.title?t.title:"Lesson")),!(n<=0)){var a=document.createElement("span");a.className="ml-2 opacity-4",a.textContent=Y.format(n/100),e.appendChild(a)}}}(a,n),r&&(r.textContent=n&&n.date?le.format(p(n.date.substring(0,10))):""),i){var P=n&&n.start?de(n.start):"",T=n&&n.end?de(n.end):"";i.textContent=P&&T?"".concat(P," - ").concat(T):P||T}if(l&&(l.textContent=n&&n.recurrence?n.recurrence:""),o&&d&&(n&&n.birthdayModalLabel?(o.style.display="",d.textContent=n.birthdayModalLabel):(o.style.display="none",d.textContent="")),s&&c&&(n&&n.meetingUrl?(s.style.display="block",c.href=n.meetingUrl):(s.style.display="none",c.removeAttribute("href"))),u&&m&&(n&&n.notesUrl?(u.style.display="block",m.href=n.notesUrl):(u.style.display="none",m.removeAttribute("href"))),f){var F=!(!n||!(n.scheduleOverrideId||n.lessonId||n.earlyPaymentId&&!x));f.style.display=F?"inline-flex":"none",f.disabled=!F}v&&(v.dataset.url=n&&n.calendarEditUrl?n.calendarEditUrl:"",v.style.display=v.dataset.url?"inline-flex":"none",v.disabled=!v.dataset.url),y&&(Le(y),y.disabled=!n||!M,y.style.display=x?"":"none",ke(y)),g&&(Le(g),g.disabled=!n||!M||"canceled"===n.lessonStatus,g.style.display=M?"":"none",ke(g)),w&&(Le(w),w.style.display=x?"":"none",w.dataset.url=n&&n.paymentUrl?n.paymentUrl:"",ke(w)),b&&(Le(b),b.disabled=!n||!M,b.style.display=n&&!x&&"unconfirmed"===n.lessonStatus?"":"none",ke(b)),S&&(S.value=n&&n.originalDate?n.originalDate:_),E&&(E.value=n&&n.originalStartTime?et(n.originalStartTime):n&&n.start?et(n.start):"08:00"),A&&(A.value=_),k&&(k.value=N);var O=e.querySelector('#reschedule-lesson [name="single_lesson_plan_id"]');if(O&&(O.value=I),L&&(L.action=I&&L.dataset.singleAction?L.dataset.singleAction:L.dataset.recurringAction||L.action),D){var B=D.querySelectorAll("[data-recurring-cancel-fields]"),R=D.querySelector("[data-single-cancel-warning]"),H=D.querySelectorAll('input[name="canceled_by"]'),U=!!I,j={lesson_plan_id:N,single_lesson_plan_id:I,date:_,start:n&&n.start?et(n.start):"",end:n&&n.end?et(n.end):"",scheduled_date:n&&n.originalDate?n.originalDate:_,scheduled_start_time:n&&n.originalStartTime?et(n.originalStartTime):n&&n.start?et(n.start):"",schedule_override_id:n&&n.scheduleOverrideId?n.scheduleOverrideId:""};Object.keys(j).forEach(function(e){var t=D.querySelector('[name="'.concat(e,'"]'));t&&(t.value=j[e])}),B.forEach(function(e){e.hidden=U}),R&&(R.hidden=!U),H.forEach(function(e){e.disabled=U})}ct(C,n&&n.start?n.start:"08:00"),vt(C,q,n&&n.end?et(n.end):"08:15"),ct(q,n&&n.end?n.end:"08:15"),t.rescheduleAnchor=null,t.rescheduleDurationMinutes=Math.max(15,ut(q)-ut(C)),t.rescheduleDatePickerDate=p(_),_e(e),e.dataset.lessonStatus=n&&n.lessonStatus?n.lessonStatus:"unconfirmed",e.dataset.lessonCanceledBy=n&&n.canceledBy?n.canceledBy:""},Be=function(e,t){var n=document.getElementById("lesson-modal"),a=t||{};n&&(Pe(n),Oe(n,e),n.updatedScheduleItem=a.updatedItem||null,a.openReschedule&&(n.classList.add("is-drop-rescheduling"),n.dataset.dropRecurring=e&&e.lessonPlanId?"true":"false",Te(n)),e?(n.dataset.eventGuid=e.guid||"",n.dataset.eventTitle=e.title||"",n.dataset.eventDate=e.date||"",n.dataset.eventStart=e.start||"",n.dataset.eventEnd=e.end||"",n.dataset.lessonPlanId=e.lessonPlanId||"",n.dataset.singleLessonPlanId=e.singleLessonPlanId||"",n.dataset.lessonId=e.lessonId||"",n.dataset.scheduleOverrideId=e.scheduleOverrideId||"",n.dataset.earlyPaymentId=e.earlyPaymentId||"",n.dataset.originalDate=e.originalDate||e.date||"",n.dataset.originalStartTime=e.originalStartTime||e.start||""):(n.dataset.eventGuid="",n.dataset.eventTitle="",n.dataset.eventDate="",n.dataset.eventStart="",n.dataset.eventEnd="",n.dataset.lessonPlanId="",n.dataset.singleLessonPlanId="",n.dataset.lessonId="",n.dataset.scheduleOverrideId="",n.dataset.earlyPaymentId="",n.dataset.originalDate="",n.dataset.originalStartTime=""),window.bootstrap&&window.bootstrap.Modal&&"function"==typeof window.bootstrap.Modal.getOrCreateInstance?window.bootstrap.Modal.getOrCreateInstance(n).show():window.jQuery&&"function"==typeof window.jQuery.fn.modal&&window.jQuery(n).modal("show"))},Re=function(e){var t=document.getElementById("teaching-break-modal");if(t&&e){var n=t.querySelector(".modal-title"),a=t.querySelector("#teaching-break-dates"),r=t.querySelector("#teaching-break-reason"),i=t.querySelector("#teaching-break-locations"),l=t.querySelector("#teaching-break-impact"),o=t.querySelector("#teaching-break-lessons"),d=Array.isArray(e.missedLessons)?e.missedLessons:[];if(n&&(n.textContent=e.title||"Teaching break"),a&&(a.textContent=function(e){var t=e&&e.startsOn?e.startsOn:e&&e.date?e.date.substring(0,10):"",n=e&&e.endsOn?e.endsOn:t;if(!t)return"";var a=le.format(p(t)),r=n&&n!==t?le.format(p(n)):"";return r?"".concat(a," - ").concat(r):a}(e)),r&&(r.textContent=e.reason||"No reason added."),i&&(i.textContent=Array.isArray(e.locations)&&e.locations.length?e.locations.map(function(e){return e.name}).join(", "):"All locations"),l){var s=Number(e.missedLessonCount||0);l.textContent="".concat(s," ").concat(1===s?"lesson":"lessons"," missed · ").concat(Y.format(Number(e.missedFeeAmount||0)/100)," missed")}if(o){if(o.innerHTML="",!d.length){var c=document.createElement("div");c.className="opacity-4",c.textContent="No lessons are currently scheduled during this break.",o.appendChild(c)}d.forEach(function(e){var t=document.createElement("div"),n=document.createElement("strong"),a=document.createElement("span");t.className="calendar-break-lesson",n.textContent=e.student||"Lesson",a.textContent="".concat(e.date?le.format(p(String(e.date).substring(0,10))):""," · ").concat(de(e.start),"-").concat(de(e.end)," · ").concat(Y.format(Number(e.fee_amount||0)/100)),t.appendChild(n),t.appendChild(a),o.appendChild(t)})}window.bootstrap&&window.bootstrap.Modal&&"function"==typeof window.bootstrap.Modal.getOrCreateInstance?window.bootstrap.Modal.getOrCreateInstance(t).show():window.jQuery&&"function"==typeof window.jQuery.fn.modal&&window.jQuery(t).modal("show")}},He=function(e){var t=document.getElementById("recital-modal");if(t&&e){var n=t.querySelector(".modal-title"),a=t.querySelector("#recital-date"),r=t.querySelector("#recital-time"),i=t.querySelector("#recital-venue"),l=t.querySelector("#recital-participants"),o=Array.isArray(e.students)?e.students:[];if(n&&(n.textContent=e.title||"Recital"),a&&(a.textContent=e.date?le.format(p(e.date)):""),r&&(r.textContent=de(e.start)),i){var d=e.venue&&e.venue.name?e.venue.name:"No venue specified",s=e.venue&&e.venue.address?e.venue.address:"",c=e.venue&&e.venue.map_url?e.venue.map_url:"";if(i.innerHTML="",c){var u=document.createElement("a");u.href=c,u.target="_blank",u.rel="noopener noreferrer",u.textContent=d,i.appendChild(u)}else i.appendChild(document.createTextNode(d));s&&i.appendChild(document.createTextNode(" · ".concat(s)))}if(l){if(l.innerHTML="",!o.length){var m=document.createElement("div");m.className="opacity-4",m.textContent="No participating students.",l.appendChild(m)}o.forEach(function(e){var t=document.createElement("div");t.className="calendar-break-lesson",t.textContent=e.name||"Student",l.appendChild(t)})}window.bootstrap&&window.bootstrap.Modal&&"function"==typeof window.bootstrap.Modal.getOrCreateInstance?window.bootstrap.Modal.getOrCreateInstance(t).show():window.jQuery&&"function"==typeof window.jQuery.fn.modal&&window.jQuery(t).modal("show")}},Ue=function(e){var t=e?e.querySelector("[data-general-event-action-error]"):null;t&&(t.textContent="",t.hidden=!0)},je=function(e,t){var n=e?e.querySelector("[data-general-event-action-error]"):null;n&&(n.textContent=t||"Unable to update this event.",n.hidden=!1)},Xe=function(e){e&&(e.classList.remove("is-canceling","is-rescheduling","is-drop-rescheduling"),t.rescheduleAnchor=null,Ue(e),e.querySelectorAll('button[type="submit"], input[type="submit"]').forEach(function(e){e.disabled=!1,ke(e)}))},Ye=function(e){e&&(e.classList.remove("is-canceling"),e.classList.add("is-rescheduling"))},Ge=function(e,n){var a=document.getElementById("general-event-modal"),r=n||{};if(a&&e){var i=a.querySelector(".modal-title"),l=a.querySelector("#general-event-date"),o=a.querySelector("#general-event-time"),d=a.querySelector("#general-event-type"),s=a.querySelector("#general-event-type-icon"),c=a.querySelector("[data-general-event-type-section]"),u=a.querySelector("#general-event-notification"),m=a.querySelector("#general-event-notes"),f=a.querySelector("[data-general-event-notes-section]"),v=a.querySelector("#event-edit"),y=a.querySelector("#reschedule-general-event form"),g=a.querySelector("#cancel-general-event form"),w=a.querySelector("#reschedule-general-event-date"),b=a.querySelector("#reschedule-general-event-start-time"),S=a.querySelector("#reschedule-general-event-end-time");Xe(a),a.updatedScheduleItem=r.updatedItem||null,i&&(i.textContent=e.title||"Event"),l&&(l.textContent=e.date?le.format(p(e.date)):""),o&&(o.textContent=e.start&&e.end?"".concat(de(e.start)," - ").concat(de(e.end)):de(e.start)),d&&(d.textContent=e.eventType||""),s&&(s.className="fas opacity-4 mr-2 t-2".concat(e.eventTypeIcon?" fa-".concat(e.eventTypeIcon):""),s.hidden=!e.eventTypeIcon),c&&(c.hidden=!e.eventType),u&&(u.textContent=function(e){if(null==e||""===e)return"";var t=Number(e);if(0===t)return"At the event time";if(1440===t)return"1 day before";if(t>=60&&t%60==0){var n=t/60;return"".concat(n," ").concat(1===n?"hour":"hours"," before")}return"".concat(t," ").concat(1===t?"minute":"minutes"," before")}(e.notificationMinutesBefore),u.parentElement.hidden=!u.textContent),f&&(f.hidden=!String(e.notes||"").trim()),m&&function(e,t){var n,a=String(t||""),r=/(?:https?:\/\/|www\.)[^\s]+/gi,i=0;if(e.innerHTML="",a){for(e.classList.remove("opacity-4");null!==(n=r.exec(a));){var l=n[0],o=l.match(/[),.;!?]+$/),d=o?o[0]:"",s=d?l.slice(0,-d.length):l,c=document.createElement("a");e.appendChild(document.createTextNode(a.slice(i,n.index))),c.href=/^https?:\/\//i.test(s)?s:"https://".concat(s),c.target="_blank",c.rel="noopener noreferrer",c.textContent=s,e.appendChild(c),d&&e.appendChild(document.createTextNode(d)),i=n.index+l.length}e.appendChild(document.createTextNode(a.slice(i)))}}(m,e.notes),v&&(v.dataset.url=e.editUrl||"",v.style.display=v.dataset.url?"inline-flex":"none",v.disabled=!v.dataset.url),a.dataset.eventGuid=e.guid||"",a.dataset.eventId=e.id||"",y&&(y.action=e.rescheduleUrl||""),g&&(g.action=e.destroyUrl||""),w&&(w.value=e.date||h()),ct(b,e.start||"08:00"),vt(b,S,e.end?et(e.end):"08:15"),ct(S,e.end||"08:15"),t.rescheduleDurationMinutes=Math.max(15,ut(S)-ut(b)),t.generalEventRescheduleDatePickerDate=p(e.date||h()),xe(a),r.openReschedule&&(a.classList.add("is-drop-rescheduling"),Ye(a)),xt(a)}},Qe=function(e,t){var n=e.querySelector("#lesson-revert"),a=e.querySelector("#lesson-taught"),r=e.querySelector("#cancel-lesson-button"),i=ue(e.dataset.eventGuid),l=t&&t.status?t.status:"unpaid",o=t&&t.edit_url?t.edit_url:"",d=t&&(t.payment_url||t.paymentUrl)?t.payment_url||t.paymentUrl:"",s=t&&t.lesson_id?t.lesson_id:"",c=e.querySelector("#confirm-payment"),u=e.querySelector("#early-payment"),m=t&&Object.prototype.hasOwnProperty.call(t,"early_payment_id")?t.early_payment_id||"":i?i.earlyPaymentId:"";if(e.dataset.lessonStatus=l,e.dataset.lessonCanceledBy=t&&t.canceled_by?t.canceled_by:"",e.dataset.earlyPaymentId=m,t&&t.lesson_deleted?e.dataset.lessonId="":s&&(e.dataset.lessonId=s),a&&(a.disabled=!1,ke(a)),r&&(r.disabled="canceled"===l,ke(r)),c&&d&&(c.dataset.url=d),u&&(u.style.display="none",u.disabled=!1,ke(u)),i&&(i.lessonStatus=l,i.calendarStatus="early-payment"===l||t&&t.schedule_override_deleted?l:"rescheduled"===i.calendarStatus?"rescheduled":l,i["data-lesson-status"]=i.calendarStatus,i.canceledBy=t&&t.canceled_by?t.canceled_by:"",i.lessonEditUrl=t&&t.lesson_deleted?"":o||i.lessonEditUrl||"",i.paymentUrl=t&&t.lesson_deleted?"":d||i.paymentUrl||"",i.lessonId=t&&t.lesson_deleted?"":s||i.lessonId||"",i.scheduleOverrideId=t&&t.schedule_override_deleted?"":i.scheduleOverrideId,i.earlyPaymentId=m),n){var f=!(!i||!(i.scheduleOverrideId||i.lessonId||i.earlyPaymentId&&!Fe(i)));n.style.display=f?"inline-flex":"none",n.disabled=!f}var v,h=i&&i.calendarStatus?i.calendarStatus:l;(v=e.dataset.eventGuid,v?Array.from(document.querySelectorAll("#calendar .lm-schedule-item, #calendar [data-event-guid]")).filter(function(e){return e.id===v||e.dataset.eventGuid===v}):[]).forEach(function(e){e.setAttribute("data-lesson-status",h),rt(e,i),e.querySelectorAll("[data-lesson-status]").forEach(function(e){e.setAttribute("data-lesson-status",h),rt(e,i)})}),J()},We=function(e){return{lesson_plan_id:e.dataset.lessonPlanId||"",single_lesson_plan_id:e.dataset.singleLessonPlanId||"",date:e.dataset.eventDate||"",start:e.dataset.eventStart||"",end:e.dataset.eventEnd||"",scheduled_date:e.dataset.originalDate||e.dataset.eventDate||"",scheduled_start_time:e.dataset.originalStartTime||e.dataset.eventStart||"",schedule_override_id:e.dataset.scheduleOverrideId||""}},Ve=function(e){var n=e.querySelector(".lm-schedule"),a=n?n.querySelector(".lm-schedule-pointer"):null;if(n&&a){var r=new Date,i=60*r.getHours()+r.getMinutes()+r.getSeconds()/60+r.getMilliseconds()/6e4,l=Math.floor(i/15),o=i%15/15,d=n.querySelector('tbody td[data-date="'.concat(h(),'"][data-y="').concat(l,'"]:not(.lm-schedule-disabled)'));if(d&&null!==d.offsetParent){var s=n.getBoundingClientRect(),c=d.getBoundingClientRect();a.style.display="block",a.style.left="".concat(c.left-s.left+n.scrollLeft,"px"),a.style.top="".concat(c.top-s.top+n.scrollTop+c.height*o,"px"),"day"===t.view?a.style.width="".concat(n.clientWidth-(c.left-s.left),"px"):a.style.width="".concat(c.width,"px")}else a.style.display="none"}else a&&(a.style.display="none")},Ke=function(){t.scheduleObserver&&(t.scheduleObserver.disconnect(),t.scheduleObserver=null)},$e=function(e){Ke(),function(e){var n=e.querySelector(".lm-schedule"),a=n?n.querySelector("thead tr:not(.calendar-schedule-holiday-row)"):null,r=a?a.querySelectorAll("td"):[],i=n?n.querySelector("tbody tr"):null,l=i?i.querySelectorAll("td[data-date]"):[],d=x();r.forEach(function(e){e.removeAttribute("data-selected"),e.removeAttribute("data-real-date"),e.classList.remove("calendar-schedule-hidden-column")}),l.forEach(function(e,a){var i=d[a];if(i){var l=v(i),s=e.getAttribute("data-x"),c=r[a+1],u="2-days"===t.view&&a>1;n.querySelectorAll('tbody td[data-x="'.concat(s,'"]')).forEach(function(e){e.setAttribute("data-date",l),e.setAttribute("data-real-date",l),e.classList.toggle("calendar-schedule-hidden-column",u)}),c&&(c.classList.toggle("calendar-schedule-hidden-column",u),c.textContent=String(i.getDate()).padStart(2,"0"),c.setAttribute("data-weekday",o[i.getDay()]),c.setAttribute("data-real-date",l),l===h()?c.setAttribute("data-selected","true"):c.removeAttribute("data-selected"))}})}(e),P(e),ce(e),function(e){var n=e.querySelector(".lm-schedule"),a=n?n.querySelector("thead"):null;if(n&&a&&m.includes(t.view)){a.querySelectorAll(".calendar-schedule-holiday-row").forEach(function(e){e.remove()});var r=a.querySelector("tr"),i=r?r.offsetHeight:0;n.style.setProperty("--calendar-schedule-header-height","".concat(i,"px"));var l=N(),o=l.map(v);if(l.some(function(e){return ee(e).length>0||ae(e).length>0||re(e).length>0})){var d=document.createElement("tr"),s=document.createElement("td");d.className="calendar-schedule-holiday-row",s.className="calendar-schedule-holiday-zone",d.appendChild(s),x().forEach(function(e){var n=document.createElement("td"),a=v(e),r="2-days"!==t.view||o.includes(a),i=r?ee(e):[],l=r?ae(e):[],s=r?re(e):[];n.className="calendar-schedule-holiday-cell",n.dataset.date=a,n.dataset.realDate=a,n.classList.toggle("calendar-schedule-hidden-column",!r),it(n,a),i.forEach(function(e){var t=document.createElement("span");t.className="calendar-schedule-holiday",t.textContent=e.title,it(t,a),n.appendChild(t)}),l.forEach(function(e){var t=document.createElement("button");t.type="button",t.className="calendar-schedule-holiday calendar-schedule-break",t.textContent=e.title,t.dataset.eventGuid="teaching-break-".concat(e.id,"-").concat(a),it(t,a),n.appendChild(t)}),s.forEach(function(e){var t=document.createElement("button");t.type="button",t.className="calendar-schedule-holiday calendar-schedule-recital",t.textContent="".concat(oe(e.start_time)," ").concat(e.name),t.dataset.eventGuid="recital-".concat(e.id,"-").concat(a),it(t,a),n.appendChild(t)}),d.appendChild(n)}),a.appendChild(d)}}}(e),Ve(e),function(e){if(t.suppressNextScheduleAnimation)return e.querySelectorAll(".lm-schedule-item, .calendar-month-event, .calendar-schedule-event").forEach(function(e){e.dataset.lessonFadeAnimated="true"}),void(t.suppressNextScheduleAnimation=!1);if(!(!m.includes(t.view)||window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches)){var n=["holiday","teaching-break","recital"];Array.from(e.querySelectorAll(".lm-schedule-item, .calendar-month-event, .calendar-schedule-event")).filter(function(e){return!n.includes(e.dataset.lessonStatus||"")&&"true"!==e.dataset.lessonFadeAnimated}).forEach(function(e,t){e.dataset.lessonFadeAnimated="true",e.style.setProperty("--calendar-lesson-fade-delay","".concat(30*t,"ms")),e.style.setProperty("--calendar-lesson-fade-opacity",window.getComputedStyle(e).opacity||"1"),e.classList.add("calendar-calendar-lesson-fade-in"),e.addEventListener("animationend",function(){e.classList.remove("calendar-calendar-lesson-fade-in"),e.style.removeProperty("--calendar-lesson-fade-delay"),e.style.removeProperty("--calendar-lesson-fade-opacity")},{once:!0})})}}(e),requestAnimationFrame(function(){!function(e){if(!t.didAutoNowScroll&&m.includes(t.view)){var n=e.querySelector(".lm-schedule"),a=n?n.querySelector(".lm-schedule-pointer"):null;if(n&&a&&"none"!==a.style.display){var r=Number.parseFloat(a.style.top);Number.isFinite(r)&&(n.scrollTop=Math.max(0,r-n.clientHeight/2),t.didAutoNowScroll=!0)}}}(e)}),function(e){var n=e.querySelector(".lm-schedule");n&&m.includes(t.view)&&(Ke(),t.scheduleObserver=new MutationObserver(function(){ze(e)}),t.scheduleObserver.observe(n,{attributes:!0,attributeFilter:["data-start","data-end"],childList:!0,subtree:!0}))}(e)},ze=function(e){t.schedulePatchFrame&&cancelAnimationFrame(t.schedulePatchFrame),t.schedulePatchFrame=requestAnimationFrame(function(){t.schedulePatchFrame=null,$e(e)})},Ze=function(e){return e.map(function(e){return Object.assign({},e)})},Je=function(e){e&&"function"==typeof e.getData&&(t.customEvents=Ze(e.getData()).filter(function(e){return!function(e){var t=String(e.guid||"");return 0===t.indexOf("planned-lesson-")||0===t.indexOf("single-lesson-plan-")}(e)}))},et=function(e){var t=String(e||"").trim().match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);if(!t||Number(t[1])>23||Number(t[2])>59||Number(t[2])%15!=0)throw new Error("Lesson times must use HH:MM on 15-minute intervals.");return"".concat(String(Number(t[1])).padStart(2,"0"),":").concat(t[2])},tt=function(e){var t=Math.floor(e/60)%24,n=e%60;return"".concat(String(t).padStart(2,"0"),":").concat(String(n).padStart(2,"0"))},nt=function(e,t){var n=et(e).match(/^(\d{2}):(\d{2})/),a=60*Number(n[1])+Number(n[2])+Number(t||0);return tt(a)},at=function(e,t){if(!e||!e.date||!e[t])return null;var n=p(String(e.date).substring(0,10)),a=et(e[t]).split(":").map(Number);return n.setHours(a[0]||0,a[1]||0,0,0),n},rt=function(e,t){if(e){var n=function(e){if(!e||e.isHoliday||e.isBreak)return"";var t=at(e,"start"),n=at(e,"end"),a=new Date;return t&&n?t<a&&n<a?"past":t>a&&n>a?"future":"":""}(t);e.toggleAttribute("past-event","past"===n),e.toggleAttribute("future-event","future"===n)}},it=function(e,t){if(e&&t){var n=h();e.toggleAttribute("past-event",t<n),e.toggleAttribute("future-event",t>n)}},lt=function(e,t,n){e&&(t&&(t.isHoliday||t.isBreak)?it(e,t.date||n):rt(e,t))},ot=function(e){return e&&e.guid&&!e.isHoliday&&!e.isBreak&&!function(e){return e&&("canceled"===e.lessonStatus||"canceled"===e.calendarStatus||"canceled"===e["data-lesson-status"])}(e)&&e.start&&e.end},dt=function(e){var t=e.filter(function(e){return ot(e)}).map(function(e){return{guid:e.guid,start:T(e.start),end:T(e.end)}}).filter(function(e){return e.end>e.start}),n=new Set;return t.forEach(function(e,a){t.slice(a+1).forEach(function(t){e.start<t.end&&t.start<e.end&&(n.add(e.guid),n.add(t.guid))})}),n},st=function(e,t){if(e){var n=e.closest("td[data-date]"),a=n?n.getAttribute("data-real-date")||n.getAttribute("data-date"):"";e.toggleAttribute("overlapping-event",function(e,t){var n=t||e&&e.date;if(!ot(e)||!n)return!1;var a=p(String(n).substring(0,10));return dt(Nt(a)).has(e.guid)}(t,a))}},ct=function(e,t){if(e){var n=et(t);Array.from(e.options).some(function(e){return e.value===n})?e.value=n:e.options.length&&(e.selectedIndex=0)}},ut=function(e){return T(e&&e.value?e.value:"00:00")},mt=function(e){return Array.from(e?e.options:[]).map(function(e){return T(e.value)})},ft=function(e,t){e&&(e.value=tt(t))},vt=function(e,t,n){if(e&&t){var a=function(e){return e?(Array.isArray(e.calendarRescheduleEndOptions)||(e.calendarRescheduleEndOptions=Array.from(e.options).map(function(e){return{value:e.value,label:e.textContent}})),e.calendarRescheduleEndOptions):[]}(t),r=ut(e),i=n||t.value,l=a.filter(function(e){return T(e.value)>r});t.innerHTML="",l.forEach(function(e){var n=document.createElement("option"),a=T(e.value)-r;n.value=e.value,n.textContent="".concat(e.label," (").concat(function(e){if(e>=60){var t=e/60;return"".concat(Number.isInteger(t)?t:t.toFixed(1)," hr")}return"".concat(e," min")}(a),")"),t.appendChild(n)}),l.some(function(e){return e.value===i})?t.value=i:t.options.length&&(t.selectedIndex=0)}},ht=function(e,n,a){if(e&&n){var r,i=(r=mt(e)).length?Math.min.apply(null,r):0,l=function(e){var t=mt(e);return t.length?Math.max.apply(null,t):0}(n),o=ut(e),d=ut(n),s=Math.max(15,t.rescheduleDurationMinutes||d-o||15);t.rescheduleAnchor||(t.rescheduleAnchor=a),"start"===a&&(o=Math.min(o,l-15),"start"===t.rescheduleAnchor&&(d=Math.min(o+s,l)),d<o+15&&(d=Math.min(o+15,l)),ft(e,o),vt(e,n,tt(d)),ft(n,d)),"end"===a&&(d=Math.max(d,i+15),"end"===t.rescheduleAnchor&&(o=Math.max(d-s,i)),d<o+15&&(d=Math.min(o+15,l)),ft(e,o),vt(e,n,tt(d)),ft(n,d)),t.rescheduleDurationMinutes=Math.max(15,d-o)}},pt=function(e){return e&&[e.first_name,e.last_name].filter(Boolean).join(" ")||"No title"},yt=function(e){return e&&e.first_name?String(e.first_name).trim():""},gt=function(e,t){if(!e||!e.date_of_birth||!y(t))return!1;var n=b(e.date_of_birth);if(!n)return!1;var a=p(t),r=jt(a),i=Rt(r,6);return Array.from(new Set([r.getFullYear(),i.getFullYear()])).some(function(e){var t=f(e,n.getMonth(),n.getDate());return t>=r&&t<=i})},wt=function(e,n){if(!e||!e.date_of_birth||!y(n))return"";var a=b(e.date_of_birth);if(!a)return"";var r,l=p(n),o=[l.getFullYear()-1,l.getFullYear(),l.getFullYear()+1],d=null,s=null;return o.forEach(function(e){var n=f(e,a.getMonth(),a.getDate()),r=Math.round((n.getTime()-l.getTime())/864e5);Math.abs(r)<=t.birthdayWindow&&(null===s||Math.abs(r)<Math.abs(s))&&(d=n,s=r)}),d?0===s?"today!":-1===s?"yesterday!":1===s?"tomorrow!":"on ".concat((r=d,"".concat(i.format(r)," ").concat(r.getDate()).concat(function(e){if(e>=11&&e<=13)return"th";switch(e%10){case 1:return"st";case 2:return"nd";case 3:return"rd";default:return"th"}}(r.getDate())))):""},bt=function(e,t){return Boolean(wt(e,t))},St=function(e,t,n){e&&(e.textContent=t&&t.title||n||"No title")},Et=function(e){e&&(Array.from(e.children).forEach(function(e){e.classList&&e.classList.contains("calendar-birthday-icon")&&e.remove()}),e.removeAttribute("data-birthday-this-week"),e.removeAttribute("data-birthday-title"))},At=function(e){return String(e||"").trim().toLowerCase()},Lt=function(e){var n=At(t.studentSearch);return n.length<3||String(e.event_type||"").toLowerCase().includes(n)},kt=function(e){var n=At(t.studentSearch);if(n.length<3)return!0;var a=e.student||{},r=String(a.first_name||"").toLowerCase(),i=String(a.last_name||"").toLowerCase(),l=[r,i].filter(Boolean).join(" ");return r.includes(n)||i.includes(n)||l.includes(n)},Ct=function(e){return!R()||H(e.location_id)},qt=function(e){var n=[];return t.plannedLessons.concat(t.singleLessonPlans).filter(function(e){var n="single-lesson-plan"===e.type?"single":"recurring";return t.selectedEventTypes.includes(n)}).filter(kt).filter(Ct).forEach(function(t){var a="single-lesson-plan"===t.type;if(Array.isArray(t.occurrences))t.occurrences.forEach(function(e){var r=e.date||"";if(r){var i=et(e.start||t.start_time);n.push({title:pt(t.student),date:r,start:i,end:et(e.end||nt(t.start_time,t.duration_minutes)),color:"#2fbb7f",guid:"".concat(a?"single-lesson-plan":"planned-lesson","-").concat(t.id,"-").concat(r,"-").concat(i),lessonPlanId:a?"":t.id,singleLessonPlanId:e.single_lesson_plan_id||(a?t.id:""),lessonId:e.lesson_id||"",earlyPaymentId:e.early_payment_id||"",scheduleOverrideId:e.schedule_override_id||"",recurrence:a?"Single lesson":t.recurrence||"",isSingleLessonPlan:a,originalDate:e.original_date||r,originalStartTime:e.original_start_time||i,lessonStatus:e.lesson_status||"unconfirmed",calendarStatus:e.calendar_status||e.lesson_status||"unconfirmed","data-lesson-status":e.calendar_status||e.lesson_status||"unconfirmed",feeAmount:e.fee_amount||t.fee_amount||0,locationId:B(t.location_id),locationName:t.location&&t.location.name?t.location.name:"",canceledBy:e.canceled_by||"",calendarEditUrl:Ee(a,t.id),lessonEditUrl:e.lesson_edit_url||"",paymentUrl:e.lesson_payment_url||e.payment_url||"",meetingUrl:e.meeting_url||t.meeting_url||"",notesUrl:e.notes_url||t.notes_url||"",studentFirstName:yt(t.student),hasBirthdayThisWeek:gt(t.student,r),hasBirthdayNearEvent:bt(t.student,r),birthdayModalLabel:wt(t.student,r)})}});else if(!a){var r=b(t.starts_on);if(r){var i=7*Math.max(1,Number(t.recurrence_interval||1)),l=b(t.ends_on),o=function(e,t){var n=Bt(e),a=(Math.max(0,Math.min(6,Number(t)-1))-n.getDay()+7)%7;return Rt(n,a)}(r,t.weekday),d=Bt(o);if(!(l&&l<e.start)){if(d<e.start){var s=Math.floor((e.start-d)/864e5),c=Math.floor(s/i);for(d=Rt(d,c*i);d<e.start;)d=Rt(d,i)}for(;d<=e.end&&(!l||d<=l);){var u=v(d),m=et(t.start_time),f=Me(t,u,m),h=we(f);n.push({title:pt(t.student),date:u,start:m,end:nt(m,t.duration_minutes),color:"#2fbb7f",guid:"planned-lesson-".concat(t.id,"-").concat(u),lessonPlanId:t.id,lessonId:f?f.id:"",recurrence:t.recurrence||"",lessonStatus:h,calendarStatus:h,"data-lesson-status":h,feeAmount:f&&f.fee_amount?f.fee_amount:t.fee_amount||0,locationId:B(t.location_id),locationName:t.location&&t.location.name?t.location.name:"",canceledBy:f&&f.canceled_by?f.canceled_by:"",calendarEditUrl:Ee(!1,t.id),lessonEditUrl:Se(f),paymentUrl:Ae(f),meetingUrl:t.meeting_url||"",notesUrl:t.notes_url||"",studentFirstName:yt(t.student),hasBirthdayThisWeek:gt(t.student,u),hasBirthdayNearEvent:bt(t.student,u),birthdayModalLabel:wt(t.student,u)}),d=Rt(d,i)}}}}}),n},Dt=function(){var e=t.selectedEventTypes.includes("general")?t.generalEvents.filter(Lt).map(ye):[];t.events=Ze(t.customEvents).concat(qt(function(){if("schedule"===t.view)return q();var e=t.date.getFullYear();return{start:f(e-1,0,1),end:f(e+1,11,31)}}())).concat(e),t.visibleEventsByDate=null},Nt=function(e){var n=v(e);return function(){if(t.visibleEventsByDate)return t.visibleEventsByDate;var e={};return j().forEach(function(t){if(t&&t.date){var n=String(t.date).substring(0,10);e[n]||(e[n]=[]),e[n].push(t)}}),Object.keys(e).forEach(function(t){e[t].sort(function(e,t){return String(e.start||"").localeCompare(String(t.start||""))})}),t.visibleEventsByDate=e,e}()[n]||[]},It=function(e){return ee(e).map(function(e){return Object.assign({},e,{guid:"holiday-".concat(e.date,"-").concat(e.title),isHoliday:!0})}).concat(function(e){var t=v(e);return ne(t).map(function(e){return fe(e,t)})}(e)).concat(function(e){return re(e).map(he)}(e)).concat(Nt(e))},Mt=function(e,t){var n=document.createElement("span"),a=document.createElement("span"),r=document.createElement("span"),i=document.createElement("span");return n.className=e.isHoliday?"calendar-month-event calendar-month-event-holiday":e.isBreak?"calendar-month-event calendar-month-event-break":e.isRecital?"calendar-month-event calendar-month-event-recital":e.isGeneralEvent?"calendar-month-event calendar-month-event-general":"calendar-month-event",a.className="calendar-month-event-dot",r.className="calendar-month-event-time",i.className="calendar-month-event-title",n.dataset.eventGuid=e.guid||"",n.dataset.lessonStatus=e.isHoliday?"holiday":e.isBreak?"teaching-break":e.isRecital?"recital":e.isGeneralEvent?"general-event":e.calendarStatus||e.lessonStatus||"unconfirmed",a.dataset.eventGuid=e.guid||"",a.dataset.lessonStatus=e.isHoliday?"holiday":e.isBreak?"teaching-break":e.isRecital?"recital":e.isGeneralEvent?"general-event":e.calendarStatus||e.lessonStatus||"unconfirmed",lt(n,e,t),lt(a,e,t),r.textContent=e.isHoliday||e.isBreak?"":oe(e.start),St(i,e,"No title"),e.isHoliday||e.isBreak||e.isRecital||e.isGeneralEvent||n.appendChild(a),e.isHoliday||e.isBreak||n.appendChild(r),n.appendChild(i),n},_t=function(e){e&&(window.bootstrap&&window.bootstrap.Modal&&"function"==typeof window.bootstrap.Modal.getOrCreateInstance?window.bootstrap.Modal.getOrCreateInstance(e).hide():window.jQuery&&"function"==typeof window.jQuery.fn.modal&&window.jQuery(e).modal("hide"))},xt=function(e){e&&(window.bootstrap&&window.bootstrap.Modal&&"function"==typeof window.bootstrap.Modal.getOrCreateInstance?window.bootstrap.Modal.getOrCreateInstance(e).show():window.jQuery&&"function"==typeof window.jQuery.fn.modal&&window.jQuery(e).modal("show"))},Pt=function(e,t,n){var a=e?e.dataset.url:"";e&&a&&n&&(e.disabled=!0,fetch(a,{headers:{Accept:"text/html","X-Requested-With":"XMLHttpRequest"}}).then(function(e){if(!e.ok)throw new Error("Unable to load the edit form.");return e.text()}).then(function(a){var r=!1;n.innerHTML=a;var i=n.querySelector(".modal"),l=function(){!r&&i&&(r=!0,function(e){if(e){tn(e),rn(e);var t=e.querySelectorAll('[data-mask="usd"]');t.length&&"function"==typeof window.Inputmask&&new window.Inputmask({alias:"numeric",groupSeparator:",",prefix:"$ ",autoGroup:!0,digits:0,rightAlign:!1}).mask(t)}}(i),xt(i))};if(e.disabled=!1,t&&t.classList.contains("show"))return t.addEventListener("hidden.bs.modal",l,{once:!0}),_t(t),void window.setTimeout(l,250);l()}).catch(function(n){console.error(n),e.disabled=!1,t&&"lesson-modal"===t.id?De(t,n.message):je(t,n.message)}))},Tt=function(e,t){var n=e?e.closest(".modal"):null;e&&e.action&&n&&(Ce(e,!0),qe(e.action,{method:"POST",headers:{Accept:"application/json","X-CSRF-TOKEN":window.calendarCsrfToken||"","X-Requested-With":"XMLHttpRequest"},body:new FormData(e)},"Unable to update this item.").then(function(){return _t(n),t()}).catch(function(e){console.error(e),function(e,t){if(e){var n=e.querySelector("[data-calendar-edit-error]");n||((n=document.createElement("div")).className="alert alert-danger small mb-3",n.setAttribute("data-calendar-edit-error",""),e.querySelector(".modal-body").prepend(n)),n.textContent=t||"Unable to update this item.",n.hidden=!1}}(n,e.message)}).finally(function(){Ce(e,!1)}))},Ft=function(e){var n=h(),a=v(t.date),i=t.date.getMonth(),l=Ut(t.date),o=document.createElement("div"),s=document.createElement("div"),c=document.createElement("div");o.className="calendar-month-calendar",s.className="calendar-month-weekdays",c.className="calendar-month-grid",d.forEach(function(e){var t=document.createElement("div");t.textContent=e,s.appendChild(t)});for(var u=function(){var e=Rt(l,m),t=v(e),o=It(e),d=document.createElement("div"),s=document.createElement("span"),u=document.createElement("span"),f=function(e){var t=null;return e.filter(function(e){return ot(e)}).map(function(e){return{start:T(e.start),end:T(e.end)}}).filter(function(e){return e.end>e.start}).sort(function(e,t){return e.start-t.start||e.end-t.end}).some(function(e){var n=null!==t&&e.start<t;return t=null===t?e.end:Math.max(t,e.end),n})}(o),h=o.length>=5?3:4;if(d.className="calendar-month-day",d.dataset.date=t,d.setAttribute("role","button"),d.tabIndex=0,e.getMonth()!==i&&d.classList.add("is-muted"),t===n&&d.classList.add("is-today"),t===a&&d.classList.add("is-selected"),s.className="calendar-month-day-number",s.textContent=1===e.getDate()?"".concat(r.format(e)," ").concat(e.getDate()):e.getDate(),u.className="calendar-month-events",f){var p=document.createElement("i");p.className="fa-solid fa-circle-exclamation calendar-month-overlap-alert",p.setAttribute("aria-hidden","true"),d.appendChild(p)}if(o.slice(0,h).forEach(function(e){u.appendChild(Mt(e,t))}),o.length>4){var y=document.createElement("span");y.className="calendar-month-more",y.dataset.monthMoreDate=t,y.setAttribute("role","button"),y.tabIndex=0,y.textContent="".concat(o.length-h," more"),u.appendChild(y)}d.appendChild(s),d.appendChild(u),c.appendChild(d)},m=0;m<42;m++)u();o.appendChild(s),o.appendChild(c),e.appendChild(o)},Ot=function(e){var n=q(),a=h(),r=v(t.date),i=document.createElement("div");return i.className="calendar-schedule-agenda",function(e){var t=[];if(!e||!e.start||!e.end)return t;for(var n=Bt(e.start);n<=e.end;n=Rt(n,1))t.push(n);return t}(n).forEach(function(e){var t=v(e),n=It(e),l=t===a||t===r;if(n.length||l){var d=document.createElement("section"),s=document.createElement("div"),c=document.createElement("div"),u=document.createElement("div"),m=document.createElement("div");if(d.className="calendar-schedule-day",d.dataset.date=t,s.className="calendar-schedule-date",c.className="calendar-schedule-weekday",u.className="calendar-schedule-number",m.className="calendar-schedule-list",t===a&&d.classList.add("is-today"),t===r&&d.classList.add("is-selected"),c.textContent=o[e.getDay()].toUpperCase(),u.textContent=e.getDate(),s.appendChild(c),s.appendChild(u),!n.length){var f=document.createElement("div");f.className="calendar-schedule-empty",f.textContent="Nothing planned.",m.appendChild(f)}n.forEach(function(e){var n=document.createElement(e.isHoliday?"div":"button"),a=document.createElement("span");if(n.className=e.isHoliday?"calendar-schedule-event calendar-schedule-event-holiday":e.isBreak?"calendar-schedule-event calendar-schedule-event-break":e.isRecital?"calendar-schedule-event calendar-schedule-recital":e.isGeneralEvent?"calendar-schedule-event calendar-schedule-event-general":"calendar-schedule-event",a.className="calendar-schedule-event-title",St(a,e,"No title"),n.dataset.eventGuid=e.guid||"",n.dataset.lessonStatus=e.isHoliday?"holiday":e.isBreak?"teaching-break":e.isRecital?"recital":e.isGeneralEvent?"general-event":e.calendarStatus||e.lessonStatus||"unconfirmed",lt(n,e,t),st(n,e),e.isHoliday||e.isBreak||e.isRecital){if((e.isBreak||e.isRecital)&&(n.type="button"),n.appendChild(a),e.isRecital){var r=document.createElement("span");r.className="calendar-schedule-event-time",r.textContent=se(e.start),n.appendChild(r)}}else{var i=document.createElement("span"),l=O(e);n.type="button",n.dataset.durationMinutes=l,n.style.setProperty("--calendar-schedule-event-height",function(e){var t=O(e);return"".concat(Math.min(10,Math.max(3.75,2+t/15)),"rem")}(e)),i.className="calendar-schedule-event-time",i.textContent=e.start&&e.end?"".concat(se(e.start),"-").concat(se(e.end)):se(e.start),n.appendChild(a),n.appendChild(i)}m.appendChild(n)}),d.appendChild(s),d.appendChild(m),i.appendChild(d)}}),e.appendChild(i),i},Bt=function(e){return f(e.getFullYear(),e.getMonth(),e.getDate())},Rt=function(e,t){var n=Bt(e);return n.setDate(n.getDate()+t),n},Ht=function(e,t){var n=Bt(e);return n.setMonth(n.getMonth()+t),n},Ut=function(e){var t=f(e.getFullYear(),e.getMonth(),1);return t.setDate(t.getDate()-t.getDay()),t},jt=function(e){return Rt(e,-e.getDay())},Xt=function(e,t){var n=e.getMonth()===t.getMonth(),i=e.getFullYear()===t.getFullYear();return n&&i?a.format(e):i?"".concat(r.format(e)," - ").concat(r.format(t)," ").concat(t.getFullYear()):"".concat(r.format(e)," ").concat(e.getFullYear()," - ").concat(r.format(t)," ").concat(t.getFullYear())},Yt=function(){return"schedule"===t.view?a.format(t.date):"day"===t.view?l.format(t.date):"2-days"===t.view?Xt(t.date,Rt(t.date,1)):"week"===t.view?(e=t.date,n=jt(e),r=Rt(n,6),Xt(n,r)):a.format(t.date);var e,n,r},Gt=function(e){"day"===t.view?C(Rt(t.date,e)):"2-days"===t.view?C(Rt(t.date,2*e)):"week"===t.view?C(Rt(t.date,7*e)):"month"!==t.view&&"schedule"!==t.view||C(Ht(t.date,e))},Qt=function(e){var n=e.querySelector(".lm-schedule"),a=n?n.querySelector("thead tr:not(.calendar-schedule-holiday-row)"):null,r=a?Array.from(a.querySelectorAll("td")).filter(function(e){return null!==e.offsetParent}):[];if(!n||!a||r.length<2)return null;var i=n.getBoundingClientRect(),l=a.getBoundingClientRect(),d=n.clientWidth,s=l.height,c=r[0].getBoundingClientRect().width,u=window.getComputedStyle(r[1]),m=window.getComputedStyle(r[1],"::before"),f=document.createElement("div"),p=document.createElement("div");return f.className="calendar-schedule-swipe-preview",f.dataset.scheduleSwipePreview="",f.style.left="".concat(n.scrollLeft,"px"),f.style.top="".concat(n.scrollTop+l.top-i.top,"px"),f.style.width="".concat(d,"px"),f.style.height="".concat(Math.max(0,s-1),"px"),f.style.setProperty("--calendar-swipe-number-size",u.fontSize),f.style.setProperty("--calendar-swipe-number-weight",u.fontWeight),f.style.setProperty("--calendar-swipe-number-line-height",u.lineHeight),f.style.setProperty("--calendar-swipe-weekday-size",m.fontSize),f.style.setProperty("--calendar-swipe-weekday-weight",m.fontWeight),f.style.setProperty("--calendar-swipe-weekday-line-height",m.lineHeight),f.style.setProperty("--calendar-swipe-weekday-spacing",m.paddingBottom),f.style.setProperty("--calendar-swipe-padding-top",u.paddingTop),f.style.setProperty("--calendar-swipe-padding-right",u.paddingRight),f.style.setProperty("--calendar-swipe-padding-bottom",u.paddingBottom),f.style.setProperty("--calendar-swipe-padding-left",u.paddingLeft),f.style.setProperty("--calendar-swipe-text-align",u.textAlign),f.style.setProperty("--calendar-swipe-font-family",u.fontFamily),f.style.setProperty("--calendar-swipe-color",u.color),p.className="calendar-schedule-swipe-track",p.style.transform="translate3d(".concat(-d,"px, 0, 0)"),[-1,0,1].forEach(function(e){var n=0===e?t.date:function(e){return"day"===t.view?Rt(t.date,e):"2-days"===t.view?Rt(t.date,2*e):Rt(t.date,7*e)}(e),a=I(n,t.view),r=document.createElement("div"),i=document.createElement("div");r.className="calendar-schedule-swipe-panel",r.style.width="".concat(d,"px"),r.style.height="".concat(s,"px"),r.style.gridTemplateColumns="".concat(c,"px repeat(").concat(a.length,", minmax(0, 1fr))"),i.className="calendar-schedule-swipe-gutter",r.appendChild(i),a.forEach(function(e){var t=document.createElement("div"),n=document.createElement("span"),a=document.createElement("span");t.className="calendar-schedule-swipe-day",t.classList.toggle("is-today",v(e)===h()),n.className="calendar-schedule-swipe-weekday",n.textContent=o[e.getDay()],a.className="calendar-schedule-swipe-number",a.textContent=String(e.getDate()).padStart(2,"0"),t.appendChild(n),t.appendChild(a),r.appendChild(t)}),p.appendChild(r)}),f.appendChild(p),n.appendChild(f),{viewport:f,track:p,width:d}},Wt=function(e){e.setAttribute("open",""),function(e){var t=e.querySelector("[data-student-combobox-input]"),n=Array.from(e.querySelectorAll("[data-student-combobox-option]")),a=e.querySelector("[data-student-combobox-empty]"),r=t?t.value.trim().toLowerCase():"",i=0;n.forEach(function(e){var t=String(e.dataset.studentName||e.textContent||"").toLowerCase(),n=!r||t.includes(r);e.hidden=!n,n&&(i+=1)}),a&&(a.hidden=i>0)}(e)},Vt=function(e){e.removeAttribute("open")},Kt=function(e){!function(e){var t=e?e.closest("form"):null,n=t?t.querySelector('select[name="location_id"]'):null,a=e?e.dataset.studentLocationId:null;n&&a&&Array.from(n.options).find(function(e){return String(e.value)===String(a)})&&(n.value=a,n.dispatchEvent(new Event("change",{bubbles:!0})))}(e),function(e){var t=e?e.closest("form"):null,n=t?t.querySelector('select[name="payment_method"]'):null,a=e?e.dataset.studentPaymentMethod:null;n&&a&&Array.from(n.options).find(function(e){return String(e.value)===String(a)})&&(n.value=a,n.dispatchEvent(new Event("change",{bubbles:!0})))}(e)},$t=function(e){var t=e?e.querySelector('select[name="location_id"]'):null;return t?t.options[t.selectedIndex]:null},zt=function(e){var t=$t(e);return t&&"1"===t.dataset.isOnline},Zt=function(e,t){var n=e?Array.from(e.querySelectorAll(".single-lesson-plan-online-field")):[],a=zt(e);n.forEach(function(e){var n=e.querySelector("input");e.style.display=a?"":"none",n&&(n.disabled=!a,a&&!t||(n.value=""))})},Jt=function(e){var t=$t(e),n=e?e.querySelector('select[name="duration_minutes"]'):null,a=e?e.querySelector('input[name="fee_amount"]'):null,r=t?Number(t.dataset.feeAmount||0):0,i=n?Number(n.value||0):0;if(a&&r&&i){var l=r*(i/60),o=5*Math.floor(l/5);a.value=o.toFixed(2).replace(/\.00$/,"")}},en=function(e){var n=e?e.querySelector('input[name="scheduled_date"]'):null;n&&(n.value=t.date?"month"===t.view?v(f(t.date.getFullYear(),t.date.getMonth(),1)):v(q().start):h())},tn=function(e){(e||document).querySelectorAll("[data-single-lesson-plan-form]").forEach(function(e){if("true"!==e.dataset.calendarFormInitialized){e.dataset.calendarFormInitialized="true";var t=e.querySelector('select[name="location_id"]'),n=e.querySelector('select[name="duration_minutes"]'),a=e.closest("#create-single-lesson-plan-modal");Zt(e,!1),t&&n&&Jt(e),t&&t.addEventListener("change",function(){Jt(e),Zt(e,!0)}),n&&n.addEventListener("change",function(){Jt(e)}),a&&a.addEventListener("show.bs.modal",function(){en(a)})}})},nn=function(e,t){var n=e?Array.from(e.querySelectorAll(".lesson-plan-online-field")):[],a=zt(e);n.forEach(function(e){var n=e.querySelector("input");e.style.display=a?"":"none",n&&(n.disabled=!a,a&&!t||(n.value=""))})},an=function(e){var t=$t(e),n=e?e.querySelector('select[name="duration_minutes"]'):null,a=e?e.querySelector('input[name="fee_amount"]'):null,r=t?Number(t.dataset.feeAmount||0):0,i=n?Number(n.value||0):0;if(a&&r&&i){var l=r*(i/60),o=5*Math.floor(l/5);a.value=o.toFixed(2).replace(/\.00$/,"")}},rn=function(e){(e||document).querySelectorAll("[data-lesson-plan-form]").forEach(function(e){if("true"!==e.dataset.calendarFormInitialized){e.dataset.calendarFormInitialized="true";var t=e.querySelector('select[name="location_id"]'),n=e.querySelector('select[name="duration_minutes"]');nn(e,!1),t&&n&&an(e),t&&t.addEventListener("change",function(){an(e),nn(e,!0)}),n&&n.addEventListener("change",function(){an(e)})}})};document.addEventListener("DOMContentLoaded",function(){document.addEventListener("click",function(e){var t=e.target.closest(".setting-undo");if(t){var n=document.getElementById(t.dataset.settingTarget);n&&void 0!==t.dataset.settingOriginal&&("checkbox"===n.type?n.checked="true"===t.dataset.settingOriginal:n.value=t.dataset.settingOriginal,n.dispatchEvent(new Event("input",{bubbles:!0})),n.dispatchEvent(new Event("change",{bubbles:!0})))}});var n=document.getElementById("calendar"),r=document.querySelector("[data-calendar-label]"),i=document.querySelector("[data-calendar-today]"),o=document.querySelector("[data-calendar-prev]"),d=document.querySelector("[data-calendar-next]"),f=document.querySelector("[data-calendar-view]"),y=document.querySelector("[data-mini-label]"),b=document.querySelector("[data-mini-grid]"),A=document.querySelector("[data-mini-prev]"),N=document.querySelector("[data-mini-next]"),I=document.getElementById("lesson-modal"),_=document.getElementById("general-event-modal"),x=document.getElementById("calendar-edit-modal-container"),P=document.querySelector(".calendar-calendar-search"),T=P?P.closest(".calendar-calendar-toolbar"):null,F=P?P.querySelector("[data-calendar-search-toggle]"):null,O=P?P.querySelector("[data-calendar-search-clear]"):null,H=P?P.querySelector('input[name="search"]'):null,U=document.getElementById("calendar-offcanvas-views"),j=Array.from(document.querySelectorAll("[data-calendar-offcanvas-view]")),Y=document.getElementById("calendar-calendar-insights"),G=document.querySelector("[data-calendar-insights-sidebar-target]"),Q=document.querySelector("[data-calendar-insights-offcanvas-target]"),W=document.querySelector("[data-calendar-location-filters]"),V=document.querySelector("[data-calendar-event-type-filters]"),K=document.querySelector("[data-calendar-create-menu]"),$=document.querySelector("[data-calendar-create-toggle]"),z=document.querySelector("[data-calendar-create-single]"),Z=document.querySelector("[data-calendar-create-recurring]"),ee=document.querySelector("[data-calendar-create-event]"),te=document.querySelector(".calendar-calendar-filter"),ne=null;if(n){var ae,re,ie,le=null,de=null,se=0,ce=function(){return Boolean(le&&le.active)||Date.now()<se};(ae=Array.from(document.querySelectorAll("[data-student-combobox]"))).forEach(function(e){var t=e.querySelector("[data-student-combobox-input]"),n=e.querySelector("[data-student-combobox-value]"),a=Array.from(e.querySelectorAll("[data-student-combobox-option]"));if(t&&n){t.addEventListener("focus",function(){Wt(e)}),t.addEventListener("click",function(){Wt(e)}),t.addEventListener("input",function(){n.value="",t.setCustomValidity(""),Wt(e)}),t.addEventListener("keydown",function(n){"Escape"===n.key&&(Vt(e),t.blur())}),a.forEach(function(a){a.addEventListener("click",function(){t.value=a.dataset.studentName||a.textContent.trim(),n.value=a.dataset.studentId||"",t.setCustomValidity(""),Kt(a),Vt(e)})});var r=e.closest("form");r&&r.addEventListener("submit",function(r){if(!n.value){var i=t.value.trim().toLowerCase(),l=a.find(function(e){return String(e.dataset.studentName||"").toLowerCase()===i});l&&(t.value=l.dataset.studentName||l.textContent.trim(),n.value=l.dataset.studentId||"",Kt(l))}if(!n.value)return r.preventDefault(),t.setCustomValidity("Select a student from the list."),t.reportValidity(),void Wt(e);t.setCustomValidity("")})}}),document.addEventListener("click",function(e){ae.forEach(function(t){t.contains(e.target)||Vt(t)})}),tn(),rn(),t.plannedLessons=Array.isArray(window.calendarPlannedLessons)?window.calendarPlannedLessons:Array.isArray(window.calendarLessonPlans)?window.calendarLessonPlans:[],t.singleLessonPlans=Array.isArray(window.calendarSingleLessonPlans)?window.calendarSingleLessonPlans:[],t.holidays=Array.isArray(window.calendarHolidays)?window.calendarHolidays:[],t.showHolidays=!1!==window.calendarShowHolidays,t.teachingBreaks=Array.isArray(window.calendarTeachingBreaks)?window.calendarTeachingBreaks:[],t.recitals=Array.isArray(window.calendarRecitals)?window.calendarRecitals:[],t.generalEvents=Array.isArray(window.calendarGeneralEvents)?window.calendarGeneralEvents:[],t.locations=Array.isArray(window.calendarLocations)?window.calendarLocations:[],t.loadedRange=E(window.calendarCalendarRange),t.birthdayWindow=(re=window.calendarBirthdayWindow,ie=Number(re),Number.isFinite(ie)&&ie>=0?Math.floor(ie):5);var fe=function(){var e,t,n=new URLSearchParams(window.location.search),a=n.get("view"),r="3-days"===a?"2-days":a,i=n.get("date");return{view:s.includes(r)?r:(e=window.matchMedia&&window.matchMedia("(max-width: 767.98px)").matches,t=e?window.calendarDefaultMobileCalendarView:window.calendarDefaultDesktopCalendarView,s.includes(t)?t:e?"2-days":"week"),date:w(i)}}();t.view=fe.view,g(fe.date)?C(fe.date):t.date?t.miniDate=Bt(t.date):C(k());var ve=function(){f&&(f.value=t.view),j.forEach(function(e){var n=e.dataset.calendarOffcanvasView===t.view;e.toggleAttribute("selected",n),e.classList.toggle("is-selected",n),e.querySelectorAll("button").forEach(function(e){e.setAttribute("aria-pressed",n?"true":"false")})})},he=function(e,t){K&&$&&(K.toggleAttribute("selected",e),$.toggleAttribute("selected",e),$.setAttribute("aria-expanded",e?"true":"false"),e?ne||((ne=document.createElement("div")).className="modal-backdrop fade",ne.setAttribute("data-calendar-create-backdrop",""),document.body.appendChild(ne),ne.addEventListener("click",ln),window.requestAnimationFrame(function(){ne&&ne.classList.add("show")})):function(e){if(ne){var t=ne;ne=null,t.classList.remove("show");var n=function(){t.removeEventListener("transitionend",n),t.remove()};e?n():(t.addEventListener("transitionend",n),window.setTimeout(n,180))}}(t&&t.immediate))},pe=function(e){ln({immediate:!0}),xt(document.getElementById(e))};$&&$.addEventListener("click",function(e){e.preventDefault(),e.stopPropagation(),he(!(K&&K.hasAttribute("selected")))}),z&&z.addEventListener("click",function(){pe("create-single-lesson-plan-modal")}),Z&&Z.addEventListener("click",function(){pe("create-calendar-lesson-plan-modal")}),ee&&ee.addEventListener("click",function(){pe("create-event-modal")}),K&&K.addEventListener("click",function(e){e.stopPropagation()}),document.addEventListener("click",function(e){K&&$&&K.hasAttribute("selected")&&(K.contains(e.target)||$.contains(e.target)||ln())});var ye=function(){if(Y&&G&&Q){var e=window.matchMedia&&window.matchMedia("(max-width: 1000px)").matches?Q:G;Y.parentElement!==e&&e.appendChild(Y)}},ge=function(){if(te){var e=t.selectedEventTypes.length<3;te.toggleAttribute("selected",Boolean(R()||e))}},we=function(){if(W){var e=Array.from(W.querySelectorAll("input[data-calendar-location-filter]:checked")).map(function(e){return B(e.value)}).filter(Boolean);t.selectedLocationIds=e,ge()}},be=function(){V&&(t.selectedEventTypes=Array.from(V.querySelectorAll("input[data-calendar-event-type-filter]:checked")).map(function(e){return e.value}),ge())},Se=function(e){e&&e!==t.view?(t.view=e,t.didAutoNowScroll=!1,ve(),Fe()):ve()},Ee=function(){P&&P.removeAttribute("selected"),T&&T.removeAttribute("searching")};ve(),ye(),window.addEventListener("resize",ye),H&&(t.studentSearch=H.value);var Ae=function(){if(y&&b){y.textContent=a.format(t.miniDate),b.innerHTML="";for(var e=Ut(t.miniDate),n=v(t.date),r=h(),i=0;i<42;i++){var l=Rt(e,i),o=v(l),d=document.createElement("button");d.type="button",d.className="calendar-mini-calendar-date",d.textContent=l.getDate(),d.dataset.date=o,l.getMonth()!==t.miniDate.getMonth()&&d.classList.add("is-muted"),o===n&&d.classList.add("is-selected"),o===r&&d.classList.add("is-today"),b.appendChild(d)}}},Le=function(e){if("schedule"===t.view&&e){var n=function(e){var t=Array.from(e.querySelectorAll(".calendar-schedule-day"));if(!t.length)return null;var n=e.getBoundingClientRect().top+1;return t.find(function(e){return e.getBoundingClientRect().bottom>n})||t[0]}(e);if(n&&n.dataset.date){var i=p(n.dataset.date),l=v(i);r&&(r.textContent=a.format(i)),v(t.date)!==l&&(t.date=i,t.miniDate=Bt(i),S(),Ae(),J())}}},Me=function(e){e&&(e.addEventListener("scroll",function(){!function(e){t.scheduleLabelFrame&&cancelAnimationFrame(t.scheduleLabelFrame),t.scheduleLabelFrame=requestAnimationFrame(function(){t.scheduleLabelFrame=null,Le(e)})}(e)},{passive:!0}),requestAnimationFrame(function(){!function(e){if(e){var n=v(t.date||k()),a=e.querySelector('.calendar-schedule-day[data-date="'.concat(n,'"]'))||e.querySelector('.calendar-schedule-day[data-date="'.concat(h(),'"]'))||e.querySelector(".calendar-schedule-day");a&&(e.scrollTop=Math.max(0,a.offsetTop),Le(e))}}(e)}))},Fe=function(){var a=q();if(ve(),S(),L(a))return Ke(),t.schedulePatchFrame&&(cancelAnimationFrame(t.schedulePatchFrame),t.schedulePatchFrame=null),t.scheduleLabelFrame&&(cancelAnimationFrame(t.scheduleLabelFrame),t.scheduleLabelFrame=null),n.innerHTML="",n.classList.toggle("calendar-calendar-day-view","day"===t.view),n.classList.toggle("calendar-calendar-two-days-view","2-days"===t.view),n.classList.toggle("calendar-calendar-week-view","week"===t.view),n.classList.toggle("calendar-calendar-month-view","month"===t.view),n.classList.toggle("calendar-calendar-schedule-view","schedule"===t.view),Dt(),J(),r&&(r.textContent=Yt()),f&&(f.value=t.view),Ae(),"schedule"===t.view?(t.instance=null,void Me(Ot(n))):m.includes(t.view)?(t.instance=e.Schedule(n,{type:"2-days"===t.view?"week":t.view,value:"2-days"===t.view?v(Rt(M(),1)):m.includes(t.view)?v(Rt(t.date,1)):v(t.date),data:Ze(X()),validRange:[c,u],overlap:!0,onbeforeinsert:function(){return!1},onbeforechangeevent:function(e,t){if(t&&t.action&&(!t.element||!t.element.hasAttribute("holding-event")))return!1},onbeforechange:function(e,t){if(le&&le.active&&t&&"updateEvent"===t.action)return!1},oncreate:function(e){Je(e),ze(n)},onchange:function(e){Je(e),ze(n)},onchangeevent:function(e){Je(e),ze(n)},ondelete:function(e){Je(e),ze(n)}}),void $e(n)):"month"===t.view?(t.instance=null,void Ft(n)):void 0;D(a).then(function(){L(q())&&Fe()})},Oe=function(){var e=n.querySelector(".lm-schedule"),a=e?e.scrollTop:0,r=e?e.scrollLeft:0,i=q();return t.loadedRange=null,t.pendingRangeKey=null,D(i).then(function(){t.suppressNextScheduleAnimation=!0,Fe(),requestAnimationFrame(function(){var e=n.querySelector(".lm-schedule");e&&(e.scrollTop=a,e.scrollLeft=r)})})};i&&i.addEventListener("click",function(){ce()||(C(k()),Fe())}),o&&o.addEventListener("click",function(){ce()||(Gt(-1),Fe())}),d&&d.addEventListener("click",function(){ce()||(Gt(1),Fe())}),function(e,n){var a=null,r=function(e,t){if(a&&(void 0===e.pointerId||e.pointerId===a.pointerId)){var r=a,i=Math.max(1,e.timeStamp-r.startedAt),l=r.deltaX/i,o=Math.min(90,r.preview?.18*r.preview.width:90),d=!t&&r.dragging&&(Math.abs(r.deltaX)>=o||Math.abs(r.deltaX)>=24&&Math.abs(l)>=.45);if(a=null,document.documentElement.classList.remove("calendar-schedule-header-grabbing"),r.preview){if(r.preview.track.classList.add("is-settling"),!d)return r.preview.track.style.transform="translate3d(".concat(-r.preview.width,"px, 0, 0)"),void window.setTimeout(function(){var e;(e=r.preview)&&e.viewport.parentNode&&e.viewport.remove()},240);var s=r.deltaX<0?1:-1,c=s>0?2*-r.preview.width:0;r.preview.track.style.transform="translate3d(".concat(c,"px, 0, 0)"),window.setTimeout(function(){n(s)},220)}}};e.addEventListener("pointerdown",function(e){var n=e.target.closest(".lm-schedule thead tr:not(.calendar-schedule-holiday-row)");n&&m.includes(t.view)&&0===e.button&&e.isPrimary&&(a={pointerId:e.pointerId,startedAt:e.timeStamp,startX:e.clientX,startY:e.clientY,deltaX:0,dragging:!1,preview:null},document.documentElement.classList.add("calendar-schedule-header-grabbing"),"function"==typeof n.setPointerCapture&&n.setPointerCapture(e.pointerId))}),e.addEventListener("pointermove",function(t){if(a&&t.pointerId===a.pointerId){var n=t.clientX-a.startX,i=t.clientY-a.startY;if(!a.dragging){if(Math.abs(i)>Math.abs(n)&&Math.abs(i)>7)return void r(t,!0);if(Math.abs(n)<7)return;if(a.dragging=!0,a.preview=Qt(e),!a.preview)return void r(t,!0)}t.preventDefault(),a.deltaX=Math.max(-a.preview.width,Math.min(a.preview.width,n)),a.preview.track.style.transform="translate3d(".concat(-a.preview.width+a.deltaX,"px, 0, 0)")}}),e.addEventListener("pointerup",function(e){r(e,!1)}),e.addEventListener("pointercancel",function(e){r(e,!0)})}(n,function(e){ce()||(Gt(e),Fe())}),f&&f.addEventListener("change",function(){ce()?ve():Se(this.value)}),j.forEach(function(e){e.addEventListener("click",function(t){t.preventDefault(),ce()||(Se(e.dataset.calendarOffcanvasView),function(){if(U)if(window.bootstrap&&window.bootstrap.Offcanvas&&"function"==typeof window.bootstrap.Offcanvas.getOrCreateInstance)window.bootstrap.Offcanvas.getOrCreateInstance(U).hide();else if(window.bootstrap&&window.bootstrap.Offcanvas)new window.bootstrap.Offcanvas(U).hide();else{var e=U.querySelector('.offcanvas-header [data-bs-dismiss="offcanvas"]');e&&e.click()}}())})}),H&&H.addEventListener("input",function(){t.studentSearch=this.value,Fe()}),W&&W.addEventListener("change",function(e){e.target.matches("input[data-calendar-location-filter]")&&(we(),Fe())}),V&&V.addEventListener("change",function(e){e.target.matches("input[data-calendar-event-type-filter]")&&(be(),Fe())}),F&&F.addEventListener("click",function(e){e.preventDefault(),e.stopPropagation(),P&&(P.setAttribute("selected",""),T&&T.setAttribute("searching",""),H&&H.focus())}),O&&O.addEventListener("click",function(e){e.preventDefault(),e.stopPropagation(),H&&(H.value=""),t.studentSearch="",Ee(),Fe()}),P&&(P.addEventListener("click",function(e){e.stopPropagation()}),document.addEventListener("click",function(e){P.contains(e.target)||Ee()})),A&&A.addEventListener("click",function(){ce()||(t.miniDate=Ht(t.miniDate,-1),Ae())}),N&&N.addEventListener("click",function(){ce()||(t.miniDate=Ht(t.miniDate,1),Ae())}),b&&b.addEventListener("click",function(e){if(!ce()){var t=e.target.closest("[data-date]");t&&(C(p(t.dataset.date)),Fe())}});var et=document.getElementById("lesson-taught");et&&et.addEventListener("click",function(e){var t,n,a,r,i,l;e.preventDefault(),n=Oe,a=(t=et).closest("#lesson-modal"),r=t.dataset.url,i=a?a.dataset.lessonPlanId:"",l=a?a.dataset.singleLessonPlanId:"",a&&r&&(i||l)&&(t.disabled=!0,Ne(a),qe(r,{method:"POST",headers:{Accept:"application/json","Content-Type":"application/json","X-CSRF-TOKEN":window.calendarCsrfToken||"","X-Requested-With":"XMLHttpRequest"},body:JSON.stringify(We(a))},"Unable to confirm lesson.").then(function(e){return Qe(a,e),Ie(a,n,!0)}).catch(function(e){console.error(e),t.disabled=!1,ke(t),De(a,e.message)}))});var tt=document.getElementById("confirm-payment");tt&&tt.addEventListener("click",function(e){var t,n,a,r;e.preventDefault(),n=Oe,a=(t=tt).closest("#lesson-modal"),r=t.dataset.url,a&&r&&(t.disabled=!0,Ne(a),qe(r,{method:"POST",headers:{Accept:"application/json","Content-Type":"application/json","X-CSRF-TOKEN":window.calendarCsrfToken||"","X-Requested-With":"XMLHttpRequest"}},"Unable to confirm payment.").then(function(e){return Qe(a,e),Ie(a,n,!0)}).catch(function(e){console.error(e),t.disabled=!1,ke(t),De(a,e.message)}))});var nt=document.getElementById("early-payment");nt&&nt.addEventListener("click",function(e){var t,n,a,r;e.preventDefault(),n=Oe,a=(t=nt).closest("#lesson-modal"),r=t.dataset.url,a&&r&&(a.dataset.lessonPlanId||a.dataset.singleLessonPlanId)&&(t.disabled=!0,Ne(a),qe(r,{method:"POST",headers:{Accept:"application/json","Content-Type":"application/json","X-CSRF-TOKEN":window.calendarCsrfToken||"","X-Requested-With":"XMLHttpRequest"},body:JSON.stringify(We(a))},"Unable to record the early payment.").then(function(e){return Qe(a,e),Ie(a,n,!0)}).catch(function(e){console.error(e),t.disabled=!1,ke(t),De(a,e.message)}))});var at=document.getElementById("lesson-revert");at&&at.addEventListener("click",function(e){var t,n,a,r;e.preventDefault(),n=Oe,a=(t=at).closest("#lesson-modal"),r=t.dataset.url,a&&r&&(a.dataset.lessonId||a.dataset.scheduleOverrideId||a.dataset.earlyPaymentId)&&(t.disabled=!0,Ne(a),qe(r,{method:"POST",headers:{Accept:"application/json","Content-Type":"application/json","X-CSRF-TOKEN":window.calendarCsrfToken||"","X-Requested-With":"XMLHttpRequest"},body:JSON.stringify(a.dataset.earlyPaymentId?{lesson_id:"",schedule_override_id:"",early_payment_id:a.dataset.earlyPaymentId}:{lesson_id:a.dataset.lessonId||"",schedule_override_id:a.dataset.scheduleOverrideId||"",early_payment_id:""})},"Unable to revert lesson action.").then(function(e){return Qe(a,e),Ie(a,n,!0)}).catch(function(e){console.error(e),t.disabled=!1,ke(t),De(a,e.message)}))});var rt=document.getElementById("lesson-edit");rt&&rt.addEventListener("click",function(e){e.preventDefault(),Pt(rt,I,x)});var it=document.getElementById("cancel-lesson-button");if(it&&it.addEventListener("click",function(e){var t;e.preventDefault(),(t=I)&&(t.classList.remove("is-rescheduling"),t.classList.add("is-canceling"))}),I){var lt=I.querySelector("#reschedule-lesson-button"),ot=I.querySelector("#reschedule-lesson form"),st=I.querySelector("#cancel-lesson form"),ct=I.querySelector("[data-reschedule-datepicker-prev]"),ut=I.querySelector("[data-reschedule-datepicker-next]"),mt=I.querySelector("[data-reschedule-datepicker-grid]"),ft=I.querySelector("#reschedule-lesson-date"),vt=I.querySelector("#reschedule-lesson-start-time"),pt=I.querySelector("#reschedule-lesson-end-time");lt&&lt.addEventListener("click",function(e){e.preventDefault(),Te(I)}),[ot,st].filter(Boolean).forEach(function(e){e.addEventListener("submit",function(t){t.preventDefault(),function(e,t){var n=e?e.closest("#lesson-modal"):null,a=!(!e||!e.closest("#reschedule-lesson"));n&&e.action&&(Ce(e,!0),Ne(n),qe(e.action,{method:String(e.method||"POST").toUpperCase(),headers:{Accept:"application/json","X-CSRF-TOKEN":window.calendarCsrfToken||"","X-Requested-With":"XMLHttpRequest"},body:new FormData(e)},a?"Unable to reschedule lesson.":"Unable to cancel lesson.").then(function(e){return!a&&e&&e.status&&Qe(n,e),Ie(n,t,!a)}).catch(function(e){console.error(e),De(n,e.message)}).finally(function(){Ce(e,!1)}))}(e,Oe)})}),I.addEventListener("hidden.bs.modal",function(){$t(I.updatedScheduleItem),I.updatedScheduleItem=null,Pe(I)}),window.jQuery&&"function"==typeof window.jQuery.fn.modal&&window.jQuery(I).on("hidden.bs.modal",function(){$t(I.updatedScheduleItem),I.updatedScheduleItem=null,Pe(I)}),ct&&ct.addEventListener("click",function(){t.rescheduleDatePickerDate=Ht(t.rescheduleDatePickerDate||k(),-1),_e(I)}),ut&&ut.addEventListener("click",function(){t.rescheduleDatePickerDate=Ht(t.rescheduleDatePickerDate||k(),1),_e(I)}),mt&&mt.addEventListener("click",function(e){var n=e.target.closest("[data-date]");n&&(ft&&(ft.value=n.dataset.date),t.rescheduleDatePickerDate=p(n.dataset.date),_e(I))}),vt&&vt.addEventListener("change",function(){ht(vt,pt,"start")}),pt&&pt.addEventListener("change",function(){ht(vt,pt,"end")})}if(_){var yt=_.querySelector("#event-edit"),gt=_.querySelector("#cancel-general-event-button"),wt=_.querySelector("#reschedule-general-event-button"),bt=_.querySelector("#reschedule-general-event form"),St=_.querySelector("#cancel-general-event form"),Et=_.querySelector("[data-general-event-reschedule-datepicker-prev]"),At=_.querySelector("[data-general-event-reschedule-datepicker-next]"),Lt=_.querySelector("[data-general-event-reschedule-datepicker-grid]"),kt=_.querySelector("#reschedule-general-event-date"),Ct=_.querySelector("#reschedule-general-event-start-time"),qt=_.querySelector("#reschedule-general-event-end-time");yt&&yt.addEventListener("click",function(e){e.preventDefault(),Pt(yt,_,x)}),gt&&gt.addEventListener("click",function(){var e;(e=_)&&(e.classList.remove("is-rescheduling"),e.classList.add("is-canceling"))}),wt&&wt.addEventListener("click",function(){Ye(_)}),[bt,St].filter(Boolean).forEach(function(e){e.addEventListener("submit",function(t){t.preventDefault(),function(e,t){var n=e?e.closest("#general-event-modal"):null,a=!(!e||!e.closest("#reschedule-general-event"));n&&e.action&&(Ce(e,!0),Ue(n),qe(e.action,{method:"POST",headers:{Accept:"application/json","X-CSRF-TOKEN":window.calendarCsrfToken||"","X-Requested-With":"XMLHttpRequest"},body:new FormData(e)},a?"Unable to reschedule event.":"Unable to cancel event.").then(function(){return t().then(function(){_t(n)})}).catch(function(e){console.error(e),je(n,e.message)}).finally(function(){Ce(e,!1)}))}(e,Oe)})}),_.addEventListener("hidden.bs.modal",function(){$t(_.updatedScheduleItem),_.updatedScheduleItem=null,Xe(_)}),window.jQuery&&"function"==typeof window.jQuery.fn.modal&&window.jQuery(_).on("hidden.bs.modal",function(){$t(_.updatedScheduleItem),_.updatedScheduleItem=null,Xe(_)}),Et&&Et.addEventListener("click",function(){t.generalEventRescheduleDatePickerDate=Ht(t.generalEventRescheduleDatePickerDate||k(),-1),xe(_)}),At&&At.addEventListener("click",function(){t.generalEventRescheduleDatePickerDate=Ht(t.generalEventRescheduleDatePickerDate||k(),1),xe(_)}),Lt&&Lt.addEventListener("click",function(e){var n=e.target.closest("[data-date]");n&&(kt&&(kt.value=n.dataset.date),t.generalEventRescheduleDatePickerDate=p(n.dataset.date),xe(_))}),Ct&&Ct.addEventListener("change",function(){ht(Ct,qt,"start")}),qt&&qt.addEventListener("change",function(){ht(Ct,qt,"end")})}x&&x.addEventListener("submit",function(e){var t=e.target.closest("form");t&&x.contains(t)&&(e.preventDefault(),Tt(t,Oe))}),n.addEventListener("click",function(e){var n=e.target.closest(".calendar-month-day");if(n&&"month"===t.view){var a=e.target.closest(".calendar-month-more");if(a)return e.preventDefault(),e.stopPropagation(),void function(e){var t=document.getElementById("month-day-events-modal");if(t){var n=t.querySelector(".modal-title"),a=t.querySelector("[data-month-day-events-list]"),r=t.querySelector("[data-month-day-events-conflict]"),i=p(e),o=It(i),d=dt(o);if(n&&(n.textContent=l.format(i)),a){a.innerHTML="";var s=o.filter(function(e){return e.isHoliday||e.isBreak||e.isRecital}),c=o.filter(function(e){return!e.isHoliday&&!e.isBreak&&!e.isRecital}),u=function(t,n){var a=Mt(n,e);a.toggleAttribute("overlapping-event",d.has(n.guid)),t.appendChild(a)};if(s.length){var m=document.createElement("div");m.className="calendar-month-day-events-special d-flex flex-wrap gap-1",s.forEach(function(e){u(m,e)}),a.appendChild(m)}c.forEach(function(e){u(a,e)})}r&&(r.hidden=0===d.size),xt(t)}}(a.dataset.monthMoreDate||n.dataset.date);e.target.closest(".calendar-month-event")||(C(p(n.dataset.date)),t.view="week",Fe())}}),n.addEventListener("mousedown",function(e){var t=e.target.closest(".lm-schedule-item");t&&!t.hasAttribute("holding-event")&&e.stopPropagation()},!0);var Nt=function(e){e&&(e.timeMarkerFrame&&(window.cancelAnimationFrame(e.timeMarkerFrame),e.timeMarkerFrame=null),e.timeMarker&&(e.timeMarker.remove(),e.timeMarker=null),e.timeMarkerRow=null)},jt=function(e){e&&e===le&&(e.timeMarkerFrame&&window.cancelAnimationFrame(e.timeMarkerFrame),e.timeMarkerFrame=window.requestAnimationFrame(function(){e.timeMarkerFrame=null,function(e){if(e&&e===le&&e.active&&e.clone){var t=e.clone.closest("tr"),n=t&&t.cells.length?t.cells[0]:null;n?n.querySelector(":scope > .lm-schedule-index")?Nt(e):(e.timeMarkerRow!==t&&(e.timeMarker&&e.timeMarker.remove(),e.timeMarker=document.createElement("span"),e.timeMarker.className="calendar-schedule-holding-time",n.appendChild(e.timeMarker),e.timeMarkerRow=t),e.timeMarker.textContent=oe(e.clone.getAttribute("data-start")||e.clone.start).replace(/(?:am|pm)$/i,"")):Nt(e)}}(e)}))},Xt=function(e,t,n,a){e&&e.active&&!e.nativeDragFinished&&(e.commitVisualDrop=Boolean(a),e.finishingNativeDrag=!0,e.nativeDragFinished=!0,document.dispatchEvent(new MouseEvent("mouseup",{bubbles:!0,cancelable:!0,view:window,button:0,buttons:0,clientX:void 0===t?e.lastX:t,clientY:void 0===n?e.lastY:n})))},$t=function(e){var t=e&&e.scheduleOriginalPosition;e&&t&&e.isConnected&&t.cell&&t.cell.isConnected&&(Object.keys(t.attributes).forEach(function(n){var a=t.attributes[n];null===a?e.removeAttribute(n):e.setAttribute(n,a)}),e.start=t.start,e.end=t.end,e.date=t.date,e.weekday=t.weekday,e.event.start=t.eventStart,e.event.end=t.eventEnd,e.event.date=t.eventDate,e.event.weekday=t.eventWeekday,void 0===t.eventOriginalDate?delete e.event.originalDate:e.event.originalDate=t.eventOriginalDate,void 0===t.eventOriginalStartTime?delete e.event.originalStartTime:e.event.originalStartTime=t.eventOriginalStartTime,t.cell.appendChild(e),e.removeAttribute("updated-event"),delete e.scheduleOriginalPosition)},zt=function(e){var t=me(e);return String(t&&t.guid||e&&(e.id||e.dataset.eventGuid)||"")},Zt=function(e){if(e&&e.commitVisualDrop&&e.clone&&e.item&&e.item.event){var t=e.clone.parentElement;if(t&&"TD"===t.tagName&&e.schedule&&e.schedule.contains(t)){t!==e.originCell&&!e.item.scheduleOriginalPosition&&(e.item.scheduleOriginalPosition={cell:e.originCell,attributes:["data-x","data-height","data-start","data-end"].reduce(function(t,n){return t[n]=e.item.getAttribute(n),t},{}),start:e.item.start,end:e.item.end,date:e.item.date,weekday:e.item.weekday,eventStart:e.item.event.start,eventEnd:e.item.event.end,eventDate:e.item.event.date,eventWeekday:e.item.event.weekday,visibleDate:e.originCell.getAttribute("data-real-date")||e.originCell.getAttribute("data-date"),eventOriginalDate:e.item.event.originalDate,eventOriginalStartTime:e.item.event.originalStartTime});var n,a,r,i=e.clone.getAttribute("data-start")||e.clone.start,l=e.clone.getAttribute("data-end")||e.clone.end,o=t.getAttribute("data-real-date")||t.getAttribute("data-date")||e.clone.date,d=e.clone.weekday;["data-x","data-height","data-start","data-end"].forEach(function(t){var n=e.clone.getAttribute(t);null===n?e.item.removeAttribute(t):e.item.setAttribute(t,n)}),e.item.start=i,e.item.end=l,e.item.date=o,e.item.weekday=d,e.item.scheduleOriginalPosition&&(e.item.event.originalDate=e.item.event.originalDate||e.item.scheduleOriginalPosition.visibleDate||e.item.scheduleOriginalPosition.eventDate,e.item.event.originalStartTime=e.item.event.originalStartTime||e.item.scheduleOriginalPosition.eventStart),e.item.event.start=i,e.item.event.end=l,o&&(e.item.event.date=o),void 0!==d&&(e.item.event.weekday=d),t.appendChild(e.item),n=e.schedule,a=e.item,r=zt(a),n&&r&&n.querySelectorAll(".lm-schedule-item").forEach(function(e){e!==a&&zt(e)===r&&e.remove()}),e.item.scheduleOriginalPosition&&t!==e.item.scheduleOriginalPosition.cell?e.item.setAttribute("updated-event",""):(e.item.removeAttribute("updated-event"),delete e.item.scheduleOriginalPosition)}}},Jt=function(e){if(le&&(void 0===e||e===le.pointerId)){if(Xt(le),window.clearTimeout(le.timer),le.active){se=Date.now()+750;var a=le.item;de=a,window.setTimeout(function(){de===a&&(de=null)},0)}Zt(le),Nt(le),le.item.removeAttribute("original-event"),le.clone&&le.clone.remove();var r=le.schedule||le.item.closest(".lm-schedule");r&&(r.querySelectorAll(".lm-schedule-item[holding-event]").forEach(function(e){e.remove()}),r.style.removeProperty("cursor"),r.style.touchAction=le.scheduleTouchAction||"",r.style.overscrollBehavior=le.scheduleOverscrollBehavior||"",r.style.overflow=le.scheduleOverflow||""),"function"==typeof le.item.releasePointerCapture&&"function"==typeof le.item.hasPointerCapture&&le.item.hasPointerCapture(le.pointerId)&&le.item.releasePointerCapture(le.pointerId);var i=le.active;le=null,i&&m.includes(t.view)&&ze(n)}};n.addEventListener("pointerdown",function(e){var n=e.target.closest(".lm-schedule-item");n&&"canceled"!==n.getAttribute("data-lesson-status")&&m.includes(t.view)&&0===e.button&&e.isPrimary&&(Jt(),le={item:n,originCell:n.parentElement,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,lastX:e.clientX,lastY:e.clientY,pointerType:e.pointerType,active:!1,commitVisualDrop:!1,finishingNativeDrag:!1,nativeDragFinished:!1,clone:null,timeMarker:null,timeMarkerRow:null,timeMarkerFrame:null,schedule:null,scheduleTouchAction:"",scheduleOverscrollBehavior:"",scheduleOverflow:"",timer:window.setTimeout(function(){if(le&&le.item===n&&n.isConnected){var a=n.cloneNode(!0),r=n.event,i=n.closest(".lm-schedule");r&&i?(a.removeAttribute("id"),a.setAttribute("holding-event",""),a.setAttribute("aria-hidden","true"),a.event=r,a.date=n.date||r.date,a.weekday=void 0!==n.weekday?n.weekday:r.weekday,a.start=n.start||r.start,a.end=n.end||r.end,Ke(),t.schedulePatchFrame&&(window.cancelAnimationFrame(t.schedulePatchFrame),t.schedulePatchFrame=null),n.setAttribute("original-event",""),n.parentElement.appendChild(a),le.active=!0,le.clone=a,le.schedule=i,le.scheduleTouchAction=i.style.touchAction,le.scheduleOverscrollBehavior=i.style.overscrollBehavior,le.scheduleOverflow=i.style.overflow,se=Number.POSITIVE_INFINITY,i.style.cursor="move",i.style.touchAction="none",i.style.overscrollBehavior="none",i.style.overflow="hidden","function"==typeof n.setPointerCapture&&n.setPointerCapture(e.pointerId),a.dispatchEvent(new MouseEvent("mousedown",{bubbles:!0,cancelable:!0,view:window,button:0,buttons:1,clientX:e.clientX,clientY:e.clientY})),jt(le)):Jt(e.pointerId)}},600)})}),n.addEventListener("pointermove",function(e){if(le&&le.pointerId===e.pointerId){if(le.lastX=e.clientX,le.lastY=e.clientY,le.active)return e.preventDefault(),"mouse"!==le.pointerType&&document.dispatchEvent(new MouseEvent("mousemove",{bubbles:!0,cancelable:!0,view:window,button:0,buttons:1,clientX:e.clientX,clientY:e.clientY})),void jt(le);(Math.abs(e.clientX-le.startX)>8||Math.abs(e.clientY-le.startY)>8)&&Jt(e.pointerId)}},{passive:!1}),document.addEventListener("pointerup",function(e){if(le&&le.pointerId===e.pointerId&&le.active&&"mouse"!==le.pointerType)return e.preventDefault(),void Xt(le,e.clientX,e.clientY,!0);le&&le.pointerId===e.pointerId&&le.active||Jt(e.pointerId)},{passive:!1}),document.addEventListener("mouseup",function(){le&&le.active&&(le.finishingNativeDrag||(le.commitVisualDrop=!0),le.finishingNativeDrag=!1,le.nativeDragFinished=!0,window.setTimeout(function(){Jt()},0))}),document.addEventListener("pointercancel",function(e){le&&le.pointerId===e.pointerId&&le.active&&"mouse"!==le.pointerType&&Xt(le,e.clientX,e.clientY),Jt(e.pointerId)}),window.addEventListener("blur",function(){Jt()}),n.addEventListener("click",function(e){if(ce())return e.preventDefault(),void e.stopImmediatePropagation();var n=e.target.closest(".lm-schedule tbody td[data-date]");n&&["2-days","week"].includes(t.view)&&!e.target.closest(".lm-schedule-item")&&(C(p(n.dataset.realDate||n.dataset.date)),t.view="day",Fe())}),n.addEventListener("click",function(e){var t=e.target.closest(".lm-schedule-item, .calendar-month-event, .calendar-schedule-event, .calendar-schedule-break, .calendar-schedule-recital");if(t&&!t.classList.contains("calendar-month-event-holiday")&&!t.classList.contains("calendar-schedule-event-holiday")){if(t.hasAttribute("holding-event"))return e.preventDefault(),void e.stopPropagation();if(t.classList.contains("lm-schedule-item")&&de===t)return de=null,e.preventDefault(),void e.stopPropagation();e.preventDefault(),e.stopPropagation();var n=t.classList.contains("lm-schedule-item")?me(t):ue(t.id||t.dataset.eventGuid),a=t.hasAttribute("updated-event")?t:null;n&&n.isBreak?Re(n):n&&n.isRecital?He(n):n&&n.isGeneralEvent?Ge(n,{openReschedule:Boolean(a),updatedItem:a}):Be(n,{openReschedule:Boolean(a),updatedItem:a})}});var en=document.getElementById("month-day-events-modal");en&&en.addEventListener("click",function(e){var t=e.target.closest(".calendar-month-event, .calendar-schedule-break, .calendar-schedule-recital");if(t&&!t.classList.contains("calendar-month-event-holiday")){e.preventDefault(),e.stopPropagation();var n=ue(t.dataset.eventGuid);n&&(_t(en),n.isBreak?Re(n):n.isRecital?He(n):n.isGeneralEvent?Ge(n):Be(n))}}),function(){if(W){if(W.innerHTML="",!t.locations.length){var e=document.createElement("div");return e.className="small opacity-4",e.textContent="No locations",void W.appendChild(e)}t.locations.forEach(function(e){var t="calendar-location-filter-".concat(e.id),n=document.createElement("div"),a=document.createElement("label"),r=document.createElement("input");n.className="form-check calendar-calendar-filter-option",a.className="form-check-label",a.setAttribute("for",t),r.type="checkbox",r.className="form-check-input",r.id=t,r.value=e.id,r.checked=!0,r.dataset.calendarLocationFilter="",a.textContent=e.name||"Location",n.appendChild(r),n.appendChild(a),W.appendChild(n)}),we()}}(),be(),Fe();var nn=function(){t.schedulePointerTimer&&(window.clearTimeout(t.schedulePointerTimer),t.schedulePointerTimer=null)},an=function(){if(nn(),!document.hidden){m.includes(t.view)&&Ve(n);var e=Math.max(50,1e3-Date.now()%1e3);t.schedulePointerTimer=window.setTimeout(an,e)}};document.addEventListener("visibilitychange",function(){document.hidden?nn():an()}),an()}function ln(e){he(!1,e)}})})();
+/******/ (() => { // webpackBootstrap
+/*!****************************************!*\
+  !*** ./resources/js/calendar/index.js ***!
+  \****************************************/
+var calendarjs = window.calendarjs;
+var state = {
+  date: null,
+  miniDate: null,
+  view: 'week',
+  instance: null,
+  events: [],
+  customEvents: [],
+  plannedLessons: [],
+  singleLessonPlans: [],
+  locations: [],
+  selectedLocationIds: [],
+  visibleEventsByDate: null,
+  holidays: [],
+  showHolidays: true,
+  teachingBreaks: [],
+  recitals: [],
+  generalEvents: [],
+  selectedEventTypes: ['recurring', 'single', 'general'],
+  studentSearch: '',
+  loadedRange: null,
+  pendingRangeKey: null,
+  scheduleObserver: null,
+  schedulePatchFrame: null,
+  scheduleLabelFrame: null,
+  schedulePointerTimer: null,
+  rescheduleDatePickerDate: null,
+  generalEventRescheduleDatePickerDate: null,
+  rescheduleDurationMinutes: 15,
+  rescheduleAnchor: null,
+  paymentTotalCounters: {},
+  calendarFetchId: 0,
+  didAutoNowScroll: false,
+  birthdayWindow: 5,
+  suppressNextScheduleAnimation: false
+};
+var calendarTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/New_York';
+var monthFormatter = new Intl.DateTimeFormat('en', {
+  month: 'long',
+  timeZone: calendarTimeZone,
+  year: 'numeric'
+});
+var shortMonthFormatter = new Intl.DateTimeFormat('en', {
+  month: 'short',
+  timeZone: calendarTimeZone
+});
+var birthdayMonthFormatter = new Intl.DateTimeFormat('en', {
+  month: 'long',
+  timeZone: calendarTimeZone
+});
+var dayFormatter = new Intl.DateTimeFormat('en', {
+  month: 'long',
+  day: 'numeric',
+  timeZone: calendarTimeZone,
+  year: 'numeric'
+});
+var weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+var monthWeekdays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+var calendarViews = ['schedule', 'day', '2-days', 'week', 'month'];
+var scheduleStart = '08:00';
+var scheduleEnd = '22:00';
+var sidebarHiddenQuery = '(max-width: 1000px)';
+var dayMilliseconds = 24 * 60 * 60 * 1000;
+var scheduleGridViews = ['day', '2-days', 'week'];
+var createLocalDate = function createLocalDate(year, month, day) {
+  return new Date(year, month, day, 12, 0, 0, 0);
+};
+var toDateString = function toDateString(date) {
+  var year = date.getFullYear();
+  var month = String(date.getMonth() + 1).padStart(2, '0');
+  var day = String(date.getDate()).padStart(2, '0');
+  return "".concat(year, "-").concat(month, "-").concat(day);
+};
+var todayString = function todayString() {
+  return toDateString(getTodayDate());
+};
+var parseDateString = function parseDateString(value) {
+  var parts = String(value).split('-').map(Number);
+  return createLocalDate(parts[0], parts[1] - 1, parts[2]);
+};
+var isDateString = function isDateString(value) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(String(value || ''));
+};
+var isValidDate = function isValidDate(date) {
+  return date instanceof Date && !Number.isNaN(date.getTime());
+};
+var normalizeBirthdayWindow = function normalizeBirthdayWindow(value) {
+  var windowDays = Number(value);
+  return Number.isFinite(windowDays) && windowDays >= 0 ? Math.floor(windowDays) : 5;
+};
+var parseUrlDate = function parseUrlDate(value) {
+  if (!isDateString(value)) {
+    return null;
+  }
+  var date = parseDateString(value);
+  return toDateString(date) === value ? date : null;
+};
+var parseNullableDateString = function parseNullableDateString(value) {
+  return value ? parseDateString(String(value).substring(0, 10)) : null;
+};
+var getDefaultCalendarView = function getDefaultCalendarView() {
+  var isMobile = window.matchMedia && window.matchMedia('(max-width: 767.98px)').matches;
+  var configuredView = isMobile ? window.calendarDefaultMobileCalendarView : window.calendarDefaultDesktopCalendarView;
+  if (calendarViews.includes(configuredView)) {
+    return configuredView;
+  }
+  return isMobile ? '2-days' : 'week';
+};
+var isSidebarHiddenViewport = function isSidebarHiddenViewport() {
+  return window.matchMedia && window.matchMedia(sidebarHiddenQuery).matches;
+};
+var getUrlState = function getUrlState() {
+  var params = new URLSearchParams(window.location.search);
+  var requestedView = params.get('view');
+  var view = requestedView === '3-days' ? '2-days' : requestedView;
+  var date = params.get('date');
+  return {
+    view: calendarViews.includes(view) ? view : getDefaultCalendarView(),
+    date: parseUrlDate(date)
+  };
+};
+var updateCalendarUrl = function updateCalendarUrl() {
+  var url = new URL(window.location.href);
+  url.searchParams.set('view', state.view);
+  url.searchParams.set('date', toDateString(state.date));
+  window.history.replaceState({
+    calendarView: state.view,
+    calendarDate: toDateString(state.date)
+  }, '', url);
+};
+var normalizeRange = function normalizeRange(range) {
+  if (!range || !range.start || !range.end) {
+    return null;
+  }
+  var start = typeof range.start === 'string' ? range.start : toDateString(range.start);
+  var end = typeof range.end === 'string' ? range.end : toDateString(range.end);
+  return {
+    start: start,
+    end: end
+  };
+};
+var getRangeKey = function getRangeKey(range) {
+  var normalizedRange = normalizeRange(range);
+  return normalizedRange ? "".concat(normalizedRange.start, ":").concat(normalizedRange.end) : '';
+};
+var isRangeLoaded = function isRangeLoaded(range) {
+  return getRangeKey(state.loadedRange) === getRangeKey(range);
+};
+var getTodayDate = function getTodayDate() {
+  var now = new Date();
+  return createLocalDate(now.getFullYear(), now.getMonth(), now.getDate());
+};
+var setSelectedDate = function setSelectedDate(date) {
+  state.date = cloneDate(date);
+  state.miniDate = cloneDate(state.date);
+  state.didAutoNowScroll = false;
+};
+var getVisibleDateRange = function getVisibleDateRange() {
+  if (state.view === 'schedule') {
+    var _start = createLocalDate(state.date.getFullYear(), state.date.getMonth() - 1, 1);
+    var end = createLocalDate(state.date.getFullYear(), state.date.getMonth() + 5, 0);
+    return {
+      start: _start,
+      end: end
+    };
+  }
+  if (state.view === 'day') {
+    return {
+      start: cloneDate(state.date),
+      end: cloneDate(state.date)
+    };
+  }
+  if (state.view === '2-days') {
+    return {
+      start: cloneDate(state.date),
+      end: addDays(state.date, 1)
+    };
+  }
+  if (state.view === 'week') {
+    var _start2 = startOfWeek(state.date);
+    return {
+      start: _start2,
+      end: addDays(_start2, 6)
+    };
+  }
+  if (state.view === 'month') {
+    var _start3 = startOfMonthGrid(state.date);
+    return {
+      start: _start3,
+      end: addDays(_start3, 41)
+    };
+  }
+  var start = startOfWeek(state.date);
+  return {
+    start: start,
+    end: addDays(start, 6)
+  };
+};
+var getCalendarEventRange = function getCalendarEventRange() {
+  if (state.view === 'schedule') {
+    return getVisibleDateRange();
+  }
+  var year = state.date.getFullYear();
+  return {
+    start: createLocalDate(year - 1, 0, 1),
+    end: createLocalDate(year + 1, 11, 31)
+  };
+};
+var fetchPlannedLessons = function fetchPlannedLessons(range) {
+  var normalizedRange = normalizeRange(range);
+  if (!normalizedRange) {
+    return Promise.resolve();
+  }
+  var rangeKey = getRangeKey(normalizedRange);
+  if (state.pendingRangeKey === rangeKey) {
+    return Promise.resolve();
+  }
+  var url = new URL(window.location.href);
+  url.searchParams.set('view', state.view);
+  url.searchParams.set('date', toDateString(state.date));
+  url.searchParams.set('range_start', normalizedRange.start);
+  url.searchParams.set('range_end', normalizedRange.end);
+  url.searchParams.set('lesson_plans', '1');
+  state.pendingRangeKey = rangeKey;
+  state.calendarFetchId += 1;
+  var fetchId = state.calendarFetchId;
+  return fetch(url, {
+    headers: {
+      Accept: 'application/json'
+    }
+  }).then(function (response) {
+    if (!response.ok) {
+      throw new Error('Unable to load calendar lessons.');
+    }
+    return response.json();
+  }).then(function (payload) {
+    if (fetchId !== state.calendarFetchId || getRangeKey(getVisibleDateRange()) !== rangeKey) {
+      return;
+    }
+    state.plannedLessons = Array.isArray(payload.plannedLessons) ? payload.plannedLessons : [];
+    state.singleLessonPlans = Array.isArray(payload.singleLessonPlans) ? payload.singleLessonPlans : [];
+    state.holidays = Array.isArray(payload.holidays) ? payload.holidays : [];
+    state.teachingBreaks = Array.isArray(payload.teachingBreaks) ? payload.teachingBreaks : [];
+    state.recitals = Array.isArray(payload.recitals) ? payload.recitals : [];
+    state.generalEvents = Array.isArray(payload.generalEvents) ? payload.generalEvents : [];
+    state.loadedRange = normalizeRange(payload.calendarRange) || normalizedRange;
+  })["catch"](function (error) {
+    if (fetchId !== state.calendarFetchId) {
+      return;
+    }
+    console.error(error);
+    state.loadedRange = normalizedRange;
+  })["finally"](function () {
+    if (state.pendingRangeKey === rangeKey && fetchId === state.calendarFetchId) {
+      state.pendingRangeKey = null;
+    }
+  });
+};
+var getVisibleScheduleDates = function getVisibleScheduleDates() {
+  return getScheduleDatesForAnchor(state.date, state.view);
+};
+var getScheduleDatesForAnchor = function getScheduleDatesForAnchor(anchor, view) {
+  if (view === 'day') {
+    return [cloneDate(anchor)];
+  }
+  if (view === '2-days') {
+    return Array.from({
+      length: 2
+    }, function (_, index) {
+      return addDays(anchor, index);
+    });
+  }
+  var start = startOfWeek(anchor);
+  return Array.from({
+    length: 7
+  }, function (_, index) {
+    return addDays(start, index);
+  });
+};
+var getTwoDaysBackingStart = function getTwoDaysBackingStart() {
+  return startOfWeek(state.date);
+};
+var getTwoDaysBackingDateForIndex = function getTwoDaysBackingDateForIndex(index) {
+  return addDays(getTwoDaysBackingStart(), index);
+};
+var getTwoDaysBackingDateForVisibleDate = function getTwoDaysBackingDateForVisibleDate(dateString) {
+  var visibleIndex = getVisibleScheduleDates().map(toDateString).indexOf(String(dateString).substring(0, 10));
+  if (visibleIndex < 0) {
+    return null;
+  }
+  return toDateString(getTwoDaysBackingDateForIndex(visibleIndex));
+};
+var getScheduleDateForGridIndex = function getScheduleDateForGridIndex(index) {
+  if (state.view === '2-days') {
+    var visibleDates = getVisibleScheduleDates();
+    return visibleDates[index] ? cloneDate(visibleDates[index]) : getTwoDaysBackingDateForIndex(index);
+  }
+  if (state.view === 'week') {
+    return addDays(startOfWeek(state.date), index);
+  }
+  return getVisibleScheduleDates()[index] ? cloneDate(getVisibleScheduleDates()[index]) : null;
+};
+var getScheduleGridDates = function getScheduleGridDates() {
+  var length = state.view === 'day' ? 1 : 7;
+  return Array.from({
+    length: length
+  }, function (_, index) {
+    return getScheduleDateForGridIndex(index);
+  }).filter(Boolean);
+};
+var getDateRangeDates = function getDateRangeDates(range) {
+  var dates = [];
+  if (!range || !range.start || !range.end) {
+    return dates;
+  }
+  for (var date = cloneDate(range.start); date <= range.end; date = addDays(date, 1)) {
+    dates.push(date);
+  }
+  return dates;
+};
+var getScheduleValue = function getScheduleValue() {
+  if (state.view === '2-days') {
+    return toDateString(addDays(getTwoDaysBackingStart(), 1));
+  }
+  if (scheduleGridViews.includes(state.view)) {
+    return toDateString(addDays(state.date, 1));
+  }
+  return toDateString(state.date);
+};
+var patchScheduleHeaders = function patchScheduleHeaders(calendar) {
+  var schedule = calendar.querySelector('.lm-schedule');
+  var headerRow = schedule ? schedule.querySelector('thead tr:not(.calendar-schedule-holiday-row)') : null;
+  var headers = headerRow ? headerRow.querySelectorAll('td') : [];
+  var firstScheduleRow = schedule ? schedule.querySelector('tbody tr') : null;
+  var columns = firstScheduleRow ? firstScheduleRow.querySelectorAll('td[data-date]') : [];
+  var gridDates = getScheduleGridDates();
+  headers.forEach(function (header) {
+    header.removeAttribute('data-selected');
+    header.removeAttribute('data-real-date');
+    header.classList.remove('calendar-schedule-hidden-column');
+  });
+  columns.forEach(function (column, index) {
+    var date = gridDates[index];
+    if (!date) {
+      return;
+    }
+    var dateString = toDateString(date);
+    var columnX = column.getAttribute('data-x');
+    var header = headers[index + 1];
+    var isHidden = state.view === '2-days' && index > 1;
+    schedule.querySelectorAll("tbody td[data-x=\"".concat(columnX, "\"]")).forEach(function (cell) {
+      cell.setAttribute('data-date', dateString);
+      cell.setAttribute('data-real-date', dateString);
+      cell.classList.toggle('calendar-schedule-hidden-column', isHidden);
+    });
+    if (!header) {
+      return;
+    }
+    header.classList.toggle('calendar-schedule-hidden-column', isHidden);
+    header.textContent = String(date.getDate()).padStart(2, '0');
+    header.setAttribute('data-weekday', weekdays[date.getDay()]);
+    header.setAttribute('data-real-date', dateString);
+    if (dateString === todayString()) {
+      header.setAttribute('data-selected', 'true');
+    } else {
+      header.removeAttribute('data-selected');
+    }
+  });
+};
+var formatScheduleHour = function formatScheduleHour(value) {
+  var text = String(value).trim();
+  var match = text.match(/^(\d{1,2})(?::\d{2})/);
+  if (!match) {
+    return text;
+  }
+  var hour = Number(match[1]);
+  var period = hour >= 12 ? 'PM' : 'AM';
+  var displayHour = hour % 12 || 12;
+  return "".concat(displayHour, " ").concat(period);
+};
+var patchScheduleTimeLabels = function patchScheduleTimeLabels(calendar) {
+  calendar.querySelectorAll('.lm-schedule-index').forEach(function (label) {
+    label.textContent = formatScheduleHour(label.textContent);
+  });
+};
+var getTimeMinutes = function getTimeMinutes(value) {
+  var match = String(value || '').match(/^(\d{1,2}):(\d{2})/);
+  if (!match) {
+    return 0;
+  }
+  return Number(match[1]) * 60 + Number(match[2]);
+};
+var isEventInsideScheduleWindow = function isEventInsideScheduleWindow(event) {
+  var start = getTimeMinutes(event.start);
+  return start >= getTimeMinutes(scheduleStart) && start < getTimeMinutes(scheduleEnd);
+};
+var getEventDurationMinutes = function getEventDurationMinutes(event) {
+  if (!event || !event.start || !event.end) {
+    return 30;
+  }
+  return Math.max(15, getTimeMinutes(event.end) - getTimeMinutes(event.start));
+};
+var getAgendaEventHeight = function getAgendaEventHeight(event) {
+  var duration = getEventDurationMinutes(event);
+  return "".concat(Math.min(10, Math.max(3.75, 2 + duration / 15)), "rem");
+};
+var normalizeLocationId = function normalizeLocationId(value) {
+  var number = Number(value);
+  return Number.isFinite(number) && number > 0 ? number : null;
+};
+var getAllLocationIds = function getAllLocationIds() {
+  return state.locations.map(function (location) {
+    return normalizeLocationId(location.id);
+  }).filter(Boolean);
+};
+var getSelectedLocationIds = function getSelectedLocationIds() {
+  return state.selectedLocationIds;
+};
+var isLocationFilterActive = function isLocationFilterActive() {
+  var allIds = getAllLocationIds();
+  return allIds.length && state.selectedLocationIds.length < allIds.length;
+};
+var locationIsSelected = function locationIsSelected(locationId) {
+  var selectedIds = getSelectedLocationIds();
+  var normalized = normalizeLocationId(locationId);
+  return !normalized || selectedIds.includes(normalized);
+};
+var eventMatchesLocationFilter = function eventMatchesLocationFilter(event) {
+  if (!isLocationFilterActive() || event.isHoliday) {
+    return true;
+  }
+  if (event.isBreak) {
+    var locations = Array.isArray(event.locations) ? event.locations : [];
+    return !locations.length || locations.some(function (location) {
+      return locationIsSelected(location.id);
+    });
+  }
+  return locationIsSelected(event.locationId);
+};
+var getVisibleCalendarEvents = function getVisibleCalendarEvents() {
+  return state.events.filter(isEventInsideScheduleWindow).filter(eventMatchesLocationFilter);
+};
+var getScheduleRenderEvents = function getScheduleRenderEvents() {
+  var events = getVisibleCalendarEvents();
+  if (state.view !== '2-days') {
+    return events;
+  }
+  return events.filter(isEventInsideVisibleRange).map(function (event) {
+    var backingDate = getTwoDaysBackingDateForVisibleDate(event.date);
+    if (!backingDate) {
+      return null;
+    }
+    return Object.assign({}, event, {
+      date: backingDate
+    });
+  }).filter(Boolean);
+};
+var getVisibleEventsByDate = function getVisibleEventsByDate() {
+  if (state.visibleEventsByDate) {
+    return state.visibleEventsByDate;
+  }
+  var eventsByDate = {};
+  getVisibleCalendarEvents().forEach(function (event) {
+    if (!event || !event.date) {
+      return;
+    }
+    var dateString = String(event.date).substring(0, 10);
+    if (!eventsByDate[dateString]) {
+      eventsByDate[dateString] = [];
+    }
+    eventsByDate[dateString].push(event);
+  });
+  Object.keys(eventsByDate).forEach(function (dateString) {
+    eventsByDate[dateString].sort(function (a, b) {
+      return String(a.start || '').localeCompare(String(b.start || ''));
+    });
+  });
+  state.visibleEventsByDate = eventsByDate;
+  return eventsByDate;
+};
+var paymentFormatter = new Intl.NumberFormat('en-US', {
+  currency: 'USD',
+  maximumFractionDigits: 0,
+  style: 'currency'
+});
+var paymentCountUpOptions = {
+  decimalPlaces: 0,
+  prefix: '$'
+};
+var randomBetween = function randomBetween(min, max) {
+  return min + Math.random() * (max - min);
+};
+var getEventFeeAmount = function getEventFeeAmount(event) {
+  var amount = Number(event && event.feeAmount ? event.feeAmount : 0);
+  return Number.isFinite(amount) ? amount : 0;
+};
+var renderLessonModalTitle = function renderLessonModalTitle(title, event) {
+  if (!title) {
+    return;
+  }
+  var feeAmount = getEventFeeAmount(event);
+  title.textContent = '';
+  title.appendChild(document.createTextNode(event && event.title ? event.title : 'Lesson'));
+  if (feeAmount <= 0) {
+    return;
+  }
+  var fee = document.createElement('span');
+  fee.className = 'ml-2 opacity-4';
+  fee.textContent = paymentFormatter.format(feeAmount / 100);
+  title.appendChild(fee);
+};
+var renderCountTotal = function renderCountTotal(key, element, value, options, fallbackFormatter) {
+  if (!element) {
+    return;
+  }
+  var number = Number(value);
+  var counter = state.paymentTotalCounters[key];
+  var startVal = counter && counter.element === element ? counter.value : Number(element.dataset.countValue || 0);
+  var safeStartVal = Number.isFinite(startVal) ? startVal : 0;
+  var safeNumber = Number.isFinite(number) ? number : 0;
+  var formatter = options && typeof options.formattingFn === 'function' ? options.formattingFn : typeof fallbackFormatter === 'function' ? fallbackFormatter : function (nextValue) {
+    return String(nextValue);
+  };
+  if (counter && counter.frame) {
+    cancelAnimationFrame(counter.frame);
+  }
+  if (Math.abs(safeNumber - safeStartVal) < 0.001) {
+    element.textContent = formatter(safeNumber);
+    element.dataset.countValue = String(safeNumber);
+    state.paymentTotalCounters[key] = {
+      element: element,
+      frame: null,
+      value: safeNumber
+    };
+    return;
+  }
+  var duration = Math.round(randomBetween(520, 980));
+  var start = window.performance && typeof window.performance.now === 'function' ? window.performance.now() : Date.now();
+  var change = safeNumber - safeStartVal;
+  var easeOutCubic = function easeOutCubic(progress) {
+    return 1 - Math.pow(1 - progress, 3);
+  };
+  var _renderFrame = function renderFrame(now) {
+    var elapsed = now - start;
+    var progress = Math.min(1, Math.max(0, elapsed / duration));
+    var nextValue = safeStartVal + change * easeOutCubic(progress);
+    var safeNextValue = Number.isFinite(nextValue) ? nextValue : safeNumber;
+    var latest = state.paymentTotalCounters[key];
+    if (!latest || latest.element !== element) {
+      return;
+    }
+    element.textContent = formatter(progress >= 1 ? safeNumber : safeNextValue);
+    element.dataset.countValue = String(safeNextValue);
+    latest.value = safeNextValue;
+    if (progress < 1) {
+      latest.frame = requestAnimationFrame(_renderFrame);
+      return;
+    }
+    latest.frame = null;
+    latest.value = safeNumber;
+    element.dataset.countValue = String(safeNumber);
+  };
+  state.paymentTotalCounters[key] = {
+    element: element,
+    frame: requestAnimationFrame(_renderFrame),
+    value: safeStartVal
+  };
+};
+var renderPaymentTotal = function renderPaymentTotal(key, element, cents) {
+  renderCountTotal(key, element, cents / 100, Object.assign({}, paymentCountUpOptions, {
+    formattingFn: function formattingFn(value) {
+      var number = Number(value);
+      return paymentFormatter.format(Number.isFinite(number) ? number : 0);
+    }
+  }), function (value) {
+    var number = Number(value);
+    return paymentFormatter.format(Number.isFinite(number) ? number : 0);
+  });
+};
+var formatHoursMinutes = function formatHoursMinutes(minutes) {
+  var safeMinutes = Number.isFinite(Number(minutes)) ? Math.round(Number(minutes)) : 0;
+  var hours = Math.floor(safeMinutes / 60);
+  var remainingMinutes = safeMinutes % 60;
+  if (hours && remainingMinutes) {
+    return "".concat(hours, "h ").concat(remainingMinutes, "m");
+  }
+  if (hours) {
+    return "".concat(hours, "h");
+  }
+  if (!remainingMinutes) {
+    return '0h';
+  }
+  return "".concat(remainingMinutes, "m");
+};
+var formatQuarterHours = function formatQuarterHours(minutes) {
+  var safeMinutes = Number.isFinite(Number(minutes)) ? Number(minutes) : 0;
+  var hours = Math.round(safeMinutes / 60 * 4) / 4;
+  return "".concat(Number(hours.toFixed(2)), "h");
+};
+var getVisibleAverageHoursDayCount = function getVisibleAverageHoursDayCount() {
+  if (state.view === '2-days') {
+    return 2;
+  }
+  if (state.view === 'week') {
+    return 7;
+  }
+  if (state.view === 'month') {
+    return createLocalDate(state.date.getFullYear(), state.date.getMonth() + 1, 0).getDate();
+  }
+  return 0;
+};
+var isEventInsideVisibleRange = function isEventInsideVisibleRange(event) {
+  if (!event || !event.date) {
+    return false;
+  }
+  var range = getVisibleDateRange();
+  var date = parseDateString(String(event.date).substring(0, 10));
+  return date >= range.start && date <= range.end;
+};
+var isEventInsidePaymentRange = function isEventInsidePaymentRange(event) {
+  if (!event || !event.date) {
+    return false;
+  }
+  if (state.view !== 'month') {
+    return isEventInsideVisibleRange(event);
+  }
+  var date = parseDateString(String(event.date).substring(0, 10));
+  var start = createLocalDate(state.date.getFullYear(), state.date.getMonth(), 1);
+  var end = createLocalDate(state.date.getFullYear(), state.date.getMonth() + 1, 0);
+  return date >= start && date <= end;
+};
+var getVisiblePaymentEvents = function getVisiblePaymentEvents() {
+  return getVisibleCalendarEvents().filter(function (event) {
+    if (state.view !== 'schedule') {
+      return isEventInsidePaymentRange(event);
+    }
+    return event.date === toDateString(state.date);
+  }).filter(function (event) {
+    return (event.lessonPlanId || event.singleLessonPlanId) && !event.isHoliday;
+  });
+};
+var formatNameList = function formatNameList(names) {
+  if (!names.length) {
+    return '';
+  }
+  if (names.length === 1) {
+    return names[0];
+  }
+  if (names.length === 2) {
+    return "".concat(names[0], " and ").concat(names[1]);
+  }
+  return "".concat(names.slice(0, -1).join(', '), " and ").concat(names[names.length - 1]);
+};
+var renderCalendarBirthdayInsights = function renderCalendarBirthdayInsights(container, names) {
+  if (!container) {
+    return;
+  }
+  var label = container.querySelector('span');
+  var formattedNames = formatNameList(names);
+  container.style.display = formattedNames ? '' : 'none';
+  if (label) {
+    label.textContent = formattedNames;
+  }
+};
+var renderCalendarPaymentTotals = function renderCalendarPaymentTotals() {
+  var expected = document.querySelector('[data-calendar-expected-payment]');
+  var confirmed = document.querySelector('[data-calendar-confirmed-payment]');
+  var lessonsCount = document.querySelector('[data-calendar-lessons-count]');
+  var hoursCount = document.querySelector('[data-calendar-hours-count]');
+  var averageHours = document.querySelector('[data-calendar-average-hours]');
+  var birthdayInsights = document.getElementById('calendar-calendar-insights-birthdays');
+  if (!expected && !confirmed && !lessonsCount && !hoursCount && !averageHours && !birthdayInsights) {
+    return;
+  }
+  var visiblePaymentEvents = getVisiblePaymentEvents();
+  var totals = visiblePaymentEvents.reduce(function (carry, event) {
+    var feeAmount = getEventFeeAmount(event);
+    if (event.lessonStatus !== 'canceled' && event.calendarStatus !== 'canceled') {
+      carry.expected += feeAmount;
+      carry.lessons += 1;
+      carry.minutes += getEventDurationMinutes(event);
+    }
+    if (event.lessonStatus === 'paid') {
+      carry.confirmed += feeAmount;
+    }
+    return carry;
+  }, {
+    confirmed: 0,
+    expected: 0,
+    lessons: 0,
+    minutes: 0
+  });
+  var birthdayNames = [];
+  var birthdayNameKeys = new Set();
+  visiblePaymentEvents.forEach(function (event) {
+    var name = event.studentFirstName || '';
+    var key = name.toLowerCase();
+    if (!name || !event.hasBirthdayNearEvent || birthdayNameKeys.has(key)) {
+      return;
+    }
+    birthdayNameKeys.add(key);
+    birthdayNames.push(name);
+  });
+  renderCalendarBirthdayInsights(birthdayInsights, birthdayNames);
+  renderPaymentTotal('expected', expected, totals.expected);
+  renderPaymentTotal('confirmed', confirmed, totals.confirmed);
+  renderCountTotal('lessons', lessonsCount, totals.lessons, {
+    decimalPlaces: 0,
+    formattingFn: function formattingFn(value) {
+      var number = Number(value);
+      return String(Math.round(Number.isFinite(number) ? number : 0));
+    }
+  }, function (value) {
+    var number = Number(value);
+    return String(Math.round(Number.isFinite(number) ? number : 0));
+  });
+  renderCountTotal('hours', hoursCount, totals.minutes, {
+    decimalPlaces: 0,
+    formattingFn: function formattingFn(value) {
+      return formatHoursMinutes(value);
+    }
+  }, function (value) {
+    return formatHoursMinutes(value);
+  });
+  if (averageHours) {
+    var dayCount = getVisibleAverageHoursDayCount();
+    var container = averageHours.closest('.mb-3') || averageHours.parentElement;
+    if (container) {
+      container.style.display = dayCount ? '' : 'none';
+    }
+    if (dayCount) {
+      renderCountTotal('average-hours', averageHours, totals.minutes / dayCount, {
+        decimalPlaces: 0,
+        formattingFn: function formattingFn(value) {
+          return "".concat(formatQuarterHours(value), "/day");
+        }
+      }, function (value) {
+        return "".concat(formatQuarterHours(value), "/day");
+      });
+    }
+  }
+};
+var getHolidaysForDateString = function getHolidaysForDateString(dateString) {
+  if (!state.showHolidays) {
+    return [];
+  }
+  return state.holidays.filter(function (holiday) {
+    return holiday.date === dateString;
+  });
+};
+var getHolidaysForDate = function getHolidaysForDate(date) {
+  return getHolidaysForDateString(toDateString(date));
+};
+var getBreakDateString = function getBreakDateString(teachingBreak, key) {
+  return String(teachingBreak && teachingBreak[key] ? teachingBreak[key] : '').substring(0, 10);
+};
+var isDateWithinBreak = function isDateWithinBreak(dateString, teachingBreak) {
+  var startsOn = getBreakDateString(teachingBreak, 'starts_on');
+  var endsOn = getBreakDateString(teachingBreak, 'ends_on');
+  return startsOn && endsOn && dateString >= startsOn && dateString <= endsOn;
+};
+var getBreaksForDateString = function getBreaksForDateString(dateString) {
+  return state.teachingBreaks.filter(function (teachingBreak) {
+    if (!isDateWithinBreak(dateString, teachingBreak)) {
+      return false;
+    }
+    if (!isLocationFilterActive()) {
+      return true;
+    }
+    var locations = Array.isArray(teachingBreak.locations) ? teachingBreak.locations : [];
+    return !locations.length || locations.some(function (location) {
+      return locationIsSelected(location.id);
+    });
+  });
+};
+var getBreaksForDate = function getBreaksForDate(date) {
+  return getBreaksForDateString(toDateString(date));
+};
+var getRecitalsForDateString = function getRecitalsForDateString(dateString) {
+  return state.recitals.filter(function (recital) {
+    return String(recital.date || '').substring(0, 10) === dateString;
+  });
+};
+var getRecitalsForDate = function getRecitalsForDate(date) {
+  return getRecitalsForDateString(toDateString(date));
+};
+var eventTimeFormatter = new Intl.DateTimeFormat('en', {
+  hour: 'numeric',
+  minute: '2-digit',
+  timeZone: calendarTimeZone
+});
+var modalDateFormatter = new Intl.DateTimeFormat('en', {
+  weekday: 'long',
+  month: 'long',
+  day: 'numeric',
+  timeZone: calendarTimeZone
+});
+var formatEventTime = function formatEventTime(time) {
+  if (!time) {
+    return '';
+  }
+  var parts = time.split(':').map(Number);
+  var date = new Date(2000, 0, 1, parts[0] || 0, parts[1] || 0);
+  return eventTimeFormatter.format(date).replace(':00', '').replace(/\s/g, '').toLowerCase();
+};
+var formatModalEventTime = function formatModalEventTime(time) {
+  if (!time) {
+    return '';
+  }
+  var parts = time.split(':').map(Number);
+  var date = new Date(2000, 0, 1, parts[0] || 0, parts[1] || 0);
+  return eventTimeFormatter.format(date).replace(/\s/g, '').toLowerCase();
+};
+var formatAgendaEventTime = function formatAgendaEventTime(time) {
+  return formatModalEventTime(time).toUpperCase();
+};
+var getLessonLocationIcon = function getLessonLocationIcon(locationName) {
+  var location = String(locationName || '').trim().toLowerCase();
+  if (location.includes('home')) {
+    return 'house';
+  }
+  if (location.includes('online')) {
+    return 'globe';
+  }
+  return 'building';
+};
+var patchScheduleItems = function patchScheduleItems(calendar) {
+  calendar.querySelectorAll('.lm-schedule-item:not([holding-event])').forEach(function (item) {
+    var start = item.getAttribute('data-start');
+    var end = item.getAttribute('data-end');
+    var duration = getTimeMinutes(end) - getTimeMinutes(start);
+    var isShort = duration <= 30;
+    var event = getEventByScheduleItem(item);
+    var cell = item.closest('td[data-date]');
+    var visibleDate = cell ? cell.getAttribute('data-real-date') || cell.getAttribute('data-date') : '';
+    var iconName = event && event.isGeneralEvent ? event.eventTypeIcon : getLessonLocationIcon(event ? event.locationName : '');
+    var iconTitle = event && event.isGeneralEvent ? event.eventType : event && event.locationName ? event.locationName : '';
+    var eventIcon = item.querySelector(':scope > .event-icon');
+    if (!iconName) {
+      if (eventIcon) {
+        eventIcon.remove();
+        eventIcon = null;
+      }
+    } else if (!eventIcon) {
+      eventIcon = document.createElement('span');
+      eventIcon.className = 'event-icon';
+      eventIcon.innerHTML = '<i class="fa-solid" aria-hidden="true"></i>';
+      item.appendChild(eventIcon);
+    }
+    if (eventIcon) {
+      eventIcon.querySelector('i').className = "fa-solid fa-".concat(iconName);
+      eventIcon.title = iconTitle;
+    }
+    item.classList.toggle('is-short', isShort);
+    item.classList.toggle('calendar-calendar-general-event', Boolean(event && event.isGeneralEvent));
+    item.setAttribute('data-display-time', isShort ? formatEventTime(start) : "".concat(formatEventTime(start), " - ").concat(formatEventTime(end)));
+    clearScheduleItemBirthdayDecoration(item);
+    if (event) {
+      item.setAttribute('data-lesson-status', event.calendarStatus || event.lessonStatus || (event.isGeneralEvent ? 'general-event' : 'unconfirmed'));
+    }
+    applyEventTimeStatusAttributes(item, event, visibleDate);
+    applyEventOverlapAttribute(item, event);
+  });
+};
+var animateCalendarLessonItems = function animateCalendarLessonItems(calendar) {
+  if (state.suppressNextScheduleAnimation) {
+    calendar.querySelectorAll('.lm-schedule-item, .calendar-month-event, .calendar-schedule-event').forEach(function (item) {
+      item.dataset.lessonFadeAnimated = 'true';
+    });
+    state.suppressNextScheduleAnimation = false;
+    return;
+  }
+  if (!scheduleGridViews.includes(state.view) || window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    return;
+  }
+  var nonLessonStatuses = ['holiday', 'teaching-break', 'recital'];
+  var lessonItems = Array.from(calendar.querySelectorAll('.lm-schedule-item, .calendar-month-event, .calendar-schedule-event')).filter(function (item) {
+    return !nonLessonStatuses.includes(item.dataset.lessonStatus || '') && item.dataset.lessonFadeAnimated !== 'true';
+  });
+  lessonItems.forEach(function (item, index) {
+    item.dataset.lessonFadeAnimated = 'true';
+    item.style.setProperty('--calendar-lesson-fade-delay', "".concat(index * 30, "ms"));
+    item.style.setProperty('--calendar-lesson-fade-opacity', window.getComputedStyle(item).opacity || '1');
+    item.classList.add('calendar-calendar-lesson-fade-in');
+    item.addEventListener('animationend', function () {
+      item.classList.remove('calendar-calendar-lesson-fade-in');
+      item.style.removeProperty('--calendar-lesson-fade-delay');
+      item.style.removeProperty('--calendar-lesson-fade-opacity');
+    }, {
+      once: true
+    });
+  });
+};
+var patchScheduleHolidays = function patchScheduleHolidays(calendar) {
+  var schedule = calendar.querySelector('.lm-schedule');
+  var thead = schedule ? schedule.querySelector('thead') : null;
+  if (!schedule || !thead || !scheduleGridViews.includes(state.view)) {
+    return;
+  }
+  thead.querySelectorAll('.calendar-schedule-holiday-row').forEach(function (row) {
+    row.remove();
+  });
+  var headerRow = thead.querySelector('tr');
+  var headerHeight = headerRow ? headerRow.offsetHeight : 0;
+  schedule.style.setProperty('--calendar-schedule-header-height', "".concat(headerHeight, "px"));
+  var visibleDates = getVisibleScheduleDates();
+  var visibleDateStrings = visibleDates.map(toDateString);
+  var hasBanner = visibleDates.some(function (date) {
+    return getHolidaysForDate(date).length > 0 || getBreaksForDate(date).length > 0 || getRecitalsForDate(date).length > 0;
+  });
+  if (!hasBanner) {
+    return;
+  }
+  var row = document.createElement('tr');
+  var label = document.createElement('td');
+  row.className = 'calendar-schedule-holiday-row';
+  label.className = 'calendar-schedule-holiday-zone';
+  row.appendChild(label);
+  getScheduleGridDates().forEach(function (date) {
+    var cell = document.createElement('td');
+    var dateString = toDateString(date);
+    var isVisible = state.view !== '2-days' || visibleDateStrings.includes(dateString);
+    var holidays = isVisible ? getHolidaysForDate(date) : [];
+    var teachingBreaks = isVisible ? getBreaksForDate(date) : [];
+    var recitals = isVisible ? getRecitalsForDate(date) : [];
+    cell.className = 'calendar-schedule-holiday-cell';
+    cell.dataset.date = dateString;
+    cell.dataset.realDate = dateString;
+    cell.classList.toggle('calendar-schedule-hidden-column', !isVisible);
+    applyDateStatusAttributes(cell, dateString);
+    holidays.forEach(function (holiday) {
+      var item = document.createElement('span');
+      item.className = 'calendar-schedule-holiday';
+      item.textContent = holiday.title;
+      applyDateStatusAttributes(item, dateString);
+      cell.appendChild(item);
+    });
+    teachingBreaks.forEach(function (teachingBreak) {
+      var item = document.createElement('button');
+      item.type = 'button';
+      item.className = 'calendar-schedule-holiday calendar-schedule-break';
+      item.textContent = teachingBreak.title;
+      item.dataset.eventGuid = "teaching-break-".concat(teachingBreak.id, "-").concat(dateString);
+      applyDateStatusAttributes(item, dateString);
+      cell.appendChild(item);
+    });
+    recitals.forEach(function (recital) {
+      var item = document.createElement('button');
+      item.type = 'button';
+      item.className = 'calendar-schedule-holiday calendar-schedule-recital';
+      item.textContent = "".concat(formatEventTime(recital.start_time), " ").concat(recital.name);
+      item.dataset.eventGuid = "recital-".concat(recital.id, "-").concat(dateString);
+      applyDateStatusAttributes(item, dateString);
+      cell.appendChild(item);
+    });
+    row.appendChild(cell);
+  });
+  thead.appendChild(row);
+};
+var getEventByGuid = function getEventByGuid(guid) {
+  return state.events.find(function (event) {
+    return event.guid === guid;
+  }) || getTeachingBreakEventByGuid(guid) || getRecitalEventByGuid(guid) || getGeneralEventByGuid(guid);
+};
+var getEventByScheduleItem = function getEventByScheduleItem(item) {
+  if (!item) {
+    return null;
+  }
+  if (item.event) {
+    return item.event;
+  }
+  var event = getEventByGuid(item.id || item.dataset.eventGuid);
+  if (event) {
+    return event;
+  }
+  var cell = item.closest('td[data-date]');
+  var date = cell ? cell.dataset.date : '';
+  var start = normalizeTime(item.getAttribute('data-start') || '08:00');
+  var end = normalizeTime(item.getAttribute('data-end') || '08:15');
+  var title = item.getAttribute('data-title') || '';
+  return state.events.find(function (candidate) {
+    return candidate.date === date && candidate.start === start && candidate.end === end && candidate.title === title;
+  });
+};
+var getTeachingBreakEvent = function getTeachingBreakEvent(teachingBreak, dateString) {
+  var impact = teachingBreak.impact || {};
+  return {
+    guid: "teaching-break-".concat(teachingBreak.id, "-").concat(dateString),
+    isBreak: true,
+    id: teachingBreak.id,
+    date: dateString,
+    title: teachingBreak.title || 'Teaching break',
+    reason: teachingBreak.reason || '',
+    startsOn: getBreakDateString(teachingBreak, 'starts_on'),
+    endsOn: getBreakDateString(teachingBreak, 'ends_on'),
+    locations: Array.isArray(teachingBreak.locations) ? teachingBreak.locations : [],
+    missedLessonCount: impact.lessons_count || 0,
+    missedFeeAmount: impact.fee_amount || 0,
+    missedLessons: Array.isArray(impact.lessons) ? impact.lessons : []
+  };
+};
+var getBreakEventsForDate = function getBreakEventsForDate(date) {
+  var dateString = toDateString(date);
+  return getBreaksForDateString(dateString).map(function (teachingBreak) {
+    return getTeachingBreakEvent(teachingBreak, dateString);
+  });
+};
+var getTeachingBreakEventByGuid = function getTeachingBreakEventByGuid(guid) {
+  var match = String(guid || '').match(/^teaching-break-(\d+)-(\d{4}-\d{2}-\d{2})$/);
+  if (!match) {
+    return null;
+  }
+  var teachingBreak = state.teachingBreaks.find(function (item) {
+    return Number(item.id) === Number(match[1]);
+  });
+  return teachingBreak ? getTeachingBreakEvent(teachingBreak, match[2]) : null;
+};
+var getRecitalEvent = function getRecitalEvent(recital) {
+  var dateString = String(recital.date || '').substring(0, 10);
+  return {
+    guid: "recital-".concat(recital.id, "-").concat(dateString),
+    isRecital: true,
+    id: recital.id,
+    date: dateString,
+    start: recital.start_time,
+    title: recital.name || 'Recital',
+    venue: recital.venue || null,
+    students: Array.isArray(recital.students) ? recital.students : []
+  };
+};
+var getRecitalEventsForDate = function getRecitalEventsForDate(date) {
+  return getRecitalsForDate(date).map(getRecitalEvent);
+};
+var getRecitalEventByGuid = function getRecitalEventByGuid(guid) {
+  var match = String(guid || '').match(/^recital-(\d+)-(\d{4}-\d{2}-\d{2})$/);
+  if (!match) {
+    return null;
+  }
+  var recital = state.recitals.find(function (item) {
+    return Number(item.id) === Number(match[1]);
+  });
+  return recital ? getRecitalEvent(recital) : null;
+};
+var getGeneralEvent = function getGeneralEvent(generalEvent) {
+  var dateString = String(generalEvent.scheduled_date || '').substring(0, 10);
+  return {
+    guid: "general-event-".concat(generalEvent.id, "-").concat(dateString),
+    isGeneralEvent: true,
+    id: generalEvent.id,
+    date: dateString,
+    start: normalizeTime(generalEvent.starts_at),
+    end: normalizeTime(generalEvent.ends_at),
+    title: generalEvent.name || 'Event',
+    eventType: generalEvent.event_type || '',
+    eventTypeIcon: generalEvent.event_type_icon || '',
+    notes: generalEvent.notes || '',
+    notificationMinutesBefore: generalEvent.notification_minutes_before,
+    editUrl: generalEvent.edit_url || '',
+    rescheduleUrl: generalEvent.reschedule_url || '',
+    destroyUrl: generalEvent.destroy_url || '',
+    calendarStatus: 'general-event',
+    lessonStatus: 'general-event',
+    'data-lesson-status': 'general-event'
+  };
+};
+var getGeneralEventCalendarEvents = function getGeneralEventCalendarEvents() {
+  return state.generalEvents.filter(generalEventMatchesCalendarSearch).map(getGeneralEvent);
+};
+var getGeneralEventByGuid = function getGeneralEventByGuid(guid) {
+  var match = String(guid || '').match(/^general-event-(\d+)-(\d{4}-\d{2}-\d{2})$/);
+  if (!match) {
+    return null;
+  }
+  var generalEvent = state.generalEvents.find(function (item) {
+    return Number(item.id) === Number(match[1]);
+  });
+  return generalEvent ? getGeneralEvent(generalEvent) : null;
+};
+var getCalendarEventElementsByGuid = function getCalendarEventElementsByGuid(guid) {
+  if (!guid) {
+    return [];
+  }
+  return Array.from(document.querySelectorAll('#calendar .lm-schedule-item, #calendar [data-event-guid]')).filter(function (item) {
+    return item.id === guid || item.dataset.eventGuid === guid;
+  });
+};
+var getLessonStatus = function getLessonStatus(lesson) {
+  if (!lesson) {
+    return 'unconfirmed';
+  }
+  if (lesson.canceled_at) {
+    return 'canceled';
+  }
+  return lesson.paid_at ? 'paid' : 'unpaid';
+};
+var getDateTimeDateString = function getDateTimeDateString(value) {
+  var match = String(value || '').match(/^(\d{4}-\d{2}-\d{2})/);
+  return match ? match[1] : '';
+};
+var getDateTimeTimeString = function getDateTimeTimeString(value) {
+  var match = String(value || '').match(/[T\s](\d{1,2}):(\d{2})/);
+  if (!match) {
+    return '';
+  }
+  return "".concat(String(Number(match[1])).padStart(2, '0'), ":").concat(match[2]);
+};
+var getDateTimeMinutes = function getDateTimeMinutes(value) {
+  return getTimeMinutes(getDateTimeTimeString(value));
+};
+var getLessonEditUrl = function getLessonEditUrl(lesson) {
+  var taught = document.getElementById('lesson-taught');
+  var storeUrl = taught ? taught.dataset.url : '';
+  if (!lesson || !lesson.id || !storeUrl) {
+    return '';
+  }
+  return "".concat(storeUrl.replace(/\/$/, ''), "/").concat(lesson.id);
+};
+var getLessonPlanModalEditUrl = function getLessonPlanModalEditUrl(isSingleLessonPlan, id) {
+  var template = isSingleLessonPlan ? window.calendarSingleLessonPlanEditUrlTemplate : window.calendarLessonPlanEditUrlTemplate;
+  var placeholder = isSingleLessonPlan ? '__single_lesson_plan__' : '__lesson_plan__';
+  return template && id ? String(template).replace(placeholder, id) : '';
+};
+var getLessonPaymentUrl = function getLessonPaymentUrl(lesson) {
+  var editUrl = getLessonEditUrl(lesson);
+  return editUrl ? "".concat(editUrl.replace(/\/$/, ''), "/payments") : '';
+};
+var preserveButtonLabel = function preserveButtonLabel(button) {
+  if (button && !button.dataset.defaultHtml) {
+    button.dataset.defaultHtml = button.innerHTML;
+  }
+};
+var restoreButtonLabel = function restoreButtonLabel(button) {
+  if (button && button.dataset.defaultHtml) {
+    button.innerHTML = button.dataset.defaultHtml;
+  }
+};
+var setFormSubmitting = function setFormSubmitting(form, isSubmitting) {
+  if (!form) {
+    return;
+  }
+  form.querySelectorAll('button:not([type]), button[type="submit"], input[type="submit"], input[type="image"]').forEach(function (submit) {
+    if (isSubmitting) {
+      if (submit.disabled) {
+        return;
+      }
+      preserveButtonLabel(submit);
+      submit.dataset.calendarDisabledOnSubmit = 'true';
+      submit.disabled = true;
+      submit.setAttribute('aria-disabled', 'true');
+      return;
+    }
+    if (submit.dataset.calendarDisabledOnSubmit !== 'true') {
+      return;
+    }
+    submit.disabled = false;
+    submit.removeAttribute('aria-disabled');
+    delete submit.dataset.calendarDisabledOnSubmit;
+    restoreButtonLabel(submit);
+  });
+};
+var getResponseErrorMessage = function getResponseErrorMessage(payload, fallback) {
+  if (payload && payload.message) {
+    return payload.message;
+  }
+  if (payload && payload.errors) {
+    var firstError = Object.values(payload.errors).find(function (errors) {
+      return Array.isArray(errors) && errors.length;
+    });
+    if (firstError) {
+      return firstError[0];
+    }
+  }
+  return fallback;
+};
+var requestJson = function requestJson(url, options, fallbackError) {
+  return fetch(url, options).then(function (response) {
+    return response.json()["catch"](function () {
+      return {};
+    }).then(function (payload) {
+      if (!response.ok) {
+        throw new Error(getResponseErrorMessage(payload, fallbackError));
+      }
+      return payload;
+    });
+  });
+};
+var showLessonActionError = function showLessonActionError(modal, message) {
+  var error = modal ? modal.querySelector('[data-lesson-action-error]') : null;
+  if (!error) {
+    return;
+  }
+  error.textContent = message || 'Unable to update this lesson.';
+  error.hidden = false;
+};
+var clearLessonActionError = function clearLessonActionError(modal) {
+  var error = modal ? modal.querySelector('[data-lesson-action-error]') : null;
+  if (!error) {
+    return;
+  }
+  error.textContent = '';
+  error.hidden = true;
+};
+var hideLessonModal = function hideLessonModal(modal) {
+  if (!modal) {
+    return;
+  }
+  if (window.bootstrap && window.bootstrap.Modal && typeof window.bootstrap.Modal.getOrCreateInstance === 'function') {
+    window.bootstrap.Modal.getOrCreateInstance(modal).hide();
+    return;
+  }
+  if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
+    window.jQuery(modal).modal('hide');
+  }
+};
+var finishLessonModalMutation = function finishLessonModalMutation(modal, refreshCalendar, keepOpen) {
+  var guid = modal ? modal.dataset.eventGuid : '';
+  return refreshCalendar().then(function () {
+    var updatedEvent = guid ? getEventByGuid(guid) : null;
+    if (keepOpen && updatedEvent) {
+      openLessonModal(updatedEvent);
+    } else {
+      hideLessonModal(modal);
+    }
+  });
+};
+var getLessonForOccurrence = function getLessonForOccurrence(lessonPlan, dateString, startTime) {
+  var lessons = Array.isArray(lessonPlan.lessons) ? lessonPlan.lessons : [];
+  var lessonPlanId = Number(lessonPlan.id);
+  var occurrenceMinutes = getTimeMinutes(startTime);
+  return lessons.find(function (lesson) {
+    var startsOnDate = getDateTimeDateString(lesson.starts_at) === dateString;
+    var startsAtTime = getDateTimeMinutes(lesson.starts_at) === occurrenceMinutes;
+    var belongsToPlan = !lesson.lesson_plan_id || Number(lesson.lesson_plan_id) === lessonPlanId;
+    return startsOnDate && startsAtTime && belongsToPlan;
+  }) || null;
+};
+var renderRescheduleDatePicker = function renderRescheduleDatePicker(modal) {
+  var label = modal.querySelector('[data-reschedule-datepicker-label]');
+  var grid = modal.querySelector('[data-reschedule-datepicker-grid]');
+  var input = modal.querySelector('#reschedule-lesson-date');
+  if (!label || !grid || !state.rescheduleDatePickerDate) {
+    return;
+  }
+  var selected = input && input.value ? input.value : toDateString(state.rescheduleDatePickerDate);
+  var gridStart = startOfMonthGrid(state.rescheduleDatePickerDate);
+  var today = todayString();
+  label.textContent = monthFormatter.format(state.rescheduleDatePickerDate);
+  grid.innerHTML = '';
+  for (var i = 0; i < 42; i++) {
+    var date = addDays(gridStart, i);
+    var dateString = toDateString(date);
+    var button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'calendar-date-picker-day';
+    button.textContent = date.getDate();
+    button.dataset.date = dateString;
+    if (date.getMonth() !== state.rescheduleDatePickerDate.getMonth()) {
+      button.classList.add('is-muted');
+    }
+    if (dateString === selected) {
+      button.classList.add('is-selected');
+    }
+    if (dateString === today) {
+      button.classList.add('is-today');
+    }
+    grid.appendChild(button);
+  }
+};
+var renderGeneralEventRescheduleDatePicker = function renderGeneralEventRescheduleDatePicker(modal) {
+  var label = modal.querySelector('[data-general-event-reschedule-datepicker-label]');
+  var grid = modal.querySelector('[data-general-event-reschedule-datepicker-grid]');
+  var input = modal.querySelector('#reschedule-general-event-date');
+  var pickerDate = state.generalEventRescheduleDatePickerDate;
+  if (!label || !grid || !pickerDate) {
+    return;
+  }
+  var selected = input && input.value ? input.value : toDateString(pickerDate);
+  var gridStart = startOfMonthGrid(pickerDate);
+  var today = todayString();
+  label.textContent = monthFormatter.format(pickerDate);
+  grid.innerHTML = '';
+  for (var i = 0; i < 42; i++) {
+    var date = addDays(gridStart, i);
+    var dateString = toDateString(date);
+    var button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'calendar-date-picker-day';
+    button.textContent = date.getDate();
+    button.dataset.date = dateString;
+    if (date.getMonth() !== pickerDate.getMonth()) {
+      button.classList.add('is-muted');
+    }
+    if (dateString === selected) {
+      button.classList.add('is-selected');
+    }
+    if (dateString === today) {
+      button.classList.add('is-today');
+    }
+    grid.appendChild(button);
+  }
+};
+var resetLessonModalState = function resetLessonModalState(modal) {
+  if (!modal) {
+    return;
+  }
+  modal.classList.remove('is-canceling', 'is-rescheduling', 'is-drop-rescheduling');
+  delete modal.dataset.dropRecurring;
+  state.rescheduleAnchor = null;
+  clearLessonActionError(modal);
+};
+var showLessonRescheduleForm = function showLessonRescheduleForm(modal) {
+  if (!modal) {
+    return;
+  }
+  modal.classList.remove('is-canceling');
+  modal.classList.add('is-rescheduling');
+};
+var showLessonCancelForm = function showLessonCancelForm(modal) {
+  if (!modal) {
+    return;
+  }
+  modal.classList.remove('is-rescheduling');
+  modal.classList.add('is-canceling');
+};
+var getEventStartDateTime = function getEventStartDateTime(event) {
+  if (!event || !event.date || !event.start) {
+    return null;
+  }
+  var dateParts = String(event.date).substring(0, 10).split('-').map(Number);
+  var timeParts = normalizeTime(event.start).split(':').map(Number);
+  var date = new Date(dateParts[0], dateParts[1] - 1, dateParts[2], timeParts[0], timeParts[1], 0, 0);
+  return isValidDate(date) ? date : null;
+};
+var canUseLessonActionButtons = function canUseLessonActionButtons(event) {
+  if (event && event.date) {
+    var eventDate = parseDateString(String(event.date).substring(0, 10));
+    var today = getTodayDate();
+    if (isValidDate(eventDate)) {
+      return eventDate <= today;
+    }
+  }
+  var startsAt = getEventStartDateTime(event);
+  return startsAt ? startsAt <= new Date() : false;
+};
+var populateLessonModal = function populateLessonModal(modal, event) {
+  var title = modal.querySelector('.modal-title');
+  var date = modal.querySelector('#lesson-date');
+  var time = modal.querySelector('#lesson-time');
+  var recurrence = modal.querySelector('#lesson-recurrence');
+  var birthday = modal.querySelector('#lesson-birthday');
+  var birthdayLabel = birthday ? birthday.querySelector('span') : null;
+  var meetingUrl = modal.querySelector('#meeting-url');
+  var meetingUrlLink = meetingUrl ? meetingUrl.querySelector('a') : null;
+  var notesUrl = modal.querySelector('#notes-url');
+  var notesUrlLink = notesUrl ? notesUrl.querySelector('a') : null;
+  var revert = modal.querySelector('#lesson-revert');
+  var edit = modal.querySelector('#lesson-edit');
+  var taught = modal.querySelector('#lesson-taught');
+  var cancelLesson = modal.querySelector('#cancel-lesson-button');
+  var confirmPayment = modal.querySelector('#confirm-payment');
+  var earlyPayment = modal.querySelector('#early-payment');
+  var rescheduleOriginalDate = modal.querySelector('#reschedule-lesson-original-date');
+  var rescheduleOriginalStartTime = modal.querySelector('#reschedule-lesson-original-start-time');
+  var rescheduleDate = modal.querySelector('#reschedule-lesson-date');
+  var rescheduleForm = modal.querySelector('#reschedule-lesson form');
+  var rescheduleLessonPlan = modal.querySelector('#reschedule-lesson [name="lesson_plan_id"]');
+  var rescheduleStartTime = modal.querySelector('#reschedule-lesson-start-time');
+  var rescheduleEndTime = modal.querySelector('#reschedule-lesson-end-time');
+  var cancelLessonForm = modal.querySelector('#cancel-lesson form');
+  var lessonPlanId = event && event.lessonPlanId ? event.lessonPlanId : '';
+  var singleLessonPlanId = event && event.singleLessonPlanId ? event.singleLessonPlanId : '';
+  var hasLessonSource = !!(lessonPlanId || singleLessonPlanId);
+  var eventDate = event && event.date ? event.date.substring(0, 10) : todayString();
+  var canUseActions = canUseLessonActionButtons(event);
+  renderLessonModalTitle(title, event);
+  if (date) {
+    date.textContent = event && event.date ? modalDateFormatter.format(parseDateString(event.date.substring(0, 10))) : '';
+  }
+  if (time) {
+    var start = event && event.start ? formatModalEventTime(event.start) : '';
+    var end = event && event.end ? formatModalEventTime(event.end) : '';
+    time.textContent = start && end ? "".concat(start, " - ").concat(end) : start || end;
+  }
+  if (recurrence) {
+    recurrence.textContent = event && event.recurrence ? event.recurrence : '';
+  }
+  if (birthday && birthdayLabel) {
+    if (event && event.birthdayModalLabel) {
+      birthday.style.display = '';
+      birthdayLabel.textContent = event.birthdayModalLabel;
+    } else {
+      birthday.style.display = 'none';
+      birthdayLabel.textContent = '';
+    }
+  }
+  if (meetingUrl && meetingUrlLink) {
+    if (event && event.meetingUrl) {
+      meetingUrl.style.display = 'block';
+      meetingUrlLink.href = event.meetingUrl;
+    } else {
+      meetingUrl.style.display = 'none';
+      meetingUrlLink.removeAttribute('href');
+    }
+  }
+  if (notesUrl && notesUrlLink) {
+    if (event && event.notesUrl) {
+      notesUrl.style.display = 'block';
+      notesUrlLink.href = event.notesUrl;
+    } else {
+      notesUrl.style.display = 'none';
+      notesUrlLink.removeAttribute('href');
+    }
+  }
+  if (revert) {
+    var canRevert = !!(event && (event.scheduleOverrideId || event.lessonId || event.earlyPaymentId && !canUseActions));
+    revert.style.display = canRevert ? 'inline-flex' : 'none';
+    revert.disabled = !canRevert;
+  }
+  if (edit) {
+    edit.dataset.url = event && event.calendarEditUrl ? event.calendarEditUrl : '';
+    edit.style.display = edit.dataset.url ? 'inline-flex' : 'none';
+    edit.disabled = !edit.dataset.url;
+  }
+  if (taught) {
+    preserveButtonLabel(taught);
+    taught.disabled = !event || !hasLessonSource;
+    taught.style.display = canUseActions ? '' : 'none';
+    restoreButtonLabel(taught);
+  }
+  if (cancelLesson) {
+    preserveButtonLabel(cancelLesson);
+    cancelLesson.disabled = !event || !hasLessonSource || event.lessonStatus === 'canceled';
+    cancelLesson.style.display = hasLessonSource ? '' : 'none';
+    restoreButtonLabel(cancelLesson);
+  }
+  if (confirmPayment) {
+    preserveButtonLabel(confirmPayment);
+    confirmPayment.style.display = canUseActions ? '' : 'none';
+    confirmPayment.dataset.url = event && event.paymentUrl ? event.paymentUrl : '';
+    restoreButtonLabel(confirmPayment);
+  }
+  if (earlyPayment) {
+    preserveButtonLabel(earlyPayment);
+    earlyPayment.disabled = !event || !hasLessonSource;
+    earlyPayment.style.display = event && !canUseActions && event.lessonStatus === 'unconfirmed' ? '' : 'none';
+    restoreButtonLabel(earlyPayment);
+  }
+  if (rescheduleOriginalDate) {
+    rescheduleOriginalDate.value = event && event.originalDate ? event.originalDate : eventDate;
+  }
+  if (rescheduleOriginalStartTime) {
+    rescheduleOriginalStartTime.value = event && event.originalStartTime ? normalizeTime(event.originalStartTime) : event && event.start ? normalizeTime(event.start) : '08:00';
+  }
+  if (rescheduleDate) {
+    rescheduleDate.value = eventDate;
+  }
+  if (rescheduleLessonPlan) {
+    rescheduleLessonPlan.value = lessonPlanId;
+  }
+  var rescheduleSingleLessonPlan = modal.querySelector('#reschedule-lesson [name="single_lesson_plan_id"]');
+  if (rescheduleSingleLessonPlan) {
+    rescheduleSingleLessonPlan.value = singleLessonPlanId;
+  }
+  if (rescheduleForm) {
+    rescheduleForm.action = singleLessonPlanId && rescheduleForm.dataset.singleAction ? rescheduleForm.dataset.singleAction : rescheduleForm.dataset.recurringAction || rescheduleForm.action;
+  }
+  if (cancelLessonForm) {
+    var recurringCancelFields = cancelLessonForm.querySelectorAll('[data-recurring-cancel-fields]');
+    var singleCancelWarning = cancelLessonForm.querySelector('[data-single-cancel-warning]');
+    var cancelReasonInputs = cancelLessonForm.querySelectorAll('input[name="canceled_by"]');
+    var isSingleLessonCancel = !!singleLessonPlanId;
+    var cancelFormPayload = {
+      lesson_plan_id: lessonPlanId,
+      single_lesson_plan_id: singleLessonPlanId,
+      date: eventDate,
+      start: event && event.start ? normalizeTime(event.start) : '',
+      end: event && event.end ? normalizeTime(event.end) : '',
+      scheduled_date: event && event.originalDate ? event.originalDate : eventDate,
+      scheduled_start_time: event && event.originalStartTime ? normalizeTime(event.originalStartTime) : event && event.start ? normalizeTime(event.start) : '',
+      schedule_override_id: event && event.scheduleOverrideId ? event.scheduleOverrideId : ''
+    };
+    Object.keys(cancelFormPayload).forEach(function (name) {
+      var input = cancelLessonForm.querySelector("[name=\"".concat(name, "\"]"));
+      if (input) {
+        input.value = cancelFormPayload[name];
+      }
+    });
+    recurringCancelFields.forEach(function (fieldset) {
+      fieldset.hidden = isSingleLessonCancel;
+    });
+    if (singleCancelWarning) {
+      singleCancelWarning.hidden = !isSingleLessonCancel;
+    }
+    cancelReasonInputs.forEach(function (input) {
+      input.disabled = isSingleLessonCancel;
+    });
+  }
+  setTimeSelectValue(rescheduleStartTime, event && event.start ? event.start : '08:00');
+  renderRescheduleEndOptions(rescheduleStartTime, rescheduleEndTime, event && event.end ? normalizeTime(event.end) : '08:15');
+  setTimeSelectValue(rescheduleEndTime, event && event.end ? event.end : '08:15');
+  state.rescheduleAnchor = null;
+  state.rescheduleDurationMinutes = Math.max(15, getSelectTimeMinutes(rescheduleEndTime) - getSelectTimeMinutes(rescheduleStartTime));
+  state.rescheduleDatePickerDate = parseDateString(eventDate);
+  renderRescheduleDatePicker(modal);
+  modal.dataset.lessonStatus = event && event.lessonStatus ? event.lessonStatus : 'unconfirmed';
+  modal.dataset.lessonCanceledBy = event && event.canceledBy ? event.canceledBy : '';
+};
+var openLessonModal = function openLessonModal(event, options) {
+  var modal = document.getElementById('lesson-modal');
+  var settings = options || {};
+  if (!modal) {
+    return;
+  }
+  resetLessonModalState(modal);
+  populateLessonModal(modal, event);
+  modal.updatedScheduleItem = settings.updatedItem || null;
+  if (settings.openReschedule) {
+    modal.classList.add('is-drop-rescheduling');
+    modal.dataset.dropRecurring = event && event.lessonPlanId ? 'true' : 'false';
+    showLessonRescheduleForm(modal);
+  }
+  if (event) {
+    modal.dataset.eventGuid = event.guid || '';
+    modal.dataset.eventTitle = event.title || '';
+    modal.dataset.eventDate = event.date || '';
+    modal.dataset.eventStart = event.start || '';
+    modal.dataset.eventEnd = event.end || '';
+    modal.dataset.lessonPlanId = event.lessonPlanId || '';
+    modal.dataset.singleLessonPlanId = event.singleLessonPlanId || '';
+    modal.dataset.lessonId = event.lessonId || '';
+    modal.dataset.scheduleOverrideId = event.scheduleOverrideId || '';
+    modal.dataset.earlyPaymentId = event.earlyPaymentId || '';
+    modal.dataset.originalDate = event.originalDate || event.date || '';
+    modal.dataset.originalStartTime = event.originalStartTime || event.start || '';
+  } else {
+    modal.dataset.eventGuid = '';
+    modal.dataset.eventTitle = '';
+    modal.dataset.eventDate = '';
+    modal.dataset.eventStart = '';
+    modal.dataset.eventEnd = '';
+    modal.dataset.lessonPlanId = '';
+    modal.dataset.singleLessonPlanId = '';
+    modal.dataset.lessonId = '';
+    modal.dataset.scheduleOverrideId = '';
+    modal.dataset.earlyPaymentId = '';
+    modal.dataset.originalDate = '';
+    modal.dataset.originalStartTime = '';
+  }
+  if (window.bootstrap && window.bootstrap.Modal && typeof window.bootstrap.Modal.getOrCreateInstance === 'function') {
+    window.bootstrap.Modal.getOrCreateInstance(modal).show();
+    return;
+  }
+  if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
+    window.jQuery(modal).modal('show');
+  }
+};
+var formatBreakDateRange = function formatBreakDateRange(event) {
+  var startsOn = event && event.startsOn ? event.startsOn : event && event.date ? event.date.substring(0, 10) : '';
+  var endsOn = event && event.endsOn ? event.endsOn : startsOn;
+  if (!startsOn) {
+    return '';
+  }
+  var startLabel = modalDateFormatter.format(parseDateString(startsOn));
+  var endLabel = endsOn && endsOn !== startsOn ? modalDateFormatter.format(parseDateString(endsOn)) : '';
+  return endLabel ? "".concat(startLabel, " - ").concat(endLabel) : startLabel;
+};
+var openTeachingBreakModal = function openTeachingBreakModal(event) {
+  var modal = document.getElementById('teaching-break-modal');
+  if (!modal || !event) {
+    return;
+  }
+  var title = modal.querySelector('.modal-title');
+  var dates = modal.querySelector('#teaching-break-dates');
+  var reason = modal.querySelector('#teaching-break-reason');
+  var locations = modal.querySelector('#teaching-break-locations');
+  var impact = modal.querySelector('#teaching-break-impact');
+  var lessons = modal.querySelector('#teaching-break-lessons');
+  var missedLessons = Array.isArray(event.missedLessons) ? event.missedLessons : [];
+  if (title) {
+    title.textContent = event.title || 'Teaching break';
+  }
+  if (dates) {
+    dates.textContent = formatBreakDateRange(event);
+  }
+  if (reason) {
+    reason.textContent = event.reason || 'No reason added.';
+  }
+  if (locations) {
+    locations.textContent = Array.isArray(event.locations) && event.locations.length ? event.locations.map(function (location) {
+      return location.name;
+    }).join(', ') : 'All locations';
+  }
+  if (impact) {
+    var count = Number(event.missedLessonCount || 0);
+    impact.textContent = "".concat(count, " ").concat(count === 1 ? 'lesson' : 'lessons', " missed \xB7 ").concat(paymentFormatter.format(Number(event.missedFeeAmount || 0) / 100), " missed");
+  }
+  if (lessons) {
+    lessons.innerHTML = '';
+    if (!missedLessons.length) {
+      var empty = document.createElement('div');
+      empty.className = 'opacity-4';
+      empty.textContent = 'No lessons are currently scheduled during this break.';
+      lessons.appendChild(empty);
+    }
+    missedLessons.forEach(function (lesson) {
+      var row = document.createElement('div');
+      var name = document.createElement('strong');
+      var details = document.createElement('span');
+      row.className = 'calendar-break-lesson';
+      name.textContent = lesson.student || 'Lesson';
+      details.textContent = "".concat(lesson.date ? modalDateFormatter.format(parseDateString(String(lesson.date).substring(0, 10))) : '', " \xB7 ").concat(formatModalEventTime(lesson.start), "-").concat(formatModalEventTime(lesson.end), " \xB7 ").concat(paymentFormatter.format(Number(lesson.fee_amount || 0) / 100));
+      row.appendChild(name);
+      row.appendChild(details);
+      lessons.appendChild(row);
+    });
+  }
+  if (window.bootstrap && window.bootstrap.Modal && typeof window.bootstrap.Modal.getOrCreateInstance === 'function') {
+    window.bootstrap.Modal.getOrCreateInstance(modal).show();
+    return;
+  }
+  if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
+    window.jQuery(modal).modal('show');
+  }
+};
+var openRecitalModal = function openRecitalModal(event) {
+  var modal = document.getElementById('recital-modal');
+  if (!modal || !event) {
+    return;
+  }
+  var title = modal.querySelector('.modal-title');
+  var date = modal.querySelector('#recital-date');
+  var time = modal.querySelector('#recital-time');
+  var venue = modal.querySelector('#recital-venue');
+  var participants = modal.querySelector('#recital-participants');
+  var students = Array.isArray(event.students) ? event.students : [];
+  if (title) title.textContent = event.title || 'Recital';
+  if (date) date.textContent = event.date ? modalDateFormatter.format(parseDateString(event.date)) : '';
+  if (time) time.textContent = formatModalEventTime(event.start);
+  if (venue) {
+    var venueName = event.venue && event.venue.name ? event.venue.name : 'No venue specified';
+    var address = event.venue && event.venue.address ? event.venue.address : '';
+    var mapUrl = event.venue && event.venue.map_url ? event.venue.map_url : '';
+    venue.innerHTML = '';
+    if (mapUrl) {
+      var link = document.createElement('a');
+      link.href = mapUrl;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.textContent = venueName;
+      venue.appendChild(link);
+    } else {
+      venue.appendChild(document.createTextNode(venueName));
+    }
+    if (address) {
+      venue.appendChild(document.createTextNode(" \xB7 ".concat(address)));
+    }
+  }
+  if (participants) {
+    participants.innerHTML = '';
+    if (!students.length) {
+      var empty = document.createElement('div');
+      empty.className = 'opacity-4';
+      empty.textContent = 'No participating students.';
+      participants.appendChild(empty);
+    }
+    students.forEach(function (student) {
+      var row = document.createElement('div');
+      row.className = 'calendar-break-lesson';
+      row.textContent = student.name || 'Student';
+      participants.appendChild(row);
+    });
+  }
+  if (window.bootstrap && window.bootstrap.Modal && typeof window.bootstrap.Modal.getOrCreateInstance === 'function') {
+    window.bootstrap.Modal.getOrCreateInstance(modal).show();
+    return;
+  }
+  if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
+    window.jQuery(modal).modal('show');
+  }
+};
+var renderNotesWithLinks = function renderNotesWithLinks(element, notes) {
+  var text = String(notes || '');
+  var urlPattern = /(?:https?:\/\/|www\.)[^\s]+/gi;
+  var cursor = 0;
+  var match;
+  element.innerHTML = '';
+  if (!text) {
+    return;
+  }
+  element.classList.remove('opacity-4');
+  while ((match = urlPattern.exec(text)) !== null) {
+    var rawUrl = match[0];
+    var trailingMatch = rawUrl.match(/[),.;!?]+$/);
+    var trailing = trailingMatch ? trailingMatch[0] : '';
+    var url = trailing ? rawUrl.slice(0, -trailing.length) : rawUrl;
+    var link = document.createElement('a');
+    element.appendChild(document.createTextNode(text.slice(cursor, match.index)));
+    link.href = /^https?:\/\//i.test(url) ? url : "https://".concat(url);
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.textContent = url;
+    element.appendChild(link);
+    if (trailing) {
+      element.appendChild(document.createTextNode(trailing));
+    }
+    cursor = match.index + rawUrl.length;
+  }
+  element.appendChild(document.createTextNode(text.slice(cursor)));
+};
+var formatGeneralEventNotification = function formatGeneralEventNotification(minutes) {
+  if (minutes === null || minutes === undefined || minutes === '') {
+    return '';
+  }
+  var value = Number(minutes);
+  if (value === 0) {
+    return 'At the event time';
+  }
+  if (value === 1440) {
+    return '1 day before';
+  }
+  if (value >= 60 && value % 60 === 0) {
+    var hours = value / 60;
+    return "".concat(hours, " ").concat(hours === 1 ? 'hour' : 'hours', " before");
+  }
+  return "".concat(value, " ").concat(value === 1 ? 'minute' : 'minutes', " before");
+};
+var clearGeneralEventActionError = function clearGeneralEventActionError(modal) {
+  var error = modal ? modal.querySelector('[data-general-event-action-error]') : null;
+  if (!error) {
+    return;
+  }
+  error.textContent = '';
+  error.hidden = true;
+};
+var showGeneralEventActionError = function showGeneralEventActionError(modal, message) {
+  var error = modal ? modal.querySelector('[data-general-event-action-error]') : null;
+  if (!error) {
+    return;
+  }
+  error.textContent = message || 'Unable to update this event.';
+  error.hidden = false;
+};
+var resetGeneralEventModalState = function resetGeneralEventModalState(modal) {
+  if (!modal) {
+    return;
+  }
+  modal.classList.remove('is-canceling', 'is-rescheduling', 'is-drop-rescheduling');
+  state.rescheduleAnchor = null;
+  clearGeneralEventActionError(modal);
+  modal.querySelectorAll('button[type="submit"], input[type="submit"]').forEach(function (submit) {
+    submit.disabled = false;
+    restoreButtonLabel(submit);
+  });
+};
+var showGeneralEventRescheduleForm = function showGeneralEventRescheduleForm(modal) {
+  if (!modal) {
+    return;
+  }
+  modal.classList.remove('is-canceling');
+  modal.classList.add('is-rescheduling');
+};
+var showGeneralEventCancelForm = function showGeneralEventCancelForm(modal) {
+  if (!modal) {
+    return;
+  }
+  modal.classList.remove('is-rescheduling');
+  modal.classList.add('is-canceling');
+};
+var openGeneralEventModal = function openGeneralEventModal(event, options) {
+  var modal = document.getElementById('general-event-modal');
+  var settings = options || {};
+  if (!modal || !event) {
+    return;
+  }
+  var title = modal.querySelector('.modal-title');
+  var date = modal.querySelector('#general-event-date');
+  var time = modal.querySelector('#general-event-time');
+  var eventType = modal.querySelector('#general-event-type');
+  var eventTypeIcon = modal.querySelector('#general-event-type-icon');
+  var eventTypeSection = modal.querySelector('[data-general-event-type-section]');
+  var notification = modal.querySelector('#general-event-notification');
+  var notes = modal.querySelector('#general-event-notes');
+  var notesSection = modal.querySelector('[data-general-event-notes-section]');
+  var edit = modal.querySelector('#event-edit');
+  var rescheduleForm = modal.querySelector('#reschedule-general-event form');
+  var cancelForm = modal.querySelector('#cancel-general-event form');
+  var rescheduleDate = modal.querySelector('#reschedule-general-event-date');
+  var rescheduleStartTime = modal.querySelector('#reschedule-general-event-start-time');
+  var rescheduleEndTime = modal.querySelector('#reschedule-general-event-end-time');
+  resetGeneralEventModalState(modal);
+  modal.updatedScheduleItem = settings.updatedItem || null;
+  if (title) title.textContent = event.title || 'Event';
+  if (date) date.textContent = event.date ? modalDateFormatter.format(parseDateString(event.date)) : '';
+  if (time) time.textContent = event.start && event.end ? "".concat(formatModalEventTime(event.start), " - ").concat(formatModalEventTime(event.end)) : formatModalEventTime(event.start);
+  if (eventType) eventType.textContent = event.eventType || '';
+  if (eventTypeIcon) {
+    eventTypeIcon.className = "fas opacity-4 mr-2 t-2".concat(event.eventTypeIcon ? " fa-".concat(event.eventTypeIcon) : '');
+    eventTypeIcon.hidden = !event.eventTypeIcon;
+  }
+  if (eventTypeSection) eventTypeSection.hidden = !event.eventType;
+  if (notification) {
+    notification.textContent = formatGeneralEventNotification(event.notificationMinutesBefore);
+    notification.parentElement.hidden = !notification.textContent;
+  }
+  if (notesSection) notesSection.hidden = !String(event.notes || '').trim();
+  if (notes) renderNotesWithLinks(notes, event.notes);
+  if (edit) {
+    edit.dataset.url = event.editUrl || '';
+    edit.style.display = edit.dataset.url ? 'inline-flex' : 'none';
+    edit.disabled = !edit.dataset.url;
+  }
+  modal.dataset.eventGuid = event.guid || '';
+  modal.dataset.eventId = event.id || '';
+  if (rescheduleForm) rescheduleForm.action = event.rescheduleUrl || '';
+  if (cancelForm) cancelForm.action = event.destroyUrl || '';
+  if (rescheduleDate) rescheduleDate.value = event.date || todayString();
+  setTimeSelectValue(rescheduleStartTime, event.start || '08:00');
+  renderRescheduleEndOptions(rescheduleStartTime, rescheduleEndTime, event.end ? normalizeTime(event.end) : '08:15');
+  setTimeSelectValue(rescheduleEndTime, event.end || '08:15');
+  state.rescheduleDurationMinutes = Math.max(15, getSelectTimeMinutes(rescheduleEndTime) - getSelectTimeMinutes(rescheduleStartTime));
+  state.generalEventRescheduleDatePickerDate = parseDateString(event.date || todayString());
+  renderGeneralEventRescheduleDatePicker(modal);
+  if (settings.openReschedule) {
+    modal.classList.add('is-drop-rescheduling');
+    showGeneralEventRescheduleForm(modal);
+  }
+  showBootstrapModal(modal);
+};
+var submitGeneralEventModalForm = function submitGeneralEventModalForm(form, refreshCalendar) {
+  var modal = form ? form.closest('#general-event-modal') : null;
+  var isReschedule = !!(form && form.closest('#reschedule-general-event'));
+  if (!modal || !form.action) {
+    return;
+  }
+  setFormSubmitting(form, true);
+  clearGeneralEventActionError(modal);
+  requestJson(form.action, {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'X-CSRF-TOKEN': window.calendarCsrfToken || '',
+      'X-Requested-With': 'XMLHttpRequest'
+    },
+    body: new FormData(form)
+  }, isReschedule ? 'Unable to reschedule event.' : 'Unable to cancel event.').then(function () {
+    return refreshCalendar().then(function () {
+      hideBootstrapModal(modal);
+    });
+  })["catch"](function (error) {
+    console.error(error);
+    showGeneralEventActionError(modal, error.message);
+  })["finally"](function () {
+    setFormSubmitting(form, false);
+  });
+};
+var updateLessonModalState = function updateLessonModalState(modal, payload) {
+  var revert = modal.querySelector('#lesson-revert');
+  var taught = modal.querySelector('#lesson-taught');
+  var cancelLesson = modal.querySelector('#cancel-lesson-button');
+  var event = getEventByGuid(modal.dataset.eventGuid);
+  var status = payload && payload.status ? payload.status : 'unpaid';
+  var editUrl = payload && payload.edit_url ? payload.edit_url : '';
+  var paymentUrl = payload && (payload.payment_url || payload.paymentUrl) ? payload.payment_url || payload.paymentUrl : '';
+  var lessonId = payload && payload.lesson_id ? payload.lesson_id : '';
+  var confirmPayment = modal.querySelector('#confirm-payment');
+  var earlyPayment = modal.querySelector('#early-payment');
+  var hasEarlyPaymentId = payload && Object.prototype.hasOwnProperty.call(payload, 'early_payment_id');
+  var earlyPaymentId = hasEarlyPaymentId ? payload.early_payment_id || '' : event ? event.earlyPaymentId : '';
+  modal.dataset.lessonStatus = status;
+  modal.dataset.lessonCanceledBy = payload && payload.canceled_by ? payload.canceled_by : '';
+  modal.dataset.earlyPaymentId = earlyPaymentId;
+  if (payload && payload.lesson_deleted) {
+    modal.dataset.lessonId = '';
+  } else if (lessonId) {
+    modal.dataset.lessonId = lessonId;
+  }
+  if (taught) {
+    taught.disabled = false;
+    restoreButtonLabel(taught);
+  }
+  if (cancelLesson) {
+    cancelLesson.disabled = status === 'canceled';
+    restoreButtonLabel(cancelLesson);
+  }
+  if (confirmPayment && paymentUrl) {
+    confirmPayment.dataset.url = paymentUrl;
+  }
+  if (earlyPayment) {
+    earlyPayment.style.display = 'none';
+    earlyPayment.disabled = false;
+    restoreButtonLabel(earlyPayment);
+  }
+  if (event) {
+    event.lessonStatus = status;
+    event.calendarStatus = status === 'early-payment' ? status : payload && payload.schedule_override_deleted ? status : event.calendarStatus === 'rescheduled' ? 'rescheduled' : status;
+    event['data-lesson-status'] = event.calendarStatus;
+    event.canceledBy = payload && payload.canceled_by ? payload.canceled_by : '';
+    event.lessonEditUrl = payload && payload.lesson_deleted ? '' : editUrl || event.lessonEditUrl || '';
+    event.paymentUrl = payload && payload.lesson_deleted ? '' : paymentUrl || event.paymentUrl || '';
+    event.lessonId = payload && payload.lesson_deleted ? '' : lessonId || event.lessonId || '';
+    event.scheduleOverrideId = payload && payload.schedule_override_deleted ? '' : event.scheduleOverrideId;
+    event.earlyPaymentId = earlyPaymentId;
+  }
+  if (revert) {
+    var canRevert = !!(event && (event.scheduleOverrideId || event.lessonId || event.earlyPaymentId && !canUseLessonActionButtons(event)));
+    revert.style.display = canRevert ? 'inline-flex' : 'none';
+    revert.disabled = !canRevert;
+  }
+  var calendarStatus = event && event.calendarStatus ? event.calendarStatus : status;
+  getCalendarEventElementsByGuid(modal.dataset.eventGuid).forEach(function (item) {
+    item.setAttribute('data-lesson-status', calendarStatus);
+    applyEventTimeStatusAttributes(item, event);
+    item.querySelectorAll('[data-lesson-status]').forEach(function (child) {
+      child.setAttribute('data-lesson-status', calendarStatus);
+      applyEventTimeStatusAttributes(child, event);
+    });
+  });
+  renderCalendarPaymentTotals();
+};
+var getLessonOccurrencePayload = function getLessonOccurrencePayload(modal) {
+  return {
+    lesson_plan_id: modal.dataset.lessonPlanId || '',
+    single_lesson_plan_id: modal.dataset.singleLessonPlanId || '',
+    date: modal.dataset.eventDate || '',
+    start: modal.dataset.eventStart || '',
+    end: modal.dataset.eventEnd || '',
+    scheduled_date: modal.dataset.originalDate || modal.dataset.eventDate || '',
+    scheduled_start_time: modal.dataset.originalStartTime || modal.dataset.eventStart || '',
+    schedule_override_id: modal.dataset.scheduleOverrideId || ''
+  };
+};
+var revertScheduleOverrideInState = function revertScheduleOverrideInState(event) {
+  if (!event || !event.lessonPlanId || !event.scheduleOverrideId) {
+    return;
+  }
+  var lessonPlan = state.plannedLessons.find(function (plan) {
+    return String(plan.id) === String(event.lessonPlanId);
+  });
+  if (!lessonPlan || !Array.isArray(lessonPlan.occurrences)) {
+    return;
+  }
+  lessonPlan.occurrences = lessonPlan.occurrences.filter(function (occurrence) {
+    return String(occurrence.schedule_override_id || '') !== String(event.scheduleOverrideId);
+  });
+  if (!lessonPlan.occurrences.some(function (occurrence) {
+    return occurrence.date === event.originalDate && normalizeTime(occurrence.start || lessonPlan.start_time) === normalizeTime(event.originalStartTime || event.start);
+  })) {
+    var start = normalizeTime(event.originalStartTime || lessonPlan.start_time);
+    lessonPlan.occurrences.push({
+      date: event.originalDate || event.date,
+      start: start,
+      end: addMinutesToTime(start, lessonPlan.duration_minutes),
+      original_date: event.originalDate || event.date,
+      original_start_time: start,
+      lesson_id: '',
+      lesson_status: 'unconfirmed',
+      calendar_status: 'unconfirmed',
+      fee_amount: event.feeAmount || lessonPlan.fee_amount || 0,
+      canceled_by: '',
+      lesson_edit_url: '',
+      lesson_payment_url: ''
+    });
+  }
+};
+var revertLessonInState = function revertLessonInState(event, lessonId) {
+  if (!event || !lessonId) {
+    return;
+  }
+  var lessonPlan = state.plannedLessons.concat(state.singleLessonPlans).find(function (plan) {
+    return String(plan.id) === String(event.lessonPlanId || event.singleLessonPlanId);
+  });
+  if (!lessonPlan || !Array.isArray(lessonPlan.occurrences)) {
+    return;
+  }
+  lessonPlan.occurrences = lessonPlan.occurrences.map(function (occurrence) {
+    if (String(occurrence.lesson_id || '') !== String(lessonId)) {
+      return occurrence;
+    }
+    return Object.assign({}, occurrence, {
+      lesson_id: '',
+      lesson_status: 'unconfirmed',
+      calendar_status: occurrence.schedule_override_id ? 'rescheduled' : 'unconfirmed',
+      canceled_by: '',
+      lesson_edit_url: '',
+      lesson_payment_url: ''
+    });
+  });
+};
+var revertLessonAction = function revertLessonAction(button, refreshCalendar) {
+  var modal = button.closest('#lesson-modal');
+  var url = button.dataset.url;
+  if (!modal || !url || !modal.dataset.lessonId && !modal.dataset.scheduleOverrideId && !modal.dataset.earlyPaymentId) {
+    return;
+  }
+  button.disabled = true;
+  clearLessonActionError(modal);
+  requestJson(url, {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'X-CSRF-TOKEN': window.calendarCsrfToken || '',
+      'X-Requested-With': 'XMLHttpRequest'
+    },
+    body: JSON.stringify(modal.dataset.earlyPaymentId ? {
+      lesson_id: '',
+      schedule_override_id: '',
+      early_payment_id: modal.dataset.earlyPaymentId
+    } : {
+      lesson_id: modal.dataset.lessonId || '',
+      schedule_override_id: modal.dataset.scheduleOverrideId || '',
+      early_payment_id: ''
+    })
+  }, 'Unable to revert lesson action.').then(function (payload) {
+    updateLessonModalState(modal, payload);
+    return finishLessonModalMutation(modal, refreshCalendar, true);
+  })["catch"](function (error) {
+    console.error(error);
+    button.disabled = false;
+    restoreButtonLabel(button);
+    showLessonActionError(modal, error.message);
+  });
+};
+var storeEarlyPayment = function storeEarlyPayment(button, refreshCalendar) {
+  var modal = button.closest('#lesson-modal');
+  var url = button.dataset.url;
+  if (!modal || !url || !modal.dataset.lessonPlanId && !modal.dataset.singleLessonPlanId) {
+    return;
+  }
+  button.disabled = true;
+  clearLessonActionError(modal);
+  requestJson(url, {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'X-CSRF-TOKEN': window.calendarCsrfToken || '',
+      'X-Requested-With': 'XMLHttpRequest'
+    },
+    body: JSON.stringify(getLessonOccurrencePayload(modal))
+  }, 'Unable to record the early payment.').then(function (payload) {
+    updateLessonModalState(modal, payload);
+    return finishLessonModalMutation(modal, refreshCalendar, true);
+  })["catch"](function (error) {
+    console.error(error);
+    button.disabled = false;
+    restoreButtonLabel(button);
+    showLessonActionError(modal, error.message);
+  });
+};
+var storeTaughtLesson = function storeTaughtLesson(button, refreshCalendar) {
+  var modal = button.closest('#lesson-modal');
+  var url = button.dataset.url;
+  var lessonPlanId = modal ? modal.dataset.lessonPlanId : '';
+  var singleLessonPlanId = modal ? modal.dataset.singleLessonPlanId : '';
+  if (!modal || !url || !lessonPlanId && !singleLessonPlanId) {
+    return;
+  }
+  button.disabled = true;
+  clearLessonActionError(modal);
+  requestJson(url, {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'X-CSRF-TOKEN': window.calendarCsrfToken || '',
+      'X-Requested-With': 'XMLHttpRequest'
+    },
+    body: JSON.stringify(getLessonOccurrencePayload(modal))
+  }, 'Unable to confirm lesson.').then(function (payload) {
+    updateLessonModalState(modal, payload);
+    return finishLessonModalMutation(modal, refreshCalendar, true);
+  })["catch"](function (error) {
+    console.error(error);
+    button.disabled = false;
+    restoreButtonLabel(button);
+    showLessonActionError(modal, error.message);
+  });
+};
+var confirmLessonPayment = function confirmLessonPayment(button, refreshCalendar) {
+  var modal = button.closest('#lesson-modal');
+  var url = button.dataset.url;
+  if (!modal || !url) {
+    return;
+  }
+  button.disabled = true;
+  clearLessonActionError(modal);
+  requestJson(url, {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'X-CSRF-TOKEN': window.calendarCsrfToken || '',
+      'X-Requested-With': 'XMLHttpRequest'
+    }
+  }, 'Unable to confirm payment.').then(function (payload) {
+    updateLessonModalState(modal, payload);
+    return finishLessonModalMutation(modal, refreshCalendar, true);
+  })["catch"](function (error) {
+    console.error(error);
+    button.disabled = false;
+    restoreButtonLabel(button);
+    showLessonActionError(modal, error.message);
+  });
+};
+var submitLessonModalForm = function submitLessonModalForm(form, refreshCalendar) {
+  var modal = form ? form.closest('#lesson-modal') : null;
+  var isReschedule = !!(form && form.closest('#reschedule-lesson'));
+  if (!modal || !form.action) {
+    return;
+  }
+  setFormSubmitting(form, true);
+  clearLessonActionError(modal);
+  requestJson(form.action, {
+    method: String(form.method || 'POST').toUpperCase(),
+    headers: {
+      'Accept': 'application/json',
+      'X-CSRF-TOKEN': window.calendarCsrfToken || '',
+      'X-Requested-With': 'XMLHttpRequest'
+    },
+    body: new FormData(form)
+  }, isReschedule ? 'Unable to reschedule lesson.' : 'Unable to cancel lesson.').then(function (payload) {
+    if (!isReschedule && payload && payload.status) {
+      updateLessonModalState(modal, payload);
+    }
+    return finishLessonModalMutation(modal, refreshCalendar, !isReschedule);
+  })["catch"](function (error) {
+    console.error(error);
+    showLessonActionError(modal, error.message);
+  })["finally"](function () {
+    setFormSubmitting(form, false);
+  });
+};
+var patchSchedulePointer = function patchSchedulePointer(calendar) {
+  var schedule = calendar.querySelector('.lm-schedule');
+  var pointer = schedule ? schedule.querySelector('.lm-schedule-pointer') : null;
+  if (!schedule || !pointer) {
+    if (pointer) {
+      pointer.style.display = 'none';
+    }
+    return;
+  }
+  var now = new Date();
+  var minutesPerDivision = 15;
+  var minutes = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60 + now.getMilliseconds() / 60000;
+  var slot = Math.floor(minutes / minutesPerDivision);
+  var slotOffset = minutes % minutesPerDivision / minutesPerDivision;
+  var cell = schedule.querySelector("tbody td[data-date=\"".concat(todayString(), "\"][data-y=\"").concat(slot, "\"]:not(.lm-schedule-disabled)"));
+  if (!cell || cell.offsetParent === null) {
+    pointer.style.display = 'none';
+    return;
+  }
+  var scheduleRect = schedule.getBoundingClientRect();
+  var cellRect = cell.getBoundingClientRect();
+  pointer.style.display = 'block';
+  pointer.style.left = "".concat(cellRect.left - scheduleRect.left + schedule.scrollLeft, "px");
+  pointer.style.top = "".concat(cellRect.top - scheduleRect.top + schedule.scrollTop + cellRect.height * slotOffset, "px");
+  if (state.view === 'day') {
+    pointer.style.width = "".concat(schedule.clientWidth - (cellRect.left - scheduleRect.left), "px");
+  } else {
+    pointer.style.width = "".concat(cellRect.width, "px");
+  }
+};
+var scrollScheduleToNow = function scrollScheduleToNow(calendar) {
+  if (state.didAutoNowScroll || !scheduleGridViews.includes(state.view)) {
+    return;
+  }
+  var schedule = calendar.querySelector('.lm-schedule');
+  var pointer = schedule ? schedule.querySelector('.lm-schedule-pointer') : null;
+  if (!schedule || !pointer || pointer.style.display === 'none') {
+    return;
+  }
+  var pointerTop = Number.parseFloat(pointer.style.top);
+  if (!Number.isFinite(pointerTop)) {
+    return;
+  }
+  schedule.scrollTop = Math.max(0, pointerTop - schedule.clientHeight / 2);
+  state.didAutoNowScroll = true;
+};
+var disconnectScheduleObserver = function disconnectScheduleObserver() {
+  if (state.scheduleObserver) {
+    state.scheduleObserver.disconnect();
+    state.scheduleObserver = null;
+  }
+};
+var watchScheduleChanges = function watchScheduleChanges(calendar) {
+  var schedule = calendar.querySelector('.lm-schedule');
+  if (!schedule || !scheduleGridViews.includes(state.view)) {
+    return;
+  }
+  disconnectScheduleObserver();
+  state.scheduleObserver = new MutationObserver(function () {
+    queueSchedulePatch(calendar);
+  });
+  state.scheduleObserver.observe(schedule, {
+    attributes: true,
+    attributeFilter: ['data-start', 'data-end'],
+    childList: true,
+    subtree: true
+  });
+};
+var patchSchedule = function patchSchedule(calendar) {
+  disconnectScheduleObserver();
+  patchScheduleHeaders(calendar);
+  patchScheduleTimeLabels(calendar);
+  patchScheduleItems(calendar);
+  patchScheduleHolidays(calendar);
+  patchSchedulePointer(calendar);
+  animateCalendarLessonItems(calendar);
+  requestAnimationFrame(function () {
+    scrollScheduleToNow(calendar);
+  });
+  watchScheduleChanges(calendar);
+};
+var queueSchedulePatch = function queueSchedulePatch(calendar) {
+  if (state.schedulePatchFrame) {
+    cancelAnimationFrame(state.schedulePatchFrame);
+  }
+  state.schedulePatchFrame = requestAnimationFrame(function () {
+    state.schedulePatchFrame = null;
+    patchSchedule(calendar);
+  });
+};
+var normalizeScheduleEvents = function normalizeScheduleEvents(events) {
+  return events.map(function (event) {
+    return Object.assign({}, event);
+  });
+};
+var isPlannedLessonEvent = function isPlannedLessonEvent(event) {
+  var guid = String(event.guid || '');
+  return guid.indexOf('planned-lesson-') === 0 || guid.indexOf('single-lesson-plan-') === 0;
+};
+var syncEvents = function syncEvents(instance) {
+  if (!instance || typeof instance.getData !== 'function') {
+    return;
+  }
+  state.customEvents = normalizeScheduleEvents(instance.getData()).filter(function (event) {
+    return !isPlannedLessonEvent(event);
+  });
+};
+var normalizeTime = function normalizeTime(value) {
+  var match = String(value || '').trim().match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+  if (!match || Number(match[1]) > 23 || Number(match[2]) > 59 || Number(match[2]) % 15 !== 0) {
+    throw new Error('Lesson times must use HH:MM on 15-minute intervals.');
+  }
+  return "".concat(String(Number(match[1])).padStart(2, '0'), ":").concat(match[2]);
+};
+var minutesToTime = function minutesToTime(minutes) {
+  var hour = Math.floor(minutes / 60) % 24;
+  var minute = minutes % 60;
+  return "".concat(String(hour).padStart(2, '0'), ":").concat(String(minute).padStart(2, '0'));
+};
+var addMinutesToTime = function addMinutesToTime(value, minutes) {
+  var match = normalizeTime(value).match(/^(\d{2}):(\d{2})/);
+  var total = Number(match[1]) * 60 + Number(match[2]) + Number(minutes || 0);
+  return minutesToTime(total);
+};
+var getEventDateTime = function getEventDateTime(event, key, visibleDate) {
+  var eventDate = visibleDate || event && event.date;
+  if (!event || !eventDate || !event[key]) {
+    return null;
+  }
+  var date = parseDateString(String(eventDate).substring(0, 10));
+  var parts = normalizeTime(event[key]).split(':').map(Number);
+  date.setHours(parts[0] || 0, parts[1] || 0, 0, 0);
+  return date;
+};
+var getEventTimeStatus = function getEventTimeStatus(event, visibleDate) {
+  if (!event || event.isHoliday || event.isBreak) {
+    return '';
+  }
+  var start = getEventDateTime(event, 'start', visibleDate);
+  var end = getEventDateTime(event, 'end', visibleDate);
+  var now = new Date();
+  if (!start || !end) {
+    return '';
+  }
+  if (start < now && end < now) {
+    return 'past';
+  }
+  if (start > now && end > now) {
+    return 'future';
+  }
+  return '';
+};
+var applyEventTimeStatusAttributes = function applyEventTimeStatusAttributes(element, event, visibleDate) {
+  if (!element) {
+    return;
+  }
+  var status = getEventTimeStatus(event, visibleDate);
+  element.toggleAttribute('past-event', status === 'past');
+  element.toggleAttribute('future-event', status === 'future');
+};
+var applyDateStatusAttributes = function applyDateStatusAttributes(element, dateString) {
+  if (!element || !dateString) {
+    return;
+  }
+  var today = todayString();
+  element.toggleAttribute('past-event', dateString < today);
+  element.toggleAttribute('future-event', dateString > today);
+};
+var applyCalendarItemStatusAttributes = function applyCalendarItemStatusAttributes(element, event, fallbackDateString) {
+  if (!element) {
+    return;
+  }
+  if (event && (event.isHoliday || event.isBreak)) {
+    applyDateStatusAttributes(element, event.date || fallbackDateString);
+    return;
+  }
+  applyEventTimeStatusAttributes(element, event);
+};
+var isCanceledCalendarEvent = function isCanceledCalendarEvent(event) {
+  return event && (event.lessonStatus === 'canceled' || event.calendarStatus === 'canceled' || event['data-lesson-status'] === 'canceled');
+};
+var isConflictEligibleTimedEvent = function isConflictEligibleTimedEvent(event) {
+  return event && event.guid && !event.isHoliday && !event.isBreak && !isCanceledCalendarEvent(event) && event.start && event.end;
+};
+var getOverlappingTimedEventGuids = function getOverlappingTimedEventGuids(events) {
+  var timedEvents = events.filter(function (event) {
+    return isConflictEligibleTimedEvent(event);
+  }).map(function (event) {
+    return {
+      guid: event.guid,
+      start: getTimeMinutes(event.start),
+      end: getTimeMinutes(event.end)
+    };
+  }).filter(function (event) {
+    return event.end > event.start;
+  });
+  var guids = new Set();
+  timedEvents.forEach(function (event, index) {
+    timedEvents.slice(index + 1).forEach(function (otherEvent) {
+      if (event.start < otherEvent.end && otherEvent.start < event.end) {
+        guids.add(event.guid);
+        guids.add(otherEvent.guid);
+      }
+    });
+  });
+  return guids;
+};
+var isOverlappingTimedEvent = function isOverlappingTimedEvent(event, visibleDate) {
+  var eventDate = visibleDate || event && event.date;
+  if (!isConflictEligibleTimedEvent(event) || !eventDate) {
+    return false;
+  }
+  var date = parseDateString(String(eventDate).substring(0, 10));
+  return getOverlappingTimedEventGuids(getEventsForDate(date)).has(event.guid);
+};
+var applyEventOverlapAttribute = function applyEventOverlapAttribute(element, event) {
+  if (!element) {
+    return;
+  }
+  var cell = element.closest('td[data-date]');
+  var visibleDate = cell ? cell.getAttribute('data-real-date') || cell.getAttribute('data-date') : '';
+  element.toggleAttribute('overlapping-event', isOverlappingTimedEvent(event, visibleDate));
+};
+var formatSelectTime = function formatSelectTime(value) {
+  var match = normalizeTime(value).match(/^(\d{2}):(\d{2})/);
+  var hour = Number(match[1]);
+  var period = hour < 12 ? 'AM' : 'PM';
+  hour = hour % 12 || 12;
+  return "".concat(hour, ":").concat(match[2], " ").concat(period);
+};
+var formatDuration = function formatDuration(minutes) {
+  if (minutes >= 60) {
+    var hours = minutes / 60;
+    return "".concat(Number.isInteger(hours) ? hours : hours.toFixed(1), " hr");
+  }
+  return "".concat(minutes, " min");
+};
+var setTimeSelectValue = function setTimeSelectValue(select, value) {
+  if (!select) {
+    return;
+  }
+  var normalized = normalizeTime(value);
+  if (Array.from(select.options).some(function (option) {
+    return option.value === normalized;
+  })) {
+    select.value = normalized;
+    return;
+  }
+  if (select.options.length) {
+    select.selectedIndex = 0;
+  }
+};
+var getSelectTimeMinutes = function getSelectTimeMinutes(select) {
+  return getTimeMinutes(select && select.value ? select.value : '00:00');
+};
+var getSelectOptionMinutes = function getSelectOptionMinutes(select) {
+  return Array.from(select ? select.options : []).map(function (option) {
+    return getTimeMinutes(option.value);
+  });
+};
+var getSelectMinMinutes = function getSelectMinMinutes(select) {
+  var options = getSelectOptionMinutes(select);
+  return options.length ? Math.min.apply(null, options) : 0;
+};
+var getSelectMaxMinutes = function getSelectMaxMinutes(select) {
+  var options = getSelectOptionMinutes(select);
+  return options.length ? Math.max.apply(null, options) : 0;
+};
+var setSelectMinutes = function setSelectMinutes(select, minutes) {
+  if (!select) {
+    return;
+  }
+  select.value = minutesToTime(minutes);
+};
+var cacheRescheduleEndOptions = function cacheRescheduleEndOptions(endSelect) {
+  if (!endSelect) {
+    return [];
+  }
+  if (Array.isArray(endSelect.calendarRescheduleEndOptions)) {
+    return endSelect.calendarRescheduleEndOptions;
+  }
+  endSelect.calendarRescheduleEndOptions = Array.from(endSelect.options).map(function (option) {
+    return {
+      value: option.value,
+      label: option.textContent
+    };
+  });
+  return endSelect.calendarRescheduleEndOptions;
+};
+var renderRescheduleEndOptions = function renderRescheduleEndOptions(startSelect, endSelect, preferredValue) {
+  if (!startSelect || !endSelect) {
+    return;
+  }
+  var allOptions = cacheRescheduleEndOptions(endSelect);
+  var startMinutes = getSelectTimeMinutes(startSelect);
+  var selectedValue = preferredValue || endSelect.value;
+  var options = allOptions.filter(function (option) {
+    return getTimeMinutes(option.value) > startMinutes;
+  });
+  endSelect.innerHTML = '';
+  options.forEach(function (option) {
+    var element = document.createElement('option');
+    var duration = getTimeMinutes(option.value) - startMinutes;
+    element.value = option.value;
+    element.textContent = "".concat(option.label, " (").concat(formatDuration(duration), ")");
+    endSelect.appendChild(element);
+  });
+  if (options.some(function (option) {
+    return option.value === selectedValue;
+  })) {
+    endSelect.value = selectedValue;
+    return;
+  }
+  if (endSelect.options.length) {
+    endSelect.selectedIndex = 0;
+  }
+};
+var syncRescheduleTimePicker = function syncRescheduleTimePicker(startSelect, endSelect, changedField) {
+  if (!startSelect || !endSelect) {
+    return;
+  }
+  var startMin = getSelectMinMinutes(startSelect);
+  var endMax = getSelectMaxMinutes(endSelect);
+  var startMinutes = getSelectTimeMinutes(startSelect);
+  var endMinutes = getSelectTimeMinutes(endSelect);
+  var duration = Math.max(15, state.rescheduleDurationMinutes || endMinutes - startMinutes || 15);
+  if (!state.rescheduleAnchor) {
+    state.rescheduleAnchor = changedField;
+  }
+  if (changedField === 'start') {
+    startMinutes = Math.min(startMinutes, endMax - 15);
+    if (state.rescheduleAnchor === 'start') {
+      endMinutes = Math.min(startMinutes + duration, endMax);
+    }
+    if (endMinutes < startMinutes + 15) {
+      endMinutes = Math.min(startMinutes + 15, endMax);
+    }
+    setSelectMinutes(startSelect, startMinutes);
+    renderRescheduleEndOptions(startSelect, endSelect, minutesToTime(endMinutes));
+    setSelectMinutes(endSelect, endMinutes);
+  }
+  if (changedField === 'end') {
+    endMinutes = Math.max(endMinutes, startMin + 15);
+    if (state.rescheduleAnchor === 'end') {
+      startMinutes = Math.max(endMinutes - duration, startMin);
+    }
+    if (endMinutes < startMinutes + 15) {
+      endMinutes = Math.min(startMinutes + 15, endMax);
+    }
+    setSelectMinutes(startSelect, startMinutes);
+    renderRescheduleEndOptions(startSelect, endSelect, minutesToTime(endMinutes));
+    setSelectMinutes(endSelect, endMinutes);
+  }
+  state.rescheduleDurationMinutes = Math.max(15, endMinutes - startMinutes);
+};
+var getStudentName = function getStudentName(student) {
+  if (!student) {
+    return 'No title';
+  }
+  return [student.first_name, student.last_name].filter(Boolean).join(' ') || 'No title';
+};
+var getStudentFirstName = function getStudentFirstName(student) {
+  return student && student.first_name ? String(student.first_name).trim() : '';
+};
+var studentHasBirthdayInWeek = function studentHasBirthdayInWeek(student, dateString) {
+  if (!student || !student.date_of_birth || !isDateString(dateString)) {
+    return false;
+  }
+  var birthDate = parseNullableDateString(student.date_of_birth);
+  if (!birthDate) {
+    return false;
+  }
+  var eventDate = parseDateString(dateString);
+  var weekStart = startOfWeek(eventDate);
+  var weekEnd = addDays(weekStart, 6);
+  var years = Array.from(new Set([weekStart.getFullYear(), weekEnd.getFullYear()]));
+  return years.some(function (year) {
+    var birthday = createLocalDate(year, birthDate.getMonth(), birthDate.getDate());
+    return birthday >= weekStart && birthday <= weekEnd;
+  });
+};
+var getOrdinalSuffix = function getOrdinalSuffix(day) {
+  if (day >= 11 && day <= 13) {
+    return 'th';
+  }
+  switch (day % 10) {
+    case 1:
+      return 'st';
+    case 2:
+      return 'nd';
+    case 3:
+      return 'rd';
+    default:
+      return 'th';
+  }
+};
+var formatBirthdayModalDate = function formatBirthdayModalDate(date) {
+  return "".concat(birthdayMonthFormatter.format(date), " ").concat(date.getDate()).concat(getOrdinalSuffix(date.getDate()));
+};
+var getStudentBirthdayModalLabel = function getStudentBirthdayModalLabel(student, dateString) {
+  if (!student || !student.date_of_birth || !isDateString(dateString)) {
+    return '';
+  }
+  var birthDate = parseNullableDateString(student.date_of_birth);
+  if (!birthDate) {
+    return '';
+  }
+  var eventDate = parseDateString(dateString);
+  var years = [eventDate.getFullYear() - 1, eventDate.getFullYear(), eventDate.getFullYear() + 1];
+  var closestBirthday = null;
+  var closestDiff = null;
+  years.forEach(function (year) {
+    var birthday = createLocalDate(year, birthDate.getMonth(), birthDate.getDate());
+    var diff = Math.round((birthday.getTime() - eventDate.getTime()) / dayMilliseconds);
+    if (Math.abs(diff) <= state.birthdayWindow && (closestDiff === null || Math.abs(diff) < Math.abs(closestDiff))) {
+      closestBirthday = birthday;
+      closestDiff = diff;
+    }
+  });
+  if (!closestBirthday) {
+    return '';
+  }
+  if (closestDiff === 0) {
+    return 'today!';
+  }
+  if (closestDiff === -1) {
+    return 'yesterday!';
+  }
+  if (closestDiff === 1) {
+    return 'tomorrow!';
+  }
+  return "on ".concat(formatBirthdayModalDate(closestBirthday));
+};
+var studentHasBirthdayNearEvent = function studentHasBirthdayNearEvent(student, dateString) {
+  return Boolean(getStudentBirthdayModalLabel(student, dateString));
+};
+var renderEventTitle = function renderEventTitle(element, event, fallback) {
+  if (!element) {
+    return;
+  }
+  element.textContent = event && event.title || fallback || 'No title';
+};
+var clearScheduleItemBirthdayDecoration = function clearScheduleItemBirthdayDecoration(item) {
+  if (!item) {
+    return;
+  }
+  Array.from(item.children).forEach(function (child) {
+    if (child.classList && child.classList.contains('calendar-birthday-icon')) {
+      child.remove();
+    }
+  });
+  item.removeAttribute('data-birthday-this-week');
+  item.removeAttribute('data-birthday-title');
+};
+var normalizeStudentSearch = function normalizeStudentSearch(value) {
+  return String(value || '').trim().toLowerCase();
+};
+var generalEventMatchesCalendarSearch = function generalEventMatchesCalendarSearch(event) {
+  var query = normalizeStudentSearch(state.studentSearch);
+  if (query.length < 3) {
+    return true;
+  }
+  return String(event.event_type || '').toLowerCase().includes(query);
+};
+var lessonMatchesStudentSearch = function lessonMatchesStudentSearch(lesson) {
+  var query = normalizeStudentSearch(state.studentSearch);
+  if (query.length < 3) {
+    return true;
+  }
+  var student = lesson.student || {};
+  var firstName = String(student.first_name || '').toLowerCase();
+  var lastName = String(student.last_name || '').toLowerCase();
+  var fullName = [firstName, lastName].filter(Boolean).join(' ');
+  return firstName.includes(query) || lastName.includes(query) || fullName.includes(query);
+};
+var lessonMatchesLocationFilter = function lessonMatchesLocationFilter(lesson) {
+  if (!isLocationFilterActive()) {
+    return true;
+  }
+  return locationIsSelected(lesson.location_id);
+};
+var getFilteredPlannedLessons = function getFilteredPlannedLessons() {
+  return state.plannedLessons.concat(state.singleLessonPlans).filter(function (lesson) {
+    var type = lesson.type === 'single-lesson-plan' ? 'single' : 'recurring';
+    return state.selectedEventTypes.includes(type);
+  }).filter(lessonMatchesStudentSearch).filter(lessonMatchesLocationFilter);
+};
+var getFirstOccurrenceDate = function getFirstOccurrenceDate(startsOn, weekday) {
+  var start = cloneDate(startsOn);
+  var carbonWeekday = Math.max(0, Math.min(6, Number(weekday) - 1));
+  var offset = (carbonWeekday - start.getDay() + 7) % 7;
+  return addDays(start, offset);
+};
+var getPlannedLessonEvents = function getPlannedLessonEvents(range) {
+  var events = [];
+  getFilteredPlannedLessons().forEach(function (lesson) {
+    var isSingleLessonPlan = lesson.type === 'single-lesson-plan';
+    if (Array.isArray(lesson.occurrences)) {
+      lesson.occurrences.forEach(function (occurrence) {
+        var dateString = occurrence.date || '';
+        if (!dateString) {
+          return;
+        }
+        var start = normalizeTime(occurrence.start || lesson.start_time);
+        events.push({
+          title: getStudentName(lesson.student),
+          date: dateString,
+          start: start,
+          end: normalizeTime(occurrence.end || addMinutesToTime(lesson.start_time, lesson.duration_minutes)),
+          color: '#2fbb7f',
+          guid: "".concat(isSingleLessonPlan ? 'single-lesson-plan' : 'planned-lesson', "-").concat(lesson.id, "-").concat(dateString, "-").concat(start),
+          lessonPlanId: isSingleLessonPlan ? '' : lesson.id,
+          singleLessonPlanId: occurrence.single_lesson_plan_id || (isSingleLessonPlan ? lesson.id : ''),
+          lessonId: occurrence.lesson_id || '',
+          earlyPaymentId: occurrence.early_payment_id || '',
+          scheduleOverrideId: occurrence.schedule_override_id || '',
+          recurrence: isSingleLessonPlan ? 'Single lesson' : lesson.recurrence || '',
+          isSingleLessonPlan: isSingleLessonPlan,
+          originalDate: occurrence.original_date || dateString,
+          originalStartTime: occurrence.original_start_time || start,
+          lessonStatus: occurrence.lesson_status || 'unconfirmed',
+          calendarStatus: occurrence.calendar_status || occurrence.lesson_status || 'unconfirmed',
+          'data-lesson-status': occurrence.calendar_status || occurrence.lesson_status || 'unconfirmed',
+          feeAmount: occurrence.fee_amount || lesson.fee_amount || 0,
+          locationId: normalizeLocationId(lesson.location_id),
+          locationName: lesson.location && lesson.location.name ? lesson.location.name : '',
+          canceledBy: occurrence.canceled_by || '',
+          calendarEditUrl: getLessonPlanModalEditUrl(isSingleLessonPlan, lesson.id),
+          lessonEditUrl: occurrence.lesson_edit_url || '',
+          paymentUrl: occurrence.lesson_payment_url || occurrence.payment_url || '',
+          meetingUrl: occurrence.meeting_url || lesson.meeting_url || '',
+          notesUrl: occurrence.notes_url || lesson.notes_url || '',
+          studentFirstName: getStudentFirstName(lesson.student),
+          hasBirthdayThisWeek: studentHasBirthdayInWeek(lesson.student, dateString),
+          hasBirthdayNearEvent: studentHasBirthdayNearEvent(lesson.student, dateString),
+          birthdayModalLabel: getStudentBirthdayModalLabel(lesson.student, dateString)
+        });
+      });
+      return;
+    }
+    if (isSingleLessonPlan) {
+      return;
+    }
+    var startsOn = parseNullableDateString(lesson.starts_on);
+    if (!startsOn) {
+      return;
+    }
+    var interval = Math.max(1, Number(lesson.recurrence_interval || 1));
+    var intervalDays = interval * 7;
+    var endsOn = parseNullableDateString(lesson.ends_on);
+    var firstOccurrence = getFirstOccurrenceDate(startsOn, lesson.weekday);
+    var occurrence = cloneDate(firstOccurrence);
+    if (endsOn && endsOn < range.start) {
+      return;
+    }
+    if (occurrence < range.start) {
+      var daysUntilRange = Math.floor((range.start - occurrence) / 86400000);
+      var intervalsToSkip = Math.floor(daysUntilRange / intervalDays);
+      occurrence = addDays(occurrence, intervalsToSkip * intervalDays);
+      while (occurrence < range.start) {
+        occurrence = addDays(occurrence, intervalDays);
+      }
+    }
+    while (occurrence <= range.end && (!endsOn || occurrence <= endsOn)) {
+      var dateString = toDateString(occurrence);
+      var start = normalizeTime(lesson.start_time);
+      var confirmedLesson = getLessonForOccurrence(lesson, dateString, start);
+      var lessonStatus = getLessonStatus(confirmedLesson);
+      events.push({
+        title: getStudentName(lesson.student),
+        date: dateString,
+        start: start,
+        end: addMinutesToTime(start, lesson.duration_minutes),
+        color: '#2fbb7f',
+        guid: "planned-lesson-".concat(lesson.id, "-").concat(dateString),
+        lessonPlanId: lesson.id,
+        lessonId: confirmedLesson ? confirmedLesson.id : '',
+        recurrence: lesson.recurrence || '',
+        lessonStatus: lessonStatus,
+        calendarStatus: lessonStatus,
+        'data-lesson-status': lessonStatus,
+        feeAmount: confirmedLesson && confirmedLesson.fee_amount ? confirmedLesson.fee_amount : lesson.fee_amount || 0,
+        locationId: normalizeLocationId(lesson.location_id),
+        locationName: lesson.location && lesson.location.name ? lesson.location.name : '',
+        canceledBy: confirmedLesson && confirmedLesson.canceled_by ? confirmedLesson.canceled_by : '',
+        calendarEditUrl: getLessonPlanModalEditUrl(false, lesson.id),
+        lessonEditUrl: getLessonEditUrl(confirmedLesson),
+        paymentUrl: getLessonPaymentUrl(confirmedLesson),
+        meetingUrl: lesson.meeting_url || '',
+        notesUrl: lesson.notes_url || '',
+        studentFirstName: getStudentFirstName(lesson.student),
+        hasBirthdayThisWeek: studentHasBirthdayInWeek(lesson.student, dateString),
+        hasBirthdayNearEvent: studentHasBirthdayNearEvent(lesson.student, dateString),
+        birthdayModalLabel: getStudentBirthdayModalLabel(lesson.student, dateString)
+      });
+      occurrence = addDays(occurrence, intervalDays);
+    }
+  });
+  return events;
+};
+var syncCalendarEvents = function syncCalendarEvents() {
+  var generalEvents = state.selectedEventTypes.includes('general') ? getGeneralEventCalendarEvents() : [];
+  state.events = normalizeScheduleEvents(state.customEvents).concat(getPlannedLessonEvents(getCalendarEventRange())).concat(generalEvents);
+  state.visibleEventsByDate = null;
+};
+var createCalendarEvent = function createCalendarEvent(date) {
+  return {
+    title: 'No title',
+    date: toDateString(date),
+    start: '09:00',
+    end: '10:00',
+    color: '#2fbb7f',
+    guid: "calendar-".concat(Date.now(), "-").concat(Math.round(Math.random() * 100000))
+  };
+};
+var getEventsForDate = function getEventsForDate(date) {
+  var dateString = toDateString(date);
+  return getVisibleEventsByDate()[dateString] || [];
+};
+var getCalendarItemsForDate = function getCalendarItemsForDate(date) {
+  var holidays = getHolidaysForDate(date).map(function (holiday) {
+    return Object.assign({}, holiday, {
+      guid: "holiday-".concat(holiday.date, "-").concat(holiday.title),
+      isHoliday: true
+    });
+  });
+  return holidays.concat(getBreakEventsForDate(date)).concat(getRecitalEventsForDate(date)).concat(getEventsForDate(date));
+};
+var hasOverlappingTimedEvents = function hasOverlappingTimedEvents(events) {
+  var latestEnd = null;
+  return events.filter(function (event) {
+    return isConflictEligibleTimedEvent(event);
+  }).map(function (event) {
+    return {
+      start: getTimeMinutes(event.start),
+      end: getTimeMinutes(event.end)
+    };
+  }).filter(function (event) {
+    return event.end > event.start;
+  }).sort(function (a, b) {
+    return a.start - b.start || a.end - b.end;
+  }).some(function (event) {
+    var overlaps = latestEnd !== null && event.start < latestEnd;
+    latestEnd = latestEnd === null ? event.end : Math.max(latestEnd, event.end);
+    return overlaps;
+  });
+};
+var createMonthEventElement = function createMonthEventElement(event, dateString) {
+  var item = document.createElement('span');
+  var dot = document.createElement('span');
+  var time = document.createElement('span');
+  var title = document.createElement('span');
+  item.className = event.isHoliday ? 'calendar-month-event calendar-month-event-holiday' : event.isBreak ? 'calendar-month-event calendar-month-event-break' : event.isRecital ? 'calendar-month-event calendar-month-event-recital' : event.isGeneralEvent ? 'calendar-month-event calendar-month-event-general' : 'calendar-month-event';
+  dot.className = 'calendar-month-event-dot';
+  time.className = 'calendar-month-event-time';
+  title.className = 'calendar-month-event-title';
+  item.dataset.eventGuid = event.guid || '';
+  item.dataset.lessonStatus = event.isHoliday ? 'holiday' : event.isBreak ? 'teaching-break' : event.isRecital ? 'recital' : event.isGeneralEvent ? 'general-event' : event.calendarStatus || event.lessonStatus || 'unconfirmed';
+  dot.dataset.eventGuid = event.guid || '';
+  dot.dataset.lessonStatus = event.isHoliday ? 'holiday' : event.isBreak ? 'teaching-break' : event.isRecital ? 'recital' : event.isGeneralEvent ? 'general-event' : event.calendarStatus || event.lessonStatus || 'unconfirmed';
+  applyCalendarItemStatusAttributes(item, event, dateString);
+  applyCalendarItemStatusAttributes(dot, event, dateString);
+  time.textContent = event.isHoliday || event.isBreak ? '' : formatEventTime(event.start);
+  renderEventTitle(title, event, 'No title');
+  if (!event.isHoliday && !event.isBreak && !event.isRecital && !event.isGeneralEvent) {
+    item.appendChild(dot);
+  }
+  if (!event.isHoliday && !event.isBreak) item.appendChild(time);
+  item.appendChild(title);
+  return item;
+};
+var hideBootstrapModal = function hideBootstrapModal(modal) {
+  if (!modal) {
+    return;
+  }
+  if (window.bootstrap && window.bootstrap.Modal && typeof window.bootstrap.Modal.getOrCreateInstance === 'function') {
+    window.bootstrap.Modal.getOrCreateInstance(modal).hide();
+    return;
+  }
+  if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
+    window.jQuery(modal).modal('hide');
+  }
+};
+var showBootstrapModal = function showBootstrapModal(modal) {
+  if (!modal) {
+    return;
+  }
+  if (window.bootstrap && window.bootstrap.Modal && typeof window.bootstrap.Modal.getOrCreateInstance === 'function') {
+    window.bootstrap.Modal.getOrCreateInstance(modal).show();
+    return;
+  }
+  if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
+    window.jQuery(modal).modal('show');
+  }
+};
+var showCalendarEditError = function showCalendarEditError(modal, message) {
+  if (!modal) {
+    return;
+  }
+  var error = modal.querySelector('[data-calendar-edit-error]');
+  if (!error) {
+    error = document.createElement('div');
+    error.className = 'alert alert-danger small mb-3';
+    error.setAttribute('data-calendar-edit-error', '');
+    modal.querySelector('.modal-body').prepend(error);
+  }
+  error.textContent = message || 'Unable to update this item.';
+  error.hidden = false;
+};
+var initializeCalendarEditModal = function initializeCalendarEditModal(modal) {
+  if (!modal) {
+    return;
+  }
+  initializeSingleLessonPlanForms(modal);
+  initializeLessonPlanForms(modal);
+  var currencyInputs = modal.querySelectorAll('[data-mask="usd"]');
+  if (currencyInputs.length && typeof window.Inputmask === 'function') {
+    new window.Inputmask({
+      alias: 'numeric',
+      groupSeparator: ',',
+      prefix: '$ ',
+      autoGroup: true,
+      digits: 0,
+      rightAlign: false
+    }).mask(currencyInputs);
+  }
+};
+var loadCalendarEditModal = function loadCalendarEditModal(button, sourceModal, container) {
+  var url = button ? button.dataset.url : '';
+  if (!button || !url || !container) {
+    return;
+  }
+  button.disabled = true;
+  fetch(url, {
+    headers: {
+      'Accept': 'text/html',
+      'X-Requested-With': 'XMLHttpRequest'
+    }
+  }).then(function (response) {
+    if (!response.ok) {
+      throw new Error('Unable to load the edit form.');
+    }
+    return response.text();
+  }).then(function (html) {
+    var didShow = false;
+    container.innerHTML = html;
+    var editModal = container.querySelector('.modal');
+    var showEditModal = function showEditModal() {
+      if (didShow || !editModal) {
+        return;
+      }
+      didShow = true;
+      initializeCalendarEditModal(editModal);
+      showBootstrapModal(editModal);
+    };
+    button.disabled = false;
+    if (sourceModal && sourceModal.classList.contains('show')) {
+      sourceModal.addEventListener('hidden.bs.modal', showEditModal, {
+        once: true
+      });
+      hideBootstrapModal(sourceModal);
+      window.setTimeout(showEditModal, 250);
+      return;
+    }
+    showEditModal();
+  })["catch"](function (error) {
+    console.error(error);
+    button.disabled = false;
+    if (sourceModal && sourceModal.id === 'lesson-modal') {
+      showLessonActionError(sourceModal, error.message);
+    } else {
+      showGeneralEventActionError(sourceModal, error.message);
+    }
+  });
+};
+var submitCalendarEditForm = function submitCalendarEditForm(form, refreshCalendar) {
+  var modal = form ? form.closest('.modal') : null;
+  if (!form || !form.action || !modal) {
+    return;
+  }
+  setFormSubmitting(form, true);
+  requestJson(form.action, {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'X-CSRF-TOKEN': window.calendarCsrfToken || '',
+      'X-Requested-With': 'XMLHttpRequest'
+    },
+    body: new FormData(form)
+  }, 'Unable to update this item.').then(function () {
+    hideBootstrapModal(modal);
+    return refreshCalendar();
+  })["catch"](function (error) {
+    console.error(error);
+    showCalendarEditError(modal, error.message);
+  })["finally"](function () {
+    setFormSubmitting(form, false);
+  });
+};
+var openMonthDayEventsModal = function openMonthDayEventsModal(dateString) {
+  var modal = document.getElementById('month-day-events-modal');
+  if (!modal) {
+    return;
+  }
+  var title = modal.querySelector('.modal-title');
+  var list = modal.querySelector('[data-month-day-events-list]');
+  var conflict = modal.querySelector('[data-month-day-events-conflict]');
+  var date = parseDateString(dateString);
+  var events = getCalendarItemsForDate(date);
+  var overlappingEventGuids = getOverlappingTimedEventGuids(events);
+  if (title) {
+    title.textContent = dayFormatter.format(date);
+  }
+  if (list) {
+    list.innerHTML = '';
+    var specialEvents = events.filter(function (event) {
+      return event.isHoliday || event.isBreak || event.isRecital;
+    });
+    var regularEvents = events.filter(function (event) {
+      return !event.isHoliday && !event.isBreak && !event.isRecital;
+    });
+    var appendEvent = function appendEvent(container, event) {
+      var item = createMonthEventElement(event, dateString);
+      item.toggleAttribute('overlapping-event', overlappingEventGuids.has(event.guid));
+      container.appendChild(item);
+    };
+    if (specialEvents.length) {
+      var specialEventsContainer = document.createElement('div');
+      specialEventsContainer.className = 'calendar-month-day-events-special d-flex flex-wrap gap-1';
+      specialEvents.forEach(function (event) {
+        appendEvent(specialEventsContainer, event);
+      });
+      list.appendChild(specialEventsContainer);
+    }
+    regularEvents.forEach(function (event) {
+      appendEvent(list, event);
+    });
+  }
+  if (conflict) conflict.hidden = overlappingEventGuids.size === 0;
+  showBootstrapModal(modal);
+};
+var renderMonthCalendar = function renderMonthCalendar(calendar) {
+  var today = todayString();
+  var selected = toDateString(state.date);
+  var month = state.date.getMonth();
+  var gridStart = startOfMonthGrid(state.date);
+  var wrapper = document.createElement('div');
+  var weekdaysRow = document.createElement('div');
+  var grid = document.createElement('div');
+  wrapper.className = 'calendar-month-calendar';
+  weekdaysRow.className = 'calendar-month-weekdays';
+  grid.className = 'calendar-month-grid';
+  monthWeekdays.forEach(function (day) {
+    var heading = document.createElement('div');
+    heading.textContent = day;
+    weekdaysRow.appendChild(heading);
+  });
+  var _loop = function _loop() {
+    var date = addDays(gridStart, i);
+    var dateString = toDateString(date);
+    var events = getCalendarItemsForDate(date);
+    var cell = document.createElement('div');
+    var day = document.createElement('span');
+    var list = document.createElement('span');
+    var hasOverlaps = hasOverlappingTimedEvents(events);
+    var visibleEventCount = events.length >= 5 ? 3 : 4;
+    cell.className = 'calendar-month-day';
+    cell.dataset.date = dateString;
+    cell.setAttribute('role', 'button');
+    cell.tabIndex = 0;
+    if (date.getMonth() !== month) {
+      cell.classList.add('is-muted');
+    }
+    if (dateString === today) {
+      cell.classList.add('is-today');
+    }
+    if (dateString === selected) {
+      cell.classList.add('is-selected');
+    }
+    day.className = 'calendar-month-day-number';
+    day.textContent = date.getDate() === 1 ? "".concat(shortMonthFormatter.format(date), " ").concat(date.getDate()) : date.getDate();
+    list.className = 'calendar-month-events';
+    if (hasOverlaps) {
+      var alert = document.createElement('i');
+      alert.className = 'fa-solid fa-circle-exclamation calendar-month-overlap-alert';
+      alert.setAttribute('aria-hidden', 'true');
+      cell.appendChild(alert);
+    }
+    events.slice(0, visibleEventCount).forEach(function (event) {
+      list.appendChild(createMonthEventElement(event, dateString));
+    });
+    if (events.length > 4) {
+      var more = document.createElement('span');
+      more.className = 'calendar-month-more';
+      more.dataset.monthMoreDate = dateString;
+      more.setAttribute('role', 'button');
+      more.tabIndex = 0;
+      more.textContent = "".concat(events.length - visibleEventCount, " more");
+      list.appendChild(more);
+    }
+    cell.appendChild(day);
+    cell.appendChild(list);
+    grid.appendChild(cell);
+  };
+  for (var i = 0; i < 42; i++) {
+    _loop();
+  }
+  wrapper.appendChild(weekdaysRow);
+  wrapper.appendChild(grid);
+  calendar.appendChild(wrapper);
+};
+var renderScheduleAgenda = function renderScheduleAgenda(calendar) {
+  var range = getVisibleDateRange();
+  var today = todayString();
+  var selected = toDateString(state.date);
+  var wrapper = document.createElement('div');
+  wrapper.className = 'calendar-schedule-agenda';
+  getDateRangeDates(range).forEach(function (date) {
+    var dateString = toDateString(date);
+    var items = getCalendarItemsForDate(date);
+    var shouldRenderEmpty = dateString === today || dateString === selected;
+    if (!items.length && !shouldRenderEmpty) {
+      return;
+    }
+    var day = document.createElement('section');
+    var dateRail = document.createElement('div');
+    var weekday = document.createElement('div');
+    var number = document.createElement('div');
+    var list = document.createElement('div');
+    day.className = 'calendar-schedule-day';
+    day.dataset.date = dateString;
+    dateRail.className = 'calendar-schedule-date';
+    weekday.className = 'calendar-schedule-weekday';
+    number.className = 'calendar-schedule-number';
+    list.className = 'calendar-schedule-list';
+    if (dateString === today) {
+      day.classList.add('is-today');
+    }
+    if (dateString === selected) {
+      day.classList.add('is-selected');
+    }
+    weekday.textContent = weekdays[date.getDay()].toUpperCase();
+    number.textContent = date.getDate();
+    dateRail.appendChild(weekday);
+    dateRail.appendChild(number);
+    if (!items.length) {
+      var empty = document.createElement('div');
+      empty.className = 'calendar-schedule-empty';
+      empty.textContent = 'Nothing planned.';
+      list.appendChild(empty);
+    }
+    items.forEach(function (event) {
+      var item = document.createElement(event.isHoliday ? 'div' : 'button');
+      var title = document.createElement('span');
+      item.className = event.isHoliday ? 'calendar-schedule-event calendar-schedule-event-holiday' : event.isBreak ? 'calendar-schedule-event calendar-schedule-event-break' : event.isRecital ? 'calendar-schedule-event calendar-schedule-recital' : event.isGeneralEvent ? 'calendar-schedule-event calendar-schedule-event-general' : 'calendar-schedule-event';
+      title.className = 'calendar-schedule-event-title';
+      renderEventTitle(title, event, 'No title');
+      item.dataset.eventGuid = event.guid || '';
+      item.dataset.lessonStatus = event.isHoliday ? 'holiday' : event.isBreak ? 'teaching-break' : event.isRecital ? 'recital' : event.isGeneralEvent ? 'general-event' : event.calendarStatus || event.lessonStatus || 'unconfirmed';
+      applyCalendarItemStatusAttributes(item, event, dateString);
+      applyEventOverlapAttribute(item, event);
+      if (!event.isHoliday && !event.isBreak && !event.isRecital) {
+        var time = document.createElement('span');
+        var duration = getEventDurationMinutes(event);
+        item.type = 'button';
+        item.dataset.durationMinutes = duration;
+        item.style.setProperty('--calendar-schedule-event-height', getAgendaEventHeight(event));
+        time.className = 'calendar-schedule-event-time';
+        time.textContent = event.start && event.end ? "".concat(formatAgendaEventTime(event.start), "-").concat(formatAgendaEventTime(event.end)) : formatAgendaEventTime(event.start);
+        item.appendChild(title);
+        item.appendChild(time);
+      } else {
+        if (event.isBreak || event.isRecital) {
+          item.type = 'button';
+        }
+        item.appendChild(title);
+        if (event.isRecital) {
+          var _time = document.createElement('span');
+          _time.className = 'calendar-schedule-event-time';
+          _time.textContent = formatAgendaEventTime(event.start);
+          item.appendChild(_time);
+        }
+      }
+      list.appendChild(item);
+    });
+    day.appendChild(dateRail);
+    day.appendChild(list);
+    wrapper.appendChild(day);
+  });
+  calendar.appendChild(wrapper);
+  return wrapper;
+};
+var cloneDate = function cloneDate(date) {
+  return createLocalDate(date.getFullYear(), date.getMonth(), date.getDate());
+};
+var addDays = function addDays(date, days) {
+  var next = cloneDate(date);
+  next.setDate(next.getDate() + days);
+  return next;
+};
+var addMonths = function addMonths(date, months) {
+  var next = cloneDate(date);
+  next.setMonth(next.getMonth() + months);
+  return next;
+};
+var startOfMonthGrid = function startOfMonthGrid(date) {
+  var start = createLocalDate(date.getFullYear(), date.getMonth(), 1);
+  start.setDate(start.getDate() - start.getDay());
+  return start;
+};
+var startOfWeek = function startOfWeek(date) {
+  return addDays(date, -date.getDay());
+};
+var getWeekLabel = function getWeekLabel(date) {
+  var start = startOfWeek(date);
+  var end = addDays(start, 6);
+  return getRangeLabel(start, end);
+};
+var getRangeLabel = function getRangeLabel(start, end) {
+  var sameMonth = start.getMonth() === end.getMonth();
+  var sameYear = start.getFullYear() === end.getFullYear();
+  if (sameMonth && sameYear) {
+    return monthFormatter.format(start);
+  }
+  if (sameYear) {
+    return "".concat(shortMonthFormatter.format(start), " - ").concat(shortMonthFormatter.format(end), " ").concat(end.getFullYear());
+  }
+  return "".concat(shortMonthFormatter.format(start), " ").concat(start.getFullYear(), " - ").concat(shortMonthFormatter.format(end), " ").concat(end.getFullYear());
+};
+var getLabel = function getLabel() {
+  if (state.view === 'schedule') {
+    return monthFormatter.format(state.date);
+  }
+  if (state.view === 'day') {
+    return dayFormatter.format(state.date);
+  }
+  if (state.view === '2-days') {
+    return getRangeLabel(state.date, addDays(state.date, 1));
+  }
+  if (state.view === 'week') {
+    return getWeekLabel(state.date);
+  }
+  return monthFormatter.format(state.date);
+};
+var move = function move(direction) {
+  if (state.view === 'day') {
+    setSelectedDate(addDays(state.date, direction));
+  } else if (state.view === '2-days') {
+    setSelectedDate(addDays(state.date, direction * 2));
+  } else if (state.view === 'week') {
+    setSelectedDate(addDays(state.date, direction * 7));
+  } else if (state.view === 'month' || state.view === 'schedule') {
+    setSelectedDate(addMonths(state.date, direction));
+  }
+};
+var getScheduleSwipeAnchor = function getScheduleSwipeAnchor(direction) {
+  if (state.view === 'day') {
+    return addDays(state.date, direction);
+  }
+  if (state.view === '2-days') {
+    return addDays(state.date, direction * 2);
+  }
+  return addDays(state.date, direction * 7);
+};
+var createScheduleSwipePreview = function createScheduleSwipePreview(calendar) {
+  var schedule = calendar.querySelector('.lm-schedule');
+  var headerRow = schedule ? schedule.querySelector('thead tr:not(.calendar-schedule-holiday-row)') : null;
+  var visibleHeaders = headerRow ? Array.from(headerRow.querySelectorAll('td')).filter(function (header) {
+    return header.offsetParent !== null;
+  }) : [];
+  if (!schedule || !headerRow || visibleHeaders.length < 2) {
+    return null;
+  }
+  var scheduleRect = schedule.getBoundingClientRect();
+  var headerRect = headerRow.getBoundingClientRect();
+  var width = schedule.clientWidth;
+  var height = headerRect.height;
+  var gutterWidth = visibleHeaders[0].getBoundingClientRect().width;
+  var sampleHeaderStyle = window.getComputedStyle(visibleHeaders[1]);
+  var sampleWeekdayStyle = window.getComputedStyle(visibleHeaders[1], '::before');
+  var viewport = document.createElement('div');
+  var track = document.createElement('div');
+  viewport.className = 'calendar-schedule-swipe-preview';
+  viewport.dataset.scheduleSwipePreview = '';
+  viewport.style.left = "".concat(schedule.scrollLeft, "px");
+  viewport.style.top = "".concat(schedule.scrollTop + headerRect.top - scheduleRect.top, "px");
+  viewport.style.width = "".concat(width, "px");
+  // Leave the header's own bottom pixel uncovered. Its td::after border then
+  // remains on the non-moving sticky header layer while the preview slides.
+  viewport.style.height = "".concat(Math.max(0, height - 1), "px");
+  viewport.style.setProperty('--calendar-swipe-number-size', sampleHeaderStyle.fontSize);
+  viewport.style.setProperty('--calendar-swipe-number-weight', sampleHeaderStyle.fontWeight);
+  viewport.style.setProperty('--calendar-swipe-number-line-height', sampleHeaderStyle.lineHeight);
+  viewport.style.setProperty('--calendar-swipe-weekday-size', sampleWeekdayStyle.fontSize);
+  viewport.style.setProperty('--calendar-swipe-weekday-weight', sampleWeekdayStyle.fontWeight);
+  viewport.style.setProperty('--calendar-swipe-weekday-line-height', sampleWeekdayStyle.lineHeight);
+  viewport.style.setProperty('--calendar-swipe-weekday-spacing', sampleWeekdayStyle.paddingBottom);
+  viewport.style.setProperty('--calendar-swipe-padding-top', sampleHeaderStyle.paddingTop);
+  viewport.style.setProperty('--calendar-swipe-padding-right', sampleHeaderStyle.paddingRight);
+  viewport.style.setProperty('--calendar-swipe-padding-bottom', sampleHeaderStyle.paddingBottom);
+  viewport.style.setProperty('--calendar-swipe-padding-left', sampleHeaderStyle.paddingLeft);
+  viewport.style.setProperty('--calendar-swipe-text-align', sampleHeaderStyle.textAlign);
+  viewport.style.setProperty('--calendar-swipe-font-family', sampleHeaderStyle.fontFamily);
+  viewport.style.setProperty('--calendar-swipe-color', sampleHeaderStyle.color);
+  track.className = 'calendar-schedule-swipe-track';
+  track.style.transform = "translate3d(".concat(-width, "px, 0, 0)");
+  [-1, 0, 1].forEach(function (direction) {
+    var anchor = direction === 0 ? state.date : getScheduleSwipeAnchor(direction);
+    var dates = getScheduleDatesForAnchor(anchor, state.view);
+    var panel = document.createElement('div');
+    var gutter = document.createElement('div');
+    panel.className = 'calendar-schedule-swipe-panel';
+    panel.style.width = "".concat(width, "px");
+    panel.style.height = "".concat(height, "px");
+    panel.style.gridTemplateColumns = "".concat(gutterWidth, "px repeat(").concat(dates.length, ", minmax(0, 1fr))");
+    gutter.className = 'calendar-schedule-swipe-gutter';
+    panel.appendChild(gutter);
+    dates.forEach(function (date) {
+      var cell = document.createElement('div');
+      var weekday = document.createElement('span');
+      var day = document.createElement('span');
+      cell.className = 'calendar-schedule-swipe-day';
+      cell.classList.toggle('is-today', toDateString(date) === todayString());
+      weekday.className = 'calendar-schedule-swipe-weekday';
+      weekday.textContent = weekdays[date.getDay()];
+      day.className = 'calendar-schedule-swipe-number';
+      day.textContent = String(date.getDate()).padStart(2, '0');
+      cell.appendChild(weekday);
+      cell.appendChild(day);
+      panel.appendChild(cell);
+    });
+    track.appendChild(panel);
+  });
+  viewport.appendChild(track);
+  schedule.appendChild(viewport);
+  return {
+    viewport: viewport,
+    track: track,
+    width: width
+  };
+};
+var bindScheduleHeaderSwipe = function bindScheduleHeaderSwipe(calendar, navigate) {
+  var gesture = null;
+  var removePreview = function removePreview(preview) {
+    if (preview && preview.viewport.parentNode) {
+      preview.viewport.remove();
+    }
+  };
+  var finish = function finish(event, canceled) {
+    if (!gesture || event.pointerId !== undefined && event.pointerId !== gesture.pointerId) {
+      return;
+    }
+    var current = gesture;
+    var elapsed = Math.max(1, event.timeStamp - current.startedAt);
+    var velocity = current.deltaX / elapsed;
+    var threshold = Math.min(90, current.preview ? current.preview.width * 0.18 : 90);
+    var shouldNavigate = !canceled && current.dragging && (Math.abs(current.deltaX) >= threshold || Math.abs(current.deltaX) >= 24 && Math.abs(velocity) >= 0.45);
+    gesture = null;
+    document.documentElement.classList.remove('calendar-schedule-header-grabbing');
+    if (!current.preview) {
+      return;
+    }
+    current.preview.track.classList.add('is-settling');
+    if (!shouldNavigate) {
+      current.preview.track.style.transform = "translate3d(".concat(-current.preview.width, "px, 0, 0)");
+      window.setTimeout(function () {
+        removePreview(current.preview);
+      }, 240);
+      return;
+    }
+    var direction = current.deltaX < 0 ? 1 : -1;
+    var destination = direction > 0 ? -current.preview.width * 2 : 0;
+    current.preview.track.style.transform = "translate3d(".concat(destination, "px, 0, 0)");
+    window.setTimeout(function () {
+      navigate(direction);
+    }, 220);
+  };
+  calendar.addEventListener('pointerdown', function (event) {
+    var headerRow = event.target.closest('.lm-schedule thead tr:not(.calendar-schedule-holiday-row)');
+    if (!headerRow || !scheduleGridViews.includes(state.view) || event.button !== 0 || !event.isPrimary) {
+      return;
+    }
+    gesture = {
+      pointerId: event.pointerId,
+      startedAt: event.timeStamp,
+      startX: event.clientX,
+      startY: event.clientY,
+      deltaX: 0,
+      dragging: false,
+      preview: null
+    };
+    document.documentElement.classList.add('calendar-schedule-header-grabbing');
+    if (typeof headerRow.setPointerCapture === 'function') {
+      headerRow.setPointerCapture(event.pointerId);
+    }
+  });
+  calendar.addEventListener('pointermove', function (event) {
+    if (!gesture || event.pointerId !== gesture.pointerId) {
+      return;
+    }
+    var deltaX = event.clientX - gesture.startX;
+    var deltaY = event.clientY - gesture.startY;
+    if (!gesture.dragging) {
+      if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 7) {
+        finish(event, true);
+        return;
+      }
+      if (Math.abs(deltaX) < 7) {
+        return;
+      }
+      gesture.dragging = true;
+      gesture.preview = createScheduleSwipePreview(calendar);
+      if (!gesture.preview) {
+        finish(event, true);
+        return;
+      }
+    }
+    event.preventDefault();
+    gesture.deltaX = Math.max(-gesture.preview.width, Math.min(gesture.preview.width, deltaX));
+    gesture.preview.track.style.transform = "translate3d(".concat(-gesture.preview.width + gesture.deltaX, "px, 0, 0)");
+  });
+  calendar.addEventListener('pointerup', function (event) {
+    finish(event, false);
+  });
+  calendar.addEventListener('pointercancel', function (event) {
+    finish(event, true);
+  });
+};
+var filterStudentComboboxOptions = function filterStudentComboboxOptions(combobox) {
+  var input = combobox.querySelector('[data-student-combobox-input]');
+  var options = Array.from(combobox.querySelectorAll('[data-student-combobox-option]'));
+  var empty = combobox.querySelector('[data-student-combobox-empty]');
+  var query = input ? input.value.trim().toLowerCase() : '';
+  var visibleCount = 0;
+  options.forEach(function (option) {
+    var name = String(option.dataset.studentName || option.textContent || '').toLowerCase();
+    var isVisible = !query || name.includes(query);
+    option.hidden = !isVisible;
+    if (isVisible) {
+      visibleCount += 1;
+    }
+  });
+  if (empty) {
+    empty.hidden = visibleCount > 0;
+  }
+};
+var openStudentCombobox = function openStudentCombobox(combobox) {
+  combobox.setAttribute('open', '');
+  filterStudentComboboxOptions(combobox);
+};
+var closeStudentCombobox = function closeStudentCombobox(combobox) {
+  combobox.removeAttribute('open');
+};
+var syncFormLocationFromStudentOption = function syncFormLocationFromStudentOption(option) {
+  var form = option ? option.closest('form') : null;
+  var locationSelect = form ? form.querySelector('select[name="location_id"]') : null;
+  var studentLocationId = option ? option.dataset.studentLocationId : null;
+  if (!locationSelect || !studentLocationId) {
+    return;
+  }
+  var matchingOption = Array.from(locationSelect.options).find(function (locationOption) {
+    return String(locationOption.value) === String(studentLocationId);
+  });
+  if (!matchingOption) {
+    return;
+  }
+  locationSelect.value = studentLocationId;
+  locationSelect.dispatchEvent(new Event('change', {
+    bubbles: true
+  }));
+};
+var syncFormPaymentMethodFromStudentOption = function syncFormPaymentMethodFromStudentOption(option) {
+  var form = option ? option.closest('form') : null;
+  var paymentMethodSelect = form ? form.querySelector('select[name="payment_method"]') : null;
+  var studentPaymentMethod = option ? option.dataset.studentPaymentMethod : null;
+  if (!paymentMethodSelect || !studentPaymentMethod) {
+    return;
+  }
+  var matchingOption = Array.from(paymentMethodSelect.options).find(function (paymentOption) {
+    return String(paymentOption.value) === String(studentPaymentMethod);
+  });
+  if (!matchingOption) {
+    return;
+  }
+  paymentMethodSelect.value = studentPaymentMethod;
+  paymentMethodSelect.dispatchEvent(new Event('change', {
+    bubbles: true
+  }));
+};
+var syncFormDefaultsFromStudentOption = function syncFormDefaultsFromStudentOption(option) {
+  syncFormLocationFromStudentOption(option);
+  syncFormPaymentMethodFromStudentOption(option);
+};
+var initializeStudentComboboxes = function initializeStudentComboboxes() {
+  var comboboxes = Array.from(document.querySelectorAll('[data-student-combobox]'));
+  comboboxes.forEach(function (combobox) {
+    var input = combobox.querySelector('[data-student-combobox-input]');
+    var value = combobox.querySelector('[data-student-combobox-value]');
+    var options = Array.from(combobox.querySelectorAll('[data-student-combobox-option]'));
+    if (!input || !value) {
+      return;
+    }
+    input.addEventListener('focus', function () {
+      openStudentCombobox(combobox);
+    });
+    input.addEventListener('click', function () {
+      openStudentCombobox(combobox);
+    });
+    input.addEventListener('input', function () {
+      value.value = '';
+      input.setCustomValidity('');
+      openStudentCombobox(combobox);
+    });
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        closeStudentCombobox(combobox);
+        input.blur();
+      }
+    });
+    options.forEach(function (option) {
+      option.addEventListener('click', function () {
+        input.value = option.dataset.studentName || option.textContent.trim();
+        value.value = option.dataset.studentId || '';
+        input.setCustomValidity('');
+        syncFormDefaultsFromStudentOption(option);
+        closeStudentCombobox(combobox);
+      });
+    });
+    var form = combobox.closest('form');
+    if (form) {
+      form.addEventListener('submit', function (e) {
+        if (!value.value) {
+          var typedName = input.value.trim().toLowerCase();
+          var exactMatch = options.find(function (option) {
+            return String(option.dataset.studentName || '').toLowerCase() === typedName;
+          });
+          if (exactMatch) {
+            input.value = exactMatch.dataset.studentName || exactMatch.textContent.trim();
+            value.value = exactMatch.dataset.studentId || '';
+            syncFormDefaultsFromStudentOption(exactMatch);
+          }
+        }
+        if (!value.value) {
+          e.preventDefault();
+          input.setCustomValidity('Select a student from the list.');
+          input.reportValidity();
+          openStudentCombobox(combobox);
+          return;
+        }
+        input.setCustomValidity('');
+      });
+    }
+  });
+  document.addEventListener('click', function (e) {
+    comboboxes.forEach(function (combobox) {
+      if (!combobox.contains(e.target)) {
+        closeStudentCombobox(combobox);
+      }
+    });
+  });
+};
+var getSelectedLocationOption = function getSelectedLocationOption(form) {
+  var locationSelect = form ? form.querySelector('select[name="location_id"]') : null;
+  return locationSelect ? locationSelect.options[locationSelect.selectedIndex] : null;
+};
+var singleLessonLocationIsOnline = function singleLessonLocationIsOnline(form) {
+  var selectedOption = getSelectedLocationOption(form);
+  return selectedOption && selectedOption.dataset.isOnline === '1';
+};
+var setSingleLessonOnlineFields = function setSingleLessonOnlineFields(form, shouldEmpty) {
+  var fields = form ? Array.from(form.querySelectorAll('.single-lesson-plan-online-field')) : [];
+  var isOnline = singleLessonLocationIsOnline(form);
+  fields.forEach(function (field) {
+    var input = field.querySelector('input');
+    field.style.display = isOnline ? '' : 'none';
+    if (input) {
+      input.disabled = !isOnline;
+      if (!isOnline || shouldEmpty) {
+        input.value = '';
+      }
+    }
+  });
+};
+var syncSingleLessonFee = function syncSingleLessonFee(form) {
+  var selectedOption = getSelectedLocationOption(form);
+  var durationSelect = form ? form.querySelector('select[name="duration_minutes"]') : null;
+  var feeInput = form ? form.querySelector('input[name="fee_amount"]') : null;
+  var hourlyFee = selectedOption ? Number(selectedOption.dataset.feeAmount || 0) : 0;
+  var duration = durationSelect ? Number(durationSelect.value || 0) : 0;
+  if (!feeInput) {
+    return;
+  }
+  if (!hourlyFee || !duration) {
+    return;
+  }
+  var proratedFee = hourlyFee * (duration / 60);
+  var roundedFee = Math.floor(proratedFee / 5) * 5;
+  feeInput.value = roundedFee.toFixed(2).replace(/\.00$/, '');
+};
+var getSingleLessonPlanDefaultDate = function getSingleLessonPlanDefaultDate() {
+  if (!state.date) {
+    return todayString();
+  }
+  if (state.view === 'month') {
+    return toDateString(createLocalDate(state.date.getFullYear(), state.date.getMonth(), 1));
+  }
+  return toDateString(getVisibleDateRange().start);
+};
+var syncSingleLessonPlanModalDate = function syncSingleLessonPlanModalDate(modal) {
+  var dateInput = modal ? modal.querySelector('input[name="scheduled_date"]') : null;
+  if (dateInput) {
+    dateInput.value = getSingleLessonPlanDefaultDate();
+  }
+};
+var initializeSingleLessonPlanForms = function initializeSingleLessonPlanForms(root) {
+  (root || document).querySelectorAll('[data-single-lesson-plan-form]').forEach(function (form) {
+    if (form.dataset.calendarFormInitialized === 'true') {
+      return;
+    }
+    form.dataset.calendarFormInitialized = 'true';
+    var locationSelect = form.querySelector('select[name="location_id"]');
+    var durationSelect = form.querySelector('select[name="duration_minutes"]');
+    var modal = form.closest('#create-single-lesson-plan-modal');
+    setSingleLessonOnlineFields(form, false);
+    if (locationSelect && durationSelect) {
+      syncSingleLessonFee(form);
+    }
+    if (locationSelect) {
+      locationSelect.addEventListener('change', function () {
+        syncSingleLessonFee(form);
+        setSingleLessonOnlineFields(form, true);
+      });
+    }
+    if (durationSelect) {
+      durationSelect.addEventListener('change', function () {
+        syncSingleLessonFee(form);
+      });
+    }
+    if (modal) {
+      modal.addEventListener('show.bs.modal', function () {
+        syncSingleLessonPlanModalDate(modal);
+      });
+    }
+  });
+};
+var setLessonPlanOnlineFields = function setLessonPlanOnlineFields(form, shouldEmpty) {
+  var fields = form ? Array.from(form.querySelectorAll('.lesson-plan-online-field')) : [];
+  var isOnline = singleLessonLocationIsOnline(form);
+  fields.forEach(function (field) {
+    var input = field.querySelector('input');
+    field.style.display = isOnline ? '' : 'none';
+    if (input) {
+      input.disabled = !isOnline;
+      if (!isOnline || shouldEmpty) {
+        input.value = '';
+      }
+    }
+  });
+};
+var syncLessonPlanFee = function syncLessonPlanFee(form) {
+  var selectedOption = getSelectedLocationOption(form);
+  var durationSelect = form ? form.querySelector('select[name="duration_minutes"]') : null;
+  var feeInput = form ? form.querySelector('input[name="fee_amount"]') : null;
+  var hourlyFee = selectedOption ? Number(selectedOption.dataset.feeAmount || 0) : 0;
+  var duration = durationSelect ? Number(durationSelect.value || 0) : 0;
+  if (!feeInput) {
+    return;
+  }
+  if (!hourlyFee || !duration) {
+    return;
+  }
+  var proratedFee = hourlyFee * (duration / 60);
+  var roundedFee = Math.floor(proratedFee / 5) * 5;
+  feeInput.value = roundedFee.toFixed(2).replace(/\.00$/, '');
+};
+var initializeLessonPlanForms = function initializeLessonPlanForms(root) {
+  (root || document).querySelectorAll('[data-lesson-plan-form]').forEach(function (form) {
+    if (form.dataset.calendarFormInitialized === 'true') {
+      return;
+    }
+    form.dataset.calendarFormInitialized = 'true';
+    var locationSelect = form.querySelector('select[name="location_id"]');
+    var durationSelect = form.querySelector('select[name="duration_minutes"]');
+    setLessonPlanOnlineFields(form, false);
+    if (locationSelect && durationSelect) {
+      syncLessonPlanFee(form);
+    }
+    if (locationSelect) {
+      locationSelect.addEventListener('change', function () {
+        syncLessonPlanFee(form);
+        setLessonPlanOnlineFields(form, true);
+      });
+    }
+    if (durationSelect) {
+      durationSelect.addEventListener('change', function () {
+        syncLessonPlanFee(form);
+      });
+    }
+  });
+};
+document.addEventListener('DOMContentLoaded', function () {
+  document.addEventListener('click', function (e) {
+    var button = e.target.closest('.setting-undo');
+    if (!button) {
+      return;
+    }
+    var input = document.getElementById(button.dataset.settingTarget);
+    if (!input || typeof button.dataset.settingOriginal === 'undefined') {
+      return;
+    }
+    if (input.type === 'checkbox') {
+      input.checked = button.dataset.settingOriginal === 'true';
+    } else {
+      input.value = button.dataset.settingOriginal;
+    }
+    input.dispatchEvent(new Event('input', {
+      bubbles: true
+    }));
+    input.dispatchEvent(new Event('change', {
+      bubbles: true
+    }));
+  });
+  var calendar = document.getElementById('calendar');
+  var label = document.querySelector('[data-calendar-label]');
+  var today = document.querySelector('[data-calendar-today]');
+  var previous = document.querySelector('[data-calendar-prev]');
+  var next = document.querySelector('[data-calendar-next]');
+  var view = document.querySelector('[data-calendar-view]');
+  var miniLabel = document.querySelector('[data-mini-label]');
+  var miniGrid = document.querySelector('[data-mini-grid]');
+  var miniPrevious = document.querySelector('[data-mini-prev]');
+  var miniNext = document.querySelector('[data-mini-next]');
+  var lessonModal = document.getElementById('lesson-modal');
+  var generalEventModal = document.getElementById('general-event-modal');
+  var calendarEditModalContainer = document.getElementById('calendar-edit-modal-container');
+  var calendarSearch = document.querySelector('.calendar-calendar-search');
+  var calendarToolbar = calendarSearch ? calendarSearch.closest('.calendar-calendar-toolbar') : null;
+  var calendarSearchToggle = calendarSearch ? calendarSearch.querySelector('[data-calendar-search-toggle]') : null;
+  var calendarSearchClear = calendarSearch ? calendarSearch.querySelector('[data-calendar-search-clear]') : null;
+  var studentSearch = calendarSearch ? calendarSearch.querySelector('input[name="search"]') : null;
+  var offcanvasViews = document.getElementById('calendar-offcanvas-views');
+  var offcanvasViewItems = Array.from(document.querySelectorAll('[data-calendar-offcanvas-view]'));
+  var calendarInsights = document.getElementById('calendar-calendar-insights');
+  var calendarInsightsSidebarTarget = document.querySelector('[data-calendar-insights-sidebar-target]');
+  var calendarInsightsOffcanvasTarget = document.querySelector('[data-calendar-insights-offcanvas-target]');
+  var locationFilters = document.querySelector('[data-calendar-location-filters]');
+  var eventTypeFilters = document.querySelector('[data-calendar-event-type-filters]');
+  var calendarCreateMenu = document.querySelector('[data-calendar-create-menu]');
+  var calendarCreateToggle = document.querySelector('[data-calendar-create-toggle]');
+  var calendarCreateSingle = document.querySelector('[data-calendar-create-single]');
+  var calendarCreateRecurring = document.querySelector('[data-calendar-create-recurring]');
+  var calendarCreateEvent = document.querySelector('[data-calendar-create-event]');
+  var calendarFilter = document.querySelector('.calendar-calendar-filter');
+  var calendarCreateBackdrop = null;
+  if (!calendar) {
+    return;
+  }
+  var scheduleItemHold = null;
+  var suppressedScheduleItemClick = null;
+  var scheduleHoldNavigationSuppressedUntil = 0;
+  var isScheduleHoldNavigationSuppressed = function isScheduleHoldNavigationSuppressed() {
+    return Boolean(scheduleItemHold && scheduleItemHold.active) || Date.now() < scheduleHoldNavigationSuppressedUntil;
+  };
+  initializeStudentComboboxes();
+  initializeSingleLessonPlanForms();
+  initializeLessonPlanForms();
+  state.plannedLessons = Array.isArray(window.calendarPlannedLessons) ? window.calendarPlannedLessons : Array.isArray(window.calendarLessonPlans) ? window.calendarLessonPlans : [];
+  state.singleLessonPlans = Array.isArray(window.calendarSingleLessonPlans) ? window.calendarSingleLessonPlans : [];
+  state.holidays = Array.isArray(window.calendarHolidays) ? window.calendarHolidays : [];
+  state.showHolidays = window.calendarShowHolidays !== false;
+  state.teachingBreaks = Array.isArray(window.calendarTeachingBreaks) ? window.calendarTeachingBreaks : [];
+  state.recitals = Array.isArray(window.calendarRecitals) ? window.calendarRecitals : [];
+  state.generalEvents = Array.isArray(window.calendarGeneralEvents) ? window.calendarGeneralEvents : [];
+  state.locations = Array.isArray(window.calendarLocations) ? window.calendarLocations : [];
+  state.loadedRange = normalizeRange(window.calendarCalendarRange);
+  state.birthdayWindow = normalizeBirthdayWindow(window.calendarBirthdayWindow);
+  var urlState = getUrlState();
+  state.view = urlState.view;
+  if (isValidDate(urlState.date)) {
+    setSelectedDate(urlState.date);
+  } else if (!state.date) {
+    setSelectedDate(getTodayDate());
+  } else {
+    state.miniDate = cloneDate(state.date);
+  }
+  var syncViewControls = function syncViewControls() {
+    if (view) {
+      view.value = state.view;
+    }
+    offcanvasViewItems.forEach(function (item) {
+      var selected = item.dataset.calendarOffcanvasView === state.view;
+      item.toggleAttribute('selected', selected);
+      item.classList.toggle('is-selected', selected);
+      item.querySelectorAll('button').forEach(function (button) {
+        button.setAttribute('aria-pressed', selected ? 'true' : 'false');
+      });
+    });
+  };
+  var removeCalendarCreateBackdrop = function removeCalendarCreateBackdrop(immediate) {
+    if (!calendarCreateBackdrop) {
+      return;
+    }
+    var backdrop = calendarCreateBackdrop;
+    calendarCreateBackdrop = null;
+    backdrop.classList.remove('show');
+    var _removeBackdrop = function removeBackdrop() {
+      backdrop.removeEventListener('transitionend', _removeBackdrop);
+      backdrop.remove();
+    };
+    if (immediate) {
+      _removeBackdrop();
+      return;
+    }
+    backdrop.addEventListener('transitionend', _removeBackdrop);
+    window.setTimeout(_removeBackdrop, 180);
+  };
+  var showCalendarCreateBackdrop = function showCalendarCreateBackdrop() {
+    if (calendarCreateBackdrop) {
+      return;
+    }
+    calendarCreateBackdrop = document.createElement('div');
+    calendarCreateBackdrop.className = 'modal-backdrop fade';
+    calendarCreateBackdrop.setAttribute('data-calendar-create-backdrop', '');
+    document.body.appendChild(calendarCreateBackdrop);
+    calendarCreateBackdrop.addEventListener('click', closeCalendarCreateMenu);
+    window.requestAnimationFrame(function () {
+      if (calendarCreateBackdrop) {
+        calendarCreateBackdrop.classList.add('show');
+      }
+    });
+  };
+  var setCalendarCreateMenuOpen = function setCalendarCreateMenuOpen(isOpen, options) {
+    if (!calendarCreateMenu || !calendarCreateToggle) {
+      return;
+    }
+    calendarCreateMenu.toggleAttribute('selected', isOpen);
+    calendarCreateToggle.toggleAttribute('selected', isOpen);
+    calendarCreateToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    if (isOpen) {
+      showCalendarCreateBackdrop();
+    } else {
+      removeCalendarCreateBackdrop(options && options.immediate);
+    }
+  };
+  function closeCalendarCreateMenu(options) {
+    setCalendarCreateMenuOpen(false, options);
+  }
+  ;
+  var openCalendarCreateModal = function openCalendarCreateModal(modalId) {
+    closeCalendarCreateMenu({
+      immediate: true
+    });
+    showBootstrapModal(document.getElementById(modalId));
+  };
+  if (calendarCreateToggle) {
+    calendarCreateToggle.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      setCalendarCreateMenuOpen(!(calendarCreateMenu && calendarCreateMenu.hasAttribute('selected')));
+    });
+  }
+  if (calendarCreateSingle) {
+    calendarCreateSingle.addEventListener('click', function () {
+      openCalendarCreateModal('create-single-lesson-plan-modal');
+    });
+  }
+  if (calendarCreateRecurring) {
+    calendarCreateRecurring.addEventListener('click', function () {
+      openCalendarCreateModal('create-calendar-lesson-plan-modal');
+    });
+  }
+  if (calendarCreateEvent) {
+    calendarCreateEvent.addEventListener('click', function () {
+      openCalendarCreateModal('create-event-modal');
+    });
+  }
+  if (calendarCreateMenu) {
+    calendarCreateMenu.addEventListener('click', function (e) {
+      e.stopPropagation();
+    });
+  }
+  document.addEventListener('click', function (e) {
+    if (!calendarCreateMenu || !calendarCreateToggle || !calendarCreateMenu.hasAttribute('selected')) {
+      return;
+    }
+    if (!calendarCreateMenu.contains(e.target) && !calendarCreateToggle.contains(e.target)) {
+      closeCalendarCreateMenu();
+    }
+  });
+  var syncCalendarInsightsPlacement = function syncCalendarInsightsPlacement() {
+    if (!calendarInsights || !calendarInsightsSidebarTarget || !calendarInsightsOffcanvasTarget) {
+      return;
+    }
+    var target = isSidebarHiddenViewport() ? calendarInsightsOffcanvasTarget : calendarInsightsSidebarTarget;
+    if (calendarInsights.parentElement !== target) {
+      target.appendChild(calendarInsights);
+    }
+  };
+  var syncCalendarFilterSelectedState = function syncCalendarFilterSelectedState() {
+    if (!calendarFilter) {
+      return;
+    }
+    var eventTypeFilterIsActive = state.selectedEventTypes.length < 3;
+    calendarFilter.toggleAttribute('selected', Boolean(isLocationFilterActive() || eventTypeFilterIsActive));
+  };
+  var syncLocationFilterState = function syncLocationFilterState() {
+    if (!locationFilters) {
+      return;
+    }
+    var checkedIds = Array.from(locationFilters.querySelectorAll('input[data-calendar-location-filter]:checked')).map(function (input) {
+      return normalizeLocationId(input.value);
+    }).filter(Boolean);
+    state.selectedLocationIds = checkedIds;
+    syncCalendarFilterSelectedState();
+  };
+  var syncEventTypeFilterState = function syncEventTypeFilterState() {
+    if (!eventTypeFilters) {
+      return;
+    }
+    state.selectedEventTypes = Array.from(eventTypeFilters.querySelectorAll('input[data-calendar-event-type-filter]:checked')).map(function (input) {
+      return input.value;
+    });
+    syncCalendarFilterSelectedState();
+  };
+  var renderLocationFilters = function renderLocationFilters() {
+    if (!locationFilters) {
+      return;
+    }
+    locationFilters.innerHTML = '';
+    if (!state.locations.length) {
+      var empty = document.createElement('div');
+      empty.className = 'small opacity-4';
+      empty.textContent = 'No locations';
+      locationFilters.appendChild(empty);
+      return;
+    }
+    state.locations.forEach(function (location) {
+      var id = "calendar-location-filter-".concat(location.id);
+      var option = document.createElement('div');
+      var label = document.createElement('label');
+      var input = document.createElement('input');
+      option.className = 'form-check calendar-calendar-filter-option';
+      label.className = 'form-check-label';
+      label.setAttribute('for', id);
+      input.type = 'checkbox';
+      input.className = 'form-check-input';
+      input.id = id;
+      input.value = location.id;
+      input.checked = true;
+      input.dataset.calendarLocationFilter = '';
+      label.textContent = location.name || 'Location';
+      option.appendChild(input);
+      option.appendChild(label);
+      locationFilters.appendChild(option);
+    });
+    syncLocationFilterState();
+  };
+  var setCalendarView = function setCalendarView(nextView) {
+    if (!nextView || nextView === state.view) {
+      syncViewControls();
+      return;
+    }
+    state.view = nextView;
+    state.didAutoNowScroll = false;
+    syncViewControls();
+    _render();
+  };
+  var openCalendarSearch = function openCalendarSearch() {
+    if (!calendarSearch) {
+      return;
+    }
+    calendarSearch.setAttribute('selected', '');
+    if (calendarToolbar) {
+      calendarToolbar.setAttribute('searching', '');
+    }
+    if (studentSearch) {
+      studentSearch.focus();
+    }
+  };
+  var closeCalendarSearch = function closeCalendarSearch() {
+    if (calendarSearch) {
+      calendarSearch.removeAttribute('selected');
+    }
+    if (calendarToolbar) {
+      calendarToolbar.removeAttribute('searching');
+    }
+  };
+  var clearCalendarSearch = function clearCalendarSearch() {
+    if (studentSearch) {
+      studentSearch.value = '';
+    }
+    state.studentSearch = '';
+    closeCalendarSearch();
+    _render();
+  };
+  var closeCalendarViewsOffcanvas = function closeCalendarViewsOffcanvas() {
+    if (!offcanvasViews) {
+      return;
+    }
+    if (window.bootstrap && window.bootstrap.Offcanvas && typeof window.bootstrap.Offcanvas.getOrCreateInstance === 'function') {
+      window.bootstrap.Offcanvas.getOrCreateInstance(offcanvasViews).hide();
+      return;
+    }
+    if (window.bootstrap && window.bootstrap.Offcanvas) {
+      new window.bootstrap.Offcanvas(offcanvasViews).hide();
+      return;
+    }
+    var close = offcanvasViews.querySelector('.offcanvas-header [data-bs-dismiss="offcanvas"]');
+    if (close) {
+      close.click();
+    }
+  };
+  syncViewControls();
+  syncCalendarInsightsPlacement();
+  window.addEventListener('resize', syncCalendarInsightsPlacement);
+  if (studentSearch) {
+    state.studentSearch = studentSearch.value;
+  }
+  var renderMiniCalendar = function renderMiniCalendar() {
+    if (!miniLabel || !miniGrid) {
+      return;
+    }
+    miniLabel.textContent = monthFormatter.format(state.miniDate);
+    miniGrid.innerHTML = '';
+    var gridStart = startOfMonthGrid(state.miniDate);
+    var selected = toDateString(state.date);
+    var today = todayString();
+    for (var i = 0; i < 42; i++) {
+      var date = addDays(gridStart, i);
+      var dateString = toDateString(date);
+      var button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'calendar-mini-calendar-date';
+      button.textContent = date.getDate();
+      button.dataset.date = dateString;
+      if (date.getMonth() !== state.miniDate.getMonth()) {
+        button.classList.add('is-muted');
+      }
+      if (dateString === selected) {
+        button.classList.add('is-selected');
+      }
+      if (dateString === today) {
+        button.classList.add('is-today');
+      }
+      miniGrid.appendChild(button);
+    }
+  };
+  var getVisibleScheduleDay = function getVisibleScheduleDay(agenda) {
+    var days = Array.from(agenda.querySelectorAll('.calendar-schedule-day'));
+    if (!days.length) {
+      return null;
+    }
+    var agendaRect = agenda.getBoundingClientRect();
+    var marker = agendaRect.top + 1;
+    return days.find(function (day) {
+      var rect = day.getBoundingClientRect();
+      return rect.bottom > marker;
+    }) || days[0];
+  };
+  var syncScheduleLabelToScroll = function syncScheduleLabelToScroll(agenda) {
+    if (state.view !== 'schedule' || !agenda) {
+      return;
+    }
+    var visibleDay = getVisibleScheduleDay(agenda);
+    if (!visibleDay || !visibleDay.dataset.date) {
+      return;
+    }
+    var visibleDate = parseDateString(visibleDay.dataset.date);
+    var visibleDateString = toDateString(visibleDate);
+    if (label) {
+      label.textContent = monthFormatter.format(visibleDate);
+    }
+    if (toDateString(state.date) !== visibleDateString) {
+      state.date = visibleDate;
+      state.miniDate = cloneDate(visibleDate);
+      updateCalendarUrl();
+      renderMiniCalendar();
+      renderCalendarPaymentTotals();
+    }
+  };
+  var queueScheduleLabelSync = function queueScheduleLabelSync(agenda) {
+    if (state.scheduleLabelFrame) {
+      cancelAnimationFrame(state.scheduleLabelFrame);
+    }
+    state.scheduleLabelFrame = requestAnimationFrame(function () {
+      state.scheduleLabelFrame = null;
+      syncScheduleLabelToScroll(agenda);
+    });
+  };
+  var scrollScheduleToSelectedDate = function scrollScheduleToSelectedDate(agenda) {
+    if (!agenda) {
+      return;
+    }
+    var selected = toDateString(state.date || getTodayDate());
+    var target = agenda.querySelector(".calendar-schedule-day[data-date=\"".concat(selected, "\"]")) || agenda.querySelector(".calendar-schedule-day[data-date=\"".concat(todayString(), "\"]")) || agenda.querySelector('.calendar-schedule-day');
+    if (!target) {
+      return;
+    }
+    agenda.scrollTop = Math.max(0, target.offsetTop);
+    syncScheduleLabelToScroll(agenda);
+  };
+  var bindScheduleAgenda = function bindScheduleAgenda(agenda) {
+    if (!agenda) {
+      return;
+    }
+    agenda.addEventListener('scroll', function () {
+      queueScheduleLabelSync(agenda);
+    }, {
+      passive: true
+    });
+    requestAnimationFrame(function () {
+      scrollScheduleToSelectedDate(agenda);
+    });
+  };
+  var _render = function render() {
+    var visibleRange = getVisibleDateRange();
+    syncViewControls();
+    updateCalendarUrl();
+    if (!isRangeLoaded(visibleRange)) {
+      fetchPlannedLessons(visibleRange).then(function () {
+        if (isRangeLoaded(getVisibleDateRange())) {
+          _render();
+        }
+      });
+      return;
+    }
+    disconnectScheduleObserver();
+    if (state.schedulePatchFrame) {
+      cancelAnimationFrame(state.schedulePatchFrame);
+      state.schedulePatchFrame = null;
+    }
+    if (state.scheduleLabelFrame) {
+      cancelAnimationFrame(state.scheduleLabelFrame);
+      state.scheduleLabelFrame = null;
+    }
+    calendar.innerHTML = '';
+    calendar.classList.toggle('calendar-calendar-day-view', state.view === 'day');
+    calendar.classList.toggle('calendar-calendar-two-days-view', state.view === '2-days');
+    calendar.classList.toggle('calendar-calendar-week-view', state.view === 'week');
+    calendar.classList.toggle('calendar-calendar-month-view', state.view === 'month');
+    calendar.classList.toggle('calendar-calendar-schedule-view', state.view === 'schedule');
+    syncCalendarEvents();
+    renderCalendarPaymentTotals();
+    if (label) {
+      label.textContent = getLabel();
+    }
+    if (view) {
+      view.value = state.view;
+    }
+    renderMiniCalendar();
+    if (state.view === 'schedule') {
+      state.instance = null;
+      bindScheduleAgenda(renderScheduleAgenda(calendar));
+      return;
+    }
+    if (scheduleGridViews.includes(state.view)) {
+      state.instance = calendarjs.Schedule(calendar, {
+        type: state.view === '2-days' ? 'week' : state.view,
+        value: getScheduleValue(),
+        data: normalizeScheduleEvents(getScheduleRenderEvents()),
+        validRange: [scheduleStart, scheduleEnd],
+        overlap: true,
+        onbeforeinsert: function onbeforeinsert() {
+          return false;
+        },
+        onbeforechangeevent: function onbeforechangeevent(instance, detail) {
+          if (detail && detail.action && !(detail.element && detail.element.hasAttribute('holding-event'))) {
+            return false;
+          }
+        },
+        onbeforechange: function onbeforechange(instance, detail) {
+          if (scheduleItemHold && scheduleItemHold.active && detail && detail.action === 'updateEvent') {
+            return false;
+          }
+        },
+        oncreate: function oncreate(instance) {
+          syncEvents(instance);
+          queueSchedulePatch(calendar);
+        },
+        onchange: function onchange(instance) {
+          syncEvents(instance);
+          queueSchedulePatch(calendar);
+        },
+        onchangeevent: function onchangeevent(instance) {
+          syncEvents(instance);
+          queueSchedulePatch(calendar);
+        },
+        ondelete: function ondelete(instance) {
+          syncEvents(instance);
+          queueSchedulePatch(calendar);
+        }
+      });
+      patchSchedule(calendar);
+      return;
+    }
+    if (state.view === 'month') {
+      state.instance = null;
+      renderMonthCalendar(calendar);
+      return;
+    }
+  };
+  var refreshCalendarAfterLessonMutation = function refreshCalendarAfterLessonMutation() {
+    var schedule = calendar.querySelector('.lm-schedule');
+    var scrollTop = schedule ? schedule.scrollTop : 0;
+    var scrollLeft = schedule ? schedule.scrollLeft : 0;
+    var visibleRange = getVisibleDateRange();
+    state.loadedRange = null;
+    state.pendingRangeKey = null;
+    return fetchPlannedLessons(visibleRange).then(function () {
+      state.suppressNextScheduleAnimation = true;
+      _render();
+      requestAnimationFrame(function () {
+        var refreshedSchedule = calendar.querySelector('.lm-schedule');
+        if (refreshedSchedule) {
+          refreshedSchedule.scrollTop = scrollTop;
+          refreshedSchedule.scrollLeft = scrollLeft;
+        }
+      });
+    });
+  };
+  if (today) {
+    today.addEventListener('click', function () {
+      if (isScheduleHoldNavigationSuppressed()) {
+        return;
+      }
+      setSelectedDate(getTodayDate());
+      _render();
+    });
+  }
+  if (previous) {
+    previous.addEventListener('click', function () {
+      if (isScheduleHoldNavigationSuppressed()) {
+        return;
+      }
+      move(-1);
+      _render();
+    });
+  }
+  if (next) {
+    next.addEventListener('click', function () {
+      if (isScheduleHoldNavigationSuppressed()) {
+        return;
+      }
+      move(1);
+      _render();
+    });
+  }
+  bindScheduleHeaderSwipe(calendar, function (direction) {
+    if (isScheduleHoldNavigationSuppressed()) {
+      return;
+    }
+    move(direction);
+    _render();
+  });
+  if (view) {
+    view.addEventListener('change', function () {
+      if (isScheduleHoldNavigationSuppressed()) {
+        syncViewControls();
+        return;
+      }
+      setCalendarView(this.value);
+    });
+  }
+  offcanvasViewItems.forEach(function (item) {
+    item.addEventListener('click', function (e) {
+      e.preventDefault();
+      if (isScheduleHoldNavigationSuppressed()) {
+        return;
+      }
+      setCalendarView(item.dataset.calendarOffcanvasView);
+      closeCalendarViewsOffcanvas();
+    });
+  });
+  if (studentSearch) {
+    studentSearch.addEventListener('input', function () {
+      state.studentSearch = this.value;
+      _render();
+    });
+  }
+  if (locationFilters) {
+    locationFilters.addEventListener('change', function (e) {
+      if (!e.target.matches('input[data-calendar-location-filter]')) {
+        return;
+      }
+      syncLocationFilterState();
+      _render();
+    });
+  }
+  if (eventTypeFilters) {
+    eventTypeFilters.addEventListener('change', function (e) {
+      if (!e.target.matches('input[data-calendar-event-type-filter]')) {
+        return;
+      }
+      syncEventTypeFilterState();
+      _render();
+    });
+  }
+  if (calendarSearchToggle) {
+    calendarSearchToggle.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      openCalendarSearch();
+    });
+  }
+  if (calendarSearchClear) {
+    calendarSearchClear.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      clearCalendarSearch();
+    });
+  }
+  if (calendarSearch) {
+    calendarSearch.addEventListener('click', function (e) {
+      e.stopPropagation();
+    });
+    document.addEventListener('click', function (e) {
+      if (!calendarSearch.contains(e.target)) {
+        closeCalendarSearch();
+      }
+    });
+  }
+  if (miniPrevious) {
+    miniPrevious.addEventListener('click', function () {
+      if (isScheduleHoldNavigationSuppressed()) {
+        return;
+      }
+      state.miniDate = addMonths(state.miniDate, -1);
+      renderMiniCalendar();
+    });
+  }
+  if (miniNext) {
+    miniNext.addEventListener('click', function () {
+      if (isScheduleHoldNavigationSuppressed()) {
+        return;
+      }
+      state.miniDate = addMonths(state.miniDate, 1);
+      renderMiniCalendar();
+    });
+  }
+  if (miniGrid) {
+    miniGrid.addEventListener('click', function (e) {
+      if (isScheduleHoldNavigationSuppressed()) {
+        return;
+      }
+      var button = e.target.closest('[data-date]');
+      if (!button) {
+        return;
+      }
+      setSelectedDate(parseDateString(button.dataset.date));
+      _render();
+    });
+  }
+  var lessonTaught = document.getElementById('lesson-taught');
+  if (lessonTaught) {
+    lessonTaught.addEventListener('click', function (e) {
+      e.preventDefault();
+      storeTaughtLesson(lessonTaught, refreshCalendarAfterLessonMutation);
+    });
+  }
+  var confirmPayment = document.getElementById('confirm-payment');
+  if (confirmPayment) {
+    confirmPayment.addEventListener('click', function (e) {
+      e.preventDefault();
+      confirmLessonPayment(confirmPayment, refreshCalendarAfterLessonMutation);
+    });
+  }
+  var earlyPayment = document.getElementById('early-payment');
+  if (earlyPayment) {
+    earlyPayment.addEventListener('click', function (e) {
+      e.preventDefault();
+      storeEarlyPayment(earlyPayment, refreshCalendarAfterLessonMutation);
+    });
+  }
+  var lessonRevert = document.getElementById('lesson-revert');
+  if (lessonRevert) {
+    lessonRevert.addEventListener('click', function (e) {
+      e.preventDefault();
+      revertLessonAction(lessonRevert, refreshCalendarAfterLessonMutation);
+    });
+  }
+  var lessonEdit = document.getElementById('lesson-edit');
+  if (lessonEdit) {
+    lessonEdit.addEventListener('click', function (e) {
+      e.preventDefault();
+      loadCalendarEditModal(lessonEdit, lessonModal, calendarEditModalContainer);
+    });
+  }
+  var cancelLessonButton = document.getElementById('cancel-lesson-button');
+  if (cancelLessonButton) {
+    cancelLessonButton.addEventListener('click', function (e) {
+      e.preventDefault();
+      showLessonCancelForm(lessonModal);
+    });
+  }
+  if (lessonModal) {
+    var rescheduleButton = lessonModal.querySelector('#reschedule-lesson-button');
+    var rescheduleForm = lessonModal.querySelector('#reschedule-lesson form');
+    var cancelForm = lessonModal.querySelector('#cancel-lesson form');
+    var reschedulePrevious = lessonModal.querySelector('[data-reschedule-datepicker-prev]');
+    var rescheduleNext = lessonModal.querySelector('[data-reschedule-datepicker-next]');
+    var rescheduleGrid = lessonModal.querySelector('[data-reschedule-datepicker-grid]');
+    var rescheduleDate = lessonModal.querySelector('#reschedule-lesson-date');
+    var rescheduleStartTime = lessonModal.querySelector('#reschedule-lesson-start-time');
+    var rescheduleEndTime = lessonModal.querySelector('#reschedule-lesson-end-time');
+    if (rescheduleButton) {
+      rescheduleButton.addEventListener('click', function (e) {
+        e.preventDefault();
+        showLessonRescheduleForm(lessonModal);
+      });
+    }
+    [rescheduleForm, cancelForm].filter(Boolean).forEach(function (form) {
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        submitLessonModalForm(form, refreshCalendarAfterLessonMutation);
+      });
+    });
+    lessonModal.addEventListener('hidden.bs.modal', function () {
+      restoreUpdatedScheduleItem(lessonModal.updatedScheduleItem);
+      lessonModal.updatedScheduleItem = null;
+      resetLessonModalState(lessonModal);
+    });
+    if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
+      window.jQuery(lessonModal).on('hidden.bs.modal', function () {
+        restoreUpdatedScheduleItem(lessonModal.updatedScheduleItem);
+        lessonModal.updatedScheduleItem = null;
+        resetLessonModalState(lessonModal);
+      });
+    }
+    if (reschedulePrevious) {
+      reschedulePrevious.addEventListener('click', function () {
+        state.rescheduleDatePickerDate = addMonths(state.rescheduleDatePickerDate || getTodayDate(), -1);
+        renderRescheduleDatePicker(lessonModal);
+      });
+    }
+    if (rescheduleNext) {
+      rescheduleNext.addEventListener('click', function () {
+        state.rescheduleDatePickerDate = addMonths(state.rescheduleDatePickerDate || getTodayDate(), 1);
+        renderRescheduleDatePicker(lessonModal);
+      });
+    }
+    if (rescheduleGrid) {
+      rescheduleGrid.addEventListener('click', function (e) {
+        var button = e.target.closest('[data-date]');
+        if (!button) {
+          return;
+        }
+        if (rescheduleDate) {
+          rescheduleDate.value = button.dataset.date;
+        }
+        state.rescheduleDatePickerDate = parseDateString(button.dataset.date);
+        renderRescheduleDatePicker(lessonModal);
+      });
+    }
+    if (rescheduleStartTime) {
+      rescheduleStartTime.addEventListener('change', function () {
+        syncRescheduleTimePicker(rescheduleStartTime, rescheduleEndTime, 'start');
+      });
+    }
+    if (rescheduleEndTime) {
+      rescheduleEndTime.addEventListener('change', function () {
+        syncRescheduleTimePicker(rescheduleStartTime, rescheduleEndTime, 'end');
+      });
+    }
+  }
+  if (generalEventModal) {
+    var editButton = generalEventModal.querySelector('#event-edit');
+    var cancelButton = generalEventModal.querySelector('#cancel-general-event-button');
+    var _rescheduleButton = generalEventModal.querySelector('#reschedule-general-event-button');
+    var _rescheduleForm = generalEventModal.querySelector('#reschedule-general-event form');
+    var _cancelForm = generalEventModal.querySelector('#cancel-general-event form');
+    var _reschedulePrevious = generalEventModal.querySelector('[data-general-event-reschedule-datepicker-prev]');
+    var _rescheduleNext = generalEventModal.querySelector('[data-general-event-reschedule-datepicker-next]');
+    var _rescheduleGrid = generalEventModal.querySelector('[data-general-event-reschedule-datepicker-grid]');
+    var _rescheduleDate = generalEventModal.querySelector('#reschedule-general-event-date');
+    var _rescheduleStartTime = generalEventModal.querySelector('#reschedule-general-event-start-time');
+    var _rescheduleEndTime = generalEventModal.querySelector('#reschedule-general-event-end-time');
+    if (editButton) {
+      editButton.addEventListener('click', function (e) {
+        e.preventDefault();
+        loadCalendarEditModal(editButton, generalEventModal, calendarEditModalContainer);
+      });
+    }
+    if (cancelButton) {
+      cancelButton.addEventListener('click', function () {
+        showGeneralEventCancelForm(generalEventModal);
+      });
+    }
+    if (_rescheduleButton) {
+      _rescheduleButton.addEventListener('click', function () {
+        showGeneralEventRescheduleForm(generalEventModal);
+      });
+    }
+    [_rescheduleForm, _cancelForm].filter(Boolean).forEach(function (form) {
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        submitGeneralEventModalForm(form, refreshCalendarAfterLessonMutation);
+      });
+    });
+    generalEventModal.addEventListener('hidden.bs.modal', function () {
+      restoreUpdatedScheduleItem(generalEventModal.updatedScheduleItem);
+      generalEventModal.updatedScheduleItem = null;
+      resetGeneralEventModalState(generalEventModal);
+    });
+    if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
+      window.jQuery(generalEventModal).on('hidden.bs.modal', function () {
+        restoreUpdatedScheduleItem(generalEventModal.updatedScheduleItem);
+        generalEventModal.updatedScheduleItem = null;
+        resetGeneralEventModalState(generalEventModal);
+      });
+    }
+    if (_reschedulePrevious) {
+      _reschedulePrevious.addEventListener('click', function () {
+        state.generalEventRescheduleDatePickerDate = addMonths(state.generalEventRescheduleDatePickerDate || getTodayDate(), -1);
+        renderGeneralEventRescheduleDatePicker(generalEventModal);
+      });
+    }
+    if (_rescheduleNext) {
+      _rescheduleNext.addEventListener('click', function () {
+        state.generalEventRescheduleDatePickerDate = addMonths(state.generalEventRescheduleDatePickerDate || getTodayDate(), 1);
+        renderGeneralEventRescheduleDatePicker(generalEventModal);
+      });
+    }
+    if (_rescheduleGrid) {
+      _rescheduleGrid.addEventListener('click', function (e) {
+        var button = e.target.closest('[data-date]');
+        if (!button) {
+          return;
+        }
+        if (_rescheduleDate) {
+          _rescheduleDate.value = button.dataset.date;
+        }
+        state.generalEventRescheduleDatePickerDate = parseDateString(button.dataset.date);
+        renderGeneralEventRescheduleDatePicker(generalEventModal);
+      });
+    }
+    if (_rescheduleStartTime) {
+      _rescheduleStartTime.addEventListener('change', function () {
+        syncRescheduleTimePicker(_rescheduleStartTime, _rescheduleEndTime, 'start');
+      });
+    }
+    if (_rescheduleEndTime) {
+      _rescheduleEndTime.addEventListener('change', function () {
+        syncRescheduleTimePicker(_rescheduleStartTime, _rescheduleEndTime, 'end');
+      });
+    }
+  }
+  if (calendarEditModalContainer) {
+    calendarEditModalContainer.addEventListener('submit', function (e) {
+      var form = e.target.closest('form');
+      if (!form || !calendarEditModalContainer.contains(form)) {
+        return;
+      }
+      e.preventDefault();
+      submitCalendarEditForm(form, refreshCalendarAfterLessonMutation);
+    });
+  }
+  calendar.addEventListener('click', function (e) {
+    var day = e.target.closest('.calendar-month-day');
+    if (!day || state.view !== 'month') {
+      return;
+    }
+    var more = e.target.closest('.calendar-month-more');
+    if (more) {
+      e.preventDefault();
+      e.stopPropagation();
+      openMonthDayEventsModal(more.dataset.monthMoreDate || day.dataset.date);
+      return;
+    }
+    if (!e.target.closest('.calendar-month-event')) {
+      setSelectedDate(parseDateString(day.dataset.date));
+      state.view = 'week';
+      _render();
+    }
+  });
+  calendar.addEventListener('mousedown', function (e) {
+    var item = e.target.closest('.lm-schedule-item');
+    if (!item || item.hasAttribute('holding-event')) {
+      return;
+    }
+    e.stopPropagation();
+  }, true);
+  var removeScheduleHoldTime = function removeScheduleHoldTime(hold) {
+    if (!hold) {
+      return;
+    }
+    if (hold.timeMarkerFrame) {
+      window.cancelAnimationFrame(hold.timeMarkerFrame);
+      hold.timeMarkerFrame = null;
+    }
+    if (hold.timeMarker) {
+      hold.timeMarker.remove();
+      hold.timeMarker = null;
+    }
+    hold.timeMarkerRow = null;
+  };
+  var updateScheduleHoldTime = function updateScheduleHoldTime(hold) {
+    if (!hold || hold !== scheduleItemHold || !hold.active || !hold.clone) {
+      return;
+    }
+    var row = hold.clone.closest('tr');
+    var gutter = row && row.cells.length ? row.cells[0] : null;
+    if (!gutter) {
+      removeScheduleHoldTime(hold);
+      return;
+    }
+    if (gutter.querySelector(':scope > .lm-schedule-index')) {
+      removeScheduleHoldTime(hold);
+      return;
+    }
+    if (hold.timeMarkerRow !== row) {
+      if (hold.timeMarker) {
+        hold.timeMarker.remove();
+      }
+      hold.timeMarker = document.createElement('span');
+      hold.timeMarker.className = 'calendar-schedule-holding-time';
+      gutter.appendChild(hold.timeMarker);
+      hold.timeMarkerRow = row;
+    }
+    hold.timeMarker.textContent = formatEventTime(hold.clone.getAttribute('data-start') || hold.clone.start).replace(/(?:am|pm)$/i, '');
+  };
+  var queueScheduleHoldTimeUpdate = function queueScheduleHoldTimeUpdate(hold) {
+    if (!hold || hold !== scheduleItemHold) {
+      return;
+    }
+    if (hold.timeMarkerFrame) {
+      window.cancelAnimationFrame(hold.timeMarkerFrame);
+    }
+    hold.timeMarkerFrame = window.requestAnimationFrame(function () {
+      hold.timeMarkerFrame = null;
+      updateScheduleHoldTime(hold);
+    });
+  };
+  var finishScheduleNativeDrag = function finishScheduleNativeDrag(hold, clientX, clientY, commitVisualDrop) {
+    if (!hold || !hold.active || hold.nativeDragFinished) {
+      return;
+    }
+    hold.commitVisualDrop = Boolean(commitVisualDrop);
+    hold.finishingNativeDrag = true;
+    hold.nativeDragFinished = true;
+    document.dispatchEvent(new MouseEvent('mouseup', {
+      bubbles: true,
+      cancelable: true,
+      view: window,
+      button: 0,
+      buttons: 0,
+      clientX: clientX === undefined ? hold.lastX : clientX,
+      clientY: clientY === undefined ? hold.lastY : clientY
+    }));
+  };
+  var restoreUpdatedScheduleItem = function restoreUpdatedScheduleItem(item) {
+    var original = item && item.scheduleOriginalPosition;
+    if (!item || !original || !item.isConnected || !original.cell || !original.cell.isConnected) {
+      return;
+    }
+    Object.keys(original.attributes).forEach(function (attribute) {
+      var value = original.attributes[attribute];
+      if (value === null) {
+        item.removeAttribute(attribute);
+      } else {
+        item.setAttribute(attribute, value);
+      }
+    });
+    item.start = original.start;
+    item.end = original.end;
+    item.date = original.date;
+    item.weekday = original.weekday;
+    item.event.start = original.eventStart;
+    item.event.end = original.eventEnd;
+    item.event.date = original.eventDate;
+    item.event.weekday = original.eventWeekday;
+    if (original.eventOriginalDate === undefined) {
+      delete item.event.originalDate;
+    } else {
+      item.event.originalDate = original.eventOriginalDate;
+    }
+    if (original.eventOriginalStartTime === undefined) {
+      delete item.event.originalStartTime;
+    } else {
+      item.event.originalStartTime = original.eventOriginalStartTime;
+    }
+    original.cell.appendChild(item);
+    item.removeAttribute('updated-event');
+    delete item.scheduleOriginalPosition;
+  };
+  var getScheduleItemGuid = function getScheduleItemGuid(item) {
+    var event = getEventByScheduleItem(item);
+    return String(event && event.guid || item && (item.id || item.dataset.eventGuid) || '');
+  };
+  var removeDuplicateScheduleItems = function removeDuplicateScheduleItems(schedule, item) {
+    var guid = getScheduleItemGuid(item);
+    if (!schedule || !guid) {
+      return;
+    }
+    schedule.querySelectorAll('.lm-schedule-item').forEach(function (candidate) {
+      if (candidate !== item && getScheduleItemGuid(candidate) === guid) {
+        candidate.remove();
+      }
+    });
+  };
+  var applyScheduleVisualDrop = function applyScheduleVisualDrop(hold) {
+    if (!hold || !hold.commitVisualDrop || !hold.clone || !hold.item || !hold.item.event) {
+      return;
+    }
+    var target = hold.clone.parentElement;
+    if (!target || target.tagName !== 'TD' || !hold.schedule || !hold.schedule.contains(target)) {
+      return;
+    }
+    var wasMoved = target !== hold.originCell;
+    if (wasMoved && !hold.item.scheduleOriginalPosition) {
+      hold.item.scheduleOriginalPosition = {
+        cell: hold.originCell,
+        attributes: ['data-x', 'data-height', 'data-start', 'data-end'].reduce(function (attributes, attribute) {
+          attributes[attribute] = hold.item.getAttribute(attribute);
+          return attributes;
+        }, {}),
+        start: hold.item.start,
+        end: hold.item.end,
+        date: hold.item.date,
+        weekday: hold.item.weekday,
+        eventStart: hold.item.event.start,
+        eventEnd: hold.item.event.end,
+        eventDate: hold.item.event.date,
+        eventWeekday: hold.item.event.weekday,
+        visibleDate: hold.originCell.getAttribute('data-real-date') || hold.originCell.getAttribute('data-date'),
+        eventOriginalDate: hold.item.event.originalDate,
+        eventOriginalStartTime: hold.item.event.originalStartTime
+      };
+    }
+    var start = hold.clone.getAttribute('data-start') || hold.clone.start;
+    var end = hold.clone.getAttribute('data-end') || hold.clone.end;
+    var date = target.getAttribute('data-real-date') || target.getAttribute('data-date') || hold.clone.date;
+    var weekday = hold.clone.weekday;
+    ['data-x', 'data-height', 'data-start', 'data-end'].forEach(function (attribute) {
+      var value = hold.clone.getAttribute(attribute);
+      if (value === null) {
+        hold.item.removeAttribute(attribute);
+      } else {
+        hold.item.setAttribute(attribute, value);
+      }
+    });
+    hold.item.start = start;
+    hold.item.end = end;
+    hold.item.date = date;
+    hold.item.weekday = weekday;
+    if (hold.item.scheduleOriginalPosition) {
+      hold.item.event.originalDate = hold.item.event.originalDate || hold.item.scheduleOriginalPosition.visibleDate || hold.item.scheduleOriginalPosition.eventDate;
+      hold.item.event.originalStartTime = hold.item.event.originalStartTime || hold.item.scheduleOriginalPosition.eventStart;
+    }
+    hold.item.event.start = start;
+    hold.item.event.end = end;
+    if (date) {
+      hold.item.event.date = date;
+    }
+    if (weekday !== undefined) {
+      hold.item.event.weekday = weekday;
+    }
+    target.appendChild(hold.item);
+    removeDuplicateScheduleItems(hold.schedule, hold.item);
+    if (hold.item.scheduleOriginalPosition && target !== hold.item.scheduleOriginalPosition.cell) {
+      hold.item.setAttribute('updated-event', '');
+    } else {
+      hold.item.removeAttribute('updated-event');
+      delete hold.item.scheduleOriginalPosition;
+    }
+  };
+  var clearScheduleItemHold = function clearScheduleItemHold(pointerId) {
+    if (!scheduleItemHold || pointerId !== undefined && pointerId !== scheduleItemHold.pointerId) {
+      return;
+    }
+    finishScheduleNativeDrag(scheduleItemHold);
+    window.clearTimeout(scheduleItemHold.timer);
+    if (scheduleItemHold.active) {
+      scheduleHoldNavigationSuppressedUntil = Date.now() + 750;
+      var suppressedItem = scheduleItemHold.item;
+      suppressedScheduleItemClick = suppressedItem;
+      window.setTimeout(function () {
+        if (suppressedScheduleItemClick === suppressedItem) {
+          suppressedScheduleItemClick = null;
+        }
+      }, 0);
+    }
+    applyScheduleVisualDrop(scheduleItemHold);
+    removeScheduleHoldTime(scheduleItemHold);
+    scheduleItemHold.item.removeAttribute('original-event');
+    if (scheduleItemHold.clone) {
+      scheduleItemHold.clone.remove();
+    }
+    var schedule = scheduleItemHold.schedule || scheduleItemHold.item.closest('.lm-schedule');
+    if (schedule) {
+      schedule.querySelectorAll('.lm-schedule-item[holding-event]').forEach(function (item) {
+        item.remove();
+      });
+      schedule.style.removeProperty('cursor');
+      schedule.style.touchAction = scheduleItemHold.scheduleTouchAction || '';
+      schedule.style.overscrollBehavior = scheduleItemHold.scheduleOverscrollBehavior || '';
+      schedule.style.overflow = scheduleItemHold.scheduleOverflow || '';
+    }
+    if (typeof scheduleItemHold.item.releasePointerCapture === 'function' && typeof scheduleItemHold.item.hasPointerCapture === 'function' && scheduleItemHold.item.hasPointerCapture(scheduleItemHold.pointerId)) {
+      scheduleItemHold.item.releasePointerCapture(scheduleItemHold.pointerId);
+    }
+    var shouldPatchSchedule = scheduleItemHold.active;
+    scheduleItemHold = null;
+    if (shouldPatchSchedule && scheduleGridViews.includes(state.view)) {
+      queueSchedulePatch(calendar);
+    }
+  };
+  calendar.addEventListener('pointerdown', function (e) {
+    var item = e.target.closest('.lm-schedule-item');
+    if (!item || item.getAttribute('data-lesson-status') === 'canceled' || !scheduleGridViews.includes(state.view) || e.button !== 0 || !e.isPrimary) {
+      return;
+    }
+    clearScheduleItemHold();
+    scheduleItemHold = {
+      item: item,
+      originCell: item.parentElement,
+      pointerId: e.pointerId,
+      startX: e.clientX,
+      startY: e.clientY,
+      lastX: e.clientX,
+      lastY: e.clientY,
+      pointerType: e.pointerType,
+      active: false,
+      commitVisualDrop: false,
+      finishingNativeDrag: false,
+      nativeDragFinished: false,
+      clone: null,
+      timeMarker: null,
+      timeMarkerRow: null,
+      timeMarkerFrame: null,
+      schedule: null,
+      scheduleTouchAction: '',
+      scheduleOverscrollBehavior: '',
+      scheduleOverflow: '',
+      timer: window.setTimeout(function () {
+        if (!scheduleItemHold || scheduleItemHold.item !== item || !item.isConnected) {
+          return;
+        }
+        var clone = item.cloneNode(true);
+        var event = item.event;
+        var schedule = item.closest('.lm-schedule');
+        if (!event || !schedule) {
+          clearScheduleItemHold(e.pointerId);
+          return;
+        }
+        clone.removeAttribute('id');
+        clone.setAttribute('holding-event', '');
+        clone.setAttribute('aria-hidden', 'true');
+        clone.event = event;
+        clone.date = item.date || event.date;
+        clone.weekday = item.weekday !== undefined ? item.weekday : event.weekday;
+        clone.start = item.start || event.start;
+        clone.end = item.end || event.end;
+        disconnectScheduleObserver();
+        if (state.schedulePatchFrame) {
+          window.cancelAnimationFrame(state.schedulePatchFrame);
+          state.schedulePatchFrame = null;
+        }
+        item.setAttribute('original-event', '');
+        item.parentElement.appendChild(clone);
+        scheduleItemHold.active = true;
+        scheduleItemHold.clone = clone;
+        scheduleItemHold.schedule = schedule;
+        scheduleItemHold.scheduleTouchAction = schedule.style.touchAction;
+        scheduleItemHold.scheduleOverscrollBehavior = schedule.style.overscrollBehavior;
+        scheduleItemHold.scheduleOverflow = schedule.style.overflow;
+        scheduleHoldNavigationSuppressedUntil = Number.POSITIVE_INFINITY;
+        schedule.style.cursor = 'move';
+        schedule.style.touchAction = 'none';
+        schedule.style.overscrollBehavior = 'none';
+        schedule.style.overflow = 'hidden';
+        if (typeof item.setPointerCapture === 'function') {
+          item.setPointerCapture(e.pointerId);
+        }
+        clone.dispatchEvent(new MouseEvent('mousedown', {
+          bubbles: true,
+          cancelable: true,
+          view: window,
+          button: 0,
+          buttons: 1,
+          clientX: e.clientX,
+          clientY: e.clientY
+        }));
+        queueScheduleHoldTimeUpdate(scheduleItemHold);
+      }, 600)
+    };
+  });
+  calendar.addEventListener('pointermove', function (e) {
+    if (!scheduleItemHold || scheduleItemHold.pointerId !== e.pointerId) {
+      return;
+    }
+    scheduleItemHold.lastX = e.clientX;
+    scheduleItemHold.lastY = e.clientY;
+    if (scheduleItemHold.active) {
+      e.preventDefault();
+      if (scheduleItemHold.pointerType !== 'mouse') {
+        document.dispatchEvent(new MouseEvent('mousemove', {
+          bubbles: true,
+          cancelable: true,
+          view: window,
+          button: 0,
+          buttons: 1,
+          clientX: e.clientX,
+          clientY: e.clientY
+        }));
+      }
+      queueScheduleHoldTimeUpdate(scheduleItemHold);
+      return;
+    }
+    if (Math.abs(e.clientX - scheduleItemHold.startX) > 8 || Math.abs(e.clientY - scheduleItemHold.startY) > 8) {
+      clearScheduleItemHold(e.pointerId);
+    }
+  }, {
+    passive: false
+  });
+  document.addEventListener('pointerup', function (e) {
+    if (scheduleItemHold && scheduleItemHold.pointerId === e.pointerId && scheduleItemHold.active && scheduleItemHold.pointerType !== 'mouse') {
+      e.preventDefault();
+      finishScheduleNativeDrag(scheduleItemHold, e.clientX, e.clientY, true);
+      return;
+    }
+    if (!scheduleItemHold || scheduleItemHold.pointerId !== e.pointerId || !scheduleItemHold.active) {
+      clearScheduleItemHold(e.pointerId);
+    }
+  }, {
+    passive: false
+  });
+  document.addEventListener('mouseup', function () {
+    if (scheduleItemHold && scheduleItemHold.active) {
+      if (!scheduleItemHold.finishingNativeDrag) {
+        scheduleItemHold.commitVisualDrop = true;
+      }
+      scheduleItemHold.finishingNativeDrag = false;
+      scheduleItemHold.nativeDragFinished = true;
+      window.setTimeout(function () {
+        clearScheduleItemHold();
+      }, 0);
+    }
+  });
+  document.addEventListener('pointercancel', function (e) {
+    if (scheduleItemHold && scheduleItemHold.pointerId === e.pointerId && scheduleItemHold.active && scheduleItemHold.pointerType !== 'mouse') {
+      finishScheduleNativeDrag(scheduleItemHold, e.clientX, e.clientY);
+    }
+    clearScheduleItemHold(e.pointerId);
+  });
+  window.addEventListener('blur', function () {
+    clearScheduleItemHold();
+  });
+  calendar.addEventListener('click', function (e) {
+    if (isScheduleHoldNavigationSuppressed()) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      return;
+    }
+    var day = e.target.closest('.lm-schedule tbody td[data-date]');
+    if (!day || !['2-days', 'week'].includes(state.view) || e.target.closest('.lm-schedule-item')) {
+      return;
+    }
+    setSelectedDate(parseDateString(day.dataset.realDate || day.dataset.date));
+    state.view = 'day';
+    _render();
+  });
+  calendar.addEventListener('click', function (e) {
+    var item = e.target.closest('.lm-schedule-item, .calendar-month-event, .calendar-schedule-event, .calendar-schedule-break, .calendar-schedule-recital');
+    if (!item || item.classList.contains('calendar-month-event-holiday') || item.classList.contains('calendar-schedule-event-holiday')) {
+      return;
+    }
+    if (item.hasAttribute('holding-event')) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    if (item.classList.contains('lm-schedule-item') && suppressedScheduleItemClick === item) {
+      suppressedScheduleItemClick = null;
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    e.preventDefault();
+    e.stopPropagation();
+    var event = item.classList.contains('lm-schedule-item') ? getEventByScheduleItem(item) : getEventByGuid(item.id || item.dataset.eventGuid);
+    var updatedItem = item.hasAttribute('updated-event') ? item : null;
+    if (event && event.isBreak) {
+      openTeachingBreakModal(event);
+      return;
+    }
+    if (event && event.isRecital) {
+      openRecitalModal(event);
+      return;
+    }
+    if (event && event.isGeneralEvent) {
+      openGeneralEventModal(event, {
+        openReschedule: Boolean(updatedItem),
+        updatedItem: updatedItem
+      });
+      return;
+    }
+    openLessonModal(event, {
+      openReschedule: Boolean(updatedItem),
+      updatedItem: updatedItem
+    });
+  });
+  var monthDayEventsModal = document.getElementById('month-day-events-modal');
+  if (monthDayEventsModal) {
+    monthDayEventsModal.addEventListener('click', function (e) {
+      var item = e.target.closest('.calendar-month-event, .calendar-schedule-break, .calendar-schedule-recital');
+      if (!item || item.classList.contains('calendar-month-event-holiday')) {
+        return;
+      }
+      e.preventDefault();
+      e.stopPropagation();
+      var event = getEventByGuid(item.dataset.eventGuid);
+      if (!event) {
+        return;
+      }
+      hideBootstrapModal(monthDayEventsModal);
+      if (event.isBreak) {
+        openTeachingBreakModal(event);
+        return;
+      }
+      if (event.isRecital) {
+        openRecitalModal(event);
+        return;
+      }
+      if (event.isGeneralEvent) {
+        openGeneralEventModal(event);
+        return;
+      }
+      openLessonModal(event);
+    });
+  }
+  renderLocationFilters();
+  syncEventTypeFilterState();
+  _render();
+  var stopSchedulePointerClock = function stopSchedulePointerClock() {
+    if (state.schedulePointerTimer) {
+      window.clearTimeout(state.schedulePointerTimer);
+      state.schedulePointerTimer = null;
+    }
+  };
+  var _updateSchedulePointerClock = function updateSchedulePointerClock() {
+    stopSchedulePointerClock();
+    if (document.hidden) {
+      return;
+    }
+    if (scheduleGridViews.includes(state.view)) {
+      patchSchedulePointer(calendar);
+    }
+    var nextSecondDelay = Math.max(50, 1000 - Date.now() % 1000);
+    state.schedulePointerTimer = window.setTimeout(_updateSchedulePointerClock, nextSecondDelay);
+  };
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) {
+      stopSchedulePointerClock();
+      return;
+    }
+    _updateSchedulePointerClock();
+  });
+  _updateSchedulePointerClock();
+});
+/******/ })()
+;
