@@ -46,10 +46,10 @@ class Event extends BaseModel
             'users' => 'Meeting',
             'masks-theater' => 'Theater',
             'ticket' => 'Concert',
+            'film' => 'Cinema',
             'dumbbell' => 'Gymn',
-            'briefcase-medical' => 'Doctor',
-            'utensils' => 'Restaurant',
-            'scissors' => 'Haircut'
+            'scissors' => 'Haircut',
+            'briefcase-medical' => 'Doctor'
         ];
     }
 
