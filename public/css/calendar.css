@@ -32527,10 +32527,10 @@ button.single-lesson-plan-create[selected] i {
   flex-direction: column;
   justify-content: normal;
   overflow: hidden;
+  touch-action: none;
   transition: 0.2s;
 }
 #calendar .lm-schedule-item[holding-event] {
-  transition: 0.2s;
   transform: scale(1.08);
   border-radius: 0;
 }

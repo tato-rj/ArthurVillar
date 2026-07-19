@@ -4502,9 +4502,15 @@ document.addEventListener('DOMContentLoaded', function () {
     if (scheduleItemHold.clone) {
       scheduleItemHold.clone.remove();
     }
-    var schedule = scheduleItemHold.item.closest('.lm-schedule');
+    var schedule = scheduleItemHold.schedule || scheduleItemHold.item.closest('.lm-schedule');
     if (schedule) {
       schedule.style.removeProperty('cursor');
+      schedule.style.touchAction = scheduleItemHold.scheduleTouchAction || '';
+      schedule.style.overscrollBehavior = scheduleItemHold.scheduleOverscrollBehavior || '';
+      schedule.style.overflow = scheduleItemHold.scheduleOverflow || '';
+    }
+    if (typeof scheduleItemHold.item.releasePointerCapture === 'function' && typeof scheduleItemHold.item.hasPointerCapture === 'function' && scheduleItemHold.item.hasPointerCapture(scheduleItemHold.pointerId)) {
+      scheduleItemHold.item.releasePointerCapture(scheduleItemHold.pointerId);
     }
     scheduleItemHold = null;
   };
@@ -4519,8 +4525,13 @@ document.addEventListener('DOMContentLoaded', function () {
       pointerId: e.pointerId,
       startX: e.clientX,
       startY: e.clientY,
+      pointerType: e.pointerType,
       active: false,
       clone: null,
+      schedule: null,
+      scheduleTouchAction: '',
+      scheduleOverscrollBehavior: '',
+      scheduleOverflow: '',
       timer: window.setTimeout(function () {
         if (!scheduleItemHold || scheduleItemHold.item !== item || !item.isConnected) {
           return;
@@ -4544,8 +4555,18 @@ document.addEventListener('DOMContentLoaded', function () {
         item.parentElement.appendChild(clone);
         scheduleItemHold.active = true;
         scheduleItemHold.clone = clone;
+        scheduleItemHold.schedule = schedule;
+        scheduleItemHold.scheduleTouchAction = schedule.style.touchAction;
+        scheduleItemHold.scheduleOverscrollBehavior = schedule.style.overscrollBehavior;
+        scheduleItemHold.scheduleOverflow = schedule.style.overflow;
         scheduleHoldNavigationSuppressedUntil = Number.POSITIVE_INFINITY;
         schedule.style.cursor = 'move';
+        schedule.style.touchAction = 'none';
+        schedule.style.overscrollBehavior = 'none';
+        schedule.style.overflow = 'hidden';
+        if (typeof item.setPointerCapture === 'function') {
+          item.setPointerCapture(e.pointerId);
+        }
         clone.dispatchEvent(new MouseEvent('mousedown', {
           bubbles: true,
           cancelable: true,
@@ -4559,17 +4580,49 @@ document.addEventListener('DOMContentLoaded', function () {
     };
   });
   calendar.addEventListener('pointermove', function (e) {
-    if (!scheduleItemHold || scheduleItemHold.pointerId !== e.pointerId || scheduleItemHold.active) {
+    if (!scheduleItemHold || scheduleItemHold.pointerId !== e.pointerId) {
+      return;
+    }
+    if (scheduleItemHold.active) {
+      e.preventDefault();
+      if (scheduleItemHold.pointerType !== 'mouse') {
+        document.dispatchEvent(new MouseEvent('mousemove', {
+          bubbles: true,
+          cancelable: true,
+          view: window,
+          button: 0,
+          buttons: 1,
+          clientX: e.clientX,
+          clientY: e.clientY
+        }));
+      }
       return;
     }
     if (Math.abs(e.clientX - scheduleItemHold.startX) > 8 || Math.abs(e.clientY - scheduleItemHold.startY) > 8) {
       clearScheduleItemHold(e.pointerId);
     }
+  }, {
+    passive: false
   });
   document.addEventListener('pointerup', function (e) {
+    if (scheduleItemHold && scheduleItemHold.pointerId === e.pointerId && scheduleItemHold.active && scheduleItemHold.pointerType !== 'mouse') {
+      e.preventDefault();
+      document.dispatchEvent(new MouseEvent('mouseup', {
+        bubbles: true,
+        cancelable: true,
+        view: window,
+        button: 0,
+        buttons: 0,
+        clientX: e.clientX,
+        clientY: e.clientY
+      }));
+      return;
+    }
     if (!scheduleItemHold || scheduleItemHold.pointerId !== e.pointerId || !scheduleItemHold.active) {
       clearScheduleItemHold(e.pointerId);
     }
+  }, {
+    passive: false
   });
   document.addEventListener('mouseup', function () {
     if (scheduleItemHold && scheduleItemHold.active) {
@@ -4579,6 +4632,17 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
   document.addEventListener('pointercancel', function (e) {
+    if (scheduleItemHold && scheduleItemHold.pointerId === e.pointerId && scheduleItemHold.active && scheduleItemHold.pointerType !== 'mouse') {
+      document.dispatchEvent(new MouseEvent('mouseup', {
+        bubbles: true,
+        cancelable: true,
+        view: window,
+        button: 0,
+        buttons: 0,
+        clientX: e.clientX,
+        clientY: e.clientY
+      }));
+    }
     clearScheduleItemHold(e.pointerId);
   });
   window.addEventListener('blur', function () {

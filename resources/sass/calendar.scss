@@ -1274,6 +1274,7 @@ button.single-lesson-plan-create[selected] i {
     flex-direction: column;
     justify-content: normal;
     overflow: hidden;
+    touch-action: none;
     transition: .2s;
 
     &[holding-event] {
