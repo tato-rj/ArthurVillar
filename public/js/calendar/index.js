@@ -61,7 +61,7 @@ var dayFormatter = new Intl.DateTimeFormat('en', {
 var weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 var monthWeekdays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 var calendarViews = ['schedule', 'day', '2-days', 'week', 'month'];
-var scheduleStart = '08:00';
+var scheduleStart = '07:00';
 var scheduleEnd = '22:00';
 var sidebarHiddenQuery = '(max-width: 1000px)';
 var dayMilliseconds = 24 * 60 * 60 * 1000;
@@ -384,7 +384,10 @@ var formatScheduleHour = function formatScheduleHour(value) {
 };
 var patchScheduleTimeLabels = function patchScheduleTimeLabels(calendar) {
   calendar.querySelectorAll('.lm-schedule-index').forEach(function (label) {
-    label.textContent = formatScheduleHour(label.textContent);
+    var time = label.dataset.scheduleTime || label.textContent;
+    label.dataset.scheduleTime = time;
+    label.textContent = getTimeMinutes(time) === getTimeMinutes(scheduleStart) ? '' : formatScheduleHour(time);
+    label.setAttribute('aria-hidden', getTimeMinutes(time) === getTimeMinutes(scheduleStart) ? 'true' : 'false');
   });
 };
 var getTimeMinutes = function getTimeMinutes(value) {
