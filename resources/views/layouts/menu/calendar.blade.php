@@ -15,9 +15,16 @@
           'calendar.lesson-plans.index' => 'Recurring',
           'calendar.single-lesson-plans.index' => 'Single',
           'calendar.lessons.index' => 'Confirmed',
+          'calendar.lessons.canceled' => 'Canceled',
       ],
     ],
-    'calendar.events.index' => 'Events',
+    [
+      'label' => 'Events',
+      'children' => [
+          'calendar.events.index' => 'Scheduled',
+          'calendar.events.canceled' => 'Canceled',
+      ],
+    ],
     'calendar.waiting-list.index' => 'Waiting list*',
     'calendar.recitals.index' => 'Recitals',
     [

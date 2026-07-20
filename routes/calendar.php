@@ -170,12 +170,14 @@ Route::prefix('expenses')->name('expenses.')->group(function() {
 
 Route::prefix('events')->name('events.')->group(function() {
 	Route::get('', 'EventsController@index')->name('index');
+	Route::get('canceled', 'EventsController@canceled')->name('canceled');
 
 	Route::post('', 'EventsController@store')->name('store');
 
 	Route::prefix('{event}')->group(function() {
 		Route::get('edit', 'EventsController@edit')->name('edit');
 		Route::patch('reschedule', 'EventsController@reschedule')->name('reschedule');
+		Route::post('revert', 'EventsController@revert')->name('revert');
 
 		Route::patch('', 'EventsController@update')->name('update');
 
@@ -185,6 +187,7 @@ Route::prefix('events')->name('events.')->group(function() {
 
 Route::prefix('lessons')->name('lessons.')->group(function() {
 	Route::get('', 'LessonsController@index')->name('index');
+	Route::get('canceled', 'LessonsController@canceled')->name('canceled');
 
 	Route::get('students/{student}', 'LessonsController@student')->name('student');
 
@@ -210,8 +213,10 @@ Route::prefix('tables')->name('tables.')->group(function() {
 	Route::get('breaks', 'TablesController@breaks')->name('breaks');
 	Route::get('expenses', 'TablesController@expenses')->name('expenses');
 	Route::get('events', 'TablesController@events')->name('events');
+	Route::get('canceled-events', 'TablesController@canceledEvents')->name('canceled-events');
 	Route::get('lesson-plans', 'TablesController@lessonPlans')->name('lesson-plans');
 	Route::get('lessons', 'TablesController@lessons')->name('lessons');
+	Route::get('canceled-lessons', 'TablesController@canceledLessons')->name('canceled-lessons');
 	Route::get('locations', 'TablesController@locations')->name('locations');
 	Route::get('recitals', 'TablesController@recitals')->name('recitals');
 	Route::get('venues', 'TablesController@venues')->name('venues');

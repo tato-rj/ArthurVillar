@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use Tests\BaseTest;
-use App\Models\Calendar\{SingleLessonPlan, Student};
+use App\Models\Calendar\{Lesson, SingleLessonPlan, Student};
 
 class SingleLessonPlansTableTest extends BaseTest
 {
@@ -26,6 +26,32 @@ class SingleLessonPlansTableTest extends BaseTest
             ->assertOk();
 
         $this->assertSame(['Single Lesson'], collect($response->json('data'))->pluck('student')->all());
+    }
+
+    /** @test */
+    public function it_excludes_canceled_single_lessons()
+    {
+        $student = Student::factory()->create([
+            'first_name' => 'Canceled',
+            'last_name' => 'Single',
+        ]);
+        $singleLessonPlan = SingleLessonPlan::factory()->student($student)->create([
+            'scheduled_date' => '2026-07-15',
+            'start_time' => '16:00',
+        ]);
+        Lesson::factory()->create([
+            'student_id' => $student->id,
+            'lesson_plan_id' => null,
+            'scheduled_date' => '2026-07-15',
+            'scheduled_start_time' => '16:00',
+            'canceled_at' => '2026-07-10 12:00:00',
+        ]);
+
+        $this->signIn();
+
+        $this->getJson(route('calendar.tables.single-lesson-plans', $this->singleLessonPlanTableRequest()))
+            ->assertOk()
+            ->assertJsonMissing(['id' => $singleLessonPlan->id]);
     }
 
     private function singleLessonPlanTableColumns(): array

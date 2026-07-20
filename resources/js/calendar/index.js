@@ -70,6 +70,7 @@ const sidebarHiddenQuery = '(max-width: 1000px)';
 const dayMilliseconds = 24 * 60 * 60 * 1000;
 
 const scheduleGridViews = ['day', '2-days', 'week'];
+const calendarEventTypes = ['recurring', 'single', 'general', 'canceled'];
 
 const createLocalDate = function(year, month, day) {
     return new Date(year, month, day, 12, 0, 0, 0);
@@ -143,10 +144,22 @@ const getUrlState = function() {
     const requestedView = params.get('view');
     const view = requestedView === '3-days' ? '2-days' : requestedView;
     const date = params.get('date');
+    const eventTypes = params.has('event_types')
+        ? params.get('event_types').split(',').filter(function(type, index, types) {
+            return calendarEventTypes.includes(type) && types.indexOf(type) === index;
+        })
+        : null;
+    const locationIds = params.has('location_ids')
+        ? params.get('location_ids').split(',').map(normalizeLocationId).filter(function(id, index, ids) {
+            return id && ids.indexOf(id) === index;
+        })
+        : null;
 
     return {
         view: calendarViews.includes(view) ? view : getDefaultCalendarView(),
         date: parseUrlDate(date),
+        eventTypes,
+        locationIds,
     };
 };
 
@@ -155,9 +168,13 @@ const updateCalendarUrl = function() {
 
     url.searchParams.set('view', state.view);
     url.searchParams.set('date', toDateString(state.date));
+    url.searchParams.set('event_types', state.selectedEventTypes.join(','));
+    url.searchParams.set('location_ids', state.selectedLocationIds.join(','));
     window.history.replaceState({
         calendarView: state.view,
         calendarDate: toDateString(state.date),
+        calendarEventTypes: state.selectedEventTypes.slice(),
+        calendarLocationIds: state.selectedLocationIds.slice(),
     }, '', url);
 };
 
@@ -1353,6 +1370,7 @@ const getRecitalEventByGuid = function(guid) {
 
 const getGeneralEvent = function(generalEvent) {
     const dateString = String(generalEvent.scheduled_date || '').substring(0, 10);
+    const status = generalEvent.canceled_at ? 'canceled' : 'general-event';
 
     return {
         guid: `general-event-${generalEvent.id}-${dateString}`,
@@ -1368,15 +1386,21 @@ const getGeneralEvent = function(generalEvent) {
         notificationMinutesBefore: generalEvent.notification_minutes_before,
         editUrl: generalEvent.edit_url || '',
         rescheduleUrl: generalEvent.reschedule_url || '',
+        revertUrl: generalEvent.revert_url || '',
         destroyUrl: generalEvent.destroy_url || '',
-        calendarStatus: 'general-event',
-        lessonStatus: 'general-event',
-        'data-lesson-status': 'general-event',
+        calendarStatus: status,
+        lessonStatus: status,
+        'data-lesson-status': status,
     };
 };
 
 const getGeneralEventCalendarEvents = function() {
     return state.generalEvents
+        .filter(function(generalEvent) {
+            return generalEvent.canceled_at
+                ? state.selectedEventTypes.includes('canceled')
+                : state.selectedEventTypes.includes('general');
+        })
         .filter(generalEventMatchesCalendarSearch)
         .map(getGeneralEvent);
 };
@@ -2304,11 +2328,14 @@ const openGeneralEventModal = function(event, options) {
     const notes = modal.querySelector('#general-event-notes');
     const notesSection = modal.querySelector('[data-general-event-notes-section]');
     const edit = modal.querySelector('#event-edit');
+    const revert = modal.querySelector('#event-revert');
+    const controls = modal.querySelector('#general-event-controls');
     const rescheduleForm = modal.querySelector('#reschedule-general-event form');
     const cancelForm = modal.querySelector('#cancel-general-event form');
     const rescheduleDate = modal.querySelector('#reschedule-general-event-date');
     const rescheduleStartTime = modal.querySelector('#reschedule-general-event-start-time');
     const rescheduleEndTime = modal.querySelector('#reschedule-general-event-end-time');
+    const isCanceled = event.calendarStatus === 'canceled';
 
     resetGeneralEventModalState(modal);
     modal.updatedScheduleItem = settings.updatedItem || null;
@@ -2335,6 +2362,13 @@ const openGeneralEventModal = function(event, options) {
         edit.style.display = edit.dataset.url ? 'inline-flex' : 'none';
         edit.disabled = !edit.dataset.url;
     }
+    if (revert) {
+        revert.dataset.url = event.revertUrl || '';
+        revert.style.display = isCanceled && revert.dataset.url ? 'inline-flex' : 'none';
+        revert.disabled = !isCanceled || !revert.dataset.url;
+        restoreButtonLabel(revert);
+    }
+    if (controls) controls.style.display = isCanceled ? 'none' : '';
 
     modal.dataset.eventGuid = event.guid || '';
     modal.dataset.eventId = event.id || '';
@@ -2398,6 +2432,38 @@ const submitGeneralEventModalForm = function(form, refreshCalendar) {
         })
         .finally(function() {
             setFormSubmitting(form, false);
+        });
+};
+
+const revertGeneralEventAction = function(button, refreshCalendar) {
+    const modal = button ? button.closest('#general-event-modal') : null;
+    const url = button ? button.dataset.url : '';
+
+    if (!modal || !url) {
+        return;
+    }
+
+    button.disabled = true;
+    clearGeneralEventActionError(modal);
+
+    requestJson(url, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': window.calendarCsrfToken || '',
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+    }, 'Unable to revert event cancellation.')
+        .then(function() {
+            return refreshCalendar().then(function() {
+                hideBootstrapModal(modal);
+            });
+        })
+        .catch(function(error) {
+            console.error(error);
+            button.disabled = false;
+            restoreButtonLabel(button);
+            showGeneralEventActionError(modal, error.message);
         });
 };
 
@@ -3395,10 +3461,18 @@ const getFilteredPlannedLessons = function() {
         .filter(function(lesson) {
             const type = lesson.type === 'single-lesson-plan' ? 'single' : 'recurring';
 
-            return state.selectedEventTypes.includes(type);
+            return state.selectedEventTypes.includes(type) || state.selectedEventTypes.includes('canceled');
         })
         .filter(lessonMatchesStudentSearch)
         .filter(lessonMatchesLocationFilter);
+};
+
+const lessonOccurrenceMatchesEventTypeFilter = function(type, status) {
+    if (status === 'canceled') {
+        return state.selectedEventTypes.includes('canceled');
+    }
+
+    return state.selectedEventTypes.includes(type);
 };
 
 const getFirstOccurrenceDate = function(startsOn, weekday) {
@@ -3418,8 +3492,9 @@ const getPlannedLessonEvents = function(range) {
         if (Array.isArray(lesson.occurrences)) {
             lesson.occurrences.forEach(function(occurrence) {
                 const dateString = occurrence.date || '';
+                const lessonStatus = occurrence.lesson_status || 'unconfirmed';
 
-                if (!dateString) {
+                if (!dateString || !lessonOccurrenceMatchesEventTypeFilter(isSingleLessonPlan ? 'single' : 'recurring', lessonStatus)) {
                     return;
                 }
 
@@ -3441,9 +3516,9 @@ const getPlannedLessonEvents = function(range) {
                     isSingleLessonPlan,
                     originalDate: occurrence.original_date || dateString,
                     originalStartTime: occurrence.original_start_time || start,
-                    lessonStatus: occurrence.lesson_status || 'unconfirmed',
-                    calendarStatus: occurrence.calendar_status || occurrence.lesson_status || 'unconfirmed',
-                    'data-lesson-status': occurrence.calendar_status || occurrence.lesson_status || 'unconfirmed',
+                    lessonStatus,
+                    calendarStatus: occurrence.calendar_status || lessonStatus,
+                    'data-lesson-status': occurrence.calendar_status || lessonStatus,
                     feeAmount: occurrence.fee_amount || lesson.fee_amount || 0,
                     locationId: normalizeLocationId(lesson.location_id),
                     locationName: lesson.location && lesson.location.name ? lesson.location.name : '',
@@ -3500,6 +3575,11 @@ const getPlannedLessonEvents = function(range) {
             const confirmedLesson = getLessonForOccurrence(lesson, dateString, start);
             const lessonStatus = getLessonStatus(confirmedLesson);
 
+            if (!lessonOccurrenceMatchesEventTypeFilter('recurring', lessonStatus)) {
+                occurrence = addDays(occurrence, intervalDays);
+                continue;
+            }
+
             events.push({
                 title: getStudentName(lesson.student),
                 date: dateString,
@@ -3536,7 +3616,7 @@ const getPlannedLessonEvents = function(range) {
 };
 
 const syncCalendarEvents = function() {
-    const generalEvents = state.selectedEventTypes.includes('general') ? getGeneralEventCalendarEvents() : [];
+    const generalEvents = getGeneralEventCalendarEvents();
 
     state.events = normalizeScheduleEvents(state.customEvents)
         .concat(getPlannedLessonEvents(getCalendarEventRange()))
@@ -3617,9 +3697,9 @@ const createMonthEventElement = function(event, dateString) {
     time.className = 'calendar-month-event-time';
     title.className = 'calendar-month-event-title';
     item.dataset.eventGuid = event.guid || '';
-    item.dataset.lessonStatus = event.isHoliday ? 'holiday' : (event.isBreak ? 'teaching-break' : (event.isRecital ? 'recital' : (event.isGeneralEvent ? 'general-event' : (event.calendarStatus || event.lessonStatus || 'unconfirmed'))));
+    item.dataset.lessonStatus = event.isHoliday ? 'holiday' : (event.isBreak ? 'teaching-break' : (event.isRecital ? 'recital' : (event.calendarStatus || event.lessonStatus || (event.isGeneralEvent ? 'general-event' : 'unconfirmed'))));
     dot.dataset.eventGuid = event.guid || '';
-    dot.dataset.lessonStatus = event.isHoliday ? 'holiday' : (event.isBreak ? 'teaching-break' : (event.isRecital ? 'recital' : (event.isGeneralEvent ? 'general-event' : (event.calendarStatus || event.lessonStatus || 'unconfirmed'))));
+    dot.dataset.lessonStatus = event.isHoliday ? 'holiday' : (event.isBreak ? 'teaching-break' : (event.isRecital ? 'recital' : (event.calendarStatus || event.lessonStatus || (event.isGeneralEvent ? 'general-event' : 'unconfirmed'))));
     applyCalendarItemStatusAttributes(item, event, dateString);
     applyCalendarItemStatusAttributes(dot, event, dateString);
 
@@ -4004,7 +4084,7 @@ const renderScheduleAgenda = function(calendar) {
             title.className = 'calendar-schedule-event-title';
             renderEventTitle(title, event, 'No title');
             item.dataset.eventGuid = event.guid || '';
-            item.dataset.lessonStatus = event.isHoliday ? 'holiday' : (event.isBreak ? 'teaching-break' : (event.isRecital ? 'recital' : (event.isGeneralEvent ? 'general-event' : (event.calendarStatus || event.lessonStatus || 'unconfirmed'))));
+            item.dataset.lessonStatus = event.isHoliday ? 'holiday' : (event.isBreak ? 'teaching-break' : (event.isRecital ? 'recital' : (event.calendarStatus || event.lessonStatus || (event.isGeneralEvent ? 'general-event' : 'unconfirmed'))));
             applyCalendarItemStatusAttributes(item, event, dateString);
             applyEventOverlapAttribute(item, event);
 
@@ -4745,6 +4825,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const calendarCreateRecurring = document.querySelector('[data-calendar-create-recurring]');
     const calendarCreateEvent = document.querySelector('[data-calendar-create-event]');
     const calendarFilter = document.querySelector('.calendar-calendar-filter');
+    const calendarFilterReset = document.querySelector('[data-calendar-filter-reset]');
     let calendarCreateBackdrop = null;
 
     if (!calendar) {
@@ -4779,6 +4860,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const urlState = getUrlState();
     state.view = urlState.view;
+
+    if (urlState.eventTypes !== null) {
+        state.selectedEventTypes = urlState.eventTypes;
+    }
+
+    if (urlState.locationIds !== null) {
+        state.selectedLocationIds = urlState.locationIds;
+    }
 
     if (isValidDate(urlState.date)) {
         setSelectedDate(urlState.date);
@@ -4933,9 +5022,19 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        const eventTypeFilterIsActive = state.selectedEventTypes.length < 3;
+        const defaultEventTypes = ['recurring', 'single', 'general'];
+        const eventTypeFilterIsActive = state.selectedEventTypes.includes('canceled')
+            || defaultEventTypes.some(function(type) {
+                return !state.selectedEventTypes.includes(type);
+            });
 
-        calendarFilter.toggleAttribute('selected', Boolean(isLocationFilterActive() || eventTypeFilterIsActive));
+        const filterIsActive = Boolean(isLocationFilterActive() || eventTypeFilterIsActive);
+
+        calendarFilter.toggleAttribute('selected', filterIsActive);
+
+        if (calendarFilterReset) {
+            calendarFilterReset.disabled = !filterIsActive;
+        }
     };
 
     const syncLocationFilterState = function() {
@@ -4963,6 +5062,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 return input.value;
             });
         syncCalendarFilterSelectedState();
+    };
+
+    const resetCalendarFilters = function() {
+        if (locationFilters) {
+            locationFilters.querySelectorAll('input[data-calendar-location-filter]').forEach(function(input) {
+                input.checked = true;
+            });
+            syncLocationFilterState();
+        }
+
+        if (eventTypeFilters) {
+            eventTypeFilters.querySelectorAll('input[data-calendar-event-type-filter]').forEach(function(input) {
+                input.checked = ['recurring', 'single', 'general'].includes(input.value);
+            });
+            syncEventTypeFilterState();
+        }
+
+        render();
     };
 
     const renderLocationFilters = function() {
@@ -4995,7 +5112,8 @@ document.addEventListener('DOMContentLoaded', function() {
             input.className = 'form-check-input';
             input.id = id;
             input.value = location.id;
-            input.checked = true;
+            input.checked = urlState.locationIds === null
+                || state.selectedLocationIds.includes(normalizeLocationId(location.id));
             input.dataset.calendarLocationFilter = '';
 
             label.textContent = location.name || 'Location';
@@ -5433,6 +5551,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    if (calendarFilterReset) {
+        calendarFilterReset.addEventListener('click', resetCalendarFilters);
+    }
+
     if (calendarSearchToggle) {
         calendarSearchToggle.addEventListener('click', function(e) {
             e.preventDefault();
@@ -5639,6 +5761,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (generalEventModal) {
         const editButton = generalEventModal.querySelector('#event-edit');
+        const revertButton = generalEventModal.querySelector('#event-revert');
         const cancelButton = generalEventModal.querySelector('#cancel-general-event-button');
         const rescheduleButton = generalEventModal.querySelector('#reschedule-general-event-button');
         const rescheduleForm = generalEventModal.querySelector('#reschedule-general-event form');
@@ -5654,6 +5777,13 @@ document.addEventListener('DOMContentLoaded', function() {
             editButton.addEventListener('click', function(e) {
                 e.preventDefault();
                 loadCalendarEditModal(editButton, generalEventModal, calendarEditModalContainer);
+            });
+        }
+
+        if (revertButton) {
+            revertButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                revertGeneralEventAction(revertButton, refreshCalendarAfterLessonMutation);
             });
         }
 
@@ -6324,6 +6454,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     renderLocationFilters();
+
+    if (urlState.eventTypes !== null && eventTypeFilters) {
+        eventTypeFilters.querySelectorAll('input[data-calendar-event-type-filter]').forEach(function(input) {
+            input.checked = state.selectedEventTypes.includes(input.value);
+        });
+    }
+
     syncEventTypeFilterState();
     render();
 

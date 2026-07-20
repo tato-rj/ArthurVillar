@@ -24,6 +24,8 @@ class LessonPlan extends BaseModel
     protected $dates = [
         'starts_on',
         'ends_on',
+        'canceled_from',
+        'canceled_at',
     ];
 
     protected $appends = ['recurrence', 'status', 'weekdayName'];
@@ -360,6 +362,22 @@ class LessonPlan extends BaseModel
             ->delete();
 
         return $this;
+    }
+
+    public function cancelFrom($date)
+    {
+        $this->update([
+            'canceled_from' => Carbon::parse($date)->toDateString(),
+            'canceled_at' => now(),
+        ]);
+
+        return $this;
+    }
+
+    public function isCanceledOn($date): bool
+    {
+        return $this->canceled_from
+            && Carbon::parse($date)->startOfDay()->gte($this->canceled_from->copy()->startOfDay());
     }
 
     public function scopeOccurringBetween($query, $startDate, $endDate)

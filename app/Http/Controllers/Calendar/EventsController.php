@@ -14,6 +14,11 @@ class EventsController extends Controller
         return view('calendar.events.index');
     }
 
+    public function canceled()
+    {
+        return view('calendar.events.canceled');
+    }
+
     public function store(Request $request)
     {
         Event::create($this->eventAttributes($request));
@@ -60,7 +65,10 @@ class EventsController extends Controller
 
     public function destroy(Request $request, Event $event)
     {
-        $event->delete();
+        $event->update([
+            'canceled_at' => now(),
+            'notification_sent_at' => null,
+        ]);
 
         if ($request->expectsJson()) {
             return response()->json([
@@ -69,7 +77,21 @@ class EventsController extends Controller
             ]);
         }
 
-        return back()->with('success', 'The event was successfully deleted');
+        return back()->with('success', 'The event was successfully canceled');
+    }
+
+    public function revert(Request $request, Event $event)
+    {
+        $event->update(['canceled_at' => null]);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'The event cancellation was successfully reverted',
+                'event' => $event->fresh()->calendarPayload(),
+            ]);
+        }
+
+        return back()->with('success', 'The event cancellation was successfully reverted');
     }
 
     private function eventAttributes(Request $request): array

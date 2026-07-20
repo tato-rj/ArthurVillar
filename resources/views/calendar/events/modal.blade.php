@@ -1,6 +1,7 @@
 @modal(['title' => '', 'id' => 'general-event-modal', 'data' => ['general-event' => 'true']])
 @slot('headerButtons')
 <button id="event-edit" class="btn btn-raw mr-1" type="button">@fa(['icon' => 'pen'])</button>
+<button id="event-revert" class="btn btn-raw" type="button" style="display: none">@fa(['icon' => 'rotate-left', 'mr' => 0])</button>
 @endslot
 
 <div class="alert alert-danger small mb-3" data-general-event-action-error hidden></div>

@@ -73,6 +73,26 @@
     content: none;
 }
 
+.navbar-nav .nav-link[data-bs-toggle="collapse"] .fa-chevron-down {
+	display: inline-block;
+	transform: rotate(0deg);
+	transition: transform 180ms ease-in-out;
+	font-size: .6em;
+	vertical-align: middle;
+	opacity: .8;
+	margin-left: 4px;
+}
+
+.navbar-nav .nav-link[data-bs-toggle="collapse"][aria-expanded="true"] .fa-chevron-down {
+	transform: rotate(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.navbar-nav .nav-link[data-bs-toggle="collapse"] .fa-chevron-down {
+		transition: none;
+	}
+}
+
 ul.subdomains-select {
 	display: flex;
 	border-radius: .9rem;

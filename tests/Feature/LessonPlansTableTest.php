@@ -9,6 +9,25 @@ use App\Models\Calendar\{LessonPlan, Student};
 class LessonPlansTableTest extends BaseTest
 {
     /** @test */
+    public function it_excludes_canceled_recurring_plans()
+    {
+        $student = Student::factory()->create([
+            'first_name' => 'Canceled',
+            'last_name' => 'Recurring',
+        ]);
+        $lessonPlan = LessonPlan::factory()->student($student)->create([
+            'canceled_from' => '2026-07-15',
+            'canceled_at' => '2026-07-10 12:00:00',
+        ]);
+
+        $this->signIn();
+
+        $this->getJson(route('calendar.tables.lesson-plans', $this->lessonPlanTableRequest()))
+            ->assertOk()
+            ->assertJsonMissing(['id' => $lessonPlan->id]);
+    }
+
+    /** @test */
     public function it_sorts_lesson_plans_by_dynamic_status()
     {
         Carbon::setTestNow(Carbon::parse('2026-07-08 12:00:00'));

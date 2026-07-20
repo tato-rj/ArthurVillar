@@ -11,6 +11,7 @@ class Event extends BaseModel
 {
     protected $casts = [
         'scheduled_date' => 'date',
+        'canceled_at' => 'datetime',
         'notification_sent_at' => 'datetime',
     ];
 
@@ -80,11 +81,13 @@ class Event extends BaseModel
             'ends_at' => $this->ends_at,
             'notes' => $this->notes,
             'notification_minutes_before' => $this->notification_minutes_before,
+            'canceled_at' => $this->canceled_at?->toIso8601String(),
             'type' => 'general-event',
             'event_type' => $this->type,
             'event_type_icon' => array_search($this->type, static::typeOptions(), true) ?: null,
             'edit_url' => route('calendar.events.edit', $this),
             'reschedule_url' => route('calendar.events.reschedule', $this),
+            'revert_url' => route('calendar.events.revert', $this),
             'destroy_url' => route('calendar.events.destroy', $this),
         ];
     }

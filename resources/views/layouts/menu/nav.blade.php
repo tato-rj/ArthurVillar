@@ -45,7 +45,7 @@
                 aria-expanded="false"
                 aria-controls="{{ $collapseId }}"
             >
-                {{ str_replace('*', '', $item['label']) }}
+                {{ str_replace('*', '', $item['label']) }} @fa(['icon' => 'chevron-down', 'mr' => 0, 'fa_size' => 'xs'])
             </a>
 
             <ul
@@ -55,7 +55,7 @@
                 @foreach($item['children'] as $childRoute => $childLabel)
                     <li class="nav-item">
                         <a
-                            class="nav-link border-left border-lighter border-4 p-2"
+                            class="nav-link "
                             href="{{ route($childRoute) }}"
                         >
                             {{ $childLabel }}

@@ -23,6 +23,7 @@ class SendEventReminders extends Command
             ->with(['notificationUser.pushSubscriptions'])
             ->whereNotNull('notification_user_id')
             ->whereNotNull('notification_minutes_before')
+            ->whereNull('canceled_at')
             ->whereNull('notification_sent_at')
             ->orderBy('id')
             ->chunkById(100, function ($events) use ($now, &$sent) {

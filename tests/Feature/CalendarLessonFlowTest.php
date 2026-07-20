@@ -502,7 +502,7 @@ class CalendarLessonFlowTest extends BaseTest
     }
 
     /** @test */
-    public function canceling_a_single_lesson_plan_deletes_the_plan_without_a_cancel_reason()
+    public function canceling_a_single_lesson_plan_preserves_the_plan_and_records_the_cancellation()
     {
         $singleLessonPlan = SingleLessonPlan::factory()->create([
             'scheduled_date' => '2026-07-15',
@@ -526,12 +526,19 @@ class CalendarLessonFlowTest extends BaseTest
             ->assertRedirect(route('calendar.home'))
             ->assertSessionHas('success', 'The single lesson was successfully canceled');
 
-        $this->assertDatabaseMissing('single_lesson_plans', ['id' => $singleLessonPlan->id]);
-        $this->assertDatabaseCount('lessons', 0);
+        $this->assertDatabaseHas('single_lesson_plans', ['id' => $singleLessonPlan->id]);
+        $this->assertDatabaseHas('lessons', [
+            'student_id' => $singleLessonPlan->student_id,
+            'lesson_plan_id' => null,
+            'scheduled_start_time' => '15:30',
+        ]);
+        $lesson = Lesson::firstOrFail();
+        $this->assertSame('2026-07-15', $lesson->scheduled_date->toDateString());
+        $this->assertNotNull($lesson->canceled_at);
     }
 
     /** @test */
-    public function canceling_a_rescheduled_lesson_deletes_the_schedule_override()
+    public function canceling_a_rescheduled_lesson_preserves_the_schedule_override()
     {
         $lessonPlan = LessonPlan::factory()->create([
             'weekday' => 4,
@@ -560,7 +567,7 @@ class CalendarLessonFlowTest extends BaseTest
             'canceled_by' => 'teacher',
         ])->assertRedirect();
 
-        $this->assertDatabaseMissing('schedule_overrides', ['id' => $override->id]);
+        $this->assertDatabaseHas('schedule_overrides', ['id' => $override->id]);
         $lesson = Lesson::firstOrFail();
 
         $this->assertSame($lessonPlan->id, $lesson->lesson_plan_id);
@@ -570,7 +577,7 @@ class CalendarLessonFlowTest extends BaseTest
     }
 
     /** @test */
-    public function canceling_this_and_following_lessons_ends_the_lesson_plan_before_the_selected_occurrence()
+    public function canceling_this_and_following_lessons_preserves_the_plan_and_records_the_cancellation_start()
     {
         $lessonPlan = LessonPlan::factory()->create([
             'weekday' => 4,
@@ -606,13 +613,24 @@ class CalendarLessonFlowTest extends BaseTest
 
         $lessonPlan->refresh();
 
-        $this->assertSame('2026-07-08', $lessonPlan->ends_on->toDateString());
-        $this->assertDatabaseMissing('schedule_overrides', ['id' => $override->id]);
-        $this->assertDatabaseCount('lessons', 0);
+        $this->assertNull($lessonPlan->ends_on);
+        $this->assertSame('2026-07-15', $lessonPlan->canceled_from->toDateString());
+        $this->assertNotNull($lessonPlan->canceled_at);
+        $this->assertDatabaseHas('schedule_overrides', ['id' => $override->id]);
+        $this->assertDatabaseCount('lessons', 1);
+        $this->assertNotNull(Lesson::firstOrFail()->canceled_at);
+
+        $occurrences = app(Scheduler::class)->plannedLessons([
+            'start' => '2026-07-15',
+            'end' => '2026-07-29',
+        ])->first()['occurrences'];
+
+        $this->assertNotEmpty($occurrences);
+        $this->assertTrue(collect($occurrences)->every(fn ($occurrence) => $occurrence['lesson_status'] === 'canceled'));
     }
 
     /** @test */
-    public function canceling_all_lessons_deletes_the_lesson_plan()
+    public function canceling_all_lessons_preserves_the_lesson_plan()
     {
         $lessonPlan = LessonPlan::factory()->create([
             'weekday' => 4,
@@ -638,7 +656,10 @@ class CalendarLessonFlowTest extends BaseTest
             ->assertRedirect(route('calendar.home'))
             ->assertSessionHas('success', 'All lessons in this plan were successfully canceled');
 
-        $this->assertDatabaseMissing('lesson_plans', ['id' => $lessonPlan->id]);
+        $this->assertDatabaseHas('lesson_plans', ['id' => $lessonPlan->id]);
+        $lessonPlan->refresh();
+        $this->assertSame('2026-07-01', $lessonPlan->canceled_from->toDateString());
+        $this->assertNotNull($lessonPlan->canceled_at);
     }
 
     /** @test */

@@ -17309,7 +17309,7 @@ textarea.form-control-lg {
   border-color: rgba(var(--bs-danger-rgb), var(--bs-border-opacity)) !important;
 }
 
-.border-light, #calendar .lm-schedule-item[data-lesson-status=canceled], #calendar .calendar-month-event-dot[data-lesson-status=canceled], #calendar .calendar-schedule-event[data-lesson-status=canceled] {
+.border-light, #calendar .lm-schedule-item[data-lesson-status=canceled], #calendar .calendar-month-event[data-lesson-status=canceled], #calendar .calendar-month-event-dot[data-lesson-status=canceled], #calendar .calendar-schedule-event[data-lesson-status=canceled] {
   --bs-border-opacity: 1;
   border-color: rgba(var(--bs-light-rgb), var(--bs-border-opacity)) !important;
 }
@@ -18266,7 +18266,7 @@ textarea.form-control-lg {
   color: rgba(var(--bs-danger-rgb), var(--bs-text-opacity)) !important;
 }
 
-.text-light, #calendar .lm-schedule-item[data-lesson-status=canceled], #calendar .calendar-month-event-dot[data-lesson-status=canceled], #calendar .calendar-schedule-event[data-lesson-status=canceled] {
+.text-light, #calendar .lm-schedule-item[data-lesson-status=canceled], #calendar .calendar-month-event[data-lesson-status=canceled], #calendar .calendar-month-event-dot[data-lesson-status=canceled], #calendar .calendar-schedule-event[data-lesson-status=canceled] {
   --bs-text-opacity: 1;
   color: rgba(var(--bs-light-rgb), var(--bs-text-opacity)) !important;
 }
@@ -25363,7 +25363,7 @@ h1, .h1 {
 .text-dark, .btn-warning {
   color: #374151 !important;
 }
-.text-light, #calendar .lm-schedule-item[data-lesson-status=canceled], #calendar .calendar-month-event-dot[data-lesson-status=canceled], #calendar .calendar-schedule-event[data-lesson-status=canceled] {
+.text-light, #calendar .lm-schedule-item[data-lesson-status=canceled], #calendar .calendar-month-event[data-lesson-status=canceled], #calendar .calendar-month-event-dot[data-lesson-status=canceled], #calendar .calendar-schedule-event[data-lesson-status=canceled] {
   color: #b9bec7 !important;
 }
 .text-secondary {
@@ -29548,7 +29548,7 @@ h1, .h1 {
 .border-dark {
   border-color: #374151 !important;
 }
-.border-light, #calendar .lm-schedule-item[data-lesson-status=canceled], #calendar .calendar-month-event-dot[data-lesson-status=canceled], #calendar .calendar-schedule-event[data-lesson-status=canceled] {
+.border-light, #calendar .lm-schedule-item[data-lesson-status=canceled], #calendar .calendar-month-event[data-lesson-status=canceled], #calendar .calendar-month-event-dot[data-lesson-status=canceled], #calendar .calendar-schedule-event[data-lesson-status=canceled] {
   border-color: #b9bec7 !important;
 }
 .border-secondary {
@@ -30998,6 +30998,25 @@ input:checked + .slider:before {
   content: none;
 }
 
+.navbar-nav .nav-link[data-bs-toggle=collapse] .fa-chevron-down {
+  display: inline-block;
+  transform: rotate(0deg);
+  transition: transform 180ms ease-in-out;
+  font-size: 0.6em;
+  vertical-align: middle;
+  opacity: 0.8;
+  margin-left: 4px;
+}
+
+.navbar-nav .nav-link[data-bs-toggle=collapse][aria-expanded=true] .fa-chevron-down {
+  transform: rotate(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navbar-nav .nav-link[data-bs-toggle=collapse] .fa-chevron-down {
+    transition: none;
+  }
+}
 ul.subdomains-select {
   display: flex;
   border-radius: 0.9rem;
@@ -31657,17 +31676,6 @@ button.setting-undo:hover {
 
 .calendar-calendar-filter {
   flex: 0 0 auto;
-}
-
-.calendar-calendar-filter-toggle {
-  border-radius: 999px;
-  color: #5f6368;
-  transition: 0.2s;
-}
-
-.calendar-calendar-filter[selected] .calendar-calendar-filter-toggle {
-  background: #e8f0fe;
-  color: #0b57d0;
 }
 
 .calendar-calendar-filter-menu {
@@ -32623,7 +32631,7 @@ button.single-lesson-plan-create[selected] i {
   background: repeating-linear-gradient(45deg, rgb(from var(--calendar-paid-lesson-color, #58cc02) r g b/80%), rgb(from var(--calendar-paid-lesson-color, #58cc02) r g b/80%) 10px, var(--calendar-paid-lesson-color, #58cc02) 10px, var(--calendar-paid-lesson-color, #58cc02) 20px);
 }
 
-#calendar .lm-schedule-item[data-lesson-status=canceled], #calendar .calendar-month-event-dot[data-lesson-status=canceled], #calendar .calendar-schedule-event[data-lesson-status=canceled] {
+#calendar .lm-schedule-item[data-lesson-status=canceled], #calendar .calendar-month-event[data-lesson-status=canceled], #calendar .calendar-month-event-dot[data-lesson-status=canceled], #calendar .calendar-schedule-event[data-lesson-status=canceled] {
   background: var(--calendar-canceled-lesson-color, #ffffff);
   text-decoration: line-through;
   z-index: 0;
@@ -32708,11 +32716,11 @@ button.single-lesson-plan-create[selected] i {
   opacity: 0.6;
 }
 
-#lesson-revert {
+#lesson-revert, #event-revert {
   opacity: 0.6;
 }
 
-#lesson-revert:hover, #lesson-edit:hover, #event-edit:hover {
+#lesson-revert:hover, #event-revert:hover, #lesson-edit:hover, #event-edit:hover {
   opacity: 1;
 }
 

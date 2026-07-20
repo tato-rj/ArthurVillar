@@ -254,7 +254,7 @@ class SettingsTest extends BaseTest
     }
 
     /** @test */
-    public function canceled_lessons_follow_the_calendar_view_preference()
+    public function canceled_lessons_are_always_sent_to_the_calendar_for_client_side_filtering()
     {
         $student = Student::factory()->create();
         $lessonPlan = LessonPlan::factory()->student($student)->create([
@@ -278,12 +278,6 @@ class SettingsTest extends BaseTest
             'date' => '2026-07-08',
             'lesson_plans' => 1,
         ]);
-
-        $this->getJson($calendarUrl)
-            ->assertOk()
-            ->assertJsonCount(0, 'plannedLessons');
-
-        Settings::setValue('calendar.show_cancelled', true, Settings::TYPE_BOOLEAN);
 
         $this->getJson($calendarUrl)
             ->assertOk()

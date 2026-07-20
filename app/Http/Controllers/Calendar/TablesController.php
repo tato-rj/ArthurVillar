@@ -38,23 +38,50 @@ class TablesController extends Controller
 
     public function events()
     {
-        $events = Event::query()->select([
-            'id',
-            'name',
-            'scheduled_date',
-            'starts_at',
-            'ends_at',
-            'type',
-            'notes',
-        ]);
+        return $this->eventRows(false);
+    }
+
+    public function canceledEvents()
+    {
+        return $this->eventRows(true);
+    }
+
+    private function eventRows(bool $canceled)
+    {
+        $events = Event::query()
+            ->when($canceled, function ($query) {
+                $query->whereNotNull('canceled_at');
+            }, function ($query) {
+                $query->whereNull('canceled_at');
+            })
+            ->when($canceled && request('canceled_from'), function ($query) {
+                $query->whereDate('canceled_at', '>=', request('canceled_from'));
+            })
+            ->when($canceled && request('canceled_to'), function ($query) {
+                $query->whereDate('canceled_at', '<=', request('canceled_to'));
+            })
+            ->select([
+                'id',
+                'name',
+                'scheduled_date',
+                'starts_at',
+                'ends_at',
+                'type',
+                'notes',
+                'canceled_at',
+            ]);
 
         return DataTables::eloquent($events)
             ->editColumn('scheduled_date', function (Event $event) {
                 return $event->scheduled_date ? $event->scheduled_date->toDateString() : null;
             })
+            ->editColumn('canceled_at', function (Event $event) {
+                return $event->canceled_at?->toIso8601String();
+            })
             ->orderColumn('scheduled_date', 'scheduled_date $1')
             ->orderColumn('starts_at', 'starts_at $1')
             ->orderColumn('ends_at', 'ends_at $1')
+            ->orderColumn('canceled_at', 'canceled_at $1')
             ->toJson();
     }
 
@@ -154,6 +181,16 @@ class TablesController extends Controller
         $singleLessonPlans = SingleLessonPlan::query()
             ->join('students', 'students.id', '=', 'single_lesson_plans.student_id')
             ->leftJoin('locations', 'locations.id', '=', 'single_lesson_plans.location_id')
+            ->whereNotExists(function ($query) {
+                $query
+                    ->select(DB::raw(1))
+                    ->from('lessons as canceled_single_lessons')
+                    ->whereNull('canceled_single_lessons.lesson_plan_id')
+                    ->whereNotNull('canceled_single_lessons.canceled_at')
+                    ->whereColumn('canceled_single_lessons.student_id', 'single_lesson_plans.student_id')
+                    ->whereColumn('canceled_single_lessons.scheduled_start_time', 'single_lesson_plans.start_time')
+                    ->whereRaw('DATE(canceled_single_lessons.scheduled_date) = DATE(single_lesson_plans.scheduled_date)');
+            })
             ->when(request('scheduled_from'), function ($query, $date) {
                 $query->whereDate('single_lesson_plans.scheduled_date', '>=', $date);
             })
@@ -297,6 +334,7 @@ class TablesController extends Controller
         $lessonPlans = LessonPlan::query()
             ->join('students', 'students.id', '=', 'lesson_plans.student_id')
             ->leftJoin('locations', 'locations.id', '=', 'lesson_plans.location_id')
+            ->whereNull('lesson_plans.canceled_at')
             ->when(request('starts_from') || request('starts_to'), function ($query) {
                 $query->whereNotNull('lesson_plans.starts_on');
             })
@@ -635,6 +673,16 @@ class TablesController extends Controller
 
     public function lessons()
     {
+        return $this->lessonRows(false);
+    }
+
+    public function canceledLessons()
+    {
+        return $this->lessonRows(true);
+    }
+
+    private function lessonRows(bool $canceled)
+    {
         $driver = DB::connection()->getDriverName();
         $dateExpression = $driver === 'sqlite'
             ? "COALESCE(lessons.scheduled_date, date(lessons.starts_at))"
@@ -660,21 +708,35 @@ class TablesController extends Controller
         $studentExpression = $driver === 'sqlite'
             ? "students.first_name || ' ' || COALESCE(students.last_name, '')"
             : "CONCAT(students.first_name, ' ', COALESCE(students.last_name, ''))";
+        $lessonTypeExpression = "CASE WHEN lessons.lesson_plan_id IS NULL THEN 'Single' ELSE 'Recurring' END";
 
         $lessons = Lesson::query()
             ->join('students', 'students.id', '=', 'lessons.student_id')
-            ->whereNull('lessons.canceled_at')
+            ->when($canceled, function ($query) {
+                $query->whereNotNull('lessons.canceled_at');
+            }, function ($query) {
+                $query->whereNull('lessons.canceled_at');
+            })
             ->when(request('student_id'), function ($query, $studentId) {
                 $query->where('lessons.student_id', $studentId);
             })
-            ->when(request('paid_from'), function ($query, $date) {
+            ->when(! $canceled && request('paid_from'), function ($query) {
+                $date = request('paid_from');
                 $query->whereDate('lessons.paid_at', '>=', $date);
             })
-            ->when(request('paid_to'), function ($query, $date) {
+            ->when(! $canceled && request('paid_to'), function ($query) {
+                $date = request('paid_to');
                 $query->whereDate('lessons.paid_at', '<=', $date);
+            })
+            ->when($canceled && request('canceled_from'), function ($query) {
+                $query->whereDate('lessons.canceled_at', '>=', request('canceled_from'));
+            })
+            ->when($canceled && request('canceled_to'), function ($query) {
+                $query->whereDate('lessons.canceled_at', '<=', request('canceled_to'));
             })
             ->select([
                 'lessons.id',
+                'lessons.lesson_plan_id',
                 'lessons.starts_at',
                 'lessons.ends_at',
                 'lessons.fee_amount',
@@ -687,6 +749,7 @@ class TablesController extends Controller
                 DB::raw("$durationExpression as duration_minutes"),
                 DB::raw("$weekdayExpression as weekday"),
                 DB::raw("$weekdayOrderExpression as weekday_order"),
+                DB::raw("$lessonTypeExpression as lesson_type"),
             ]);
 
         return DataTables::eloquent($lessons)
@@ -711,8 +774,14 @@ class TablesController extends Controller
                     default => 'text-red',
                 };
             })
+            ->editColumn('canceled_at', function (Lesson $lesson) {
+                return $lesson->canceled_at?->toIso8601String();
+            })
             ->filterColumn('student', function ($query, $keyword) use ($studentExpression) {
                 $query->whereRaw("$studentExpression LIKE ?", ["%{$keyword}%"]);
+            })
+            ->filterColumn('lesson_type', function ($query, $keyword) use ($lessonTypeExpression) {
+                $query->whereRaw("$lessonTypeExpression LIKE ?", ["%{$keyword}%"]);
             })
             ->filterColumn('scheduled_date', function ($query, $keyword) use ($dateExpression, $driver) {
                 $formattedDate = $driver === 'sqlite'
@@ -789,12 +858,14 @@ class TablesController extends Controller
                 });
             })
             ->orderColumn('student', 'student $1')
+            ->orderColumn('lesson_type', 'lesson_plan_id $1')
             ->orderColumn('scheduled_date', "$dateExpression $1")
             ->orderColumn('weekday', 'weekday_order $1')
             ->orderColumn('start_time', "$timeExpression $1")
             ->orderColumn('duration_minutes', 'duration_minutes $1')
             ->orderColumn('fee_amount', 'fee_amount $1')
             ->orderColumn('payment', 'paid_at $1')
+            ->orderColumn('canceled_at', 'canceled_at $1')
             ->toJson();
     }
 

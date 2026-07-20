@@ -1,6 +1,6 @@
 {
     "/js/app.js": "/js/app.js?id=29ee8b16701365d192901cc01e55a5c3",
-    "/js/calendar/index.js": "/js/calendar/index.js?id=8b4625ffaa41abe04ec2085c97fd224c",
+    "/js/calendar/index.js": "/js/calendar/index.js?id=0ca852c078ec08f7c47d0710bb68f3d3",
     "/js/music/admin-soundeffects.js": "/js/music/admin-soundeffects.js?id=078dd575b198ee77f8c51c9ff1ebec36",
     "/js/music/intervalslab.js": "/js/music/intervalslab.js?id=224ebb9e18ddd8ca48988bfe3e1f7ccd",
     "/js/music/chordslab.js": "/js/music/chordslab.js?id=511291961d11faede2cbf6441e2271bf",
@@ -14,7 +14,7 @@
     "/js/music/memorywizard.js": "/js/music/memorywizard.js?id=4247a48ae8c11daaef9ecba8009a4ef1",
     "/js/music/openstaff.js": "/js/music/openstaff.js?id=667a708770051d22aaea99d433d534a3",
     "/js/music/beathero.js": "/js/music/beathero.js?id=1bc8714bb2c0ebc2702b2a4d7f5afdbf",
-    "/css/musicgames.css": "/css/musicgames.css?id=4d487efabc4f6083f4501cc53a75e34f",
+    "/css/musicgames.css": "/css/musicgames.css?id=6d7212582c84f20073b71aad5cdbde2d",
     "/fonts/vendor/@fortawesome/fontawesome-free/webfa-brands-400.woff2?c210719e60948b211a1260f79812efe5": "/fonts/vendor/@fortawesome/fontawesome-free/webfa-brands-400.woff2?c210719e60948b211a1260f79812efe5?id=552e767fb6056f7f34a4783c2933556e",
     "/fonts/vendor/@fortawesome/fontawesome-free/webfa-brands-400.ttf?1815e00441357e01619e5793e1caa78a": "/fonts/vendor/@fortawesome/fontawesome-free/webfa-brands-400.ttf?1815e00441357e01619e5793e1caa78a?id=7c8d1eaa468e8de72642d3fc43ee5ed2",
     "/fonts/vendor/@fortawesome/fontawesome-free/webfa-regular-400.woff2?89999bdf5d835c0120257222e5568fec": "/fonts/vendor/@fortawesome/fontawesome-free/webfa-regular-400.woff2?89999bdf5d835c0120257222e5568fec?id=25bde24dc00e5dce8f1bfa8164b3b7b1",
@@ -563,7 +563,7 @@
     "/images/vendor/flag-icons/flags/1x1/un.svg?61c437d90a5a5757d696234053f46a57": "/images/vendor/flag-icons/flags/1x1/un.svg?61c437d90a5a5757d696234053f46a57?id=beb2701ba8d645844586612fb9ee9518",
     "/images/vendor/flag-icons/flags/4x3/xk.svg?574f9c5bed5f12b51e1f0ae61759da3e": "/images/vendor/flag-icons/flags/4x3/xk.svg?574f9c5bed5f12b51e1f0ae61759da3e?id=13d6a7678c810b9e477d5a633c1afc80",
     "/images/vendor/flag-icons/flags/1x1/xk.svg?2e923b4cb7449d2571906aede00fee91": "/images/vendor/flag-icons/flags/1x1/xk.svg?2e923b4cb7449d2571906aede00fee91?id=bb93418fd2f1a062bd90eb8a13e4b0ee",
-    "/css/schedule.css": "/css/schedule.css?id=19aaf37c7230de22f2c4897d2c1a2814",
-    "/css/calendar.css": "/css/calendar.css?id=d533d0e4a94edd456815e00a17a02c14",
-    "/css/app.css": "/css/app.css?id=f4aa9597510a60041ea571b362dad703"
+    "/css/schedule.css": "/css/schedule.css?id=35854acb7777dc8a726274efdf2bf31e",
+    "/css/calendar.css": "/css/calendar.css?id=7d7992e4ff16aed8c948b260dae3fd99",
+    "/css/app.css": "/css/app.css?id=fd6ac12060ec0c5ef30b809a371927f5"
 }

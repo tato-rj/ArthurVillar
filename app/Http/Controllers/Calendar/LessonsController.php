@@ -21,6 +21,11 @@ class LessonsController extends Controller
         return view('calendar.lessons.index');
     }
 
+    public function canceled()
+    {
+        return view('calendar.lessons.canceled');
+    }
+
     public function student(Student $student)
     {
         $student->load('lessonPlans.location');
@@ -73,16 +78,21 @@ class LessonsController extends Controller
         ]);
 
         if ($request->filled('single_lesson_plan_id')) {
-            $data = $request->validate([
-                'single_lesson_plan_id' => ['required', 'exists:single_lesson_plans,id'],
-            ]);
+            $lesson = $this->lessonFromRequest($request, false);
+            $lesson['model']->cancel(null);
 
-            SingleLessonPlan::whereKey($data['single_lesson_plan_id'])->delete();
+            $payload = [
+                'lesson_id' => $lesson['model']->id,
+                'status' => $lesson['model']->paymentStatus(),
+                'canceled_by' => '',
+                'edit_url' => route('calendar.lessons.edit', $lesson['model']),
+                'payment_url' => $lesson['model']->paymentUrl,
+                'schedule_override_deleted' => false,
+                'single_lesson_plan_deleted' => false,
+            ];
 
             if ($request->wantsJson()) {
-                return response()->json([
-                    'single_lesson_plan_deleted' => true,
-                ]);
+                return response()->json($payload);
             }
 
             return back()->with('success', 'The single lesson was successfully canceled');
@@ -100,14 +110,17 @@ class LessonsController extends Controller
             $lessonPlan = LessonPlan::findOrFail($data['lesson_plan_id']);
             $cancelFrom = $data['scheduled_date'] ?? $data['date'];
 
-            DB::transaction(function () use ($lessonPlan, $cancelFrom) {
-                $lessonPlan->endBeforeOccurrence($cancelFrom);
+            DB::transaction(function () use ($request, $lessonPlan, $cancelFrom) {
+                $lesson = $this->lessonFromRequest($request, false);
+                $lesson['model']->cancel(null);
+                $lessonPlan->cancelFrom($cancelFrom);
             });
 
             if ($request->wantsJson()) {
                 return response()->json([
                     'lesson_plan_id' => $lessonPlan->id,
-                    'lesson_plan_ended' => true,
+                    'lesson_plan_ended' => false,
+                    'lesson_plan_canceled_from' => $lessonPlan->canceled_from->toDateString(),
                 ]);
             }
 
@@ -115,19 +128,26 @@ class LessonsController extends Controller
         }
 
         if ($data['cancelation_type'] === 'all') {
-            LessonPlan::whereKey($data['lesson_plan_id'])->delete();
+            $lessonPlan = LessonPlan::findOrFail($data['lesson_plan_id']);
+
+            DB::transaction(function () use ($request, $lessonPlan) {
+                $lesson = $this->lessonFromRequest($request, false);
+                $lesson['model']->cancel(null);
+                $lessonPlan->cancelFrom($lessonPlan->starts_on);
+            });
 
             if ($request->wantsJson()) {
                 return response()->json([
-                    'lesson_plan_id' => $data['lesson_plan_id'],
-                    'lesson_plan_deleted' => true,
+                    'lesson_plan_id' => $lessonPlan->id,
+                    'lesson_plan_deleted' => false,
+                    'lesson_plan_canceled_from' => $lessonPlan->canceled_from->toDateString(),
                 ]);
             }
 
             return back()->with('success', 'All lessons in this plan were successfully canceled');
         }
 
-        $lesson = $this->lessonFromRequest($request);
+        $lesson = $this->lessonFromRequest($request, false);
 
         $lesson['model']->cancel($data['canceled_by']);
 
@@ -214,7 +234,7 @@ class LessonsController extends Controller
         return response()->json($payload);
     }
 
-    private function lessonFromRequest(Request $request)
+    private function lessonFromRequest(Request $request, bool $deleteScheduleOverride = true)
     {
         $data = $request->validate([
             'lesson_plan_id' => ['nullable', 'required_without:single_lesson_plan_id', 'exists:lesson_plans,id'],
@@ -231,10 +251,10 @@ class LessonsController extends Controller
             return $this->singleLessonFromRequest($data);
         }
 
-        return $this->recurringLessonFromRequest($data);
+        return $this->recurringLessonFromRequest($data, $deleteScheduleOverride);
     }
 
-    private function recurringLessonFromRequest(array $data)
+    private function recurringLessonFromRequest(array $data, bool $deleteScheduleOverride = true)
     {
         $lessonPlan = LessonPlan::findOrFail($data['lesson_plan_id']);
         $startsAt = Carbon::createFromFormat('Y-m-d H:i', $data['date'].' '.$data['start']);
@@ -264,7 +284,7 @@ class LessonsController extends Controller
 
         $scheduleOverrideDeleted = false;
 
-        if (! empty($data['schedule_override_id'])) {
+        if ($deleteScheduleOverride && ! empty($data['schedule_override_id'])) {
             $scheduleOverrideDeleted = ScheduleOverride::where('lesson_plan_id', $lessonPlan->id)
                 ->whereKey($data['schedule_override_id'])
                 ->delete() > 0;

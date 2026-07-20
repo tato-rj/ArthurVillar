@@ -13,6 +13,7 @@ class DateRangeFilterTest extends BaseTest
 
         collect([
             [route('calendar.lessons.index'), 'lessons-paid-from', 'lessons-paid-to'],
+            [route('calendar.lessons.canceled'), 'canceled-lessons-from', 'canceled-lessons-to'],
             [route('calendar.lesson-plans.index'), 'lesson-plans-starts-from', 'lesson-plans-starts-to'],
             [route('calendar.single-lesson-plans.index'), 'single-lesson-plans-scheduled-from', 'single-lesson-plans-scheduled-to'],
         ])->each(function ($filter) {

@@ -33,7 +33,7 @@ class EventTest extends BaseTest
     }
 
     /** @test */
-    public function it_creates_updates_and_deletes_an_event()
+    public function it_creates_updates_and_cancels_an_event_without_deleting_it()
     {
         $this->signIn();
 
@@ -42,7 +42,7 @@ class EventTest extends BaseTest
             'scheduled_date' => '2026-08-15',
             'starts_at' => '18:30',
             'ends_at' => '20:00',
-            'type' => 'Restaurant',
+            'type' => 'Meeting',
             'notes' => 'Reservation details https://example.com/reservation',
         ])->assertRedirect();
 
@@ -68,7 +68,8 @@ class EventTest extends BaseTest
         $this->assertSame('2026-08-16', $event->fresh()->scheduled_date->toDateString());
 
         $this->delete(route('calendar.events.destroy', $event))->assertRedirect();
-        $this->assertDatabaseMissing('events', ['id' => $event->id]);
+        $this->assertDatabaseHas('events', ['id' => $event->id]);
+        $this->assertNotNull($event->fresh()->canceled_at);
     }
 
     /** @test */
@@ -178,7 +179,7 @@ class EventTest extends BaseTest
     }
 
     /** @test */
-    public function calendar_modal_can_cancel_an_event_with_json()
+    public function calendar_modal_can_cancel_and_revert_an_event_with_json()
     {
         $event = Event::factory()->create();
         $this->signIn();
@@ -187,13 +188,21 @@ class EventTest extends BaseTest
             ->assertOk()
             ->assertJsonPath('event_id', $event->id);
 
-        $this->assertDatabaseMissing('events', ['id' => $event->id]);
+        $this->assertDatabaseHas('events', ['id' => $event->id]);
+        $this->assertNotNull($event->fresh()->canceled_at);
+
+        $this->postJson(route('calendar.events.revert', $event))
+            ->assertOk()
+            ->assertJsonPath('event.id', $event->id)
+            ->assertJsonPath('event.canceled_at', null);
+
+        $this->assertNull($event->fresh()->canceled_at);
     }
 
     /** @test */
     public function it_serves_events_to_the_calendar_table()
     {
-        Event::factory()->create([
+        $activeEvent = Event::factory()->create([
             'name' => 'Dentist appointment',
             'scheduled_date' => '2026-09-10',
             'starts_at' => '10:00',
@@ -201,15 +210,71 @@ class EventTest extends BaseTest
             'type' => 'Doctor',
             'notes' => 'Bring insurance card',
         ]);
+        Event::factory()->create([
+            'name' => 'Canceled appointment',
+            'canceled_at' => '2026-09-01 12:00:00',
+        ]);
         $this->signIn();
 
-        $row = collect($this->getJson(route('calendar.tables.events'))->assertOk()->json('data'))
-            ->firstWhere('name', 'Dentist appointment');
+        $rows = collect($this->getJson(route('calendar.tables.events'))->assertOk()->json('data'));
+        $row = $rows->firstWhere('id', $activeEvent->id);
 
         $this->assertSame('2026-09-10', $row['scheduled_date']);
         $this->assertSame('10:00', substr($row['starts_at'], 0, 5));
         $this->assertSame('Doctor', $row['type']);
         $this->assertSame('Bring insurance card', $row['notes']);
+        $this->assertNull($rows->firstWhere('name', 'Canceled appointment'));
+    }
+
+    /** @test */
+    public function canceled_events_page_lists_only_canceled_events()
+    {
+        $canceledEvent = Event::factory()->create([
+            'name' => 'Canceled concert',
+            'type' => 'Concert',
+            'canceled_at' => '2026-09-10 12:00:00',
+        ]);
+        Event::factory()->create([
+            'name' => 'Scheduled concert',
+            'type' => 'Concert',
+            'canceled_at' => null,
+        ]);
+        $this->signIn();
+
+        $this->get(route('calendar.events.canceled'))
+            ->assertOk()
+            ->assertSee('Canceled Events')
+            ->assertSee(route('calendar.events.canceled'), false)
+            ->assertSee('canceled-events-table', false)
+            ->assertSee('js-revert-canceled-event', false)
+            ->assertSee('<th>Actions</th>', false);
+
+        $rows = collect($this->getJson(route('calendar.tables.canceled-events'))->assertOk()->json('data'));
+
+        $this->assertSame('Canceled concert', $rows->firstWhere('id', $canceledEvent->id)['name']);
+        $this->assertNull($rows->firstWhere('name', 'Scheduled concert'));
+    }
+
+    /** @test */
+    public function it_filters_canceled_events_by_cancellation_date()
+    {
+        Event::factory()->create([
+            'name' => 'Inside canceled range',
+            'canceled_at' => '2026-07-10 12:00:00',
+        ]);
+        Event::factory()->create([
+            'name' => 'Outside canceled range',
+            'canceled_at' => '2026-07-20 12:00:00',
+        ]);
+        $this->signIn();
+
+        $this->getJson(route('calendar.tables.canceled-events', [
+            'canceled_from' => '2026-07-01',
+            'canceled_to' => '2026-07-15',
+        ]))
+            ->assertOk()
+            ->assertJsonFragment(['name' => 'Inside canceled range'])
+            ->assertJsonMissing(['name' => 'Outside canceled range']);
     }
 
     /** @test */
@@ -241,7 +306,28 @@ class EventTest extends BaseTest
         $this->assertSame('users', $payload['generalEvents'][0]['event_type_icon']);
         $this->assertSame(120, $payload['generalEvents'][0]['notification_minutes_before']);
         $this->assertSame(route('calendar.events.edit', $payload['generalEvents'][0]['id']), $payload['generalEvents'][0]['edit_url']);
+        $this->assertSame(route('calendar.events.revert', $payload['generalEvents'][0]['id']), $payload['generalEvents'][0]['revert_url']);
         $this->assertSame('https://example.com/agenda', str($payload['generalEvents'][0]['notes'])->after('Agenda at ')->toString());
+    }
+
+    /** @test */
+    public function canceled_general_events_are_retained_and_sent_to_the_calendar_filter()
+    {
+        $this->signIn();
+        $event = Event::factory()->create([
+            'scheduled_date' => '2026-10-20',
+            'canceled_at' => now(),
+        ]);
+
+        $payload = app(Scheduler::class)->payload(request()->merge([
+            'range_start' => '2026-10-01',
+            'range_end' => '2026-10-31',
+        ]));
+
+        $this->assertDatabaseHas('events', ['id' => $event->id]);
+        $this->assertCount(1, $payload['generalEvents']);
+        $this->assertSame($event->id, $payload['generalEvents'][0]['id']);
+        $this->assertNotNull($payload['generalEvents'][0]['canceled_at']);
     }
 
     /** @test */
@@ -262,6 +348,7 @@ class EventTest extends BaseTest
             ->assertSee('data-general-event-type-section', false)
             ->assertSee('data-general-event-notes-section', false)
             ->assertSee('event-edit', false)
+            ->assertSee('event-revert', false)
             ->assertSee('lesson-edit', false)
             ->assertSee('calendar-edit-modal-container', false)
             ->assertSee('calendarLessonPlanEditUrlTemplate', false)
@@ -274,7 +361,10 @@ class EventTest extends BaseTest
             ->assertSee('General Event')
             ->assertSee('calendar-event-type-recurring', false)
             ->assertSee('calendar-event-type-single', false)
-            ->assertSee('calendar-event-type-general', false);
+            ->assertSee('calendar-event-type-general', false)
+            ->assertSee('calendar-event-type-canceled', false)
+            ->assertSee('for="calendar-event-type-canceled">Cancelations</label>', false)
+            ->assertSee('data-calendar-filter-reset', false);
     }
 
     /** @test */

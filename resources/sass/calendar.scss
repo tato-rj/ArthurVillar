@@ -353,22 +353,6 @@ button.setting-undo {
     flex: 0 0 auto;
 }
 
-.calendar-calendar-filter-toggle {
-    border-radius: 999px;
-    color: #5f6368;
-    transition: .2s;
-
-    // &:hover,
-    // &:focus {
-    //     background: #e9eef7;
-    // }
-}
-
-.calendar-calendar-filter[selected] .calendar-calendar-filter-toggle {
-    background: #e8f0fe;
-    color: #0b57d0;
-}
-
 .calendar-calendar-filter-menu {
     @extend .rounded-sm, .border, .shadow-lg;
     min-width: 14rem;
@@ -1413,7 +1397,7 @@ button.single-lesson-plan-create[selected] i {
     }
 }
 
-#calendar .lm-schedule-item[data-lesson-status="canceled"], #calendar .calendar-month-event-dot[data-lesson-status="canceled"], #calendar .calendar-schedule-event[data-lesson-status="canceled"] {
+#calendar .lm-schedule-item[data-lesson-status="canceled"], #calendar .calendar-month-event[data-lesson-status="canceled"], #calendar .calendar-month-event-dot[data-lesson-status="canceled"], #calendar .calendar-schedule-event[data-lesson-status="canceled"] {
     @extend .text-light, .border-light;
     background: var(--calendar-canceled-lesson-color, #ffffff);
     text-decoration: line-through;
@@ -1517,11 +1501,11 @@ button.single-lesson-plan-create[selected] i {
     opacity: .6;
 }
 
-#lesson-revert {
+#lesson-revert, #event-revert {
     opacity: .6;
 }
 
-#lesson-revert:hover, #lesson-edit:hover, #event-edit:hover {
+#lesson-revert:hover, #event-revert:hover, #lesson-edit:hover, #event-edit:hover {
     opacity: 1;
 }
 

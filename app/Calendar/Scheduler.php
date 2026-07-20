@@ -7,7 +7,6 @@ use App\Models\Calendar\EarlyPayment;
 use App\Models\Calendar\Event;
 use App\Models\Calendar\LessonPlan;
 use App\Models\Calendar\Recital;
-use App\Models\Calendar\Settings;
 use App\Models\Calendar\SingleLessonPlan;
 use App\Models\Calendar\Student;
 use App\Models\Calendar\TeachingBreak;
@@ -23,36 +22,15 @@ class Scheduler
     public function payload(Request $request)
     {
         $range = $this->range($request);
-        $showCancelledLessons = Settings::getValue('calendar.show_cancelled', false);
-
         return [
-            'plannedLessons' => $this->applyCancelledLessonPreference($this->plannedLessons($range), $showCancelledLessons),
-            'singleLessonPlans' => $this->applyCancelledLessonPreference($this->singleLessonPlans($range), $showCancelledLessons),
+            'plannedLessons' => $this->plannedLessons($range),
+            'singleLessonPlans' => $this->singleLessonPlans($range),
             'holidays' => $this->holidays($range),
             'teachingBreaks' => $this->teachingBreaks($range),
             'recitals' => $this->recitals($range),
             'generalEvents' => $this->generalEvents($range),
             'calendarRange' => $range,
         ];
-    }
-
-    private function applyCancelledLessonPreference($lessonPlans, bool $showCancelledLessons)
-    {
-        if ($showCancelledLessons) {
-            return $lessonPlans;
-        }
-
-        return $lessonPlans
-            ->map(function ($lessonPlan) {
-                $lessonPlan['occurrences'] = collect($lessonPlan['occurrences'] ?? [])
-                    ->reject(fn ($occurrence) => ($occurrence['lesson_status'] ?? null) === 'canceled')
-                    ->values()
-                    ->all();
-
-                return $lessonPlan;
-            })
-            ->filter(fn ($lessonPlan) => count($lessonPlan['occurrences']) > 0)
-            ->values();
     }
 
     public function singleLessonPlans(array $range)
@@ -214,7 +192,7 @@ class Scheduler
             );
             $lessonStatus = $lesson
                 ? $lesson->paymentStatus()
-                : ($earlyPayment ? 'early-payment' : 'unconfirmed');
+                : ($lessonPlan->isCanceledOn($occurrence) ? 'canceled' : ($earlyPayment ? 'early-payment' : 'unconfirmed'));
 
             if ($isExcludedProjectedDate && ! $lesson) {
                 $occurrence->addDays($intervalDays);
@@ -255,7 +233,7 @@ class Scheduler
                 );
                 $lessonStatus = $lesson
                     ? $lesson->paymentStatus()
-                    : ($earlyPayment ? 'early-payment' : 'unconfirmed');
+                    : ($lessonPlan->isCanceledOn($override->original_date) ? 'canceled' : ($earlyPayment ? 'early-payment' : 'unconfirmed'));
 
                 $occurrences[] = [
                     'date' => $override->new_date,
@@ -269,7 +247,9 @@ class Scheduler
                     'early_payment_id' => $earlyPayment ? $earlyPayment->id : null,
                     'fee_amount' => $lesson && $lesson->fee_amount ? $lesson->fee_amount : $lessonPlan->netFeeAmount(),
                     'canceled_by' => $lesson ? $lesson->canceled_by : '',
-                    'calendar_status' => $earlyPayment ? 'early-payment' : 'rescheduled',
+                    'calendar_status' => $lessonStatus === 'canceled'
+                        ? 'canceled'
+                        : ($earlyPayment ? 'early-payment' : 'rescheduled'),
                     'lesson_edit_url' => $lesson ? route('calendar.lessons.edit', $lesson) : '',
                     'lesson_payment_url' => $lesson ? $lesson->paymentUrl : '',
                 ];
