@@ -3,6 +3,7 @@
 :root {
   --lm-background-color-header: rgba(254, 247, 210);
   --lm-orange: #ff9600;
+  --calendar-background: #f9fafd;
 }
 
 input[type="date"],
@@ -19,6 +20,7 @@ td {white-space: nowrap;}
     min-height: 100vh;
     padding-right: 1.5rem;
     padding-left: 1.5rem;
+    background: var(--calendar-background);
 }
 
 .calendar-calendar-body {
@@ -91,6 +93,7 @@ td {white-space: nowrap;}
 }
 
 .calendar-calendar-icon-button {
+    background: transparent;
     border-color: transparent;
     border-radius: 50%;
     color: #3c4043;
@@ -389,12 +392,16 @@ button.setting-undo {
 #calendar.calendar-calendar-two-days-view .lm-schedule,
 #calendar.calendar-calendar-week-view .lm-schedule {
     background: #fff;
-    border: 1px solid #dfe3eb;
+    // border: 1px solid #dfe3eb;
     border-radius: 28px;
     height: 100%;
     max-height: none;
     overflow-x: hidden;
     overflow-y: auto;
+}
+
+.lm-schedule {
+    border-bottom: 0;
 }
 
 .calendar-month-calendar {
