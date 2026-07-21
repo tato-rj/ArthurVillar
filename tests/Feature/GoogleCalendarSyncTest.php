@@ -160,6 +160,10 @@ class GoogleCalendarSyncTest extends BaseTest
             'https://www.googleapis.com/calendar/v3/calendars/*/events*' => Http::response([
                 'items' => [
                     $this->googleMeeting('invited-meeting', 'needsAction'),
+                    array_replace_recursive($this->googleMeeting('old-invited-meeting', 'accepted'), [
+                        'start' => ['dateTime' => '2026-06-30T15:00:00-04:00'],
+                        'end' => ['dateTime' => '2026-06-30T16:00:00-04:00'],
+                    ]),
                     array_replace_recursive($this->googleMeeting('my-own-meeting', 'accepted'), [
                         'organizer' => ['email' => 'arthur@example.com', 'self' => true],
                     ]),
@@ -179,6 +183,12 @@ class GoogleCalendarSyncTest extends BaseTest
         ]);
         $this->assertDatabaseMissing('google_calendar_events', ['google_event_id' => 'my-own-meeting']);
         $this->assertDatabaseMissing('google_calendar_events', ['google_event_id' => 'declined-meeting']);
+        $this->assertDatabaseMissing('google_calendar_events', ['google_event_id' => 'old-invited-meeting']);
+
+        Http::assertSent(function ($request) {
+            return str_contains($request->url(), '/events')
+                && $request['timeMin'] === '2026-07-01T04:00:00+00:00';
+        });
     }
 
     /** @test */
@@ -225,6 +235,13 @@ class GoogleCalendarSyncTest extends BaseTest
             'sync_token' => 'sync-token-1',
         ]);
         $connection->events()->create($this->storedMeetingAttributes('remote-event'));
+        $connection->events()->create(array_replace(
+            $this->storedMeetingAttributes('old-remote-event'),
+            [
+                'starts_at' => '2026-06-30 19:00:00',
+                'ends_at' => '2026-06-30 20:00:00',
+            ]
+        ));
 
         Http::fake([
             'https://www.googleapis.com/calendar/v3/calendars/*/events*' => Http::response([
@@ -239,6 +256,7 @@ class GoogleCalendarSyncTest extends BaseTest
         app(GoogleCalendarSync::class)->sync($connection);
 
         $this->assertDatabaseMissing('google_calendar_events', ['google_event_id' => 'remote-event']);
+        $this->assertDatabaseMissing('google_calendar_events', ['google_event_id' => 'old-remote-event']);
         $this->assertSame('sync-token-2', $connection->fresh()->sync_token);
 
         Http::assertSent(function ($request) {
@@ -296,13 +314,21 @@ class GoogleCalendarSyncTest extends BaseTest
             'token_expires_at' => now()->addHour(),
         ]);
         $event = $connection->events()->create($this->storedMeetingAttributes('remote-event'));
+        $oldEvent = $connection->events()->create(array_replace(
+            $this->storedMeetingAttributes('old-remote-event'),
+            [
+                'starts_at' => '2026-06-30 19:00:00',
+                'ends_at' => '2026-06-30 20:00:00',
+            ]
+        ));
 
-        $googleEvent = app(Scheduler::class)->generalEvents([
-            'range_start' => '2026-08-01',
+        $calendarEvents = app(Scheduler::class)->generalEvents([
+            'range_start' => '2026-06-01',
             'range_end' => '2026-08-31',
-            'start' => '2026-08-01',
+            'start' => '2026-06-01',
             'end' => '2026-08-31',
-        ], $user->id)->firstWhere('id', 'google-'.$event->id);
+        ], $user->id);
+        $googleEvent = $calendarEvents->firstWhere('id', 'google-'.$event->id);
 
         $this->assertNotNull($googleEvent);
         $this->assertSame('Google Calendar', $googleEvent['event_type']);
@@ -310,6 +336,7 @@ class GoogleCalendarSyncTest extends BaseTest
         $this->assertSame('needsAction', $googleEvent['response_status']);
         $this->assertTrue($googleEvent['read_only']);
         $this->assertSame('', $googleEvent['edit_url']);
+        $this->assertNull($calendarEvents->firstWhere('id', 'google-'.$oldEvent->id));
     }
 
     /** @test */
@@ -358,6 +385,14 @@ class GoogleCalendarSyncTest extends BaseTest
         $otherConnection->events()->create(array_replace(
             $this->storedMeetingAttributes('other-event'),
             ['title' => 'Another user meeting']
+        ));
+        $firstConnection->events()->create(array_replace(
+            $this->storedMeetingAttributes('old-first-event'),
+            [
+                'title' => 'Old imported meeting',
+                'starts_at' => '2026-06-30 19:00:00',
+                'ends_at' => '2026-06-30 20:00:00',
+            ]
         ));
 
         $this->actingAs($user);

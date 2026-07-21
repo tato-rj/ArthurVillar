@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Calendar\GoogleCalendarConnection;
+use App\Models\Calendar\GoogleCalendarEvent;
 use Carbon\Carbon;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Arr;
@@ -23,6 +24,20 @@ class GoogleCalendarSync
             DB::transaction(function () use ($connection, $events, $nextSyncToken) {
                 if (! $connection->sync_token) {
                     $connection->events()->delete();
+                } else {
+                    $cutoff = GoogleCalendarEvent::syncCutoff();
+
+                    $connection->events()
+                        ->where(function ($events) use ($cutoff) {
+                            $events->where(function ($allDay) use ($cutoff) {
+                                $allDay->where('all_day', true)
+                                    ->whereDate('start_date', '<', $cutoff->toDateString());
+                            })->orWhere(function ($timed) use ($cutoff) {
+                                $timed->where('all_day', false)
+                                    ->where('starts_at', '<', $cutoff->copy()->utc());
+                            });
+                        })
+                        ->delete();
                 }
 
                 foreach ($events as $event) {
@@ -63,9 +78,7 @@ class GoogleCalendarSync
         if ($connection->sync_token) {
             $parameters['syncToken'] = $connection->sync_token;
         } else {
-            $parameters['timeMin'] = now(config('calendar.timezone'))
-                ->subYear()
-                ->startOfDay()
+            $parameters['timeMin'] = GoogleCalendarEvent::syncCutoff()
                 ->utc()
                 ->toRfc3339String();
         }
@@ -113,6 +126,15 @@ class GoogleCalendarSync
         $endsAt = $allDay ? null : $this->parseDateTime(Arr::get($event, 'end.dateTime'));
 
         if ((! $allDay && (! $startsAt || ! $endsAt)) || ($allDay && ! Arr::get($event, 'start.date'))) {
+            return;
+        }
+
+        $eventStart = $allDay
+            ? Carbon::parse(Arr::get($event, 'start.date'), config('calendar.timezone'))->startOfDay()
+            : $startsAt->copy()->setTimezone(config('calendar.timezone'));
+
+        if ($eventStart->lt(GoogleCalendarEvent::syncCutoff())) {
+            $existing->delete();
             return;
         }
 

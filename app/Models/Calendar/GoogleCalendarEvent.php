@@ -4,6 +4,7 @@ namespace App\Models\Calendar;
 
 use App\Models\BaseModel;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class GoogleCalendarEvent extends BaseModel
@@ -21,6 +22,29 @@ class GoogleCalendarEvent extends BaseModel
     public function connection(): BelongsTo
     {
         return $this->belongsTo(GoogleCalendarConnection::class, 'google_calendar_connection_id');
+    }
+
+    public static function syncCutoff(): Carbon
+    {
+        return Carbon::parse(
+            config('calendar.google_calendar_start_date'),
+            config('calendar.timezone')
+        )->startOfDay();
+    }
+
+    public function scopeStartingOnOrAfterSyncCutoff(Builder $query): Builder
+    {
+        $cutoff = self::syncCutoff();
+
+        return $query->where(function ($events) use ($cutoff) {
+            $events->where(function ($allDay) use ($cutoff) {
+                $allDay->where('google_calendar_events.all_day', true)
+                    ->whereDate('google_calendar_events.start_date', '>=', $cutoff->toDateString());
+            })->orWhere(function ($timed) use ($cutoff) {
+                $timed->where('google_calendar_events.all_day', false)
+                    ->where('google_calendar_events.starts_at', '>=', $cutoff->copy()->utc());
+            });
+        });
     }
 
     public function calendarPayload(): array
