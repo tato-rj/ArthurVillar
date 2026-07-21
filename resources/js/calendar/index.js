@@ -1528,6 +1528,19 @@ const setFormSubmitting = function(form, isSubmitting) {
     });
 };
 
+const resetLessonModalButtons = function(modal) {
+    if (!modal) {
+        return;
+    }
+
+    modal.querySelectorAll('button, input[type="submit"], input[type="image"]').forEach(function(button) {
+        button.disabled = false;
+        button.removeAttribute('aria-disabled');
+        delete button.dataset.calendarDisabledOnSubmit;
+        restoreButtonLabel(button);
+    });
+};
+
 const getResponseErrorMessage = function(payload, fallback) {
     if (payload && payload.message) {
         return payload.message;
@@ -1715,6 +1728,7 @@ const resetLessonModalState = function(modal) {
         return;
     }
 
+    resetLessonModalButtons(modal);
     modal.classList.remove('is-canceling', 'is-rescheduling', 'is-drop-rescheduling');
     delete modal.dataset.dropRecurring;
     state.rescheduleAnchor = null;
