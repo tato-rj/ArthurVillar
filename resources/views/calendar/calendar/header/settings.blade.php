@@ -191,13 +191,13 @@
 						<div class="d-flex">
 							<form class="w-100 mr-1" method="POST" action="{{route('calendar.google-calendar.sync', $googleCalendarConnection)}}">
 								@csrf
-								<button class="btn btn-outline-dark w-100" type="submit" {{iftrue(! $googleCalendarConfigured, 'disabled')}}>@fa(['icon' => 'rotate'])Sync now</button>
+								<button class="btn btn-outline-dark btn-sm w-100" type="submit" {{iftrue(! $googleCalendarConfigured, 'disabled')}}>@fa(['icon' => 'rotate'])Sync now</button>
 							</form>
 
 							<form class="w-100 ml-1" method="POST" action="{{route('calendar.google-calendar.disconnect', $googleCalendarConnection)}}">
 								@csrf
 								@method('DELETE')
-								<button class="btn btn-outline-red w-100" type="submit">Disconnect</button>
+								<button class="btn btn-outline-red btn-sm w-100" type="submit">Disconnect</button>
 							</form>
 						</div>
 					</div>
