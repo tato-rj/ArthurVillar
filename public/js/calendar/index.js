@@ -844,6 +844,32 @@ var getLessonLocationIcon = function getLessonLocationIcon(locationName) {
   }
   return 'building';
 };
+var getCalendarEventIcon = function getCalendarEventIcon(event) {
+  if (!event) {
+    return {
+      name: '',
+      title: ''
+    };
+  }
+  return event.isGeneralEvent ? {
+    name: event.eventTypeIcon || '',
+    title: event.eventType || ''
+  } : {
+    name: getLessonLocationIcon(event.locationName),
+    title: event.locationName || ''
+  };
+};
+var createCalendarEventIcon = function createCalendarEventIcon(event) {
+  var icon = getCalendarEventIcon(event);
+  if (!icon.name) {
+    return null;
+  }
+  var element = document.createElement('span');
+  element.className = 'event-icon';
+  element.title = icon.title;
+  element.innerHTML = "<i class=\"fa-solid fa-".concat(icon.name, "\" aria-hidden=\"true\"></i>");
+  return element;
+};
 var patchScheduleItems = function patchScheduleItems(calendar) {
   calendar.querySelectorAll('.lm-schedule-item:not([holding-event])').forEach(function (item) {
     var start = item.getAttribute('data-start');
@@ -853,10 +879,9 @@ var patchScheduleItems = function patchScheduleItems(calendar) {
     var event = getEventByScheduleItem(item);
     var cell = item.closest('td[data-date]');
     var visibleDate = cell ? cell.getAttribute('data-real-date') || cell.getAttribute('data-date') : '';
-    var iconName = event && event.isGeneralEvent ? event.eventTypeIcon : getLessonLocationIcon(event ? event.locationName : '');
-    var iconTitle = event && event.isGeneralEvent ? event.eventType : event && event.locationName ? event.locationName : '';
+    var icon = getCalendarEventIcon(event);
     var eventIcon = item.querySelector(':scope > .event-icon');
-    if (!iconName) {
+    if (!icon.name) {
       if (eventIcon) {
         eventIcon.remove();
         eventIcon = null;
@@ -868,8 +893,8 @@ var patchScheduleItems = function patchScheduleItems(calendar) {
       item.appendChild(eventIcon);
     }
     if (eventIcon) {
-      eventIcon.querySelector('i').className = "fa-solid fa-".concat(iconName);
-      eventIcon.title = iconTitle;
+      eventIcon.querySelector('i').className = "fa-solid fa-".concat(icon.name);
+      eventIcon.title = icon.title;
     }
     item.classList.toggle('is-short', isShort);
     item.classList.toggle('calendar-calendar-general-event', Boolean(event && event.isGeneralEvent));
@@ -3190,11 +3215,15 @@ var renderScheduleAgenda = function renderScheduleAgenda(calendar) {
       if (!event.isHoliday && !event.isBreak && !event.isRecital) {
         var time = document.createElement('span');
         var duration = getEventDurationMinutes(event);
+        var eventIcon = createCalendarEventIcon(event);
         item.type = 'button';
         item.dataset.durationMinutes = duration;
         item.style.setProperty('--calendar-schedule-event-height', getAgendaEventHeight(event));
         time.className = 'calendar-schedule-event-time';
         time.textContent = event.start && event.end ? "".concat(formatAgendaEventTime(event.start), "-").concat(formatAgendaEventTime(event.end)) : formatAgendaEventTime(event.start);
+        if (eventIcon) {
+          item.appendChild(eventIcon);
+        }
         item.appendChild(title);
         item.appendChild(time);
       } else {

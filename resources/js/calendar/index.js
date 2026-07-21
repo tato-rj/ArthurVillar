@@ -1089,6 +1089,35 @@ const getLessonLocationIcon = function(locationName) {
     return 'building';
 };
 
+const getCalendarEventIcon = function(event) {
+    if (!event) {
+        return { name: '', title: '' };
+    }
+
+    return event.isGeneralEvent
+        ? { name: event.eventTypeIcon || '', title: event.eventType || '' }
+        : {
+            name: getLessonLocationIcon(event.locationName),
+            title: event.locationName || '',
+        };
+};
+
+const createCalendarEventIcon = function(event) {
+    const icon = getCalendarEventIcon(event);
+
+    if (!icon.name) {
+        return null;
+    }
+
+    const element = document.createElement('span');
+
+    element.className = 'event-icon';
+    element.title = icon.title;
+    element.innerHTML = `<i class="fa-solid fa-${icon.name}" aria-hidden="true"></i>`;
+
+    return element;
+};
+
 const patchScheduleItems = function(calendar) {
     calendar.querySelectorAll('.lm-schedule-item:not([holding-event])').forEach(function(item) {
         const start = item.getAttribute('data-start');
@@ -1100,15 +1129,10 @@ const patchScheduleItems = function(calendar) {
         const visibleDate = cell
             ? (cell.getAttribute('data-real-date') || cell.getAttribute('data-date'))
             : '';
-        const iconName = event && event.isGeneralEvent
-            ? event.eventTypeIcon
-            : getLessonLocationIcon(event ? event.locationName : '');
-        const iconTitle = event && event.isGeneralEvent
-            ? event.eventType
-            : (event && event.locationName ? event.locationName : '');
+        const icon = getCalendarEventIcon(event);
         let eventIcon = item.querySelector(':scope > .event-icon');
 
-        if (!iconName) {
+        if (!icon.name) {
             if (eventIcon) {
                 eventIcon.remove();
                 eventIcon = null;
@@ -1121,8 +1145,8 @@ const patchScheduleItems = function(calendar) {
         }
 
         if (eventIcon) {
-            eventIcon.querySelector('i').className = `fa-solid fa-${iconName}`;
-            eventIcon.title = iconTitle;
+            eventIcon.querySelector('i').className = `fa-solid fa-${icon.name}`;
+            eventIcon.title = icon.title;
         }
 
         item.classList.toggle('is-short', isShort);
@@ -4120,6 +4144,7 @@ const renderScheduleAgenda = function(calendar) {
             if (!event.isHoliday && !event.isBreak && !event.isRecital) {
                 const time = document.createElement('span');
                 const duration = getEventDurationMinutes(event);
+                const eventIcon = createCalendarEventIcon(event);
 
                 item.type = 'button';
                 item.dataset.durationMinutes = duration;
@@ -4128,6 +4153,11 @@ const renderScheduleAgenda = function(calendar) {
                 time.textContent = event.start && event.end
                     ? `${formatAgendaEventTime(event.start)}-${formatAgendaEventTime(event.end)}`
                     : formatAgendaEventTime(event.start);
+
+                if (eventIcon) {
+                    item.appendChild(eventIcon);
+                }
+
                 item.appendChild(title);
                 item.appendChild(time);
             } else {
