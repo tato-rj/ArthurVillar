@@ -19,6 +19,11 @@ class EventsController extends Controller
         return view('calendar.events.canceled');
     }
 
+    public function google()
+    {
+        return view('calendar.events.google');
+    }
+
     public function store(Request $request)
     {
         Event::create($this->eventAttributes($request));

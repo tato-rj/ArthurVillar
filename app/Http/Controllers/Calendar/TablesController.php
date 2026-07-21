@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Calendar;
 
 use App\Http\Controllers\Controller;
 use App\Calendar\Scheduler;
-use App\Models\Calendar\{Event, Expense, Invitation, Lesson, LessonPlan, Location, Recital, SingleLessonPlan, Student, TeachingBreak, Venue, WaitingList};
+use App\Models\Calendar\{Event, Expense, GoogleCalendarEvent, Invitation, Lesson, LessonPlan, Location, Recital, SingleLessonPlan, Student, TeachingBreak, Venue, WaitingList};
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -44,6 +44,76 @@ class TablesController extends Controller
     public function canceledEvents()
     {
         return $this->eventRows(true);
+    }
+
+    public function googleEvents()
+    {
+        $events = GoogleCalendarEvent::query()
+            ->join(
+                'google_calendar_connections',
+                'google_calendar_connections.id',
+                '=',
+                'google_calendar_events.google_calendar_connection_id'
+            )
+            ->where('google_calendar_connections.user_id', request()->user()->id)
+            ->select([
+                'google_calendar_events.*',
+                'google_calendar_connections.calendar_id as calendar_id',
+                'google_calendar_connections.calendar_name as calendar_name',
+            ]);
+
+        return DataTables::eloquent($events)
+            ->addColumn('name', fn (GoogleCalendarEvent $event) => $event->title)
+            ->addColumn('scheduled_date', function (GoogleCalendarEvent $event) {
+                return $event->calendarPayload()['scheduled_date'];
+            })
+            ->editColumn('starts_at', function (GoogleCalendarEvent $event) {
+                return $event->calendarPayload()['starts_at'];
+            })
+            ->editColumn('ends_at', function (GoogleCalendarEvent $event) {
+                return $event->calendarPayload()['ends_at'];
+            })
+            ->addColumn('calendar', function (GoogleCalendarEvent $event) {
+                return $event->calendar_name ?: $event->calendar_id;
+            })
+            ->addColumn('organizer', function (GoogleCalendarEvent $event) {
+                $name = trim((string) $event->organizer_name);
+                $email = trim((string) $event->organizer_email);
+
+                if (! $name || strcasecmp($name, $email) === 0) {
+                    return $email ?: $name;
+                }
+
+                return $email ? "$name ($email)" : $name;
+            })
+            ->addColumn('external_url', function (GoogleCalendarEvent $event) {
+                return $event->calendarPayload()['external_url'];
+            })
+            ->filterColumn('name', function ($query, $keyword) {
+                $query->where('google_calendar_events.title', 'like', "%$keyword%");
+            })
+            ->filterColumn('calendar', function ($query, $keyword) {
+                $query->where(function ($calendar) use ($keyword) {
+                    $calendar->where('google_calendar_connections.calendar_name', 'like', "%$keyword%")
+                        ->orWhere('google_calendar_connections.calendar_id', 'like', "%$keyword%");
+                });
+            })
+            ->filterColumn('organizer', function ($query, $keyword) {
+                $query->where(function ($organizer) use ($keyword) {
+                    $organizer->where('google_calendar_events.organizer_name', 'like', "%$keyword%")
+                        ->orWhere('google_calendar_events.organizer_email', 'like', "%$keyword%");
+                });
+            })
+            ->orderColumn('name', 'google_calendar_events.title $1')
+            ->orderColumn(
+                'scheduled_date',
+                'COALESCE(google_calendar_events.starts_at, google_calendar_events.start_date) $1'
+            )
+            ->orderColumn('starts_at', 'google_calendar_events.starts_at $1')
+            ->orderColumn('ends_at', 'google_calendar_events.ends_at $1')
+            ->orderColumn('calendar', 'google_calendar_connections.calendar_name $1')
+            ->orderColumn('organizer', 'google_calendar_events.organizer_name $1')
+            ->toJson();
     }
 
     private function eventRows(bool $canceled)

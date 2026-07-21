@@ -23,6 +23,7 @@
       'children' => [
           'calendar.events.index' => 'Scheduled',
           'calendar.events.canceled' => 'Canceled',
+          'calendar.events.google' => 'Google Events',
       ],
     ],
     'calendar.waiting-list.index' => 'Waiting list*',

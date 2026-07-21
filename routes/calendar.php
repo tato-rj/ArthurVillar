@@ -178,6 +178,7 @@ Route::prefix('expenses')->name('expenses.')->group(function() {
 Route::prefix('events')->name('events.')->group(function() {
 	Route::get('', 'EventsController@index')->name('index');
 	Route::get('canceled', 'EventsController@canceled')->name('canceled');
+	Route::get('google', 'EventsController@google')->name('google');
 
 	Route::post('', 'EventsController@store')->name('store');
 
@@ -221,6 +222,7 @@ Route::prefix('tables')->name('tables.')->group(function() {
 	Route::get('expenses', 'TablesController@expenses')->name('expenses');
 	Route::get('events', 'TablesController@events')->name('events');
 	Route::get('canceled-events', 'TablesController@canceledEvents')->name('canceled-events');
+	Route::get('google-events', 'TablesController@googleEvents')->name('google-events');
 	Route::get('lesson-plans', 'TablesController@lessonPlans')->name('lesson-plans');
 	Route::get('lessons', 'TablesController@lessons')->name('lessons');
 	Route::get('canceled-lessons', 'TablesController@canceledLessons')->name('canceled-lessons');

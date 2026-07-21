@@ -313,6 +313,90 @@ class GoogleCalendarSyncTest extends BaseTest
     }
 
     /** @test */
+    public function it_shows_the_read_only_google_events_page()
+    {
+        $this->signIn();
+
+        $this->get(route('calendar.events.google'))
+            ->assertOk()
+            ->assertSee('Google Events')
+            ->assertSee('google-events-table', false)
+            ->assertSee('tables\\/google-events', false)
+            ->assertDontSee('New event')
+            ->assertDontSee('create-event-modal', false);
+    }
+
+    /** @test */
+    public function google_events_table_combines_the_signed_in_users_google_calendars_only()
+    {
+        $user = $this->signIn();
+        $firstConnection = GoogleCalendarConnection::create([
+            'user_id' => $user->id,
+            'calendar_id' => 'first@example.com',
+            'calendar_name' => 'First calendar',
+            'access_token' => 'first-access-token',
+        ]);
+        $secondConnection = GoogleCalendarConnection::create([
+            'user_id' => $user->id,
+            'calendar_id' => 'second@example.com',
+            'calendar_name' => 'Second calendar',
+            'access_token' => 'second-access-token',
+        ]);
+        $otherUser = $this->signIn(null, null);
+        $otherConnection = GoogleCalendarConnection::create([
+            'user_id' => $otherUser->id,
+            'calendar_id' => 'other@example.com',
+            'calendar_name' => 'Other calendar',
+            'access_token' => 'other-access-token',
+        ]);
+
+        $firstEvent = $firstConnection->events()->create($this->storedMeetingAttributes('first-event'));
+        $secondEvent = $secondConnection->events()->create(array_replace(
+            $this->storedMeetingAttributes('second-event'),
+            ['title' => 'Second imported meeting']
+        ));
+        $otherConnection->events()->create(array_replace(
+            $this->storedMeetingAttributes('other-event'),
+            ['title' => 'Another user meeting']
+        ));
+
+        $this->actingAs($user);
+        $tableParameters = $this->googleEventTableParameters();
+        $rows = collect($this->getJson(route('calendar.tables.google-events', $tableParameters))->assertOk()->json('data'));
+
+        $this->assertCount(2, $rows);
+        $this->assertEqualsCanonicalizing([$firstEvent->id, $secondEvent->id], $rows->pluck('id')->all());
+        $this->assertEqualsCanonicalizing(['First calendar', 'Second calendar'], $rows->pluck('calendar')->all());
+        $this->assertSame('2026-08-15', $rows->firstWhere('id', $firstEvent->id)['scheduled_date']);
+        $this->assertSame('15:00', $rows->firstWhere('id', $firstEvent->id)['starts_at']);
+        $this->assertSame('https://calendar.google.com/event?eid=remote', $rows->firstWhere('id', $firstEvent->id)['external_url']);
+        $this->assertNull($rows->firstWhere('name', 'Another user meeting'));
+    }
+
+    /** @test */
+    public function google_events_table_can_search_imported_event_names()
+    {
+        $user = $this->signIn();
+        $connection = GoogleCalendarConnection::create([
+            'user_id' => $user->id,
+            'calendar_id' => 'arthur@example.com',
+            'calendar_name' => 'Arthur',
+            'access_token' => 'access-token',
+        ]);
+        $connection->events()->create($this->storedMeetingAttributes('first-event'));
+        $matchingEvent = $connection->events()->create(array_replace(
+            $this->storedMeetingAttributes('second-event'),
+            ['title' => 'Second imported meeting']
+        ));
+
+        $tableParameters = $this->googleEventTableParameters();
+        $tableParameters['search']['value'] = 'Second imported meeting';
+        $searchedRows = collect($this->getJson(route('calendar.tables.google-events', $tableParameters))->assertOk()->json('data'));
+
+        $this->assertSame([$matchingEvent->id], $searchedRows->pluck('id')->all());
+    }
+
+    /** @test */
     public function disconnecting_removes_the_connection_and_imported_events()
     {
         $user = $this->signIn();
@@ -355,6 +439,38 @@ class GoogleCalendarSyncTest extends BaseTest
             'start' => ['dateTime' => '2026-08-15T15:00:00-04:00'],
             'end' => ['dateTime' => '2026-08-15T16:00:00-04:00'],
             'updated' => '2026-07-21T15:00:00Z',
+        ];
+    }
+
+    private function googleEventTableParameters(): array
+    {
+        $column = fn (string $data, string $name, bool $searchable = true, bool $orderable = true) => [
+            'data' => $data,
+            'name' => $name,
+            'searchable' => $searchable ? 'true' : 'false',
+            'orderable' => $orderable ? 'true' : 'false',
+            'search' => ['value' => '', 'regex' => 'false'],
+        ];
+
+        return [
+            'draw' => 1,
+            'start' => 0,
+            'length' => 10,
+            'columns' => [
+                $column('name', 'name'),
+                $column('scheduled_date', 'scheduled_date', false),
+                $column('starts_at', 'starts_at', false),
+                $column('ends_at', 'ends_at', false),
+                $column('calendar', 'calendar'),
+                $column('organizer', 'organizer'),
+                $column('response_status', 'response_status'),
+                $column('external_url', 'actions', false, false),
+            ],
+            'order' => [
+                ['column' => 1, 'dir' => 'asc'],
+                ['column' => 2, 'dir' => 'asc'],
+            ],
+            'search' => ['value' => '', 'regex' => 'false'],
         ];
     }
 

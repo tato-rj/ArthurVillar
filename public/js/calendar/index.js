@@ -4430,7 +4430,7 @@ var openGeneralEventModal = function openGeneralEventModal(event, options) {
   if (organizerSection) organizerSection.hidden = !(event.organizerName || event.organizerEmail);
   if (organizer) organizer.textContent = event.organizerName || event.organizerEmail || '';
   if (locationSection) locationSection.hidden = !event.location;
-  if (location) location.textContent = event.location || '';
+  if (location) renderNotesWithLinks(location, event.location);
   if (edit) {
     edit.dataset.url = event.editUrl || '';
     edit.style.display = edit.dataset.url ? 'inline-flex' : 'none';
