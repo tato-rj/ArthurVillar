@@ -24,8 +24,7 @@ class GoogleCalendarController extends Controller
 
     public function callback(
         Request $request,
-        GoogleCalendarClient $client,
-        GoogleCalendarSync $sync
+        GoogleCalendarClient $client
     ) {
         $expectedState = $request->session()->pull(self::STATE_SESSION_KEY);
 
@@ -50,7 +49,7 @@ class GoogleCalendarController extends Controller
                 ->where('user_id', $request->user()->id)
                 ->first();
 
-            $connection = GoogleCalendarConnection::query()->updateOrCreate(
+            GoogleCalendarConnection::query()->updateOrCreate(
                 ['user_id' => $request->user()->id],
                 [
                     'calendar_id' => $calendar['id'] ?? 'primary',
@@ -63,17 +62,15 @@ class GoogleCalendarController extends Controller
                     'last_error' => null,
                 ]
             );
-
-            $sync->sync($connection);
         } catch (Throwable $exception) {
             report($exception);
 
             return redirect()->route('calendar.home')
-                ->with('error', 'Google Calendar setup or first sync failed: '.$exception->getMessage());
+                ->with('error', 'Google Calendar setup failed: '.$exception->getMessage());
         }
 
         return redirect()->route('calendar.home')
-            ->with('success', 'Google Calendar connected and synchronized.');
+            ->with('success', 'Google Calendar connected. The first sync will run automatically within five minutes.');
     }
 
     public function sync(Request $request, GoogleCalendarSync $sync)

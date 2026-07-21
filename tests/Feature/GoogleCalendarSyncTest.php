@@ -44,7 +44,7 @@ class GoogleCalendarSyncTest extends BaseTest
     }
 
     /** @test */
-    public function the_oauth_callback_connects_and_imports_only_meetings_created_by_someone_else()
+    public function the_oauth_callback_connects_without_waiting_for_the_first_sync()
     {
         CarbonImmutable::setTestNow('2026-07-21 12:00:00');
         $user = $this->signIn();
@@ -61,16 +61,6 @@ class GoogleCalendarSyncTest extends BaseTest
                 'summary' => 'Arthur',
                 'timeZone' => 'America/New_York',
             ]),
-            'https://www.googleapis.com/calendar/v3/calendars/*/events*' => Http::response([
-                'items' => [
-                    $this->googleMeeting('invited-meeting', 'needsAction'),
-                    array_replace_recursive($this->googleMeeting('my-own-meeting', 'accepted'), [
-                        'organizer' => ['email' => 'arthur@example.com', 'self' => true],
-                    ]),
-                    $this->googleMeeting('declined-meeting', 'declined'),
-                ],
-                'nextSyncToken' => 'sync-token-1',
-            ]),
         ]);
 
         $this->withSession(['google_calendar_oauth_state' => $state])
@@ -84,8 +74,45 @@ class GoogleCalendarSyncTest extends BaseTest
         $connection = GoogleCalendarConnection::where('user_id', $user->id)->firstOrFail();
 
         $this->assertSame('refresh-token', $connection->refresh_token);
-        $this->assertSame('sync-token-1', $connection->sync_token);
+        $this->assertNull($connection->sync_token);
+        $this->assertNull($connection->last_synced_at);
         $this->assertSame('arthur@example.com', $connection->calendar_id);
+        $this->assertDatabaseCount('google_calendar_events', 0);
+
+        Http::assertNotSent(fn ($request) => str_contains($request->url(), '/events'));
+
+        CarbonImmutable::setTestNow();
+    }
+
+    /** @test */
+    public function the_first_sync_imports_only_meetings_created_by_someone_else()
+    {
+        $user = $this->signIn();
+        $connection = GoogleCalendarConnection::create([
+            'user_id' => $user->id,
+            'calendar_id' => 'arthur@example.com',
+            'calendar_name' => 'Arthur',
+            'access_token' => 'access-token',
+            'refresh_token' => 'refresh-token',
+            'token_expires_at' => now()->addHour(),
+        ]);
+
+        Http::fake([
+            'https://www.googleapis.com/calendar/v3/calendars/*/events*' => Http::response([
+                'items' => [
+                    $this->googleMeeting('invited-meeting', 'needsAction'),
+                    array_replace_recursive($this->googleMeeting('my-own-meeting', 'accepted'), [
+                        'organizer' => ['email' => 'arthur@example.com', 'self' => true],
+                    ]),
+                    $this->googleMeeting('declined-meeting', 'declined'),
+                ],
+                'nextSyncToken' => 'sync-token-1',
+            ]),
+        ]);
+
+        app(GoogleCalendarSync::class)->sync($connection);
+
+        $this->assertSame('sync-token-1', $connection->fresh()->sync_token);
         $this->assertDatabaseHas('google_calendar_events', [
             'google_calendar_connection_id' => $connection->id,
             'google_event_id' => 'invited-meeting',
@@ -93,8 +120,6 @@ class GoogleCalendarSyncTest extends BaseTest
         ]);
         $this->assertDatabaseMissing('google_calendar_events', ['google_event_id' => 'my-own-meeting']);
         $this->assertDatabaseMissing('google_calendar_events', ['google_event_id' => 'declined-meeting']);
-
-        CarbonImmutable::setTestNow();
     }
 
     /** @test */

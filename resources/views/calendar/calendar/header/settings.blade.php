@@ -161,7 +161,7 @@
 						@if($googleCalendarConnection->last_synced_at)
 							Last synced {{$googleCalendarConnection->last_synced_at->diffForHumans()}}
 						@else
-							Waiting for the first sync
+							Waiting for the automatic first sync (runs every five minutes)
 						@endif
 					</div>
 				</div>

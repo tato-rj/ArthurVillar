@@ -66,4 +66,4 @@ php artisan calendar:sync-google
 3. Select **Connect Google Calendar**.
 4. Choose the Google account whose primary calendar should be imported and approve read-only access.
 
-The first import runs immediately. Later changes use Google's incremental sync token. If Google invalidates a sync token, the application automatically rebuilds its imported event cache. Disconnecting removes the encrypted OAuth tokens and every imported Google event from the local database.
+The connection callback saves the OAuth tokens and returns immediately. The scheduler performs the first import within five minutes so a large Google Calendar cannot make the browser connection request time out. Later changes use Google's incremental sync token. **Sync now** remains available in Calendar Settings. If Google invalidates a sync token, the application automatically rebuilds its imported event cache. Disconnecting removes the encrypted OAuth tokens and every imported Google event from the local database.
