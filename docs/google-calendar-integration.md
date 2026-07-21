@@ -6,7 +6,7 @@ This integration imports meetings from a user's primary Google Calendar when:
 - another person is the organizer; and
 - the user's response is not `declined`.
 
-Imported events are read-only in Studio Calendar. RSVP changes, edits, and cancellations remain in Google Calendar. The application performs an incremental sync every five minutes and also exposes a **Sync now** button in Calendar Settings.
+Imported events are read-only in Studio Calendar. RSVP changes, edits, and cancellations remain in Google Calendar. One site user can connect multiple Google accounts at the same time. The application performs an incremental sync every five minutes and also exposes a **Sync now** button for each account in Calendar Settings.
 
 ## Google Cloud setup
 
@@ -65,5 +65,8 @@ php artisan calendar:sync-google
 2. Open **Settings → Google Calendar**.
 3. Select **Connect Google Calendar**.
 4. Choose the Google account whose primary calendar should be imported and approve read-only access.
+5. To connect another Gmail account, return to Calendar Settings and select **Add another Google account**.
+
+If the OAuth app is **External / Testing**, every Gmail account you connect must also be listed under **Google Auth Platform → Audience → Test users**.
 
 The connection callback saves the OAuth tokens and returns immediately. The scheduler performs the first import within five minutes so a large Google Calendar cannot make the browser connection request time out. Later changes use Google's incremental sync token. **Sync now** remains available in Calendar Settings. If Google invalidates a sync token, the application automatically rebuilds its imported event cache. Disconnecting removes the encrypted OAuth tokens and every imported Google event from the local database.

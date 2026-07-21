@@ -37,10 +37,53 @@ class GoogleCalendarSyncTest extends BaseTest
         parse_str(parse_url($location, PHP_URL_QUERY), $query);
 
         $this->assertSame('offline', $query['access_type']);
-        $this->assertSame('consent', $query['prompt']);
+        $this->assertSame('consent select_account', $query['prompt']);
+        $this->assertArrayNotHasKey('login_hint', $query);
         $this->assertSame('https://www.googleapis.com/auth/calendar.readonly', $query['scope']);
         $this->assertNotEmpty($query['state']);
         $this->assertSame($query['state'], session('google_calendar_oauth_state'));
+    }
+
+    /** @test */
+    public function connecting_a_second_google_account_keeps_the_first_connection()
+    {
+        $user = $this->signIn();
+        $firstConnection = GoogleCalendarConnection::create([
+            'user_id' => $user->id,
+            'calendar_id' => 'first@example.com',
+            'calendar_name' => 'First account',
+            'access_token' => 'first-access-token',
+            'refresh_token' => 'first-refresh-token',
+        ]);
+        $state = 'valid-oauth-state';
+
+        Http::fake([
+            'https://oauth2.googleapis.com/token' => Http::response([
+                'access_token' => 'second-access-token',
+                'refresh_token' => 'second-refresh-token',
+                'expires_in' => 3600,
+            ]),
+            'https://www.googleapis.com/calendar/v3/calendars/primary' => Http::response([
+                'id' => 'second@example.com',
+                'summary' => 'Second account',
+                'timeZone' => 'America/New_York',
+            ]),
+        ]);
+
+        $this->withSession(['google_calendar_oauth_state' => $state])
+            ->get(route('calendar.google-calendar.callback', [
+                'state' => $state,
+                'code' => 'second-authorization-code',
+            ]))
+            ->assertRedirect(route('calendar.home'))
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseCount('google_calendar_connections', 2);
+        $this->assertSame('first-access-token', $firstConnection->fresh()->access_token);
+        $this->assertSame(
+            'second-refresh-token',
+            GoogleCalendarConnection::where('calendar_id', 'second@example.com')->firstOrFail()->refresh_token
+        );
     }
 
     /** @test */
@@ -159,6 +202,42 @@ class GoogleCalendarSyncTest extends BaseTest
     }
 
     /** @test */
+    public function manual_sync_updates_only_the_selected_google_account()
+    {
+        $user = $this->signIn();
+        $selectedConnection = GoogleCalendarConnection::create([
+            'user_id' => $user->id,
+            'calendar_id' => 'selected@example.com',
+            'calendar_name' => 'Selected account',
+            'access_token' => 'selected-access-token',
+            'token_expires_at' => now()->addHour(),
+            'sync_token' => 'selected-sync-token',
+        ]);
+        $otherConnection = GoogleCalendarConnection::create([
+            'user_id' => $user->id,
+            'calendar_id' => 'other@example.com',
+            'calendar_name' => 'Other account',
+            'access_token' => 'other-access-token',
+            'token_expires_at' => now()->addHour(),
+            'sync_token' => 'other-sync-token',
+        ]);
+
+        Http::fake([
+            'https://www.googleapis.com/calendar/v3/calendars/*/events*' => Http::response([
+                'items' => [],
+                'nextSyncToken' => 'selected-sync-token-2',
+            ]),
+        ]);
+
+        $this->post(route('calendar.google-calendar.sync', $selectedConnection))
+            ->assertRedirect()
+            ->assertSessionHas('success');
+
+        $this->assertSame('selected-sync-token-2', $selectedConnection->fresh()->sync_token);
+        $this->assertSame('other-sync-token', $otherConnection->fresh()->sync_token);
+    }
+
+    /** @test */
     public function imported_meetings_are_included_in_the_calendar_as_read_only_google_events()
     {
         $user = $this->signIn();
@@ -197,12 +276,18 @@ class GoogleCalendarSyncTest extends BaseTest
             'access_token' => 'access-token',
         ]);
         $connection->events()->create($this->storedMeetingAttributes('remote-event'));
+        $otherConnection = GoogleCalendarConnection::create([
+            'user_id' => $user->id,
+            'calendar_id' => 'other@example.com',
+            'access_token' => 'other-access-token',
+        ]);
 
-        $this->delete(route('calendar.google-calendar.disconnect'))
+        $this->delete(route('calendar.google-calendar.disconnect', $connection))
             ->assertRedirect()
             ->assertSessionHas('success');
 
         $this->assertDatabaseMissing('google_calendar_connections', ['id' => $connection->id]);
+        $this->assertDatabaseHas('google_calendar_connections', ['id' => $otherConnection->id]);
         $this->assertDatabaseMissing('google_calendar_events', ['google_event_id' => 'remote-event']);
     }
 

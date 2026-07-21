@@ -68,9 +68,12 @@ class CalendarServiceProvider extends ServiceProvider
             $paidLessonColor = $value('appearance.paid_lesson_color');
             $canceledLessonColor = $value('appearance.canceled_lesson_color');
             $generalEventColor = $value('appearance.general_event_color');
-            $googleCalendarConnection = auth()->check()
-                ? GoogleCalendarConnection::query()->where('user_id', auth()->id())->first()
-                : null;
+            $googleCalendarConnections = auth()->check()
+                ? GoogleCalendarConnection::query()
+                    ->where('user_id', auth()->id())
+                    ->orderBy('calendar_name')
+                    ->get()
+                : collect();
 
             $view->with([
                 'showCalendarInsights' => $value('calendar.show_insights'),
@@ -98,7 +101,7 @@ class CalendarServiceProvider extends ServiceProvider
                 'defaultEventNotificationMinutesBefore' => $value('notifications.default_event_minutes_before'),
                 'selectedNotificationPreference' => (int) old('default_event_notification_minutes_before', $value('notifications.default_event_minutes_before')),
                 'googleCalendarConfigured' => app(GoogleCalendarClient::class)->isConfigured(),
-                'googleCalendarConnection' => $googleCalendarConnection,
+                'googleCalendarConnections' => $googleCalendarConnections,
             ]);
         });
     }

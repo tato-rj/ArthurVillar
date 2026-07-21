@@ -20,7 +20,7 @@ class GoogleCalendarClient
             && filled(config('services.google_calendar.client_secret'));
     }
 
-    public function authorizationUrl(string $state, ?string $loginHint = null): string
+    public function authorizationUrl(string $state): string
     {
         $this->ensureConfigured();
 
@@ -31,9 +31,8 @@ class GoogleCalendarClient
             'scope' => self::SCOPE,
             'access_type' => 'offline',
             'include_granted_scopes' => 'true',
-            'prompt' => 'consent',
+            'prompt' => 'consent select_account',
             'state' => $state,
-            'login_hint' => $loginHint,
         ]), '', '&', PHP_QUERY_RFC3986);
     }
 

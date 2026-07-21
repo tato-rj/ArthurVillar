@@ -19,7 +19,7 @@ class GoogleCalendarController extends Controller
         $state = Str::random(64);
         $request->session()->put(self::STATE_SESSION_KEY, $state);
 
-        return redirect()->away($client->authorizationUrl($state, $request->user()->email));
+        return redirect()->away($client->authorizationUrl($state));
     }
 
     public function callback(
@@ -45,14 +45,18 @@ class GoogleCalendarController extends Controller
         try {
             $tokens = $client->exchangeAuthorizationCode($request->input('code'));
             $calendar = $client->primaryCalendar($tokens['access_token']);
+            $calendarId = $calendar['id'] ?? 'primary';
             $existing = GoogleCalendarConnection::query()
                 ->where('user_id', $request->user()->id)
+                ->where('calendar_id', $calendarId)
                 ->first();
 
             GoogleCalendarConnection::query()->updateOrCreate(
-                ['user_id' => $request->user()->id],
                 [
-                    'calendar_id' => $calendar['id'] ?? 'primary',
+                    'user_id' => $request->user()->id,
+                    'calendar_id' => $calendarId,
+                ],
+                [
                     'calendar_name' => $calendar['summary'] ?? $request->user()->email,
                     'calendar_timezone' => $calendar['timeZone'] ?? null,
                     'access_token' => $tokens['access_token'],
@@ -73,11 +77,13 @@ class GoogleCalendarController extends Controller
             ->with('success', 'Google Calendar connected. The first sync will run automatically within five minutes.');
     }
 
-    public function sync(Request $request, GoogleCalendarSync $sync)
+    public function sync(
+        Request $request,
+        GoogleCalendarConnection $connection,
+        GoogleCalendarSync $sync
+    )
     {
-        $connection = GoogleCalendarConnection::query()
-            ->where('user_id', $request->user()->id)
-            ->firstOrFail();
+        abort_unless($connection->user_id === $request->user()->id, 404);
 
         try {
             $changes = $sync->sync($connection);
@@ -87,15 +93,19 @@ class GoogleCalendarController extends Controller
             return back()->with('error', 'Google Calendar sync failed: '.$exception->getMessage());
         }
 
-        return back()->with('success', "Google Calendar synchronized ({$changes} changes received).");
+        return back()->with(
+            'success',
+            "{$connection->calendar_name} synchronized ({$changes} changes received)."
+        );
     }
 
-    public function disconnect(Request $request)
+    public function disconnect(Request $request, GoogleCalendarConnection $connection)
     {
-        GoogleCalendarConnection::query()
-            ->where('user_id', $request->user()->id)
-            ->delete();
+        abort_unless($connection->user_id === $request->user()->id, 404);
 
-        return back()->with('success', 'Google Calendar disconnected and imported events removed.');
+        $calendarName = $connection->calendar_name ?: 'Google Calendar';
+        $connection->delete();
+
+        return back()->with('success', "{$calendarName} disconnected and its imported events removed.");
     }
 }
