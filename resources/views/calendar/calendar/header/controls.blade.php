@@ -8,5 +8,5 @@
 				</button>
 			</div>
 
-			<h4 class="calendar-calendar-label" data-calendar-label></h4>
+			<h5 class="calendar-calendar-label mx-2" data-calendar-label></h5>
 		</div>

@@ -4038,6 +4038,7 @@ const renderScheduleAgenda = function(calendar) {
     const today = todayString();
     const selected = toDateString(state.date);
     const wrapper = document.createElement('div');
+    let renderedMonth = '';
 
     wrapper.className = 'calendar-schedule-agenda';
 
@@ -4050,8 +4051,20 @@ const renderScheduleAgenda = function(calendar) {
             return;
         }
 
+        const month = dateString.substring(0, 7);
+
+        if (month !== renderedMonth) {
+            const monthBar = document.createElement('div');
+
+            monthBar.className = 'calendar-schedule-month-bar';
+            monthBar.dataset.month = month;
+            monthBar.textContent = monthFormatter.format(date).toUpperCase();
+            wrapper.appendChild(monthBar);
+            renderedMonth = month;
+        }
+
         const day = document.createElement('section');
-        const dateRail = document.createElement('div');
+        const dateRail = document.createElement('button');
         const weekday = document.createElement('div');
         const number = document.createElement('div');
         const list = document.createElement('div');
@@ -4059,6 +4072,8 @@ const renderScheduleAgenda = function(calendar) {
         day.className = 'calendar-schedule-day';
         day.dataset.date = dateString;
         dateRail.className = 'calendar-schedule-date';
+        dateRail.type = 'button';
+        dateRail.setAttribute('aria-label', `Scroll to ${modalDateFormatter.format(date)}`);
         weekday.className = 'calendar-schedule-weekday';
         number.className = 'calendar-schedule-number';
         list.className = 'calendar-schedule-list';
@@ -5312,22 +5327,47 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     };
 
+    const scrollScheduleToDay = function(agenda, target, behavior = 'auto') {
+        const firstItem = agenda ? agenda.firstElementChild : null;
+
+        if (!agenda || !firstItem || !target) {
+            return;
+        }
+
+        const precedingMonthBar = target.previousElementSibling
+            && target.previousElementSibling.classList.contains('calendar-schedule-month-bar')
+            ? target.previousElementSibling
+            : null;
+        const scrollTarget = behavior === 'auto' && precedingMonthBar
+            ? precedingMonthBar
+            : target;
+
+        agenda.scrollTo({
+            behavior,
+            top: Math.max(0, scrollTarget.offsetTop - firstItem.offsetTop),
+        });
+
+        if (behavior !== 'smooth') {
+            syncScheduleLabelToScroll(agenda);
+        }
+    };
+
     const scrollScheduleToSelectedDate = function(agenda) {
         if (!agenda) {
             return;
         }
 
         const selected = toDateString(state.date || getTodayDate());
+        const firstDay = agenda.querySelector('.calendar-schedule-day');
         const target = agenda.querySelector(`.calendar-schedule-day[data-date="${selected}"]`)
             || agenda.querySelector(`.calendar-schedule-day[data-date="${todayString()}"]`)
-            || agenda.querySelector('.calendar-schedule-day');
+            || firstDay;
 
         if (!target) {
             return;
         }
 
-        agenda.scrollTop = Math.max(0, target.offsetTop);
-        syncScheduleLabelToScroll(agenda);
+        scrollScheduleToDay(agenda, target);
     };
 
     const bindScheduleAgenda = function(agenda) {
@@ -5338,6 +5378,17 @@ document.addEventListener('DOMContentLoaded', function() {
         agenda.addEventListener('scroll', function() {
             queueScheduleLabelSync(agenda);
         }, { passive: true });
+
+        agenda.addEventListener('click', function(e) {
+            const dateRail = e.target.closest('.calendar-schedule-date');
+            const day = dateRail ? dateRail.closest('.calendar-schedule-day') : null;
+
+            if (!day) {
+                return;
+            }
+
+            scrollScheduleToDay(agenda, day, 'smooth');
+        });
 
         requestAnimationFrame(function() {
             scrollScheduleToSelectedDate(agenda);

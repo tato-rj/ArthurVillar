@@ -3130,6 +3130,7 @@ var renderScheduleAgenda = function renderScheduleAgenda(calendar) {
   var today = todayString();
   var selected = toDateString(state.date);
   var wrapper = document.createElement('div');
+  var renderedMonth = '';
   wrapper.className = 'calendar-schedule-agenda';
   getDateRangeDates(range).forEach(function (date) {
     var dateString = toDateString(date);
@@ -3138,14 +3139,25 @@ var renderScheduleAgenda = function renderScheduleAgenda(calendar) {
     if (!items.length && !shouldRenderEmpty) {
       return;
     }
+    var month = dateString.substring(0, 7);
+    if (month !== renderedMonth) {
+      var monthBar = document.createElement('div');
+      monthBar.className = 'calendar-schedule-month-bar';
+      monthBar.dataset.month = month;
+      monthBar.textContent = monthFormatter.format(date).toUpperCase();
+      wrapper.appendChild(monthBar);
+      renderedMonth = month;
+    }
     var day = document.createElement('section');
-    var dateRail = document.createElement('div');
+    var dateRail = document.createElement('button');
     var weekday = document.createElement('div');
     var number = document.createElement('div');
     var list = document.createElement('div');
     day.className = 'calendar-schedule-day';
     day.dataset.date = dateString;
     dateRail.className = 'calendar-schedule-date';
+    dateRail.type = 'button';
+    dateRail.setAttribute('aria-label', "Scroll to ".concat(modalDateFormatter.format(date)));
     weekday.className = 'calendar-schedule-weekday';
     number.className = 'calendar-schedule-number';
     list.className = 'calendar-schedule-list';
@@ -4132,17 +4144,33 @@ document.addEventListener('DOMContentLoaded', function () {
       syncScheduleLabelToScroll(agenda);
     });
   };
+  var scrollScheduleToDay = function scrollScheduleToDay(agenda, target) {
+    var behavior = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 'auto';
+    var firstItem = agenda ? agenda.firstElementChild : null;
+    if (!agenda || !firstItem || !target) {
+      return;
+    }
+    var precedingMonthBar = target.previousElementSibling && target.previousElementSibling.classList.contains('calendar-schedule-month-bar') ? target.previousElementSibling : null;
+    var scrollTarget = behavior === 'auto' && precedingMonthBar ? precedingMonthBar : target;
+    agenda.scrollTo({
+      behavior: behavior,
+      top: Math.max(0, scrollTarget.offsetTop - firstItem.offsetTop)
+    });
+    if (behavior !== 'smooth') {
+      syncScheduleLabelToScroll(agenda);
+    }
+  };
   var scrollScheduleToSelectedDate = function scrollScheduleToSelectedDate(agenda) {
     if (!agenda) {
       return;
     }
     var selected = toDateString(state.date || getTodayDate());
-    var target = agenda.querySelector(".calendar-schedule-day[data-date=\"".concat(selected, "\"]")) || agenda.querySelector(".calendar-schedule-day[data-date=\"".concat(todayString(), "\"]")) || agenda.querySelector('.calendar-schedule-day');
+    var firstDay = agenda.querySelector('.calendar-schedule-day');
+    var target = agenda.querySelector(".calendar-schedule-day[data-date=\"".concat(selected, "\"]")) || agenda.querySelector(".calendar-schedule-day[data-date=\"".concat(todayString(), "\"]")) || firstDay;
     if (!target) {
       return;
     }
-    agenda.scrollTop = Math.max(0, target.offsetTop);
-    syncScheduleLabelToScroll(agenda);
+    scrollScheduleToDay(agenda, target);
   };
   var bindScheduleAgenda = function bindScheduleAgenda(agenda) {
     if (!agenda) {
@@ -4152,6 +4180,14 @@ document.addEventListener('DOMContentLoaded', function () {
       queueScheduleLabelSync(agenda);
     }, {
       passive: true
+    });
+    agenda.addEventListener('click', function (e) {
+      var dateRail = e.target.closest('.calendar-schedule-date');
+      var day = dateRail ? dateRail.closest('.calendar-schedule-day') : null;
+      if (!day) {
+        return;
+      }
+      scrollScheduleToDay(agenda, day, 'smooth');
     });
     requestAnimationFrame(function () {
       scrollScheduleToSelectedDate(agenda);
