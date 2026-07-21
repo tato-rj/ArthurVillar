@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Calendar;
 
 use App\Http\Controllers\Controller;
-use App\Models\Calendar\{Event, Settings};
+use App\Models\Calendar\{Event, GoogleCalendarConnection, GoogleCalendarEvent, Settings};
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -25,7 +25,10 @@ class SettingsController extends Controller
             'calendar_add_transparency_to_past_events' => ['required', 'boolean'],
             'calendar_highlight_conflicting_events' => ['required', 'boolean'],
             'default_event_notification_minutes_before' => ['required', 'integer', Rule::in(array_merge([-1], array_keys(Event::notificationOptions())))],
+            'google_recurring_sync_months' => ['required', 'integer', Rule::in(GoogleCalendarEvent::RECURRING_SYNC_MONTH_OPTIONS)],
         ]);
+
+        $previousGoogleRecurringSyncMonths = GoogleCalendarEvent::recurringSyncMonths();
 
         Settings::setValue(
             'calendar.show_insights',
@@ -104,6 +107,27 @@ class SettingsController extends Controller
             (int) $request->input('default_event_notification_minutes_before'),
             Settings::TYPE_INTEGER
         );
+
+        $googleRecurringSyncMonths = (int) $request->input('google_recurring_sync_months');
+
+        Settings::setValue(
+            'google_calendar.recurring_sync_months',
+            $googleRecurringSyncMonths,
+            Settings::TYPE_INTEGER
+        );
+
+        if ($googleRecurringSyncMonths !== $previousGoogleRecurringSyncMonths) {
+            GoogleCalendarConnection::query()
+                ->where('user_id', $request->user()->id)
+                ->update(['sync_token' => null]);
+
+            GoogleCalendarEvent::query()
+                ->whereHas('connection', function ($connection) use ($request) {
+                    $connection->where('user_id', $request->user()->id);
+                })
+                ->beyondRecurringSyncHorizon()
+                ->delete();
+        }
 
         return back()->with('success', 'Settings updated');
     }

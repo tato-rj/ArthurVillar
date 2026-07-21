@@ -1096,10 +1096,15 @@ const getCalendarEventIcon = function(event) {
     }
 
     return event.isGeneralEvent
-        ? { name: event.eventTypeIcon || '', title: event.eventType || '' }
+        ? {
+            name: event.eventTypeIcon || '',
+            title: event.eventType || '',
+            style: event.externalProvider === 'google' ? 'fa-brands' : 'fa-solid',
+        }
         : {
             name: getLessonLocationIcon(event.locationName),
             title: event.locationName || '',
+            style: 'fa-solid',
         };
 };
 
@@ -1114,7 +1119,7 @@ const createCalendarEventIcon = function(event) {
 
     element.className = 'event-icon';
     element.title = icon.title;
-    element.innerHTML = `<i class="fa-solid fa-${icon.name}" aria-hidden="true"></i>`;
+    element.innerHTML = `<i class="${icon.style} fa-${icon.name}" aria-hidden="true"></i>`;
 
     return element;
 };
@@ -1146,7 +1151,7 @@ const patchScheduleItems = function(calendar) {
         }
 
         if (eventIcon) {
-            eventIcon.querySelector('i').className = `fa-solid fa-${icon.name}`;
+            eventIcon.querySelector('i').className = `${icon.style} fa-${icon.name}`;
             eventIcon.title = icon.title;
         }
 
@@ -2468,7 +2473,8 @@ const openGeneralEventModal = function(event, options) {
             : formatModalEventTime(event.start));
     if (eventType) eventType.textContent = event.eventType || '';
     if (eventTypeIcon) {
-        eventTypeIcon.className = `fas opacity-4 mr-2 t-2${event.eventTypeIcon ? ` fa-${event.eventTypeIcon}` : ''}`;
+        const eventTypeIconStyle = event.externalProvider === 'google' ? 'fa-brands' : 'fas';
+        eventTypeIcon.className = `${eventTypeIconStyle} opacity-4 mr-2 t-2${event.eventTypeIcon ? ` fa-${event.eventTypeIcon}` : ''}`;
         eventTypeIcon.hidden = !event.eventTypeIcon;
     }
     if (eventTypeSection) eventTypeSection.hidden = !event.eventType;

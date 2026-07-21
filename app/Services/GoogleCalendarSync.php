@@ -20,8 +20,9 @@ class GoogleCalendarSync
     {
         try {
             [$events, $nextSyncToken] = $this->download($connection);
+            $recurringThrough = GoogleCalendarEvent::recurringSyncThrough();
 
-            DB::transaction(function () use ($connection, $events, $nextSyncToken) {
+            DB::transaction(function () use ($connection, $events, $nextSyncToken, $recurringThrough) {
                 if (! $connection->sync_token) {
                     $connection->events()->delete();
                 } else {
@@ -40,8 +41,12 @@ class GoogleCalendarSync
                         ->delete();
                 }
 
+                $connection->events()
+                    ->beyondRecurringSyncHorizon($recurringThrough)
+                    ->delete();
+
                 foreach ($events as $event) {
-                    $this->applyEvent($connection, $event);
+                    $this->applyEvent($connection, $event, $recurringThrough);
                 }
 
                 $connection->update([
@@ -100,7 +105,11 @@ class GoogleCalendarSync
         return [$events, $nextSyncToken];
     }
 
-    private function applyEvent(GoogleCalendarConnection $connection, array $event): void
+    private function applyEvent(
+        GoogleCalendarConnection $connection,
+        array $event,
+        Carbon $recurringThrough
+    ): void
     {
         $googleEventId = $event['id'] ?? null;
 
@@ -134,6 +143,12 @@ class GoogleCalendarSync
             : $startsAt->copy()->setTimezone(config('calendar.timezone'));
 
         if ($eventStart->lt(GoogleCalendarEvent::syncCutoff())) {
+            $existing->delete();
+            return;
+        }
+
+        if (! empty($event['recurringEventId'])
+            && $eventStart->gt($recurringThrough)) {
             $existing->delete();
             return;
         }

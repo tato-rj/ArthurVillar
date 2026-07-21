@@ -368,6 +368,7 @@ class Scheduler
         $googleEvents = GoogleCalendarEvent::query()
             ->whereHas('connection', fn ($query) => $query->where('user_id', $userId))
             ->startingOnOrAfterSyncCutoff()
+            ->withinRecurringSyncHorizon()
             ->where(function ($query) use ($range, $rangeStart, $rangeEnd) {
                 $query->where(function ($allDay) use ($range) {
                     $allDay->where('all_day', true)

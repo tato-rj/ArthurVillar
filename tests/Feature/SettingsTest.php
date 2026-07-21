@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Models\Calendar\{Lesson, LessonPlan, Settings, Student};
+use App\Models\Calendar\{GoogleCalendarConnection, Lesson, LessonPlan, Settings, Student};
 use Tests\BaseTest;
 
 class SettingsTest extends BaseTest
@@ -45,13 +45,33 @@ class SettingsTest extends BaseTest
             ->assertSee('Notifications default')
             ->assertSee('At the event time')
             ->assertSee('15 minutes before')
+            ->assertSeeInOrder(['Notifications default', 'Google Calendar', 'Save recurring events up to', 'Save changes'])
+            ->assertSee('<option value="2" selected>2 months from today</option>', false)
+            ->assertSee('4 months from today')
+            ->assertSee('6 months from today')
+            ->assertSee('12 months from today')
+            ->assertDontSee('Import meetings where you are an attendee. Google remains the source of truth.')
             ->assertSee('calendar_show_cancelled', false);
     }
 
     /** @test */
     public function it_saves_the_show_cancelled_lessons_preference_as_a_boolean_setting()
     {
-        $this->signIn();
+        $user = $this->signIn();
+        $connection = GoogleCalendarConnection::create([
+            'user_id' => $user->id,
+            'calendar_id' => 'arthur@example.com',
+            'access_token' => 'access-token',
+            'sync_token' => 'existing-sync-token',
+        ]);
+        $farRecurringEvent = $connection->events()->create([
+            'google_event_id' => 'far-recurring-event',
+            'recurring_event_id' => 'recurring-series',
+            'title' => 'Far recurring event',
+            'all_day' => false,
+            'starts_at' => '2056-10-01 19:00:00',
+            'ends_at' => '2056-10-01 20:00:00',
+        ]);
 
         $this->from(route('calendar.home'))
             ->patch(route('calendar.settings.update'), [
@@ -68,6 +88,7 @@ class SettingsTest extends BaseTest
                 'calendar_add_transparency_to_past_events' => false,
                 'calendar_highlight_conflicting_events' => false,
                 'default_event_notification_minutes_before' => 120,
+                'google_recurring_sync_months' => 4,
             ])
             ->assertRedirect(route('calendar.home'))
             ->assertSessionHas('success', 'Settings updated');
@@ -138,6 +159,13 @@ class SettingsTest extends BaseTest
             'value' => '120',
             'type' => Settings::TYPE_INTEGER,
         ]);
+        $this->assertDatabaseHas('settings', [
+            'key' => 'google_calendar.recurring_sync_months',
+            'value' => '4',
+            'type' => Settings::TYPE_INTEGER,
+        ]);
+        $this->assertNull($connection->fresh()->sync_token);
+        $this->assertDatabaseMissing('google_calendar_events', ['id' => $farRecurringEvent->id]);
     }
 
     /** @test */

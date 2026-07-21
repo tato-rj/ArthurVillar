@@ -133,21 +133,27 @@
 				@endselect
 			</section>
 
+			<section class="calendar-settings-section" aria-labelledby="settings-google-calendar-title">
+				<h6 id="settings-google-calendar-title">Google Calendar</h6>
+
+				@select(['label' => 'Save recurring events up to', 'name' => 'google_recurring_sync_months', 'id' => 'google-recurring-sync-months'])
+					@foreach($googleRecurringSyncMonthOptions as $months)
+						<option value="{{$months}}" {{iftrue($selectedGoogleRecurringSyncMonths === $months, 'selected')}}>{{$months}} months from today</option>
+					@endforeach
+				@endselect
+			</section>
+
 			@submit(['label' => 'Save changes', 'theme' => 'primary'])
 		</form>
 
-		<section class="calendar-settings-section mt-4" aria-labelledby="settings-google-calendar-title">
-			<h6 id="settings-google-calendar-title">Google Calendar</h6>
+		<hr class="my-4">
 
+		<section class="calendar-settings-section" aria-label="Google Calendar connections">
 			@if(! $googleCalendarConfigured && $googleCalendarConnections->isEmpty())
 				<p class="small text-muted mb-0">
 					Add the Google Calendar OAuth credentials to the server environment before connecting.
 				</p>
 			@else
-				<p class="small text-muted">
-					Import meetings where you are an attendee. Google remains the source of truth.
-				</p>
-
 				@foreach($googleCalendarConnections as $googleCalendarConnection)
 					<div class="border rounded p-3 mb-3">
 						<div class="small mb-3">

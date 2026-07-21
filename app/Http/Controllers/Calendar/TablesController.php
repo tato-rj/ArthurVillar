@@ -57,6 +57,7 @@ class TablesController extends Controller
             )
             ->where('google_calendar_connections.user_id', request()->user()->id)
             ->startingOnOrAfterSyncCutoff()
+            ->withinRecurringSyncHorizon()
             ->select([
                 'google_calendar_events.*',
                 'google_calendar_connections.calendar_id as calendar_id',

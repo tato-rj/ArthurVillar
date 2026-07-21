@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\Calendar\Settings;
 use App\Models\Calendar\GoogleCalendarConnection;
+use App\Models\Calendar\GoogleCalendarEvent;
 use App\Services\GoogleCalendarClient;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -42,6 +43,7 @@ class CalendarServiceProvider extends ServiceProvider
                 'calendar.add_transparency_to_past_events' => true,
                 'calendar.highlight_conflicting_events' => true,
                 'notifications.default_event_minutes_before' => -1,
+                'google_calendar.recurring_sync_months' => GoogleCalendarEvent::DEFAULT_RECURRING_SYNC_MONTHS,
             ];
 
             $storedSettings = Settings::query()
@@ -100,6 +102,8 @@ class CalendarServiceProvider extends ServiceProvider
                 'highlightConflictingEvents' => $value('calendar.highlight_conflicting_events'),
                 'defaultEventNotificationMinutesBefore' => $value('notifications.default_event_minutes_before'),
                 'selectedNotificationPreference' => (int) old('default_event_notification_minutes_before', $value('notifications.default_event_minutes_before')),
+                'googleRecurringSyncMonthOptions' => GoogleCalendarEvent::RECURRING_SYNC_MONTH_OPTIONS,
+                'selectedGoogleRecurringSyncMonths' => (int) old('google_recurring_sync_months', $value('google_calendar.recurring_sync_months')),
                 'googleCalendarConfigured' => app(GoogleCalendarClient::class)->isConfigured(),
                 'googleCalendarConnections' => $googleCalendarConnections,
             ]);

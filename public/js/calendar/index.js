@@ -3329,10 +3329,12 @@ var getCalendarEventIcon = function getCalendarEventIcon(event) {
   }
   return event.isGeneralEvent ? {
     name: event.eventTypeIcon || '',
-    title: event.eventType || ''
+    title: event.eventType || '',
+    style: event.externalProvider === 'google' ? 'fa-brands' : 'fa-solid'
   } : {
     name: getLessonLocationIcon(event.locationName),
-    title: event.locationName || ''
+    title: event.locationName || '',
+    style: 'fa-solid'
   };
 };
 var createCalendarEventIcon = function createCalendarEventIcon(event) {
@@ -3343,7 +3345,7 @@ var createCalendarEventIcon = function createCalendarEventIcon(event) {
   var element = document.createElement('span');
   element.className = 'event-icon';
   element.title = icon.title;
-  element.innerHTML = "<i class=\"fa-solid fa-".concat(icon.name, "\" aria-hidden=\"true\"></i>");
+  element.innerHTML = "<i class=\"".concat(icon.style, " fa-").concat(icon.name, "\" aria-hidden=\"true\"></i>");
   return element;
 };
 var patchScheduleItems = function patchScheduleItems(calendar) {
@@ -3369,7 +3371,7 @@ var patchScheduleItems = function patchScheduleItems(calendar) {
       item.appendChild(eventIcon);
     }
     if (eventIcon) {
-      eventIcon.querySelector('i').className = "fa-solid fa-".concat(icon.name);
+      eventIcon.querySelector('i').className = "".concat(icon.style, " fa-").concat(icon.name);
       eventIcon.title = icon.title;
     }
     item.classList.toggle('is-short', isShort);
@@ -4398,7 +4400,8 @@ var openGeneralEventModal = function openGeneralEventModal(event, options) {
   if (time) time.textContent = event.allDay ? 'All day' : event.start && event.end ? "".concat(formatModalEventTime(event.start), " - ").concat(formatModalEventTime(event.end)) : formatModalEventTime(event.start);
   if (eventType) eventType.textContent = event.eventType || '';
   if (eventTypeIcon) {
-    eventTypeIcon.className = "fas opacity-4 mr-2 t-2".concat(event.eventTypeIcon ? " fa-".concat(event.eventTypeIcon) : '');
+    var eventTypeIconStyle = event.externalProvider === 'google' ? 'fa-brands' : 'fas';
+    eventTypeIcon.className = "".concat(eventTypeIconStyle, " opacity-4 mr-2 t-2").concat(event.eventTypeIcon ? " fa-".concat(event.eventTypeIcon) : '');
     eventTypeIcon.hidden = !event.eventTypeIcon;
   }
   if (eventTypeSection) eventTypeSection.hidden = !event.eventType;

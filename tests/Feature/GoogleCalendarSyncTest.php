@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Calendar\Scheduler;
 use App\Models\Calendar\GoogleCalendarConnection;
 use App\Models\Calendar\GoogleCalendarEvent;
+use App\Models\Calendar\Settings;
 use App\Services\GoogleCalendarSync;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Http;
@@ -222,6 +223,64 @@ class GoogleCalendarSyncTest extends BaseTest
     }
 
     /** @test */
+    public function sync_limits_recurring_occurrences_to_the_configured_month_horizon()
+    {
+        CarbonImmutable::setTestNow('2026-07-21 12:00:00');
+        $user = $this->signIn();
+        $connection = GoogleCalendarConnection::create([
+            'user_id' => $user->id,
+            'calendar_id' => 'arthur@example.com',
+            'calendar_name' => 'Arthur',
+            'access_token' => 'access-token',
+            'token_expires_at' => now()->addHour(),
+            'sync_token' => 'existing-sync-token',
+        ]);
+        $connection->events()->create(array_replace(
+            $this->storedMeetingAttributes('stored-far-recurring-event'),
+            [
+                'recurring_event_id' => 'stored-recurring-series',
+                'starts_at' => '2026-10-01 19:00:00',
+                'ends_at' => '2026-10-01 20:00:00',
+            ]
+        ));
+        $nearRecurring = array_replace_recursive($this->googleMeeting('near-recurring-event', 'accepted'), [
+            'recurringEventId' => 'recurring-series',
+            'start' => ['dateTime' => '2026-09-01T15:00:00-04:00'],
+            'end' => ['dateTime' => '2026-09-01T16:00:00-04:00'],
+        ]);
+        $farRecurring = array_replace_recursive($this->googleMeeting('far-recurring-event', 'accepted'), [
+            'recurringEventId' => 'recurring-series',
+            'start' => ['dateTime' => '2026-10-01T15:00:00-04:00'],
+            'end' => ['dateTime' => '2026-10-01T16:00:00-04:00'],
+        ]);
+        $farSingle = array_replace_recursive($this->googleMeeting('far-single-event', 'accepted'), [
+            'start' => ['dateTime' => '2026-10-01T17:00:00-04:00'],
+            'end' => ['dateTime' => '2026-10-01T18:00:00-04:00'],
+        ]);
+
+        Http::fake([
+            'https://www.googleapis.com/calendar/v3/calendars/*/events*' => Http::response([
+                'items' => [$nearRecurring, $farRecurring, $farSingle],
+                'nextSyncToken' => 'next-sync-token',
+            ]),
+        ]);
+
+        app(GoogleCalendarSync::class)->sync($connection);
+
+        $this->assertDatabaseHas('google_calendar_events', ['google_event_id' => 'near-recurring-event']);
+        $this->assertDatabaseHas('google_calendar_events', ['google_event_id' => 'far-single-event']);
+        $this->assertDatabaseMissing('google_calendar_events', ['google_event_id' => 'far-recurring-event']);
+        $this->assertDatabaseMissing('google_calendar_events', ['google_event_id' => 'stored-far-recurring-event']);
+
+        Settings::setValue('google_calendar.recurring_sync_months', 4, Settings::TYPE_INTEGER);
+        app(GoogleCalendarSync::class)->sync($connection->fresh());
+
+        $this->assertDatabaseHas('google_calendar_events', ['google_event_id' => 'far-recurring-event']);
+
+        CarbonImmutable::setTestNow();
+    }
+
+    /** @test */
     public function incremental_sync_uses_the_saved_token_and_removes_canceled_google_events()
     {
         $user = $this->signIn();
@@ -332,6 +391,7 @@ class GoogleCalendarSyncTest extends BaseTest
 
         $this->assertNotNull($googleEvent);
         $this->assertSame('Google Calendar', $googleEvent['event_type']);
+        $this->assertSame('google', $googleEvent['event_type_icon']);
         $this->assertSame('https://calendar.google.com/event?eid=remote', $googleEvent['external_url']);
         $this->assertSame('needsAction', $googleEvent['response_status']);
         $this->assertTrue($googleEvent['read_only']);
@@ -392,6 +452,15 @@ class GoogleCalendarSyncTest extends BaseTest
                 'title' => 'Old imported meeting',
                 'starts_at' => '2026-06-30 19:00:00',
                 'ends_at' => '2026-06-30 20:00:00',
+            ]
+        ));
+        $firstConnection->events()->create(array_replace(
+            $this->storedMeetingAttributes('far-recurring-event'),
+            [
+                'title' => 'Far recurring meeting',
+                'recurring_event_id' => 'far-recurring-series',
+                'starts_at' => '2056-10-01 19:00:00',
+                'ends_at' => '2056-10-01 20:00:00',
             ]
         ));
 
