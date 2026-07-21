@@ -1153,7 +1153,13 @@ const patchScheduleItems = function(calendar) {
         item.classList.toggle('is-short', isShort);
         item.classList.toggle('calendar-calendar-general-event', Boolean(event && event.isGeneralEvent));
         item.toggleAttribute('data-read-only', Boolean(event && event.readOnly));
-        item.setAttribute('data-display-time', isShort ? formatEventTime(start) : `${formatEventTime(start)} - ${formatEventTime(end)}`);
+        item.dataset.externalProvider = event && event.externalProvider ? event.externalProvider : '';
+        item.setAttribute(
+            'data-display-time',
+            event && event.externalProvider === 'google'
+                ? 'from Google Calendar'
+                : (isShort ? formatEventTime(start) : `${formatEventTime(start)} - ${formatEventTime(end)}`)
+        );
         clearScheduleItemBirthdayDecoration(item);
 
         if (event) {
@@ -4258,9 +4264,11 @@ const renderScheduleAgenda = function(calendar) {
                 item.dataset.durationMinutes = duration;
                 item.style.setProperty('--calendar-schedule-event-height', getAgendaEventHeight(event));
                 time.className = 'calendar-schedule-event-time';
-                time.textContent = event.start && event.end
-                    ? `${formatAgendaEventTime(event.start)}-${formatAgendaEventTime(event.end)}`
-                    : formatAgendaEventTime(event.start);
+                time.textContent = event.externalProvider === 'google'
+                    ? 'from Google Calendar'
+                    : (event.start && event.end
+                        ? `${formatAgendaEventTime(event.start)}-${formatAgendaEventTime(event.end)}`
+                        : formatAgendaEventTime(event.start));
 
                 if (eventIcon) {
                     item.appendChild(eventIcon);

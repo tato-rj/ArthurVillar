@@ -1521,6 +1521,10 @@ button.single-lesson-plan-create[selected] i {
     display: none;
 }
 
+#calendar .lm-schedule-item[data-external-provider="google"]:after {
+    display: block;
+}
+
 #lesson-summary i {
     width: 16px;
     margin: 0;
