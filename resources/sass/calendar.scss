@@ -1835,7 +1835,7 @@ button.single-lesson-plan-create[selected] i {
     flex: 0 0 auto;
 }
 
-.calendar-settings-section {
+.calendar-settings-section:not(:last-of-type) {
     @extend .mb-4;
 }
 
