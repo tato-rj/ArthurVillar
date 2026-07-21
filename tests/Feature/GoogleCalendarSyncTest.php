@@ -40,7 +40,10 @@ class GoogleCalendarSyncTest extends BaseTest
         $this->assertSame('offline', $query['access_type']);
         $this->assertSame('consent select_account', $query['prompt']);
         $this->assertArrayNotHasKey('login_hint', $query);
-        $this->assertSame('https://www.googleapis.com/auth/calendar.readonly', $query['scope']);
+        $this->assertSame(
+            'openid profile https://www.googleapis.com/auth/calendar.readonly',
+            $query['scope']
+        );
         $this->assertNotEmpty($query['state']);
         $this->assertSame($query['state'], session('google_calendar_oauth_state'));
     }
@@ -69,6 +72,10 @@ class GoogleCalendarSyncTest extends BaseTest
                 'summary' => 'Second account',
                 'timeZone' => 'America/New_York',
             ]),
+            'https://openidconnect.googleapis.com/v1/userinfo' => Http::response([
+                'email' => 'second@example.com',
+                'picture' => 'https://lh3.googleusercontent.com/a/second-account',
+            ]),
         ]);
 
         $this->withSession(['google_calendar_oauth_state' => $state])
@@ -85,6 +92,10 @@ class GoogleCalendarSyncTest extends BaseTest
             'second-refresh-token',
             GoogleCalendarConnection::where('calendar_id', 'second@example.com')->firstOrFail()->refresh_token
         );
+        $this->assertSame(
+            'https://lh3.googleusercontent.com/a/second-account',
+            GoogleCalendarConnection::where('calendar_id', 'second@example.com')->firstOrFail()->profile_picture_url
+        );
     }
 
     /** @test */
@@ -95,12 +106,18 @@ class GoogleCalendarSyncTest extends BaseTest
             'user_id' => $user->id,
             'calendar_id' => 'arthur@example.com',
             'calendar_name' => 'arthur@example.com',
+            'profile_picture_url' => 'https://lh3.googleusercontent.com/a/arthur',
             'access_token' => 'access-token',
         ]);
 
         $response = $this->get(route('calendar.home'))->assertOk();
 
         $this->assertSame(1, substr_count($response->getContent(), 'arthur@example.com'));
+        $response
+            ->assertSee('calendar-google-account d-flex align-items-center', false)
+            ->assertSee('calendar-google-account-avatar rounded-circle', false)
+            ->assertSee('src="https://lh3.googleusercontent.com/a/arthur"', false)
+            ->assertSee('referrerpolicy="no-referrer"', false);
     }
 
     /** @test */
@@ -121,6 +138,10 @@ class GoogleCalendarSyncTest extends BaseTest
                 'summary' => 'Arthur',
                 'timeZone' => 'America/New_York',
             ]),
+            'https://openidconnect.googleapis.com/v1/userinfo' => Http::response([
+                'email' => 'arthur@example.com',
+                'picture' => 'https://lh3.googleusercontent.com/a/arthur',
+            ]),
         ]);
 
         $this->withSession(['google_calendar_oauth_state' => $state])
@@ -137,6 +158,7 @@ class GoogleCalendarSyncTest extends BaseTest
         $this->assertNull($connection->sync_token);
         $this->assertNull($connection->last_synced_at);
         $this->assertSame('arthur@example.com', $connection->calendar_id);
+        $this->assertSame('https://lh3.googleusercontent.com/a/arthur', $connection->profile_picture_url);
         $this->assertDatabaseCount('google_calendar_events', 0);
 
         Http::assertNotSent(fn ($request) => str_contains($request->url(), '/events'));

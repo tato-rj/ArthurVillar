@@ -1855,6 +1855,26 @@ button.single-lesson-plan-create[selected] i {
     cursor: pointer;
 }
 
+.calendar-google-account-details {
+    min-width: 0;
+}
+
+.calendar-google-account-avatar {
+    flex: 0 0 2.75rem;
+    height: 2.75rem;
+    object-fit: cover;
+    width: 2.75rem;
+}
+
+.calendar-google-account-avatar-fallback {
+    align-items: center;
+    background: #f1f3f4;
+    color: #5f6368;
+    display: flex;
+    font-size: 1.25rem;
+    justify-content: center;
+}
+
 .calendar-settings-color-control {
     align-items: center;
     display: inline-flex;

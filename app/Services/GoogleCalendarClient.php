@@ -12,7 +12,8 @@ class GoogleCalendarClient
     private const AUTHORIZATION_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
     private const TOKEN_URL = 'https://oauth2.googleapis.com/token';
     private const API_URL = 'https://www.googleapis.com/calendar/v3';
-    private const SCOPE = 'https://www.googleapis.com/auth/calendar.readonly';
+    private const USER_INFO_URL = 'https://openidconnect.googleapis.com/v1/userinfo';
+    private const SCOPE = 'openid profile https://www.googleapis.com/auth/calendar.readonly';
 
     public function isConfigured(): bool
     {
@@ -56,6 +57,14 @@ class GoogleCalendarClient
     {
         return $this->request($accessToken)
             ->get(self::API_URL.'/calendars/primary')
+            ->throw()
+            ->json();
+    }
+
+    public function userProfile(string $accessToken): array
+    {
+        return $this->request($accessToken)
+            ->get(self::USER_INFO_URL)
             ->throw()
             ->json();
     }

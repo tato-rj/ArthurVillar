@@ -156,17 +156,29 @@
 			@else
 				@foreach($googleCalendarConnections as $googleCalendarConnection)
 					<div class="border rounded p-3 mb-3">
-						<div class="small mb-3">
-							<div class="font-weight-bold">{{$googleCalendarConnection->calendar_name ?: $googleCalendarConnection->calendar_id}}</div>
-							@if($googleCalendarConnection->calendar_name && $googleCalendarConnection->calendar_name !== $googleCalendarConnection->calendar_id)
-								<div class="text-muted">{{$googleCalendarConnection->calendar_id}}</div>
+						<div class="calendar-google-account d-flex align-items-center small mb-3">
+							@if($googleCalendarConnection->profile_picture_url)
+								<img
+									class="calendar-google-account-avatar rounded-circle mr-3"
+									src="{{$googleCalendarConnection->profile_picture_url}}"
+									alt=""
+									referrerpolicy="no-referrer"
+								>
+							@else
+								<div class="calendar-google-account-avatar calendar-google-account-avatar-fallback rounded-circle mr-3" aria-hidden="true">
+									<i class="fa-brands fa-google"></i>
+								</div>
 							@endif
-							<div class="text-muted">
+
+							<div class="calendar-google-account-details">
+								<div class="font-weight-bold text-nowrap text-truncate">{{$googleCalendarConnection->calendar_id}}</div>
+								<div class="text-muted text-nowrap text-truncate">
 								@if($googleCalendarConnection->last_synced_at)
 									Last synced {{$googleCalendarConnection->last_synced_at->diffForHumans()}}
 								@else
 									Waiting for the automatic first sync (runs every five minutes)
 								@endif
+								</div>
 							</div>
 						</div>
 

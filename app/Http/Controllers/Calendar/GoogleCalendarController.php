@@ -45,6 +45,14 @@ class GoogleCalendarController extends Controller
         try {
             $tokens = $client->exchangeAuthorizationCode($request->input('code'));
             $calendar = $client->primaryCalendar($tokens['access_token']);
+            $profile = [];
+
+            try {
+                $profile = $client->userProfile($tokens['access_token']);
+            } catch (Throwable $exception) {
+                report($exception);
+            }
+
             $calendarId = $calendar['id'] ?? 'primary';
             $existing = GoogleCalendarConnection::query()
                 ->where('user_id', $request->user()->id)
@@ -59,6 +67,8 @@ class GoogleCalendarController extends Controller
                 [
                     'calendar_name' => $calendar['summary'] ?? $request->user()->email,
                     'calendar_timezone' => $calendar['timeZone'] ?? null,
+                    'profile_picture_url' => $this->safeProfilePictureUrl($profile['picture'] ?? null)
+                        ?: $existing?->profile_picture_url,
                     'access_token' => $tokens['access_token'],
                     'refresh_token' => $tokens['refresh_token'] ?? $existing?->refresh_token,
                     'token_expires_at' => now()->addSeconds((int) ($tokens['expires_in'] ?? 3600)),
@@ -75,6 +85,15 @@ class GoogleCalendarController extends Controller
 
         return redirect()->route('calendar.home')
             ->with('success', 'Google Calendar connected. The first sync will run automatically within five minutes.');
+    }
+
+    private function safeProfilePictureUrl(?string $url): ?string
+    {
+        if (! $url || ! filter_var($url, FILTER_VALIDATE_URL)) {
+            return null;
+        }
+
+        return parse_url($url, PHP_URL_SCHEME) === 'https' ? $url : null;
     }
 
     public function sync(
