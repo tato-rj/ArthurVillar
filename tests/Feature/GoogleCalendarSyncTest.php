@@ -87,6 +87,22 @@ class GoogleCalendarSyncTest extends BaseTest
     }
 
     /** @test */
+    public function settings_do_not_repeat_the_email_when_it_is_also_the_calendar_name()
+    {
+        $user = $this->signIn();
+        GoogleCalendarConnection::create([
+            'user_id' => $user->id,
+            'calendar_id' => 'arthur@example.com',
+            'calendar_name' => 'arthur@example.com',
+            'access_token' => 'access-token',
+        ]);
+
+        $response = $this->get(route('calendar.home'))->assertOk();
+
+        $this->assertSame(1, substr_count($response->getContent(), 'arthur@example.com'));
+    }
+
+    /** @test */
     public function the_oauth_callback_connects_without_waiting_for_the_first_sync()
     {
         CarbonImmutable::setTestNow('2026-07-21 12:00:00');

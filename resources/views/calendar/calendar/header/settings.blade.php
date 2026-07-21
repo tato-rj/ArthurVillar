@@ -152,7 +152,9 @@
 					<div class="border rounded p-3 mb-3">
 						<div class="small mb-3">
 							<div class="font-weight-bold">{{$googleCalendarConnection->calendar_name ?: $googleCalendarConnection->calendar_id}}</div>
-							<div class="text-muted">{{$googleCalendarConnection->calendar_id}}</div>
+							@if($googleCalendarConnection->calendar_name && $googleCalendarConnection->calendar_name !== $googleCalendarConnection->calendar_id)
+								<div class="text-muted">{{$googleCalendarConnection->calendar_id}}</div>
+							@endif
 							<div class="text-muted">
 								@if($googleCalendarConnection->last_synced_at)
 									Last synced {{$googleCalendarConnection->last_synced_at->diffForHumans()}}
