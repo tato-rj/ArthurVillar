@@ -31905,6 +31905,12 @@ button.setting-undo:hover {
   overflow-wrap: anywhere;
   white-space: pre-wrap;
 }
+.calendar-general-event-notes > :first-child {
+  margin-top: 0;
+}
+.calendar-general-event-notes > :last-child {
+  margin-bottom: 0;
+}
 
 .calendar-calendar-lesson-fade-in {
   animation: calendar-calendar-lesson-fade-in 180ms ease-out var(--calendar-lesson-fade-delay, 0ms) both;

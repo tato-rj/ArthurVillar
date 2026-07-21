@@ -37,14 +37,14 @@ return new class extends Migration
             $table->text('meeting_url')->nullable();
             $table->string('response_status')->nullable();
             $table->boolean('all_day')->default(false);
-            $table->timestamp('starts_at')->nullable();
-            $table->timestamp('ends_at')->nullable();
+            $table->dateTime('starts_at')->nullable();
+            $table->dateTime('ends_at')->nullable();
             $table->date('start_date')->nullable();
             $table->date('end_date')->nullable();
             $table->string('organizer_name')->nullable();
             $table->string('organizer_email')->nullable();
             $table->json('attendees')->nullable();
-            $table->timestamp('google_updated_at')->nullable();
+            $table->dateTime('google_updated_at')->nullable();
             $table->timestamps();
 
             $table->unique(

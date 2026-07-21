@@ -1,3 +1,4 @@
+const DOMPurify = require('dompurify');
 const calendarjs = window.calendarjs;
 
 const state = {
@@ -1413,6 +1414,7 @@ const getGeneralEvent = function(generalEvent) {
         rescheduleUrl: generalEvent.reschedule_url || '',
         revertUrl: generalEvent.revert_url || '',
         destroyUrl: generalEvent.destroy_url || '',
+        externalProvider: generalEvent.external_provider || '',
         externalUrl: generalEvent.external_url || '',
         meetingUrl: generalEvent.meeting_url || '',
         responseStatus: generalEvent.response_status || '',
@@ -2241,19 +2243,10 @@ const openRecitalModal = function(event) {
     }
 };
 
-const renderNotesWithLinks = function(element, notes) {
-    const text = String(notes || '');
+const appendTextWithLinks = function(element, text) {
     const urlPattern = /(?:https?:\/\/|www\.)[^\s]+/gi;
     let cursor = 0;
     let match;
-
-    element.innerHTML = '';
-
-    if (!text) {
-        return;
-    }
-
-    element.classList.remove('opacity-4');
 
     while ((match = urlPattern.exec(text)) !== null) {
         const rawUrl = match[0];
@@ -2277,6 +2270,70 @@ const renderNotesWithLinks = function(element, notes) {
     }
 
     element.appendChild(document.createTextNode(text.slice(cursor)));
+};
+
+const renderNotesWithLinks = function(element, notes) {
+    const text = String(notes || '');
+
+    element.innerHTML = '';
+
+    if (!text) {
+        return;
+    }
+
+    element.classList.remove('opacity-4');
+    appendTextWithLinks(element, text);
+};
+
+const renderGoogleNotesHtml = function(element, notes) {
+    element.innerHTML = DOMPurify.sanitize(String(notes || ''), {
+        ALLOWED_TAGS: ['a', 'p', 'br', 'div', 'span', 'strong', 'b', 'em', 'i', 'u', 'ul', 'ol', 'li', 'blockquote'],
+        ALLOWED_ATTR: ['href', 'title'],
+        ALLOW_DATA_ATTR: false,
+    });
+
+    element.classList.remove('opacity-4');
+
+    element.querySelectorAll('a').forEach(function(link) {
+        const href = link.getAttribute('href') || '';
+        let url;
+
+        try {
+            url = new URL(href, window.location.origin);
+        } catch (error) {
+            link.replaceWith(document.createTextNode(link.textContent || ''));
+            return;
+        }
+
+        if (!['http:', 'https:'].includes(url.protocol)) {
+            link.replaceWith(document.createTextNode(link.textContent || ''));
+            return;
+        }
+
+        link.href = url.href;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+    });
+
+    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+    const textNodes = [];
+    let node;
+
+    while ((node = walker.nextNode())) {
+        if (!node.parentElement || !node.parentElement.closest('a')) {
+            textNodes.push(node);
+        }
+    }
+
+    textNodes.forEach(function(textNode) {
+        if (!/(?:https?:\/\/|www\.)/i.test(textNode.nodeValue || '')) {
+            return;
+        }
+
+        const fragment = document.createDocumentFragment();
+        appendTextWithLinks(fragment, textNode.nodeValue || '');
+        textNode.replaceWith(fragment);
+    });
 };
 
 const formatGeneralEventNotification = function(minutes) {
@@ -2414,7 +2471,13 @@ const openGeneralEventModal = function(event, options) {
         notification.parentElement.hidden = !notification.textContent;
     }
     if (notesSection) notesSection.hidden = !String(event.notes || '').trim();
-    if (notes) renderNotesWithLinks(notes, event.notes);
+    if (notes) {
+        if (event.externalProvider === 'google') {
+            renderGoogleNotesHtml(notes, event.notes);
+        } else {
+            renderNotesWithLinks(notes, event.notes);
+        }
+    }
     if (externalSection) externalSection.hidden = !event.readOnly;
     if (externalLink) externalLink.href = event.externalUrl || '#';
     if (meetingLink) {

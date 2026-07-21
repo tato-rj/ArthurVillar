@@ -182,6 +182,36 @@ class GoogleCalendarSyncTest extends BaseTest
     }
 
     /** @test */
+    public function sync_imports_google_events_beyond_the_mysql_timestamp_limit()
+    {
+        $user = $this->signIn();
+        $connection = GoogleCalendarConnection::create([
+            'user_id' => $user->id,
+            'calendar_id' => 'arthur@example.com',
+            'calendar_name' => 'Arthur',
+            'access_token' => 'access-token',
+            'token_expires_at' => now()->addHour(),
+        ]);
+        $meeting = $this->googleMeeting('future-recurring-meeting', 'accepted');
+        $meeting['start']['dateTime'] = '2038-01-19T15:00:00Z';
+        $meeting['end']['dateTime'] = '2038-01-19T16:00:00Z';
+
+        Http::fake([
+            'https://www.googleapis.com/calendar/v3/calendars/*/events*' => Http::response([
+                'items' => [$meeting],
+                'nextSyncToken' => 'sync-token-after-2038',
+            ]),
+        ]);
+
+        app(GoogleCalendarSync::class)->sync($connection);
+
+        $event = GoogleCalendarEvent::where('google_event_id', 'future-recurring-meeting')->firstOrFail();
+
+        $this->assertSame('2038-01-19 15:00:00', $event->starts_at->utc()->format('Y-m-d H:i:s'));
+        $this->assertSame('2038-01-19 16:00:00', $event->ends_at->utc()->format('Y-m-d H:i:s'));
+    }
+
+    /** @test */
     public function incremental_sync_uses_the_saved_token_and_removes_canceled_google_events()
     {
         $user = $this->signIn();

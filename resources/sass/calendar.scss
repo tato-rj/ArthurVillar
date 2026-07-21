@@ -586,6 +586,9 @@ button.setting-undo {
 .calendar-general-event-notes {
     overflow-wrap: anywhere;
     white-space: pre-wrap;
+
+    > :first-child {margin-top: 0;}
+    > :last-child {margin-bottom: 0;}
 }
 
 .calendar-calendar-lesson-fade-in {
