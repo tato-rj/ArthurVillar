@@ -143,7 +143,9 @@
 				@endselect
 			</section>
 
-			@submit(['label' => 'Save changes', 'theme' => 'primary'])
+			<div class="mt-4">
+				@submit(['label' => 'Save changes', 'theme' => 'primary'])
+			</div>
 		</form>
 
 		<hr class="my-4">
