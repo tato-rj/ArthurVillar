@@ -162,7 +162,7 @@ td {white-space: nowrap;}
     padding: 0 1.5rem 0 0;
 }
 
-.calendar-month-calendar {border: 0}
+.calendar-month-calendar, .calendar-schedule-agenda {border: 0 !important}
 
 .calendar-calendar-view i {
     pointer-events: none;

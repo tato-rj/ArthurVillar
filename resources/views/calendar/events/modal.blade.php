@@ -19,6 +19,18 @@
         <i id="general-event-type-icon" class="fas opacity-4 mr-2 t-2" aria-hidden="true"></i>
         <span id="general-event-type"></span>
     </div>
+    <div class="mb-2" data-general-event-organizer-section hidden>
+        @fa(['icon' => 'user', 'classes' => 'opacity-4'])
+        <span data-general-event-organizer></span>
+    </div>
+    <div class="mb-2" data-general-event-location-section hidden>
+        @fa(['icon' => 'location-dot', 'classes' => 'opacity-4'])
+        <span data-general-event-location></span>
+    </div>
+    <div class="mb-2" data-general-event-response-section hidden>
+        @fa(['icon' => 'circle-question', 'classes' => 'opacity-4'])
+        <span data-general-event-response></span>
+    </div>
     <div class="mb-2" hidden>
         @fa(['icon' => 'bell', 'classes' => 'opacity-4'])
         <span id="general-event-notification"></span>
@@ -27,6 +39,15 @@
     <div data-general-event-notes-section hidden class="mb-3">
         <div class="small font-weight-bold opacity-6 mb-2 mt-3">NOTES</div>
         <div id="general-event-notes" class="calendar-general-event-notes"></div>
+    </div>
+
+    <div class="mb-3" data-general-event-external-section hidden>
+        <a class="btn btn-outline-dark w-100 mb-2" data-general-event-external-link href="#" target="_blank" rel="noopener">
+            @fa(['icon' => 'arrow-up-right-from-square'])Open in Google Calendar
+        </a>
+        <a class="btn btn-primary w-100" data-general-event-meeting-link href="#" target="_blank" rel="noopener" hidden>
+            @fa(['icon' => 'video'])Join meeting
+        </a>
     </div>
 
     <div id="general-event-controls" class="d-flex mt-3">

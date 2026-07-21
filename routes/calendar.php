@@ -6,6 +6,13 @@ Route::get('/', 'CalendarController@index')->name('home');
 
 Route::patch('settings', 'SettingsController@update')->name('settings.update');
 
+Route::prefix('google-calendar')->name('google-calendar.')->group(function() {
+	Route::get('connect', 'GoogleCalendarController@connect')->name('connect');
+	Route::get('callback', 'GoogleCalendarController@callback')->name('callback');
+	Route::post('sync', 'GoogleCalendarController@sync')->name('sync');
+	Route::delete('', 'GoogleCalendarController@disconnect')->name('disconnect');
+});
+
 Route::get('financial-report', 'CalendarController@report')->name('financial.report');
 
 Route::prefix('invitations')->name('invitations.')->group(function() {

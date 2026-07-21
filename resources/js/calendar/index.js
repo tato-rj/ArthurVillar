@@ -1151,6 +1151,7 @@ const patchScheduleItems = function(calendar) {
 
         item.classList.toggle('is-short', isShort);
         item.classList.toggle('calendar-calendar-general-event', Boolean(event && event.isGeneralEvent));
+        item.toggleAttribute('data-read-only', Boolean(event && event.readOnly));
         item.setAttribute('data-display-time', isShort ? formatEventTime(start) : `${formatEventTime(start)} - ${formatEventTime(end)}`);
         clearScheduleItemBirthdayDecoration(item);
 
@@ -1412,6 +1413,14 @@ const getGeneralEvent = function(generalEvent) {
         rescheduleUrl: generalEvent.reschedule_url || '',
         revertUrl: generalEvent.revert_url || '',
         destroyUrl: generalEvent.destroy_url || '',
+        externalUrl: generalEvent.external_url || '',
+        meetingUrl: generalEvent.meeting_url || '',
+        responseStatus: generalEvent.response_status || '',
+        organizerName: generalEvent.organizer_name || '',
+        organizerEmail: generalEvent.organizer_email || '',
+        location: generalEvent.location || '',
+        allDay: Boolean(generalEvent.all_day),
+        readOnly: Boolean(generalEvent.read_only),
         calendarStatus: status,
         lessonStatus: status,
         'data-lesson-status': status,
@@ -1430,14 +1439,14 @@ const getGeneralEventCalendarEvents = function() {
 };
 
 const getGeneralEventByGuid = function(guid) {
-    const match = String(guid || '').match(/^general-event-(\d+)-(\d{4}-\d{2}-\d{2})$/);
+    const match = String(guid || '').match(/^general-event-(.+)-(\d{4}-\d{2}-\d{2})$/);
 
     if (!match) {
         return null;
     }
 
     const generalEvent = state.generalEvents.find(function(item) {
-        return Number(item.id) === Number(match[1]);
+        return String(item.id) === match[1];
     });
 
     return generalEvent ? getGeneralEvent(generalEvent) : null;
@@ -2365,6 +2374,15 @@ const openGeneralEventModal = function(event, options) {
     const notification = modal.querySelector('#general-event-notification');
     const notes = modal.querySelector('#general-event-notes');
     const notesSection = modal.querySelector('[data-general-event-notes-section]');
+    const externalSection = modal.querySelector('[data-general-event-external-section]');
+    const externalLink = modal.querySelector('[data-general-event-external-link]');
+    const meetingLink = modal.querySelector('[data-general-event-meeting-link]');
+    const response = modal.querySelector('[data-general-event-response]');
+    const responseSection = modal.querySelector('[data-general-event-response-section]');
+    const organizer = modal.querySelector('[data-general-event-organizer]');
+    const organizerSection = modal.querySelector('[data-general-event-organizer-section]');
+    const location = modal.querySelector('[data-general-event-location]');
+    const locationSection = modal.querySelector('[data-general-event-location-section]');
     const edit = modal.querySelector('#event-edit');
     const revert = modal.querySelector('#event-revert');
     const controls = modal.querySelector('#general-event-controls');
@@ -2380,9 +2398,11 @@ const openGeneralEventModal = function(event, options) {
 
     if (title) title.textContent = event.title || 'Event';
     if (date) date.textContent = event.date ? modalDateFormatter.format(parseDateString(event.date)) : '';
-    if (time) time.textContent = event.start && event.end
-        ? `${formatModalEventTime(event.start)} - ${formatModalEventTime(event.end)}`
-        : formatModalEventTime(event.start);
+    if (time) time.textContent = event.allDay
+        ? 'All day'
+        : (event.start && event.end
+            ? `${formatModalEventTime(event.start)} - ${formatModalEventTime(event.end)}`
+            : formatModalEventTime(event.start));
     if (eventType) eventType.textContent = event.eventType || '';
     if (eventTypeIcon) {
         eventTypeIcon.className = `fas opacity-4 mr-2 t-2${event.eventTypeIcon ? ` fa-${event.eventTypeIcon}` : ''}`;
@@ -2395,6 +2415,23 @@ const openGeneralEventModal = function(event, options) {
     }
     if (notesSection) notesSection.hidden = !String(event.notes || '').trim();
     if (notes) renderNotesWithLinks(notes, event.notes);
+    if (externalSection) externalSection.hidden = !event.readOnly;
+    if (externalLink) externalLink.href = event.externalUrl || '#';
+    if (meetingLink) {
+        meetingLink.href = event.meetingUrl || '#';
+        meetingLink.hidden = !event.meetingUrl;
+    }
+    if (responseSection) responseSection.hidden = !event.responseStatus;
+    if (response) response.textContent = ({
+        accepted: 'Accepted',
+        declined: 'Declined',
+        needsAction: 'Awaiting your response',
+        tentative: 'Maybe',
+    })[event.responseStatus] || event.responseStatus;
+    if (organizerSection) organizerSection.hidden = !(event.organizerName || event.organizerEmail);
+    if (organizer) organizer.textContent = event.organizerName || event.organizerEmail || '';
+    if (locationSection) locationSection.hidden = !event.location;
+    if (location) location.textContent = event.location || '';
     if (edit) {
         edit.dataset.url = event.editUrl || '';
         edit.style.display = edit.dataset.url ? 'inline-flex' : 'none';
@@ -2406,7 +2443,13 @@ const openGeneralEventModal = function(event, options) {
         revert.disabled = !isCanceled || !revert.dataset.url;
         restoreButtonLabel(revert);
     }
-    if (controls) controls.style.display = isCanceled ? 'none' : '';
+    if (controls) {
+        if (isCanceled || event.readOnly) {
+            controls.style.setProperty('display', 'none', 'important');
+        } else {
+            controls.style.removeProperty('display');
+        }
+    }
 
     modal.dataset.eventGuid = event.guid || '';
     modal.dataset.eventId = event.id || '';
@@ -2430,7 +2473,7 @@ const openGeneralEventModal = function(event, options) {
     state.generalEventRescheduleDatePickerDate = parseDateString(event.date || todayString());
     renderGeneralEventRescheduleDatePicker(modal);
 
-    if (settings.openReschedule) {
+    if (settings.openReschedule && !event.readOnly) {
         modal.classList.add('is-drop-rescheduling');
         showGeneralEventRescheduleForm(modal);
     }
@@ -3735,6 +3778,7 @@ const createMonthEventElement = function(event, dateString) {
     time.className = 'calendar-month-event-time';
     title.className = 'calendar-month-event-title';
     item.dataset.eventGuid = event.guid || '';
+    item.toggleAttribute('data-read-only', Boolean(event.readOnly));
     item.dataset.lessonStatus = event.isHoliday ? 'holiday' : (event.isBreak ? 'teaching-break' : (event.isRecital ? 'recital' : (event.calendarStatus || event.lessonStatus || (event.isGeneralEvent ? 'general-event' : 'unconfirmed'))));
     dot.dataset.eventGuid = event.guid || '';
     dot.dataset.lessonStatus = event.isHoliday ? 'holiday' : (event.isBreak ? 'teaching-break' : (event.isRecital ? 'recital' : (event.calendarStatus || event.lessonStatus || (event.isGeneralEvent ? 'general-event' : 'unconfirmed'))));
@@ -4137,6 +4181,7 @@ const renderScheduleAgenda = function(calendar) {
             title.className = 'calendar-schedule-event-title';
             renderEventTitle(title, event, 'No title');
             item.dataset.eventGuid = event.guid || '';
+            item.toggleAttribute('data-read-only', Boolean(event.readOnly));
             item.dataset.lessonStatus = event.isHoliday ? 'holiday' : (event.isBreak ? 'teaching-break' : (event.isRecital ? 'recital' : (event.calendarStatus || event.lessonStatus || (event.isGeneralEvent ? 'general-event' : 'unconfirmed'))));
             applyCalendarItemStatusAttributes(item, event, dateString);
             applyEventOverlapAttribute(item, event);
@@ -6280,6 +6325,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (!item
             || item.getAttribute('data-lesson-status') === 'canceled'
+            || item.hasAttribute('data-read-only')
             || !scheduleGridViews.includes(state.view)
             || e.button !== 0
             || !e.isPrimary) {

@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use App\Models\Calendar\Settings;
+use App\Models\Calendar\GoogleCalendarConnection;
+use App\Services\GoogleCalendarClient;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -66,6 +68,9 @@ class CalendarServiceProvider extends ServiceProvider
             $paidLessonColor = $value('appearance.paid_lesson_color');
             $canceledLessonColor = $value('appearance.canceled_lesson_color');
             $generalEventColor = $value('appearance.general_event_color');
+            $googleCalendarConnection = auth()->check()
+                ? GoogleCalendarConnection::query()->where('user_id', auth()->id())->first()
+                : null;
 
             $view->with([
                 'showCalendarInsights' => $value('calendar.show_insights'),
@@ -92,6 +97,8 @@ class CalendarServiceProvider extends ServiceProvider
                 'highlightConflictingEvents' => $value('calendar.highlight_conflicting_events'),
                 'defaultEventNotificationMinutesBefore' => $value('notifications.default_event_minutes_before'),
                 'selectedNotificationPreference' => (int) old('default_event_notification_minutes_before', $value('notifications.default_event_minutes_before')),
+                'googleCalendarConfigured' => app(GoogleCalendarClient::class)->isConfigured(),
+                'googleCalendarConnection' => $googleCalendarConnection,
             ]);
         });
     }

@@ -898,6 +898,7 @@ var patchScheduleItems = function patchScheduleItems(calendar) {
     }
     item.classList.toggle('is-short', isShort);
     item.classList.toggle('calendar-calendar-general-event', Boolean(event && event.isGeneralEvent));
+    item.toggleAttribute('data-read-only', Boolean(event && event.readOnly));
     item.setAttribute('data-display-time', isShort ? formatEventTime(start) : "".concat(formatEventTime(start), " - ").concat(formatEventTime(end)));
     clearScheduleItemBirthdayDecoration(item);
     if (event) {
@@ -1105,6 +1106,14 @@ var getGeneralEvent = function getGeneralEvent(generalEvent) {
     rescheduleUrl: generalEvent.reschedule_url || '',
     revertUrl: generalEvent.revert_url || '',
     destroyUrl: generalEvent.destroy_url || '',
+    externalUrl: generalEvent.external_url || '',
+    meetingUrl: generalEvent.meeting_url || '',
+    responseStatus: generalEvent.response_status || '',
+    organizerName: generalEvent.organizer_name || '',
+    organizerEmail: generalEvent.organizer_email || '',
+    location: generalEvent.location || '',
+    allDay: Boolean(generalEvent.all_day),
+    readOnly: Boolean(generalEvent.read_only),
     calendarStatus: status,
     lessonStatus: status,
     'data-lesson-status': status
@@ -1116,12 +1125,12 @@ var getGeneralEventCalendarEvents = function getGeneralEventCalendarEvents() {
   }).filter(generalEventMatchesCalendarSearch).map(getGeneralEvent);
 };
 var getGeneralEventByGuid = function getGeneralEventByGuid(guid) {
-  var match = String(guid || '').match(/^general-event-(\d+)-(\d{4}-\d{2}-\d{2})$/);
+  var match = String(guid || '').match(/^general-event-(.+)-(\d{4}-\d{2}-\d{2})$/);
   if (!match) {
     return null;
   }
   var generalEvent = state.generalEvents.find(function (item) {
-    return Number(item.id) === Number(match[1]);
+    return String(item.id) === match[1];
   });
   return generalEvent ? getGeneralEvent(generalEvent) : null;
 };
@@ -1842,6 +1851,15 @@ var openGeneralEventModal = function openGeneralEventModal(event, options) {
   var notification = modal.querySelector('#general-event-notification');
   var notes = modal.querySelector('#general-event-notes');
   var notesSection = modal.querySelector('[data-general-event-notes-section]');
+  var externalSection = modal.querySelector('[data-general-event-external-section]');
+  var externalLink = modal.querySelector('[data-general-event-external-link]');
+  var meetingLink = modal.querySelector('[data-general-event-meeting-link]');
+  var response = modal.querySelector('[data-general-event-response]');
+  var responseSection = modal.querySelector('[data-general-event-response-section]');
+  var organizer = modal.querySelector('[data-general-event-organizer]');
+  var organizerSection = modal.querySelector('[data-general-event-organizer-section]');
+  var location = modal.querySelector('[data-general-event-location]');
+  var locationSection = modal.querySelector('[data-general-event-location-section]');
   var edit = modal.querySelector('#event-edit');
   var revert = modal.querySelector('#event-revert');
   var controls = modal.querySelector('#general-event-controls');
@@ -1855,7 +1873,7 @@ var openGeneralEventModal = function openGeneralEventModal(event, options) {
   modal.updatedScheduleItem = settings.updatedItem || null;
   if (title) title.textContent = event.title || 'Event';
   if (date) date.textContent = event.date ? modalDateFormatter.format(parseDateString(event.date)) : '';
-  if (time) time.textContent = event.start && event.end ? "".concat(formatModalEventTime(event.start), " - ").concat(formatModalEventTime(event.end)) : formatModalEventTime(event.start);
+  if (time) time.textContent = event.allDay ? 'All day' : event.start && event.end ? "".concat(formatModalEventTime(event.start), " - ").concat(formatModalEventTime(event.end)) : formatModalEventTime(event.start);
   if (eventType) eventType.textContent = event.eventType || '';
   if (eventTypeIcon) {
     eventTypeIcon.className = "fas opacity-4 mr-2 t-2".concat(event.eventTypeIcon ? " fa-".concat(event.eventTypeIcon) : '');
@@ -1868,6 +1886,23 @@ var openGeneralEventModal = function openGeneralEventModal(event, options) {
   }
   if (notesSection) notesSection.hidden = !String(event.notes || '').trim();
   if (notes) renderNotesWithLinks(notes, event.notes);
+  if (externalSection) externalSection.hidden = !event.readOnly;
+  if (externalLink) externalLink.href = event.externalUrl || '#';
+  if (meetingLink) {
+    meetingLink.href = event.meetingUrl || '#';
+    meetingLink.hidden = !event.meetingUrl;
+  }
+  if (responseSection) responseSection.hidden = !event.responseStatus;
+  if (response) response.textContent = {
+    accepted: 'Accepted',
+    declined: 'Declined',
+    needsAction: 'Awaiting your response',
+    tentative: 'Maybe'
+  }[event.responseStatus] || event.responseStatus;
+  if (organizerSection) organizerSection.hidden = !(event.organizerName || event.organizerEmail);
+  if (organizer) organizer.textContent = event.organizerName || event.organizerEmail || '';
+  if (locationSection) locationSection.hidden = !event.location;
+  if (location) location.textContent = event.location || '';
   if (edit) {
     edit.dataset.url = event.editUrl || '';
     edit.style.display = edit.dataset.url ? 'inline-flex' : 'none';
@@ -1879,7 +1914,13 @@ var openGeneralEventModal = function openGeneralEventModal(event, options) {
     revert.disabled = !isCanceled || !revert.dataset.url;
     restoreButtonLabel(revert);
   }
-  if (controls) controls.style.display = isCanceled ? 'none' : '';
+  if (controls) {
+    if (isCanceled || event.readOnly) {
+      controls.style.setProperty('display', 'none', 'important');
+    } else {
+      controls.style.removeProperty('display');
+    }
+  }
   modal.dataset.eventGuid = event.guid || '';
   modal.dataset.eventId = event.id || '';
   if (rescheduleForm) rescheduleForm.action = event.rescheduleUrl || '';
@@ -1891,7 +1932,7 @@ var openGeneralEventModal = function openGeneralEventModal(event, options) {
   state.rescheduleDurationMinutes = Math.max(15, getSelectTimeMinutes(rescheduleEndTime) - getSelectTimeMinutes(rescheduleStartTime));
   state.generalEventRescheduleDatePickerDate = parseDateString(event.date || todayString());
   renderGeneralEventRescheduleDatePicker(modal);
-  if (settings.openReschedule) {
+  if (settings.openReschedule && !event.readOnly) {
     modal.classList.add('is-drop-rescheduling');
     showGeneralEventRescheduleForm(modal);
   }
@@ -2896,6 +2937,7 @@ var createMonthEventElement = function createMonthEventElement(event, dateString
   time.className = 'calendar-month-event-time';
   title.className = 'calendar-month-event-title';
   item.dataset.eventGuid = event.guid || '';
+  item.toggleAttribute('data-read-only', Boolean(event.readOnly));
   item.dataset.lessonStatus = event.isHoliday ? 'holiday' : event.isBreak ? 'teaching-break' : event.isRecital ? 'recital' : event.calendarStatus || event.lessonStatus || (event.isGeneralEvent ? 'general-event' : 'unconfirmed');
   dot.dataset.eventGuid = event.guid || '';
   dot.dataset.lessonStatus = event.isHoliday ? 'holiday' : event.isBreak ? 'teaching-break' : event.isRecital ? 'recital' : event.calendarStatus || event.lessonStatus || (event.isGeneralEvent ? 'general-event' : 'unconfirmed');
@@ -3209,6 +3251,7 @@ var renderScheduleAgenda = function renderScheduleAgenda(calendar) {
       title.className = 'calendar-schedule-event-title';
       renderEventTitle(title, event, 'No title');
       item.dataset.eventGuid = event.guid || '';
+      item.toggleAttribute('data-read-only', Boolean(event.readOnly));
       item.dataset.lessonStatus = event.isHoliday ? 'holiday' : event.isBreak ? 'teaching-break' : event.isRecital ? 'recital' : event.calendarStatus || event.lessonStatus || (event.isGeneralEvent ? 'general-event' : 'unconfirmed');
       applyCalendarItemStatusAttributes(item, event, dateString);
       applyEventOverlapAttribute(item, event);
@@ -4926,7 +4969,7 @@ document.addEventListener('DOMContentLoaded', function () {
   };
   calendar.addEventListener('pointerdown', function (e) {
     var item = e.target.closest('.lm-schedule-item');
-    if (!item || item.getAttribute('data-lesson-status') === 'canceled' || !scheduleGridViews.includes(state.view) || e.button !== 0 || !e.isPrimary) {
+    if (!item || item.getAttribute('data-lesson-status') === 'canceled' || item.hasAttribute('data-read-only') || !scheduleGridViews.includes(state.view) || e.button !== 0 || !e.isPrimary) {
       return;
     }
     clearScheduleItemHold();

@@ -135,5 +135,54 @@
 
 			@submit(['label' => 'Save changes', 'theme' => 'primary'])
 		</form>
+
+		<section class="calendar-settings-section mt-4" aria-labelledby="settings-google-calendar-title">
+			<h6 id="settings-google-calendar-title">Google Calendar</h6>
+
+			@if(! $googleCalendarConfigured && ! $googleCalendarConnection)
+				<p class="small text-muted mb-0">
+					Add the Google Calendar OAuth credentials to the server environment before connecting.
+				</p>
+			@elseif(! $googleCalendarConnection)
+				<p class="small text-muted">
+					Import meetings where you are an attendee. Google remains the source of truth.
+				</p>
+				<a class="btn btn-outline-dark w-100" href="{{route('calendar.google-calendar.connect')}}">
+					@fa(['icon' => 'calendar-plus'])Connect Google Calendar
+				</a>
+			@else
+				@if(! $googleCalendarConfigured)
+					<div class="alert alert-danger small">The Google OAuth credentials are missing from the server.</div>
+				@endif
+
+				<div class="small mb-3">
+					<div class="font-weight-bold">{{$googleCalendarConnection->calendar_name ?: 'Primary calendar'}}</div>
+					<div class="text-muted">
+						@if($googleCalendarConnection->last_synced_at)
+							Last synced {{$googleCalendarConnection->last_synced_at->diffForHumans()}}
+						@else
+							Waiting for the first sync
+						@endif
+					</div>
+				</div>
+
+				@if($googleCalendarConnection->last_error)
+					<div class="alert alert-danger small">{{$googleCalendarConnection->last_error}}</div>
+				@endif
+
+				<div class="d-flex">
+					<form class="w-100 mr-1" method="POST" action="{{route('calendar.google-calendar.sync')}}">
+						@csrf
+						<button class="btn btn-outline-dark w-100" type="submit" {{iftrue(! $googleCalendarConfigured, 'disabled')}}>@fa(['icon' => 'rotate'])Sync now</button>
+					</form>
+
+					<form class="w-100 ml-1" method="POST" action="{{route('calendar.google-calendar.disconnect')}}">
+						@csrf
+						@method('DELETE')
+						<button class="btn btn-outline-red w-100" type="submit">Disconnect</button>
+					</form>
+				</div>
+			@endif
+		</section>
 	@endmodal
 </div>

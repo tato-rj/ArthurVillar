@@ -5,6 +5,7 @@ namespace App\Calendar;
 use App\Calendar\Traits\Holidays;
 use App\Models\Calendar\EarlyPayment;
 use App\Models\Calendar\Event;
+use App\Models\Calendar\GoogleCalendarEvent;
 use App\Models\Calendar\LessonPlan;
 use App\Models\Calendar\Recital;
 use App\Models\Calendar\SingleLessonPlan;
@@ -28,7 +29,7 @@ class Scheduler
             'holidays' => $this->holidays($range),
             'teachingBreaks' => $this->teachingBreaks($range),
             'recitals' => $this->recitals($range),
-            'generalEvents' => $this->generalEvents($range),
+            'generalEvents' => $this->generalEvents($range, $request->user()?->id),
             'calendarRange' => $range,
         ];
     }
@@ -348,14 +349,41 @@ class Scheduler
             ->values();
     }
 
-    public function generalEvents(array $range)
+    public function generalEvents(array $range, ?int $userId = null)
     {
-        return Event::query()
+        $localEvents = Event::query()
             ->whereBetween('scheduled_date', [$range['start'], $range['end']])
             ->orderBy('scheduled_date')
             ->orderBy('starts_at')
             ->get()
-            ->map(fn (Event $event) => $event->calendarPayload())
+            ->map(fn (Event $event) => $event->calendarPayload());
+
+        if (! $userId) {
+            return $localEvents->values();
+        }
+
+        $timezone = config('calendar.timezone');
+        $rangeStart = Carbon::parse($range['start'], $timezone)->startOfDay();
+        $rangeEnd = Carbon::parse($range['end'], $timezone)->endOfDay();
+        $googleEvents = GoogleCalendarEvent::query()
+            ->whereHas('connection', fn ($query) => $query->where('user_id', $userId))
+            ->where(function ($query) use ($range, $rangeStart, $rangeEnd) {
+                $query->where(function ($allDay) use ($range) {
+                    $allDay->where('all_day', true)
+                        ->whereDate('start_date', '<=', $range['end'])
+                        ->whereDate('end_date', '>', $range['start']);
+                })->orWhere(function ($timed) use ($rangeStart, $rangeEnd) {
+                    $timed->where('all_day', false)
+                        ->where('starts_at', '<=', $rangeEnd->copy()->utc())
+                        ->where('ends_at', '>=', $rangeStart->copy()->utc());
+                });
+            })
+            ->get()
+            ->map(fn (GoogleCalendarEvent $event) => $event->calendarPayload());
+
+        return $localEvents
+            ->concat($googleEvents)
+            ->sortBy(fn ($event) => ($event['scheduled_date'] ?? '').' '.($event['starts_at'] ?? ''))
             ->values();
     }
 
