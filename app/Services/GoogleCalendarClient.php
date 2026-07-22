@@ -13,7 +13,7 @@ class GoogleCalendarClient
     private const TOKEN_URL = 'https://oauth2.googleapis.com/token';
     private const API_URL = 'https://www.googleapis.com/calendar/v3';
     private const USER_INFO_URL = 'https://openidconnect.googleapis.com/v1/userinfo';
-    private const SCOPE = 'openid profile https://www.googleapis.com/auth/calendar.readonly';
+    private const SCOPE = 'openid profile https://www.googleapis.com/auth/calendar.calendars.readonly https://www.googleapis.com/auth/calendar.events.readonly';
 
     public function isConfigured(): bool
     {

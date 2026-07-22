@@ -41,7 +41,7 @@ class GoogleCalendarSyncTest extends BaseTest
         $this->assertSame('consent select_account', $query['prompt']);
         $this->assertArrayNotHasKey('login_hint', $query);
         $this->assertSame(
-            'openid profile https://www.googleapis.com/auth/calendar.readonly',
+            'openid profile https://www.googleapis.com/auth/calendar.calendars.readonly https://www.googleapis.com/auth/calendar.events.readonly',
             $query['scope']
         );
         $this->assertNotEmpty($query['state']);

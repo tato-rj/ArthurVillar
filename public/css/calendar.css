@@ -31365,7 +31365,7 @@ input[type=month] {
   text-align: left;
 }
 
-td {
+td, th {
   white-space: nowrap;
 }
 
