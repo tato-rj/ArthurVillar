@@ -2270,7 +2270,7 @@ const appendTextWithLinks = function(element, text) {
         link.href = /^https?:\/\//i.test(url) ? url : `https://${url}`;
         link.target = '_blank';
         link.rel = 'noopener noreferrer';
-        link.textContent = url;
+        link.textContent = isZoomUrl(link.href) ? 'Zoom link' : url;
         element.appendChild(link);
 
         if (trailing) {
@@ -2281,6 +2281,16 @@ const appendTextWithLinks = function(element, text) {
     }
 
     element.appendChild(document.createTextNode(text.slice(cursor)));
+};
+
+const isZoomUrl = function(value) {
+    try {
+        const hostname = new URL(value, window.location.origin).hostname.toLowerCase();
+
+        return hostname === 'zoom.us' || hostname.endsWith('.zoom.us');
+    } catch (error) {
+        return false;
+    }
 };
 
 const renderNotesWithLinks = function(element, notes) {
@@ -2324,6 +2334,10 @@ const renderGoogleNotesHtml = function(element, notes) {
         link.href = url.href;
         link.target = '_blank';
         link.rel = 'noopener noreferrer';
+
+        if (isZoomUrl(link.href)) {
+            link.textContent = 'Zoom link';
+        }
     });
 
     const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
