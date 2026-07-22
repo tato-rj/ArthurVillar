@@ -48,7 +48,7 @@ class RouteServiceProvider extends ServiceProvider
                 ->name('theory.')
                 ->group(base_path('routes/theory.php'));
 
-            Route::middleware(['web', 'signed'])
+            Route::middleware('web')
                 ->domain('calendar.'.config('app.domain'))
                 ->namespace($this->namespace.'\\Calendar')
                 ->name('calendar.')
