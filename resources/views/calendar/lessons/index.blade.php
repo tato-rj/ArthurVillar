@@ -27,9 +27,9 @@
         <table id="lessons-table" class="display calendar-table">
             <thead>
                 <tr>
+                    <th>Date</th>
                     <th>Student</th>
                     <th>Type</th>
-                    <th>Date</th>
                     <th>Weekday</th>
                     <th>Start time</th>
                     <th>Duration</th>
@@ -140,8 +140,6 @@ $(function() {
             },
         },
         columns: [
-            {data: 'student', name: 'student'},
-            {data: 'lesson_type', name: 'lesson_type'},
             {
                 data: 'scheduled_date',
                 name: 'scheduled_date',
@@ -153,6 +151,8 @@ $(function() {
                     return formatDate(data);
                 },
             },
+            {data: 'student', name: 'student'},
+            {data: 'lesson_type', name: 'lesson_type'},
             {
                 data: 'weekday',
                 name: 'weekday',
@@ -209,7 +209,11 @@ $(function() {
                 data: 'status',
                 name: 'status',
                 render: function(data) {
-                    return `<span class="${data === 'Canceled' ? 'text-red' : 'text-green'}">${data}</span>`;
+                    const statusClass = data === 'Confirmed'
+                        ? 'text-green'
+                        : (data === 'Unpaid' ? 'text-red' : 'text-light');
+
+                    return `<span class="${statusClass}">${data}</span>`;
                 },
             },
         ],

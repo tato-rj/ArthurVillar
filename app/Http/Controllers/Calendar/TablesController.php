@@ -711,7 +711,11 @@ class TablesController extends Controller
                     : null;
             })
             ->addColumn('status', function (Lesson $lesson) {
-                return $lesson->canceled_at ? 'Canceled' : 'Confirmed';
+                return match ($lesson->paymentStatus()) {
+                    'paid' => 'Confirmed',
+                    'canceled' => 'Canceled',
+                    default => 'Unpaid',
+                };
             })
             ->editColumn('canceled_at', function (Lesson $lesson) {
                 return $lesson->canceled_at?->toIso8601String();
@@ -767,7 +771,19 @@ class TablesController extends Controller
 
                 $query->where(function ($query) use ($keyword) {
                     if (str_contains('confirmed', $keyword)) {
-                        $query->orWhereNull('lessons.canceled_at');
+                        $query->orWhere(function ($query) {
+                            $query
+                                ->whereNotNull('lessons.paid_at')
+                                ->whereNull('lessons.canceled_at');
+                        });
+                    }
+
+                    if ($keyword !== 'paid' && str_contains('unpaid', $keyword)) {
+                        $query->orWhere(function ($query) {
+                            $query
+                                ->whereNull('lessons.paid_at')
+                                ->whereNull('lessons.canceled_at');
+                        });
                     }
 
                     if (str_contains('canceled', $keyword) || str_contains('cancelled', $keyword)) {

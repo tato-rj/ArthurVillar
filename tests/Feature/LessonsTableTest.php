@@ -134,6 +134,7 @@ class LessonsTableTest extends BaseTest
             ->assertOk()
             ->assertSee('Lessons')
             ->assertSee('lessons-table', false)
+            ->assertSeeInOrder(['<th>Date</th>', '<th>Student</th>', '<th>Type</th>'], false)
             ->assertSee('<th>Payment</th>', false)
             ->assertDontSee('<th>Fee</th>', false)
             ->assertSee('data-bs-toggle="popover"', false)
@@ -146,7 +147,7 @@ class LessonsTableTest extends BaseTest
 
         $this->assertSame('Recurring', $rows->firstWhere('student', 'Recurring Cancellation')['lesson_type']);
         $this->assertSame('Single', $rows->firstWhere('student', 'Single Cancellation')['lesson_type']);
-        $this->assertSame('Confirmed', $rows->firstWhere('student', 'Active Lesson')['status']);
+        $this->assertSame('Unpaid', $rows->firstWhere('student', 'Active Lesson')['status']);
     }
 
     /** @test */
