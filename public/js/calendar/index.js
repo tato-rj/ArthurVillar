@@ -4228,7 +4228,8 @@ var openRecitalModal = function openRecitalModal(event) {
     window.jQuery(modal).modal('show');
   }
 };
-var appendTextWithLinks = function appendTextWithLinks(element, text) {
+var appendTextWithLinks = function appendTextWithLinks(element, text, options) {
+  var settings = options || {};
   var urlPattern = /(?:https?:\/\/|www\.)[^\s]+/gi;
   var cursor = 0;
   var match;
@@ -4242,7 +4243,7 @@ var appendTextWithLinks = function appendTextWithLinks(element, text) {
     link.href = /^https?:\/\//i.test(url) ? url : "https://".concat(url);
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
-    link.textContent = isZoomUrl(link.href) ? 'Zoom link' : url;
+    link.textContent = settings.labelZoomLinks && isZoomUrl(link.href) ? 'Zoom link' : url;
     element.appendChild(link);
     if (trailing) {
       element.appendChild(document.createTextNode(trailing));
@@ -4259,14 +4260,14 @@ var isZoomUrl = function isZoomUrl(value) {
     return false;
   }
 };
-var renderNotesWithLinks = function renderNotesWithLinks(element, notes) {
+var renderNotesWithLinks = function renderNotesWithLinks(element, notes, options) {
   var text = String(notes || '');
   element.innerHTML = '';
   if (!text) {
     return;
   }
   element.classList.remove('opacity-4');
-  appendTextWithLinks(element, text);
+  appendTextWithLinks(element, text, options);
 };
 var renderGoogleNotesHtml = function renderGoogleNotesHtml(element, notes) {
   element.innerHTML = DOMPurify.sanitize(String(notes || ''), {
@@ -4291,9 +4292,6 @@ var renderGoogleNotesHtml = function renderGoogleNotesHtml(element, notes) {
     link.href = url.href;
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
-    if (isZoomUrl(link.href)) {
-      link.textContent = 'Zoom link';
-    }
   });
   var walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
   var textNodes = [];
@@ -4444,7 +4442,9 @@ var openGeneralEventModal = function openGeneralEventModal(event, options) {
   if (organizerSection) organizerSection.hidden = !(event.organizerName || event.organizerEmail);
   if (organizer) organizer.textContent = event.organizerName || event.organizerEmail || '';
   if (locationSection) locationSection.hidden = !event.location;
-  if (location) renderNotesWithLinks(location, event.location);
+  if (location) renderNotesWithLinks(location, event.location, {
+    labelZoomLinks: true
+  });
   if (edit) {
     edit.dataset.url = event.editUrl || '';
     edit.style.display = edit.dataset.url ? 'inline-flex' : 'none';

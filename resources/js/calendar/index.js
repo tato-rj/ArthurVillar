@@ -2254,7 +2254,8 @@ const openRecitalModal = function(event) {
     }
 };
 
-const appendTextWithLinks = function(element, text) {
+const appendTextWithLinks = function(element, text, options) {
+    const settings = options || {};
     const urlPattern = /(?:https?:\/\/|www\.)[^\s]+/gi;
     let cursor = 0;
     let match;
@@ -2270,7 +2271,7 @@ const appendTextWithLinks = function(element, text) {
         link.href = /^https?:\/\//i.test(url) ? url : `https://${url}`;
         link.target = '_blank';
         link.rel = 'noopener noreferrer';
-        link.textContent = isZoomUrl(link.href) ? 'Zoom link' : url;
+        link.textContent = settings.labelZoomLinks && isZoomUrl(link.href) ? 'Zoom link' : url;
         element.appendChild(link);
 
         if (trailing) {
@@ -2293,7 +2294,7 @@ const isZoomUrl = function(value) {
     }
 };
 
-const renderNotesWithLinks = function(element, notes) {
+const renderNotesWithLinks = function(element, notes, options) {
     const text = String(notes || '');
 
     element.innerHTML = '';
@@ -2303,7 +2304,7 @@ const renderNotesWithLinks = function(element, notes) {
     }
 
     element.classList.remove('opacity-4');
-    appendTextWithLinks(element, text);
+    appendTextWithLinks(element, text, options);
 };
 
 const renderGoogleNotesHtml = function(element, notes) {
@@ -2335,9 +2336,6 @@ const renderGoogleNotesHtml = function(element, notes) {
         link.target = '_blank';
         link.rel = 'noopener noreferrer';
 
-        if (isZoomUrl(link.href)) {
-            link.textContent = 'Zoom link';
-        }
     });
 
     const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
@@ -2520,7 +2518,7 @@ const openGeneralEventModal = function(event, options) {
     if (organizerSection) organizerSection.hidden = !(event.organizerName || event.organizerEmail);
     if (organizer) organizer.textContent = event.organizerName || event.organizerEmail || '';
     if (locationSection) locationSection.hidden = !event.location;
-    if (location) renderNotesWithLinks(location, event.location);
+    if (location) renderNotesWithLinks(location, event.location, { labelZoomLinks: true });
     if (edit) {
         edit.dataset.url = event.editUrl || '';
         edit.style.display = edit.dataset.url ? 'inline-flex' : 'none';
