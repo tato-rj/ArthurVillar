@@ -12,5 +12,6 @@
 			@include('calendar.calendar.header.search')
 			@include('calendar.calendar.header.filters')
 			@include('calendar.calendar.header.settings')
+			@include('calendar.calendar.header.google')
 		</div>
 	</div>

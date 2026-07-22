@@ -10,11 +10,14 @@ return new class extends Migration
     public function up()
     {
         Schema::table('google_calendar_connections', function (Blueprint $table) {
-            $table->dropUnique('google_calendar_connections_user_id_unique');
             $table->unique(
                 ['user_id', 'calendar_id'],
                 'google_calendar_connections_user_calendar_unique'
             );
+        });
+
+        Schema::table('google_calendar_connections', function (Blueprint $table) {
+            $table->dropUnique('google_calendar_connections_user_id_unique');
         });
     }
 
@@ -34,8 +37,11 @@ return new class extends Migration
         }
 
         Schema::table('google_calendar_connections', function (Blueprint $table) {
-            $table->dropUnique('google_calendar_connections_user_calendar_unique');
             $table->unique('user_id');
+        });
+
+        Schema::table('google_calendar_connections', function (Blueprint $table) {
+            $table->dropUnique('google_calendar_connections_user_calendar_unique');
         });
     }
 };
