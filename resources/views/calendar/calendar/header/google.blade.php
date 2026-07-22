@@ -59,7 +59,7 @@
 
 				@if($googleCalendarConfigured)
 					<a class="btn btn-outline-dark w-100" href="{{route('calendar.google-calendar.connect')}}">
-						@fa(['icon' => 'calendar-plus']){{$googleCalendarConnections->isEmpty() ? 'Connect Google Calendar' : 'Add another Google account'}}
+						@fa(['icon' => 'calendar-plus']){{$googleCalendarConnections->isEmpty() ? 'Connect Google Calendar' : 'Add another account'}}
 					</a>
 				@else
 					<div class="alert alert-danger small mb-0">The Google OAuth credentials are missing from the server.</div>
