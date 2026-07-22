@@ -10,14 +10,10 @@ input[type="date"],
 input[type="month"] {text-align: left;}
 td {white-space: nowrap;}
 
-.modal {
-    a {@extend .text-red}
-}
-
 .calendar-general-event-notes {
     @extend .bg-light, .p-3, .rounded, .border;
     
-    
+    a {@extend .text-red}
 }
 
 .calendar-calendar {

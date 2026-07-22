@@ -25381,7 +25381,7 @@ h1, .h1 {
 .text-stone, .alert-stone {
   color: #78716c !important;
 }
-.text-red, #recital-venue a, a:not(.link-none), .alert-red, #lesson-modal[data-lesson-status=unpaid] div#lesson-status {
+.text-red, #recital-venue a, .calendar-general-event-notes a, .alert-red, #lesson-modal[data-lesson-status=unpaid] div#lesson-status {
   color: #ff4b4b !important;
 }
 .text-orange, .alert-orange {
