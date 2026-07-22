@@ -1906,6 +1906,9 @@ button.single-lesson-plan-create[selected] i {
 .form-check-label {margin-top: 2px}
 
 @media (max-width: 1000px) {
+    .hide-in-mobile {
+        display: none !important;
+    }
     i.fa-bars, i.fa-ellipsis-vertical {font-size: 110%}
     .calendar-date-range {width: 100%}
     .calendar-calendar-filter-toggle {min-width: 1rem}

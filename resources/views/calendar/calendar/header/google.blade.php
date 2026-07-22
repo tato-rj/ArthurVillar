@@ -1,4 +1,4 @@
-<div class="calendar-calendar-google-accounts">
+<div class="calendar-calendar-google-accounts hide-in-mobile">
 	<button type="button" class="btn-raw calendar-calendar-icon-button px-2" data-bs-toggle="modal" data-bs-target="#google-accounts-modal" aria-label="Open google accounts" style="font-size: 1.2rem;">
 		@fa(['icon' => 'google', 'mr' => 0, 'fa_color' => 'black', 'fa_type' => '-brands'])
 	</button>
