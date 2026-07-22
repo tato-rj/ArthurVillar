@@ -412,7 +412,7 @@ class GoogleCalendarSyncTest extends BaseTest
         $googleEvent = $calendarEvents->firstWhere('id', 'google-'.$event->id);
 
         $this->assertNotNull($googleEvent);
-        $this->assertSame('Google Calendar', $googleEvent['event_type']);
+        $this->assertSame('arthur@example.com', $googleEvent['event_type']);
         $this->assertSame('google', $googleEvent['event_type_icon']);
         $this->assertSame('https://calendar.google.com/event?eid=remote', $googleEvent['external_url']);
         $this->assertSame('needsAction', $googleEvent['response_status']);

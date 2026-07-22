@@ -27,10 +27,6 @@
         @fa(['icon' => 'location-dot', 'classes' => 'opacity-4'])
         <span data-general-event-location></span>
     </div>
-    <div class="mb-2" data-general-event-response-section hidden>
-        @fa(['icon' => 'circle-question', 'classes' => 'opacity-4'])
-        <span data-general-event-response></span>
-    </div>
     <div class="mb-2" hidden>
         @fa(['icon' => 'bell', 'classes' => 'opacity-4'])
         <span id="general-event-notification"></span>
@@ -46,7 +42,7 @@
             @fa(['icon' => 'arrow-up-right-from-square'])Open in Google Calendar
         </a>
         <a class="btn btn-primary w-100" data-general-event-meeting-link href="#" target="_blank" rel="noopener" hidden>
-            @fa(['icon' => 'video'])Join meeting
+            @fa(['icon' => 'video'])Join the meeting
         </a>
     </div>
 

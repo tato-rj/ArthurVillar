@@ -122,7 +122,7 @@ class SettingsController extends Controller
                 ->update(['sync_token' => null]);
 
             GoogleCalendarEvent::query()
-                ->whereHas('connection', function ($connection) use ($request) {
+                ->whereHas('calendarConnection', function ($connection) use ($request) {
                     $connection->where('user_id', $request->user()->id);
                 })
                 ->beyondRecurringSyncHorizon()

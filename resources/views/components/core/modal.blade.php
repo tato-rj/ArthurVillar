@@ -16,7 +16,7 @@
       </div>
       @else
       <div class="modal-header border-0 pb-0 justify-content-between">
-        <h4 class="modal-title text-secondary no-stroke text-nowrap">{!!$title ?? null!!}</h4>
+        <h4 class="modal-title text-secondary no-stroke text-nowrap text-truncate">{!!$title ?? null!!}</h4>
 
         <div class="d-flex justify-content-end align-items-center">
           <div id="header-buttons">

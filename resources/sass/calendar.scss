@@ -1687,6 +1687,12 @@ button.single-lesson-plan-create[selected] i {
     }
 }
 
+#general-event-details {
+    a {
+        @extend .text-red;
+    }
+}
+
 #lesson-modal.is-drop-rescheduling,
 #general-event-modal.is-drop-rescheduling {
     [data-reschedule-date-fields],

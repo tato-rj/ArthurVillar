@@ -366,7 +366,8 @@ class Scheduler
         $rangeStart = Carbon::parse($range['start'], $timezone)->startOfDay();
         $rangeEnd = Carbon::parse($range['end'], $timezone)->endOfDay();
         $googleEvents = GoogleCalendarEvent::query()
-            ->whereHas('connection', fn ($query) => $query->where('user_id', $userId))
+            ->with('calendarConnection')
+            ->whereHas('calendarConnection', fn ($query) => $query->where('user_id', $userId))
             ->startingOnOrAfterSyncCutoff()
             ->withinRecurringSyncHorizon()
             ->where(function ($query) use ($range, $rangeStart, $rangeEnd) {

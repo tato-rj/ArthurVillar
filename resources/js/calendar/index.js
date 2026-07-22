@@ -907,7 +907,7 @@ const renderCalendarPaymentTotals = function() {
             carry.minutes += getEventDurationMinutes(event);
         }
 
-        if (event.lessonStatus === 'paid') {
+        if (event.lessonStatus === 'paid' || event.lessonStatus === 'early-payment') {
             carry.confirmed += feeAmount;
         }
 
@@ -2271,7 +2271,7 @@ const appendTextWithLinks = function(element, text, options) {
         link.href = /^https?:\/\//i.test(url) ? url : `https://${url}`;
         link.target = '_blank';
         link.rel = 'noopener noreferrer';
-        link.textContent = settings.labelZoomLinks && isZoomUrl(link.href) ? 'Zoom link' : url;
+        link.textContent = settings.labelZoomLinks && isZoomUrl(link.href) ? 'Join the meeting' : url;
         element.appendChild(link);
 
         if (trailing) {
@@ -2457,8 +2457,6 @@ const openGeneralEventModal = function(event, options) {
     const externalSection = modal.querySelector('[data-general-event-external-section]');
     const externalLink = modal.querySelector('[data-general-event-external-link]');
     const meetingLink = modal.querySelector('[data-general-event-meeting-link]');
-    const response = modal.querySelector('[data-general-event-response]');
-    const responseSection = modal.querySelector('[data-general-event-response-section]');
     const organizer = modal.querySelector('[data-general-event-organizer]');
     const organizerSection = modal.querySelector('[data-general-event-organizer-section]');
     const location = modal.querySelector('[data-general-event-location]');
@@ -2508,13 +2506,6 @@ const openGeneralEventModal = function(event, options) {
         meetingLink.href = event.meetingUrl || '#';
         meetingLink.hidden = !event.meetingUrl;
     }
-    if (responseSection) responseSection.hidden = !event.responseStatus;
-    if (response) response.textContent = ({
-        accepted: 'Accepted',
-        declined: 'Declined',
-        needsAction: 'Awaiting your response',
-        tentative: 'Maybe',
-    })[event.responseStatus] || event.responseStatus;
     if (organizerSection) organizerSection.hidden = !(event.organizerName || event.organizerEmail);
     if (organizer) organizer.textContent = event.organizerName || event.organizerEmail || '';
     if (locationSection) locationSection.hidden = !event.location;

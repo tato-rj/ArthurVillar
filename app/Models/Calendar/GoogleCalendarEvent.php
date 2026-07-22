@@ -23,7 +23,7 @@ class GoogleCalendarEvent extends BaseModel
         'google_updated_at' => 'datetime',
     ];
 
-    public function connection(): BelongsTo
+    public function calendarConnection(): BelongsTo
     {
         return $this->belongsTo(GoogleCalendarConnection::class, 'google_calendar_connection_id');
     }
@@ -110,6 +110,11 @@ class GoogleCalendarEvent extends BaseModel
     public function calendarPayload(): array
     {
         $timezone = config('calendar.timezone');
+        $connection = $this->relationLoaded('calendarConnection')
+            ? $this->getRelation('calendarConnection')
+            : null;
+        $accountEmail = $this->getAttribute('calendar_id') ?: $connection?->calendar_id;
+        $calendarName = $this->getAttribute('calendar_name') ?: $connection?->calendar_name;
         $start = $this->all_day
             ? Carbon::parse($this->start_date, $timezone)->startOfDay()
             : $this->starts_at->copy()->setTimezone($timezone);
@@ -133,7 +138,9 @@ class GoogleCalendarEvent extends BaseModel
             'notification_minutes_before' => null,
             'canceled_at' => null,
             'type' => 'general-event',
-            'event_type' => 'Google Calendar',
+            'event_type' => filter_var($accountEmail, FILTER_VALIDATE_EMAIL)
+                ? $accountEmail
+                : ($calendarName ?: 'Google Calendar'),
             'event_type_icon' => 'google',
             'edit_url' => '',
             'reschedule_url' => '',

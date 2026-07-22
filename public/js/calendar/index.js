@@ -3176,7 +3176,7 @@ var renderCalendarPaymentTotals = function renderCalendarPaymentTotals() {
       carry.lessons += 1;
       carry.minutes += getEventDurationMinutes(event);
     }
-    if (event.lessonStatus === 'paid') {
+    if (event.lessonStatus === 'paid' || event.lessonStatus === 'early-payment') {
       carry.confirmed += feeAmount;
     }
     return carry;
@@ -4243,7 +4243,7 @@ var appendTextWithLinks = function appendTextWithLinks(element, text, options) {
     link.href = /^https?:\/\//i.test(url) ? url : "https://".concat(url);
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
-    link.textContent = settings.labelZoomLinks && isZoomUrl(link.href) ? 'Zoom link' : url;
+    link.textContent = settings.labelZoomLinks && isZoomUrl(link.href) ? 'Join the meeting' : url;
     element.appendChild(link);
     if (trailing) {
       element.appendChild(document.createTextNode(trailing));
@@ -4387,8 +4387,6 @@ var openGeneralEventModal = function openGeneralEventModal(event, options) {
   var externalSection = modal.querySelector('[data-general-event-external-section]');
   var externalLink = modal.querySelector('[data-general-event-external-link]');
   var meetingLink = modal.querySelector('[data-general-event-meeting-link]');
-  var response = modal.querySelector('[data-general-event-response]');
-  var responseSection = modal.querySelector('[data-general-event-response-section]');
   var organizer = modal.querySelector('[data-general-event-organizer]');
   var organizerSection = modal.querySelector('[data-general-event-organizer-section]');
   var location = modal.querySelector('[data-general-event-location]');
@@ -4432,13 +4430,6 @@ var openGeneralEventModal = function openGeneralEventModal(event, options) {
     meetingLink.href = event.meetingUrl || '#';
     meetingLink.hidden = !event.meetingUrl;
   }
-  if (responseSection) responseSection.hidden = !event.responseStatus;
-  if (response) response.textContent = {
-    accepted: 'Accepted',
-    declined: 'Declined',
-    needsAction: 'Awaiting your response',
-    tentative: 'Maybe'
-  }[event.responseStatus] || event.responseStatus;
   if (organizerSection) organizerSection.hidden = !(event.organizerName || event.organizerEmail);
   if (organizer) organizer.textContent = event.organizerName || event.organizerEmail || '';
   if (locationSection) locationSection.hidden = !event.location;
