@@ -12,10 +12,9 @@ class DateRangeFilterTest extends BaseTest
         $this->signIn();
 
         collect([
-            [route('calendar.lessons.index'), 'lessons-paid-from', 'lessons-paid-to'],
-            [route('calendar.lessons.canceled'), 'canceled-lessons-from', 'canceled-lessons-to'],
+            [route('calendar.lessons.index'), 'lessons-scheduled-from', 'lessons-scheduled-to'],
             [route('calendar.lesson-plans.index'), 'lesson-plans-starts-from', 'lesson-plans-starts-to'],
-            [route('calendar.single-lesson-plans.index'), 'single-lesson-plans-scheduled-from', 'single-lesson-plans-scheduled-to'],
+            [route('calendar.events.index'), 'events-scheduled-from', 'events-scheduled-to'],
         ])->each(function ($filter) {
             $this->get($filter[0])
                 ->assertOk()

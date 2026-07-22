@@ -21,11 +21,6 @@ class LessonsController extends Controller
         return view('calendar.lessons.index');
     }
 
-    public function canceled()
-    {
-        return view('calendar.lessons.canceled');
-    }
-
     public function student(Student $student)
     {
         $student->load('lessonPlans.location');

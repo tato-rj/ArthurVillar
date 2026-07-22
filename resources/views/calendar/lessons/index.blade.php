@@ -9,17 +9,17 @@
 <section class="container py-5">
     <div class="row mb-4">
         @pagetitle([
-            'label' => 'Confirmed Lessons'
+            'label' => 'Lessons'
         ])
     </div>
 
-    <div class="calendar-table-filters mb-3" id="lessons-paid-range">
+    <div class="calendar-table-filters mb-3" id="lessons-scheduled-range">
         @daterange([
-            'fromId' => 'lessons-paid-from',
-            'toId' => 'lessons-paid-to',
-            'fromValue' => request('paid_from'),
-            'toValue' => request('paid_to'),
-            'placeholder' => 'Filter by payment date',
+            'fromId' => 'lessons-scheduled-from',
+            'toId' => 'lessons-scheduled-to',
+            'fromValue' => request('scheduled_from'),
+            'toValue' => request('scheduled_to'),
+            'placeholder' => 'Filter by lesson date',
         ])
     </div>
 
@@ -28,12 +28,15 @@
             <thead>
                 <tr>
                     <th>Student</th>
+                    <th>Type</th>
                     <th>Date</th>
                     <th>Weekday</th>
                     <th>Start time</th>
                     <th>Duration</th>
                     <th>Fee</th>
                     <th>Payment</th>
+                    <th>Status</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
         </table>
@@ -108,12 +111,13 @@ $(function() {
         ajax: {
             url: @json(route('calendar.tables.lessons')),
             data: function(data) {
-                data.paid_from = $('#lessons-paid-from').val();
-                data.paid_to = $('#lessons-paid-to').val();
+                data.scheduled_from = $('#lessons-scheduled-from').val();
+                data.scheduled_to = $('#lessons-scheduled-to').val();
             },
         },
         columns: [
             {data: 'student', name: 'student'},
+            {data: 'lesson_type', name: 'lesson_type'},
             {
                 data: 'scheduled_date',
                 name: 'scheduled_date',
@@ -176,22 +180,80 @@ $(function() {
                     return `<span class="${row.payment_class}">${data}</span>`;
                 },
             },
+            {
+                data: 'status',
+                name: 'status',
+                render: function(data) {
+                    return `<span class="${data === 'Canceled' ? 'text-red' : 'text-green'}">${data}</span>`;
+                },
+            },
+            {
+                data: 'id',
+                name: 'actions',
+                orderable: false,
+                searchable: false,
+                className: 'text-right',
+                render: function(data, type, row) {
+                    if (row.status !== 'Canceled') {
+                        return '';
+                    }
+
+                    return `
+                        <div class="calendar-table-actions">
+                            <button type="button" class="btn btn-sm btn-secondary rounded js-revert-canceled-lesson" data-lesson-id="${data}" aria-label="Revert cancellation" title="Revert cancellation">
+                                @fa(['icon' => 'rotate-left', 'mr' => 0])
+                            </button>
+                        </div>`;
+                },
+            },
         ],
     }, {
         restore: function(params) {
-            $('#lessons-paid-from').val(params.get('paid_from') || '');
-            $('#lessons-paid-to').val(params.get('paid_to') || '');
+            $('#lessons-scheduled-from').val(params.get('scheduled_from') || '');
+            $('#lessons-scheduled-to').val(params.get('scheduled_to') || '');
         },
         extraParams: function() {
             return {
-                paid_from: $('#lessons-paid-from').val(),
-                paid_to: $('#lessons-paid-to').val(),
+                scheduled_from: $('#lessons-scheduled-from').val(),
+                scheduled_to: $('#lessons-scheduled-to').val(),
             };
         },
     });
 
-    $('#lessons-paid-range').on('date-range:change', function() {
+    $('#lessons-scheduled-range').on('date-range:change', function() {
         lessonsTable.ajax.reload();
+    });
+
+    $('#lessons-table').on('click', '.js-revert-canceled-lesson', function() {
+        const button = this;
+
+        button.disabled = true;
+
+        fetch(@json(route('calendar.lessons.revert')), {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': @json(csrf_token()),
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: JSON.stringify({lesson_id: button.dataset.lessonId}),
+        })
+            .then(function(response) {
+                if (!response.ok) {
+                    throw new Error('Unable to revert lesson cancellation.');
+                }
+
+                return response.json();
+            })
+            .then(function() {
+                lessonsTable.ajax.reload(null, false);
+            })
+            .catch(function(error) {
+                console.error(error);
+                button.disabled = false;
+                window.alert(error.message);
+            });
     });
 });
 </script>

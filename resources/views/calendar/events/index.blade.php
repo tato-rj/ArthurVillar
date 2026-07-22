@@ -18,6 +18,16 @@
         ])
     </div>
 
+    <div class="calendar-table-filters mb-3" id="events-scheduled-range">
+        @daterange([
+            'fromId' => 'events-scheduled-from',
+            'toId' => 'events-scheduled-to',
+            'fromValue' => request('scheduled_from'),
+            'toValue' => request('scheduled_to'),
+            'placeholder' => 'Filter by event date',
+        ])
+    </div>
+
     <div id="events-container" class="calendar-table-container calendar-table-container-lg">
         <table id="events-table" class="display calendar-table">
             <thead>
@@ -27,6 +37,7 @@
                     <th>Starts at</th>
                     <th>Ends at</th>
                     <th>Type</th>
+                    <th>Status</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -81,7 +92,13 @@ $(function() {
                 next: '<i class="fas fa-angle-right mr-0"></i>',
             },
         },
-        ajax: @json(route('calendar.tables.events')),
+        ajax: {
+            url: @json(route('calendar.tables.events')),
+            data: function(data) {
+                data.scheduled_from = $('#events-scheduled-from').val();
+                data.scheduled_to = $('#events-scheduled-to').val();
+            },
+        },
         columns: [
             {data: 'name', name: 'name'},
             {data: 'scheduled_date', name: 'scheduled_date', render: function(data, type) { return type === 'display' ? formatDate(data) : data; }},
@@ -89,8 +106,26 @@ $(function() {
             {data: 'ends_at', name: 'ends_at', render: function(data, type) { return type === 'display' ? formatTime(data) : data; }},
             {data: 'type', name: 'type', defaultContent: ''},
             {
-                data: 'id', name: 'actions', orderable: false, searchable: false, className: 'text-right',
+                data: 'status',
+                name: 'status',
                 render: function(data) {
+                    return `<span class="${data === 'Canceled' ? 'text-red' : 'text-green'}">${data}</span>`;
+                },
+            },
+            {
+                data: 'id', name: 'actions', orderable: false, searchable: false, className: 'text-right',
+                render: function(data, type, row) {
+                    if (row.status === 'Canceled') {
+                        const revertUrl = @json(route('calendar.events.revert', ['event' => '__event__'])).replace('__event__', data);
+
+                        return `
+                            <div class="calendar-table-actions">
+                                <button type="button" class="btn btn-sm btn-secondary rounded js-revert-canceled-event" data-url="${revertUrl}" aria-label="Revert cancellation" title="Revert cancellation">
+                                    @fa(['icon' => 'rotate-left', 'mr' => 0])
+                                </button>
+                            </div>`;
+                    }
+
                     const editUrl = @json(route('calendar.events.edit', ['event' => '__event__'])).replace('__event__', data);
                     const deleteUrl = @json(route('calendar.events.destroy', ['event' => '__event__'])).replace('__event__', data);
 
@@ -106,6 +141,21 @@ $(function() {
                 },
             },
         ],
+    }, {
+        restore: function(params) {
+            $('#events-scheduled-from').val(params.get('scheduled_from') || '');
+            $('#events-scheduled-to').val(params.get('scheduled_to') || '');
+        },
+        extraParams: function() {
+            return {
+                scheduled_from: $('#events-scheduled-from').val(),
+                scheduled_to: $('#events-scheduled-to').val(),
+            };
+        },
+    });
+
+    $('#events-scheduled-range').on('date-range:change', function() {
+        $('#events-table').DataTable().ajax.reload();
     });
 
     $('#events-table').on('click', '.js-edit-event', function() {
@@ -120,6 +170,36 @@ $(function() {
                 showModal(container.querySelector('.modal'));
             })
             .catch(console.error);
+    });
+
+    $('#events-table').on('click', '.js-revert-canceled-event', function() {
+        const button = this;
+
+        button.disabled = true;
+
+        fetch(button.dataset.url, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': @json(csrf_token()),
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        })
+            .then(function(response) {
+                if (!response.ok) {
+                    throw new Error('Unable to revert event cancellation.');
+                }
+
+                return response.json();
+            })
+            .then(function() {
+                $('#events-table').DataTable().ajax.reload(null, false);
+            })
+            .catch(function(error) {
+                console.error(error);
+                button.disabled = false;
+                window.alert(error.message);
+            });
     });
 });
 </script>

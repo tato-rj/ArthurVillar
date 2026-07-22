@@ -200,7 +200,7 @@ class EventTest extends BaseTest
     }
 
     /** @test */
-    public function it_serves_events_to_the_calendar_table()
+    public function it_serves_scheduled_and_canceled_events_to_the_calendar_table()
     {
         $activeEvent = Event::factory()->create([
             'name' => 'Dentist appointment',
@@ -210,7 +210,7 @@ class EventTest extends BaseTest
             'type' => 'Doctor',
             'notes' => 'Bring insurance card',
         ]);
-        Event::factory()->create([
+        $canceledEvent = Event::factory()->create([
             'name' => 'Canceled appointment',
             'canceled_at' => '2026-09-01 12:00:00',
         ]);
@@ -223,54 +223,56 @@ class EventTest extends BaseTest
         $this->assertSame('10:00', substr($row['starts_at'], 0, 5));
         $this->assertSame('Doctor', $row['type']);
         $this->assertSame('Bring insurance card', $row['notes']);
-        $this->assertNull($rows->firstWhere('name', 'Canceled appointment'));
+        $this->assertSame('Scheduled', $row['status']);
+        $this->assertSame('Canceled', $rows->firstWhere('id', $canceledEvent->id)['status']);
     }
 
     /** @test */
-    public function canceled_events_page_lists_only_canceled_events()
+    public function events_page_merges_scheduled_and_canceled_events()
     {
         $canceledEvent = Event::factory()->create([
             'name' => 'Canceled concert',
             'type' => 'Concert',
             'canceled_at' => '2026-09-10 12:00:00',
         ]);
-        Event::factory()->create([
+        $scheduledEvent = Event::factory()->create([
             'name' => 'Scheduled concert',
             'type' => 'Concert',
             'canceled_at' => null,
         ]);
         $this->signIn();
 
-        $this->get(route('calendar.events.canceled'))
+        $this->get(route('calendar.events.index'))
             ->assertOk()
-            ->assertSee('Canceled Events')
-            ->assertSee(route('calendar.events.canceled'), false)
-            ->assertSee('canceled-events-table', false)
+            ->assertSee('Events')
+            ->assertSee('events-table', false)
             ->assertSee('js-revert-canceled-event', false)
             ->assertSee('<th>Actions</th>', false);
 
-        $rows = collect($this->getJson(route('calendar.tables.canceled-events'))->assertOk()->json('data'));
+        $rows = collect($this->getJson(route('calendar.tables.events'))->assertOk()->json('data'));
 
-        $this->assertSame('Canceled concert', $rows->firstWhere('id', $canceledEvent->id)['name']);
-        $this->assertNull($rows->firstWhere('name', 'Scheduled concert'));
+        $this->assertSame('Canceled', $rows->firstWhere('id', $canceledEvent->id)['status']);
+        $this->assertSame('Scheduled', $rows->firstWhere('id', $scheduledEvent->id)['status']);
     }
 
     /** @test */
-    public function it_filters_canceled_events_by_cancellation_date()
+    public function it_filters_events_by_scheduled_date()
     {
         Event::factory()->create([
             'name' => 'Inside canceled range',
+            'scheduled_date' => '2026-07-10',
             'canceled_at' => '2026-07-10 12:00:00',
         ]);
         Event::factory()->create([
             'name' => 'Outside canceled range',
+            'scheduled_date' => '2026-07-20',
             'canceled_at' => '2026-07-20 12:00:00',
         ]);
         $this->signIn();
 
-        $this->getJson(route('calendar.tables.canceled-events', [
-            'canceled_from' => '2026-07-01',
-            'canceled_to' => '2026-07-15',
+        $this->getJson(route('calendar.tables.events', [
+            'scheduled_from' => '2026-07-01',
+            'scheduled_to' => '2026-07-15',
         ]))
             ->assertOk()
             ->assertJsonFragment(['name' => 'Inside canceled range'])

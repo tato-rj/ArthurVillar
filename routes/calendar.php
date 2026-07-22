@@ -83,8 +83,6 @@ Route::prefix('lesson-plans')->name('lesson-plans.')->group(function() {
 });
 
 Route::prefix('single-lesson-plans')->name('single-lesson-plans.')->group(function() {
-	Route::get('', 'SingleLessonPlansController@index')->name('index');
-
 	Route::post('', 'SingleLessonPlansController@store')->name('store');
 
 	Route::post('reschedule', 'SingleLessonPlansController@reschedule')->name('reschedule');
@@ -177,7 +175,6 @@ Route::prefix('expenses')->name('expenses.')->group(function() {
 
 Route::prefix('events')->name('events.')->group(function() {
 	Route::get('', 'EventsController@index')->name('index');
-	Route::get('canceled', 'EventsController@canceled')->name('canceled');
 	Route::get('google', 'EventsController@google')->name('google');
 
 	Route::post('', 'EventsController@store')->name('store');
@@ -195,7 +192,6 @@ Route::prefix('events')->name('events.')->group(function() {
 
 Route::prefix('lessons')->name('lessons.')->group(function() {
 	Route::get('', 'LessonsController@index')->name('index');
-	Route::get('canceled', 'LessonsController@canceled')->name('canceled');
 
 	Route::get('students/{student}', 'LessonsController@student')->name('student');
 
@@ -221,16 +217,12 @@ Route::prefix('tables')->name('tables.')->group(function() {
 	Route::get('breaks', 'TablesController@breaks')->name('breaks');
 	Route::get('expenses', 'TablesController@expenses')->name('expenses');
 	Route::get('events', 'TablesController@events')->name('events');
-	Route::get('canceled-events', 'TablesController@canceledEvents')->name('canceled-events');
 	Route::get('google-events', 'TablesController@googleEvents')->name('google-events');
 	Route::get('lesson-plans', 'TablesController@lessonPlans')->name('lesson-plans');
 	Route::get('lessons', 'TablesController@lessons')->name('lessons');
-	Route::get('canceled-lessons', 'TablesController@canceledLessons')->name('canceled-lessons');
 	Route::get('locations', 'TablesController@locations')->name('locations');
 	Route::get('recitals', 'TablesController@recitals')->name('recitals');
 	Route::get('venues', 'TablesController@venues')->name('venues');
-	Route::get('single-lesson-plans', 'TablesController@singleLessonPlans')->name('single-lesson-plans');
-
 	Route::get('students', 'TablesController@students')->name('students');
 	Route::get('waiting-list', 'TablesController@waitingList')->name('waiting-list');
 });

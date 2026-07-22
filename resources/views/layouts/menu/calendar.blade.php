@@ -10,20 +10,12 @@
     'calendar.invitations.index' => 'Invitations*',
     'calendar.students.index' => 'Students',
     [
-      'label' => 'Lessons',
+      'label' => 'Schedule',
       'children' => [
-          'calendar.lesson-plans.index' => 'Recurring',
-          'calendar.single-lesson-plans.index' => 'Single',
-          'calendar.lessons.index' => 'Confirmed',
-          'calendar.lessons.canceled' => 'Canceled',
-      ],
-    ],
-    [
-      'label' => 'Events',
-      'children' => [
-          'calendar.events.index' => 'Scheduled',
-          'calendar.events.canceled' => 'Canceled',
-          'calendar.events.google' => 'Google Events',
+          'calendar.lessons.index' => 'Lessons',
+          'calendar.lesson-plans.index' => 'Recurring plans',
+          'calendar.events.index' => 'General events',
+          'calendar.events.google' => 'Google events',
       ],
     ],
     'calendar.waiting-list.index' => 'Waiting list*',

@@ -11,11 +11,6 @@ use InvalidArgumentException;
 
 class SingleLessonPlansController extends Controller
 {
-    public function index()
-    {
-        return view('calendar.singleLessonPlans.index');
-    }
-
     public function edit(SingleLessonPlan $singleLessonPlan)
     {
         $singleLessonPlan->load('student', 'location');

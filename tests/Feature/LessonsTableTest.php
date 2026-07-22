@@ -8,7 +8,7 @@ use App\Models\Calendar\{Lesson, LessonPlan, Student};
 class LessonsTableTest extends BaseTest
 {
     /** @test */
-    public function it_filters_lessons_by_paid_date_range()
+    public function it_filters_lessons_by_scheduled_date_range()
     {
         $insideStudent = Student::factory()->create([
             'first_name' => 'Inside',
@@ -23,17 +23,17 @@ class LessonsTableTest extends BaseTest
         $outsidePlan = LessonPlan::factory()->student($outsideStudent)->create();
 
         Lesson::factory()->lessonPlan($insidePlan)->paid(3000)->create([
-            'paid_at' => '2026-07-10 12:00:00',
+            'scheduled_date' => '2026-07-10',
         ]);
         Lesson::factory()->lessonPlan($outsidePlan)->paid(4500)->create([
-            'paid_at' => '2026-07-15 12:00:00',
+            'scheduled_date' => '2026-07-20',
         ]);
 
         $this->signIn();
 
         $this->getJson(route('calendar.tables.lessons', [
-            'paid_from' => '2026-07-01',
-            'paid_to' => '2026-07-12',
+            'scheduled_from' => '2026-07-01',
+            'scheduled_to' => '2026-07-12',
         ]))
             ->assertOk()
             ->assertJsonFragment(['student' => 'Inside Range'])
@@ -41,7 +41,7 @@ class LessonsTableTest extends BaseTest
     }
 
     /** @test */
-    public function it_shows_all_lessons_when_no_paid_date_range_is_selected()
+    public function it_shows_all_lessons_when_no_scheduled_date_range_is_selected()
     {
         $firstStudent = Student::factory()->create([
             'first_name' => 'First',
@@ -71,7 +71,7 @@ class LessonsTableTest extends BaseTest
     }
 
     /** @test */
-    public function it_excludes_canceled_lessons()
+    public function it_includes_canceled_lessons_with_canceled_status()
     {
         $student = Student::factory()->create([
             'first_name' => 'Canceled',
@@ -87,13 +87,13 @@ class LessonsTableTest extends BaseTest
 
         $this->signIn();
 
-        $this->getJson(route('calendar.tables.lessons'))
-            ->assertOk()
-            ->assertJsonMissing(['student' => 'Canceled Lesson']);
+        $rows = collect($this->getJson(route('calendar.tables.lessons'))->assertOk()->json('data'));
+
+        $this->assertSame('Canceled', $rows->firstWhere('student', 'Canceled Lesson')['status']);
     }
 
     /** @test */
-    public function canceled_lessons_page_lists_recurring_and_single_cancellations_only()
+    public function lessons_page_lists_confirmed_and_canceled_recurring_and_single_lessons()
     {
         $recurringStudent = Student::factory()->create([
             'first_name' => 'Recurring',
@@ -103,7 +103,7 @@ class LessonsTableTest extends BaseTest
             'first_name' => 'Single',
             'last_name' => 'Cancellation',
         ]);
-        $activeStudent = Student::factory()->create([
+        $confirmedStudent = Student::factory()->create([
             'first_name' => 'Active',
             'last_name' => 'Lesson',
         ]);
@@ -120,49 +120,50 @@ class LessonsTableTest extends BaseTest
             'canceled_by' => 'student',
         ]);
         Lesson::factory()->create([
-            'student_id' => $activeStudent->id,
+            'student_id' => $confirmedStudent->id,
             'lesson_plan_id' => null,
             'canceled_at' => null,
         ]);
 
         $this->signIn();
 
-        $this->get(route('calendar.lessons.canceled'))
+        $this->get(route('calendar.lessons.index'))
             ->assertOk()
-            ->assertSee('Canceled Lessons')
-            ->assertSee(route('calendar.lessons.canceled'), false)
-            ->assertSee('canceled-lessons-table', false)
+            ->assertSee('Lessons')
+            ->assertSee('lessons-table', false)
             ->assertSee('js-revert-canceled-lesson', false)
             ->assertSee('<th>Actions</th>', false);
 
-        $response = $this->getJson(route('calendar.tables.canceled-lessons'))->assertOk();
+        $response = $this->getJson(route('calendar.tables.lessons'))->assertOk();
         $rows = collect($response->json('data'));
 
         $this->assertSame('Recurring', $rows->firstWhere('student', 'Recurring Cancellation')['lesson_type']);
         $this->assertSame('Single', $rows->firstWhere('student', 'Single Cancellation')['lesson_type']);
-        $this->assertNull($rows->firstWhere('student', 'Active Lesson'));
+        $this->assertSame('Confirmed', $rows->firstWhere('student', 'Active Lesson')['status']);
     }
 
     /** @test */
-    public function it_filters_canceled_lessons_by_cancellation_date()
+    public function it_filters_canceled_lessons_by_scheduled_date_with_other_lessons()
     {
         $inside = Student::factory()->create(['first_name' => 'Inside', 'last_name' => 'Canceled']);
         $outside = Student::factory()->create(['first_name' => 'Outside', 'last_name' => 'Canceled']);
 
         Lesson::factory()->create([
             'student_id' => $inside->id,
+            'scheduled_date' => '2026-07-10',
             'canceled_at' => '2026-07-10 12:00:00',
         ]);
         Lesson::factory()->create([
             'student_id' => $outside->id,
+            'scheduled_date' => '2026-07-20',
             'canceled_at' => '2026-07-20 12:00:00',
         ]);
 
         $this->signIn();
 
-        $this->getJson(route('calendar.tables.canceled-lessons', [
-            'canceled_from' => '2026-07-01',
-            'canceled_to' => '2026-07-15',
+        $this->getJson(route('calendar.tables.lessons', [
+            'scheduled_from' => '2026-07-01',
+            'scheduled_to' => '2026-07-15',
         ]))
             ->assertOk()
             ->assertJsonFragment(['student' => 'Inside Canceled'])

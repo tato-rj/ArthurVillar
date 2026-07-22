@@ -14,11 +14,6 @@ class EventsController extends Controller
         return view('calendar.events.index');
     }
 
-    public function canceled()
-    {
-        return view('calendar.events.canceled');
-    }
-
     public function google()
     {
         return view('calendar.events.google');
