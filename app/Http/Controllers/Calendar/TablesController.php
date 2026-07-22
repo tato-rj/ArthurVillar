@@ -710,22 +710,6 @@ class TablesController extends Controller
                     ? $lesson->scheduled_date->toDateString()
                     : null;
             })
-            ->addColumn('payment', function (Lesson $lesson) {
-                if ($lesson->paymentStatus() === 'canceled') {
-                    return 'Canceled';
-                }
-
-                return $lesson->paid_at
-                    ? $lesson->paid_at->toFormattedDateString()
-                    : 'Unpaid';
-            })
-            ->addColumn('payment_class', function (Lesson $lesson) {
-                return match ($lesson->paymentStatus()) {
-                    'paid' => 'text-green',
-                    'canceled' => 'text-light',
-                    default => 'text-red',
-                };
-            })
             ->addColumn('status', function (Lesson $lesson) {
                 return $lesson->canceled_at ? 'Canceled' : 'Confirmed';
             })
@@ -778,40 +762,6 @@ class TablesController extends Controller
                     }
                 });
             })
-            ->filterColumn('payment', function ($query, $keyword) use ($driver) {
-                $keyword = strtolower($keyword);
-
-                $query->where(function ($query) use ($keyword, $driver) {
-                    if ($keyword !== 'paid' && str_contains('unpaid', $keyword)) {
-                        $query->orWhere(function ($query) {
-                            $query
-                                ->whereNull('lessons.paid_at')
-                                ->whereNull('lessons.canceled_at');
-                        });
-                    }
-
-                    if (str_contains('paid', $keyword)) {
-                        $query
-                            ->orWhere(function ($query) {
-                                $query
-                                    ->whereNotNull('lessons.paid_at')
-                                    ->whereNull('lessons.canceled_at');
-                            });
-                    }
-
-                    if (str_contains('canceled', $keyword) || str_contains('cancelled', $keyword)) {
-                        $query->orWhereNotNull('lessons.canceled_at');
-                    }
-
-                    if ($keyword !== '') {
-                        $formattedDate = $driver === 'sqlite'
-                            ? "strftime('%m/%d/%Y', lessons.paid_at)"
-                            : "DATE_FORMAT(lessons.paid_at, '%m/%d/%Y')";
-
-                        $query->orWhereRaw("$formattedDate LIKE ?", ["%{$keyword}%"]);
-                    }
-                });
-            })
             ->filterColumn('status', function ($query, $keyword) {
                 $keyword = strtolower($keyword);
 
@@ -832,7 +782,6 @@ class TablesController extends Controller
             ->orderColumn('start_time', "$timeExpression $1")
             ->orderColumn('duration_minutes', 'duration_minutes $1')
             ->orderColumn('fee_amount', 'fee_amount $1')
-            ->orderColumn('payment', 'paid_at $1')
             ->orderColumn('status', 'canceled_at $1')
             ->orderColumn('canceled_at', 'canceled_at $1')
             ->toJson();

@@ -33,10 +33,8 @@
                     <th>Weekday</th>
                     <th>Start time</th>
                     <th>Duration</th>
-                    <th>Fee</th>
                     <th>Payment</th>
                     <th>Status</th>
-                    <th>Actions</th>
                 </tr>
             </thead>
         </table>
@@ -93,11 +91,37 @@ $(function() {
         return `${hour}:${String(minutes).padStart(2, '0')} ${suffix}`;
     };
 
+    const formatPaymentDate = function(value) {
+        if (!value) {
+            return '';
+        }
+
+        return new Intl.DateTimeFormat('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+        }).format(new Date(value));
+    };
+
+    const initializePaymentPopovers = function() {
+        document.querySelectorAll('#lessons-table [data-bs-toggle="popover"]').forEach(function(element) {
+            if (window.bootstrap && window.bootstrap.Popover) {
+                window.bootstrap.Popover.getOrCreateInstance(element);
+                return;
+            }
+
+            if (window.jQuery && typeof window.jQuery.fn.popover === 'function') {
+                window.jQuery(element).popover();
+            }
+        });
+    };
+
     const lessonsTable = window.calendarDataTableState.create('#lessons-table', {
         processing: false,
         serverSide: true,
         autoWidth: false,
         scrollX: true,
+        drawCallback: initializePaymentPopovers,
         language: {
             search: '',
             searchPlaceholder: 'Search',
@@ -161,23 +185,24 @@ $(function() {
             {
                 data: 'fee_amount',
                 name: 'fee_amount',
-                render: function(data, type) {
+                render: function(data, type, row) {
                     if (type === 'sort' || type === 'type') {
                         return Number(data || 0);
                     }
 
-                    return formatFee(data);
-                },
-            },
-            {
-                data: 'payment',
-                name: 'payment',
-                render: function(data, type, row) {
-                    if (type === 'sort' || type === 'type') {
-                        return row.paid_at || '';
+                    const amount = formatFee(data);
+
+                    if (row.status === 'Canceled') {
+                        return `<span class="text-light text-decoration-line-through">${amount}</span>`;
                     }
 
-                    return `<span class="${row.payment_class}">${data}</span>`;
+                    if (!row.paid_at) {
+                        return `<span class="text-red">${amount}</span>`;
+                    }
+
+                    const paymentDate = formatPaymentDate(row.paid_at);
+
+                    return `<span class="text-green" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-container="body" data-bs-placement="top" data-bs-content="Paid on ${paymentDate}">${amount}</span>`;
                 },
             },
             {
@@ -185,25 +210,6 @@ $(function() {
                 name: 'status',
                 render: function(data) {
                     return `<span class="${data === 'Canceled' ? 'text-red' : 'text-green'}">${data}</span>`;
-                },
-            },
-            {
-                data: 'id',
-                name: 'actions',
-                orderable: false,
-                searchable: false,
-                className: 'text-right',
-                render: function(data, type, row) {
-                    if (row.status !== 'Canceled') {
-                        return '';
-                    }
-
-                    return `
-                        <div class="calendar-table-actions">
-                            <button type="button" class="btn btn-sm btn-secondary rounded js-revert-canceled-lesson" data-lesson-id="${data}" aria-label="Revert cancellation" title="Revert cancellation">
-                                @fa(['icon' => 'rotate-left', 'mr' => 0])
-                            </button>
-                        </div>`;
                 },
             },
         ],
@@ -224,37 +230,6 @@ $(function() {
         lessonsTable.ajax.reload();
     });
 
-    $('#lessons-table').on('click', '.js-revert-canceled-lesson', function() {
-        const button = this;
-
-        button.disabled = true;
-
-        fetch(@json(route('calendar.lessons.revert')), {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': @json(csrf_token()),
-                'X-Requested-With': 'XMLHttpRequest',
-            },
-            body: JSON.stringify({lesson_id: button.dataset.lessonId}),
-        })
-            .then(function(response) {
-                if (!response.ok) {
-                    throw new Error('Unable to revert lesson cancellation.');
-                }
-
-                return response.json();
-            })
-            .then(function() {
-                lessonsTable.ajax.reload(null, false);
-            })
-            .catch(function(error) {
-                console.error(error);
-                button.disabled = false;
-                window.alert(error.message);
-            });
-    });
 });
 </script>
 @endpush

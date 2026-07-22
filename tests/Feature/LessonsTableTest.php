@@ -89,7 +89,10 @@ class LessonsTableTest extends BaseTest
 
         $rows = collect($this->getJson(route('calendar.tables.lessons'))->assertOk()->json('data'));
 
-        $this->assertSame('Canceled', $rows->firstWhere('student', 'Canceled Lesson')['status']);
+        $row = $rows->firstWhere('student', 'Canceled Lesson');
+
+        $this->assertSame('Canceled', $row['status']);
+        $this->assertArrayNotHasKey('payment', $row);
     }
 
     /** @test */
@@ -131,8 +134,12 @@ class LessonsTableTest extends BaseTest
             ->assertOk()
             ->assertSee('Lessons')
             ->assertSee('lessons-table', false)
-            ->assertSee('js-revert-canceled-lesson', false)
-            ->assertSee('<th>Actions</th>', false);
+            ->assertSee('<th>Payment</th>', false)
+            ->assertDontSee('<th>Fee</th>', false)
+            ->assertSee('data-bs-toggle="popover"', false)
+            ->assertSee('text-decoration-line-through', false)
+            ->assertDontSee('js-revert-canceled-lesson', false)
+            ->assertDontSee('<th>Actions</th>', false);
 
         $response = $this->getJson(route('calendar.tables.lessons'))->assertOk();
         $rows = collect($response->json('data'));
