@@ -44,18 +44,22 @@
                     @endforeach
                 @endselect
 
-                @input([
-                    'label' => 'Parent name',
-                    'name' => 'parent_name',
-                    'value' => old('parent_name', $student->parent_name)
-                ])
+                <div class="row"> 
+                    @input([
+                        'label' => 'Parent name',
+                        'name' => 'parent_name',
+                        'grid' => 'col',
+                        'value' => old('parent_name', $student->parent_name)
+                    ])
 
-                @input([
-                    'label' => 'Email',
-                    'name' => 'email',
-                    'value' => old('email', $student->email),
-                    'required' => true
-                ])
+                    @input([
+                        'label' => 'Email',
+                        'name' => 'email',
+                        'grid' => 'col',
+                        'value' => old('email', $student->email),
+                        'required' => true
+                    ])
+                </div>
 
                 @select(['label' => 'Default location', 'placeholder' => '', 'name' => 'location_id'])
                     @foreach($locations as $location)
