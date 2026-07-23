@@ -561,40 +561,6 @@ const createScheduleHeaderDragPreview = function(headerRow) {
 const bindScheduleHeaderDrag = function(calendar, navigateByDays) {
     let drag = null;
 
-    const lockPageScroll = function() {
-        const body = document.body;
-        const root = document.documentElement;
-        const scrollX = window.scrollX;
-        const scrollY = window.scrollY;
-        const bodyStyles = {
-            position: body.style.position,
-            top: body.style.top,
-            left: body.style.left,
-            right: body.style.right,
-            width: body.style.width,
-            overflow: body.style.overflow,
-            overscrollBehavior: body.style.overscrollBehavior,
-        };
-        const rootOverscrollBehavior = root.style.overscrollBehavior;
-
-        root.style.overscrollBehavior = 'none';
-        body.style.position = 'fixed';
-        body.style.top = `${-scrollY}px`;
-        body.style.left = `${-scrollX}px`;
-        body.style.right = '0';
-        body.style.width = '100%';
-        body.style.overflow = 'hidden';
-        body.style.overscrollBehavior = 'none';
-
-        return function() {
-            root.style.overscrollBehavior = rootOverscrollBehavior;
-            Object.keys(bodyStyles).forEach(function(property) {
-                body.style[property] = bodyStyles[property];
-            });
-            window.scrollTo(scrollX, scrollY);
-        };
-    };
-
     const settlePreview = function(preview, currentX, targetX) {
         preview.rail.style.transform = `translate3d(${currentX}px, 0, 0)`;
 
@@ -634,9 +600,6 @@ const bindScheduleHeaderDrag = function(calendar, navigateByDays) {
 
         drag = null;
         current.row.classList.remove('calendar-schedule-header-dragging');
-        if (current.releasePageScroll) {
-            current.releasePageScroll();
-        }
         if (current.preview && !preservePreview) {
             current.preview.element.remove();
         }
@@ -699,7 +662,6 @@ const bindScheduleHeaderDrag = function(calendar, navigateByDays) {
             deltaX: 0,
             active: false,
             preview: null,
-            releasePageScroll: inputType === 'touch' ? lockPageScroll() : null,
         };
     };
 
@@ -712,9 +674,7 @@ const bindScheduleHeaderDrag = function(calendar, navigateByDays) {
         const deltaY = clientY - drag.startY;
 
         if (!drag.active) {
-            if (drag.inputType !== 'touch'
-                && Math.abs(deltaY) >= 8
-                && Math.abs(deltaY) > Math.abs(deltaX)) {
+            if (Math.abs(deltaY) >= 8 && Math.abs(deltaY) > Math.abs(deltaX)) {
                 clearDrag();
                 return;
             }
@@ -773,26 +733,17 @@ const bindScheduleHeaderDrag = function(calendar, navigateByDays) {
         const touch = e.changedTouches[0];
         const row = e.target.closest('.lm-schedule thead tr:not(.calendar-schedule-holiday-row)');
 
-        if (!touch || !row || e.touches.length !== 1) {
+        if (!touch || e.touches.length !== 1) {
             return;
         }
 
-        e.preventDefault();
         beginDrag(row, touch.identifier, touch.clientX, touch.clientY, 'touch');
-    }, { passive: false });
-
-    document.addEventListener('touchmove', function(e) {
-        if (drag && drag.inputType === 'touch') {
-            e.preventDefault();
-        }
-    }, { passive: false, capture: true });
+    }, { passive: true });
 
     window.addEventListener('touchmove', function(e) {
         if (!drag || drag.inputType !== 'touch') {
             return;
         }
-
-        e.preventDefault();
 
         const touch = Array.from(e.touches).find(function(candidate) {
             return candidate.identifier === drag.pointerId;
