@@ -2964,7 +2964,7 @@ var bindScheduleHeaderDrag = function bindScheduleHeaderDrag(calendar, navigateB
     if (current.preview && !preservePreview) {
       current.preview.element.remove();
     }
-    if (typeof current.row.hasPointerCapture === 'function' && current.row.hasPointerCapture(current.pointerId)) {
+    if (current.inputType === 'pointer' && typeof current.row.hasPointerCapture === 'function' && current.row.hasPointerCapture(current.pointerId)) {
       try {
         current.row.releasePointerCapture(current.pointerId);
       } catch (error) {
@@ -2972,8 +2972,8 @@ var bindScheduleHeaderDrag = function bindScheduleHeaderDrag(calendar, navigateB
       }
     }
   };
-  var finishDrag = function finishDrag(e, commit) {
-    if (!drag || e && drag.pointerId !== e.pointerId) {
+  var finishDrag = function finishDrag(pointerId, inputType, commit) {
+    if (!drag || pointerId !== null && drag.pointerId !== pointerId || inputType && drag.inputType !== inputType) {
       return;
     }
     var current = drag;
@@ -2994,28 +2994,28 @@ var bindScheduleHeaderDrag = function bindScheduleHeaderDrag(calendar, navigateB
       current.preview.element.remove();
     });
   };
-  calendar.addEventListener('pointerdown', function (e) {
-    var row = e.target.closest('.lm-schedule thead tr:not(.calendar-schedule-holiday-row)');
-    if (!row || !scheduleGridViews.includes(state.view) || e.button !== 0 || e.isPrimary === false) {
+  var beginDrag = function beginDrag(row, pointerId, clientX, clientY, inputType) {
+    if (!row || !scheduleGridViews.includes(state.view)) {
       return;
     }
     clearDrag();
     drag = {
       row: row,
-      pointerId: e.pointerId,
-      startX: e.clientX,
-      startY: e.clientY,
+      pointerId: pointerId,
+      inputType: inputType,
+      startX: clientX,
+      startY: clientY,
       deltaX: 0,
       active: false,
       preview: null
     };
-  });
-  window.addEventListener('pointermove', function (e) {
-    if (!drag || drag.pointerId !== e.pointerId) {
+  };
+  var moveDrag = function moveDrag(pointerId, inputType, clientX, clientY, e) {
+    if (!drag || drag.pointerId !== pointerId || drag.inputType !== inputType) {
       return;
     }
-    var deltaX = e.clientX - drag.startX;
-    var deltaY = e.clientY - drag.startY;
+    var deltaX = clientX - drag.startX;
+    var deltaY = clientY - drag.startY;
     if (!drag.active) {
       if (Math.abs(deltaY) >= 8 && Math.abs(deltaY) > Math.abs(deltaX)) {
         clearDrag();
@@ -3031,7 +3031,7 @@ var bindScheduleHeaderDrag = function bindScheduleHeaderDrag(calendar, navigateB
       }
       drag.active = true;
       drag.row.classList.add('calendar-schedule-header-dragging');
-      if (typeof drag.row.setPointerCapture === 'function') {
+      if (drag.inputType === 'pointer' && typeof drag.row.setPointerCapture === 'function') {
         try {
           drag.row.setPointerCapture(drag.pointerId);
         } catch (error) {
@@ -3042,20 +3042,69 @@ var bindScheduleHeaderDrag = function bindScheduleHeaderDrag(calendar, navigateB
     e.preventDefault();
     drag.deltaX = Math.max(-drag.preview.maxDistance, Math.min(drag.preview.maxDistance, deltaX));
     drag.preview.rail.style.transform = "translate3d(".concat(drag.preview.initialX + drag.deltaX, "px, 0, 0)");
+  };
+  calendar.addEventListener('pointerdown', function (e) {
+    var row = e.target.closest('.lm-schedule thead tr:not(.calendar-schedule-holiday-row)');
+    if (e.pointerType === 'touch' || e.button !== 0 || e.isPrimary === false) {
+      return;
+    }
+    beginDrag(row, e.pointerId, e.clientX, e.clientY, 'pointer');
+  });
+  window.addEventListener('pointermove', function (e) {
+    moveDrag(e.pointerId, 'pointer', e.clientX, e.clientY, e);
   }, {
     passive: false
   });
   window.addEventListener('pointerup', function (e) {
-    finishDrag(e, true);
+    finishDrag(e.pointerId, 'pointer', true);
   });
   window.addEventListener('pointercancel', function (e) {
-    finishDrag(e, false);
+    finishDrag(e.pointerId, 'pointer', false);
   });
   calendar.addEventListener('lostpointercapture', function (e) {
-    finishDrag(e, false);
+    finishDrag(e.pointerId, 'pointer', false);
+  });
+  calendar.addEventListener('touchstart', function (e) {
+    var touch = e.changedTouches[0];
+    var row = e.target.closest('.lm-schedule thead tr:not(.calendar-schedule-holiday-row)');
+    if (!touch || e.touches.length !== 1) {
+      return;
+    }
+    beginDrag(row, touch.identifier, touch.clientX, touch.clientY, 'touch');
+  }, {
+    passive: true
+  });
+  window.addEventListener('touchmove', function (e) {
+    if (!drag || drag.inputType !== 'touch') {
+      return;
+    }
+    var touch = Array.from(e.touches).find(function (candidate) {
+      return candidate.identifier === drag.pointerId;
+    });
+    if (touch) {
+      moveDrag(touch.identifier, 'touch', touch.clientX, touch.clientY, e);
+    }
+  }, {
+    passive: false
+  });
+  window.addEventListener('touchend', function (e) {
+    var touch = drag && drag.inputType === 'touch' ? Array.from(e.changedTouches).find(function (candidate) {
+      return candidate.identifier === drag.pointerId;
+    }) : null;
+    if (touch) {
+      finishDrag(touch.identifier, 'touch', true);
+    }
+  });
+  window.addEventListener('touchcancel', function (e) {
+    var touch = drag && drag.inputType === 'touch' ? Array.from(e.changedTouches).find(function (candidate) {
+      return candidate.identifier === drag.pointerId;
+    }) : null;
+    if (touch) {
+      finishDrag(touch.identifier, 'touch', false);
+    }
   });
   window.addEventListener('blur', function () {
-    finishDrag(null, false);
+    finishDrag(null, null, false);
   });
 };
 var formatScheduleHour = function formatScheduleHour(value) {

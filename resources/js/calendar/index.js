@@ -594,7 +594,8 @@ const bindScheduleHeaderDrag = function(calendar, navigateByDays) {
         if (current.preview && !preservePreview) {
             current.preview.element.remove();
         }
-        if (typeof current.row.hasPointerCapture === 'function'
+        if (current.inputType === 'pointer'
+            && typeof current.row.hasPointerCapture === 'function'
             && current.row.hasPointerCapture(current.pointerId)) {
             try {
                 current.row.releasePointerCapture(current.pointerId);
@@ -604,8 +605,10 @@ const bindScheduleHeaderDrag = function(calendar, navigateByDays) {
         }
     };
 
-    const finishDrag = function(e, commit) {
-        if (!drag || (e && drag.pointerId !== e.pointerId)) {
+    const finishDrag = function(pointerId, inputType, commit) {
+        if (!drag
+            || (pointerId !== null && drag.pointerId !== pointerId)
+            || (inputType && drag.inputType !== inputType)) {
             return;
         }
 
@@ -635,35 +638,31 @@ const bindScheduleHeaderDrag = function(calendar, navigateByDays) {
         });
     };
 
-    calendar.addEventListener('pointerdown', function(e) {
-        const row = e.target.closest('.lm-schedule thead tr:not(.calendar-schedule-holiday-row)');
-
-        if (!row
-            || !scheduleGridViews.includes(state.view)
-            || e.button !== 0
-            || e.isPrimary === false) {
+    const beginDrag = function(row, pointerId, clientX, clientY, inputType) {
+        if (!row || !scheduleGridViews.includes(state.view)) {
             return;
         }
 
         clearDrag();
         drag = {
             row,
-            pointerId: e.pointerId,
-            startX: e.clientX,
-            startY: e.clientY,
+            pointerId,
+            inputType,
+            startX: clientX,
+            startY: clientY,
             deltaX: 0,
             active: false,
             preview: null,
         };
-    });
+    };
 
-    window.addEventListener('pointermove', function(e) {
-        if (!drag || drag.pointerId !== e.pointerId) {
+    const moveDrag = function(pointerId, inputType, clientX, clientY, e) {
+        if (!drag || drag.pointerId !== pointerId || drag.inputType !== inputType) {
             return;
         }
 
-        const deltaX = e.clientX - drag.startX;
-        const deltaY = e.clientY - drag.startY;
+        const deltaX = clientX - drag.startX;
+        const deltaY = clientY - drag.startY;
 
         if (!drag.active) {
             if (Math.abs(deltaY) >= 8 && Math.abs(deltaY) > Math.abs(deltaX)) {
@@ -683,7 +682,7 @@ const bindScheduleHeaderDrag = function(calendar, navigateByDays) {
 
             drag.active = true;
             drag.row.classList.add('calendar-schedule-header-dragging');
-            if (typeof drag.row.setPointerCapture === 'function') {
+            if (drag.inputType === 'pointer' && typeof drag.row.setPointerCapture === 'function') {
                 try {
                     drag.row.setPointerCapture(drag.pointerId);
                 } catch (error) {
@@ -695,19 +694,81 @@ const bindScheduleHeaderDrag = function(calendar, navigateByDays) {
         e.preventDefault();
         drag.deltaX = Math.max(-drag.preview.maxDistance, Math.min(drag.preview.maxDistance, deltaX));
         drag.preview.rail.style.transform = `translate3d(${drag.preview.initialX + drag.deltaX}px, 0, 0)`;
+    };
+
+    calendar.addEventListener('pointerdown', function(e) {
+        const row = e.target.closest('.lm-schedule thead tr:not(.calendar-schedule-holiday-row)');
+
+        if (e.pointerType === 'touch' || e.button !== 0 || e.isPrimary === false) {
+            return;
+        }
+
+        beginDrag(row, e.pointerId, e.clientX, e.clientY, 'pointer');
+    });
+
+    window.addEventListener('pointermove', function(e) {
+        moveDrag(e.pointerId, 'pointer', e.clientX, e.clientY, e);
     }, { passive: false });
 
     window.addEventListener('pointerup', function(e) {
-        finishDrag(e, true);
+        finishDrag(e.pointerId, 'pointer', true);
     });
     window.addEventListener('pointercancel', function(e) {
-        finishDrag(e, false);
+        finishDrag(e.pointerId, 'pointer', false);
     });
     calendar.addEventListener('lostpointercapture', function(e) {
-        finishDrag(e, false);
+        finishDrag(e.pointerId, 'pointer', false);
+    });
+
+    calendar.addEventListener('touchstart', function(e) {
+        const touch = e.changedTouches[0];
+        const row = e.target.closest('.lm-schedule thead tr:not(.calendar-schedule-holiday-row)');
+
+        if (!touch || e.touches.length !== 1) {
+            return;
+        }
+
+        beginDrag(row, touch.identifier, touch.clientX, touch.clientY, 'touch');
+    }, { passive: true });
+
+    window.addEventListener('touchmove', function(e) {
+        if (!drag || drag.inputType !== 'touch') {
+            return;
+        }
+
+        const touch = Array.from(e.touches).find(function(candidate) {
+            return candidate.identifier === drag.pointerId;
+        });
+
+        if (touch) {
+            moveDrag(touch.identifier, 'touch', touch.clientX, touch.clientY, e);
+        }
+    }, { passive: false });
+
+    window.addEventListener('touchend', function(e) {
+        const touch = drag && drag.inputType === 'touch'
+            ? Array.from(e.changedTouches).find(function(candidate) {
+                return candidate.identifier === drag.pointerId;
+            })
+            : null;
+
+        if (touch) {
+            finishDrag(touch.identifier, 'touch', true);
+        }
+    });
+    window.addEventListener('touchcancel', function(e) {
+        const touch = drag && drag.inputType === 'touch'
+            ? Array.from(e.changedTouches).find(function(candidate) {
+                return candidate.identifier === drag.pointerId;
+            })
+            : null;
+
+        if (touch) {
+            finishDrag(touch.identifier, 'touch', false);
+        }
     });
     window.addEventListener('blur', function() {
-        finishDrag(null, false);
+        finishDrag(null, null, false);
     });
 };
 

@@ -32223,6 +32223,11 @@ button.setting-undo:hover {
   touch-action: pan-y;
 }
 
+@media (pointer: coarse) {
+  #calendar .lm-schedule thead tr:not(.calendar-schedule-holiday-row) td {
+    touch-action: none;
+  }
+}
 .calendar-schedule-header-drag-preview {
   background: var(--lm-background-color, #fff);
   border-bottom: 1px solid var(--lm-border-color, #ddd);
