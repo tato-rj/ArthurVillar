@@ -2514,7 +2514,8 @@ var state = {
   birthdayWindow: 5,
   suppressNextScheduleAnimation: false,
   scheduleWindowStart: null,
-  pendingScheduleScrollTop: null
+  pendingScheduleScrollTop: null,
+  pendingScheduleHeaderPreview: null
 };
 var calendarTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/New_York';
 var monthFormatter = new Intl.DateTimeFormat('en', {
@@ -2880,6 +2881,7 @@ var createScheduleHeaderDragPreview = function createScheduleHeaderDragPreview(h
   var visibleDates = getVisibleScheduleDates();
   var headerStyle = window.getComputedStyle(visibleHeaders[0]);
   var weekdayStyle = window.getComputedStyle(visibleHeaders[0], '::before');
+  var scheduleStyle = window.getComputedStyle(headerRow.closest('.lm-schedule'));
   var preview = document.createElement('div');
   var rail = document.createElement('div');
   preview.className = "calendar-schedule-header-drag-preview calendar-schedule-header-drag-preview-".concat(state.view);
@@ -2887,6 +2889,7 @@ var createScheduleHeaderDragPreview = function createScheduleHeaderDragPreview(h
   preview.style.top = "".concat(rowRect.top, "px");
   preview.style.width = "".concat(visibleWidth, "px");
   preview.style.height = "".concat(rowRect.height, "px");
+  preview.style.borderTopRightRadius = scheduleStyle.borderTopRightRadius;
   preview.style.setProperty('--calendar-schedule-drag-number-size', headerStyle.fontSize);
   preview.style.setProperty('--calendar-schedule-drag-number-weight', headerStyle.fontWeight);
   preview.style.setProperty('--calendar-schedule-drag-number-line-height', headerStyle.lineHeight);
@@ -2927,14 +2930,38 @@ var createScheduleHeaderDragPreview = function createScheduleHeaderDragPreview(h
 };
 var bindScheduleHeaderDrag = function bindScheduleHeaderDrag(calendar, navigateByDays) {
   var drag = null;
-  var clearDrag = function clearDrag() {
+  var settlePreview = function settlePreview(preview, currentX, targetX) {
+    preview.rail.style.transform = "translate3d(".concat(currentX, "px, 0, 0)");
+    if (Math.abs(currentX - targetX) < 0.5 || window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      preview.rail.style.transform = "translate3d(".concat(targetX, "px, 0, 0)");
+      return Promise.resolve();
+    }
+    return new Promise(function (resolve) {
+      var finished = false;
+      var _finish = function finish() {
+        if (finished) {
+          return;
+        }
+        finished = true;
+        window.clearTimeout(fallback);
+        preview.rail.removeEventListener('transitionend', _finish);
+        resolve();
+      };
+      var fallback = window.setTimeout(_finish, 180);
+      preview.rail.addEventListener('transitionend', _finish);
+      preview.rail.getBoundingClientRect();
+      preview.rail.style.transition = 'transform 140ms ease-out';
+      preview.rail.style.transform = "translate3d(".concat(targetX, "px, 0, 0)");
+    });
+  };
+  var clearDrag = function clearDrag(preservePreview) {
     if (!drag) {
       return;
     }
     var current = drag;
     drag = null;
     current.row.classList.remove('calendar-schedule-header-dragging');
-    if (current.preview) {
+    if (current.preview && !preservePreview) {
       current.preview.element.remove();
     }
     if (typeof current.row.hasPointerCapture === 'function' && current.row.hasPointerCapture(current.pointerId)) {
@@ -2951,10 +2978,21 @@ var bindScheduleHeaderDrag = function bindScheduleHeaderDrag(calendar, navigateB
     }
     var current = drag;
     var offset = commit && current.active && current.preview ? Math.round(-current.deltaX / current.preview.dayWidth) : 0;
-    clearDrag();
-    if (offset) {
-      navigateByDays(offset);
+    if (!current.active || !current.preview || !commit) {
+      clearDrag();
+      return;
     }
+    var currentX = current.preview.initialX + current.deltaX;
+    var targetX = current.preview.initialX - offset * current.preview.dayWidth;
+    current.preview.settledPromise = settlePreview(current.preview, currentX, targetX);
+    clearDrag(true);
+    if (offset) {
+      navigateByDays(offset, current.preview);
+      return;
+    }
+    current.preview.settledPromise.then(function () {
+      current.preview.element.remove();
+    });
   };
   calendar.addEventListener('pointerdown', function (e) {
     var row = e.target.closest('.lm-schedule thead tr:not(.calendar-schedule-holiday-row)');
@@ -6654,13 +6692,20 @@ document.addEventListener('DOMContentLoaded', function () {
     syncViewControls();
     _render();
   };
-  bindScheduleHeaderDrag(calendar, function (dayOffset) {
+  bindScheduleHeaderDrag(calendar, function (dayOffset, preview) {
     if (!dayOffset || isScheduleHoldNavigationSuppressed()) {
+      if (preview) {
+        preview.element.remove();
+      }
       return;
     }
     var schedule = calendar.querySelector('.lm-schedule');
     var nextStart = addDays(getVisibleScheduleDates()[0], dayOffset);
     var keepRollingWeek = state.view === 'week';
+    if (state.pendingScheduleHeaderPreview) {
+      state.pendingScheduleHeaderPreview.element.remove();
+    }
+    state.pendingScheduleHeaderPreview = preview;
     state.pendingScheduleScrollTop = schedule ? schedule.scrollTop : null;
     setSelectedDate(nextStart);
     if (keepRollingWeek) {
@@ -6920,6 +6965,15 @@ document.addEventListener('DOMContentLoaded', function () {
         }
       });
       patchSchedule(calendar);
+      if (state.pendingScheduleHeaderPreview) {
+        var preview = state.pendingScheduleHeaderPreview;
+        state.pendingScheduleHeaderPreview = null;
+        Promise.resolve(preview.settledPromise).then(function () {
+          requestAnimationFrame(function () {
+            preview.element.remove();
+          });
+        });
+      }
       if (state.pendingScheduleScrollTop !== null) {
         var schedule = calendar.querySelector('.lm-schedule');
         if (schedule) {
