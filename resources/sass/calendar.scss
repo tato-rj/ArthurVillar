@@ -1709,7 +1709,7 @@ button.single-lesson-plan-create[selected] i {
 }
 
 #general-event-details {
-    a {
+    a:not(.btn) {
         @extend .text-red;
     }
 }

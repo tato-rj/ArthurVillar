@@ -25381,7 +25381,7 @@ h1, .h1 {
 .text-stone, .alert-stone {
   color: #78716c !important;
 }
-.text-red, #general-event-details a, #recital-venue a, .calendar-general-event-notes a:not(.btn):not(.invitation-offscreen-indicator):not(.invitation-duration-option):not(.calendar-calendar-search[selected]), .alert-red, #lesson-modal[data-lesson-status=unpaid] div#lesson-status {
+.text-red, #general-event-details a:not(.btn):not(.invitation-offscreen-indicator):not(.invitation-duration-option):not(.calendar-calendar-search[selected]), #recital-venue a, .calendar-general-event-notes a:not(.btn):not(.invitation-offscreen-indicator):not(.invitation-duration-option):not(.calendar-calendar-search[selected]), .alert-red, #lesson-modal[data-lesson-status=unpaid] div#lesson-status {
   color: #ff4b4b !important;
 }
 .text-orange, .alert-orange {
