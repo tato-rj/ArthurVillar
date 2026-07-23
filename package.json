@@ -40,7 +40,6 @@
         "inputmask": "^5.0.9",
         "jquery-ui": "^1.13.2",
         "jquery-ui-touch-punch": "^0.2.3",
-        "pulltorefreshjs": "0.1.22",
         "typed.js": "^3.0.0"
     }
 }
