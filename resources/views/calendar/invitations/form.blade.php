@@ -7,6 +7,12 @@
 
 @section('content')
 <section class="container py-5">
+    @if($invitation)
+        {{ Breadcrumbs::render('calendar.invitations.edit', $invitation) }}
+    @else
+        {{ Breadcrumbs::render('calendar.invitations.create') }}
+    @endif
+
     <div class="row mb-4">
         @pagetitle([
             'label' => $invitation ? 'Edit Invitation' : 'New Invitation'

@@ -5,8 +5,9 @@
 @endpush
 
 @section('content')
-@include('calendar.calendar.home-icon')
 <section class="container py-5">
+    {{ Breadcrumbs::render('calendar.locations.index') }}
+
     <div class="row mb-4">
         @pagetitle([
             'label' => 'Calendar Locations',

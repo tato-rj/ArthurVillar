@@ -7,6 +7,8 @@
 
 @section('content')
 <section class="container py-5">
+    {{ Breadcrumbs::render('calendar.lessons.student', $student) }}
+
     <div class="row mb-4">
         @pagetitle([
             'label' => str_possessive($student->first_name).' lessons',

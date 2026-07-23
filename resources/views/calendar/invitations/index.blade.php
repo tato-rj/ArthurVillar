@@ -7,6 +7,8 @@
 
 @section('content')
 <section class="container py-5">
+    {{ Breadcrumbs::render('calendar.invitations.index') }}
+
     <div class="row mb-4">
         @pagetitle([
             'label' => 'Invitations',

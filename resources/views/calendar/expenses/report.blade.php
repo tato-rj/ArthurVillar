@@ -10,8 +10,9 @@
         return '$'.number_format(((int) $value) / 100, 0);
     };
 @endphp
-@include('calendar.calendar.home-icon')
 <section class="container py-5">
+    {{ Breadcrumbs::render('calendar.expenses.report') }}
+
     <div class="row mb-4">
         @pagetitle([
             'label' => 'Financial Report',

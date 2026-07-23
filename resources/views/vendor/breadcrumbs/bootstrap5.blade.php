@@ -1,8 +1,8 @@
 <div class="row mb-3">
-    <div class="col-lg-6 col-md-8 col-10 mx-auto">
+    <div class="col-12 mx-auto">
     @unless ($breadcrumbs->isEmpty())
         <nav aria-label="breadcrumb">
-            <ol class="breadcrumb bg-light rounded px-3 py-2">
+            <ol class="breadcrumb">
                 @foreach ($breadcrumbs as $breadcrumb)
 
                     @if ($breadcrumb->url && !$loop->last)
