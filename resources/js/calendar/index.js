@@ -35,6 +35,8 @@ const state = {
     didAutoNowScroll: false,
     birthdayWindow: 5,
     suppressNextScheduleAnimation: false,
+    scheduleWindowStart: null,
+    pendingScheduleScrollTop: null,
 };
 
 const calendarTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/New_York';
@@ -145,6 +147,7 @@ const getUrlState = function() {
     const requestedView = params.get('view');
     const view = requestedView === '3-days' ? '2-days' : requestedView;
     const date = params.get('date');
+    const windowStart = params.get('window_start');
     const eventTypes = params.has('event_types')
         ? params.get('event_types').split(',').filter(function(type, index, types) {
             return calendarEventTypes.includes(type) && types.indexOf(type) === index;
@@ -159,6 +162,7 @@ const getUrlState = function() {
     return {
         view: calendarViews.includes(view) ? view : getDefaultCalendarView(),
         date: parseUrlDate(date),
+        windowStart: parseUrlDate(windowStart),
         eventTypes,
         locationIds,
     };
@@ -169,6 +173,11 @@ const updateCalendarUrl = function() {
 
     url.searchParams.set('view', state.view);
     url.searchParams.set('date', toDateString(state.date));
+    if (state.view === 'week' && isValidDate(state.scheduleWindowStart)) {
+        url.searchParams.set('window_start', toDateString(state.scheduleWindowStart));
+    } else {
+        url.searchParams.delete('window_start');
+    }
     url.searchParams.set('event_types', state.selectedEventTypes.join(','));
     url.searchParams.set('location_ids', state.selectedLocationIds.join(','));
     window.history.replaceState({
@@ -210,6 +219,7 @@ const setSelectedDate = function(date) {
     state.date = cloneDate(date);
     state.miniDate = cloneDate(state.date);
     state.didAutoNowScroll = false;
+    state.scheduleWindowStart = null;
 };
 
 const getVisibleDateRange = function() {
@@ -235,7 +245,7 @@ const getVisibleDateRange = function() {
     }
 
     if (state.view === 'week') {
-        const start = startOfWeek(state.date);
+        const start = getVisibleScheduleDates()[0];
 
         return {
             start,
@@ -339,21 +349,19 @@ const fetchPlannedLessons = function(range) {
 };
 
 const getVisibleScheduleDates = function() {
-    return getScheduleDatesForAnchor(state.date, state.view);
-};
-
-const getScheduleDatesForAnchor = function(anchor, view) {
-    if (view === 'day') {
-        return [cloneDate(anchor)];
+    if (state.view === 'day') {
+        return [cloneDate(state.date)];
     }
 
-    if (view === '2-days') {
+    if (state.view === '2-days') {
         return Array.from({ length: 2 }, function(_, index) {
-            return addDays(anchor, index);
+            return addDays(state.date, index);
         });
     }
 
-    const start = startOfWeek(anchor);
+    const start = isValidDate(state.scheduleWindowStart)
+        ? cloneDate(state.scheduleWindowStart)
+        : startOfWeek(state.date);
 
     return Array.from({ length: 7 }, function(_, index) {
         return addDays(start, index);
@@ -368,16 +376,6 @@ const getTwoDaysBackingDateForIndex = function(index) {
     return addDays(getTwoDaysBackingStart(), index);
 };
 
-const getTwoDaysBackingDateForVisibleDate = function(dateString) {
-    const visibleIndex = getVisibleScheduleDates().map(toDateString).indexOf(String(dateString).substring(0, 10));
-
-    if (visibleIndex < 0) {
-        return null;
-    }
-
-    return toDateString(getTwoDaysBackingDateForIndex(visibleIndex));
-};
-
 const getScheduleDateForGridIndex = function(index) {
     if (state.view === '2-days') {
         const visibleDates = getVisibleScheduleDates();
@@ -386,7 +384,9 @@ const getScheduleDateForGridIndex = function(index) {
     }
 
     if (state.view === 'week') {
-        return addDays(startOfWeek(state.date), index);
+        const visibleDates = getVisibleScheduleDates();
+
+        return visibleDates[index] ? cloneDate(visibleDates[index]) : null;
     }
 
     return getVisibleScheduleDates()[index] ? cloneDate(getVisibleScheduleDates()[index]) : null;
@@ -417,6 +417,10 @@ const getDateRangeDates = function(range) {
 const getScheduleValue = function() {
     if (state.view === '2-days') {
         return toDateString(addDays(getTwoDaysBackingStart(), 1));
+    }
+
+    if (state.view === 'week' && isValidDate(state.scheduleWindowStart)) {
+        return toDateString(addDays(startOfWeek(state.scheduleWindowStart), 1));
     }
 
     if (scheduleGridViews.includes(state.view)) {
@@ -472,6 +476,182 @@ const patchScheduleHeaders = function(calendar) {
         } else {
             header.removeAttribute('data-selected');
         }
+    });
+};
+
+const createScheduleHeaderDragPreview = function(headerRow) {
+    const visibleHeaders = Array.from(headerRow.cells).slice(1).filter(function(header) {
+        return header.getBoundingClientRect().width > 0;
+    });
+
+    if (!visibleHeaders.length) {
+        return null;
+    }
+
+    const firstRect = visibleHeaders[0].getBoundingClientRect();
+    const lastRect = visibleHeaders[visibleHeaders.length - 1].getBoundingClientRect();
+    const rowRect = headerRow.getBoundingClientRect();
+    const visibleWidth = lastRect.right - firstRect.left;
+    const dayWidth = visibleWidth / visibleHeaders.length;
+    const bufferDays = 31;
+    const visibleDates = getVisibleScheduleDates();
+    const preview = document.createElement('div');
+    const rail = document.createElement('div');
+
+    preview.className = `calendar-schedule-header-drag-preview calendar-schedule-header-drag-preview-${state.view}`;
+    preview.style.left = `${firstRect.left}px`;
+    preview.style.top = `${rowRect.top}px`;
+    preview.style.width = `${visibleWidth}px`;
+    preview.style.height = `${rowRect.height}px`;
+    rail.className = 'calendar-schedule-header-drag-rail';
+
+    Array.from({ length: (bufferDays * 2) + visibleDates.length }, function(_, index) {
+        return addDays(visibleDates[0], index - bufferDays);
+    }).forEach(function(date) {
+        const day = document.createElement('span');
+        const weekday = document.createElement('span');
+        const number = document.createElement('span');
+
+        day.className = 'calendar-schedule-header-drag-day';
+        day.style.flexBasis = `${dayWidth}px`;
+        day.style.width = `${dayWidth}px`;
+        day.classList.toggle('is-today', toDateString(date) === todayString());
+        weekday.className = 'calendar-schedule-header-drag-weekday';
+        number.className = 'calendar-schedule-header-drag-number';
+        weekday.textContent = weekdays[date.getDay()];
+        number.textContent = String(date.getDate()).padStart(2, '0');
+        day.appendChild(weekday);
+        day.appendChild(number);
+        rail.appendChild(day);
+    });
+
+    preview.appendChild(rail);
+    document.body.appendChild(preview);
+
+    return {
+        element: preview,
+        rail,
+        dayWidth,
+        initialX: -(bufferDays * dayWidth),
+        maxDistance: bufferDays * dayWidth,
+    };
+};
+
+const bindScheduleHeaderDrag = function(calendar, navigateByDays) {
+    let drag = null;
+
+    const clearDrag = function() {
+        if (!drag) {
+            return;
+        }
+
+        const current = drag;
+
+        drag = null;
+        current.row.classList.remove('calendar-schedule-header-dragging');
+        if (current.preview) {
+            current.preview.element.remove();
+        }
+        if (typeof current.row.hasPointerCapture === 'function'
+            && current.row.hasPointerCapture(current.pointerId)) {
+            try {
+                current.row.releasePointerCapture(current.pointerId);
+            } catch (error) {
+                // The browser may already have released capture after cancellation.
+            }
+        }
+    };
+
+    const finishDrag = function(e, commit) {
+        if (!drag || (e && drag.pointerId !== e.pointerId)) {
+            return;
+        }
+
+        const current = drag;
+        const offset = commit && current.active && current.preview
+            ? Math.round(-current.deltaX / current.preview.dayWidth)
+            : 0;
+
+        clearDrag();
+
+        if (offset) {
+            navigateByDays(offset);
+        }
+    };
+
+    calendar.addEventListener('pointerdown', function(e) {
+        const row = e.target.closest('.lm-schedule thead tr:not(.calendar-schedule-holiday-row)');
+
+        if (!row
+            || !scheduleGridViews.includes(state.view)
+            || e.button !== 0
+            || e.isPrimary === false) {
+            return;
+        }
+
+        clearDrag();
+        drag = {
+            row,
+            pointerId: e.pointerId,
+            startX: e.clientX,
+            startY: e.clientY,
+            deltaX: 0,
+            active: false,
+            preview: null,
+        };
+    });
+
+    window.addEventListener('pointermove', function(e) {
+        if (!drag || drag.pointerId !== e.pointerId) {
+            return;
+        }
+
+        const deltaX = e.clientX - drag.startX;
+        const deltaY = e.clientY - drag.startY;
+
+        if (!drag.active) {
+            if (Math.abs(deltaY) >= 8 && Math.abs(deltaY) > Math.abs(deltaX)) {
+                clearDrag();
+                return;
+            }
+
+            if (Math.abs(deltaX) < 8 || Math.abs(deltaX) <= Math.abs(deltaY)) {
+                return;
+            }
+
+            drag.preview = createScheduleHeaderDragPreview(drag.row);
+            if (!drag.preview) {
+                clearDrag();
+                return;
+            }
+
+            drag.active = true;
+            drag.row.classList.add('calendar-schedule-header-dragging');
+            if (typeof drag.row.setPointerCapture === 'function') {
+                try {
+                    drag.row.setPointerCapture(drag.pointerId);
+                } catch (error) {
+                    // Window-level listeners still complete the drag safely.
+                }
+            }
+        }
+
+        e.preventDefault();
+        drag.deltaX = Math.max(-drag.preview.maxDistance, Math.min(drag.preview.maxDistance, deltaX));
+        drag.preview.rail.style.transform = `translate3d(${drag.preview.initialX + drag.deltaX}px, 0, 0)`;
+    }, { passive: false });
+
+    window.addEventListener('pointerup', function(e) {
+        finishDrag(e, true);
+    });
+    window.addEventListener('pointercancel', function(e) {
+        finishDrag(e, false);
+    });
+    calendar.addEventListener('lostpointercapture', function(e) {
+        finishDrag(e, false);
+    });
+    window.addEventListener('blur', function() {
+        finishDrag(null, false);
     });
 };
 
@@ -586,14 +766,20 @@ const getVisibleCalendarEvents = function() {
 const getScheduleRenderEvents = function() {
     const events = getVisibleCalendarEvents();
 
-    if (state.view !== '2-days') {
+    if (state.view !== '2-days' && !(state.view === 'week' && isValidDate(state.scheduleWindowStart))) {
         return events;
     }
+
+    const visibleDateStrings = getVisibleScheduleDates().map(toDateString);
+    const backingStart = state.view === '2-days'
+        ? getTwoDaysBackingStart()
+        : startOfWeek(state.scheduleWindowStart);
 
     return events
         .filter(isEventInsideVisibleRange)
         .map(function(event) {
-            const backingDate = getTwoDaysBackingDateForVisibleDate(event.date);
+            const visibleIndex = visibleDateStrings.indexOf(String(event.date || '').substring(0, 10));
+            const backingDate = visibleIndex < 0 ? null : toDateString(addDays(backingStart, visibleIndex));
 
             if (!backingDate) {
                 return null;
@@ -601,6 +787,7 @@ const getScheduleRenderEvents = function() {
 
             return Object.assign({}, event, {
                 date: backingDate,
+                scheduleSourceDate: event.date,
             });
         })
         .filter(Boolean);
@@ -1308,6 +1495,12 @@ const getEventByScheduleItem = function(item) {
     }
 
     if (item.event) {
+        if (item.event.scheduleSourceDate) {
+            return Object.assign({}, item.event, {
+                date: item.event.scheduleSourceDate,
+            });
+        }
+
         return item.event;
     }
 
@@ -4346,7 +4539,9 @@ const startOfWeek = function(date) {
 };
 
 const getWeekLabel = function(date) {
-    const start = startOfWeek(date);
+    const start = isValidDate(state.scheduleWindowStart)
+        ? cloneDate(state.scheduleWindowStart)
+        : startOfWeek(date);
     const end = addDays(start, 6);
 
     return getRangeLabel(start, end);
@@ -4393,221 +4588,16 @@ const move = function(direction) {
     } else if (state.view === '2-days') {
         setSelectedDate(addDays(state.date, direction * 2));
     } else if (state.view === 'week') {
-        setSelectedDate(addDays(state.date, direction * 7));
+        const rolling = isValidDate(state.scheduleWindowStart);
+        const nextStart = addDays(getVisibleScheduleDates()[0], direction * 7);
+
+        setSelectedDate(nextStart);
+        if (rolling) {
+            state.scheduleWindowStart = cloneDate(nextStart);
+        }
     } else if (state.view === 'month' || state.view === 'schedule') {
         setSelectedDate(addMonths(state.date, direction));
     }
-};
-
-const getScheduleSwipeAnchor = function(direction) {
-    if (state.view === 'day') {
-        return addDays(state.date, direction);
-    }
-
-    if (state.view === '2-days') {
-        return addDays(state.date, direction * 2);
-    }
-
-    return addDays(state.date, direction * 7);
-};
-
-const createScheduleSwipePreview = function(calendar) {
-    const schedule = calendar.querySelector('.lm-schedule');
-    const headerRow = schedule ? schedule.querySelector('thead tr:not(.calendar-schedule-holiday-row)') : null;
-    const visibleHeaders = headerRow
-        ? Array.from(headerRow.querySelectorAll('td')).filter(function(header) {
-            return header.offsetParent !== null;
-        })
-        : [];
-
-    if (!schedule || !headerRow || visibleHeaders.length < 2) {
-        return null;
-    }
-
-    const scheduleRect = schedule.getBoundingClientRect();
-    const headerRect = headerRow.getBoundingClientRect();
-    const width = schedule.clientWidth;
-    const height = headerRect.height;
-    const gutterWidth = visibleHeaders[0].getBoundingClientRect().width;
-    const sampleHeaderStyle = window.getComputedStyle(visibleHeaders[1]);
-    const sampleWeekdayStyle = window.getComputedStyle(visibleHeaders[1], '::before');
-    const viewport = document.createElement('div');
-    const track = document.createElement('div');
-
-    viewport.className = 'calendar-schedule-swipe-preview';
-    viewport.dataset.scheduleSwipePreview = '';
-    viewport.style.left = `${schedule.scrollLeft}px`;
-    viewport.style.top = `${schedule.scrollTop + headerRect.top - scheduleRect.top}px`;
-    viewport.style.width = `${width}px`;
-    // Leave the header's own bottom pixel uncovered. Its td::after border then
-    // remains on the non-moving sticky header layer while the preview slides.
-    viewport.style.height = `${Math.max(0, height - 1)}px`;
-    viewport.style.setProperty('--calendar-swipe-number-size', sampleHeaderStyle.fontSize);
-    viewport.style.setProperty('--calendar-swipe-number-weight', sampleHeaderStyle.fontWeight);
-    viewport.style.setProperty('--calendar-swipe-number-line-height', sampleHeaderStyle.lineHeight);
-    viewport.style.setProperty('--calendar-swipe-weekday-size', sampleWeekdayStyle.fontSize);
-    viewport.style.setProperty('--calendar-swipe-weekday-weight', sampleWeekdayStyle.fontWeight);
-    viewport.style.setProperty('--calendar-swipe-weekday-line-height', sampleWeekdayStyle.lineHeight);
-    viewport.style.setProperty('--calendar-swipe-weekday-spacing', sampleWeekdayStyle.paddingBottom);
-    viewport.style.setProperty('--calendar-swipe-padding-top', sampleHeaderStyle.paddingTop);
-    viewport.style.setProperty('--calendar-swipe-padding-right', sampleHeaderStyle.paddingRight);
-    viewport.style.setProperty('--calendar-swipe-padding-bottom', sampleHeaderStyle.paddingBottom);
-    viewport.style.setProperty('--calendar-swipe-padding-left', sampleHeaderStyle.paddingLeft);
-    viewport.style.setProperty('--calendar-swipe-text-align', sampleHeaderStyle.textAlign);
-    viewport.style.setProperty('--calendar-swipe-font-family', sampleHeaderStyle.fontFamily);
-    viewport.style.setProperty('--calendar-swipe-color', sampleHeaderStyle.color);
-    track.className = 'calendar-schedule-swipe-track';
-    track.style.transform = `translate3d(${-width}px, 0, 0)`;
-
-    [-1, 0, 1].forEach(function(direction) {
-        const anchor = direction === 0 ? state.date : getScheduleSwipeAnchor(direction);
-        const dates = getScheduleDatesForAnchor(anchor, state.view);
-        const panel = document.createElement('div');
-        const gutter = document.createElement('div');
-
-        panel.className = 'calendar-schedule-swipe-panel';
-        panel.style.width = `${width}px`;
-        panel.style.height = `${height}px`;
-        panel.style.gridTemplateColumns = `${gutterWidth}px repeat(${dates.length}, minmax(0, 1fr))`;
-        gutter.className = 'calendar-schedule-swipe-gutter';
-        panel.appendChild(gutter);
-
-        dates.forEach(function(date) {
-            const cell = document.createElement('div');
-            const weekday = document.createElement('span');
-            const day = document.createElement('span');
-
-            cell.className = 'calendar-schedule-swipe-day';
-            cell.classList.toggle('is-today', toDateString(date) === todayString());
-            weekday.className = 'calendar-schedule-swipe-weekday';
-            weekday.textContent = weekdays[date.getDay()];
-            day.className = 'calendar-schedule-swipe-number';
-            day.textContent = String(date.getDate()).padStart(2, '0');
-            cell.appendChild(weekday);
-            cell.appendChild(day);
-            panel.appendChild(cell);
-        });
-
-        track.appendChild(panel);
-    });
-
-    viewport.appendChild(track);
-    schedule.appendChild(viewport);
-
-    return { viewport, track, width };
-};
-
-const bindScheduleHeaderSwipe = function(calendar, navigate) {
-    let gesture = null;
-
-    const removePreview = function(preview) {
-        if (preview && preview.viewport.parentNode) {
-            preview.viewport.remove();
-        }
-    };
-
-    const finish = function(event, canceled) {
-        if (!gesture || (event.pointerId !== undefined && event.pointerId !== gesture.pointerId)) {
-            return;
-        }
-
-        const current = gesture;
-        const elapsed = Math.max(1, event.timeStamp - current.startedAt);
-        const velocity = current.deltaX / elapsed;
-        const threshold = Math.min(90, current.preview ? current.preview.width * 0.18 : 90);
-        const shouldNavigate = !canceled && current.dragging && (
-            Math.abs(current.deltaX) >= threshold ||
-            (Math.abs(current.deltaX) >= 24 && Math.abs(velocity) >= 0.45)
-        );
-
-        gesture = null;
-        document.documentElement.classList.remove('calendar-schedule-header-grabbing');
-
-        if (!current.preview) {
-            return;
-        }
-
-        current.preview.track.classList.add('is-settling');
-
-        if (!shouldNavigate) {
-            current.preview.track.style.transform = `translate3d(${-current.preview.width}px, 0, 0)`;
-            window.setTimeout(function() {
-                removePreview(current.preview);
-            }, 240);
-            return;
-        }
-
-        const direction = current.deltaX < 0 ? 1 : -1;
-        const destination = direction > 0 ? -current.preview.width * 2 : 0;
-
-        current.preview.track.style.transform = `translate3d(${destination}px, 0, 0)`;
-        window.setTimeout(function() {
-            navigate(direction);
-        }, 220);
-    };
-
-    calendar.addEventListener('pointerdown', function(event) {
-        const headerRow = event.target.closest('.lm-schedule thead tr:not(.calendar-schedule-holiday-row)');
-
-        if (!headerRow || !scheduleGridViews.includes(state.view) || event.button !== 0 || !event.isPrimary) {
-            return;
-        }
-
-        gesture = {
-            pointerId: event.pointerId,
-            startedAt: event.timeStamp,
-            startX: event.clientX,
-            startY: event.clientY,
-            deltaX: 0,
-            dragging: false,
-            preview: null,
-        };
-        document.documentElement.classList.add('calendar-schedule-header-grabbing');
-
-        if (typeof headerRow.setPointerCapture === 'function') {
-            headerRow.setPointerCapture(event.pointerId);
-        }
-    });
-
-    calendar.addEventListener('pointermove', function(event) {
-        if (!gesture || event.pointerId !== gesture.pointerId) {
-            return;
-        }
-
-        const deltaX = event.clientX - gesture.startX;
-        const deltaY = event.clientY - gesture.startY;
-
-        if (!gesture.dragging) {
-            if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 7) {
-                finish(event, true);
-                return;
-            }
-
-            if (Math.abs(deltaX) < 7) {
-                return;
-            }
-
-            gesture.dragging = true;
-            gesture.preview = createScheduleSwipePreview(calendar);
-
-            if (!gesture.preview) {
-                finish(event, true);
-                return;
-            }
-        }
-
-        event.preventDefault();
-        gesture.deltaX = Math.max(-gesture.preview.width, Math.min(gesture.preview.width, deltaX));
-        gesture.preview.track.style.transform = `translate3d(${-gesture.preview.width + gesture.deltaX}px, 0, 0)`;
-    });
-
-    calendar.addEventListener('pointerup', function(event) {
-        finish(event, false);
-    });
-
-    calendar.addEventListener('pointercancel', function(event) {
-        finish(event, true);
-    });
 };
 
 const filterStudentComboboxOptions = function(combobox) {
@@ -5061,6 +5051,12 @@ document.addEventListener('DOMContentLoaded', function() {
         state.miniDate = cloneDate(state.date);
     }
 
+    if (state.view === 'week' && isValidDate(urlState.windowStart)) {
+        state.scheduleWindowStart = cloneDate(urlState.windowStart);
+        state.date = cloneDate(state.scheduleWindowStart);
+        state.miniDate = cloneDate(state.date);
+    }
+
     const syncViewControls = function() {
         if (view) {
             view.value = state.view;
@@ -5317,10 +5313,30 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         state.view = nextView;
+        state.scheduleWindowStart = null;
         state.didAutoNowScroll = false;
         syncViewControls();
         render();
     };
+
+    bindScheduleHeaderDrag(calendar, function(dayOffset) {
+        if (!dayOffset || isScheduleHoldNavigationSuppressed()) {
+            return;
+        }
+
+        const schedule = calendar.querySelector('.lm-schedule');
+        const nextStart = addDays(getVisibleScheduleDates()[0], dayOffset);
+        const keepRollingWeek = state.view === 'week';
+
+        state.pendingScheduleScrollTop = schedule ? schedule.scrollTop : null;
+        setSelectedDate(nextStart);
+        if (keepRollingWeek) {
+            state.scheduleWindowStart = cloneDate(nextStart);
+        }
+        state.didAutoNowScroll = true;
+        state.suppressNextScheduleAnimation = true;
+        render();
+    });
 
     const openCalendarSearch = function() {
         if (!calendarSearch) {
@@ -5641,6 +5657,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 },
             });
             patchSchedule(calendar);
+            if (state.pendingScheduleScrollTop !== null) {
+                const schedule = calendar.querySelector('.lm-schedule');
+
+                if (schedule) {
+                    schedule.scrollTop = state.pendingScheduleScrollTop;
+                }
+                state.pendingScheduleScrollTop = null;
+            }
 
             return;
         }
@@ -5709,15 +5733,6 @@ document.addEventListener('DOMContentLoaded', function() {
             render();
         });
     }
-
-    bindScheduleHeaderSwipe(calendar, function(direction) {
-        if (isScheduleHoldNavigationSuppressed()) {
-            return;
-        }
-
-        move(direction);
-        render();
-    });
 
     if (view) {
         view.addEventListener('change', function() {

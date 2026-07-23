@@ -902,94 +902,73 @@ button.setting-undo {
     padding-bottom: 10px;
 }
 
-.lm-schedule thead tr:not(.calendar-schedule-holiday-row) {
-    touch-action: pan-y;
-}
-
-.calendar-schedule-swipe-preview {
-    background: var(--lm-background-color, #fff);
-    overflow: hidden;
-    pointer-events: none;
-    position: absolute;
-    z-index: 8;
-}
-
-.calendar-schedule-swipe-track {
-    display: flex;
-    height: 100%;
-    will-change: transform;
-}
-
-.calendar-schedule-swipe-track.is-settling {
-    transition: transform 220ms cubic-bezier(0.22, 0.61, 0.36, 1);
-}
-
-.calendar-schedule-swipe-panel {
-    display: grid;
-    flex: 0 0 auto;
-}
-
-.calendar-schedule-swipe-gutter,
-.calendar-schedule-swipe-day {
-    background: var(--lm-background-color, #fff);
-    box-sizing: border-box;
-    position: relative;
-}
-
-.calendar-schedule-swipe-day {
-    color: var(--calendar-swipe-color, inherit);
-    display: block;
-    font-family: var(--calendar-swipe-font-family, inherit);
-    padding: var(--calendar-swipe-padding-top, 10px) var(--calendar-swipe-padding-right, 0) var(--calendar-swipe-padding-bottom, 10px) var(--calendar-swipe-padding-left, 0);
-    text-align: var(--calendar-swipe-text-align, center);
-}
-
-.calendar-schedule-swipe-day.is-today {
-    background: var(--lm-background-color-header, #ececec);
-}
-
-.calendar-schedule-swipe-day.is-today::after {
-    border: 0.5px solid rgba(251, 230, 105, 1);
-    bottom: 0;
-    content: '';
-    left: 0;
-    position: absolute;
-    right: 0;
-    top: 0;
-}
-
-.calendar-schedule-swipe-weekday {
-    display: block;
-    font-size: var(--calendar-swipe-weekday-size, 0.64rem);
-    font-weight: var(--calendar-swipe-weekday-weight, 400);
-    line-height: var(--calendar-swipe-weekday-line-height, normal);
-    padding-bottom: var(--calendar-swipe-weekday-spacing, 6px);
-    text-transform: uppercase;
-}
-
-.calendar-schedule-swipe-number {
-    display: block;
-    font-size: var(--calendar-swipe-number-size, 1.28rem);
-    font-weight: var(--calendar-swipe-number-weight, 400);
-    line-height: var(--calendar-swipe-number-line-height, normal);
-}
-
 #calendar.calendar-calendar-day-view .lm-schedule thead td {
     text-align: left;
     padding-left: 20px;
-    cursor: grab;
 }
 
 #calendar.calendar-calendar-two-days-view .lm-schedule thead td,
 #calendar.calendar-calendar-week-view .lm-schedule thead td {
     text-align: center;
-    cursor: grab;
 }
 
+#calendar .lm-schedule thead tr:not(.calendar-schedule-holiday-row) td {
+    touch-action: pan-y;
+}
 
-html.calendar-schedule-header-grabbing,
-html.calendar-schedule-header-grabbing * {
-    cursor: grabbing !important;
+.calendar-schedule-header-drag-preview {
+    background: var(--lm-background-color, #fff);
+    border-bottom: 1px solid var(--lm-border-color, #ddd);
+    box-sizing: border-box;
+    overflow: hidden;
+    pointer-events: none;
+    position: fixed;
+    z-index: 1080;
+}
+
+.calendar-schedule-header-drag-rail {
+    display: flex;
+    height: 100%;
+    transform: translate3d(0, 0, 0);
+    will-change: transform;
+}
+
+.calendar-schedule-header-drag-day {
+    align-items: center;
+    background: var(--lm-background-color, #fff);
+    box-sizing: border-box;
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column;
+    font-size: 1.6em;
+    justify-content: center;
+    min-width: 0;
+    text-align: center;
+}
+
+.calendar-schedule-header-drag-day.is-today {
+    background: var(--lm-background-color-header, #ececec);
+}
+
+.calendar-schedule-header-drag-weekday {
+    font-size: 0.5em;
+    padding-bottom: 6px;
+    text-transform: uppercase;
+}
+
+.calendar-schedule-header-drag-preview-day .calendar-schedule-header-drag-day {
+    align-items: flex-start;
+    padding-left: 20px;
+}
+
+@media (pointer: fine) {
+    #calendar .lm-schedule thead tr:not(.calendar-schedule-holiday-row) td:not(:first-child) {
+        cursor: grab;
+    }
+
+    #calendar .lm-schedule thead tr.calendar-schedule-header-dragging td:not(:first-child) {
+        cursor: grabbing;
+    }
 }
 
 #calendar .lm-schedule .calendar-schedule-hidden-column {

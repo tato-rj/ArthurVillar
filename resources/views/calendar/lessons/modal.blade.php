@@ -23,15 +23,13 @@
 		@fa(['icon' => 'repeat', 'classes' => 'opacity-4'])
 		<span id="lesson-recurrence"></span>
 	</div>
-</div>
-
-<div>
-	<div id="meeting-url" class="mt-3">
-		<a target="_blank" href="" class="text-warning">@fa(['icon' => 'video'])Meeting url</a>	
+	<div id="meeting-url" class="mb-1">
+		@fa(['icon' => 'location'])
+		<a target="_blank" href="">Join the meeting</a>	
 	</div>
 
-	<div id="notes-url" class="mt-1">
-		<a target="_blank" href="" class="text-warning">@fa(['icon' => 'file-pen'])Notes url</a>	
+	<div id="notes-url" class="mb-1">
+		<a target="_blank" href="">@fa(['icon' => 'file-pen'])Notes</a>	
 	</div>
 </div>
 
