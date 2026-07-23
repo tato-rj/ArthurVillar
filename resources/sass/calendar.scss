@@ -13,7 +13,7 @@ td, th {white-space: nowrap;}
 .calendar-general-event-notes {
     @extend .bg-light, .p-3, .rounded, .border;
     
-    a {@extend .text-red}
+    a:not(.btn) {@extend .text-red}
 }
 
 .calendar-calendar {

@@ -37,7 +37,7 @@
         <div id="general-event-notes" class="calendar-general-event-notes"></div>
     </div>
 
-    <div class="calendar-modal-detail-section mb-3" data-general-event-external-section hidden>
+    <div class="calendar-modal-detail-section" data-general-event-external-section hidden>
         <a class="btn btn-outline-dark w-100 mb-2" data-general-event-external-link href="#" target="_blank" rel="noopener">
             @fa(['icon' => 'arrow-up-right-from-square'])Open in Google Calendar
         </a>
