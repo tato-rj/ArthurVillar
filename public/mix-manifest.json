@@ -1,6 +1,6 @@
 {
     "/js/app.js": "/js/app.js?id=81eb34af79d4eee4a8fa79ed5d190f58",
-    "/js/calendar/index.js": "/js/calendar/index.js?id=af0de5cab2c04e4f0ecc3c5260e90e7e",
+    "/js/calendar/index.js": "/js/calendar/index.js?id=1fd1bcfdc2d3c97774759992da63e676",
     "/js/music/admin-soundeffects.js": "/js/music/admin-soundeffects.js?id=078dd575b198ee77f8c51c9ff1ebec36",
     "/js/music/intervalslab.js": "/js/music/intervalslab.js?id=224ebb9e18ddd8ca48988bfe3e1f7ccd",
     "/js/music/chordslab.js": "/js/music/chordslab.js?id=511291961d11faede2cbf6441e2271bf",
@@ -564,6 +564,6 @@
     "/images/vendor/flag-icons/flags/4x3/xk.svg?574f9c5bed5f12b51e1f0ae61759da3e": "/images/vendor/flag-icons/flags/4x3/xk.svg?574f9c5bed5f12b51e1f0ae61759da3e?id=13d6a7678c810b9e477d5a633c1afc80",
     "/images/vendor/flag-icons/flags/1x1/xk.svg?2e923b4cb7449d2571906aede00fee91": "/images/vendor/flag-icons/flags/1x1/xk.svg?2e923b4cb7449d2571906aede00fee91?id=bb93418fd2f1a062bd90eb8a13e4b0ee",
     "/css/schedule.css": "/css/schedule.css?id=35854acb7777dc8a726274efdf2bf31e",
-    "/css/calendar.css": "/css/calendar.css?id=741a8e88e430f18e59d77dfe0d634b83",
+    "/css/calendar.css": "/css/calendar.css?id=36675ff769c87d35ce8654eeb4fdd7a0",
     "/css/app.css": "/css/app.css?id=fd6ac12060ec0c5ef30b809a371927f5"
 }

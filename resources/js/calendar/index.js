@@ -502,6 +502,7 @@ const createScheduleHeaderDragPreview = function(headerRow) {
     const gutterRect = gutter.getBoundingClientRect();
     const firstRect = visibleHeaders[0].getBoundingClientRect();
     const lastRect = visibleHeaders[visibleHeaders.length - 1].getBoundingClientRect();
+    const gutterWidth = Math.max(0, firstRect.left - gutterRect.left);
     const visibleWidth = lastRect.right - firstRect.left;
     const dayWidth = visibleWidth / visibleHeaders.length;
     const bufferDays = 31;
@@ -510,14 +511,14 @@ const createScheduleHeaderDragPreview = function(headerRow) {
     const weekdayStyle = window.getComputedStyle(visibleHeaders[0], '::before');
     const scheduleStyle = window.getComputedStyle(headerRow.closest('.lm-schedule'));
     const preview = document.createElement('div');
-    const gutterMask = document.createElement('div');
     const rail = document.createElement('div');
 
     preview.className = `calendar-schedule-header-drag-preview calendar-schedule-header-drag-preview-${state.view}`;
-    preview.style.left = `${firstRect.left}px`;
+    preview.style.left = `${gutterRect.left}px`;
     preview.style.top = `${firstRect.top}px`;
-    preview.style.width = `${visibleWidth}px`;
+    preview.style.width = `${gutterWidth + visibleWidth}px`;
     preview.style.height = `${firstRect.height}px`;
+    preview.style.borderTopLeftRadius = scheduleStyle.borderTopLeftRadius;
     preview.style.borderTopRightRadius = scheduleStyle.borderTopRightRadius;
     preview.style.setProperty('--calendar-schedule-drag-number-size', headerStyle.fontSize);
     preview.style.setProperty('--calendar-schedule-drag-number-weight', headerStyle.fontWeight);
@@ -526,12 +527,6 @@ const createScheduleHeaderDragPreview = function(headerRow) {
     preview.style.setProperty('--calendar-schedule-drag-weekday-weight', weekdayStyle.fontWeight);
     preview.style.setProperty('--calendar-schedule-drag-weekday-line-height', weekdayStyle.lineHeight);
     preview.style.setProperty('--calendar-schedule-drag-weekday-spacing', weekdayStyle.paddingBottom);
-    gutterMask.className = 'calendar-schedule-header-drag-gutter';
-    gutterMask.style.left = `${gutterRect.left}px`;
-    gutterMask.style.top = `${firstRect.top}px`;
-    gutterMask.style.width = `${Math.max(0, firstRect.left - gutterRect.left)}px`;
-    gutterMask.style.height = `${firstRect.height}px`;
-    gutterMask.style.borderTopLeftRadius = scheduleStyle.borderTopLeftRadius;
     rail.className = 'calendar-schedule-header-drag-rail';
 
     Array.from({ length: (bufferDays * 2) + visibleDates.length }, function(_, index) {
@@ -556,14 +551,12 @@ const createScheduleHeaderDragPreview = function(headerRow) {
 
     preview.appendChild(rail);
     document.body.appendChild(preview);
-    document.body.appendChild(gutterMask);
 
     return {
         element: preview,
-        gutterMask,
         rail,
         dayWidth,
-        initialX: -(bufferDays * dayWidth),
+        initialX: gutterWidth - (bufferDays * dayWidth),
         maxDistance: bufferDays * dayWidth,
     };
 };
@@ -575,9 +568,6 @@ const removeScheduleHeaderDragPreview = function(preview) {
 
     if (preview.element) {
         preview.element.remove();
-    }
-    if (preview.gutterMask) {
-        preview.gutterMask.remove();
     }
 };
 
