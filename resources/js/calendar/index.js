@@ -500,7 +500,6 @@ const createScheduleHeaderDragPreview = function(headerRow) {
 
     const firstRect = visibleHeaders[0].getBoundingClientRect();
     const lastRect = visibleHeaders[visibleHeaders.length - 1].getBoundingClientRect();
-    const rowRect = headerRow.getBoundingClientRect();
     const visibleWidth = lastRect.right - firstRect.left;
     const dayWidth = visibleWidth / visibleHeaders.length;
     const bufferDays = 31;
@@ -513,9 +512,9 @@ const createScheduleHeaderDragPreview = function(headerRow) {
 
     preview.className = `calendar-schedule-header-drag-preview calendar-schedule-header-drag-preview-${state.view}`;
     preview.style.left = `${firstRect.left}px`;
-    preview.style.top = `${rowRect.top}px`;
+    preview.style.top = `${firstRect.top}px`;
     preview.style.width = `${visibleWidth}px`;
-    preview.style.height = `${rowRect.height}px`;
+    preview.style.height = `${firstRect.height}px`;
     preview.style.borderTopRightRadius = scheduleStyle.borderTopRightRadius;
     preview.style.setProperty('--calendar-schedule-drag-number-size', headerStyle.fontSize);
     preview.style.setProperty('--calendar-schedule-drag-number-weight', headerStyle.fontWeight);

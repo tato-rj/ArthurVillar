@@ -2879,7 +2879,6 @@ var createScheduleHeaderDragPreview = function createScheduleHeaderDragPreview(h
   }
   var firstRect = visibleHeaders[0].getBoundingClientRect();
   var lastRect = visibleHeaders[visibleHeaders.length - 1].getBoundingClientRect();
-  var rowRect = headerRow.getBoundingClientRect();
   var visibleWidth = lastRect.right - firstRect.left;
   var dayWidth = visibleWidth / visibleHeaders.length;
   var bufferDays = 31;
@@ -2891,9 +2890,9 @@ var createScheduleHeaderDragPreview = function createScheduleHeaderDragPreview(h
   var rail = document.createElement('div');
   preview.className = "calendar-schedule-header-drag-preview calendar-schedule-header-drag-preview-".concat(state.view);
   preview.style.left = "".concat(firstRect.left, "px");
-  preview.style.top = "".concat(rowRect.top, "px");
+  preview.style.top = "".concat(firstRect.top, "px");
   preview.style.width = "".concat(visibleWidth, "px");
-  preview.style.height = "".concat(rowRect.height, "px");
+  preview.style.height = "".concat(firstRect.height, "px");
   preview.style.borderTopRightRadius = scheduleStyle.borderTopRightRadius;
   preview.style.setProperty('--calendar-schedule-drag-number-size', headerStyle.fontSize);
   preview.style.setProperty('--calendar-schedule-drag-number-weight', headerStyle.fontWeight);
