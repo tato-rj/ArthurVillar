@@ -36,7 +36,6 @@
 </section>
 @include('calendar.students.create')
 <div id="student-missed-lessons-modal-container"></div>
-<div id="edit-student-modal-container"></div>
 @endsection
 
 @push('scripts')
@@ -123,7 +122,7 @@ $(function() {
                     return `
                         <div class="calendar-table-actions">
                             ${missedLessonsButton}
-                            <button type="button" class="btn btn-sm btn-warning rounded js-edit-student" data-url="${editUrl}">@fa(['icon' => 'pen-to-square', 'mr' => 0])</button>
+                            <a href="${editUrl}" class="btn btn-sm btn-warning rounded">@fa(['icon' => 'pen-to-square', 'mr' => 0])</a>
                             <form method="POST" action="${deleteUrl}" confirm>
                                 @csrf
                                 @method('DELETE')
@@ -156,40 +155,6 @@ $(function() {
                 showModal(container.querySelector('.modal'));
             })
             .catch(console.error);
-    });
-
-    $('#students-table').on('click', '.js-edit-student', function() {
-        const url = $(this).data('url');
-
-        if (!url) {
-            return;
-        }
-
-        fetch(url, {
-            headers: {
-                Accept: 'text/html',
-                'X-Requested-With': 'XMLHttpRequest',
-            },
-        })
-            .then(function(response) {
-                if (!response.ok) {
-                    throw new Error('Unable to load student form.');
-                }
-
-                return response.text();
-            })
-            .then(function(html) {
-                const container = $('#edit-student-modal-container');
-
-                container.html(html);
-
-                const modal = container.find('.modal').get(0);
-
-                showModal(modal);
-            })
-            .catch(function(error) {
-                console.error(error);
-            });
     });
 });
 </script>

@@ -9,6 +9,31 @@ use Tests\BaseTest;
 class StudentsTableTest extends BaseTest
 {
     /** @test */
+    public function it_uses_a_dedicated_page_to_edit_a_student()
+    {
+        $student = Student::factory()->create([
+            'first_name' => 'Nora',
+            'last_name' => 'Stone',
+            'email' => 'nora@example.com',
+        ]);
+        $this->signIn();
+
+        $this->get(route('calendar.students.index'))
+            ->assertOk()
+            ->assertSee('href="${editUrl}"', false)
+            ->assertDontSee('js-edit-student');
+
+        $this->get(route('calendar.students.edit', $student))
+            ->assertOk()
+            ->assertViewIs('calendar.students.edit')
+            ->assertSee('Edit student')
+            ->assertSee('Nora')
+            ->assertSee('Stone')
+            ->assertSee(route('calendar.students.update', $student), false)
+            ->assertDontSee('edit-student-'.$student->id.'-modal');
+    }
+
+    /** @test */
     public function it_identifies_students_with_a_current_lesson_plan_for_the_actions_column()
     {
         Carbon::setTestNow('2026-07-01 12:00:00');

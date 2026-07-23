@@ -82,6 +82,11 @@ Breadcrumbs::for('calendar.students.index', function (BreadcrumbTrail $trail) {
     $trail->push('Students', route('calendar.students.index'));
 });
 
+Breadcrumbs::for('calendar.students.edit', function (BreadcrumbTrail $trail, $student) {
+    $trail->parent('calendar.students.index');
+    $trail->push($student->full_name, route('calendar.students.edit', $student));
+});
+
 Breadcrumbs::for('calendar.venues.index', function (BreadcrumbTrail $trail) {
     $trail->parent('calendar.home');
     $trail->push('Venues', route('calendar.venues.index'));
