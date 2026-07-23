@@ -2512,6 +2512,31 @@ const renderNotesWithLinks = function(element, notes, options) {
     appendTextWithLinks(element, text, options);
 };
 
+const renderGeneralEventLocation = function(element, location) {
+    const text = String(location || '').trim();
+    const hasUrl = /(?:https?:\/\/|www\.)[^\s]+/i.test(text);
+    const isVirtualLocation = /^(?:online|virtual|remote|zoom|google meet|meet)$/i.test(text);
+
+    element.innerHTML = '';
+
+    if (!text) {
+        return;
+    }
+
+    if (hasUrl || isVirtualLocation) {
+        appendTextWithLinks(element, text, { labelZoomLinks: true });
+        return;
+    }
+
+    const link = document.createElement('a');
+
+    link.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(text)}`;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.textContent = text;
+    element.appendChild(link);
+};
+
 const renderGoogleNotesHtml = function(element, notes) {
     element.innerHTML = DOMPurify.sanitize(String(notes || ''), {
         ALLOWED_TAGS: ['a', 'p', 'br', 'div', 'span', 'strong', 'b', 'em', 'i', 'u', 'ul', 'ol', 'li', 'blockquote'],
@@ -2712,7 +2737,7 @@ const openGeneralEventModal = function(event, options) {
     if (organizerSection) organizerSection.hidden = !(event.organizerName || event.organizerEmail);
     if (organizer) organizer.textContent = event.organizerName || event.organizerEmail || '';
     if (locationSection) locationSection.hidden = !event.location;
-    if (location) renderNotesWithLinks(location, event.location, { labelZoomLinks: true });
+    if (location) renderGeneralEventLocation(location, event.location);
     if (edit) {
         edit.dataset.url = event.editUrl || '';
         edit.style.display = edit.dataset.url ? 'inline-flex' : 'none';

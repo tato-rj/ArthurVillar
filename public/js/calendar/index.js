@@ -4441,6 +4441,27 @@ var renderNotesWithLinks = function renderNotesWithLinks(element, notes, options
   element.classList.remove('opacity-4');
   appendTextWithLinks(element, text, options);
 };
+var renderGeneralEventLocation = function renderGeneralEventLocation(element, location) {
+  var text = String(location || '').trim();
+  var hasUrl = /(?:https?:\/\/|www\.)[^\s]+/i.test(text);
+  var isVirtualLocation = /^(?:online|virtual|remote|zoom|google meet|meet)$/i.test(text);
+  element.innerHTML = '';
+  if (!text) {
+    return;
+  }
+  if (hasUrl || isVirtualLocation) {
+    appendTextWithLinks(element, text, {
+      labelZoomLinks: true
+    });
+    return;
+  }
+  var link = document.createElement('a');
+  link.href = "https://www.google.com/maps/search/?api=1&query=".concat(encodeURIComponent(text));
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
+  link.textContent = text;
+  element.appendChild(link);
+};
 var renderGoogleNotesHtml = function renderGoogleNotesHtml(element, notes) {
   element.innerHTML = DOMPurify.sanitize(String(notes || ''), {
     ALLOWED_TAGS: ['a', 'p', 'br', 'div', 'span', 'strong', 'b', 'em', 'i', 'u', 'ul', 'ol', 'li', 'blockquote'],
@@ -4603,9 +4624,7 @@ var openGeneralEventModal = function openGeneralEventModal(event, options) {
   if (organizerSection) organizerSection.hidden = !(event.organizerName || event.organizerEmail);
   if (organizer) organizer.textContent = event.organizerName || event.organizerEmail || '';
   if (locationSection) locationSection.hidden = !event.location;
-  if (location) renderNotesWithLinks(location, event.location, {
-    labelZoomLinks: true
-  });
+  if (location) renderGeneralEventLocation(location, event.location);
   if (edit) {
     edit.dataset.url = event.editUrl || '';
     edit.style.display = edit.dataset.url ? 'inline-flex' : 'none';
