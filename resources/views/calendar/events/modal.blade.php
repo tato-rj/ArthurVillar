@@ -6,38 +6,38 @@
 
 <div class="alert alert-danger small mb-3" data-general-event-action-error hidden></div>
 
-<div id="general-event-details">
-    <div class="mb-2">
-        @fa(['icon' => 'calendar-day', 'classes' => 'opacity-4'])
+<div id="general-event-details" class="calendar-modal-details">
+    <div class="calendar-modal-detail">
+        @fa(['icon' => 'calendar-day', 'mr' => 0, 'classes' => 'calendar-modal-detail-icon'])
         <span id="general-event-date"></span>
     </div>
-    <div class="mb-2">
-        @fa(['icon' => 'clock', 'classes' => 'opacity-4'])
+    <div class="calendar-modal-detail">
+        @fa(['icon' => 'clock', 'mr' => 0, 'classes' => 'calendar-modal-detail-icon'])
         <span id="general-event-time"></span>
     </div>
-    <div class="mb-2" data-general-event-type-section hidden>
-        <i id="general-event-type-icon" class="fas opacity-4 mr-2 t-2" aria-hidden="true"></i>
+    <div class="calendar-modal-detail" data-general-event-type-section hidden>
+        <i id="general-event-type-icon" class="fas calendar-modal-detail-icon" aria-hidden="true"></i>
         <span id="general-event-type"></span>
     </div>
-    <div class="mb-2" data-general-event-organizer-section hidden>
-        @fa(['icon' => 'user', 'classes' => 'opacity-4'])
+    <div class="calendar-modal-detail" data-general-event-organizer-section hidden>
+        @fa(['icon' => 'user', 'mr' => 0, 'classes' => 'calendar-modal-detail-icon'])
         <span data-general-event-organizer></span>
     </div>
-    <div class="mb-2" data-general-event-location-section hidden>
-        @fa(['icon' => 'location-dot', 'classes' => 'opacity-4'])
+    <div class="calendar-modal-detail" data-general-event-location-section hidden>
+        @fa(['icon' => 'location-dot', 'mr' => 0, 'classes' => 'calendar-modal-detail-icon'])
         <span data-general-event-location></span>
     </div>
-    <div class="mb-2" hidden>
-        @fa(['icon' => 'bell', 'classes' => 'opacity-4'])
+    <div class="calendar-modal-detail" hidden>
+        @fa(['icon' => 'bell', 'mr' => 0, 'classes' => 'calendar-modal-detail-icon'])
         <span id="general-event-notification"></span>
     </div>
 
-    <div data-general-event-notes-section hidden class="mb-3">
+    <div data-general-event-notes-section hidden class="calendar-modal-detail-section mb-3">
         <div class="small font-weight-bold opacity-6 mb-2 mt-3">NOTES</div>
         <div id="general-event-notes" class="calendar-general-event-notes"></div>
     </div>
 
-    <div class="mb-3" data-general-event-external-section hidden>
+    <div class="calendar-modal-detail-section mb-3" data-general-event-external-section hidden>
         <a class="btn btn-outline-dark w-100 mb-2" data-general-event-external-link href="#" target="_blank" rel="noopener">
             @fa(['icon' => 'arrow-up-right-from-square'])Open in Google Calendar
         </a>
@@ -46,7 +46,7 @@
         </a>
     </div>
 
-    <div id="general-event-controls" class="d-flex mt-3">
+    <div id="general-event-controls" class="calendar-modal-detail-section d-flex mt-3">
         <button type="button" id="cancel-general-event-button" class="btn btn-outline-dark w-100 mr-1">Cancel</button>
         <button type="button" id="reschedule-general-event-button" class="btn btn-outline-red w-100 ml-1">Reschedule</button>
     </div>

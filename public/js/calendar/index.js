@@ -4058,7 +4058,7 @@ var populateLessonModal = function populateLessonModal(modal, event) {
   var time = modal.querySelector('#lesson-time');
   var recurrence = modal.querySelector('#lesson-recurrence');
   var birthday = modal.querySelector('#lesson-birthday');
-  var birthdayLabel = birthday ? birthday.querySelector('span') : null;
+  var birthdayLabel = birthday ? birthday.querySelector('[data-lesson-birthday-label]') : null;
   var meetingUrl = modal.querySelector('#meeting-url');
   var meetingUrlLink = meetingUrl ? meetingUrl.querySelector('a') : null;
   var notesUrl = modal.querySelector('#notes-url');
@@ -4093,6 +4093,9 @@ var populateLessonModal = function populateLessonModal(modal, event) {
   }
   if (recurrence) {
     recurrence.textContent = event && event.recurrence ? event.recurrence : '';
+    if (recurrence.parentElement) {
+      recurrence.parentElement.hidden = !recurrence.textContent;
+    }
   }
   if (birthday && birthdayLabel) {
     if (event && event.birthdayModalLabel) {
@@ -4105,7 +4108,7 @@ var populateLessonModal = function populateLessonModal(modal, event) {
   }
   if (meetingUrl && meetingUrlLink) {
     if (event && event.meetingUrl) {
-      meetingUrl.style.display = 'block';
+      meetingUrl.style.display = 'grid';
       meetingUrlLink.href = event.meetingUrl;
     } else {
       meetingUrl.style.display = 'none';
@@ -4114,7 +4117,7 @@ var populateLessonModal = function populateLessonModal(modal, event) {
   }
   if (notesUrl && notesUrlLink) {
     if (event && event.notesUrl) {
-      notesUrl.style.display = 'block';
+      notesUrl.style.display = 'grid';
       notesUrlLink.href = event.notesUrl;
     } else {
       notesUrl.style.display = 'none';
@@ -4568,7 +4571,7 @@ var openGeneralEventModal = function openGeneralEventModal(event, options) {
   if (eventType) eventType.textContent = event.eventType || '';
   if (eventTypeIcon) {
     var eventTypeIconStyle = event.externalProvider === 'google' ? 'fa-brands' : 'fas';
-    eventTypeIcon.className = "".concat(eventTypeIconStyle, " opacity-4 mr-2 t-2").concat(event.eventTypeIcon ? " fa-".concat(event.eventTypeIcon) : '');
+    eventTypeIcon.className = "".concat(eventTypeIconStyle, " calendar-modal-detail-icon").concat(event.eventTypeIcon ? " fa-".concat(event.eventTypeIcon) : '');
     eventTypeIcon.hidden = !event.eventTypeIcon;
   }
   if (eventTypeSection) eventTypeSection.hidden = !event.eventType;

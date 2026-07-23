@@ -8,28 +8,31 @@
 	<div id="lesson-status" class="rounded px-2 py-0 alert small mb-3"></div>
 	<div class="alert alert-danger small mb-3" data-lesson-action-error hidden></div>
 
-	<div id="lesson-birthday" class="mb-1 text-blue" style="display: none">
-		@fa(['icon' => 'cake-candles']) Birthday <span></span>
-	</div>
-	<div class="mb-1">
-		@fa(['icon' => 'calendar-day', 'classes' => 'opacity-4'])
-		<span id="lesson-date"></span>
-	</div>
-	<div class="mb-1">
-		@fa(['icon' => 'clock', 'classes' => 'opacity-4'])
-		<span id="lesson-time"></span>
-	</div>
-	<div class="mb-1">
-		@fa(['icon' => 'repeat', 'classes' => 'opacity-4'])
-		<span id="lesson-recurrence"></span>
-	</div>
-	<div id="meeting-url" class="mb-1">
-		@fa(['icon' => 'location'])
-		<a target="_blank" href="">Join the meeting</a>	
-	</div>
-
-	<div id="notes-url" class="mb-1">
-		<a target="_blank" href="">@fa(['icon' => 'file-pen'])Notes</a>	
+	<div class="calendar-modal-details">
+		<div id="lesson-birthday" class="calendar-modal-detail text-blue" style="display: none">
+			@fa(['icon' => 'cake-candles', 'mr' => 0, 'classes' => 'calendar-modal-detail-icon'])
+			<span>Birthday <span data-lesson-birthday-label></span></span>
+		</div>
+		<div class="calendar-modal-detail">
+			@fa(['icon' => 'calendar-day', 'mr' => 0, 'classes' => 'calendar-modal-detail-icon'])
+			<span id="lesson-date"></span>
+		</div>
+		<div class="calendar-modal-detail">
+			@fa(['icon' => 'clock', 'mr' => 0, 'classes' => 'calendar-modal-detail-icon'])
+			<span id="lesson-time"></span>
+		</div>
+		<div class="calendar-modal-detail" data-lesson-recurrence-section>
+			@fa(['icon' => 'repeat', 'mr' => 0, 'classes' => 'calendar-modal-detail-icon'])
+			<span id="lesson-recurrence"></span>
+		</div>
+		<div id="meeting-url" class="calendar-modal-detail">
+			@fa(['icon' => 'video', 'mr' => 0, 'classes' => 'calendar-modal-detail-icon'])
+			<a target="_blank" rel="noopener" href="">Join the meeting</a>
+		</div>
+		<div id="notes-url" class="calendar-modal-detail">
+			@fa(['icon' => 'file-pen', 'mr' => 0, 'classes' => 'calendar-modal-detail-icon'])
+			<a target="_blank" rel="noopener" href="">Notes</a>
+		</div>
 	</div>
 </div>
 

@@ -32789,9 +32789,48 @@ button.single-lesson-plan-create[selected] i {
 #lesson-modal[data-lesson-status=unconfirmed] div#lesson-status {
   display: none;
 }
-#lesson-modal[data-lesson-status=unconfirmed] span#lesson-date, #lesson-modal[data-lesson-status=unconfirmed] span#lesson-time, #lesson-modal[data-lesson-status=unconfirmed] span#lesson-recurrence {
-  opacity: 0.4;
-  font-style: italic;
+
+.calendar-modal-details {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.calendar-modal-detail {
+  align-items: baseline;
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: 1.25rem minmax(0, 1fr);
+  min-width: 0;
+}
+
+.calendar-modal-detail[hidden],
+.calendar-modal-detail-section[hidden] {
+  display: none !important;
+}
+
+.calendar-modal-detail-icon {
+  color: #5f6368;
+  justify-self: center;
+  margin: 0 !important;
+  opacity: 1;
+  text-align: center;
+  width: 1.25rem;
+}
+
+.calendar-modal-detail > span,
+.calendar-modal-detail > a {
+  color: inherit;
+  font-style: normal;
+  min-width: 0;
+  opacity: 1;
+}
+
+.calendar-modal-detail > a {
+  color: var(--red, #e3342f);
+}
+
+.calendar-modal-detail-section {
+  grid-column: 1/-1;
 }
 
 #lesson-modal[data-lesson-status=unpaid] h4.modal-title:before, #lesson-modal[data-lesson-status=unpaid] .modal-title.h4:before {
