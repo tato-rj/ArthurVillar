@@ -940,7 +940,9 @@ button.setting-undo {
     display: flex;
     flex: 0 0 auto;
     flex-direction: column;
-    font-size: 1.6em;
+    font-size: var(--calendar-schedule-drag-number-size, 1.6em);
+    font-weight: var(--calendar-schedule-drag-number-weight, normal);
+    line-height: var(--calendar-schedule-drag-number-line-height, normal);
     justify-content: center;
     min-width: 0;
     text-align: center;
@@ -951,8 +953,10 @@ button.setting-undo {
 }
 
 .calendar-schedule-header-drag-weekday {
-    font-size: 0.5em;
-    padding-bottom: 6px;
+    font-size: var(--calendar-schedule-drag-weekday-size, 0.5em);
+    font-weight: var(--calendar-schedule-drag-weekday-weight, normal);
+    line-height: var(--calendar-schedule-drag-weekday-line-height, normal);
+    padding-bottom: var(--calendar-schedule-drag-weekday-spacing, 6px);
     text-transform: uppercase;
 }
 

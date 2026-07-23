@@ -2878,6 +2878,8 @@ var createScheduleHeaderDragPreview = function createScheduleHeaderDragPreview(h
   var dayWidth = visibleWidth / visibleHeaders.length;
   var bufferDays = 31;
   var visibleDates = getVisibleScheduleDates();
+  var headerStyle = window.getComputedStyle(visibleHeaders[0]);
+  var weekdayStyle = window.getComputedStyle(visibleHeaders[0], '::before');
   var preview = document.createElement('div');
   var rail = document.createElement('div');
   preview.className = "calendar-schedule-header-drag-preview calendar-schedule-header-drag-preview-".concat(state.view);
@@ -2885,6 +2887,13 @@ var createScheduleHeaderDragPreview = function createScheduleHeaderDragPreview(h
   preview.style.top = "".concat(rowRect.top, "px");
   preview.style.width = "".concat(visibleWidth, "px");
   preview.style.height = "".concat(rowRect.height, "px");
+  preview.style.setProperty('--calendar-schedule-drag-number-size', headerStyle.fontSize);
+  preview.style.setProperty('--calendar-schedule-drag-number-weight', headerStyle.fontWeight);
+  preview.style.setProperty('--calendar-schedule-drag-number-line-height', headerStyle.lineHeight);
+  preview.style.setProperty('--calendar-schedule-drag-weekday-size', weekdayStyle.fontSize);
+  preview.style.setProperty('--calendar-schedule-drag-weekday-weight', weekdayStyle.fontWeight);
+  preview.style.setProperty('--calendar-schedule-drag-weekday-line-height', weekdayStyle.lineHeight);
+  preview.style.setProperty('--calendar-schedule-drag-weekday-spacing', weekdayStyle.paddingBottom);
   rail.className = 'calendar-schedule-header-drag-rail';
   Array.from({
     length: bufferDays * 2 + visibleDates.length
@@ -4548,7 +4557,6 @@ var openGeneralEventModal = function openGeneralEventModal(event, options) {
   var notes = modal.querySelector('#general-event-notes');
   var notesSection = modal.querySelector('[data-general-event-notes-section]');
   var externalSection = modal.querySelector('[data-general-event-external-section]');
-  var externalLink = modal.querySelector('[data-general-event-external-link]');
   var meetingLink = modal.querySelector('[data-general-event-meeting-link]');
   var organizer = modal.querySelector('[data-general-event-organizer]');
   var organizerSection = modal.querySelector('[data-general-event-organizer-section]');
@@ -4587,8 +4595,7 @@ var openGeneralEventModal = function openGeneralEventModal(event, options) {
       renderNotesWithLinks(notes, event.notes);
     }
   }
-  if (externalSection) externalSection.hidden = !event.readOnly;
-  if (externalLink) externalLink.href = event.externalUrl || '#';
+  if (externalSection) externalSection.hidden = !event.meetingUrl;
   if (meetingLink) {
     meetingLink.href = event.meetingUrl || '#';
     meetingLink.hidden = !event.meetingUrl;

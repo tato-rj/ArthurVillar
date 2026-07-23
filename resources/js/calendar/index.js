@@ -495,6 +495,8 @@ const createScheduleHeaderDragPreview = function(headerRow) {
     const dayWidth = visibleWidth / visibleHeaders.length;
     const bufferDays = 31;
     const visibleDates = getVisibleScheduleDates();
+    const headerStyle = window.getComputedStyle(visibleHeaders[0]);
+    const weekdayStyle = window.getComputedStyle(visibleHeaders[0], '::before');
     const preview = document.createElement('div');
     const rail = document.createElement('div');
 
@@ -503,6 +505,13 @@ const createScheduleHeaderDragPreview = function(headerRow) {
     preview.style.top = `${rowRect.top}px`;
     preview.style.width = `${visibleWidth}px`;
     preview.style.height = `${rowRect.height}px`;
+    preview.style.setProperty('--calendar-schedule-drag-number-size', headerStyle.fontSize);
+    preview.style.setProperty('--calendar-schedule-drag-number-weight', headerStyle.fontWeight);
+    preview.style.setProperty('--calendar-schedule-drag-number-line-height', headerStyle.lineHeight);
+    preview.style.setProperty('--calendar-schedule-drag-weekday-size', weekdayStyle.fontSize);
+    preview.style.setProperty('--calendar-schedule-drag-weekday-weight', weekdayStyle.fontWeight);
+    preview.style.setProperty('--calendar-schedule-drag-weekday-line-height', weekdayStyle.lineHeight);
+    preview.style.setProperty('--calendar-schedule-drag-weekday-spacing', weekdayStyle.paddingBottom);
     rail.className = 'calendar-schedule-header-drag-rail';
 
     Array.from({ length: (bufferDays * 2) + visibleDates.length }, function(_, index) {
@@ -2651,7 +2660,6 @@ const openGeneralEventModal = function(event, options) {
     const notes = modal.querySelector('#general-event-notes');
     const notesSection = modal.querySelector('[data-general-event-notes-section]');
     const externalSection = modal.querySelector('[data-general-event-external-section]');
-    const externalLink = modal.querySelector('[data-general-event-external-link]');
     const meetingLink = modal.querySelector('[data-general-event-meeting-link]');
     const organizer = modal.querySelector('[data-general-event-organizer]');
     const organizerSection = modal.querySelector('[data-general-event-organizer-section]');
@@ -2696,8 +2704,7 @@ const openGeneralEventModal = function(event, options) {
             renderNotesWithLinks(notes, event.notes);
         }
     }
-    if (externalSection) externalSection.hidden = !event.readOnly;
-    if (externalLink) externalLink.href = event.externalUrl || '#';
+    if (externalSection) externalSection.hidden = !event.meetingUrl;
     if (meetingLink) {
         meetingLink.href = event.meetingUrl || '#';
         meetingLink.hidden = !event.meetingUrl;

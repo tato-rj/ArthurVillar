@@ -38,9 +38,6 @@
     </div>
 
     <div class="calendar-modal-detail-section" data-general-event-external-section hidden>
-        <a class="btn btn-outline-dark w-100 mb-2" data-general-event-external-link href="#" target="_blank" rel="noopener">
-            @fa(['icon' => 'arrow-up-right-from-square'])Open in Google Calendar
-        </a>
         <a class="btn btn-primary w-100" data-general-event-meeting-link href="#" target="_blank" rel="noopener" hidden>
             @fa(['icon' => 'video'])Join the meeting
         </a>
