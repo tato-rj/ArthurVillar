@@ -2226,12 +2226,18 @@ const populateLessonModal = function(modal, event) {
     }
 
     if (revert) {
+        const hasPendingVisualDrop = Boolean(
+            modal.updatedScheduleItem
+            && modal.updatedScheduleItem.hasAttribute('updated-event')
+            && modal.updatedScheduleItem.scheduleOriginalPosition
+        );
         const canRevert = !!(event && (
             event.scheduleOverrideId
             || event.lessonId
             || (event.earlyPaymentId && !canUseActions)
-        ));
+        )) || hasPendingVisualDrop;
 
+        revert.toggleAttribute('data-pending-visual-drop', hasPendingVisualDrop);
         revert.style.display = canRevert ? 'inline-flex' : 'none';
         revert.disabled = !canRevert;
     }
@@ -2365,8 +2371,8 @@ const openLessonModal = function(event, options) {
     }
 
     resetLessonModalState(modal);
-    populateLessonModal(modal, event);
     modal.updatedScheduleItem = settings.updatedItem || null;
+    populateLessonModal(modal, event);
 
     if (settings.openReschedule) {
         modal.classList.add('is-drop-rescheduling');
@@ -6051,6 +6057,18 @@ document.addEventListener('DOMContentLoaded', function() {
     if (lessonRevert) {
         lessonRevert.addEventListener('click', function(e) {
             e.preventDefault();
+
+            const updatedItem = lessonModal && lessonModal.updatedScheduleItem;
+
+            if (updatedItem
+                && updatedItem.hasAttribute('updated-event')
+                && updatedItem.scheduleOriginalPosition) {
+                restoreUpdatedScheduleItem(updatedItem);
+                lessonModal.updatedScheduleItem = null;
+                openLessonModal(updatedItem.event);
+                return;
+            }
+
             revertLessonAction(lessonRevert, refreshCalendarAfterLessonMutation);
         });
     }
@@ -6099,14 +6117,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         lessonModal.addEventListener('hidden.bs.modal', function() {
-            restoreUpdatedScheduleItem(lessonModal.updatedScheduleItem);
             lessonModal.updatedScheduleItem = null;
             resetLessonModalState(lessonModal);
         });
 
         if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
             window.jQuery(lessonModal).on('hidden.bs.modal', function() {
-                restoreUpdatedScheduleItem(lessonModal.updatedScheduleItem);
                 lessonModal.updatedScheduleItem = null;
                 resetLessonModalState(lessonModal);
             });
