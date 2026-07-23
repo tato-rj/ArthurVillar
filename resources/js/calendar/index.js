@@ -18,7 +18,7 @@ const state = {
     teachingBreaks: [],
     recitals: [],
     generalEvents: [],
-    selectedEventTypes: ['recurring', 'single', 'general'],
+    selectedEventTypes: ['recurring', 'single', 'general', 'google'],
     studentSearch: '',
     loadedRange: null,
     pendingRangeKey: null,
@@ -74,7 +74,7 @@ const sidebarHiddenQuery = '(max-width: 1000px)';
 const dayMilliseconds = 24 * 60 * 60 * 1000;
 
 const scheduleGridViews = ['day', '2-days', 'week'];
-const calendarEventTypes = ['recurring', 'single', 'general', 'canceled'];
+const calendarEventTypes = ['recurring', 'single', 'general', 'google', 'canceled'];
 
 const createLocalDate = function(year, month, day) {
     return new Date(year, month, day, 12, 0, 0, 0);
@@ -149,11 +149,19 @@ const getUrlState = function() {
     const view = requestedView === '3-days' ? '2-days' : requestedView;
     const date = params.get('date');
     const windowStart = params.get('window_start');
-    const eventTypes = params.has('event_types')
+    let eventTypes = params.has('event_types')
         ? params.get('event_types').split(',').filter(function(type, index, types) {
             return calendarEventTypes.includes(type) && types.indexOf(type) === index;
         })
         : null;
+    const usesGoogleEventFilter = params.get('event_filter_version') === '2';
+
+    if (eventTypes
+        && !usesGoogleEventFilter
+        && eventTypes.includes('general')
+        && !eventTypes.includes('google')) {
+        eventTypes.push('google');
+    }
     const locationIds = params.has('location_ids')
         ? params.get('location_ids').split(',').map(normalizeLocationId).filter(function(id, index, ids) {
             return id && ids.indexOf(id) === index;
@@ -180,6 +188,7 @@ const updateCalendarUrl = function() {
         url.searchParams.delete('window_start');
     }
     url.searchParams.set('event_types', state.selectedEventTypes.join(','));
+    url.searchParams.set('event_filter_version', '2');
     url.searchParams.set('location_ids', state.selectedLocationIds.join(','));
     window.history.replaceState({
         calendarView: state.view,
@@ -1753,9 +1762,13 @@ const getGeneralEvent = function(generalEvent) {
 const getGeneralEventCalendarEvents = function() {
     return state.generalEvents
         .filter(function(generalEvent) {
-            return generalEvent.canceled_at
-                ? state.selectedEventTypes.includes('canceled')
-                : state.selectedEventTypes.includes('general');
+            if (generalEvent.canceled_at) {
+                return state.selectedEventTypes.includes('canceled');
+            }
+
+            const eventType = generalEvent.external_provider === 'google' ? 'google' : 'general';
+
+            return state.selectedEventTypes.includes(eventType);
         })
         .filter(generalEventMatchesCalendarSearch)
         .map(getGeneralEvent);
@@ -5361,7 +5374,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        const defaultEventTypes = ['recurring', 'single', 'general'];
+        const defaultEventTypes = ['recurring', 'single', 'general', 'google'];
         const eventTypeFilterIsActive = state.selectedEventTypes.includes('canceled')
             || defaultEventTypes.some(function(type) {
                 return !state.selectedEventTypes.includes(type);
@@ -5413,7 +5426,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (eventTypeFilters) {
             eventTypeFilters.querySelectorAll('input[data-calendar-event-type-filter]').forEach(function(input) {
-                input.checked = ['recurring', 'single', 'general'].includes(input.value);
+                input.checked = ['recurring', 'single', 'general', 'google'].includes(input.value);
             });
             syncEventTypeFilterState();
         }
