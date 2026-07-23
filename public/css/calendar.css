@@ -32221,7 +32221,6 @@ button.setting-undo:hover {
   font-size: 1.6em;
   padding-top: 10px;
   padding-bottom: 10px;
-  z-index: 5;
 }
 
 #calendar.calendar-calendar-day-view .lm-schedule thead td {
@@ -32251,6 +32250,15 @@ button.setting-undo:hover {
   pointer-events: none;
   position: fixed;
   z-index: 1080;
+}
+
+.calendar-schedule-header-drag-gutter {
+  background: var(--lm-background-color, #fff);
+  border-bottom: 1px solid var(--lm-border-color, #ddd);
+  box-sizing: border-box;
+  pointer-events: none;
+  position: fixed;
+  z-index: 1081;
 }
 
 .calendar-schedule-header-drag-rail {
