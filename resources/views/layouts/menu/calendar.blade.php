@@ -20,13 +20,7 @@
     ],
     'calendar.waiting-list.index' => 'Waiting list*',
     'calendar.recitals.index' => 'Recitals',
-    [
-      'label' => 'Locations*',
-      'children' => [
-          'calendar.locations.index' => 'Calendars',
-          'calendar.venues.index' => 'Venues'
-      ],
-    ],
+    'calendar.locations.index' => 'Locations*',
     'calendar.breaks.index' => 'Breaks',
     'calendar.holidays.index' => 'Holidays',
     [

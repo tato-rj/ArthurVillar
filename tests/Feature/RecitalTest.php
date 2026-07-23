@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Calendar\Scheduler;
-use App\Models\Calendar\{Recital, Student, Venue};
+use App\Models\Calendar\{Location, Recital, Student};
 use Tests\BaseTest;
 
 class RecitalTest extends BaseTest
@@ -11,6 +11,8 @@ class RecitalTest extends BaseTest
     /** @test */
     public function it_shows_the_recitals_page_and_management_modals()
     {
+        Location::factory()->create(['name' => 'Teaching Studio']);
+        Location::factory()->recital()->create(['name' => 'Concert Hall']);
         Student::factory()->create(['first_name' => 'Maria', 'last_name' => 'Silva']);
         $this->signIn();
 
@@ -21,20 +23,22 @@ class RecitalTest extends BaseTest
             ->assertSee('recital-participants-modal', false)
             ->assertDontSee('type="time"', false)
             ->assertSee('name="start_time"', false)
+            ->assertSee('Concert Hall')
+            ->assertDontSee('Teaching Studio')
             ->assertSee('Maria Silva');
     }
 
     /** @test */
     public function it_creates_updates_and_deletes_a_recital()
     {
-        $venue = Venue::factory()->create();
+        $location = Location::factory()->recital()->create();
         $this->signIn();
 
         $this->post(route('calendar.recitals.store'), [
             'name' => 'Spring Recital',
             'date' => '2026-08-15',
             'start_time' => '18:30',
-            'venue_id' => $venue->id,
+            'location_id' => $location->id,
         ])->assertRedirect();
 
         $recital = Recital::where('name', 'Spring Recital')->firstOrFail();
@@ -43,7 +47,7 @@ class RecitalTest extends BaseTest
             'name' => 'Summer Recital',
             'date' => '2026-08-16',
             'start_time' => '19:00',
-            'venue_id' => $venue->id,
+            'location_id' => $location->id,
         ])->assertRedirect();
 
         $this->assertDatabaseHas('recitals', [
@@ -88,6 +92,20 @@ class RecitalTest extends BaseTest
     }
 
     /** @test */
+    public function recital_locations_must_be_configured_for_recitals()
+    {
+        $teachingLocation = Location::factory()->create();
+        $this->signIn();
+
+        $this->post(route('calendar.recitals.store'), [
+            'name' => 'Spring Recital',
+            'date' => '2026-08-15',
+            'start_time' => '18:00',
+            'location_id' => $teachingLocation->id,
+        ])->assertSessionHasErrors('location_id');
+    }
+
+    /** @test */
     public function it_serves_recitals_and_participants_to_the_calendar_table()
     {
         $recital = Recital::factory()->create(['name' => 'Calendar Showcase']);
@@ -106,20 +124,19 @@ class RecitalTest extends BaseTest
     /** @test */
     public function it_includes_recitals_in_the_calendar_payload()
     {
-        $venue = Venue::factory()->create([
+        $location = Location::factory()->recital()->create([
             'name' => 'Concert Hall',
             'address' => '10 Music Avenue',
             'city' => 'Brooklyn',
             'state' => 'NY',
             'postal_code' => '11201',
-            'map_url' => 'https://maps.google.com/?q=Concert+Hall',
         ]);
         $student = Student::factory()->create(['first_name' => 'Ana', 'last_name' => 'Costa']);
         $recital = Recital::factory()->create([
             'name' => 'Fall Recital',
             'date' => '2026-10-20',
             'start_time' => '18:00',
-            'venue_id' => $venue->id,
+            'location_id' => $location->id,
         ]);
         $recital->students()->attach($student);
 
@@ -131,9 +148,12 @@ class RecitalTest extends BaseTest
         $event = collect($payload['recitals'])->firstWhere('id', $recital->id);
 
         $this->assertSame('Fall Recital', $event['name']);
-        $this->assertSame('Concert Hall', $event['venue']['name']);
-        $this->assertSame('10 Music Avenue, Brooklyn, NY, 11201', $event['venue']['address']);
-        $this->assertSame('https://maps.google.com/?q=Concert+Hall', $event['venue']['map_url']);
+        $this->assertSame('Concert Hall', $event['location']['name']);
+        $this->assertSame('10 Music Avenue, Brooklyn, NY, 11201', $event['location']['address']);
+        $this->assertSame(
+            'https://www.google.com/maps/search/?api=1&query=10+Music+Avenue%2C+Brooklyn%2C+NY%2C+11201',
+            $event['location']['map_url']
+        );
         $this->assertSame('Ana Costa', $event['students'][0]['name']);
     }
 }

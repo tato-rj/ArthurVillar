@@ -10,11 +10,11 @@
 
     <div class="row mb-4">
         @pagetitle([
-            'label' => 'Calendar Locations',
+            'label' => 'Locations',
             'modal' => [
                 'target' => '#create-location-modal',
                 'icon' => 'plus',
-                'label' => 'New calendar location'
+                'label' => 'New location'
             ]
         ])
     </div>
@@ -24,6 +24,8 @@
             <thead>
                 <tr>
                     <th>Name</th>
+                    <th>Usage</th>
+                    <th>Address</th>
                     <th>Hourly fee</th>
                     <th>Tax withheld</th>
                     <th>Status</th>
@@ -133,6 +135,26 @@ $(function() {
         columns: [
             {data: 'name', name: 'name'},
             {
+                data: 'usage',
+                name: 'usage',
+                render: function(data) {
+                    const usage = String(data || '');
+
+                    return usage ? usage.charAt(0).toUpperCase() + usage.slice(1) : '';
+                },
+            },
+            {
+                data: 'address',
+                name: 'address',
+                render: function(data, type, row) {
+                    return [
+                        data,
+                        [row.city, row.state].filter(Boolean).join(', '),
+                        row.postal_code,
+                    ].filter(Boolean).join(', ');
+                },
+            },
+            {
                 data: 'fee_amount',
                 name: 'fee_amount',
                 render: function(data) {
@@ -159,13 +181,16 @@ $(function() {
                 orderable: false,
                 searchable: false,
                 className: 'text-right',
-                render: function(data) {
+                render: function(data, type, row) {
                     const editUrl = @json(route('calendar.locations.edit', ['location' => '__location__'])).replace('__location__', data);
                     const deleteUrl = @json(route('calendar.locations.destroy', ['location' => '__location__'])).replace('__location__', data);
+                    const infoButton = row.usage === 'teaching'
+                        ? `<button type="button" class="btn btn-sm btn-primary rounded js-location-info">@fa(['icon' => 'circle-info', 'mr' => 0])</button>`
+                        : '';
 
                     return `
                         <div class="calendar-table-actions">
-                            <button type="button" class="btn btn-sm btn-primary rounded js-location-info">@fa(['icon' => 'circle-info', 'mr' => 0])</button>
+                            ${infoButton}
                             <button type="button" class="btn btn-sm btn-warning rounded js-edit-location" data-url="${editUrl}">@fa(['icon' => 'pen-to-square', 'mr' => 0])</button>
                             <form method="POST" action="${deleteUrl}" confirm>
                                 @csrf

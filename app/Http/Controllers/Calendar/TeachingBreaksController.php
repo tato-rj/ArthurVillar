@@ -6,12 +6,14 @@ use App\Calendar\Scheduler;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\Calendar\{Location, TeachingBreak};
+use Illuminate\Validation\Rule;
 
 class TeachingBreaksController extends Controller
 {
     public function index()
     {
         $locations = Location::query()
+            ->teaching()
             ->where('is_active', true)
             ->orderBy('name')
             ->get();
@@ -50,7 +52,10 @@ class TeachingBreaksController extends Controller
             'starts_on' => ['required', 'date_format:Y-m-d', 'after_or_equal:today'],
             'ends_on' => ['required', 'date_format:Y-m-d', 'after_or_equal:starts_on'],
             'location_ids' => ['nullable', 'array'],
-            'location_ids.*' => ['integer', 'exists:locations,id'],
+            'location_ids.*' => [
+                'integer',
+                Rule::exists('locations', 'id')->where('usage', Location::USAGE_TEACHING),
+            ],
         ]);
 
         return response()->json($scheduler->breakImpact($data['starts_on'], $data['ends_on'], $data['location_ids'] ?? []));
@@ -64,7 +69,10 @@ class TeachingBreaksController extends Controller
             'starts_on' => ['required', 'date_format:Y-m-d', 'after_or_equal:today'],
             'ends_on' => ['required', 'date_format:Y-m-d', 'after_or_equal:starts_on'],
             'location_ids' => ['nullable', 'array'],
-            'location_ids.*' => ['integer', 'exists:locations,id'],
+            'location_ids.*' => [
+                'integer',
+                Rule::exists('locations', 'id')->where('usage', Location::USAGE_TEACHING),
+            ],
         ]);
     }
 

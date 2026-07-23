@@ -27,7 +27,7 @@
                     <th>Name</th>
                     <th>Date</th>
                     <th>Start time</th>
-                    <th>Venue</th>
+                    <th>Location</th>
                     <th>Participants</th>
                     <th>Actions</th>
                 </tr>
@@ -89,7 +89,7 @@ $(function() {
             {data: 'name', name: 'name'},
             {data: 'date', name: 'date', render: function(data, type) { return type === 'display' ? formatDate(data) : data; }},
             {data: 'start_time', name: 'start_time', render: function(data, type) { return type === 'display' ? formatTime(data) : data; }},
-            {data: 'venue', name: 'venue', defaultContent: ''},
+            {data: 'location', name: 'location', defaultContent: ''},
             {
                 data: 'students_count', name: 'students_count',
                 render: function(data) {

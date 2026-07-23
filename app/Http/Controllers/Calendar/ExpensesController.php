@@ -20,7 +20,7 @@ class ExpensesController extends Controller
     {
         [$startsFrom, $startsTo] = $this->reportMonthRange(request());
         $simulation = $this->incomeSimulation(request());
-        $locations = Location::query()->orderBy('name')->get();
+        $locations = Location::query()->teaching()->orderBy('name')->get();
         $monthCount = $startsFrom->diffInMonths($startsTo);
         $months = collect(range(0, $monthCount))->map(function ($offset) use ($scheduler, $startsFrom, $simulation) {
             $start = $startsFrom->copy()->addMonths($offset);

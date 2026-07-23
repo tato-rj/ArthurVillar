@@ -25,7 +25,7 @@ class StudentFactory extends Factory
             'date_of_birth' => $this->faker
                                     ->dateTimeBetween('2009-01-01', now()->subYears(5))
                                     ->format('Y-m-d'),
-            'location_id' => Location::query()->inRandomOrder()->value('id') ?: Location::factory(),
+            'location_id' => Location::query()->teaching()->inRandomOrder()->value('id') ?: Location::factory(),
             'payment_method' => $this->faker->randomElement(['Venmo', 'Zelle', 'Cash/check']),
         ];
     }

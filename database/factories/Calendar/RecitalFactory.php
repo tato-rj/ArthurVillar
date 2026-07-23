@@ -2,7 +2,7 @@
 
 namespace Database\Factories\Calendar;
 
-use App\Models\Calendar\Venue;
+use App\Models\Calendar\Location;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -21,7 +21,7 @@ class RecitalFactory extends Factory
             'name' => $this->faker->randomElement(['Spring Recital', 'Summer Showcase', 'Winter Concert']),
             'date' => $this->faker->dateTimeBetween('now', '+1 year')->format('Y-m-d'),
             'start_time' => $this->faker->randomElement(['14:00', '16:00', '18:30']),
-            'venue_id' => Venue::query()->inRandomOrder()->value('id') ?: Venue::factory(),
+            'location_id' => Location::query()->recital()->inRandomOrder()->value('id') ?: Location::factory()->recital(),
         ];
     }
 }

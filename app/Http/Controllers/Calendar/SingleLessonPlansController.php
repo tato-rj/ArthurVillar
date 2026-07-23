@@ -92,7 +92,10 @@ class SingleLessonPlansController extends Controller
             'duration_minutes' => ['required', 'integer', 'min:15'],
             'fee_amount' => ['nullable', 'string'],
             'payment_method' => ['nullable', 'string', 'max:255'],
-            'location_id' => ['required', 'exists:locations,id'],
+            'location_id' => [
+                'required',
+                Rule::exists('locations', 'id')->where('usage', Location::USAGE_TEACHING),
+            ],
             'meeting_url' => ['nullable', 'url', 'max:2048'],
             'notes_url' => ['nullable', 'url', 'max:2048'],
             'status' => ['nullable', 'string', 'max:255'],

@@ -10,7 +10,7 @@
     </div>
     <div class="mb-3">
         @fa(['icon' => 'location-dot', 'classes' => 'opacity-4'])
-        <span id="recital-venue"></span>
+        <span id="recital-location"></span>
     </div>
 
     <div class="small font-weight-bold opacity-6 mb-2">PARTICIPANTS</div>

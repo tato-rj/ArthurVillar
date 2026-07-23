@@ -24,7 +24,7 @@ class SingleLessonPlanFactory extends Factory
             'student_id' => function() {
                 return Student::factory()->create()->id;
             },
-            'location_id' => Location::query()->inRandomOrder()->value('id') ?: Location::factory(),
+            'location_id' => Location::query()->teaching()->inRandomOrder()->value('id') ?: Location::factory(),
             'scheduled_date' => $this->faker->dateTimeBetween('now', '+3 months')->format('Y-m-d'),
             'start_time' => sprintf('%02d:%02d', intdiv($startMinutes, 60), $startMinutes % 60),
             'duration_minutes' => $duration,

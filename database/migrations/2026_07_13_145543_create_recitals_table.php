@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('name');
             $table->date('date');
             $table->time('start_time');
-            $table->foreignId('venue_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('location_id')->nullable()->constrained()->nullOnDelete();
             $table->timestamps();
         });
 

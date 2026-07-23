@@ -3831,7 +3831,7 @@ var getRecitalEvent = function getRecitalEvent(recital) {
     date: dateString,
     start: recital.start_time,
     title: recital.name || 'Recital',
-    venue: recital.venue || null,
+    location: recital.location || null,
     students: Array.isArray(recital.students) ? recital.students : []
   };
 };
@@ -4471,29 +4471,29 @@ var openRecitalModal = function openRecitalModal(event) {
   var title = modal.querySelector('.modal-title');
   var date = modal.querySelector('#recital-date');
   var time = modal.querySelector('#recital-time');
-  var venue = modal.querySelector('#recital-venue');
+  var location = modal.querySelector('#recital-location');
   var participants = modal.querySelector('#recital-participants');
   var students = Array.isArray(event.students) ? event.students : [];
   if (title) title.textContent = event.title || 'Recital';
   if (date) date.textContent = event.date ? modalDateFormatter.format(parseDateString(event.date)) : '';
   if (time) time.textContent = formatModalEventTime(event.start);
-  if (venue) {
-    var venueName = event.venue && event.venue.name ? event.venue.name : 'No venue specified';
-    var address = event.venue && event.venue.address ? event.venue.address : '';
-    var mapUrl = event.venue && event.venue.map_url ? event.venue.map_url : '';
-    venue.innerHTML = '';
+  if (location) {
+    var locationName = event.location && event.location.name ? event.location.name : 'No location specified';
+    var address = event.location && event.location.address ? event.location.address : '';
+    var mapUrl = event.location && event.location.map_url ? event.location.map_url : '';
+    location.innerHTML = '';
     if (mapUrl) {
       var link = document.createElement('a');
       link.href = mapUrl;
       link.target = '_blank';
       link.rel = 'noopener noreferrer';
-      link.textContent = venueName;
-      venue.appendChild(link);
+      link.textContent = locationName;
+      location.appendChild(link);
     } else {
-      venue.appendChild(document.createTextNode(venueName));
+      location.appendChild(document.createTextNode(locationName));
     }
     if (address) {
-      venue.appendChild(document.createTextNode(" \xB7 ".concat(address)));
+      location.appendChild(document.createTextNode(" \xB7 ".concat(address)));
     }
   }
   if (participants) {

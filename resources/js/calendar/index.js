@@ -1724,7 +1724,7 @@ const getRecitalEvent = function(recital) {
         date: dateString,
         start: recital.start_time,
         title: recital.name || 'Recital',
-        venue: recital.venue || null,
+        location: recital.location || null,
         students: Array.isArray(recital.students) ? recital.students : [],
     };
 };
@@ -2551,33 +2551,33 @@ const openRecitalModal = function(event) {
     const title = modal.querySelector('.modal-title');
     const date = modal.querySelector('#recital-date');
     const time = modal.querySelector('#recital-time');
-    const venue = modal.querySelector('#recital-venue');
+    const location = modal.querySelector('#recital-location');
     const participants = modal.querySelector('#recital-participants');
     const students = Array.isArray(event.students) ? event.students : [];
 
     if (title) title.textContent = event.title || 'Recital';
     if (date) date.textContent = event.date ? modalDateFormatter.format(parseDateString(event.date)) : '';
     if (time) time.textContent = formatModalEventTime(event.start);
-    if (venue) {
-        const venueName = event.venue && event.venue.name ? event.venue.name : 'No venue specified';
-        const address = event.venue && event.venue.address ? event.venue.address : '';
-        const mapUrl = event.venue && event.venue.map_url ? event.venue.map_url : '';
+    if (location) {
+        const locationName = event.location && event.location.name ? event.location.name : 'No location specified';
+        const address = event.location && event.location.address ? event.location.address : '';
+        const mapUrl = event.location && event.location.map_url ? event.location.map_url : '';
 
-        venue.innerHTML = '';
+        location.innerHTML = '';
 
         if (mapUrl) {
             const link = document.createElement('a');
             link.href = mapUrl;
             link.target = '_blank';
             link.rel = 'noopener noreferrer';
-            link.textContent = venueName;
-            venue.appendChild(link);
+            link.textContent = locationName;
+            location.appendChild(link);
         } else {
-            venue.appendChild(document.createTextNode(venueName));
+            location.appendChild(document.createTextNode(locationName));
         }
 
         if (address) {
-            venue.appendChild(document.createTextNode(` · ${address}`));
+            location.appendChild(document.createTextNode(` · ${address}`));
         }
     }
 

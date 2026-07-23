@@ -4,6 +4,26 @@
 
 	@input(['placeholder' => 'Name', 'name' => 'name', 'required' => true, 'value' => old('name')])
 
+	@select(['placeholder' => 'Usage', 'name' => 'usage', 'required' => true])
+		@foreach(\App\Models\Calendar\Location::usages() as $usage)
+			@option([
+				'name' => 'usage',
+				'label' => ucfirst($usage),
+				'value' => $usage,
+				'selected' => old('usage', \App\Models\Calendar\Location::USAGE_TEACHING) === $usage
+			])
+		@endforeach
+	@endselect
+
+	@input(['placeholder' => 'Street address', 'name' => 'address', 'value' => old('address')])
+
+	<div class="row">
+		@input(['placeholder' => 'City', 'name' => 'city', 'value' => old('city'), 'grid' => 'col'])
+		@input(['placeholder' => 'State', 'name' => 'state', 'value' => old('state'), 'grid' => 'col'])
+	</div>
+
+	@input(['placeholder' => 'Postal code', 'name' => 'postal_code', 'value' => old('postal_code')])
+
 	@input([
 		'placeholder' => 'Hourly fee',
 		'name' => 'fee_amount',

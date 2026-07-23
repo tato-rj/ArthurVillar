@@ -27,7 +27,6 @@ class DatabaseSeeder extends Seeder
             LessonPlanSeeder::class,
             SingleLessonPlanSeeder::class,
             TeachingBreakSeeder::class,
-            VenueSeeder::class,
             RecitalSeeder::class,
             EventSeeder::class,
             WaitingListSeeder::class,

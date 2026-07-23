@@ -34,6 +34,7 @@ class CalendarController extends Controller
         }
 
         $locations = Location::query()
+            ->teaching()
             ->where('is_active', true)
             ->orderBy('name')
             ->get();

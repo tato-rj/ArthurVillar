@@ -320,7 +320,7 @@ class Scheduler
     public function recitals(array $range)
     {
         return Recital::query()
-            ->with(['venue', 'students' => function ($query) {
+            ->with(['location', 'students' => function ($query) {
                 $query->orderBy('first_name')->orderBy('last_name');
             }])
             ->whereBetween('date', [$range['start'], $range['end']])
@@ -333,11 +333,11 @@ class Scheduler
                     'name' => $recital->name,
                     'date' => $recital->date->toDateString(),
                     'start_time' => $recital->start_time,
-                    'venue' => $recital->venue ? [
-                        'id' => $recital->venue->id,
-                        'name' => $recital->venue->name,
-                        'address' => $recital->venue->full_address,
-                        'map_url' => $recital->venue->map_url,
+                    'location' => $recital->location ? [
+                        'id' => $recital->location->id,
+                        'name' => $recital->location->name,
+                        'address' => $recital->location->full_address,
+                        'map_url' => $recital->location->map_url,
                     ] : null,
                     'students' => $recital->students->map(fn (Student $student) => [
                         'id' => $student->id,

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Calendar;
 
 use App\Http\Controllers\Controller;
-use App\Models\Calendar\{Event, Recital, Student, Venue};
+use App\Models\Calendar\{Event, Location, Recital, Student};
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -11,10 +11,14 @@ class RecitalsController extends Controller
 {
     public function index()
     {
-        $venues = Venue::query()->orderBy('name')->get();
+        $locations = Location::query()
+            ->recital()
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
         $students = Student::query()->orderBy('first_name')->orderBy('last_name')->get();
 
-        return view('calendar.recitals.index', compact('venues', 'students'));
+        return view('calendar.recitals.index', compact('locations', 'students'));
     }
 
     public function store(Request $request)
@@ -26,9 +30,13 @@ class RecitalsController extends Controller
 
     public function edit(Recital $recital)
     {
-        $venues = Venue::query()->orderBy('name')->get();
+        $locations = Location::query()
+            ->recital()
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
 
-        return view('calendar.recitals.edit', compact('recital', 'venues'));
+        return view('calendar.recitals.edit', compact('recital', 'locations'));
     }
 
     public function update(Request $request, Recital $recital)
@@ -63,7 +71,11 @@ class RecitalsController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'date' => ['required', 'date'],
             'start_time' => ['required', 'date_format:H:i', Rule::in(Event::timeOptions())],
-            'venue_id' => ['nullable', 'integer', Rule::exists('venues', 'id')],
+            'location_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('locations', 'id')->where('usage', Location::USAGE_RECITAL),
+            ],
         ]);
     }
 }

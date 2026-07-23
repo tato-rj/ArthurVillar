@@ -16,6 +16,30 @@ use Tests\BaseTest;
 class CalendarLessonFlowTest extends BaseTest
 {
     /** @test */
+    public function lesson_forms_only_offer_locations_configured_for_teaching()
+    {
+        Location::factory()->create(['name' => 'Teaching Studio']);
+        Location::factory()->recital()->create(['name' => 'Concert Hall']);
+        $this->signIn();
+
+        $this->get(route('calendar.lesson-plans.index'))
+            ->assertOk()
+            ->assertSee('Teaching Studio')
+            ->assertDontSee('Concert Hall');
+    }
+
+    /** @test */
+    public function lesson_plans_reject_locations_configured_for_recitals()
+    {
+        $recitalLocation = Location::factory()->recital()->create();
+        $this->signIn();
+
+        $this->post(route('calendar.lesson-plans.store'), $this->lessonPlanPayload([
+            'location_id' => $recitalLocation->id,
+        ]))->assertSessionHasErrors('location_id');
+    }
+
+    /** @test */
     public function it_does_not_create_a_lesson_plan_that_overlaps_another_complete_lesson_plan()
     {
         $student = Student::factory()->create();

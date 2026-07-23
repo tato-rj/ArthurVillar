@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Calendar;
 
 use App\Http\Controllers\Controller;
 use App\Calendar\Scheduler;
-use App\Models\Calendar\{Event, Expense, GoogleCalendarEvent, Invitation, Lesson, LessonPlan, Location, Recital, Student, TeachingBreak, Venue, WaitingList};
+use App\Models\Calendar\{Event, Expense, GoogleCalendarEvent, Invitation, Lesson, LessonPlan, Location, Recital, Student, TeachingBreak, WaitingList};
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -422,8 +422,13 @@ class TablesController extends Controller
             ->select([
                 'id',
                 'name',
+                'usage',
                 'fee_amount',
                 'tax_withheld_percentage',
+                'address',
+                'city',
+                'state',
+                'postal_code',
                 'is_active',
                 'notes',
             ]);
@@ -484,17 +489,17 @@ class TablesController extends Controller
     public function recitals()
     {
         $recitals = Recital::query()
-            ->with(['venue', 'students' => function ($query) {
+            ->with(['location', 'students' => function ($query) {
                 $query->orderBy('first_name')->orderBy('last_name');
             }])
-            ->select(['id', 'name', 'date', 'start_time', 'venue_id']);
+            ->select(['id', 'name', 'date', 'start_time', 'location_id']);
 
         return DataTables::eloquent($recitals)
             ->editColumn('date', function (Recital $recital) {
                 return $recital->date ? $recital->date->toDateString() : null;
             })
-            ->addColumn('venue', function (Recital $recital) {
-                return optional($recital->venue)->name;
+            ->addColumn('location', function (Recital $recital) {
+                return optional($recital->location)->name;
             })
             ->editColumn('students', function (Recital $recital) {
                 return $recital->students->map(function (Student $student) {
@@ -505,8 +510,8 @@ class TablesController extends Controller
                 })->values()->all();
             })
             ->addColumn('students_count', fn (Recital $recital) => $recital->students->count())
-            ->filterColumn('venue', function ($query, $keyword) {
-                $query->whereHas('venue', function ($query) use ($keyword) {
+            ->filterColumn('location', function ($query, $keyword) {
+                $query->whereHas('location', function ($query) use ($keyword) {
                     $query->where('name', 'like', "%{$keyword}%");
                 });
             })
@@ -515,24 +520,8 @@ class TablesController extends Controller
             })
             ->orderColumn('date', 'date $1')
             ->orderColumn('start_time', 'start_time $1')
-            ->orderColumn('venue', 'venue_id $1')
+            ->orderColumn('location', 'location_id $1')
             ->orderColumn('students_count', 'date $1')
-            ->toJson();
-    }
-
-    public function venues()
-    {
-        $venues = Venue::query()->select([
-            'id',
-            'name',
-            'address',
-            'city',
-            'state',
-            'postal_code',
-            'map_url',
-        ]);
-
-        return DataTables::eloquent($venues)
             ->toJson();
     }
 

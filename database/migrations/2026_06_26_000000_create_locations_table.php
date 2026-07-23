@@ -18,6 +18,11 @@ return new class extends Migration
             $table->string('name')->unique();
             $table->decimal('fee_amount', 8, 2)->nullable();
             $table->decimal('tax_withheld_percentage', 5, 2)->default(0);
+            $table->string('address')->nullable();
+            $table->string('city')->nullable();
+            $table->string('state', 100)->nullable();
+            $table->string('postal_code', 20)->nullable();
+            $table->string('usage')->nullable();
             $table->boolean('is_active')->default(true);
             $table->text('notes')->nullable();
             $table->timestamps();

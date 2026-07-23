@@ -9,10 +9,27 @@ use App\Models\Calendar\{Lesson, LessonPlan, Location, Student};
 class LocationTest extends BaseTest
 {
     /** @test */
+    public function it_manages_teaching_and_recital_locations_on_one_page()
+    {
+        $this->signIn();
+
+        $this->get(route('calendar.locations.index'))
+            ->assertOk()
+            ->assertSee('name="usage"', false)
+            ->assertSee('Teaching')
+            ->assertSee('Recital')
+            ->assertSee('name="address"', false)
+            ->assertSee('name="city"', false)
+            ->assertSee('name="state"', false)
+            ->assertSee('name="postal_code"', false);
+    }
+
+    /** @test */
     public function it_serves_locations_to_the_calendar_table()
     {
         Location::factory()->create([
             'name' => 'BKCM',
+            'usage' => Location::USAGE_TEACHING,
             'fee_amount' => 6000,
             'tax_withheld_percentage' => 30,
             'is_active' => true,
@@ -25,6 +42,7 @@ class LocationTest extends BaseTest
             ->assertOk()
             ->assertJsonFragment([
                 'name' => 'BKCM',
+                'usage' => Location::USAGE_TEACHING,
                 'fee_amount' => 6000,
             ]);
     }
@@ -110,15 +128,25 @@ class LocationTest extends BaseTest
         $this
             ->post(route('calendar.locations.store'), [
                 'name' => 'Home',
+                'usage' => Location::USAGE_TEACHING,
                 'fee_amount' => '75',
                 'tax_withheld_percentage' => 0,
+                'address' => '10 Music Avenue',
+                'city' => 'Brooklyn',
+                'state' => 'NY',
+                'postal_code' => '11201',
                 'is_active' => 1,
             ])
             ->assertRedirect();
 
         $this->assertDatabaseHas('locations', [
             'name' => 'Home',
+            'usage' => Location::USAGE_TEACHING,
             'fee_amount' => 7500,
+            'address' => '10 Music Avenue',
+            'city' => 'Brooklyn',
+            'state' => 'NY',
+            'postal_code' => '11201',
         ]);
     }
 

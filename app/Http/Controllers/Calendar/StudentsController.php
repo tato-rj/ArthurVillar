@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Calendar;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Models\Calendar\{Student, WaitingList};
+use App\Models\Calendar\{Location, Student, WaitingList};
 use Illuminate\Validation\Rule;
 
 class StudentsController extends Controller
@@ -61,7 +61,10 @@ class StudentsController extends Controller
             'email' => ['required', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:255'],
             'date_of_birth' => ['nullable', 'date_format:m/d/Y'],
-            'location_id' => ['nullable', 'exists:locations,id'],
+            'location_id' => [
+                'nullable',
+                Rule::exists('locations', 'id')->where('usage', Location::USAGE_TEACHING),
+            ],
             'payment_method' => ['nullable', 'string', 'max:255'],
             'is_adult' => ['nullable', 'boolean'],
             'notes' => ['nullable', 'string'],

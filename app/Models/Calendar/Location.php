@@ -6,11 +6,32 @@ use App\Models\BaseModel;
 
 class Location extends BaseModel
 {
+    public const USAGE_TEACHING = 'teaching';
+    public const USAGE_RECITAL = 'recital';
+
     protected $casts = [
         'fee_amount' => 'integer',
         'tax_withheld_percentage' => 'decimal:2',
         'is_active' => 'boolean',
     ];
+
+    public static function usages()
+    {
+        return [
+            self::USAGE_TEACHING,
+            self::USAGE_RECITAL,
+        ];
+    }
+
+    public function scopeTeaching($query)
+    {
+        return $query->where('usage', self::USAGE_TEACHING);
+    }
+
+    public function scopeRecital($query)
+    {
+        return $query->where('usage', self::USAGE_RECITAL);
+    }
 
     public function lessonPlans()
     {
@@ -25,6 +46,27 @@ class Location extends BaseModel
     public function teachingBreaks()
     {
         return $this->belongsToMany(TeachingBreak::class)->withTimestamps();
+    }
+
+    public function recitals()
+    {
+        return $this->hasMany(Recital::class);
+    }
+
+    public function getFullAddressAttribute()
+    {
+        return collect([
+            $this->address,
+            collect([$this->city, $this->state])->filter()->implode(', '),
+            $this->postal_code,
+        ])->filter()->implode(', ');
+    }
+
+    public function getMapUrlAttribute()
+    {
+        return $this->full_address
+            ? 'https://www.google.com/maps/search/?api=1&query='.urlencode($this->full_address)
+            : null;
     }
 
     public function netAmount($amount)

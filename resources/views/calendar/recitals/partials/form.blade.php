@@ -22,14 +22,14 @@
     @endselect
 </div>
 
-@select(['placeholder' => 'Venue (optional)', 'name' => 'venue_id'])
-    @option(['name' => 'venue_id', 'label' => 'No venue specified', 'value' => '', 'selected' => empty($recital->venue_id)])
-    @foreach($venues as $venue)
+@select(['placeholder' => 'Location (optional)', 'name' => 'location_id'])
+    @option(['name' => 'location_id', 'label' => 'No location specified', 'value' => '', 'selected' => empty($recital->location_id)])
+    @foreach($locations as $location)
         @option([
-            'name' => 'venue_id',
-            'label' => $venue->name,
-            'value' => $venue->id,
-            'selected' => isset($recital) && $recital->venue_id == $venue->id,
+            'name' => 'location_id',
+            'label' => $location->name,
+            'value' => $location->id,
+            'selected' => old('location_id', $recital->location_id ?? null) == $location->id,
         ])
     @endforeach
 @endselect

@@ -49,8 +49,13 @@ class LocationsController extends Controller
                 'max:255',
                 Rule::unique('locations')->ignore($location),
             ],
+            'usage' => ['required', Rule::in(Location::usages())],
             'fee_amount' => ['nullable', 'string'],
             'tax_withheld_percentage' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'address' => ['nullable', 'string', 'max:255'],
+            'city' => ['nullable', 'string', 'max:255'],
+            'state' => ['nullable', 'string', 'max:100'],
+            'postal_code' => ['nullable', 'string', 'max:20'],
             'is_active' => ['nullable', 'boolean'],
             'notes' => ['nullable', 'string'],
         ]);
@@ -60,8 +65,13 @@ class LocationsController extends Controller
     {
         return [
             'name' => $data['name'],
+            'usage' => $data['usage'],
             'fee_amount' => $this->feeAmount($data['fee_amount'] ?? null),
             'tax_withheld_percentage' => $data['tax_withheld_percentage'] ?? 0,
+            'address' => $data['address'] ?? null,
+            'city' => $data['city'] ?? null,
+            'state' => $data['state'] ?? null,
+            'postal_code' => $data['postal_code'] ?? null,
             'is_active' => $data['is_active'] ?? false,
             'notes' => $data['notes'] ?? null,
         ];

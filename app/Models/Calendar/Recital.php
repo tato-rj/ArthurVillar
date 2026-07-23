@@ -15,8 +15,8 @@ class Recital extends BaseModel
         return $this->belongsToMany(Student::class)->withTimestamps();
     }
 
-    public function venue()
+    public function location()
     {
-        return $this->belongsTo(Venue::class);
+        return $this->belongsTo(Location::class);
     }
 }
