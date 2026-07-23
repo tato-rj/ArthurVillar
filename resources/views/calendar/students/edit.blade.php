@@ -61,27 +61,29 @@
                     ])
                 </div>
 
-                @select(['label' => 'Default location', 'placeholder' => '', 'name' => 'location_id'])
-                    @foreach($locations as $location)
-                        @option([
-                            'name' => 'location_id',
-                            'label' => $location->name,
-                            'value' => $location->id,
-                            'selected' => old('location_id', $student->location_id) == $location->id
-                        ])
-                    @endforeach
-                @endselect
+                <div class="row"> 
+                    @select(['label' => 'Default location', 'placeholder' => '', 'name' => 'location_id', 'grid' => 'col'])
+                        @foreach($locations as $location)
+                            @option([
+                                'name' => 'location_id',
+                                'label' => $location->name,
+                                'value' => $location->id,
+                                'selected' => old('location_id', $student->location_id) == $location->id
+                            ])
+                        @endforeach
+                    @endselect
 
-                @select(['label' => 'Default payment method', 'placeholder' => '', 'name' => 'payment_method'])
-                    @foreach(payment()->methods() as $method)
-                        @option([
-                            'name' => 'payment_method',
-                            'label' => $method,
-                            'value' => $method,
-                            'selected' => old('payment_method', $student->payment_method) == $method
-                        ])
-                    @endforeach
-                @endselect
+                    @select(['label' => 'Default payment method', 'placeholder' => '', 'name' => 'payment_method', 'grid' => 'col'])
+                        @foreach(payment()->methods() as $method)
+                            @option([
+                                'name' => 'payment_method',
+                                'label' => $method,
+                                'value' => $method,
+                                'selected' => old('payment_method', $student->payment_method) == $method
+                            ])
+                        @endforeach
+                    @endselect
+                </div>
 
                 <div class="row">
                     @input([
