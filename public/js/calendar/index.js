@@ -4720,9 +4720,12 @@ var openGeneralEventModal = function openGeneralEventModal(event, options) {
     edit.disabled = !edit.dataset.url;
   }
   if (revert) {
+    var hasPendingVisualDrop = Boolean(modal.updatedScheduleItem && modal.updatedScheduleItem.hasAttribute('updated-event') && modal.updatedScheduleItem.scheduleOriginalPosition);
+    var canRevertCancellation = isCanceled && Boolean(event.revertUrl);
     revert.dataset.url = event.revertUrl || '';
-    revert.style.display = isCanceled && revert.dataset.url ? 'inline-flex' : 'none';
-    revert.disabled = !isCanceled || !revert.dataset.url;
+    revert.toggleAttribute('data-pending-visual-drop', hasPendingVisualDrop);
+    revert.style.display = hasPendingVisualDrop || canRevertCancellation ? 'inline-flex' : 'none';
+    revert.disabled = !hasPendingVisualDrop && !canRevertCancellation;
     restoreButtonLabel(revert);
   }
   if (controls) {
@@ -7328,6 +7331,13 @@ document.addEventListener('DOMContentLoaded', function () {
     if (revertButton) {
       revertButton.addEventListener('click', function (e) {
         e.preventDefault();
+        var updatedItem = generalEventModal && generalEventModal.updatedScheduleItem;
+        if (updatedItem && updatedItem.hasAttribute('updated-event') && updatedItem.scheduleOriginalPosition) {
+          restoreUpdatedScheduleItem(updatedItem);
+          generalEventModal.updatedScheduleItem = null;
+          openGeneralEventModal(updatedItem.event);
+          return;
+        }
         revertGeneralEventAction(revertButton, refreshCalendarAfterLessonMutation);
       });
     }
@@ -7348,13 +7358,11 @@ document.addEventListener('DOMContentLoaded', function () {
       });
     });
     generalEventModal.addEventListener('hidden.bs.modal', function () {
-      restoreUpdatedScheduleItem(generalEventModal.updatedScheduleItem);
       generalEventModal.updatedScheduleItem = null;
       resetGeneralEventModalState(generalEventModal);
     });
     if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
       window.jQuery(generalEventModal).on('hidden.bs.modal', function () {
-        restoreUpdatedScheduleItem(generalEventModal.updatedScheduleItem);
         generalEventModal.updatedScheduleItem = null;
         resetGeneralEventModalState(generalEventModal);
       });
