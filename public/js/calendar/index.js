@@ -3072,17 +3072,19 @@ var bindScheduleHeaderDrag = function bindScheduleHeaderDrag(calendar, navigateB
   calendar.addEventListener('touchstart', function (e) {
     var touch = e.changedTouches[0];
     var row = e.target.closest('.lm-schedule thead tr:not(.calendar-schedule-holiday-row)');
-    if (!touch || e.touches.length !== 1) {
+    if (!touch || !row || e.touches.length !== 1) {
       return;
     }
+    e.preventDefault();
     beginDrag(row, touch.identifier, touch.clientX, touch.clientY, 'touch');
   }, {
-    passive: true
+    passive: false
   });
   window.addEventListener('touchmove', function (e) {
     if (!drag || drag.inputType !== 'touch') {
       return;
     }
+    e.preventDefault();
     var touch = Array.from(e.touches).find(function (candidate) {
       return candidate.identifier === drag.pointerId;
     });
