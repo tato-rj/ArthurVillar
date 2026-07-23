@@ -2935,6 +2935,37 @@ var createScheduleHeaderDragPreview = function createScheduleHeaderDragPreview(h
 };
 var bindScheduleHeaderDrag = function bindScheduleHeaderDrag(calendar, navigateByDays) {
   var drag = null;
+  var lockPageScroll = function lockPageScroll() {
+    var body = document.body;
+    var root = document.documentElement;
+    var scrollX = window.scrollX;
+    var scrollY = window.scrollY;
+    var bodyStyles = {
+      position: body.style.position,
+      top: body.style.top,
+      left: body.style.left,
+      right: body.style.right,
+      width: body.style.width,
+      overflow: body.style.overflow,
+      overscrollBehavior: body.style.overscrollBehavior
+    };
+    var rootOverscrollBehavior = root.style.overscrollBehavior;
+    root.style.overscrollBehavior = 'none';
+    body.style.position = 'fixed';
+    body.style.top = "".concat(-scrollY, "px");
+    body.style.left = "".concat(-scrollX, "px");
+    body.style.right = '0';
+    body.style.width = '100%';
+    body.style.overflow = 'hidden';
+    body.style.overscrollBehavior = 'none';
+    return function () {
+      root.style.overscrollBehavior = rootOverscrollBehavior;
+      Object.keys(bodyStyles).forEach(function (property) {
+        body.style[property] = bodyStyles[property];
+      });
+      window.scrollTo(scrollX, scrollY);
+    };
+  };
   var settlePreview = function settlePreview(preview, currentX, targetX) {
     preview.rail.style.transform = "translate3d(".concat(currentX, "px, 0, 0)");
     if (Math.abs(currentX - targetX) < 0.5 || window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -2966,6 +2997,9 @@ var bindScheduleHeaderDrag = function bindScheduleHeaderDrag(calendar, navigateB
     var current = drag;
     drag = null;
     current.row.classList.remove('calendar-schedule-header-dragging');
+    if (current.releasePageScroll) {
+      current.releasePageScroll();
+    }
     if (current.preview && !preservePreview) {
       current.preview.element.remove();
     }
@@ -3012,7 +3046,8 @@ var bindScheduleHeaderDrag = function bindScheduleHeaderDrag(calendar, navigateB
       startY: clientY,
       deltaX: 0,
       active: false,
-      preview: null
+      preview: null,
+      releasePageScroll: inputType === 'touch' ? lockPageScroll() : null
     };
   };
   var moveDrag = function moveDrag(pointerId, inputType, clientX, clientY, e) {
@@ -3022,7 +3057,7 @@ var bindScheduleHeaderDrag = function bindScheduleHeaderDrag(calendar, navigateB
     var deltaX = clientX - drag.startX;
     var deltaY = clientY - drag.startY;
     if (!drag.active) {
-      if (Math.abs(deltaY) >= 8 && Math.abs(deltaY) > Math.abs(deltaX)) {
+      if (drag.inputType !== 'touch' && Math.abs(deltaY) >= 8 && Math.abs(deltaY) > Math.abs(deltaX)) {
         clearDrag();
         return;
       }
@@ -3079,6 +3114,14 @@ var bindScheduleHeaderDrag = function bindScheduleHeaderDrag(calendar, navigateB
     beginDrag(row, touch.identifier, touch.clientX, touch.clientY, 'touch');
   }, {
     passive: false
+  });
+  document.addEventListener('touchmove', function (e) {
+    if (drag && drag.inputType === 'touch') {
+      e.preventDefault();
+    }
+  }, {
+    passive: false,
+    capture: true
   });
   window.addEventListener('touchmove', function (e) {
     if (!drag || drag.inputType !== 'touch') {
