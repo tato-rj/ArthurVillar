@@ -5747,6 +5747,7 @@ var createMonthEventElement = function createMonthEventElement(event, dateString
   title.className = 'calendar-month-event-title';
   item.dataset.eventGuid = event.guid || '';
   item.toggleAttribute('data-read-only', Boolean(event.readOnly));
+  item.dataset.externalProvider = event.externalProvider || '';
   item.dataset.lessonStatus = event.isHoliday ? 'holiday' : event.isBreak ? 'teaching-break' : event.isRecital ? 'recital' : event.calendarStatus || event.lessonStatus || (event.isGeneralEvent ? 'general-event' : 'unconfirmed');
   dot.dataset.eventGuid = event.guid || '';
   dot.dataset.lessonStatus = event.isHoliday ? 'holiday' : event.isBreak ? 'teaching-break' : event.isRecital ? 'recital' : event.calendarStatus || event.lessonStatus || (event.isGeneralEvent ? 'general-event' : 'unconfirmed');
@@ -6061,6 +6062,7 @@ var renderScheduleAgenda = function renderScheduleAgenda(calendar) {
       renderEventTitle(title, event, 'No title');
       item.dataset.eventGuid = event.guid || '';
       item.toggleAttribute('data-read-only', Boolean(event.readOnly));
+      item.dataset.externalProvider = event.externalProvider || '';
       item.dataset.lessonStatus = event.isHoliday ? 'holiday' : event.isBreak ? 'teaching-break' : event.isRecital ? 'recital' : event.calendarStatus || event.lessonStatus || (event.isGeneralEvent ? 'general-event' : 'unconfirmed');
       applyCalendarItemStatusAttributes(item, event, dateString);
       applyEventOverlapAttribute(item, event);

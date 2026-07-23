@@ -37,6 +37,8 @@ class SettingsTest extends BaseTest
             ->assertSee('value="#ffffff"', false)
             ->assertSee('General events')
             ->assertSee('value="#ce82ff"', false)
+            ->assertSee('Google events')
+            ->assertSee('value="#4285F4"', false)
             ->assertSee('View options')
             ->assertSee('Show holidays')
             ->assertSee('Show cancelled lessons')
@@ -84,6 +86,7 @@ class SettingsTest extends BaseTest
                 'paid_lesson_color' => '#00AA00',
                 'canceled_lesson_color' => '#777777',
                 'general_event_color' => '#9900AA',
+                'google_event_color' => '#4285F4',
                 'calendar_show_cancelled' => true,
                 'calendar_add_transparency_to_past_events' => false,
                 'calendar_highlight_conflicting_events' => false,
@@ -136,6 +139,11 @@ class SettingsTest extends BaseTest
         $this->assertDatabaseHas('settings', [
             'key' => 'appearance.general_event_color',
             'value' => '#9900aa',
+            'type' => Settings::TYPE_STRING,
+        ]);
+        $this->assertDatabaseHas('settings', [
+            'key' => 'appearance.google_event_color',
+            'value' => '#4285f4',
             'type' => Settings::TYPE_STRING,
         ]);
         $this->assertDatabaseHas('settings', [
@@ -214,13 +222,15 @@ class SettingsTest extends BaseTest
             ->assertSee('--calendar-unpaid-lesson-color: #ff4b4b;', false)
             ->assertSee('--calendar-paid-lesson-color: #58cc02;', false)
             ->assertSee('--calendar-canceled-lesson-color: #ffffff;', false)
-            ->assertSee('--calendar-general-event-color: #ce82ff;', false);
+            ->assertSee('--calendar-general-event-color: #ce82ff;', false)
+            ->assertSee('--calendar-google-event-color: #4285F4;', false);
 
         Settings::setValue('appearance.unconfirmed_lesson_color', '#3057d5');
         Settings::setValue('appearance.unpaid_lesson_color', '#aa0000');
         Settings::setValue('appearance.paid_lesson_color', '#00aa00');
         Settings::setValue('appearance.canceled_lesson_color', '#777777');
         Settings::setValue('appearance.general_event_color', '#9900aa');
+        Settings::setValue('appearance.google_event_color', '#123abc');
 
         $this->get(route('calendar.home'))
             ->assertOk()
@@ -228,7 +238,8 @@ class SettingsTest extends BaseTest
             ->assertSee('--calendar-unpaid-lesson-color: #aa0000;', false)
             ->assertSee('--calendar-paid-lesson-color: #00aa00;', false)
             ->assertSee('--calendar-canceled-lesson-color: #777777;', false)
-            ->assertSee('--calendar-general-event-color: #9900aa;', false);
+            ->assertSee('--calendar-general-event-color: #9900aa;', false)
+            ->assertSee('--calendar-google-event-color: #123abc;', false);
     }
 
     /** @test */

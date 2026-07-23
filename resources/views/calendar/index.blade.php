@@ -10,6 +10,7 @@
     --calendar-paid-lesson-color: {{$paidLessonColor}};
     --calendar-canceled-lesson-color: {{$canceledLessonColor}};
     --calendar-general-event-color: {{$generalEventColor}};
+    --calendar-google-event-color: {{$googleEventColor}};
 }
 
 .calendar-calendar-main {

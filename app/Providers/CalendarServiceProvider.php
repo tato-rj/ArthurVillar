@@ -39,6 +39,7 @@ class CalendarServiceProvider extends ServiceProvider
                 'appearance.paid_lesson_color' => '#58cc02',
                 'appearance.canceled_lesson_color' => '#ffffff',
                 'appearance.general_event_color' => '#ce82ff',
+                'appearance.google_event_color' => '#4285F4',
                 'calendar.show_cancelled' => false,
                 'calendar.add_transparency_to_past_events' => true,
                 'calendar.highlight_conflicting_events' => true,
@@ -70,6 +71,7 @@ class CalendarServiceProvider extends ServiceProvider
             $paidLessonColor = $value('appearance.paid_lesson_color');
             $canceledLessonColor = $value('appearance.canceled_lesson_color');
             $generalEventColor = $value('appearance.general_event_color');
+            $googleEventColor = $value('appearance.google_event_color');
             $googleCalendarConnections = auth()->check()
                 ? GoogleCalendarConnection::query()
                     ->where('user_id', auth()->id())
@@ -90,12 +92,14 @@ class CalendarServiceProvider extends ServiceProvider
                 'paidLessonColor' => $paidLessonColor,
                 'canceledLessonColor' => $canceledLessonColor,
                 'generalEventColor' => $generalEventColor,
+                'googleEventColor' => $googleEventColor,
                 'appearanceSettings' => [
                     ['id' => 'unconfirmed-lesson-color', 'name' => 'unconfirmed_lesson_color', 'label' => 'Unconfirmed lessons', 'value' => old('unconfirmed_lesson_color', $unconfirmedLessonColor), 'default' => '#6b7280'],
                     ['id' => 'unpaid-lesson-color', 'name' => 'unpaid_lesson_color', 'label' => 'Unpaid lessons', 'value' => old('unpaid_lesson_color', $unpaidLessonColor), 'default' => '#ff4b4b'],
                     ['id' => 'paid-lesson-color', 'name' => 'paid_lesson_color', 'label' => 'Paid lessons', 'value' => old('paid_lesson_color', $paidLessonColor), 'default' => '#58cc02'],
                     ['id' => 'canceled-lesson-color', 'name' => 'canceled_lesson_color', 'label' => 'Canceled lessons', 'value' => old('canceled_lesson_color', $canceledLessonColor), 'default' => '#ffffff'],
                     ['id' => 'general-event-color', 'name' => 'general_event_color', 'label' => 'General events', 'value' => old('general_event_color', $generalEventColor), 'default' => '#ce82ff'],
+                    ['id' => 'google-event-color', 'name' => 'google_event_color', 'label' => 'Google events', 'value' => old('google_event_color', $googleEventColor), 'default' => '#4285F4'],
                 ],
                 'showCancelledLessons' => $value('calendar.show_cancelled'),
                 'addTransparencyToPastEvents' => $value('calendar.add_transparency_to_past_events'),

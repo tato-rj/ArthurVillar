@@ -87,6 +87,14 @@ class SettingsSeeder extends Seeder
         );
 
         Settings::query()->firstOrCreate(
+            ['key' => 'appearance.google_event_color'],
+            [
+                'value' => '#4285F4',
+                'type' => Settings::TYPE_STRING,
+            ]
+        );
+
+        Settings::query()->firstOrCreate(
             ['key' => 'calendar.show_cancelled'],
             [
                 'value' => 'false',

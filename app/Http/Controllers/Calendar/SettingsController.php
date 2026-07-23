@@ -21,6 +21,7 @@ class SettingsController extends Controller
             'paid_lesson_color' => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'canceled_lesson_color' => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'general_event_color' => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
+            'google_event_color' => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'calendar_show_cancelled' => ['required', 'boolean'],
             'calendar_add_transparency_to_past_events' => ['required', 'boolean'],
             'calendar_highlight_conflicting_events' => ['required', 'boolean'],
@@ -81,6 +82,12 @@ class SettingsController extends Controller
         Settings::setValue(
             'appearance.general_event_color',
             strtolower($request->input('general_event_color')),
+            Settings::TYPE_STRING
+        );
+
+        Settings::setValue(
+            'appearance.google_event_color',
+            strtolower($request->input('google_event_color')),
             Settings::TYPE_STRING
         );
 

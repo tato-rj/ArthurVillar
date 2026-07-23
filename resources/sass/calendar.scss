@@ -567,6 +567,24 @@ button.setting-undo {
     padding-right: 0;
 }
 
+#calendar .calendar-calendar-general-event[data-external-provider="google"],
+#calendar .calendar-month-event-general[data-external-provider="google"],
+#calendar .calendar-schedule-event-general[data-external-provider="google"],
+.calendar-month-day-events-modal-list .calendar-month-event-general[data-external-provider="google"] {
+    background: var(--calendar-google-event-color, #4285F4);
+    color: white;
+
+    &[updated-event] {
+        background: repeating-linear-gradient(
+                      45deg,
+                      rgb(from var(--calendar-google-event-color, #4285F4) r g b / 80%),
+                      rgb(from var(--calendar-google-event-color, #4285F4) r g b / 80%) 10px,
+                      var(--calendar-google-event-color, #4285F4) 10px,
+                      var(--calendar-google-event-color, #4285F4) 20px
+                    );
+    }
+}
+
 #calendar .calendar-month-event-general {
     border-radius: 0.35rem;
     display: grid;
