@@ -32782,6 +32782,11 @@ button.single-lesson-plan-create[selected] i {
 
 #lesson-revert, #event-revert {
   opacity: 0.6;
+  font-size: 110%;
+}
+
+#event-revert {
+  margin-bottom: 3px;
 }
 
 #lesson-revert:hover, #event-revert:hover, #lesson-edit:hover, #event-edit:hover {
