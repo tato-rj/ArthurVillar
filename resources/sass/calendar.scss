@@ -1712,6 +1712,18 @@ button.single-lesson-plan-create[selected] i {
     }
 }
 
+#lesson-modal.is-rescheduling.is-drop-rescheduling,
+#general-event-modal.is-rescheduling.is-drop-rescheduling {
+    #header-buttons {
+        display: block;
+    }
+
+    #lesson-edit,
+    #event-edit {
+        display: none !important;
+    }
+}
+
 #lesson-modal.is-rescheduling {
     #reschedule-lesson {
         display: block;
