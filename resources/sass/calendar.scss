@@ -1416,6 +1416,7 @@ button.single-lesson-plan-create[selected] i {
     white-space: nowrap;
     width: 100%;
     opacity: .7;
+    transition: .2s;
 }
 
 #calendar .calendar-schedule-travel i {
@@ -1749,6 +1750,10 @@ button.single-lesson-plan-create[selected] i {
 
 .calendar-travel-route-summary {
     min-width: 0;
+}
+
+.calendar-travel-route-times {
+    line-height: 1.35;
 }
 
 .calendar-travel-route-steps {

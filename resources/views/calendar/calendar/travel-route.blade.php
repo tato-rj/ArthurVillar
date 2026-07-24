@@ -7,7 +7,7 @@
     <div class="calendar-travel-route-content" data-travel-route-content hidden>
         <div class="calendar-travel-route-summary">
             <div class="calendar-travel-route-origin mb-1" data-travel-route-origin></div>
-            <div class="mb-3" data-travel-route-times></div>
+            <div class="calendar-travel-route-times mb-3" data-travel-route-times></div>
             <div class="calendar-travel-route-steps" data-travel-route-steps></div>
         </div>
     </div>

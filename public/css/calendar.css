@@ -32933,6 +32933,10 @@ button.single-lesson-plan-create[selected] i {
   min-width: 0;
 }
 
+.calendar-travel-route-times {
+  line-height: 1.35;
+}
+
 .calendar-travel-route-steps {
   align-items: center;
   display: flex;

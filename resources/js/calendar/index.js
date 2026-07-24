@@ -3107,9 +3107,16 @@ const renderTravelRoute = function(modal, route) {
     const origin = section.querySelector('[data-travel-route-origin]');
     const durationMinutes = Math.max(0, Math.round(Number(route.duration_seconds || 0) / 60));
     const duration = document.createElement('strong');
+    const departureAt = route.departure_at ? new Date(route.departure_at) : null;
+    const leaveBy = departureAt && !Number.isNaN(departureAt.getTime())
+        ? eventTimeFormatter.format(departureAt)
+        : '';
 
     duration.textContent = `${durationMinutes} min`;
-    times.replaceChildren(document.createTextNode('Travel time is '), duration);
+    times.replaceChildren(
+        duration,
+        document.createTextNode(` travel time${leaveBy ? ` - leave by ${leaveBy}` : ''}`)
+    );
     steps.innerHTML = '';
 
     (Array.isArray(route.steps) ? route.steps : []).forEach(function(step, index) {

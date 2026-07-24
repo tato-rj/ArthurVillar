@@ -4881,8 +4881,10 @@ var renderTravelRoute = function renderTravelRoute(modal, route) {
   var origin = section.querySelector('[data-travel-route-origin]');
   var durationMinutes = Math.max(0, Math.round(Number(route.duration_seconds || 0) / 60));
   var duration = document.createElement('strong');
+  var departureAt = route.departure_at ? new Date(route.departure_at) : null;
+  var leaveBy = departureAt && !Number.isNaN(departureAt.getTime()) ? eventTimeFormatter.format(departureAt) : '';
   duration.textContent = "".concat(durationMinutes, " min");
-  times.replaceChildren(document.createTextNode('Travel time is '), duration);
+  times.replaceChildren(duration, document.createTextNode(" travel time".concat(leaveBy ? " - leave by ".concat(leaveBy) : '')));
   steps.innerHTML = '';
   (Array.isArray(route.steps) ? route.steps : []).forEach(function (step, index) {
     appendTravelStep(steps, step, index);
