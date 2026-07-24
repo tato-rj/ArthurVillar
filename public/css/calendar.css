@@ -32664,7 +32664,7 @@ button.single-lesson-plan-create[selected] i {
   display: flex;
   font-size: 0.72rem;
   gap: 0.35rem;
-  left: 50%;
+  left: 0;
   line-height: 1;
   min-height: 15px;
   overflow: hidden;
