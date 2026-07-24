@@ -54,6 +54,7 @@ window.calendarLocations = @json($locations->map(fn ($location) => [
 	'id' => $location->id,
 	'name' => $location->name,
 ])->values());
+window.calendarHomeLocation = @json($homeLocation);
 window.calendarCsrfToken = @json(csrf_token());
 </script>
 <script src="/js/vendor/lemonadejs/lemonade.js"></script>

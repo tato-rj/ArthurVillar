@@ -4780,6 +4780,8 @@ var openGeneralEventModal = function openGeneralEventModal(event, options) {
   var location = modal.querySelector('[data-general-event-location]');
   var locationIcon = modal.querySelector('[data-general-event-location-icon]');
   var locationSection = modal.querySelector('[data-general-event-location-section]');
+  var address = modal.querySelector('[data-general-event-address]');
+  var addressSection = modal.querySelector('[data-general-event-address-section]');
   var edit = modal.querySelector('#event-edit');
   var revert = modal.querySelector('#event-revert');
   var controls = modal.querySelector('#general-event-controls');
@@ -4822,6 +4824,11 @@ var openGeneralEventModal = function openGeneralEventModal(event, options) {
   if (organizer) organizer.textContent = event.organizerName || event.organizerEmail || '';
   if (location && locationSection) {
     locationSection.hidden = !renderEventLocation(location, locationIcon, event.location);
+  }
+  if (address && addressSection) {
+    var usesUrlLocation = event.externalProvider === 'google' && Boolean(normalizeHttpUrl(locationValue(event.location)));
+    var homeLocation = usesUrlLocation ? window.calendarHomeLocation : null;
+    addressSection.hidden = !homeLocation || !renderEventLocation(address, addressSection.querySelector('.calendar-modal-detail-icon'), homeLocation);
   }
   if (edit) {
     edit.dataset.url = event.editUrl || '';

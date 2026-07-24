@@ -38,8 +38,11 @@ class CalendarController extends Controller
             ->where('is_active', true)
             ->orderBy('name')
             ->get();
+        $homeLocation = Location::query()
+            ->whereRaw('LOWER(name) = ?', ['home'])
+            ->first();
         $birthdayWindow = Student::birthdayWindow();
 
-        return view('calendar.index', compact('plannedLessons', 'singleLessonPlans', 'holidays', 'teachingBreaks', 'recitals', 'generalEvents', 'calendarRange', 'locations', 'birthdayWindow'));
+        return view('calendar.index', compact('plannedLessons', 'singleLessonPlans', 'holidays', 'teachingBreaks', 'recitals', 'generalEvents', 'calendarRange', 'locations', 'homeLocation', 'birthdayWindow'));
     }
 }
