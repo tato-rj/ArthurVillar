@@ -32084,6 +32084,21 @@ button.setting-undo:hover {
   overflow: hidden;
 }
 
+.calendar-month-events-overflowing {
+  display: grid;
+  grid-template-rows: repeat(3, minmax(0, 1fr)) auto;
+}
+
+.calendar-month-events-overflowing .calendar-month-event {
+  height: 100%;
+  margin-bottom: 2px;
+  overflow: hidden;
+}
+
+.calendar-month-events-overflowing .calendar-month-more {
+  align-self: end;
+}
+
 .calendar-month-event {
   margin-bottom: 4px;
   align-items: center;
@@ -32600,7 +32615,6 @@ button.single-lesson-plan-create[selected] i {
   position: absolute;
   right: 100%;
   top: 0;
-  padding-left: 5px;
 }
 
 .calendar-schedule-pointer-time {

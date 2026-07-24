@@ -4625,6 +4625,7 @@ var monthWeekdays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 var calendarViews = ['schedule', 'day', '2-days', 'week', 'month'];
 var scheduleStart = '07:00';
 var scheduleEnd = '22:00';
+var monthVisibleEventLimit = 3;
 var travelArrivalBufferMinutes = 5;
 var sidebarHiddenQuery = '(max-width: 1000px)';
 var dayMilliseconds = 24 * 60 * 60 * 1000;
@@ -8492,7 +8493,8 @@ var renderMonthCalendar = function renderMonthCalendar(calendar) {
     var day = document.createElement('span');
     var list = document.createElement('span');
     var hasOverlaps = hasOverlappingTimedEvents(events);
-    var visibleEventCount = events.length >= 5 ? 3 : 4;
+    var visibleEvents = events.slice(0, monthVisibleEventLimit);
+    var hiddenEventCount = events.length - visibleEvents.length;
     cell.className = 'calendar-month-day';
     cell.dataset.date = dateString;
     cell.setAttribute('role', 'button');
@@ -8509,22 +8511,23 @@ var renderMonthCalendar = function renderMonthCalendar(calendar) {
     day.className = 'calendar-month-day-number';
     day.textContent = date.getDate() === 1 ? "".concat(shortMonthFormatter.format(date), " ").concat(date.getDate()) : date.getDate();
     list.className = 'calendar-month-events';
+    list.classList.toggle('calendar-month-events-overflowing', hiddenEventCount > 0);
     if (hasOverlaps) {
       var alert = document.createElement('i');
       alert.className = 'fa-solid fa-circle-exclamation calendar-month-overlap-alert';
       alert.setAttribute('aria-hidden', 'true');
       cell.appendChild(alert);
     }
-    events.slice(0, visibleEventCount).forEach(function (event) {
+    visibleEvents.forEach(function (event) {
       list.appendChild(createMonthEventElement(event, dateString));
     });
-    if (events.length > 4) {
+    if (hiddenEventCount > 0) {
       var more = document.createElement('span');
       more.className = 'calendar-month-more';
       more.dataset.monthMoreDate = dateString;
       more.setAttribute('role', 'button');
       more.tabIndex = 0;
-      more.textContent = "".concat(events.length - visibleEventCount, " more");
+      more.textContent = "".concat(hiddenEventCount, " more");
       list.appendChild(more);
     }
     cell.appendChild(day);

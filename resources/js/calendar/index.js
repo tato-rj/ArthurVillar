@@ -76,6 +76,7 @@ const monthWeekdays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 const calendarViews = ['schedule', 'day', '2-days', 'week', 'month'];
 const scheduleStart = '07:00';
 const scheduleEnd = '22:00';
+const monthVisibleEventLimit = 3;
 const travelArrivalBufferMinutes = 5;
 const sidebarHiddenQuery = '(max-width: 1000px)';
 const dayMilliseconds = 24 * 60 * 60 * 1000;
@@ -5097,7 +5098,8 @@ const renderMonthCalendar = function(calendar) {
         const day = document.createElement('span');
         const list = document.createElement('span');
         const hasOverlaps = hasOverlappingTimedEvents(events);
-        const visibleEventCount = events.length >= 5 ? 3 : 4;
+        const visibleEvents = events.slice(0, monthVisibleEventLimit);
+        const hiddenEventCount = events.length - visibleEvents.length;
 
         cell.className = 'calendar-month-day';
         cell.dataset.date = dateString;
@@ -5122,6 +5124,7 @@ const renderMonthCalendar = function(calendar) {
             : date.getDate();
 
         list.className = 'calendar-month-events';
+        list.classList.toggle('calendar-month-events-overflowing', hiddenEventCount > 0);
 
         if (hasOverlaps) {
             const alert = document.createElement('i');
@@ -5131,18 +5134,18 @@ const renderMonthCalendar = function(calendar) {
             cell.appendChild(alert);
         }
 
-        events.slice(0, visibleEventCount).forEach(function(event) {
+        visibleEvents.forEach(function(event) {
             list.appendChild(createMonthEventElement(event, dateString));
         });
 
-        if (events.length > 4) {
+        if (hiddenEventCount > 0) {
             const more = document.createElement('span');
 
             more.className = 'calendar-month-more';
             more.dataset.monthMoreDate = dateString;
             more.setAttribute('role', 'button');
             more.tabIndex = 0;
-            more.textContent = `${events.length - visibleEventCount} more`;
+            more.textContent = `${hiddenEventCount} more`;
             list.appendChild(more);
         }
 
