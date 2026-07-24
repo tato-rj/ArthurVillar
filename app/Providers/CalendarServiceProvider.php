@@ -32,6 +32,7 @@ class CalendarServiceProvider extends ServiceProvider
             $defaults = [
                 'calendar.show_insights' => true,
                 'calendar.show_holidays' => true,
+                'calendar.show_travel_times' => true,
                 'calendar.default_desktop_view' => 'week',
                 'calendar.default_mobile_view' => '2-days',
                 'appearance.unconfirmed_lesson_color' => '#6b7280',
@@ -82,6 +83,7 @@ class CalendarServiceProvider extends ServiceProvider
             $view->with([
                 'showCalendarInsights' => $value('calendar.show_insights'),
                 'showHolidays' => $value('calendar.show_holidays'),
+                'showTravelTimes' => $value('calendar.show_travel_times'),
                 'defaultDesktopCalendarView' => $value('calendar.default_desktop_view'),
                 'defaultMobileCalendarView' => $value('calendar.default_mobile_view'),
                 'selectedDesktopCalendarView' => old('calendar_default_desktop_view', $value('calendar.default_desktop_view')),

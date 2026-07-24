@@ -14,6 +14,7 @@ class SettingsController extends Controller
         $request->validate([
             'calendar_show_insights' => ['required', 'boolean'],
             'calendar_show_holidays' => ['required', 'boolean'],
+            'calendar_show_travel_times' => ['required', 'boolean'],
             'calendar_default_desktop_view' => ['required', Rule::in(['schedule', 'day', '2-days', 'week', 'month'])],
             'calendar_default_mobile_view' => ['required', Rule::in(['schedule', 'day', '2-days', 'week', 'month'])],
             'unconfirmed_lesson_color' => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
@@ -40,6 +41,12 @@ class SettingsController extends Controller
         Settings::setValue(
             'calendar.show_holidays',
             $request->boolean('calendar_show_holidays'),
+            Settings::TYPE_BOOLEAN
+        );
+
+        Settings::setValue(
+            'calendar.show_travel_times',
+            $request->boolean('calendar_show_travel_times'),
             Settings::TYPE_BOOLEAN
         );
 

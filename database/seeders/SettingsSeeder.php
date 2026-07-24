@@ -31,6 +31,14 @@ class SettingsSeeder extends Seeder
         );
 
         Settings::query()->firstOrCreate(
+            ['key' => 'calendar.show_travel_times'],
+            [
+                'value' => 'true',
+                'type' => Settings::TYPE_BOOLEAN,
+            ]
+        );
+
+        Settings::query()->firstOrCreate(
             ['key' => 'calendar.default_desktop_view'],
             [
                 'value' => 'week',

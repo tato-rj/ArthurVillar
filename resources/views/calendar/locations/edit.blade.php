@@ -6,7 +6,7 @@
 	@input(['label' => 'Name', 'name' => 'name', 'required' => true, 'value' => old('name', $location->name)])
 
 	@select(['label' => 'Usage', 'name' => 'usage'])
-		<option value="">General use</option>
+		<option value=""></option>
 		@foreach(\App\Models\Calendar\Location::usages() as $usage)
 			@option([
 				'name' => 'usage',

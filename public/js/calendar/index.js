@@ -4625,6 +4625,7 @@ var monthWeekdays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 var calendarViews = ['schedule', 'day', '2-days', 'week', 'month'];
 var scheduleStart = '07:00';
 var scheduleEnd = '22:00';
+var travelArrivalBufferMinutes = 5;
 var sidebarHiddenQuery = '(max-width: 1000px)';
 var dayMilliseconds = 24 * 60 * 60 * 1000;
 var scheduleGridViews = ['day', '2-days', 'week'];
@@ -6785,11 +6786,13 @@ var getTravelRouteRequestDetails = function getTravelRouteRequestDetails(event) 
   var destination = getTravelDestination(event);
   var startAt = getEventStartDateTime(event);
   var isCanceled = event && (event.calendarStatus === 'canceled' || event.lessonStatus === 'canceled');
-  if (!window.calendarTravelRoutesEnabled || !window.calendarTravelRouteUrl || !event || !destination || !startAt || event.allDay || isCanceled || startAt <= new Date()) {
+  if (!window.calendarShowTravelTimes || !window.calendarTravelRoutesEnabled || !window.calendarTravelRouteUrl || !event || !destination || !startAt || event.allDay || isCanceled || startAt <= new Date()) {
     return null;
   }
   var eventKey = event.guid || String(event.id || '');
-  var arrivalAt = "".concat(String(event.date).substring(0, 10), "T").concat(normalizeTime(event.start), ":00");
+  var arrivalDate = new Date(startAt.getTime() - travelArrivalBufferMinutes * 60 * 1000);
+  var arrivalTime = [String(arrivalDate.getHours()).padStart(2, '0'), String(arrivalDate.getMinutes()).padStart(2, '0'), '00'].join(':');
+  var arrivalAt = "".concat(toDateString(arrivalDate), "T").concat(arrivalTime);
   var cacheKey = [state.calendarFetchId, eventKey, arrivalAt, destination.address, destination.label].join('|');
   return {
     cacheKey: cacheKey,
@@ -6907,7 +6910,7 @@ var renderScheduleItemTravel = function renderScheduleItemTravel(item, route, ca
     stiffness: 240,
     damping: 15,
     mass: 0.7,
-    delay: 0.5
+    delay: 0.3
   });
   state.scheduleTravelAnimations.set(extension, animation);
 };
@@ -7610,9 +7613,26 @@ var patchSchedulePointer = function patchSchedulePointer(calendar) {
   }
   var scheduleRect = schedule.getBoundingClientRect();
   var cellRect = cell.getBoundingClientRect();
+  var pointerLeft = cellRect.left - scheduleRect.left + schedule.scrollLeft;
+  var extension = pointer.querySelector('.calendar-schedule-pointer-extension');
+  var time = pointer.querySelector('.calendar-schedule-pointer-time');
+  if (!extension) {
+    extension = document.createElement('span');
+    extension.className = 'calendar-schedule-pointer-extension';
+    extension.setAttribute('aria-hidden', 'true');
+    pointer.appendChild(extension);
+  }
+  if (!time) {
+    time = document.createElement('span');
+    time.className = 'calendar-schedule-pointer-time';
+    time.setAttribute('aria-hidden', 'true');
+    extension.appendChild(time);
+  }
   pointer.style.display = 'block';
-  pointer.style.left = "".concat(cellRect.left - scheduleRect.left + schedule.scrollLeft, "px");
+  pointer.style.left = "".concat(pointerLeft, "px");
   pointer.style.top = "".concat(cellRect.top - scheduleRect.top + schedule.scrollTop + cellRect.height * slotOffset, "px");
+  extension.style.width = "".concat(pointerLeft, "px");
+  time.textContent = eventTimeFormatter.format(now).replace(/\s*[ap]\.?m\.?/i, '');
   if (state.view === 'day') {
     pointer.style.width = "".concat(schedule.clientWidth - (cellRect.left - scheduleRect.left), "px");
   } else {

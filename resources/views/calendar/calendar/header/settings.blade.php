@@ -37,6 +37,19 @@
 					<label class="form-check-label" for="calendar-show-holidays">Show holidays</label>
 				</div>
 
+				<input type="hidden" name="calendar_show_travel_times" value="0">
+				<div class="form-check calendar-settings-option">
+					<input
+						class="form-check-input"
+						id="calendar-show-travel-times"
+						name="calendar_show_travel_times"
+						type="checkbox"
+						value="1"
+						{{iftrue(old('calendar_show_travel_times', $showTravelTimes), 'checked')}}
+					>
+					<label class="form-check-label" for="calendar-show-travel-times">Show travel times</label>
+				</div>
+
 				<input type="hidden" name="calendar_show_cancelled" value="0">
 				<div class="form-check calendar-settings-option">
 					<input

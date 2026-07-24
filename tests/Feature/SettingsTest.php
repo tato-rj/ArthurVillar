@@ -14,7 +14,7 @@ class SettingsTest extends BaseTest
 
         $this->get(route('calendar.home'))
             ->assertOk()
-            ->assertSeeInOrder(['View options', 'Show calendar insights', 'Show holidays', 'Show cancelled lessons', 'Calendar initial view', 'fa-desktop', 'fa-mobile', 'Appearance', 'Unconfirmed lessons'])
+            ->assertSeeInOrder(['View options', 'Show calendar insights', 'Show holidays', 'Show travel times', 'Show cancelled lessons', 'Calendar initial view', 'fa-desktop', 'fa-mobile', 'Appearance', 'Unconfirmed lessons'])
             ->assertDontSee('Display options')
             ->assertSee('fa-desktop', false)
             ->assertSee('fa-mobile', false)
@@ -41,6 +41,7 @@ class SettingsTest extends BaseTest
             ->assertSee('value="#4285F4"', false)
             ->assertSee('View options')
             ->assertSee('Show holidays')
+            ->assertSee('Show travel times')
             ->assertSee('Show cancelled lessons')
             ->assertSee('Add transparency to past events')
             ->assertSee('Highlight conflicting events')
@@ -79,6 +80,7 @@ class SettingsTest extends BaseTest
             ->patch(route('calendar.settings.update'), [
                 'calendar_show_insights' => false,
                 'calendar_show_holidays' => false,
+                'calendar_show_travel_times' => false,
                 'calendar_default_desktop_view' => 'month',
                 'calendar_default_mobile_view' => 'day',
                 'unconfirmed_lesson_color' => '#3057D5',
@@ -103,6 +105,11 @@ class SettingsTest extends BaseTest
         ]);
         $this->assertDatabaseHas('settings', [
             'key' => 'calendar.show_holidays',
+            'value' => 'false',
+            'type' => Settings::TYPE_BOOLEAN,
+        ]);
+        $this->assertDatabaseHas('settings', [
+            'key' => 'calendar.show_travel_times',
             'value' => 'false',
             'type' => Settings::TYPE_BOOLEAN,
         ]);
@@ -274,6 +281,22 @@ class SettingsTest extends BaseTest
         $this->get(route('calendar.home'))
             ->assertOk()
             ->assertSee('window.calendarShowHolidays = false;', false);
+    }
+
+    /** @test */
+    public function travel_times_follow_the_calendar_view_preference()
+    {
+        $this->signIn();
+
+        $this->get(route('calendar.home'))
+            ->assertOk()
+            ->assertSee('window.calendarShowTravelTimes = true;', false);
+
+        Settings::setValue('calendar.show_travel_times', false, Settings::TYPE_BOOLEAN);
+
+        $this->get(route('calendar.home'))
+            ->assertOk()
+            ->assertSee('window.calendarShowTravelTimes = false;', false);
     }
 
     /** @test */

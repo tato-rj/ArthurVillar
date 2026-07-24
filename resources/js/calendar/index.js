@@ -76,6 +76,7 @@ const monthWeekdays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 const calendarViews = ['schedule', 'day', '2-days', 'week', 'month'];
 const scheduleStart = '07:00';
 const scheduleEnd = '22:00';
+const travelArrivalBufferMinutes = 5;
 const sidebarHiddenQuery = '(max-width: 1000px)';
 const dayMilliseconds = 24 * 60 * 60 * 1000;
 
@@ -2865,7 +2866,8 @@ const getTravelRouteRequestDetails = function(event) {
     const startAt = getEventStartDateTime(event);
     const isCanceled = event && (event.calendarStatus === 'canceled' || event.lessonStatus === 'canceled');
 
-    if (!window.calendarTravelRoutesEnabled
+    if (!window.calendarShowTravelTimes
+        || !window.calendarTravelRoutesEnabled
         || !window.calendarTravelRouteUrl
         || !event
         || !destination
@@ -2877,7 +2879,13 @@ const getTravelRouteRequestDetails = function(event) {
     }
 
     const eventKey = event.guid || String(event.id || '');
-    const arrivalAt = `${String(event.date).substring(0, 10)}T${normalizeTime(event.start)}:00`;
+    const arrivalDate = new Date(startAt.getTime() - (travelArrivalBufferMinutes * 60 * 1000));
+    const arrivalTime = [
+        String(arrivalDate.getHours()).padStart(2, '0'),
+        String(arrivalDate.getMinutes()).padStart(2, '0'),
+        '00',
+    ].join(':');
+    const arrivalAt = `${toDateString(arrivalDate)}T${arrivalTime}`;
     const cacheKey = [
         state.calendarFetchId,
         eventKey,
@@ -3033,7 +3041,7 @@ const renderScheduleItemTravel = function(item, route, cacheKey) {
         stiffness: 240,
         damping: 15,
         mass: 0.7,
-        delay: 0.5,
+        delay: 0.3,
     });
 
     state.scheduleTravelAnimations.set(extension, animation);
@@ -3947,10 +3955,29 @@ const patchSchedulePointer = function(calendar) {
 
     const scheduleRect = schedule.getBoundingClientRect();
     const cellRect = cell.getBoundingClientRect();
+    const pointerLeft = cellRect.left - scheduleRect.left + schedule.scrollLeft;
+    let extension = pointer.querySelector('.calendar-schedule-pointer-extension');
+    let time = pointer.querySelector('.calendar-schedule-pointer-time');
+
+    if (!extension) {
+        extension = document.createElement('span');
+        extension.className = 'calendar-schedule-pointer-extension';
+        extension.setAttribute('aria-hidden', 'true');
+        pointer.appendChild(extension);
+    }
+
+    if (!time) {
+        time = document.createElement('span');
+        time.className = 'calendar-schedule-pointer-time';
+        time.setAttribute('aria-hidden', 'true');
+        extension.appendChild(time);
+    }
 
     pointer.style.display = 'block';
-    pointer.style.left = `${cellRect.left - scheduleRect.left + schedule.scrollLeft}px`;
+    pointer.style.left = `${pointerLeft}px`;
     pointer.style.top = `${cellRect.top - scheduleRect.top + schedule.scrollTop + (cellRect.height * slotOffset)}px`;
+    extension.style.width = `${pointerLeft}px`;
+    time.textContent = eventTimeFormatter.format(now).replace(/\s*[ap]\.?m\.?/i, '');
 
     if (state.view === 'day') {
         pointer.style.width = `${schedule.clientWidth - (cellRect.left - scheduleRect.left)}px`;
