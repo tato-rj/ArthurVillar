@@ -17239,7 +17239,7 @@ textarea.form-control-lg {
   transform: translateY(-50%) !important;
 }
 
-.border, .calendar-student-combobox-menu, button.single-lesson-plan-create, #month-day-events-modal .calendar-month-event[overlapping-event], .calendar-calendar-filter-menu, .calendar-general-event-notes, .btn-warning {
+.border, .calendar-student-combobox-menu, button.single-lesson-plan-create, #month-day-events-modal .calendar-month-event[overlapping-event], .calendar-general-event-notes, .calendar-calendar-filter-menu, .btn-warning {
   border: var(--bs-border-width) var(--bs-border-style) var(--bs-border-color) !important;
 }
 
@@ -18683,7 +18683,7 @@ textarea.form-control-lg {
   pointer-events: auto !important;
 }
 
-.rounded, .calendar-calendar-search[selected], .calendar-general-event-notes, form .form-control, form .form-select, .dropzone-container, .dropzone {
+.rounded, .calendar-general-event-notes, .calendar-calendar-search[selected], form .form-control, form .form-select, .dropzone-container, .dropzone {
   border-radius: var(--bs-border-radius) !important;
 }
 
@@ -24878,7 +24878,7 @@ h1, .h1 {
   font-size: 2em;
 }
 
-.rounded, .calendar-calendar-search[selected], .calendar-general-event-notes, form .form-control, form .form-select, .dropzone-container, .dropzone {
+.rounded, .calendar-general-event-notes, .calendar-calendar-search[selected], form .form-control, form .form-select, .dropzone-container, .dropzone {
   border-radius: 2rem !important;
 }
 
@@ -32670,10 +32670,9 @@ button.single-lesson-plan-create[selected] i {
   overflow: hidden;
   padding: 0.4rem 0.4rem;
   position: absolute;
-  transform: translateX(-50%);
   white-space: nowrap;
-  width: calc(100% - 12px);
-  opacity: 0.75;
+  width: 100%;
+  opacity: 0.7;
 }
 
 #calendar .calendar-schedule-travel i {
