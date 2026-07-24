@@ -32654,8 +32654,7 @@ button.single-lesson-plan-create[selected] i {
 #calendar .calendar-schedule-travel {
   background: #f1f3f4;
   background: color-mix(in srgb, var(--calendar-schedule-event-color, #6b7280) 16%, white);
-  border: 1px solid #dfe3eb;
-  border-color: color-mix(in srgb, var(--calendar-schedule-event-color, #6b7280) 45%, white);
+  border: 1px solid white;
   border-bottom: 0;
   border-radius: 4px 4px 0 0;
   bottom: 100%;
