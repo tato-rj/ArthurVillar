@@ -1396,7 +1396,6 @@ button.single-lesson-plan-create[selected] i {
 }
 
 #calendar .calendar-schedule-travel {
-    animation: calendar-schedule-travel-reveal 320ms cubic-bezier(.2, .8, .2, 1) .5s both;
     background: #f1f3f4;
     background: color-mix(in srgb, var(--calendar-schedule-event-color, #6b7280) 16%, white);
     border: 1px solid white;
@@ -1417,27 +1416,7 @@ button.single-lesson-plan-create[selected] i {
     white-space: nowrap;
     width: 100%;
     opacity: .7;
-    will-change: clip-path, opacity, transform;
-}
-
-@keyframes calendar-schedule-travel-reveal {
-    from {
-        clip-path: inset(100% 0 0);
-        opacity: 0;
-        transform: translateY(0.4rem);
-    }
-
-    to {
-        clip-path: inset(0);
-        opacity: .7;
-        transform: translateY(0);
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    #calendar .calendar-schedule-travel {
-        animation: none;
-    }
+    will-change: height, opacity, transform;
 }
 
 #calendar .calendar-schedule-travel i {

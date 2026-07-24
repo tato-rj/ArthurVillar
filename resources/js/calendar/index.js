@@ -1,3 +1,6 @@
+import { spring } from 'motion';
+import { animate } from 'motion/mini';
+
 const DOMPurify = require('dompurify');
 const calendarjs = window.calendarjs;
 
@@ -40,6 +43,7 @@ const state = {
     pendingScheduleHeaderPreview: null,
     travelRouteCache: new Map(),
     travelRouteRequests: new Map(),
+    scheduleTravelAnimations: new WeakMap(),
 };
 
 const calendarTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/New_York';
@@ -2949,6 +2953,13 @@ const clearScheduleItemTravel = function(item) {
     const extension = item.querySelector(':scope > .calendar-schedule-travel');
 
     if (extension) {
+        const animation = state.scheduleTravelAnimations.get(extension);
+
+        if (animation) {
+            animation.stop();
+            state.scheduleTravelAnimations.delete(extension);
+        }
+
         extension.remove();
     }
 
@@ -2974,11 +2985,21 @@ const renderScheduleItemTravel = function(item, route, cacheKey) {
     const isTransit = String(route.mode || '').toUpperCase() === 'TRANSIT';
 
     item.querySelectorAll(':scope > .calendar-schedule-travel').forEach(function(existing) {
+        const animation = state.scheduleTravelAnimations.get(existing);
+
+        if (animation) {
+            animation.stop();
+            state.scheduleTravelAnimations.delete(existing);
+        }
+
         existing.remove();
     });
 
     extension.className = 'calendar-schedule-travel';
-    extension.style.height = `${extensionHeight}px`;
+    extension.style.height = '0';
+    extension.style.minHeight = '0';
+    extension.style.opacity = '0';
+    extension.style.transform = 'translateY(6px)';
     extension.style.setProperty(
         '--calendar-schedule-event-color',
         window.getComputedStyle(item).backgroundColor || '#6b7280'
@@ -2994,6 +3015,28 @@ const renderScheduleItemTravel = function(item, route, cacheKey) {
     item.classList.add('has-calendar-schedule-travel');
     item.dataset.travelRouteKey = cacheKey;
     item.dataset.travelRouteState = 'shown';
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        extension.style.height = `${extensionHeight}px`;
+        extension.style.minHeight = '';
+        extension.style.opacity = '.7';
+        extension.style.transform = 'none';
+        return;
+    }
+
+    const animation = animate(extension, {
+        height: `${extensionHeight}px`,
+        opacity: 0.7,
+        transform: 'translateY(0)',
+    }, {
+        type: spring,
+        stiffness: 240,
+        damping: 22,
+        mass: 0.7,
+        delay: 0.5,
+    });
+
+    state.scheduleTravelAnimations.set(extension, animation);
 };
 
 const patchScheduleItemTravel = function(item, event) {

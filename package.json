@@ -40,6 +40,7 @@
         "inputmask": "^5.0.9",
         "jquery-ui": "^1.13.2",
         "jquery-ui-touch-punch": "^0.2.3",
+        "motion": "^12.42.2",
         "typed.js": "^3.0.0"
     }
 }

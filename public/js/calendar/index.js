@@ -2437,13 +2437,2056 @@ module.exports = purify;
 //# sourceMappingURL=purify.cjs.js.map
 
 
+/***/ },
+
+/***/ "./node_modules/process/browser.js"
+/*!*****************************************!*\
+  !*** ./node_modules/process/browser.js ***!
+  \*****************************************/
+(module) {
+
+// shim for using process in browser
+var process = module.exports = {};
+
+// cached from whatever global is present so that test runners that stub it
+// don't break things.  But we need to wrap it in a try catch in case it is
+// wrapped in strict mode code which doesn't define any globals.  It's inside a
+// function because try/catches deoptimize in certain engines.
+
+var cachedSetTimeout;
+var cachedClearTimeout;
+
+function defaultSetTimout() {
+    throw new Error('setTimeout has not been defined');
+}
+function defaultClearTimeout () {
+    throw new Error('clearTimeout has not been defined');
+}
+(function () {
+    try {
+        if (typeof setTimeout === 'function') {
+            cachedSetTimeout = setTimeout;
+        } else {
+            cachedSetTimeout = defaultSetTimout;
+        }
+    } catch (e) {
+        cachedSetTimeout = defaultSetTimout;
+    }
+    try {
+        if (typeof clearTimeout === 'function') {
+            cachedClearTimeout = clearTimeout;
+        } else {
+            cachedClearTimeout = defaultClearTimeout;
+        }
+    } catch (e) {
+        cachedClearTimeout = defaultClearTimeout;
+    }
+} ())
+function runTimeout(fun) {
+    if (cachedSetTimeout === setTimeout) {
+        //normal enviroments in sane situations
+        return setTimeout(fun, 0);
+    }
+    // if setTimeout wasn't available but was latter defined
+    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+        cachedSetTimeout = setTimeout;
+        return setTimeout(fun, 0);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedSetTimeout(fun, 0);
+    } catch(e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
+            return cachedSetTimeout.call(null, fun, 0);
+        } catch(e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
+            return cachedSetTimeout.call(this, fun, 0);
+        }
+    }
+
+
+}
+function runClearTimeout(marker) {
+    if (cachedClearTimeout === clearTimeout) {
+        //normal enviroments in sane situations
+        return clearTimeout(marker);
+    }
+    // if clearTimeout wasn't available but was latter defined
+    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+        cachedClearTimeout = clearTimeout;
+        return clearTimeout(marker);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedClearTimeout(marker);
+    } catch (e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
+            return cachedClearTimeout.call(null, marker);
+        } catch (e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
+            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
+            return cachedClearTimeout.call(this, marker);
+        }
+    }
+
+
+
+}
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+    if (!draining || !currentQueue) {
+        return;
+    }
+    draining = false;
+    if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
+    } else {
+        queueIndex = -1;
+    }
+    if (queue.length) {
+        drainQueue();
+    }
+}
+
+function drainQueue() {
+    if (draining) {
+        return;
+    }
+    var timeout = runTimeout(cleanUpNextTick);
+    draining = true;
+
+    var len = queue.length;
+    while(len) {
+        currentQueue = queue;
+        queue = [];
+        while (++queueIndex < len) {
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
+            }
+        }
+        queueIndex = -1;
+        len = queue.length;
+    }
+    currentQueue = null;
+    draining = false;
+    runClearTimeout(timeout);
+}
+
+process.nextTick = function (fun) {
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments[i];
+        }
+    }
+    queue.push(new Item(fun, args));
+    if (queue.length === 1 && !draining) {
+        runTimeout(drainQueue);
+    }
+};
+
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+process.prependListener = noop;
+process.prependOnceListener = noop;
+
+process.listeners = function (name) { return [] }
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+};
+
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+process.umask = function() { return 0; };
+
+
+/***/ },
+
+/***/ "./node_modules/framer-motion/dist/es/animation/animators/waapi/animate-elements.mjs"
+/*!*******************************************************************************************!*\
+  !*** ./node_modules/framer-motion/dist/es/animation/animators/waapi/animate-elements.mjs ***!
+  \*******************************************************************************************/
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   animateElements: () => (/* binding */ animateElements)
+/* harmony export */ });
+/* harmony import */ var motion_dom__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! motion-dom */ "./node_modules/motion-dom/dist/es/animation/NativeAnimation.mjs");
+/* harmony import */ var motion_dom__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! motion-dom */ "./node_modules/motion-dom/dist/es/animation/utils/active-animations.mjs");
+/* harmony import */ var motion_dom__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! motion-dom */ "./node_modules/motion-dom/dist/es/animation/utils/get-value-transition.mjs");
+/* harmony import */ var motion_dom__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! motion-dom */ "./node_modules/motion-dom/dist/es/animation/keyframes/utils/apply-px-defaults.mjs");
+/* harmony import */ var motion_dom__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! motion-dom */ "./node_modules/motion-dom/dist/es/animation/keyframes/utils/fill-wildcards.mjs");
+/* harmony import */ var motion_dom__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! motion-dom */ "./node_modules/motion-dom/dist/es/render/dom/style-computed.mjs");
+/* harmony import */ var motion_dom__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! motion-dom */ "./node_modules/motion-dom/dist/es/utils/resolve-elements.mjs");
+/* harmony import */ var motion_utils__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! motion-utils */ "./node_modules/motion-utils/dist/es/errors.mjs");
+/* harmony import */ var motion_utils__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! motion-utils */ "./node_modules/motion-utils/dist/es/time-conversion.mjs");
+
+
+
+function animateElements(elementOrSelector, keyframes, options, scope) {
+    // Gracefully handle null/undefined elements (e.g., from querySelector returning null)
+    if (elementOrSelector == null) {
+        return [];
+    }
+    const elements = (0,motion_dom__WEBPACK_IMPORTED_MODULE_6__.resolveElements)(elementOrSelector, scope);
+    const numElements = elements.length;
+    (0,motion_utils__WEBPACK_IMPORTED_MODULE_7__.invariant)(Boolean(numElements), "No valid elements provided.", "no-valid-elements");
+    /**
+     * WAAPI doesn't support interrupting animations.
+     *
+     * Therefore, starting animations requires a three-step process:
+     * 1. Stop existing animations (write styles to DOM)
+     * 2. Resolve keyframes (read styles from DOM)
+     * 3. Create new animations (write styles to DOM)
+     *
+     * The hybrid `animate()` function uses AsyncAnimation to resolve
+     * keyframes before creating new animations, which removes style
+     * thrashing. Here, we have much stricter filesize constraints.
+     * Therefore we do this in a synchronous way that ensures that
+     * at least within `animate()` calls there is no style thrashing.
+     *
+     * In the motion-native-animate-mini-interrupt benchmark this
+     * was 80% faster than a single loop.
+     */
+    const animationDefinitions = [];
+    /**
+     * Step 1: Build options and stop existing animations (write)
+     */
+    for (let i = 0; i < numElements; i++) {
+        const element = elements[i];
+        const elementTransition = { ...options };
+        /**
+         * Resolve stagger function if provided.
+         */
+        if (typeof elementTransition.delay === "function") {
+            elementTransition.delay = elementTransition.delay(i, numElements);
+        }
+        for (const valueName in keyframes) {
+            let valueKeyframes = keyframes[valueName];
+            if (!Array.isArray(valueKeyframes)) {
+                valueKeyframes = [valueKeyframes];
+            }
+            const valueOptions = {
+                ...(0,motion_dom__WEBPACK_IMPORTED_MODULE_2__.getValueTransition)(elementTransition, valueName),
+            };
+            valueOptions.duration && (valueOptions.duration = (0,motion_utils__WEBPACK_IMPORTED_MODULE_8__.secondsToMilliseconds)(valueOptions.duration));
+            valueOptions.delay && (valueOptions.delay = (0,motion_utils__WEBPACK_IMPORTED_MODULE_8__.secondsToMilliseconds)(valueOptions.delay));
+            /**
+             * If there's an existing animation playing on this element then stop it
+             * before creating a new one.
+             */
+            const map = (0,motion_dom__WEBPACK_IMPORTED_MODULE_1__.getAnimationMap)(element);
+            const key = (0,motion_dom__WEBPACK_IMPORTED_MODULE_1__.animationMapKey)(valueName, valueOptions.pseudoElement || "");
+            const currentAnimation = map.get(key);
+            currentAnimation && currentAnimation.stop();
+            animationDefinitions.push({
+                map,
+                key,
+                unresolvedKeyframes: valueKeyframes,
+                options: {
+                    ...valueOptions,
+                    element,
+                    name: valueName,
+                    allowFlatten: !elementTransition.type && !elementTransition.ease,
+                },
+            });
+        }
+    }
+    /**
+     * Step 2: Resolve keyframes (read)
+     */
+    for (let i = 0; i < animationDefinitions.length; i++) {
+        const { unresolvedKeyframes, options: animationOptions } = animationDefinitions[i];
+        const { element, name, pseudoElement } = animationOptions;
+        if (!pseudoElement && unresolvedKeyframes[0] === null) {
+            unresolvedKeyframes[0] = (0,motion_dom__WEBPACK_IMPORTED_MODULE_5__.getComputedStyle)(element, name);
+        }
+        (0,motion_dom__WEBPACK_IMPORTED_MODULE_4__.fillWildcards)(unresolvedKeyframes);
+        (0,motion_dom__WEBPACK_IMPORTED_MODULE_3__.applyPxDefaults)(unresolvedKeyframes, name);
+        /**
+         * If we only have one keyframe, explicitly read the initial keyframe
+         * from the computed style. This is to ensure consistency with WAAPI behaviour
+         * for restarting animations, for instance .play() after finish, when it
+         * has one vs two keyframes.
+         */
+        if (!pseudoElement && unresolvedKeyframes.length < 2) {
+            unresolvedKeyframes.unshift((0,motion_dom__WEBPACK_IMPORTED_MODULE_5__.getComputedStyle)(element, name));
+        }
+        animationOptions.keyframes = unresolvedKeyframes;
+    }
+    /**
+     * Step 3: Create new animations (write)
+     */
+    const animations = [];
+    for (let i = 0; i < animationDefinitions.length; i++) {
+        const { map, key, options: animationOptions } = animationDefinitions[i];
+        const animation = new motion_dom__WEBPACK_IMPORTED_MODULE_0__.NativeAnimation(animationOptions);
+        map.set(key, animation);
+        animation.finished.finally(() => map.delete(key));
+        animations.push(animation);
+    }
+    return animations;
+}
+
+
+//# sourceMappingURL=animate-elements.mjs.map
+
+
+/***/ },
+
+/***/ "./node_modules/framer-motion/dist/es/animation/animators/waapi/animate-style.mjs"
+/*!****************************************************************************************!*\
+  !*** ./node_modules/framer-motion/dist/es/animation/animators/waapi/animate-style.mjs ***!
+  \****************************************************************************************/
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   animateMini: () => (/* binding */ animateMini),
+/* harmony export */   createScopedWaapiAnimate: () => (/* binding */ createScopedWaapiAnimate)
+/* harmony export */ });
+/* harmony import */ var motion_dom__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! motion-dom */ "./node_modules/motion-dom/dist/es/animation/GroupAnimationWithThen.mjs");
+/* harmony import */ var _animate_elements_mjs__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./animate-elements.mjs */ "./node_modules/framer-motion/dist/es/animation/animators/waapi/animate-elements.mjs");
+
+
+
+const createScopedWaapiAnimate = (scope) => {
+    function scopedAnimate(elementOrSelector, keyframes, options) {
+        return new motion_dom__WEBPACK_IMPORTED_MODULE_0__.GroupAnimationWithThen((0,_animate_elements_mjs__WEBPACK_IMPORTED_MODULE_1__.animateElements)(elementOrSelector, keyframes, options, scope));
+    }
+    return scopedAnimate;
+};
+const animateMini = /*@__PURE__*/ createScopedWaapiAnimate();
+
+
+//# sourceMappingURL=animate-style.mjs.map
+
+
+/***/ },
+
+/***/ "./node_modules/motion-dom/dist/es/animation/GroupAnimation.mjs"
+/*!**********************************************************************!*\
+  !*** ./node_modules/motion-dom/dist/es/animation/GroupAnimation.mjs ***!
+  \**********************************************************************/
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   GroupAnimation: () => (/* binding */ GroupAnimation)
+/* harmony export */ });
+class GroupAnimation {
+    constructor(animations) {
+        // Bound to accomadate common `return animation.stop` pattern
+        this.stop = () => this.runAll("stop");
+        this.animations = animations.filter(Boolean);
+    }
+    get finished() {
+        return Promise.all(this.animations.map((animation) => animation.finished));
+    }
+    /**
+     * TODO: Filter out cancelled or stopped animations before returning
+     */
+    getAll(propName) {
+        return this.animations[0][propName];
+    }
+    setAll(propName, newValue) {
+        for (let i = 0; i < this.animations.length; i++) {
+            this.animations[i][propName] = newValue;
+        }
+    }
+    attachTimeline(timeline) {
+        const subscriptions = this.animations.map((animation) => animation.attachTimeline(timeline));
+        return () => {
+            subscriptions.forEach((cancel, i) => {
+                cancel && cancel();
+                this.animations[i].stop();
+            });
+        };
+    }
+    get time() {
+        return this.getAll("time");
+    }
+    set time(time) {
+        this.setAll("time", time);
+    }
+    get speed() {
+        return this.getAll("speed");
+    }
+    set speed(speed) {
+        this.setAll("speed", speed);
+    }
+    get state() {
+        return this.getAll("state");
+    }
+    get startTime() {
+        return this.getAll("startTime");
+    }
+    get duration() {
+        return getMax(this.animations, "duration");
+    }
+    get iterationDuration() {
+        return getMax(this.animations, "iterationDuration");
+    }
+    runAll(methodName) {
+        this.animations.forEach((controls) => controls[methodName]());
+    }
+    play() {
+        this.runAll("play");
+    }
+    pause() {
+        this.runAll("pause");
+    }
+    cancel() {
+        this.runAll("cancel");
+    }
+    complete() {
+        this.runAll("complete");
+    }
+}
+function getMax(animations, propName) {
+    let max = 0;
+    for (let i = 0; i < animations.length; i++) {
+        const value = animations[i][propName];
+        if (value !== null && value > max) {
+            max = value;
+        }
+    }
+    return max;
+}
+
+
+//# sourceMappingURL=GroupAnimation.mjs.map
+
+
+/***/ },
+
+/***/ "./node_modules/motion-dom/dist/es/animation/GroupAnimationWithThen.mjs"
+/*!******************************************************************************!*\
+  !*** ./node_modules/motion-dom/dist/es/animation/GroupAnimationWithThen.mjs ***!
+  \******************************************************************************/
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   GroupAnimationWithThen: () => (/* binding */ GroupAnimationWithThen)
+/* harmony export */ });
+/* harmony import */ var _GroupAnimation_mjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./GroupAnimation.mjs */ "./node_modules/motion-dom/dist/es/animation/GroupAnimation.mjs");
+
+
+class GroupAnimationWithThen extends _GroupAnimation_mjs__WEBPACK_IMPORTED_MODULE_0__.GroupAnimation {
+    then(onResolve, _onReject) {
+        return this.finished.finally(onResolve).then(() => { });
+    }
+}
+
+
+//# sourceMappingURL=GroupAnimationWithThen.mjs.map
+
+
+/***/ },
+
+/***/ "./node_modules/motion-dom/dist/es/animation/NativeAnimation.mjs"
+/*!***********************************************************************!*\
+  !*** ./node_modules/motion-dom/dist/es/animation/NativeAnimation.mjs ***!
+  \***********************************************************************/
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   NativeAnimation: () => (/* binding */ NativeAnimation)
+/* harmony export */ });
+/* harmony import */ var motion_utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! motion-utils */ "./node_modules/motion-utils/dist/es/errors.mjs");
+/* harmony import */ var motion_utils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! motion-utils */ "./node_modules/motion-utils/dist/es/noop.mjs");
+/* harmony import */ var motion_utils__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! motion-utils */ "./node_modules/motion-utils/dist/es/time-conversion.mjs");
+/* harmony import */ var _render_dom_style_set_mjs__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../render/dom/style-set.mjs */ "./node_modules/motion-dom/dist/es/render/dom/style-set.mjs");
+/* harmony import */ var _utils_supports_scroll_timeline_mjs__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../utils/supports/scroll-timeline.mjs */ "./node_modules/motion-dom/dist/es/utils/supports/scroll-timeline.mjs");
+/* harmony import */ var _keyframes_get_final_mjs__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./keyframes/get-final.mjs */ "./node_modules/motion-dom/dist/es/animation/keyframes/get-final.mjs");
+/* harmony import */ var _utils_WithPromise_mjs__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./utils/WithPromise.mjs */ "./node_modules/motion-dom/dist/es/animation/utils/WithPromise.mjs");
+/* harmony import */ var _waapi_start_waapi_animation_mjs__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./waapi/start-waapi-animation.mjs */ "./node_modules/motion-dom/dist/es/animation/waapi/start-waapi-animation.mjs");
+/* harmony import */ var _waapi_utils_apply_generator_mjs__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./waapi/utils/apply-generator.mjs */ "./node_modules/motion-dom/dist/es/animation/waapi/utils/apply-generator.mjs");
+
+
+
+
+
+
+
+
+/**
+ * NativeAnimation implements AnimationPlaybackControls for the browser's Web Animations API.
+ */
+class NativeAnimation extends _utils_WithPromise_mjs__WEBPACK_IMPORTED_MODULE_6__.WithPromise {
+    constructor(options) {
+        super();
+        this.finishedTime = null;
+        this.isStopped = false;
+        /**
+         * Tracks a manually-set start time that takes precedence over WAAPI's
+         * dynamic startTime. This is cleared when play() or time setter is called,
+         * allowing WAAPI to take over timing.
+         */
+        this.manualStartTime = null;
+        if (!options)
+            return;
+        const { element, name, keyframes, pseudoElement, allowFlatten = false, finalKeyframe, onComplete, } = options;
+        this.isPseudoElement = Boolean(pseudoElement);
+        this.allowFlatten = allowFlatten;
+        this.options = options;
+        (0,motion_utils__WEBPACK_IMPORTED_MODULE_0__.invariant)(typeof options.type !== "string", `Mini animate() doesn't support "type" as a string.`, "mini-spring");
+        const transition = (0,_waapi_utils_apply_generator_mjs__WEBPACK_IMPORTED_MODULE_8__.applyGeneratorOptions)(options);
+        this.animation = (0,_waapi_start_waapi_animation_mjs__WEBPACK_IMPORTED_MODULE_7__.startWaapiAnimation)(element, name, keyframes, transition, pseudoElement);
+        if (transition.autoplay === false) {
+            this.animation.pause();
+        }
+        this.animation.onfinish = () => {
+            this.finishedTime = this.time;
+            if (!pseudoElement) {
+                const keyframe = (0,_keyframes_get_final_mjs__WEBPACK_IMPORTED_MODULE_5__.getFinalKeyframe)(keyframes, this.options, finalKeyframe, this.speed);
+                if (this.updateMotionValue) {
+                    this.updateMotionValue(keyframe);
+                }
+                /**
+                 * If we can, we want to commit the final style as set by the user,
+                 * rather than the computed keyframe value supplied by the animation.
+                 * We always do this, even when a motion value is present, to prevent
+                 * a visual flash in Firefox where the WAAPI animation's fill is removed
+                 * during cancel() before the scheduled render can apply the correct value.
+                 */
+                (0,_render_dom_style_set_mjs__WEBPACK_IMPORTED_MODULE_3__.setStyle)(element, name, keyframe);
+                this.animation.cancel();
+            }
+            onComplete?.();
+            this.notifyFinished();
+        };
+    }
+    play() {
+        if (this.isStopped)
+            return;
+        this.manualStartTime = null;
+        this.animation.play();
+        if (this.state === "finished") {
+            this.updateFinished();
+        }
+    }
+    pause() {
+        this.animation.pause();
+    }
+    complete() {
+        this.animation.finish?.();
+    }
+    cancel() {
+        try {
+            this.animation.cancel();
+        }
+        catch (e) { }
+    }
+    stop() {
+        if (this.isStopped)
+            return;
+        this.isStopped = true;
+        const { state } = this;
+        if (state === "idle" || state === "finished") {
+            return;
+        }
+        if (this.updateMotionValue) {
+            this.updateMotionValue();
+        }
+        else {
+            this.commitStyles();
+        }
+        if (!this.isPseudoElement)
+            this.cancel();
+    }
+    /**
+     * WAAPI doesn't natively have any interruption capabilities.
+     *
+     * In this method, we commit styles back to the DOM before cancelling
+     * the animation.
+     *
+     * This is designed to be overridden by NativeAnimationExtended, which
+     * will create a renderless JS animation and sample it twice to calculate
+     * its current value, "previous" value, and therefore allow
+     * Motion to also correctly calculate velocity for any subsequent animation
+     * while deferring the commit until the next animation frame.
+     */
+    commitStyles() {
+        const element = this.options?.element;
+        if (!this.isPseudoElement && element?.isConnected) {
+            this.animation.commitStyles?.();
+        }
+    }
+    get duration() {
+        const duration = this.animation.effect?.getComputedTiming?.().duration || 0;
+        return (0,motion_utils__WEBPACK_IMPORTED_MODULE_2__.millisecondsToSeconds)(Number(duration));
+    }
+    get iterationDuration() {
+        const { delay = 0 } = this.options || {};
+        return this.duration + (0,motion_utils__WEBPACK_IMPORTED_MODULE_2__.millisecondsToSeconds)(delay);
+    }
+    get time() {
+        return (0,motion_utils__WEBPACK_IMPORTED_MODULE_2__.millisecondsToSeconds)(Number(this.animation.currentTime) || 0);
+    }
+    set time(newTime) {
+        const wasFinished = this.finishedTime !== null;
+        this.manualStartTime = null;
+        this.finishedTime = null;
+        this.animation.currentTime = (0,motion_utils__WEBPACK_IMPORTED_MODULE_2__.secondsToMilliseconds)(newTime);
+        if (wasFinished) {
+            this.animation.pause();
+        }
+    }
+    /**
+     * The playback speed of the animation.
+     * 1 = normal speed, 2 = double speed, 0.5 = half speed.
+     */
+    get speed() {
+        return this.animation.playbackRate;
+    }
+    set speed(newSpeed) {
+        // Allow backwards playback after finishing
+        if (newSpeed < 0)
+            this.finishedTime = null;
+        this.animation.playbackRate = newSpeed;
+    }
+    get state() {
+        return this.finishedTime !== null
+            ? "finished"
+            : this.animation.playState;
+    }
+    get startTime() {
+        return this.manualStartTime ?? Number(this.animation.startTime);
+    }
+    set startTime(newStartTime) {
+        this.manualStartTime = this.animation.startTime = newStartTime;
+    }
+    /**
+     * Attaches a timeline to the animation, for instance the `ScrollTimeline`.
+     */
+    attachTimeline({ timeline, rangeStart, rangeEnd, observe, }) {
+        if (this.allowFlatten) {
+            this.animation.effect?.updateTiming({ easing: "linear" });
+        }
+        this.animation.onfinish = null;
+        if (timeline && (0,_utils_supports_scroll_timeline_mjs__WEBPACK_IMPORTED_MODULE_4__.supportsScrollTimeline)()) {
+            this.animation.timeline = timeline;
+            if (rangeStart)
+                this.animation.rangeStart = rangeStart;
+            if (rangeEnd)
+                this.animation.rangeEnd = rangeEnd;
+            return motion_utils__WEBPACK_IMPORTED_MODULE_1__.noop;
+        }
+        else {
+            return observe(this);
+        }
+    }
+}
+
+
+//# sourceMappingURL=NativeAnimation.mjs.map
+
+
+/***/ },
+
+/***/ "./node_modules/motion-dom/dist/es/animation/generators/spring.mjs"
+/*!*************************************************************************!*\
+  !*** ./node_modules/motion-dom/dist/es/animation/generators/spring.mjs ***!
+  \*************************************************************************/
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   spring: () => (/* binding */ spring)
+/* harmony export */ });
+/* harmony import */ var motion_utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! motion-utils */ "./node_modules/motion-utils/dist/es/clamp.mjs");
+/* harmony import */ var motion_utils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! motion-utils */ "./node_modules/motion-utils/dist/es/errors.mjs");
+/* harmony import */ var motion_utils__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! motion-utils */ "./node_modules/motion-utils/dist/es/time-conversion.mjs");
+/* harmony import */ var _waapi_utils_linear_mjs__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../waapi/utils/linear.mjs */ "./node_modules/motion-dom/dist/es/animation/waapi/utils/linear.mjs");
+/* harmony import */ var _utils_calc_duration_mjs__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./utils/calc-duration.mjs */ "./node_modules/motion-dom/dist/es/animation/generators/utils/calc-duration.mjs");
+/* harmony import */ var _utils_create_generator_easing_mjs__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./utils/create-generator-easing.mjs */ "./node_modules/motion-dom/dist/es/animation/generators/utils/create-generator-easing.mjs");
+
+
+
+
+
+const springDefaults = {
+    // Default spring physics
+    stiffness: 100,
+    damping: 10,
+    mass: 1.0,
+    velocity: 0.0,
+    // Default duration/bounce-based options
+    duration: 800, // in ms
+    bounce: 0.3,
+    visualDuration: 0.3, // in seconds
+    // Rest thresholds
+    restSpeed: {
+        granular: 0.01,
+        default: 2,
+    },
+    restDelta: {
+        granular: 0.005,
+        default: 0.5,
+    },
+    // Limits
+    minDuration: 0.01, // in seconds
+    maxDuration: 10.0, // in seconds
+    minDamping: 0.05,
+    maxDamping: 1,
+};
+function calcAngularFreq(undampedFreq, dampingRatio) {
+    return undampedFreq * Math.sqrt(1 - dampingRatio * dampingRatio);
+}
+const rootIterations = 12;
+function approximateRoot(envelope, derivative, initialGuess) {
+    let result = initialGuess;
+    for (let i = 1; i < rootIterations; i++) {
+        result = result - envelope(result) / derivative(result);
+    }
+    return result;
+}
+/**
+ * This is ported from the Framer implementation of duration-based spring resolution.
+ */
+const safeMin = 0.001;
+function findSpring({ duration = springDefaults.duration, bounce = springDefaults.bounce, velocity = springDefaults.velocity, mass = springDefaults.mass, }) {
+    let envelope;
+    let derivative;
+    (0,motion_utils__WEBPACK_IMPORTED_MODULE_1__.warning)(duration <= (0,motion_utils__WEBPACK_IMPORTED_MODULE_2__.secondsToMilliseconds)(springDefaults.maxDuration), "Spring duration must be 10 seconds or less", "spring-duration-limit");
+    let dampingRatio = 1 - bounce;
+    /**
+     * Restrict dampingRatio and duration to within acceptable ranges.
+     */
+    dampingRatio = (0,motion_utils__WEBPACK_IMPORTED_MODULE_0__.clamp)(springDefaults.minDamping, springDefaults.maxDamping, dampingRatio);
+    duration = (0,motion_utils__WEBPACK_IMPORTED_MODULE_0__.clamp)(springDefaults.minDuration, springDefaults.maxDuration, (0,motion_utils__WEBPACK_IMPORTED_MODULE_2__.millisecondsToSeconds)(duration));
+    if (dampingRatio < 1) {
+        /**
+         * Underdamped spring
+         */
+        envelope = (undampedFreq) => {
+            const exponentialDecay = undampedFreq * dampingRatio;
+            const delta = exponentialDecay * duration;
+            const a = exponentialDecay - velocity;
+            const b = calcAngularFreq(undampedFreq, dampingRatio);
+            const c = Math.exp(-delta);
+            return safeMin - (a / b) * c;
+        };
+        derivative = (undampedFreq) => {
+            const exponentialDecay = undampedFreq * dampingRatio;
+            const delta = exponentialDecay * duration;
+            const d = delta * velocity + velocity;
+            const e = Math.pow(dampingRatio, 2) * Math.pow(undampedFreq, 2) * duration;
+            const f = Math.exp(-delta);
+            const g = calcAngularFreq(Math.pow(undampedFreq, 2), dampingRatio);
+            const factor = -envelope(undampedFreq) + safeMin > 0 ? -1 : 1;
+            return (factor * ((d - e) * f)) / g;
+        };
+    }
+    else {
+        /**
+         * Critically-damped spring
+         */
+        envelope = (undampedFreq) => {
+            const a = Math.exp(-undampedFreq * duration);
+            const b = (undampedFreq - velocity) * duration + 1;
+            return -safeMin + a * b;
+        };
+        derivative = (undampedFreq) => {
+            const a = Math.exp(-undampedFreq * duration);
+            const b = (velocity - undampedFreq) * (duration * duration);
+            return a * b;
+        };
+    }
+    const initialGuess = 5 / duration;
+    const undampedFreq = approximateRoot(envelope, derivative, initialGuess);
+    duration = (0,motion_utils__WEBPACK_IMPORTED_MODULE_2__.secondsToMilliseconds)(duration);
+    if (isNaN(undampedFreq)) {
+        return {
+            stiffness: springDefaults.stiffness,
+            damping: springDefaults.damping,
+            duration,
+        };
+    }
+    else {
+        const stiffness = Math.pow(undampedFreq, 2) * mass;
+        return {
+            stiffness,
+            damping: dampingRatio * 2 * Math.sqrt(mass * stiffness),
+            duration,
+        };
+    }
+}
+const durationKeys = ["duration", "bounce"];
+const physicsKeys = ["stiffness", "damping", "mass"];
+function isSpringType(options, keys) {
+    return keys.some((key) => options[key] !== undefined);
+}
+function getSpringOptions(options) {
+    let springOptions = {
+        velocity: springDefaults.velocity,
+        stiffness: springDefaults.stiffness,
+        damping: springDefaults.damping,
+        mass: springDefaults.mass,
+        isResolvedFromDuration: false,
+        ...options,
+    };
+    // stiffness/damping/mass overrides duration/bounce
+    if (!isSpringType(options, physicsKeys) &&
+        isSpringType(options, durationKeys)) {
+        // Time-defined springs should ignore inherited velocity.
+        // Velocity from interrupted animations can cause findSpring()
+        // to compute wildly different spring parameters, leading to
+        // massive oscillation on small-range animations.
+        springOptions.velocity = 0;
+        if (options.visualDuration) {
+            const visualDuration = options.visualDuration;
+            const root = (2 * Math.PI) / (visualDuration * 1.2);
+            const stiffness = root * root;
+            const damping = 2 *
+                (0,motion_utils__WEBPACK_IMPORTED_MODULE_0__.clamp)(0.05, 1, 1 - (options.bounce || 0)) *
+                Math.sqrt(stiffness);
+            springOptions = {
+                ...springOptions,
+                mass: springDefaults.mass,
+                stiffness,
+                damping,
+            };
+        }
+        else {
+            const derived = findSpring({ ...options, velocity: 0 });
+            springOptions = {
+                ...springOptions,
+                ...derived,
+                mass: springDefaults.mass,
+            };
+            springOptions.isResolvedFromDuration = true;
+        }
+    }
+    return springOptions;
+}
+function spring(optionsOrVisualDuration = springDefaults.visualDuration, bounce = springDefaults.bounce) {
+    const options = typeof optionsOrVisualDuration !== "object"
+        ? {
+            visualDuration: optionsOrVisualDuration,
+            keyframes: [0, 1],
+            bounce,
+        }
+        : optionsOrVisualDuration;
+    let { restSpeed, restDelta } = options;
+    const origin = options.keyframes[0];
+    const target = options.keyframes[options.keyframes.length - 1];
+    /**
+     * This is the Iterator-spec return value. We ensure it's mutable rather than using a generator
+     * to reduce GC during animation.
+     */
+    const state = { done: false, value: origin };
+    const { stiffness, damping, mass, duration, velocity, isResolvedFromDuration, } = getSpringOptions({
+        ...options,
+        velocity: -(0,motion_utils__WEBPACK_IMPORTED_MODULE_2__.millisecondsToSeconds)(options.velocity || 0),
+    });
+    const initialVelocity = velocity || 0.0;
+    const dampingRatio = damping / (2 * Math.sqrt(stiffness * mass));
+    const initialDelta = target - origin;
+    const undampedAngularFreq = (0,motion_utils__WEBPACK_IMPORTED_MODULE_2__.millisecondsToSeconds)(Math.sqrt(stiffness / mass));
+    /**
+     * If we're working on a granular scale, use smaller defaults for determining
+     * when the spring is finished.
+     *
+     * These defaults have been selected emprically based on what strikes a good
+     * ratio between feeling good and finishing as soon as changes are imperceptible.
+     */
+    const isGranularScale = Math.abs(initialDelta) < 5;
+    restSpeed || (restSpeed = isGranularScale
+        ? springDefaults.restSpeed.granular
+        : springDefaults.restSpeed.default);
+    restDelta || (restDelta = isGranularScale
+        ? springDefaults.restDelta.granular
+        : springDefaults.restDelta.default);
+    let resolveSpring;
+    let resolveVelocity;
+    // Underdamped coefficients, hoisted for use in the inlined next() hot path
+    let angularFreq;
+    let A;
+    let sinCoeff;
+    let cosCoeff;
+    if (dampingRatio < 1) {
+        angularFreq = calcAngularFreq(undampedAngularFreq, dampingRatio);
+        A =
+            (initialVelocity +
+                dampingRatio * undampedAngularFreq * initialDelta) /
+                angularFreq;
+        // Underdamped spring
+        resolveSpring = (t) => {
+            const envelope = Math.exp(-dampingRatio * undampedAngularFreq * t);
+            return (target -
+                envelope *
+                    (A * Math.sin(angularFreq * t) +
+                        initialDelta * Math.cos(angularFreq * t)));
+        };
+        // Analytical derivative of underdamped spring (px/ms)
+        sinCoeff =
+            dampingRatio * undampedAngularFreq * A + initialDelta * angularFreq;
+        cosCoeff =
+            dampingRatio * undampedAngularFreq * initialDelta - A * angularFreq;
+        resolveVelocity = (t) => {
+            const envelope = Math.exp(-dampingRatio * undampedAngularFreq * t);
+            return envelope *
+                (sinCoeff * Math.sin(angularFreq * t) +
+                    cosCoeff * Math.cos(angularFreq * t));
+        };
+    }
+    else if (dampingRatio === 1) {
+        // Critically damped spring
+        resolveSpring = (t) => target -
+            Math.exp(-undampedAngularFreq * t) *
+                (initialDelta +
+                    (initialVelocity + undampedAngularFreq * initialDelta) * t);
+        // Analytical derivative of critically damped spring (px/ms)
+        const C = initialVelocity + undampedAngularFreq * initialDelta;
+        resolveVelocity = (t) => Math.exp(-undampedAngularFreq * t) *
+            (undampedAngularFreq * C * t - initialVelocity);
+    }
+    else {
+        // Overdamped spring
+        const dampedAngularFreq = undampedAngularFreq * Math.sqrt(dampingRatio * dampingRatio - 1);
+        resolveSpring = (t) => {
+            const envelope = Math.exp(-dampingRatio * undampedAngularFreq * t);
+            // When performing sinh or cosh values can hit Infinity so we cap them here
+            const freqForT = Math.min(dampedAngularFreq * t, 300);
+            return (target -
+                (envelope *
+                    ((initialVelocity +
+                        dampingRatio * undampedAngularFreq * initialDelta) *
+                        Math.sinh(freqForT) +
+                        dampedAngularFreq *
+                            initialDelta *
+                            Math.cosh(freqForT))) /
+                    dampedAngularFreq);
+        };
+        // Analytical derivative of overdamped spring (px/ms)
+        const P = (initialVelocity +
+            dampingRatio * undampedAngularFreq * initialDelta) /
+            dampedAngularFreq;
+        const sinhCoeff = dampingRatio * undampedAngularFreq * P - initialDelta * dampedAngularFreq;
+        const coshCoeff = dampingRatio * undampedAngularFreq * initialDelta - P * dampedAngularFreq;
+        resolveVelocity = (t) => {
+            const envelope = Math.exp(-dampingRatio * undampedAngularFreq * t);
+            const freqForT = Math.min(dampedAngularFreq * t, 300);
+            return envelope *
+                (sinhCoeff * Math.sinh(freqForT) +
+                    coshCoeff * Math.cosh(freqForT));
+        };
+    }
+    const generator = {
+        calculatedDuration: isResolvedFromDuration ? duration || null : null,
+        velocity: (t) => (0,motion_utils__WEBPACK_IMPORTED_MODULE_2__.secondsToMilliseconds)(resolveVelocity(t)),
+        next: (t) => {
+            /**
+             * For underdamped physics springs we need both position and
+             * velocity each tick. Compute shared trig values once to avoid
+             * duplicate Math.exp/sin/cos calls on the hot path.
+             */
+            if (!isResolvedFromDuration && dampingRatio < 1) {
+                const envelope = Math.exp(-dampingRatio * undampedAngularFreq * t);
+                const sin = Math.sin(angularFreq * t);
+                const cos = Math.cos(angularFreq * t);
+                const current = target -
+                    envelope *
+                        (A * sin + initialDelta * cos);
+                const currentVelocity = (0,motion_utils__WEBPACK_IMPORTED_MODULE_2__.secondsToMilliseconds)(envelope *
+                    (sinCoeff * sin + cosCoeff * cos));
+                state.done =
+                    Math.abs(currentVelocity) <= restSpeed &&
+                        Math.abs(target - current) <= restDelta;
+                state.value = state.done ? target : current;
+                return state;
+            }
+            const current = resolveSpring(t);
+            if (!isResolvedFromDuration) {
+                const currentVelocity = (0,motion_utils__WEBPACK_IMPORTED_MODULE_2__.secondsToMilliseconds)(resolveVelocity(t));
+                state.done =
+                    Math.abs(currentVelocity) <= restSpeed &&
+                        Math.abs(target - current) <= restDelta;
+            }
+            else {
+                state.done = t >= duration;
+            }
+            state.value = state.done ? target : current;
+            return state;
+        },
+        toString: () => {
+            const calculatedDuration = Math.min((0,_utils_calc_duration_mjs__WEBPACK_IMPORTED_MODULE_4__.calcGeneratorDuration)(generator), _utils_calc_duration_mjs__WEBPACK_IMPORTED_MODULE_4__.maxGeneratorDuration);
+            const easing = (0,_waapi_utils_linear_mjs__WEBPACK_IMPORTED_MODULE_3__.generateLinearEasing)((progress) => generator.next(calculatedDuration * progress).value, calculatedDuration, 30);
+            return calculatedDuration + "ms " + easing;
+        },
+        toTransition: () => { },
+    };
+    return generator;
+}
+spring.applyToOptions = (options) => {
+    const generatorOptions = (0,_utils_create_generator_easing_mjs__WEBPACK_IMPORTED_MODULE_5__.createGeneratorEasing)(options, 100, spring);
+    options.ease = generatorOptions.ease;
+    options.duration = (0,motion_utils__WEBPACK_IMPORTED_MODULE_2__.secondsToMilliseconds)(generatorOptions.duration);
+    options.type = "keyframes";
+    return options;
+};
+
+
+//# sourceMappingURL=spring.mjs.map
+
+
+/***/ },
+
+/***/ "./node_modules/motion-dom/dist/es/animation/generators/utils/calc-duration.mjs"
+/*!**************************************************************************************!*\
+  !*** ./node_modules/motion-dom/dist/es/animation/generators/utils/calc-duration.mjs ***!
+  \**************************************************************************************/
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   calcGeneratorDuration: () => (/* binding */ calcGeneratorDuration),
+/* harmony export */   maxGeneratorDuration: () => (/* binding */ maxGeneratorDuration)
+/* harmony export */ });
+/**
+ * Implement a practical max duration for keyframe generation
+ * to prevent infinite loops
+ */
+const maxGeneratorDuration = 20000;
+function calcGeneratorDuration(generator) {
+    let duration = 0;
+    const timeStep = 50;
+    let state = generator.next(duration);
+    while (!state.done && duration < maxGeneratorDuration) {
+        duration += timeStep;
+        state = generator.next(duration);
+    }
+    return duration >= maxGeneratorDuration ? Infinity : duration;
+}
+
+
+//# sourceMappingURL=calc-duration.mjs.map
+
+
+/***/ },
+
+/***/ "./node_modules/motion-dom/dist/es/animation/generators/utils/create-generator-easing.mjs"
+/*!************************************************************************************************!*\
+  !*** ./node_modules/motion-dom/dist/es/animation/generators/utils/create-generator-easing.mjs ***!
+  \************************************************************************************************/
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   createGeneratorEasing: () => (/* binding */ createGeneratorEasing)
+/* harmony export */ });
+/* harmony import */ var motion_utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! motion-utils */ "./node_modules/motion-utils/dist/es/time-conversion.mjs");
+/* harmony import */ var _calc_duration_mjs__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./calc-duration.mjs */ "./node_modules/motion-dom/dist/es/animation/generators/utils/calc-duration.mjs");
+
+
+
+/**
+ * Create a progress => progress easing function from a generator.
+ */
+function createGeneratorEasing(options, scale = 100, createGenerator) {
+    const generator = createGenerator({ ...options, keyframes: [0, scale] });
+    const duration = Math.min((0,_calc_duration_mjs__WEBPACK_IMPORTED_MODULE_1__.calcGeneratorDuration)(generator), _calc_duration_mjs__WEBPACK_IMPORTED_MODULE_1__.maxGeneratorDuration);
+    return {
+        type: "keyframes",
+        ease: (progress) => {
+            return generator.next(duration * progress).value / scale;
+        },
+        duration: (0,motion_utils__WEBPACK_IMPORTED_MODULE_0__.millisecondsToSeconds)(duration),
+    };
+}
+
+
+//# sourceMappingURL=create-generator-easing.mjs.map
+
+
+/***/ },
+
+/***/ "./node_modules/motion-dom/dist/es/animation/generators/utils/is-generator.mjs"
+/*!*************************************************************************************!*\
+  !*** ./node_modules/motion-dom/dist/es/animation/generators/utils/is-generator.mjs ***!
+  \*************************************************************************************/
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   isGenerator: () => (/* binding */ isGenerator)
+/* harmony export */ });
+function isGenerator(type) {
+    return typeof type === "function" && "applyToOptions" in type;
+}
+
+
+//# sourceMappingURL=is-generator.mjs.map
+
+
+/***/ },
+
+/***/ "./node_modules/motion-dom/dist/es/animation/keyframes/get-final.mjs"
+/*!***************************************************************************!*\
+  !*** ./node_modules/motion-dom/dist/es/animation/keyframes/get-final.mjs ***!
+  \***************************************************************************/
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   getFinalKeyframe: () => (/* binding */ getFinalKeyframe)
+/* harmony export */ });
+const isNotNull = (value) => value !== null;
+function getFinalKeyframe(keyframes, { repeat, repeatType = "loop" }, finalKeyframe, speed = 1) {
+    const resolvedKeyframes = keyframes.filter(isNotNull);
+    const useFirstKeyframe = speed < 0 || (repeat && repeatType !== "loop" && repeat % 2 === 1);
+    const index = useFirstKeyframe ? 0 : resolvedKeyframes.length - 1;
+    return !index || finalKeyframe === undefined
+        ? resolvedKeyframes[index]
+        : finalKeyframe;
+}
+
+
+//# sourceMappingURL=get-final.mjs.map
+
+
+/***/ },
+
+/***/ "./node_modules/motion-dom/dist/es/animation/keyframes/utils/apply-px-defaults.mjs"
+/*!*****************************************************************************************!*\
+  !*** ./node_modules/motion-dom/dist/es/animation/keyframes/utils/apply-px-defaults.mjs ***!
+  \*****************************************************************************************/
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   applyPxDefaults: () => (/* binding */ applyPxDefaults)
+/* harmony export */ });
+/* harmony import */ var _waapi_utils_px_values_mjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../waapi/utils/px-values.mjs */ "./node_modules/motion-dom/dist/es/animation/waapi/utils/px-values.mjs");
+
+
+function applyPxDefaults(keyframes, name) {
+    for (let i = 0; i < keyframes.length; i++) {
+        if (typeof keyframes[i] === "number" && _waapi_utils_px_values_mjs__WEBPACK_IMPORTED_MODULE_0__.pxValues.has(name)) {
+            keyframes[i] = keyframes[i] + "px";
+        }
+    }
+}
+
+
+//# sourceMappingURL=apply-px-defaults.mjs.map
+
+
+/***/ },
+
+/***/ "./node_modules/motion-dom/dist/es/animation/keyframes/utils/fill-wildcards.mjs"
+/*!**************************************************************************************!*\
+  !*** ./node_modules/motion-dom/dist/es/animation/keyframes/utils/fill-wildcards.mjs ***!
+  \**************************************************************************************/
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   fillWildcards: () => (/* binding */ fillWildcards)
+/* harmony export */ });
+function fillWildcards(keyframes) {
+    for (let i = 1; i < keyframes.length; i++) {
+        keyframes[i] ?? (keyframes[i] = keyframes[i - 1]);
+    }
+}
+
+
+//# sourceMappingURL=fill-wildcards.mjs.map
+
+
+/***/ },
+
+/***/ "./node_modules/motion-dom/dist/es/animation/utils/WithPromise.mjs"
+/*!*************************************************************************!*\
+  !*** ./node_modules/motion-dom/dist/es/animation/utils/WithPromise.mjs ***!
+  \*************************************************************************/
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   WithPromise: () => (/* binding */ WithPromise)
+/* harmony export */ });
+class WithPromise {
+    constructor() {
+        this.updateFinished();
+    }
+    get finished() {
+        return this._finished;
+    }
+    updateFinished() {
+        this._finished = new Promise((resolve) => {
+            this.resolve = resolve;
+        });
+    }
+    notifyFinished() {
+        this.resolve();
+    }
+    /**
+     * Allows the animation to be awaited.
+     *
+     * @deprecated Use `finished` instead.
+     */
+    then(onResolve, onReject) {
+        return this.finished.then(onResolve, onReject);
+    }
+}
+
+
+//# sourceMappingURL=WithPromise.mjs.map
+
+
+/***/ },
+
+/***/ "./node_modules/motion-dom/dist/es/animation/utils/active-animations.mjs"
+/*!*******************************************************************************!*\
+  !*** ./node_modules/motion-dom/dist/es/animation/utils/active-animations.mjs ***!
+  \*******************************************************************************/
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   animationMapKey: () => (/* binding */ animationMapKey),
+/* harmony export */   getAnimationMap: () => (/* binding */ getAnimationMap)
+/* harmony export */ });
+const animationMaps = new WeakMap();
+const animationMapKey = (name, pseudoElement = "") => `${name}:${pseudoElement}`;
+function getAnimationMap(element) {
+    let map = animationMaps.get(element);
+    if (!map) {
+        map = new Map();
+        animationMaps.set(element, map);
+    }
+    return map;
+}
+
+
+//# sourceMappingURL=active-animations.mjs.map
+
+
+/***/ },
+
+/***/ "./node_modules/motion-dom/dist/es/animation/utils/get-value-transition.mjs"
+/*!**********************************************************************************!*\
+  !*** ./node_modules/motion-dom/dist/es/animation/utils/get-value-transition.mjs ***!
+  \**********************************************************************************/
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   getValueTransition: () => (/* binding */ getValueTransition)
+/* harmony export */ });
+/* harmony import */ var _resolve_transition_mjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./resolve-transition.mjs */ "./node_modules/motion-dom/dist/es/animation/utils/resolve-transition.mjs");
+
+
+function getValueTransition(transition, key) {
+    const valueTransition = transition?.[key] ??
+        transition?.["default"] ??
+        transition;
+    if (valueTransition !== transition) {
+        return (0,_resolve_transition_mjs__WEBPACK_IMPORTED_MODULE_0__.resolveTransition)(valueTransition, transition);
+    }
+    return valueTransition;
+}
+
+
+//# sourceMappingURL=get-value-transition.mjs.map
+
+
+/***/ },
+
+/***/ "./node_modules/motion-dom/dist/es/animation/utils/resolve-transition.mjs"
+/*!********************************************************************************!*\
+  !*** ./node_modules/motion-dom/dist/es/animation/utils/resolve-transition.mjs ***!
+  \********************************************************************************/
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   resolveTransition: () => (/* binding */ resolveTransition)
+/* harmony export */ });
+/**
+ * If `transition` has `inherit: true`, shallow-merge it with
+ * `parentTransition` (child keys win) and strip the `inherit` key.
+ * Otherwise return `transition` unchanged.
+ */
+function resolveTransition(transition, parentTransition) {
+    if (transition?.inherit && parentTransition) {
+        const { inherit: _, ...rest } = transition;
+        return { ...parentTransition, ...rest };
+    }
+    return transition;
+}
+
+
+//# sourceMappingURL=resolve-transition.mjs.map
+
+
+/***/ },
+
+/***/ "./node_modules/motion-dom/dist/es/animation/waapi/easing/cubic-bezier.mjs"
+/*!*********************************************************************************!*\
+  !*** ./node_modules/motion-dom/dist/es/animation/waapi/easing/cubic-bezier.mjs ***!
+  \*********************************************************************************/
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   cubicBezierAsString: () => (/* binding */ cubicBezierAsString)
+/* harmony export */ });
+const cubicBezierAsString = ([a, b, c, d]) => `cubic-bezier(${a}, ${b}, ${c}, ${d})`;
+
+
+//# sourceMappingURL=cubic-bezier.mjs.map
+
+
+/***/ },
+
+/***/ "./node_modules/motion-dom/dist/es/animation/waapi/easing/map-easing.mjs"
+/*!*******************************************************************************!*\
+  !*** ./node_modules/motion-dom/dist/es/animation/waapi/easing/map-easing.mjs ***!
+  \*******************************************************************************/
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   mapEasingToNativeEasing: () => (/* binding */ mapEasingToNativeEasing)
+/* harmony export */ });
+/* harmony import */ var motion_utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! motion-utils */ "./node_modules/motion-utils/dist/es/easing/utils/is-bezier-definition.mjs");
+/* harmony import */ var _utils_supports_linear_easing_mjs__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../utils/supports/linear-easing.mjs */ "./node_modules/motion-dom/dist/es/utils/supports/linear-easing.mjs");
+/* harmony import */ var _utils_linear_mjs__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../utils/linear.mjs */ "./node_modules/motion-dom/dist/es/animation/waapi/utils/linear.mjs");
+/* harmony import */ var _cubic_bezier_mjs__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./cubic-bezier.mjs */ "./node_modules/motion-dom/dist/es/animation/waapi/easing/cubic-bezier.mjs");
+/* harmony import */ var _supported_mjs__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./supported.mjs */ "./node_modules/motion-dom/dist/es/animation/waapi/easing/supported.mjs");
+
+
+
+
+
+
+function mapEasingToNativeEasing(easing, duration) {
+    if (!easing) {
+        return undefined;
+    }
+    else if (typeof easing === "function") {
+        return (0,_utils_supports_linear_easing_mjs__WEBPACK_IMPORTED_MODULE_1__.supportsLinearEasing)()
+            ? (0,_utils_linear_mjs__WEBPACK_IMPORTED_MODULE_2__.generateLinearEasing)(easing, duration)
+            : "ease-out";
+    }
+    else if ((0,motion_utils__WEBPACK_IMPORTED_MODULE_0__.isBezierDefinition)(easing)) {
+        return (0,_cubic_bezier_mjs__WEBPACK_IMPORTED_MODULE_3__.cubicBezierAsString)(easing);
+    }
+    else if (Array.isArray(easing)) {
+        return easing.map((segmentEasing) => mapEasingToNativeEasing(segmentEasing, duration) ||
+            _supported_mjs__WEBPACK_IMPORTED_MODULE_4__.supportedWaapiEasing.easeOut);
+    }
+    else {
+        return _supported_mjs__WEBPACK_IMPORTED_MODULE_4__.supportedWaapiEasing[easing];
+    }
+}
+
+
+//# sourceMappingURL=map-easing.mjs.map
+
+
+/***/ },
+
+/***/ "./node_modules/motion-dom/dist/es/animation/waapi/easing/supported.mjs"
+/*!******************************************************************************!*\
+  !*** ./node_modules/motion-dom/dist/es/animation/waapi/easing/supported.mjs ***!
+  \******************************************************************************/
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   supportedWaapiEasing: () => (/* binding */ supportedWaapiEasing)
+/* harmony export */ });
+/* harmony import */ var _cubic_bezier_mjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./cubic-bezier.mjs */ "./node_modules/motion-dom/dist/es/animation/waapi/easing/cubic-bezier.mjs");
+
+
+const supportedWaapiEasing = {
+    linear: "linear",
+    ease: "ease",
+    easeIn: "ease-in",
+    easeOut: "ease-out",
+    easeInOut: "ease-in-out",
+    circIn: /*@__PURE__*/ (0,_cubic_bezier_mjs__WEBPACK_IMPORTED_MODULE_0__.cubicBezierAsString)([0, 0.65, 0.55, 1]),
+    circOut: /*@__PURE__*/ (0,_cubic_bezier_mjs__WEBPACK_IMPORTED_MODULE_0__.cubicBezierAsString)([0.55, 0, 1, 0.45]),
+    backIn: /*@__PURE__*/ (0,_cubic_bezier_mjs__WEBPACK_IMPORTED_MODULE_0__.cubicBezierAsString)([0.31, 0.01, 0.66, -0.59]),
+    backOut: /*@__PURE__*/ (0,_cubic_bezier_mjs__WEBPACK_IMPORTED_MODULE_0__.cubicBezierAsString)([0.33, 1.53, 0.69, 0.99]),
+};
+
+
+//# sourceMappingURL=supported.mjs.map
+
+
+/***/ },
+
+/***/ "./node_modules/motion-dom/dist/es/animation/waapi/start-waapi-animation.mjs"
+/*!***********************************************************************************!*\
+  !*** ./node_modules/motion-dom/dist/es/animation/waapi/start-waapi-animation.mjs ***!
+  \***********************************************************************************/
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   startWaapiAnimation: () => (/* binding */ startWaapiAnimation)
+/* harmony export */ });
+/* harmony import */ var _easing_map_easing_mjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./easing/map-easing.mjs */ "./node_modules/motion-dom/dist/es/animation/waapi/easing/map-easing.mjs");
+
+
+function startWaapiAnimation(element, valueName, keyframes, { delay = 0, duration = 300, repeat = 0, repeatType = "loop", ease = "easeOut", times, } = {}, pseudoElement = undefined) {
+    const keyframeOptions = {
+        [valueName]: keyframes,
+    };
+    if (times)
+        keyframeOptions.offset = times;
+    const easing = (0,_easing_map_easing_mjs__WEBPACK_IMPORTED_MODULE_0__.mapEasingToNativeEasing)(ease, duration);
+    /**
+     * If this is an easing array, apply to keyframes, not animation as a whole
+     */
+    if (Array.isArray(easing))
+        keyframeOptions.easing = easing;
+    const options = {
+        delay,
+        duration,
+        easing: !Array.isArray(easing) ? easing : "linear",
+        fill: "both",
+        iterations: repeat + 1,
+        direction: repeatType === "reverse" ? "alternate" : "normal",
+    };
+    if (pseudoElement)
+        options.pseudoElement = pseudoElement;
+    return element.animate(keyframeOptions, options);
+}
+
+
+//# sourceMappingURL=start-waapi-animation.mjs.map
+
+
+/***/ },
+
+/***/ "./node_modules/motion-dom/dist/es/animation/waapi/utils/apply-generator.mjs"
+/*!***********************************************************************************!*\
+  !*** ./node_modules/motion-dom/dist/es/animation/waapi/utils/apply-generator.mjs ***!
+  \***********************************************************************************/
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   applyGeneratorOptions: () => (/* binding */ applyGeneratorOptions)
+/* harmony export */ });
+/* harmony import */ var _utils_supports_linear_easing_mjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../utils/supports/linear-easing.mjs */ "./node_modules/motion-dom/dist/es/utils/supports/linear-easing.mjs");
+/* harmony import */ var _generators_utils_is_generator_mjs__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../generators/utils/is-generator.mjs */ "./node_modules/motion-dom/dist/es/animation/generators/utils/is-generator.mjs");
+
+
+
+function applyGeneratorOptions({ type, ...options }) {
+    if ((0,_generators_utils_is_generator_mjs__WEBPACK_IMPORTED_MODULE_1__.isGenerator)(type) && (0,_utils_supports_linear_easing_mjs__WEBPACK_IMPORTED_MODULE_0__.supportsLinearEasing)()) {
+        return type.applyToOptions(options);
+    }
+    else {
+        options.duration ?? (options.duration = 300);
+        options.ease ?? (options.ease = "easeOut");
+    }
+    return options;
+}
+
+
+//# sourceMappingURL=apply-generator.mjs.map
+
+
+/***/ },
+
+/***/ "./node_modules/motion-dom/dist/es/animation/waapi/utils/linear.mjs"
+/*!**************************************************************************!*\
+  !*** ./node_modules/motion-dom/dist/es/animation/waapi/utils/linear.mjs ***!
+  \**************************************************************************/
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   generateLinearEasing: () => (/* binding */ generateLinearEasing)
+/* harmony export */ });
+const generateLinearEasing = (easing, duration, // as milliseconds
+resolution = 10 // as milliseconds
+) => {
+    let points = "";
+    const numPoints = Math.max(Math.round(duration / resolution), 2);
+    for (let i = 0; i < numPoints; i++) {
+        points += Math.round(easing(i / (numPoints - 1)) * 10000) / 10000 + ", ";
+    }
+    return `linear(${points.substring(0, points.length - 2)})`;
+};
+
+
+//# sourceMappingURL=linear.mjs.map
+
+
+/***/ },
+
+/***/ "./node_modules/motion-dom/dist/es/animation/waapi/utils/px-values.mjs"
+/*!*****************************************************************************!*\
+  !*** ./node_modules/motion-dom/dist/es/animation/waapi/utils/px-values.mjs ***!
+  \*****************************************************************************/
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   pxValues: () => (/* binding */ pxValues)
+/* harmony export */ });
+/* harmony import */ var _utils_border_radius_mjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../utils/border-radius.mjs */ "./node_modules/motion-dom/dist/es/utils/border-radius.mjs");
+
+
+const pxValues = new Set([
+    // Border props
+    "borderWidth",
+    "borderTopWidth",
+    "borderRightWidth",
+    "borderBottomWidth",
+    "borderLeftWidth",
+    "borderRadius",
+    ..._utils_border_radius_mjs__WEBPACK_IMPORTED_MODULE_0__.cornerRadiusProps,
+    // Positioning props
+    "width",
+    "maxWidth",
+    "height",
+    "maxHeight",
+    "top",
+    "right",
+    "bottom",
+    "left",
+    "inset",
+    "insetBlock",
+    "insetBlockStart",
+    "insetBlockEnd",
+    "insetInline",
+    "insetInlineStart",
+    "insetInlineEnd",
+    // Spacing props
+    "padding",
+    "paddingTop",
+    "paddingRight",
+    "paddingBottom",
+    "paddingLeft",
+    "paddingBlock",
+    "paddingBlockStart",
+    "paddingBlockEnd",
+    "paddingInline",
+    "paddingInlineStart",
+    "paddingInlineEnd",
+    "margin",
+    "marginTop",
+    "marginRight",
+    "marginBottom",
+    "marginLeft",
+    "marginBlock",
+    "marginBlockStart",
+    "marginBlockEnd",
+    "marginInline",
+    "marginInlineStart",
+    "marginInlineEnd",
+    // Typography
+    "fontSize",
+    // Misc
+    "backgroundPositionX",
+    "backgroundPositionY",
+]);
+
+
+//# sourceMappingURL=px-values.mjs.map
+
+
+/***/ },
+
+/***/ "./node_modules/motion-dom/dist/es/render/dom/is-css-var.mjs"
+/*!*******************************************************************!*\
+  !*** ./node_modules/motion-dom/dist/es/render/dom/is-css-var.mjs ***!
+  \*******************************************************************/
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   isCSSVar: () => (/* binding */ isCSSVar)
+/* harmony export */ });
+const isCSSVar = (name) => name.startsWith("--");
+
+
+//# sourceMappingURL=is-css-var.mjs.map
+
+
+/***/ },
+
+/***/ "./node_modules/motion-dom/dist/es/render/dom/style-computed.mjs"
+/*!***********************************************************************!*\
+  !*** ./node_modules/motion-dom/dist/es/render/dom/style-computed.mjs ***!
+  \***********************************************************************/
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   getComputedStyle: () => (/* binding */ getComputedStyle)
+/* harmony export */ });
+/* harmony import */ var _is_css_var_mjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./is-css-var.mjs */ "./node_modules/motion-dom/dist/es/render/dom/is-css-var.mjs");
+
+
+function getComputedStyle(element, name) {
+    const computedStyle = window.getComputedStyle(element);
+    return (0,_is_css_var_mjs__WEBPACK_IMPORTED_MODULE_0__.isCSSVar)(name)
+        ? computedStyle.getPropertyValue(name)
+        : computedStyle[name];
+}
+
+
+//# sourceMappingURL=style-computed.mjs.map
+
+
+/***/ },
+
+/***/ "./node_modules/motion-dom/dist/es/render/dom/style-set.mjs"
+/*!******************************************************************!*\
+  !*** ./node_modules/motion-dom/dist/es/render/dom/style-set.mjs ***!
+  \******************************************************************/
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   setStyle: () => (/* binding */ setStyle)
+/* harmony export */ });
+/* harmony import */ var _is_css_var_mjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./is-css-var.mjs */ "./node_modules/motion-dom/dist/es/render/dom/is-css-var.mjs");
+
+
+function setStyle(element, name, value) {
+    (0,_is_css_var_mjs__WEBPACK_IMPORTED_MODULE_0__.isCSSVar)(name)
+        ? element.style.setProperty(name, value)
+        : (element.style[name] = value);
+}
+
+
+//# sourceMappingURL=style-set.mjs.map
+
+
+/***/ },
+
+/***/ "./node_modules/motion-dom/dist/es/utils/border-radius.mjs"
+/*!*****************************************************************!*\
+  !*** ./node_modules/motion-dom/dist/es/utils/border-radius.mjs ***!
+  \*****************************************************************/
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   cornerRadiusProps: () => (/* binding */ cornerRadiusProps)
+/* harmony export */ });
+/**
+ * The four corner-radius longhands. Shared so the projection mixer, scale
+ * corrector, WAAPI px-value set and view-transition crop pass don't each carry
+ * their own copy. Order is irrelevant - every consumer mixes/corrects/animates
+ * each corner independently.
+ */
+const cornerRadiusProps = [
+    "borderTopLeftRadius",
+    "borderTopRightRadius",
+    "borderBottomRightRadius",
+    "borderBottomLeftRadius",
+];
+
+
+//# sourceMappingURL=border-radius.mjs.map
+
+
+/***/ },
+
+/***/ "./node_modules/motion-dom/dist/es/utils/resolve-elements.mjs"
+/*!********************************************************************!*\
+  !*** ./node_modules/motion-dom/dist/es/utils/resolve-elements.mjs ***!
+  \********************************************************************/
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   resolveElements: () => (/* binding */ resolveElements)
+/* harmony export */ });
+function resolveElements(elementOrSelector, scope, selectorCache) {
+    if (elementOrSelector == null) {
+        return [];
+    }
+    if (elementOrSelector instanceof EventTarget) {
+        return [elementOrSelector];
+    }
+    else if (typeof elementOrSelector === "string") {
+        let root = document;
+        if (scope) {
+            root = scope.current;
+        }
+        const elements = selectorCache?.[elementOrSelector] ??
+            root.querySelectorAll(elementOrSelector);
+        return elements ? Array.from(elements) : [];
+    }
+    return Array.from(elementOrSelector).filter((element) => element != null);
+}
+
+
+//# sourceMappingURL=resolve-elements.mjs.map
+
+
+/***/ },
+
+/***/ "./node_modules/motion-dom/dist/es/utils/supports/flags.mjs"
+/*!******************************************************************!*\
+  !*** ./node_modules/motion-dom/dist/es/utils/supports/flags.mjs ***!
+  \******************************************************************/
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   supportsFlags: () => (/* binding */ supportsFlags)
+/* harmony export */ });
+/**
+ * Add the ability for test suites to manually set support flags
+ * to better test more environments.
+ */
+const supportsFlags = {};
+
+
+//# sourceMappingURL=flags.mjs.map
+
+
+/***/ },
+
+/***/ "./node_modules/motion-dom/dist/es/utils/supports/linear-easing.mjs"
+/*!**************************************************************************!*\
+  !*** ./node_modules/motion-dom/dist/es/utils/supports/linear-easing.mjs ***!
+  \**************************************************************************/
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   supportsLinearEasing: () => (/* binding */ supportsLinearEasing)
+/* harmony export */ });
+/* harmony import */ var _memo_mjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./memo.mjs */ "./node_modules/motion-dom/dist/es/utils/supports/memo.mjs");
+
+
+const supportsLinearEasing = /*@__PURE__*/ (0,_memo_mjs__WEBPACK_IMPORTED_MODULE_0__.memoSupports)(() => {
+    try {
+        document
+            .createElement("div")
+            .animate({ opacity: 0 }, { easing: "linear(0, 1)" });
+    }
+    catch (e) {
+        return false;
+    }
+    return true;
+}, "linearEasing");
+
+
+//# sourceMappingURL=linear-easing.mjs.map
+
+
+/***/ },
+
+/***/ "./node_modules/motion-dom/dist/es/utils/supports/memo.mjs"
+/*!*****************************************************************!*\
+  !*** ./node_modules/motion-dom/dist/es/utils/supports/memo.mjs ***!
+  \*****************************************************************/
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   memoSupports: () => (/* binding */ memoSupports)
+/* harmony export */ });
+/* harmony import */ var motion_utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! motion-utils */ "./node_modules/motion-utils/dist/es/memo.mjs");
+/* harmony import */ var _flags_mjs__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./flags.mjs */ "./node_modules/motion-dom/dist/es/utils/supports/flags.mjs");
+
+
+
+function memoSupports(callback, supportsFlag) {
+    const memoized = (0,motion_utils__WEBPACK_IMPORTED_MODULE_0__.memo)(callback);
+    return () => _flags_mjs__WEBPACK_IMPORTED_MODULE_1__.supportsFlags[supportsFlag] ?? memoized();
+}
+
+
+//# sourceMappingURL=memo.mjs.map
+
+
+/***/ },
+
+/***/ "./node_modules/motion-dom/dist/es/utils/supports/scroll-timeline.mjs"
+/*!****************************************************************************!*\
+  !*** ./node_modules/motion-dom/dist/es/utils/supports/scroll-timeline.mjs ***!
+  \****************************************************************************/
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   supportsScrollTimeline: () => (/* binding */ supportsScrollTimeline),
+/* harmony export */   supportsViewTimeline: () => (/* binding */ supportsViewTimeline)
+/* harmony export */ });
+/* harmony import */ var _memo_mjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./memo.mjs */ "./node_modules/motion-dom/dist/es/utils/supports/memo.mjs");
+
+
+const supportsScrollTimeline = /* @__PURE__ */ (0,_memo_mjs__WEBPACK_IMPORTED_MODULE_0__.memoSupports)(() => window.ScrollTimeline !== undefined, "scrollTimeline");
+const supportsViewTimeline = /* @__PURE__ */ (0,_memo_mjs__WEBPACK_IMPORTED_MODULE_0__.memoSupports)(() => window.ViewTimeline !== undefined, "viewTimeline");
+
+
+//# sourceMappingURL=scroll-timeline.mjs.map
+
+
+/***/ },
+
+/***/ "./node_modules/motion-utils/dist/es/clamp.mjs"
+/*!*****************************************************!*\
+  !*** ./node_modules/motion-utils/dist/es/clamp.mjs ***!
+  \*****************************************************/
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   clamp: () => (/* binding */ clamp)
+/* harmony export */ });
+const clamp = (min, max, v) => {
+    if (v > max)
+        return max;
+    if (v < min)
+        return min;
+    return v;
+};
+
+
+//# sourceMappingURL=clamp.mjs.map
+
+
+/***/ },
+
+/***/ "./node_modules/motion-utils/dist/es/easing/utils/is-bezier-definition.mjs"
+/*!*********************************************************************************!*\
+  !*** ./node_modules/motion-utils/dist/es/easing/utils/is-bezier-definition.mjs ***!
+  \*********************************************************************************/
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   isBezierDefinition: () => (/* binding */ isBezierDefinition)
+/* harmony export */ });
+/*#__NO_SIDE_EFFECTS__*/
+const isBezierDefinition = (easing) => Array.isArray(easing) && typeof easing[0] === "number";
+
+
+//# sourceMappingURL=is-bezier-definition.mjs.map
+
+
+/***/ },
+
+/***/ "./node_modules/motion-utils/dist/es/errors.mjs"
+/*!******************************************************!*\
+  !*** ./node_modules/motion-utils/dist/es/errors.mjs ***!
+  \******************************************************/
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   invariant: () => (/* binding */ invariant),
+/* harmony export */   warning: () => (/* binding */ warning)
+/* harmony export */ });
+/* harmony import */ var _format_error_message_mjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./format-error-message.mjs */ "./node_modules/motion-utils/dist/es/format-error-message.mjs");
+/* provided dependency */ var process = __webpack_require__(/*! process/browser.js */ "./node_modules/process/browser.js");
+
+
+let warning = () => { };
+let invariant = () => { };
+if (typeof process !== "undefined" &&
+    "development" !== "production") {
+    warning = (check, message, errorCode) => {
+        if (!check && typeof console !== "undefined") {
+            console.warn((0,_format_error_message_mjs__WEBPACK_IMPORTED_MODULE_0__.formatErrorMessage)(message, errorCode));
+        }
+    };
+    invariant = (check, message, errorCode) => {
+        if (!check) {
+            throw new Error((0,_format_error_message_mjs__WEBPACK_IMPORTED_MODULE_0__.formatErrorMessage)(message, errorCode));
+        }
+    };
+}
+
+
+//# sourceMappingURL=errors.mjs.map
+
+
+/***/ },
+
+/***/ "./node_modules/motion-utils/dist/es/format-error-message.mjs"
+/*!********************************************************************!*\
+  !*** ./node_modules/motion-utils/dist/es/format-error-message.mjs ***!
+  \********************************************************************/
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   formatErrorMessage: () => (/* binding */ formatErrorMessage)
+/* harmony export */ });
+function formatErrorMessage(message, errorCode) {
+    return errorCode
+        ? `${message}. For more information and steps for solving, visit https://motion.dev/troubleshooting/${errorCode}`
+        : message;
+}
+
+
+//# sourceMappingURL=format-error-message.mjs.map
+
+
+/***/ },
+
+/***/ "./node_modules/motion-utils/dist/es/memo.mjs"
+/*!****************************************************!*\
+  !*** ./node_modules/motion-utils/dist/es/memo.mjs ***!
+  \****************************************************/
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   memo: () => (/* binding */ memo)
+/* harmony export */ });
+/*#__NO_SIDE_EFFECTS__*/
+function memo(callback) {
+    let result;
+    return () => {
+        if (result === undefined)
+            result = callback();
+        return result;
+    };
+}
+
+
+//# sourceMappingURL=memo.mjs.map
+
+
+/***/ },
+
+/***/ "./node_modules/motion-utils/dist/es/noop.mjs"
+/*!****************************************************!*\
+  !*** ./node_modules/motion-utils/dist/es/noop.mjs ***!
+  \****************************************************/
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   noop: () => (/* binding */ noop)
+/* harmony export */ });
+/*#__NO_SIDE_EFFECTS__*/
+const noop = (any) => any;
+
+
+//# sourceMappingURL=noop.mjs.map
+
+
+/***/ },
+
+/***/ "./node_modules/motion-utils/dist/es/time-conversion.mjs"
+/*!***************************************************************!*\
+  !*** ./node_modules/motion-utils/dist/es/time-conversion.mjs ***!
+  \***************************************************************/
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   millisecondsToSeconds: () => (/* binding */ millisecondsToSeconds),
+/* harmony export */   secondsToMilliseconds: () => (/* binding */ secondsToMilliseconds)
+/* harmony export */ });
+/**
+ * Converts seconds to milliseconds
+ *
+ * @param seconds - Time in seconds.
+ * @return milliseconds - Converted time in milliseconds.
+ */
+/*#__NO_SIDE_EFFECTS__*/
+const secondsToMilliseconds = (seconds) => seconds * 1000;
+/*#__NO_SIDE_EFFECTS__*/
+const millisecondsToSeconds = (milliseconds) => milliseconds / 1000;
+
+
+//# sourceMappingURL=time-conversion.mjs.map
+
+
 /***/ }
 
 /******/ 	});
 /************************************************************************/
 /******/ 	// The module cache
 /******/ 	var __webpack_module_cache__ = {};
-/******/ 	
+/******/
 /******/ 	// The require function
 /******/ 	function __webpack_require__(moduleId) {
 /******/ 		// Check if module is in cache
@@ -2463,21 +4506,57 @@ module.exports = purify;
 /******/ 			// no module.loaded needed
 /******/ 			exports: {}
 /******/ 		};
-/******/ 	
+/******/
 /******/ 		// Execute the module function
 /******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
-/******/ 	
+/******/
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
 /******/ 	}
-/******/ 	
+/******/
 /************************************************************************/
-// This entry needs to be wrapped in an IIFE because it needs to be isolated against other modules in the chunk.
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__webpack_require__.d = (exports, definition) => {
+/******/ 			for(var key in definition) {
+/******/ 				if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ 	})();
+/******/
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__webpack_require__.r = (exports) => {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
+/******/
+/************************************************************************/
+var __webpack_exports__ = {};
+// This entry needs to be wrapped in an IIFE because it needs to be in strict mode.
 (() => {
+"use strict";
 /*!****************************************!*\
   !*** ./resources/js/calendar/index.js ***!
   \****************************************/
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var motion__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! motion */ "./node_modules/motion-dom/dist/es/animation/generators/spring.mjs");
+/* harmony import */ var motion_mini__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! motion/mini */ "./node_modules/framer-motion/dist/es/animation/animators/waapi/animate-style.mjs");
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+
+
 var DOMPurify = __webpack_require__(/*! dompurify */ "./node_modules/dompurify/dist/purify.cjs.js");
 var calendarjs = window.calendarjs;
 var state = {
@@ -2518,7 +4597,8 @@ var state = {
   pendingScheduleScrollTop: null,
   pendingScheduleHeaderPreview: null,
   travelRouteCache: new Map(),
-  travelRouteRequests: new Map()
+  travelRouteRequests: new Map(),
+  scheduleTravelAnimations: new WeakMap()
 };
 var calendarTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/New_York';
 var monthFormatter = new Intl.DateTimeFormat('en', {
@@ -4761,6 +6841,11 @@ var clearScheduleItemTravel = function clearScheduleItemTravel(item) {
   }
   var extension = item.querySelector(':scope > .calendar-schedule-travel');
   if (extension) {
+    var animation = state.scheduleTravelAnimations.get(extension);
+    if (animation) {
+      animation.stop();
+      state.scheduleTravelAnimations["delete"](extension);
+    }
     extension.remove();
   }
   item.classList.remove('has-calendar-schedule-travel');
@@ -4782,10 +6867,18 @@ var renderScheduleItemTravel = function renderScheduleItemTravel(item, route, ca
   var label = document.createElement('span');
   var isTransit = String(route.mode || '').toUpperCase() === 'TRANSIT';
   item.querySelectorAll(':scope > .calendar-schedule-travel').forEach(function (existing) {
+    var animation = state.scheduleTravelAnimations.get(existing);
+    if (animation) {
+      animation.stop();
+      state.scheduleTravelAnimations["delete"](existing);
+    }
     existing.remove();
   });
   extension.className = 'calendar-schedule-travel';
-  extension.style.height = "".concat(extensionHeight, "px");
+  extension.style.height = '0';
+  extension.style.minHeight = '0';
+  extension.style.opacity = '0';
+  extension.style.transform = 'translateY(6px)';
   extension.style.setProperty('--calendar-schedule-event-color', window.getComputedStyle(item).backgroundColor || '#6b7280');
   extension.dataset.travelMode = isTransit ? 'transit' : 'walk';
   extension.title = "".concat(durationMinutes, " min travel time");
@@ -4798,6 +6891,25 @@ var renderScheduleItemTravel = function renderScheduleItemTravel(item, route, ca
   item.classList.add('has-calendar-schedule-travel');
   item.dataset.travelRouteKey = cacheKey;
   item.dataset.travelRouteState = 'shown';
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    extension.style.height = "".concat(extensionHeight, "px");
+    extension.style.minHeight = '';
+    extension.style.opacity = '.7';
+    extension.style.transform = 'none';
+    return;
+  }
+  var animation = (0,motion_mini__WEBPACK_IMPORTED_MODULE_1__.animateMini)(extension, {
+    height: "".concat(extensionHeight, "px"),
+    opacity: 0.7,
+    transform: 'translateY(0)'
+  }, {
+    type: motion__WEBPACK_IMPORTED_MODULE_0__.spring,
+    stiffness: 240,
+    damping: 22,
+    mass: 0.7,
+    delay: 0.5
+  });
+  state.scheduleTravelAnimations.set(extension, animation);
 };
 var patchScheduleItemTravel = function patchScheduleItemTravel(item, event) {
   var details = getTravelRouteRequestDetails(event);

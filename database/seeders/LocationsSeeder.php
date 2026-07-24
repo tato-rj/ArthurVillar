@@ -15,9 +15,33 @@ class LocationsSeeder extends Seeder
     public function run()
     {
         collect([
-            ['name' => 'Home', 'fee_amount' => 6000, 'tax_withheld_percentage' => 0, 'usage' => Location::USAGE_TEACHING],
-            ['name' => 'BKCM', 'fee_amount' => 6000, 'tax_withheld_percentage' => 30, 'usage' => Location::USAGE_TEACHING],
-            ['name' => 'Online', 'fee_amount' => 6000, 'tax_withheld_percentage' => 0, 'usage' => Location::USAGE_TEACHING],
+            [
+                'name' => 'Home', 
+                'fee_amount' => 6000, 
+                'tax_withheld_percentage' => 0, 
+                'address' => '80 Erie st',
+                'city' => 'Jersey City',
+                'state' => 'NJ',
+                'postal_code' => '07302',
+                'usage' => Location::USAGE_TEACHING],
+            [
+                'name' => 'BKCM', 
+                'fee_amount' => 6000, 
+                'tax_withheld_percentage' => 30, 
+                'address' => '58 Seventh Avenue',
+                'city' => 'Brooklyn',
+                'state' => 'NY',
+                'postal_code' => '11217',
+                'usage' => Location::USAGE_TEACHING],
+            [
+                'name' => 'Online', 
+                'fee_amount' => 6000, 
+                'tax_withheld_percentage' => 0, 
+                'address' => '80 Erie st',
+                'city' => 'Jersey City',
+                'state' => 'NJ',
+                'postal_code' => '07302',
+                'usage' => Location::USAGE_TEACHING],
             [
                 'name' => 'Calendar Recital Hall',
                 'fee_amount' => null,
