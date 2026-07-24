@@ -1611,25 +1611,25 @@ button.single-lesson-plan-create[selected] i {
     opacity: .3;
 }
 
-#lesson-modal[data-lesson-status="unconfirmed"] {
+#calendar-event-modal[data-event-modal-type="lesson"][data-lesson-status="unconfirmed"] {
     #lesson-revert, #confirm-payment {
         display: none;
     }
 }
 
-#lesson-modal[data-lesson-status="paid"] {
+#calendar-event-modal[data-event-modal-type="lesson"][data-lesson-status="paid"] {
     #confirm-payment {
         display: none;
     }
 }
 
-#lesson-modal[data-lesson-status="early-payment"] {
+#calendar-event-modal[data-event-modal-type="lesson"][data-lesson-status="early-payment"] {
     #confirm-payment, #early-payment {
         display: none;
     }
 }
 
-#lesson-modal[data-lesson-status="canceled"] {
+#calendar-event-modal[data-event-modal-type="lesson"][data-lesson-status="canceled"] {
     .modal-title span {text-decoration: line-through;}
     #confirm-payment {
         display: none;
@@ -1653,11 +1653,11 @@ button.single-lesson-plan-create[selected] i {
     opacity: 1;
 }
 
-#lesson-modal h4.modal-title {
+#calendar-event-modal[data-event-modal-type="lesson"] h4.modal-title {
     @extend .d-flex, .align-items-center;
 }
 
-#lesson-modal h4.modal-title:before {
+#calendar-event-modal[data-event-modal-type="lesson"] h4.modal-title:before {
     content: "";
     border-radius: 50%;
     display: block;
@@ -1666,17 +1666,17 @@ button.single-lesson-plan-create[selected] i {
     margin-right: 8px;
 }
 
-#lesson-modal {
+#calendar-event-modal {
     button.btn-close {
         padding-bottom: 0;
         padding-top: 0;
         margin-top: -5px;
     }
 
-    #meeting-url, #notes-url {display: none}
+    #notes-url {display: none}
 }
 
-#lesson-modal[data-lesson-status="unconfirmed"] {
+#calendar-event-modal[data-event-modal-type="lesson"][data-lesson-status="unconfirmed"] {
     h4.modal-title:before {
         @extend .opacity-4;
         background: var(--calendar-unconfirmed-lesson-color, #6b7280);
@@ -1785,7 +1785,7 @@ button.single-lesson-plan-create[selected] i {
 
 // Lesson modal states
 
-#lesson-modal[data-lesson-status="unpaid"] {
+#calendar-event-modal[data-event-modal-type="lesson"][data-lesson-status="unpaid"] {
     h4.modal-title:before {background: var(--calendar-unpaid-lesson-color, #ff4b4b)}
     div#lesson-status {
         @extend .alert-red, .d-inline-block;
@@ -1794,7 +1794,7 @@ button.single-lesson-plan-create[selected] i {
     div#lesson-attendance {display: none}
 }
 
-#lesson-modal[data-lesson-status="paid"] {
+#calendar-event-modal[data-event-modal-type="lesson"][data-lesson-status="paid"] {
     h4.modal-title:before {background: var(--calendar-paid-lesson-color, #58cc02)}
     div#lesson-status {
         @extend .alert-green, .d-inline-block;
@@ -1804,7 +1804,7 @@ button.single-lesson-plan-create[selected] i {
     button#confirm-payment {display: none}
 }
 
-#lesson-modal[data-lesson-status="early-payment"] {
+#calendar-event-modal[data-event-modal-type="lesson"][data-lesson-status="early-payment"] {
     h4.modal-title:before {background: var(--calendar-paid-lesson-color, #58cc02)}
     div#lesson-status {
         @extend .alert-green, .d-inline-block;
@@ -1813,7 +1813,7 @@ button.single-lesson-plan-create[selected] i {
     button#confirm-payment, button#early-payment {display: none}
 }
 
-#lesson-modal[data-lesson-status="canceled"] {
+#calendar-event-modal[data-event-modal-type="lesson"][data-lesson-status="canceled"] {
     h4.modal-title:before {@extend .bg-grey}
     div#lesson-status {
         @extend .alert-secondary, .d-inline-block;
@@ -1832,25 +1832,21 @@ button.single-lesson-plan-create[selected] i {
     display: none;
 }
 
-#lesson-modal.is-rescheduling,
-#lesson-modal.is-canceling,
-#general-event-modal.is-rescheduling,
-#general-event-modal.is-canceling {
+#calendar-event-modal.is-rescheduling,
+#calendar-event-modal.is-canceling {
     #lesson-controls,
     #general-event-controls {
         display: none !important;
     }
 }
 
-#lesson-modal.is-rescheduling,
-#general-event-modal.is-rescheduling {
+#calendar-event-modal.is-rescheduling {
     #header-buttons {
         display: none;
     }
 }
 
-#lesson-modal.is-rescheduling.is-drop-rescheduling,
-#general-event-modal.is-rescheduling.is-drop-rescheduling {
+#calendar-event-modal.is-rescheduling.is-drop-rescheduling {
     #header-buttons {
         display: block;
     }
@@ -1861,25 +1857,25 @@ button.single-lesson-plan-create[selected] i {
     }
 }
 
-#lesson-modal.is-rescheduling {
+#calendar-event-modal[data-event-modal-type="lesson"].is-rescheduling {
     #reschedule-lesson {
         display: block;
     }
 }
 
-#lesson-modal.is-canceling {
+#calendar-event-modal[data-event-modal-type="lesson"].is-canceling {
     #cancel-lesson {
         display: block;
     }
 }
 
-#general-event-modal.is-rescheduling {
+#calendar-event-modal[data-event-modal-type="general"].is-rescheduling {
     #reschedule-general-event {
         display: block;
     }
 }
 
-#general-event-modal.is-canceling {
+#calendar-event-modal[data-event-modal-type="general"].is-canceling {
     #cancel-general-event {
         display: block;
     }
@@ -1891,15 +1887,14 @@ button.single-lesson-plan-create[selected] i {
     }
 }
 
-#lesson-modal.is-drop-rescheduling,
-#general-event-modal.is-drop-rescheduling {
+#calendar-event-modal.is-drop-rescheduling {
     [data-reschedule-date-fields],
     [data-reschedule-time-fields] {
         display: none;
     }
 }
 
-#lesson-modal.is-drop-rescheduling {
+#calendar-event-modal[data-event-modal-type="lesson"].is-drop-rescheduling {
     [data-reschedule-permanence] {
         display: none;
     }

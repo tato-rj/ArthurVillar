@@ -333,18 +333,22 @@ class EventTest extends BaseTest
     }
 
     /** @test */
-    public function calendar_has_the_general_event_modal_and_event_type_filters()
+    public function calendar_has_the_shared_event_modal_and_event_type_filters()
     {
         $this->signIn();
 
-        $this->get(route('calendar.home', [
+        $response = $this->get(route('calendar.home', [
             'view' => 'week',
             'date' => '2026-10-20',
             'range_start' => '2026-10-18',
             'range_end' => '2026-10-24',
-        ]))
+        ]));
+
+        $response
             ->assertOk()
-            ->assertSee('general-event-modal', false)
+            ->assertSee('calendar-event-modal', false)
+            ->assertDontSee('id="lesson-modal"', false)
+            ->assertDontSee('id="general-event-modal"', false)
             ->assertSee('data-month-day-events-conflict', false)
             ->assertSee('general-event-notification', false)
             ->assertSee('data-general-event-type-section', false)
@@ -370,6 +374,8 @@ class EventTest extends BaseTest
             ->assertSee('calendar-event-type-canceled', false)
             ->assertSee('for="calendar-event-type-canceled">Cancelations</label>', false)
             ->assertSee('data-calendar-filter-reset', false);
+
+        $this->assertSame(1, substr_count($response->getContent(), 'id="calendar-event-modal"'));
     }
 
     /** @test */

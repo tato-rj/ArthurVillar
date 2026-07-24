@@ -2148,6 +2148,17 @@ const showLessonCancelForm = function(modal) {
     modal.classList.add('is-canceling');
 };
 
+const setCalendarEventModalType = function(modal, type) {
+    if (!modal) {
+        return;
+    }
+
+    modal.dataset.eventModalType = type;
+    modal.querySelectorAll('[data-event-modal-section]').forEach(function(section) {
+        section.hidden = section.dataset.eventModalSection !== type;
+    });
+};
+
 const getEventStartDateTime = function(event) {
     if (!event || !event.date || !event.start) {
         return null;
@@ -2185,16 +2196,16 @@ const canUseLessonActionButtons = function(event) {
 
 const populateLessonModal = function(modal, event) {
     const title = modal.querySelector('.modal-title');
-    const date = modal.querySelector('#lesson-date');
-    const time = modal.querySelector('#lesson-time');
+    const date = modal.querySelector('[data-event-modal-date]');
+    const time = modal.querySelector('[data-event-modal-time]');
     const recurrence = modal.querySelector('#lesson-recurrence');
     const birthday = modal.querySelector('#lesson-birthday');
     const birthdayLabel = birthday ? birthday.querySelector('[data-lesson-birthday-label]') : null;
-    const lessonLocation = modal.querySelector('#lesson-location');
-    const lessonLocationContent = lessonLocation ? lessonLocation.querySelector('[data-lesson-location]') : null;
-    const lessonLocationIcon = lessonLocation ? lessonLocation.querySelector('[data-lesson-location-icon]') : null;
-    const meetingUrl = modal.querySelector('#meeting-url');
-    const meetingUrlLink = meetingUrl ? meetingUrl.querySelector('a') : null;
+    const lessonLocation = modal.querySelector('[data-event-modal-location-section]');
+    const lessonLocationContent = lessonLocation ? lessonLocation.querySelector('[data-event-modal-location]') : null;
+    const lessonLocationIcon = lessonLocation ? lessonLocation.querySelector('[data-event-modal-location-icon]') : null;
+    const meetingUrl = modal.querySelector('[data-event-modal-meeting-section]');
+    const meetingUrlLink = meetingUrl ? meetingUrl.querySelector('[data-event-modal-meeting-link]') : null;
     const notesUrl = modal.querySelector('#notes-url');
     const notesUrlLink = notesUrl ? notesUrl.querySelector('a') : null;
     const revert = modal.querySelector('#lesson-revert');
@@ -2259,10 +2270,10 @@ const populateLessonModal = function(modal, event) {
 
     if (meetingUrl && meetingUrlLink) {
         if (event && event.meetingUrl) {
-            meetingUrl.style.display = 'grid';
+            meetingUrl.hidden = false;
             meetingUrlLink.href = event.meetingUrl;
         } else {
-            meetingUrl.style.display = 'none';
+            meetingUrl.hidden = true;
             meetingUrlLink.removeAttribute('href');
         }
     }
@@ -2415,13 +2426,14 @@ const populateLessonModal = function(modal, event) {
 };
 
 const openLessonModal = function(event, options) {
-    const modal = document.getElementById('lesson-modal');
+    const modal = document.getElementById('calendar-event-modal');
     const settings = options || {};
 
     if (!modal) {
         return;
     }
 
+    setCalendarEventModalType(modal, 'lesson');
     resetLessonModalState(modal);
     modal.updatedScheduleItem = settings.updatedItem || null;
     populateLessonModal(modal, event);
@@ -3296,7 +3308,7 @@ const showGeneralEventCancelForm = function(modal) {
 };
 
 const openGeneralEventModal = function(event, options) {
-    const modal = document.getElementById('general-event-modal');
+    const modal = document.getElementById('calendar-event-modal');
     const settings = options || {};
 
     if (!modal || !event) {
@@ -3304,21 +3316,21 @@ const openGeneralEventModal = function(event, options) {
     }
 
     const title = modal.querySelector('.modal-title');
-    const date = modal.querySelector('#general-event-date');
-    const time = modal.querySelector('#general-event-time');
+    const date = modal.querySelector('[data-event-modal-date]');
+    const time = modal.querySelector('[data-event-modal-time]');
     const eventType = modal.querySelector('#general-event-type');
     const eventTypeIcon = modal.querySelector('#general-event-type-icon');
     const eventTypeSection = modal.querySelector('[data-general-event-type-section]');
     const notification = modal.querySelector('#general-event-notification');
     const notes = modal.querySelector('#general-event-notes');
     const notesSection = modal.querySelector('[data-general-event-notes-section]');
-    const externalSection = modal.querySelector('[data-general-event-external-section]');
-    const meetingLink = modal.querySelector('[data-general-event-meeting-link]');
+    const meetingSection = modal.querySelector('[data-event-modal-meeting-section]');
+    const meetingLink = modal.querySelector('[data-event-modal-meeting-link]');
     const organizer = modal.querySelector('[data-general-event-organizer]');
     const organizerSection = modal.querySelector('[data-general-event-organizer-section]');
-    const location = modal.querySelector('[data-general-event-location]');
-    const locationIcon = modal.querySelector('[data-general-event-location-icon]');
-    const locationSection = modal.querySelector('[data-general-event-location-section]');
+    const location = modal.querySelector('[data-event-modal-location]');
+    const locationIcon = modal.querySelector('[data-event-modal-location-icon]');
+    const locationSection = modal.querySelector('[data-event-modal-location-section]');
     const address = modal.querySelector('[data-general-event-address]');
     const addressSection = modal.querySelector('[data-general-event-address-section]');
     const edit = modal.querySelector('#event-edit');
@@ -3331,6 +3343,7 @@ const openGeneralEventModal = function(event, options) {
     const rescheduleEndTime = modal.querySelector('#reschedule-general-event-end-time');
     const isCanceled = event.calendarStatus === 'canceled';
 
+    setCalendarEventModalType(modal, 'general');
     resetGeneralEventModalState(modal);
     modal.updatedScheduleItem = settings.updatedItem || null;
 
@@ -3360,7 +3373,7 @@ const openGeneralEventModal = function(event, options) {
             renderNotesWithLinks(notes, event.notes);
         }
     }
-    if (externalSection) externalSection.hidden = !event.meetingUrl;
+    if (meetingSection) meetingSection.hidden = !event.meetingUrl;
     if (meetingLink) {
         meetingLink.href = event.meetingUrl || '#';
         meetingLink.hidden = !event.meetingUrl;
@@ -3441,7 +3454,7 @@ const openGeneralEventModal = function(event, options) {
 };
 
 const submitGeneralEventModalForm = function(form, refreshCalendar) {
-    const modal = form ? form.closest('#general-event-modal') : null;
+    const modal = form ? form.closest('#calendar-event-modal') : null;
     const isReschedule = !!(form && form.closest('#reschedule-general-event'));
 
     if (!modal || !form.action) {
@@ -3476,7 +3489,7 @@ const submitGeneralEventModalForm = function(form, refreshCalendar) {
 };
 
 const revertGeneralEventAction = function(button, refreshCalendar) {
-    const modal = button ? button.closest('#general-event-modal') : null;
+    const modal = button ? button.closest('#calendar-event-modal') : null;
     const url = button ? button.dataset.url : '';
 
     if (!modal || !url) {
@@ -3674,7 +3687,7 @@ const revertLessonInState = function(event, lessonId) {
 };
 
 const revertLessonAction = function(button, refreshCalendar) {
-    const modal = button.closest('#lesson-modal');
+    const modal = button.closest('#calendar-event-modal');
     const url = button.dataset.url;
 
     if (!modal || !url || (!modal.dataset.lessonId && !modal.dataset.scheduleOverrideId && !modal.dataset.earlyPaymentId)) {
@@ -3716,7 +3729,7 @@ const revertLessonAction = function(button, refreshCalendar) {
 };
 
 const storeEarlyPayment = function(button, refreshCalendar) {
-    const modal = button.closest('#lesson-modal');
+    const modal = button.closest('#calendar-event-modal');
     const url = button.dataset.url;
 
     if (!modal || !url || (!modal.dataset.lessonPlanId && !modal.dataset.singleLessonPlanId)) {
@@ -3750,7 +3763,7 @@ const storeEarlyPayment = function(button, refreshCalendar) {
 };
 
 const storeTaughtLesson = function(button, refreshCalendar) {
-    const modal = button.closest('#lesson-modal');
+    const modal = button.closest('#calendar-event-modal');
     const url = button.dataset.url;
     const lessonPlanId = modal ? modal.dataset.lessonPlanId : '';
     const singleLessonPlanId = modal ? modal.dataset.singleLessonPlanId : '';
@@ -3786,7 +3799,7 @@ const storeTaughtLesson = function(button, refreshCalendar) {
 };
 
 const confirmLessonPayment = function(button, refreshCalendar) {
-    const modal = button.closest('#lesson-modal');
+    const modal = button.closest('#calendar-event-modal');
     const url = button.dataset.url;
 
     if (!modal || !url) {
@@ -3819,7 +3832,7 @@ const confirmLessonPayment = function(button, refreshCalendar) {
 };
 
 const submitLessonModalForm = function(form, refreshCalendar) {
-    const modal = form ? form.closest('#lesson-modal') : null;
+    const modal = form ? form.closest('#calendar-event-modal') : null;
     const isReschedule = !!(form && form.closest('#reschedule-lesson'));
 
     if (!modal || !form.action) {
@@ -4884,7 +4897,7 @@ const loadCalendarEditModal = function(button, sourceModal, container) {
             console.error(error);
             button.disabled = false;
 
-            if (sourceModal && sourceModal.id === 'lesson-modal') {
+            if (sourceModal && sourceModal.dataset.eventModalType === 'lesson') {
                 showLessonActionError(sourceModal, error.message);
             } else {
                 showGeneralEventActionError(sourceModal, error.message);
@@ -5670,8 +5683,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const miniGrid = document.querySelector('[data-mini-grid]');
     const miniPrevious = document.querySelector('[data-mini-prev]');
     const miniNext = document.querySelector('[data-mini-next]');
-    const lessonModal = document.getElementById('lesson-modal');
-    const generalEventModal = document.getElementById('general-event-modal');
+    const calendarEventModal = document.getElementById('calendar-event-modal');
+    const lessonModal = calendarEventModal;
+    const generalEventModal = calendarEventModal;
     const calendarEditModalContainer = document.getElementById('calendar-edit-modal-container');
     const calendarSearch = document.querySelector('.calendar-calendar-search');
     const calendarToolbar = calendarSearch ? calendarSearch.closest('.calendar-calendar-toolbar') : null;
@@ -6657,18 +6671,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        lessonModal.addEventListener('hidden.bs.modal', function() {
-            lessonModal.updatedScheduleItem = null;
-            resetLessonModalState(lessonModal);
-        });
-
-        if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
-            window.jQuery(lessonModal).on('hidden.bs.modal', function() {
-                lessonModal.updatedScheduleItem = null;
-                resetLessonModalState(lessonModal);
-            });
-        }
-
         if (reschedulePrevious) {
             reschedulePrevious.addEventListener('click', function() {
                 state.rescheduleDatePickerDate = addMonths(state.rescheduleDatePickerDate || getTodayDate(), -1);
@@ -6772,18 +6774,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        generalEventModal.addEventListener('hidden.bs.modal', function() {
-            generalEventModal.updatedScheduleItem = null;
-            resetGeneralEventModalState(generalEventModal);
-        });
-
-        if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
-            window.jQuery(generalEventModal).on('hidden.bs.modal', function() {
-                generalEventModal.updatedScheduleItem = null;
-                resetGeneralEventModalState(generalEventModal);
-            });
-        }
-
         if (reschedulePrevious) {
             reschedulePrevious.addEventListener('click', function() {
                 state.generalEventRescheduleDatePickerDate = addMonths(state.generalEventRescheduleDatePickerDate || getTodayDate(), -1);
@@ -6825,6 +6815,20 @@ document.addEventListener('DOMContentLoaded', function() {
             rescheduleEndTime.addEventListener('change', function() {
                 syncRescheduleTimePicker(rescheduleStartTime, rescheduleEndTime, 'end');
             });
+        }
+    }
+
+    if (calendarEventModal) {
+        const resetCalendarEventModal = function() {
+            calendarEventModal.updatedScheduleItem = null;
+            resetLessonModalState(calendarEventModal);
+            resetGeneralEventModalState(calendarEventModal);
+        };
+
+        calendarEventModal.addEventListener('hidden.bs.modal', resetCalendarEventModal);
+
+        if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
+            window.jQuery(calendarEventModal).on('hidden.bs.modal', resetCalendarEventModal);
         }
     }
 

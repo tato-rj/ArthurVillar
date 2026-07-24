@@ -28,10 +28,9 @@
 	</div>
 </section>
 
-@include('calendar.lessons.modal')
+@include('calendar.calendar.event-modal')
 @include('calendar.breaks.modal')
 @include('calendar.recitals.modal')
-@include('calendar.events.modal')
 <div id="calendar-edit-modal-container"></div>
 @endsection
 

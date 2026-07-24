@@ -4162,6 +4162,15 @@ var showLessonCancelForm = function showLessonCancelForm(modal) {
   modal.classList.remove('is-rescheduling');
   modal.classList.add('is-canceling');
 };
+var setCalendarEventModalType = function setCalendarEventModalType(modal, type) {
+  if (!modal) {
+    return;
+  }
+  modal.dataset.eventModalType = type;
+  modal.querySelectorAll('[data-event-modal-section]').forEach(function (section) {
+    section.hidden = section.dataset.eventModalSection !== type;
+  });
+};
 var getEventStartDateTime = function getEventStartDateTime(event) {
   if (!event || !event.date || !event.start) {
     return null;
@@ -4184,16 +4193,16 @@ var canUseLessonActionButtons = function canUseLessonActionButtons(event) {
 };
 var populateLessonModal = function populateLessonModal(modal, event) {
   var title = modal.querySelector('.modal-title');
-  var date = modal.querySelector('#lesson-date');
-  var time = modal.querySelector('#lesson-time');
+  var date = modal.querySelector('[data-event-modal-date]');
+  var time = modal.querySelector('[data-event-modal-time]');
   var recurrence = modal.querySelector('#lesson-recurrence');
   var birthday = modal.querySelector('#lesson-birthday');
   var birthdayLabel = birthday ? birthday.querySelector('[data-lesson-birthday-label]') : null;
-  var lessonLocation = modal.querySelector('#lesson-location');
-  var lessonLocationContent = lessonLocation ? lessonLocation.querySelector('[data-lesson-location]') : null;
-  var lessonLocationIcon = lessonLocation ? lessonLocation.querySelector('[data-lesson-location-icon]') : null;
-  var meetingUrl = modal.querySelector('#meeting-url');
-  var meetingUrlLink = meetingUrl ? meetingUrl.querySelector('a') : null;
+  var lessonLocation = modal.querySelector('[data-event-modal-location-section]');
+  var lessonLocationContent = lessonLocation ? lessonLocation.querySelector('[data-event-modal-location]') : null;
+  var lessonLocationIcon = lessonLocation ? lessonLocation.querySelector('[data-event-modal-location-icon]') : null;
+  var meetingUrl = modal.querySelector('[data-event-modal-meeting-section]');
+  var meetingUrlLink = meetingUrl ? meetingUrl.querySelector('[data-event-modal-meeting-link]') : null;
   var notesUrl = modal.querySelector('#notes-url');
   var notesUrlLink = notesUrl ? notesUrl.querySelector('a') : null;
   var revert = modal.querySelector('#lesson-revert');
@@ -4245,10 +4254,10 @@ var populateLessonModal = function populateLessonModal(modal, event) {
   }
   if (meetingUrl && meetingUrlLink) {
     if (event && event.meetingUrl) {
-      meetingUrl.style.display = 'grid';
+      meetingUrl.hidden = false;
       meetingUrlLink.href = event.meetingUrl;
     } else {
-      meetingUrl.style.display = 'none';
+      meetingUrl.hidden = true;
       meetingUrlLink.removeAttribute('href');
     }
   }
@@ -4358,11 +4367,12 @@ var populateLessonModal = function populateLessonModal(modal, event) {
   modal.dataset.lessonCanceledBy = event && event.canceledBy ? event.canceledBy : '';
 };
 var openLessonModal = function openLessonModal(event, options) {
-  var modal = document.getElementById('lesson-modal');
+  var modal = document.getElementById('calendar-event-modal');
   var settings = options || {};
   if (!modal) {
     return;
   }
+  setCalendarEventModalType(modal, 'lesson');
   resetLessonModalState(modal);
   modal.updatedScheduleItem = settings.updatedItem || null;
   populateLessonModal(modal, event);
@@ -5023,27 +5033,27 @@ var showGeneralEventCancelForm = function showGeneralEventCancelForm(modal) {
   modal.classList.add('is-canceling');
 };
 var openGeneralEventModal = function openGeneralEventModal(event, options) {
-  var modal = document.getElementById('general-event-modal');
+  var modal = document.getElementById('calendar-event-modal');
   var settings = options || {};
   if (!modal || !event) {
     return;
   }
   var title = modal.querySelector('.modal-title');
-  var date = modal.querySelector('#general-event-date');
-  var time = modal.querySelector('#general-event-time');
+  var date = modal.querySelector('[data-event-modal-date]');
+  var time = modal.querySelector('[data-event-modal-time]');
   var eventType = modal.querySelector('#general-event-type');
   var eventTypeIcon = modal.querySelector('#general-event-type-icon');
   var eventTypeSection = modal.querySelector('[data-general-event-type-section]');
   var notification = modal.querySelector('#general-event-notification');
   var notes = modal.querySelector('#general-event-notes');
   var notesSection = modal.querySelector('[data-general-event-notes-section]');
-  var externalSection = modal.querySelector('[data-general-event-external-section]');
-  var meetingLink = modal.querySelector('[data-general-event-meeting-link]');
+  var meetingSection = modal.querySelector('[data-event-modal-meeting-section]');
+  var meetingLink = modal.querySelector('[data-event-modal-meeting-link]');
   var organizer = modal.querySelector('[data-general-event-organizer]');
   var organizerSection = modal.querySelector('[data-general-event-organizer-section]');
-  var location = modal.querySelector('[data-general-event-location]');
-  var locationIcon = modal.querySelector('[data-general-event-location-icon]');
-  var locationSection = modal.querySelector('[data-general-event-location-section]');
+  var location = modal.querySelector('[data-event-modal-location]');
+  var locationIcon = modal.querySelector('[data-event-modal-location-icon]');
+  var locationSection = modal.querySelector('[data-event-modal-location-section]');
   var address = modal.querySelector('[data-general-event-address]');
   var addressSection = modal.querySelector('[data-general-event-address-section]');
   var edit = modal.querySelector('#event-edit');
@@ -5055,6 +5065,7 @@ var openGeneralEventModal = function openGeneralEventModal(event, options) {
   var rescheduleStartTime = modal.querySelector('#reschedule-general-event-start-time');
   var rescheduleEndTime = modal.querySelector('#reschedule-general-event-end-time');
   var isCanceled = event.calendarStatus === 'canceled';
+  setCalendarEventModalType(modal, 'general');
   resetGeneralEventModalState(modal);
   modal.updatedScheduleItem = settings.updatedItem || null;
   if (title) title.textContent = event.title || 'Event';
@@ -5079,7 +5090,7 @@ var openGeneralEventModal = function openGeneralEventModal(event, options) {
       renderNotesWithLinks(notes, event.notes);
     }
   }
-  if (externalSection) externalSection.hidden = !event.meetingUrl;
+  if (meetingSection) meetingSection.hidden = !event.meetingUrl;
   if (meetingLink) {
     meetingLink.href = event.meetingUrl || '#';
     meetingLink.hidden = !event.meetingUrl;
@@ -5134,7 +5145,7 @@ var openGeneralEventModal = function openGeneralEventModal(event, options) {
   showBootstrapModal(modal);
 };
 var submitGeneralEventModalForm = function submitGeneralEventModalForm(form, refreshCalendar) {
-  var modal = form ? form.closest('#general-event-modal') : null;
+  var modal = form ? form.closest('#calendar-event-modal') : null;
   var isReschedule = !!(form && form.closest('#reschedule-general-event'));
   if (!modal || !form.action) {
     return;
@@ -5161,7 +5172,7 @@ var submitGeneralEventModalForm = function submitGeneralEventModalForm(form, ref
   });
 };
 var revertGeneralEventAction = function revertGeneralEventAction(button, refreshCalendar) {
-  var modal = button ? button.closest('#general-event-modal') : null;
+  var modal = button ? button.closest('#calendar-event-modal') : null;
   var url = button ? button.dataset.url : '';
   if (!modal || !url) {
     return;
@@ -5320,7 +5331,7 @@ var revertLessonInState = function revertLessonInState(event, lessonId) {
   });
 };
 var revertLessonAction = function revertLessonAction(button, refreshCalendar) {
-  var modal = button.closest('#lesson-modal');
+  var modal = button.closest('#calendar-event-modal');
   var url = button.dataset.url;
   if (!modal || !url || !modal.dataset.lessonId && !modal.dataset.scheduleOverrideId && !modal.dataset.earlyPaymentId) {
     return;
@@ -5355,7 +5366,7 @@ var revertLessonAction = function revertLessonAction(button, refreshCalendar) {
   });
 };
 var storeEarlyPayment = function storeEarlyPayment(button, refreshCalendar) {
-  var modal = button.closest('#lesson-modal');
+  var modal = button.closest('#calendar-event-modal');
   var url = button.dataset.url;
   if (!modal || !url || !modal.dataset.lessonPlanId && !modal.dataset.singleLessonPlanId) {
     return;
@@ -5382,7 +5393,7 @@ var storeEarlyPayment = function storeEarlyPayment(button, refreshCalendar) {
   });
 };
 var storeTaughtLesson = function storeTaughtLesson(button, refreshCalendar) {
-  var modal = button.closest('#lesson-modal');
+  var modal = button.closest('#calendar-event-modal');
   var url = button.dataset.url;
   var lessonPlanId = modal ? modal.dataset.lessonPlanId : '';
   var singleLessonPlanId = modal ? modal.dataset.singleLessonPlanId : '';
@@ -5411,7 +5422,7 @@ var storeTaughtLesson = function storeTaughtLesson(button, refreshCalendar) {
   });
 };
 var confirmLessonPayment = function confirmLessonPayment(button, refreshCalendar) {
-  var modal = button.closest('#lesson-modal');
+  var modal = button.closest('#calendar-event-modal');
   var url = button.dataset.url;
   if (!modal || !url) {
     return;
@@ -5437,7 +5448,7 @@ var confirmLessonPayment = function confirmLessonPayment(button, refreshCalendar
   });
 };
 var submitLessonModalForm = function submitLessonModalForm(form, refreshCalendar) {
-  var modal = form ? form.closest('#lesson-modal') : null;
+  var modal = form ? form.closest('#calendar-event-modal') : null;
   var isReschedule = !!(form && form.closest('#reschedule-lesson'));
   if (!modal || !form.action) {
     return;
@@ -6247,7 +6258,7 @@ var loadCalendarEditModal = function loadCalendarEditModal(button, sourceModal, 
   })["catch"](function (error) {
     console.error(error);
     button.disabled = false;
-    if (sourceModal && sourceModal.id === 'lesson-modal') {
+    if (sourceModal && sourceModal.dataset.eventModalType === 'lesson') {
       showLessonActionError(sourceModal, error.message);
     } else {
       showGeneralEventActionError(sourceModal, error.message);
@@ -6861,8 +6872,9 @@ document.addEventListener('DOMContentLoaded', function () {
   var miniGrid = document.querySelector('[data-mini-grid]');
   var miniPrevious = document.querySelector('[data-mini-prev]');
   var miniNext = document.querySelector('[data-mini-next]');
-  var lessonModal = document.getElementById('lesson-modal');
-  var generalEventModal = document.getElementById('general-event-modal');
+  var calendarEventModal = document.getElementById('calendar-event-modal');
+  var lessonModal = calendarEventModal;
+  var generalEventModal = calendarEventModal;
   var calendarEditModalContainer = document.getElementById('calendar-edit-modal-container');
   var calendarSearch = document.querySelector('.calendar-calendar-search');
   var calendarToolbar = calendarSearch ? calendarSearch.closest('.calendar-calendar-toolbar') : null;
@@ -7646,16 +7658,6 @@ document.addEventListener('DOMContentLoaded', function () {
         submitLessonModalForm(form, refreshCalendarAfterLessonMutation);
       });
     });
-    lessonModal.addEventListener('hidden.bs.modal', function () {
-      lessonModal.updatedScheduleItem = null;
-      resetLessonModalState(lessonModal);
-    });
-    if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
-      window.jQuery(lessonModal).on('hidden.bs.modal', function () {
-        lessonModal.updatedScheduleItem = null;
-        resetLessonModalState(lessonModal);
-      });
-    }
     if (reschedulePrevious) {
       reschedulePrevious.addEventListener('click', function () {
         state.rescheduleDatePickerDate = addMonths(state.rescheduleDatePickerDate || getTodayDate(), -1);
@@ -7740,16 +7742,6 @@ document.addEventListener('DOMContentLoaded', function () {
         submitGeneralEventModalForm(form, refreshCalendarAfterLessonMutation);
       });
     });
-    generalEventModal.addEventListener('hidden.bs.modal', function () {
-      generalEventModal.updatedScheduleItem = null;
-      resetGeneralEventModalState(generalEventModal);
-    });
-    if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
-      window.jQuery(generalEventModal).on('hidden.bs.modal', function () {
-        generalEventModal.updatedScheduleItem = null;
-        resetGeneralEventModalState(generalEventModal);
-      });
-    }
     if (_reschedulePrevious) {
       _reschedulePrevious.addEventListener('click', function () {
         state.generalEventRescheduleDatePickerDate = addMonths(state.generalEventRescheduleDatePickerDate || getTodayDate(), -1);
@@ -7784,6 +7776,17 @@ document.addEventListener('DOMContentLoaded', function () {
       _rescheduleEndTime.addEventListener('change', function () {
         syncRescheduleTimePicker(_rescheduleStartTime, _rescheduleEndTime, 'end');
       });
+    }
+  }
+  if (calendarEventModal) {
+    var resetCalendarEventModal = function resetCalendarEventModal() {
+      calendarEventModal.updatedScheduleItem = null;
+      resetLessonModalState(calendarEventModal);
+      resetGeneralEventModalState(calendarEventModal);
+    };
+    calendarEventModal.addEventListener('hidden.bs.modal', resetCalendarEventModal);
+    if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
+      window.jQuery(calendarEventModal).on('hidden.bs.modal', resetCalendarEventModal);
     }
   }
   if (calendarEditModalContainer) {
