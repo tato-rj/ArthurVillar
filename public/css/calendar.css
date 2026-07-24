@@ -32659,20 +32659,22 @@ button.single-lesson-plan-create[selected] i {
   border-color: color-mix(in srgb, var(--calendar-schedule-event-color, #6b7280) 45%, white);
   border-bottom: 0;
   border-radius: 4px 4px 0 0;
-  bottom: calc(100% - 1px);
+  bottom: 100%;
   box-sizing: border-box;
   color: #3c4043;
   display: flex;
   font-size: 0.72rem;
   gap: 0.35rem;
-  left: -1px;
+  left: 50%;
   line-height: 1;
   min-height: 15px;
   overflow: hidden;
   padding: 0 0.4rem;
   position: absolute;
+  transform: translateX(-50%);
   white-space: nowrap;
-  width: calc(100% + 2px);
+  width: calc(100% - 12px);
+  opacity: 0.75;
 }
 
 #calendar .calendar-schedule-travel i {
