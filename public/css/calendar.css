@@ -32672,6 +32672,7 @@ button.single-lesson-plan-create[selected] i {
   white-space: nowrap;
   width: 100%;
   opacity: 0.7;
+  transition: 0.2s;
 }
 
 #calendar .calendar-schedule-travel i {
