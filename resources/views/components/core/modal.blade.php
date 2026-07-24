@@ -27,7 +27,7 @@
       </div>
       @endisset
 
-      <div class="modal-body {{! isset($title) ? 'pt-0' : null}}">
+      <div class="modal-body {{! isset($title) ? 'pt-0' : null}} {{iftrue($bodyFullWidth ?? null, 'px-0')}}">
         {{$slot}}
       </div>
 
