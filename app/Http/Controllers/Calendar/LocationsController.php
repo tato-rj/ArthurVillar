@@ -64,7 +64,7 @@ class LocationsController extends Controller
     {
         return [
             'name' => $data['name'],
-            'usage' => $data['usage'],
+            'usage' => $data['usage'] ?? null,
             'fee_amount' => $this->feeAmount($data['fee_amount'] ?? null),
             'tax_withheld_percentage' => $data['tax_withheld_percentage'] ?? 0,
             'address' => $data['address'] ?? null,
