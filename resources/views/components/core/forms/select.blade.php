@@ -17,7 +17,7 @@
       {{iftrue($readonly ?? null, 'readonly')}}>
 
       @isset($placeholder)
-      <option selected value="">{{$placeholder}}</option>
+      <option selected disabled value="">{{$placeholder}}</option>
       @endisset
 
       {{$slot}}
