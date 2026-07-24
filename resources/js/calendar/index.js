@@ -2907,7 +2907,7 @@ const renderTravelRoute = function(modal, route) {
     const departureAt = new Date(route.departure_at);
     const arrivalAt = new Date(route.arrival_at);
 
-    duration.textContent = durationMinutes ? `${durationMinutes} min` : 'Already there';
+    duration.textContent = `${durationMinutes} min`;
     times.textContent = isValidDate(departureAt) && isValidDate(arrivalAt)
         ? `${eventTimeFormatter.format(departureAt)} – ${eventTimeFormatter.format(arrivalAt)}`
         : '';
@@ -2927,6 +2927,7 @@ const renderTravelRoute = function(modal, route) {
     origin.textContent = route.origin ? `From ${route.origin}` : '';
     section.querySelector('[data-travel-route-loading]').hidden = true;
     section.querySelector('[data-travel-route-content]').hidden = false;
+    section.hidden = false;
 };
 
 const loadTravelRoute = function(modal, event) {
@@ -2950,7 +2951,6 @@ const loadTravelRoute = function(modal, event) {
 
     const requestId = `${event.guid || event.id || 'event'}-${Date.now()}`;
     modal.dataset.travelRouteRequest = requestId;
-    section.hidden = false;
 
     requestJson(window.calendarTravelRouteUrl, {
         method: 'POST',

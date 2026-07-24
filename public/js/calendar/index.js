@@ -4738,7 +4738,7 @@ var renderTravelRoute = function renderTravelRoute(modal, route) {
   var durationMinutes = Math.max(0, Math.round(Number(route.duration_seconds || 0) / 60));
   var departureAt = new Date(route.departure_at);
   var arrivalAt = new Date(route.arrival_at);
-  duration.textContent = durationMinutes ? "".concat(durationMinutes, " min") : 'Already there';
+  duration.textContent = "".concat(durationMinutes, " min");
   times.textContent = isValidDate(departureAt) && isValidDate(arrivalAt) ? "".concat(eventTimeFormatter.format(departureAt), " \u2013 ").concat(eventTimeFormatter.format(arrivalAt)) : '';
   steps.innerHTML = '';
   (Array.isArray(route.steps) ? route.steps : []).forEach(function (step, index) {
@@ -4753,6 +4753,7 @@ var renderTravelRoute = function renderTravelRoute(modal, route) {
   origin.textContent = route.origin ? "From ".concat(route.origin) : '';
   section.querySelector('[data-travel-route-loading]').hidden = true;
   section.querySelector('[data-travel-route-content]').hidden = false;
+  section.hidden = false;
 };
 var loadTravelRoute = function loadTravelRoute(modal, event) {
   resetTravelRoute(modal);
@@ -4765,7 +4766,6 @@ var loadTravelRoute = function loadTravelRoute(modal, event) {
   }
   var requestId = "".concat(event.guid || event.id || 'event', "-").concat(Date.now());
   modal.dataset.travelRouteRequest = requestId;
-  section.hidden = false;
   requestJson(window.calendarTravelRouteUrl, {
     method: 'POST',
     headers: {
