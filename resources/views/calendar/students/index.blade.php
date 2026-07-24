@@ -35,7 +35,7 @@
     </div>
 </section>
 @include('calendar.students.create')
-<div id="student-missed-lessons-modal-container"></div>
+<div id="edit-student-modal-container"></div>
 @endsection
 
 @push('scripts')
@@ -114,15 +114,12 @@ $(function() {
                 render: function(data, type, row) {
                     const deleteUrl = @json(route('calendar.students.destroy', ['student' => '__student__'])).replace('__student__', data);
                     const editUrl = @json(route('calendar.students.edit', ['student' => '__student__'])).replace('__student__', data);
-                    const missedLessonsUrl = @json(route('calendar.students.missed-lessons', ['student' => '__student__'])).replace('__student__', data);
-                    const missedLessonsButton = row.has_current_lesson_plan
-                        ? `<button type="button" class="btn btn-sm btn-secondary rounded js-student-missed-lessons" data-url="${missedLessonsUrl}">@fa(['icon' => 'calendar-day', 'mr' => 0])</button>`
-                        : '';
+                    const infoUrl = @json(route('calendar.students.show', ['student' => '__student__'])).replace('__student__', data);
 
                     return `
                         <div class="calendar-table-actions">
-                            ${missedLessonsButton}
-                            <a href="${editUrl}" class="btn btn-sm btn-warning rounded">@fa(['icon' => 'pen-to-square', 'mr' => 0])</a>
+                            <a href="${infoUrl}" class="btn btn-sm btn-secondary rounded" aria-label="Student info" title="Student info">@fa(['icon' => 'circle-info', 'mr' => 0])</a>
+                            <button type="button" class="btn btn-sm btn-warning rounded js-edit-student" data-url="${editUrl}" aria-label="Edit student" title="Edit student">@fa(['icon' => 'pen-to-square', 'mr' => 0])</button>
                             <form method="POST" action="${deleteUrl}" confirm>
                                 @csrf
                                 @method('DELETE')
@@ -135,8 +132,14 @@ $(function() {
         ],
     });
 
-    $('#students-table').on('click', '.js-student-missed-lessons', function() {
-        fetch($(this).data('url'), {
+    $('#students-table').on('click', '.js-edit-student', function() {
+        const url = $(this).data('url');
+
+        if (!url) {
+            return;
+        }
+
+        fetch(url, {
             headers: {
                 Accept: 'text/html',
                 'X-Requested-With': 'XMLHttpRequest',
@@ -144,17 +147,20 @@ $(function() {
         })
             .then(function(response) {
                 if (!response.ok) {
-                    throw new Error('Unable to load missed lessons.');
+                    throw new Error('Unable to load student form.');
                 }
 
                 return response.text();
             })
             .then(function(html) {
-                const container = document.getElementById('student-missed-lessons-modal-container');
-                container.innerHTML = html;
-                showModal(container.querySelector('.modal'));
+                const container = $('#edit-student-modal-container');
+
+                container.html(html);
+                showModal(container.find('.modal').get(0));
             })
-            .catch(console.error);
+            .catch(function(error) {
+                console.error(error);
+            });
     });
 });
 </script>

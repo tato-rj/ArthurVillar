@@ -40,15 +40,56 @@ class StudentsController extends Controller
         return view('calendar.students.edit', compact('student'));
     }
 
-    public function missedLessons(Student $student)
+    public function show(Student $student)
     {
-        $lessonPlan = $student->currentLessonPlan();
+        $today = today()->startOfDay();
+        $missedLessonPlan = $student->currentLessonPlan();
+        $missedDates = $missedLessonPlan
+            ? $missedLessonPlan->missedLessonDates($today)
+            : collect();
 
-        abort_unless($lessonPlan, 404);
+        $registeredLessonPlans = $student->lessonPlans()
+            ->with('location')
+            ->whereNull('canceled_at')
+            ->get()
+            ->filter(fn ($lessonPlan) => $lessonPlan->isCurrent())
+            ->values();
 
-        $missedDates = $lessonPlan->missedLessonDates();
+        $registeredSingleLessons = $student->singleLessonPlans()
+            ->with('location')
+            ->where('status', 'active')
+            ->whereDate('scheduled_date', '>=', $today->toDateString())
+            ->orderBy('scheduled_date')
+            ->orderBy('start_time')
+            ->get();
 
-        return view('calendar.students.missed-lessons', compact('student', 'lessonPlan', 'missedDates'));
+        $confirmedLessons = $student->lessons()
+            ->with('lessonPlan')
+            ->whereNull('canceled_at')
+            ->whereNotNull('paid_at')
+            ->latest('starts_at')
+            ->get()
+            ->sortByDesc(fn ($lesson) => ($lesson->scheduled_date ?: $lesson->starts_at)->timestamp)
+            ->values();
+
+        $unpaidLessons = $student->lessons()
+            ->with('lessonPlan')
+            ->whereNull('canceled_at')
+            ->whereNull('paid_at')
+            ->latest('starts_at')
+            ->get()
+            ->sortByDesc(fn ($lesson) => ($lesson->scheduled_date ?: $lesson->starts_at)->timestamp)
+            ->values();
+
+        return view('calendar.students.show', compact(
+            'student',
+            'missedLessonPlan',
+            'missedDates',
+            'registeredLessonPlans',
+            'registeredSingleLessons',
+            'confirmedLessons',
+            'unpaidLessons'
+        ));
     }
 
     private function validateStudent(Request $request)

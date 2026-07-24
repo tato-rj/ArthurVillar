@@ -82,9 +82,9 @@ Breadcrumbs::for('calendar.students.index', function (BreadcrumbTrail $trail) {
     $trail->push('Students', route('calendar.students.index'));
 });
 
-Breadcrumbs::for('calendar.students.edit', function (BreadcrumbTrail $trail, $student) {
+Breadcrumbs::for('calendar.students.show', function (BreadcrumbTrail $trail, $student) {
     $trail->parent('calendar.students.index');
-    $trail->push($student->full_name, route('calendar.students.edit', $student));
+    $trail->push($student->full_name, route('calendar.students.show', $student));
 });
 
 Breadcrumbs::for('calendar.waiting-list.index', function (BreadcrumbTrail $trail) {

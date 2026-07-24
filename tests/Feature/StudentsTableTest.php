@@ -3,13 +3,13 @@
 namespace Tests\Feature;
 
 use Carbon\Carbon;
-use App\Models\Calendar\{Holiday, LessonPlan, Location, Student, TeachingBreak};
+use App\Models\Calendar\{Holiday, Lesson, LessonPlan, Location, SingleLessonPlan, Student, TeachingBreak};
 use Tests\BaseTest;
 
 class StudentsTableTest extends BaseTest
 {
     /** @test */
-    public function it_uses_a_dedicated_page_to_edit_a_student()
+    public function it_opens_student_editing_in_a_modal_from_the_index()
     {
         $student = Student::factory()->create([
             'first_name' => 'Nora',
@@ -20,8 +20,10 @@ class StudentsTableTest extends BaseTest
 
         $this->get(route('calendar.students.index'))
             ->assertOk()
-            ->assertSee('href="${editUrl}"', false)
-            ->assertDontSee('js-edit-student');
+            ->assertSee('js-edit-student')
+            ->assertSee('edit-student-modal-container')
+            ->assertSee('circle-info')
+            ->assertSee('infoUrl');
 
         $this->get(route('calendar.students.edit', $student))
             ->assertOk()
@@ -30,33 +32,12 @@ class StudentsTableTest extends BaseTest
             ->assertSee('Nora')
             ->assertSee('Stone')
             ->assertSee(route('calendar.students.update', $student), false)
-            ->assertDontSee('edit-student-'.$student->id.'-modal');
+            ->assertSee('edit-student-'.$student->id.'-modal')
+            ->assertDontSee('<section class="container py-5">', false);
     }
 
     /** @test */
-    public function it_identifies_students_with_a_current_lesson_plan_for_the_actions_column()
-    {
-        Carbon::setTestNow('2026-07-01 12:00:00');
-
-        $scheduledStudent = Student::factory()->create(['first_name' => 'Scheduled']);
-        $unscheduledStudent = Student::factory()->create(['first_name' => 'Unscheduled']);
-        LessonPlan::factory()->student($scheduledStudent)->create([
-            'weekday' => 4,
-            'starts_on' => '2026-07-01',
-            'ends_on' => '2026-07-31',
-        ]);
-        $this->signIn();
-
-        $rows = collect($this->getJson(route('calendar.tables.students'))->assertOk()->json('data'));
-
-        $this->assertTrue($rows->firstWhere('id', $scheduledStudent->id)['has_current_lesson_plan']);
-        $this->assertFalse($rows->firstWhere('id', $unscheduledStudent->id)['has_current_lesson_plan']);
-
-        Carbon::setTestNow();
-    }
-
-    /** @test */
-    public function it_lists_future_lesson_dates_missed_for_holidays_and_applicable_breaks()
+    public function it_shows_student_registrations_confirmed_unpaid_and_future_missed_lessons()
     {
         Carbon::setTestNow('2026-07-01 12:00:00');
 
@@ -70,6 +51,35 @@ class StudentsTableTest extends BaseTest
             'starts_on' => '2026-07-01',
             'ends_on' => '2026-07-31',
             'recurrence_interval' => 1,
+        ]);
+        $lessonPlan = $student->lessonPlans()->firstOrFail();
+        SingleLessonPlan::factory()->student($student)->create([
+            'location_id' => $location->id,
+            'scheduled_date' => '2026-08-05',
+            'start_time' => '16:00',
+            'duration_minutes' => 45,
+            'status' => 'active',
+        ]);
+        Lesson::factory()->lessonPlan($lessonPlan)->create([
+            'starts_at' => '2026-07-02 15:30:00',
+            'ends_at' => '2026-07-02 16:15:00',
+            'paid_at' => '2026-07-01 09:00:00',
+            'fee_amount' => 6500,
+            'canceled_at' => null,
+        ]);
+        Lesson::factory()->lessonPlan($lessonPlan)->create([
+            'starts_at' => '2026-07-03 15:30:00',
+            'ends_at' => '2026-07-03 16:15:00',
+            'paid_at' => null,
+            'fee_amount' => 5500,
+            'canceled_at' => null,
+        ]);
+        Lesson::factory()->lessonPlan($lessonPlan)->create([
+            'starts_at' => '2026-07-04 15:30:00',
+            'ends_at' => '2026-07-04 16:15:00',
+            'paid_at' => null,
+            'fee_amount' => 4500,
+            'canceled_at' => '2026-07-01 10:00:00',
         ]);
         Holiday::factory()->fixed(7, 8)->create([
             'title' => 'Summer Holiday',
@@ -92,9 +102,19 @@ class StudentsTableTest extends BaseTest
         $otherBreak->locations()->attach($otherLocation);
         $this->signIn();
 
-        $this->get(route('calendar.students.missed-lessons', $student))
+        $this->get(route('calendar.students.show', $student))
             ->assertOk()
-            ->assertSee('Nora Stone missed lessons')
+            ->assertViewIs('calendar.students.show')
+            ->assertSee('Nora Stone')
+            ->assertSee('Currently registered lessons')
+            ->assertSee('RECURRING LESSON')
+            ->assertSee('SINGLE LESSON')
+            ->assertSee('Wednesday, August 5, 2026')
+            ->assertSee('Confirmed lessons')
+            ->assertSee('$65')
+            ->assertSee('Unpaid lessons')
+            ->assertSee('$55')
+            ->assertDontSee('$45')
             ->assertSee('Wednesday, July 8, 2026')
             ->assertSee('Holiday: Summer Holiday')
             ->assertSee('Wednesday, July 15, 2026')
