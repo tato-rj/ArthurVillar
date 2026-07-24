@@ -3031,7 +3031,7 @@ const renderScheduleItemTravel = function(item, route, cacheKey) {
     }, {
         type: spring,
         stiffness: 240,
-        damping: 22,
+        damping: 15,
         mass: 0.7,
         delay: 0.5,
     });

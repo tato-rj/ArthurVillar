@@ -6905,7 +6905,7 @@ var renderScheduleItemTravel = function renderScheduleItemTravel(item, route, ca
   }, {
     type: motion__WEBPACK_IMPORTED_MODULE_0__.spring,
     stiffness: 240,
-    damping: 22,
+    damping: 15,
     mass: 0.7,
     delay: 0.5
   });
