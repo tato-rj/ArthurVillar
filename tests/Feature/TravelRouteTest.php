@@ -224,4 +224,31 @@ class TravelRouteTest extends BaseTest
         Http::assertNothingSent();
         $this->assertSame(0, TravelRoute::count());
     }
+
+    /** @test */
+    public function it_hides_travel_information_when_the_event_is_already_at_the_origin()
+    {
+        Carbon::setTestNow('2026-07-23 10:00:00');
+        config(['calendar.google_routes.api_key' => 'test-key']);
+        $this->signIn();
+        Location::factory()->create([
+            'name' => 'Home',
+            'address' => '80 Erie St',
+            'city' => 'Jersey City',
+            'state' => 'NJ',
+            'postal_code' => '07302',
+        ]);
+        Http::fake();
+
+        $this->postJson(route('calendar.travel-route.show'), [
+            'event_key' => 'planned-lesson-home',
+            'arrival_at' => '2026-07-24T17:00:00',
+            'destination_address' => '80 Erie St, Jersey City, NJ 07302',
+            'destination_label' => '80 Erie St, Jersey City',
+        ])->assertNoContent();
+
+        Http::assertNothingSent();
+        $this->assertSame(0, TravelRoute::count());
+    }
+
 }

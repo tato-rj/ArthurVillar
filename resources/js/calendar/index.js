@@ -2792,7 +2792,20 @@ const renderEventLocation = function(element, icon, location) {
 };
 
 const getTravelDestination = function(event) {
-    if (!event || !event.location) {
+    if (!event) {
+        return null;
+    }
+
+    if (!event.location && event.meetingUrl) {
+        const home = window.calendarHomeLocation;
+
+        return home ? {
+            address: physicalLocationQuery(home),
+            label: compactPhysicalLocation(home) || 'Home',
+        } : null;
+    }
+
+    if (!event.location) {
         return null;
     }
 
@@ -2959,7 +2972,7 @@ const loadTravelRoute = function(modal, event) {
                 return;
             }
 
-            if (!payload.route) {
+            if (!payload.route || Number(payload.route.duration_seconds || 0) <= 0) {
                 section.hidden = true;
                 return;
             }

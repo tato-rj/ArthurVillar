@@ -4652,18 +4652,28 @@ var renderEventLocation = function renderEventLocation(element, icon, location) 
   return true;
 };
 var getTravelDestination = function getTravelDestination(event) {
-  if (!event || !event.location) {
+  if (!event) {
+    return null;
+  }
+  if (!event.location && event.meetingUrl) {
+    var home = window.calendarHomeLocation;
+    return home ? {
+      address: physicalLocationQuery(home),
+      label: compactPhysicalLocation(home) || 'Home'
+    } : null;
+  }
+  if (!event.location) {
     return null;
   }
   var value = locationValue(event.location);
   if (normalizeHttpUrl(value) || isVirtualLocation(value)) {
-    var home = window.calendarHomeLocation;
-    if (!home) {
+    var _home = window.calendarHomeLocation;
+    if (!_home) {
       return null;
     }
     return {
-      address: physicalLocationQuery(home),
-      label: compactPhysicalLocation(home) || 'Home'
+      address: physicalLocationQuery(_home),
+      label: compactPhysicalLocation(_home) || 'Home'
     };
   }
   var address = physicalLocationQuery(event.location);
@@ -4774,7 +4784,7 @@ var loadTravelRoute = function loadTravelRoute(modal, event) {
     if (modal.dataset.travelRouteRequest !== requestId) {
       return;
     }
-    if (!payload.route) {
+    if (!payload.route || Number(payload.route.duration_seconds || 0) <= 0) {
       section.hidden = true;
       return;
     }

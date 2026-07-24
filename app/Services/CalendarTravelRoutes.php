@@ -39,17 +39,12 @@ class CalendarTravelRoutes
         }
 
         if ($this->samePlace($origin['address'], $destinationAddress)) {
-            $route = [
-                'travel_mode' => 'WALK',
-                'duration_seconds' => 0,
-                'distance_meters' => 0,
-                'departure_at' => $arrivalAt,
-                'arrival_at' => $arrivalAt,
-                'steps' => [],
-            ];
-        } else {
-            $route = $this->client->calculate($origin['address'], $destinationAddress, $arrivalAt);
+            $cached?->delete();
+
+            return null;
         }
+
+        $route = $this->client->calculate($origin['address'], $destinationAddress, $arrivalAt);
 
         if (! $route) {
             return $cached && $cached->request_signature === $signature ? $cached : null;
