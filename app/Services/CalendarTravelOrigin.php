@@ -15,7 +15,7 @@ class CalendarTravelOrigin
     public function before(CarbonImmutable $targetAt, ?int $userId): ?array
     {
         $range = [
-            'start' => $targetAt->subDays((int) config('calendar.google_routes.origin_lookback_days', 14))->toDateString(),
+            'start' => $targetAt->toDateString(),
             'end' => $targetAt->toDateString(),
         ];
         $home = $this->home();

@@ -186,6 +186,13 @@ class TravelRouteTest extends BaseTest
 
         $this->assertSame('58 7th Ave, Brooklyn, NY', $origin['address']);
 
+        $nextMorningOrigin = app(CalendarTravelOrigin::class)->before(
+            $date->addDay()->setTime(9, 0),
+            null
+        );
+
+        $this->assertSame($home->full_address, $nextMorningOrigin['address']);
+
         Lesson::factory()->lessonPlan($lessonPlan)->create([
             'starts_at' => '2026-07-24 12:00:00',
             'ends_at' => '2026-07-24 13:00:00',
