@@ -32590,7 +32590,7 @@ button.single-lesson-plan-create[selected] i {
   width: 14px;
 }
 
-#calendar.calendar-calendar-day-view .lm-schedule-pointer::before {
+#calendar .lm-schedule-pointer.calendar-schedule-pointer-touches-time-column::before {
   display: none;
 }
 

@@ -6996,10 +6996,8 @@ var renderTravelRoute = function renderTravelRoute(modal, route) {
   var origin = section.querySelector('[data-travel-route-origin]');
   var durationMinutes = Math.max(0, Math.round(Number(route.duration_seconds || 0) / 60));
   var duration = document.createElement('strong');
-  var departureAt = route.departure_at ? new Date(route.departure_at) : null;
-  var leaveBy = departureAt && !Number.isNaN(departureAt.getTime()) ? eventTimeFormatter.format(departureAt) : '';
   duration.textContent = "".concat(durationMinutes, " min");
-  times.replaceChildren(duration, document.createTextNode(" travel time".concat(leaveBy ? " - leave by ".concat(leaveBy) : '')));
+  times.replaceChildren(duration, document.createTextNode(' travel time'));
   steps.innerHTML = '';
   (Array.isArray(route.steps) ? route.steps : []).forEach(function (step, index) {
     appendTravelStep(steps, step, index);
@@ -7613,6 +7611,10 @@ var patchSchedulePointer = function patchSchedulePointer(calendar) {
   }
   var scheduleRect = schedule.getBoundingClientRect();
   var cellRect = cell.getBoundingClientRect();
+  var firstVisibleCell = Array.from(schedule.querySelectorAll("tbody td[data-y=\"".concat(slot, "\"][data-date]"))).find(function (candidate) {
+    return candidate.offsetParent !== null;
+  });
+  var touchesTimeColumn = firstVisibleCell && Math.abs(cellRect.left - firstVisibleCell.getBoundingClientRect().left) < 1;
   var pointerLeft = cellRect.left - scheduleRect.left + schedule.scrollLeft;
   var extension = pointer.querySelector('.calendar-schedule-pointer-extension');
   var time = pointer.querySelector('.calendar-schedule-pointer-time');
@@ -7629,6 +7631,7 @@ var patchSchedulePointer = function patchSchedulePointer(calendar) {
     extension.appendChild(time);
   }
   pointer.style.display = 'block';
+  pointer.classList.toggle('calendar-schedule-pointer-touches-time-column', Boolean(touchesTimeColumn));
   pointer.style.left = "".concat(pointerLeft, "px");
   pointer.style.top = "".concat(cellRect.top - scheduleRect.top + schedule.scrollTop + cellRect.height * slotOffset, "px");
   extension.style.width = "".concat(pointerLeft, "px");

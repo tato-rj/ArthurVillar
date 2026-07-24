@@ -3158,15 +3158,11 @@ const renderTravelRoute = function(modal, route) {
     const origin = section.querySelector('[data-travel-route-origin]');
     const durationMinutes = Math.max(0, Math.round(Number(route.duration_seconds || 0) / 60));
     const duration = document.createElement('strong');
-    const departureAt = route.departure_at ? new Date(route.departure_at) : null;
-    const leaveBy = departureAt && !Number.isNaN(departureAt.getTime())
-        ? eventTimeFormatter.format(departureAt)
-        : '';
 
     duration.textContent = `${durationMinutes} min`;
     times.replaceChildren(
         duration,
-        document.createTextNode(` travel time${leaveBy ? ` - leave by ${leaveBy}` : ''}`)
+        document.createTextNode(' travel time')
     );
     steps.innerHTML = '';
 
@@ -3955,6 +3951,12 @@ const patchSchedulePointer = function(calendar) {
 
     const scheduleRect = schedule.getBoundingClientRect();
     const cellRect = cell.getBoundingClientRect();
+    const firstVisibleCell = Array.from(schedule.querySelectorAll(`tbody td[data-y="${slot}"][data-date]`))
+        .find(function(candidate) {
+            return candidate.offsetParent !== null;
+        });
+    const touchesTimeColumn = firstVisibleCell
+        && Math.abs(cellRect.left - firstVisibleCell.getBoundingClientRect().left) < 1;
     const pointerLeft = cellRect.left - scheduleRect.left + schedule.scrollLeft;
     let extension = pointer.querySelector('.calendar-schedule-pointer-extension');
     let time = pointer.querySelector('.calendar-schedule-pointer-time');
@@ -3974,6 +3976,7 @@ const patchSchedulePointer = function(calendar) {
     }
 
     pointer.style.display = 'block';
+    pointer.classList.toggle('calendar-schedule-pointer-touches-time-column', Boolean(touchesTimeColumn));
     pointer.style.left = `${pointerLeft}px`;
     pointer.style.top = `${cellRect.top - scheduleRect.top + schedule.scrollTop + (cellRect.height * slotOffset)}px`;
     extension.style.width = `${pointerLeft}px`;
