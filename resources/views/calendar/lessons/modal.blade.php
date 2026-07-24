@@ -26,7 +26,7 @@
 			<span id="lesson-recurrence"></span>
 		</div>
 		<div id="lesson-location" class="calendar-modal-detail" hidden>
-			@fa(['icon' => 'location-dot', 'mr' => 0, 'classes' => 'calendar-modal-detail-icon'])
+			<i class="fas fa-location-dot calendar-modal-detail-icon" data-lesson-location-icon aria-hidden="true"></i>
 			<span data-lesson-location></span>
 		</div>
 		<div id="meeting-url" class="calendar-modal-detail">

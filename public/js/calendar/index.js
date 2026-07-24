@@ -4188,6 +4188,7 @@ var populateLessonModal = function populateLessonModal(modal, event) {
   var birthdayLabel = birthday ? birthday.querySelector('[data-lesson-birthday-label]') : null;
   var lessonLocation = modal.querySelector('#lesson-location');
   var lessonLocationContent = lessonLocation ? lessonLocation.querySelector('[data-lesson-location]') : null;
+  var lessonLocationIcon = lessonLocation ? lessonLocation.querySelector('[data-lesson-location-icon]') : null;
   var meetingUrl = modal.querySelector('#meeting-url');
   var meetingUrlLink = meetingUrl ? meetingUrl.querySelector('a') : null;
   var notesUrl = modal.querySelector('#notes-url');
@@ -4236,8 +4237,8 @@ var populateLessonModal = function populateLessonModal(modal, event) {
     }
   }
   if (lessonLocation && lessonLocationContent) {
-    var hasPhysicalLocation = renderLessonLocation(lessonLocationContent, event && event.location);
-    lessonLocation.hidden = !hasPhysicalLocation;
+    var hasLocation = renderEventLocation(lessonLocationContent, lessonLocationIcon, event && event.location);
+    lessonLocation.hidden = !hasLocation;
   }
   if (meetingUrl && meetingUrlLink) {
     if (event && event.meetingUrl) {
@@ -4599,6 +4600,12 @@ var physicalLocationQuery = function physicalLocationQuery(location) {
   }
   return String(location || '').trim();
 };
+var locationValue = function locationValue(location) {
+  if (!location || _typeof(location) !== 'object') {
+    return String(location || '').trim();
+  }
+  return String(location.address || location.name || '').trim();
+};
 var isVirtualLocation = function isVirtualLocation(value) {
   return /^(?:online|virtual|remote|zoom|google meet|meet)$/i.test(String(value || '').trim());
 };
@@ -4609,14 +4616,32 @@ var setLocationIcon = function setLocationIcon(icon, useVideoIcon) {
   icon.classList.remove('fa-location-dot', 'fa-video');
   icon.classList.add(useVideoIcon ? 'fa-video' : 'fa-location-dot');
 };
-var renderLessonLocation = function renderLessonLocation(element, location) {
-  var name = location && _typeof(location) === 'object' ? String(location.name || '').trim() : '';
+var renderEventLocation = function renderEventLocation(element, icon, location) {
+  var value = locationValue(location);
   var query = physicalLocationQuery(location);
+  var url = normalizeHttpUrl(value);
+  var virtual = isVirtualLocation(value);
   element.innerHTML = '';
-  if (!query || isVirtualLocation(name)) {
+  if (!value) {
     return false;
   }
+  if (url) {
+    var _link = document.createElement('a');
+    setLocationIcon(icon, true);
+    _link.href = url;
+    _link.target = '_blank';
+    _link.rel = 'noopener noreferrer';
+    _link.textContent = 'Join the meeting';
+    element.appendChild(_link);
+    return true;
+  }
+  if (virtual) {
+    setLocationIcon(icon, true);
+    element.textContent = value;
+    return true;
+  }
   var link = document.createElement('a');
+  setLocationIcon(icon, false);
   link.href = "https://www.google.com/maps/search/?api=1&query=".concat(encodeURIComponent(query));
   link.target = '_blank';
   link.rel = 'noopener noreferrer';
@@ -4632,38 +4657,6 @@ var renderNotesWithLinks = function renderNotesWithLinks(element, notes, options
   }
   element.classList.remove('opacity-4');
   appendTextWithLinks(element, text, options);
-};
-var renderGeneralEventLocation = function renderGeneralEventLocation(element, icon, location) {
-  var text = String(location || '').trim();
-  var url = normalizeHttpUrl(text);
-  var virtual = isVirtualLocation(text);
-  element.innerHTML = '';
-  if (!text) {
-    return false;
-  }
-  if (url) {
-    var _link = document.createElement('a');
-    setLocationIcon(icon, true);
-    _link.href = url;
-    _link.target = '_blank';
-    _link.rel = 'noopener noreferrer';
-    _link.textContent = 'Join the meeting';
-    element.appendChild(_link);
-    return true;
-  }
-  if (virtual) {
-    setLocationIcon(icon, true);
-    element.textContent = text;
-    return true;
-  }
-  var link = document.createElement('a');
-  setLocationIcon(icon, false);
-  link.href = "https://www.google.com/maps/search/?api=1&query=".concat(encodeURIComponent(text));
-  link.target = '_blank';
-  link.rel = 'noopener noreferrer';
-  link.textContent = compactPhysicalLocation(text);
-  element.appendChild(link);
-  return true;
 };
 var renderGoogleNotesHtml = function renderGoogleNotesHtml(element, notes) {
   element.innerHTML = DOMPurify.sanitize(String(notes || ''), {
@@ -4828,7 +4821,7 @@ var openGeneralEventModal = function openGeneralEventModal(event, options) {
   if (organizerSection) organizerSection.hidden = !(event.organizerName || event.organizerEmail);
   if (organizer) organizer.textContent = event.organizerName || event.organizerEmail || '';
   if (location && locationSection) {
-    locationSection.hidden = !renderGeneralEventLocation(location, locationIcon, event.location);
+    locationSection.hidden = !renderEventLocation(location, locationIcon, event.location);
   }
   if (edit) {
     edit.dataset.url = event.editUrl || '';

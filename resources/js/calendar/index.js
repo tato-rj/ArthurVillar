@@ -2189,6 +2189,7 @@ const populateLessonModal = function(modal, event) {
     const birthdayLabel = birthday ? birthday.querySelector('[data-lesson-birthday-label]') : null;
     const lessonLocation = modal.querySelector('#lesson-location');
     const lessonLocationContent = lessonLocation ? lessonLocation.querySelector('[data-lesson-location]') : null;
+    const lessonLocationIcon = lessonLocation ? lessonLocation.querySelector('[data-lesson-location-icon]') : null;
     const meetingUrl = modal.querySelector('#meeting-url');
     const meetingUrlLink = meetingUrl ? meetingUrl.querySelector('a') : null;
     const notesUrl = modal.querySelector('#notes-url');
@@ -2244,9 +2245,13 @@ const populateLessonModal = function(modal, event) {
     }
 
     if (lessonLocation && lessonLocationContent) {
-        const hasPhysicalLocation = renderLessonLocation(lessonLocationContent, event && event.location);
+        const hasLocation = renderEventLocation(
+            lessonLocationContent,
+            lessonLocationIcon,
+            event && event.location
+        );
 
-        lessonLocation.hidden = !hasPhysicalLocation;
+        lessonLocation.hidden = !hasLocation;
     }
 
     if (meetingUrl && meetingUrlLink) {
@@ -2717,6 +2722,14 @@ const physicalLocationQuery = function(location) {
     return String(location || '').trim();
 };
 
+const locationValue = function(location) {
+    if (!location || typeof location !== 'object') {
+        return String(location || '').trim();
+    }
+
+    return String(location.address || location.name || '').trim();
+};
+
 const isVirtualLocation = function(value) {
     return /^(?:online|virtual|remote|zoom|google meet|meet)$/i.test(String(value || '').trim());
 };
@@ -2730,20 +2743,41 @@ const setLocationIcon = function(icon, useVideoIcon) {
     icon.classList.add(useVideoIcon ? 'fa-video' : 'fa-location-dot');
 };
 
-const renderLessonLocation = function(element, location) {
-    const name = location && typeof location === 'object'
-        ? String(location.name || '').trim()
-        : '';
+const renderEventLocation = function(element, icon, location) {
+    const value = locationValue(location);
     const query = physicalLocationQuery(location);
+    const url = normalizeHttpUrl(value);
+    const virtual = isVirtualLocation(value);
 
     element.innerHTML = '';
 
-    if (!query || isVirtualLocation(name)) {
+    if (!value) {
         return false;
+    }
+
+    if (url) {
+        const link = document.createElement('a');
+
+        setLocationIcon(icon, true);
+        link.href = url;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.textContent = 'Join the meeting';
+        element.appendChild(link);
+
+        return true;
+    }
+
+    if (virtual) {
+        setLocationIcon(icon, true);
+        element.textContent = value;
+
+        return true;
     }
 
     const link = document.createElement('a');
 
+    setLocationIcon(icon, false);
     link.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
@@ -2764,49 +2798,6 @@ const renderNotesWithLinks = function(element, notes, options) {
 
     element.classList.remove('opacity-4');
     appendTextWithLinks(element, text, options);
-};
-
-const renderGeneralEventLocation = function(element, icon, location) {
-    const text = String(location || '').trim();
-    const url = normalizeHttpUrl(text);
-    const virtual = isVirtualLocation(text);
-
-    element.innerHTML = '';
-
-    if (!text) {
-        return false;
-    }
-
-    if (url) {
-        const link = document.createElement('a');
-
-        setLocationIcon(icon, true);
-        link.href = url;
-        link.target = '_blank';
-        link.rel = 'noopener noreferrer';
-        link.textContent = 'Join the meeting';
-        element.appendChild(link);
-
-        return true;
-    }
-
-    if (virtual) {
-        setLocationIcon(icon, true);
-        element.textContent = text;
-
-        return true;
-    }
-
-    const link = document.createElement('a');
-
-    setLocationIcon(icon, false);
-    link.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(text)}`;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-    link.textContent = compactPhysicalLocation(text);
-    element.appendChild(link);
-
-    return true;
 };
 
 const renderGoogleNotesHtml = function(element, notes) {
@@ -3010,7 +3001,7 @@ const openGeneralEventModal = function(event, options) {
     if (organizerSection) organizerSection.hidden = !(event.organizerName || event.organizerEmail);
     if (organizer) organizer.textContent = event.organizerName || event.organizerEmail || '';
     if (location && locationSection) {
-        locationSection.hidden = !renderGeneralEventLocation(location, locationIcon, event.location);
+        locationSection.hidden = !renderEventLocation(location, locationIcon, event.location);
     }
     if (edit) {
         edit.dataset.url = event.editUrl || '';
