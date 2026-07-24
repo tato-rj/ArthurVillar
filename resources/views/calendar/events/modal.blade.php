@@ -24,7 +24,7 @@
         <span data-general-event-organizer></span>
     </div>
     <div class="calendar-modal-detail" data-general-event-location-section hidden>
-        @fa(['icon' => 'location-dot', 'mr' => 0, 'classes' => 'calendar-modal-detail-icon'])
+        <i class="fas fa-location-dot calendar-modal-detail-icon" data-general-event-location-icon aria-hidden="true"></i>
         <span data-general-event-location></span>
     </div>
     <div class="calendar-modal-detail" hidden>

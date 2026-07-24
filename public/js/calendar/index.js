@@ -2477,6 +2477,7 @@ module.exports = purify;
 /*!****************************************!*\
   !*** ./resources/js/calendar/index.js ***!
   \****************************************/
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 var DOMPurify = __webpack_require__(/*! dompurify */ "./node_modules/dompurify/dist/purify.cjs.js");
 var calendarjs = window.calendarjs;
 var state = {
@@ -4185,6 +4186,8 @@ var populateLessonModal = function populateLessonModal(modal, event) {
   var recurrence = modal.querySelector('#lesson-recurrence');
   var birthday = modal.querySelector('#lesson-birthday');
   var birthdayLabel = birthday ? birthday.querySelector('[data-lesson-birthday-label]') : null;
+  var lessonLocation = modal.querySelector('#lesson-location');
+  var lessonLocationContent = lessonLocation ? lessonLocation.querySelector('[data-lesson-location]') : null;
   var meetingUrl = modal.querySelector('#meeting-url');
   var meetingUrlLink = meetingUrl ? meetingUrl.querySelector('a') : null;
   var notesUrl = modal.querySelector('#notes-url');
@@ -4231,6 +4234,10 @@ var populateLessonModal = function populateLessonModal(modal, event) {
       birthday.style.display = 'none';
       birthdayLabel.textContent = '';
     }
+  }
+  if (lessonLocation && lessonLocationContent) {
+    var hasPhysicalLocation = renderLessonLocation(lessonLocationContent, event && event.location);
+    lessonLocation.hidden = !hasPhysicalLocation;
   }
   if (meetingUrl && meetingUrlLink) {
     if (event && event.meetingUrl) {
@@ -4551,6 +4558,72 @@ var isZoomUrl = function isZoomUrl(value) {
     return false;
   }
 };
+var normalizeHttpUrl = function normalizeHttpUrl(value) {
+  var text = String(value || '').trim();
+  if (!text || /\s/.test(text)) {
+    return '';
+  }
+  try {
+    var url = new URL(/^www\./i.test(text) ? "https://".concat(text) : text);
+    return ['http:', 'https:'].includes(url.protocol) ? url.href : '';
+  } catch (error) {
+    return '';
+  }
+};
+var compactPhysicalLocation = function compactPhysicalLocation(location) {
+  if (location && _typeof(location) === 'object') {
+    var address = String(location.address || '').trim();
+    var city = String(location.city || '').trim();
+    return [address, city].filter(Boolean).join(', ') || String(location.name || '').trim();
+  }
+  var text = String(location || '').replace(/\s*\n+\s*/g, ', ').trim();
+  var parts = text.split(',').map(function (part) {
+    return part.trim();
+  }).filter(Boolean);
+  if (parts.length < 2) {
+    return text;
+  }
+  var streetIndex = parts.findIndex(function (part) {
+    return /^\d+[A-Za-z]?(?:[-\s]|$)/.test(part);
+  });
+  if (streetIndex >= 0 && parts[streetIndex + 1]) {
+    return "".concat(parts[streetIndex], ", ").concat(parts[streetIndex + 1]);
+  }
+  return parts.slice(0, 2).join(', ');
+};
+var physicalLocationQuery = function physicalLocationQuery(location) {
+  if (location && _typeof(location) === 'object') {
+    return [location.address, location.city, location.state, location.postal_code].map(function (part) {
+      return String(part || '').trim();
+    }).filter(Boolean).join(', ') || String(location.name || '').trim();
+  }
+  return String(location || '').trim();
+};
+var isVirtualLocation = function isVirtualLocation(value) {
+  return /^(?:online|virtual|remote|zoom|google meet|meet)$/i.test(String(value || '').trim());
+};
+var setLocationIcon = function setLocationIcon(icon, useVideoIcon) {
+  if (!icon) {
+    return;
+  }
+  icon.classList.remove('fa-location-dot', 'fa-video');
+  icon.classList.add(useVideoIcon ? 'fa-video' : 'fa-location-dot');
+};
+var renderLessonLocation = function renderLessonLocation(element, location) {
+  var name = location && _typeof(location) === 'object' ? String(location.name || '').trim() : '';
+  var query = physicalLocationQuery(location);
+  element.innerHTML = '';
+  if (!query || isVirtualLocation(name)) {
+    return false;
+  }
+  var link = document.createElement('a');
+  link.href = "https://www.google.com/maps/search/?api=1&query=".concat(encodeURIComponent(query));
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
+  link.textContent = compactPhysicalLocation(location);
+  element.appendChild(link);
+  return true;
+};
 var renderNotesWithLinks = function renderNotesWithLinks(element, notes, options) {
   var text = String(notes || '');
   element.innerHTML = '';
@@ -4560,26 +4633,37 @@ var renderNotesWithLinks = function renderNotesWithLinks(element, notes, options
   element.classList.remove('opacity-4');
   appendTextWithLinks(element, text, options);
 };
-var renderGeneralEventLocation = function renderGeneralEventLocation(element, location) {
+var renderGeneralEventLocation = function renderGeneralEventLocation(element, icon, location) {
   var text = String(location || '').trim();
-  var hasUrl = /(?:https?:\/\/|www\.)[^\s]+/i.test(text);
-  var isVirtualLocation = /^(?:online|virtual|remote|zoom|google meet|meet)$/i.test(text);
+  var url = normalizeHttpUrl(text);
+  var virtual = isVirtualLocation(text);
   element.innerHTML = '';
   if (!text) {
-    return;
+    return false;
   }
-  if (hasUrl || isVirtualLocation) {
-    appendTextWithLinks(element, text, {
-      labelZoomLinks: true
-    });
-    return;
+  if (url) {
+    var _link = document.createElement('a');
+    setLocationIcon(icon, true);
+    _link.href = url;
+    _link.target = '_blank';
+    _link.rel = 'noopener noreferrer';
+    _link.textContent = 'Join the meeting';
+    element.appendChild(_link);
+    return true;
+  }
+  if (virtual) {
+    setLocationIcon(icon, true);
+    element.textContent = text;
+    return true;
   }
   var link = document.createElement('a');
+  setLocationIcon(icon, false);
   link.href = "https://www.google.com/maps/search/?api=1&query=".concat(encodeURIComponent(text));
   link.target = '_blank';
   link.rel = 'noopener noreferrer';
-  link.textContent = text;
+  link.textContent = compactPhysicalLocation(text);
   element.appendChild(link);
+  return true;
 };
 var renderGoogleNotesHtml = function renderGoogleNotesHtml(element, notes) {
   element.innerHTML = DOMPurify.sanitize(String(notes || ''), {
@@ -4701,6 +4785,7 @@ var openGeneralEventModal = function openGeneralEventModal(event, options) {
   var organizer = modal.querySelector('[data-general-event-organizer]');
   var organizerSection = modal.querySelector('[data-general-event-organizer-section]');
   var location = modal.querySelector('[data-general-event-location]');
+  var locationIcon = modal.querySelector('[data-general-event-location-icon]');
   var locationSection = modal.querySelector('[data-general-event-location-section]');
   var edit = modal.querySelector('#event-edit');
   var revert = modal.querySelector('#event-revert');
@@ -4742,8 +4827,9 @@ var openGeneralEventModal = function openGeneralEventModal(event, options) {
   }
   if (organizerSection) organizerSection.hidden = !(event.organizerName || event.organizerEmail);
   if (organizer) organizer.textContent = event.organizerName || event.organizerEmail || '';
-  if (locationSection) locationSection.hidden = !event.location;
-  if (location) renderGeneralEventLocation(location, event.location);
+  if (location && locationSection) {
+    locationSection.hidden = !renderGeneralEventLocation(location, locationIcon, event.location);
+  }
   if (edit) {
     edit.dataset.url = event.editUrl || '';
     edit.style.display = edit.dataset.url ? 'inline-flex' : 'none';
@@ -5646,6 +5732,7 @@ var getPlannedLessonEvents = function getPlannedLessonEvents(range) {
           feeAmount: occurrence.fee_amount || lesson.fee_amount || 0,
           locationId: normalizeLocationId(lesson.location_id),
           locationName: lesson.location && lesson.location.name ? lesson.location.name : '',
+          location: lesson.location || null,
           canceledBy: occurrence.canceled_by || '',
           calendarEditUrl: getLessonPlanModalEditUrl(isSingleLessonPlan, lesson.id),
           lessonEditUrl: occurrence.lesson_edit_url || '',
@@ -5708,6 +5795,7 @@ var getPlannedLessonEvents = function getPlannedLessonEvents(range) {
         feeAmount: confirmedLesson && confirmedLesson.fee_amount ? confirmedLesson.fee_amount : lesson.fee_amount || 0,
         locationId: normalizeLocationId(lesson.location_id),
         locationName: lesson.location && lesson.location.name ? lesson.location.name : '',
+        location: lesson.location || null,
         canceledBy: confirmedLesson && confirmedLesson.canceled_by ? confirmedLesson.canceled_by : '',
         calendarEditUrl: getLessonPlanModalEditUrl(false, lesson.id),
         lessonEditUrl: getLessonEditUrl(confirmedLesson),

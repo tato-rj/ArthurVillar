@@ -25,8 +25,12 @@
 			@fa(['icon' => 'repeat', 'mr' => 0, 'classes' => 'calendar-modal-detail-icon'])
 			<span id="lesson-recurrence"></span>
 		</div>
-		<div id="meeting-url" class="calendar-modal-detail">
+		<div id="lesson-location" class="calendar-modal-detail" hidden>
 			@fa(['icon' => 'location-dot', 'mr' => 0, 'classes' => 'calendar-modal-detail-icon'])
+			<span data-lesson-location></span>
+		</div>
+		<div id="meeting-url" class="calendar-modal-detail">
+			@fa(['icon' => 'video', 'mr' => 0, 'classes' => 'calendar-modal-detail-icon'])
 			<a target="_blank" rel="noopener" href="">Join the meeting</a>
 		</div>
 		<div id="notes-url" class="calendar-modal-detail">

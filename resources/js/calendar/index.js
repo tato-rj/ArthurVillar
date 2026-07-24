@@ -2187,6 +2187,8 @@ const populateLessonModal = function(modal, event) {
     const recurrence = modal.querySelector('#lesson-recurrence');
     const birthday = modal.querySelector('#lesson-birthday');
     const birthdayLabel = birthday ? birthday.querySelector('[data-lesson-birthday-label]') : null;
+    const lessonLocation = modal.querySelector('#lesson-location');
+    const lessonLocationContent = lessonLocation ? lessonLocation.querySelector('[data-lesson-location]') : null;
     const meetingUrl = modal.querySelector('#meeting-url');
     const meetingUrlLink = meetingUrl ? meetingUrl.querySelector('a') : null;
     const notesUrl = modal.querySelector('#notes-url');
@@ -2239,6 +2241,12 @@ const populateLessonModal = function(modal, event) {
             birthday.style.display = 'none';
             birthdayLabel.textContent = '';
         }
+    }
+
+    if (lessonLocation && lessonLocationContent) {
+        const hasPhysicalLocation = renderLessonLocation(lessonLocationContent, event && event.location);
+
+        lessonLocation.hidden = !hasPhysicalLocation;
     }
 
     if (meetingUrl && meetingUrlLink) {
@@ -2649,6 +2657,102 @@ const isZoomUrl = function(value) {
     }
 };
 
+const normalizeHttpUrl = function(value) {
+    const text = String(value || '').trim();
+
+    if (!text || /\s/.test(text)) {
+        return '';
+    }
+
+    try {
+        const url = new URL(/^www\./i.test(text) ? `https://${text}` : text);
+
+        return ['http:', 'https:'].includes(url.protocol) ? url.href : '';
+    } catch (error) {
+        return '';
+    }
+};
+
+const compactPhysicalLocation = function(location) {
+    if (location && typeof location === 'object') {
+        const address = String(location.address || '').trim();
+        const city = String(location.city || '').trim();
+
+        return [address, city].filter(Boolean).join(', ')
+            || String(location.name || '').trim();
+    }
+
+    const text = String(location || '').replace(/\s*\n+\s*/g, ', ').trim();
+    const parts = text.split(',').map(function(part) {
+        return part.trim();
+    }).filter(Boolean);
+
+    if (parts.length < 2) {
+        return text;
+    }
+
+    const streetIndex = parts.findIndex(function(part) {
+        return /^\d+[A-Za-z]?(?:[-\s]|$)/.test(part);
+    });
+
+    if (streetIndex >= 0 && parts[streetIndex + 1]) {
+        return `${parts[streetIndex]}, ${parts[streetIndex + 1]}`;
+    }
+
+    return parts.slice(0, 2).join(', ');
+};
+
+const physicalLocationQuery = function(location) {
+    if (location && typeof location === 'object') {
+        return [
+            location.address,
+            location.city,
+            location.state,
+            location.postal_code,
+        ].map(function(part) {
+            return String(part || '').trim();
+        }).filter(Boolean).join(', ') || String(location.name || '').trim();
+    }
+
+    return String(location || '').trim();
+};
+
+const isVirtualLocation = function(value) {
+    return /^(?:online|virtual|remote|zoom|google meet|meet)$/i.test(String(value || '').trim());
+};
+
+const setLocationIcon = function(icon, useVideoIcon) {
+    if (!icon) {
+        return;
+    }
+
+    icon.classList.remove('fa-location-dot', 'fa-video');
+    icon.classList.add(useVideoIcon ? 'fa-video' : 'fa-location-dot');
+};
+
+const renderLessonLocation = function(element, location) {
+    const name = location && typeof location === 'object'
+        ? String(location.name || '').trim()
+        : '';
+    const query = physicalLocationQuery(location);
+
+    element.innerHTML = '';
+
+    if (!query || isVirtualLocation(name)) {
+        return false;
+    }
+
+    const link = document.createElement('a');
+
+    link.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.textContent = compactPhysicalLocation(location);
+    element.appendChild(link);
+
+    return true;
+};
+
 const renderNotesWithLinks = function(element, notes, options) {
     const text = String(notes || '');
 
@@ -2662,29 +2766,47 @@ const renderNotesWithLinks = function(element, notes, options) {
     appendTextWithLinks(element, text, options);
 };
 
-const renderGeneralEventLocation = function(element, location) {
+const renderGeneralEventLocation = function(element, icon, location) {
     const text = String(location || '').trim();
-    const hasUrl = /(?:https?:\/\/|www\.)[^\s]+/i.test(text);
-    const isVirtualLocation = /^(?:online|virtual|remote|zoom|google meet|meet)$/i.test(text);
+    const url = normalizeHttpUrl(text);
+    const virtual = isVirtualLocation(text);
 
     element.innerHTML = '';
 
     if (!text) {
-        return;
+        return false;
     }
 
-    if (hasUrl || isVirtualLocation) {
-        appendTextWithLinks(element, text, { labelZoomLinks: true });
-        return;
+    if (url) {
+        const link = document.createElement('a');
+
+        setLocationIcon(icon, true);
+        link.href = url;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.textContent = 'Join the meeting';
+        element.appendChild(link);
+
+        return true;
+    }
+
+    if (virtual) {
+        setLocationIcon(icon, true);
+        element.textContent = text;
+
+        return true;
     }
 
     const link = document.createElement('a');
 
+    setLocationIcon(icon, false);
     link.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(text)}`;
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
-    link.textContent = text;
+    link.textContent = compactPhysicalLocation(text);
     element.appendChild(link);
+
+    return true;
 };
 
 const renderGoogleNotesHtml = function(element, notes) {
@@ -2839,6 +2961,7 @@ const openGeneralEventModal = function(event, options) {
     const organizer = modal.querySelector('[data-general-event-organizer]');
     const organizerSection = modal.querySelector('[data-general-event-organizer-section]');
     const location = modal.querySelector('[data-general-event-location]');
+    const locationIcon = modal.querySelector('[data-general-event-location-icon]');
     const locationSection = modal.querySelector('[data-general-event-location-section]');
     const edit = modal.querySelector('#event-edit');
     const revert = modal.querySelector('#event-revert');
@@ -2886,8 +3009,9 @@ const openGeneralEventModal = function(event, options) {
     }
     if (organizerSection) organizerSection.hidden = !(event.organizerName || event.organizerEmail);
     if (organizer) organizer.textContent = event.organizerName || event.organizerEmail || '';
-    if (locationSection) locationSection.hidden = !event.location;
-    if (location) renderGeneralEventLocation(location, event.location);
+    if (location && locationSection) {
+        locationSection.hidden = !renderGeneralEventLocation(location, locationIcon, event.location);
+    }
     if (edit) {
         edit.dataset.url = event.editUrl || '';
         edit.style.display = edit.dataset.url ? 'inline-flex' : 'none';
@@ -4067,6 +4191,7 @@ const getPlannedLessonEvents = function(range) {
                     feeAmount: occurrence.fee_amount || lesson.fee_amount || 0,
                     locationId: normalizeLocationId(lesson.location_id),
                     locationName: lesson.location && lesson.location.name ? lesson.location.name : '',
+                    location: lesson.location || null,
                     canceledBy: occurrence.canceled_by || '',
                     calendarEditUrl: getLessonPlanModalEditUrl(isSingleLessonPlan, lesson.id),
                     lessonEditUrl: occurrence.lesson_edit_url || '',
@@ -4141,6 +4266,7 @@ const getPlannedLessonEvents = function(range) {
                 feeAmount: confirmedLesson && confirmedLesson.fee_amount ? confirmedLesson.fee_amount : (lesson.fee_amount || 0),
                 locationId: normalizeLocationId(lesson.location_id),
                 locationName: lesson.location && lesson.location.name ? lesson.location.name : '',
+                location: lesson.location || null,
                 canceledBy: confirmedLesson && confirmedLesson.canceled_by ? confirmedLesson.canceled_by : '',
                 calendarEditUrl: getLessonPlanModalEditUrl(false, lesson.id),
                 lessonEditUrl: getLessonEditUrl(confirmedLesson),
