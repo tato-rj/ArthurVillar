@@ -11,7 +11,7 @@
 				'name' => 'usage',
 				'label' => ucfirst($usage),
 				'value' => $usage,
-				'selected' => old('usage', \App\Models\Calendar\Location::USAGE_TEACHING) === $usage
+				'selected' => old('usage', \App\Models\Calendar\Location::USAGE_GENERAL) === $usage
 			])
 		@endforeach
 	@endselect

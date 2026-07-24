@@ -6,6 +6,7 @@ use App\Models\BaseModel;
 
 class Location extends BaseModel
 {
+    public const USAGE_GENERAL = 'general';
     public const USAGE_TEACHING = 'teaching';
     public const USAGE_RECITAL = 'recital';
 
@@ -18,9 +19,15 @@ class Location extends BaseModel
     public static function usages()
     {
         return [
+            self::USAGE_GENERAL,
             self::USAGE_TEACHING,
             self::USAGE_RECITAL,
         ];
+    }
+
+    public function scopeGeneral($query)
+    {
+        return $query->where('usage', self::USAGE_GENERAL);
     }
 
     public function scopeTeaching($query)
