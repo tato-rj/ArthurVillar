@@ -1664,6 +1664,72 @@ button.single-lesson-plan-create[selected] i {
     grid-column: 1 / -1;
 }
 
+.calendar-travel-route {
+    background: #f4f5f7;
+    border: 1px solid rgba(31, 41, 55, 0.08);
+    border-radius: 1rem;
+    margin-top: 0.75rem;
+    padding: 0.85rem 1rem;
+}
+
+.calendar-travel-route-loading {
+    align-items: center;
+    color: #5f6368;
+    display: flex;
+    gap: 0.65rem;
+}
+
+.calendar-travel-route-content {
+    align-items: flex-start;
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: auto minmax(0, 1fr);
+}
+
+.calendar-travel-route-duration {
+    font-size: 1.55rem;
+    font-weight: 600;
+    line-height: 1.05;
+    max-width: 4.5rem;
+}
+
+.calendar-travel-route-summary {
+    min-width: 0;
+}
+
+.calendar-travel-route-steps {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: 0.35rem;
+}
+
+.calendar-travel-route-step {
+    align-items: center;
+    display: inline-flex;
+    gap: 0.3rem;
+}
+
+.calendar-travel-route-line {
+    border-radius: 0.35rem;
+    display: inline-flex;
+    font-weight: 600;
+    line-height: 1.6;
+    padding: 0 0.45rem;
+}
+
+.calendar-travel-route-chevron {
+    color: #8a8f98;
+    font-size: 0.7rem;
+}
+
+.calendar-travel-route-origin {
+    color: #6b7280;
+    font-size: 0.9rem;
+    margin-top: 0.3rem;
+}
+
 #lesson-modal[data-lesson-status="unpaid"] {
     h4.modal-title:before {background: var(--calendar-unpaid-lesson-color, #ff4b4b)}
     div#lesson-status {

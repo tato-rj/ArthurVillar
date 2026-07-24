@@ -36,6 +36,8 @@
         <span id="general-event-notification"></span>
     </div>
 
+    @include('calendar.calendar.travel-route')
+
     <div data-general-event-notes-section hidden class="calendar-modal-detail-section">
         <div class="small font-weight-bold opacity-6 mb-2 mt-3">NOTES</div>
         <div id="general-event-notes" class="calendar-general-event-notes"></div>

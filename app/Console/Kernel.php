@@ -16,6 +16,7 @@ class Kernel extends ConsoleKernel
     {
         $schedule->command('calendar:send-event-reminders')->everyMinute()->withoutOverlapping();
         $schedule->command('calendar:sync-google')->everyFiveMinutes()->withoutOverlapping();
+        $schedule->command('calendar:refresh-travel-routes')->everyFiveMinutes()->withoutOverlapping();
     }
 
     /**

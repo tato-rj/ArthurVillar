@@ -2457,6 +2457,8 @@ const openLessonModal = function(event, options) {
         modal.dataset.originalStartTime = '';
     }
 
+    loadTravelRoute(modal, event);
+
     if (window.bootstrap && window.bootstrap.Modal && typeof window.bootstrap.Modal.getOrCreateInstance === 'function') {
         window.bootstrap.Modal.getOrCreateInstance(modal).show();
         return;
@@ -2611,6 +2613,8 @@ const openRecitalModal = function(event) {
             participants.appendChild(row);
         });
     }
+
+    loadTravelRoute(modal, event);
 
     if (window.bootstrap && window.bootstrap.Modal && typeof window.bootstrap.Modal.getOrCreateInstance === 'function') {
         window.bootstrap.Modal.getOrCreateInstance(modal).show();
@@ -2785,6 +2789,190 @@ const renderEventLocation = function(element, icon, location) {
     element.appendChild(link);
 
     return true;
+};
+
+const getTravelDestination = function(event) {
+    if (!event || !event.location) {
+        return null;
+    }
+
+    const value = locationValue(event.location);
+
+    if (normalizeHttpUrl(value) || isVirtualLocation(value)) {
+        const home = window.calendarHomeLocation;
+
+        if (!home) {
+            return null;
+        }
+
+        return {
+            address: physicalLocationQuery(home),
+            label: compactPhysicalLocation(home) || 'Home',
+        };
+    }
+
+    const address = physicalLocationQuery(event.location);
+
+    return address ? {
+        address,
+        label: compactPhysicalLocation(event.location) || address,
+    } : null;
+};
+
+const resetTravelRoute = function(modal) {
+    const section = modal ? modal.querySelector('[data-travel-route]') : null;
+
+    if (!section) {
+        return;
+    }
+
+    modal.dataset.travelRouteRequest = '';
+    section.hidden = true;
+    section.querySelector('[data-travel-route-loading]').hidden = false;
+    section.querySelector('[data-travel-route-content]').hidden = true;
+};
+
+const travelVehicleIcon = function(vehicleType) {
+    const type = String(vehicleType || '').toUpperCase();
+
+    if (type.includes('BUS')) return 'fa-bus-simple';
+    if (type.includes('FERRY')) return 'fa-ferry';
+    if (type.includes('SUBWAY') || type.includes('METRO')) return 'fa-train-subway';
+    if (type.includes('RAIL') || type.includes('TRAIN') || type.includes('TRAM')) return 'fa-train';
+
+    return 'fa-diamond-turn-right';
+};
+
+const appendTravelStep = function(container, step, index) {
+    if (index > 0) {
+        const chevron = document.createElement('i');
+        chevron.className = 'fas fa-chevron-right calendar-travel-route-chevron';
+        chevron.setAttribute('aria-hidden', 'true');
+        container.appendChild(chevron);
+    }
+
+    const item = document.createElement('span');
+    const icon = document.createElement('i');
+
+    item.className = 'calendar-travel-route-step';
+
+    if (step.mode === 'WALK') {
+        icon.className = 'fas fa-person-walking';
+        item.appendChild(icon);
+
+        const minutes = Math.max(1, Math.round(Number(step.duration_seconds || 0) / 60));
+        item.appendChild(document.createTextNode(`${minutes} min`));
+    } else {
+        icon.className = `fas ${travelVehicleIcon(step.vehicle_type)}`;
+        item.appendChild(icon);
+
+        const line = document.createElement('span');
+        const background = /^#[0-9a-f]{6}$/i.test(String(step.line_color || ''))
+            ? step.line_color
+            : '#4285f4';
+        const textColor = /^#[0-9a-f]{6}$/i.test(String(step.line_text_color || ''))
+            ? step.line_text_color
+            : '#fff';
+
+        line.className = 'calendar-travel-route-line';
+        line.style.backgroundColor = background;
+        line.style.color = textColor;
+        line.textContent = step.line_name || step.vehicle_name || 'Transit';
+        item.appendChild(line);
+    }
+
+    container.appendChild(item);
+};
+
+const renderTravelRoute = function(modal, route) {
+    const section = modal.querySelector('[data-travel-route]');
+    const duration = section.querySelector('[data-travel-route-duration]');
+    const times = section.querySelector('[data-travel-route-times]');
+    const steps = section.querySelector('[data-travel-route-steps]');
+    const origin = section.querySelector('[data-travel-route-origin]');
+    const durationMinutes = Math.max(0, Math.round(Number(route.duration_seconds || 0) / 60));
+    const departureAt = new Date(route.departure_at);
+    const arrivalAt = new Date(route.arrival_at);
+
+    duration.textContent = durationMinutes ? `${durationMinutes} min` : 'Already there';
+    times.textContent = isValidDate(departureAt) && isValidDate(arrivalAt)
+        ? `${eventTimeFormatter.format(departureAt)} – ${eventTimeFormatter.format(arrivalAt)}`
+        : '';
+    steps.innerHTML = '';
+
+    (Array.isArray(route.steps) ? route.steps : []).forEach(function(step, index) {
+        appendTravelStep(steps, step, index);
+    });
+
+    if (!steps.children.length && durationMinutes) {
+        appendTravelStep(steps, {
+            mode: route.mode === 'TRANSIT' ? 'TRANSIT' : 'WALK',
+            duration_seconds: route.duration_seconds,
+        }, 0);
+    }
+
+    origin.textContent = route.origin ? `From ${route.origin}` : '';
+    section.querySelector('[data-travel-route-loading]').hidden = true;
+    section.querySelector('[data-travel-route-content]').hidden = false;
+};
+
+const loadTravelRoute = function(modal, event) {
+    resetTravelRoute(modal);
+
+    const section = modal ? modal.querySelector('[data-travel-route]') : null;
+    const destination = getTravelDestination(event);
+    const startAt = getEventStartDateTime(event);
+    const isCanceled = event && (event.calendarStatus === 'canceled' || event.lessonStatus === 'canceled');
+
+    if (!section
+        || !window.calendarTravelRoutesEnabled
+        || !window.calendarTravelRouteUrl
+        || !destination
+        || !startAt
+        || event.allDay
+        || isCanceled
+        || startAt <= new Date()) {
+        return;
+    }
+
+    const requestId = `${event.guid || event.id || 'event'}-${Date.now()}`;
+    modal.dataset.travelRouteRequest = requestId;
+    section.hidden = false;
+
+    requestJson(window.calendarTravelRouteUrl, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': window.calendarCsrfToken || '',
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: JSON.stringify({
+            event_key: event.guid || String(event.id || ''),
+            arrival_at: `${String(event.date).substring(0, 10)}T${normalizeTime(event.start)}:00`,
+            destination_address: destination.address,
+            destination_label: destination.label,
+        }),
+    }, 'Unable to calculate travel time.')
+        .then(function(payload) {
+            if (modal.dataset.travelRouteRequest !== requestId) {
+                return;
+            }
+
+            if (!payload.route) {
+                section.hidden = true;
+                return;
+            }
+
+            renderTravelRoute(modal, payload.route);
+        })
+        .catch(function(error) {
+            if (modal.dataset.travelRouteRequest === requestId) {
+                section.hidden = true;
+            }
+
+            console.error(error);
+        });
 };
 
 const renderNotesWithLinks = function(element, notes, options) {
@@ -3071,6 +3259,7 @@ const openGeneralEventModal = function(event, options) {
         showGeneralEventRescheduleForm(modal);
     }
 
+    loadTravelRoute(modal, event);
     showBootstrapModal(modal);
 };
 

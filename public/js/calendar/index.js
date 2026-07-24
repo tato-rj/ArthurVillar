@@ -4395,6 +4395,7 @@ var openLessonModal = function openLessonModal(event, options) {
     modal.dataset.originalDate = '';
     modal.dataset.originalStartTime = '';
   }
+  loadTravelRoute(modal, event);
   if (window.bootstrap && window.bootstrap.Modal && typeof window.bootstrap.Modal.getOrCreateInstance === 'function') {
     window.bootstrap.Modal.getOrCreateInstance(modal).show();
     return;
@@ -4519,6 +4520,7 @@ var openRecitalModal = function openRecitalModal(event) {
       participants.appendChild(row);
     });
   }
+  loadTravelRoute(modal, event);
   if (window.bootstrap && window.bootstrap.Modal && typeof window.bootstrap.Modal.getOrCreateInstance === 'function') {
     window.bootstrap.Modal.getOrCreateInstance(modal).show();
     return;
@@ -4648,6 +4650,141 @@ var renderEventLocation = function renderEventLocation(element, icon, location) 
   link.textContent = compactPhysicalLocation(location);
   element.appendChild(link);
   return true;
+};
+var getTravelDestination = function getTravelDestination(event) {
+  if (!event || !event.location) {
+    return null;
+  }
+  var value = locationValue(event.location);
+  if (normalizeHttpUrl(value) || isVirtualLocation(value)) {
+    var home = window.calendarHomeLocation;
+    if (!home) {
+      return null;
+    }
+    return {
+      address: physicalLocationQuery(home),
+      label: compactPhysicalLocation(home) || 'Home'
+    };
+  }
+  var address = physicalLocationQuery(event.location);
+  return address ? {
+    address: address,
+    label: compactPhysicalLocation(event.location) || address
+  } : null;
+};
+var resetTravelRoute = function resetTravelRoute(modal) {
+  var section = modal ? modal.querySelector('[data-travel-route]') : null;
+  if (!section) {
+    return;
+  }
+  modal.dataset.travelRouteRequest = '';
+  section.hidden = true;
+  section.querySelector('[data-travel-route-loading]').hidden = false;
+  section.querySelector('[data-travel-route-content]').hidden = true;
+};
+var travelVehicleIcon = function travelVehicleIcon(vehicleType) {
+  var type = String(vehicleType || '').toUpperCase();
+  if (type.includes('BUS')) return 'fa-bus-simple';
+  if (type.includes('FERRY')) return 'fa-ferry';
+  if (type.includes('SUBWAY') || type.includes('METRO')) return 'fa-train-subway';
+  if (type.includes('RAIL') || type.includes('TRAIN') || type.includes('TRAM')) return 'fa-train';
+  return 'fa-diamond-turn-right';
+};
+var appendTravelStep = function appendTravelStep(container, step, index) {
+  if (index > 0) {
+    var chevron = document.createElement('i');
+    chevron.className = 'fas fa-chevron-right calendar-travel-route-chevron';
+    chevron.setAttribute('aria-hidden', 'true');
+    container.appendChild(chevron);
+  }
+  var item = document.createElement('span');
+  var icon = document.createElement('i');
+  item.className = 'calendar-travel-route-step';
+  if (step.mode === 'WALK') {
+    icon.className = 'fas fa-person-walking';
+    item.appendChild(icon);
+    var minutes = Math.max(1, Math.round(Number(step.duration_seconds || 0) / 60));
+    item.appendChild(document.createTextNode("".concat(minutes, " min")));
+  } else {
+    icon.className = "fas ".concat(travelVehicleIcon(step.vehicle_type));
+    item.appendChild(icon);
+    var line = document.createElement('span');
+    var background = /^#[0-9a-f]{6}$/i.test(String(step.line_color || '')) ? step.line_color : '#4285f4';
+    var textColor = /^#[0-9a-f]{6}$/i.test(String(step.line_text_color || '')) ? step.line_text_color : '#fff';
+    line.className = 'calendar-travel-route-line';
+    line.style.backgroundColor = background;
+    line.style.color = textColor;
+    line.textContent = step.line_name || step.vehicle_name || 'Transit';
+    item.appendChild(line);
+  }
+  container.appendChild(item);
+};
+var renderTravelRoute = function renderTravelRoute(modal, route) {
+  var section = modal.querySelector('[data-travel-route]');
+  var duration = section.querySelector('[data-travel-route-duration]');
+  var times = section.querySelector('[data-travel-route-times]');
+  var steps = section.querySelector('[data-travel-route-steps]');
+  var origin = section.querySelector('[data-travel-route-origin]');
+  var durationMinutes = Math.max(0, Math.round(Number(route.duration_seconds || 0) / 60));
+  var departureAt = new Date(route.departure_at);
+  var arrivalAt = new Date(route.arrival_at);
+  duration.textContent = durationMinutes ? "".concat(durationMinutes, " min") : 'Already there';
+  times.textContent = isValidDate(departureAt) && isValidDate(arrivalAt) ? "".concat(eventTimeFormatter.format(departureAt), " \u2013 ").concat(eventTimeFormatter.format(arrivalAt)) : '';
+  steps.innerHTML = '';
+  (Array.isArray(route.steps) ? route.steps : []).forEach(function (step, index) {
+    appendTravelStep(steps, step, index);
+  });
+  if (!steps.children.length && durationMinutes) {
+    appendTravelStep(steps, {
+      mode: route.mode === 'TRANSIT' ? 'TRANSIT' : 'WALK',
+      duration_seconds: route.duration_seconds
+    }, 0);
+  }
+  origin.textContent = route.origin ? "From ".concat(route.origin) : '';
+  section.querySelector('[data-travel-route-loading]').hidden = true;
+  section.querySelector('[data-travel-route-content]').hidden = false;
+};
+var loadTravelRoute = function loadTravelRoute(modal, event) {
+  resetTravelRoute(modal);
+  var section = modal ? modal.querySelector('[data-travel-route]') : null;
+  var destination = getTravelDestination(event);
+  var startAt = getEventStartDateTime(event);
+  var isCanceled = event && (event.calendarStatus === 'canceled' || event.lessonStatus === 'canceled');
+  if (!section || !window.calendarTravelRoutesEnabled || !window.calendarTravelRouteUrl || !destination || !startAt || event.allDay || isCanceled || startAt <= new Date()) {
+    return;
+  }
+  var requestId = "".concat(event.guid || event.id || 'event', "-").concat(Date.now());
+  modal.dataset.travelRouteRequest = requestId;
+  section.hidden = false;
+  requestJson(window.calendarTravelRouteUrl, {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'X-CSRF-TOKEN': window.calendarCsrfToken || '',
+      'X-Requested-With': 'XMLHttpRequest'
+    },
+    body: JSON.stringify({
+      event_key: event.guid || String(event.id || ''),
+      arrival_at: "".concat(String(event.date).substring(0, 10), "T").concat(normalizeTime(event.start), ":00"),
+      destination_address: destination.address,
+      destination_label: destination.label
+    })
+  }, 'Unable to calculate travel time.').then(function (payload) {
+    if (modal.dataset.travelRouteRequest !== requestId) {
+      return;
+    }
+    if (!payload.route) {
+      section.hidden = true;
+      return;
+    }
+    renderTravelRoute(modal, payload.route);
+  })["catch"](function (error) {
+    if (modal.dataset.travelRouteRequest === requestId) {
+      section.hidden = true;
+    }
+    console.error(error);
+  });
 };
 var renderNotesWithLinks = function renderNotesWithLinks(element, notes, options) {
   var text = String(notes || '');
@@ -4866,6 +5003,7 @@ var openGeneralEventModal = function openGeneralEventModal(event, options) {
     modal.classList.add('is-drop-rescheduling');
     showGeneralEventRescheduleForm(modal);
   }
+  loadTravelRoute(modal, event);
   showBootstrapModal(modal);
 };
 var submitGeneralEventModalForm = function submitGeneralEventModalForm(form, refreshCalendar) {

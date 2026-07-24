@@ -37,6 +37,7 @@
 			@fa(['icon' => 'file-pen', 'mr' => 0, 'classes' => 'calendar-modal-detail-icon'])
 			<a target="_blank" rel="noopener" href="">Notes</a>
 		</div>
+		@include('calendar.calendar.travel-route')
 	</div>
 </div>
 

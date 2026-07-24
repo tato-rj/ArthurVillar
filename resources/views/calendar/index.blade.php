@@ -55,6 +55,8 @@ window.calendarLocations = @json($locations->map(fn ($location) => [
 	'name' => $location->name,
 ])->values());
 window.calendarHomeLocation = @json($homeLocation);
+window.calendarTravelRouteUrl = @json(route('calendar.travel-route.show'));
+window.calendarTravelRoutesEnabled = @json(filled(config('calendar.google_routes.api_key')));
 window.calendarCsrfToken = @json(csrf_token());
 </script>
 <script src="/js/vendor/lemonadejs/lemonade.js"></script>

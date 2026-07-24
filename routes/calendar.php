@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', 'CalendarController@index')->name('home');
 
 Route::patch('settings', 'SettingsController@update')->name('settings.update');
+Route::post('travel-route', 'TravelRoutesController@show')->name('travel-route.show');
 
 Route::prefix('google-calendar')->name('google-calendar.')->group(function() {
 	Route::get('connect', 'GoogleCalendarController@connect')->name('connect');
