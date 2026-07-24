@@ -1,4 +1,4 @@
-<section class="calendar-travel-route calendar-modal-detail-section" data-travel-route hidden aria-live="polite">
+<section class="calendar-travel-route calendar-modal-detail-section bg-light border-x" data-travel-route hidden aria-live="polite">
     <div class="calendar-travel-route-loading" data-travel-route-loading>
         @fa(['icon' => 'route', 'mr' => 0])
         <span>Checking travel time…</span>

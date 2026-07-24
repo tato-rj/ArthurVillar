@@ -32870,14 +32870,6 @@ button.single-lesson-plan-create[selected] i {
   grid-column: 1/-1;
 }
 
-.calendar-travel-route {
-  background: #f4f5f7;
-  border: 1px solid rgba(31, 41, 55, 0.08);
-  border-radius: 1rem;
-  margin-top: 0.75rem;
-  padding: 0.85rem 1rem;
-}
-
 .calendar-travel-route[hidden],
 .calendar-travel-route [hidden] {
   display: none;
