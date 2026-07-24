@@ -1681,17 +1681,7 @@ button.single-lesson-plan-create[selected] i {
 }
 
 .calendar-travel-route-content {
-    align-items: flex-start;
-    display: grid;
-    gap: 1rem;
-    grid-template-columns: auto minmax(0, 1fr);
-}
-
-.calendar-travel-route-duration {
-    font-size: 1.55rem;
-    font-weight: 600;
-    line-height: 1.05;
-    max-width: 4.5rem;
+    display: block;
 }
 
 .calendar-travel-route-summary {
@@ -1701,9 +1691,9 @@ button.single-lesson-plan-create[selected] i {
 .calendar-travel-route-steps {
     align-items: center;
     display: flex;
+    font-size: 0.8rem;
     flex-wrap: wrap;
     gap: 0.35rem;
-    margin-top: 0.35rem;
 }
 
 .calendar-travel-route-step {
@@ -1728,7 +1718,6 @@ button.single-lesson-plan-create[selected] i {
 .calendar-travel-route-origin {
     color: #6b7280;
     font-size: 0.9rem;
-    margin-top: 0.3rem;
 }
 
 #lesson-modal[data-lesson-status="unpaid"] {

@@ -2726,6 +2726,15 @@ const physicalLocationQuery = function(location) {
     return String(location || '').trim();
 };
 
+const travelLocationLabel = function(location) {
+    if (location && typeof location === 'object') {
+        return String(location.name || '').trim()
+            || compactPhysicalLocation(location);
+    }
+
+    return compactPhysicalLocation(location);
+};
+
 const locationValue = function(location) {
     if (!location || typeof location !== 'object') {
         return String(location || '').trim();
@@ -2801,7 +2810,7 @@ const getTravelDestination = function(event) {
 
         return home ? {
             address: physicalLocationQuery(home),
-            label: compactPhysicalLocation(home) || 'Home',
+            label: travelLocationLabel(home) || 'Home',
         } : null;
     }
 
@@ -2820,7 +2829,7 @@ const getTravelDestination = function(event) {
 
         return {
             address: physicalLocationQuery(home),
-            label: compactPhysicalLocation(home) || 'Home',
+            label: travelLocationLabel(home) || 'Home',
         };
     }
 
@@ -2828,7 +2837,7 @@ const getTravelDestination = function(event) {
 
     return address ? {
         address,
-        label: compactPhysicalLocation(event.location) || address,
+        label: travelLocationLabel(event.location) || address,
     } : null;
 };
 
@@ -2899,18 +2908,14 @@ const appendTravelStep = function(container, step, index) {
 
 const renderTravelRoute = function(modal, route) {
     const section = modal.querySelector('[data-travel-route]');
-    const duration = section.querySelector('[data-travel-route-duration]');
     const times = section.querySelector('[data-travel-route-times]');
     const steps = section.querySelector('[data-travel-route-steps]');
     const origin = section.querySelector('[data-travel-route-origin]');
     const durationMinutes = Math.max(0, Math.round(Number(route.duration_seconds || 0) / 60));
-    const departureAt = new Date(route.departure_at);
-    const arrivalAt = new Date(route.arrival_at);
+    const duration = document.createElement('strong');
 
     duration.textContent = `${durationMinutes} min`;
-    times.textContent = isValidDate(departureAt) && isValidDate(arrivalAt)
-        ? `${eventTimeFormatter.format(departureAt)} – ${eventTimeFormatter.format(arrivalAt)}`
-        : '';
+    times.replaceChildren(document.createTextNode('Travel time is '), duration);
     steps.innerHTML = '';
 
     (Array.isArray(route.steps) ? route.steps : []).forEach(function(step, index) {
@@ -2924,7 +2929,7 @@ const renderTravelRoute = function(modal, route) {
         }, 0);
     }
 
-    origin.textContent = route.origin ? `From ${route.origin}` : '';
+    origin.textContent = [route.origin, route.destination].filter(Boolean).join(' to ');
     section.querySelector('[data-travel-route-loading]').hidden = true;
     section.querySelector('[data-travel-route-content]').hidden = false;
     section.hidden = false;

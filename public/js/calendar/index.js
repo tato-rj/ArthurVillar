@@ -4602,6 +4602,12 @@ var physicalLocationQuery = function physicalLocationQuery(location) {
   }
   return String(location || '').trim();
 };
+var travelLocationLabel = function travelLocationLabel(location) {
+  if (location && _typeof(location) === 'object') {
+    return String(location.name || '').trim() || compactPhysicalLocation(location);
+  }
+  return compactPhysicalLocation(location);
+};
 var locationValue = function locationValue(location) {
   if (!location || _typeof(location) !== 'object') {
     return String(location || '').trim();
@@ -4659,7 +4665,7 @@ var getTravelDestination = function getTravelDestination(event) {
     var home = window.calendarHomeLocation;
     return home ? {
       address: physicalLocationQuery(home),
-      label: compactPhysicalLocation(home) || 'Home'
+      label: travelLocationLabel(home) || 'Home'
     } : null;
   }
   if (!event.location) {
@@ -4673,13 +4679,13 @@ var getTravelDestination = function getTravelDestination(event) {
     }
     return {
       address: physicalLocationQuery(_home),
-      label: compactPhysicalLocation(_home) || 'Home'
+      label: travelLocationLabel(_home) || 'Home'
     };
   }
   var address = physicalLocationQuery(event.location);
   return address ? {
     address: address,
-    label: compactPhysicalLocation(event.location) || address
+    label: travelLocationLabel(event.location) || address
   } : null;
 };
 var resetTravelRoute = function resetTravelRoute(modal) {
@@ -4731,15 +4737,13 @@ var appendTravelStep = function appendTravelStep(container, step, index) {
 };
 var renderTravelRoute = function renderTravelRoute(modal, route) {
   var section = modal.querySelector('[data-travel-route]');
-  var duration = section.querySelector('[data-travel-route-duration]');
   var times = section.querySelector('[data-travel-route-times]');
   var steps = section.querySelector('[data-travel-route-steps]');
   var origin = section.querySelector('[data-travel-route-origin]');
   var durationMinutes = Math.max(0, Math.round(Number(route.duration_seconds || 0) / 60));
-  var departureAt = new Date(route.departure_at);
-  var arrivalAt = new Date(route.arrival_at);
+  var duration = document.createElement('strong');
   duration.textContent = "".concat(durationMinutes, " min");
-  times.textContent = isValidDate(departureAt) && isValidDate(arrivalAt) ? "".concat(eventTimeFormatter.format(departureAt), " \u2013 ").concat(eventTimeFormatter.format(arrivalAt)) : '';
+  times.replaceChildren(document.createTextNode('Travel time is '), duration);
   steps.innerHTML = '';
   (Array.isArray(route.steps) ? route.steps : []).forEach(function (step, index) {
     appendTravelStep(steps, step, index);
@@ -4750,7 +4754,7 @@ var renderTravelRoute = function renderTravelRoute(modal, route) {
       duration_seconds: route.duration_seconds
     }, 0);
   }
-  origin.textContent = route.origin ? "From ".concat(route.origin) : '';
+  origin.textContent = [route.origin, route.destination].filter(Boolean).join(' to ');
   section.querySelector('[data-travel-route-loading]').hidden = true;
   section.querySelector('[data-travel-route-content]').hidden = false;
   section.hidden = false;

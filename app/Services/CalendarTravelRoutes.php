@@ -35,6 +35,15 @@ class CalendarTravelRoutes
             ->first();
 
         if (! $force && $cached && $cached->request_signature === $signature && $this->isFresh($cached, $arrivalAt)) {
+            $cached->fill([
+                'origin_label' => $origin['label'] ?? null,
+                'destination_label' => $destinationLabel,
+            ]);
+
+            if ($cached->isDirty()) {
+                $cached->save();
+            }
+
             return $cached;
         }
 

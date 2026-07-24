@@ -67,9 +67,12 @@ class TravelRouteTest extends BaseTest
             ->assertJsonPath('route.arrival_at', '2026-07-24T21:00:00+00:00')
             ->assertJsonPath('route.steps.0.mode', 'WALK');
 
-        $this->postJson(route('calendar.travel-route.show'), $payload)
+        $this->postJson(route('calendar.travel-route.show'), array_merge($payload, [
+            'destination_label' => 'Montgomery Office',
+        ]))
             ->assertOk()
-            ->assertJsonPath('route.duration_seconds', 600);
+            ->assertJsonPath('route.duration_seconds', 600)
+            ->assertJsonPath('route.destination', 'Montgomery Office');
 
         Http::assertSentCount(1);
         Http::assertSent(function (Request $request) {
