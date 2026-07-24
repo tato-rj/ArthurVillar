@@ -38,6 +38,8 @@ const state = {
     scheduleWindowStart: null,
     pendingScheduleScrollTop: null,
     pendingScheduleHeaderPreview: null,
+    travelRouteCache: new Map(),
+    travelRouteRequests: new Map(),
 };
 
 const calendarTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/New_York';
@@ -1512,6 +1514,7 @@ const patchScheduleItems = function(calendar) {
 
         applyEventTimeStatusAttributes(item, event, visibleDate);
         applyEventOverlapAttribute(item, event);
+        patchScheduleItemTravel(item, event);
     });
 };
 
@@ -2841,6 +2844,185 @@ const getTravelDestination = function(event) {
     } : null;
 };
 
+const getTravelRouteRequestDetails = function(event) {
+    const destination = getTravelDestination(event);
+    const startAt = getEventStartDateTime(event);
+    const isCanceled = event && (event.calendarStatus === 'canceled' || event.lessonStatus === 'canceled');
+
+    if (!window.calendarTravelRoutesEnabled
+        || !window.calendarTravelRouteUrl
+        || !event
+        || !destination
+        || !startAt
+        || event.allDay
+        || isCanceled
+        || startAt <= new Date()) {
+        return null;
+    }
+
+    const eventKey = event.guid || String(event.id || '');
+    const arrivalAt = `${String(event.date).substring(0, 10)}T${normalizeTime(event.start)}:00`;
+    const cacheKey = [
+        state.calendarFetchId,
+        eventKey,
+        arrivalAt,
+        destination.address,
+        destination.label,
+    ].join('|');
+
+    return {
+        cacheKey,
+        payload: {
+            event_key: eventKey,
+            arrival_at: arrivalAt,
+            destination_address: destination.address,
+            destination_label: destination.label,
+        },
+    };
+};
+
+const requestTravelRouteForEvent = function(event, details) {
+    const requestDetails = details || getTravelRouteRequestDetails(event);
+
+    if (!requestDetails) {
+        return Promise.resolve(null);
+    }
+
+    const cached = state.travelRouteCache.get(requestDetails.cacheKey);
+
+    if (cached && Date.now() - cached.fetchedAt < 10 * 60 * 1000) {
+        return Promise.resolve(cached.route);
+    }
+
+    if (state.travelRouteRequests.has(requestDetails.cacheKey)) {
+        return state.travelRouteRequests.get(requestDetails.cacheKey);
+    }
+
+    const request = requestJson(window.calendarTravelRouteUrl, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': window.calendarCsrfToken || '',
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: JSON.stringify(requestDetails.payload),
+    }, 'Unable to calculate travel time.')
+        .then(function(payload) {
+            const route = payload.route && Number(payload.route.duration_seconds || 0) > 0
+                ? payload.route
+                : null;
+
+            state.travelRouteCache.set(requestDetails.cacheKey, {
+                fetchedAt: Date.now(),
+                route,
+            });
+
+            return route;
+        })
+        .finally(function() {
+            state.travelRouteRequests.delete(requestDetails.cacheKey);
+        });
+
+    state.travelRouteRequests.set(requestDetails.cacheKey, request);
+
+    return request;
+};
+
+const clearScheduleItemTravel = function(item) {
+    if (!item) {
+        return;
+    }
+
+    const extension = item.querySelector(':scope > .calendar-schedule-travel');
+
+    if (extension) {
+        extension.remove();
+    }
+
+    item.classList.remove('has-calendar-schedule-travel');
+    delete item.dataset.travelRouteKey;
+    delete item.dataset.travelRouteState;
+};
+
+const renderScheduleItemTravel = function(item, route, cacheKey) {
+    if (!item || !route || Number(route.duration_seconds || 0) <= 0) {
+        clearScheduleItemTravel(item);
+        return;
+    }
+
+    const durationMinutes = Math.max(1, Math.round(Number(route.duration_seconds) / 60));
+    const roundedMinutes = Math.max(15, Math.round(durationMinutes / 15) * 15);
+    const row = item.closest('tr');
+    const rowHeight = row ? row.getBoundingClientRect().height : 15;
+    const extensionHeight = Math.max(15, (rowHeight || 15) * (roundedMinutes / 15));
+    const extension = document.createElement('div');
+    const icon = document.createElement('i');
+    const label = document.createElement('span');
+    const isTransit = String(route.mode || '').toUpperCase() === 'TRANSIT';
+
+    item.querySelectorAll(':scope > .calendar-schedule-travel').forEach(function(existing) {
+        existing.remove();
+    });
+
+    extension.className = 'calendar-schedule-travel';
+    extension.style.height = `${extensionHeight}px`;
+    extension.style.setProperty(
+        '--calendar-schedule-event-color',
+        window.getComputedStyle(item).backgroundColor || '#6b7280'
+    );
+    extension.dataset.travelMode = isTransit ? 'transit' : 'walk';
+    extension.title = `${durationMinutes} min travel time`;
+    extension.setAttribute('aria-hidden', 'true');
+    icon.className = `fas ${isTransit ? 'fa-train-subway' : 'fa-person-walking'}`;
+    label.textContent = `${durationMinutes} min travel time`;
+    extension.appendChild(icon);
+    extension.appendChild(label);
+    item.prepend(extension);
+    item.classList.add('has-calendar-schedule-travel');
+    item.dataset.travelRouteKey = cacheKey;
+    item.dataset.travelRouteState = 'shown';
+};
+
+const patchScheduleItemTravel = function(item, event) {
+    const details = getTravelRouteRequestDetails(event);
+
+    if (!details) {
+        clearScheduleItemTravel(item);
+        return;
+    }
+
+    if (item.dataset.travelRouteKey === details.cacheKey
+        && ['loading', 'shown', 'none'].includes(item.dataset.travelRouteState)) {
+        return;
+    }
+
+    clearScheduleItemTravel(item);
+    item.dataset.travelRouteKey = details.cacheKey;
+    item.dataset.travelRouteState = 'loading';
+
+    requestTravelRouteForEvent(event, details)
+        .then(function(route) {
+            if (!item.isConnected || item.dataset.travelRouteKey !== details.cacheKey) {
+                return;
+            }
+
+            if (!route) {
+                item.dataset.travelRouteState = 'none';
+                return;
+            }
+
+            renderScheduleItemTravel(item, route, details.cacheKey);
+        })
+        .catch(function(error) {
+            if (item.isConnected && item.dataset.travelRouteKey === details.cacheKey) {
+                item.dataset.travelRouteState = 'none';
+            }
+
+            console.error(error);
+        });
+};
+
 const resetTravelRoute = function(modal) {
     const section = modal ? modal.querySelector('[data-travel-route]') : null;
 
@@ -2939,50 +3121,27 @@ const loadTravelRoute = function(modal, event) {
     resetTravelRoute(modal);
 
     const section = modal ? modal.querySelector('[data-travel-route]') : null;
-    const destination = getTravelDestination(event);
-    const startAt = getEventStartDateTime(event);
-    const isCanceled = event && (event.calendarStatus === 'canceled' || event.lessonStatus === 'canceled');
+    const details = getTravelRouteRequestDetails(event);
 
-    if (!section
-        || !window.calendarTravelRoutesEnabled
-        || !window.calendarTravelRouteUrl
-        || !destination
-        || !startAt
-        || event.allDay
-        || isCanceled
-        || startAt <= new Date()) {
+    if (!section || !details) {
         return;
     }
 
     const requestId = `${event.guid || event.id || 'event'}-${Date.now()}`;
     modal.dataset.travelRouteRequest = requestId;
 
-    requestJson(window.calendarTravelRouteUrl, {
-        method: 'POST',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': window.calendarCsrfToken || '',
-            'X-Requested-With': 'XMLHttpRequest',
-        },
-        body: JSON.stringify({
-            event_key: event.guid || String(event.id || ''),
-            arrival_at: `${String(event.date).substring(0, 10)}T${normalizeTime(event.start)}:00`,
-            destination_address: destination.address,
-            destination_label: destination.label,
-        }),
-    }, 'Unable to calculate travel time.')
-        .then(function(payload) {
+    requestTravelRouteForEvent(event, details)
+        .then(function(route) {
             if (modal.dataset.travelRouteRequest !== requestId) {
                 return;
             }
 
-            if (!payload.route || Number(payload.route.duration_seconds || 0) <= 0) {
+            if (!route) {
                 section.hidden = true;
                 return;
             }
 
-            renderTravelRoute(modal, payload.route);
+            renderTravelRoute(modal, route);
         })
         .catch(function(error) {
             if (modal.dataset.travelRouteRequest === requestId) {
