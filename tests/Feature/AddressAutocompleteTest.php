@@ -39,20 +39,24 @@ class AddressAutocompleteTest extends BaseTest
         ]);
 
         $token = '45c3bc35-b981-41ca-aec4-f70e1e05679f';
+        $csrfToken = 'address-autocomplete-csrf-token';
 
-        $this->postJson(route('calendar.address-autocomplete.search'), [
-            'input' => '80 Erie',
-            'session_token' => $token,
-        ])
+        $this->withSession(['_token' => $csrfToken])
+            ->withHeader('X-CSRF-TOKEN', $csrfToken)
+            ->postJson(route('calendar.address-autocomplete.search'), [
+                'input' => '80 Erie',
+                'session_token' => $token,
+            ])
             ->assertOk()
             ->assertJsonPath('configured', true)
             ->assertJsonPath('suggestions.0.place_id', 'place-123')
             ->assertJsonPath('suggestions.0.main_text', '80 Erie St');
 
-        $this->postJson(route('calendar.address-autocomplete.details'), [
-            'place_id' => 'place-123',
-            'session_token' => $token,
-        ])
+        $this->withHeader('X-CSRF-TOKEN', $csrfToken)
+            ->postJson(route('calendar.address-autocomplete.details'), [
+                'place_id' => 'place-123',
+                'session_token' => $token,
+            ])
             ->assertOk()
             ->assertJsonPath('address.address', '80 Erie St')
             ->assertJsonPath('address.city', 'Jersey City')
@@ -74,6 +78,7 @@ class AddressAutocompleteTest extends BaseTest
 
         $this->get(route('calendar.locations.index'))
             ->assertOk()
+            ->assertSee('meta name="csrf-token"', false)
             ->assertSee('data-address-fields', false)
             ->assertSee('data-address-search-url', false)
             ->assertSee('<select', false)

@@ -3345,7 +3345,7 @@ try {
 var addressStates = new WeakMap();
 var csrfToken = function csrfToken() {
   var token = document.querySelector('meta[name="csrf-token"]');
-  return token ? token.content : '';
+  return token ? token.content : window.calendarCsrfToken || '';
 };
 var sessionToken = function sessionToken() {
   if (window.crypto && typeof window.crypto.randomUUID === 'function') {
