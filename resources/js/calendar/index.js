@@ -3006,6 +3006,7 @@ const updateScheduleTravelOverlapLayers = function(schedule) {
 
     items.forEach(function(item) {
         item.removeAttribute('travel-overlapping-event');
+        item.removeAttribute('travel-conflicting-event');
         item.style.removeProperty('--calendar-travel-overlap-z-index');
     });
 
@@ -3053,6 +3054,8 @@ const updateScheduleTravelOverlapLayers = function(schedule) {
 
             const eventDuration = Math.max(1, getTimeMinutes(event.end) - getTimeMinutes(event.start));
 
+            owner.setAttribute('travel-conflicting-event', '');
+            item.setAttribute('travel-conflicting-event', '');
             item.setAttribute('travel-overlapping-event', '');
             item.style.setProperty(
                 '--calendar-travel-overlap-z-index',

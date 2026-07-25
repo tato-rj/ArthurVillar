@@ -1650,6 +1650,7 @@ button.single-lesson-plan-create[selected] i {
 
 #calendar[data-highlight-conflicting-events] .lm-schedule-item[overlapping-event],
 #calendar[data-highlight-conflicting-events] .lm-schedule-item[travel-overlapping-event],
+#calendar[data-highlight-conflicting-events] .lm-schedule-item[travel-conflicting-event],
 #calendar[data-highlight-conflicting-events] .calendar-schedule-event[overlapping-event] {
     border: 2px solid #d93025 !important;
     box-sizing: border-box;
