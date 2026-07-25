@@ -2,10 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Models\Calendar\Lesson;
+use App\Models\Calendar\LessonPlan;
+use App\Models\Calendar\Student;
 use Tests\BaseTest;
-use App\Models\Calendar\{Lesson, LessonPlan, Student};
 
-class LessonsTableTest extends BaseTest
+class LessonRecordsTableTest extends BaseTest
 {
     /** @test */
     public function it_filters_lessons_by_scheduled_date_range()
@@ -31,7 +33,7 @@ class LessonsTableTest extends BaseTest
 
         $this->signIn();
 
-        $this->getJson(route('calendar.tables.lessons', [
+        $this->getJson(route('calendar.tables.lesson-records', [
             'scheduled_from' => '2026-07-01',
             'scheduled_to' => '2026-07-12',
         ]))
@@ -64,7 +66,7 @@ class LessonsTableTest extends BaseTest
 
         $this->signIn();
 
-        $this->getJson(route('calendar.tables.lessons'))
+        $this->getJson(route('calendar.tables.lesson-records'))
             ->assertOk()
             ->assertJsonFragment(['student' => 'First Lesson'])
             ->assertJsonFragment(['student' => 'Second Lesson']);
@@ -87,7 +89,7 @@ class LessonsTableTest extends BaseTest
 
         $this->signIn();
 
-        $rows = collect($this->getJson(route('calendar.tables.lessons'))->assertOk()->json('data'));
+        $rows = collect($this->getJson(route('calendar.tables.lesson-records'))->assertOk()->json('data'));
 
         $row = $rows->firstWhere('student', 'Canceled Lesson');
 
@@ -96,7 +98,7 @@ class LessonsTableTest extends BaseTest
     }
 
     /** @test */
-    public function lessons_page_lists_confirmed_and_canceled_recurring_and_single_lessons()
+    public function lesson_records_page_lists_confirmed_and_canceled_recurring_and_single_lessons()
     {
         $recurringStudent = Student::factory()->create([
             'first_name' => 'Recurring',
@@ -130,10 +132,10 @@ class LessonsTableTest extends BaseTest
 
         $this->signIn();
 
-        $this->get(route('calendar.lessons.index'))
+        $this->get(route('calendar.lesson-records.index'))
             ->assertOk()
-            ->assertSee('Lessons')
-            ->assertSee('lessons-table', false)
+            ->assertSee('Lesson Records')
+            ->assertSee('lesson-records-table', false)
             ->assertSeeInOrder(['<th>Date</th>', '<th>Student</th>', '<th>Type</th>'], false)
             ->assertSee('<th>Payment</th>', false)
             ->assertDontSee('<th>Fee</th>', false)
@@ -142,12 +144,36 @@ class LessonsTableTest extends BaseTest
             ->assertDontSee('js-revert-canceled-lesson', false)
             ->assertDontSee('<th>Actions</th>', false);
 
-        $response = $this->getJson(route('calendar.tables.lessons'))->assertOk();
+        $response = $this->getJson(route('calendar.tables.lesson-records'))->assertOk();
         $rows = collect($response->json('data'));
 
         $this->assertSame('Recurring', $rows->firstWhere('student', 'Recurring Cancellation')['lesson_type']);
         $this->assertSame('Single', $rows->firstWhere('student', 'Single Cancellation')['lesson_type']);
         $this->assertSame('Unpaid', $rows->firstWhere('student', 'Active Lesson')['status']);
+    }
+
+    /** @test */
+    public function lesson_record_pages_use_the_new_routes_and_legacy_urls_redirect()
+    {
+        $student = Student::factory()->create([
+            'first_name' => 'Route',
+            'last_name' => 'Check',
+        ]);
+
+        $this->signIn();
+
+        $this->get(route('calendar.lesson-records.student', $student))
+            ->assertOk()
+            ->assertSee("Route's lesson records")
+            ->assertSee('lesson-records-table', false)
+            ->assertSeeInOrder(['<th>Payment</th>', '<th>Status</th>'], false)
+            ->assertDontSee('<th>Fee</th>', false);
+
+        $this->get(route('calendar.lessons.index'))
+            ->assertRedirect(route('calendar.lesson-records.index'));
+
+        $this->get(route('calendar.lessons.student', $student))
+            ->assertRedirect(route('calendar.lesson-records.student', $student));
     }
 
     /** @test */
@@ -169,7 +195,7 @@ class LessonsTableTest extends BaseTest
 
         $this->signIn();
 
-        $this->getJson(route('calendar.tables.lessons', [
+        $this->getJson(route('calendar.tables.lesson-records', [
             'scheduled_from' => '2026-07-01',
             'scheduled_to' => '2026-07-15',
         ]))

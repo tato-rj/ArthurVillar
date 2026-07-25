@@ -57,14 +57,14 @@ Breadcrumbs::for('calendar.lesson-plans.index', function (BreadcrumbTrail $trail
     $trail->push('Lesson Plans', route('calendar.lesson-plans.index'));
 });
 
-Breadcrumbs::for('calendar.lessons.index', function (BreadcrumbTrail $trail) {
+Breadcrumbs::for('calendar.lesson-records.index', function (BreadcrumbTrail $trail) {
     $trail->parent('calendar.home');
-    $trail->push('Lessons', route('calendar.lessons.index'));
+    $trail->push('Lesson Records', route('calendar.lesson-records.index'));
 });
 
-Breadcrumbs::for('calendar.lessons.student', function (BreadcrumbTrail $trail, $student) {
-    $trail->parent('calendar.lessons.index');
-    $trail->push($student->full_name, route('calendar.lessons.student', $student));
+Breadcrumbs::for('calendar.lesson-records.student', function (BreadcrumbTrail $trail, $student) {
+    $trail->parent('calendar.lesson-records.index');
+    $trail->push($student->full_name, route('calendar.lesson-records.student', $student));
 });
 
 Breadcrumbs::for('calendar.locations.index', function (BreadcrumbTrail $trail) {

@@ -683,12 +683,12 @@ class TablesController extends Controller
             ->toJson();
     }
 
-    public function lessons()
+    public function lessonRecords()
     {
-        return $this->lessonRows();
+        return $this->lessonRecordRows();
     }
 
-    private function lessonRows()
+    private function lessonRecordRows()
     {
         $driver = DB::connection()->getDriverName();
         $dateExpression = $driver === 'sqlite'

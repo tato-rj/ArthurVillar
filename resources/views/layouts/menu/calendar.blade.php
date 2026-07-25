@@ -13,7 +13,7 @@
       'label' => 'Lessons',
       'children' => [
         'calendar.lesson-plans.index' => 'Plans',
-        'calendar.lessons.index' => 'Records',
+        'calendar.lesson-records.index' => 'Records',
       ]
     ],
     'calendar.events.index' => 'Events',

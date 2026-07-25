@@ -186,6 +186,11 @@ Route::prefix('events')->name('events.')->group(function() {
 	});
 });
 
+Route::prefix('lesson-records')->name('lesson-records.')->group(function() {
+	Route::get('', 'LessonRecordsController@index')->name('index');
+	Route::get('students/{student}', 'LessonRecordsController@student')->name('student');
+});
+
 Route::prefix('lessons')->name('lessons.')->group(function() {
 	Route::get('', 'LessonsController@index')->name('index');
 
@@ -216,7 +221,7 @@ Route::prefix('tables')->name('tables.')->group(function() {
 	Route::get('google-events', 'TablesController@googleEvents')->name('google-events');
 	Route::get('lesson-plans', 'TablesController@lessonPlans')->name('lesson-plans');
 	Route::get('single-lesson-plans', 'TablesController@singleLessonPlans')->name('single-lesson-plans');
-	Route::get('lessons', 'TablesController@lessons')->name('lessons');
+	Route::get('lesson-records', 'TablesController@lessonRecords')->name('lesson-records');
 	Route::get('locations', 'TablesController@locations')->name('locations');
 	Route::get('recitals', 'TablesController@recitals')->name('recitals');
 	Route::get('students', 'TablesController@students')->name('students');

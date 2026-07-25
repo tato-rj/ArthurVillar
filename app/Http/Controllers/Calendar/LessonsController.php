@@ -18,14 +18,12 @@ class LessonsController extends Controller
 {
     public function index()
     {
-        return view('calendar.lessons.index');
+        return redirect()->route('calendar.lesson-records.index');
     }
 
     public function student(Student $student)
     {
-        $student->load('lessonPlans.location');
-
-        return view('calendar.lessons.student', compact('student'));
+        return redirect()->route('calendar.lesson-records.student', $student);
     }
 
     public function store(Request $request)

@@ -1,4 +1,4 @@
-@extends('layouts.app', ['title' => 'Lessons'])
+@extends('layouts.app', ['title' => 'Lesson Records'])
 
 @push('header')
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
@@ -6,27 +6,27 @@
 
 @section('content')
 <section class="container py-5">
-    {{ Breadcrumbs::render('calendar.lessons.index') }}
+    {{ Breadcrumbs::render('calendar.lesson-records.index') }}
 
     <div class="row mb-4">
         @pagetitle([
-            'label' => 'Lessons',
+            'label' => 'Lesson Records',
             'subtitle' => 'Paid, unpaid, and canceled lesson records.'
         ])
     </div>
 
-    <div class="calendar-table-filters mb-3" id="lessons-scheduled-range">
+    <div class="calendar-table-filters mb-3" id="lesson-records-scheduled-range">
         @daterange([
-            'fromId' => 'lessons-scheduled-from',
-            'toId' => 'lessons-scheduled-to',
+            'fromId' => 'lesson-records-scheduled-from',
+            'toId' => 'lesson-records-scheduled-to',
             'fromValue' => request('scheduled_from'),
             'toValue' => request('scheduled_to'),
             'placeholder' => 'Filter by lesson date',
         ])
     </div>
 
-    <div id="lessons-container" class="calendar-table-container calendar-table-container-lg">
-        <table id="lessons-table" class="display calendar-table">
+    <div id="lesson-records-container" class="calendar-table-container calendar-table-container-lg">
+        <table id="lesson-records-table" class="display calendar-table">
             <thead>
                 <tr>
                     <th>Date</th>
@@ -106,7 +106,7 @@ $(function() {
     };
 
     const initializePaymentPopovers = function() {
-        document.querySelectorAll('#lessons-table [data-bs-toggle="popover"]').forEach(function(element) {
+        document.querySelectorAll('#lesson-records-table [data-bs-toggle="popover"]').forEach(function(element) {
             if (window.bootstrap && window.bootstrap.Popover) {
                 window.bootstrap.Popover.getOrCreateInstance(element);
                 return;
@@ -118,7 +118,7 @@ $(function() {
         });
     };
 
-    const lessonsTable = window.calendarDataTableState.create('#lessons-table', {
+    const lessonRecordsTable = window.calendarDataTableState.create('#lesson-records-table', {
         processing: false,
         serverSide: true,
         autoWidth: false,
@@ -135,10 +135,10 @@ $(function() {
             },
         },
         ajax: {
-            url: @json(route('calendar.tables.lessons')),
+            url: @json(route('calendar.tables.lesson-records')),
             data: function(data) {
-                data.scheduled_from = $('#lessons-scheduled-from').val();
-                data.scheduled_to = $('#lessons-scheduled-to').val();
+                data.scheduled_from = $('#lesson-records-scheduled-from').val();
+                data.scheduled_to = $('#lesson-records-scheduled-to').val();
             },
         },
         columns: [
@@ -221,19 +221,19 @@ $(function() {
         ],
     }, {
         restore: function(params) {
-            $('#lessons-scheduled-from').val(params.get('scheduled_from') || '');
-            $('#lessons-scheduled-to').val(params.get('scheduled_to') || '');
+            $('#lesson-records-scheduled-from').val(params.get('scheduled_from') || '');
+            $('#lesson-records-scheduled-to').val(params.get('scheduled_to') || '');
         },
         extraParams: function() {
             return {
-                scheduled_from: $('#lessons-scheduled-from').val(),
-                scheduled_to: $('#lessons-scheduled-to').val(),
+                scheduled_from: $('#lesson-records-scheduled-from').val(),
+                scheduled_to: $('#lesson-records-scheduled-to').val(),
             };
         },
     });
 
-    $('#lessons-scheduled-range').on('date-range:change', function() {
-        lessonsTable.ajax.reload();
+    $('#lesson-records-scheduled-range').on('date-range:change', function() {
+        lessonRecordsTable.ajax.reload();
     });
 
 });

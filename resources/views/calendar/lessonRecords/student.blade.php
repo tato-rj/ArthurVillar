@@ -1,4 +1,4 @@
-@extends('layouts.app', ['title' => 'Lessons'])
+@extends('layouts.app', ['title' => 'Lesson Records'])
 
 @push('header')
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
@@ -7,11 +7,11 @@
 
 @section('content')
 <section class="container py-5">
-    {{ Breadcrumbs::render('calendar.lessons.student', $student) }}
+    {{ Breadcrumbs::render('calendar.lesson-records.student', $student) }}
 
     <div class="row mb-4">
         @pagetitle([
-            'label' => str_possessive($student->first_name).' lessons',
+            'label' => str_possessive($student->first_name).' lesson records',
             'modal' => [
                 'target' => '#create-calendar-lesson-plan-modal',
                 'icon' => 'plus',
@@ -64,16 +64,16 @@
         @endforeach
     </div>
 
-    <div id="lessons-container" class="calendar-table-container calendar-table-container-lg">
-        <table id="lessons-table" class="display calendar-table">
+    <div id="lesson-records-container" class="calendar-table-container calendar-table-container-lg">
+        <table id="lesson-records-table" class="display calendar-table">
             <thead>
                 <tr>
                     <th>Date</th>
                     <th>Weekday</th>
                     <th>Start time</th>
                     <th>Duration</th>
-                    <th>Fee</th>
                     <th>Payment</th>
+                    <th>Status</th>
                 </tr>
             </thead>
         </table>
@@ -124,6 +124,31 @@ $(function() {
         }).format(new Date(`${value}T00:00:00`));
     };
 
+    const formatPaymentDate = function(value) {
+        if (!value) {
+            return '';
+        }
+
+        return new Intl.DateTimeFormat('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+        }).format(new Date(value));
+    };
+
+    const initializePaymentPopovers = function() {
+        document.querySelectorAll('#lesson-records-table [data-bs-toggle="popover"]').forEach(function(element) {
+            if (window.bootstrap && window.bootstrap.Popover) {
+                window.bootstrap.Popover.getOrCreateInstance(element);
+                return;
+            }
+
+            if (window.jQuery && typeof window.jQuery.fn.popover === 'function') {
+                window.jQuery(element).popover();
+            }
+        });
+    };
+
     const formatTime = function(value) {
         if (!value) {
             return '';
@@ -136,11 +161,12 @@ $(function() {
         return `${hour}:${String(minutes).padStart(2, '0')} ${suffix}`;
     };
 
-    window.calendarDataTableState.create('#lessons-table', {
+    window.calendarDataTableState.create('#lesson-records-table', {
         processing: false,
         serverSide: true,
         autoWidth: false,
         scrollX: true,
+        drawCallback: initializePaymentPopovers,
         language: {
             search: '',
             searchPlaceholder: 'Search',
@@ -152,7 +178,7 @@ $(function() {
             },
         },
         ajax: {
-            url: @json(route('calendar.tables.lessons')),
+            url: @json(route('calendar.tables.lesson-records')),
             data: {
                 student_id: @json($student->id),
             },
@@ -201,23 +227,35 @@ $(function() {
             {
                 data: 'fee_amount',
                 name: 'fee_amount',
-                render: function(data, type) {
+                render: function(data, type, row) {
                     if (type === 'sort' || type === 'type') {
                         return Number(data || 0);
                     }
 
-                    return formatFee(data);
+                    const amount = formatFee(data);
+
+                    if (row.status === 'Canceled') {
+                        return `<span class="text-light text-decoration-line-through">${amount}</span>`;
+                    }
+
+                    if (!row.paid_at) {
+                        return `<span class="text-red">${amount}</span>`;
+                    }
+
+                    const paymentDate = formatPaymentDate(row.paid_at);
+
+                    return `<span class="text-green" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-container="body" data-bs-placement="top" data-bs-content="Paid on ${paymentDate}">${amount}</span>`;
                 },
             },
             {
-                data: 'payment',
-                name: 'payment',
-                render: function(data, type, row) {
-                    if (type === 'sort' || type === 'type') {
-                        return row.paid_at || '';
-                    }
+                data: 'status',
+                name: 'status',
+                render: function(data) {
+                    const statusClass = data === 'Confirmed'
+                        ? 'text-green'
+                        : (data === 'Unpaid' ? 'text-red' : 'text-light');
 
-                    return `<span class="${row.payment_class}">${data}</span>`;
+                    return `<span class="${statusClass}">${data}</span>`;
                 },
             },
         ],

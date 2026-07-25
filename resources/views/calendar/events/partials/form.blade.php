@@ -16,14 +16,14 @@
 <div class="row">
     @select(['label' => 'Starts at', 'name' => 'starts_at', 'grid' => 'col', 'required' => true])
         <option value=""></option>
-        @foreach(timeslots(9, 21, 15) as $time)
+        @foreach(timeslots(8, 21, 15) as $time)
             @option(['name' => 'starts_at', 'label' => \App\Models\Calendar\Event::timeLabel($time), 'value' => $time, 'selected' => isset($event) && substr($event->starts_at, 0, 5) === $time])
         @endforeach
     @endselect
 
     @select(['label' => 'Ends at', 'name' => 'ends_at', 'grid' => 'col', 'required' => true])
         <option value=""></option>
-        @foreach(timeslots(9, 21, 15) as $time)
+        @foreach(timeslots(8, 21, 15) as $time)
             @option(['name' => 'ends_at', 'label' => \App\Models\Calendar\Event::timeLabel($time), 'value' => $time, 'selected' => isset($event) && substr($event->ends_at, 0, 5) === $time])
         @endforeach
     @endselect

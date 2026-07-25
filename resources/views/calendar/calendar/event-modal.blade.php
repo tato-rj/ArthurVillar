@@ -91,9 +91,9 @@
 
 <div class="px-3">
     <div data-event-modal-section="lesson">
-        @include('calendar.lessons.reschedule')
-        @include('calendar.lessons.cancel')
-        @include('calendar.lessons.controls')
+        @include('calendar.lessonRecords.reschedule')
+        @include('calendar.lessonRecords.cancel')
+        @include('calendar.lessonRecords.controls')
     </div>
 
     <div data-event-modal-section="general" hidden>
