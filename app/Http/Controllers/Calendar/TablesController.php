@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Calendar;
 
 use App\Http\Controllers\Controller;
 use App\Calendar\Scheduler;
-use App\Models\Calendar\{Event, Expense, GoogleCalendarEvent, Invitation, Lesson, LessonPlan, Location, Recital, Student, TeachingBreak, WaitingList};
+use App\Models\Calendar\{Event, Expense, GoogleCalendarEvent, Invitation, Lesson, LessonPlan, Location, Recital, SingleLessonPlan, Student, TeachingBreak, WaitingList};
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -405,6 +405,55 @@ class TablesController extends Controller
             ->orderColumn('recurrence', 'lesson_plans.recurrence_interval $1')
             ->orderColumn('location', 'location $1')
             ->orderColumn('status_order', false)
+            ->toJson();
+    }
+
+    public function singleLessonPlans()
+    {
+        $driver = DB::connection()->getDriverName();
+        $studentExpression = $driver === 'sqlite'
+            ? "students.first_name || ' ' || COALESCE(students.last_name, '')"
+            : "CONCAT(students.first_name, ' ', COALESCE(students.last_name, ''))";
+
+        $lessonPlans = SingleLessonPlan::query()
+            ->join('students', 'students.id', '=', 'single_lesson_plans.student_id')
+            ->leftJoin('locations', 'locations.id', '=', 'single_lesson_plans.location_id')
+            ->when(request('scheduled_from'), function ($query, $date) {
+                $query->whereDate('single_lesson_plans.scheduled_date', '>=', $date);
+            })
+            ->when(request('scheduled_to'), function ($query, $date) {
+                $query->whereDate('single_lesson_plans.scheduled_date', '<=', $date);
+            })
+            ->select([
+                'single_lesson_plans.id',
+                'single_lesson_plans.student_id',
+                'single_lesson_plans.location_id',
+                'single_lesson_plans.scheduled_date',
+                'single_lesson_plans.start_time',
+                'single_lesson_plans.duration_minutes',
+                'single_lesson_plans.fee_amount',
+                'single_lesson_plans.payment_method',
+                'single_lesson_plans.meeting_url',
+                'single_lesson_plans.notes_url',
+                'single_lesson_plans.status',
+                'single_lesson_plans.notes',
+                DB::raw("$studentExpression as student"),
+                DB::raw('locations.name as location'),
+            ]);
+
+        return DataTables::eloquent($lessonPlans)
+            ->editColumn('scheduled_date', function (SingleLessonPlan $lessonPlan) {
+                return $lessonPlan->scheduled_date?->toDateString();
+            })
+            ->filterColumn('student', function ($query, $keyword) use ($studentExpression) {
+                $query->whereRaw("$studentExpression LIKE ?", ["%{$keyword}%"]);
+            })
+            ->filterColumn('location', function ($query, $keyword) {
+                $query->where('locations.name', 'LIKE', "%{$keyword}%");
+            })
+            ->orderColumn('student', 'student $1')
+            ->orderColumn('location', 'location $1')
+            ->orderColumn('scheduled_date', 'single_lesson_plans.scheduled_date $1')
             ->toJson();
     }
 

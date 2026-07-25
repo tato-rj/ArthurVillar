@@ -215,6 +215,7 @@ Route::prefix('tables')->name('tables.')->group(function() {
 	Route::get('events', 'TablesController@events')->name('events');
 	Route::get('google-events', 'TablesController@googleEvents')->name('google-events');
 	Route::get('lesson-plans', 'TablesController@lessonPlans')->name('lesson-plans');
+	Route::get('single-lesson-plans', 'TablesController@singleLessonPlans')->name('single-lesson-plans');
 	Route::get('lessons', 'TablesController@lessons')->name('lessons');
 	Route::get('locations', 'TablesController@locations')->name('locations');
 	Route::get('recitals', 'TablesController@recitals')->name('recitals');

@@ -10,7 +10,8 @@
 
     <div class="row mb-4">
         @pagetitle([
-            'label' => 'Lessons'
+            'label' => 'Lessons',
+            'subtitle' => 'Paid, unpaid, and canceled lesson records.'
         ])
     </div>
 

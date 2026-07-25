@@ -14,12 +14,12 @@ Breadcrumbs::for('calendar.breaks.index', function (BreadcrumbTrail $trail) {
 
 Breadcrumbs::for('calendar.events.index', function (BreadcrumbTrail $trail) {
     $trail->parent('calendar.home');
-    $trail->push('General Events', route('calendar.events.index'));
+    $trail->push('Events', route('calendar.events.index'));
 });
 
 Breadcrumbs::for('calendar.events.google', function (BreadcrumbTrail $trail) {
-    $trail->parent('calendar.home');
-    $trail->push('Google Events', route('calendar.events.google'));
+    $trail->parent('calendar.events.index');
+    $trail->push('Google', route('calendar.events.google'));
 });
 
 Breadcrumbs::for('calendar.expenses.index', function (BreadcrumbTrail $trail) {
@@ -54,7 +54,7 @@ Breadcrumbs::for('calendar.invitations.edit', function (BreadcrumbTrail $trail, 
 
 Breadcrumbs::for('calendar.lesson-plans.index', function (BreadcrumbTrail $trail) {
     $trail->parent('calendar.home');
-    $trail->push('Recurring Lesson Plans', route('calendar.lesson-plans.index'));
+    $trail->push('Lesson Plans', route('calendar.lesson-plans.index'));
 });
 
 Breadcrumbs::for('calendar.lessons.index', function (BreadcrumbTrail $trail) {

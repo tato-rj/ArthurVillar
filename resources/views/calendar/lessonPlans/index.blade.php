@@ -1,4 +1,4 @@
-@extends('layouts.app', ['title' => 'Recurring Lesson Plans'])
+@extends('layouts.app', ['title' => 'Lesson Plans'])
 
 @push('header')
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
@@ -14,13 +14,25 @@
 
     <div class="row mb-4">
         @pagetitle([
-            'label' => 'Recurring Lesson Plans',
+            'label' => 'Lesson Plans',
+            'subtitle' => 'Recurring and one-time teaching commitments.',
             'modal' => [
                 'target' => '#create-calendar-lesson-plan-modal',
                 'icon' => 'plus',
-                'label' => 'New lesson plan'
+                'label' => 'New recurring plan'
             ]
         ])
+    </div>
+
+    <div class="d-flex justify-content-center mb-4">
+        <div class="btn-group" role="group" aria-label="Lesson plan type">
+            <a class="btn btn-secondary" href="{{route('calendar.lesson-plans.index', ['type' => 'recurring'])}}">
+                @fa(['icon' => 'rotate'])Recurring
+            </a>
+            <a class="btn btn-outline-secondary" href="{{route('calendar.lesson-plans.index', ['type' => 'one-time'])}}">
+                @fa(['icon' => 'calendar-day'])One-time
+            </a>
+        </div>
     </div>
 
     <div class="calendar-table-filters mb-3" id="lesson-plans-starts-range">

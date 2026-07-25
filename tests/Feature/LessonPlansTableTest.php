@@ -2,9 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Models\Calendar\LessonPlan;
+use App\Models\Calendar\SingleLessonPlan;
+use App\Models\Calendar\Student;
 use Carbon\Carbon;
 use Tests\BaseTest;
-use App\Models\Calendar\{LessonPlan, Student};
 
 class LessonPlansTableTest extends BaseTest
 {
@@ -118,6 +120,39 @@ class LessonPlansTableTest extends BaseTest
         Carbon::setTestNow();
     }
 
+    /** @test */
+    public function it_shows_one_time_plans_on_the_shared_lesson_plans_page()
+    {
+        $student = Student::factory()->create([
+            'first_name' => 'One',
+            'last_name' => 'Time',
+        ]);
+        $lessonPlan = SingleLessonPlan::factory()->student($student)->create([
+            'scheduled_date' => '2026-08-12',
+            'start_time' => '14:30',
+            'duration_minutes' => 45,
+        ]);
+        $this->signIn();
+
+        $this->get(route('calendar.lesson-plans.index', ['type' => 'one-time']))
+            ->assertOk()
+            ->assertSee('Lesson Plans')
+            ->assertSee('single-lesson-plans-table', false)
+            ->assertSee('New one-time plan');
+
+        $response = $this->getJson(route(
+            'calendar.tables.single-lesson-plans',
+            $this->singleLessonPlanTableRequest()
+        ))->assertOk();
+
+        $row = collect($response->json('data'))->firstWhere('id', $lessonPlan->id);
+
+        $this->assertSame('One Time', $row['student']);
+        $this->assertSame('2026-08-12', $row['scheduled_date']);
+        $this->assertSame('14:30', $row['start_time']);
+        $this->assertSame(45, $row['duration_minutes']);
+    }
+
     private function lessonPlanTableColumns(): array
     {
         return collect([
@@ -161,5 +196,37 @@ class LessonPlansTableTest extends BaseTest
             ],
             'columns' => $this->lessonPlanTableColumns(),
         ], $overrides);
+    }
+
+    private function singleLessonPlanTableRequest(): array
+    {
+        $columns = collect([
+            'scheduled_date',
+            'student',
+            'start_time',
+            'duration_minutes',
+            'fee_amount',
+            'payment_method',
+            'location',
+            'status',
+            'actions',
+        ])->map(function ($name) {
+            return [
+                'data' => $name === 'actions' ? 'id' : $name,
+                'name' => $name,
+                'searchable' => $name === 'actions' ? 'false' : 'true',
+                'orderable' => $name === 'actions' ? 'false' : 'true',
+                'search' => ['value' => '', 'regex' => 'false'],
+            ];
+        })->all();
+
+        return [
+            'draw' => 1,
+            'start' => 0,
+            'length' => 10,
+            'search' => ['value' => '', 'regex' => 'false'],
+            'columns' => $columns,
+            'order' => [['column' => 0, 'dir' => 'asc']],
+        ];
     }
 }

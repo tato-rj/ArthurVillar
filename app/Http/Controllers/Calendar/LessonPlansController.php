@@ -15,7 +15,14 @@ class LessonPlansController extends Controller
 {
     public function index()
     {
-        return view('calendar.lessonPlans.index');
+        $planType = request('type') === 'one-time' ? 'one-time' : 'recurring';
+
+        return view(
+            $planType === 'one-time'
+                ? 'calendar.lessonPlans.single'
+                : 'calendar.lessonPlans.index',
+            compact('planType')
+        );
     }
 
     public function edit(LessonPlan $lessonPlan)

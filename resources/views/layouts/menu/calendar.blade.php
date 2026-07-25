@@ -9,15 +9,9 @@
     'calendar.home' => 'Calendar',
     'calendar.invitations.index' => 'Invitations*',
     'calendar.students.index' => 'Students',
-    [
-      'label' => 'Schedule',
-      'children' => [
-          'calendar.lessons.index' => 'Lessons',
-          'calendar.lesson-plans.index' => 'Recurring plans',
-          'calendar.events.index' => 'General events',
-          'calendar.events.google' => 'Google events',
-      ],
-    ],
+    'calendar.lesson-plans.index' => 'Lesson plans',
+    'calendar.lessons.index' => 'Lessons',
+    'calendar.events.index' => 'Events',
     'calendar.waiting-list.index' => 'Waiting list*',
     'calendar.recitals.index' => 'Recitals',
     'calendar.locations.index' => 'Locations*',
