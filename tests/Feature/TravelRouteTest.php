@@ -322,4 +322,48 @@ class TravelRouteTest extends BaseTest
         Http::assertNothingSent();
         $this->assertSame(0, TravelRoute::count());
     }
+
+    /** @test */
+    public function it_hides_travel_information_when_the_gap_is_twice_the_route_duration()
+    {
+        config(['calendar.google_routes.api_key' => 'test-key']);
+        $user = $this->signIn();
+
+        Event::factory()->create([
+            'scheduled_date' => '2026-07-24',
+            'starts_at' => '12:20',
+            'ends_at' => '13:20',
+            'address' => '58 7th Ave',
+            'city' => 'Brooklyn',
+            'state' => 'NY',
+        ]);
+        Http::fake([
+            'routes.googleapis.com/*' => Http::response([
+                'routes' => [[
+                    'duration' => '1200s',
+                    'distanceMeters' => 2500,
+                    'legs' => [[
+                        'steps' => [[
+                            'travelMode' => 'WALK',
+                            'staticDuration' => '1200s',
+                        ]],
+                    ]],
+                ]],
+            ]),
+        ]);
+
+        $this->postJson(route('calendar.travel-route.show'), [
+            'event_key' => 'event-after-long-gap',
+            'arrival_at' => '2026-07-24T13:55:00',
+            'destination_address' => '80 Erie St, Jersey City, NJ',
+            'destination_label' => 'Home',
+        ])->assertNoContent();
+
+        Http::assertSentCount(1);
+        $this->assertDatabaseHas('travel_routes', [
+            'user_id' => $user->id,
+            'event_key' => 'event-after-long-gap',
+            'duration_seconds' => 1200,
+        ]);
+    }
 }

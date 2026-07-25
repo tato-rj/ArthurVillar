@@ -46,6 +46,18 @@ class TravelRoutesController extends Controller
             $arrivalAt
         );
 
+        if ($route && isset($origin['ends_at'])) {
+            $gapSeconds = max(0, $eventStartsAt->timestamp - $origin['ends_at']->timestamp);
+            $longGapMultiplier = max(
+                1,
+                (float) config('calendar.google_routes.long_gap_multiplier', 2)
+            );
+
+            if ($gapSeconds >= $route->duration_seconds * $longGapMultiplier) {
+                return response()->noContent();
+            }
+        }
+
         return $route
             ? response()->json(['route' => $travelRoutes->payload($route)])
             : response()->noContent();
