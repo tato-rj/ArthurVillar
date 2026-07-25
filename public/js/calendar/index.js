@@ -8349,8 +8349,8 @@ var prepareDuplicateGeneralEventForm = function prepareDuplicateGeneralEventForm
   form.reset();
   setNamedFormValue(form, 'name', event.title);
   setNamedFormValue(form, 'scheduled_date', '');
-  setNamedFormValue(form, 'starts_at', '');
-  setNamedFormValue(form, 'ends_at', '');
+  setNamedFormValue(form, 'starts_at', event.start);
+  setNamedFormValue(form, 'ends_at', event.end);
   setNamedFormValue(form, 'address', event.address);
   setNamedFormValue(form, 'city', event.city);
   setNamedFormValue(form, 'state', event.state);
