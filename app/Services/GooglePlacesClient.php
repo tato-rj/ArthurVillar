@@ -39,13 +39,14 @@ class GooglePlacesClient
         ];
 
         if (filled($bias['latitude'] ?? null) && filled($bias['longitude'] ?? null)) {
+            $radius = min(50000, max(0, (float) ($bias['radius_meters'] ?? 50000)));
             $payload['locationBias'] = [
                 'circle' => [
                     'center' => [
                         'latitude' => (float) $bias['latitude'],
                         'longitude' => (float) $bias['longitude'],
                     ],
-                    'radius' => (float) ($bias['radius_meters'] ?? 100000),
+                    'radius' => $radius,
                 ],
             ];
         }

@@ -68,7 +68,8 @@ class AddressAutocompleteTest extends BaseTest
                 && $request->hasHeader('X-Goog-Api-Key', 'places-test-key')
                 && $request['sessionToken'] === $token
                 && $request['regionCode'] === 'us'
-                && $request['includedRegionCodes'] === ['us'];
+                && $request['includedRegionCodes'] === ['us']
+                && (float) $request['locationBias']['circle']['radius'] === 50000.0;
         });
     }
 

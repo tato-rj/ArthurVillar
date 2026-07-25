@@ -9,7 +9,7 @@ return [
         'location_bias' => [
             'latitude' => 40.7128,
             'longitude' => -74.0060,
-            'radius_meters' => 100000,
+            'radius_meters' => 50000,
         ],
     ],
     'google_routes' => [
