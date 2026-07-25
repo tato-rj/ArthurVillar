@@ -29,11 +29,12 @@ class GooglePlacesClient
         }
 
         $bias = config('calendar.google_places.location_bias', []);
+        $regionCode = strtolower(config('calendar.google_places.region_code', 'US'));
         $payload = [
             'input' => $input,
             'sessionToken' => $sessionToken,
-            'regionCode' => config('calendar.google_places.region_code', 'US'),
-            'includedRegionCodes' => [strtolower(config('calendar.google_places.region_code', 'US'))],
+            'regionCode' => $regionCode,
+            'includedRegionCodes' => [$regionCode],
             'includeQueryPredictions' => false,
         ];
 

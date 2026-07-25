@@ -67,6 +67,7 @@ class AddressAutocompleteTest extends BaseTest
             return $request->url() === 'https://places.googleapis.com/v1/places:autocomplete'
                 && $request->hasHeader('X-Goog-Api-Key', 'places-test-key')
                 && $request['sessionToken'] === $token
+                && $request['regionCode'] === 'us'
                 && $request['includedRegionCodes'] === ['us'];
         });
     }
