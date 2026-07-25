@@ -13,8 +13,8 @@
     <button id="lesson-revert" class="btn btn-raw" data-url="{{ route('calendar.lessons.revert') }}" type="button">@fa(['icon' => 'rotate-left', 'mr' => 0])</button>
 </span>
 <span data-event-modal-section="general" hidden>
-    <button id="event-duplicate" class="btn btn-raw mr-1" type="button" aria-label="Duplicate event" title="Duplicate event">@fa(['icon' => 'copy', 'mr' => 0])</button>
-    <button id="event-edit" class="btn btn-raw mr-1" type="button">@fa(['icon' => 'pen'])</button>
+    <button id="event-duplicate" class="btn btn-raw" type="button" aria-label="Duplicate event" title="Duplicate event">@fa(['icon' => 'copy'])</button>
+    <button id="event-edit" class="btn btn-raw" type="button">@fa(['icon' => 'pen'])</button>
     <button id="event-revert" class="btn btn-raw" type="button" style="display: none">@fa(['icon' => 'rotate-left', 'mr' => 0])</button>
 </span>
 @endslot

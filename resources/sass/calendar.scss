@@ -1679,7 +1679,7 @@ button.single-lesson-plan-create[selected] i {
     }
 }
 
-#lesson-edit, #event-edit {
+#lesson-edit, #event-edit, #event-duplicate {
     opacity: .6;
 }
 
@@ -1692,7 +1692,7 @@ button.single-lesson-plan-create[selected] i {
     margin-bottom: 3px;
 }
 
-#lesson-revert:hover, #event-revert:hover, #lesson-edit:hover, #event-edit:hover {
+#lesson-revert:hover, #event-revert:hover, #lesson-edit:hover, #event-edit:hover, #event-duplicate:hover {
     opacity: 1;
 }
 
