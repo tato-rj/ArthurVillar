@@ -91,7 +91,8 @@ class AddressAutocompleteTest extends BaseTest
         $this->get(route('calendar.events.index'))
             ->assertOk()
             ->assertSee('data-address-fields', false)
-            ->assertSee('autocomplete="street-address"', false)
+            ->assertSee('name="address"', false)
+            ->assertSee('autocomplete="off"', false)
             ->assertSee('autocomplete="address-level1"', false);
     }
 }
