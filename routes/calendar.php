@@ -6,6 +6,7 @@ Route::get('/', 'CalendarController@index')->name('home');
 
 Route::patch('settings', 'SettingsController@update')->name('settings.update');
 Route::post('travel-route', 'TravelRoutesController@show')->name('travel-route.show');
+Route::post('travel-route/return-home', 'TravelRoutesController@returnHome')->name('travel-route.return-home');
 Route::post('address-autocomplete', 'AddressAutocompleteController@search')
     ->middleware('throttle:120,1')
     ->name('address-autocomplete.search');

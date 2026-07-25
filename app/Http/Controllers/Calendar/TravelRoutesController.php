@@ -56,4 +56,49 @@ class TravelRoutesController extends Controller
             )])
             : response()->noContent();
     }
+
+    public function returnHome(
+        Request $request,
+        CalendarTravelOrigin $originFinder,
+        CalendarTravelRoutes $travelRoutes
+    ) {
+        $data = $request->validate([
+            'event_key' => ['required', 'string', 'max:255'],
+            'departure_at' => ['required', 'date'],
+            'origin_address' => ['required', 'string', 'max:1000'],
+            'origin_label' => ['required', 'string', 'max:255'],
+        ]);
+        $departureAt = CarbonImmutable::parse($data['departure_at'], config('calendar.timezone'));
+        $now = CarbonImmutable::now(config('calendar.timezone'));
+        $home = $originFinder->home();
+
+        if (! $home || $departureAt->lte($now) || $departureAt->gt($now->addDays(100))) {
+            return response()->noContent();
+        }
+
+        $route = $travelRoutes->forEvent(
+            $request->user()->id,
+            'return-home:'.$data['event_key'],
+            [
+                'address' => $data['origin_address'],
+                'label' => $data['origin_label'],
+            ],
+            $home['address'],
+            $home['label'] ?? 'Home',
+            $departureAt,
+            false,
+            'departure'
+        );
+
+        return $route
+            ? response()->json(['route' => array_merge(
+                $travelRoutes->payload($route),
+                [
+                    'origin_ends_at' => $departureAt->toIso8601String(),
+                    'origin_is_home' => false,
+                    'return_home' => true,
+                ]
+            )])
+            : response()->noContent();
+    }
 }

@@ -20,7 +20,12 @@ class GoogleRoutesClient
         return filled(config('calendar.google_routes.api_key'));
     }
 
-    public function calculate(string $origin, string $destination, CarbonImmutable $arrivalAt): ?array
+    public function calculate(
+        string $origin,
+        string $destination,
+        CarbonImmutable $routeAt,
+        string $timePreference = 'arrival'
+    ): ?array
     {
         if (! $this->isConfigured()) {
             return null;
@@ -30,23 +35,24 @@ class GoogleRoutesClient
         $walkingThreshold = (int) config('calendar.google_routes.walking_threshold_minutes', 20) * 60;
 
         if ($walking && $walking['duration_seconds'] <= $walkingThreshold) {
-            return $this->normalizeRoute($walking, 'WALK', $arrivalAt);
+            return $this->normalizeRoute($walking, 'WALK', $routeAt, $timePreference);
         }
 
-        $transit = $this->request('TRANSIT', $origin, $destination, $arrivalAt);
+        $transit = $this->request('TRANSIT', $origin, $destination, $routeAt, $timePreference);
 
         if ($transit) {
-            return $this->normalizeRoute($transit, 'TRANSIT', $arrivalAt);
+            return $this->normalizeRoute($transit, 'TRANSIT', $routeAt, $timePreference);
         }
 
-        return $walking ? $this->normalizeRoute($walking, 'WALK', $arrivalAt) : null;
+        return $walking ? $this->normalizeRoute($walking, 'WALK', $routeAt, $timePreference) : null;
     }
 
     private function request(
         string $travelMode,
         string $origin,
         string $destination,
-        ?CarbonImmutable $arrivalAt = null
+        ?CarbonImmutable $routeAt = null,
+        string $timePreference = 'arrival'
     ): ?array {
         $payload = [
             'origin' => ['address' => $origin],
@@ -57,8 +63,9 @@ class GoogleRoutesClient
             'units' => 'IMPERIAL',
         ];
 
-        if ($travelMode === 'TRANSIT' && $arrivalAt) {
-            $payload['arrivalTime'] = $arrivalAt->utc()->format('Y-m-d\TH:i:s\Z');
+        if ($travelMode === 'TRANSIT' && $routeAt) {
+            $timeField = $timePreference === 'departure' ? 'departureTime' : 'arrivalTime';
+            $payload[$timeField] = $routeAt->utc()->format('Y-m-d\TH:i:s\Z');
         }
 
         try {
@@ -95,15 +102,26 @@ class GoogleRoutesClient
             ]);
     }
 
-    private function normalizeRoute(array $route, string $travelMode, CarbonImmutable $arrivalAt): array
+    private function normalizeRoute(
+        array $route,
+        string $travelMode,
+        CarbonImmutable $routeAt,
+        string $timePreference
+    ): array
     {
         $duration = max(0, (int) $route['duration_seconds']);
+        $departureAt = $timePreference === 'departure'
+            ? $routeAt
+            : $routeAt->subSeconds($duration);
+        $arrivalAt = $timePreference === 'departure'
+            ? $routeAt->addSeconds($duration)
+            : $routeAt;
 
         return [
             'travel_mode' => $travelMode,
             'duration_seconds' => $duration,
             'distance_meters' => $route['distance_meters'],
-            'departure_at' => $arrivalAt->subSeconds($duration),
+            'departure_at' => $departureAt,
             'arrival_at' => $arrivalAt,
             'steps' => $route['steps'],
         ];

@@ -18,7 +18,8 @@ class CalendarTravelRoutes
         string $destinationAddress,
         string $destinationLabel,
         CarbonImmutable $arrivalAt,
-        bool $force = false
+        bool $force = false,
+        string $timePreference = 'arrival'
     ): ?TravelRoute {
         if (! $this->client->isConfigured() || empty($origin['address'])) {
             return null;
@@ -28,6 +29,7 @@ class CalendarTravelRoutes
             $origin['address'],
             $destinationAddress,
             $arrivalAt->utc()->toIso8601String(),
+            $timePreference,
         ]));
         $cached = TravelRoute::query()
             ->where('user_id', $userId)
@@ -53,7 +55,12 @@ class CalendarTravelRoutes
             return null;
         }
 
-        $route = $this->client->calculate($origin['address'], $destinationAddress, $arrivalAt);
+        $route = $this->client->calculate(
+            $origin['address'],
+            $destinationAddress,
+            $arrivalAt,
+            $timePreference
+        );
 
         if (! $route) {
             return $cached && $cached->request_signature === $signature ? $cached : null;
@@ -80,14 +87,21 @@ class CalendarTravelRoutes
 
     public function refresh(TravelRoute $travelRoute): ?TravelRoute
     {
+        $isReturnHome = str_starts_with($travelRoute->event_key, 'return-home:');
+
         return $this->forEvent(
             $travelRoute->user_id,
             $travelRoute->event_key,
             ['address' => $travelRoute->origin_address, 'label' => $travelRoute->origin_label],
             $travelRoute->destination_address,
             $travelRoute->destination_label ?: $travelRoute->destination_address,
-            CarbonImmutable::instance($travelRoute->arrival_at),
-            true
+            CarbonImmutable::instance(
+                $isReturnHome && $travelRoute->departure_at
+                    ? $travelRoute->departure_at
+                    : $travelRoute->arrival_at
+            ),
+            true,
+            $isReturnHome ? 'departure' : 'arrival'
         );
     }
 

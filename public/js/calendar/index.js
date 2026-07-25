@@ -5748,6 +5748,7 @@ var patchScheduleItems = function patchScheduleItems(calendar) {
     applyEventTimeStatusAttributes(item, event, visibleDate);
     applyEventOverlapAttribute(item, event);
     patchScheduleItemTravel(item, event);
+    patchScheduleItemReturnHomeTravel(item, event);
   });
 };
 var animateCalendarLessonItems = function animateCalendarLessonItems(calendar) {
@@ -6264,6 +6265,15 @@ var getEventStartDateTime = function getEventStartDateTime(event) {
   }
   var dateParts = String(event.date).substring(0, 10).split('-').map(Number);
   var timeParts = normalizeTime(event.start).split(':').map(Number);
+  var date = new Date(dateParts[0], dateParts[1] - 1, dateParts[2], timeParts[0], timeParts[1], 0, 0);
+  return isValidDate(date) ? date : null;
+};
+var getEventEndDateTime = function getEventEndDateTime(event) {
+  if (!event || !event.date || !event.end) {
+    return null;
+  }
+  var dateParts = String(event.date).substring(0, 10).split('-').map(Number);
+  var timeParts = normalizeTime(event.end).split(':').map(Number);
   var date = new Date(dateParts[0], dateParts[1] - 1, dateParts[2], timeParts[0], timeParts[1], 0, 0);
   return isValidDate(date) ? date : null;
 };
@@ -6822,7 +6832,7 @@ var requestTravelRouteForEvent = function requestTravelRouteForEvent(event, deta
   if (state.travelRouteRequests.has(requestDetails.cacheKey)) {
     return state.travelRouteRequests.get(requestDetails.cacheKey);
   }
-  var request = requestJson(window.calendarTravelRouteUrl, {
+  var request = requestJson(requestDetails.url || window.calendarTravelRouteUrl, {
     method: 'POST',
     headers: {
       'Accept': 'application/json',
@@ -6857,6 +6867,44 @@ var updateScheduleItemTravelClasses = function updateScheduleItemTravelClasses(i
   item.classList.toggle('has-calendar-schedule-travel-before', hasBefore);
   item.classList.toggle('has-calendar-schedule-travel-after', hasAfter);
 };
+var updateScheduleTravelOverlapLayers = function updateScheduleTravelOverlapLayers(schedule) {
+  if (!schedule) {
+    return;
+  }
+  var items = Array.from(schedule.querySelectorAll('.lm-schedule-item:not([holding-event])'));
+  items.forEach(function (item) {
+    item.removeAttribute('travel-overlapping-event');
+    item.style.removeProperty('--calendar-travel-overlap-z-index');
+  });
+  schedule.querySelectorAll('.calendar-schedule-travel').forEach(function (extension) {
+    var owner = extension.parentElement;
+    var ownerEvent = getEventByScheduleItem(owner);
+    var ownerCell = owner ? owner.closest('td[data-date]') : null;
+    var ownerDate = ownerCell ? ownerCell.getAttribute('data-real-date') || ownerCell.getAttribute('data-date') : '';
+    var duration = Number(extension.dataset.travelDurationMinutes || 0);
+    if (!owner || !ownerEvent || !ownerDate || duration <= 0) {
+      return;
+    }
+    var ownerStart = getTimeMinutes(ownerEvent.start);
+    var ownerEnd = getTimeMinutes(ownerEvent.end);
+    var travelStart = extension.dataset.travelPosition === 'after' ? ownerEnd : ownerStart - duration;
+    var travelEnd = extension.dataset.travelPosition === 'after' ? ownerEnd + duration : ownerStart;
+    items.forEach(function (item) {
+      if (item === owner || item.hasAttribute('data-pending-event-copy')) {
+        return;
+      }
+      var event = getEventByScheduleItem(item);
+      var cell = item.closest('td[data-date]');
+      var date = cell ? cell.getAttribute('data-real-date') || cell.getAttribute('data-date') : '';
+      if (!event || isCanceledCalendarEvent(event) || event.allDay || date !== ownerDate || getTimeMinutes(event.start) >= travelEnd || getTimeMinutes(event.end) <= travelStart) {
+        return;
+      }
+      var eventDuration = Math.max(1, getTimeMinutes(event.end) - getTimeMinutes(event.start));
+      item.setAttribute('travel-overlapping-event', '');
+      item.style.setProperty('--calendar-travel-overlap-z-index', String(5000 - Math.min(eventDuration, 1440)));
+    });
+  });
+};
 var removeScheduleTravelExtension = function removeScheduleTravelExtension(extension) {
   if (!extension) {
     return;
@@ -6869,8 +6917,9 @@ var removeScheduleTravelExtension = function removeScheduleTravelExtension(exten
   }
   extension.remove();
   updateScheduleItemTravelClasses(item);
+  updateScheduleTravelOverlapLayers(item ? item.closest('.lm-schedule') : null);
 };
-var clearScheduleItemTravel = function clearScheduleItemTravel(item, event) {
+var clearScheduleItemTravel = function clearScheduleItemTravel(item, event, options) {
   if (!item) {
     return;
   }
@@ -6885,8 +6934,10 @@ var clearScheduleItemTravel = function clearScheduleItemTravel(item, event) {
   } else {
     item.querySelectorAll(':scope > .calendar-schedule-travel').forEach(removeScheduleTravelExtension);
   }
-  delete item.dataset.travelRouteKey;
-  delete item.dataset.travelRouteState;
+  if (!(options && options.preserveItemState)) {
+    delete item.dataset.travelRouteKey;
+    delete item.dataset.travelRouteState;
+  }
 };
 var normalizeTravelPlace = function normalizeTravelPlace(value) {
   return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -6947,12 +6998,74 @@ var getScheduleTravelPlacement = function getScheduleTravelPlacement(item, event
     position: 'before'
   };
 };
-var renderScheduleItemTravel = function renderScheduleItemTravel(item, event, route, cacheKey) {
+var isLastScheduleItemOfDay = function isLastScheduleItemOfDay(item, event) {
+  var schedule = item ? item.closest('.lm-schedule') : null;
+  var cell = item ? item.closest('td[data-date]') : null;
+  if (!schedule || !cell || !event) {
+    return false;
+  }
+  var visibleDate = cell.getAttribute('data-real-date') || cell.getAttribute('data-date') || event.date;
+  var candidates = Array.from(schedule.querySelectorAll('.lm-schedule-item:not([holding-event])')).filter(function (candidate) {
+    if (candidate.hasAttribute('data-pending-event-copy')) {
+      return false;
+    }
+    var candidateEvent = getEventByScheduleItem(candidate);
+    var candidateCell = candidate.closest('td[data-date]');
+    var candidateDate = candidateCell ? candidateCell.getAttribute('data-real-date') || candidateCell.getAttribute('data-date') : '';
+    return candidateEvent && !isCanceledCalendarEvent(candidateEvent) && !candidateEvent.allDay && candidateDate === visibleDate;
+  }).sort(function (a, b) {
+    var eventA = getEventByScheduleItem(a);
+    var eventB = getEventByScheduleItem(b);
+    var endDifference = getTimeMinutes(eventA.end) - getTimeMinutes(eventB.end);
+    return endDifference || getTimeMinutes(eventA.start) - getTimeMinutes(eventB.start);
+  });
+  return candidates[candidates.length - 1] === item;
+};
+var getReturnHomeOwnerEvent = function getReturnHomeOwnerEvent(event) {
+  return Object.assign({}, event, {
+    guid: "return-home:".concat(getScheduleTravelOwnerGuid(event))
+  });
+};
+var clearScheduleItemReturnHomeTravel = function clearScheduleItemReturnHomeTravel(item, event) {
+  if (!item || !event) {
+    return;
+  }
+  clearScheduleItemTravel(item, getReturnHomeOwnerEvent(event), {
+    preserveItemState: true
+  });
+  delete item.dataset.returnHomeTravelRouteKey;
+  delete item.dataset.returnHomeTravelRouteState;
+};
+var getReturnHomeTravelRouteRequestDetails = function getReturnHomeTravelRouteRequestDetails(item, event) {
+  var origin = getTravelDestination(event);
+  var home = window.calendarHomeLocation;
+  var homeAddress = physicalLocationQuery(home);
+  var endsAt = getEventEndDateTime(event);
+  var isCanceled = event && (event.calendarStatus === 'canceled' || event.lessonStatus === 'canceled');
+  if (!window.calendarShowTravelTimes || !window.calendarTravelRoutesEnabled || !window.calendarReturnHomeTravelRouteUrl || !event || !origin || !homeAddress || !endsAt || event.allDay || isCanceled || endsAt <= new Date() || isHomeTravelPlace(origin.address) || isHomeTravelPlace(origin.label) || !isLastScheduleItemOfDay(item, event)) {
+    return null;
+  }
+  var eventKey = getScheduleTravelOwnerGuid(event);
+  var departureTime = [String(endsAt.getHours()).padStart(2, '0'), String(endsAt.getMinutes()).padStart(2, '0'), '00'].join(':');
+  var departureAt = "".concat(toDateString(endsAt), "T").concat(departureTime);
+  var cacheKey = [state.calendarFetchId, 'return-home', eventKey, departureAt, origin.address, homeAddress].join('|');
+  return {
+    cacheKey: cacheKey,
+    url: window.calendarReturnHomeTravelRouteUrl,
+    payload: {
+      event_key: eventKey,
+      departure_at: departureAt,
+      origin_address: origin.address,
+      origin_label: origin.label
+    }
+  };
+};
+var renderScheduleItemTravel = function renderScheduleItemTravel(item, event, route, cacheKey, options) {
   if (!item || !route || Number(route.duration_seconds || 0) <= 0) {
     clearScheduleItemTravel(item, event);
     return;
   }
-  var placement = getScheduleTravelPlacement(item, event, route);
+  var placement = options && options.placement ? options.placement : getScheduleTravelPlacement(item, event, route);
   var targetItem = placement.item;
   var durationMinutes = Math.max(1, Math.round(Number(route.duration_seconds) / 60));
   var roundedMinutes = Math.max(15, Math.round(durationMinutes / 15) * 15);
@@ -6963,7 +7076,9 @@ var renderScheduleItemTravel = function renderScheduleItemTravel(item, event, ro
   var icon = document.createElement('i');
   var label = document.createElement('span');
   var isTransit = String(route.mode || '').toUpperCase() === 'TRANSIT';
-  clearScheduleItemTravel(item, event);
+  clearScheduleItemTravel(item, event, {
+    preserveItemState: Boolean(options && options.preserveItemState)
+  });
   extension.className = 'calendar-schedule-travel';
   extension.style.height = '0';
   extension.style.minHeight = '0';
@@ -6972,6 +7087,7 @@ var renderScheduleItemTravel = function renderScheduleItemTravel(item, event, ro
   extension.style.setProperty('--calendar-schedule-event-color', window.getComputedStyle(targetItem).backgroundColor || '#6b7280');
   extension.dataset.travelMode = isTransit ? 'transit' : 'walk';
   extension.dataset.travelPosition = placement.position;
+  extension.dataset.travelDurationMinutes = String(roundedMinutes);
   extension.dataset.travelEventGuid = getScheduleTravelOwnerGuid(event);
   extension.title = "".concat(route.origin, " to ").concat(route.destination, ": ").concat(durationMinutes, " min travel time");
   extension.setAttribute('aria-hidden', 'true');
@@ -6981,8 +7097,11 @@ var renderScheduleItemTravel = function renderScheduleItemTravel(item, event, ro
   extension.appendChild(label);
   targetItem.appendChild(extension);
   updateScheduleItemTravelClasses(targetItem);
-  item.dataset.travelRouteKey = cacheKey;
-  item.dataset.travelRouteState = 'shown';
+  updateScheduleTravelOverlapLayers(targetItem.closest('.lm-schedule'));
+  if (!(options && options.preserveItemState)) {
+    item.dataset.travelRouteKey = cacheKey;
+    item.dataset.travelRouteState = 'shown';
+  }
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     extension.style.height = "".concat(extensionHeight, "px");
     extension.style.minHeight = '';
@@ -7002,6 +7121,41 @@ var renderScheduleItemTravel = function renderScheduleItemTravel(item, event, ro
     delay: 0.3
   });
   state.scheduleTravelAnimations.set(extension, animation);
+};
+var patchScheduleItemReturnHomeTravel = function patchScheduleItemReturnHomeTravel(item, event) {
+  var details = getReturnHomeTravelRouteRequestDetails(item, event);
+  if (!details) {
+    clearScheduleItemReturnHomeTravel(item, event);
+    return;
+  }
+  if (item.dataset.returnHomeTravelRouteKey === details.cacheKey && ['loading', 'shown', 'none'].includes(item.dataset.returnHomeTravelRouteState)) {
+    return;
+  }
+  clearScheduleItemReturnHomeTravel(item, event);
+  item.dataset.returnHomeTravelRouteKey = details.cacheKey;
+  item.dataset.returnHomeTravelRouteState = 'loading';
+  requestTravelRouteForEvent(event, details).then(function (route) {
+    if (!item.isConnected || item.dataset.returnHomeTravelRouteKey !== details.cacheKey) {
+      return;
+    }
+    if (!route) {
+      item.dataset.returnHomeTravelRouteState = 'none';
+      return;
+    }
+    renderScheduleItemTravel(item, getReturnHomeOwnerEvent(event), route, details.cacheKey, {
+      placement: {
+        item: item,
+        position: 'after'
+      },
+      preserveItemState: true
+    });
+    item.dataset.returnHomeTravelRouteState = 'shown';
+  })["catch"](function (error) {
+    if (item.isConnected && item.dataset.returnHomeTravelRouteKey === details.cacheKey) {
+      item.dataset.returnHomeTravelRouteState = 'none';
+    }
+    console.error(error);
+  });
 };
 var patchScheduleItemTravel = function patchScheduleItemTravel(item, event) {
   var details = getTravelRouteRequestDetails(event);

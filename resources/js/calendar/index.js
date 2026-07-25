@@ -1521,6 +1521,7 @@ const patchScheduleItems = function(calendar) {
         applyEventTimeStatusAttributes(item, event, visibleDate);
         applyEventOverlapAttribute(item, event);
         patchScheduleItemTravel(item, event);
+        patchScheduleItemReturnHomeTravel(item, event);
     });
 };
 
@@ -2177,6 +2178,26 @@ const getEventStartDateTime = function(event) {
 
     const dateParts = String(event.date).substring(0, 10).split('-').map(Number);
     const timeParts = normalizeTime(event.start).split(':').map(Number);
+    const date = new Date(
+        dateParts[0],
+        dateParts[1] - 1,
+        dateParts[2],
+        timeParts[0],
+        timeParts[1],
+        0,
+        0
+    );
+
+    return isValidDate(date) ? date : null;
+};
+
+const getEventEndDateTime = function(event) {
+    if (!event || !event.date || !event.end) {
+        return null;
+    }
+
+    const dateParts = String(event.date).substring(0, 10).split('-').map(Number);
+    const timeParts = normalizeTime(event.end).split(':').map(Number);
     const date = new Date(
         dateParts[0],
         dateParts[1] - 1,
@@ -2928,7 +2949,7 @@ const requestTravelRouteForEvent = function(event, details) {
         return state.travelRouteRequests.get(requestDetails.cacheKey);
     }
 
-    const request = requestJson(window.calendarTravelRouteUrl, {
+    const request = requestJson(requestDetails.url || window.calendarTravelRouteUrl, {
         method: 'POST',
         headers: {
             'Accept': 'application/json',
@@ -2976,6 +2997,71 @@ const updateScheduleItemTravelClasses = function(item) {
     item.classList.toggle('has-calendar-schedule-travel-after', hasAfter);
 };
 
+const updateScheduleTravelOverlapLayers = function(schedule) {
+    if (!schedule) {
+        return;
+    }
+
+    const items = Array.from(schedule.querySelectorAll('.lm-schedule-item:not([holding-event])'));
+
+    items.forEach(function(item) {
+        item.removeAttribute('travel-overlapping-event');
+        item.style.removeProperty('--calendar-travel-overlap-z-index');
+    });
+
+    schedule.querySelectorAll('.calendar-schedule-travel').forEach(function(extension) {
+        const owner = extension.parentElement;
+        const ownerEvent = getEventByScheduleItem(owner);
+        const ownerCell = owner ? owner.closest('td[data-date]') : null;
+        const ownerDate = ownerCell
+            ? (ownerCell.getAttribute('data-real-date') || ownerCell.getAttribute('data-date'))
+            : '';
+        const duration = Number(extension.dataset.travelDurationMinutes || 0);
+
+        if (!owner || !ownerEvent || !ownerDate || duration <= 0) {
+            return;
+        }
+
+        const ownerStart = getTimeMinutes(ownerEvent.start);
+        const ownerEnd = getTimeMinutes(ownerEvent.end);
+        const travelStart = extension.dataset.travelPosition === 'after'
+            ? ownerEnd
+            : ownerStart - duration;
+        const travelEnd = extension.dataset.travelPosition === 'after'
+            ? ownerEnd + duration
+            : ownerStart;
+
+        items.forEach(function(item) {
+            if (item === owner || item.hasAttribute('data-pending-event-copy')) {
+                return;
+            }
+
+            const event = getEventByScheduleItem(item);
+            const cell = item.closest('td[data-date]');
+            const date = cell
+                ? (cell.getAttribute('data-real-date') || cell.getAttribute('data-date'))
+                : '';
+
+            if (!event
+                || isCanceledCalendarEvent(event)
+                || event.allDay
+                || date !== ownerDate
+                || getTimeMinutes(event.start) >= travelEnd
+                || getTimeMinutes(event.end) <= travelStart) {
+                return;
+            }
+
+            const eventDuration = Math.max(1, getTimeMinutes(event.end) - getTimeMinutes(event.start));
+
+            item.setAttribute('travel-overlapping-event', '');
+            item.style.setProperty(
+                '--calendar-travel-overlap-z-index',
+                String(5000 - Math.min(eventDuration, 1440))
+            );
+        });
+    });
+};
+
 const removeScheduleTravelExtension = function(extension) {
     if (!extension) {
         return;
@@ -2991,9 +3077,10 @@ const removeScheduleTravelExtension = function(extension) {
 
     extension.remove();
     updateScheduleItemTravelClasses(item);
+    updateScheduleTravelOverlapLayers(item ? item.closest('.lm-schedule') : null);
 };
 
-const clearScheduleItemTravel = function(item, event) {
+const clearScheduleItemTravel = function(item, event, options) {
     if (!item) {
         return;
     }
@@ -3011,8 +3098,10 @@ const clearScheduleItemTravel = function(item, event) {
         item.querySelectorAll(':scope > .calendar-schedule-travel').forEach(removeScheduleTravelExtension);
     }
 
-    delete item.dataset.travelRouteKey;
-    delete item.dataset.travelRouteState;
+    if (!(options && options.preserveItemState)) {
+        delete item.dataset.travelRouteKey;
+        delete item.dataset.travelRouteState;
+    }
 };
 
 const normalizeTravelPlace = function(value) {
@@ -3098,13 +3187,121 @@ const getScheduleTravelPlacement = function(item, event, route) {
         : { item, position: 'before' };
 };
 
-const renderScheduleItemTravel = function(item, event, route, cacheKey) {
+const isLastScheduleItemOfDay = function(item, event) {
+    const schedule = item ? item.closest('.lm-schedule') : null;
+    const cell = item ? item.closest('td[data-date]') : null;
+
+    if (!schedule || !cell || !event) {
+        return false;
+    }
+
+    const visibleDate = cell.getAttribute('data-real-date') || cell.getAttribute('data-date') || event.date;
+    const candidates = Array.from(schedule.querySelectorAll('.lm-schedule-item:not([holding-event])'))
+        .filter(function(candidate) {
+            if (candidate.hasAttribute('data-pending-event-copy')) {
+                return false;
+            }
+
+            const candidateEvent = getEventByScheduleItem(candidate);
+            const candidateCell = candidate.closest('td[data-date]');
+            const candidateDate = candidateCell
+                ? (candidateCell.getAttribute('data-real-date') || candidateCell.getAttribute('data-date'))
+                : '';
+
+            return candidateEvent
+                && !isCanceledCalendarEvent(candidateEvent)
+                && !candidateEvent.allDay
+                && candidateDate === visibleDate;
+        })
+        .sort(function(a, b) {
+            const eventA = getEventByScheduleItem(a);
+            const eventB = getEventByScheduleItem(b);
+            const endDifference = getTimeMinutes(eventA.end) - getTimeMinutes(eventB.end);
+
+            return endDifference || (getTimeMinutes(eventA.start) - getTimeMinutes(eventB.start));
+        });
+
+    return candidates[candidates.length - 1] === item;
+};
+
+const getReturnHomeOwnerEvent = function(event) {
+    return Object.assign({}, event, {
+        guid: `return-home:${getScheduleTravelOwnerGuid(event)}`,
+    });
+};
+
+const clearScheduleItemReturnHomeTravel = function(item, event) {
+    if (!item || !event) {
+        return;
+    }
+
+    clearScheduleItemTravel(item, getReturnHomeOwnerEvent(event), {
+        preserveItemState: true,
+    });
+    delete item.dataset.returnHomeTravelRouteKey;
+    delete item.dataset.returnHomeTravelRouteState;
+};
+
+const getReturnHomeTravelRouteRequestDetails = function(item, event) {
+    const origin = getTravelDestination(event);
+    const home = window.calendarHomeLocation;
+    const homeAddress = physicalLocationQuery(home);
+    const endsAt = getEventEndDateTime(event);
+    const isCanceled = event && (event.calendarStatus === 'canceled' || event.lessonStatus === 'canceled');
+
+    if (!window.calendarShowTravelTimes
+        || !window.calendarTravelRoutesEnabled
+        || !window.calendarReturnHomeTravelRouteUrl
+        || !event
+        || !origin
+        || !homeAddress
+        || !endsAt
+        || event.allDay
+        || isCanceled
+        || endsAt <= new Date()
+        || isHomeTravelPlace(origin.address)
+        || isHomeTravelPlace(origin.label)
+        || !isLastScheduleItemOfDay(item, event)) {
+        return null;
+    }
+
+    const eventKey = getScheduleTravelOwnerGuid(event);
+    const departureTime = [
+        String(endsAt.getHours()).padStart(2, '0'),
+        String(endsAt.getMinutes()).padStart(2, '0'),
+        '00',
+    ].join(':');
+    const departureAt = `${toDateString(endsAt)}T${departureTime}`;
+    const cacheKey = [
+        state.calendarFetchId,
+        'return-home',
+        eventKey,
+        departureAt,
+        origin.address,
+        homeAddress,
+    ].join('|');
+
+    return {
+        cacheKey,
+        url: window.calendarReturnHomeTravelRouteUrl,
+        payload: {
+            event_key: eventKey,
+            departure_at: departureAt,
+            origin_address: origin.address,
+            origin_label: origin.label,
+        },
+    };
+};
+
+const renderScheduleItemTravel = function(item, event, route, cacheKey, options) {
     if (!item || !route || Number(route.duration_seconds || 0) <= 0) {
         clearScheduleItemTravel(item, event);
         return;
     }
 
-    const placement = getScheduleTravelPlacement(item, event, route);
+    const placement = options && options.placement
+        ? options.placement
+        : getScheduleTravelPlacement(item, event, route);
     const targetItem = placement.item;
     const durationMinutes = Math.max(1, Math.round(Number(route.duration_seconds) / 60));
     const roundedMinutes = Math.max(15, Math.round(durationMinutes / 15) * 15);
@@ -3116,7 +3313,9 @@ const renderScheduleItemTravel = function(item, event, route, cacheKey) {
     const label = document.createElement('span');
     const isTransit = String(route.mode || '').toUpperCase() === 'TRANSIT';
 
-    clearScheduleItemTravel(item, event);
+    clearScheduleItemTravel(item, event, {
+        preserveItemState: Boolean(options && options.preserveItemState),
+    });
 
     extension.className = 'calendar-schedule-travel';
     extension.style.height = '0';
@@ -3129,6 +3328,7 @@ const renderScheduleItemTravel = function(item, event, route, cacheKey) {
     );
     extension.dataset.travelMode = isTransit ? 'transit' : 'walk';
     extension.dataset.travelPosition = placement.position;
+    extension.dataset.travelDurationMinutes = String(roundedMinutes);
     extension.dataset.travelEventGuid = getScheduleTravelOwnerGuid(event);
     extension.title = `${route.origin} to ${route.destination}: ${durationMinutes} min travel time`;
     extension.setAttribute('aria-hidden', 'true');
@@ -3138,8 +3338,11 @@ const renderScheduleItemTravel = function(item, event, route, cacheKey) {
     extension.appendChild(label);
     targetItem.appendChild(extension);
     updateScheduleItemTravelClasses(targetItem);
-    item.dataset.travelRouteKey = cacheKey;
-    item.dataset.travelRouteState = 'shown';
+    updateScheduleTravelOverlapLayers(targetItem.closest('.lm-schedule'));
+    if (!(options && options.preserveItemState)) {
+        item.dataset.travelRouteKey = cacheKey;
+        item.dataset.travelRouteState = 'shown';
+    }
 
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         extension.style.height = `${extensionHeight}px`;
@@ -3162,6 +3365,55 @@ const renderScheduleItemTravel = function(item, event, route, cacheKey) {
     });
 
     state.scheduleTravelAnimations.set(extension, animation);
+};
+
+const patchScheduleItemReturnHomeTravel = function(item, event) {
+    const details = getReturnHomeTravelRouteRequestDetails(item, event);
+
+    if (!details) {
+        clearScheduleItemReturnHomeTravel(item, event);
+        return;
+    }
+
+    if (item.dataset.returnHomeTravelRouteKey === details.cacheKey
+        && ['loading', 'shown', 'none'].includes(item.dataset.returnHomeTravelRouteState)) {
+        return;
+    }
+
+    clearScheduleItemReturnHomeTravel(item, event);
+    item.dataset.returnHomeTravelRouteKey = details.cacheKey;
+    item.dataset.returnHomeTravelRouteState = 'loading';
+
+    requestTravelRouteForEvent(event, details)
+        .then(function(route) {
+            if (!item.isConnected || item.dataset.returnHomeTravelRouteKey !== details.cacheKey) {
+                return;
+            }
+
+            if (!route) {
+                item.dataset.returnHomeTravelRouteState = 'none';
+                return;
+            }
+
+            renderScheduleItemTravel(
+                item,
+                getReturnHomeOwnerEvent(event),
+                route,
+                details.cacheKey,
+                {
+                    placement: { item, position: 'after' },
+                    preserveItemState: true,
+                }
+            );
+            item.dataset.returnHomeTravelRouteState = 'shown';
+        })
+        .catch(function(error) {
+            if (item.isConnected && item.dataset.returnHomeTravelRouteKey === details.cacheKey) {
+                item.dataset.returnHomeTravelRouteState = 'none';
+            }
+
+            console.error(error);
+        });
 };
 
 const patchScheduleItemTravel = function(item, event) {

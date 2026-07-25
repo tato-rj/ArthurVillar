@@ -372,4 +372,71 @@ class TravelRouteTest extends BaseTest
             'duration_seconds' => 1200,
         ]);
     }
+
+    /** @test */
+    public function it_calculates_a_return_home_route_departing_after_the_last_away_event()
+    {
+        config(['calendar.google_routes.api_key' => 'test-key']);
+        $user = $this->signIn();
+
+        Location::factory()->create([
+            'name' => 'Home',
+            'address' => '80 Erie St',
+            'city' => 'Jersey City',
+            'state' => 'NJ',
+            'postal_code' => '07302',
+        ]);
+        Http::fake(function (Request $request) {
+            if ($request['travelMode'] === 'WALK') {
+                return Http::response([
+                    'routes' => [[
+                        'duration' => '2400s',
+                        'distanceMeters' => 9000,
+                        'legs' => [['steps' => [[
+                            'travelMode' => 'WALK',
+                            'staticDuration' => '2400s',
+                        ]]]],
+                    ]],
+                ]);
+            }
+
+            return Http::response([
+                'routes' => [[
+                    'duration' => '1800s',
+                    'distanceMeters' => 10000,
+                    'legs' => [['steps' => [[
+                        'travelMode' => 'TRANSIT',
+                        'staticDuration' => '1800s',
+                    ]]]],
+                ]],
+            ]);
+        });
+
+        $this->postJson(route('calendar.travel-route.return-home'), [
+            'event_key' => 'general-event-50-2026-07-24',
+            'departure_at' => '2026-07-24T17:00:00',
+            'origin_address' => '58 7th Ave, Brooklyn, NY',
+            'origin_label' => 'BKCM',
+        ])
+            ->assertOk()
+            ->assertJsonPath('route.mode', 'TRANSIT')
+            ->assertJsonPath('route.origin', 'BKCM')
+            ->assertJsonPath('route.destination', 'Home')
+            ->assertJsonPath('route.return_home', true)
+            ->assertJsonPath('route.departure_at', '2026-07-24T21:00:00+00:00')
+            ->assertJsonPath('route.arrival_at', '2026-07-24T21:30:00+00:00');
+
+        Http::assertSent(function (Request $request) {
+            return $request['travelMode'] === 'TRANSIT'
+                && $request['departureTime'] === '2026-07-24T21:00:00Z'
+                && ! isset($request['arrivalTime']);
+        });
+        $this->assertDatabaseHas('travel_routes', [
+            'user_id' => $user->id,
+            'event_key' => 'return-home:general-event-50-2026-07-24',
+            'origin_label' => 'BKCM',
+            'destination_label' => 'Home',
+            'duration_seconds' => 1800,
+        ]);
+    }
 }

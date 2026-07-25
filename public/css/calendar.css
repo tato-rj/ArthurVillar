@@ -32783,6 +32783,10 @@ button.single-lesson-plan-create[selected] i {
   z-index: var(--calendar-overlap-z-index, 3);
 }
 
+#calendar .lm-schedule-item[travel-overlapping-event] {
+  z-index: var(--calendar-travel-overlap-z-index, 3000);
+}
+
 #calendar .lm-schedule-item.has-calendar-schedule-travel-before {
   border-radius: 0 0 4px 4px;
 }
@@ -32809,6 +32813,7 @@ button.single-lesson-plan-create[selected] i {
   min-height: 15px;
   overflow: hidden;
   padding: 0.4rem 0.4rem;
+  pointer-events: none;
   position: absolute;
   white-space: nowrap;
   width: 100%;
@@ -32912,6 +32917,22 @@ button.single-lesson-plan-create[selected] i {
 #calendar[data-highlight-conflicting-events] .calendar-schedule-event[overlapping-event] {
   border: 2px solid #d93025 !important;
   box-sizing: border-box;
+}
+
+.modal-backdrop:not([data-calendar-create-backdrop]) {
+  z-index: 20000;
+}
+
+.modal {
+  z-index: 20010;
+}
+
+.popover {
+  z-index: 20020;
+}
+
+.tooltip {
+  z-index: 20030;
 }
 
 #teaching-break-modal h4.modal-title:before, #teaching-break-modal .modal-title.h4:before {
