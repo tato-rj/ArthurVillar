@@ -76,7 +76,10 @@ class CalendarTravelOrigin
                 continue;
             }
 
-            $location = $this->stringLocationPayload($event['location'] ?? null, $home);
+            $rawLocation = $event['location'] ?? null;
+            $location = is_array($rawLocation)
+                ? $this->locationPayload($rawLocation, $home)
+                : $this->stringLocationPayload($rawLocation, $home);
             $candidates->push([
                 'address' => $location['address'] ?? ($home['address'] ?? null),
                 'label' => $location['label'] ?? ($home['label'] ?? 'Home'),

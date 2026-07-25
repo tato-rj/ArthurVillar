@@ -11,7 +11,7 @@
             @include('calendar.public.navigation')
 
             <h1 class="mb-2">Privacy Policy</h1>
-            <p class="text-muted">Effective July 22, 2026</p>
+            <p class="text-muted">Effective July 24, 2026</p>
 
             <p>Studio Calendar is a private, non-commercial scheduling application created and operated by Arthur Villar for his own use. This policy explains how the application handles information when a Google account is connected.</p>
 
@@ -26,6 +26,7 @@
 
             <h2 class="h4 mt-5">How the information is used</h2>
             <p>Google information is used only to identify the connected calendar, synchronize relevant events, display those events in Studio Calendar, and help the owner identify scheduling conflicts. The integration is read-only and cannot create, modify, or delete Google Calendar events.</p>
+            <p>When the owner enters a street address, the application may send the partial address text to Google Maps Platform to display address suggestions and complete the selected city, state, and postal code. Selected addresses are stored only as part of the location or event record created by the owner.</p>
 
             <h2 class="h4 mt-5">Storage and security</h2>
             <p>Imported event records and calendar connection details are stored in Studio Calendar's private database. Google OAuth access and refresh tokens are encrypted at rest by the application. Access to the scheduling interface requires authentication.</p>
@@ -39,6 +40,7 @@
 
             <h2 class="h4 mt-5">Other technical information</h2>
             <p>The hosting environment may produce ordinary security and server logs, such as IP address, browser information, request time, and error details. Google Calendar event contents are not used for advertising or intentionally sent to analytics services. These public information pages do not load the site's analytics script.</p>
+            <p>Google Maps Platform processing is subject to the <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Google Privacy Policy</a>.</p>
 
             <h2 class="h4 mt-5">Changes and contact</h2>
             <p>This policy may be updated if the application's functionality or data practices change. Questions or requests concerning Google data can be sent to <a href="mailto:arthurvillar@gmail.com">arthurvillar@gmail.com</a>.</p>

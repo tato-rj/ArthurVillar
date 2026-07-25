@@ -20,6 +20,7 @@
 		@isset($step) step="{{$step}}"@endisset 
 		placeholder="{{$placeholder ?? null}}" 
 		name="{{$name}}"
+		@isset($autocomplete)autocomplete="{{$autocomplete}}"@endisset
 		
 		@if(old($name))
 		value="{{old($name)}}"

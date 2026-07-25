@@ -11,6 +11,7 @@
     <select
       class="form-select form-select-{{$size ?? null}}"
       name="{{$name}}"
+      @isset($autocomplete)autocomplete="{{$autocomplete}}"@endisset
       @isset($id)id="{{$id}}"@endisset
       {{iftrue($required ?? null, 'required data-required')}}
       {{iftrue($disabled ?? null, 'disabled')}}

@@ -51,7 +51,7 @@ class Event extends BaseModel
             'film' => 'Cinema',
             'dumbbell' => 'Gymn',
             'scissors' => 'Haircut',
-            'briefcase-medical' => 'Doctor'
+            'briefcase-medical' => 'Doctor',
         ];
     }
 
@@ -71,8 +71,33 @@ class Event extends BaseModel
         return Carbon::createFromFormat('H:i', $value)->format('g:i A');
     }
 
+    public function getFullAddressAttribute(): string
+    {
+        return collect([
+            $this->address,
+            collect([$this->city, $this->state])->filter()->implode(', '),
+            $this->postal_code,
+        ])->filter()->implode(', ');
+    }
+
+    public function getMapUrlAttribute(): ?string
+    {
+        return $this->full_address
+            ? 'https://www.google.com/maps/search/?api=1&query='.urlencode($this->full_address)
+            : null;
+    }
+
     public function calendarPayload(): array
     {
+        $location = $this->full_address ? [
+            'name' => $this->full_address,
+            'address' => $this->address,
+            'city' => $this->city,
+            'state' => $this->state,
+            'postal_code' => $this->postal_code,
+            'map_url' => $this->map_url,
+        ] : null;
+
         return [
             'id' => $this->id,
             'name' => $this->name,
@@ -80,6 +105,12 @@ class Event extends BaseModel
             'starts_at' => $this->starts_at,
             'ends_at' => $this->ends_at,
             'notes' => $this->notes,
+            'address' => $this->address,
+            'city' => $this->city,
+            'state' => $this->state,
+            'postal_code' => $this->postal_code,
+            'location' => $location,
+            'notification_enabled' => $this->notification_user_id !== null,
             'notification_minutes_before' => $this->notification_minutes_before,
             'canceled_at' => $this->canceled_at?->toIso8601String(),
             'type' => 'general-event',

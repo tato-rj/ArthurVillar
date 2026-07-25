@@ -3,6 +3,15 @@
 return [
     'timezone' => env('CALENDAR_TIMEZONE', 'America/New_York'),
     'google_calendar_start_date' => '2026-07-01',
+    'google_places' => [
+        'api_key' => env('GOOGLE_PLACES_API_KEY'),
+        'region_code' => 'US',
+        'location_bias' => [
+            'latitude' => 40.7128,
+            'longitude' => -74.0060,
+            'radius_meters' => 100000,
+        ],
+    ],
     'google_routes' => [
         'api_key' => env('GOOGLE_ROUTES_API_KEY'),
         'walking_threshold_minutes' => env('GOOGLE_ROUTES_WALKING_THRESHOLD_MINUTES', 20),

@@ -17,14 +17,7 @@
 		@endforeach
 	@endselect
 
-	@input(['label' => 'Street address', 'name' => 'address', 'value' => old('address', $location->address)])
-
-	<div class="row">
-		@input(['label' => 'City', 'name' => 'city', 'value' => old('city', $location->city), 'grid' => 'col'])
-		@input(['label' => 'State', 'name' => 'state', 'value' => old('state', $location->state), 'grid' => 'col'])
-	</div>
-
-	@input(['label' => 'Postal code', 'name' => 'postal_code', 'value' => old('postal_code', $location->postal_code)])
+	@include('calendar.partials.address-fields', ['addressable' => $location])
 
 	@input([
 		'label' => 'Hourly fee',

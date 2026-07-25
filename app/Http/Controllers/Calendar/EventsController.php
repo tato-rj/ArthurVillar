@@ -102,6 +102,10 @@ class EventsController extends Controller
             'starts_at' => ['required', 'date_format:H:i', Rule::in(Event::timeOptions())],
             'ends_at' => ['required', 'date_format:H:i', Rule::in(Event::timeOptions()), 'after:starts_at'],
             'type' => ['nullable', Rule::in(array_values(Event::typeOptions()))],
+            'address' => ['nullable', 'string', 'max:255'],
+            'city' => ['nullable', 'string', 'max:255'],
+            'state' => ['nullable', 'string', Rule::in(array_keys(config('us_states')))],
+            'postal_code' => ['nullable', 'string', 'max:20'],
             'notes' => ['nullable', 'string'],
             'send_notification' => ['nullable', 'boolean'],
             'notification_minutes_before' => [

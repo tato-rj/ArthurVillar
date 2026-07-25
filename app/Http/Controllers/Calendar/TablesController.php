@@ -129,6 +129,10 @@ class TablesController extends Controller
                 'starts_at',
                 'ends_at',
                 'type',
+                'address',
+                'city',
+                'state',
+                'postal_code',
                 'notes',
                 'canceled_at',
             ]);

@@ -5948,6 +5948,11 @@ var getGeneralEvent = function getGeneralEvent(generalEvent) {
     eventType: generalEvent.event_type || '',
     eventTypeIcon: generalEvent.event_type_icon || '',
     notes: generalEvent.notes || '',
+    address: generalEvent.address || '',
+    city: generalEvent.city || '',
+    state: generalEvent.state || '',
+    postalCode: generalEvent.postal_code || '',
+    notificationEnabled: Boolean(generalEvent.notification_enabled),
     notificationMinutesBefore: generalEvent.notification_minutes_before,
     editUrl: generalEvent.edit_url || '',
     rescheduleUrl: generalEvent.reschedule_url || '',
@@ -6707,7 +6712,7 @@ var locationValue = function locationValue(location) {
   if (!location || _typeof(location) !== 'object') {
     return String(location || '').trim();
   }
-  return String(location.address || location.name || '').trim();
+  return String(location.address || location.name || physicalLocationQuery(location)).trim();
 };
 var isVirtualLocation = function isVirtualLocation(value) {
   return /^(?:online|virtual|remote|zoom|google meet|meet)$/i.test(String(value || '').trim());
@@ -7172,6 +7177,7 @@ var openGeneralEventModal = function openGeneralEventModal(event, options) {
   var locationSection = modal.querySelector('[data-event-modal-location-section]');
   var address = modal.querySelector('[data-general-event-address]');
   var addressSection = modal.querySelector('[data-general-event-address-section]');
+  var duplicate = modal.querySelector('#event-duplicate');
   var edit = modal.querySelector('#event-edit');
   var revert = modal.querySelector('#event-revert');
   var controls = modal.querySelector('#general-event-controls');
@@ -7184,6 +7190,7 @@ var openGeneralEventModal = function openGeneralEventModal(event, options) {
   setCalendarEventModalType(modal, 'general');
   resetGeneralEventModalState(modal);
   modal.updatedScheduleItem = settings.updatedItem || null;
+  modal.generalEvent = event;
   if (title) title.textContent = event.title || 'Event';
   if (date) date.textContent = event.date ? modalDateFormatter.format(parseDateString(event.date)) : '';
   if (time) time.textContent = event.allDay ? 'All day' : event.start && event.end ? "".concat(formatModalEventTime(event.start), " - ").concat(formatModalEventTime(event.end)) : formatModalEventTime(event.start);
@@ -7225,6 +7232,11 @@ var openGeneralEventModal = function openGeneralEventModal(event, options) {
     edit.dataset.url = event.editUrl || '';
     edit.style.display = edit.dataset.url ? 'inline-flex' : 'none';
     edit.disabled = !edit.dataset.url;
+  }
+  if (duplicate) {
+    var canDuplicate = !event.readOnly && !event.externalProvider;
+    duplicate.style.display = canDuplicate ? 'inline-flex' : 'none';
+    duplicate.disabled = !canDuplicate;
   }
   if (revert) {
     var hasPendingVisualDrop = Boolean(modal.updatedScheduleItem && modal.updatedScheduleItem.hasAttribute('updated-event') && modal.updatedScheduleItem.scheduleOriginalPosition);
@@ -8322,6 +8334,70 @@ var showBootstrapModal = function showBootstrapModal(modal) {
   if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
     window.jQuery(modal).modal('show');
   }
+};
+var setNamedFormValue = function setNamedFormValue(form, name, value) {
+  var control = form && form.elements ? form.elements.namedItem(name) : null;
+  if (control) {
+    control.value = value === null || typeof value === 'undefined' ? '' : String(value);
+  }
+};
+var prepareDuplicateGeneralEventForm = function prepareDuplicateGeneralEventForm(modal, event) {
+  var form = modal ? modal.querySelector('form') : null;
+  if (!form || !event) {
+    return false;
+  }
+  form.reset();
+  setNamedFormValue(form, 'name', event.title);
+  setNamedFormValue(form, 'scheduled_date', '');
+  setNamedFormValue(form, 'starts_at', '');
+  setNamedFormValue(form, 'ends_at', '');
+  setNamedFormValue(form, 'address', event.address);
+  setNamedFormValue(form, 'city', event.city);
+  setNamedFormValue(form, 'state', event.state);
+  setNamedFormValue(form, 'postal_code', event.postalCode);
+  setNamedFormValue(form, 'notes', event.notes);
+  form.querySelectorAll('[data-event-type-input]').forEach(function (input) {
+    input.checked = input.value === event.eventType;
+    input.dispatchEvent(new window.Event('change', {
+      bubbles: true
+    }));
+  });
+  var notificationToggle = form.querySelector('[data-event-notification-toggle]');
+  var notificationOptions = form.querySelector('[data-event-notification-options]');
+  if (notificationToggle) {
+    notificationToggle.checked = Boolean(event.notificationEnabled);
+  }
+  if (notificationOptions) {
+    notificationOptions.hidden = !event.notificationEnabled;
+  }
+  if (event.notificationEnabled) {
+    setNamedFormValue(form, 'notification_minutes_before', event.notificationMinutesBefore);
+  }
+  return true;
+};
+var openDuplicateGeneralEventModal = function openDuplicateGeneralEventModal(event, sourceModal) {
+  var createModal = document.getElementById('create-event-modal');
+  if (!prepareDuplicateGeneralEventForm(createModal, event)) {
+    showGeneralEventActionError(sourceModal, 'Unable to open the duplicate event form.');
+    return;
+  }
+  var didShow = false;
+  var showCreateModal = function showCreateModal() {
+    if (didShow) {
+      return;
+    }
+    didShow = true;
+    showBootstrapModal(createModal);
+  };
+  if (sourceModal && sourceModal.classList.contains('show')) {
+    sourceModal.addEventListener('hidden.bs.modal', showCreateModal, {
+      once: true
+    });
+    hideBootstrapModal(sourceModal);
+    window.setTimeout(showCreateModal, 250);
+    return;
+  }
+  showCreateModal();
 };
 var showCalendarEditError = function showCalendarEditError(modal, message) {
   if (!modal) {
@@ -9835,6 +9911,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
   if (generalEventModal) {
+    var duplicateButton = generalEventModal.querySelector('#event-duplicate');
     var editButton = generalEventModal.querySelector('#event-edit');
     var revertButton = generalEventModal.querySelector('#event-revert');
     var cancelButton = generalEventModal.querySelector('#cancel-general-event-button');
@@ -9847,6 +9924,12 @@ document.addEventListener('DOMContentLoaded', function () {
     var _rescheduleDate = generalEventModal.querySelector('#reschedule-general-event-date');
     var _rescheduleStartTime = generalEventModal.querySelector('#reschedule-general-event-start-time');
     var _rescheduleEndTime = generalEventModal.querySelector('#reschedule-general-event-end-time');
+    if (duplicateButton) {
+      duplicateButton.addEventListener('click', function (e) {
+        e.preventDefault();
+        openDuplicateGeneralEventModal(generalEventModal.generalEvent, generalEventModal);
+      });
+    }
     if (editButton) {
       editButton.addEventListener('click', function (e) {
         e.preventDefault();
@@ -9921,6 +10004,7 @@ document.addEventListener('DOMContentLoaded', function () {
   if (calendarEventModal) {
     var resetCalendarEventModal = function resetCalendarEventModal() {
       calendarEventModal.updatedScheduleItem = null;
+      calendarEventModal.generalEvent = null;
       resetLessonModalState(calendarEventModal);
       resetGeneralEventModalState(calendarEventModal);
     };

@@ -25,6 +25,10 @@ class EventTest extends BaseTest
             ->assertDontSee('type="time"', false)
             ->assertSee('name="starts_at"', false)
             ->assertSee('name="ends_at"', false)
+            ->assertSee('name="address"', false)
+            ->assertSee('name="city"', false)
+            ->assertSee('name="state"', false)
+            ->assertSee('name="postal_code"', false)
             ->assertSee('<th>Type</th>', false)
             ->assertSee('value="09:00"', false)
             ->assertSee('value="09:15"', false)
@@ -43,6 +47,10 @@ class EventTest extends BaseTest
             'starts_at' => '18:30',
             'ends_at' => '20:00',
             'type' => 'Meeting',
+            'address' => '80 Erie St',
+            'city' => 'Jersey City',
+            'state' => 'NJ',
+            'postal_code' => '07302',
             'notes' => 'Reservation details https://example.com/reservation',
         ])->assertRedirect();
 
@@ -54,6 +62,10 @@ class EventTest extends BaseTest
             'starts_at' => '19:00',
             'ends_at' => '21:00',
             'type' => 'Meeting',
+            'address' => '58 7th Ave',
+            'city' => 'Brooklyn',
+            'state' => 'NY',
+            'postal_code' => '11217',
             'notes' => 'Updated notes',
         ])->assertRedirect();
 
@@ -63,6 +75,10 @@ class EventTest extends BaseTest
             'starts_at' => '19:00',
             'ends_at' => '21:00',
             'type' => 'Meeting',
+            'address' => '58 7th Ave',
+            'city' => 'Brooklyn',
+            'state' => 'NY',
+            'postal_code' => '11217',
             'notes' => 'Updated notes',
         ]);
         $this->assertSame('2026-08-16', $event->fresh()->scheduled_date->toDateString());
@@ -153,6 +169,10 @@ class EventTest extends BaseTest
             'starts_at' => '12:00',
             'ends_at' => '13:00',
             'type' => 'Meeting',
+            'address' => '80 Erie St',
+            'city' => 'Jersey City',
+            'state' => 'NJ',
+            'postal_code' => '07302',
             'notes' => 'Original notes',
         ]);
         $this->signIn();
@@ -161,6 +181,8 @@ class EventTest extends BaseTest
             ->assertOk()
             ->assertSee('edit-event-'.$event->id.'-modal', false)
             ->assertSee('value="Meeting"', false)
+            ->assertSee('value="80 Erie St"', false)
+            ->assertSee('value="Jersey City"', false)
             ->assertSee('btn btn-secondary btn-sm btn-wide', false);
 
         $this->patchJson(route('calendar.events.update', $event), [
@@ -169,12 +191,19 @@ class EventTest extends BaseTest
             'starts_at' => '12:15',
             'ends_at' => '13:30',
             'type' => 'Doctor',
+            'address' => '58 7th Ave',
+            'city' => 'Brooklyn',
+            'state' => 'NY',
+            'postal_code' => '11217',
             'notes' => 'Updated notes',
         ])
             ->assertOk()
             ->assertJsonPath('event.id', $event->id)
             ->assertJsonPath('event.name', 'Updated lunch meeting')
             ->assertJsonPath('event.event_type', 'Doctor')
+            ->assertJsonPath('event.address', '58 7th Ave')
+            ->assertJsonPath('event.location.city', 'Brooklyn')
+            ->assertJsonPath('event.location.state', 'NY')
             ->assertJsonPath('event.edit_url', route('calendar.events.edit', $event));
     }
 
@@ -208,6 +237,10 @@ class EventTest extends BaseTest
             'starts_at' => '10:00',
             'ends_at' => '11:00',
             'type' => 'Doctor',
+            'address' => '80 Erie St',
+            'city' => 'Jersey City',
+            'state' => 'NJ',
+            'postal_code' => '07302',
             'notes' => 'Bring insurance card',
         ]);
         $canceledEvent = Event::factory()->create([
@@ -222,6 +255,8 @@ class EventTest extends BaseTest
         $this->assertSame('2026-09-10', $row['scheduled_date']);
         $this->assertSame('10:00', substr($row['starts_at'], 0, 5));
         $this->assertSame('Doctor', $row['type']);
+        $this->assertSame('80 Erie St', $row['address']);
+        $this->assertSame('Jersey City', $row['city']);
         $this->assertSame('Bring insurance card', $row['notes']);
         $this->assertSame('Scheduled', $row['status']);
         $this->assertSame('Canceled', $rows->firstWhere('id', $canceledEvent->id)['status']);
@@ -290,6 +325,10 @@ class EventTest extends BaseTest
             'scheduled_date' => '2026-10-20',
             'starts_at' => '15:00',
             'ends_at' => '16:30',
+            'address' => '58 7th Ave',
+            'city' => 'Brooklyn',
+            'state' => 'NY',
+            'postal_code' => '11217',
             'notes' => 'Agenda at https://example.com/agenda',
             'notification_user_id' => $user->id,
             'notification_minutes_before' => 120,
@@ -306,6 +345,10 @@ class EventTest extends BaseTest
         $this->assertSame('2026-10-20', $payload['generalEvents'][0]['scheduled_date']);
         $this->assertSame('Meeting', $payload['generalEvents'][0]['event_type']);
         $this->assertSame('users', $payload['generalEvents'][0]['event_type_icon']);
+        $this->assertSame('58 7th Ave', $payload['generalEvents'][0]['address']);
+        $this->assertSame('Brooklyn', $payload['generalEvents'][0]['location']['city']);
+        $this->assertSame('58 7th Ave, Brooklyn, NY, 11217', $payload['generalEvents'][0]['location']['name']);
+        $this->assertTrue($payload['generalEvents'][0]['notification_enabled']);
         $this->assertSame(120, $payload['generalEvents'][0]['notification_minutes_before']);
         $this->assertSame(route('calendar.events.edit', $payload['generalEvents'][0]['id']), $payload['generalEvents'][0]['edit_url']);
         $this->assertSame(route('calendar.events.revert', $payload['generalEvents'][0]['id']), $payload['generalEvents'][0]['revert_url']);
@@ -356,6 +399,7 @@ class EventTest extends BaseTest
             ->assertSee('Join the meeting')
             ->assertDontSee('data-general-event-response-section', false)
             ->assertDontSee('data-general-event-response', false)
+            ->assertSee('event-duplicate', false)
             ->assertSee('event-edit', false)
             ->assertSee('event-revert', false)
             ->assertSee('lesson-edit', false)

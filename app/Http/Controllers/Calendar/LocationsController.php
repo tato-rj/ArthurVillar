@@ -53,7 +53,7 @@ class LocationsController extends Controller
             'tax_withheld_percentage' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'address' => ['nullable', 'string', 'max:255'],
             'city' => ['nullable', 'string', 'max:255'],
-            'state' => ['nullable', 'string', 'max:100'],
+            'state' => ['nullable', 'string', Rule::in(array_keys(config('us_states')))],
             'postal_code' => ['nullable', 'string', 'max:20'],
             'is_active' => ['nullable', 'boolean'],
             'notes' => ['nullable', 'string'],

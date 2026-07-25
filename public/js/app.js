@@ -3336,6 +3336,255 @@ try {
 
 /***/ },
 
+/***/ "./resources/js/components/address-autocomplete.js"
+/*!*********************************************************!*\
+  !*** ./resources/js/components/address-autocomplete.js ***!
+  \*********************************************************/
+() {
+
+var addressStates = new WeakMap();
+var csrfToken = function csrfToken() {
+  var token = document.querySelector('meta[name="csrf-token"]');
+  return token ? token.content : '';
+};
+var sessionToken = function sessionToken() {
+  if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+    return window.crypto.randomUUID();
+  }
+  return "".concat(Date.now().toString(36), "-").concat(Math.random().toString(36).slice(2, 14));
+};
+var stateFor = function stateFor(fields) {
+  if (!addressStates.has(fields)) {
+    addressStates.set(fields, {
+      activeIndex: -1,
+      controller: null,
+      menu: null,
+      timer: null,
+      token: sessionToken()
+    });
+  }
+  return addressStates.get(fields);
+};
+var closeMenu = function closeMenu(fields) {
+  var state = addressStates.get(fields);
+  var input = fields && fields.querySelector('input[name="address"]');
+  if (!state) {
+    return;
+  }
+  if (state.menu) {
+    state.menu.remove();
+    state.menu = null;
+  }
+  state.activeIndex = -1;
+  if (input) {
+    input.setAttribute('aria-expanded', 'false');
+    input.removeAttribute('aria-activedescendant');
+  }
+};
+var postJson = function postJson(url, body, signal) {
+  return fetch(url, {
+    method: 'POST',
+    credentials: 'same-origin',
+    signal: signal,
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'X-CSRF-TOKEN': csrfToken(),
+      'X-Requested-With': 'XMLHttpRequest'
+    },
+    body: JSON.stringify(body)
+  }).then(function (response) {
+    if (response.status === 204) {
+      return null;
+    }
+    if (!response.ok) {
+      throw new Error('Unable to load address suggestions.');
+    }
+    return response.json();
+  });
+};
+var setActiveSuggestion = function setActiveSuggestion(fields, index) {
+  var state = stateFor(fields);
+  var input = fields.querySelector('input[name="address"]');
+  var suggestions = state.menu ? Array.from(state.menu.querySelectorAll('[data-address-suggestion]')) : [];
+  if (!suggestions.length) {
+    return;
+  }
+  state.activeIndex = (index + suggestions.length) % suggestions.length;
+  suggestions.forEach(function (suggestion, suggestionIndex) {
+    var active = suggestionIndex === state.activeIndex;
+    suggestion.classList.toggle('is-active', active);
+    suggestion.setAttribute('aria-selected', active ? 'true' : 'false');
+  });
+  if (input) {
+    input.setAttribute('aria-activedescendant', suggestions[state.activeIndex].id);
+  }
+};
+var renderSuggestions = function renderSuggestions(fields, suggestions) {
+  var state = stateFor(fields);
+  var input = fields.querySelector('input[name="address"]');
+  var control = input && input.closest('.form-control');
+  closeMenu(fields);
+  if (!control || !suggestions.length) {
+    return;
+  }
+  var menu = document.createElement('div');
+  menu.className = 'address-autocomplete-results';
+  menu.setAttribute('role', 'listbox');
+  menu.id = "address-suggestions-".concat(Math.random().toString(36).slice(2, 10));
+  suggestions.forEach(function (suggestion, index) {
+    var option = document.createElement('button');
+    var main = document.createElement('span');
+    var secondary = document.createElement('span');
+    option.type = 'button';
+    option.className = 'address-autocomplete-option';
+    option.id = "".concat(menu.id, "-").concat(index);
+    option.dataset.addressSuggestion = '';
+    option.dataset.placeId = suggestion.place_id;
+    option.setAttribute('role', 'option');
+    option.setAttribute('aria-selected', 'false');
+    main.className = 'address-autocomplete-main';
+    main.textContent = suggestion.main_text || suggestion.label;
+    option.appendChild(main);
+    if (suggestion.secondary_text) {
+      secondary.className = 'address-autocomplete-secondary';
+      secondary.textContent = suggestion.secondary_text;
+      option.appendChild(secondary);
+    }
+    menu.appendChild(option);
+  });
+  var attribution = document.createElement('div');
+  attribution.className = 'address-autocomplete-attribution';
+  attribution.setAttribute('translate', 'no');
+  attribution.textContent = 'Google Maps';
+  menu.appendChild(attribution);
+  control.classList.add('address-autocomplete-control');
+  control.appendChild(menu);
+  state.menu = menu;
+  state.activeIndex = -1;
+  input.setAttribute('role', 'combobox');
+  input.setAttribute('aria-autocomplete', 'list');
+  input.setAttribute('aria-controls', menu.id);
+  input.setAttribute('aria-expanded', 'true');
+};
+var setSelectValue = function setSelectValue(select, value) {
+  if (!select) {
+    return;
+  }
+  var normalized = String(value || '').trim().toLowerCase();
+  var option = Array.from(select.options).find(function (item) {
+    return item.value.toLowerCase() === normalized || item.textContent.trim().toLowerCase() === normalized;
+  });
+  select.value = option ? option.value : '';
+};
+var applyAddress = function applyAddress(fields, address) {
+  var addressInput = fields.querySelector('input[name="address"]');
+  var cityInput = fields.querySelector('input[name="city"]');
+  var stateSelect = fields.querySelector('select[name="state"]');
+  var postalCodeInput = fields.querySelector('input[name="postal_code"]');
+  if (addressInput) addressInput.value = address.address || '';
+  if (cityInput) cityInput.value = address.city || '';
+  if (postalCodeInput) postalCodeInput.value = address.postal_code || '';
+  setSelectValue(stateSelect, address.state);
+};
+var chooseSuggestion = function chooseSuggestion(fields, option) {
+  var state = stateFor(fields);
+  var placeId = option ? option.dataset.placeId : '';
+  var detailsUrl = fields.dataset.addressDetailsUrl;
+  if (!placeId || !detailsUrl) {
+    return;
+  }
+  option.disabled = true;
+  postJson(detailsUrl, {
+    place_id: placeId,
+    session_token: state.token
+  }).then(function (response) {
+    if (response && response.address) {
+      applyAddress(fields, response.address);
+    }
+  })["catch"](function (error) {
+    if (error.name !== 'AbortError') {
+      console.error(error);
+    }
+  })["finally"](function () {
+    closeMenu(fields);
+    state.token = sessionToken();
+  });
+};
+document.addEventListener('input', function (event) {
+  var input = event.target.closest('[data-address-fields] input[name="address"]');
+  if (!input) {
+    return;
+  }
+  var fields = input.closest('[data-address-fields]');
+  var state = stateFor(fields);
+  var query = input.value.trim();
+  window.clearTimeout(state.timer);
+  if (state.controller) {
+    state.controller.abort();
+    state.controller = null;
+  }
+  if (query.length < 3) {
+    closeMenu(fields);
+    return;
+  }
+  state.timer = window.setTimeout(function () {
+    state.controller = new AbortController();
+    postJson(fields.dataset.addressSearchUrl, {
+      input: query,
+      session_token: state.token
+    }, state.controller.signal).then(function (response) {
+      if (input.value.trim() !== query) {
+        return;
+      }
+      renderSuggestions(fields, response && Array.isArray(response.suggestions) ? response.suggestions : []);
+    })["catch"](function (error) {
+      if (error.name !== 'AbortError') {
+        console.error(error);
+        closeMenu(fields);
+      }
+    });
+  }, 300);
+});
+document.addEventListener('keydown', function (event) {
+  var input = event.target.closest('[data-address-fields] input[name="address"]');
+  if (!input) {
+    return;
+  }
+  var fields = input.closest('[data-address-fields]');
+  var state = stateFor(fields);
+  var suggestions = state.menu ? Array.from(state.menu.querySelectorAll('[data-address-suggestion]')) : [];
+  if (!suggestions.length) {
+    return;
+  }
+  if (event.key === 'ArrowDown') {
+    event.preventDefault();
+    setActiveSuggestion(fields, state.activeIndex + 1);
+  } else if (event.key === 'ArrowUp') {
+    event.preventDefault();
+    setActiveSuggestion(fields, state.activeIndex - 1);
+  } else if (event.key === 'Enter' && state.activeIndex >= 0) {
+    event.preventDefault();
+    chooseSuggestion(fields, suggestions[state.activeIndex]);
+  } else if (event.key === 'Escape') {
+    closeMenu(fields);
+  }
+});
+document.addEventListener('click', function (event) {
+  var option = event.target.closest('[data-address-suggestion]');
+  if (option) {
+    chooseSuggestion(option.closest('[data-address-fields]'), option);
+    return;
+  }
+  document.querySelectorAll('[data-address-fields]').forEach(function (fields) {
+    if (!fields.contains(event.target)) {
+      closeMenu(fields);
+    }
+  });
+});
+
+/***/ },
+
 /***/ "./resources/js/components/alerts.js"
 /*!*******************************************!*\
   !*** ./resources/js/components/alerts.js ***!
@@ -3633,6 +3882,7 @@ $(document).on('click', '.btn[data-trigger="loader"]', function () {
 (__unused_webpack_module, __unused_webpack_exports, __webpack_require__) {
 
 __webpack_require__(/*! ./alerts */ "./resources/js/components/alerts.js");
+__webpack_require__(/*! ./address-autocomplete */ "./resources/js/components/address-autocomplete.js");
 __webpack_require__(/*! ./date-range */ "./resources/js/components/date-range.js");
 __webpack_require__(/*! ./event-type */ "./resources/js/components/event-type.js");
 __webpack_require__(/*! ./form */ "./resources/js/components/form.js");

@@ -11,7 +11,7 @@
             @include('calendar.public.navigation')
 
             <h1 class="mb-2">Terms of Service</h1>
-            <p class="text-muted">Effective July 22, 2026</p>
+            <p class="text-muted">Effective July 24, 2026</p>
 
             <p>Studio Calendar is a private scheduling application created and operated by Arthur Villar for his own personal and professional organization. It is not offered to the public as a commercial product or service.</p>
 
@@ -25,7 +25,7 @@
             <p>The application is provided for personal use on an as-is and as-available basis. Its features may be changed, suspended, or discontinued at any time. No guarantee is made that synchronization will always be uninterrupted, complete, or error-free.</p>
 
             <h2 class="h4 mt-5">Third-party services</h2>
-            <p>Google Calendar functionality depends on services provided by Google and is also subject to Google's applicable terms and policies. Studio Calendar is not affiliated with or endorsed by Google.</p>
+            <p>Google Calendar and Google Maps address-suggestion functionality depend on services provided by Google and are also subject to the <a href="https://maps.google.com/help/terms_maps/" target="_blank" rel="noopener noreferrer">Google Maps/Google Earth Additional Terms of Service</a> and Google's other applicable terms and policies. Studio Calendar is not affiliated with or endorsed by Google.</p>
 
             <h2 class="h4 mt-5">Changes and contact</h2>
             <p>These terms may be updated when the application changes. Questions can be sent to <a href="mailto:arthurvillar@gmail.com">arthurvillar@gmail.com</a>.</p>

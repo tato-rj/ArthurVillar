@@ -21,6 +21,12 @@ return new class extends Migration
             $table->time('ends_at');
             $table->text('type')->nullable();
             $table->text('notes')->nullable();
+
+            $table->string('address')->nullable();
+            $table->string('city')->nullable();
+            $table->string('state', 100)->nullable();
+            $table->string('postal_code', 20)->nullable();
+
             $table->foreignId('notification_user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->unsignedSmallInteger('notification_minutes_before')->nullable();
             $table->timestamp('notification_sent_at')->nullable();

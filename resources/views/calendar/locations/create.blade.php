@@ -16,14 +16,7 @@
 		@endforeach
 	@endselect
 
-	@input(['placeholder' => 'Street address', 'name' => 'address', 'value' => old('address')])
-
-	<div class="row">
-		@input(['placeholder' => 'City', 'name' => 'city', 'value' => old('city'), 'grid' => 'col'])
-		@input(['placeholder' => 'State', 'name' => 'state', 'value' => old('state'), 'grid' => 'col'])
-	</div>
-
-	@input(['placeholder' => 'Postal code', 'name' => 'postal_code', 'value' => old('postal_code')])
+	@include('calendar.partials.address-fields')
 
 	@input([
 		'placeholder' => 'Hourly fee',
