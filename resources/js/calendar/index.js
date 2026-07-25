@@ -3133,7 +3133,7 @@ const renderScheduleItemTravel = function(item, event, route, cacheKey) {
     extension.title = `${route.origin} to ${route.destination}: ${durationMinutes} min travel time`;
     extension.setAttribute('aria-hidden', 'true');
     icon.className = `fas ${isTransit ? 'fa-train-subway' : 'fa-person-walking'}`;
-    label.textContent = `${durationMinutes} min · ${route.origin} → ${route.destination}`;
+    label.textContent = `${durationMinutes} min travel time`;
     extension.appendChild(icon);
     extension.appendChild(label);
     targetItem.appendChild(extension);

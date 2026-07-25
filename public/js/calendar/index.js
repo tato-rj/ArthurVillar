@@ -6976,7 +6976,7 @@ var renderScheduleItemTravel = function renderScheduleItemTravel(item, event, ro
   extension.title = "".concat(route.origin, " to ").concat(route.destination, ": ").concat(durationMinutes, " min travel time");
   extension.setAttribute('aria-hidden', 'true');
   icon.className = "fas ".concat(isTransit ? 'fa-train-subway' : 'fa-person-walking');
-  label.textContent = "".concat(durationMinutes, " min \xB7 ").concat(route.origin, " \u2192 ").concat(route.destination);
+  label.textContent = "".concat(durationMinutes, " min travel time");
   extension.appendChild(icon);
   extension.appendChild(label);
   targetItem.appendChild(extension);
