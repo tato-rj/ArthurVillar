@@ -9,8 +9,13 @@
     'calendar.home' => 'Calendar',
     'calendar.invitations.index' => 'Invitations*',
     'calendar.students.index' => 'Students',
-    'calendar.lesson-plans.index' => 'Lesson plans',
-    'calendar.lessons.index' => 'Lessons',
+    [
+      'label' => 'Lessons',
+      'children' => [
+        'calendar.lesson-plans.index' => 'Plans',
+        'calendar.lessons.index' => 'Records',
+      ]
+    ],
     'calendar.events.index' => 'Events',
     'calendar.waiting-list.index' => 'Waiting list*',
     'calendar.recitals.index' => 'Recitals',
