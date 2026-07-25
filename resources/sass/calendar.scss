@@ -560,6 +560,18 @@ button.setting-undo {
                       var(--calendar-general-event-color, #ce82ff) 20px
                     );
     }
+
+    &[data-pending-event-copy] {
+        background: repeating-linear-gradient(
+                      45deg,
+                      rgb(from var(--calendar-general-event-color, #ce82ff) r g b / 80%),
+                      rgb(from var(--calendar-general-event-color, #ce82ff) r g b / 80%) 10px,
+                      var(--calendar-general-event-color, #ce82ff) 10px,
+                      var(--calendar-general-event-color, #ce82ff) 20px
+                    );
+        outline: 1px dashed currentColor;
+        outline-offset: -2px;
+    }
 }
 
 #calendar .calendar-calendar-general-event::before {
@@ -1424,9 +1436,31 @@ button.single-lesson-plan-create[selected] i {
         border-radius: 0;
     }
 
+    &[holding-event][copying-event] {
+        cursor: copy !important;
+    }
+
     &[original-event] {
         opacity: .5;
     }
+}
+
+.calendar-schedule-copy-indicator {
+    align-items: center;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 1px 4px rgb(0 0 0 / 25%);
+    color: #3c4043;
+    display: inline-flex;
+    font-size: .65rem;
+    height: 1.35rem;
+    justify-content: center;
+    pointer-events: none;
+    position: absolute;
+    right: .35rem;
+    top: .35rem;
+    width: 1.35rem;
+    z-index: 5;
 }
 
 // Travel time extension

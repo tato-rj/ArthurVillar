@@ -31939,6 +31939,13 @@ button.setting-undo:hover {
 #calendar .calendar-schedule-event-general[updated-event] {
   background: repeating-linear-gradient(45deg, rgb(from var(--calendar-general-event-color, #ce82ff) r g b/80%), rgb(from var(--calendar-general-event-color, #ce82ff) r g b/80%) 10px, var(--calendar-general-event-color, #ce82ff) 10px, var(--calendar-general-event-color, #ce82ff) 20px);
 }
+#calendar .calendar-calendar-general-event[data-pending-event-copy],
+#calendar .calendar-month-event-general[data-pending-event-copy],
+#calendar .calendar-schedule-event-general[data-pending-event-copy] {
+  background: repeating-linear-gradient(45deg, rgb(from var(--calendar-general-event-color, #ce82ff) r g b/80%), rgb(from var(--calendar-general-event-color, #ce82ff) r g b/80%) 10px, var(--calendar-general-event-color, #ce82ff) 10px, var(--calendar-general-event-color, #ce82ff) 20px);
+  outline: 1px dashed currentColor;
+  outline-offset: -2px;
+}
 
 #calendar .calendar-calendar-general-event::before {
   padding-right: 0;
@@ -32742,8 +32749,29 @@ button.single-lesson-plan-create[selected] i {
   transform: scale(1.08);
   border-radius: 0;
 }
+#calendar .lm-schedule-item[holding-event][copying-event] {
+  cursor: copy !important;
+}
 #calendar .lm-schedule-item[original-event] {
   opacity: 0.5;
+}
+
+.calendar-schedule-copy-indicator {
+  align-items: center;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  color: #3c4043;
+  display: inline-flex;
+  font-size: 0.65rem;
+  height: 1.35rem;
+  justify-content: center;
+  pointer-events: none;
+  position: absolute;
+  right: 0.35rem;
+  top: 0.35rem;
+  width: 1.35rem;
+  z-index: 5;
 }
 
 #calendar .lm-schedule-item.has-calendar-schedule-travel {

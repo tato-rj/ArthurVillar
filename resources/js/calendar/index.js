@@ -4906,8 +4906,9 @@ const setNamedFormValue = function(form, name, value) {
     }
 };
 
-const prepareDuplicateGeneralEventForm = function(modal, event) {
+const prepareDuplicateGeneralEventForm = function(modal, event, options) {
     const form = modal ? modal.querySelector('form') : null;
+    const settings = options || {};
 
     if (!form || !event) {
         return false;
@@ -4915,7 +4916,7 @@ const prepareDuplicateGeneralEventForm = function(modal, event) {
 
     form.reset();
     setNamedFormValue(form, 'name', event.title);
-    setNamedFormValue(form, 'scheduled_date', '');
+    setNamedFormValue(form, 'scheduled_date', settings.preserveDate ? event.date : '');
     setNamedFormValue(form, 'starts_at', event.start);
     setNamedFormValue(form, 'ends_at', event.end);
     setNamedFormValue(form, 'address', event.address);
@@ -4945,10 +4946,10 @@ const prepareDuplicateGeneralEventForm = function(modal, event) {
     return true;
 };
 
-const openDuplicateGeneralEventModal = function(event, sourceModal) {
+const openDuplicateGeneralEventModal = function(event, sourceModal, options) {
     const createModal = document.getElementById('create-event-modal');
 
-    if (!prepareDuplicateGeneralEventForm(createModal, event)) {
+    if (!prepareDuplicateGeneralEventForm(createModal, event, options)) {
         showGeneralEventActionError(sourceModal, 'Unable to open the duplicate event form.');
         return;
     }
@@ -5886,6 +5887,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let scheduleItemHold = null;
     let suppressedScheduleItemClick = null;
     let scheduleHoldNavigationSuppressedUntil = 0;
+    let pendingGeneralEventCopySequence = 0;
 
     const isScheduleHoldNavigationSuppressed = function() {
         return Boolean(scheduleItemHold && scheduleItemHold.active)
@@ -7140,6 +7142,60 @@ document.addEventListener('DOMContentLoaded', function() {
         }));
     };
 
+    const canCopyScheduleItem = function(item) {
+        const event = item && item.event;
+
+        return Boolean(
+            event
+            && event.isGeneralEvent
+            && !event.readOnly
+            && !event.externalProvider
+            && !item.hasAttribute('data-pending-event-copy')
+        );
+    };
+
+    const setScheduleHoldCopyMode = function(hold, shouldCopy) {
+        if (!hold) {
+            return;
+        }
+
+        hold.copyModeRequested = Boolean(shouldCopy);
+        hold.copyMode = Boolean(shouldCopy && canCopyScheduleItem(hold.item));
+
+        if (!hold.active || !hold.clone) {
+            return;
+        }
+
+        hold.clone.toggleAttribute('copying-event', hold.copyMode);
+        hold.item.toggleAttribute('original-event', !hold.copyMode);
+
+        const existingIndicator = hold.clone.querySelector(':scope > .calendar-schedule-copy-indicator');
+
+        if (!hold.copyMode) {
+            if (existingIndicator) {
+                existingIndicator.remove();
+            }
+
+            if (hold.schedule) {
+                hold.schedule.style.cursor = 'move';
+            }
+            return;
+        }
+
+        if (!existingIndicator) {
+            const indicator = document.createElement('span');
+
+            indicator.className = 'calendar-schedule-copy-indicator';
+            indicator.setAttribute('aria-hidden', 'true');
+            indicator.innerHTML = '<i class="fas fa-copy"></i>';
+            hold.clone.appendChild(indicator);
+        }
+
+        if (hold.schedule) {
+            hold.schedule.style.cursor = 'copy';
+        }
+    };
+
     const restoreUpdatedScheduleItem = function(item) {
         const original = item && item.scheduleOriginalPosition;
 
@@ -7200,6 +7256,49 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     };
 
+    const applyScheduleCopyDrop = function(hold, target, start, end, date, weekday) {
+        if (!hold.copyMode || !canCopyScheduleItem(hold.item)) {
+            return false;
+        }
+
+        const clone = hold.clone;
+        const sourceEvent = hold.item.event;
+        const guid = `pending-general-event-copy-${Date.now()}-${pendingGeneralEventCopySequence += 1}`;
+        const copiedEvent = Object.assign({}, sourceEvent, {
+            guid,
+            id: null,
+            date,
+            start,
+            end,
+            weekday,
+            editUrl: '',
+            rescheduleUrl: '',
+            revertUrl: '',
+            destroyUrl: '',
+        });
+
+        delete copiedEvent.originalDate;
+        delete copiedEvent.originalStartTime;
+
+        clone.removeAttribute('holding-event');
+        clone.removeAttribute('copying-event');
+        clone.removeAttribute('aria-hidden');
+        clone.querySelector(':scope > .calendar-schedule-copy-indicator')?.remove();
+        clone.setAttribute('data-pending-event-copy', '');
+        clone.dataset.eventGuid = guid;
+        clone.event = copiedEvent;
+        clone.start = start;
+        clone.end = end;
+        clone.date = date;
+        clone.weekday = weekday;
+        target.appendChild(clone);
+
+        hold.pendingCopy = clone;
+        hold.clone = null;
+
+        return true;
+    };
+
     const applyScheduleVisualDrop = function(hold) {
         if (!hold || !hold.commitVisualDrop || !hold.clone || !hold.item || !hold.item.event) {
             return;
@@ -7208,6 +7307,17 @@ document.addEventListener('DOMContentLoaded', function() {
         const target = hold.clone.parentElement;
 
         if (!target || target.tagName !== 'TD' || !hold.schedule || !hold.schedule.contains(target)) {
+            return;
+        }
+
+        const start = hold.clone.getAttribute('data-start') || hold.clone.start;
+        const end = hold.clone.getAttribute('data-end') || hold.clone.end;
+        const date = target.getAttribute('data-real-date')
+            || target.getAttribute('data-date')
+            || hold.clone.date;
+        const weekday = hold.clone.weekday;
+
+        if (applyScheduleCopyDrop(hold, target, start, end, date, weekday)) {
             return;
         }
 
@@ -7234,13 +7344,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 eventOriginalStartTime: hold.item.event.originalStartTime,
             };
         }
-
-        const start = hold.clone.getAttribute('data-start') || hold.clone.start;
-        const end = hold.clone.getAttribute('data-end') || hold.clone.end;
-        const date = target.getAttribute('data-real-date')
-            || target.getAttribute('data-date')
-            || hold.clone.date;
-        const weekday = hold.clone.weekday;
 
         ['data-x', 'data-height', 'data-start', 'data-end'].forEach(function(attribute) {
             const value = hold.clone.getAttribute(attribute);
@@ -7334,6 +7437,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!item
             || item.getAttribute('data-lesson-status') === 'canceled'
             || item.hasAttribute('data-read-only')
+            || item.hasAttribute('data-pending-event-copy')
             || !scheduleGridViews.includes(state.view)
             || e.button !== 0
             || !e.isPrimary) {
@@ -7351,6 +7455,8 @@ document.addEventListener('DOMContentLoaded', function() {
             lastY: e.clientY,
             pointerType: e.pointerType,
             active: false,
+            copyMode: false,
+            copyModeRequested: Boolean(e.metaKey),
             commitVisualDrop: false,
             finishingNativeDrag: false,
             nativeDragFinished: false,
@@ -7403,6 +7509,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 schedule.style.touchAction = 'none';
                 schedule.style.overscrollBehavior = 'none';
                 schedule.style.overflow = 'hidden';
+                setScheduleHoldCopyMode(scheduleItemHold, scheduleItemHold.copyModeRequested);
                 if (typeof item.setPointerCapture === 'function') {
                     item.setPointerCapture(e.pointerId);
                 }
@@ -7430,6 +7537,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (scheduleItemHold.active) {
             e.preventDefault();
+            if (scheduleItemHold.pointerType === 'mouse') {
+                setScheduleHoldCopyMode(scheduleItemHold, e.metaKey);
+            }
             if (scheduleItemHold.pointerType !== 'mouse') {
                 document.dispatchEvent(new MouseEvent('mousemove', {
                     bubbles: true,
@@ -7465,8 +7575,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }, { passive: false });
 
-    document.addEventListener('mouseup', function() {
+    document.addEventListener('mouseup', function(e) {
         if (scheduleItemHold && scheduleItemHold.active) {
+            if (scheduleItemHold.pointerType === 'mouse') {
+                setScheduleHoldCopyMode(scheduleItemHold, e.metaKey);
+            }
             if (!scheduleItemHold.finishingNativeDrag) {
                 scheduleItemHold.commitVisualDrop = true;
             }
@@ -7490,6 +7603,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     window.addEventListener('blur', function() {
         clearScheduleItemHold();
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Meta' && scheduleItemHold) {
+            setScheduleHoldCopyMode(scheduleItemHold, true);
+        }
+    });
+
+    document.addEventListener('keyup', function(e) {
+        if (e.key === 'Meta' && scheduleItemHold) {
+            setScheduleHoldCopyMode(scheduleItemHold, false);
+        }
     });
 
     calendar.addEventListener('click', function(e) {
@@ -7520,6 +7645,15 @@ document.addEventListener('DOMContentLoaded', function() {
         if (item.hasAttribute('holding-event')) {
             e.preventDefault();
             e.stopPropagation();
+            return;
+        }
+
+        if (item.hasAttribute('data-pending-event-copy')) {
+            e.preventDefault();
+            e.stopPropagation();
+            openDuplicateGeneralEventModal(getEventByScheduleItem(item), null, {
+                preserveDate: true,
+            });
             return;
         }
 

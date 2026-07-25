@@ -8341,14 +8341,15 @@ var setNamedFormValue = function setNamedFormValue(form, name, value) {
     control.value = value === null || typeof value === 'undefined' ? '' : String(value);
   }
 };
-var prepareDuplicateGeneralEventForm = function prepareDuplicateGeneralEventForm(modal, event) {
+var prepareDuplicateGeneralEventForm = function prepareDuplicateGeneralEventForm(modal, event, options) {
   var form = modal ? modal.querySelector('form') : null;
+  var settings = options || {};
   if (!form || !event) {
     return false;
   }
   form.reset();
   setNamedFormValue(form, 'name', event.title);
-  setNamedFormValue(form, 'scheduled_date', '');
+  setNamedFormValue(form, 'scheduled_date', settings.preserveDate ? event.date : '');
   setNamedFormValue(form, 'starts_at', event.start);
   setNamedFormValue(form, 'ends_at', event.end);
   setNamedFormValue(form, 'address', event.address);
@@ -8375,9 +8376,9 @@ var prepareDuplicateGeneralEventForm = function prepareDuplicateGeneralEventForm
   }
   return true;
 };
-var openDuplicateGeneralEventModal = function openDuplicateGeneralEventModal(event, sourceModal) {
+var openDuplicateGeneralEventModal = function openDuplicateGeneralEventModal(event, sourceModal, options) {
   var createModal = document.getElementById('create-event-modal');
-  if (!prepareDuplicateGeneralEventForm(createModal, event)) {
+  if (!prepareDuplicateGeneralEventForm(createModal, event, options)) {
     showGeneralEventActionError(sourceModal, 'Unable to open the duplicate event form.');
     return;
   }
@@ -9118,6 +9119,7 @@ document.addEventListener('DOMContentLoaded', function () {
   var scheduleItemHold = null;
   var suppressedScheduleItemClick = null;
   var scheduleHoldNavigationSuppressedUntil = 0;
+  var pendingGeneralEventCopySequence = 0;
   var isScheduleHoldNavigationSuppressed = function isScheduleHoldNavigationSuppressed() {
     return Boolean(scheduleItemHold && scheduleItemHold.active) || Date.now() < scheduleHoldNavigationSuppressedUntil;
   };
@@ -10116,6 +10118,42 @@ document.addEventListener('DOMContentLoaded', function () {
       clientY: clientY === undefined ? hold.lastY : clientY
     }));
   };
+  var canCopyScheduleItem = function canCopyScheduleItem(item) {
+    var event = item && item.event;
+    return Boolean(event && event.isGeneralEvent && !event.readOnly && !event.externalProvider && !item.hasAttribute('data-pending-event-copy'));
+  };
+  var setScheduleHoldCopyMode = function setScheduleHoldCopyMode(hold, shouldCopy) {
+    if (!hold) {
+      return;
+    }
+    hold.copyModeRequested = Boolean(shouldCopy);
+    hold.copyMode = Boolean(shouldCopy && canCopyScheduleItem(hold.item));
+    if (!hold.active || !hold.clone) {
+      return;
+    }
+    hold.clone.toggleAttribute('copying-event', hold.copyMode);
+    hold.item.toggleAttribute('original-event', !hold.copyMode);
+    var existingIndicator = hold.clone.querySelector(':scope > .calendar-schedule-copy-indicator');
+    if (!hold.copyMode) {
+      if (existingIndicator) {
+        existingIndicator.remove();
+      }
+      if (hold.schedule) {
+        hold.schedule.style.cursor = 'move';
+      }
+      return;
+    }
+    if (!existingIndicator) {
+      var indicator = document.createElement('span');
+      indicator.className = 'calendar-schedule-copy-indicator';
+      indicator.setAttribute('aria-hidden', 'true');
+      indicator.innerHTML = '<i class="fas fa-copy"></i>';
+      hold.clone.appendChild(indicator);
+    }
+    if (hold.schedule) {
+      hold.schedule.style.cursor = 'copy';
+    }
+  };
   var restoreUpdatedScheduleItem = function restoreUpdatedScheduleItem(item) {
     var original = item && item.scheduleOriginalPosition;
     if (!item || !original || !item.isConnected || !original.cell || !original.cell.isConnected) {
@@ -10166,12 +10204,57 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     });
   };
+  var applyScheduleCopyDrop = function applyScheduleCopyDrop(hold, target, start, end, date, weekday) {
+    var _clone$querySelector;
+    if (!hold.copyMode || !canCopyScheduleItem(hold.item)) {
+      return false;
+    }
+    var clone = hold.clone;
+    var sourceEvent = hold.item.event;
+    var guid = "pending-general-event-copy-".concat(Date.now(), "-").concat(pendingGeneralEventCopySequence += 1);
+    var copiedEvent = Object.assign({}, sourceEvent, {
+      guid: guid,
+      id: null,
+      date: date,
+      start: start,
+      end: end,
+      weekday: weekday,
+      editUrl: '',
+      rescheduleUrl: '',
+      revertUrl: '',
+      destroyUrl: ''
+    });
+    delete copiedEvent.originalDate;
+    delete copiedEvent.originalStartTime;
+    clone.removeAttribute('holding-event');
+    clone.removeAttribute('copying-event');
+    clone.removeAttribute('aria-hidden');
+    (_clone$querySelector = clone.querySelector(':scope > .calendar-schedule-copy-indicator')) === null || _clone$querySelector === void 0 || _clone$querySelector.remove();
+    clone.setAttribute('data-pending-event-copy', '');
+    clone.dataset.eventGuid = guid;
+    clone.event = copiedEvent;
+    clone.start = start;
+    clone.end = end;
+    clone.date = date;
+    clone.weekday = weekday;
+    target.appendChild(clone);
+    hold.pendingCopy = clone;
+    hold.clone = null;
+    return true;
+  };
   var applyScheduleVisualDrop = function applyScheduleVisualDrop(hold) {
     if (!hold || !hold.commitVisualDrop || !hold.clone || !hold.item || !hold.item.event) {
       return;
     }
     var target = hold.clone.parentElement;
     if (!target || target.tagName !== 'TD' || !hold.schedule || !hold.schedule.contains(target)) {
+      return;
+    }
+    var start = hold.clone.getAttribute('data-start') || hold.clone.start;
+    var end = hold.clone.getAttribute('data-end') || hold.clone.end;
+    var date = target.getAttribute('data-real-date') || target.getAttribute('data-date') || hold.clone.date;
+    var weekday = hold.clone.weekday;
+    if (applyScheduleCopyDrop(hold, target, start, end, date, weekday)) {
       return;
     }
     var wasMoved = target !== hold.originCell;
@@ -10195,10 +10278,6 @@ document.addEventListener('DOMContentLoaded', function () {
         eventOriginalStartTime: hold.item.event.originalStartTime
       };
     }
-    var start = hold.clone.getAttribute('data-start') || hold.clone.start;
-    var end = hold.clone.getAttribute('data-end') || hold.clone.end;
-    var date = target.getAttribute('data-real-date') || target.getAttribute('data-date') || hold.clone.date;
-    var weekday = hold.clone.weekday;
     ['data-x', 'data-height', 'data-start', 'data-end'].forEach(function (attribute) {
       var value = hold.clone.getAttribute(attribute);
       if (value === null) {
@@ -10275,7 +10354,7 @@ document.addEventListener('DOMContentLoaded', function () {
   };
   calendar.addEventListener('pointerdown', function (e) {
     var item = e.target.closest('.lm-schedule-item');
-    if (!item || item.getAttribute('data-lesson-status') === 'canceled' || item.hasAttribute('data-read-only') || !scheduleGridViews.includes(state.view) || e.button !== 0 || !e.isPrimary) {
+    if (!item || item.getAttribute('data-lesson-status') === 'canceled' || item.hasAttribute('data-read-only') || item.hasAttribute('data-pending-event-copy') || !scheduleGridViews.includes(state.view) || e.button !== 0 || !e.isPrimary) {
       return;
     }
     clearScheduleItemHold();
@@ -10289,6 +10368,8 @@ document.addEventListener('DOMContentLoaded', function () {
       lastY: e.clientY,
       pointerType: e.pointerType,
       active: false,
+      copyMode: false,
+      copyModeRequested: Boolean(e.metaKey),
       commitVisualDrop: false,
       finishingNativeDrag: false,
       nativeDragFinished: false,
@@ -10337,6 +10418,7 @@ document.addEventListener('DOMContentLoaded', function () {
         schedule.style.touchAction = 'none';
         schedule.style.overscrollBehavior = 'none';
         schedule.style.overflow = 'hidden';
+        setScheduleHoldCopyMode(scheduleItemHold, scheduleItemHold.copyModeRequested);
         if (typeof item.setPointerCapture === 'function') {
           item.setPointerCapture(e.pointerId);
         }
@@ -10361,6 +10443,9 @@ document.addEventListener('DOMContentLoaded', function () {
     scheduleItemHold.lastY = e.clientY;
     if (scheduleItemHold.active) {
       e.preventDefault();
+      if (scheduleItemHold.pointerType === 'mouse') {
+        setScheduleHoldCopyMode(scheduleItemHold, e.metaKey);
+      }
       if (scheduleItemHold.pointerType !== 'mouse') {
         document.dispatchEvent(new MouseEvent('mousemove', {
           bubbles: true,
@@ -10393,8 +10478,11 @@ document.addEventListener('DOMContentLoaded', function () {
   }, {
     passive: false
   });
-  document.addEventListener('mouseup', function () {
+  document.addEventListener('mouseup', function (e) {
     if (scheduleItemHold && scheduleItemHold.active) {
+      if (scheduleItemHold.pointerType === 'mouse') {
+        setScheduleHoldCopyMode(scheduleItemHold, e.metaKey);
+      }
       if (!scheduleItemHold.finishingNativeDrag) {
         scheduleItemHold.commitVisualDrop = true;
       }
@@ -10413,6 +10501,16 @@ document.addEventListener('DOMContentLoaded', function () {
   });
   window.addEventListener('blur', function () {
     clearScheduleItemHold();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Meta' && scheduleItemHold) {
+      setScheduleHoldCopyMode(scheduleItemHold, true);
+    }
+  });
+  document.addEventListener('keyup', function (e) {
+    if (e.key === 'Meta' && scheduleItemHold) {
+      setScheduleHoldCopyMode(scheduleItemHold, false);
+    }
   });
   calendar.addEventListener('click', function (e) {
     if (isScheduleHoldNavigationSuppressed()) {
@@ -10436,6 +10534,14 @@ document.addEventListener('DOMContentLoaded', function () {
     if (item.hasAttribute('holding-event')) {
       e.preventDefault();
       e.stopPropagation();
+      return;
+    }
+    if (item.hasAttribute('data-pending-event-copy')) {
+      e.preventDefault();
+      e.stopPropagation();
+      openDuplicateGeneralEventModal(getEventByScheduleItem(item), null, {
+        preserveDate: true
+      });
       return;
     }
     if (item.classList.contains('lm-schedule-item') && suppressedScheduleItemClick === item) {
