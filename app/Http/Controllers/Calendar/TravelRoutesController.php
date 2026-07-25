@@ -28,7 +28,10 @@ class TravelRoutesController extends Controller
             return response()->noContent();
         }
 
-        $origin = $originFinder->before($arrivalAt, $request->user()->id);
+        $eventStartsAt = $arrivalAt->addMinutes(
+            (int) config('calendar.google_routes.arrival_buffer_minutes', 5)
+        );
+        $origin = $originFinder->before($eventStartsAt, $request->user()->id);
 
         if (! $origin) {
             return response()->noContent();

@@ -14,6 +14,7 @@ return [
     ],
     'google_routes' => [
         'api_key' => env('GOOGLE_ROUTES_API_KEY'),
+        'arrival_buffer_minutes' => 5,
         'walking_threshold_minutes' => env('GOOGLE_ROUTES_WALKING_THRESHOLD_MINUTES', 20),
         'approaching_window_minutes' => 120,
         'approaching_refresh_minutes' => 30,

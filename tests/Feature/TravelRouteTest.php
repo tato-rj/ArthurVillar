@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Calendar\Event;
 use App\Models\Calendar\Lesson;
 use App\Models\Calendar\LessonPlan;
 use App\Models\Calendar\Location;
@@ -15,9 +16,20 @@ use Tests\BaseTest;
 
 class TravelRouteTest extends BaseTest
 {
+    public function setUp(): void
+    {
+        parent::setUp();
+
+        CarbonImmutable::setTestNow('2026-07-23 10:00:00');
+        $token = 'travel-route-csrf-token';
+        $this->withSession(['_token' => $token]);
+        $this->withHeader('X-CSRF-TOKEN', $token);
+    }
+
     protected function tearDown(): void
     {
         Carbon::setTestNow();
+        CarbonImmutable::setTestNow();
 
         parent::tearDown();
     }
@@ -261,4 +273,53 @@ class TravelRouteTest extends BaseTest
         $this->assertSame(0, TravelRoute::count());
     }
 
+    /** @test */
+    public function it_uses_the_location_of_a_back_to_back_event_as_the_origin()
+    {
+        Carbon::setTestNow('2026-07-23 10:00:00');
+        config(['calendar.google_routes.api_key' => 'test-key']);
+        $this->signIn();
+        $home = Location::factory()->create([
+            'name' => 'Home',
+            'address' => '80 Erie St',
+            'city' => 'Jersey City',
+            'state' => 'NJ',
+            'postal_code' => '07302',
+        ]);
+        $studio = Location::factory()->create([
+            'name' => 'BKCM',
+            'address' => '58 7th Ave',
+            'city' => 'Brooklyn',
+            'state' => 'NY',
+        ]);
+        $date = CarbonImmutable::parse('2026-07-24', config('calendar.timezone'));
+
+        LessonPlan::factory()->create([
+            'location_id' => $studio->id,
+            'weekday' => LessonPlan::fromCarbonWeekday($date->dayOfWeek),
+            'starts_on' => $date->toDateString(),
+            'start_time' => '14:00',
+            'duration_minutes' => 60,
+        ]);
+        Event::factory()->create([
+            'scheduled_date' => $date->toDateString(),
+            'starts_at' => '16:00',
+            'ends_at' => '17:00',
+            'address' => $home->address,
+            'city' => $home->city,
+            'state' => $home->state,
+            'postal_code' => $home->postal_code,
+        ]);
+        Http::fake();
+
+        $this->postJson(route('calendar.travel-route.show'), [
+            'event_key' => 'lesson-after-home-event',
+            'arrival_at' => '2026-07-24T16:55:00',
+            'destination_address' => $home->full_address,
+            'destination_label' => 'Home',
+        ])->assertNoContent();
+
+        Http::assertNothingSent();
+        $this->assertSame(0, TravelRoute::count());
+    }
 }
