@@ -76,6 +76,7 @@ class TravelRouteTest extends BaseTest
             ->assertJsonPath('route.mode', 'WALK')
             ->assertJsonPath('route.duration_seconds', 600)
             ->assertJsonPath('route.origin', 'Home')
+            ->assertJsonPath('route.origin_is_home', true)
             ->assertJsonPath('route.arrival_at', '2026-07-24T21:00:00+00:00')
             ->assertJsonPath('route.steps.0.mode', 'WALK');
 
@@ -324,7 +325,7 @@ class TravelRouteTest extends BaseTest
     }
 
     /** @test */
-    public function it_hides_travel_information_when_the_gap_is_twice_the_route_duration()
+    public function it_keeps_travel_information_for_a_location_change_even_after_a_long_gap()
     {
         config(['calendar.google_routes.api_key' => 'test-key']);
         $user = $this->signIn();
@@ -357,7 +358,12 @@ class TravelRouteTest extends BaseTest
             'arrival_at' => '2026-07-24T13:55:00',
             'destination_address' => '80 Erie St, Jersey City, NJ',
             'destination_label' => 'Home',
-        ])->assertNoContent();
+        ])
+            ->assertOk()
+            ->assertJsonPath('route.origin', '58 7th Ave, Brooklyn, NY')
+            ->assertJsonPath('route.destination', 'Home')
+            ->assertJsonPath('route.duration_seconds', 1200)
+            ->assertJsonPath('route.origin_ends_at', '2026-07-24T13:20:00-04:00');
 
         Http::assertSentCount(1);
         $this->assertDatabaseHas('travel_routes', [

@@ -35,7 +35,9 @@ class CalendarTravelOrigin
             ->whereRaw('LOWER(name) = ?', ['home'])
             ->first();
 
-        return $location ? $this->locationPayload($location->toArray()) : null;
+        $home = $location ? $this->locationPayload($location->toArray()) : null;
+
+        return $home ? array_merge($home, ['is_home' => true]) : null;
     }
 
     private function appendLessons($candidates, $lessonPlans, CarbonImmutable $targetAt, ?array $home): void
@@ -57,6 +59,7 @@ class CalendarTravelOrigin
                 $candidates->push([
                     'address' => $location['address'] ?? ($home['address'] ?? null),
                     'label' => $location['label'] ?? ($home['label'] ?? 'Home'),
+                    'is_home' => (bool) ($location['is_home'] ?? false),
                     'ends_at' => $endsAt,
                 ]);
             }
@@ -83,6 +86,7 @@ class CalendarTravelOrigin
             $candidates->push([
                 'address' => $location['address'] ?? ($home['address'] ?? null),
                 'label' => $location['label'] ?? ($home['label'] ?? 'Home'),
+                'is_home' => (bool) ($location['is_home'] ?? false),
                 'ends_at' => $endsAt,
             ]);
         }
@@ -101,6 +105,7 @@ class CalendarTravelOrigin
             $candidates->push([
                 'address' => $location['address'] ?? ($home['address'] ?? null),
                 'label' => $location['label'] ?? ($home['label'] ?? 'Home'),
+                'is_home' => (bool) ($location['is_home'] ?? false),
                 'ends_at' => $endsAt,
             ]);
         }
@@ -121,6 +126,10 @@ class CalendarTravelOrigin
 
         $address = $address ?: $name;
 
+        if ($home && $address && $this->samePlace($address, $home['address'] ?? '')) {
+            return $home;
+        }
+
         return $address ? ['address' => $address, 'label' => $name ?: $this->shortAddress($address)] : $home;
     }
 
@@ -129,6 +138,10 @@ class CalendarTravelOrigin
         $location = trim((string) $location);
 
         if (! $location || $this->isVirtual($location)) {
+            return $home;
+        }
+
+        if ($home && $this->samePlace($location, $home['address'] ?? '')) {
             return $home;
         }
 
@@ -147,6 +160,13 @@ class CalendarTravelOrigin
             ->filter()
             ->take(2)
             ->implode(', ');
+    }
+
+    private function samePlace(string $first, string $second): bool
+    {
+        $normalize = fn ($value) => preg_replace('/[^a-z0-9]/', '', strtolower($value));
+
+        return $normalize($first) === $normalize($second);
     }
 
     private function dateTime($date, $time): ?CarbonImmutable

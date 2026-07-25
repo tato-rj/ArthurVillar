@@ -2959,38 +2959,156 @@ const requestTravelRouteForEvent = function(event, details) {
     return request;
 };
 
-const clearScheduleItemTravel = function(item) {
+const getScheduleTravelOwnerGuid = function(event) {
+    return String((event && (event.guid || event.id)) || '');
+};
+
+const updateScheduleItemTravelClasses = function(item) {
     if (!item) {
         return;
     }
 
-    const extension = item.querySelector(':scope > .calendar-schedule-travel');
+    const hasBefore = Boolean(item.querySelector(':scope > .calendar-schedule-travel[data-travel-position="before"]'));
+    const hasAfter = Boolean(item.querySelector(':scope > .calendar-schedule-travel[data-travel-position="after"]'));
 
-    if (extension) {
-        const animation = state.scheduleTravelAnimations.get(extension);
+    item.classList.toggle('has-calendar-schedule-travel', hasBefore || hasAfter);
+    item.classList.toggle('has-calendar-schedule-travel-before', hasBefore);
+    item.classList.toggle('has-calendar-schedule-travel-after', hasAfter);
+};
 
-        if (animation) {
-            animation.stop();
-            state.scheduleTravelAnimations.delete(extension);
-        }
-
-        extension.remove();
+const removeScheduleTravelExtension = function(extension) {
+    if (!extension) {
+        return;
     }
 
-    item.classList.remove('has-calendar-schedule-travel');
+    const item = extension.parentElement;
+    const animation = state.scheduleTravelAnimations.get(extension);
+
+    if (animation) {
+        animation.stop();
+        state.scheduleTravelAnimations.delete(extension);
+    }
+
+    extension.remove();
+    updateScheduleItemTravelClasses(item);
+};
+
+const clearScheduleItemTravel = function(item, event) {
+    if (!item) {
+        return;
+    }
+
+    const ownerGuid = getScheduleTravelOwnerGuid(event || item.event);
+    const schedule = item.closest('.lm-schedule');
+
+    if (schedule && ownerGuid) {
+        schedule.querySelectorAll('.calendar-schedule-travel').forEach(function(extension) {
+            if (extension.dataset.travelEventGuid === ownerGuid) {
+                removeScheduleTravelExtension(extension);
+            }
+        });
+    } else {
+        item.querySelectorAll(':scope > .calendar-schedule-travel').forEach(removeScheduleTravelExtension);
+    }
+
     delete item.dataset.travelRouteKey;
     delete item.dataset.travelRouteState;
 };
 
-const renderScheduleItemTravel = function(item, route, cacheKey) {
+const normalizeTravelPlace = function(value) {
+    return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+};
+
+const isHomeTravelPlace = function(value) {
+    const home = window.calendarHomeLocation;
+    const normalized = normalizeTravelPlace(value);
+
+    if (!normalized || !home) {
+        return false;
+    }
+
+    return normalized === 'home'
+        || normalized === normalizeTravelPlace(travelLocationLabel(home))
+        || normalized === normalizeTravelPlace(physicalLocationQuery(home));
+};
+
+const findPreviousScheduleItem = function(item, event, route) {
+    const schedule = item ? item.closest('.lm-schedule') : null;
+    const cell = item ? item.closest('td[data-date]') : null;
+
+    if (!schedule || !cell || !event) {
+        return null;
+    }
+
+    const visibleDate = cell.getAttribute('data-real-date') || cell.getAttribute('data-date') || event.date;
+    const currentStart = getTimeMinutes(event.start);
+    const originEndsAt = route && route.origin_ends_at ? new Date(route.origin_ends_at) : null;
+    const originEndMinutes = originEndsAt && !Number.isNaN(originEndsAt.getTime())
+        ? (originEndsAt.getHours() * 60) + originEndsAt.getMinutes()
+        : null;
+    const candidates = Array.from(schedule.querySelectorAll('.lm-schedule-item:not([holding-event])'))
+        .filter(function(candidate) {
+            if (candidate === item || candidate.hasAttribute('data-pending-event-copy')) {
+                return false;
+            }
+
+            const candidateEvent = getEventByScheduleItem(candidate);
+            const candidateCell = candidate.closest('td[data-date]');
+            const candidateDate = candidateCell
+                ? (candidateCell.getAttribute('data-real-date') || candidateCell.getAttribute('data-date'))
+                : '';
+            const candidateEnd = candidateEvent ? getTimeMinutes(candidateEvent.end) : -1;
+
+            return candidateEvent
+                && !isCanceledCalendarEvent(candidateEvent)
+                && !candidateEvent.allDay
+                && candidateDate === visibleDate
+                && candidateEnd <= currentStart;
+        })
+        .sort(function(a, b) {
+            return getTimeMinutes(getEventByScheduleItem(b).end)
+                - getTimeMinutes(getEventByScheduleItem(a).end);
+        });
+
+    if (originEndMinutes !== null) {
+        const exactOrigin = candidates.find(function(candidate) {
+            return getTimeMinutes(getEventByScheduleItem(candidate).end) === originEndMinutes;
+        });
+
+        if (exactOrigin) {
+            return exactOrigin;
+        }
+    }
+
+    return candidates[0] || null;
+};
+
+const getScheduleTravelPlacement = function(item, event, route) {
+    if ((route && route.origin_is_home) || isHomeTravelPlace(route && route.origin)) {
+        return {
+            item,
+            position: 'before',
+        };
+    }
+
+    const previousItem = findPreviousScheduleItem(item, event, route);
+
+    return previousItem
+        ? { item: previousItem, position: 'after' }
+        : { item, position: 'before' };
+};
+
+const renderScheduleItemTravel = function(item, event, route, cacheKey) {
     if (!item || !route || Number(route.duration_seconds || 0) <= 0) {
-        clearScheduleItemTravel(item);
+        clearScheduleItemTravel(item, event);
         return;
     }
 
+    const placement = getScheduleTravelPlacement(item, event, route);
+    const targetItem = placement.item;
     const durationMinutes = Math.max(1, Math.round(Number(route.duration_seconds) / 60));
     const roundedMinutes = Math.max(15, Math.round(durationMinutes / 15) * 15);
-    const row = item.closest('tr');
+    const row = targetItem.closest('tr');
     const rowHeight = row ? row.getBoundingClientRect().height : 15;
     const extensionHeight = Math.max(15, (rowHeight || 15) * (roundedMinutes / 15));
     const extension = document.createElement('div');
@@ -2998,35 +3116,28 @@ const renderScheduleItemTravel = function(item, route, cacheKey) {
     const label = document.createElement('span');
     const isTransit = String(route.mode || '').toUpperCase() === 'TRANSIT';
 
-    item.querySelectorAll(':scope > .calendar-schedule-travel').forEach(function(existing) {
-        const animation = state.scheduleTravelAnimations.get(existing);
-
-        if (animation) {
-            animation.stop();
-            state.scheduleTravelAnimations.delete(existing);
-        }
-
-        existing.remove();
-    });
+    clearScheduleItemTravel(item, event);
 
     extension.className = 'calendar-schedule-travel';
     extension.style.height = '0';
     extension.style.minHeight = '0';
     extension.style.opacity = '0';
-    extension.style.transform = 'translateY(6px)';
+    extension.style.transform = placement.position === 'after' ? 'translateY(-6px)' : 'translateY(6px)';
     extension.style.setProperty(
         '--calendar-schedule-event-color',
-        window.getComputedStyle(item).backgroundColor || '#6b7280'
+        window.getComputedStyle(targetItem).backgroundColor || '#6b7280'
     );
     extension.dataset.travelMode = isTransit ? 'transit' : 'walk';
-    extension.title = `${durationMinutes} min travel time`;
+    extension.dataset.travelPosition = placement.position;
+    extension.dataset.travelEventGuid = getScheduleTravelOwnerGuid(event);
+    extension.title = `${route.origin} to ${route.destination}: ${durationMinutes} min travel time`;
     extension.setAttribute('aria-hidden', 'true');
     icon.className = `fas ${isTransit ? 'fa-train-subway' : 'fa-person-walking'}`;
-    label.textContent = `${durationMinutes} min travel time`;
+    label.textContent = `${durationMinutes} min · ${route.origin} → ${route.destination}`;
     extension.appendChild(icon);
     extension.appendChild(label);
-    item.prepend(extension);
-    item.classList.add('has-calendar-schedule-travel');
+    targetItem.appendChild(extension);
+    updateScheduleItemTravelClasses(targetItem);
     item.dataset.travelRouteKey = cacheKey;
     item.dataset.travelRouteState = 'shown';
 
@@ -3057,7 +3168,7 @@ const patchScheduleItemTravel = function(item, event) {
     const details = getTravelRouteRequestDetails(event);
 
     if (!details) {
-        clearScheduleItemTravel(item);
+        clearScheduleItemTravel(item, event);
         return;
     }
 
@@ -3066,7 +3177,7 @@ const patchScheduleItemTravel = function(item, event) {
         return;
     }
 
-    clearScheduleItemTravel(item);
+    clearScheduleItemTravel(item, event);
     item.dataset.travelRouteKey = details.cacheKey;
     item.dataset.travelRouteState = 'loading';
 
@@ -3081,7 +3192,7 @@ const patchScheduleItemTravel = function(item, event) {
                 return;
             }
 
-            renderScheduleItemTravel(item, route, details.cacheKey);
+            renderScheduleItemTravel(item, event, route, details.cacheKey);
         })
         .catch(function(error) {
             if (item.isConnected && item.dataset.travelRouteKey === details.cacheKey) {
@@ -4260,8 +4371,17 @@ const applyEventOverlapAttribute = function(element, event) {
     const visibleDate = cell
         ? (cell.getAttribute('data-real-date') || cell.getAttribute('data-date'))
         : '';
+    const isOverlapping = isOverlappingTimedEvent(event, visibleDate);
 
-    element.toggleAttribute('overlapping-event', isOverlappingTimedEvent(event, visibleDate));
+    element.toggleAttribute('overlapping-event', isOverlapping);
+
+    if (isOverlapping && element.classList.contains('lm-schedule-item')) {
+        const duration = Math.max(1, getTimeMinutes(event.end) - getTimeMinutes(event.start));
+
+        element.style.setProperty('--calendar-overlap-z-index', String(2000 - Math.min(duration, 1440)));
+    } else {
+        element.style.removeProperty('--calendar-overlap-z-index');
+    }
 };
 
 const formatSelectTime = function(value) {

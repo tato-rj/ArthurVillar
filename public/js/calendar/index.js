@@ -6844,60 +6844,143 @@ var requestTravelRouteForEvent = function requestTravelRouteForEvent(event, deta
   state.travelRouteRequests.set(requestDetails.cacheKey, request);
   return request;
 };
-var clearScheduleItemTravel = function clearScheduleItemTravel(item) {
+var getScheduleTravelOwnerGuid = function getScheduleTravelOwnerGuid(event) {
+  return String(event && (event.guid || event.id) || '');
+};
+var updateScheduleItemTravelClasses = function updateScheduleItemTravelClasses(item) {
   if (!item) {
     return;
   }
-  var extension = item.querySelector(':scope > .calendar-schedule-travel');
-  if (extension) {
-    var animation = state.scheduleTravelAnimations.get(extension);
-    if (animation) {
-      animation.stop();
-      state.scheduleTravelAnimations["delete"](extension);
-    }
-    extension.remove();
+  var hasBefore = Boolean(item.querySelector(':scope > .calendar-schedule-travel[data-travel-position="before"]'));
+  var hasAfter = Boolean(item.querySelector(':scope > .calendar-schedule-travel[data-travel-position="after"]'));
+  item.classList.toggle('has-calendar-schedule-travel', hasBefore || hasAfter);
+  item.classList.toggle('has-calendar-schedule-travel-before', hasBefore);
+  item.classList.toggle('has-calendar-schedule-travel-after', hasAfter);
+};
+var removeScheduleTravelExtension = function removeScheduleTravelExtension(extension) {
+  if (!extension) {
+    return;
   }
-  item.classList.remove('has-calendar-schedule-travel');
+  var item = extension.parentElement;
+  var animation = state.scheduleTravelAnimations.get(extension);
+  if (animation) {
+    animation.stop();
+    state.scheduleTravelAnimations["delete"](extension);
+  }
+  extension.remove();
+  updateScheduleItemTravelClasses(item);
+};
+var clearScheduleItemTravel = function clearScheduleItemTravel(item, event) {
+  if (!item) {
+    return;
+  }
+  var ownerGuid = getScheduleTravelOwnerGuid(event || item.event);
+  var schedule = item.closest('.lm-schedule');
+  if (schedule && ownerGuid) {
+    schedule.querySelectorAll('.calendar-schedule-travel').forEach(function (extension) {
+      if (extension.dataset.travelEventGuid === ownerGuid) {
+        removeScheduleTravelExtension(extension);
+      }
+    });
+  } else {
+    item.querySelectorAll(':scope > .calendar-schedule-travel').forEach(removeScheduleTravelExtension);
+  }
   delete item.dataset.travelRouteKey;
   delete item.dataset.travelRouteState;
 };
-var renderScheduleItemTravel = function renderScheduleItemTravel(item, route, cacheKey) {
+var normalizeTravelPlace = function normalizeTravelPlace(value) {
+  return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+};
+var isHomeTravelPlace = function isHomeTravelPlace(value) {
+  var home = window.calendarHomeLocation;
+  var normalized = normalizeTravelPlace(value);
+  if (!normalized || !home) {
+    return false;
+  }
+  return normalized === 'home' || normalized === normalizeTravelPlace(travelLocationLabel(home)) || normalized === normalizeTravelPlace(physicalLocationQuery(home));
+};
+var findPreviousScheduleItem = function findPreviousScheduleItem(item, event, route) {
+  var schedule = item ? item.closest('.lm-schedule') : null;
+  var cell = item ? item.closest('td[data-date]') : null;
+  if (!schedule || !cell || !event) {
+    return null;
+  }
+  var visibleDate = cell.getAttribute('data-real-date') || cell.getAttribute('data-date') || event.date;
+  var currentStart = getTimeMinutes(event.start);
+  var originEndsAt = route && route.origin_ends_at ? new Date(route.origin_ends_at) : null;
+  var originEndMinutes = originEndsAt && !Number.isNaN(originEndsAt.getTime()) ? originEndsAt.getHours() * 60 + originEndsAt.getMinutes() : null;
+  var candidates = Array.from(schedule.querySelectorAll('.lm-schedule-item:not([holding-event])')).filter(function (candidate) {
+    if (candidate === item || candidate.hasAttribute('data-pending-event-copy')) {
+      return false;
+    }
+    var candidateEvent = getEventByScheduleItem(candidate);
+    var candidateCell = candidate.closest('td[data-date]');
+    var candidateDate = candidateCell ? candidateCell.getAttribute('data-real-date') || candidateCell.getAttribute('data-date') : '';
+    var candidateEnd = candidateEvent ? getTimeMinutes(candidateEvent.end) : -1;
+    return candidateEvent && !isCanceledCalendarEvent(candidateEvent) && !candidateEvent.allDay && candidateDate === visibleDate && candidateEnd <= currentStart;
+  }).sort(function (a, b) {
+    return getTimeMinutes(getEventByScheduleItem(b).end) - getTimeMinutes(getEventByScheduleItem(a).end);
+  });
+  if (originEndMinutes !== null) {
+    var exactOrigin = candidates.find(function (candidate) {
+      return getTimeMinutes(getEventByScheduleItem(candidate).end) === originEndMinutes;
+    });
+    if (exactOrigin) {
+      return exactOrigin;
+    }
+  }
+  return candidates[0] || null;
+};
+var getScheduleTravelPlacement = function getScheduleTravelPlacement(item, event, route) {
+  if (route && route.origin_is_home || isHomeTravelPlace(route && route.origin)) {
+    return {
+      item: item,
+      position: 'before'
+    };
+  }
+  var previousItem = findPreviousScheduleItem(item, event, route);
+  return previousItem ? {
+    item: previousItem,
+    position: 'after'
+  } : {
+    item: item,
+    position: 'before'
+  };
+};
+var renderScheduleItemTravel = function renderScheduleItemTravel(item, event, route, cacheKey) {
   if (!item || !route || Number(route.duration_seconds || 0) <= 0) {
-    clearScheduleItemTravel(item);
+    clearScheduleItemTravel(item, event);
     return;
   }
+  var placement = getScheduleTravelPlacement(item, event, route);
+  var targetItem = placement.item;
   var durationMinutes = Math.max(1, Math.round(Number(route.duration_seconds) / 60));
   var roundedMinutes = Math.max(15, Math.round(durationMinutes / 15) * 15);
-  var row = item.closest('tr');
+  var row = targetItem.closest('tr');
   var rowHeight = row ? row.getBoundingClientRect().height : 15;
   var extensionHeight = Math.max(15, (rowHeight || 15) * (roundedMinutes / 15));
   var extension = document.createElement('div');
   var icon = document.createElement('i');
   var label = document.createElement('span');
   var isTransit = String(route.mode || '').toUpperCase() === 'TRANSIT';
-  item.querySelectorAll(':scope > .calendar-schedule-travel').forEach(function (existing) {
-    var animation = state.scheduleTravelAnimations.get(existing);
-    if (animation) {
-      animation.stop();
-      state.scheduleTravelAnimations["delete"](existing);
-    }
-    existing.remove();
-  });
+  clearScheduleItemTravel(item, event);
   extension.className = 'calendar-schedule-travel';
   extension.style.height = '0';
   extension.style.minHeight = '0';
   extension.style.opacity = '0';
-  extension.style.transform = 'translateY(6px)';
-  extension.style.setProperty('--calendar-schedule-event-color', window.getComputedStyle(item).backgroundColor || '#6b7280');
+  extension.style.transform = placement.position === 'after' ? 'translateY(-6px)' : 'translateY(6px)';
+  extension.style.setProperty('--calendar-schedule-event-color', window.getComputedStyle(targetItem).backgroundColor || '#6b7280');
   extension.dataset.travelMode = isTransit ? 'transit' : 'walk';
-  extension.title = "".concat(durationMinutes, " min travel time");
+  extension.dataset.travelPosition = placement.position;
+  extension.dataset.travelEventGuid = getScheduleTravelOwnerGuid(event);
+  extension.title = "".concat(route.origin, " to ").concat(route.destination, ": ").concat(durationMinutes, " min travel time");
   extension.setAttribute('aria-hidden', 'true');
   icon.className = "fas ".concat(isTransit ? 'fa-train-subway' : 'fa-person-walking');
-  label.textContent = "".concat(durationMinutes, " min travel time");
+  label.textContent = "".concat(durationMinutes, " min \xB7 ").concat(route.origin, " \u2192 ").concat(route.destination);
   extension.appendChild(icon);
   extension.appendChild(label);
-  item.prepend(extension);
-  item.classList.add('has-calendar-schedule-travel');
+  targetItem.appendChild(extension);
+  updateScheduleItemTravelClasses(targetItem);
   item.dataset.travelRouteKey = cacheKey;
   item.dataset.travelRouteState = 'shown';
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -6923,13 +7006,13 @@ var renderScheduleItemTravel = function renderScheduleItemTravel(item, route, ca
 var patchScheduleItemTravel = function patchScheduleItemTravel(item, event) {
   var details = getTravelRouteRequestDetails(event);
   if (!details) {
-    clearScheduleItemTravel(item);
+    clearScheduleItemTravel(item, event);
     return;
   }
   if (item.dataset.travelRouteKey === details.cacheKey && ['loading', 'shown', 'none'].includes(item.dataset.travelRouteState)) {
     return;
   }
-  clearScheduleItemTravel(item);
+  clearScheduleItemTravel(item, event);
   item.dataset.travelRouteKey = details.cacheKey;
   item.dataset.travelRouteState = 'loading';
   requestTravelRouteForEvent(event, details).then(function (route) {
@@ -6940,7 +7023,7 @@ var patchScheduleItemTravel = function patchScheduleItemTravel(item, event) {
       item.dataset.travelRouteState = 'none';
       return;
     }
-    renderScheduleItemTravel(item, route, details.cacheKey);
+    renderScheduleItemTravel(item, event, route, details.cacheKey);
   })["catch"](function (error) {
     if (item.isConnected && item.dataset.travelRouteKey === details.cacheKey) {
       item.dataset.travelRouteState = 'none';
@@ -7846,7 +7929,14 @@ var applyEventOverlapAttribute = function applyEventOverlapAttribute(element, ev
   }
   var cell = element.closest('td[data-date]');
   var visibleDate = cell ? cell.getAttribute('data-real-date') || cell.getAttribute('data-date') : '';
-  element.toggleAttribute('overlapping-event', isOverlappingTimedEvent(event, visibleDate));
+  var isOverlapping = isOverlappingTimedEvent(event, visibleDate);
+  element.toggleAttribute('overlapping-event', isOverlapping);
+  if (isOverlapping && element.classList.contains('lm-schedule-item')) {
+    var duration = Math.max(1, getTimeMinutes(event.end) - getTimeMinutes(event.start));
+    element.style.setProperty('--calendar-overlap-z-index', String(2000 - Math.min(duration, 1440)));
+  } else {
+    element.style.removeProperty('--calendar-overlap-z-index');
+  }
 };
 var formatSelectTime = function formatSelectTime(value) {
   var match = normalizeTime(value).match(/^(\d{2}):(\d{2})/);
