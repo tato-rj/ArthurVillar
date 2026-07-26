@@ -31905,7 +31905,7 @@ button.setting-undo:hover {
 
 .calendar-schedule-event {
   border: 0;
-  border-radius: 8px;
+  border-radius: 12px;
   color: #202124;
   cursor: pointer;
   display: grid;
@@ -31966,7 +31966,7 @@ button.setting-undo:hover {
 }
 
 #calendar .calendar-month-event-general {
-  border-radius: 0.35rem;
+  border-radius: 12px;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   padding-top: 0.18rem;
@@ -32181,7 +32181,7 @@ button.setting-undo:hover {
 
 .calendar-month-event-holiday {
   background: #0b8043;
-  border-radius: 0.35rem;
+  border-radius: 12px;
   color: #fff;
   display: block;
   font-weight: 700;
@@ -32190,7 +32190,7 @@ button.setting-undo:hover {
 
 .calendar-month-event-break {
   background: #7952b3;
-  border-radius: 0.35rem;
+  border-radius: 12px;
   color: #fff;
   display: block;
   font-weight: 700;
@@ -32199,7 +32199,7 @@ button.setting-undo:hover {
 
 .calendar-month-event-recital {
   background: #c26401;
-  border-radius: 0.35rem;
+  border-radius: 12px;
   color: #fff;
   display: block;
   font-weight: 700;
@@ -32258,7 +32258,7 @@ button.setting-undo:hover {
 
 .calendar-month-more:hover {
   background: rgba(0, 0, 0, 0.075);
-  border-radius: 0.35rem;
+  border-radius: 12px;
 }
 
 .calendar-month-day-events-modal-list {
@@ -32280,7 +32280,7 @@ button.setting-undo:hover {
 }
 
 .calendar-month-day-events-modal-list .calendar-month-event {
-  border-radius: 0.35rem;
+  border-radius: 12px;
   cursor: pointer;
   font-size: 1rem;
   margin-bottom: 0;
@@ -32465,7 +32465,7 @@ button.setting-undo:hover {
 
 .calendar-schedule-holiday {
   background: #0b8043;
-  border-radius: 0.35rem;
+  border-radius: 12px;
   color: #fff;
   display: block;
   font-size: 0.78rem;
@@ -32735,6 +32735,7 @@ button.single-lesson-plan-create[selected] i {
 }
 
 #calendar .lm-schedule-item {
+  border-radius: 12px;
   cursor: pointer !important;
   flex-direction: column;
   justify-content: normal;
@@ -32788,11 +32789,11 @@ button.single-lesson-plan-create[selected] i {
 }
 
 #calendar .lm-schedule-item.has-calendar-schedule-travel-before {
-  border-radius: 0 0 4px 4px;
+  border-radius: 0 0 12px 12px;
 }
 
 #calendar .lm-schedule-item.has-calendar-schedule-travel-after {
-  border-radius: 4px 4px 0 0;
+  border-radius: 12px 12px 0 0;
 }
 
 #calendar .lm-schedule-item.has-calendar-schedule-travel-before.has-calendar-schedule-travel-after {
@@ -32823,12 +32824,12 @@ button.single-lesson-plan-create[selected] i {
 
 #calendar .calendar-schedule-travel[data-travel-position=before] {
   border-bottom: 0;
-  border-radius: 4px 4px 0 0;
+  border-radius: 12px 12px 0 0;
   bottom: 100%;
 }
 
 #calendar .calendar-schedule-travel[data-travel-position=after] {
-  border-radius: 0 0 4px 4px;
+  border-radius: 0 0 12px 12px;
   border-top: 0;
   top: 100%;
 }
@@ -33628,7 +33629,7 @@ button.single-lesson-plan-create[selected] i {
 #invitation-calendar .lm-schedule-item {
   --lm-schedule-background: #07883a;
   border: 2px solid #fff;
-  border-radius: 5px;
+  border-radius: 12px;
   padding: 4px 30px 4px 7px;
   align-items: center;
   justify-content: center;
