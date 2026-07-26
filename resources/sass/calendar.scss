@@ -1523,13 +1523,13 @@ button.single-lesson-plan-create[selected] i {
 #calendar .calendar-schedule-travel[data-travel-position="before"] {
     border-bottom: 0;
     border-radius: $calendar-item-border-radius $calendar-item-border-radius 0 0;
-    bottom: 100%;
+    bottom: calc(100% + 2px);
 }
 
 #calendar .calendar-schedule-travel[data-travel-position="after"] {
     border-radius: 0 0 $calendar-item-border-radius $calendar-item-border-radius;
     border-top: 0;
-    top: 100%;
+    top: calc(100% + 2px);
 }
 
 #calendar .calendar-schedule-travel i {

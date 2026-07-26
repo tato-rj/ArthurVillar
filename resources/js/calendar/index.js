@@ -7992,6 +7992,44 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    const getScheduleItemFromCalendarClick = function(e) {
+        const directItem = e.target.closest('.lm-schedule-item');
+
+        if (directItem) {
+            return directItem;
+        }
+
+        const day = e.target.closest('.lm-schedule tbody td[data-date]');
+
+        if (!day || !Number.isFinite(e.clientX) || !Number.isFinite(e.clientY)) {
+            return null;
+        }
+
+        const containsPoint = function(element) {
+            const rect = element.getBoundingClientRect();
+
+            return e.clientX >= rect.left
+                && e.clientX <= rect.right
+                && e.clientY >= rect.top
+                && e.clientY <= rect.bottom;
+        };
+        const candidates = Array.from(day.querySelectorAll('.lm-schedule-item')).filter(function(item) {
+            return containsPoint(item)
+                || Array.from(item.querySelectorAll(':scope > .calendar-schedule-travel')).some(containsPoint);
+        });
+
+        return candidates.reduce(function(topItem, item) {
+            if (!topItem) {
+                return item;
+            }
+
+            const topZIndex = Number.parseInt(window.getComputedStyle(topItem).zIndex, 10) || 0;
+            const itemZIndex = Number.parseInt(window.getComputedStyle(item).zIndex, 10) || 0;
+
+            return itemZIndex >= topZIndex ? item : topItem;
+        }, null);
+    };
+
     calendar.addEventListener('click', function(e) {
         if (isScheduleHoldNavigationSuppressed()) {
             e.preventDefault();
@@ -8000,8 +8038,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         const day = e.target.closest('.lm-schedule tbody td[data-date]');
+        const scheduleItem = getScheduleItemFromCalendarClick(e);
 
-        if (!day || !['2-days', 'week'].includes(state.view) || e.target.closest('.lm-schedule-item')) {
+        if (!day || !['2-days', 'week'].includes(state.view) || scheduleItem) {
             return;
         }
 
@@ -8011,7 +8050,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     calendar.addEventListener('click', function(e) {
-        const item = e.target.closest('.lm-schedule-item, .calendar-month-event, .calendar-schedule-event, .calendar-schedule-break, .calendar-schedule-recital');
+        const item = e.target.closest('.calendar-month-event, .calendar-schedule-event, .calendar-schedule-break, .calendar-schedule-recital')
+            || getScheduleItemFromCalendarClick(e);
 
         if (!item || item.classList.contains('calendar-month-event-holiday') || item.classList.contains('calendar-schedule-event-holiday')) {
             return;
