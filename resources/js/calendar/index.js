@@ -1480,7 +1480,15 @@ const patchScheduleItems = function(calendar) {
             ? (cell.getAttribute('data-real-date') || cell.getAttribute('data-date'))
             : '';
         const icon = getCalendarEventIcon(event);
+        let hitArea = item.querySelector(':scope > .calendar-schedule-item-hit-area');
         let eventIcon = item.querySelector(':scope > .event-icon');
+
+        if (!hitArea) {
+            hitArea = document.createElement('span');
+            hitArea.className = 'calendar-schedule-item-hit-area';
+            hitArea.setAttribute('aria-hidden', 'true');
+            item.appendChild(hitArea);
+        }
 
         if (!icon.name) {
             if (eventIcon) {

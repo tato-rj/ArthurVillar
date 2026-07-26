@@ -1055,8 +1055,9 @@ button.setting-undo {
     border-left: 1px solid var(--lm-border-color-light, #e9e9e9);
 }
 
-// Keep event overlap layers inside their day, below headers and page overlays.
-#calendar .lm-schedule tbody td[data-date] {
+// Keep event layers above time slots but below headers and page overlays.
+#calendar .lm-schedule tbody {
+    position: relative;
     z-index: 0;
 }
 
@@ -1452,6 +1453,13 @@ button.single-lesson-plan-create[selected] i {
     &[original-event] {
         opacity: .5;
     }
+}
+
+.calendar-schedule-item-hit-area {
+    cursor: pointer;
+    inset: 0;
+    position: absolute;
+    z-index: 1;
 }
 
 .calendar-schedule-copy-indicator {

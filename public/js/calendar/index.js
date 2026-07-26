@@ -5720,7 +5720,14 @@ var patchScheduleItems = function patchScheduleItems(calendar) {
     var cell = item.closest('td[data-date]');
     var visibleDate = cell ? cell.getAttribute('data-real-date') || cell.getAttribute('data-date') : '';
     var icon = getCalendarEventIcon(event);
+    var hitArea = item.querySelector(':scope > .calendar-schedule-item-hit-area');
     var eventIcon = item.querySelector(':scope > .event-icon');
+    if (!hitArea) {
+      hitArea = document.createElement('span');
+      hitArea.className = 'calendar-schedule-item-hit-area';
+      hitArea.setAttribute('aria-hidden', 'true');
+      item.appendChild(hitArea);
+    }
     if (!icon.name) {
       if (eventIcon) {
         eventIcon.remove();
