@@ -32403,6 +32403,10 @@ button.setting-undo:hover {
   border-left: 1px solid var(--lm-border-color-light, #e9e9e9);
 }
 
+#calendar .lm-schedule tbody td[data-date] {
+  isolation: isolate;
+}
+
 .calendar-schedule-holiday-row {
   height: 2.75rem;
 }

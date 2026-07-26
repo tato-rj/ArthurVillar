@@ -1055,6 +1055,11 @@ button.setting-undo {
     border-left: 1px solid var(--lm-border-color-light, #e9e9e9);
 }
 
+// Keep event overlap layers inside their day, below headers and page overlays.
+#calendar .lm-schedule tbody td[data-date] {
+    isolation: isolate;
+}
+
 // Holidays and special events
 
 .calendar-schedule-holiday-row {
