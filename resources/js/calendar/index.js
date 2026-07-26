@@ -6260,6 +6260,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     let scheduleItemHold = null;
+    let scheduleCopyModifierPressed = false;
     let suppressedScheduleItemClick = null;
     let scheduleHoldNavigationSuppressedUntil = 0;
     let pendingGeneralEventCopySequence = 0;
@@ -7831,7 +7832,7 @@ document.addEventListener('DOMContentLoaded', function() {
             pointerType: e.pointerType,
             active: false,
             copyMode: false,
-            copyModeRequested: Boolean(e.metaKey),
+            copyModeRequested: Boolean(e.metaKey || scheduleCopyModifierPressed),
             commitVisualDrop: false,
             finishingNativeDrag: false,
             nativeDragFinished: false,
@@ -7913,7 +7914,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (scheduleItemHold.active) {
             e.preventDefault();
             if (scheduleItemHold.pointerType === 'mouse') {
-                setScheduleHoldCopyMode(scheduleItemHold, e.metaKey);
+                setScheduleHoldCopyMode(
+                    scheduleItemHold,
+                    Boolean(scheduleCopyModifierPressed || e.metaKey)
+                );
             }
             if (scheduleItemHold.pointerType !== 'mouse') {
                 document.dispatchEvent(new MouseEvent('mousemove', {
@@ -7953,7 +7957,10 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('mouseup', function(e) {
         if (scheduleItemHold && scheduleItemHold.active) {
             if (scheduleItemHold.pointerType === 'mouse') {
-                setScheduleHoldCopyMode(scheduleItemHold, e.metaKey);
+                setScheduleHoldCopyMode(
+                    scheduleItemHold,
+                    Boolean(scheduleCopyModifierPressed || e.metaKey)
+                );
             }
             if (!scheduleItemHold.finishingNativeDrag) {
                 scheduleItemHold.commitVisualDrop = true;
@@ -7977,18 +7984,31 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     window.addEventListener('blur', function() {
+        scheduleCopyModifierPressed = false;
         clearScheduleItemHold();
     });
 
     document.addEventListener('keydown', function(e) {
-        if (e.key === 'Meta' && scheduleItemHold) {
-            setScheduleHoldCopyMode(scheduleItemHold, true);
+        if (e.key !== 'Meta') {
+            return;
+        }
+
+        scheduleCopyModifierPressed = true;
+
+        if (scheduleItemHold) {
+            setScheduleHoldCopyMode(scheduleItemHold, scheduleCopyModifierPressed);
         }
     });
 
     document.addEventListener('keyup', function(e) {
-        if (e.key === 'Meta' && scheduleItemHold) {
-            setScheduleHoldCopyMode(scheduleItemHold, false);
+        if (e.key !== 'Meta') {
+            return;
+        }
+
+        scheduleCopyModifierPressed = false;
+
+        if (scheduleItemHold) {
+            setScheduleHoldCopyMode(scheduleItemHold, scheduleCopyModifierPressed);
         }
     });
 
