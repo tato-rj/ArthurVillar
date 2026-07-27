@@ -1377,18 +1377,18 @@ button.single-lesson-plan-create[selected] i {
 // Timed events
 
 #calendar[data-transparent-past-events] {
-    .calendar-schedule-break[past-event]:not([data-lesson-status="unpaid"]):not([data-lesson-status="paid"]),
-    .calendar-month-event-break[past-event]:not([data-lesson-status="unpaid"]):not([data-lesson-status="paid"]),
-    .calendar-month-event-dot[past-event]:not([data-lesson-status="unpaid"]):not([data-lesson-status="paid"]),
-    .calendar-schedule-event-break[past-event]:not([data-lesson-status="unpaid"]):not([data-lesson-status="paid"]),
-    .calendar-schedule-event-holiday[past-event]:not([data-lesson-status="unpaid"]):not([data-lesson-status="paid"]),
-    .calendar-schedule-holiday[past-event]:not([data-lesson-status="unpaid"]):not([data-lesson-status="paid"]),
-    .calendar-month-event-holiday[past-event]:not([data-lesson-status="unpaid"]):not([data-lesson-status="paid"]),
-    .calendar-schedule-holiday-cell[past-event]:not([data-lesson-status="unpaid"]):not([data-lesson-status="paid"]),
-    .lm-schedule-item[past-event]:not([data-lesson-status="unpaid"]):not([data-lesson-status="paid"]), 
-    .calendar-month-event[past-event]:not([data-lesson-status="unpaid"]):not([data-lesson-status="paid"]), 
-    .calendar-schedule-event[past-event]:not([data-lesson-status="unpaid"]):not([data-lesson-status="paid"]),
-    .calendar-month-event-holiday[past-event]:not([data-lesson-status="unpaid"]):not([data-lesson-status="paid"]) {
+    .calendar-schedule-break[past-event],
+    .calendar-month-event-break[past-event],
+    .calendar-month-event-dot[past-event],
+    .calendar-schedule-event-break[past-event],
+    .calendar-schedule-event-holiday[past-event],
+    .calendar-schedule-holiday[past-event],
+    .calendar-month-event-holiday[past-event],
+    .calendar-schedule-holiday-cell[past-event],
+    .lm-schedule-item[past-event], 
+    .calendar-month-event[past-event], 
+    .calendar-schedule-event[past-event],
+    .calendar-month-event-holiday[past-event] {
         opacity: .4;
     } 
 }

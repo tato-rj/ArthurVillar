@@ -32701,18 +32701,18 @@ button.single-lesson-plan-create[selected] i {
   white-space: nowrap;
 }
 
-#calendar[data-transparent-past-events] .calendar-schedule-break[past-event]:not([data-lesson-status=unpaid]):not([data-lesson-status=paid]),
-#calendar[data-transparent-past-events] .calendar-month-event-break[past-event]:not([data-lesson-status=unpaid]):not([data-lesson-status=paid]),
-#calendar[data-transparent-past-events] .calendar-month-event-dot[past-event]:not([data-lesson-status=unpaid]):not([data-lesson-status=paid]),
-#calendar[data-transparent-past-events] .calendar-schedule-event-break[past-event]:not([data-lesson-status=unpaid]):not([data-lesson-status=paid]),
-#calendar[data-transparent-past-events] .calendar-schedule-event-holiday[past-event]:not([data-lesson-status=unpaid]):not([data-lesson-status=paid]),
-#calendar[data-transparent-past-events] .calendar-schedule-holiday[past-event]:not([data-lesson-status=unpaid]):not([data-lesson-status=paid]),
-#calendar[data-transparent-past-events] .calendar-month-event-holiday[past-event]:not([data-lesson-status=unpaid]):not([data-lesson-status=paid]),
-#calendar[data-transparent-past-events] .calendar-schedule-holiday-cell[past-event]:not([data-lesson-status=unpaid]):not([data-lesson-status=paid]),
-#calendar[data-transparent-past-events] .lm-schedule-item[past-event]:not([data-lesson-status=unpaid]):not([data-lesson-status=paid]),
-#calendar[data-transparent-past-events] .calendar-month-event[past-event]:not([data-lesson-status=unpaid]):not([data-lesson-status=paid]),
-#calendar[data-transparent-past-events] .calendar-schedule-event[past-event]:not([data-lesson-status=unpaid]):not([data-lesson-status=paid]),
-#calendar[data-transparent-past-events] .calendar-month-event-holiday[past-event]:not([data-lesson-status=unpaid]):not([data-lesson-status=paid]) {
+#calendar[data-transparent-past-events] .calendar-schedule-break[past-event],
+#calendar[data-transparent-past-events] .calendar-month-event-break[past-event],
+#calendar[data-transparent-past-events] .calendar-month-event-dot[past-event],
+#calendar[data-transparent-past-events] .calendar-schedule-event-break[past-event],
+#calendar[data-transparent-past-events] .calendar-schedule-event-holiday[past-event],
+#calendar[data-transparent-past-events] .calendar-schedule-holiday[past-event],
+#calendar[data-transparent-past-events] .calendar-month-event-holiday[past-event],
+#calendar[data-transparent-past-events] .calendar-schedule-holiday-cell[past-event],
+#calendar[data-transparent-past-events] .lm-schedule-item[past-event],
+#calendar[data-transparent-past-events] .calendar-month-event[past-event],
+#calendar[data-transparent-past-events] .calendar-schedule-event[past-event],
+#calendar[data-transparent-past-events] .calendar-month-event-holiday[past-event] {
   opacity: 0.4;
 }
 
