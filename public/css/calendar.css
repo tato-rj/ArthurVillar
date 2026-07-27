@@ -31934,17 +31934,12 @@ button.setting-undo:hover {
   background: var(--calendar-general-event-color, #ce82ff);
   color: white;
 }
-#calendar .calendar-calendar-general-event[updated-event],
+#calendar .calendar-calendar-general-event[updated-event], #calendar .calendar-calendar-general-event[data-pending-event-copy],
 #calendar .calendar-month-event-general[updated-event],
-#calendar .calendar-schedule-event-general[updated-event] {
-  background: repeating-linear-gradient(45deg, rgb(from var(--calendar-general-event-color, #ce82ff) r g b/80%), rgb(from var(--calendar-general-event-color, #ce82ff) r g b/80%) 10px, var(--calendar-general-event-color, #ce82ff) 10px, var(--calendar-general-event-color, #ce82ff) 20px);
-}
-#calendar .calendar-calendar-general-event[data-pending-event-copy],
 #calendar .calendar-month-event-general[data-pending-event-copy],
+#calendar .calendar-schedule-event-general[updated-event],
 #calendar .calendar-schedule-event-general[data-pending-event-copy] {
   background: repeating-linear-gradient(45deg, rgb(from var(--calendar-general-event-color, #ce82ff) r g b/80%), rgb(from var(--calendar-general-event-color, #ce82ff) r g b/80%) 10px, var(--calendar-general-event-color, #ce82ff) 10px, var(--calendar-general-event-color, #ce82ff) 20px);
-  outline: 1px dashed currentColor;
-  outline-offset: -2px;
 }
 
 #calendar .calendar-calendar-general-event::before {
@@ -31958,10 +31953,13 @@ button.setting-undo:hover {
   background: var(--calendar-google-event-color, #4285F4);
   color: white;
 }
-#calendar .calendar-calendar-general-event[data-external-provider=google][updated-event],
+#calendar .calendar-calendar-general-event[data-external-provider=google][updated-event], #calendar .calendar-calendar-general-event[data-external-provider=google][data-pending-event-copy],
 #calendar .calendar-month-event-general[data-external-provider=google][updated-event],
+#calendar .calendar-month-event-general[data-external-provider=google][data-pending-event-copy],
 #calendar .calendar-schedule-event-general[data-external-provider=google][updated-event],
-.calendar-month-day-events-modal-list .calendar-month-event-general[data-external-provider=google][updated-event] {
+#calendar .calendar-schedule-event-general[data-external-provider=google][data-pending-event-copy],
+.calendar-month-day-events-modal-list .calendar-month-event-general[data-external-provider=google][updated-event],
+.calendar-month-day-events-modal-list .calendar-month-event-general[data-external-provider=google][data-pending-event-copy] {
   background: repeating-linear-gradient(45deg, rgb(from var(--calendar-google-event-color, #4285F4) r g b/80%), rgb(from var(--calendar-google-event-color, #4285F4) r g b/80%) 10px, var(--calendar-google-event-color, #4285F4) 10px, var(--calendar-google-event-color, #4285F4) 20px);
 }
 
@@ -32881,14 +32879,14 @@ button.single-lesson-plan-create[selected] i {
   background: var(--calendar-unconfirmed-lesson-color, #6b7280);
   color: white;
 }
-#calendar .lm-schedule-item[data-lesson-status=unconfirmed][updated-event], .calendar-month-event-dot[data-lesson-status=unconfirmed][updated-event], #calendar .calendar-schedule-event[data-lesson-status=unconfirmed][updated-event] {
+#calendar .lm-schedule-item[data-lesson-status=unconfirmed][updated-event], #calendar .lm-schedule-item[data-lesson-status=unconfirmed][data-pending-event-copy], .calendar-month-event-dot[data-lesson-status=unconfirmed][updated-event], .calendar-month-event-dot[data-lesson-status=unconfirmed][data-pending-event-copy], #calendar .calendar-schedule-event[data-lesson-status=unconfirmed][updated-event], #calendar .calendar-schedule-event[data-lesson-status=unconfirmed][data-pending-event-copy] {
   background: repeating-linear-gradient(45deg, rgb(from var(--calendar-unconfirmed-lesson-color, #6b7280) r g b/80%), rgb(from var(--calendar-unconfirmed-lesson-color, #6b7280) r g b/80%) 10px, var(--calendar-unconfirmed-lesson-color, #6b7280) 10px, var(--calendar-unconfirmed-lesson-color, #6b7280) 20px);
 }
 
 #calendar .lm-schedule-item[data-lesson-status=rescheduled], .calendar-month-event-dot[data-lesson-status=rescheduled], #calendar .calendar-schedule-event[data-lesson-status=rescheduled] {
   background: var(--lm-orange);
 }
-#calendar .lm-schedule-item[data-lesson-status=rescheduled][updated-event], .calendar-month-event-dot[data-lesson-status=rescheduled][updated-event], #calendar .calendar-schedule-event[data-lesson-status=rescheduled][updated-event] {
+#calendar .lm-schedule-item[data-lesson-status=rescheduled][updated-event], #calendar .lm-schedule-item[data-lesson-status=rescheduled][data-pending-event-copy], .calendar-month-event-dot[data-lesson-status=rescheduled][updated-event], .calendar-month-event-dot[data-lesson-status=rescheduled][data-pending-event-copy], #calendar .calendar-schedule-event[data-lesson-status=rescheduled][updated-event], #calendar .calendar-schedule-event[data-lesson-status=rescheduled][data-pending-event-copy] {
   background: repeating-linear-gradient(45deg, rgb(from var(--lm-orange, #ff9600) r g b/80%), rgb(from var(--lm-orange, #ff9600) r g b/80%) 10px, var(--lm-orange, #ff9600) 10px, var(--lm-orange, #ff9600) 20px);
 }
 
@@ -32896,7 +32894,7 @@ button.single-lesson-plan-create[selected] i {
   background: var(--calendar-unpaid-lesson-color, #ff4b4b);
   color: white;
 }
-#calendar .lm-schedule-item[data-lesson-status=unpaid][updated-event], .calendar-month-event-dot[data-lesson-status=unpaid][updated-event], #calendar .calendar-schedule-event[data-lesson-status=unpaid][updated-event] {
+#calendar .lm-schedule-item[data-lesson-status=unpaid][updated-event], #calendar .lm-schedule-item[data-lesson-status=unpaid][data-pending-event-copy], .calendar-month-event-dot[data-lesson-status=unpaid][updated-event], .calendar-month-event-dot[data-lesson-status=unpaid][data-pending-event-copy], #calendar .calendar-schedule-event[data-lesson-status=unpaid][updated-event], #calendar .calendar-schedule-event[data-lesson-status=unpaid][data-pending-event-copy] {
   background: repeating-linear-gradient(45deg, rgb(from var(--calendar-unpaid-lesson-color, #ff4b4b) r g b/80%), rgb(from var(--calendar-unpaid-lesson-color, #ff4b4b) r g b/80%) 10px, var(--calendar-unpaid-lesson-color, #ff4b4b) 10px, var(--calendar-unpaid-lesson-color, #ff4b4b) 20px);
 }
 
@@ -32904,7 +32902,7 @@ button.single-lesson-plan-create[selected] i {
   background: var(--calendar-paid-lesson-color, #58cc02);
   color: white;
 }
-#calendar .lm-schedule-item[data-lesson-status=paid][updated-event], .calendar-month-event-dot[data-lesson-status=paid][updated-event], #calendar .calendar-schedule-event[data-lesson-status=paid][updated-event] {
+#calendar .lm-schedule-item[data-lesson-status=paid][updated-event], #calendar .lm-schedule-item[data-lesson-status=paid][data-pending-event-copy], .calendar-month-event-dot[data-lesson-status=paid][updated-event], .calendar-month-event-dot[data-lesson-status=paid][data-pending-event-copy], #calendar .calendar-schedule-event[data-lesson-status=paid][updated-event], #calendar .calendar-schedule-event[data-lesson-status=paid][data-pending-event-copy] {
   background: repeating-linear-gradient(45deg, rgb(from var(--calendar-paid-lesson-color, #58cc02) r g b/80%), rgb(from var(--calendar-paid-lesson-color, #58cc02) r g b/80%) 10px, var(--calendar-paid-lesson-color, #58cc02) 10px, var(--calendar-paid-lesson-color, #58cc02) 20px);
 }
 
@@ -32912,7 +32910,7 @@ button.single-lesson-plan-create[selected] i {
   background: var(--calendar-paid-lesson-color, #58cc02);
   color: white;
 }
-#calendar .lm-schedule-item[data-lesson-status=early-payment][updated-event], .calendar-month-event-dot[data-lesson-status=early-payment][updated-event], #calendar .calendar-schedule-event[data-lesson-status=early-payment][updated-event] {
+#calendar .lm-schedule-item[data-lesson-status=early-payment][updated-event], #calendar .lm-schedule-item[data-lesson-status=early-payment][data-pending-event-copy], .calendar-month-event-dot[data-lesson-status=early-payment][updated-event], .calendar-month-event-dot[data-lesson-status=early-payment][data-pending-event-copy], #calendar .calendar-schedule-event[data-lesson-status=early-payment][updated-event], #calendar .calendar-schedule-event[data-lesson-status=early-payment][data-pending-event-copy] {
   background: repeating-linear-gradient(45deg, rgb(from var(--calendar-paid-lesson-color, #58cc02) r g b/80%), rgb(from var(--calendar-paid-lesson-color, #58cc02) r g b/80%) 10px, var(--calendar-paid-lesson-color, #58cc02) 10px, var(--calendar-paid-lesson-color, #58cc02) 20px);
 }
 

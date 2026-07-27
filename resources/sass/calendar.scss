@@ -553,7 +553,8 @@ button.setting-undo {
     background: var(--calendar-general-event-color, #ce82ff);
     color: white;
 
-    &[updated-event] {
+    &[updated-event],
+    &[data-pending-event-copy] {
         background: repeating-linear-gradient(
                       45deg,
                       rgb(from var(--calendar-general-event-color, #ce82ff) r g b / 80%),
@@ -563,17 +564,6 @@ button.setting-undo {
                     );
     }
 
-    &[data-pending-event-copy] {
-        background: repeating-linear-gradient(
-                      45deg,
-                      rgb(from var(--calendar-general-event-color, #ce82ff) r g b / 80%),
-                      rgb(from var(--calendar-general-event-color, #ce82ff) r g b / 80%) 10px,
-                      var(--calendar-general-event-color, #ce82ff) 10px,
-                      var(--calendar-general-event-color, #ce82ff) 20px
-                    );
-        outline: 1px dashed currentColor;
-        outline-offset: -2px;
-    }
 }
 
 #calendar .calendar-calendar-general-event::before {
@@ -587,7 +577,8 @@ button.setting-undo {
     background: var(--calendar-google-event-color, #4285F4);
     color: white;
 
-    &[updated-event] {
+    &[updated-event],
+    &[data-pending-event-copy] {
         background: repeating-linear-gradient(
                       45deg,
                       rgb(from var(--calendar-google-event-color, #4285F4) r g b / 80%),
@@ -1577,7 +1568,8 @@ button.single-lesson-plan-create[selected] i {
     background: var(--calendar-unconfirmed-lesson-color, #6b7280);
     color: white;
 
-    &[updated-event] {
+    &[updated-event],
+    &[data-pending-event-copy] {
         background: repeating-linear-gradient(
                       45deg,
                       rgb(from var(--calendar-unconfirmed-lesson-color, #6b7280) r g b / 80%),
@@ -1591,7 +1583,8 @@ button.single-lesson-plan-create[selected] i {
 #calendar .lm-schedule-item[data-lesson-status="rescheduled"], .calendar-month-event-dot[data-lesson-status="rescheduled"], #calendar .calendar-schedule-event[data-lesson-status="rescheduled"] {
     background: var(--lm-orange);
 
-    &[updated-event] {
+    &[updated-event],
+    &[data-pending-event-copy] {
         background: repeating-linear-gradient(
                       45deg,
                       rgb(from var(--lm-orange, #ff9600) r g b / 80%),
@@ -1606,7 +1599,8 @@ button.single-lesson-plan-create[selected] i {
     background: var(--calendar-unpaid-lesson-color, #ff4b4b);
     color: white;
 
-    &[updated-event] {
+    &[updated-event],
+    &[data-pending-event-copy] {
         background: repeating-linear-gradient(
                       45deg,
                       rgb(from var(--calendar-unpaid-lesson-color, #ff4b4b) r g b / 80%),
@@ -1621,7 +1615,8 @@ button.single-lesson-plan-create[selected] i {
     background: var(--calendar-paid-lesson-color, #58cc02);
     color: white;
 
-    &[updated-event] {
+    &[updated-event],
+    &[data-pending-event-copy] {
         background: repeating-linear-gradient(
                       45deg,
                       rgb(from var(--calendar-paid-lesson-color, #58cc02) r g b / 80%),
@@ -1636,7 +1631,8 @@ button.single-lesson-plan-create[selected] i {
     background: var(--calendar-paid-lesson-color, #58cc02);
     color: white;
 
-    &[updated-event] {
+    &[updated-event],
+    &[data-pending-event-copy] {
         background: repeating-linear-gradient(
                       45deg,
                       rgb(from var(--calendar-paid-lesson-color, #58cc02) r g b / 80%),

@@ -8410,6 +8410,9 @@ var getPlannedLessonEvents = function getPlannedLessonEvents(range) {
           calendarStatus: occurrence.calendar_status || lessonStatus,
           'data-lesson-status': occurrence.calendar_status || lessonStatus,
           feeAmount: occurrence.fee_amount || lesson.fee_amount || 0,
+          studentId: lesson.student_id || lesson.student && lesson.student.id || '',
+          paymentMethod: lesson.payment_method || lesson.student && lesson.student.payment_method || '',
+          notes: lesson.notes || '',
           locationId: normalizeLocationId(lesson.location_id),
           locationName: lesson.location && lesson.location.name ? lesson.location.name : '',
           location: lesson.location || null,
@@ -8473,6 +8476,9 @@ var getPlannedLessonEvents = function getPlannedLessonEvents(range) {
         calendarStatus: lessonStatus,
         'data-lesson-status': lessonStatus,
         feeAmount: confirmedLesson && confirmedLesson.fee_amount ? confirmedLesson.fee_amount : lesson.fee_amount || 0,
+        studentId: lesson.student_id || lesson.student && lesson.student.id || '',
+        paymentMethod: lesson.payment_method || lesson.student && lesson.student.payment_method || '',
+        notes: lesson.notes || '',
         locationId: normalizeLocationId(lesson.location_id),
         locationName: lesson.location && lesson.location.name ? lesson.location.name : '',
         location: lesson.location || null,
@@ -8653,6 +8659,60 @@ var openDuplicateGeneralEventModal = function openDuplicateGeneralEventModal(eve
     return;
   }
   showCreateModal();
+};
+var prepareDuplicateSingleLessonForm = function prepareDuplicateSingleLessonForm(modal, event) {
+  var form = modal ? modal.querySelector('[data-single-lesson-plan-form]') : null;
+  if (!form || !event) {
+    return false;
+  }
+  form.reset();
+  var combobox = form.querySelector('[data-student-combobox]');
+  var studentInput = combobox ? combobox.querySelector('[data-student-combobox-input]') : null;
+  var studentValue = combobox ? combobox.querySelector('[data-student-combobox-value]') : null;
+  var studentOptions = combobox ? Array.from(combobox.querySelectorAll('[data-student-combobox-option]')) : [];
+  var matchingStudent = studentOptions.find(function (option) {
+    return event.studentId && String(option.dataset.studentId || '') === String(event.studentId);
+  }) || studentOptions.find(function (option) {
+    return String(option.dataset.studentName || '').trim().toLowerCase() === String(event.title || '').trim().toLowerCase();
+  });
+  if (studentInput) {
+    studentInput.value = matchingStudent ? matchingStudent.dataset.studentName || matchingStudent.textContent.trim() : event.title || '';
+    studentInput.setCustomValidity('');
+  }
+  if (studentValue) {
+    studentValue.value = matchingStudent ? matchingStudent.dataset.studentId || '' : event.studentId || '';
+  }
+  if (matchingStudent) {
+    syncFormDefaultsFromStudentOption(matchingStudent);
+  }
+  setNamedFormValue(form, 'location_id', event.locationId);
+  setNamedFormValue(form, 'scheduled_date', event.date);
+  setNamedFormValue(form, 'start_time', event.start);
+  setNamedFormValue(form, 'duration_minutes', Math.max(15, getTimeMinutes(event.end) - getTimeMinutes(event.start)));
+  setNamedFormValue(form, 'fee_amount', event.feeAmount ? Number(event.feeAmount) / 100 : '');
+  setNamedFormValue(form, 'payment_method', event.paymentMethod);
+  setNamedFormValue(form, 'meeting_url', event.meetingUrl);
+  setNamedFormValue(form, 'notes_url', event.notesUrl);
+  setNamedFormValue(form, 'notes', event.notes);
+  var locationSelect = form.querySelector('select[name="location_id"]');
+  if (locationSelect) {
+    locationSelect.dispatchEvent(new window.Event('change', {
+      bubbles: true
+    }));
+    // The location change sets its default fee, so restore the copied lesson's fee.
+    setNamedFormValue(form, 'fee_amount', event.feeAmount ? Number(event.feeAmount) / 100 : '');
+    setNamedFormValue(form, 'meeting_url', event.meetingUrl);
+    setNamedFormValue(form, 'notes_url', event.notesUrl);
+  }
+  modal.dataset.preserveScheduledDateOnce = 'true';
+  return true;
+};
+var openDuplicateSingleLessonModal = function openDuplicateSingleLessonModal(event) {
+  var createModal = document.getElementById('create-single-lesson-plan-modal');
+  if (!prepareDuplicateSingleLessonForm(createModal, event)) {
+    return;
+  }
+  showBootstrapModal(createModal);
 };
 var showCalendarEditError = function showCalendarEditError(modal, message) {
   if (!modal) {
@@ -9251,6 +9311,10 @@ var initializeSingleLessonPlanForms = function initializeSingleLessonPlanForms(r
     }
     if (modal) {
       modal.addEventListener('show.bs.modal', function () {
+        if (modal.dataset.preserveScheduledDateOnce === 'true') {
+          delete modal.dataset.preserveScheduledDateOnce;
+          return;
+        }
         syncSingleLessonPlanModalDate(modal);
       });
     }
@@ -9374,7 +9438,7 @@ document.addEventListener('DOMContentLoaded', function () {
   var scheduleCopyModifierPressed = false;
   var suppressedScheduleItemClick = null;
   var scheduleHoldNavigationSuppressedUntil = 0;
-  var pendingGeneralEventCopySequence = 0;
+  var pendingEventCopySequence = 0;
   var isScheduleHoldNavigationSuppressed = function isScheduleHoldNavigationSuppressed() {
     return Boolean(scheduleItemHold && scheduleItemHold.active) || Date.now() < scheduleHoldNavigationSuppressedUntil;
   };
@@ -10373,9 +10437,18 @@ document.addEventListener('DOMContentLoaded', function () {
       clientY: clientY === undefined ? hold.lastY : clientY
     }));
   };
-  var canCopyScheduleItem = function canCopyScheduleItem(item) {
+  var getScheduleItemCopyType = function getScheduleItemCopyType(item) {
     var event = item && item.event;
-    return Boolean(event && event.isGeneralEvent && !event.readOnly && !event.externalProvider && !item.hasAttribute('data-pending-event-copy'));
+    if (!event || event.readOnly || event.externalProvider || event.isHoliday || event.isBreak || event.isRecital || item.hasAttribute('data-pending-event-copy')) {
+      return '';
+    }
+    if (event.isGeneralEvent) {
+      return 'general';
+    }
+    return event.studentId || event.lessonPlanId || event.singleLessonPlanId ? 'lesson' : '';
+  };
+  var canCopyScheduleItem = function canCopyScheduleItem(item) {
+    return Boolean(getScheduleItemCopyType(item));
   };
   var setScheduleHoldCopyMode = function setScheduleHoldCopyMode(hold, shouldCopy) {
     if (!hold) {
@@ -10466,7 +10539,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     var clone = hold.clone;
     var sourceEvent = hold.item.event;
-    var guid = "pending-general-event-copy-".concat(Date.now(), "-").concat(pendingGeneralEventCopySequence += 1);
+    var copyType = getScheduleItemCopyType(hold.item);
+    var guid = "pending-".concat(copyType, "-copy-").concat(Date.now(), "-").concat(pendingEventCopySequence += 1);
     var copiedEvent = Object.assign({}, sourceEvent, {
       guid: guid,
       id: null,
@@ -10485,7 +10559,7 @@ document.addEventListener('DOMContentLoaded', function () {
     clone.removeAttribute('copying-event');
     clone.removeAttribute('aria-hidden');
     (_clone$querySelector = clone.querySelector(':scope > .calendar-schedule-copy-indicator')) === null || _clone$querySelector === void 0 || _clone$querySelector.remove();
-    clone.setAttribute('data-pending-event-copy', '');
+    clone.setAttribute('data-pending-event-copy', copyType);
     clone.dataset.eventGuid = guid;
     clone.event = copiedEvent;
     clone.start = start;
@@ -10829,9 +10903,14 @@ document.addEventListener('DOMContentLoaded', function () {
     if (item.hasAttribute('data-pending-event-copy')) {
       e.preventDefault();
       e.stopPropagation();
-      openDuplicateGeneralEventModal(getEventByScheduleItem(item), null, {
-        preserveDate: true
-      });
+      var copiedEvent = getEventByScheduleItem(item);
+      if (item.dataset.pendingEventCopy === 'lesson') {
+        openDuplicateSingleLessonModal(copiedEvent);
+      } else {
+        openDuplicateGeneralEventModal(copiedEvent, null, {
+          preserveDate: true
+        });
+      }
       return;
     }
     if (item.classList.contains('lm-schedule-item') && suppressedScheduleItemClick === item) {
