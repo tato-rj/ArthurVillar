@@ -329,4 +329,11 @@ class LessonsController extends Controller
     {
         return $lesson;
     }
+
+    public function destroy(Lesson $lesson)
+    {
+        $lesson->delete();
+
+        return back()->with('success', 'The lesson record was successfully deleted');
+    }
 }

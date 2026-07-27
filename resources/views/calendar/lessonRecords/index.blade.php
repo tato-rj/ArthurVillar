@@ -37,6 +37,7 @@
                     <th>Duration</th>
                     <th>Payment</th>
                     <th>Status</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
         </table>
@@ -216,6 +217,26 @@ $(function() {
                         : (data === 'Unpaid' ? 'text-red' : 'text-light');
 
                     return `<span class="${statusClass}">${data}</span>`;
+                },
+            },
+            {
+                data: 'id',
+                name: 'actions',
+                orderable: false,
+                searchable: false,
+                className: 'text-right',
+                render: function(data) {
+                    const deleteUrl = @json(route('calendar.lessons.destroy', ['lesson' => '__lesson__'])).replace('__lesson__', data);
+
+                    return `<div class="calendar-table-actions">
+                        <form method="POST" action="${deleteUrl}" confirm>
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-sm btn-red rounded" aria-label="Delete lesson record" title="Delete lesson record">
+                                @fa(['icon' => 'trash-alt', 'mr' => 0])
+                            </button>
+                        </form>
+                    </div>`;
                 },
             },
         ],

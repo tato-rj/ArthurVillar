@@ -207,6 +207,7 @@ Route::prefix('lessons')->name('lessons.')->group(function() {
 
 	Route::prefix('{lesson}')->group(function() {
 		Route::get('', 'LessonsController@edit')->name('edit');
+		Route::delete('', 'LessonsController@destroy')->name('destroy');
 
 		Route::prefix('payments')->name('payment.')->group(function() {
 			Route::post('', 'PaymentsController@store')->name('store');

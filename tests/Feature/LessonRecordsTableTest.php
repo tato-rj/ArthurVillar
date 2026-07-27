@@ -142,7 +142,8 @@ class LessonRecordsTableTest extends BaseTest
             ->assertSee('data-bs-toggle="popover"', false)
             ->assertSee('text-decoration-line-through', false)
             ->assertDontSee('js-revert-canceled-lesson', false)
-            ->assertDontSee('<th>Actions</th>', false);
+            ->assertSee('<th>Actions</th>', false)
+            ->assertSee('Delete lesson record');
 
         $response = $this->getJson(route('calendar.tables.lesson-records'))->assertOk();
         $rows = collect($response->json('data'));
@@ -167,6 +168,7 @@ class LessonRecordsTableTest extends BaseTest
             ->assertSee("Route's lesson records")
             ->assertSee('lesson-records-table', false)
             ->assertSeeInOrder(['<th>Payment</th>', '<th>Status</th>'], false)
+            ->assertSee('<th>Actions</th>', false)
             ->assertDontSee('<th>Fee</th>', false);
 
         $this->get(route('calendar.lessons.index'))
@@ -202,5 +204,19 @@ class LessonRecordsTableTest extends BaseTest
             ->assertOk()
             ->assertJsonFragment(['student' => 'Inside Canceled'])
             ->assertJsonMissing(['student' => 'Outside Canceled']);
+    }
+
+    /** @test */
+    public function a_lesson_record_can_be_permanently_deleted()
+    {
+        $lesson = Lesson::factory()->create();
+
+        $this->signIn();
+
+        $this->delete(route('calendar.lessons.destroy', $lesson))
+            ->assertRedirect()
+            ->assertSessionHas('success', 'The lesson record was successfully deleted');
+
+        $this->assertDatabaseMissing('lessons', ['id' => $lesson->id]);
     }
 }
