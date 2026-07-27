@@ -33448,6 +33448,14 @@ button.single-lesson-plan-create[selected] i {
   .hide-in-mobile {
     display: none !important;
   }
+  #calendar {
+    isolation: isolate;
+    position: relative;
+    z-index: 0;
+  }
+  #calendar .lm-schedule thead td {
+    z-index: 6000;
+  }
   i.fa-bars, i.fa-ellipsis-vertical {
     font-size: 110%;
   }
