@@ -111,6 +111,86 @@ class CalendarLessonFlowTest extends BaseTest
     }
 
     /** @test */
+    public function unified_lesson_form_creates_a_single_plan_when_it_does_not_repeat()
+    {
+        $student = Student::factory()->create();
+        $location = Location::factory()->create();
+        $this->signIn();
+
+        $this->post(route('calendar.lesson-plans.store'), [
+            'student_id' => $student->id,
+            'location_id' => $location->id,
+            'starts_on' => '2026-07-08',
+            'repeat' => 'none',
+            'ends_on' => '',
+            'start_time' => '15:30',
+            'duration_minutes' => 45,
+            'fee_amount' => '60',
+            'payment_method' => 'Venmo',
+            'notes' => 'One time only.',
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('single_lesson_plans', [
+            'student_id' => $student->id,
+            'location_id' => $location->id,
+            'scheduled_date' => '2026-07-08 00:00:00',
+            'start_time' => '15:30',
+            'duration_minutes' => 45,
+            'fee_amount' => 6000,
+            'notes' => 'One time only.',
+        ]);
+        $this->assertDatabaseCount('lesson_plans', 0);
+    }
+
+    /** @test */
+    public function unified_lesson_form_derives_recurring_weekday_from_the_initial_date()
+    {
+        $student = Student::factory()->create();
+        $location = Location::factory()->create();
+        $this->signIn();
+
+        $this->post(route('calendar.lesson-plans.store'), [
+            'student_id' => $student->id,
+            'location_id' => $location->id,
+            'starts_on' => '2026-07-08',
+            'repeat' => '2',
+            'ends_on' => '2026-12-16',
+            'start_time' => '15:30',
+            'duration_minutes' => 45,
+            'fee_amount' => '60',
+            'payment_method' => 'Venmo',
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('lesson_plans', [
+            'student_id' => $student->id,
+            'weekday' => 4,
+            'recurrence_interval' => 2,
+            'starts_on' => '2026-07-08 00:00:00',
+            'ends_on' => '2026-12-16 00:00:00',
+        ]);
+        $this->assertDatabaseCount('single_lesson_plans', 0);
+    }
+
+    /** @test */
+    public function recurring_lessons_require_an_end_date_in_the_unified_form()
+    {
+        $this->signIn();
+
+        $this->post(route('calendar.lesson-plans.store'), [
+            'student_id' => Student::factory()->create()->id,
+            'location_id' => Location::factory()->create()->id,
+            'starts_on' => '2026-07-08',
+            'repeat' => '1',
+            'ends_on' => '',
+            'start_time' => '15:30',
+            'duration_minutes' => 45,
+        ])->assertSessionHasErrors('ends_on');
+
+        $this->assertDatabaseCount('lesson_plans', 0);
+        $this->assertDatabaseCount('single_lesson_plans', 0);
+    }
+
+    /** @test */
     public function it_does_not_create_a_lesson_plan_that_overlaps_another_complete_lesson_plan()
     {
         $student = Student::factory()->create();
@@ -1361,7 +1441,7 @@ class CalendarLessonFlowTest extends BaseTest
             'weekday' => 2,
             'recurrence_interval' => 1,
             'starts_on' => '07/06/2026',
-            'ends_on' => '',
+            'ends_on' => '08/06/2026',
             'start_time' => '15:30',
             'duration_minutes' => 45,
             'fee_amount' => '30',

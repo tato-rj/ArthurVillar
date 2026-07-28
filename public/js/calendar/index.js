@@ -7753,7 +7753,8 @@ var updateLessonModalState = function updateLessonModalState(modal, payload) {
   }
   if (event) {
     event.lessonStatus = status;
-    event.calendarStatus = status === 'early-payment' ? status : payload && payload.schedule_override_deleted ? status : event.calendarStatus === 'rescheduled' ? 'rescheduled' : status;
+    var hasReschedule = !(payload && payload.schedule_override_deleted) && (event.calendarStatus === 'rescheduled' || event.scheduleOverrideId);
+    event.calendarStatus = hasReschedule && status === 'unconfirmed' ? 'rescheduled' : status;
     event['data-lesson-status'] = event.calendarStatus;
     event.canceledBy = payload && payload.canceled_by ? payload.canceled_by : '';
     event.lessonEditUrl = payload && payload.lesson_deleted ? '' : editUrl || event.lessonEditUrl || '';
@@ -8803,7 +8804,7 @@ var openDuplicateGeneralEventModal = function openDuplicateGeneralEventModal(eve
   showCreateModal();
 };
 var prepareDuplicateSingleLessonForm = function prepareDuplicateSingleLessonForm(modal, event) {
-  var form = modal ? modal.querySelector('[data-single-lesson-plan-form]') : null;
+  var form = modal ? modal.querySelector('[data-lesson-plan-form]') : null;
   if (!form || !event) {
     return false;
   }
@@ -8828,7 +8829,9 @@ var prepareDuplicateSingleLessonForm = function prepareDuplicateSingleLessonForm
     syncFormDefaultsFromStudentOption(matchingStudent);
   }
   setNamedFormValue(form, 'location_id', event.locationId);
-  setNamedFormValue(form, 'scheduled_date', event.date);
+  setNamedFormValue(form, 'starts_on', event.date);
+  setNamedFormValue(form, 'repeat', 'none');
+  setNamedFormValue(form, 'ends_on', '');
   setNamedFormValue(form, 'start_time', event.start);
   setNamedFormValue(form, 'duration_minutes', Math.max(15, getTimeMinutes(event.end) - getTimeMinutes(event.start)));
   setNamedFormValue(form, 'fee_amount', event.feeAmount ? Number(event.feeAmount) / 100 : '');
@@ -8846,11 +8849,17 @@ var prepareDuplicateSingleLessonForm = function prepareDuplicateSingleLessonForm
     setNamedFormValue(form, 'meeting_url', event.meetingUrl);
     setNamedFormValue(form, 'notes_url', event.notesUrl);
   }
+  var repeatSelect = form.querySelector('select[name="repeat"]');
+  if (repeatSelect) {
+    repeatSelect.dispatchEvent(new window.Event('change', {
+      bubbles: true
+    }));
+  }
   modal.dataset.preserveScheduledDateOnce = 'true';
   return true;
 };
 var openDuplicateSingleLessonModal = function openDuplicateSingleLessonModal(event) {
-  var createModal = document.getElementById('create-single-lesson-plan-modal');
+  var createModal = document.getElementById('create-calendar-lesson-plan-modal');
   if (!prepareDuplicateSingleLessonForm(createModal, event)) {
     return;
   }
@@ -9421,12 +9430,6 @@ var getSingleLessonPlanDefaultDate = function getSingleLessonPlanDefaultDate() {
   }
   return toDateString(getVisibleDateRange().start);
 };
-var syncSingleLessonPlanModalDate = function syncSingleLessonPlanModalDate(modal) {
-  var dateInput = modal ? modal.querySelector('input[name="scheduled_date"]') : null;
-  if (dateInput) {
-    dateInput.value = getSingleLessonPlanDefaultDate();
-  }
-};
 var initializeSingleLessonPlanForms = function initializeSingleLessonPlanForms(root) {
   (root || document).querySelectorAll('[data-single-lesson-plan-form]').forEach(function (form) {
     if (form.dataset.calendarFormInitialized === 'true') {
@@ -9435,7 +9438,6 @@ var initializeSingleLessonPlanForms = function initializeSingleLessonPlanForms(r
     form.dataset.calendarFormInitialized = 'true';
     var locationSelect = form.querySelector('select[name="location_id"]');
     var durationSelect = form.querySelector('select[name="duration_minutes"]');
-    var modal = form.closest('#create-single-lesson-plan-modal');
     setSingleLessonOnlineFields(form, false);
     if (locationSelect && durationSelect) {
       syncSingleLessonFee(form);
@@ -9449,15 +9451,6 @@ var initializeSingleLessonPlanForms = function initializeSingleLessonPlanForms(r
     if (durationSelect) {
       durationSelect.addEventListener('change', function () {
         syncSingleLessonFee(form);
-      });
-    }
-    if (modal) {
-      modal.addEventListener('show.bs.modal', function () {
-        if (modal.dataset.preserveScheduledDateOnce === 'true') {
-          delete modal.dataset.preserveScheduledDateOnce;
-          return;
-        }
-        syncSingleLessonPlanModalDate(modal);
       });
     }
   });
@@ -9475,6 +9468,21 @@ var setLessonPlanOnlineFields = function setLessonPlanOnlineFields(form, shouldE
       }
     }
   });
+};
+var syncLessonRepeatFields = function syncLessonRepeatFields(form, shouldReset) {
+  var repeatSelect = form ? form.querySelector('select[name="repeat"]') : null;
+  var endsOnWrapper = form ? form.querySelector('[data-lesson-repeat-end]') : null;
+  var endsOnInput = endsOnWrapper ? endsOnWrapper.querySelector('input[name="ends_on"]') : null;
+  var isRecurring = repeatSelect && repeatSelect.value !== 'none';
+  if (!endsOnWrapper || !endsOnInput) {
+    return;
+  }
+  endsOnWrapper.style.display = isRecurring ? '' : 'none';
+  endsOnInput.disabled = !isRecurring;
+  endsOnInput.required = !!isRecurring;
+  if (!isRecurring && shouldReset) {
+    endsOnInput.value = '';
+  }
 };
 var syncLessonPlanFee = function syncLessonPlanFee(form) {
   var selectedOption = getSelectedLocationOption(form);
@@ -9500,7 +9508,10 @@ var initializeLessonPlanForms = function initializeLessonPlanForms(root) {
     form.dataset.calendarFormInitialized = 'true';
     var locationSelect = form.querySelector('select[name="location_id"]');
     var durationSelect = form.querySelector('select[name="duration_minutes"]');
+    var repeatSelect = form.querySelector('select[name="repeat"]');
+    var modal = form.closest('#create-calendar-lesson-plan-modal');
     setLessonPlanOnlineFields(form, false);
+    syncLessonRepeatFields(form, false);
     if (locationSelect && durationSelect) {
       syncLessonPlanFee(form);
     }
@@ -9513,6 +9524,23 @@ var initializeLessonPlanForms = function initializeLessonPlanForms(root) {
     if (durationSelect) {
       durationSelect.addEventListener('change', function () {
         syncLessonPlanFee(form);
+      });
+    }
+    if (repeatSelect) {
+      repeatSelect.addEventListener('change', function () {
+        syncLessonRepeatFields(form, true);
+      });
+    }
+    if (modal) {
+      modal.addEventListener('show.bs.modal', function () {
+        if (modal.dataset.preserveScheduledDateOnce === 'true') {
+          delete modal.dataset.preserveScheduledDateOnce;
+          return;
+        }
+        setNamedFormValue(form, 'starts_on', getSingleLessonPlanDefaultDate());
+        setNamedFormValue(form, 'repeat', 'none');
+        setNamedFormValue(form, 'ends_on', '');
+        syncLessonRepeatFields(form, true);
       });
     }
   });
@@ -9567,8 +9595,7 @@ document.addEventListener('DOMContentLoaded', function () {
   var eventTypeFilters = document.querySelector('[data-calendar-event-type-filters]');
   var calendarCreateMenu = document.querySelector('[data-calendar-create-menu]');
   var calendarCreateToggle = document.querySelector('[data-calendar-create-toggle]');
-  var calendarCreateSingle = document.querySelector('[data-calendar-create-single]');
-  var calendarCreateRecurring = document.querySelector('[data-calendar-create-recurring]');
+  var calendarCreateLesson = document.querySelector('[data-calendar-create-lesson]');
   var calendarCreateEvent = document.querySelector('[data-calendar-create-event]');
   var calendarFilter = document.querySelector('.calendar-calendar-filter');
   var calendarFilterReset = document.querySelector('[data-calendar-filter-reset]');
@@ -9693,13 +9720,8 @@ document.addEventListener('DOMContentLoaded', function () {
       setCalendarCreateMenuOpen(!(calendarCreateMenu && calendarCreateMenu.hasAttribute('selected')));
     });
   }
-  if (calendarCreateSingle) {
-    calendarCreateSingle.addEventListener('click', function () {
-      openCalendarCreateModal('create-single-lesson-plan-modal');
-    });
-  }
-  if (calendarCreateRecurring) {
-    calendarCreateRecurring.addEventListener('click', function () {
+  if (calendarCreateLesson) {
+    calendarCreateLesson.addEventListener('click', function () {
       openCalendarCreateModal('create-calendar-lesson-plan-modal');
     });
   }

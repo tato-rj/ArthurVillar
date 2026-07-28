@@ -22,13 +22,11 @@
 	</div>
 
 	<div class="row">
-		@select(['label' => 'Weekday', 'name' => 'weekday', 'grid' => 'col'])
-			@foreach(weekday() as $day)
-				@option(['name' => 'weekday', 'label' => ucfirst($day), 'value' => $loop->iteration, 'selected' => $lessonPlan->weekday == $loop->iteration])
-			@endforeach
-		@endselect
+		@input(['label' => 'Date', 'name' => 'starts_on', 'type' => 'date', 'value' => optional($lessonPlan->starts_on)->format('Y-m-d'), 'grid' => 'col'])
+	</div>
 
-		@select(['label' => 'Frequency', 'name' => 'recurrence_interval', 'grid' => 'col'])
+	<div class="row">
+		@select(['label' => 'Repeat', 'name' => 'recurrence_interval', 'grid' => 'col'])
 			@foreach(['Every week', 'Every other week'] as $frequency)
 				@option(['name' => 'recurrence_interval', 'label' => $frequency, 'value' => $loop->iteration, 'selected' => $lessonPlan->recurrence_interval == $loop->iteration])
 			@endforeach
@@ -36,8 +34,6 @@
 	</div>
 
 	<div class="row">
-		@input(['label' => 'Starts on', 'name' => 'starts_on', 'type' => 'date', 'value' => optional($lessonPlan->starts_on)->format('Y-m-d'), 'grid' => 'col'])
-
 		@input(['label' => 'Ends on', 'name' => 'ends_on', 'type' => 'date', 'value' => optional($lessonPlan->ends_on)->format('Y-m-d'), 'grid' => 'col'])
 	</div>
 

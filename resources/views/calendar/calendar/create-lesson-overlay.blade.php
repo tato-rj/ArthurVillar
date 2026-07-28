@@ -1,12 +1,7 @@
 <div class="calendar-calendar-create-menu" data-calendar-create-menu>
-	<button type="button" class="calendar-calendar-create-menu-option" data-calendar-create-single>
+	<button type="button" class="calendar-calendar-create-menu-option" data-calendar-create-lesson>
 		@fa(['icon' => 'calendar-day', 'mr' => 2])
-		Single Lesson
-	</button>
-
-	<button type="button" class="calendar-calendar-create-menu-option" data-calendar-create-recurring>
-		@fa(['icon' => 'repeat', 'mr' => 2])
-		Recurring Lesson
+		Lesson
 	</button>
 
 	<button type="button" class="calendar-calendar-create-menu-option" data-calendar-create-event>
@@ -19,6 +14,5 @@
 	@fa(['icon' => 'plus', 'mr' => 0])
 </button>
 
-@include('calendar.singleLessonPlans.create')
 @include('calendar.lessonPlans.create')
 @include('calendar.events.create')

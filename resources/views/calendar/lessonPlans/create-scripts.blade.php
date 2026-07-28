@@ -73,6 +73,25 @@ window.calendarLessonPlanCreateForms = window.calendarLessonPlanCreateForms || (
         feeInput.value = roundedFee.toFixed(2).replace(/\.00$/, '');
     };
 
+    const syncRepeatFields = function(form, shouldReset) {
+        const repeatSelect = form ? form.querySelector('select[name="repeat"]') : null;
+        const endsOnWrapper = form ? form.querySelector('[data-lesson-repeat-end]') : null;
+        const endsOnInput = endsOnWrapper ? endsOnWrapper.querySelector('input[name="ends_on"]') : null;
+        const isRecurring = repeatSelect && repeatSelect.value !== 'none';
+
+        if (!endsOnWrapper || !endsOnInput) {
+            return;
+        }
+
+        endsOnWrapper.style.display = isRecurring ? '' : 'none';
+        endsOnInput.disabled = !isRecurring;
+        endsOnInput.required = !!isRecurring;
+
+        if (!isRecurring && shouldReset) {
+            endsOnInput.value = '';
+        }
+    };
+
     const syncFormDefaultsFromStudentOption = function(option) {
         const form = option ? option.closest('form') : null;
         const locationSelect = form ? form.querySelector('select[name="location_id"]') : null;
@@ -190,12 +209,14 @@ window.calendarLessonPlanCreateForms = window.calendarLessonPlanCreateForms || (
 
             const locationSelect = form.querySelector('select[name="location_id"]');
             const durationSelect = form.querySelector('select[name="duration_minutes"]');
+            const repeatSelect = form.querySelector('select[name="repeat"]');
             const onlineSelector = form.matches('[data-single-lesson-plan-form]')
                 ? '.single-lesson-plan-online-field'
                 : '.lesson-plan-online-field';
 
             syncOnlineFields(form, onlineSelector, false);
             syncFee(form);
+            syncRepeatFields(form, false);
 
             if (locationSelect) {
                 locationSelect.addEventListener('change', function() {
@@ -207,6 +228,12 @@ window.calendarLessonPlanCreateForms = window.calendarLessonPlanCreateForms || (
             if (durationSelect) {
                 durationSelect.addEventListener('change', function() {
                     syncFee(form);
+                });
+            }
+
+            if (repeatSelect) {
+                repeatSelect.addEventListener('change', function() {
+                    syncRepeatFields(form, true);
                 });
             }
         });

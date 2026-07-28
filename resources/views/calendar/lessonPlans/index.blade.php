@@ -19,20 +19,9 @@
             'modal' => [
                 'target' => '#create-calendar-lesson-plan-modal',
                 'icon' => 'plus',
-                'label' => 'New recurring plan'
+                'label' => 'New lesson'
             ]
         ])
-    </div>
-
-    <div class="d-flex justify-content-center mb-4">
-        <div class="btn-group" role="group" aria-label="Lesson plan type">
-            <a class="btn btn-secondary" href="{{route('calendar.lesson-plans.index', ['type' => 'recurring'])}}">
-                @fa(['icon' => 'rotate'])Recurring
-            </a>
-            <a class="btn btn-outline-secondary" href="{{route('calendar.lesson-plans.index', ['type' => 'one-time'])}}">
-                @fa(['icon' => 'calendar-day'])One-time
-            </a>
-        </div>
     </div>
 
     <div class="calendar-table-filters mb-3" id="lesson-plans-starts-range">
@@ -41,7 +30,7 @@
             'toId' => 'lesson-plans-starts-to',
             'fromValue' => request('starts_from'),
             'toValue' => request('starts_to'),
-            'placeholder' => 'Filter by active date range',
+            'placeholder' => 'Filter by plan date range',
         ])
     </div>
 
@@ -67,6 +56,7 @@
     </div>
 </section>
 <div id="edit-lesson-plan-modal-container"></div>
+<div id="edit-single-lesson-plan-modal-container"></div>
 @include('calendar.lessonPlans.create')
 @endsection
 
@@ -194,8 +184,7 @@ $(function() {
         }
 
         setFormFieldValue(form, 'location_id', lessonPlan.location_id);
-        setFormFieldValue(form, 'weekday', lessonPlan.weekday);
-        setFormFieldValue(form, 'recurrence_interval', lessonPlan.recurrence_interval);
+        setFormFieldValue(form, 'repeat', lessonPlan.plan_type === 'single' ? 'none' : lessonPlan.recurrence_interval);
         setFormFieldValue(form, 'starts_on', '');
         setFormFieldValue(form, 'ends_on', '');
         setFormFieldValue(form, 'start_time', lessonPlan.start_time);
@@ -207,6 +196,12 @@ $(function() {
         setFormFieldValue(form, 'notes', lessonPlan.notes);
 
         setLessonPlanOnlineFields(form, false);
+
+        const repeatSelect = form.querySelector('select[name="repeat"]');
+
+        if (repeatSelect) {
+            repeatSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        }
 
         if (window.calendarLessonPlanCreateForms && typeof window.calendarLessonPlanCreateForms.initialize === 'function') {
             window.calendarLessonPlanCreateForms.initialize(modal);
@@ -324,6 +319,10 @@ $(function() {
                 name: 'status_order',
                 searchable: false,
                 render: function(data, type, row) {
+                    if (row.plan_type === 'single' && row.status === 'active') {
+                        return 'Scheduled';
+                    }
+
                     return capitalize(row.status);
                 },
             },
@@ -333,9 +332,13 @@ $(function() {
                 orderable: false,
                 searchable: false,
                 className: 'text-right',
-                render: function(data) {
-                    const editUrl = @json(route('calendar.lesson-plans.edit', ['lessonPlan' => '__lessonPlan__'])).replace('__lessonPlan__', data);
-                    const deleteUrl = @json(route('calendar.lesson-plans.destroy', ['lessonPlan' => '__lessonPlan__'])).replace('__lessonPlan__', data);
+                render: function(data, type, row) {
+                    const recurringEditUrl = @json(route('calendar.lesson-plans.edit', ['lessonPlan' => '__plan__']));
+                    const recurringDeleteUrl = @json(route('calendar.lesson-plans.destroy', ['lessonPlan' => '__plan__']));
+                    const singleEditUrl = @json(route('calendar.single-lesson-plans.edit', ['singleLessonPlan' => '__plan__']));
+                    const singleDeleteUrl = @json(route('calendar.single-lesson-plans.destroy', ['singleLessonPlan' => '__plan__']));
+                    const editUrl = (row.plan_type === 'single' ? singleEditUrl : recurringEditUrl).replace('__plan__', data);
+                    const deleteUrl = (row.plan_type === 'single' ? singleDeleteUrl : recurringDeleteUrl).replace('__plan__', data);
 
                     return `
                         <div class="calendar-table-actions">
@@ -374,8 +377,9 @@ $(function() {
 
     $('#lesson-plans-table').on('click', '.js-edit-lesson-plan', function() {
         const url = $(this).data('url');
+        const row = lessonPlansTable.row($(this).closest('tr')).data();
 
-        if (!url) {
+        if (!url || !row) {
             return;
         }
 
@@ -393,14 +397,20 @@ $(function() {
                 return response.text();
             })
             .then(function(html) {
-                const container = $('#edit-lesson-plan-modal-container');
+                const container = row.plan_type === 'single'
+                    ? $('#edit-single-lesson-plan-modal-container')
+                    : $('#edit-lesson-plan-modal-container');
 
                 container.html(html);
 
                 const modal = container.find('.modal').get(0);
                 const form = modal ? modal.querySelector('form') : null;
 
-                setLessonPlanOnlineFields(form, false);
+                if (window.calendarLessonPlanCreateForms && typeof window.calendarLessonPlanCreateForms.initialize === 'function') {
+                    window.calendarLessonPlanCreateForms.initialize(modal);
+                } else {
+                    setLessonPlanOnlineFields(form, false);
+                }
 
                 showModal(modal);
             })

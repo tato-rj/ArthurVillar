@@ -1,6 +1,7 @@
-@modal(['title' => 'New recurring lesson', 'id' => 'create-calendar-lesson-plan-modal'])
+@modal(['title' => 'New lesson', 'id' => 'create-calendar-lesson-plan-modal'])
 @php
 	$oldStudentId = old('student_id');
+	$oldRepeat = (string) old('repeat', 'none');
 	$selectedStudent = isset($students)
 		? $students->first(fn ($student) => (string) $student->id === (string) $oldStudentId)
 		: null;
@@ -74,24 +75,20 @@
 		@input(['placeholder' => 'Notes URL', 'name' => 'notes_url', 'type' => 'url', 'value' => old('notes_url')])
 	</div>
 
-	<div class="row"> 
-		@select(['placeholder' => 'Weekday', 'name' => 'weekday', 'grid' => 'col', 'required' => true])
-			@foreach(weekday() as $day)
-				@option(['name' => 'weekday', 'label' => ucfirst($day), 'value' => $loop->iteration, 'selected' => old('weekday') == $loop->iteration])
-			@endforeach
-		@endselect
+	<div class="row">
+		@input(['placeholder' => 'Date', 'name' => 'starts_on', 'type' => 'date', 'value' => old('starts_on', today()->toDateString()), 'grid' => 'col', 'required' => true])
+	</div>
 
-		@select(['placeholder' => 'Frequency', 'name' => 'recurrence_interval', 'grid' => 'col', 'required' => true])
-			@foreach(['Every week', 'Every other week'] as $frequency)
-				@option(['name' => 'recurrence_interval', 'label' => $frequency, 'value' => $loop->iteration, 'selected' => old('recurrence_interval') == $loop->iteration])
-			@endforeach
+	<div class="row">
+		@select(['placeholder' => 'Repeat', 'name' => 'repeat', 'grid' => 'col', 'required' => true])
+			@option(['name' => 'repeat', 'label' => 'Does not repeat', 'value' => 'none', 'selected' => $oldRepeat === 'none'])
+			@option(['name' => 'repeat', 'label' => 'Every week', 'value' => 1, 'selected' => $oldRepeat === '1'])
+			@option(['name' => 'repeat', 'label' => 'Every other week', 'value' => 2, 'selected' => $oldRepeat === '2'])
 		@endselect
 	</div>
 
-	<div class="row"> 
-		@input(['placeholder' => 'Starts on', 'name' => 'starts_on', 'type' => 'date', 'value' => old('starts_on'), 'grid' => 'col'])
-
-		@input(['placeholder' => 'Ends on', 'name' => 'ends_on', 'type' => 'date', 'value' => old('ends_on'), 'grid' => 'col'])
+	<div data-lesson-repeat-end @if($oldRepeat === 'none') style="display: none;" @endif>
+		@input(['placeholder' => 'Ends on', 'name' => 'ends_on', 'type' => 'date', 'value' => old('ends_on'), 'required' => $oldRepeat !== 'none', 'disabled' => $oldRepeat === 'none'])
 	</div>
 
 	<label class="small fw-bold opacity-6 mb-3">@fa(['icon' => 'clock'])TIME</label>

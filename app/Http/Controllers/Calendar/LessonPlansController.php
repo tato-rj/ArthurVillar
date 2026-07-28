@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Calendar;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Models\Calendar\{LessonPlan, Location, Student};
+use App\Models\Calendar\{LessonPlan, Location, SingleLessonPlan, Student};
 use InvalidArgumentException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -15,14 +15,7 @@ class LessonPlansController extends Controller
 {
     public function index()
     {
-        $planType = request('type') === 'one-time' ? 'one-time' : 'recurring';
-
-        return view(
-            $planType === 'one-time'
-                ? 'calendar.lessonPlans.single'
-                : 'calendar.lessonPlans.index',
-            compact('planType')
-        );
+        return view('calendar.lessonPlans.index');
     }
 
     public function edit(LessonPlan $lessonPlan)
@@ -32,10 +25,17 @@ class LessonPlansController extends Controller
 
     public function store(Request $request)
     {
-        $data = $this->validateLessonPlan($request);
+        $data = $this->validateLessonCreation($request);
+        $repeat = (string) ($data['repeat'] ?? $data['recurrence_interval'] ?? 'none');
 
-        $this->validateLessonPlanDoesNotOverlap($data['student_id'], $data['starts_on'] ?? null, $data['ends_on'] ?? null);
+        if ($repeat === 'none') {
+            SingleLessonPlan::create($this->singleLessonPlanAttributes($data));
 
+            return back()->with('success', 'The lesson was successfully scheduled');
+        }
+
+        $data['recurrence_interval'] = (int) $repeat;
+        $this->validateLessonPlanDoesNotOverlap($data['student_id'], $data['starts_on'], $data['ends_on']);
         LessonPlan::create($this->lessonPlanAttributes($data));
 
         return back()->with('success', 'The lesson plan was successfully added');
@@ -146,10 +146,38 @@ class LessonPlansController extends Controller
     {
         return $request->validate([
             'student_id' => ['required', 'exists:students,id'],
-            'weekday' => ['required', 'integer', 'between:1,7'],
             'recurrence_interval' => ['required', 'integer', 'min:1'],
             'starts_on' => ['nullable', 'date'],
             'ends_on' => ['nullable', 'date', 'after_or_equal:starts_on'],
+            'start_time' => ['required', 'date_format:H:i', Rule::in(LessonPlan::timeOptions())],
+            'duration_minutes' => ['required', 'integer', 'min:15'],
+            'fee_amount' => ['nullable', 'string'],
+            'payment_method' => ['nullable', 'string', 'max:255'],
+            'location_id' => [
+                'required',
+                Rule::exists('locations', 'id')->where('usage', Location::USAGE_TEACHING),
+            ],
+            'meeting_url' => ['nullable', 'url', 'max:2048'],
+            'notes_url' => ['nullable', 'url', 'max:2048'],
+            'notes' => ['nullable', 'string'],
+        ]);
+    }
+
+    private function validateLessonCreation(Request $request)
+    {
+        return $request->validate([
+            'student_id' => ['required', 'exists:students,id'],
+            'repeat' => ['nullable', Rule::in(['none', '1', '2'])],
+            'recurrence_interval' => ['nullable', 'integer', Rule::in([1, 2])],
+            'starts_on' => ['required', 'date'],
+            'ends_on' => [
+                Rule::requiredIf(function () use ($request) {
+                    return (string) ($request->input('repeat') ?? $request->input('recurrence_interval') ?? 'none') !== 'none';
+                }),
+                'nullable',
+                'date',
+                'after_or_equal:starts_on',
+            ],
             'start_time' => ['required', 'date_format:H:i', Rule::in(LessonPlan::timeOptions())],
             'duration_minutes' => ['required', 'integer', 'min:15'],
             'fee_amount' => ['nullable', 'string'],
@@ -192,13 +220,17 @@ class LessonPlansController extends Controller
 
     private function lessonPlanAttributes(array $data, LessonPlan $lessonPlan = null)
     {
+        $startsOn = ! empty($data['starts_on'])
+            ? $this->lessonPlanDate($data['starts_on'])
+            : null;
+
         return [
             'student_id' => $lessonPlan ? $lessonPlan->student_id : $data['student_id'],
-            'weekday' => $data['weekday'],
+            'weekday' => $startsOn
+                ? LessonPlan::fromCarbonWeekday(Carbon::parse($startsOn)->dayOfWeek)
+                : ($lessonPlan ? $lessonPlan->weekday : null),
             'recurrence_interval' => $data['recurrence_interval'],
-            'starts_on' => ! empty($data['starts_on'])
-                ? $this->lessonPlanDate($data['starts_on'])
-                : null,
+            'starts_on' => $startsOn,
             'ends_on' => ! empty($data['ends_on'])
                 ? $this->lessonPlanDate($data['ends_on'])
                 : null,
@@ -209,6 +241,23 @@ class LessonPlansController extends Controller
             'location_id' => $data['location_id'],
             'meeting_url' => $this->isOnlineLocation($data['location_id']) ? ($data['meeting_url'] ?? null) : null,
             'notes_url' => $this->isOnlineLocation($data['location_id']) ? ($data['notes_url'] ?? null) : null,
+            'notes' => $data['notes'] ?? null,
+        ];
+    }
+
+    private function singleLessonPlanAttributes(array $data)
+    {
+        return [
+            'student_id' => $data['student_id'],
+            'scheduled_date' => $this->lessonPlanDate($data['starts_on']),
+            'start_time' => $data['start_time'],
+            'duration_minutes' => $data['duration_minutes'],
+            'fee_amount' => $this->lessonFeeAmount($data),
+            'payment_method' => $data['payment_method'] ?? null,
+            'location_id' => $data['location_id'],
+            'meeting_url' => $this->isOnlineLocation($data['location_id']) ? ($data['meeting_url'] ?? null) : null,
+            'notes_url' => $this->isOnlineLocation($data['location_id']) ? ($data['notes_url'] ?? null) : null,
+            'status' => 'active',
             'notes' => $data['notes'] ?? null,
         ];
     }

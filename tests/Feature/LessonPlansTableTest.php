@@ -134,21 +134,26 @@ class LessonPlansTableTest extends BaseTest
         ]);
         $this->signIn();
 
-        $this->get(route('calendar.lesson-plans.index', ['type' => 'one-time']))
+        $this->get(route('calendar.lesson-plans.index'))
             ->assertOk()
             ->assertSee('Lesson Plans')
-            ->assertSee('single-lesson-plans-table', false)
-            ->assertSee('New one-time plan');
+            ->assertSee('lesson-plans-table', false)
+            ->assertSee('New lesson')
+            ->assertDontSee('Lesson plan type');
 
         $response = $this->getJson(route(
-            'calendar.tables.single-lesson-plans',
-            $this->singleLessonPlanTableRequest()
+            'calendar.tables.lesson-plans',
+            $this->lessonPlanTableRequest()
         ))->assertOk();
 
-        $row = collect($response->json('data'))->firstWhere('id', $lessonPlan->id);
+        $row = collect($response->json('data'))
+            ->first(fn ($row) => $row['plan_type'] === 'single' && $row['id'] === $lessonPlan->id);
 
         $this->assertSame('One Time', $row['student']);
-        $this->assertSame('2026-08-12', $row['scheduled_date']);
+        $this->assertSame('single', $row['plan_type']);
+        $this->assertSame('Does not repeat', $row['recurrence']);
+        $this->assertSame('2026-08-12', $row['starts_on']);
+        $this->assertSame('2026-08-12', $row['ends_on']);
         $this->assertSame('14:30', $row['start_time']);
         $this->assertSame(45, $row['duration_minutes']);
     }
@@ -198,35 +203,4 @@ class LessonPlansTableTest extends BaseTest
         ], $overrides);
     }
 
-    private function singleLessonPlanTableRequest(): array
-    {
-        $columns = collect([
-            'scheduled_date',
-            'student',
-            'start_time',
-            'duration_minutes',
-            'fee_amount',
-            'payment_method',
-            'location',
-            'status',
-            'actions',
-        ])->map(function ($name) {
-            return [
-                'data' => $name === 'actions' ? 'id' : $name,
-                'name' => $name,
-                'searchable' => $name === 'actions' ? 'false' : 'true',
-                'orderable' => $name === 'actions' ? 'false' : 'true',
-                'search' => ['value' => '', 'regex' => 'false'],
-            ];
-        })->all();
-
-        return [
-            'draw' => 1,
-            'start' => 0,
-            'length' => 10,
-            'search' => ['value' => '', 'regex' => 'false'],
-            'columns' => $columns,
-            'order' => [['column' => 0, 'dir' => 'asc']],
-        ];
-    }
 }

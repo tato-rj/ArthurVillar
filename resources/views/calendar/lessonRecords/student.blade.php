@@ -15,7 +15,7 @@
             'modal' => [
                 'target' => '#create-calendar-lesson-plan-modal',
                 'icon' => 'plus',
-                'label' => 'New lesson plan'
+                'label' => 'New lesson'
             ]
         ])
     </div>
