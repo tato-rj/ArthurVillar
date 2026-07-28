@@ -1,11 +1,11 @@
 <div id="general-event-details">
     <div class="calendar-modal-details">
         <div data-general-event-notes-section hidden class="calendar-modal-detail-section">
-            <div class="calendar-general-event-notes-heading mb-2">
-                <div class="small font-weight-bold opacity-6">NOTES</div>
+            <div class="small font-weight-bold opacity-6 mb-2">NOTES</div>
+            <div class="calendar-general-event-notes calendar-general-event-notes-display" data-general-event-notes-display-container>
                 <button type="button" class="btn calendar-general-event-notes-edit" data-general-event-notes-edit>edit</button>
+                <div id="general-event-notes" data-general-event-notes-display></div>
             </div>
-            <div id="general-event-notes" class="calendar-general-event-notes" data-general-event-notes-display></div>
             <form method="POST" action="" data-general-event-notes-form hidden>
                 @csrf
                 @method('PATCH')

@@ -3798,7 +3798,7 @@ const setGeneralEventNotesEditing = function(modal, editing) {
         return;
     }
 
-    const display = modal.querySelector('[data-general-event-notes-display]');
+    const display = modal.querySelector('[data-general-event-notes-display-container]');
     const form = modal.querySelector('[data-general-event-notes-form]');
     const edit = modal.querySelector('[data-general-event-notes-edit]');
     const input = modal.querySelector('[data-general-event-notes-input]');

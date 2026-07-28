@@ -7438,7 +7438,7 @@ var setGeneralEventNotesEditing = function setGeneralEventNotesEditing(modal, ed
   if (!modal) {
     return;
   }
-  var display = modal.querySelector('[data-general-event-notes-display]');
+  var display = modal.querySelector('[data-general-event-notes-display-container]');
   var form = modal.querySelector('[data-general-event-notes-form]');
   var edit = modal.querySelector('[data-general-event-notes-edit]');
   var input = modal.querySelector('[data-general-event-notes-input]');
