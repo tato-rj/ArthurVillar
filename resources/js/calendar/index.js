@@ -3305,6 +3305,34 @@ const getReturnHomeTravelRouteRequestDetails = function(item, event) {
     };
 };
 
+const getScheduleTravelRoutePriority = function(route) {
+    if (!route) {
+        return 0;
+    }
+
+    if (route.return_home) {
+        return 3;
+    }
+
+    return isHomeTravelPlace(route.destination) ? 2 : 1;
+};
+
+const getScheduleTravelExtensionRoute = function(extension) {
+    if (!extension) {
+        return null;
+    }
+
+    if (extension.travelRoute) {
+        return extension.travelRoute;
+    }
+
+    try {
+        return JSON.parse(extension.dataset.travelRoute || '');
+    } catch (error) {
+        return null;
+    }
+};
+
 const renderScheduleItemTravel = function(item, event, route, cacheKey, options) {
     if (!item || !route || Number(route.duration_seconds || 0) <= 0) {
         clearScheduleItemTravel(item, event);
@@ -3328,6 +3356,27 @@ const renderScheduleItemTravel = function(item, event, route, cacheKey, options)
     clearScheduleItemTravel(item, event, {
         preserveItemState: Boolean(options && options.preserveItemState),
     });
+
+    const competingExtensions = Array.from(
+        targetItem.querySelectorAll(`:scope > .calendar-schedule-travel[data-travel-position="${placement.position}"]`)
+    );
+    const strongestCompetingPriority = competingExtensions.reduce(function(priority, competingExtension) {
+        return Math.max(
+            priority,
+            getScheduleTravelRoutePriority(getScheduleTravelExtensionRoute(competingExtension))
+        );
+    }, 0);
+
+    if (strongestCompetingPriority >= getScheduleTravelRoutePriority(route)) {
+        if (!(options && options.preserveItemState)) {
+            item.dataset.travelRouteKey = cacheKey;
+            item.dataset.travelRouteState = 'shown';
+        }
+
+        return;
+    }
+
+    competingExtensions.forEach(removeScheduleTravelExtension);
 
     extension.className = 'calendar-schedule-travel';
     extension.style.height = '0';
@@ -3585,27 +3634,28 @@ const getScheduleItemTravelRoutes = function(item) {
         return [];
     }
 
-    return Array.from(item.querySelectorAll(':scope > .calendar-schedule-travel'))
-        .sort(function(a, b) {
-            const positionOrder = { before: 0, after: 1 };
+    const routesByPosition = new Map();
 
-            return (positionOrder[a.dataset.travelPosition] ?? 2)
-                - (positionOrder[b.dataset.travelPosition] ?? 2);
-        })
-        .map(function(extension) {
-            if (extension.travelRoute) {
-                return extension.travelRoute;
-            }
+    Array.from(item.querySelectorAll(':scope > .calendar-schedule-travel')).forEach(function(extension) {
+        const position = extension.dataset.travelPosition;
+        const route = getScheduleTravelExtensionRoute(extension);
+        const existingRoute = routesByPosition.get(position);
 
-            try {
-                return JSON.parse(extension.dataset.travelRoute || '');
-            } catch (error) {
-                return null;
-            }
+        if (!route || Number(route.duration_seconds || 0) <= 0) {
+            return;
+        }
+
+        if (!existingRoute
+            || getScheduleTravelRoutePriority(route) > getScheduleTravelRoutePriority(existingRoute)) {
+            routesByPosition.set(position, route);
+        }
+    });
+
+    return ['before', 'after']
+        .map(function(position) {
+            return routesByPosition.get(position);
         })
-        .filter(function(route) {
-            return route && Number(route.duration_seconds || 0) > 0;
-        });
+        .filter(Boolean);
 };
 
 const loadTravelRoute = function(modal, event, scheduleItem) {
