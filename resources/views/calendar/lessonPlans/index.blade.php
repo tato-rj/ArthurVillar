@@ -9,6 +9,10 @@
 @endpush
 
 @section('content')
+@php
+    $selectedPlanStatuses = collect(explode(',', request('plan_statuses', 'active')));
+    $selectedPlanTypes = collect(explode(',', request('plan_types', 'recurring,single')));
+@endphp
 <section class="container py-5">
     {{ Breadcrumbs::render('calendar.lesson-plans.index') }}
 
@@ -32,6 +36,45 @@
             'toValue' => request('starts_to'),
             'placeholder' => 'Filter by plan date range',
         ])
+
+        <div class="calendar-date-range dropdown" id="lesson-plans-row-filters">
+            <button
+                type="button"
+                class="calendar-date-range-toggle"
+                data-bs-toggle="dropdown"
+                data-bs-auto-close="outside"
+                aria-expanded="false">
+                @fa(['icon' => 'filter', 'mr' => 0])
+                <span>Filter plans</span>
+                @fa(['icon' => 'angle-down', 'mr' => 0])
+            </button>
+
+            <div class="dropdown-menu p-3">
+                <div class="small fw-bold opacity-4 mb-2">STATUS</div>
+
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="active" id="lesson-plan-status-active" data-lesson-plan-status-filter @checked($selectedPlanStatuses->contains('active'))>
+                    <label class="form-check-label" for="lesson-plan-status-active">Active plans</label>
+                </div>
+
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="inactive" id="lesson-plan-status-inactive" data-lesson-plan-status-filter @checked($selectedPlanStatuses->contains('inactive'))>
+                    <label class="form-check-label" for="lesson-plan-status-inactive">Inactive plans</label>
+                </div>
+
+                <div class="small fw-bold opacity-4 mt-3 mb-2">TYPE</div>
+
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="recurring" id="lesson-plan-type-recurring" data-lesson-plan-type-filter @checked($selectedPlanTypes->contains('recurring'))>
+                    <label class="form-check-label" for="lesson-plan-type-recurring">Recurring lessons</label>
+                </div>
+
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="single" id="lesson-plan-type-single" data-lesson-plan-type-filter @checked($selectedPlanTypes->contains('single'))>
+                    <label class="form-check-label" for="lesson-plan-type-single">Single lessons</label>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div id="lesson-plans-container" class="calendar-table-container calendar-table-container-lg">
@@ -63,6 +106,26 @@
 @include('calendar.lessonPlans.create-scripts')
 <script>
 $(function() {
+    const selectedFilterValues = function(selector) {
+        const values = Array.from(document.querySelectorAll(selector))
+            .filter(function(input) {
+                return input.checked;
+            })
+            .map(function(input) {
+                return input.value;
+            });
+
+        return values.length ? values.join(',') : 'none';
+    };
+
+    const restoreFilterValues = function(selector, value, defaultValue) {
+        const selected = new Set(String(value || defaultValue).split(','));
+
+        document.querySelectorAll(selector).forEach(function(input) {
+            input.checked = selected.has(input.value);
+        });
+    };
+
     const formatDate = function(value) {
         if (!value) {
             return '';
@@ -221,6 +284,8 @@ $(function() {
             data: function(data) {
                 data.starts_from = $('#lesson-plans-starts-from').val();
                 data.starts_to = $('#lesson-plans-starts-to').val();
+                data.plan_statuses = selectedFilterValues('[data-lesson-plan-status-filter]');
+                data.plan_types = selectedFilterValues('[data-lesson-plan-type-filter]');
             },
         },
         createdRow: function(row, data) {
@@ -319,16 +384,24 @@ $(function() {
         restore: function(params) {
             $('#lesson-plans-starts-from').val(params.get('starts_from') || '');
             $('#lesson-plans-starts-to').val(params.get('starts_to') || '');
+            restoreFilterValues('[data-lesson-plan-status-filter]', params.get('plan_statuses'), 'active');
+            restoreFilterValues('[data-lesson-plan-type-filter]', params.get('plan_types'), 'recurring,single');
         },
         extraParams: function() {
             return {
                 starts_from: $('#lesson-plans-starts-from').val(),
                 starts_to: $('#lesson-plans-starts-to').val(),
+                plan_statuses: selectedFilterValues('[data-lesson-plan-status-filter]'),
+                plan_types: selectedFilterValues('[data-lesson-plan-type-filter]'),
             };
         },
     });
 
     $('#lesson-plans-starts-range').on('date-range:change', function() {
+        lessonPlansTable.ajax.reload(null, true);
+    });
+
+    $('#lesson-plans-row-filters').on('change', 'input[type="checkbox"]', function() {
         lessonPlansTable.ajax.reload(null, true);
     });
 

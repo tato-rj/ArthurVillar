@@ -1,12 +1,12 @@
 <div class="calendar-calendar-create-menu" data-calendar-create-menu>
 	<button type="button" class="calendar-calendar-create-menu-option" data-calendar-create-lesson>
 		@fa(['icon' => 'calendar-day', 'mr' => 2])
-		Lesson
+		Add a lesson
 	</button>
 
 	<button type="button" class="calendar-calendar-create-menu-option" data-calendar-create-event>
 		@fa(['icon' => 'thumbtack', 'mr' => 2])
-		General Event
+		Add an event
 	</button>
 </div>
 

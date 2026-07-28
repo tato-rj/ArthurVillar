@@ -54,6 +54,7 @@ class LessonPlansTableTest extends BaseTest
         $this->signIn();
 
         $response = $this->getJson(route('calendar.tables.lesson-plans', $this->lessonPlanTableRequest([
+            'plan_statuses' => 'active,inactive',
             'search' => [
                 'value' => 'Searchable',
                 'regex' => 'false',
@@ -61,6 +62,66 @@ class LessonPlansTableTest extends BaseTest
         ])))->assertOk();
 
         $this->assertSame(['Searchable Student'], collect($response->json('data'))->pluck('student')->all());
+
+        Carbon::setTestNow();
+    }
+
+    /** @test */
+    public function it_filters_the_shared_table_by_plan_status_and_type()
+    {
+        Carbon::setTestNow(Carbon::parse('2026-07-08 12:00:00'));
+
+        $activeRecurring = LessonPlan::factory()->student(Student::factory()->create([
+            'first_name' => 'Active',
+            'last_name' => 'Recurring',
+        ]))->create([
+            'starts_on' => '2026-07-01',
+            'ends_on' => '2026-07-31',
+        ]);
+        $inactiveRecurring = LessonPlan::factory()->student(Student::factory()->create([
+            'first_name' => 'Inactive',
+            'last_name' => 'Recurring',
+        ]))->create([
+            'starts_on' => '2026-06-01',
+            'ends_on' => '2026-06-30',
+        ]);
+        $single = SingleLessonPlan::factory()->student(Student::factory()->create([
+            'first_name' => 'Active',
+            'last_name' => 'Single',
+        ]))->create([
+            'scheduled_date' => '2026-07-12',
+        ]);
+
+        $this->signIn();
+
+        $defaultRows = collect($this->getJson(route(
+            'calendar.tables.lesson-plans',
+            $this->lessonPlanTableRequest()
+        ))->assertOk()->json('data'));
+
+        $this->assertTrue($defaultRows->contains(fn ($row) => $row['plan_type'] === 'recurring' && $row['id'] === $activeRecurring->id));
+        $this->assertTrue($defaultRows->contains(fn ($row) => $row['plan_type'] === 'single' && $row['id'] === $single->id));
+        $this->assertFalse($defaultRows->contains(fn ($row) => $row['plan_type'] === 'recurring' && $row['id'] === $inactiveRecurring->id));
+
+        $inactiveRows = collect($this->getJson(route(
+            'calendar.tables.lesson-plans',
+            $this->lessonPlanTableRequest([
+                'plan_statuses' => 'inactive',
+                'plan_types' => 'recurring',
+            ])
+        ))->assertOk()->json('data'));
+
+        $this->assertSame([$inactiveRecurring->id], $inactiveRows->pluck('id')->all());
+
+        $singleRows = collect($this->getJson(route(
+            'calendar.tables.lesson-plans',
+            $this->lessonPlanTableRequest([
+                'plan_statuses' => 'active',
+                'plan_types' => 'single',
+            ])
+        ))->assertOk()->json('data'));
+
+        $this->assertSame(['single'], $singleRows->pluck('plan_type')->unique()->values()->all());
 
         Carbon::setTestNow();
     }

@@ -317,6 +317,12 @@ class TablesController extends Controller
         $statusOrderDirection = $orderColumnName === 'status_order'
             ? (request('order.0.dir') === 'desc' ? 'desc' : 'asc')
             : null;
+        $selectedPlanTypes = collect(explode(',', request('plan_types', 'recurring,single')))
+            ->intersect(['recurring', 'single'])
+            ->values();
+        $selectedPlanStatuses = collect(explode(',', request('plan_statuses', 'active')))
+            ->intersect(['active', 'inactive'])
+            ->values();
         $recurringPlans = DB::table('lesson_plans')
             ->join('students', 'students.id', '=', 'lesson_plans.student_id')
             ->leftJoin('locations', 'locations.id', '=', 'lesson_plans.location_id')
@@ -374,6 +380,24 @@ class TablesController extends Controller
 
         $lessonPlans = DB::query()
             ->fromSub($recurringPlans->unionAll($singlePlans), 'plans')
+            ->when($selectedPlanTypes->count() < 2, function ($query) use ($selectedPlanTypes) {
+                if ($selectedPlanTypes->isEmpty()) {
+                    $query->whereRaw('1 = 0');
+
+                    return;
+                }
+
+                $query->whereIn('plan_type', $selectedPlanTypes);
+            })
+            ->when($selectedPlanStatuses->count() < 2, function ($query) use ($selectedPlanStatuses) {
+                if ($selectedPlanStatuses->isEmpty()) {
+                    $query->whereRaw('1 = 0');
+
+                    return;
+                }
+
+                $query->whereIn('status_order', $selectedPlanStatuses->map(fn ($status) => $status === 'active' ? 0 : 1));
+            })
             ->when(request('starts_from'), function ($query, $date) {
                 $query->whereDate('ends_on', '>=', $date);
             })
