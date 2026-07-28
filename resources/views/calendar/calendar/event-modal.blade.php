@@ -19,7 +19,7 @@
 </span>
 @endslot
 
-<div class="px-3">
+<div class="px-3 mb-4">
     <div data-event-modal-section="lesson">
         <div id="lesson-status" class="rounded px-2 py-0 alert small mb-3"></div>
         <div class="alert alert-danger small mb-3" data-lesson-action-error hidden></div>
