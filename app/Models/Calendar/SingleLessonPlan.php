@@ -27,6 +27,31 @@ class SingleLessonPlan extends BaseModel
         return $this->hasMany(EarlyPayment::class);
     }
 
+    public function associatedLessons()
+    {
+        $date = $this->scheduled_date->toDateString();
+        $startTime = $this->start_time;
+
+        return Lesson::query()
+            ->whereNull('lesson_plan_id')
+            ->where('student_id', $this->student_id)
+            ->where(function ($query) use ($date, $startTime) {
+                $query
+                    ->where(function ($query) use ($date, $startTime) {
+                        $query
+                            ->whereDate('scheduled_date', $date)
+                            ->where('scheduled_start_time', $startTime);
+                    })
+                    ->orWhere(function ($query) use ($date, $startTime) {
+                        $query
+                            ->whereNull('scheduled_date')
+                            ->whereNull('scheduled_start_time')
+                            ->whereDate('starts_at', $date)
+                            ->whereTime('starts_at', $startTime);
+                    });
+            });
+    }
+
     public function netFeeAmount()
     {
         return $this->location
@@ -51,6 +76,20 @@ class SingleLessonPlan extends BaseModel
         $duration = $this->minutesBetween($startTime, $attributes['end_time']);
 
         $this->guardAgainstSameSchedule($date, $startTime);
+
+        $newStartsAt = Carbon::createFromFormat('Y-m-d H:i', $date.' '.$startTime);
+
+        $this->associatedLessons()->update([
+            'starts_at' => $newStartsAt,
+            'ends_at' => $newStartsAt->copy()->addMinutes($duration),
+            'scheduled_date' => $date,
+            'scheduled_start_time' => $startTime,
+        ]);
+
+        $this->earlyPayments()->update([
+            'scheduled_date' => $date,
+            'scheduled_start_time' => $startTime,
+        ]);
 
         $this->update([
             'scheduled_date' => $date,

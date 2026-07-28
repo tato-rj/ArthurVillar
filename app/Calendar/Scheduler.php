@@ -248,9 +248,9 @@ class Scheduler
                     'early_payment_id' => $earlyPayment ? $earlyPayment->id : null,
                     'fee_amount' => $lesson && $lesson->fee_amount ? $lesson->fee_amount : $lessonPlan->netFeeAmount(),
                     'canceled_by' => $lesson ? $lesson->canceled_by : '',
-                    'calendar_status' => $lessonStatus === 'canceled'
-                        ? 'canceled'
-                        : ($earlyPayment ? 'early-payment' : 'rescheduled'),
+                    'calendar_status' => $lessonStatus === 'unconfirmed'
+                        ? 'rescheduled'
+                        : $lessonStatus,
                     'lesson_edit_url' => $lesson ? route('calendar.lessons.edit', $lesson) : '',
                     'lesson_payment_url' => $lesson ? $lesson->paymentUrl : '',
                 ];

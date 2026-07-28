@@ -16,6 +16,77 @@ use Tests\BaseTest;
 class CalendarLessonFlowTest extends BaseTest
 {
     /** @test */
+    public function deleting_a_recurring_lesson_plan_deletes_its_lesson_records_and_overrides()
+    {
+        $lessonPlan = LessonPlan::factory()->create();
+        $otherLessonPlan = LessonPlan::factory()->create();
+        $confirmedLesson = Lesson::factory()->lessonPlan($lessonPlan)->create();
+        $canceledLesson = Lesson::factory()->lessonPlan($lessonPlan)->create([
+            'canceled_at' => now(),
+        ]);
+        $otherLesson = Lesson::factory()->lessonPlan($otherLessonPlan)->create();
+        $override = ScheduleOverride::factory()->lessonPlan($lessonPlan)->create();
+        $earlyPayment = EarlyPayment::factory()->create([
+            'lesson_plan_id' => $lessonPlan->id,
+            'single_lesson_plan_id' => null,
+        ]);
+
+        $this->signIn();
+
+        $this->delete(route('calendar.lesson-plans.destroy', $lessonPlan))
+            ->assertSessionHas('success', 'The lesson plan was successfully deleted');
+
+        $this->assertDatabaseMissing('lesson_plans', ['id' => $lessonPlan->id]);
+        $this->assertDatabaseMissing('lessons', ['id' => $confirmedLesson->id]);
+        $this->assertDatabaseMissing('lessons', ['id' => $canceledLesson->id]);
+        $this->assertDatabaseMissing('schedule_overrides', ['id' => $override->id]);
+        $this->assertDatabaseMissing('early_payments', ['id' => $earlyPayment->id]);
+        $this->assertDatabaseHas('lessons', ['id' => $otherLesson->id]);
+    }
+
+    /** @test */
+    public function deleting_a_single_lesson_plan_deletes_its_lesson_record()
+    {
+        $singleLessonPlan = SingleLessonPlan::factory()->create([
+            'scheduled_date' => '2026-07-15',
+            'start_time' => '15:30',
+        ]);
+        $lesson = Lesson::factory()->create([
+            'student_id' => $singleLessonPlan->student_id,
+            'lesson_plan_id' => null,
+            'starts_at' => '2026-07-15 15:30:00',
+            'ends_at' => '2026-07-15 16:15:00',
+            'scheduled_date' => '2026-07-15',
+            'scheduled_start_time' => '15:30',
+            'canceled_at' => now(),
+        ]);
+        $otherLesson = Lesson::factory()->create([
+            'student_id' => $singleLessonPlan->student_id,
+            'lesson_plan_id' => null,
+            'starts_at' => '2026-07-16 15:30:00',
+            'ends_at' => '2026-07-16 16:15:00',
+            'scheduled_date' => '2026-07-16',
+            'scheduled_start_time' => '15:30',
+        ]);
+        $earlyPayment = EarlyPayment::factory()->create([
+            'lesson_plan_id' => null,
+            'single_lesson_plan_id' => $singleLessonPlan->id,
+            'scheduled_date' => '2026-07-15',
+            'scheduled_start_time' => '15:30',
+        ]);
+
+        $this->signIn();
+
+        $this->delete(route('calendar.single-lesson-plans.destroy', $singleLessonPlan))
+            ->assertSessionHas('success', 'The single lesson was successfully deleted');
+
+        $this->assertDatabaseMissing('single_lesson_plans', ['id' => $singleLessonPlan->id]);
+        $this->assertDatabaseMissing('lessons', ['id' => $lesson->id]);
+        $this->assertDatabaseMissing('early_payments', ['id' => $earlyPayment->id]);
+        $this->assertDatabaseHas('lessons', ['id' => $otherLesson->id]);
+    }
+
+    /** @test */
     public function lesson_forms_only_offer_locations_configured_for_teaching()
     {
         Location::factory()->create(['name' => 'Teaching Studio']);
@@ -307,6 +378,131 @@ class CalendarLessonFlowTest extends BaseTest
     }
 
     /** @test */
+    public function rescheduling_a_paid_lesson_preserves_its_record_and_paid_status()
+    {
+        $lessonPlan = LessonPlan::factory()->create([
+            'weekday' => 4,
+            'start_time' => '15:30',
+            'duration_minutes' => 45,
+            'starts_on' => '2026-07-01',
+            'recurrence_interval' => 1,
+        ]);
+        $paidAt = Carbon::parse('2026-07-01 12:00:00');
+        $lesson = Lesson::factory()->lessonPlan($lessonPlan)->create([
+            'starts_at' => '2026-07-08 15:30:00',
+            'ends_at' => '2026-07-08 16:15:00',
+            'scheduled_date' => '2026-07-08',
+            'scheduled_start_time' => '15:30',
+            'paid_at' => $paidAt,
+        ]);
+
+        $this->signIn();
+
+        $this->post(route('calendar.lesson-plans.reschedule'), [
+            'lesson_plan_id' => $lessonPlan->id,
+            'original_date' => '2026-07-08',
+            'original_start_time' => '15:30',
+            'date' => '2026-07-09',
+            'start_time' => '16:00',
+            'end_time' => '16:45',
+            'is_permanent' => 0,
+        ])->assertRedirect();
+
+        $lesson->refresh();
+
+        $this->assertSame('2026-07-09 16:00:00', $lesson->starts_at->format('Y-m-d H:i:s'));
+        $this->assertSame('2026-07-09 16:45:00', $lesson->ends_at->format('Y-m-d H:i:s'));
+        $this->assertSame('2026-07-08', $lesson->scheduled_date->toDateString());
+        $this->assertSame('15:30', $lesson->scheduled_start_time);
+        $this->assertSame($paidAt->format('Y-m-d H:i:s'), $lesson->paid_at->format('Y-m-d H:i:s'));
+
+        $occurrence = app(Scheduler::class)->plannedLessons([
+            'start' => '2026-07-09',
+            'end' => '2026-07-09',
+        ])->first()['occurrences'][0];
+
+        $this->assertSame($lesson->id, $occurrence['lesson_id']);
+        $this->assertSame('paid', $occurrence['lesson_status']);
+        $this->assertSame('paid', $occurrence['calendar_status']);
+    }
+
+    /** @test */
+    public function rescheduling_an_early_paid_lesson_keeps_early_payment_above_rescheduled_status()
+    {
+        $lessonPlan = LessonPlan::factory()->create([
+            'weekday' => 4,
+            'start_time' => '15:30',
+            'duration_minutes' => 45,
+            'starts_on' => '2026-07-01',
+            'recurrence_interval' => 1,
+        ]);
+        $earlyPayment = EarlyPayment::create([
+            'lesson_plan_id' => $lessonPlan->id,
+            'scheduled_date' => '2026-07-08',
+            'scheduled_start_time' => '15:30',
+        ]);
+
+        $this->signIn();
+
+        $this->post(route('calendar.lesson-plans.reschedule'), [
+            'lesson_plan_id' => $lessonPlan->id,
+            'original_date' => '2026-07-08',
+            'original_start_time' => '15:30',
+            'date' => '2026-07-09',
+            'start_time' => '16:00',
+            'end_time' => '16:45',
+            'is_permanent' => 0,
+        ])->assertRedirect();
+
+        $occurrence = app(Scheduler::class)->plannedLessons([
+            'start' => '2026-07-09',
+            'end' => '2026-07-09',
+        ])->first()['occurrences'][0];
+
+        $this->assertSame($earlyPayment->id, $occurrence['early_payment_id']);
+        $this->assertSame('early-payment', $occurrence['lesson_status']);
+        $this->assertSame('early-payment', $occurrence['calendar_status']);
+    }
+
+    /** @test */
+    public function rescheduling_a_paid_single_lesson_preserves_its_record_and_paid_status()
+    {
+        $singleLessonPlan = SingleLessonPlan::factory()->create([
+            'scheduled_date' => '2026-07-08',
+            'start_time' => '15:30',
+            'duration_minutes' => 45,
+        ]);
+        $paidAt = Carbon::parse('2026-07-01 12:00:00');
+        $lesson = Lesson::factory()->create([
+            'student_id' => $singleLessonPlan->student_id,
+            'lesson_plan_id' => null,
+            'starts_at' => '2026-07-08 15:30:00',
+            'ends_at' => '2026-07-08 16:15:00',
+            'scheduled_date' => '2026-07-08',
+            'scheduled_start_time' => '15:30',
+            'paid_at' => $paidAt,
+        ]);
+
+        $this->signIn();
+
+        $this->post(route('calendar.single-lesson-plans.reschedule'), [
+            'single_lesson_plan_id' => $singleLessonPlan->id,
+            'date' => '2026-07-09',
+            'start_time' => '16:00',
+            'end_time' => '16:45',
+        ])->assertRedirect();
+
+        $lesson->refresh();
+
+        $this->assertSame('2026-07-09 16:00:00', $lesson->starts_at->format('Y-m-d H:i:s'));
+        $this->assertSame('2026-07-09 16:45:00', $lesson->ends_at->format('Y-m-d H:i:s'));
+        $this->assertSame('2026-07-09', $lesson->scheduled_date->toDateString());
+        $this->assertSame('16:00', $lesson->scheduled_start_time);
+        $this->assertSame($paidAt->format('Y-m-d H:i:s'), $lesson->paid_at->format('Y-m-d H:i:s'));
+        $this->assertSame('paid', $lesson->paymentStatus());
+    }
+
+    /** @test */
     public function rescheduling_the_same_occurrence_updates_the_existing_override()
     {
         $lessonPlan = LessonPlan::factory()->create([
@@ -446,6 +642,18 @@ class CalendarLessonFlowTest extends BaseTest
             'new_date' => '2026-07-23',
             'new_start_time' => '17:00',
         ]);
+        $paidLesson = Lesson::factory()->lessonPlan($lessonPlan)->create([
+            'starts_at' => '2026-07-08 15:30:00',
+            'ends_at' => '2026-07-08 16:15:00',
+            'scheduled_date' => '2026-07-08',
+            'scheduled_start_time' => '15:30',
+            'paid_at' => '2026-07-01 12:00:00',
+        ]);
+        $earlyPayment = EarlyPayment::create([
+            'lesson_plan_id' => $lessonPlan->id,
+            'scheduled_date' => '2026-07-15',
+            'scheduled_start_time' => '15:30',
+        ]);
 
         $this->signIn();
 
@@ -488,6 +696,18 @@ class CalendarLessonFlowTest extends BaseTest
         ]);
         $this->assertSame(1, $lessonPlan->scheduleOverrides()->count());
         $this->assertSame(1, $newLessonPlan->scheduleOverrides()->count());
+
+        $paidLesson->refresh();
+        $earlyPayment->refresh();
+
+        $this->assertSame($newLessonPlan->id, $paidLesson->lesson_plan_id);
+        $this->assertSame('2026-07-10', $paidLesson->scheduled_date->toDateString());
+        $this->assertSame('16:00', $paidLesson->scheduled_start_time);
+        $this->assertSame('2026-07-10 16:00:00', $paidLesson->starts_at->format('Y-m-d H:i:s'));
+        $this->assertNotNull($paidLesson->paid_at);
+        $this->assertSame($newLessonPlan->id, $earlyPayment->lesson_plan_id);
+        $this->assertSame('2026-07-17', $earlyPayment->scheduled_date->toDateString());
+        $this->assertSame('16:00', $earlyPayment->scheduled_start_time);
     }
 
     /** @test */

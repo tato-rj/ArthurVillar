@@ -67,6 +67,8 @@ class LessonPlansController extends Controller
     public function destroy(LessonPlan $lessonPlan)
     {
         DB::transaction(function () use ($lessonPlan) {
+            $lessonPlan->lessons()->delete();
+            $lessonPlan->earlyPayments()->delete();
             $lessonPlan->scheduleOverrides()->delete();
             $lessonPlan->delete();
         });

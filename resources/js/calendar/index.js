@@ -4195,9 +4195,11 @@ const updateLessonModalState = function(modal, payload) {
 
     if (event) {
         event.lessonStatus = status;
-        event.calendarStatus = status === 'early-payment'
-            ? status
-            : (payload && payload.schedule_override_deleted ? status : (event.calendarStatus === 'rescheduled' ? 'rescheduled' : status));
+        const hasReschedule = !(payload && payload.schedule_override_deleted)
+            && (event.calendarStatus === 'rescheduled' || event.scheduleOverrideId);
+        event.calendarStatus = hasReschedule && status === 'unconfirmed'
+            ? 'rescheduled'
+            : status;
         event['data-lesson-status'] = event.calendarStatus;
         event.canceledBy = payload && payload.canceled_by ? payload.canceled_by : '';
         event.lessonEditUrl = payload && payload.lesson_deleted ? '' : (editUrl || event.lessonEditUrl || '');

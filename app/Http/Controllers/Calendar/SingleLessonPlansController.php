@@ -38,7 +38,11 @@ class SingleLessonPlansController extends Controller
 
     public function destroy(SingleLessonPlan $singleLessonPlan)
     {
-        $singleLessonPlan->delete();
+        DB::transaction(function () use ($singleLessonPlan) {
+            $singleLessonPlan->associatedLessons()->delete();
+            $singleLessonPlan->earlyPayments()->delete();
+            $singleLessonPlan->delete();
+        });
 
         return back()->with('success', 'The single lesson was successfully deleted');
     }

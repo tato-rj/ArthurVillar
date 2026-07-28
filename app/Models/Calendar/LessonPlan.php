@@ -270,7 +270,7 @@ class LessonPlan extends BaseModel
 
         $this->guardAgainstSameSchedule($originalDate, $originalStartTime, $newDate, $newStartTime);
 
-        return $this->scheduleOverrides()->updateOrCreate(
+        $override = $this->scheduleOverrides()->updateOrCreate(
             [
                 'original_date' => $originalDate,
                 'original_start_time' => $originalStartTime,
@@ -282,6 +282,15 @@ class LessonPlan extends BaseModel
                 'type' => 'reschedule',
             ]
         );
+
+        $newStartsAt = Carbon::createFromFormat('Y-m-d H:i', $newDate.' '.$newStartTime);
+
+        $this->lessonsForScheduledOccurrence($originalDate, $originalStartTime)->update([
+            'starts_at' => $newStartsAt,
+            'ends_at' => $newStartsAt->copy()->addMinutes($duration),
+        ]);
+
+        return $override;
     }
 
     public function reschedulePermanently(array $attributes)
@@ -318,10 +327,14 @@ class LessonPlan extends BaseModel
         $intervalDays = max(1, (int) $this->recurrence_interval) * 7;
         $permanentOccurrence = Carbon::parse($originalDate)->startOfDay();
         $newFirstOccurrence = Carbon::parse($newDate)->startOfDay();
-
-        $this->scheduleOverrides()
+        $futureOverrides = $this->scheduleOverrides()
             ->whereDate('original_date', '>=', $originalDate)
-            ->get()
+            ->get();
+        $futureOverrideSchedules = $futureOverrides->keyBy(function (ScheduleOverride $override) {
+            return Carbon::parse($override->original_date)->toDateString().' '.static::normalizeTime($override->original_start_time);
+        });
+
+        $futureOverrides
             ->each(function (ScheduleOverride $override) use (
                 $intervalDays,
                 $newFirstOccurrence,
@@ -338,6 +351,73 @@ class LessonPlan extends BaseModel
                     'lesson_plan_id' => $newLessonPlan->id,
                     'original_date' => $newFirstOccurrence->copy()->addDays($occurrenceOffset * $intervalDays)->toDateString(),
                     'original_start_time' => $newStartTime,
+                ])->save();
+            });
+
+        $this->lessons()
+            ->where(function ($query) use ($originalDate) {
+                $query
+                    ->whereDate('scheduled_date', '>=', $originalDate)
+                    ->orWhere(function ($query) use ($originalDate) {
+                        $query
+                            ->whereNull('scheduled_date')
+                            ->whereDate('starts_at', '>=', $originalDate);
+                    });
+            })
+            ->get()
+            ->each(function (Lesson $lesson) use (
+                $duration,
+                $futureOverrideSchedules,
+                $intervalDays,
+                $newFirstOccurrence,
+                $newLessonPlan,
+                $newStartTime,
+                $permanentOccurrence
+            ) {
+                $scheduledDate = Carbon::parse($lesson->scheduled_date ?: $lesson->starts_at)->startOfDay();
+                $scheduledStartTime = static::normalizeTime(
+                    $lesson->scheduled_start_time ?: Carbon::parse($lesson->starts_at)->format('H:i')
+                );
+                $occurrenceOffset = intdiv($permanentOccurrence->diffInDays($scheduledDate), $intervalDays);
+                $newScheduledDate = $newFirstOccurrence->copy()->addDays($occurrenceOffset * $intervalDays);
+                $override = $futureOverrideSchedules->get($scheduledDate->toDateString().' '.$scheduledStartTime);
+                $actualDate = $override
+                    ? Carbon::parse($override->new_date)->toDateString()
+                    : $newScheduledDate->toDateString();
+                $actualStartTime = $override
+                    ? static::normalizeTime($override->new_start_time)
+                    : $newStartTime;
+                $actualDuration = $override
+                    ? (int) $override->duration_minutes
+                    : $duration;
+                $newStartsAt = Carbon::createFromFormat('Y-m-d H:i', $actualDate.' '.$actualStartTime);
+
+                $lesson->forceFill([
+                    'lesson_plan_id' => $newLessonPlan->id,
+                    'scheduled_date' => $newScheduledDate->toDateString(),
+                    'scheduled_start_time' => $newStartTime,
+                    'starts_at' => $newStartsAt,
+                    'ends_at' => $newStartsAt->copy()->addMinutes($actualDuration),
+                ])->save();
+            });
+
+        $this->earlyPayments()
+            ->whereDate('scheduled_date', '>=', $originalDate)
+            ->get()
+            ->each(function (EarlyPayment $earlyPayment) use (
+                $intervalDays,
+                $newFirstOccurrence,
+                $newLessonPlan,
+                $newStartTime,
+                $permanentOccurrence
+            ) {
+                $scheduledDate = Carbon::parse($earlyPayment->scheduled_date)->startOfDay();
+                $occurrenceOffset = intdiv($permanentOccurrence->diffInDays($scheduledDate), $intervalDays);
+
+                $earlyPayment->forceFill([
+                    'lesson_plan_id' => $newLessonPlan->id,
+                    'scheduled_date' => $newFirstOccurrence->copy()->addDays($occurrenceOffset * $intervalDays)->toDateString(),
+                    'scheduled_start_time' => $newStartTime,
                 ])->save();
             });
 
@@ -554,6 +634,26 @@ class LessonPlan extends BaseModel
         if ($currentDate === $newDate && $currentStartTime === $newStartTime) {
             throw new InvalidArgumentException('The lesson is already scheduled for that time.');
         }
+    }
+
+    private function lessonsForScheduledOccurrence($date, $startTime)
+    {
+        return $this->lessons()
+            ->where(function ($query) use ($date, $startTime) {
+                $query
+                    ->where(function ($query) use ($date, $startTime) {
+                        $query
+                            ->whereDate('scheduled_date', $date)
+                            ->where('scheduled_start_time', $startTime);
+                    })
+                    ->orWhere(function ($query) use ($date, $startTime) {
+                        $query
+                            ->whereNull('scheduled_date')
+                            ->whereNull('scheduled_start_time')
+                            ->whereDate('starts_at', $date)
+                            ->whereTime('starts_at', $startTime);
+                    });
+            });
     }
 
     private function projectedLessonExcludedDates(Carbon $start, Carbon $end)
