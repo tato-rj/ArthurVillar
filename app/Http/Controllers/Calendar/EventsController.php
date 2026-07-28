@@ -65,6 +65,18 @@ class EventsController extends Controller
         return back()->with('success', 'The event was successfully rescheduled');
     }
 
+    public function updateNotes(Request $request, Event $event)
+    {
+        $event->update($request->validate([
+            'notes' => ['nullable', 'string'],
+        ]));
+
+        return response()->json([
+            'message' => 'The event notes were successfully updated',
+            'event' => $event->fresh()->calendarPayload(),
+        ]);
+    }
+
     public function destroy(Request $request, Event $event)
     {
         $event->update([

@@ -117,6 +117,7 @@ class Event extends BaseModel
             'event_type' => $this->type,
             'event_type_icon' => array_search($this->type, static::typeOptions(), true) ?: null,
             'edit_url' => route('calendar.events.edit', $this),
+            'notes_update_url' => route('calendar.events.notes.update', $this),
             'reschedule_url' => route('calendar.events.reschedule', $this),
             'revert_url' => route('calendar.events.revert', $this),
             'destroy_url' => route('calendar.events.destroy', $this),

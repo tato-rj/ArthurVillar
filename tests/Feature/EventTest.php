@@ -208,6 +208,35 @@ class EventTest extends BaseTest
     }
 
     /** @test */
+    public function calendar_modal_can_update_only_an_events_notes()
+    {
+        $event = Event::factory()->create([
+            'name' => 'BKCM Camp',
+            'scheduled_date' => '2026-07-29',
+            'starts_at' => '08:45',
+            'ends_at' => '15:00',
+            'notes' => 'Original notes',
+        ]);
+        $this->signIn();
+
+        $this->patchJson(route('calendar.events.notes.update', $event), [
+            'notes' => "Updated schedule\nSecond line",
+        ])
+            ->assertOk()
+            ->assertJsonPath('event.id', $event->id)
+            ->assertJsonPath('event.name', 'BKCM Camp')
+            ->assertJsonPath('event.notes', "Updated schedule\nSecond line")
+            ->assertJsonPath('event.notes_update_url', route('calendar.events.notes.update', $event));
+
+        $event->refresh();
+
+        $this->assertSame("Updated schedule\nSecond line", $event->notes);
+        $this->assertSame('2026-07-29', $event->scheduled_date->toDateString());
+        $this->assertSame('08:45', $event->starts_at);
+        $this->assertSame('15:00', $event->ends_at);
+    }
+
+    /** @test */
     public function calendar_modal_can_cancel_and_revert_an_event_with_json()
     {
         $event = Event::factory()->create();
@@ -396,6 +425,9 @@ class EventTest extends BaseTest
             ->assertSee('general-event-notification', false)
             ->assertSee('data-general-event-type-section', false)
             ->assertSee('data-general-event-notes-section', false)
+            ->assertSee('data-general-event-notes-edit', false)
+            ->assertSee('data-general-event-notes-form', false)
+            ->assertSee('data-general-event-notes-input', false)
             ->assertSee('Join the meeting')
             ->assertDontSee('data-general-event-response-section', false)
             ->assertDontSee('data-general-event-response', false)

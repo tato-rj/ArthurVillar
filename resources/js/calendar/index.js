@@ -1787,6 +1787,7 @@ const getGeneralEvent = function(generalEvent) {
         notificationEnabled: Boolean(generalEvent.notification_enabled),
         notificationMinutesBefore: generalEvent.notification_minutes_before,
         editUrl: generalEvent.edit_url || '',
+        notesUpdateUrl: generalEvent.notes_update_url || '',
         rescheduleUrl: generalEvent.reschedule_url || '',
         revertUrl: generalEvent.revert_url || '',
         destroyUrl: generalEvent.destroy_url || '',
@@ -3792,6 +3793,98 @@ const showGeneralEventActionError = function(modal, message) {
     error.hidden = false;
 };
 
+const setGeneralEventNotesEditing = function(modal, editing) {
+    if (!modal) {
+        return;
+    }
+
+    const display = modal.querySelector('[data-general-event-notes-display]');
+    const form = modal.querySelector('[data-general-event-notes-form]');
+    const edit = modal.querySelector('[data-general-event-notes-edit]');
+    const input = modal.querySelector('[data-general-event-notes-input]');
+    const canEdit = edit && edit.dataset.canEdit === 'true';
+
+    if (display) display.hidden = editing;
+    if (form) form.hidden = !editing;
+    if (edit) edit.hidden = editing || !canEdit;
+
+    if (editing && input) {
+        input.focus();
+        input.setSelectionRange(input.value.length, input.value.length);
+    }
+};
+
+const updateGeneralEventNotesInState = function(modal, payload) {
+    const updatedEvent = payload && payload.event ? payload.event : null;
+
+    if (!modal || !updatedEvent) {
+        return;
+    }
+
+    const notes = updatedEvent.notes || '';
+    const storedEvent = state.generalEvents.find(function(event) {
+        return String(event.id) === String(updatedEvent.id)
+            && !event.external_provider;
+    });
+    const display = modal.querySelector('[data-general-event-notes-display]');
+    const input = modal.querySelector('[data-general-event-notes-input]');
+
+    if (storedEvent) {
+        Object.assign(storedEvent, updatedEvent);
+    }
+
+    if (modal.generalEvent) {
+        modal.generalEvent.notes = notes;
+        modal.generalEvent.notesUpdateUrl = updatedEvent.notes_update_url || modal.generalEvent.notesUpdateUrl;
+    }
+
+    getCalendarEventElementsByGuid(modal.dataset.eventGuid).forEach(function(item) {
+        if (item.event) {
+            item.event.notes = notes;
+            item.event.notesUpdateUrl = updatedEvent.notes_update_url || item.event.notesUpdateUrl;
+        }
+    });
+
+    if (display) renderNotesWithLinks(display, notes);
+    if (input) input.value = notes;
+
+    setGeneralEventNotesEditing(modal, false);
+};
+
+const submitGeneralEventNotes = function(modal, form) {
+    const input = form ? form.querySelector('[data-general-event-notes-input]') : null;
+
+    if (!modal || !form || !form.action || !input) {
+        return;
+    }
+
+    setFormSubmitting(form, true);
+    clearGeneralEventActionError(modal);
+
+    requestJson(form.action, {
+        method: 'PATCH',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': window.calendarCsrfToken || '',
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: JSON.stringify({
+            notes: input.value,
+        }),
+    }, 'Unable to update event notes.')
+        .then(function(payload) {
+            updateGeneralEventNotesInState(modal, payload);
+        })
+        .catch(function(error) {
+            console.error(error);
+            showGeneralEventActionError(modal, error.message);
+        })
+        .finally(function() {
+            setFormSubmitting(form, false);
+        });
+};
+
 const resetGeneralEventModalState = function(modal) {
     if (!modal) {
         return;
@@ -3842,6 +3935,9 @@ const openGeneralEventModal = function(event, options) {
     const notification = modal.querySelector('#general-event-notification');
     const notes = modal.querySelector('#general-event-notes');
     const notesSection = modal.querySelector('[data-general-event-notes-section]');
+    const notesEdit = modal.querySelector('[data-general-event-notes-edit]');
+    const notesForm = modal.querySelector('[data-general-event-notes-form]');
+    const notesInput = modal.querySelector('[data-general-event-notes-input]');
     const meetingSection = modal.querySelector('[data-event-modal-meeting-section]');
     const meetingLink = modal.querySelector('[data-event-modal-meeting-link]');
     const organizer = modal.querySelector('[data-general-event-organizer]');
@@ -3861,6 +3957,7 @@ const openGeneralEventModal = function(event, options) {
     const rescheduleStartTime = modal.querySelector('#reschedule-general-event-start-time');
     const rescheduleEndTime = modal.querySelector('#reschedule-general-event-end-time');
     const isCanceled = event.calendarStatus === 'canceled';
+    const canEditNotes = !event.readOnly && !event.externalProvider && Boolean(event.notesUpdateUrl);
 
     setCalendarEventModalType(modal, 'general');
     resetGeneralEventModalState(modal);
@@ -3885,7 +3982,7 @@ const openGeneralEventModal = function(event, options) {
         notification.textContent = formatGeneralEventNotification(event.notificationMinutesBefore);
         notification.parentElement.hidden = !notification.textContent;
     }
-    if (notesSection) notesSection.hidden = !String(event.notes || '').trim();
+    if (notesSection) notesSection.hidden = !String(event.notes || '').trim() && !canEditNotes;
     if (notes) {
         if (event.externalProvider === 'google') {
             renderGoogleNotesHtml(notes, event.notes);
@@ -3893,6 +3990,12 @@ const openGeneralEventModal = function(event, options) {
             renderNotesWithLinks(notes, event.notes);
         }
     }
+    if (notesEdit) {
+        notesEdit.dataset.canEdit = canEditNotes ? 'true' : 'false';
+    }
+    if (notesForm) notesForm.action = event.notesUpdateUrl || '';
+    if (notesInput) notesInput.value = event.notes || '';
+    setGeneralEventNotesEditing(modal, false);
     if (meetingSection) meetingSection.hidden = !event.meetingUrl;
     if (meetingLink) {
         meetingLink.href = event.meetingUrl || '#';
@@ -7443,6 +7546,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const duplicateButton = generalEventModal.querySelector('#event-duplicate');
         const editButton = generalEventModal.querySelector('#event-edit');
         const revertButton = generalEventModal.querySelector('#event-revert');
+        const notesEditButton = generalEventModal.querySelector('[data-general-event-notes-edit]');
+        const notesCancelButton = generalEventModal.querySelector('[data-general-event-notes-cancel]');
+        const notesForm = generalEventModal.querySelector('[data-general-event-notes-form]');
+        const notesInput = generalEventModal.querySelector('[data-general-event-notes-input]');
         const cancelButton = generalEventModal.querySelector('#cancel-general-event-button');
         const rescheduleButton = generalEventModal.querySelector('#reschedule-general-event-button');
         const rescheduleForm = generalEventModal.querySelector('#reschedule-general-event form');
@@ -7484,6 +7591,35 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 revertGeneralEventAction(revertButton, refreshCalendarAfterLessonMutation);
+            });
+        }
+
+        if (notesEditButton) {
+            notesEditButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                setGeneralEventNotesEditing(generalEventModal, true);
+            });
+        }
+
+        if (notesCancelButton) {
+            notesCancelButton.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                if (notesInput) {
+                    notesInput.value = generalEventModal.generalEvent
+                        ? (generalEventModal.generalEvent.notes || '')
+                        : '';
+                }
+
+                clearGeneralEventActionError(generalEventModal);
+                setGeneralEventNotesEditing(generalEventModal, false);
+            });
+        }
+
+        if (notesForm) {
+            notesForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                submitGeneralEventNotes(generalEventModal, notesForm);
             });
         }
 

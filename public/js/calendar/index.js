@@ -5963,6 +5963,7 @@ var getGeneralEvent = function getGeneralEvent(generalEvent) {
     notificationEnabled: Boolean(generalEvent.notification_enabled),
     notificationMinutesBefore: generalEvent.notification_minutes_before,
     editUrl: generalEvent.edit_url || '',
+    notesUpdateUrl: generalEvent.notes_update_url || '',
     rescheduleUrl: generalEvent.reschedule_url || '',
     revertUrl: generalEvent.revert_url || '',
     destroyUrl: generalEvent.destroy_url || '',
@@ -7433,6 +7434,78 @@ var showGeneralEventActionError = function showGeneralEventActionError(modal, me
   error.textContent = message || 'Unable to update this event.';
   error.hidden = false;
 };
+var setGeneralEventNotesEditing = function setGeneralEventNotesEditing(modal, editing) {
+  if (!modal) {
+    return;
+  }
+  var display = modal.querySelector('[data-general-event-notes-display]');
+  var form = modal.querySelector('[data-general-event-notes-form]');
+  var edit = modal.querySelector('[data-general-event-notes-edit]');
+  var input = modal.querySelector('[data-general-event-notes-input]');
+  var canEdit = edit && edit.dataset.canEdit === 'true';
+  if (display) display.hidden = editing;
+  if (form) form.hidden = !editing;
+  if (edit) edit.hidden = editing || !canEdit;
+  if (editing && input) {
+    input.focus();
+    input.setSelectionRange(input.value.length, input.value.length);
+  }
+};
+var updateGeneralEventNotesInState = function updateGeneralEventNotesInState(modal, payload) {
+  var updatedEvent = payload && payload.event ? payload.event : null;
+  if (!modal || !updatedEvent) {
+    return;
+  }
+  var notes = updatedEvent.notes || '';
+  var storedEvent = state.generalEvents.find(function (event) {
+    return String(event.id) === String(updatedEvent.id) && !event.external_provider;
+  });
+  var display = modal.querySelector('[data-general-event-notes-display]');
+  var input = modal.querySelector('[data-general-event-notes-input]');
+  if (storedEvent) {
+    Object.assign(storedEvent, updatedEvent);
+  }
+  if (modal.generalEvent) {
+    modal.generalEvent.notes = notes;
+    modal.generalEvent.notesUpdateUrl = updatedEvent.notes_update_url || modal.generalEvent.notesUpdateUrl;
+  }
+  getCalendarEventElementsByGuid(modal.dataset.eventGuid).forEach(function (item) {
+    if (item.event) {
+      item.event.notes = notes;
+      item.event.notesUpdateUrl = updatedEvent.notes_update_url || item.event.notesUpdateUrl;
+    }
+  });
+  if (display) renderNotesWithLinks(display, notes);
+  if (input) input.value = notes;
+  setGeneralEventNotesEditing(modal, false);
+};
+var submitGeneralEventNotes = function submitGeneralEventNotes(modal, form) {
+  var input = form ? form.querySelector('[data-general-event-notes-input]') : null;
+  if (!modal || !form || !form.action || !input) {
+    return;
+  }
+  setFormSubmitting(form, true);
+  clearGeneralEventActionError(modal);
+  requestJson(form.action, {
+    method: 'PATCH',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'X-CSRF-TOKEN': window.calendarCsrfToken || '',
+      'X-Requested-With': 'XMLHttpRequest'
+    },
+    body: JSON.stringify({
+      notes: input.value
+    })
+  }, 'Unable to update event notes.').then(function (payload) {
+    updateGeneralEventNotesInState(modal, payload);
+  })["catch"](function (error) {
+    console.error(error);
+    showGeneralEventActionError(modal, error.message);
+  })["finally"](function () {
+    setFormSubmitting(form, false);
+  });
+};
 var resetGeneralEventModalState = function resetGeneralEventModalState(modal) {
   if (!modal) {
     return;
@@ -7474,6 +7547,9 @@ var openGeneralEventModal = function openGeneralEventModal(event, options) {
   var notification = modal.querySelector('#general-event-notification');
   var notes = modal.querySelector('#general-event-notes');
   var notesSection = modal.querySelector('[data-general-event-notes-section]');
+  var notesEdit = modal.querySelector('[data-general-event-notes-edit]');
+  var notesForm = modal.querySelector('[data-general-event-notes-form]');
+  var notesInput = modal.querySelector('[data-general-event-notes-input]');
   var meetingSection = modal.querySelector('[data-event-modal-meeting-section]');
   var meetingLink = modal.querySelector('[data-event-modal-meeting-link]');
   var organizer = modal.querySelector('[data-general-event-organizer]');
@@ -7493,6 +7569,7 @@ var openGeneralEventModal = function openGeneralEventModal(event, options) {
   var rescheduleStartTime = modal.querySelector('#reschedule-general-event-start-time');
   var rescheduleEndTime = modal.querySelector('#reschedule-general-event-end-time');
   var isCanceled = event.calendarStatus === 'canceled';
+  var canEditNotes = !event.readOnly && !event.externalProvider && Boolean(event.notesUpdateUrl);
   setCalendarEventModalType(modal, 'general');
   resetGeneralEventModalState(modal);
   modal.updatedScheduleItem = settings.updatedItem || null;
@@ -7511,7 +7588,7 @@ var openGeneralEventModal = function openGeneralEventModal(event, options) {
     notification.textContent = formatGeneralEventNotification(event.notificationMinutesBefore);
     notification.parentElement.hidden = !notification.textContent;
   }
-  if (notesSection) notesSection.hidden = !String(event.notes || '').trim();
+  if (notesSection) notesSection.hidden = !String(event.notes || '').trim() && !canEditNotes;
   if (notes) {
     if (event.externalProvider === 'google') {
       renderGoogleNotesHtml(notes, event.notes);
@@ -7519,6 +7596,12 @@ var openGeneralEventModal = function openGeneralEventModal(event, options) {
       renderNotesWithLinks(notes, event.notes);
     }
   }
+  if (notesEdit) {
+    notesEdit.dataset.canEdit = canEditNotes ? 'true' : 'false';
+  }
+  if (notesForm) notesForm.action = event.notesUpdateUrl || '';
+  if (notesInput) notesInput.value = event.notes || '';
+  setGeneralEventNotesEditing(modal, false);
   if (meetingSection) meetingSection.hidden = !event.meetingUrl;
   if (meetingLink) {
     meetingLink.href = event.meetingUrl || '#';
@@ -10294,6 +10377,10 @@ document.addEventListener('DOMContentLoaded', function () {
     var duplicateButton = generalEventModal.querySelector('#event-duplicate');
     var editButton = generalEventModal.querySelector('#event-edit');
     var revertButton = generalEventModal.querySelector('#event-revert');
+    var notesEditButton = generalEventModal.querySelector('[data-general-event-notes-edit]');
+    var notesCancelButton = generalEventModal.querySelector('[data-general-event-notes-cancel]');
+    var notesForm = generalEventModal.querySelector('[data-general-event-notes-form]');
+    var notesInput = generalEventModal.querySelector('[data-general-event-notes-input]');
     var cancelButton = generalEventModal.querySelector('#cancel-general-event-button');
     var _rescheduleButton = generalEventModal.querySelector('#reschedule-general-event-button');
     var _rescheduleForm = generalEventModal.querySelector('#reschedule-general-event form');
@@ -10327,6 +10414,28 @@ document.addEventListener('DOMContentLoaded', function () {
           return;
         }
         revertGeneralEventAction(revertButton, refreshCalendarAfterLessonMutation);
+      });
+    }
+    if (notesEditButton) {
+      notesEditButton.addEventListener('click', function (e) {
+        e.preventDefault();
+        setGeneralEventNotesEditing(generalEventModal, true);
+      });
+    }
+    if (notesCancelButton) {
+      notesCancelButton.addEventListener('click', function (e) {
+        e.preventDefault();
+        if (notesInput) {
+          notesInput.value = generalEventModal.generalEvent ? generalEventModal.generalEvent.notes || '' : '';
+        }
+        clearGeneralEventActionError(generalEventModal);
+        setGeneralEventNotesEditing(generalEventModal, false);
+      });
+    }
+    if (notesForm) {
+      notesForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        submitGeneralEventNotes(generalEventModal, notesForm);
       });
     }
     if (cancelButton) {

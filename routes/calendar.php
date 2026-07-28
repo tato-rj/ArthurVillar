@@ -178,6 +178,7 @@ Route::prefix('events')->name('events.')->group(function() {
 
 	Route::prefix('{event}')->group(function() {
 		Route::get('edit', 'EventsController@edit')->name('edit');
+		Route::patch('notes', 'EventsController@updateNotes')->name('notes.update');
 		Route::patch('reschedule', 'EventsController@reschedule')->name('reschedule');
 		Route::post('revert', 'EventsController@revert')->name('revert');
 
