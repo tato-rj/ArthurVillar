@@ -5,9 +5,12 @@
                 <div class="small font-weight-bold opacity-6">NOTES</div>
                 <button type="button" class="btn calendar-general-event-notes-edit" data-general-event-notes-edit>edit</button>
             </div>
-            <div class="calendar-general-event-notes calendar-general-event-notes-display" data-general-event-notes-display-container>
-                <div id="general-event-notes" data-general-event-notes-display></div>
-            </div>
+            <div
+                id="general-event-notes"
+                class="calendar-general-event-notes"
+                data-general-event-notes-display
+                data-general-event-notes-display-container
+            ></div>
             <form method="POST" action="" data-general-event-notes-form hidden>
                 @csrf
                 @method('PATCH')
