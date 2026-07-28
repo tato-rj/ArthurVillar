@@ -2512,7 +2512,7 @@ const openLessonModal = function(event, options) {
         modal.dataset.originalStartTime = '';
     }
 
-    loadTravelRoute(modal, event);
+    loadTravelRoute(modal, event, settings.scheduleItem || modal.updatedScheduleItem);
 
     if (window.bootstrap && window.bootstrap.Modal && typeof window.bootstrap.Modal.getOrCreateInstance === 'function') {
         window.bootstrap.Modal.getOrCreateInstance(modal).show();
@@ -2611,8 +2611,9 @@ const openTeachingBreakModal = function(event) {
     }
 };
 
-const openRecitalModal = function(event) {
+const openRecitalModal = function(event, options) {
     const modal = document.getElementById('recital-modal');
+    const settings = options || {};
 
     if (!modal || !event) {
         return;
@@ -2669,7 +2670,7 @@ const openRecitalModal = function(event) {
         });
     }
 
-    loadTravelRoute(modal, event);
+    loadTravelRoute(modal, event, settings.scheduleItem);
 
     if (window.bootstrap && window.bootstrap.Modal && typeof window.bootstrap.Modal.getOrCreateInstance === 'function') {
         window.bootstrap.Modal.getOrCreateInstance(modal).show();
@@ -3341,6 +3342,8 @@ const renderScheduleItemTravel = function(item, event, route, cacheKey, options)
     extension.dataset.travelPosition = placement.position;
     extension.dataset.travelDurationMinutes = String(roundedMinutes);
     extension.dataset.travelEventGuid = getScheduleTravelOwnerGuid(event);
+    extension.dataset.travelRoute = JSON.stringify(route);
+    extension.travelRoute = route;
     extension.title = `${route.origin} to ${route.destination}: ${durationMinutes} min travel time`;
     extension.setAttribute('aria-hidden', 'true');
     icon.className = `fas ${isTransit ? 'fa-train-subway' : 'fa-person-walking'}`;
@@ -3467,13 +3470,16 @@ const patchScheduleItemTravel = function(item, event) {
 };
 
 const resetTravelRoute = function(modal) {
-    const section = modal ? modal.querySelector('[data-travel-route]') : null;
+    const section = modal ? modal.querySelector('[data-travel-route]:not([data-travel-route-generated])') : null;
 
     if (!section) {
         return;
     }
 
     modal.dataset.travelRouteRequest = '';
+    modal.querySelectorAll('[data-travel-route-generated]').forEach(function(generatedSection) {
+        generatedSection.remove();
+    });
     section.hidden = true;
     section.querySelector('[data-travel-route-loading]').hidden = false;
     section.querySelector('[data-travel-route-content]').hidden = true;
@@ -3531,8 +3537,7 @@ const appendTravelStep = function(container, step, index) {
     container.appendChild(item);
 };
 
-const renderTravelRoute = function(modal, route) {
-    const section = modal.querySelector('[data-travel-route]');
+const renderTravelRoute = function(section, route) {
     const times = section.querySelector('[data-travel-route-times]');
     const steps = section.querySelector('[data-travel-route-steps]');
     const origin = section.querySelector('[data-travel-route-origin]');
@@ -3563,39 +3568,68 @@ const renderTravelRoute = function(modal, route) {
     section.hidden = false;
 };
 
-const loadTravelRoute = function(modal, event) {
+const getModalScheduleItem = function(event, scheduleItem) {
+    if (scheduleItem && scheduleItem.isConnected && scheduleItem.classList.contains('lm-schedule-item')) {
+        return scheduleItem;
+    }
+
+    const eventGuid = getScheduleTravelOwnerGuid(event);
+
+    return getCalendarEventElementsByGuid(eventGuid).find(function(item) {
+        return item.classList.contains('lm-schedule-item');
+    }) || null;
+};
+
+const getScheduleItemTravelRoutes = function(item) {
+    if (!item) {
+        return [];
+    }
+
+    return Array.from(item.querySelectorAll(':scope > .calendar-schedule-travel'))
+        .sort(function(a, b) {
+            const positionOrder = { before: 0, after: 1 };
+
+            return (positionOrder[a.dataset.travelPosition] ?? 2)
+                - (positionOrder[b.dataset.travelPosition] ?? 2);
+        })
+        .map(function(extension) {
+            if (extension.travelRoute) {
+                return extension.travelRoute;
+            }
+
+            try {
+                return JSON.parse(extension.dataset.travelRoute || '');
+            } catch (error) {
+                return null;
+            }
+        })
+        .filter(function(route) {
+            return route && Number(route.duration_seconds || 0) > 0;
+        });
+};
+
+const loadTravelRoute = function(modal, event, scheduleItem) {
     resetTravelRoute(modal);
 
-    const section = modal ? modal.querySelector('[data-travel-route]') : null;
-    const details = getTravelRouteRequestDetails(event);
+    const section = modal
+        ? modal.querySelector('[data-travel-route]:not([data-travel-route-generated])')
+        : null;
+    const routes = getScheduleItemTravelRoutes(getModalScheduleItem(event, scheduleItem));
 
-    if (!section || !details) {
+    if (!section || !routes.length) {
         return;
     }
 
-    const requestId = `${event.guid || event.id || 'event'}-${Date.now()}`;
-    modal.dataset.travelRouteRequest = requestId;
+    routes.forEach(function(route, index) {
+        const routeSection = index === 0 ? section : section.cloneNode(true);
 
-    requestTravelRouteForEvent(event, details)
-        .then(function(route) {
-            if (modal.dataset.travelRouteRequest !== requestId) {
-                return;
-            }
+        if (index > 0) {
+            routeSection.setAttribute('data-travel-route-generated', '');
+            section.parentNode.insertBefore(routeSection, section.nextSibling);
+        }
 
-            if (!route) {
-                section.hidden = true;
-                return;
-            }
-
-            renderTravelRoute(modal, route);
-        })
-        .catch(function(error) {
-            if (modal.dataset.travelRouteRequest === requestId) {
-                section.hidden = true;
-            }
-
-            console.error(error);
-        });
+        renderTravelRoute(routeSection, route);
+    });
 };
 
 const renderNotesWithLinks = function(element, notes, options) {
@@ -3891,7 +3925,7 @@ const openGeneralEventModal = function(event, options) {
         showGeneralEventRescheduleForm(modal);
     }
 
-    loadTravelRoute(modal, event);
+    loadTravelRoute(modal, event, settings.scheduleItem || modal.updatedScheduleItem);
     showBootstrapModal(modal);
 };
 
@@ -8225,7 +8259,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         if (event && event.isRecital) {
-            openRecitalModal(event);
+            openRecitalModal(event, {
+                scheduleItem: item,
+            });
             return;
         }
 
@@ -8233,6 +8269,7 @@ document.addEventListener('DOMContentLoaded', function() {
             openGeneralEventModal(event, {
                 openReschedule: Boolean(updatedItem),
                 updatedItem,
+                scheduleItem: item,
             });
             return;
         }
@@ -8240,6 +8277,7 @@ document.addEventListener('DOMContentLoaded', function() {
         openLessonModal(event, {
             openReschedule: Boolean(updatedItem),
             updatedItem,
+            scheduleItem: item,
         });
     });
 

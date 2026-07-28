@@ -6512,7 +6512,7 @@ var openLessonModal = function openLessonModal(event, options) {
     modal.dataset.originalDate = '';
     modal.dataset.originalStartTime = '';
   }
-  loadTravelRoute(modal, event);
+  loadTravelRoute(modal, event, settings.scheduleItem || modal.updatedScheduleItem);
   if (window.bootstrap && window.bootstrap.Modal && typeof window.bootstrap.Modal.getOrCreateInstance === 'function') {
     window.bootstrap.Modal.getOrCreateInstance(modal).show();
     return;
@@ -6589,8 +6589,9 @@ var openTeachingBreakModal = function openTeachingBreakModal(event) {
     window.jQuery(modal).modal('show');
   }
 };
-var openRecitalModal = function openRecitalModal(event) {
+var openRecitalModal = function openRecitalModal(event, options) {
   var modal = document.getElementById('recital-modal');
+  var settings = options || {};
   if (!modal || !event) {
     return;
   }
@@ -6637,7 +6638,7 @@ var openRecitalModal = function openRecitalModal(event) {
       participants.appendChild(row);
     });
   }
-  loadTravelRoute(modal, event);
+  loadTravelRoute(modal, event, settings.scheduleItem);
   if (window.bootstrap && window.bootstrap.Modal && typeof window.bootstrap.Modal.getOrCreateInstance === 'function') {
     window.bootstrap.Modal.getOrCreateInstance(modal).show();
     return;
@@ -7099,6 +7100,8 @@ var renderScheduleItemTravel = function renderScheduleItemTravel(item, event, ro
   extension.dataset.travelPosition = placement.position;
   extension.dataset.travelDurationMinutes = String(roundedMinutes);
   extension.dataset.travelEventGuid = getScheduleTravelOwnerGuid(event);
+  extension.dataset.travelRoute = JSON.stringify(route);
+  extension.travelRoute = route;
   extension.title = "".concat(route.origin, " to ").concat(route.destination, ": ").concat(durationMinutes, " min travel time");
   extension.setAttribute('aria-hidden', 'true');
   icon.className = "fas ".concat(isTransit ? 'fa-train-subway' : 'fa-person-walking');
@@ -7196,11 +7199,14 @@ var patchScheduleItemTravel = function patchScheduleItemTravel(item, event) {
   });
 };
 var resetTravelRoute = function resetTravelRoute(modal) {
-  var section = modal ? modal.querySelector('[data-travel-route]') : null;
+  var section = modal ? modal.querySelector('[data-travel-route]:not([data-travel-route-generated])') : null;
   if (!section) {
     return;
   }
   modal.dataset.travelRouteRequest = '';
+  modal.querySelectorAll('[data-travel-route-generated]').forEach(function (generatedSection) {
+    generatedSection.remove();
+  });
   section.hidden = true;
   section.querySelector('[data-travel-route-loading]').hidden = false;
   section.querySelector('[data-travel-route-content]').hidden = true;
@@ -7242,8 +7248,7 @@ var appendTravelStep = function appendTravelStep(container, step, index) {
   }
   container.appendChild(item);
 };
-var renderTravelRoute = function renderTravelRoute(modal, route) {
-  var section = modal.querySelector('[data-travel-route]');
+var renderTravelRoute = function renderTravelRoute(section, route) {
   var times = section.querySelector('[data-travel-route-times]');
   var steps = section.querySelector('[data-travel-route-steps]');
   var origin = section.querySelector('[data-travel-route-origin]');
@@ -7266,29 +7271,53 @@ var renderTravelRoute = function renderTravelRoute(modal, route) {
   section.querySelector('[data-travel-route-content]').hidden = false;
   section.hidden = false;
 };
-var loadTravelRoute = function loadTravelRoute(modal, event) {
+var getModalScheduleItem = function getModalScheduleItem(event, scheduleItem) {
+  if (scheduleItem && scheduleItem.isConnected && scheduleItem.classList.contains('lm-schedule-item')) {
+    return scheduleItem;
+  }
+  var eventGuid = getScheduleTravelOwnerGuid(event);
+  return getCalendarEventElementsByGuid(eventGuid).find(function (item) {
+    return item.classList.contains('lm-schedule-item');
+  }) || null;
+};
+var getScheduleItemTravelRoutes = function getScheduleItemTravelRoutes(item) {
+  if (!item) {
+    return [];
+  }
+  return Array.from(item.querySelectorAll(':scope > .calendar-schedule-travel')).sort(function (a, b) {
+    var _positionOrder$a$data, _positionOrder$b$data;
+    var positionOrder = {
+      before: 0,
+      after: 1
+    };
+    return ((_positionOrder$a$data = positionOrder[a.dataset.travelPosition]) !== null && _positionOrder$a$data !== void 0 ? _positionOrder$a$data : 2) - ((_positionOrder$b$data = positionOrder[b.dataset.travelPosition]) !== null && _positionOrder$b$data !== void 0 ? _positionOrder$b$data : 2);
+  }).map(function (extension) {
+    if (extension.travelRoute) {
+      return extension.travelRoute;
+    }
+    try {
+      return JSON.parse(extension.dataset.travelRoute || '');
+    } catch (error) {
+      return null;
+    }
+  }).filter(function (route) {
+    return route && Number(route.duration_seconds || 0) > 0;
+  });
+};
+var loadTravelRoute = function loadTravelRoute(modal, event, scheduleItem) {
   resetTravelRoute(modal);
-  var section = modal ? modal.querySelector('[data-travel-route]') : null;
-  var details = getTravelRouteRequestDetails(event);
-  if (!section || !details) {
+  var section = modal ? modal.querySelector('[data-travel-route]:not([data-travel-route-generated])') : null;
+  var routes = getScheduleItemTravelRoutes(getModalScheduleItem(event, scheduleItem));
+  if (!section || !routes.length) {
     return;
   }
-  var requestId = "".concat(event.guid || event.id || 'event', "-").concat(Date.now());
-  modal.dataset.travelRouteRequest = requestId;
-  requestTravelRouteForEvent(event, details).then(function (route) {
-    if (modal.dataset.travelRouteRequest !== requestId) {
-      return;
+  routes.forEach(function (route, index) {
+    var routeSection = index === 0 ? section : section.cloneNode(true);
+    if (index > 0) {
+      routeSection.setAttribute('data-travel-route-generated', '');
+      section.parentNode.insertBefore(routeSection, section.nextSibling);
     }
-    if (!route) {
-      section.hidden = true;
-      return;
-    }
-    renderTravelRoute(modal, route);
-  })["catch"](function (error) {
-    if (modal.dataset.travelRouteRequest === requestId) {
-      section.hidden = true;
-    }
-    console.error(error);
+    renderTravelRoute(routeSection, route);
   });
 };
 var renderNotesWithLinks = function renderNotesWithLinks(element, notes, options) {
@@ -7516,7 +7545,7 @@ var openGeneralEventModal = function openGeneralEventModal(event, options) {
     modal.classList.add('is-drop-rescheduling');
     showGeneralEventRescheduleForm(modal);
   }
-  loadTravelRoute(modal, event);
+  loadTravelRoute(modal, event, settings.scheduleItem || modal.updatedScheduleItem);
   showBootstrapModal(modal);
 };
 var submitGeneralEventModalForm = function submitGeneralEventModalForm(form, refreshCalendar) {
@@ -10928,19 +10957,23 @@ document.addEventListener('DOMContentLoaded', function () {
       return;
     }
     if (event && event.isRecital) {
-      openRecitalModal(event);
+      openRecitalModal(event, {
+        scheduleItem: item
+      });
       return;
     }
     if (event && event.isGeneralEvent) {
       openGeneralEventModal(event, {
         openReschedule: Boolean(updatedItem),
-        updatedItem: updatedItem
+        updatedItem: updatedItem,
+        scheduleItem: item
       });
       return;
     }
     openLessonModal(event, {
       openReschedule: Boolean(updatedItem),
-      updatedItem: updatedItem
+      updatedItem: updatedItem,
+      scheduleItem: item
     });
   });
   var monthDayEventsModal = document.getElementById('month-day-events-modal');
