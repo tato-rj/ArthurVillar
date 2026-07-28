@@ -39,16 +39,13 @@
             <thead>
                 <tr>
                     <th>Student</th>
-                    <th>Weekday</th>
                     <th>Start time</th>
                     <th>Duration</th>
                     <th>Recurrence</th>
                     <th>Starts on</th>
                     <th>Ends on</th>
                     <th>Fee</th>
-                    <th>Payment</th>
                     <th>Location</th>
-                    <th>Status</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -66,12 +63,6 @@
 @include('calendar.lessonPlans.create-scripts')
 <script>
 $(function() {
-    const capitalize = function(value) {
-        value = String(value || '');
-
-        return value ? value.charAt(0).toUpperCase() + value.slice(1) : '';
-    };
-
     const formatDate = function(value) {
         if (!value) {
             return '';
@@ -238,17 +229,6 @@ $(function() {
         columns: [
             {data: 'student', name: 'student'},
             {
-                data: 'weekday_name',
-                name: 'weekday_name',
-                render: function(data, type, row) {
-                    if (type === 'sort' || type === 'type') {
-                        return row.weekday;
-                    }
-
-                    return capitalize(data);
-                },
-            },
-            {
                 data: 'start_time',
                 name: 'start_time',
                 render: function(data, type) {
@@ -301,29 +281,10 @@ $(function() {
                 },
             },
             {
-                data: 'payment_method',
-                name: 'payment_method',
-                render: function(data) {
-                    return data || '';
-                },
-            },
-            {
                 data: 'location',
                 name: 'location',
                 render: function(data) {
                     return data || '';
-                },
-            },
-            {
-                data: 'status_order',
-                name: 'status_order',
-                searchable: false,
-                render: function(data, type, row) {
-                    if (row.plan_type === 'single' && row.status === 'active') {
-                        return 'Scheduled';
-                    }
-
-                    return capitalize(row.status);
                 },
             },
             {

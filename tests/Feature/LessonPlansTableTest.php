@@ -30,61 +30,6 @@ class LessonPlansTableTest extends BaseTest
     }
 
     /** @test */
-    public function it_sorts_lesson_plans_by_dynamic_status()
-    {
-        Carbon::setTestNow(Carbon::parse('2026-07-08 12:00:00'));
-
-        $studentWithCurrentPlan = Student::factory()->create();
-        $studentWithUpcomingPlan = Student::factory()->create();
-
-        LessonPlan::factory()->student($studentWithCurrentPlan)->create([
-            'starts_on' => '2026-07-01',
-            'ends_on' => '2026-07-31',
-            'start_time' => '16:00',
-        ]);
-
-        LessonPlan::factory()->student($studentWithCurrentPlan)->create([
-            'starts_on' => '2026-07-15',
-            'ends_on' => '2026-08-15',
-            'start_time' => '16:00',
-        ]);
-
-        LessonPlan::factory()->student($studentWithUpcomingPlan)->create([
-            'starts_on' => '2026-07-10',
-            'ends_on' => '2026-08-10',
-            'start_time' => '16:00',
-        ]);
-
-        LessonPlan::factory()->create([
-            'starts_on' => '2026-06-01',
-            'ends_on' => '2026-06-30',
-            'start_time' => '16:00',
-        ]);
-
-        $this->signIn();
-
-        $ascendingResponse = $this->getJson(route('calendar.tables.lesson-plans', $this->lessonPlanTableRequest([
-            'order' => [
-                ['column' => 10, 'dir' => 'asc'],
-            ],
-        ])))->assertOk();
-
-        $descendingResponse = $this->getJson(route('calendar.tables.lesson-plans', $this->lessonPlanTableRequest([
-            'order' => [
-                ['column' => 10, 'dir' => 'desc'],
-            ],
-        ])))->assertOk();
-
-        $ascendingStatuses = collect($ascendingResponse->json('data'))->pluck('status')->all();
-        $descendingStatuses = collect($descendingResponse->json('data'))->pluck('status')->all();
-
-        $this->assertSame(['active', 'active', 'inactive', 'inactive'], $ascendingStatuses);
-        $this->assertSame(['inactive', 'inactive', 'active', 'active'], $descendingStatuses);
-
-        Carbon::setTestNow();
-    }
-
-    /** @test */
     public function it_searches_lesson_plans_without_querying_the_dynamic_status_order_as_a_column()
     {
         Carbon::setTestNow(Carbon::parse('2026-07-08 12:00:00'));
@@ -162,16 +107,13 @@ class LessonPlansTableTest extends BaseTest
     {
         return collect([
             'student',
-            'weekday_name',
             'start_time',
             'duration_minutes',
             'recurrence',
             'starts_on',
             'ends_on',
             'fee_amount',
-            'payment_method',
             'location',
-            'status_order',
             'actions',
         ])->map(function ($name) {
             return [
@@ -179,7 +121,7 @@ class LessonPlansTableTest extends BaseTest
                     ? 'id'
                     : $name,
                 'name' => $name,
-                'searchable' => in_array($name, ['actions', 'status_order']) ? 'false' : 'true',
+                'searchable' => $name === 'actions' ? 'false' : 'true',
                 'orderable' => $name === 'actions' ? 'false' : 'true',
                 'search' => [
                     'value' => '',
