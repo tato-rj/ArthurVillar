@@ -615,14 +615,14 @@ button.setting-undo {
     > :last-child {margin-bottom: 0;}
 }
 
-.calendar-general-event-notes-display {
-    position: relative;
+.calendar-general-event-notes-heading {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
 }
 
 .calendar-general-event-notes-edit {
-    position: absolute;
-    right: 0.75rem;
-    top: 0.75rem;
     border: 1px solid currentColor;
     border-radius: 999px;
     font-size: 0.65rem;
