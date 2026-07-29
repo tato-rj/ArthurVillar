@@ -7948,6 +7948,11 @@ document.addEventListener('DOMContentLoaded', function() {
         item.event.end = original.eventEnd;
         item.event.date = original.eventDate;
         item.event.weekday = original.eventWeekday;
+        if (original.eventScheduleSourceDate === undefined) {
+            delete item.event.scheduleSourceDate;
+        } else {
+            item.event.scheduleSourceDate = original.eventScheduleSourceDate;
+        }
         if (original.eventOriginalDate === undefined) {
             delete item.event.originalDate;
         } else {
@@ -8007,6 +8012,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         delete copiedEvent.originalDate;
         delete copiedEvent.originalStartTime;
+        delete copiedEvent.scheduleSourceDate;
 
         clone.removeAttribute('holding-event');
         clone.removeAttribute('copying-event');
@@ -8066,6 +8072,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 eventEnd: hold.item.event.end,
                 eventDate: hold.item.event.date,
                 eventWeekday: hold.item.event.weekday,
+                eventScheduleSourceDate: hold.item.event.scheduleSourceDate,
                 visibleDate: hold.originCell.getAttribute('data-real-date')
                     || hold.originCell.getAttribute('data-date'),
                 eventOriginalDate: hold.item.event.originalDate,
@@ -8098,6 +8105,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (date) {
             hold.item.event.date = date;
+            if (hold.item.event.scheduleSourceDate) {
+                hold.item.event.scheduleSourceDate = date;
+            }
         }
         if (weekday !== undefined) {
             hold.item.event.weekday = weekday;
