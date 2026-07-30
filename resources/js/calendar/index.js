@@ -2220,6 +2220,14 @@ const setCalendarEventModalType = function(modal, type) {
     });
 };
 
+const setCalendarEventModalExpandAvailable = function(modal, available) {
+    if (!modal) {
+        return;
+    }
+
+    modal.dataset.eventModalExpandAvailable = available ? 'true' : 'false';
+};
+
 const setCalendarEventModalExpanded = function(modal, expanded) {
     if (!modal) {
         return;
@@ -2236,7 +2244,8 @@ const setCalendarEventModalExpanded = function(modal, expanded) {
     }
 
     if (toggleContainer) {
-        toggleContainer.hidden = isExpanded;
+        toggleContainer.hidden = isExpanded
+            || modal.dataset.eventModalExpandAvailable === 'false';
     }
 };
 
@@ -2536,6 +2545,7 @@ const openLessonModal = function(event, options) {
 
     setCalendarEventModalType(modal, 'lesson');
     resetLessonModalState(modal);
+    setCalendarEventModalExpandAvailable(modal, true);
     setCalendarEventModalExpanded(modal, Boolean(settings.openReschedule));
     modal.updatedScheduleItem = settings.updatedItem || null;
     populateLessonModal(modal, event);
@@ -4025,6 +4035,7 @@ const openGeneralEventModal = function(event, options) {
 
     setCalendarEventModalType(modal, 'general');
     resetGeneralEventModalState(modal);
+    setCalendarEventModalExpandAvailable(modal, event.externalProvider !== 'google');
     setCalendarEventModalExpanded(modal, Boolean(settings.openReschedule && !event.readOnly));
     modal.updatedScheduleItem = settings.updatedItem || null;
     modal.generalEvent = event;
