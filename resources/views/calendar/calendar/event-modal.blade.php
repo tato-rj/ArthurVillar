@@ -4,15 +4,16 @@
     'bodyFullWidth' => true,
     'data' => [
         'event-modal-type' => 'lesson',
+        'event-modal-expanded' => 'false',
         'lesson-status' => 'unconfirmed',
     ],
 ])
 @slot('headerButtons')
-<span data-event-modal-section="lesson">
+<span data-event-modal-section="lesson" data-event-modal-expanded-content>
     <button id="lesson-edit" class="btn btn-raw" type="button">@fa(['icon' => 'pen'])</button>
     <button id="lesson-revert" class="btn btn-raw" data-url="{{ route('calendar.lessons.revert') }}" type="button">@fa(['icon' => 'rotate-left', 'mr' => 0])</button>
 </span>
-<span data-event-modal-section="general" hidden>
+<span data-event-modal-section="general" data-event-modal-expanded-content hidden>
     <button id="event-duplicate" class="btn btn-raw" type="button" aria-label="Duplicate event" title="Duplicate event">@fa(['icon' => 'copy'])</button>
     <button id="event-edit" class="btn btn-raw" type="button">@fa(['icon' => 'pen'])</button>
     <button id="event-revert" class="btn btn-raw" type="button" style="display: none">@fa(['icon' => 'rotate-left', 'mr' => 0])</button>
@@ -20,12 +21,12 @@
 @endslot
 
 <div class="px-3 mb-4">
-    <div data-event-modal-section="lesson">
+    <div data-event-modal-section="lesson" data-event-modal-expanded-content>
         <div id="lesson-status" class="rounded px-2 py-0 alert small mb-3"></div>
         <div class="alert alert-danger small mb-3" data-lesson-action-error hidden></div>
     </div>
 
-    <div data-event-modal-section="general" hidden>
+    <div data-event-modal-section="general" data-event-modal-expanded-content hidden>
         <div class="alert alert-danger small mb-3" data-general-event-action-error hidden></div>
     </div>
 
@@ -89,7 +90,7 @@
 
 @include('calendar.calendar.travel-route')
 
-<div class="px-3">
+<div class="px-3" data-event-modal-expanded-content>
     <div data-event-modal-section="lesson">
         @include('calendar.lessonRecords.reschedule')
         @include('calendar.lessonRecords.cancel')
@@ -99,5 +100,18 @@
     <div data-event-modal-section="general" hidden>
         @include('calendar.events.modal-actions')
     </div>
+</div>
+
+<div class="px-3 mt-2">
+    <button
+        type="button"
+        class="bg-light rounded text-center btn w-100 btn-raw text-muted border"
+        style="font-size: 78%"
+        data-event-modal-expand-toggle
+        aria-expanded="false"
+    >
+        <i class="fas fa-plus mr-1" data-event-modal-expand-icon aria-hidden="true"></i>
+        <span data-event-modal-expand-label>MORE</span>
+    </button>
 </div>
 @endmodal

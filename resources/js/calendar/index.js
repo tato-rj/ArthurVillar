@@ -2220,6 +2220,32 @@ const setCalendarEventModalType = function(modal, type) {
     });
 };
 
+const setCalendarEventModalExpanded = function(modal, expanded) {
+    if (!modal) {
+        return;
+    }
+
+    const isExpanded = Boolean(expanded);
+    const toggle = modal.querySelector('[data-event-modal-expand-toggle]');
+    const label = modal.querySelector('[data-event-modal-expand-label]');
+    const icon = modal.querySelector('[data-event-modal-expand-icon]');
+
+    modal.dataset.eventModalExpanded = isExpanded ? 'true' : 'false';
+
+    if (toggle) {
+        toggle.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+    }
+
+    if (label) {
+        label.textContent = isExpanded ? 'LESS' : 'MORE';
+    }
+
+    if (icon) {
+        icon.classList.toggle('fa-plus', !isExpanded);
+        icon.classList.toggle('fa-minus', isExpanded);
+    }
+};
+
 const getEventStartDateTime = function(event) {
     if (!event || !event.date || !event.start) {
         return null;
@@ -2516,6 +2542,7 @@ const openLessonModal = function(event, options) {
 
     setCalendarEventModalType(modal, 'lesson');
     resetLessonModalState(modal);
+    setCalendarEventModalExpanded(modal, Boolean(settings.openReschedule));
     modal.updatedScheduleItem = settings.updatedItem || null;
     populateLessonModal(modal, event);
 
@@ -4004,6 +4031,7 @@ const openGeneralEventModal = function(event, options) {
 
     setCalendarEventModalType(modal, 'general');
     resetGeneralEventModalState(modal);
+    setCalendarEventModalExpanded(modal, Boolean(settings.openReschedule && !event.readOnly));
     modal.updatedScheduleItem = settings.updatedItem || null;
     modal.generalEvent = event;
 
@@ -6590,6 +6618,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const miniPrevious = document.querySelector('[data-mini-prev]');
     const miniNext = document.querySelector('[data-mini-next]');
     const calendarEventModal = document.getElementById('calendar-event-modal');
+    const calendarEventModalExpandToggle = calendarEventModal
+        ? calendarEventModal.querySelector('[data-event-modal-expand-toggle]')
+        : null;
     const lessonModal = calendarEventModal;
     const generalEventModal = calendarEventModal;
     const calendarEditModalContainer = document.getElementById('calendar-edit-modal-container');
@@ -6631,6 +6662,15 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeStudentComboboxes();
     initializeSingleLessonPlanForms();
     initializeLessonPlanForms();
+
+    if (calendarEventModalExpandToggle) {
+        calendarEventModalExpandToggle.addEventListener('click', function() {
+            setCalendarEventModalExpanded(
+                calendarEventModal,
+                calendarEventModal.dataset.eventModalExpanded !== 'true'
+            );
+        });
+    }
 
     state.plannedLessons = Array.isArray(window.calendarPlannedLessons)
         ? window.calendarPlannedLessons
