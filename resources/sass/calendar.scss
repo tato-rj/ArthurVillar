@@ -605,6 +605,22 @@ button.setting-undo {
     background: #ce82ff;
 }
 
+#calendar .calendar-calendar-general-event[data-external-provider="google"]:hover,
+#calendar .calendar-month-event-general[data-external-provider="google"]:hover,
+#calendar .calendar-schedule-event-general[data-external-provider="google"]:hover,
+.calendar-month-day-events-modal-list .calendar-month-event-general[data-external-provider="google"]:hover {
+    background: var(--calendar-google-event-color, #4285F4);
+}
+
+#calendar .calendar-calendar-general-event[data-external-provider="google"][data-response-status="needsAction"],
+#calendar .calendar-month-event-general[data-external-provider="google"][data-response-status="needsAction"],
+#calendar .calendar-schedule-event-general[data-external-provider="google"][data-response-status="needsAction"],
+.calendar-month-day-events-modal-list .calendar-month-event-general[data-external-provider="google"][data-response-status="needsAction"] {
+    background: #fff;
+    border: 2px solid var(--calendar-google-event-color, #4285F4);
+    color: var(--calendar-google-event-color, #4285F4);
+}
+
 .calendar-general-event-notes {
     @extend .bg-light, .p-3, .rounded, .border;
     overflow-wrap: anywhere;
@@ -1172,6 +1188,19 @@ button.setting-undo {
 
 .calendar-schedule-recital:hover {
     background: #a95300;
+}
+
+.calendar-schedule-google-all-day {
+    background: var(--calendar-google-event-color, #4285F4);
+    border: 2px solid var(--calendar-google-event-color, #4285F4);
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+}
+
+.calendar-schedule-google-all-day[data-response-status="needsAction"] {
+    background: #fff;
+    color: var(--calendar-google-event-color, #4285F4);
 }
 
 // Lesson plans

@@ -406,6 +406,10 @@ class GoogleCalendarSyncTest extends BaseTest
                 'end_date' => '2026-08-13',
             ]
         ));
+        $declinedEvent = $connection->events()->create(array_replace(
+            $this->storedMeetingAttributes('declined-event'),
+            ['response_status' => 'declined']
+        ));
         $oldEvent = $connection->events()->create(array_replace(
             $this->storedMeetingAttributes('old-remote-event'),
             [
@@ -435,6 +439,7 @@ class GoogleCalendarSyncTest extends BaseTest
         $this->assertSame('2026-08-12', $googleAllDayEvent['scheduled_date']);
         $this->assertSame('00:00', $googleAllDayEvent['starts_at']);
         $this->assertSame('23:45', $googleAllDayEvent['ends_at']);
+        $this->assertNull($calendarEvents->firstWhere('id', 'google-'.$declinedEvent->id));
         $this->assertNull($calendarEvents->firstWhere('id', 'google-'.$oldEvent->id));
     }
 

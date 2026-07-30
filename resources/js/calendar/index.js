@@ -850,6 +850,10 @@ const getTimeMinutes = function(value) {
 };
 
 const isEventInsideScheduleWindow = function(event) {
+    if (event && event.allDay) {
+        return true;
+    }
+
     const start = getTimeMinutes(event.start);
 
     return start >= getTimeMinutes(scheduleStart) && start < getTimeMinutes(scheduleEnd);
@@ -921,7 +925,9 @@ const getVisibleCalendarEvents = function() {
 };
 
 const getScheduleRenderEvents = function() {
-    const events = getVisibleCalendarEvents();
+    const events = getVisibleCalendarEvents().filter(function(event) {
+        return !(event.allDay && event.externalProvider === 'google');
+    });
 
     if (state.view !== '2-days' && !(state.view === 'week' && isValidDate(state.scheduleWindowStart))) {
         return events;
@@ -1511,6 +1517,7 @@ const patchScheduleItems = function(calendar) {
         item.classList.toggle('calendar-calendar-general-event', Boolean(event && event.isGeneralEvent));
         item.toggleAttribute('data-read-only', Boolean(event && event.readOnly));
         item.dataset.externalProvider = event && event.externalProvider ? event.externalProvider : '';
+        item.dataset.responseStatus = event && event.responseStatus ? event.responseStatus : '';
         item.setAttribute(
             'data-display-time',
             event && event.externalProvider === 'google'
@@ -1585,7 +1592,10 @@ const patchScheduleHolidays = function(calendar) {
     const visibleDates = getVisibleScheduleDates();
     const visibleDateStrings = visibleDates.map(toDateString);
     const hasBanner = visibleDates.some(function(date) {
-        return getHolidaysForDate(date).length > 0 || getBreaksForDate(date).length > 0 || getRecitalsForDate(date).length > 0;
+        return getHolidaysForDate(date).length > 0
+            || getBreaksForDate(date).length > 0
+            || getRecitalsForDate(date).length > 0
+            || getAllDayGoogleEventsForDate(date).length > 0;
     });
 
     if (!hasBanner) {
@@ -1606,6 +1616,7 @@ const patchScheduleHolidays = function(calendar) {
         const holidays = isVisible ? getHolidaysForDate(date) : [];
         const teachingBreaks = isVisible ? getBreaksForDate(date) : [];
         const recitals = isVisible ? getRecitalsForDate(date) : [];
+        const googleEvents = isVisible ? getAllDayGoogleEventsForDate(date) : [];
 
         cell.className = 'calendar-schedule-holiday-cell';
         cell.dataset.date = dateString;
@@ -1640,6 +1651,21 @@ const patchScheduleHolidays = function(calendar) {
             item.className = 'calendar-schedule-holiday calendar-schedule-recital';
             item.textContent = `${formatEventTime(recital.start_time)} ${recital.name}`;
             item.dataset.eventGuid = `recital-${recital.id}-${dateString}`;
+            applyDateStatusAttributes(item, dateString);
+            cell.appendChild(item);
+        });
+
+        googleEvents.forEach(function(event) {
+            const item = document.createElement('button');
+
+            item.type = 'button';
+            item.className = 'calendar-schedule-holiday calendar-schedule-google-all-day';
+            item.textContent = event.title || 'Google event';
+            item.dataset.eventGuid = event.guid || '';
+            item.dataset.externalProvider = 'google';
+            item.dataset.responseStatus = event.responseStatus || '';
+            item.dataset.lessonStatus = event.calendarStatus || 'general-event';
+            item.toggleAttribute('data-read-only', Boolean(event.readOnly));
             applyDateStatusAttributes(item, dateString);
             cell.appendChild(item);
         });
@@ -1814,12 +1840,25 @@ const getGeneralEventCalendarEvents = function() {
                 return state.selectedEventTypes.includes('canceled');
             }
 
-            const eventType = generalEvent.external_provider === 'google' ? 'google' : 'general';
+            const isGoogleEvent = generalEvent.external_provider === 'google';
+            const eventType = isGoogleEvent ? 'google' : 'general';
+
+            if (isGoogleEvent && !['accepted', 'needsAction'].includes(generalEvent.response_status)) {
+                return false;
+            }
 
             return state.selectedEventTypes.includes(eventType);
         })
         .filter(generalEventMatchesCalendarSearch)
         .map(getGeneralEvent);
+};
+
+const getAllDayGoogleEventsForDate = function(date) {
+    const dateString = toDateString(date);
+
+    return (getVisibleEventsByDate()[dateString] || []).filter(function(event) {
+        return event.allDay && event.externalProvider === 'google';
+    });
 };
 
 const getGeneralEventByGuid = function(guid) {
@@ -5427,13 +5466,14 @@ const createMonthEventElement = function(event, dateString) {
     item.dataset.eventGuid = event.guid || '';
     item.toggleAttribute('data-read-only', Boolean(event.readOnly));
     item.dataset.externalProvider = event.externalProvider || '';
+    item.dataset.responseStatus = event.responseStatus || '';
     item.dataset.lessonStatus = event.isHoliday ? 'holiday' : (event.isBreak ? 'teaching-break' : (event.isRecital ? 'recital' : (event.calendarStatus || event.lessonStatus || (event.isGeneralEvent ? 'general-event' : 'unconfirmed'))));
     dot.dataset.eventGuid = event.guid || '';
     dot.dataset.lessonStatus = event.isHoliday ? 'holiday' : (event.isBreak ? 'teaching-break' : (event.isRecital ? 'recital' : (event.calendarStatus || event.lessonStatus || (event.isGeneralEvent ? 'general-event' : 'unconfirmed'))));
     applyCalendarItemStatusAttributes(item, event, dateString);
     applyCalendarItemStatusAttributes(dot, event, dateString);
 
-    time.textContent = event.isHoliday || event.isBreak ? '' : formatEventTime(event.start);
+    time.textContent = event.isHoliday || event.isBreak || event.allDay ? '' : formatEventTime(event.start);
     renderEventTitle(title, event, 'No title');
 
     if (!event.isHoliday && !event.isBreak && !event.isRecital && !event.isGeneralEvent) {
@@ -5989,6 +6029,7 @@ const renderScheduleAgenda = function(calendar) {
             item.dataset.eventGuid = event.guid || '';
             item.toggleAttribute('data-read-only', Boolean(event.readOnly));
             item.dataset.externalProvider = event.externalProvider || '';
+            item.dataset.responseStatus = event.responseStatus || '';
             item.dataset.lessonStatus = event.isHoliday ? 'holiday' : (event.isBreak ? 'teaching-break' : (event.isRecital ? 'recital' : (event.calendarStatus || event.lessonStatus || (event.isGeneralEvent ? 'general-event' : 'unconfirmed'))));
             applyCalendarItemStatusAttributes(item, event, dateString);
             applyEventOverlapAttribute(item, event);
@@ -6002,11 +6043,13 @@ const renderScheduleAgenda = function(calendar) {
                 item.dataset.durationMinutes = duration;
                 item.style.setProperty('--calendar-schedule-event-height', getAgendaEventHeight(event));
                 time.className = 'calendar-schedule-event-time';
-                time.textContent = event.externalProvider === 'google'
-                    ? 'from Google Calendar'
+                time.textContent = event.allDay
+                    ? 'All day'
+                    : (event.externalProvider === 'google'
+                        ? 'from Google Calendar'
                     : (event.start && event.end
                         ? `${formatAgendaEventTime(event.start)}-${formatAgendaEventTime(event.end)}`
-                        : formatAgendaEventTime(event.start));
+                        : formatAgendaEventTime(event.start)));
 
                 if (eventIcon) {
                     item.appendChild(eventIcon);
@@ -8433,7 +8476,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     calendar.addEventListener('click', function(e) {
-        const item = e.target.closest('.calendar-month-event, .calendar-schedule-event, .calendar-schedule-break, .calendar-schedule-recital')
+        const item = e.target.closest('.calendar-month-event, .calendar-schedule-event, .calendar-schedule-break, .calendar-schedule-recital, .calendar-schedule-google-all-day')
             || getScheduleItemFromCalendarClick(e);
 
         if (!item || item.classList.contains('calendar-month-event-holiday') || item.classList.contains('calendar-schedule-event-holiday')) {
@@ -8508,7 +8551,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (monthDayEventsModal) {
         monthDayEventsModal.addEventListener('click', function(e) {
-            const item = e.target.closest('.calendar-month-event, .calendar-schedule-break, .calendar-schedule-recital');
+            const item = e.target.closest('.calendar-month-event, .calendar-schedule-break, .calendar-schedule-recital, .calendar-schedule-google-all-day');
 
             if (!item || item.classList.contains('calendar-month-event-holiday')) {
                 return;

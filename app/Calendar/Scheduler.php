@@ -370,6 +370,7 @@ class Scheduler
             ->whereHas('calendarConnection', fn ($query) => $query->where('user_id', $userId))
             ->startingOnOrAfterSyncCutoff()
             ->withinRecurringSyncHorizon()
+            ->whereIn('response_status', ['accepted', 'needsAction'])
             ->where(function ($query) use ($range, $rangeStart, $rangeEnd) {
                 $query->where(function ($allDay) use ($range) {
                     $allDay->where('all_day', true)
