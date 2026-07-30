@@ -90,6 +90,8 @@
 
 @include('calendar.calendar.travel-route')
 
+@include('calendar.events.modal-notes')
+
 <div class="px-3" data-event-modal-expanded-content>
     <div data-event-modal-section="lesson">
         @include('calendar.lessonRecords.reschedule')
