@@ -133,7 +133,7 @@ class GoogleCalendarEvent extends BaseModel
             'name' => $this->title,
             'scheduled_date' => $start->toDateString(),
             'starts_at' => $this->all_day ? '00:00' : $start->format('H:i'),
-            'ends_at' => $this->all_day ? '23:59' : $end->format('H:i'),
+            'ends_at' => $this->all_day ? '23:45' : $end->format('H:i'),
             'notes' => $this->description,
             'notification_minutes_before' => null,
             'canceled_at' => null,

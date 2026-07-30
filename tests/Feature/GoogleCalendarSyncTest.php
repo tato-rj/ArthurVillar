@@ -395,6 +395,17 @@ class GoogleCalendarSyncTest extends BaseTest
             'token_expires_at' => now()->addHour(),
         ]);
         $event = $connection->events()->create($this->storedMeetingAttributes('remote-event'));
+        $allDayEvent = $connection->events()->create(array_replace(
+            $this->storedMeetingAttributes('all-day-event'),
+            [
+                'title' => 'All-day meeting',
+                'all_day' => true,
+                'starts_at' => null,
+                'ends_at' => null,
+                'start_date' => '2026-08-12',
+                'end_date' => '2026-08-13',
+            ]
+        ));
         $oldEvent = $connection->events()->create(array_replace(
             $this->storedMeetingAttributes('old-remote-event'),
             [
@@ -410,6 +421,7 @@ class GoogleCalendarSyncTest extends BaseTest
             'end' => '2026-08-31',
         ], $user->id);
         $googleEvent = $calendarEvents->firstWhere('id', 'google-'.$event->id);
+        $googleAllDayEvent = $calendarEvents->firstWhere('id', 'google-'.$allDayEvent->id);
 
         $this->assertNotNull($googleEvent);
         $this->assertSame('arthur@example.com', $googleEvent['event_type']);
@@ -418,6 +430,11 @@ class GoogleCalendarSyncTest extends BaseTest
         $this->assertSame('needsAction', $googleEvent['response_status']);
         $this->assertTrue($googleEvent['read_only']);
         $this->assertSame('', $googleEvent['edit_url']);
+        $this->assertNotNull($googleAllDayEvent);
+        $this->assertTrue($googleAllDayEvent['all_day']);
+        $this->assertSame('2026-08-12', $googleAllDayEvent['scheduled_date']);
+        $this->assertSame('00:00', $googleAllDayEvent['starts_at']);
+        $this->assertSame('23:45', $googleAllDayEvent['ends_at']);
         $this->assertNull($calendarEvents->firstWhere('id', 'google-'.$oldEvent->id));
     }
 

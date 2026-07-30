@@ -1768,14 +1768,15 @@ const getRecitalEventByGuid = function(guid) {
 const getGeneralEvent = function(generalEvent) {
     const dateString = String(generalEvent.scheduled_date || '').substring(0, 10);
     const status = generalEvent.canceled_at ? 'canceled' : 'general-event';
+    const allDay = Boolean(generalEvent.all_day);
 
     return {
         guid: `general-event-${generalEvent.id}-${dateString}`,
         isGeneralEvent: true,
         id: generalEvent.id,
         date: dateString,
-        start: normalizeTime(generalEvent.starts_at),
-        end: normalizeTime(generalEvent.ends_at),
+        start: allDay ? '00:00' : normalizeTime(generalEvent.starts_at),
+        end: allDay ? '23:45' : normalizeTime(generalEvent.ends_at),
         title: generalEvent.name || 'Event',
         eventType: generalEvent.event_type || '',
         eventTypeIcon: generalEvent.event_type_icon || '',
@@ -1798,7 +1799,7 @@ const getGeneralEvent = function(generalEvent) {
         organizerName: generalEvent.organizer_name || '',
         organizerEmail: generalEvent.organizer_email || '',
         location: generalEvent.location || '',
-        allDay: Boolean(generalEvent.all_day),
+        allDay,
         readOnly: Boolean(generalEvent.read_only),
         calendarStatus: status,
         lessonStatus: status,
