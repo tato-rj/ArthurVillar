@@ -3868,6 +3868,7 @@ const updateGeneralEventNotesInState = function(modal, payload) {
             && !event.external_provider;
     });
     const display = modal.querySelector('[data-general-event-notes-display]');
+    const section = modal.querySelector('[data-general-event-notes-section]');
     const input = modal.querySelector('[data-general-event-notes-input]');
 
     if (storedEvent) {
@@ -3887,6 +3888,7 @@ const updateGeneralEventNotesInState = function(modal, payload) {
     });
 
     if (display) renderNotesWithLinks(display, notes);
+    if (section) section.hidden = !String(notes).trim();
     if (input) input.value = notes;
 
     setGeneralEventNotesEditing(modal, false);
@@ -4023,7 +4025,7 @@ const openGeneralEventModal = function(event, options) {
         notification.textContent = formatGeneralEventNotification(event.notificationMinutesBefore);
         notification.parentElement.hidden = !notification.textContent;
     }
-    if (notesSection) notesSection.hidden = !String(event.notes || '').trim() && !canEditNotes;
+    if (notesSection) notesSection.hidden = !String(event.notes || '').trim();
     if (notes) {
         if (event.externalProvider === 'google') {
             renderGoogleNotesHtml(notes, event.notes);
