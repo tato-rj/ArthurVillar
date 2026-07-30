@@ -1866,6 +1866,10 @@ button.single-lesson-plan-create[selected] i {
     &[data-event-modal-expanded="false"] [data-event-modal-expanded-content] {
         display: none !important;
     }
+
+    [data-event-modal-expand-toggle-container][hidden] {
+        display: none !important;
+    }
 }
 
 #calendar-event-modal[data-event-modal-type="lesson"][data-lesson-status="unconfirmed"] {

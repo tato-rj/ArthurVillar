@@ -102,7 +102,7 @@
     </div>
 </div>
 
-<div class="px-3 mt-2">
+<div class="px-3 mt-2" data-event-modal-expand-toggle-container>
     <button
         type="button"
         class="bg-light rounded text-center btn w-100 btn-raw text-muted border"
@@ -110,7 +110,7 @@
         data-event-modal-expand-toggle
         aria-expanded="false"
     >
-        <i class="fas fa-plus mr-1" data-event-modal-expand-icon aria-hidden="true"></i>
+        <i class="fas fa-chevron-down mr-1" data-event-modal-expand-icon aria-hidden="true"></i>
         <span data-event-modal-expand-label>MORE</span>
     </button>
 </div>

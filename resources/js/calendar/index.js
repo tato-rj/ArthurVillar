@@ -2227,8 +2227,7 @@ const setCalendarEventModalExpanded = function(modal, expanded) {
 
     const isExpanded = Boolean(expanded);
     const toggle = modal.querySelector('[data-event-modal-expand-toggle]');
-    const label = modal.querySelector('[data-event-modal-expand-label]');
-    const icon = modal.querySelector('[data-event-modal-expand-icon]');
+    const toggleContainer = modal.querySelector('[data-event-modal-expand-toggle-container]');
 
     modal.dataset.eventModalExpanded = isExpanded ? 'true' : 'false';
 
@@ -2236,13 +2235,8 @@ const setCalendarEventModalExpanded = function(modal, expanded) {
         toggle.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
     }
 
-    if (label) {
-        label.textContent = isExpanded ? 'LESS' : 'MORE';
-    }
-
-    if (icon) {
-        icon.classList.toggle('fa-plus', !isExpanded);
-        icon.classList.toggle('fa-minus', isExpanded);
+    if (toggleContainer) {
+        toggleContainer.hidden = isExpanded;
     }
 };
 
@@ -6665,10 +6659,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (calendarEventModalExpandToggle) {
         calendarEventModalExpandToggle.addEventListener('click', function() {
-            setCalendarEventModalExpanded(
-                calendarEventModal,
-                calendarEventModal.dataset.eventModalExpanded !== 'true'
-            );
+            setCalendarEventModalExpanded(calendarEventModal, true);
         });
     }
 
