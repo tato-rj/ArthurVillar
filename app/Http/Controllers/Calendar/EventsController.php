@@ -11,7 +11,7 @@ class EventsController extends Controller
 {
     public function index()
     {
-        return \App\Models\Calendar\GoogleCalendarConnection::all();
+        return \App\Models\Calendar\GoogleCalendarEvent::all();
         $source = request('source') === 'google' ? 'google' : 'general';
 
         return view('calendar.events.combined', compact('source'));
