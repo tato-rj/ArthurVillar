@@ -4808,6 +4808,7 @@ const isConflictEligibleTimedEvent = function(event) {
         && event.guid
         && !event.isHoliday
         && !event.isBreak
+        && !event.allDay
         && !isCanceledCalendarEvent(event)
         && event.start
         && event.end;
