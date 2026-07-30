@@ -1174,6 +1174,36 @@ class CalendarLessonFlowTest extends BaseTest
     }
 
     /** @test */
+    public function it_can_take_attendance_for_a_lesson_that_ends_after_nine_pm()
+    {
+        $lessonPlan = LessonPlan::factory()->create([
+            'start_time' => '21:15',
+            'duration_minutes' => 45,
+        ]);
+
+        $this->signIn();
+
+        $response = $this->postJson(route('calendar.lessons.store'), [
+            'lesson_plan_id' => $lessonPlan->id,
+            'single_lesson_plan_id' => '',
+            'date' => '2026-07-15',
+            'start' => '21:15',
+            'end' => '22:00',
+            'scheduled_date' => '2026-07-15',
+            'scheduled_start_time' => '21:15',
+        ]);
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('status', 'unpaid');
+
+        $lesson = Lesson::findOrFail($response->json('lesson_id'));
+
+        $this->assertSame('2026-07-15 21:15:00', $lesson->starts_at->format('Y-m-d H:i:s'));
+        $this->assertSame('2026-07-15 22:00:00', $lesson->ends_at->format('Y-m-d H:i:s'));
+    }
+
+    /** @test */
     public function it_records_an_early_payment_for_a_future_lesson_occurrence()
     {
         Carbon::setTestNow('2026-07-10 12:00:00');
