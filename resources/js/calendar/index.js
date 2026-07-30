@@ -3843,8 +3843,9 @@ const setGeneralEventNotesEditing = function(modal, editing) {
     const edit = modal.querySelector('[data-general-event-notes-edit]');
     const input = modal.querySelector('[data-general-event-notes-input]');
     const canEdit = edit && edit.dataset.canEdit === 'true';
+    const hasNotes = Boolean(input && String(input.value || '').trim());
 
-    if (display) display.hidden = editing;
+    if (display) display.hidden = editing || !hasNotes;
     if (form) form.hidden = !editing;
     if (edit) edit.hidden = editing || !canEdit;
 
