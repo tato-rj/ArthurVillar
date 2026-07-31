@@ -927,15 +927,51 @@ const formatScheduleHour = function(value) {
 };
 
 const patchScheduleTimeLabels = function(calendar) {
+    calendar.querySelectorAll('.calendar-schedule-end-boundary-time').forEach(function(marker) {
+        marker.remove();
+    });
+
     calendar.querySelectorAll('.lm-schedule-index').forEach(function(label) {
         const time = label.dataset.scheduleTime || label.textContent;
+        const minutes = getTimeMinutes(time);
+        const isStartBoundary = minutes === getTimeMinutes(scheduleStart);
+        const isEndBoundary = minutes === getTimeMinutes(scheduleEnd);
 
         label.dataset.scheduleTime = time;
-        label.textContent = getTimeMinutes(time) === getTimeMinutes(scheduleStart)
-            ? ''
-            : formatScheduleHour(time);
-        label.setAttribute('aria-hidden', getTimeMinutes(time) === getTimeMinutes(scheduleStart) ? 'true' : 'false');
+        label.classList.toggle('calendar-schedule-boundary-time', isStartBoundary || isEndBoundary);
+
+        if (isStartBoundary || isEndBoundary) {
+            const icon = document.createElement('i');
+
+            icon.className = 'fa-solid fa-bed';
+            icon.setAttribute('aria-hidden', 'true');
+            label.replaceChildren(icon);
+            label.setAttribute('aria-label', isStartBoundary ? 'Wake up' : 'End of day');
+            label.removeAttribute('aria-hidden');
+            return;
+        }
+
+        label.textContent = formatScheduleHour(time);
+        label.removeAttribute('aria-label');
+        label.removeAttribute('aria-hidden');
     });
+
+    const endDivision = (getTimeMinutes(scheduleEnd) / 15) - 1;
+    const finalSlot = calendar.querySelector(`.lm-schedule tbody td[data-y="${endDivision}"]`);
+    const finalRow = finalSlot ? finalSlot.closest('tr') : null;
+    const gutter = finalRow && finalRow.cells.length ? finalRow.cells[0] : null;
+
+    if (gutter) {
+        const marker = document.createElement('span');
+        const icon = document.createElement('i');
+
+        marker.className = 'calendar-schedule-end-boundary-time';
+        marker.setAttribute('aria-label', 'End of day');
+        icon.className = 'fa-solid fa-bed';
+        icon.setAttribute('aria-hidden', 'true');
+        marker.appendChild(icon);
+        gutter.appendChild(marker);
+    }
 };
 
 const getTimeMinutes = function(value) {

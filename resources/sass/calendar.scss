@@ -1103,6 +1103,25 @@ button.setting-undo {
     z-index: 0;
 }
 
+#calendar .lm-schedule-index.calendar-schedule-boundary-time {
+    color: #777;
+    font-size: 0.9rem;
+    opacity: .6;
+}
+
+#calendar .calendar-schedule-end-boundary-time {
+    color: #777;
+    font-size: 0.9rem;
+    left: 0;
+    pointer-events: none;
+    position: absolute;
+    text-align: center;
+    top: 100%;
+    transform: translateY(-50%);
+    width: 100%;
+    z-index: 2;
+}
+
 // Holidays and special events
 
 .calendar-schedule-holiday-row {
@@ -1476,6 +1495,10 @@ button.single-lesson-plan-create[selected] i {
 #calendar .lm-schedule .lm-schedule-index {
     margin-top: 0;
     top: -50%;
+}
+
+#calendar .lm-schedule .lm-schedule-index.calendar-schedule-boundary-time {
+    margin-top: 8px;
 }
 
 #calendar .lm-schedule td:has(> .lm-schedule-index) {
