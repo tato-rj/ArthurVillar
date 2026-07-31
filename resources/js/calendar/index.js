@@ -831,6 +831,36 @@ const bindScheduleHeaderDrag = function(calendar, navigateByDays) {
         drag.preview.rail.style.transform = `translate3d(${nextX}px, 0, 0)`;
     };
 
+    const navigateByArrow = function(dayOffset) {
+        if (!dayOffset || drag || !scheduleGridViews.includes(state.view)) {
+            return false;
+        }
+
+        const row = calendar.querySelector('.lm-schedule thead tr:not(.calendar-schedule-holiday-row)');
+        const interrupted = takeSettlingPreview();
+        const preview = interrupted ? interrupted.preview : createScheduleHeaderDragPreview(row);
+
+        if (!preview) {
+            return false;
+        }
+
+        const currentX = interrupted ? interrupted.currentX : preview.initialX;
+        const anchorX = interrupted ? interrupted.targetX : preview.initialX;
+        const targetX = anchorX - (dayOffset * preview.dayWidth);
+
+        preview.isBeingDragged = false;
+        preview.settledPromise = settlePreview(preview, currentX, targetX);
+        settlingPreview = preview;
+        preview.settledPromise.then(function() {
+            if (settlingPreview === preview) {
+                settlingPreview = null;
+            }
+        });
+        navigateByDays(dayOffset, preview);
+
+        return true;
+    };
+
     calendar.addEventListener('pointerdown', function(e) {
         const row = e.target.closest('.lm-schedule thead tr:not(.calendar-schedule-holiday-row)');
 
@@ -909,6 +939,8 @@ const bindScheduleHeaderDrag = function(calendar, navigateByDays) {
     window.addEventListener('blur', function() {
         finishDrag(null, null, false);
     });
+
+    return navigateByArrow;
 };
 
 const formatScheduleHour = function(value) {
@@ -7115,7 +7147,7 @@ document.addEventListener('DOMContentLoaded', function() {
         render();
     };
 
-    bindScheduleHeaderDrag(calendar, function(dayOffset, preview) {
+    const navigateScheduleHeaderByArrow = bindScheduleHeaderDrag(calendar, function(dayOffset, preview) {
         if (!dayOffset || isScheduleHoldNavigationSuppressed()) {
             if (preview) {
                 removeScheduleHeaderDragPreview(preview);
@@ -7145,6 +7177,12 @@ document.addEventListener('DOMContentLoaded', function() {
             render();
         }, 300);
     });
+
+    const useDesktopScheduleHeaderNavigation = function() {
+        return scheduleGridViews.includes(state.view)
+            && window.matchMedia
+            && window.matchMedia('(min-width: 768px)').matches;
+    };
 
     const openCalendarSearch = function() {
         if (!calendarSearch) {
@@ -7548,6 +7586,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
+            if (useDesktopScheduleHeaderNavigation() && navigateScheduleHeaderByArrow(-1)) {
+                return;
+            }
+
             move(-1);
             render();
         });
@@ -7556,6 +7598,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if (next) {
         next.addEventListener('click', function() {
             if (isScheduleHoldNavigationSuppressed()) {
+                return;
+            }
+
+            if (useDesktopScheduleHeaderNavigation() && navigateScheduleHeaderByArrow(1)) {
                 return;
             }
 
@@ -8602,6 +8648,29 @@ document.addEventListener('DOMContentLoaded', function() {
     window.addEventListener('blur', function() {
         scheduleCopyModifierPressed = false;
         clearScheduleItemHold();
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if ((e.key !== 'ArrowLeft' && e.key !== 'ArrowRight')
+            || e.metaKey
+            || e.ctrlKey
+            || e.altKey
+            || e.shiftKey
+            || !useDesktopScheduleHeaderNavigation()
+            || isScheduleHoldNavigationSuppressed()
+            || document.querySelector('.modal.show, .offcanvas.show, dialog[open]')) {
+            return;
+        }
+
+        const target = e.target;
+
+        if (target && target.closest('input, textarea, select, [contenteditable="true"]')) {
+            return;
+        }
+
+        if (navigateScheduleHeaderByArrow(e.key === 'ArrowLeft' ? -1 : 1)) {
+            e.preventDefault();
+        }
     });
 
     document.addEventListener('keydown', function(e) {
