@@ -2034,6 +2034,7 @@ button.single-lesson-plan-create[selected] i {
 
 #calendar-event-modal.is-rescheduling,
 #calendar-event-modal.is-canceling {
+    #lesson-primary-controls,
     #lesson-controls,
     #general-event-controls {
         display: none !important;

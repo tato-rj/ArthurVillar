@@ -92,6 +92,10 @@
 
 @include('calendar.events.modal-notes')
 
+<div class="px-3" data-event-modal-section="lesson">
+    @include('calendar.lessonRecords.primary-controls')
+</div>
+
 <div class="px-3" data-event-modal-expanded-content>
     <div data-event-modal-section="lesson">
         @include('calendar.lessonRecords.reschedule')
@@ -107,7 +111,7 @@
 <div class="px-3 mt-2" data-event-modal-expand-toggle-container>
     <button
         type="button"
-        class="bg-light rounded text-center btn w-100 btn-raw text-muted border"
+        class="rounded text-center btn w-100 btn-raw text-muted"
         style="font-size: 78%"
         data-event-modal-expand-toggle
         aria-expanded="false"
