@@ -590,6 +590,8 @@ const removeScheduleHeaderDragPreview = function(preview) {
 };
 
 const bindScheduleHeaderDrag = function(calendar, navigateByDays) {
+    const dragMovementRatio = 0.84;
+    const settleDuration = 180;
     let drag = null;
     let settlingPreview = null;
 
@@ -644,11 +646,11 @@ const bindScheduleHeaderDrag = function(calendar, navigateByDays) {
             };
 
             preview.cancelSettle = finish;
-            fallback = window.setTimeout(finish, 180);
+            fallback = window.setTimeout(finish, settleDuration + 60);
 
             preview.rail.addEventListener('transitionend', finish);
             preview.rail.getBoundingClientRect();
-            preview.rail.style.transition = 'transform 140ms ease-out';
+            preview.rail.style.transition = `transform ${settleDuration}ms cubic-bezier(0.22, 0.61, 0.36, 1)`;
             preview.rail.style.transform = `translate3d(${targetX}px, 0, 0)`;
         });
     };
@@ -822,7 +824,8 @@ const bindScheduleHeaderDrag = function(calendar, navigateByDays) {
         e.preventDefault();
         const minimumX = drag.anchorX - drag.preview.maxDistance;
         const maximumX = drag.anchorX + drag.preview.maxDistance;
-        const nextX = Math.max(minimumX, Math.min(maximumX, drag.baseX + deltaX));
+        const resistedDeltaX = deltaX * dragMovementRatio;
+        const nextX = Math.max(minimumX, Math.min(maximumX, drag.baseX + resistedDeltaX));
 
         drag.deltaX = nextX - drag.baseX;
         drag.preview.rail.style.transform = `translate3d(${nextX}px, 0, 0)`;
