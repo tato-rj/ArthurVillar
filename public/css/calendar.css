@@ -32460,7 +32460,7 @@ button.setting-undo:hover {
 #calendar .lm-schedule-index.calendar-schedule-boundary-time {
   color: #777;
   font-size: 0.9rem;
-  opacity: 0.6;
+  opacity: 0.35;
 }
 
 #calendar .calendar-schedule-end-boundary-time {
