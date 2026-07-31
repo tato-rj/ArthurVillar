@@ -590,8 +590,8 @@ const removeScheduleHeaderDragPreview = function(preview) {
 };
 
 const bindScheduleHeaderDrag = function(calendar, navigateByDays) {
-    const dragMovementRatio = 0.84;
-    const settleDuration = 180;
+    const dragMovementRatio = 0.68;
+    const settleDuration = 240;
     let drag = null;
     let settlingPreview = null;
 
