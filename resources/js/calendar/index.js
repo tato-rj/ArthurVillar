@@ -692,6 +692,7 @@ const bindScheduleHeaderDrag = function(calendar, navigateByDays) {
         }
         if (current.preview && !preservePreview) {
             removeScheduleHeaderDragPreview(current.preview);
+            calendar.classList.remove('calendar-schedule-range-transitioning');
         }
         if (current.inputType === 'pointer'
             && typeof current.row.hasPointerCapture === 'function'
@@ -745,6 +746,7 @@ const bindScheduleHeaderDrag = function(calendar, navigateByDays) {
             if (current.preview.settleGeneration === settleGeneration
                 && !current.preview.isBeingDragged) {
                 removeScheduleHeaderDragPreview(current.preview);
+                calendar.classList.remove('calendar-schedule-range-transitioning');
             }
         });
     };
@@ -771,6 +773,7 @@ const bindScheduleHeaderDrag = function(calendar, navigateByDays) {
         };
 
         if (interrupted) {
+            calendar.classList.add('calendar-schedule-range-transitioning');
             drag.preview.isBeingDragged = true;
             drag.row.classList.add('calendar-schedule-header-dragging');
             if (inputType === 'pointer' && typeof drag.row.setPointerCapture === 'function') {
@@ -810,6 +813,7 @@ const bindScheduleHeaderDrag = function(calendar, navigateByDays) {
             drag.active = true;
             drag.baseX = drag.preview.initialX;
             drag.anchorX = drag.preview.initialX;
+            calendar.classList.add('calendar-schedule-range-transitioning');
             drag.preview.isBeingDragged = true;
             drag.row.classList.add('calendar-schedule-header-dragging');
             if (drag.inputType === 'pointer' && typeof drag.row.setPointerCapture === 'function') {
@@ -7083,6 +7087,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (preview) {
                 removeScheduleHeaderDragPreview(preview);
             }
+            calendar.classList.remove('calendar-schedule-range-transitioning');
             return;
         }
 
@@ -7348,6 +7353,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
             return;
         }
+
+        calendar.classList.remove('calendar-schedule-range-transitioning');
 
         disconnectScheduleObserver();
         if (state.schedulePatchFrame) {
