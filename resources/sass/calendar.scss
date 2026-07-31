@@ -1069,12 +1069,14 @@ button.setting-undo {
 }
 
 #calendar .lm-schedule-item,
-#calendar .calendar-schedule-event {
+#calendar .calendar-schedule-event,
+#calendar .calendar-schedule-holiday {
     transition: opacity 120ms ease-out;
 }
 
 #calendar.calendar-schedule-range-transitioning .lm-schedule-item,
-#calendar.calendar-schedule-range-transitioning .calendar-schedule-event {
+#calendar.calendar-schedule-range-transitioning .calendar-schedule-event,
+#calendar.calendar-schedule-range-transitioning .calendar-schedule-holiday {
     opacity: 0.2 !important;
     pointer-events: none;
 }
