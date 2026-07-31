@@ -6768,6 +6768,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let suppressedScheduleItemClick = null;
     let scheduleHoldNavigationSuppressedUntil = 0;
     let pendingEventCopySequence = 0;
+    let scheduleHeaderRenderTimer = null;
 
     const isScheduleHoldNavigationSuppressed = function() {
         return Boolean(scheduleItemHold && scheduleItemHold.active)
@@ -7102,7 +7103,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         state.didAutoNowScroll = true;
         state.suppressNextScheduleAnimation = true;
-        render();
+        window.clearTimeout(scheduleHeaderRenderTimer);
+        scheduleHeaderRenderTimer = window.setTimeout(function() {
+            scheduleHeaderRenderTimer = null;
+            render();
+        }, 300);
     });
 
     const openCalendarSearch = function() {
@@ -7334,6 +7339,11 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     const render = function() {
+        if (scheduleHeaderRenderTimer !== null) {
+            window.clearTimeout(scheduleHeaderRenderTimer);
+            scheduleHeaderRenderTimer = null;
+        }
+
         const visibleRange = getVisibleDateRange();
 
         syncViewControls();
