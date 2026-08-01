@@ -2503,6 +2503,51 @@ const getEventEndDateTime = function(event) {
     return isValidDate(date) ? date : null;
 };
 
+const hasCalendarEventEnded = function(event) {
+    if (!event) {
+        return false;
+    }
+
+    if (event.allDay) {
+        return Boolean(event.date) && String(event.date).substring(0, 10) < todayString();
+    }
+
+    const endsAt = getEventEndDateTime(event) || getEventStartDateTime(event);
+
+    return endsAt ? endsAt <= new Date() : false;
+};
+
+const updateLessonScheduleControls = function(modal, event) {
+    const cancelLesson = modal.querySelector('#cancel-lesson-button');
+    const rescheduleLesson = modal.querySelector('#reschedule-lesson-button');
+    const controls = modal.querySelector('#lesson-schedule-controls');
+    const hasLessonSource = !!(event && (event.lessonPlanId || event.singleLessonPlanId));
+    const isConfirmed = Boolean(event && ['paid', 'unpaid'].includes(event.lessonStatus));
+    const isCanceled = Boolean(event && event.lessonStatus === 'canceled');
+    const canCancel = hasLessonSource && !isConfirmed;
+    const canReschedule = hasLessonSource && !isConfirmed && !hasCalendarEventEnded(event);
+
+    if (cancelLesson) {
+        preserveButtonLabel(cancelLesson);
+        cancelLesson.disabled = !canCancel || isCanceled;
+        cancelLesson.style.display = canCancel ? '' : 'none';
+        restoreButtonLabel(cancelLesson);
+    }
+
+    if (rescheduleLesson) {
+        rescheduleLesson.disabled = !canReschedule;
+        rescheduleLesson.style.display = canReschedule ? '' : 'none';
+    }
+
+    if (controls) {
+        if (!canCancel && !canReschedule) {
+            controls.style.setProperty('display', 'none', 'important');
+        } else {
+            controls.style.removeProperty('display');
+        }
+    }
+};
+
 const canUseLessonActionButtons = function(event) {
     const startsAt = getEventStartDateTime(event);
 
@@ -2581,7 +2626,6 @@ const populateLessonModal = function(modal, event) {
     const notesUrlLink = notesUrl ? notesUrl.querySelector('a') : null;
     const revert = modal.querySelector('#lesson-revert');
     const edit = modal.querySelector('#lesson-edit');
-    const cancelLesson = modal.querySelector('#cancel-lesson-button');
     const rescheduleOriginalDate = modal.querySelector('#reschedule-lesson-original-date');
     const rescheduleOriginalStartTime = modal.querySelector('#reschedule-lesson-original-start-time');
     const rescheduleDate = modal.querySelector('#reschedule-lesson-date');
@@ -2678,12 +2722,7 @@ const populateLessonModal = function(modal, event) {
         edit.disabled = !edit.dataset.url;
     }
 
-    if (cancelLesson) {
-        preserveButtonLabel(cancelLesson);
-        cancelLesson.disabled = !event || !hasLessonSource || (event.lessonStatus === 'canceled');
-        cancelLesson.style.display = hasLessonSource ? '' : 'none';
-        restoreButtonLabel(cancelLesson);
-    }
+    updateLessonScheduleControls(modal, event);
 
     updateLessonTimeDependentControls(modal, event);
 
@@ -4272,12 +4311,13 @@ const openGeneralEventModal = function(event, options) {
     const rescheduleStartTime = modal.querySelector('#reschedule-general-event-start-time');
     const rescheduleEndTime = modal.querySelector('#reschedule-general-event-end-time');
     const isCanceled = event.calendarStatus === 'canceled';
+    const hasEnded = hasCalendarEventEnded(event);
     const canEditNotes = !event.readOnly && !event.externalProvider && Boolean(event.notesUpdateUrl);
 
     setCalendarEventModalType(modal, 'general');
     resetGeneralEventModalState(modal);
     setCalendarEventModalExpandAvailable(modal, event.externalProvider !== 'google');
-    setCalendarEventModalExpanded(modal, Boolean(settings.openReschedule && !event.readOnly));
+    setCalendarEventModalExpanded(modal, Boolean(settings.openReschedule && !event.readOnly && !hasEnded));
     modal.updatedScheduleItem = settings.updatedItem || null;
     modal.generalEvent = event;
 
@@ -4361,7 +4401,7 @@ const openGeneralEventModal = function(event, options) {
         restoreButtonLabel(revert);
     }
     if (controls) {
-        if (isCanceled || event.readOnly) {
+        if (isCanceled || event.readOnly || hasEnded) {
             controls.style.setProperty('display', 'none', 'important');
         } else {
             controls.style.removeProperty('display');
@@ -4389,7 +4429,7 @@ const openGeneralEventModal = function(event, options) {
     state.generalEventRescheduleDatePickerDate = parseDateString(event.date || todayString());
     renderGeneralEventRescheduleDatePicker(modal);
 
-    if (settings.openReschedule && !event.readOnly) {
+    if (settings.openReschedule && !event.readOnly && !hasEnded) {
         modal.classList.add('is-drop-rescheduling');
         showGeneralEventRescheduleForm(modal);
     }
@@ -4468,7 +4508,6 @@ const revertGeneralEventAction = function(button, refreshCalendar) {
 const updateLessonModalState = function(modal, payload) {
     const revert = modal.querySelector('#lesson-revert');
     const taught = modal.querySelector('#lesson-taught');
-    const cancelLesson = modal.querySelector('#cancel-lesson-button');
     const event = getEventByGuid(modal.dataset.eventGuid);
     const status = payload && payload.status ? payload.status : 'unpaid';
     const editUrl = payload && payload.edit_url ? payload.edit_url : '';
@@ -4492,11 +4531,6 @@ const updateLessonModalState = function(modal, payload) {
     if (taught) {
         taught.disabled = false;
         restoreButtonLabel(taught);
-    }
-
-    if (cancelLesson) {
-        cancelLesson.disabled = status === 'canceled';
-        restoreButtonLabel(cancelLesson);
     }
 
     if (confirmPayment && paymentUrl) {
@@ -4524,6 +4558,15 @@ const updateLessonModalState = function(modal, payload) {
         event.scheduleOverrideId = payload && payload.schedule_override_deleted ? '' : event.scheduleOverrideId;
         event.earlyPaymentId = earlyPaymentId;
     }
+
+    updateLessonScheduleControls(modal, event || {
+        lessonStatus: status,
+        lessonPlanId: modal.dataset.lessonPlanId,
+        singleLessonPlanId: modal.dataset.singleLessonPlanId,
+        date: modal.dataset.eventDate,
+        start: modal.dataset.eventStart,
+        end: modal.dataset.eventEnd,
+    });
 
     if (revert) {
         const canRevert = !!(event && (

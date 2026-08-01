@@ -6511,6 +6511,43 @@ var getEventEndDateTime = function getEventEndDateTime(event) {
   var date = new Date(dateParts[0], dateParts[1] - 1, dateParts[2], timeParts[0], timeParts[1], 0, 0);
   return isValidDate(date) ? date : null;
 };
+var hasCalendarEventEnded = function hasCalendarEventEnded(event) {
+  if (!event) {
+    return false;
+  }
+  if (event.allDay) {
+    return Boolean(event.date) && String(event.date).substring(0, 10) < todayString();
+  }
+  var endsAt = getEventEndDateTime(event) || getEventStartDateTime(event);
+  return endsAt ? endsAt <= new Date() : false;
+};
+var updateLessonScheduleControls = function updateLessonScheduleControls(modal, event) {
+  var cancelLesson = modal.querySelector('#cancel-lesson-button');
+  var rescheduleLesson = modal.querySelector('#reschedule-lesson-button');
+  var controls = modal.querySelector('#lesson-schedule-controls');
+  var hasLessonSource = !!(event && (event.lessonPlanId || event.singleLessonPlanId));
+  var isConfirmed = Boolean(event && ['paid', 'unpaid'].includes(event.lessonStatus));
+  var isCanceled = Boolean(event && event.lessonStatus === 'canceled');
+  var canCancel = hasLessonSource && !isConfirmed;
+  var canReschedule = hasLessonSource && !isConfirmed && !hasCalendarEventEnded(event);
+  if (cancelLesson) {
+    preserveButtonLabel(cancelLesson);
+    cancelLesson.disabled = !canCancel || isCanceled;
+    cancelLesson.style.display = canCancel ? '' : 'none';
+    restoreButtonLabel(cancelLesson);
+  }
+  if (rescheduleLesson) {
+    rescheduleLesson.disabled = !canReschedule;
+    rescheduleLesson.style.display = canReschedule ? '' : 'none';
+  }
+  if (controls) {
+    if (!canCancel && !canReschedule) {
+      controls.style.setProperty('display', 'none', 'important');
+    } else {
+      controls.style.removeProperty('display');
+    }
+  }
+};
 var canUseLessonActionButtons = function canUseLessonActionButtons(event) {
   var startsAt = getEventStartDateTime(event);
   return startsAt ? startsAt <= new Date() : false;
@@ -6576,7 +6613,6 @@ var populateLessonModal = function populateLessonModal(modal, event) {
   var notesUrlLink = notesUrl ? notesUrl.querySelector('a') : null;
   var revert = modal.querySelector('#lesson-revert');
   var edit = modal.querySelector('#lesson-edit');
-  var cancelLesson = modal.querySelector('#cancel-lesson-button');
   var rescheduleOriginalDate = modal.querySelector('#reschedule-lesson-original-date');
   var rescheduleOriginalStartTime = modal.querySelector('#reschedule-lesson-original-start-time');
   var rescheduleDate = modal.querySelector('#reschedule-lesson-date');
@@ -6647,12 +6683,7 @@ var populateLessonModal = function populateLessonModal(modal, event) {
     edit.style.display = edit.dataset.url ? 'inline-flex' : 'none';
     edit.disabled = !edit.dataset.url;
   }
-  if (cancelLesson) {
-    preserveButtonLabel(cancelLesson);
-    cancelLesson.disabled = !event || !hasLessonSource || event.lessonStatus === 'canceled';
-    cancelLesson.style.display = hasLessonSource ? '' : 'none';
-    restoreButtonLabel(cancelLesson);
-  }
+  updateLessonScheduleControls(modal, event);
   updateLessonTimeDependentControls(modal, event);
   if (rescheduleOriginalDate) {
     rescheduleOriginalDate.value = event && event.originalDate ? event.originalDate : eventDate;
@@ -7814,11 +7845,12 @@ var openGeneralEventModal = function openGeneralEventModal(event, options) {
   var rescheduleStartTime = modal.querySelector('#reschedule-general-event-start-time');
   var rescheduleEndTime = modal.querySelector('#reschedule-general-event-end-time');
   var isCanceled = event.calendarStatus === 'canceled';
+  var hasEnded = hasCalendarEventEnded(event);
   var canEditNotes = !event.readOnly && !event.externalProvider && Boolean(event.notesUpdateUrl);
   setCalendarEventModalType(modal, 'general');
   resetGeneralEventModalState(modal);
   setCalendarEventModalExpandAvailable(modal, event.externalProvider !== 'google');
-  setCalendarEventModalExpanded(modal, Boolean(settings.openReschedule && !event.readOnly));
+  setCalendarEventModalExpanded(modal, Boolean(settings.openReschedule && !event.readOnly && !hasEnded));
   modal.updatedScheduleItem = settings.updatedItem || null;
   modal.generalEvent = event;
   if (title) title.textContent = event.title || 'Event';
@@ -7884,7 +7916,7 @@ var openGeneralEventModal = function openGeneralEventModal(event, options) {
     restoreButtonLabel(revert);
   }
   if (controls) {
-    if (isCanceled || event.readOnly) {
+    if (isCanceled || event.readOnly || hasEnded) {
       controls.style.setProperty('display', 'none', 'important');
     } else {
       controls.style.removeProperty('display');
@@ -7900,7 +7932,7 @@ var openGeneralEventModal = function openGeneralEventModal(event, options) {
   state.rescheduleDurationMinutes = Math.max(15, getSelectTimeMinutes(rescheduleEndTime) - getSelectTimeMinutes(rescheduleStartTime));
   state.generalEventRescheduleDatePickerDate = parseDateString(event.date || todayString());
   renderGeneralEventRescheduleDatePicker(modal);
-  if (settings.openReschedule && !event.readOnly) {
+  if (settings.openReschedule && !event.readOnly && !hasEnded) {
     modal.classList.add('is-drop-rescheduling');
     showGeneralEventRescheduleForm(modal);
   }
@@ -7963,7 +7995,6 @@ var revertGeneralEventAction = function revertGeneralEventAction(button, refresh
 var updateLessonModalState = function updateLessonModalState(modal, payload) {
   var revert = modal.querySelector('#lesson-revert');
   var taught = modal.querySelector('#lesson-taught');
-  var cancelLesson = modal.querySelector('#cancel-lesson-button');
   var event = getEventByGuid(modal.dataset.eventGuid);
   var status = payload && payload.status ? payload.status : 'unpaid';
   var editUrl = payload && payload.edit_url ? payload.edit_url : '';
@@ -7985,10 +8016,6 @@ var updateLessonModalState = function updateLessonModalState(modal, payload) {
     taught.disabled = false;
     restoreButtonLabel(taught);
   }
-  if (cancelLesson) {
-    cancelLesson.disabled = status === 'canceled';
-    restoreButtonLabel(cancelLesson);
-  }
   if (confirmPayment && paymentUrl) {
     confirmPayment.dataset.url = paymentUrl;
   }
@@ -8009,6 +8036,14 @@ var updateLessonModalState = function updateLessonModalState(modal, payload) {
     event.scheduleOverrideId = payload && payload.schedule_override_deleted ? '' : event.scheduleOverrideId;
     event.earlyPaymentId = earlyPaymentId;
   }
+  updateLessonScheduleControls(modal, event || {
+    lessonStatus: status,
+    lessonPlanId: modal.dataset.lessonPlanId,
+    singleLessonPlanId: modal.dataset.singleLessonPlanId,
+    date: modal.dataset.eventDate,
+    start: modal.dataset.eventStart,
+    end: modal.dataset.eventEnd
+  });
   if (revert) {
     var canRevert = !!(event && (event.scheduleOverrideId || event.lessonId || event.earlyPaymentId));
     revert.style.display = canRevert ? 'inline-flex' : 'none';
