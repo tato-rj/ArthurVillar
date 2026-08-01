@@ -116,7 +116,7 @@
         data-event-modal-expand-toggle
         aria-expanded="false"
     >
-        <i class="fas fa-chevron-down mr-1" data-event-modal-expand-icon aria-hidden="true"></i>
+        <i class="fas fa-expand mr-1" data-event-modal-expand-icon aria-hidden="true"></i>
         <span data-event-modal-expand-label>MORE</span>
     </button>
 </div>
