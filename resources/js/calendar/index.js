@@ -1768,12 +1768,10 @@ const animateCalendarLessonItems = function(calendar) {
 
     lessonItems.forEach(function(item, index) {
         item.dataset.lessonAnimated = 'true';
-        item.style.setProperty('--animate-duration', '1s');
         item.style.animationDelay = `${index * 30}ms`;
         item.classList.add('animate__animated', 'animate__heartBeat', 'calendar-calendar-heartbeat-once');
         item.addEventListener('animationend', function() {
             item.classList.remove('animate__animated', 'animate__heartBeat', 'calendar-calendar-heartbeat-once');
-            item.style.removeProperty('--animate-duration');
             item.style.animationDelay = '';
         }, { once: true });
     });
