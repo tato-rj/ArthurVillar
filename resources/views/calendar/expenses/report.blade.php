@@ -57,7 +57,7 @@
                     <th>Month</th>
                     <th>Total expenses</th>
                     <th>Expected income</th>
-                    <th>Expected net</th>
+                    <th>Potential savings</th>
                 </tr>
             </thead>
             <tbody>
