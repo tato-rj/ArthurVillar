@@ -46,6 +46,10 @@ const state = {
     travelRouteRequests: new Map(),
     scheduleTravelAnimations: new WeakMap(),
     activeRequestControllers: new Set(),
+    loadingBarFetchId: null,
+    loadingBarProgress: 0,
+    loadingBarTimer: null,
+    loadingBarHideTimer: null,
 };
 
 const calendarTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/New_York';
@@ -231,6 +235,127 @@ const isRangeLoaded = function(range) {
     return getRangeKey(state.loadedRange) === getRangeKey(range);
 };
 
+const getCalendarLoadingBar = function() {
+    return document.querySelector('#loading-bar > div');
+};
+
+const setCalendarLoadingProgress = function(fetchId, progress) {
+    const bar = getCalendarLoadingBar();
+
+    if (!bar || state.loadingBarFetchId !== fetchId) {
+        return;
+    }
+
+    const nextProgress = Math.max(state.loadingBarProgress, Math.min(100, Number(progress) || 0));
+
+    state.loadingBarProgress = nextProgress;
+    bar.style.width = `${nextProgress}%`;
+};
+
+const startCalendarLoadingProgress = function(fetchId) {
+    const bar = getCalendarLoadingBar();
+
+    if (!bar) {
+        return;
+    }
+
+    if (state.loadingBarTimer !== null) {
+        window.clearInterval(state.loadingBarTimer);
+    }
+    if (state.loadingBarHideTimer !== null) {
+        window.clearTimeout(state.loadingBarHideTimer);
+        state.loadingBarHideTimer = null;
+    }
+
+    state.loadingBarFetchId = fetchId;
+    state.loadingBarProgress = 0;
+    bar.hidden = false;
+    bar.style.transition = 'none';
+    bar.style.width = '0%';
+    void bar.offsetWidth;
+    bar.style.transition = 'width 180ms ease-out';
+    setCalendarLoadingProgress(fetchId, 6);
+
+    state.loadingBarTimer = window.setInterval(function() {
+        if (state.loadingBarFetchId !== fetchId) {
+            return;
+        }
+
+        const remaining = 48 - state.loadingBarProgress;
+
+        if (remaining > 0.5) {
+            setCalendarLoadingProgress(fetchId, state.loadingBarProgress + Math.max(0.75, remaining * 0.12));
+        }
+    }, 180);
+};
+
+const finishCalendarLoadingProgress = function(fetchId) {
+    const bar = getCalendarLoadingBar();
+
+    if (!bar || state.loadingBarFetchId !== fetchId) {
+        return;
+    }
+
+    if (state.loadingBarTimer !== null) {
+        window.clearInterval(state.loadingBarTimer);
+        state.loadingBarTimer = null;
+    }
+
+    bar.style.transition = 'width 140ms ease-out';
+    setCalendarLoadingProgress(fetchId, 100);
+    state.loadingBarHideTimer = window.setTimeout(function() {
+        if (state.loadingBarFetchId !== fetchId) {
+            return;
+        }
+
+        bar.hidden = true;
+        bar.style.transition = 'none';
+        bar.style.width = '0%';
+        state.loadingBarProgress = 0;
+        state.loadingBarFetchId = null;
+        state.loadingBarHideTimer = null;
+    }, 180);
+};
+
+const readCalendarJsonResponse = function(response, fetchId) {
+    const contentLength = Number(response.headers.get('content-length'));
+    const canStream = response.body && typeof response.body.getReader === 'function';
+
+    setCalendarLoadingProgress(fetchId, 55);
+
+    if (!canStream || !Number.isFinite(contentLength) || contentLength <= 0) {
+        return response.json().then(function(payload) {
+            setCalendarLoadingProgress(fetchId, 94);
+
+            return payload;
+        });
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let receivedLength = 0;
+    let responseText = '';
+
+    const readChunk = function() {
+        return reader.read().then(function(result) {
+            if (result.done) {
+                responseText += decoder.decode();
+                setCalendarLoadingProgress(fetchId, 94);
+
+                return JSON.parse(responseText);
+            }
+
+            receivedLength += result.value.byteLength;
+            responseText += decoder.decode(result.value, { stream: true });
+            setCalendarLoadingProgress(fetchId, 55 + (Math.min(1, receivedLength / contentLength) * 39));
+
+            return readChunk();
+        });
+    };
+
+    return readChunk();
+};
+
 const fetchCalendarResource = function(url, options) {
     if (typeof AbortController !== 'function') {
         return fetch(url, options);
@@ -368,6 +493,8 @@ const fetchPlannedLessons = function(range) {
 
     const fetchId = state.calendarFetchId;
 
+    startCalendarLoadingProgress(fetchId);
+
     return fetchCalendarResource(url, {
         headers: {
             Accept: 'application/json',
@@ -378,7 +505,7 @@ const fetchPlannedLessons = function(range) {
                 throw new Error('Unable to load calendar lessons.');
             }
 
-            return response.json();
+            return readCalendarJsonResponse(response, fetchId);
         })
         .then(function(payload) {
             if (fetchId !== state.calendarFetchId || getRangeKey(getVisibleDateRange()) !== rangeKey) {
@@ -405,6 +532,8 @@ const fetchPlannedLessons = function(range) {
             if (state.pendingRangeKey === rangeKey && fetchId === state.calendarFetchId) {
                 state.pendingRangeKey = null;
             }
+
+            finishCalendarLoadingProgress(fetchId);
         });
 };
 

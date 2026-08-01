@@ -17,10 +17,26 @@
     margin-right: 50px;
 }
 
+#loading-bar {
+	height: 2px;
+	width: 100%;
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+
+#loading-bar div {
+	width: 0%;
+	height: 100%;
+}
 </style>
 @endpush
 
 @section('content')
+<div id="loading-bar">
+	<div class="bg-blue" hidden></div>
+</div>
+
 <section class="calendar-calendar container-fluid py-3">
 	<div class="calendar-calendar-body">
 		@include('calendar.calendar.sidebar')
