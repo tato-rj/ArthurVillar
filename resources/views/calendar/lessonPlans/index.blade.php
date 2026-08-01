@@ -82,13 +82,13 @@
             <thead>
                 <tr>
                     <th>Student</th>
+                    <th>Starts on</th>
+                    <th>Ends on</th>
                     <th>Start time</th>
                     <th>Duration</th>
                     <th>Recurrence</th>
-                    <th>Starts on</th>
-                    <th>Ends on</th>
-                    <th>Fee</th>
                     <th>Location</th>
+                    <th>Fee</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -294,25 +294,6 @@ $(function() {
         columns: [
             {data: 'student', name: 'student'},
             {
-                data: 'start_time',
-                name: 'start_time',
-                render: function(data, type) {
-                    if (type === 'sort' || type === 'type') {
-                        return data;
-                    }
-
-                    return formatTime(data);
-                },
-            },
-            {
-                data: 'duration_minutes',
-                name: 'duration_minutes',
-                render: function(data) {
-                    return data ? `${data} min` : '';
-                },
-            },
-            {data: 'recurrence', name: 'recurrence'},
-            {
                 data: 'starts_on',
                 name: 'starts_on',
                 render: function(data, type) {
@@ -335,6 +316,32 @@ $(function() {
                 },
             },
             {
+                data: 'start_time',
+                name: 'start_time',
+                render: function(data, type) {
+                    if (type === 'sort' || type === 'type') {
+                        return data;
+                    }
+
+                    return formatTime(data);
+                },
+            },
+            {
+                data: 'duration_minutes',
+                name: 'duration_minutes',
+                render: function(data) {
+                    return data ? `${data} min` : '';
+                },
+            },
+            {data: 'recurrence', name: 'recurrence'},
+            {
+                data: 'location',
+                name: 'location',
+                render: function(data) {
+                    return data || '';
+                },
+            },
+            {
                 data: 'fee_amount',
                 name: 'fee_amount',
                 render: function(data, type) {
@@ -343,13 +350,6 @@ $(function() {
                     }
 
                     return formatFee(data);
-                },
-            },
-            {
-                data: 'location',
-                name: 'location',
-                render: function(data) {
-                    return data || '';
                 },
             },
             {

@@ -1,2 +1,1937 @@
-/*! For license information please see beathero.js.LICENSE.txt */
-(()=>{"use strict";function e(t){return e="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(e){return typeof e}:function(e){return e&&"function"==typeof Symbol&&e.constructor===Symbol&&e!==Symbol.prototype?"symbol":typeof e},e(t)}function t(){var e,r,i="function"==typeof Symbol?Symbol:{},o=i.iterator||"@@iterator",a=i.toStringTag||"@@toStringTag";function s(t,i,o,a){var s=i&&i.prototype instanceof l?i:l,c=Object.create(s.prototype);return n(c,"_invoke",function(t,n,i){var o,a,s,l=0,c=i||[],h=!1,m={p:0,n:0,v:e,a:f,f:f.bind(e,4),d:function(t,n){return o=t,a=0,s=e,m.n=n,u}};function f(t,n){for(a=t,s=n,r=0;!h&&l&&!i&&r<c.length;r++){var i,o=c[r],f=m.p,y=o[2];t>3?(i=y===n)&&(s=o[(a=o[4])?5:(a=3,3)],o[4]=o[5]=e):o[0]<=f&&((i=t<2&&f<o[1])?(a=0,m.v=n,m.n=o[1]):f<y&&(i=t<3||o[0]>n||n>y)&&(o[4]=t,o[5]=n,m.n=y,a=0))}if(i||t>1)return u;throw h=!0,n}return function(i,c,y){if(l>1)throw TypeError("Generator is already running");for(h&&1===c&&f(c,y),a=c,s=y;(r=a<2?e:s)||!h;){o||(a?a<3?(a>1&&(m.n=-1),f(a,s)):m.n=s:m.v=s);try{if(l=2,o){if(a||(i="next"),r=o[i]){if(!(r=r.call(o,s)))throw TypeError("iterator result is not an object");if(!r.done)return r;s=r.value,a<2&&(a=0)}else 1===a&&(r=o.return)&&r.call(o),a<2&&(s=TypeError("The iterator does not provide a '"+i+"' method"),a=1);o=e}else if((r=(h=m.n<0)?s:t.call(n,m))!==u)break}catch(t){o=e,a=1,s=t}finally{l=1}}return{value:r,done:h}}}(t,o,a),!0),c}var u={};function l(){}function c(){}function h(){}r=Object.getPrototypeOf;var m=[][o]?r(r([][o]())):(n(r={},o,function(){return this}),r),f=h.prototype=l.prototype=Object.create(m);function y(e){return Object.setPrototypeOf?Object.setPrototypeOf(e,h):(e.__proto__=h,n(e,a,"GeneratorFunction")),e.prototype=Object.create(f),e}return c.prototype=h,n(f,"constructor",h),n(h,"constructor",c),c.displayName="GeneratorFunction",n(h,a,"GeneratorFunction"),n(f),n(f,a,"Generator"),n(f,o,function(){return this}),n(f,"toString",function(){return"[object Generator]"}),(t=function(){return{w:s,m:y}})()}function n(e,t,r,i){var o=Object.defineProperty;try{o({},"",{})}catch(e){o=0}n=function(e,t,r,i){function a(t,r){n(e,t,function(e){return this._invoke(t,r,e)})}t?o?o(e,t,{value:r,enumerable:!i,configurable:!i,writable:!i}):e[t]=r:(a("next",0),a("throw",1),a("return",2))},n(e,t,r,i)}function r(e,t){return function(e){if(Array.isArray(e))return e}(e)||function(e,t){var n=null==e?null:"undefined"!=typeof Symbol&&e[Symbol.iterator]||e["@@iterator"];if(null!=n){var r,i,o,a,s=[],u=!0,l=!1;try{if(o=(n=n.call(e)).next,0===t){if(Object(n)!==n)return;u=!1}else for(;!(u=(r=o.call(n)).done)&&(s.push(r.value),s.length!==t);u=!0);}catch(e){l=!0,i=e}finally{try{if(!u&&null!=n.return&&(a=n.return(),Object(a)!==a))return}finally{if(l)throw i}}return s}}(e,t)||function(e,t){if(e){if("string"==typeof e)return i(e,t);var n={}.toString.call(e).slice(8,-1);return"Object"===n&&e.constructor&&(n=e.constructor.name),"Map"===n||"Set"===n?Array.from(e):"Arguments"===n||/^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)?i(e,t):void 0}}(e,t)||function(){throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.")}()}function i(e,t){(null==t||t>e.length)&&(t=e.length);for(var n=0,r=Array(t);n<t;n++)r[n]=e[n];return r}function o(e,t,n,r,i,o,a){try{var s=e[o](a),u=s.value}catch(e){return void n(e)}s.done?t(u):Promise.resolve(u).then(r,i)}function a(e){return function(){var t=this,n=arguments;return new Promise(function(r,i){var a=e.apply(t,n);function s(e){o(a,r,i,s,u,"next",e)}function u(e){o(a,r,i,s,u,"throw",e)}s(void 0)})}}function s(e,t){var n=Object.keys(e);if(Object.getOwnPropertySymbols){var r=Object.getOwnPropertySymbols(e);t&&(r=r.filter(function(t){return Object.getOwnPropertyDescriptor(e,t).enumerable})),n.push.apply(n,r)}return n}function u(e){for(var t=1;t<arguments.length;t++){var n=null!=arguments[t]?arguments[t]:{};t%2?s(Object(n),!0).forEach(function(t){c(e,t,n[t])}):Object.getOwnPropertyDescriptors?Object.defineProperties(e,Object.getOwnPropertyDescriptors(n)):s(Object(n)).forEach(function(t){Object.defineProperty(e,t,Object.getOwnPropertyDescriptor(n,t))})}return e}function l(e,t){for(var n=0;n<t.length;n++){var r=t[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(e,h(r.key),r)}}function c(e,t,n){return(t=h(t))in e?Object.defineProperty(e,t,{value:n,enumerable:!0,configurable:!0,writable:!0}):e[t]=n,e}function h(t){var n=function(t,n){if("object"!=e(t)||!t)return t;var r=t[Symbol.toPrimitive];if(void 0!==r){var i=r.call(t,n||"default");if("object"!=e(i))return i;throw new TypeError("@@toPrimitive must return a primitive value.")}return("string"===n?String:Number)(t)}(t,"string");return"symbol"==e(n)?n:n+""}var m=function(){function e(){!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,e)}return n=e,i=null,o=[{key:"scale",value:function(t){var n=arguments.length>1&&void 0!==arguments[1]?arguments[1]:1,r=Number(e.VELOCITY[t]);return(Number.isFinite(r)?r:1)*(Number(n)||0)}},{key:"getSoundLibrary",value:function(){return e.SOUND_LIBRARY.map(function(t){return u(u({},t),{},{valuePercent:e.getVelocityPercent(t.volumeKey)})})}},{key:"getVelocityPercent",value:function(t){var n=Number(e.VELOCITY[t]);return Number.isFinite(n)?Math.max(0,Math.min(100,Math.round(100*n))):0}},{key:"setVelocityPercent",value:function(t,n){var r=Math.max(0,Math.min(100,Number(n)||0));return Object.prototype.hasOwnProperty.call(e.VELOCITY,t)?(e.VELOCITY[t]=r/100,r):0}},{key:"previewSound",value:(c=a(t().m(function n(i){var o,a;return t().w(function(t){for(;;)switch(t.n){case 0:if(window.Tone){t.n=1;break}return t.a(2);case 1:return t.n=2,Tone.start();case 2:null===(o=(a={staffNote:function(){e._getPreviewSynth("staffNote",function(){return e.createStaffNoteSynth()}).triggerAttackRelease("C4",.5,void 0,e.scale("staffNote",1))},dictation:function(){e._getPreviewSynth("dictation",function(){return e.createDictationSynth()}).triggerAttackRelease(["C4","E4"],.3,void 0,e.scale("dictation",1))},sequence:function(){e._getPreviewSynth("sequence",function(){return e.createSequenceSynth()}).triggerAttackRelease(["C4","G4"],.26,void 0,e.scale("sequence",1))},successBasic:function(){var t=e._getPreviewSynth("uiPoly",function(){return e.createUiPolySynth()}),n=Tone.now();["C6","E6","G6"].forEach(function(r,i){t.triggerAttackRelease(r,.07,n+.05*i,e.scale("successBasic",.42))})},successBonus:function(){var t,n=e._getPreviewSynth("uiPoly",function(){return e.createUiPolySynth()}),r=Tone.now(),i=u({},n.get().envelope),o=null===(t=n.get().oscillator)||void 0===t?void 0:t.type;try{n.set({oscillator:{type:"sine"},envelope:{attack:.004,decay:.12,sustain:.15,release:.65}})}catch(e){}var a=function(e){return Tone.Frequency(e,"midi").toNote()};[62,66,69,73,74].map(function(e){return a(e+3)}).forEach(function(t,i){n.triggerAttackRelease(t,.06,r+.045*i,e.scale("successBonus",.45))}),[62,69,74,78].map(function(e){return a(e+3)}).forEach(function(t){n.triggerAttackRelease(t,.12,r+.26,e.scale("successBonus",.3))}),setTimeout(function(){try{n.set({oscillator:{type:o||"triangle"},envelope:i})}catch(e){}},600)},failNoise:function(){e._getPreviewSynth("uiNoise",function(){return e.createUiNoiseSynth()}).triggerAttackRelease(.06,Tone.now(),e.scale("failNoise",.45))},failNote:function(){var t=e._getPreviewSynth("uiPoly",function(){return e.createUiPolySynth()}),n=Tone.now();t.triggerAttackRelease("A2",.1,n+.01,e.scale("failNote",.55)),t.triggerAttackRelease("G2",.12,n+.08,e.scale("failNote",.6))},bombFail:function(){var t,n=e._getPreviewSynth("uiPoly",function(){return e.createUiPolySynth()}),r=e._getPreviewSynth("uiNoise",function(){return e.createUiNoiseSynth()}),i=Tone.now(),o=u({},n.get().envelope),a=null===(t=n.get().oscillator)||void 0===t?void 0:t.type;try{n.set({oscillator:{type:"triangle"},envelope:{attack:.004,decay:.16,sustain:.08,release:.38}})}catch(e){}["E5","D5","C5","A4","G4","E4","D4","B3","A3","F3","E3"].forEach(function(t,o){var a=i+.17*o;n.triggerAttackRelease(t,.15,a,e.scale("bombFail",.42)),o<8&&r.triggerAttackRelease(.05,a+.015,e.scale("bombFail",.14))}),setTimeout(function(){try{n.set({oscillator:{type:a||"triangle"},envelope:o})}catch(e){}},2200)},wallCrash:function(){var t=e._getPreviewSynth("uiTimer",function(){return e.createUiTimerSynth()}),n=e._getPreviewSynth("uiNoise",function(){return e.createUiNoiseSynth()}),r=Tone.now();n.triggerAttackRelease(.12,r,e.scale("wallCrash",.32)),n.triggerAttackRelease(.09,r+.045,e.scale("wallCrash",.22)),t.triggerAttackRelease("G3",.08,r,e.scale("wallCrash",.85)),t.triggerAttackRelease("D3",.12,r+.04,e.scale("wallCrash",.7)),t.triggerAttackRelease("A2",.18,r+.11,e.scale("wallCrash",.62))},final:function(){var t,n=e._getPreviewSynth("uiPoly",function(){return e.createUiPolySynth()}),r=Tone.now(),i=u({},n.get().envelope),o=null===(t=n.get().oscillator)||void 0===t?void 0:t.type;try{n.set({oscillator:{type:"sine"},envelope:{attack:.02,decay:.25,sustain:.35,release:.9}})}catch(e){}["C5","E5","G5","B5","D6","G6"].forEach(function(t,i){n.triggerAttackRelease(t,.11,r+.08*i,e.scale("final",.44))}),["C6","E6","G6"].forEach(function(t){n.triggerAttackRelease(t,.28,r+.62,e.scale("final",.5))}),setTimeout(function(){try{n.set({oscillator:{type:o||"triangle"},envelope:i})}catch(e){}},1700)},finalMetric:function(){var t=e._getPreviewSynth("uiTimer",function(){return e.createUiTimerSynth()}),n=Tone.now();t.triggerAttackRelease("G5",.055,n,e.scale("finalMetric",.44)),t.triggerAttackRelease("C6",.045,n+.03,e.scale("finalMetric",.34))},perfectBonus:function(){var t,n=e._getPreviewSynth("uiPoly",function(){return e.createUiPolySynth()}),r=Tone.now(),i=u({},n.get().envelope),o=null===(t=n.get().oscillator)||void 0===t?void 0:t.type;try{n.set({oscillator:{type:"triangle"},envelope:{attack:.01,decay:.18,sustain:.25,release:.8}})}catch(e){}["C5","E5","G5","C6","E6","G6","C7"].forEach(function(t,i){n.triggerAttackRelease(t,.09,r+.06*i,e.scale("perfectBonus",.62))}),setTimeout(function(){try{n.set({oscillator:{type:o||"triangle"},envelope:i})}catch(e){}},1400)},runStart:function(){var t=e._getPreviewSynth("uiPoly",function(){return e.createUiPolySynth()}),n=Tone.now();[[[0,7],0,.19,.2],[[3,7],.24,.06,.18],[[0,5,10],.38,.18,.22],[[2,5,9],.62,.06,.18],[[0,7,12],.76,.15,.22]].forEach(function(i){var o=r(i,4),a=o[0],s=o[1],u=o[2],l=o[3];t.triggerAttackRelease(a.map(function(e){return t=60+e,Tone.Frequency(t,"midi").toNote();var t}),u,n+s,e.scale("runStart",l))})},timerBeep:function(){e._getPreviewSynth("uiTimer",function(){return e.createUiTimerSynth()}).triggerAttackRelease("C6",.06,Tone.now(),e.scale("timerBeep",.5))},timerTimeUp:function(){var t=e._getPreviewSynth("uiTimer",function(){return e.createUiTimerSynth()}),n=e._getPreviewSynth("uiNoise",function(){return e.createUiNoiseSynth()}),r=Tone.now();n.triggerAttackRelease(.12,r,e.scale("timerTimeUp",.2)),t.triggerAttackRelease("G4",.11,r,e.scale("timerTimeUp",.72)),t.triggerAttackRelease("E4",.13,r+.1,e.scale("timerTimeUp",.76)),t.triggerAttackRelease("C4",.18,r+.22,e.scale("timerTimeUp",.82))},countdownBeep:function(){e._getPreviewSynth("uiTimer",function(){return e.createUiTimerSynth()}).triggerAttackRelease("B5",.06,Tone.now(),e.scale("countdownBeep",.2))},metronomeBeat:function(){e.playMetronomeClick(!1)},metronomeDownbeat:function(){e.playMetronomeClick(!0)},rhythmHit:function(){e.playRhythmHit()},hinge:function(){var t=e._getPreviewSynth("uiNoise",function(){return e.createUiNoiseSynth()}),n=e._getPreviewSynth("uiTimer",function(){return e.createUiTimerSynth()}),r=Tone.now();t.triggerAttackRelease(.04,r,e.scale("hinge",.07)),n.triggerAttackRelease("E4",.04,r,e.scale("hinge",.12)),n.triggerAttackRelease("C4",.05,r+.04,e.scale("hinge",.16))}})[i])||void 0===o||o.call(a);case 3:return t.a(2)}},n)})),function(e){return c.apply(this,arguments)})},{key:"createUiPolySynth",value:function(){return new Tone.PolySynth(Tone.Synth,{oscillator:{type:"triangle"},envelope:{attack:.005,decay:.12,sustain:0,release:.25},volume:e.SYNTH_VOLUME_DB.uiPoly}).toDestination()}},{key:"createUiNoiseSynth",value:function(){return new Tone.NoiseSynth({noise:{type:"pink"},envelope:{attack:.001,decay:.08,sustain:0,release:.06},volume:e.SYNTH_VOLUME_DB.uiNoise}).toDestination()}},{key:"createUiTimerSynth",value:function(){return new Tone.Synth({oscillator:{type:"square"},envelope:{attack:.001,decay:.03,sustain:0,release:.06},volume:e.SYNTH_VOLUME_DB.uiTimer}).toDestination()}},{key:"ensureMetronomeAudio",value:(s=a(t().m(function n(){return t().w(function(t){for(;;)switch(t.n){case 0:if(window.Tone){t.n=1;break}return t.a(2,null);case 1:return t.n=2,Tone.start();case 2:return t.a(2,e._getPreviewSynth("metronome",function(){return e.createMetronomeSynth()}))}},n)})),function(){return s.apply(this,arguments)})},{key:"playMetronomeClick",value:function(){var t=arguments.length>0&&void 0!==arguments[0]&&arguments[0];if(window.Tone){var n=t?"metronomeDownbeat":"metronomeBeat";e._getPreviewSynth("metronome",function(){return e.createMetronomeSynth()}).triggerAttackRelease(t?"C6":"C5","16n",Tone.now(),e.scale(n,1))}}},{key:"createMetronomeSynth",value:function(){return new Tone.Synth({oscillator:{type:"square"},envelope:{attack:.001,decay:.04,sustain:0,release:.01},volume:e.SYNTH_VOLUME_DB.metronome}).toDestination()}},{key:"playRhythmHit",value:function(){window.Tone&&e._getPreviewSynth("rhythmHit",function(){return e.createRhythmHitSynth()}).triggerAttackRelease("C2","8n",Tone.now(),e.scale("rhythmHit",1))}},{key:"createRhythmHitSynth",value:function(){return new Tone.MembraneSynth({pitchDecay:.035,octaves:2.5,oscillator:{type:"sine"},envelope:{attack:.001,decay:.12,sustain:0,release:.06},volume:e.SYNTH_VOLUME_DB.rhythmHit}).toDestination()}},{key:"createStaffNoteSynth",value:function(){return new Tone.Synth({oscillator:{type:"sine"},envelope:{attack:.01,decay:.08,sustain:.6,release:.12},volume:e.SYNTH_VOLUME_DB.staffNote}).toDestination()}},{key:"createDictationSynth",value:function(){return new Tone.PolySynth(Tone.Synth,{oscillator:{type:"sine"},envelope:{attack:.01,decay:.08,sustain:.35,release:.25},volume:e.SYNTH_VOLUME_DB.dictation}).toDestination()}},{key:"createSequenceSynth",value:function(){return new Tone.PolySynth(Tone.Synth,{oscillator:{type:"sine"},envelope:{attack:.01,decay:.08,sustain:.35,release:.25},volume:e.SYNTH_VOLUME_DB.sequence}).toDestination()}},{key:"_getPreviewSynth",value:function(t,n){return e._previewSynths[t]||(e._previewSynths[t]=n()),e._previewSynths[t]}}],i&&l(n.prototype,i),o&&l(n,o),Object.defineProperty(n,"prototype",{writable:!1}),n;var n,i,o,s,c}();function f(e){return f="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(e){return typeof e}:function(e){return e&&"function"==typeof Symbol&&e.constructor===Symbol&&e!==Symbol.prototype?"symbol":typeof e},f(e)}function y(e,t){return function(e){if(Array.isArray(e))return e}(e)||function(e,t){var n=null==e?null:"undefined"!=typeof Symbol&&e[Symbol.iterator]||e["@@iterator"];if(null!=n){var r,i,o,a,s=[],u=!0,l=!1;try{if(o=(n=n.call(e)).next,0===t){if(Object(n)!==n)return;u=!1}else for(;!(u=(r=o.call(n)).done)&&(s.push(r.value),s.length!==t);u=!0);}catch(e){l=!0,i=e}finally{try{if(!u&&null!=n.return&&(a=n.return(),Object(a)!==a))return}finally{if(l)throw i}}return s}}(e,t)||p(e,t)||function(){throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.")}()}function v(e){return function(e){if(Array.isArray(e))return d(e)}(e)||function(e){if("undefined"!=typeof Symbol&&null!=e[Symbol.iterator]||null!=e["@@iterator"])return Array.from(e)}(e)||p(e)||function(){throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.")}()}function p(e,t){if(e){if("string"==typeof e)return d(e,t);var n={}.toString.call(e).slice(8,-1);return"Object"===n&&e.constructor&&(n=e.constructor.name),"Map"===n||"Set"===n?Array.from(e):"Arguments"===n||/^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)?d(e,t):void 0}}function d(e,t){(null==t||t>e.length)&&(t=e.length);for(var n=0,r=Array(t);n<t;n++)r[n]=e[n];return r}function _(){var e,t,n="function"==typeof Symbol?Symbol:{},r=n.iterator||"@@iterator",i=n.toStringTag||"@@toStringTag";function o(n,r,i,o){var u=r&&r.prototype instanceof s?r:s,l=Object.create(u.prototype);return g(l,"_invoke",function(n,r,i){var o,s,u,l=0,c=i||[],h=!1,m={p:0,n:0,v:e,a:f,f:f.bind(e,4),d:function(t,n){return o=t,s=0,u=e,m.n=n,a}};function f(n,r){for(s=n,u=r,t=0;!h&&l&&!i&&t<c.length;t++){var i,o=c[t],f=m.p,y=o[2];n>3?(i=y===r)&&(u=o[(s=o[4])?5:(s=3,3)],o[4]=o[5]=e):o[0]<=f&&((i=n<2&&f<o[1])?(s=0,m.v=r,m.n=o[1]):f<y&&(i=n<3||o[0]>r||r>y)&&(o[4]=n,o[5]=r,m.n=y,s=0))}if(i||n>1)return a;throw h=!0,r}return function(i,c,y){if(l>1)throw TypeError("Generator is already running");for(h&&1===c&&f(c,y),s=c,u=y;(t=s<2?e:u)||!h;){o||(s?s<3?(s>1&&(m.n=-1),f(s,u)):m.n=u:m.v=u);try{if(l=2,o){if(s||(i="next"),t=o[i]){if(!(t=t.call(o,u)))throw TypeError("iterator result is not an object");if(!t.done)return t;u=t.value,s<2&&(s=0)}else 1===s&&(t=o.return)&&t.call(o),s<2&&(u=TypeError("The iterator does not provide a '"+i+"' method"),s=1);o=e}else if((t=(h=m.n<0)?u:n.call(r,m))!==a)break}catch(t){o=e,s=1,u=t}finally{l=1}}return{value:t,done:h}}}(n,i,o),!0),l}var a={};function s(){}function u(){}function l(){}t=Object.getPrototypeOf;var c=[][r]?t(t([][r]())):(g(t={},r,function(){return this}),t),h=l.prototype=s.prototype=Object.create(c);function m(e){return Object.setPrototypeOf?Object.setPrototypeOf(e,l):(e.__proto__=l,g(e,i,"GeneratorFunction")),e.prototype=Object.create(h),e}return u.prototype=l,g(h,"constructor",l),g(l,"constructor",u),u.displayName="GeneratorFunction",g(l,i,"GeneratorFunction"),g(h),g(h,i,"Generator"),g(h,r,function(){return this}),g(h,"toString",function(){return"[object Generator]"}),(_=function(){return{w:o,m}})()}function g(e,t,n,r){var i=Object.defineProperty;try{i({},"",{})}catch(e){i=0}g=function(e,t,n,r){function o(t,n){g(e,t,function(e){return this._invoke(t,n,e)})}t?i?i(e,t,{value:n,enumerable:!r,configurable:!r,writable:!r}):e[t]=n:(o("next",0),o("throw",1),o("return",2))},g(e,t,n,r)}function b(e,t,n,r,i,o,a){try{var s=e[o](a),u=s.value}catch(e){return void n(e)}s.done?t(u):Promise.resolve(u).then(r,i)}function S(e,t){var n=Object.keys(e);if(Object.getOwnPropertySymbols){var r=Object.getOwnPropertySymbols(e);t&&(r=r.filter(function(t){return Object.getOwnPropertyDescriptor(e,t).enumerable})),n.push.apply(n,r)}return n}function w(e){for(var t=1;t<arguments.length;t++){var n=null!=arguments[t]?arguments[t]:{};t%2?S(Object(n),!0).forEach(function(t){k(e,t,n[t])}):Object.getOwnPropertyDescriptors?Object.defineProperties(e,Object.getOwnPropertyDescriptors(n)):S(Object(n)).forEach(function(t){Object.defineProperty(e,t,Object.getOwnPropertyDescriptor(n,t))})}return e}function k(e,t,n){return(t=P(t))in e?Object.defineProperty(e,t,{value:n,enumerable:!0,configurable:!0,writable:!0}):e[t]=n,e}function T(e,t){for(var n=0;n<t.length;n++){var r=t[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(e,P(r.key),r)}}function P(e){var t=function(e,t){if("object"!=f(e)||!e)return e;var n=e[Symbol.toPrimitive];if(void 0!==n){var r=n.call(e,t||"default");if("object"!=f(r))return r;throw new TypeError("@@toPrimitive must return a primitive value.")}return("string"===t?String:Number)(e)}(e,"string");return"symbol"==f(t)?t:t+""}c(m,"SYNTH_VOLUME_DB",{uiPoly:-10,uiNoise:-16,uiTimer:-14,metronome:-12,rhythmHit:-10,staffNote:-8,dictation:-9,sequence:-9}),c(m,"VELOCITY",{staffNote:1,dictation:1,sequence:1,successBasic:.7,successBonus:.7,failNoise:1,failNote:1,bombFail:1,wallCrash:.4,final:.5,finalMetric:.85,perfectBonus:.25,runStart:.9,timerBeep:.7,timerTimeUp:.95,countdownBeep:1,metronomeBeat:.4,metronomeDownbeat:.6,rhythmHit:.65,hinge:.55}),c(m,"SOUND_LIBRARY",[{id:"staffNote",label:"Staff Note",volumeKey:"staffNote",description:"Base loudness for staff note playback."},{id:"dictation",label:"Dictation",volumeKey:"dictation",description:"Dictation playback loudness in PitchDetective."},{id:"sequence",label:"Sequence",volumeKey:"sequence",description:"Sequence playback loudness in ToneTrek and similar games."},{id:"successBasic",label:"Success",volumeKey:"successBasic",description:"Normal correct-answer sound."},{id:"successBonus",label:"Streak Bonus",volumeKey:"successBonus",description:"Streak / bonus correct-answer sound."},{id:"failNoise",label:"Fail Noise",volumeKey:"failNoise",description:"Noise portion of the fail sound."},{id:"failNote",label:"Fail Notes",volumeKey:"failNote",description:"Pitched portion of the fail sound."},{id:"bombFail",label:"Bomb Hit",volumeKey:"bombFail",description:"Long stumbling fail sound when the snake hits a bomb."},{id:"wallCrash",label:"Wall Crash",volumeKey:"wallCrash",description:"Sharp breaking impact when the snake crashes into a wall."},{id:"final",label:"Final Results",volumeKey:"final",description:"Final results reveal fanfare."},{id:"finalMetric",label:"Metric Pop",volumeKey:"finalMetric",description:"Small pop sound as each final metric box appears."},{id:"perfectBonus",label:"Perfect Bonus",volumeKey:"perfectBonus",description:"Extra reward sound for perfect/no-mistakes games."},{id:"runStart",label:"Run Start",volumeKey:"runStart",description:"Opening fanfare at the start of a run/countdown."},{id:"timerBeep",label:"Timer Warning",volumeKey:"timerBeep",description:"Repeating warning beep in the last timer seconds."},{id:"timerTimeUp",label:"Time Up",volumeKey:"timerTimeUp",description:"Stronger sound when the timer actually runs out."},{id:"countdownBeep",label:"Countdown Tick",volumeKey:"countdownBeep",description:"Simple 3-2-1 countdown tick sound."},{id:"metronomeBeat",label:"Metronome Beat",volumeKey:"metronomeBeat",description:"Regular metronome click."},{id:"metronomeDownbeat",label:"Metronome Downbeat",volumeKey:"metronomeDownbeat",description:"Higher-pitched click on the first beat of each measure."},{id:"rhythmHit",label:"Rhythm Hit",volumeKey:"rhythmHit",description:"Low percussive sound for Beat Hero rhythm notes."},{id:"hinge",label:"Hinge",volumeKey:"hinge",description:"Short hinge/fall sound used by ToneTrek block reveals."}]),c(m,"_previewSynths",{});var M,A=function(){return e=function e(){var t=arguments.length>0&&void 0!==arguments[0]?arguments[0]:{};!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,e),this.opts=w({wrapperSelector:"#game-wrapper",previewSelector:"#preview-score",tapSelector:"#tap-wrapper"},t),this._resizeHandler=null,this._timeSignature=this._pickTimeSignature(),this._bpm=this._normalizeBpm(this.opts.bpm),this._includeRests=this._normalizeBoolOption(this.opts.includeRests),this._useVoice=this._normalizeBoolOption(this.opts.useVoice),this._enabledNoteValues=this._normalizeNoteOptions(this.opts.notesValues||this.opts.notes),this._numOfMeasures=this._normalizeMeasureCount(this.opts.numOfMeasures),this._measures=[],this._rhythm=[],this._previewRhythm=null,this._activeMeasureNumber=1,this._metronomeInterval=null,this._metronomeStartTimeout=null,this._rhythmAnimationTimeouts=[],this._rhythmHighlightTimeouts=[],this._metronomeTickIndex=0,this._rhythmPlaybackStarted=!1,this._metronomeAudioReady=!1,this._metronomeIsStarting=!1,this._rhythmStartTime=null,this._tapEvents=[],this._tapWindowMs=120,this._voiceTapWindowMs=180,this._voiceAudioContext=null,this._voiceAnalyser=null,this._voiceData=null,this._voiceStream=null,this._voiceFrame=null,this._voiceBaseline=.02,this._voicePreviousLevel=0,this._voiceIsActive=!1,this._voiceInputStarting=!1,this._lastVoiceTapTime=0,this._voiceTapOffsetMs=120,this._goodTapCount=0,this._badTapCount=0,this.$playWrap=null,this.$playPlayBtn=null,this.$playStopBtn=null,this._resetMeasureQueue()},t=[{key:"start",value:function(){var e=this;this.renderChallenge(),this._resetTapFeedbackCounts(),this._showInitialControls(),this._syncInputMode(),this._wirePlayControls(),this._wireTapControls(),this._useVoice&&this._startVoiceInput(),this._resizeHandler||(this._resizeHandler=function(){return e.renderChallenge()},window.addEventListener("resize",this._resizeHandler))}},{key:"renderChallenge",value:function(){var e=document.querySelector(this.opts.wrapperSelector),t=document.querySelector(this.opts.previewSelector);(e||t)&&(this._setPreviewWrapperVisible(Boolean(this._previewRhythm)),this._previewRhythm?this._renderRhythmMeasure({wrapper:t,rhythm:this._previewRhythm,showClef:!1,showTimeSignature:!1,showBarlines:!1,isFinalMeasure:this._activeMeasureNumber+1>=this._numOfMeasures}):this._clearRhythmMeasure(t),this._renderRhythmMeasure({wrapper:e,rhythm:this._rhythm,showTimeSignature:1===this._activeMeasureNumber,isFinalMeasure:this._activeMeasureNumber>=this._numOfMeasures}))}},{key:"_setPreviewWrapperVisible",value:function(e){var t=document.querySelector(this.opts.previewSelector),n=(null==t?void 0:t.closest("#preview-wrapper"))||t;n&&(n.classList.toggle("d-none",!e),n.style.display=e?"block":"none")}},{key:"_renderRhythmMeasure",value:function(e){var t,n,r=e.wrapper,i=e.rhythm,o=e.showClef,a=void 0===o||o,s=e.showTimeSignature,u=void 0===s||s,l=e.showBarlines,c=void 0===l||l,h=e.isFinalMeasure,m=void 0!==h&&h;if(r){if(r.innerHTML="",r.classList.add("beat-hero-wrapper"),r.matches(this.opts.wrapperSelector)){var f=document.createElement("div");f.id="beat-count",r.appendChild(f)}var y=null===(t=window.Vex)||void 0===t?void 0:t.Flow;if(y){var v=Math.max(1,Math.floor(r.clientWidth||1)),p=new y.Renderer(r,y.Renderer.Backends.SVG);p.resize(v,190);var d=p.getContext();d.setFont("Arial",10);var _,g,b,S=new y.Stave(18,24,v-36,{fill_style:"#273043",spacing_between_lines_px:14});S.setConfigForLines([{visible:!1},{visible:!1},{visible:!0},{visible:!1},{visible:!1}]),a&&S.addClef("percussion"),u&&S.addTimeSignature(this._timeSignatureLabel()),m&&(null===(_=S.setEndBarType)||void 0===_||_.call(S,null!==(g=null===(b=y.Barline)||void 0===b||null===(b=b.type)||void 0===b?void 0:b.END)&&void 0!==g?g:3)),S.setContext(d).draw();var w=(null===(n=y.Stem)||void 0===n?void 0:n.UP)||1,k=this._rhythmNoteGlyphFontScale(r),T=i.map(function(e){return new y.StaveNote({clef:"percussion",keys:["b/4"],duration:e,glyph_font_scale:k,stem_direction:w})});this._extendStems(T,8),this._removeNoteSpacing(T);var P=y.Beam.generateBeams(T,{stem_direction:w});this._drawQuarterGrid({VF:y,context:d,stave:S,notes:T,beams:P,rhythm:i,width:v}),this._alignVerticalStaveLines(r),c||this._removeVerticalStaveLines(r),this._extendRenderedStems(r,10),this._moveStemTopAttachments(r,10)}else r.textContent="VexFlow could not be loaded."}}},{key:"_clearRhythmMeasure",value:function(e){e&&(e.innerHTML="",e.classList.add("beat-hero-wrapper"))}},{key:"_showInitialControls",value:function(){$("#controls").show(),$("#instructions").show(),$("#check").show().removeClass("invisible"),$("#continue").hide()}},{key:"_wirePlayControls",value:function(){var e=this;this.$playWrap=$("#play"),this.$playPlayBtn=this.$playWrap.find('button[action="play"]'),this.$playStopBtn=this.$playWrap.find('button[action="stop"]'),this.$playPlayBtn.off("click.beatHeroMetronome").on("click.beatHeroMetronome",function(t){t.preventDefault(),e._useVoice&&e._startVoiceInput(),e._startMetronome()}),this.$playStopBtn.off("click.beatHeroMetronome").on("click.beatHeroMetronome",function(t){t.preventDefault(),e._stopMetronome()}),this._setPlayButtons(!1)}},{key:"_wireTapControls",value:function(){var e=this,t=document.querySelector(this.opts.tapSelector);t&&t.addEventListener("pointerdown",function(t){t.preventDefault(),e._handleTap()})}},{key:"_syncInputMode",value:function(){var e=document.querySelector(this.opts.tapSelector);e&&(e.classList.toggle("d-none",this._useVoice),e.style.display=this._useVoice?"none":"")}},{key:"_setPlayButtons",value:function(e){var t,n;null!==(t=this.$playPlayBtn)&&void 0!==t&&t.length&&this.$playPlayBtn.toggle(!e),null!==(n=this.$playStopBtn)&&void 0!==n&&n.length&&this.$playStopBtn.toggle(!!e)}},{key:"_startMetronome",value:function(){var e=this;this._isMetronomeActive()||(window.Tone?(this._shouldRewindMeasureQueueForPlayback()&&(this._rewindMeasureQueue(),this.renderChallenge()),this._resetTapFeedbackCounts(),this._setPlayButtons(!0),this._metronomeIsStarting=!0,this._ensureMetronomeAudio().then(function(){e._metronomeIsStarting&&(e._metronomeStartTimeout=setTimeout(function(){if(e._metronomeIsStarting){var t=6e4/e._bpm,n=function(){e._shouldStopAtEndOfPiece()?e._stopMetronome():(e._advanceMeasureIfNeeded(),e._playMetronomeClick(e._isMetronomeDownbeat()),e._updateBeatCount(t),e._handleMetronomeBeat(t),e._metronomeTickIndex+=1)};e._metronomeStartTimeout=null,e._metronomeIsStarting=!1,e._metronomeTickIndex=0,e._rhythmPlaybackStarted=!1,n(),e._metronomeInterval=setInterval(n,t)}},1e3))}).catch(function(){e._metronomeIsStarting=!1,e._setPlayButtons(!1)})):this._setPlayButtons(!1))}},{key:"_stopMetronome",value:function(){var e=(arguments.length>0&&void 0!==arguments[0]?arguments[0]:{}).resetButtons,t=void 0===e||e;this._metronomeStartTimeout&&(clearTimeout(this._metronomeStartTimeout),this._metronomeStartTimeout=null),this._metronomeInterval&&(clearInterval(this._metronomeInterval),this._metronomeInterval=null),this._metronomeIsStarting=!1,this._clearRhythmAnimationTimeouts(),this._clearRhythmNoteAnimations(),this._clearBeatCount(),this._clearTapSchedule(),this._useVoice||this._stopVoiceInput(),this._metronomeTickIndex=0,this._rhythmPlaybackStarted=!1,t&&this._setPlayButtons(!1)}},{key:"_ensureMetronomeAudio",value:(r=_().m(function e(){return _().w(function(e){for(;;)switch(e.n){case 0:if(window.Tone&&!this._metronomeAudioReady){e.n=1;break}return e.a(2);case 1:return e.n=2,m.ensureMetronomeAudio();case 2:this._metronomeAudioReady=!0;case 3:return e.a(2)}},e,this)}),i=function(){var e=this,t=arguments;return new Promise(function(n,i){var o=r.apply(e,t);function a(e){b(o,n,i,a,s,"next",e)}function s(e){b(o,n,i,a,s,"throw",e)}a(void 0)})},function(){return i.apply(this,arguments)})},{key:"_isMetronomeActive",value:function(){return Boolean(this._metronomeIsStarting||this._metronomeStartTimeout||this._metronomeInterval)}},{key:"_isMetronomeDownbeat",value:function(){var e=Math.max(1,this._timeSignature.beats);return this._metronomeTickIndex%e===0}},{key:"_shouldStopAtEndOfPiece",value:function(){var e=Math.max(1,this._timeSignature.beats),t=this._measurePlaybackBeats()*this._numOfMeasures;return this._metronomeTickIndex>=e+t}},{key:"_advanceMeasureIfNeeded",value:function(){var e=Math.max(1,this._timeSignature.beats),t=this._measurePlaybackBeats();if(!(this._metronomeTickIndex<e)){var n=this._metronomeTickIndex-e;0!==n&&n%t===0&&(this._activeMeasureNumber>=this._numOfMeasures||this._promotePreviewMeasure())}}},{key:"_playMetronomeClick",value:function(){var e=arguments.length>0&&void 0!==arguments[0]&&arguments[0];m.playMetronomeClick(e)}},{key:"_updateBeatCount",value:function(e){var t=document.querySelector("".concat(this.opts.wrapperSelector," #beat-count"));if(t){var n=Math.max(1,this._timeSignature.beats),r=this._metronomeTickIndex%n+1;t.textContent=String(r),t.style.animationDuration="".concat(Math.round(e),"ms"),t.classList.remove("beat-animation"),t.offsetWidth,t.classList.add("beat-animation")}}},{key:"_clearBeatCount",value:function(){var e=document.querySelector("".concat(this.opts.wrapperSelector," #beat-count"));e&&(e.textContent="",e.classList.remove("beat-animation"),e.style.animationDuration="")}},{key:"_handleMetronomeBeat",value:function(e){if(!this._rhythmPlaybackStarted){var t=Math.max(1,this._timeSignature.beats);this._metronomeTickIndex<t||(this._rhythmPlaybackStarted=!0,this._prepareTapSchedule(e))}}},{key:"_promotePreviewMeasure",value:function(){this._previewRhythm&&(this._clearRhythmAnimationTimeouts(),this._clearRhythmNoteAnimations(),this._clearTapSchedule(),this._activeMeasureNumber+=1,this._syncCurrentMeasures(),this._rhythmPlaybackStarted=!1,this.renderChallenge())}},{key:"_prepareTapSchedule",value:function(e){var t=this;this._clearTapSchedule(),this._rhythmStartTime=performance.now(),this._tapWindowMs=this._tapTimingWindow(e),this._voiceTapWindowMs=this._voiceTapTimingWindow(e),this._tapEvents=this._rhythmPlaybackSchedule().filter(function(e){return!t._isRestDuration(e.duration)}).map(function(n){return w(w({},n),{},{time:t._rhythmStartTime+n.beatOffset*e,tapped:!1})})}},{key:"_clearTapSchedule",value:function(){this._rhythmStartTime=null,this._tapEvents=[]}},{key:"_tapTimingWindow",value:function(e){return Math.min(260,Math.max(130,.28*e))}},{key:"_voiceTapTimingWindow",value:function(e){return Math.min(360,Math.max(190,.42*e))}},{key:"_handleTap",value:function(){this._handleTapAt(performance.now())}},{key:"_handleTapAt",value:function(e){var t=arguments.length>1&&void 0!==arguments[1]?arguments[1]:this._tapWindowMs,n=this._findMatchingTapEvent(e,t);if(!n)return console.log("Wrong tap"),this._badTapCount+=1,this._renderTapFeedbackCounts(),void this._animateTapFeedback("bad-tap");n.tapped=!0,console.log("Good tap"),this._goodTapCount+=1,this._renderTapFeedbackCounts(),this._animateTapFeedback("good-tap"),this._animateRhythmNote(n.index)}},{key:"_resetTapFeedbackCounts",value:function(){this._goodTapCount=0,this._badTapCount=0,this._renderTapFeedbackCounts()}},{key:"_renderTapFeedbackCounts",value:function(){var e=document.querySelector("#feedback-count .feedback-count-good span"),t=document.querySelector("#feedback-count .feedback-count-bad span");e&&(e.textContent=String(this._goodTapCount)),t&&(t.textContent=String(this._badTapCount))}},{key:"_animateTapFeedback",value:function(e){var t=document.querySelector("#tap-feedback");t&&(t.classList.remove("good-tap","bad-tap"),t.offsetWidth,t.classList.add(e))}},{key:"_findMatchingTapEvent",value:function(e){var t=arguments.length>1&&void 0!==arguments[1]?arguments[1]:this._tapWindowMs,n=this._tapEvents.filter(function(e){return!e.tapped});if(!n.length)return null;var r=n.reduce(function(t,n){var r=Math.abs(n.time-e);return!t||r<t.distance?{event:n,distance:r}:t},null);return!r||r.distance>t?null:r.event}},{key:"_startVoiceInput",value:function(){var e,t=this;if(this._voiceIsActive||this._voiceInputStarting)return Promise.resolve();if(!window.isSecureContext)return console.warn("Beat Hero voice input needs HTTPS or localhost to request microphone access."),Promise.resolve();if(null===(e=navigator.mediaDevices)||void 0===e||!e.getUserMedia)return console.warn("Beat Hero voice input is not supported by this browser."),Promise.resolve();var n=window.AudioContext||window.webkitAudioContext;return n?(this._voiceInputStarting=!0,navigator.mediaDevices.getUserMedia({audio:{echoCancellation:!0,noiseSuppression:!0,autoGainControl:!0}}).then(function(e){var r;if(!t._useVoice&&!t._metronomeIsStarting&&!t._metronomeInterval)return null===(r=e.getTracks)||void 0===r||r.call(e).forEach(function(e){return e.stop()}),void(t._voiceInputStarting=!1);t._voiceAudioContext=new n,t._voiceStream=e;var i=t._voiceAudioContext.createMediaStreamSource(e);t._voiceAnalyser=t._voiceAudioContext.createAnalyser(),t._voiceAnalyser.fftSize=512,t._voiceData=new Uint8Array(t._voiceAnalyser.fftSize),i.connect(t._voiceAnalyser),t._voiceIsActive=!0,t._voiceInputStarting=!1,t._listenForVoiceTaps()}).catch(function(){t._voiceInputStarting=!1})):Promise.resolve()}},{key:"_stopVoiceInput",value:function(){var e,t,n,r;this._voiceFrame&&(cancelAnimationFrame(this._voiceFrame),this._voiceFrame=null),null===(e=this._voiceStream)||void 0===e||null===(t=e.getTracks)||void 0===t||t.call(e).forEach(function(e){return e.stop()}),null===(n=this._voiceAudioContext)||void 0===n||null===(r=n.close)||void 0===r||r.call(n),this._voiceAudioContext=null,this._voiceAnalyser=null,this._voiceData=null,this._voiceStream=null,this._voiceBaseline=.02,this._voicePreviousLevel=0,this._voiceIsActive=!1,this._voiceInputStarting=!1,this._lastVoiceTapTime=0}},{key:"_listenForVoiceTaps",value:function(){var e=this;if(this._voiceAnalyser&&this._voiceData){this._voiceAnalyser.getByteTimeDomainData(this._voiceData);var t=this._voiceInputLevel(this._voiceData),n=performance.now(),r=Math.max(.038,1.9*this._voiceBaseline),i=Math.max(.014,.55*this._voiceBaseline),o=t-this._voicePreviousLevel,a=t>r&&o>i||t>Math.max(.07,2.8*this._voiceBaseline),s=t>r?.012:.045;this._voiceBaseline=this._voiceBaseline*(1-s)+Math.min(t,.14)*s,a&&n-this._lastVoiceTapTime>120&&(this._lastVoiceTapTime=n,this._handleTapAt(n-this._voiceTapOffsetMs,this._voiceTapWindowMs)),this._voicePreviousLevel=t,this._voiceFrame=requestAnimationFrame(function(){return e._listenForVoiceTaps()})}}},{key:"_voiceInputLevel",value:function(e){var t=0;return e.forEach(function(e){var n=(e-128)/128;t+=n*n}),Math.sqrt(t/e.length)}},{key:"_scheduleRhythmAnimations",value:function(e){var t=this;this._clearRhythmAnimationTimeouts(),this._rhythmPlaybackSchedule().forEach(function(n){var r=setTimeout(function(){t._animateRhythmNote(n.index)},n.beatOffset*e);t._rhythmAnimationTimeouts.push(r)})}},{key:"_rhythmPlaybackSchedule",value:function(){var e=this,t=0;return this._rhythm.map(function(n,r){var i={index:r,beatOffset:t,duration:n};return t+=e._durationToBeatBlocks(n),i})}},{key:"_clearRhythmAnimationTimeouts",value:function(){this._rhythmAnimationTimeouts.forEach(function(e){return clearTimeout(e)}),this._rhythmAnimationTimeouts=[],this._rhythmHighlightTimeouts.forEach(function(e){return clearTimeout(e)}),this._rhythmHighlightTimeouts=[]}},{key:"_clearRhythmNoteAnimations",value:function(){var e=this,t=document.querySelector(this.opts.wrapperSelector);null==t||t.querySelectorAll(".vf-notehead.beat-hero-highlight, .vf-notehead.pulsate").forEach(function(t){e._setNoteheadHighlight(t,!1)})}},{key:"_animateRhythmNote",value:function(e){var t,n=this,r=document.querySelector(this.opts.wrapperSelector),i=null==r||null===(t=r.querySelectorAll(".vf-stavenote"))||void 0===t?void 0:t[e],o=null==i?void 0:i.querySelector(".vf-notehead");if(o){this._setNoteheadHighlight(o,!0),m.playRhythmHit();var a=setTimeout(function(){n._setNoteheadHighlight(o,!1)},200);this._rhythmHighlightTimeouts.push(a)}}},{key:"_setNoteheadHighlight",value:function(e,t){var n=[e].concat(v(e.querySelectorAll("path")));e.classList.toggle("beat-hero-highlight",t),e.classList.toggle("pulsate",t),n.forEach(function(e){t?(e.style.fill="#1cb0f6",e.style.stroke="#1cb0f6"):(e.style.fill="",e.style.stroke="")})}},{key:"_drawRhythmWithFormatter",value:function(e){var t=e.VF,n=e.context,r=e.stave,i=e.notes,o=e.beams,a=e.width,s=new t.Voice({num_beats:this._timeSignature.beats,beat_value:this._timeSignature.beatValue});s.addTickables(i);var u,l,c,h=new t.Formatter;h.joinVoices([s]),h.createTickContexts&&h.preFormat?(h.createTickContexts([s]),this._setTickContextPadding(null===(u=h.getTickContexts)||void 0===u?void 0:u.call(h),0),h.preFormat(a-170,n,[s],r),null===(l=h.postFormat)||void 0===l||l.call(h)):(h.format([s],a-170),this._setTickContextPadding(null===(c=h.getTickContexts)||void 0===c?void 0:c.call(h),0)),s.draw(n,r),o.forEach(function(e){e.setContext(n).draw()})}},{key:"_drawQuarterGrid",value:function(e){var t=this,n=e.VF,r=e.context,i=e.stave,o=e.notes,a=e.beams,s=e.rhythm,u=e.width,l=u-16,c=Math.max(1,this._timeSignature.beats),h=0,m=null;o.forEach(function(e,o){var a,u=new n.TickContext;u.addTickable(e).preFormat(),u.setX(0),e.setContext(r),e.setStave(i),null===m&&(m=null===(a=e.getStemX)||void 0===a?void 0:a.call(e));var f=Number.isFinite(m)?m:0,y=Math.max(0,(l-f)/c);u.setX(0+h*y),e.draw(),h+=t._durationToBeatBlocks(s[o])}),a.forEach(function(e){e.setContext(r).draw()})}},{key:"_removeNoteSpacing",value:function(e){e.forEach(function(e){var t,n;null===(t=e.setExtraLeftPx)||void 0===t||t.call(e,0),null===(n=e.setExtraRightPx)||void 0===n||n.call(e,0)})}},{key:"_setTickContextPadding",value:function(e,t){e&&(e instanceof Map?v(e.values()):Object.values(e)).forEach(function(e){var n;null==e||null===(n=e.setPadding)||void 0===n||n.call(e,t)})}},{key:"_alignVerticalStaveLines",value:function(e){var t=e.querySelectorAll("svg rect"),n=t[t.length-1];if(n){var r=parseFloat(n.getAttribute("x"));Number.isFinite(r)&&n.setAttribute("x",String(r+2))}}},{key:"_removeVerticalStaveLines",value:function(e){e.querySelectorAll("svg rect").forEach(function(e){return e.remove()})}},{key:"_extendStems",value:function(e,t){e.forEach(function(e){var n,r,i=null===(n=e.getStem)||void 0===n?void 0:n.call(e);null==i||null===(r=i.setExtension)||void 0===r||r.call(i,t)})}},{key:"_extendRenderedStems",value:function(e,t){e.querySelectorAll(".vf-stem path").forEach(function(e){var n=(e.getAttribute("d")||"").match(/^M([\d.-]+) ([\d.-]+)L([\d.-]+) ([\d.-]+)$/);if(n){var r=y(n,5),i=r[1],o=r[2],a=r[3],s=r[4],u=parseFloat(s);Number.isFinite(u)&&e.setAttribute("d","M".concat(i," ").concat(o,"L").concat(a," ").concat(u-t))}})}},{key:"_moveStemTopAttachments",value:function(e,t){e.querySelectorAll(".vf-flag, .vf-beam").forEach(function(e){var n=e.getAttribute("transform")||"";e.setAttribute("transform","".concat(n," translate(0 -").concat(t,")").trim())}),this._moveUnclassifiedEighthFlags(e,4.5)}},{key:"_moveUnclassifiedEighthFlags",value:function(e,t){e.querySelectorAll("svg path").forEach(function(e){if(!e.getAttribute("class")){var n=e.getAttribute("d")||"",r=n.match(/^M([\d.-]+) ([\d.-]+)/);if(r&&n.includes("C")&&n.includes("L")){var i=y(r,2)[1];if(!(parseFloat(i)<80)){var o=e.getAttribute("transform")||"";e.setAttribute("transform","".concat(o," translate(0 -").concat(t,")").trim())}}}})}},{key:"_rhythmNoteGlyphFontScale",value:function(e){var t=getComputedStyle(e),n=this._pxFromCssVar(t,"--note-width",28),r=this._pxFromCssVar(t,"--note-height",22);return Math.round(Math.max(2*n,2.55*r))}},{key:"_pxFromCssVar",value:function(e,t,n){var r=parseFloat(e.getPropertyValue(t));return Number.isFinite(r)?r:n}},{key:"_timeSignatureLabel",value:function(){return"".concat(this._timeSignature.beats,"/").concat(this._timeSignature.beatValue)}},{key:"_measureBeatBlocks",value:function(){return this._timeSignature.beats*(4/this._timeSignature.beatValue)}},{key:"_measurePlaybackBeats",value:function(){return Math.max(1,this._timeSignature.beats)}},{key:"_durationToBeatBlocks",value:function(e){return{w:4,h:2,q:1,8:.5}[this._durationWithoutRest(e)]||1}},{key:"_durationWithoutRest",value:function(e){return String(e||"").replace(/r$/,"")}},{key:"_isRestDuration",value:function(e){return String(e||"").endsWith("r")}},{key:"_maybeRestDuration",value:function(e){return!this._includeRests||Math.random()<.5?e:"".concat(e,"r")}},{key:"_normalizeBoolOption",value:function(e){return!0===e||1===e||["1","true","on","yes"].includes(String(e).toLowerCase())}},{key:"_normalizeBpm",value:function(e){var t=Number(e);return!Number.isFinite(t)||t<=0?80:t}},{key:"_normalizeMeasureCount",value:function(e){var t=Number(e);return!Number.isInteger(t)||t<=0?1:t}},{key:"_resetMeasureQueue",value:function(){var e=this;this._activeMeasureNumber=1,this._measures=Array.from({length:this._numOfMeasures},function(){return e._makeRandomRhythm()}),this._syncCurrentMeasures()}},{key:"_rewindMeasureQueue",value:function(){this._measures.length?(this._activeMeasureNumber=1,this._syncCurrentMeasures()):this._resetMeasureQueue()}},{key:"_syncCurrentMeasures",value:function(){var e=Math.max(0,this._activeMeasureNumber-1);this._rhythm=this._measures[e]||[],this._previewRhythm=this._measures[e+1]||null}},{key:"_shouldRewindMeasureQueueForPlayback",value:function(){return this._activeMeasureNumber>1||!this._rhythm.length}},{key:"_pickTimeSignature",value:function(){var e=this._normalizeTimeSignatures(this.opts.timeSignatures||this.opts.timeSignatues);return e[Math.floor(Math.random()*e.length)]}},{key:"_normalizeTimeSignatures",value:function(e){var t=this,n=(Array.isArray(e)&&e.length?e:["4/4"]).map(function(e){return t._parseTimeSignature(e)}).filter(Boolean);return n.length?n:[{beats:4,beatValue:4}]}},{key:"_parseTimeSignature",value:function(e){var t=String(e||"").trim().match(/^(\d+)\s*\/\s*(\d+)$/);if(!t)return null;var n=Number(t[1]),r=Number(t[2]);return Number.isInteger(n)&&Number.isInteger(r)?n<=0||r<=0?null:{beats:n,beatValue:r}:null}},{key:"_normalizeNoteOptions",value:function(e){var t={whole:"whole",w:"whole",half:"half",h:"half",quarter:"quarter",q:"quarter",eigth:"eighth",eighth:"eighth",eight:"eighth",8:"eighth"},n=(Array.isArray(e)&&e.length?e:["whole","half","quarter","eighth"]).map(function(e){return t[String(e).toLowerCase()]}).filter(Boolean);return new Set(n.length?n:["quarter"])}},{key:"_makeRandomRhythm",value:function(){for(var e=this,t=[],n=this._rhythmCellsForEnabledNotes(),r=this._measureBeatBlocks(),i=!1;r>0;){var o=n.filter(function(t){return t.beats<=r&&e._canCompleteRhythm(r-t.beats,n)}),a=o.filter(function(e){return!(i&&e.hasEighths)}),s=a.length?a:o;if(s.length){var u=s[Math.floor(Math.random()*s.length)];t.push.apply(t,v(u.durations.map(function(t){return e._maybeRestDuration(t)}))),r-=u.beats,i=u.hasEighths}else t.push(this._maybeRestDuration("q")),r-=1,i=!1}return t}},{key:"_canCompleteRhythm",value:function(e,t){var n=this;return 0===e||!(e<0)&&t.some(function(r){return r.beats<=e&&n._canCompleteRhythm(e-r.beats,t)})}},{key:"_rhythmCellsForEnabledNotes",value:function(){var e=this._enabledNoteValues,t=[];return e.has("whole")&&t.push({durations:["w"],beats:4,hasEighths:!1}),e.has("half")&&t.push({durations:["h"],beats:2,hasEighths:!1}),e.has("quarter")&&t.push({durations:["q"],beats:1,hasEighths:!1}),e.has("eighth")&&t.push({durations:["8","8"],beats:1,hasEighths:!0}),e.has("eighth")&&e.has("quarter")&&t.push({durations:["8","q","8"],beats:2,hasEighths:!0}),t.length?t:[{durations:["q"],beats:1,hasEighths:!1}]}}],t&&T(e.prototype,t),n&&T(e,n),Object.defineProperty(e,"prototype",{writable:!1}),e;var e,t,n,r,i}();function C(e){return C="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(e){return typeof e}:function(e){return e&&"function"==typeof Symbol&&e.constructor===Symbol&&e!==Symbol.prototype?"symbol":typeof e},C(e)}function O(e,t){var n=Object.keys(e);if(Object.getOwnPropertySymbols){var r=Object.getOwnPropertySymbols(e);t&&(r=r.filter(function(t){return Object.getOwnPropertyDescriptor(e,t).enumerable})),n.push.apply(n,r)}return n}function B(e){for(var t=1;t<arguments.length;t++){var n=null!=arguments[t]?arguments[t]:{};t%2?O(Object(n),!0).forEach(function(t){N(e,t,n[t])}):Object.getOwnPropertyDescriptors?Object.defineProperties(e,Object.getOwnPropertyDescriptors(n)):O(Object(n)).forEach(function(t){Object.defineProperty(e,t,Object.getOwnPropertyDescriptor(n,t))})}return e}function N(e,t,n){return(t=function(e){var t=function(e,t){if("object"!=C(e)||!e)return e;var n=e[Symbol.toPrimitive];if(void 0!==n){var r=n.call(e,t||"default");if("object"!=C(r))return r;throw new TypeError("@@toPrimitive must return a primitive value.")}return("string"===t?String:Number)(e)}(e,"string");return"symbol"==C(t)?t:t+""}(t))in e?Object.defineProperty(e,t,{value:n,enumerable:!0,configurable:!0,writable:!0}):e[t]=n,e}var E=readGlobal("__challengeOptions")||{},R=readGlobal("__clefUrls")||null,x=new A(B(B({},E),{},{clefUrls:R}));null===(M=x.start)||void 0===M||M.call(x)})();
+/******/ (() => { // webpackBootstrap
+/******/ 	"use strict";
+/******/ 	var __webpack_modules__ = ({
+
+/***/ "./resources/js/music/games/beathero/BeatHero.js"
+/*!*******************************************************!*\
+  !*** ./resources/js/music/games/beathero/BeatHero.js ***!
+  \*******************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   BeatHero: () => (/* binding */ BeatHero)
+/* harmony export */ });
+/* harmony import */ var _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../shared/GameAudio.js */ "./resources/js/music/games/shared/GameAudio.js");
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
+function _arrayWithoutHoles(r) { if (Array.isArray(r)) return _arrayLikeToArray(r); }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
+function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function _classCallCheck(a, n) { if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function"); }
+function _defineProperties(e, r) { for (var t = 0; t < r.length; t++) { var o = r[t]; o.enumerable = o.enumerable || !1, o.configurable = !0, "value" in o && (o.writable = !0), Object.defineProperty(e, _toPropertyKey(o.key), o); } }
+function _createClass(e, r, t) { return r && _defineProperties(e.prototype, r), t && _defineProperties(e, t), Object.defineProperty(e, "prototype", { writable: !1 }), e; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+
+var BeatHero = /*#__PURE__*/function () {
+  function BeatHero() {
+    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    _classCallCheck(this, BeatHero);
+    this.opts = _objectSpread({
+      wrapperSelector: "#game-wrapper",
+      previewSelector: "#preview-score",
+      tapSelector: "#tap-wrapper"
+    }, options);
+    this._resizeHandler = null;
+    this._timeSignature = this._pickTimeSignature();
+    this._bpm = this._normalizeBpm(this.opts.bpm);
+    this._includeRests = this._normalizeBoolOption(this.opts.includeRests);
+    this._useVoice = this._normalizeBoolOption(this.opts.useVoice);
+    this._enabledNoteValues = this._normalizeNoteOptions(this.opts.notesValues || this.opts.notes);
+    this._numOfMeasures = this._normalizeMeasureCount(this.opts.numOfMeasures);
+    this._measures = [];
+    this._rhythm = [];
+    this._previewRhythm = null;
+    this._activeMeasureNumber = 1;
+    this._metronomeInterval = null;
+    this._metronomeStartTimeout = null;
+    this._rhythmAnimationTimeouts = [];
+    this._rhythmHighlightTimeouts = [];
+    this._metronomeTickIndex = 0;
+    this._rhythmPlaybackStarted = false;
+    this._metronomeAudioReady = false;
+    this._metronomeIsStarting = false;
+    this._rhythmStartTime = null;
+    this._tapEvents = [];
+    this._tapWindowMs = 120;
+    this._voiceTapWindowMs = 180;
+    this._voiceAudioContext = null;
+    this._voiceAnalyser = null;
+    this._voiceData = null;
+    this._voiceStream = null;
+    this._voiceFrame = null;
+    this._voiceBaseline = 0.02;
+    this._voicePreviousLevel = 0;
+    this._voiceIsActive = false;
+    this._voiceInputStarting = false;
+    this._lastVoiceTapTime = 0;
+    this._voiceTapOffsetMs = 120;
+    this._goodTapCount = 0;
+    this._badTapCount = 0;
+    this.$playWrap = null;
+    this.$playPlayBtn = null;
+    this.$playStopBtn = null;
+    this._resetMeasureQueue();
+  }
+  return _createClass(BeatHero, [{
+    key: "start",
+    value: function start() {
+      var _this = this;
+      this.renderChallenge();
+      this._resetTapFeedbackCounts();
+      this._showInitialControls();
+      this._syncInputMode();
+      this._wirePlayControls();
+      this._wireTapControls();
+      if (this._useVoice) this._startVoiceInput();
+      if (!this._resizeHandler) {
+        this._resizeHandler = function () {
+          return _this.renderChallenge();
+        };
+        window.addEventListener("resize", this._resizeHandler);
+      }
+    }
+  }, {
+    key: "renderChallenge",
+    value: function renderChallenge() {
+      var wrapper = document.querySelector(this.opts.wrapperSelector);
+      var previewWrapper = document.querySelector(this.opts.previewSelector);
+      if (!wrapper && !previewWrapper) return;
+      this._setPreviewWrapperVisible(Boolean(this._previewRhythm));
+      if (this._previewRhythm) {
+        this._renderRhythmMeasure({
+          wrapper: previewWrapper,
+          rhythm: this._previewRhythm,
+          showClef: false,
+          showTimeSignature: false,
+          showBarlines: false,
+          isFinalMeasure: this._activeMeasureNumber + 1 >= this._numOfMeasures
+        });
+      } else {
+        this._clearRhythmMeasure(previewWrapper);
+      }
+      this._renderRhythmMeasure({
+        wrapper: wrapper,
+        rhythm: this._rhythm,
+        showTimeSignature: this._activeMeasureNumber === 1,
+        isFinalMeasure: this._activeMeasureNumber >= this._numOfMeasures
+      });
+    }
+  }, {
+    key: "_setPreviewWrapperVisible",
+    value: function _setPreviewWrapperVisible(isVisible) {
+      var previewWrapper = document.querySelector(this.opts.previewSelector);
+      var previewContainer = (previewWrapper === null || previewWrapper === void 0 ? void 0 : previewWrapper.closest("#preview-wrapper")) || previewWrapper;
+      if (!previewContainer) return;
+      previewContainer.classList.toggle("d-none", !isVisible);
+      previewContainer.style.display = isVisible ? "block" : "none";
+    }
+  }, {
+    key: "_renderRhythmMeasure",
+    value: function _renderRhythmMeasure(_ref) {
+      var _window$Vex, _VF$Stem;
+      var wrapper = _ref.wrapper,
+        rhythm = _ref.rhythm,
+        _ref$showClef = _ref.showClef,
+        showClef = _ref$showClef === void 0 ? true : _ref$showClef,
+        _ref$showTimeSignatur = _ref.showTimeSignature,
+        showTimeSignature = _ref$showTimeSignatur === void 0 ? true : _ref$showTimeSignatur,
+        _ref$showBarlines = _ref.showBarlines,
+        showBarlines = _ref$showBarlines === void 0 ? true : _ref$showBarlines,
+        _ref$isFinalMeasure = _ref.isFinalMeasure,
+        isFinalMeasure = _ref$isFinalMeasure === void 0 ? false : _ref$isFinalMeasure;
+      if (!wrapper) return;
+      wrapper.innerHTML = "";
+      wrapper.classList.add("beat-hero-wrapper");
+      if (wrapper.matches(this.opts.wrapperSelector)) {
+        var beatCount = document.createElement("div");
+        beatCount.id = "beat-count";
+        wrapper.appendChild(beatCount);
+      }
+      var VF = (_window$Vex = window.Vex) === null || _window$Vex === void 0 ? void 0 : _window$Vex.Flow;
+      if (!VF) {
+        wrapper.textContent = "VexFlow could not be loaded.";
+        return;
+      }
+      var width = Math.max(1, Math.floor(wrapper.clientWidth || 1));
+      var height = 190;
+      var renderer = new VF.Renderer(wrapper, VF.Renderer.Backends.SVG);
+      renderer.resize(width, height);
+      var context = renderer.getContext();
+      context.setFont("Arial", 10);
+      var stave = new VF.Stave(18, 24, width - 36, {
+        fill_style: "#273043",
+        spacing_between_lines_px: 14
+      });
+      stave.setConfigForLines([{
+        visible: false
+      }, {
+        visible: false
+      }, {
+        visible: true
+      }, {
+        visible: false
+      }, {
+        visible: false
+      }]);
+      if (showClef) stave.addClef("percussion");
+      if (showTimeSignature) stave.addTimeSignature(this._timeSignatureLabel());
+      if (isFinalMeasure) {
+        var _stave$setEndBarType, _VF$Barline$type$END, _VF$Barline;
+        (_stave$setEndBarType = stave.setEndBarType) === null || _stave$setEndBarType === void 0 || _stave$setEndBarType.call(stave, (_VF$Barline$type$END = (_VF$Barline = VF.Barline) === null || _VF$Barline === void 0 || (_VF$Barline = _VF$Barline.type) === null || _VF$Barline === void 0 ? void 0 : _VF$Barline.END) !== null && _VF$Barline$type$END !== void 0 ? _VF$Barline$type$END : 3);
+      }
+      stave.setContext(context).draw();
+      var stemDirection = ((_VF$Stem = VF.Stem) === null || _VF$Stem === void 0 ? void 0 : _VF$Stem.UP) || 1;
+      var glyphFontScale = this._rhythmNoteGlyphFontScale(wrapper);
+      var notes = rhythm.map(function (duration) {
+        return new VF.StaveNote({
+          clef: "percussion",
+          keys: ["b/4"],
+          duration: duration,
+          glyph_font_scale: glyphFontScale,
+          stem_direction: stemDirection
+        });
+      });
+      this._extendStems(notes, 8);
+      this._removeNoteSpacing(notes);
+      var beams = VF.Beam.generateBeams(notes, {
+        stem_direction: stemDirection
+      });
+      this._drawQuarterGrid({
+        VF: VF,
+        context: context,
+        stave: stave,
+        notes: notes,
+        beams: beams,
+        rhythm: rhythm,
+        width: width
+      });
+      this._alignVerticalStaveLines(wrapper);
+      if (!showBarlines) this._removeVerticalStaveLines(wrapper);
+      this._extendRenderedStems(wrapper, 10);
+      this._moveStemTopAttachments(wrapper, 10);
+    }
+  }, {
+    key: "_clearRhythmMeasure",
+    value: function _clearRhythmMeasure(wrapper) {
+      if (!wrapper) return;
+      wrapper.innerHTML = "";
+      wrapper.classList.add("beat-hero-wrapper");
+    }
+  }, {
+    key: "_showInitialControls",
+    value: function _showInitialControls() {
+      $("#controls").show();
+      $("#instructions").show();
+      $("#check").show().removeClass("invisible");
+      $("#continue").hide();
+    }
+  }, {
+    key: "_wirePlayControls",
+    value: function _wirePlayControls() {
+      var _this2 = this;
+      this.$playWrap = $("#play");
+      this.$playPlayBtn = this.$playWrap.find('button[action="play"]');
+      this.$playStopBtn = this.$playWrap.find('button[action="stop"]');
+      this.$playPlayBtn.off("click.beatHeroMetronome").on("click.beatHeroMetronome", function (event) {
+        event.preventDefault();
+        if (_this2._useVoice) _this2._startVoiceInput();
+        _this2._startMetronome();
+      });
+      this.$playStopBtn.off("click.beatHeroMetronome").on("click.beatHeroMetronome", function (event) {
+        event.preventDefault();
+        _this2._stopMetronome();
+      });
+      this._setPlayButtons(false);
+    }
+  }, {
+    key: "_wireTapControls",
+    value: function _wireTapControls() {
+      var _this3 = this;
+      var tapWrapper = document.querySelector(this.opts.tapSelector);
+      if (!tapWrapper) return;
+      tapWrapper.addEventListener("pointerdown", function (event) {
+        event.preventDefault();
+        _this3._handleTap();
+      });
+    }
+  }, {
+    key: "_syncInputMode",
+    value: function _syncInputMode() {
+      var tapWrapper = document.querySelector(this.opts.tapSelector);
+      if (!tapWrapper) return;
+      tapWrapper.classList.toggle("d-none", this._useVoice);
+      tapWrapper.style.display = this._useVoice ? "none" : "";
+    }
+  }, {
+    key: "_setPlayButtons",
+    value: function _setPlayButtons(isPlaying) {
+      var _this$$playPlayBtn, _this$$playStopBtn;
+      if ((_this$$playPlayBtn = this.$playPlayBtn) !== null && _this$$playPlayBtn !== void 0 && _this$$playPlayBtn.length) this.$playPlayBtn.toggle(!isPlaying);
+      if ((_this$$playStopBtn = this.$playStopBtn) !== null && _this$$playStopBtn !== void 0 && _this$$playStopBtn.length) this.$playStopBtn.toggle(!!isPlaying);
+    }
+  }, {
+    key: "_startMetronome",
+    value: function _startMetronome() {
+      var _this4 = this;
+      if (this._isMetronomeActive()) return;
+      if (!window.Tone) {
+        this._setPlayButtons(false);
+        return;
+      }
+      if (this._shouldRewindMeasureQueueForPlayback()) {
+        this._rewindMeasureQueue();
+        this.renderChallenge();
+      }
+      this._resetTapFeedbackCounts();
+      this._setPlayButtons(true);
+      this._metronomeIsStarting = true;
+      this._ensureMetronomeAudio().then(function () {
+        if (!_this4._metronomeIsStarting) return;
+        _this4._metronomeStartTimeout = setTimeout(function () {
+          if (!_this4._metronomeIsStarting) return;
+          var intervalMs = 60000 / _this4._bpm;
+          var playBeat = function playBeat() {
+            if (_this4._shouldStopAtEndOfPiece()) {
+              _this4._stopMetronome();
+              return;
+            }
+            _this4._advanceMeasureIfNeeded();
+            _this4._playMetronomeClick(_this4._isMetronomeDownbeat());
+            _this4._updateBeatCount(intervalMs);
+            _this4._handleMetronomeBeat(intervalMs);
+            _this4._metronomeTickIndex += 1;
+          };
+          _this4._metronomeStartTimeout = null;
+          _this4._metronomeIsStarting = false;
+          _this4._metronomeTickIndex = 0;
+          _this4._rhythmPlaybackStarted = false;
+          playBeat();
+          _this4._metronomeInterval = setInterval(playBeat, intervalMs);
+        }, 1000);
+      })["catch"](function () {
+        _this4._metronomeIsStarting = false;
+        _this4._setPlayButtons(false);
+      });
+    }
+  }, {
+    key: "_stopMetronome",
+    value: function _stopMetronome() {
+      var _ref2 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+        _ref2$resetButtons = _ref2.resetButtons,
+        resetButtons = _ref2$resetButtons === void 0 ? true : _ref2$resetButtons;
+      if (this._metronomeStartTimeout) {
+        clearTimeout(this._metronomeStartTimeout);
+        this._metronomeStartTimeout = null;
+      }
+      if (this._metronomeInterval) {
+        clearInterval(this._metronomeInterval);
+        this._metronomeInterval = null;
+      }
+      this._metronomeIsStarting = false;
+      this._clearRhythmAnimationTimeouts();
+      this._clearRhythmNoteAnimations();
+      this._clearBeatCount();
+      this._clearTapSchedule();
+      if (!this._useVoice) this._stopVoiceInput();
+      this._metronomeTickIndex = 0;
+      this._rhythmPlaybackStarted = false;
+      if (resetButtons) this._setPlayButtons(false);
+    }
+  }, {
+    key: "_ensureMetronomeAudio",
+    value: function () {
+      var _ensureMetronomeAudio2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
+        return _regenerator().w(function (_context) {
+          while (1) switch (_context.n) {
+            case 0:
+              if (!(!window.Tone || this._metronomeAudioReady)) {
+                _context.n = 1;
+                break;
+              }
+              return _context.a(2);
+            case 1:
+              _context.n = 2;
+              return _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_0__.GameAudio.ensureMetronomeAudio();
+            case 2:
+              this._metronomeAudioReady = true;
+            case 3:
+              return _context.a(2);
+          }
+        }, _callee, this);
+      }));
+      function _ensureMetronomeAudio() {
+        return _ensureMetronomeAudio2.apply(this, arguments);
+      }
+      return _ensureMetronomeAudio;
+    }()
+  }, {
+    key: "_isMetronomeActive",
+    value: function _isMetronomeActive() {
+      return Boolean(this._metronomeIsStarting || this._metronomeStartTimeout || this._metronomeInterval);
+    }
+  }, {
+    key: "_isMetronomeDownbeat",
+    value: function _isMetronomeDownbeat() {
+      var groupSize = Math.max(1, this._timeSignature.beats);
+      return this._metronomeTickIndex % groupSize === 0;
+    }
+  }, {
+    key: "_shouldStopAtEndOfPiece",
+    value: function _shouldStopAtEndOfPiece() {
+      var countInBeats = Math.max(1, this._timeSignature.beats);
+      var totalMeasureBeats = this._measurePlaybackBeats() * this._numOfMeasures;
+      return this._metronomeTickIndex >= countInBeats + totalMeasureBeats;
+    }
+  }, {
+    key: "_advanceMeasureIfNeeded",
+    value: function _advanceMeasureIfNeeded() {
+      var countInBeats = Math.max(1, this._timeSignature.beats);
+      var measureBeats = this._measurePlaybackBeats();
+      if (this._metronomeTickIndex < countInBeats) return;
+      var elapsedMeasureBeats = this._metronomeTickIndex - countInBeats;
+      if (elapsedMeasureBeats === 0 || elapsedMeasureBeats % measureBeats !== 0) return;
+      if (this._activeMeasureNumber >= this._numOfMeasures) return;
+      this._promotePreviewMeasure();
+    }
+  }, {
+    key: "_playMetronomeClick",
+    value: function _playMetronomeClick() {
+      var isDownbeat = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+      _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_0__.GameAudio.playMetronomeClick(isDownbeat);
+    }
+  }, {
+    key: "_updateBeatCount",
+    value: function _updateBeatCount(intervalMs) {
+      var beatCount = document.querySelector("".concat(this.opts.wrapperSelector, " #beat-count"));
+      if (!beatCount) return;
+      var beatsPerMeasure = Math.max(1, this._timeSignature.beats);
+      var count = this._metronomeTickIndex % beatsPerMeasure + 1;
+      beatCount.textContent = String(count);
+      beatCount.style.animationDuration = "".concat(Math.round(intervalMs), "ms");
+      beatCount.classList.remove("beat-animation");
+      void beatCount.offsetWidth;
+      beatCount.classList.add("beat-animation");
+    }
+  }, {
+    key: "_clearBeatCount",
+    value: function _clearBeatCount() {
+      var beatCount = document.querySelector("".concat(this.opts.wrapperSelector, " #beat-count"));
+      if (!beatCount) return;
+      beatCount.textContent = "";
+      beatCount.classList.remove("beat-animation");
+      beatCount.style.animationDuration = "";
+    }
+  }, {
+    key: "_handleMetronomeBeat",
+    value: function _handleMetronomeBeat(intervalMs) {
+      if (this._rhythmPlaybackStarted) return;
+      var countInBeats = Math.max(1, this._timeSignature.beats);
+      if (this._metronomeTickIndex < countInBeats) return;
+      this._rhythmPlaybackStarted = true;
+      this._prepareTapSchedule(intervalMs);
+    }
+  }, {
+    key: "_promotePreviewMeasure",
+    value: function _promotePreviewMeasure() {
+      if (!this._previewRhythm) return;
+      this._clearRhythmAnimationTimeouts();
+      this._clearRhythmNoteAnimations();
+      this._clearTapSchedule();
+      this._activeMeasureNumber += 1;
+      this._syncCurrentMeasures();
+      this._rhythmPlaybackStarted = false;
+      this.renderChallenge();
+    }
+  }, {
+    key: "_prepareTapSchedule",
+    value: function _prepareTapSchedule(intervalMs) {
+      var _this5 = this;
+      this._clearTapSchedule();
+      this._rhythmStartTime = performance.now();
+      this._tapWindowMs = this._tapTimingWindow(intervalMs);
+      this._voiceTapWindowMs = this._voiceTapTimingWindow(intervalMs);
+      this._tapEvents = this._rhythmPlaybackSchedule().filter(function (event) {
+        return !_this5._isRestDuration(event.duration);
+      }).map(function (event) {
+        return _objectSpread(_objectSpread({}, event), {}, {
+          time: _this5._rhythmStartTime + event.beatOffset * intervalMs,
+          tapped: false
+        });
+      });
+    }
+  }, {
+    key: "_clearTapSchedule",
+    value: function _clearTapSchedule() {
+      this._rhythmStartTime = null;
+      this._tapEvents = [];
+    }
+  }, {
+    key: "_tapTimingWindow",
+    value: function _tapTimingWindow(intervalMs) {
+      return Math.min(260, Math.max(130, intervalMs * 0.28));
+    }
+  }, {
+    key: "_voiceTapTimingWindow",
+    value: function _voiceTapTimingWindow(intervalMs) {
+      return Math.min(360, Math.max(190, intervalMs * 0.42));
+    }
+  }, {
+    key: "_handleTap",
+    value: function _handleTap() {
+      this._handleTapAt(performance.now());
+    }
+  }, {
+    key: "_handleTapAt",
+    value: function _handleTapAt(tapTime) {
+      var timingWindow = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : this._tapWindowMs;
+      var event = this._findMatchingTapEvent(tapTime, timingWindow);
+      if (!event) {
+        console.log("Wrong tap");
+        this._badTapCount += 1;
+        this._renderTapFeedbackCounts();
+        this._animateTapFeedback("bad-tap");
+        return;
+      }
+      event.tapped = true;
+      console.log("Good tap");
+      this._goodTapCount += 1;
+      this._renderTapFeedbackCounts();
+      this._animateTapFeedback("good-tap");
+      this._animateRhythmNote(event.index);
+    }
+  }, {
+    key: "_resetTapFeedbackCounts",
+    value: function _resetTapFeedbackCounts() {
+      this._goodTapCount = 0;
+      this._badTapCount = 0;
+      this._renderTapFeedbackCounts();
+    }
+  }, {
+    key: "_renderTapFeedbackCounts",
+    value: function _renderTapFeedbackCounts() {
+      var goodCount = document.querySelector("#feedback-count .feedback-count-good span");
+      var badCount = document.querySelector("#feedback-count .feedback-count-bad span");
+      if (goodCount) goodCount.textContent = String(this._goodTapCount);
+      if (badCount) badCount.textContent = String(this._badTapCount);
+    }
+  }, {
+    key: "_animateTapFeedback",
+    value: function _animateTapFeedback(className) {
+      var feedback = document.querySelector("#tap-feedback");
+      if (!feedback) return;
+      feedback.classList.remove("good-tap", "bad-tap");
+      void feedback.offsetWidth;
+      feedback.classList.add(className);
+    }
+  }, {
+    key: "_findMatchingTapEvent",
+    value: function _findMatchingTapEvent(tapTime) {
+      var timingWindow = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : this._tapWindowMs;
+      var availableEvents = this._tapEvents.filter(function (event) {
+        return !event.tapped;
+      });
+      if (!availableEvents.length) return null;
+      var closestEvent = availableEvents.reduce(function (closest, event) {
+        var distance = Math.abs(event.time - tapTime);
+        if (!closest || distance < closest.distance) return {
+          event: event,
+          distance: distance
+        };
+        return closest;
+      }, null);
+      if (!closestEvent || closestEvent.distance > timingWindow) return null;
+      return closestEvent.event;
+    }
+  }, {
+    key: "_startVoiceInput",
+    value: function _startVoiceInput() {
+      var _navigator$mediaDevic,
+        _this6 = this;
+      if (this._voiceIsActive || this._voiceInputStarting) return Promise.resolve();
+      if (!window.isSecureContext) {
+        console.warn("Beat Hero voice input needs HTTPS or localhost to request microphone access.");
+        return Promise.resolve();
+      }
+      if (!((_navigator$mediaDevic = navigator.mediaDevices) !== null && _navigator$mediaDevic !== void 0 && _navigator$mediaDevic.getUserMedia)) {
+        console.warn("Beat Hero voice input is not supported by this browser.");
+        return Promise.resolve();
+      }
+      var AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextCtor) return Promise.resolve();
+      this._voiceInputStarting = true;
+      return navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        }
+      }).then(function (stream) {
+        if (!_this6._useVoice && !_this6._metronomeIsStarting && !_this6._metronomeInterval) {
+          var _stream$getTracks;
+          (_stream$getTracks = stream.getTracks) === null || _stream$getTracks === void 0 || _stream$getTracks.call(stream).forEach(function (track) {
+            return track.stop();
+          });
+          _this6._voiceInputStarting = false;
+          return;
+        }
+        _this6._voiceAudioContext = new AudioContextCtor();
+        _this6._voiceStream = stream;
+        var source = _this6._voiceAudioContext.createMediaStreamSource(stream);
+        _this6._voiceAnalyser = _this6._voiceAudioContext.createAnalyser();
+        _this6._voiceAnalyser.fftSize = 512;
+        _this6._voiceData = new Uint8Array(_this6._voiceAnalyser.fftSize);
+        source.connect(_this6._voiceAnalyser);
+        _this6._voiceIsActive = true;
+        _this6._voiceInputStarting = false;
+        _this6._listenForVoiceTaps();
+      })["catch"](function () {
+        _this6._voiceInputStarting = false;
+      });
+    }
+  }, {
+    key: "_stopVoiceInput",
+    value: function _stopVoiceInput() {
+      var _this$_voiceStream, _this$_voiceStream$ge, _this$_voiceAudioCont, _this$_voiceAudioCont2;
+      if (this._voiceFrame) {
+        cancelAnimationFrame(this._voiceFrame);
+        this._voiceFrame = null;
+      }
+      (_this$_voiceStream = this._voiceStream) === null || _this$_voiceStream === void 0 || (_this$_voiceStream$ge = _this$_voiceStream.getTracks) === null || _this$_voiceStream$ge === void 0 || _this$_voiceStream$ge.call(_this$_voiceStream).forEach(function (track) {
+        return track.stop();
+      });
+      (_this$_voiceAudioCont = this._voiceAudioContext) === null || _this$_voiceAudioCont === void 0 || (_this$_voiceAudioCont2 = _this$_voiceAudioCont.close) === null || _this$_voiceAudioCont2 === void 0 || _this$_voiceAudioCont2.call(_this$_voiceAudioCont);
+      this._voiceAudioContext = null;
+      this._voiceAnalyser = null;
+      this._voiceData = null;
+      this._voiceStream = null;
+      this._voiceBaseline = 0.02;
+      this._voicePreviousLevel = 0;
+      this._voiceIsActive = false;
+      this._voiceInputStarting = false;
+      this._lastVoiceTapTime = 0;
+    }
+  }, {
+    key: "_listenForVoiceTaps",
+    value: function _listenForVoiceTaps() {
+      var _this7 = this;
+      if (!this._voiceAnalyser || !this._voiceData) return;
+      this._voiceAnalyser.getByteTimeDomainData(this._voiceData);
+      var level = this._voiceInputLevel(this._voiceData);
+      var now = performance.now();
+      var threshold = Math.max(0.038, this._voiceBaseline * 1.9);
+      var attackThreshold = Math.max(0.014, this._voiceBaseline * 0.55);
+      var attack = level - this._voicePreviousLevel;
+      var isVoiceTap = level > threshold && attack > attackThreshold || level > Math.max(0.07, this._voiceBaseline * 2.8);
+      var baselineRate = level > threshold ? 0.012 : 0.045;
+      this._voiceBaseline = this._voiceBaseline * (1 - baselineRate) + Math.min(level, 0.14) * baselineRate;
+      if (isVoiceTap && now - this._lastVoiceTapTime > 120) {
+        this._lastVoiceTapTime = now;
+        this._handleTapAt(now - this._voiceTapOffsetMs, this._voiceTapWindowMs);
+      }
+      this._voicePreviousLevel = level;
+      this._voiceFrame = requestAnimationFrame(function () {
+        return _this7._listenForVoiceTaps();
+      });
+    }
+  }, {
+    key: "_voiceInputLevel",
+    value: function _voiceInputLevel(data) {
+      var sum = 0;
+      data.forEach(function (value) {
+        var centered = (value - 128) / 128;
+        sum += centered * centered;
+      });
+      return Math.sqrt(sum / data.length);
+    }
+  }, {
+    key: "_scheduleRhythmAnimations",
+    value: function _scheduleRhythmAnimations(intervalMs) {
+      var _this8 = this;
+      this._clearRhythmAnimationTimeouts();
+      this._rhythmPlaybackSchedule().forEach(function (event) {
+        var timeout = setTimeout(function () {
+          _this8._animateRhythmNote(event.index);
+        }, event.beatOffset * intervalMs);
+        _this8._rhythmAnimationTimeouts.push(timeout);
+      });
+    }
+  }, {
+    key: "_rhythmPlaybackSchedule",
+    value: function _rhythmPlaybackSchedule() {
+      var _this9 = this;
+      var beatOffset = 0;
+      return this._rhythm.map(function (duration, index) {
+        var event = {
+          index: index,
+          beatOffset: beatOffset,
+          duration: duration
+        };
+        beatOffset += _this9._durationToBeatBlocks(duration);
+        return event;
+      });
+    }
+  }, {
+    key: "_clearRhythmAnimationTimeouts",
+    value: function _clearRhythmAnimationTimeouts() {
+      this._rhythmAnimationTimeouts.forEach(function (timeout) {
+        return clearTimeout(timeout);
+      });
+      this._rhythmAnimationTimeouts = [];
+      this._rhythmHighlightTimeouts.forEach(function (timeout) {
+        return clearTimeout(timeout);
+      });
+      this._rhythmHighlightTimeouts = [];
+    }
+  }, {
+    key: "_clearRhythmNoteAnimations",
+    value: function _clearRhythmNoteAnimations() {
+      var _this0 = this;
+      var wrapper = document.querySelector(this.opts.wrapperSelector);
+      wrapper === null || wrapper === void 0 || wrapper.querySelectorAll(".vf-notehead.beat-hero-highlight, .vf-notehead.pulsate").forEach(function (notehead) {
+        _this0._setNoteheadHighlight(notehead, false);
+      });
+    }
+  }, {
+    key: "_animateRhythmNote",
+    value: function _animateRhythmNote(index) {
+      var _wrapper$querySelecto,
+        _this1 = this;
+      var wrapper = document.querySelector(this.opts.wrapperSelector);
+      var note = wrapper === null || wrapper === void 0 || (_wrapper$querySelecto = wrapper.querySelectorAll(".vf-stavenote")) === null || _wrapper$querySelecto === void 0 ? void 0 : _wrapper$querySelecto[index];
+      var notehead = note === null || note === void 0 ? void 0 : note.querySelector(".vf-notehead");
+      if (!notehead) return;
+      this._setNoteheadHighlight(notehead, true);
+      _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_0__.GameAudio.playRhythmHit();
+      var timeout = setTimeout(function () {
+        _this1._setNoteheadHighlight(notehead, false);
+      }, 200);
+      this._rhythmHighlightTimeouts.push(timeout);
+    }
+  }, {
+    key: "_setNoteheadHighlight",
+    value: function _setNoteheadHighlight(notehead, isHighlighted) {
+      var paths = [notehead].concat(_toConsumableArray(notehead.querySelectorAll("path")));
+      notehead.classList.toggle("beat-hero-highlight", isHighlighted);
+      notehead.classList.toggle("pulsate", isHighlighted);
+      paths.forEach(function (element) {
+        if (isHighlighted) {
+          element.style.fill = "#1cb0f6";
+          element.style.stroke = "#1cb0f6";
+        } else {
+          element.style.fill = "";
+          element.style.stroke = "";
+        }
+      });
+    }
+  }, {
+    key: "_drawRhythmWithFormatter",
+    value: function _drawRhythmWithFormatter(_ref3) {
+      var VF = _ref3.VF,
+        context = _ref3.context,
+        stave = _ref3.stave,
+        notes = _ref3.notes,
+        beams = _ref3.beams,
+        width = _ref3.width;
+      var voice = new VF.Voice({
+        num_beats: this._timeSignature.beats,
+        beat_value: this._timeSignature.beatValue
+      });
+      voice.addTickables(notes);
+      var formatter = new VF.Formatter();
+      formatter.joinVoices([voice]);
+      if (formatter.createTickContexts && formatter.preFormat) {
+        var _formatter$getTickCon, _formatter$postFormat;
+        formatter.createTickContexts([voice]);
+        this._setTickContextPadding((_formatter$getTickCon = formatter.getTickContexts) === null || _formatter$getTickCon === void 0 ? void 0 : _formatter$getTickCon.call(formatter), 0);
+        formatter.preFormat(width - 170, context, [voice], stave);
+        (_formatter$postFormat = formatter.postFormat) === null || _formatter$postFormat === void 0 || _formatter$postFormat.call(formatter);
+      } else {
+        var _formatter$getTickCon2;
+        formatter.format([voice], width - 170);
+        this._setTickContextPadding((_formatter$getTickCon2 = formatter.getTickContexts) === null || _formatter$getTickCon2 === void 0 ? void 0 : _formatter$getTickCon2.call(formatter), 0);
+      }
+      voice.draw(context, stave);
+      beams.forEach(function (beam) {
+        beam.setContext(context).draw();
+      });
+    }
+  }, {
+    key: "_drawQuarterGrid",
+    value: function _drawQuarterGrid(_ref4) {
+      var _this10 = this;
+      var VF = _ref4.VF,
+        context = _ref4.context,
+        stave = _ref4.stave,
+        notes = _ref4.notes,
+        beams = _ref4.beams,
+        rhythm = _ref4.rhythm,
+        width = _ref4.width;
+      var firstNoteX = 0;
+      var finalBarlineX = width - 16;
+      var beatCount = Math.max(1, this._timeSignature.beats);
+      var beatCursor = 0;
+      var firstStemX = null;
+      notes.forEach(function (note, index) {
+        var tickContext = new VF.TickContext();
+        tickContext.addTickable(note).preFormat();
+        tickContext.setX(firstNoteX);
+        note.setContext(context);
+        note.setStave(stave);
+        if (firstStemX === null) {
+          var _note$getStemX;
+          firstStemX = (_note$getStemX = note.getStemX) === null || _note$getStemX === void 0 ? void 0 : _note$getStemX.call(note);
+        }
+        var noteOffset = Number.isFinite(firstStemX) ? firstStemX : 0;
+        var division = Math.max(0, (finalBarlineX - noteOffset) / beatCount);
+        tickContext.setX(firstNoteX + beatCursor * division);
+        note.draw();
+        beatCursor += _this10._durationToBeatBlocks(rhythm[index]);
+      });
+      beams.forEach(function (beam) {
+        beam.setContext(context).draw();
+      });
+    }
+  }, {
+    key: "_removeNoteSpacing",
+    value: function _removeNoteSpacing(notes) {
+      notes.forEach(function (note) {
+        var _note$setExtraLeftPx, _note$setExtraRightPx;
+        (_note$setExtraLeftPx = note.setExtraLeftPx) === null || _note$setExtraLeftPx === void 0 || _note$setExtraLeftPx.call(note, 0);
+        (_note$setExtraRightPx = note.setExtraRightPx) === null || _note$setExtraRightPx === void 0 || _note$setExtraRightPx.call(note, 0);
+      });
+    }
+  }, {
+    key: "_setTickContextPadding",
+    value: function _setTickContextPadding(tickContexts, padding) {
+      if (!tickContexts) return;
+      var contexts = tickContexts instanceof Map ? _toConsumableArray(tickContexts.values()) : Object.values(tickContexts);
+      contexts.forEach(function (tickContext) {
+        var _tickContext$setPaddi;
+        tickContext === null || tickContext === void 0 || (_tickContext$setPaddi = tickContext.setPadding) === null || _tickContext$setPaddi === void 0 || _tickContext$setPaddi.call(tickContext, padding);
+      });
+    }
+  }, {
+    key: "_alignVerticalStaveLines",
+    value: function _alignVerticalStaveLines(wrapper) {
+      var barlines = wrapper.querySelectorAll("svg rect");
+      var finalBarline = barlines[barlines.length - 1];
+      if (!finalBarline) return;
+      var x = parseFloat(finalBarline.getAttribute("x"));
+      if (Number.isFinite(x)) finalBarline.setAttribute("x", String(x + 2));
+    }
+  }, {
+    key: "_removeVerticalStaveLines",
+    value: function _removeVerticalStaveLines(wrapper) {
+      wrapper.querySelectorAll("svg rect").forEach(function (rect) {
+        return rect.remove();
+      });
+    }
+  }, {
+    key: "_extendStems",
+    value: function _extendStems(notes, extension) {
+      notes.forEach(function (note) {
+        var _note$getStem, _stem$setExtension;
+        var stem = (_note$getStem = note.getStem) === null || _note$getStem === void 0 ? void 0 : _note$getStem.call(note);
+        stem === null || stem === void 0 || (_stem$setExtension = stem.setExtension) === null || _stem$setExtension === void 0 || _stem$setExtension.call(stem, extension);
+      });
+    }
+  }, {
+    key: "_extendRenderedStems",
+    value: function _extendRenderedStems(wrapper, extension) {
+      wrapper.querySelectorAll(".vf-stem path").forEach(function (path) {
+        var d = path.getAttribute("d") || "";
+        var match = d.match(/^M([\d.-]+) ([\d.-]+)L([\d.-]+) ([\d.-]+)$/);
+        if (!match) return;
+        var _match = _slicedToArray(match, 5),
+          startX = _match[1],
+          startY = _match[2],
+          endX = _match[3],
+          endY = _match[4];
+        var stemTop = parseFloat(endY);
+        if (!Number.isFinite(stemTop)) return;
+        path.setAttribute("d", "M".concat(startX, " ").concat(startY, "L").concat(endX, " ").concat(stemTop - extension));
+      });
+    }
+  }, {
+    key: "_moveStemTopAttachments",
+    value: function _moveStemTopAttachments(wrapper, extension) {
+      wrapper.querySelectorAll(".vf-flag, .vf-beam").forEach(function (element) {
+        var transform = element.getAttribute("transform") || "";
+        element.setAttribute("transform", "".concat(transform, " translate(0 -").concat(extension, ")").trim());
+      });
+      this._moveUnclassifiedEighthFlags(wrapper, 4.5);
+    }
+  }, {
+    key: "_moveUnclassifiedEighthFlags",
+    value: function _moveUnclassifiedEighthFlags(wrapper, extension) {
+      wrapper.querySelectorAll("svg path").forEach(function (path) {
+        if (path.getAttribute("class")) return;
+        var d = path.getAttribute("d") || "";
+        var match = d.match(/^M([\d.-]+) ([\d.-]+)/);
+        if (!match || !d.includes("C") || !d.includes("L")) return;
+        var _match2 = _slicedToArray(match, 2),
+          startX = _match2[1];
+        if (parseFloat(startX) < 80) return;
+        var transform = path.getAttribute("transform") || "";
+        path.setAttribute("transform", "".concat(transform, " translate(0 -").concat(extension, ")").trim());
+      });
+    }
+  }, {
+    key: "_rhythmNoteGlyphFontScale",
+    value: function _rhythmNoteGlyphFontScale(wrapper) {
+      var styles = getComputedStyle(wrapper);
+      var noteWidth = this._pxFromCssVar(styles, "--note-width", 28);
+      var noteHeight = this._pxFromCssVar(styles, "--note-height", 22);
+      return Math.round(Math.max(noteWidth * 2, noteHeight * 2.55));
+    }
+  }, {
+    key: "_pxFromCssVar",
+    value: function _pxFromCssVar(styles, name, fallback) {
+      var value = parseFloat(styles.getPropertyValue(name));
+      return Number.isFinite(value) ? value : fallback;
+    }
+  }, {
+    key: "_timeSignatureLabel",
+    value: function _timeSignatureLabel() {
+      return "".concat(this._timeSignature.beats, "/").concat(this._timeSignature.beatValue);
+    }
+  }, {
+    key: "_measureBeatBlocks",
+    value: function _measureBeatBlocks() {
+      return this._timeSignature.beats * (4 / this._timeSignature.beatValue);
+    }
+  }, {
+    key: "_measurePlaybackBeats",
+    value: function _measurePlaybackBeats() {
+      return Math.max(1, this._timeSignature.beats);
+    }
+  }, {
+    key: "_durationToBeatBlocks",
+    value: function _durationToBeatBlocks(duration) {
+      var noteDuration = this._durationWithoutRest(duration);
+      return {
+        w: 4,
+        h: 2,
+        q: 1,
+        8: 0.5
+      }[noteDuration] || 1;
+    }
+  }, {
+    key: "_durationWithoutRest",
+    value: function _durationWithoutRest(duration) {
+      return String(duration || "").replace(/r$/, "");
+    }
+  }, {
+    key: "_isRestDuration",
+    value: function _isRestDuration(duration) {
+      return String(duration || "").endsWith("r");
+    }
+  }, {
+    key: "_maybeRestDuration",
+    value: function _maybeRestDuration(duration) {
+      if (!this._includeRests || Math.random() < 0.5) return duration;
+      return "".concat(duration, "r");
+    }
+  }, {
+    key: "_normalizeBoolOption",
+    value: function _normalizeBoolOption(value) {
+      return value === true || value === 1 || ["1", "true", "on", "yes"].includes(String(value).toLowerCase());
+    }
+  }, {
+    key: "_normalizeBpm",
+    value: function _normalizeBpm(value) {
+      var bpm = Number(value);
+      if (!Number.isFinite(bpm) || bpm <= 0) return 80;
+      return bpm;
+    }
+  }, {
+    key: "_normalizeMeasureCount",
+    value: function _normalizeMeasureCount(value) {
+      var count = Number(value);
+      if (!Number.isInteger(count) || count <= 0) return 1;
+      return count;
+    }
+  }, {
+    key: "_resetMeasureQueue",
+    value: function _resetMeasureQueue() {
+      var _this11 = this;
+      this._activeMeasureNumber = 1;
+      this._measures = Array.from({
+        length: this._numOfMeasures
+      }, function () {
+        return _this11._makeRandomRhythm();
+      });
+      this._syncCurrentMeasures();
+    }
+  }, {
+    key: "_rewindMeasureQueue",
+    value: function _rewindMeasureQueue() {
+      if (!this._measures.length) {
+        this._resetMeasureQueue();
+        return;
+      }
+      this._activeMeasureNumber = 1;
+      this._syncCurrentMeasures();
+    }
+  }, {
+    key: "_syncCurrentMeasures",
+    value: function _syncCurrentMeasures() {
+      var currentIndex = Math.max(0, this._activeMeasureNumber - 1);
+      this._rhythm = this._measures[currentIndex] || [];
+      this._previewRhythm = this._measures[currentIndex + 1] || null;
+    }
+  }, {
+    key: "_shouldRewindMeasureQueueForPlayback",
+    value: function _shouldRewindMeasureQueueForPlayback() {
+      return this._activeMeasureNumber > 1 || !this._rhythm.length;
+    }
+  }, {
+    key: "_pickTimeSignature",
+    value: function _pickTimeSignature() {
+      var signatures = this._normalizeTimeSignatures(this.opts.timeSignatures || this.opts.timeSignatues);
+      return signatures[Math.floor(Math.random() * signatures.length)];
+    }
+  }, {
+    key: "_normalizeTimeSignatures",
+    value: function _normalizeTimeSignatures(timeSignatures) {
+      var _this12 = this;
+      var values = Array.isArray(timeSignatures) && timeSignatures.length ? timeSignatures : ["4/4"];
+      var normalized = values.map(function (value) {
+        return _this12._parseTimeSignature(value);
+      }).filter(Boolean);
+      return normalized.length ? normalized : [{
+        beats: 4,
+        beatValue: 4
+      }];
+    }
+  }, {
+    key: "_parseTimeSignature",
+    value: function _parseTimeSignature(value) {
+      var match = String(value || "").trim().match(/^(\d+)\s*\/\s*(\d+)$/);
+      if (!match) return null;
+      var beats = Number(match[1]);
+      var beatValue = Number(match[2]);
+      if (!Number.isInteger(beats) || !Number.isInteger(beatValue)) return null;
+      if (beats <= 0 || beatValue <= 0) return null;
+      return {
+        beats: beats,
+        beatValue: beatValue
+      };
+    }
+  }, {
+    key: "_normalizeNoteOptions",
+    value: function _normalizeNoteOptions(notes) {
+      var aliases = {
+        whole: "whole",
+        w: "whole",
+        half: "half",
+        h: "half",
+        quarter: "quarter",
+        q: "quarter",
+        eigth: "eighth",
+        eighth: "eighth",
+        eight: "eighth",
+        "8": "eighth"
+      };
+      var values = Array.isArray(notes) && notes.length ? notes : ["whole", "half", "quarter", "eighth"];
+      var normalized = values.map(function (note) {
+        return aliases[String(note).toLowerCase()];
+      }).filter(Boolean);
+      return new Set(normalized.length ? normalized : ["quarter"]);
+    }
+  }, {
+    key: "_makeRandomRhythm",
+    value: function _makeRandomRhythm() {
+      var _this13 = this;
+      var rhythm = [];
+      var rhythmCells = this._rhythmCellsForEnabledNotes();
+      var beatsRemaining = this._measureBeatBlocks();
+      var previousHadEighths = false;
+      while (beatsRemaining > 0) {
+        var fittingChoices = rhythmCells.filter(function (cell) {
+          return cell.beats <= beatsRemaining && _this13._canCompleteRhythm(beatsRemaining - cell.beats, rhythmCells);
+        });
+        var separatedChoices = fittingChoices.filter(function (cell) {
+          return !(previousHadEighths && cell.hasEighths);
+        });
+        var safeChoices = separatedChoices.length ? separatedChoices : fittingChoices;
+        if (!safeChoices.length) {
+          rhythm.push(this._maybeRestDuration("q"));
+          beatsRemaining -= 1;
+          previousHadEighths = false;
+          continue;
+        }
+        var cell = safeChoices[Math.floor(Math.random() * safeChoices.length)];
+        rhythm.push.apply(rhythm, _toConsumableArray(cell.durations.map(function (duration) {
+          return _this13._maybeRestDuration(duration);
+        })));
+        beatsRemaining -= cell.beats;
+        previousHadEighths = cell.hasEighths;
+      }
+      return rhythm;
+    }
+  }, {
+    key: "_canCompleteRhythm",
+    value: function _canCompleteRhythm(beatsRemaining, rhythmCells) {
+      var _this14 = this;
+      if (beatsRemaining === 0) return true;
+      if (beatsRemaining < 0) return false;
+      return rhythmCells.some(function (cell) {
+        return cell.beats <= beatsRemaining && _this14._canCompleteRhythm(beatsRemaining - cell.beats, rhythmCells);
+      });
+    }
+  }, {
+    key: "_rhythmCellsForEnabledNotes",
+    value: function _rhythmCellsForEnabledNotes() {
+      var enabled = this._enabledNoteValues;
+      var cells = [];
+      if (enabled.has("whole")) {
+        cells.push({
+          durations: ["w"],
+          beats: 4,
+          hasEighths: false
+        });
+      }
+      if (enabled.has("half")) {
+        cells.push({
+          durations: ["h"],
+          beats: 2,
+          hasEighths: false
+        });
+      }
+      if (enabled.has("quarter")) {
+        cells.push({
+          durations: ["q"],
+          beats: 1,
+          hasEighths: false
+        });
+      }
+      if (enabled.has("eighth")) {
+        cells.push({
+          durations: ["8", "8"],
+          beats: 1,
+          hasEighths: true
+        });
+      }
+      if (enabled.has("eighth") && enabled.has("quarter")) {
+        cells.push({
+          durations: ["8", "q", "8"],
+          beats: 2,
+          hasEighths: true
+        });
+      }
+      return cells.length ? cells : [{
+        durations: ["q"],
+        beats: 1,
+        hasEighths: false
+      }];
+    }
+  }]);
+}();
+
+/***/ },
+
+/***/ "./resources/js/music/games/shared/GameAudio.js"
+/*!******************************************************!*\
+  !*** ./resources/js/music/games/shared/GameAudio.js ***!
+  \******************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   GameAudio: () => (/* binding */ GameAudio)
+/* harmony export */ });
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
+function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
+function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+function _classCallCheck(a, n) { if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function"); }
+function _defineProperties(e, r) { for (var t = 0; t < r.length; t++) { var o = r[t]; o.enumerable = o.enumerable || !1, o.configurable = !0, "value" in o && (o.writable = !0), Object.defineProperty(e, _toPropertyKey(o.key), o); } }
+function _createClass(e, r, t) { return r && _defineProperties(e.prototype, r), t && _defineProperties(e, t), Object.defineProperty(e, "prototype", { writable: !1 }), e; }
+function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+var GameAudio = /*#__PURE__*/function () {
+  function GameAudio() {
+    _classCallCheck(this, GameAudio);
+  }
+  return _createClass(GameAudio, null, [{
+    key: "scale",
+    value: function scale(kind) {
+      var base = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+      var mult = Number(GameAudio.VELOCITY[kind]);
+      return (Number.isFinite(mult) ? mult : 1) * (Number(base) || 0);
+    }
+  }, {
+    key: "getSoundLibrary",
+    value: function getSoundLibrary() {
+      return GameAudio.SOUND_LIBRARY.map(function (sound) {
+        return _objectSpread(_objectSpread({}, sound), {}, {
+          valuePercent: GameAudio.getVelocityPercent(sound.volumeKey)
+        });
+      });
+    }
+  }, {
+    key: "getVelocityPercent",
+    value: function getVelocityPercent(kind) {
+      var value = Number(GameAudio.VELOCITY[kind]);
+      if (!Number.isFinite(value)) return 0;
+      return Math.max(0, Math.min(100, Math.round(value * 100)));
+    }
+  }, {
+    key: "setVelocityPercent",
+    value: function setVelocityPercent(kind, percent) {
+      var next = Math.max(0, Math.min(100, Number(percent) || 0));
+      if (!Object.prototype.hasOwnProperty.call(GameAudio.VELOCITY, kind)) return 0;
+      GameAudio.VELOCITY[kind] = next / 100;
+      return next;
+    }
+  }, {
+    key: "previewSound",
+    value: function () {
+      var _previewSound = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee(soundId) {
+        var _previewers$soundId;
+        var previewers;
+        return _regenerator().w(function (_context) {
+          while (1) switch (_context.n) {
+            case 0:
+              if (window.Tone) {
+                _context.n = 1;
+                break;
+              }
+              return _context.a(2);
+            case 1:
+              _context.n = 2;
+              return Tone.start();
+            case 2:
+              previewers = {
+                staffNote: function staffNote() {
+                  GameAudio._getPreviewSynth("staffNote", function () {
+                    return GameAudio.createStaffNoteSynth();
+                  }).triggerAttackRelease("C4", 0.5, undefined, GameAudio.scale("staffNote", 1));
+                },
+                dictation: function dictation() {
+                  GameAudio._getPreviewSynth("dictation", function () {
+                    return GameAudio.createDictationSynth();
+                  }).triggerAttackRelease(["C4", "E4"], 0.3, undefined, GameAudio.scale("dictation", 1));
+                },
+                sequence: function sequence() {
+                  GameAudio._getPreviewSynth("sequence", function () {
+                    return GameAudio.createSequenceSynth();
+                  }).triggerAttackRelease(["C4", "G4"], 0.26, undefined, GameAudio.scale("sequence", 1));
+                },
+                successBasic: function successBasic() {
+                  var synth = GameAudio._getPreviewSynth("uiPoly", function () {
+                    return GameAudio.createUiPolySynth();
+                  });
+                  var now = Tone.now();
+                  ["C6", "E6", "G6"].forEach(function (n, i) {
+                    synth.triggerAttackRelease(n, 0.07, now + i * 0.05, GameAudio.scale("successBasic", 0.42));
+                  });
+                },
+                successBonus: function successBonus() {
+                  var _synth$get$oscillator;
+                  var synth = GameAudio._getPreviewSynth("uiPoly", function () {
+                    return GameAudio.createUiPolySynth();
+                  });
+                  var now = Tone.now();
+                  var oldEnv = _objectSpread({}, synth.get().envelope);
+                  var oldOsc = (_synth$get$oscillator = synth.get().oscillator) === null || _synth$get$oscillator === void 0 ? void 0 : _synth$get$oscillator.type;
+                  try {
+                    synth.set({
+                      oscillator: {
+                        type: "sine"
+                      },
+                      envelope: {
+                        attack: 0.004,
+                        decay: 0.12,
+                        sustain: 0.15,
+                        release: 0.65
+                      }
+                    });
+                  } catch (_) {}
+                  var semitoneShift = 3;
+                  var toNote = function toNote(midi) {
+                    return Tone.Frequency(midi, "midi").toNote();
+                  };
+                  [62, 66, 69, 73, 74].map(function (m) {
+                    return toNote(m + semitoneShift);
+                  }).forEach(function (n, i) {
+                    synth.triggerAttackRelease(n, 0.06, now + i * 0.045, GameAudio.scale("successBonus", 0.45));
+                  });
+                  [62, 69, 74, 78].map(function (m) {
+                    return toNote(m + semitoneShift);
+                  }).forEach(function (n) {
+                    synth.triggerAttackRelease(n, 0.12, now + 0.26, GameAudio.scale("successBonus", 0.30));
+                  });
+                  setTimeout(function () {
+                    try {
+                      synth.set({
+                        oscillator: {
+                          type: oldOsc || "triangle"
+                        },
+                        envelope: oldEnv
+                      });
+                    } catch (_) {}
+                  }, 600);
+                },
+                failNoise: function failNoise() {
+                  GameAudio._getPreviewSynth("uiNoise", function () {
+                    return GameAudio.createUiNoiseSynth();
+                  }).triggerAttackRelease(0.06, Tone.now(), GameAudio.scale("failNoise", 0.45));
+                },
+                failNote: function failNote() {
+                  var synth = GameAudio._getPreviewSynth("uiPoly", function () {
+                    return GameAudio.createUiPolySynth();
+                  });
+                  var now = Tone.now();
+                  synth.triggerAttackRelease("A2", 0.10, now + 0.01, GameAudio.scale("failNote", 0.55));
+                  synth.triggerAttackRelease("G2", 0.12, now + 0.08, GameAudio.scale("failNote", 0.6));
+                },
+                bombFail: function bombFail() {
+                  var _synth$get$oscillator2;
+                  var synth = GameAudio._getPreviewSynth("uiPoly", function () {
+                    return GameAudio.createUiPolySynth();
+                  });
+                  var noiseSynth = GameAudio._getPreviewSynth("uiNoise", function () {
+                    return GameAudio.createUiNoiseSynth();
+                  });
+                  var now = Tone.now();
+                  var oldEnv = _objectSpread({}, synth.get().envelope);
+                  var oldOsc = (_synth$get$oscillator2 = synth.get().oscillator) === null || _synth$get$oscillator2 === void 0 ? void 0 : _synth$get$oscillator2.type;
+                  try {
+                    synth.set({
+                      oscillator: {
+                        type: "triangle"
+                      },
+                      envelope: {
+                        attack: 0.004,
+                        decay: 0.16,
+                        sustain: 0.08,
+                        release: 0.38
+                      }
+                    });
+                  } catch (_) {}
+                  ["E5", "D5", "C5", "A4", "G4", "E4", "D4", "B3", "A3", "F3", "E3"].forEach(function (n, i) {
+                    var when = now + i * 0.17;
+                    synth.triggerAttackRelease(n, 0.15, when, GameAudio.scale("bombFail", 0.42));
+                    if (i < 8) noiseSynth.triggerAttackRelease(0.05, when + 0.015, GameAudio.scale("bombFail", 0.14));
+                  });
+                  setTimeout(function () {
+                    try {
+                      synth.set({
+                        oscillator: {
+                          type: oldOsc || "triangle"
+                        },
+                        envelope: oldEnv
+                      });
+                    } catch (_) {}
+                  }, 2200);
+                },
+                wallCrash: function wallCrash() {
+                  var synth = GameAudio._getPreviewSynth("uiTimer", function () {
+                    return GameAudio.createUiTimerSynth();
+                  });
+                  var noiseSynth = GameAudio._getPreviewSynth("uiNoise", function () {
+                    return GameAudio.createUiNoiseSynth();
+                  });
+                  var now = Tone.now();
+                  noiseSynth.triggerAttackRelease(0.12, now, GameAudio.scale("wallCrash", 0.32));
+                  noiseSynth.triggerAttackRelease(0.09, now + 0.045, GameAudio.scale("wallCrash", 0.22));
+                  synth.triggerAttackRelease("G3", 0.08, now, GameAudio.scale("wallCrash", 0.85));
+                  synth.triggerAttackRelease("D3", 0.12, now + 0.04, GameAudio.scale("wallCrash", 0.7));
+                  synth.triggerAttackRelease("A2", 0.18, now + 0.11, GameAudio.scale("wallCrash", 0.62));
+                },
+                "final": function _final() {
+                  var _synth$get$oscillator3;
+                  var synth = GameAudio._getPreviewSynth("uiPoly", function () {
+                    return GameAudio.createUiPolySynth();
+                  });
+                  var now = Tone.now();
+                  var oldEnv = _objectSpread({}, synth.get().envelope);
+                  var oldOsc = (_synth$get$oscillator3 = synth.get().oscillator) === null || _synth$get$oscillator3 === void 0 ? void 0 : _synth$get$oscillator3.type;
+                  try {
+                    synth.set({
+                      oscillator: {
+                        type: "sine"
+                      },
+                      envelope: {
+                        attack: 0.02,
+                        decay: 0.25,
+                        sustain: 0.35,
+                        release: 0.9
+                      }
+                    });
+                  } catch (_) {}
+                  ["C5", "E5", "G5", "B5", "D6", "G6"].forEach(function (n, i) {
+                    synth.triggerAttackRelease(n, 0.11, now + i * 0.08, GameAudio.scale("final", 0.44));
+                  });
+                  ["C6", "E6", "G6"].forEach(function (n) {
+                    synth.triggerAttackRelease(n, 0.28, now + 0.62, GameAudio.scale("final", 0.5));
+                  });
+                  setTimeout(function () {
+                    try {
+                      synth.set({
+                        oscillator: {
+                          type: oldOsc || "triangle"
+                        },
+                        envelope: oldEnv
+                      });
+                    } catch (_) {}
+                  }, 1700);
+                },
+                finalMetric: function finalMetric() {
+                  var synth = GameAudio._getPreviewSynth("uiTimer", function () {
+                    return GameAudio.createUiTimerSynth();
+                  });
+                  var now = Tone.now();
+                  synth.triggerAttackRelease("G5", 0.055, now, GameAudio.scale("finalMetric", 0.44));
+                  synth.triggerAttackRelease("C6", 0.045, now + 0.03, GameAudio.scale("finalMetric", 0.34));
+                },
+                perfectBonus: function perfectBonus() {
+                  var _synth$get$oscillator4;
+                  var synth = GameAudio._getPreviewSynth("uiPoly", function () {
+                    return GameAudio.createUiPolySynth();
+                  });
+                  var now = Tone.now();
+                  var oldEnv = _objectSpread({}, synth.get().envelope);
+                  var oldOsc = (_synth$get$oscillator4 = synth.get().oscillator) === null || _synth$get$oscillator4 === void 0 ? void 0 : _synth$get$oscillator4.type;
+                  try {
+                    synth.set({
+                      oscillator: {
+                        type: "triangle"
+                      },
+                      envelope: {
+                        attack: 0.01,
+                        decay: 0.18,
+                        sustain: 0.25,
+                        release: 0.8
+                      }
+                    });
+                  } catch (_) {}
+                  ["C5", "E5", "G5", "C6", "E6", "G6", "C7"].forEach(function (n, i) {
+                    synth.triggerAttackRelease(n, 0.09, now + i * 0.06, GameAudio.scale("perfectBonus", 0.62));
+                  });
+                  setTimeout(function () {
+                    try {
+                      synth.set({
+                        oscillator: {
+                          type: oldOsc || "triangle"
+                        },
+                        envelope: oldEnv
+                      });
+                    } catch (_) {}
+                  }, 1400);
+                },
+                runStart: function runStart() {
+                  var synth = GameAudio._getPreviewSynth("uiPoly", function () {
+                    return GameAudio.createUiPolySynth();
+                  });
+                  var now = Tone.now();
+                  var toNote = function toNote(m) {
+                    return Tone.Frequency(m, "midi").toNote();
+                  };
+                  [[[0, 7], 0.00, 0.19, 0.20], [[3, 7], 0.24, 0.06, 0.18], [[0, 5, 10], 0.38, 0.18, 0.22], [[2, 5, 9], 0.62, 0.06, 0.18], [[0, 7, 12], 0.76, 0.15, 0.22]].forEach(function (_ref) {
+                    var _ref2 = _slicedToArray(_ref, 4),
+                      intervals = _ref2[0],
+                      t = _ref2[1],
+                      dur = _ref2[2],
+                      vel = _ref2[3];
+                    synth.triggerAttackRelease(intervals.map(function (i) {
+                      return toNote(60 + i);
+                    }), dur, now + t, GameAudio.scale("runStart", vel));
+                  });
+                },
+                timerBeep: function timerBeep() {
+                  GameAudio._getPreviewSynth("uiTimer", function () {
+                    return GameAudio.createUiTimerSynth();
+                  }).triggerAttackRelease("C6", 0.06, Tone.now(), GameAudio.scale("timerBeep", 0.5));
+                },
+                timerTimeUp: function timerTimeUp() {
+                  var timerSynth = GameAudio._getPreviewSynth("uiTimer", function () {
+                    return GameAudio.createUiTimerSynth();
+                  });
+                  var noiseSynth = GameAudio._getPreviewSynth("uiNoise", function () {
+                    return GameAudio.createUiNoiseSynth();
+                  });
+                  var now = Tone.now();
+                  noiseSynth.triggerAttackRelease(0.12, now, GameAudio.scale("timerTimeUp", 0.2));
+                  timerSynth.triggerAttackRelease("G4", 0.11, now, GameAudio.scale("timerTimeUp", 0.72));
+                  timerSynth.triggerAttackRelease("E4", 0.13, now + 0.10, GameAudio.scale("timerTimeUp", 0.76));
+                  timerSynth.triggerAttackRelease("C4", 0.18, now + 0.22, GameAudio.scale("timerTimeUp", 0.82));
+                },
+                countdownBeep: function countdownBeep() {
+                  GameAudio._getPreviewSynth("uiTimer", function () {
+                    return GameAudio.createUiTimerSynth();
+                  }).triggerAttackRelease("B5", 0.06, Tone.now(), GameAudio.scale("countdownBeep", 0.2));
+                },
+                metronomeBeat: function metronomeBeat() {
+                  GameAudio.playMetronomeClick(false);
+                },
+                metronomeDownbeat: function metronomeDownbeat() {
+                  GameAudio.playMetronomeClick(true);
+                },
+                rhythmHit: function rhythmHit() {
+                  GameAudio.playRhythmHit();
+                },
+                hinge: function hinge() {
+                  var noiseSynth = GameAudio._getPreviewSynth("uiNoise", function () {
+                    return GameAudio.createUiNoiseSynth();
+                  });
+                  var synth = GameAudio._getPreviewSynth("uiTimer", function () {
+                    return GameAudio.createUiTimerSynth();
+                  });
+                  var now = Tone.now();
+                  noiseSynth.triggerAttackRelease(0.04, now, GameAudio.scale("hinge", 0.07));
+                  synth.triggerAttackRelease("E4", 0.04, now, GameAudio.scale("hinge", 0.12));
+                  synth.triggerAttackRelease("C4", 0.05, now + 0.04, GameAudio.scale("hinge", 0.16));
+                }
+              };
+              (_previewers$soundId = previewers[soundId]) === null || _previewers$soundId === void 0 || _previewers$soundId.call(previewers);
+            case 3:
+              return _context.a(2);
+          }
+        }, _callee);
+      }));
+      function previewSound(_x) {
+        return _previewSound.apply(this, arguments);
+      }
+      return previewSound;
+    }()
+  }, {
+    key: "createUiPolySynth",
+    value: function createUiPolySynth() {
+      return new Tone.PolySynth(Tone.Synth, {
+        oscillator: {
+          type: "triangle"
+        },
+        envelope: {
+          attack: 0.005,
+          decay: 0.12,
+          sustain: 0.0,
+          release: 0.25
+        },
+        volume: GameAudio.SYNTH_VOLUME_DB.uiPoly
+      }).toDestination();
+    }
+  }, {
+    key: "createUiNoiseSynth",
+    value: function createUiNoiseSynth() {
+      return new Tone.NoiseSynth({
+        noise: {
+          type: "pink"
+        },
+        envelope: {
+          attack: 0.001,
+          decay: 0.08,
+          sustain: 0.0,
+          release: 0.06
+        },
+        volume: GameAudio.SYNTH_VOLUME_DB.uiNoise
+      }).toDestination();
+    }
+  }, {
+    key: "createUiTimerSynth",
+    value: function createUiTimerSynth() {
+      return new Tone.Synth({
+        oscillator: {
+          type: "square"
+        },
+        envelope: {
+          attack: 0.001,
+          decay: 0.03,
+          sustain: 0.0,
+          release: 0.06
+        },
+        volume: GameAudio.SYNTH_VOLUME_DB.uiTimer
+      }).toDestination();
+    }
+  }, {
+    key: "ensureMetronomeAudio",
+    value: function () {
+      var _ensureMetronomeAudio = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee2() {
+        return _regenerator().w(function (_context2) {
+          while (1) switch (_context2.n) {
+            case 0:
+              if (window.Tone) {
+                _context2.n = 1;
+                break;
+              }
+              return _context2.a(2, null);
+            case 1:
+              _context2.n = 2;
+              return Tone.start();
+            case 2:
+              return _context2.a(2, GameAudio._getPreviewSynth("metronome", function () {
+                return GameAudio.createMetronomeSynth();
+              }));
+          }
+        }, _callee2);
+      }));
+      function ensureMetronomeAudio() {
+        return _ensureMetronomeAudio.apply(this, arguments);
+      }
+      return ensureMetronomeAudio;
+    }()
+  }, {
+    key: "playMetronomeClick",
+    value: function playMetronomeClick() {
+      var isDownbeat = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+      if (!window.Tone) return;
+      var synth = GameAudio._getPreviewSynth("metronome", function () {
+        return GameAudio.createMetronomeSynth();
+      });
+      var kind = isDownbeat ? "metronomeDownbeat" : "metronomeBeat";
+      synth.triggerAttackRelease(isDownbeat ? "C6" : "C5", "16n", Tone.now(), GameAudio.scale(kind, 1));
+    }
+  }, {
+    key: "createMetronomeSynth",
+    value: function createMetronomeSynth() {
+      return new Tone.Synth({
+        oscillator: {
+          type: "square"
+        },
+        envelope: {
+          attack: 0.001,
+          decay: 0.04,
+          sustain: 0,
+          release: 0.01
+        },
+        volume: GameAudio.SYNTH_VOLUME_DB.metronome
+      }).toDestination();
+    }
+  }, {
+    key: "playRhythmHit",
+    value: function playRhythmHit() {
+      if (!window.Tone) return;
+      var synth = GameAudio._getPreviewSynth("rhythmHit", function () {
+        return GameAudio.createRhythmHitSynth();
+      });
+      synth.triggerAttackRelease("C2", "8n", Tone.now(), GameAudio.scale("rhythmHit", 1));
+    }
+  }, {
+    key: "createRhythmHitSynth",
+    value: function createRhythmHitSynth() {
+      return new Tone.MembraneSynth({
+        pitchDecay: 0.035,
+        octaves: 2.5,
+        oscillator: {
+          type: "sine"
+        },
+        envelope: {
+          attack: 0.001,
+          decay: 0.12,
+          sustain: 0,
+          release: 0.06
+        },
+        volume: GameAudio.SYNTH_VOLUME_DB.rhythmHit
+      }).toDestination();
+    }
+  }, {
+    key: "createStaffNoteSynth",
+    value: function createStaffNoteSynth() {
+      return new Tone.Synth({
+        oscillator: {
+          type: "sine"
+        },
+        envelope: {
+          attack: 0.01,
+          decay: 0.08,
+          sustain: 0.6,
+          release: 0.12
+        },
+        volume: GameAudio.SYNTH_VOLUME_DB.staffNote
+      }).toDestination();
+    }
+  }, {
+    key: "createDictationSynth",
+    value: function createDictationSynth() {
+      return new Tone.PolySynth(Tone.Synth, {
+        oscillator: {
+          type: "sine"
+        },
+        envelope: {
+          attack: 0.01,
+          decay: 0.08,
+          sustain: 0.35,
+          release: 0.25
+        },
+        volume: GameAudio.SYNTH_VOLUME_DB.dictation
+      }).toDestination();
+    }
+  }, {
+    key: "createSequenceSynth",
+    value: function createSequenceSynth() {
+      return new Tone.PolySynth(Tone.Synth, {
+        oscillator: {
+          type: "sine"
+        },
+        envelope: {
+          attack: 0.01,
+          decay: 0.08,
+          sustain: 0.35,
+          release: 0.25
+        },
+        volume: GameAudio.SYNTH_VOLUME_DB.sequence
+      }).toDestination();
+    }
+  }, {
+    key: "_getPreviewSynth",
+    value: function _getPreviewSynth(key, factory) {
+      if (!GameAudio._previewSynths[key]) {
+        GameAudio._previewSynths[key] = factory();
+      }
+      return GameAudio._previewSynths[key];
+    }
+  }]);
+}();
+// Tweak these values to rebalance the whole app.
+_defineProperty(GameAudio, "SYNTH_VOLUME_DB", {
+  uiPoly: -10,
+  uiNoise: -16,
+  uiTimer: -14,
+  metronome: -12,
+  rhythmHit: -10,
+  staffNote: -8,
+  dictation: -9,
+  sequence: -9
+});
+_defineProperty(GameAudio, "VELOCITY", {
+  staffNote: 1.0,
+  dictation: 1.0,
+  sequence: 1.0,
+  successBasic: 0.7,
+  successBonus: 0.7,
+  failNoise: 1,
+  failNote: 1,
+  bombFail: 1,
+  wallCrash: .4,
+  "final": 0.5,
+  finalMetric: 0.85,
+  perfectBonus: 0.25,
+  runStart: 0.9,
+  timerBeep: 0.7,
+  timerTimeUp: 0.95,
+  countdownBeep: 1,
+  metronomeBeat: 0.4,
+  metronomeDownbeat: 0.6,
+  rhythmHit: 0.65,
+  hinge: 0.55
+});
+_defineProperty(GameAudio, "SOUND_LIBRARY", [{
+  id: "staffNote",
+  label: "Staff Note",
+  volumeKey: "staffNote",
+  description: "Base loudness for staff note playback."
+}, {
+  id: "dictation",
+  label: "Dictation",
+  volumeKey: "dictation",
+  description: "Dictation playback loudness in PitchDetective."
+}, {
+  id: "sequence",
+  label: "Sequence",
+  volumeKey: "sequence",
+  description: "Sequence playback loudness in ToneTrek and similar games."
+}, {
+  id: "successBasic",
+  label: "Success",
+  volumeKey: "successBasic",
+  description: "Normal correct-answer sound."
+}, {
+  id: "successBonus",
+  label: "Streak Bonus",
+  volumeKey: "successBonus",
+  description: "Streak / bonus correct-answer sound."
+}, {
+  id: "failNoise",
+  label: "Fail Noise",
+  volumeKey: "failNoise",
+  description: "Noise portion of the fail sound."
+}, {
+  id: "failNote",
+  label: "Fail Notes",
+  volumeKey: "failNote",
+  description: "Pitched portion of the fail sound."
+}, {
+  id: "bombFail",
+  label: "Bomb Hit",
+  volumeKey: "bombFail",
+  description: "Long stumbling fail sound when the snake hits a bomb."
+}, {
+  id: "wallCrash",
+  label: "Wall Crash",
+  volumeKey: "wallCrash",
+  description: "Sharp breaking impact when the snake crashes into a wall."
+}, {
+  id: "final",
+  label: "Final Results",
+  volumeKey: "final",
+  description: "Final results reveal fanfare."
+}, {
+  id: "finalMetric",
+  label: "Metric Pop",
+  volumeKey: "finalMetric",
+  description: "Small pop sound as each final metric box appears."
+}, {
+  id: "perfectBonus",
+  label: "Perfect Bonus",
+  volumeKey: "perfectBonus",
+  description: "Extra reward sound for perfect/no-mistakes games."
+}, {
+  id: "runStart",
+  label: "Run Start",
+  volumeKey: "runStart",
+  description: "Opening fanfare at the start of a run/countdown."
+}, {
+  id: "timerBeep",
+  label: "Timer Warning",
+  volumeKey: "timerBeep",
+  description: "Repeating warning beep in the last timer seconds."
+}, {
+  id: "timerTimeUp",
+  label: "Time Up",
+  volumeKey: "timerTimeUp",
+  description: "Stronger sound when the timer actually runs out."
+}, {
+  id: "countdownBeep",
+  label: "Countdown Tick",
+  volumeKey: "countdownBeep",
+  description: "Simple 3-2-1 countdown tick sound."
+}, {
+  id: "metronomeBeat",
+  label: "Metronome Beat",
+  volumeKey: "metronomeBeat",
+  description: "Regular metronome click."
+}, {
+  id: "metronomeDownbeat",
+  label: "Metronome Downbeat",
+  volumeKey: "metronomeDownbeat",
+  description: "Higher-pitched click on the first beat of each measure."
+}, {
+  id: "rhythmHit",
+  label: "Rhythm Hit",
+  volumeKey: "rhythmHit",
+  description: "Low percussive sound for Beat Hero rhythm notes."
+}, {
+  id: "hinge",
+  label: "Hinge",
+  volumeKey: "hinge",
+  description: "Short hinge/fall sound used by ToneTrek block reveals."
+}]);
+_defineProperty(GameAudio, "_previewSynths", {});
+
+/***/ }
+
+/******/ 	});
+/************************************************************************/
+/******/ 	// The module cache
+/******/ 	var __webpack_module_cache__ = {};
+/******/ 	
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/ 		// Check if module is in cache
+/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
+/******/ 		if (cachedModule !== undefined) {
+/******/ 			return cachedModule.exports;
+/******/ 		}
+/******/ 		// Check if module exists (development only)
+/******/ 		if (__webpack_modules__[moduleId] === undefined) {
+/******/ 			var e = new Error("Cannot find module '" + moduleId + "'");
+/******/ 			e.code = 'MODULE_NOT_FOUND';
+/******/ 			throw e;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = __webpack_module_cache__[moduleId] = {
+/******/ 			// no module.id needed
+/******/ 			// no module.loaded needed
+/******/ 			exports: {}
+/******/ 		};
+/******/ 	
+/******/ 		// Execute the module function
+/******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+/******/ 	
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/ 	
+/************************************************************************/
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__webpack_require__.d = (exports, definition) => {
+/******/ 			for(var key in definition) {
+/******/ 				if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__webpack_require__.r = (exports) => {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/************************************************************************/
+var __webpack_exports__ = {};
+// This entry needs to be wrapped in an IIFE because it needs to be isolated against other modules in the chunk.
+(() => {
+/*!**********************************************!*\
+  !*** ./resources/js/music/games/beathero.js ***!
+  \**********************************************/
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _beathero_BeatHero_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./beathero/BeatHero.js */ "./resources/js/music/games/beathero/BeatHero.js");
+var _game$start;
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+
+var options = readGlobal("__challengeOptions") || {};
+var clefUrls = readGlobal("__clefUrls") || null;
+var game = new _beathero_BeatHero_js__WEBPACK_IMPORTED_MODULE_0__.BeatHero(_objectSpread(_objectSpread({}, options), {}, {
+  clefUrls: clefUrls
+}));
+(_game$start = game.start) === null || _game$start === void 0 ? void 0 : _game$start.call(game);
+})();
+
+/******/ })()
+;
