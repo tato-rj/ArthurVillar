@@ -657,26 +657,6 @@ button.setting-undo {
     white-space: pre-wrap;
 }
 
-.calendar-calendar-lesson-fade-in {
-    animation: calendar-calendar-lesson-fade-in 180ms ease-out var(--calendar-lesson-fade-delay, 0ms) both;
-}
-
-@keyframes calendar-calendar-lesson-fade-in {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: var(--calendar-lesson-fade-opacity, 1);
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .calendar-calendar-lesson-fade-in {
-        animation: none;
-    }
-}
-
 .calendar-schedule-event-title,
 .calendar-schedule-event-time {
     min-width: 0;
