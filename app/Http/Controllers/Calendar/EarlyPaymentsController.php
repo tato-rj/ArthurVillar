@@ -17,10 +17,24 @@ class EarlyPaymentsController extends Controller
         $data = $request->validate([
             'lesson_plan_id' => ['nullable', 'required_without:single_lesson_plan_id', 'exists:lesson_plans,id'],
             'single_lesson_plan_id' => ['nullable', 'required_without:lesson_plan_id', 'exists:single_lesson_plans,id'],
-            'date' => ['required', 'date_format:Y-m-d', 'after:today'],
+            'date' => ['required', 'date_format:Y-m-d'],
+            'start' => ['nullable', 'date_format:H:i', Rule::in(LessonPlan::timeOptions())],
             'scheduled_date' => ['required', 'date_format:Y-m-d'],
             'scheduled_start_time' => ['required', 'date_format:H:i', Rule::in(LessonPlan::timeOptions())],
         ]);
+
+        $timeZone = config('calendar.timezone', 'America/New_York');
+        $lessonStartsAt = Carbon::createFromFormat(
+            'Y-m-d H:i',
+            $data['date'].' '.($data['start'] ?? $data['scheduled_start_time']),
+            $timeZone
+        );
+
+        if ($lessonStartsAt->lessThanOrEqualTo(Carbon::now($timeZone))) {
+            throw ValidationException::withMessages([
+                'date' => 'Early payment can only be recorded before the lesson starts.',
+            ]);
+        }
 
         $lessonPlanId = $data['lesson_plan_id'] ?? null;
         $singleLessonPlanId = $data['single_lesson_plan_id'] ?? null;

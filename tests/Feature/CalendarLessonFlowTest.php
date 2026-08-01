@@ -1234,6 +1234,55 @@ class CalendarLessonFlowTest extends BaseTest
     }
 
     /** @test */
+    public function it_records_an_early_payment_on_the_same_day_before_the_lesson_starts()
+    {
+        Carbon::setTestNow(Carbon::create(2026, 7, 15, 12, 0, 0, config('calendar.timezone')));
+        $lessonPlan = LessonPlan::factory()->create();
+
+        $this->signIn();
+
+        $this->postJson(route('calendar.lessons.early-payments.store'), [
+            'lesson_plan_id' => $lessonPlan->id,
+            'single_lesson_plan_id' => '',
+            'date' => '2026-07-15',
+            'start' => '15:30',
+            'scheduled_date' => '2026-07-15',
+            'scheduled_start_time' => '15:30',
+        ])
+            ->assertOk()
+            ->assertJsonPath('status', 'early-payment');
+
+        $this->assertDatabaseCount('early_payments', 1);
+
+        Carbon::setTestNow();
+    }
+
+    /** @test */
+    public function it_rejects_an_early_payment_once_the_lesson_has_started()
+    {
+        Carbon::setTestNow(Carbon::create(2026, 7, 15, 15, 30, 0, config('calendar.timezone')));
+        $lessonPlan = LessonPlan::factory()->create();
+
+        $this->signIn();
+
+        $this->postJson(route('calendar.lessons.early-payments.store'), [
+            'lesson_plan_id' => $lessonPlan->id,
+            'single_lesson_plan_id' => '',
+            'date' => '2026-07-15',
+            'start' => '15:30',
+            'scheduled_date' => '2026-07-15',
+            'scheduled_start_time' => '15:30',
+        ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('date')
+            ->assertJsonPath('errors.date.0', 'Early payment can only be recorded before the lesson starts.');
+
+        $this->assertDatabaseCount('early_payments', 0);
+
+        Carbon::setTestNow();
+    }
+
+    /** @test */
     public function confirming_a_lesson_consumes_its_early_payment_and_marks_the_lesson_paid()
     {
         Carbon::setTestNow('2026-07-15 16:30:00');
