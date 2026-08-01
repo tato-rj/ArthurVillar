@@ -32503,8 +32503,8 @@ button.setting-undo:hover {
 }
 
 .lm-schedule thead td.calendar-schedule-holiday-cell {
-  border-left: 1px solid var(--lm-border-color-light, #e9e9e9);
-  border-top: 1px solid var(--lm-border-color-light, #e9e9e9);
+  border: 0 !important;
+  background: white !important;
   padding: 0.28rem;
   position: sticky;
   top: var(--calendar-schedule-header-height, 5.5rem);
