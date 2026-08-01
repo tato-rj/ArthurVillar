@@ -105,19 +105,28 @@ $(function() {
                 data: 'paid_lessons_count',
                 name: 'paid_lessons_count',
                 searchable: false,
-                className: 'text-center text-green',
+                className: 'text-center',
+                render: function(data, type) {
+                    return type === 'display' ? `<span class="text-green">${data}</span>` : data;
+                },
             },
             {
                 data: 'unpaid_lessons_count',
                 name: 'unpaid_lessons_count',
                 searchable: false,
-                className: 'text-center text-red',
+                className: 'text-center',
+                render: function(data, type) {
+                    return type === 'display' ? `<span class="text-red">${data}</span>` : data;
+                },
             },
             {
                 data: 'canceled_lessons_count',
                 name: 'canceled_lessons_count',
                 searchable: false,
-                className: 'text-center text-muted',
+                className: 'text-center',
+                render: function(data, type) {
+                    return type === 'display' ? `<span class="text-muted">${data}</span>` : data;
+                },
             },
             {
                 data: 'is_adult',
