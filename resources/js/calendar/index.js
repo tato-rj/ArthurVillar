@@ -1751,7 +1751,7 @@ const patchScheduleItems = function(calendar) {
 const animateCalendarLessonItems = function(calendar) {
     if (state.calendarRenderMode === 'discreet') {
         calendar.querySelectorAll('.lm-schedule-item, .calendar-month-event, .calendar-schedule-event').forEach(function(item) {
-            item.dataset.lessonAnimated = 'true';
+            item.dataset.lessonFadeAnimated = 'true';
         });
         return;
     }
@@ -1763,16 +1763,18 @@ const animateCalendarLessonItems = function(calendar) {
 
     const nonLessonStatuses = ['holiday', 'teaching-break', 'recital'];
     const lessonItems = Array.from(calendar.querySelectorAll('.lm-schedule-item, .calendar-month-event, .calendar-schedule-event')).filter(function(item) {
-        return !nonLessonStatuses.includes(item.dataset.lessonStatus || '') && item.dataset.lessonAnimated !== 'true';
+        return !nonLessonStatuses.includes(item.dataset.lessonStatus || '') && item.dataset.lessonFadeAnimated !== 'true';
     });
 
     lessonItems.forEach(function(item, index) {
-        item.dataset.lessonAnimated = 'true';
-        item.style.animationDelay = `${index * 30}ms`;
-        item.classList.add('animate__animated', 'animate__heartBeat', 'calendar-calendar-heartbeat-once');
+        item.dataset.lessonFadeAnimated = 'true';
+        item.style.setProperty('--calendar-lesson-fade-delay', `${index * 30}ms`);
+        item.style.setProperty('--calendar-lesson-fade-opacity', window.getComputedStyle(item).opacity || '1');
+        item.classList.add('calendar-calendar-lesson-fade-in');
         item.addEventListener('animationend', function() {
-            item.classList.remove('animate__animated', 'animate__heartBeat', 'calendar-calendar-heartbeat-once');
-            item.style.animationDelay = '';
+            item.classList.remove('calendar-calendar-lesson-fade-in');
+            item.style.removeProperty('--calendar-lesson-fade-delay');
+            item.style.removeProperty('--calendar-lesson-fade-opacity');
         }, { once: true });
     });
 };

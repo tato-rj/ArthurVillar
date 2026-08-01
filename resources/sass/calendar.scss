@@ -657,18 +657,23 @@ button.setting-undo {
     white-space: pre-wrap;
 }
 
-.calendar-calendar-heartbeat-once {
-    animation-duration: 0.4s;
-    animation-name: calendar-calendar-heartbeat-once;
+.calendar-calendar-lesson-fade-in {
+    animation: calendar-calendar-lesson-fade-in 180ms ease-out var(--calendar-lesson-fade-delay, 0ms) both;
 }
 
-@keyframes calendar-calendar-heartbeat-once {
-    0%, 70%, 100% {
-        transform: scale(1);
+@keyframes calendar-calendar-lesson-fade-in {
+    from {
+        opacity: 0;
     }
 
-    35% {
-        transform: scale(1.1);
+    to {
+        opacity: var(--calendar-lesson-fade-opacity, 1);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .calendar-calendar-lesson-fade-in {
+        animation: none;
     }
 }
 
