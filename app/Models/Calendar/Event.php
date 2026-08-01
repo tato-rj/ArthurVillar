@@ -55,6 +55,11 @@ class Event extends BaseModel
         ];
     }
 
+    public function typeIcon(): ?string
+    {
+        return array_search($this->type, static::typeOptions(), true) ?: null;
+    }
+
     public static function timeOptions(): array
     {
         $times = [];
@@ -115,7 +120,7 @@ class Event extends BaseModel
             'canceled_at' => $this->canceled_at?->toIso8601String(),
             'type' => 'general-event',
             'event_type' => $this->type,
-            'event_type_icon' => array_search($this->type, static::typeOptions(), true) ?: null,
+            'event_type_icon' => $this->typeIcon(),
             'edit_url' => route('calendar.events.edit', $this),
             'notes_update_url' => route('calendar.events.notes.update', $this),
             'reschedule_url' => route('calendar.events.reschedule', $this),

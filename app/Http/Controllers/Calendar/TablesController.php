@@ -148,6 +148,9 @@ class TablesController extends Controller
             ->addColumn('status', function (Event $event) {
                 return $event->canceled_at ? 'Canceled' : 'Scheduled';
             })
+            ->addColumn('event_type_icon', function (Event $event) {
+                return $event->typeIcon();
+            })
             ->filterColumn('status', function ($query, $keyword) {
                 $keyword = strtolower($keyword);
 

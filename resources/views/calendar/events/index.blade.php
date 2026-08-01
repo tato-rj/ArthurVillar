@@ -8,17 +8,11 @@
 <section class="container py-5">
     {{ Breadcrumbs::render('calendar.events.index') }}
 
-    <div class="row mb-4">
         @pagetitle([
             'label' => 'My Events',
-            'subtitle' => 'Events you created in this calendar.',
-            'modal' => [
-                'target' => '#create-event-modal',
-                'icon' => 'plus',
-                'label' => 'New event'
-            ]
+            'subtitle' => 'Events you created in this calendar.'
         ])
-    </div>
+
 
     <div class="calendar-table-filters mb-3" id="events-scheduled-range">
         @daterange([
@@ -103,7 +97,20 @@ $(function() {
             },
             columns: [
                 {data: 'scheduled_date', name: 'scheduled_date', render: function(data, type) { return type === 'display' ? formatDate(data) : data; }},
-                {data: 'name', name: 'name', render: textRenderer},
+                {
+                    data: 'name',
+                    name: 'name',
+                    render: function(data, type, row) {
+                        if (type !== 'display') return data;
+
+                        const name = textRenderer.display(data);
+                        const icon = /^[a-z0-9-]+$/.test(row.event_type_icon || '')
+                            ? `<i class="fas fa-${row.event_type_icon} mr-1" aria-hidden="true"></i>`
+                            : '';
+
+                        return `${icon}${name}`;
+                    },
+                },
                 {data: 'starts_at', name: 'starts_at', render: function(data, type) { return type === 'display' ? formatTime(data) : data; }},
                 {data: 'ends_at', name: 'ends_at', render: function(data, type) { return type === 'display' ? formatTime(data) : data; }},
                 {data: 'type', name: 'type', defaultContent: ''},

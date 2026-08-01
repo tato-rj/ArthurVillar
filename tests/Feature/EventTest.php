@@ -292,6 +292,7 @@ class EventTest extends BaseTest
         $this->assertSame('2026-09-10', $row['scheduled_date']);
         $this->assertSame('10:00', substr($row['starts_at'], 0, 5));
         $this->assertSame('Doctor', $row['type']);
+        $this->assertSame('briefcase-medical', $row['event_type_icon']);
         $this->assertSame('80 Erie St', $row['address']);
         $this->assertSame('Jersey City', $row['city']);
         $this->assertSame('Bring insurance card', $row['notes']);
