@@ -92,6 +92,13 @@ class EventsController extends Controller
         return back()->with('success', 'The event was successfully canceled');
     }
 
+    public function permanentlyDestroy(Event $event)
+    {
+        $event->delete();
+
+        return back()->with('success', 'The event was successfully deleted');
+    }
+
     public function revert(Request $request, Event $event)
     {
         $event->update(['canceled_at' => null]);

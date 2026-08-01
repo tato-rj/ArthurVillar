@@ -181,6 +181,7 @@ Route::prefix('events')->name('events.')->group(function() {
 		Route::patch('notes', 'EventsController@updateNotes')->name('notes.update');
 		Route::patch('reschedule', 'EventsController@reschedule')->name('reschedule');
 		Route::post('revert', 'EventsController@revert')->name('revert');
+		Route::delete('permanent', 'EventsController@permanentlyDestroy')->name('permanently-destroy');
 
 		Route::patch('', 'EventsController@update')->name('update');
 

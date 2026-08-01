@@ -318,13 +318,27 @@ class EventTest extends BaseTest
             ->assertOk()
             ->assertSee('Events')
             ->assertSee('events-table', false)
-            ->assertSee('js-revert-canceled-event', false)
+            ->assertDontSee('js-revert-canceled-event', false)
+            ->assertSee('Delete event')
             ->assertSee('<th>Actions</th>', false);
 
         $rows = collect($this->getJson(route('calendar.tables.events'))->assertOk()->json('data'));
 
         $this->assertSame('Canceled', $rows->firstWhere('id', $canceledEvent->id)['status']);
         $this->assertSame('Scheduled', $rows->firstWhere('id', $scheduledEvent->id)['status']);
+    }
+
+    /** @test */
+    public function an_event_can_be_permanently_deleted_from_the_events_page()
+    {
+        $event = Event::factory()->create();
+        $this->signIn();
+
+        $this->delete(route('calendar.events.permanently-destroy', $event))
+            ->assertRedirect()
+            ->assertSessionHas('success', 'The event was successfully deleted');
+
+        $this->assertDatabaseMissing('events', ['id' => $event->id]);
     }
 
     /** @test */

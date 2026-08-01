@@ -116,26 +116,16 @@ $(function() {
                 },
                 {
                     data: 'id', name: 'actions', orderable: false, searchable: false, className: 'text-right',
-                    render: function(data, type, row) {
-                        if (row.status === 'Canceled') {
-                            const revertUrl = @json(route('calendar.events.revert', ['event' => '__event__'])).replace('__event__', data);
-
-                            return `<div class="calendar-table-actions">
-                                <button type="button" class="btn btn-sm btn-secondary rounded js-revert-canceled-event" data-url="${revertUrl}" aria-label="Revert cancellation" title="Revert cancellation">
-                                    @fa(['icon' => 'rotate-left', 'mr' => 0])
-                                </button>
-                            </div>`;
-                        }
-
+                    render: function(data) {
                         const editUrl = @json(route('calendar.events.edit', ['event' => '__event__'])).replace('__event__', data);
-                        const deleteUrl = @json(route('calendar.events.destroy', ['event' => '__event__'])).replace('__event__', data);
+                        const deleteUrl = @json(route('calendar.events.permanently-destroy', ['event' => '__event__'])).replace('__event__', data);
 
                         return `<div class="calendar-table-actions">
                             <button type="button" class="btn btn-sm btn-warning rounded js-edit-event" data-url="${editUrl}" aria-label="Edit event">@fa(['icon' => 'pen-to-square', 'mr' => 0])</button>
                             <form method="POST" action="${deleteUrl}" confirm>
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn btn-sm btn-red rounded" aria-label="Cancel event">@fa(['icon' => 'trash-alt', 'mr' => 0])</button>
+                                <button type="submit" class="btn btn-sm btn-red rounded" aria-label="Delete event" title="Delete event">@fa(['icon' => 'trash-alt', 'mr' => 0])</button>
                             </form>
                         </div>`;
                     },
@@ -172,31 +162,6 @@ $(function() {
                 .catch(console.error);
         });
 
-        $('#events-table').on('click', '.js-revert-canceled-event', function() {
-            const button = this;
-            button.disabled = true;
-
-            fetch(button.dataset.url, {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': @json(csrf_token()),
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-            })
-                .then(function(response) {
-                    if (!response.ok) throw new Error('Unable to revert event cancellation.');
-                    return response.json();
-                })
-                .then(function() {
-                    table.ajax.reload(null, false);
-                })
-                .catch(function(error) {
-                    console.error(error);
-                    button.disabled = false;
-                    window.alert(error.message);
-                });
-        });
 });
 </script>
 @endpush
