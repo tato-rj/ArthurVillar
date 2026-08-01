@@ -6123,7 +6123,6 @@ var getGeneralEvent = function getGeneralEvent(generalEvent) {
     notesUpdateUrl: generalEvent.notes_update_url || '',
     rescheduleUrl: generalEvent.reschedule_url || '',
     revertUrl: generalEvent.revert_url || '',
-    destroyUrl: generalEvent.destroy_url || '',
     externalProvider: generalEvent.external_provider || '',
     externalUrl: generalEvent.external_url || '',
     meetingUrl: generalEvent.meeting_url || '',
@@ -7720,15 +7719,7 @@ var showGeneralEventRescheduleForm = function showGeneralEventRescheduleForm(mod
   if (!modal) {
     return;
   }
-  modal.classList.remove('is-canceling');
   modal.classList.add('is-rescheduling');
-};
-var showGeneralEventCancelForm = function showGeneralEventCancelForm(modal) {
-  if (!modal) {
-    return;
-  }
-  modal.classList.remove('is-rescheduling');
-  modal.classList.add('is-canceling');
 };
 var openGeneralEventModal = function openGeneralEventModal(event, options) {
   var modal = document.getElementById('calendar-event-modal');
@@ -7762,7 +7753,6 @@ var openGeneralEventModal = function openGeneralEventModal(event, options) {
   var revert = modal.querySelector('#event-revert');
   var controls = modal.querySelector('#general-event-controls');
   var rescheduleForm = modal.querySelector('#reschedule-general-event form');
-  var cancelForm = modal.querySelector('#cancel-general-event form');
   var rescheduleDate = modal.querySelector('#reschedule-general-event-date');
   var rescheduleStartTime = modal.querySelector('#reschedule-general-event-start-time');
   var rescheduleEndTime = modal.querySelector('#reschedule-general-event-end-time');
@@ -7846,7 +7836,6 @@ var openGeneralEventModal = function openGeneralEventModal(event, options) {
   modal.dataset.eventGuid = event.guid || '';
   modal.dataset.eventId = event.id || '';
   if (rescheduleForm) rescheduleForm.action = event.rescheduleUrl || '';
-  if (cancelForm) cancelForm.action = event.destroyUrl || '';
   if (rescheduleDate) rescheduleDate.value = event.date || todayString();
   setTimeSelectValue(rescheduleStartTime, event.start || '08:00');
   renderRescheduleEndOptions(rescheduleStartTime, rescheduleEndTime, event.end ? normalizeTime(event.end) : '08:15');
@@ -10631,10 +10620,8 @@ document.addEventListener('DOMContentLoaded', function () {
     var notesCancelButton = generalEventModal.querySelector('[data-general-event-notes-cancel]');
     var notesForm = generalEventModal.querySelector('[data-general-event-notes-form]');
     var notesInput = generalEventModal.querySelector('[data-general-event-notes-input]');
-    var cancelButton = generalEventModal.querySelector('#cancel-general-event-button');
     var _rescheduleButton = generalEventModal.querySelector('#reschedule-general-event-button');
     var _rescheduleForm = generalEventModal.querySelector('#reschedule-general-event form');
-    var _cancelForm = generalEventModal.querySelector('#cancel-general-event form');
     var _reschedulePrevious = generalEventModal.querySelector('[data-general-event-reschedule-datepicker-prev]');
     var _rescheduleNext = generalEventModal.querySelector('[data-general-event-reschedule-datepicker-next]');
     var _rescheduleGrid = generalEventModal.querySelector('[data-general-event-reschedule-datepicker-grid]');
@@ -10688,17 +10675,12 @@ document.addEventListener('DOMContentLoaded', function () {
         submitGeneralEventNotes(generalEventModal, notesForm);
       });
     }
-    if (cancelButton) {
-      cancelButton.addEventListener('click', function () {
-        showGeneralEventCancelForm(generalEventModal);
-      });
-    }
     if (_rescheduleButton) {
       _rescheduleButton.addEventListener('click', function () {
         showGeneralEventRescheduleForm(generalEventModal);
       });
     }
-    [_rescheduleForm, _cancelForm].filter(Boolean).forEach(function (form) {
+    [_rescheduleForm].filter(Boolean).forEach(function (form) {
       form.addEventListener('submit', function (e) {
         e.preventDefault();
         submitGeneralEventModalForm(form, refreshCalendarAfterLessonMutation);
@@ -10973,8 +10955,7 @@ document.addEventListener('DOMContentLoaded', function () {
       weekday: weekday,
       editUrl: '',
       rescheduleUrl: '',
-      revertUrl: '',
-      destroyUrl: ''
+      revertUrl: ''
     });
     delete copiedEvent.originalDate;
     delete copiedEvent.originalStartTime;

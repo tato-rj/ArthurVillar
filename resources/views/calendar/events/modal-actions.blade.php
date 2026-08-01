@@ -1,8 +1,7 @@
 <div id="general-event-details">
     <div class="calendar-modal-details">
         <div id="general-event-controls" class="calendar-modal-detail-section d-flex mt-3">
-            <button type="button" id="cancel-general-event-button" class="btn btn-outline-dark w-100 mr-1">Cancel</button>
-            <button type="button" id="reschedule-general-event-button" class="btn btn-outline-red w-100 ml-1">Reschedule</button>
+            <button type="button" id="reschedule-general-event-button" class="btn btn-outline-red w-100">Reschedule</button>
         </div>
     </div>
 </div>
@@ -54,18 +53,5 @@
         </div>
 
         <button type="submit" class="btn btn-primary w-100">@fa(['icon' => 'clock-rotate-left'])Reschedule event</button>
-    </form>
-</div>
-
-<div id="cancel-general-event">
-    <form method="POST" action="">
-        @csrf
-        @method('DELETE')
-
-        <div class="my-4">
-            <p class="mb-0 text-red">This action cannot be undone. Are you sure?</p>
-        </div>
-
-        <button type="submit" class="btn btn-primary w-100">@fa(['icon' => 'calendar-xmark'])Cancel event</button>
     </form>
 </div>

@@ -1984,7 +1984,6 @@ const getGeneralEvent = function(generalEvent) {
         notesUpdateUrl: generalEvent.notes_update_url || '',
         rescheduleUrl: generalEvent.reschedule_url || '',
         revertUrl: generalEvent.revert_url || '',
-        destroyUrl: generalEvent.destroy_url || '',
         externalProvider: generalEvent.external_provider || '',
         externalUrl: generalEvent.external_url || '',
         meetingUrl: generalEvent.meeting_url || '',
@@ -4157,17 +4156,7 @@ const showGeneralEventRescheduleForm = function(modal) {
         return;
     }
 
-    modal.classList.remove('is-canceling');
     modal.classList.add('is-rescheduling');
-};
-
-const showGeneralEventCancelForm = function(modal) {
-    if (!modal) {
-        return;
-    }
-
-    modal.classList.remove('is-rescheduling');
-    modal.classList.add('is-canceling');
 };
 
 const openGeneralEventModal = function(event, options) {
@@ -4204,7 +4193,6 @@ const openGeneralEventModal = function(event, options) {
     const revert = modal.querySelector('#event-revert');
     const controls = modal.querySelector('#general-event-controls');
     const rescheduleForm = modal.querySelector('#reschedule-general-event form');
-    const cancelForm = modal.querySelector('#cancel-general-event form');
     const rescheduleDate = modal.querySelector('#reschedule-general-event-date');
     const rescheduleStartTime = modal.querySelector('#reschedule-general-event-start-time');
     const rescheduleEndTime = modal.querySelector('#reschedule-general-event-end-time');
@@ -4309,7 +4297,6 @@ const openGeneralEventModal = function(event, options) {
     modal.dataset.eventId = event.id || '';
 
     if (rescheduleForm) rescheduleForm.action = event.rescheduleUrl || '';
-    if (cancelForm) cancelForm.action = event.destroyUrl || '';
     if (rescheduleDate) rescheduleDate.value = event.date || todayString();
 
     setTimeSelectValue(rescheduleStartTime, event.start || '08:00');
@@ -7873,10 +7860,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const notesCancelButton = generalEventModal.querySelector('[data-general-event-notes-cancel]');
         const notesForm = generalEventModal.querySelector('[data-general-event-notes-form]');
         const notesInput = generalEventModal.querySelector('[data-general-event-notes-input]');
-        const cancelButton = generalEventModal.querySelector('#cancel-general-event-button');
         const rescheduleButton = generalEventModal.querySelector('#reschedule-general-event-button');
         const rescheduleForm = generalEventModal.querySelector('#reschedule-general-event form');
-        const cancelForm = generalEventModal.querySelector('#cancel-general-event form');
         const reschedulePrevious = generalEventModal.querySelector('[data-general-event-reschedule-datepicker-prev]');
         const rescheduleNext = generalEventModal.querySelector('[data-general-event-reschedule-datepicker-next]');
         const rescheduleGrid = generalEventModal.querySelector('[data-general-event-reschedule-datepicker-grid]');
@@ -7946,19 +7931,13 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        if (cancelButton) {
-            cancelButton.addEventListener('click', function() {
-                showGeneralEventCancelForm(generalEventModal);
-            });
-        }
-
         if (rescheduleButton) {
             rescheduleButton.addEventListener('click', function() {
                 showGeneralEventRescheduleForm(generalEventModal);
             });
         }
 
-        [rescheduleForm, cancelForm].filter(Boolean).forEach(function(form) {
+        [rescheduleForm].filter(Boolean).forEach(function(form) {
             form.addEventListener('submit', function(e) {
                 e.preventDefault();
                 submitGeneralEventModalForm(form, refreshCalendarAfterLessonMutation);
@@ -8304,7 +8283,6 @@ document.addEventListener('DOMContentLoaded', function() {
             editUrl: '',
             rescheduleUrl: '',
             revertUrl: '',
-            destroyUrl: '',
         });
 
         delete copiedEvent.originalDate;

@@ -2068,8 +2068,7 @@ button.single-lesson-plan-create[selected] i {
 
 #reschedule-lesson,
 #cancel-lesson,
-#reschedule-general-event,
-#cancel-general-event {
+#reschedule-general-event {
     display: none;
 }
 
@@ -2113,12 +2112,6 @@ button.single-lesson-plan-create[selected] i {
 
 #calendar-event-modal[data-event-modal-type="general"].is-rescheduling {
     #reschedule-general-event {
-        display: block;
-    }
-}
-
-#calendar-event-modal[data-event-modal-type="general"].is-canceling {
-    #cancel-general-event {
         display: block;
     }
 }
