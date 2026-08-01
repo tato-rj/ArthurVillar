@@ -105,7 +105,7 @@ $(function() {
 
                         const name = textRenderer.display(data);
                         const icon = /^[a-z0-9-]+$/.test(row.event_type_icon || '')
-                            ? `<i class="fas fa-${row.event_type_icon} mr-2" opacity-4 aria-hidden="true"></i>`
+                            ? `<i class="fas fa-${row.event_type_icon} mr-2 opacity-4" aria-hidden="true"></i>`
                             : '';
 
                         return `${icon}${name}`;
