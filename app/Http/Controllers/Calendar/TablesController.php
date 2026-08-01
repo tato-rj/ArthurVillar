@@ -928,6 +928,16 @@ class TablesController extends Controller
             ]);
 
         return DataTables::eloquent($students)
+            ->addColumn('name', function (Student $student) {
+                return trim($student->first_name.' '.$student->last_name);
+            })
+            ->filterColumn('name', function ($query, $keyword) use ($driver) {
+                $nameExpression = $driver === 'sqlite'
+                    ? "students.first_name || ' ' || students.last_name"
+                    : "CONCAT(students.first_name, ' ', students.last_name)";
+
+                $query->whereRaw("{$nameExpression} LIKE ?", ["%{$keyword}%"]);
+            })
             ->editColumn('date_of_birth', function (Student $student) {
                 return $student->date_of_birth
                     ? carbon($student->date_of_birth)->format('m/d/Y')
@@ -972,8 +982,7 @@ class TablesController extends Controller
                     $query->where('students.is_adult', false);
                 }
             })
-            ->orderColumn('first_name', 'students.first_name $1, students.id $1')
-            ->orderColumn('last_name', 'students.last_name $1, students.id $1')
+            ->orderColumn('name', 'students.first_name $1, students.last_name $1, students.id $1')
             ->orderColumn('gender', 'students.gender $1, students.id $1')
             ->orderColumn('age', function ($query, $order) use ($driver) {
                 if ($driver === 'sqlite') {

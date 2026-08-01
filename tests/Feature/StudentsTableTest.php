@@ -37,6 +37,29 @@ class StudentsTableTest extends BaseTest
     }
 
     /** @test */
+    public function it_displays_and_sorts_the_combined_name_by_first_name()
+    {
+        Student::factory()->create(['first_name' => 'Zoe', 'last_name' => 'Able']);
+        Student::factory()->create(['first_name' => 'Amy', 'last_name' => 'Zed']);
+
+        $this->signIn();
+
+        $this->get(route('calendar.students.index'))
+            ->assertOk()
+            ->assertSee('<th>Name</th>', false)
+            ->assertDontSee('<th>First name</th>', false)
+            ->assertDontSee('<th>Last name</th>', false);
+
+        $rows = $this->json('GET', route('calendar.tables.students'), $this->studentTableRequest([
+            'order' => [
+                ['column' => 0, 'dir' => 'asc'],
+            ],
+        ]))->assertOk()->json('data');
+
+        $this->assertSame(['Amy Zed', 'Zoe Able'], collect($rows)->pluck('name')->all());
+    }
+
+    /** @test */
     public function it_shows_student_registrations_confirmed_unpaid_and_future_missed_lessons()
     {
         Carbon::setTestNow('2026-07-01 12:00:00');
@@ -205,7 +228,7 @@ class StudentsTableTest extends BaseTest
             'start' => 0,
             'length' => 6,
             'order' => [
-                ['column' => 2, 'dir' => 'asc'],
+                ['column' => 1, 'dir' => 'asc'],
             ],
         ]))->assertOk()->json('data');
 
@@ -215,8 +238,7 @@ class StudentsTableTest extends BaseTest
     private function studentTableColumns(): array
     {
         return collect([
-            'first_name',
-            'last_name',
+            'name',
             'gender',
             'age',
             'location',

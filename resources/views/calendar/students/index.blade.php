@@ -22,8 +22,7 @@
         <table id="students-table" class="display calendar-table">
             <thead>
                 <tr>
-                    <th>First name</th>
-                    <th>Last name</th>
+                    <th>Name</th>
                     <th>Gender</th>
                     <th>Age</th>
                     <th>Location</th>
@@ -77,8 +76,7 @@ $(function() {
         },
         ajax: @json(route('calendar.tables.students')),
         columns: [
-            {data: 'first_name', name: 'first_name'},
-            {data: 'last_name', name: 'last_name'},
+            {data: 'name', name: 'name'},
             {
                 data: 'gender',
                 name: 'gender',
