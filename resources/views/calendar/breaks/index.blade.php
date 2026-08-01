@@ -28,7 +28,7 @@
                     <th>Starts on</th>
                     <th>Ends on</th>
                     <th>Lessons missed</th>
-                    <th>Money missed</th>
+                    <th>Income missed</th>
                     <th>Actions</th>
                 </tr>
             </thead>
