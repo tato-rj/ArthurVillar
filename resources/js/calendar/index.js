@@ -2611,7 +2611,7 @@ const populateLessonModal = function(modal, event) {
         const canRevert = !!(event && (
             event.scheduleOverrideId
             || event.lessonId
-            || (event.earlyPaymentId && !canUseActions)
+            || event.earlyPaymentId
         )) || hasPendingVisualDrop;
 
         revert.toggleAttribute('data-pending-visual-drop', hasPendingVisualDrop);
@@ -4493,7 +4493,7 @@ const updateLessonModalState = function(modal, payload) {
         const canRevert = !!(event && (
             event.scheduleOverrideId
             || event.lessonId
-            || (event.earlyPaymentId && !canUseLessonActionButtons(event))
+            || event.earlyPaymentId
         ));
 
         revert.style.display = canRevert ? 'inline-flex' : 'none';

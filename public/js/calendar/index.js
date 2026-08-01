@@ -6594,7 +6594,7 @@ var populateLessonModal = function populateLessonModal(modal, event) {
   }
   if (revert) {
     var hasPendingVisualDrop = Boolean(modal.updatedScheduleItem && modal.updatedScheduleItem.hasAttribute('updated-event') && modal.updatedScheduleItem.scheduleOriginalPosition);
-    var canRevert = !!(event && (event.scheduleOverrideId || event.lessonId || event.earlyPaymentId && !canUseActions)) || hasPendingVisualDrop;
+    var canRevert = !!(event && (event.scheduleOverrideId || event.lessonId || event.earlyPaymentId)) || hasPendingVisualDrop;
     revert.toggleAttribute('data-pending-visual-drop', hasPendingVisualDrop);
     revert.style.display = canRevert ? 'inline-flex' : 'none';
     revert.disabled = !canRevert;
@@ -7983,7 +7983,7 @@ var updateLessonModalState = function updateLessonModalState(modal, payload) {
     event.earlyPaymentId = earlyPaymentId;
   }
   if (revert) {
-    var canRevert = !!(event && (event.scheduleOverrideId || event.lessonId || event.earlyPaymentId && !canUseLessonActionButtons(event)));
+    var canRevert = !!(event && (event.scheduleOverrideId || event.lessonId || event.earlyPaymentId));
     revert.style.display = canRevert ? 'inline-flex' : 'none';
     revert.disabled = !canRevert;
   }
