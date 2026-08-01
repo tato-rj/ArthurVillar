@@ -925,6 +925,17 @@ class TablesController extends Controller
                 'students.is_adult',
                 'students.date_of_birth',
                 'locations.name as location',
+            ])
+            ->withCount([
+                'lessons as paid_lessons_count' => function ($query) {
+                    $query->whereNotNull('paid_at')->whereNull('canceled_at');
+                },
+                'lessons as unpaid_lessons_count' => function ($query) {
+                    $query->whereNull('paid_at')->whereNull('canceled_at');
+                },
+                'lessons as canceled_lessons_count' => function ($query) {
+                    $query->whereNotNull('canceled_at');
+                },
             ]);
 
         return DataTables::eloquent($students)
@@ -996,6 +1007,9 @@ class TablesController extends Controller
                 $query->orderBy('students.id', $order);
             })
             ->orderColumn('location', 'location $1, students.id $1')
+            ->orderColumn('paid_lessons_count', 'paid_lessons_count $1, students.id $1')
+            ->orderColumn('unpaid_lessons_count', 'unpaid_lessons_count $1, students.id $1')
+            ->orderColumn('canceled_lessons_count', 'canceled_lessons_count $1, students.id $1')
             ->orderColumn('is_adult', 'students.is_adult $1, students.id $1')
             ->toJson();
     }

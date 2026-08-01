@@ -26,6 +26,9 @@
                     <th>Gender</th>
                     <th>Age</th>
                     <th>Location</th>
+                    <th>Paid</th>
+                    <th>Unpaid</th>
+                    <th>Canceled</th>
                     <th>Adult</th>
                     <th>Actions</th>
                 </tr>
@@ -97,6 +100,24 @@ $(function() {
                 render: function(data) {
                     return data || '';
                 },
+            },
+            {
+                data: 'paid_lessons_count',
+                name: 'paid_lessons_count',
+                searchable: false,
+                className: 'text-center text-green',
+            },
+            {
+                data: 'unpaid_lessons_count',
+                name: 'unpaid_lessons_count',
+                searchable: false,
+                className: 'text-center text-red',
+            },
+            {
+                data: 'canceled_lessons_count',
+                name: 'canceled_lessons_count',
+                searchable: false,
+                className: 'text-center text-muted',
             },
             {
                 data: 'is_adult',

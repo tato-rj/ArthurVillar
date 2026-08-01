@@ -60,6 +60,36 @@ class StudentsTableTest extends BaseTest
     }
 
     /** @test */
+    public function it_counts_paid_unpaid_and_canceled_lessons_for_each_student()
+    {
+        $student = Student::factory()->create(['first_name' => 'Lesson', 'last_name' => 'Counts']);
+        $lessonPlan = LessonPlan::factory()->student($student)->create();
+
+        Lesson::factory()->lessonPlan($lessonPlan)->create([
+            'paid_at' => now(),
+            'canceled_at' => null,
+        ]);
+        Lesson::factory()->lessonPlan($lessonPlan)->create([
+            'paid_at' => null,
+            'canceled_at' => null,
+        ]);
+        Lesson::factory()->lessonPlan($lessonPlan)->count(2)->create([
+            'canceled_at' => now(),
+        ]);
+
+        $this->signIn();
+
+        $row = collect($this->json('GET', route('calendar.tables.students'), $this->studentTableRequest())
+            ->assertOk()
+            ->json('data'))
+            ->firstWhere('name', 'Lesson Counts');
+
+        $this->assertSame(1, $row['paid_lessons_count']);
+        $this->assertSame(1, $row['unpaid_lessons_count']);
+        $this->assertSame(2, $row['canceled_lessons_count']);
+    }
+
+    /** @test */
     public function it_shows_student_registrations_confirmed_unpaid_and_future_missed_lessons()
     {
         Carbon::setTestNow('2026-07-01 12:00:00');
@@ -242,13 +272,21 @@ class StudentsTableTest extends BaseTest
             'gender',
             'age',
             'location',
+            'paid_lessons_count',
+            'unpaid_lessons_count',
+            'canceled_lessons_count',
             'is_adult',
             'actions',
         ])->map(function ($name) {
             return [
                 'data' => $name === 'actions' ? 'id' : $name,
                 'name' => $name,
-                'searchable' => $name === 'actions' ? 'false' : 'true',
+                'searchable' => in_array($name, [
+                    'actions',
+                    'paid_lessons_count',
+                    'unpaid_lessons_count',
+                    'canceled_lessons_count',
+                ], true) ? 'false' : 'true',
                 'orderable' => $name === 'actions' ? 'false' : 'true',
                 'search' => [
                     'value' => '',

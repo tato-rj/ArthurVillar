@@ -4593,6 +4593,7 @@ var state = {
   didAutoNowScroll: false,
   birthdayWindow: 5,
   calendarRenderMode: 'animated',
+  lessonActionAvailabilityTimer: null,
   scheduleWindowStart: null,
   pendingScheduleScrollTop: null,
   pendingScheduleHeaderPreview: null,
@@ -6435,6 +6436,10 @@ var resetLessonModalState = function resetLessonModalState(modal) {
     return;
   }
   resetLessonModalButtons(modal);
+  if (state.lessonActionAvailabilityTimer !== null) {
+    window.clearTimeout(state.lessonActionAvailabilityTimer);
+    state.lessonActionAvailabilityTimer = null;
+  }
   modal.classList.remove('is-canceling', 'is-rescheduling', 'is-drop-rescheduling');
   delete modal.dataset.dropRecurring;
   state.rescheduleAnchor = null;
@@ -6457,6 +6462,10 @@ var showLessonCancelForm = function showLessonCancelForm(modal) {
 var setCalendarEventModalType = function setCalendarEventModalType(modal, type) {
   if (!modal) {
     return;
+  }
+  if (type !== 'lesson' && state.lessonActionAvailabilityTimer !== null) {
+    window.clearTimeout(state.lessonActionAvailabilityTimer);
+    state.lessonActionAvailabilityTimer = null;
   }
   modal.dataset.eventModalType = type;
   modal.querySelectorAll('[data-event-modal-section]').forEach(function (section) {
@@ -6503,15 +6512,53 @@ var getEventEndDateTime = function getEventEndDateTime(event) {
   return isValidDate(date) ? date : null;
 };
 var canUseLessonActionButtons = function canUseLessonActionButtons(event) {
-  if (event && event.date) {
-    var eventDate = parseDateString(String(event.date).substring(0, 10));
-    var today = getTodayDate();
-    if (isValidDate(eventDate)) {
-      return eventDate <= today;
-    }
-  }
   var startsAt = getEventStartDateTime(event);
   return startsAt ? startsAt <= new Date() : false;
+};
+var updateLessonTimeDependentControls = function updateLessonTimeDependentControls(modal, event) {
+  var taught = modal.querySelector('#lesson-taught');
+  var confirmPayment = modal.querySelector('#confirm-payment');
+  var earlyPayment = modal.querySelector('#early-payment');
+  var hasLessonSource = !!(event && (event.lessonPlanId || event.singleLessonPlanId));
+  var canUseActions = canUseLessonActionButtons(event);
+  if (taught) {
+    preserveButtonLabel(taught);
+    taught.disabled = !event || !hasLessonSource;
+    taught.style.display = canUseActions ? '' : 'none';
+    restoreButtonLabel(taught);
+  }
+  if (confirmPayment) {
+    preserveButtonLabel(confirmPayment);
+    confirmPayment.style.display = canUseActions ? '' : 'none';
+    confirmPayment.dataset.url = event && event.paymentUrl ? event.paymentUrl : '';
+    restoreButtonLabel(confirmPayment);
+  }
+  if (earlyPayment) {
+    preserveButtonLabel(earlyPayment);
+    earlyPayment.disabled = !event || !hasLessonSource;
+    earlyPayment.style.display = event && !canUseActions && event.lessonStatus === 'unconfirmed' ? '' : 'none';
+    restoreButtonLabel(earlyPayment);
+  }
+};
+var _scheduleLessonActionAvailability = function scheduleLessonActionAvailability(modal, event) {
+  if (state.lessonActionAvailabilityTimer !== null) {
+    window.clearTimeout(state.lessonActionAvailabilityTimer);
+    state.lessonActionAvailabilityTimer = null;
+  }
+  var startsAt = getEventStartDateTime(event);
+  var delay = startsAt ? startsAt.getTime() - Date.now() : 0;
+  if (delay <= 0) {
+    return;
+  }
+  state.lessonActionAvailabilityTimer = window.setTimeout(function () {
+    state.lessonActionAvailabilityTimer = null;
+    if (modal.dataset.eventModalType === 'lesson' && modal.dataset.eventGuid === String(event.guid || '')) {
+      updateLessonTimeDependentControls(modal, event);
+      if (!canUseLessonActionButtons(event)) {
+        _scheduleLessonActionAvailability(modal, event);
+      }
+    }
+  }, Math.min(delay + 25, 2147483647));
 };
 var populateLessonModal = function populateLessonModal(modal, event) {
   var title = modal.querySelector('.modal-title');
@@ -6529,10 +6576,7 @@ var populateLessonModal = function populateLessonModal(modal, event) {
   var notesUrlLink = notesUrl ? notesUrl.querySelector('a') : null;
   var revert = modal.querySelector('#lesson-revert');
   var edit = modal.querySelector('#lesson-edit');
-  var taught = modal.querySelector('#lesson-taught');
   var cancelLesson = modal.querySelector('#cancel-lesson-button');
-  var confirmPayment = modal.querySelector('#confirm-payment');
-  var earlyPayment = modal.querySelector('#early-payment');
   var rescheduleOriginalDate = modal.querySelector('#reschedule-lesson-original-date');
   var rescheduleOriginalStartTime = modal.querySelector('#reschedule-lesson-original-start-time');
   var rescheduleDate = modal.querySelector('#reschedule-lesson-date');
@@ -6545,7 +6589,6 @@ var populateLessonModal = function populateLessonModal(modal, event) {
   var singleLessonPlanId = event && event.singleLessonPlanId ? event.singleLessonPlanId : '';
   var hasLessonSource = !!(lessonPlanId || singleLessonPlanId);
   var eventDate = event && event.date ? event.date.substring(0, 10) : todayString();
-  var canUseActions = canUseLessonActionButtons(event);
   renderLessonModalTitle(title, event);
   if (date) {
     date.textContent = event && event.date ? modalDateFormatter.format(parseDateString(event.date.substring(0, 10))) : '';
@@ -6604,30 +6647,13 @@ var populateLessonModal = function populateLessonModal(modal, event) {
     edit.style.display = edit.dataset.url ? 'inline-flex' : 'none';
     edit.disabled = !edit.dataset.url;
   }
-  if (taught) {
-    preserveButtonLabel(taught);
-    taught.disabled = !event || !hasLessonSource;
-    taught.style.display = canUseActions ? '' : 'none';
-    restoreButtonLabel(taught);
-  }
   if (cancelLesson) {
     preserveButtonLabel(cancelLesson);
     cancelLesson.disabled = !event || !hasLessonSource || event.lessonStatus === 'canceled';
     cancelLesson.style.display = hasLessonSource ? '' : 'none';
     restoreButtonLabel(cancelLesson);
   }
-  if (confirmPayment) {
-    preserveButtonLabel(confirmPayment);
-    confirmPayment.style.display = canUseActions ? '' : 'none';
-    confirmPayment.dataset.url = event && event.paymentUrl ? event.paymentUrl : '';
-    restoreButtonLabel(confirmPayment);
-  }
-  if (earlyPayment) {
-    preserveButtonLabel(earlyPayment);
-    earlyPayment.disabled = !event || !hasLessonSource;
-    earlyPayment.style.display = event && !canUseActions && event.lessonStatus === 'unconfirmed' ? '' : 'none';
-    restoreButtonLabel(earlyPayment);
-  }
+  updateLessonTimeDependentControls(modal, event);
   if (rescheduleOriginalDate) {
     rescheduleOriginalDate.value = event && event.originalDate ? event.originalDate : eventDate;
   }
@@ -6732,6 +6758,7 @@ var openLessonModal = function openLessonModal(event, options) {
     modal.dataset.originalDate = '';
     modal.dataset.originalStartTime = '';
   }
+  _scheduleLessonActionAvailability(modal, event);
   loadTravelRoute(modal, event, settings.scheduleItem || modal.updatedScheduleItem);
   if (window.bootstrap && window.bootstrap.Modal && typeof window.bootstrap.Modal.getOrCreateInstance === 'function') {
     window.bootstrap.Modal.getOrCreateInstance(modal).show();
