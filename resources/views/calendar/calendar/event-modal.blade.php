@@ -112,12 +112,12 @@
     <button
         type="button"
         class="rounded text-center btn w-100 btn-raw text-muted"
-        style="font-size: 78%"
+        style="font-size: 74%"
         data-event-modal-expand-toggle
         aria-expanded="false"
     >
         <i class="fas fa-expand mr-1" data-event-modal-expand-icon aria-hidden="true"></i>
-        <span data-event-modal-expand-label>MORE</span>
+        <span data-event-modal-expand-label>SHOW MORE</span>
     </button>
 </div>
 @endmodal
