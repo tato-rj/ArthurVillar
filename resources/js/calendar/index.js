@@ -7184,6 +7184,21 @@ document.addEventListener('DOMContentLoaded', function() {
             && window.matchMedia('(min-width: 768px)').matches;
     };
 
+    const navigateCalendarByArrow = function(direction) {
+        if (!direction || isScheduleHoldNavigationSuppressed()) {
+            return false;
+        }
+
+        if (useDesktopScheduleHeaderNavigation()) {
+            return navigateScheduleHeaderByArrow(direction);
+        }
+
+        move(direction);
+        render();
+
+        return true;
+    };
+
     const openCalendarSearch = function() {
         if (!calendarSearch) {
             return;
@@ -7582,31 +7597,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (previous) {
         previous.addEventListener('click', function() {
-            if (isScheduleHoldNavigationSuppressed()) {
-                return;
-            }
-
-            if (useDesktopScheduleHeaderNavigation() && navigateScheduleHeaderByArrow(-1)) {
-                return;
-            }
-
-            move(-1);
-            render();
+            navigateCalendarByArrow(-1);
         });
     }
 
     if (next) {
         next.addEventListener('click', function() {
-            if (isScheduleHoldNavigationSuppressed()) {
-                return;
-            }
-
-            if (useDesktopScheduleHeaderNavigation() && navigateScheduleHeaderByArrow(1)) {
-                return;
-            }
-
-            move(1);
-            render();
+            navigateCalendarByArrow(1);
         });
     }
 
@@ -8668,7 +8665,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        if (navigateScheduleHeaderByArrow(e.key === 'ArrowLeft' ? -1 : 1)) {
+        if (navigateCalendarByArrow(e.key === 'ArrowLeft' ? -1 : 1)) {
             e.preventDefault();
         }
     });
