@@ -52,7 +52,7 @@ class Event extends BaseModel
             'film' => 'Cinema',
             'dumbbell' => 'Gymn',
             'scissors' => 'Haircut',
-            'briefcase-medical' => 'Doctor',
+            'calendar-day' => 'Appointment',
         ];
     }
 

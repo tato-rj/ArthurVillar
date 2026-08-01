@@ -32032,20 +32032,20 @@ button.setting-undo:hover {
   white-space: pre-wrap;
 }
 
-.calendar-calendar-lesson-fade-in {
-  animation: calendar-calendar-lesson-fade-in 180ms ease-out var(--calendar-lesson-fade-delay, 0ms) both;
+.calendar-calendar-lesson-stagger-show {
+  animation: calendar-calendar-lesson-stagger-show 1ms step-end var(--calendar-lesson-show-delay, 0ms) both;
 }
 
-@keyframes calendar-calendar-lesson-fade-in {
+@keyframes calendar-calendar-lesson-stagger-show {
   from {
-    opacity: 0;
+    visibility: hidden;
   }
   to {
-    opacity: var(--calendar-lesson-fade-opacity, 1);
+    visibility: visible;
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .calendar-calendar-lesson-fade-in {
+  .calendar-calendar-lesson-stagger-show {
     animation: none;
   }
 }

@@ -1751,7 +1751,7 @@ const patchScheduleItems = function(calendar) {
 const animateCalendarLessonItems = function(calendar) {
     if (state.calendarRenderMode === 'discreet') {
         calendar.querySelectorAll('.lm-schedule-item, .calendar-month-event, .calendar-schedule-event').forEach(function(item) {
-            item.dataset.lessonFadeAnimated = 'true';
+            item.dataset.lessonStaggerShown = 'true';
         });
         return;
     }
@@ -1763,18 +1763,16 @@ const animateCalendarLessonItems = function(calendar) {
 
     const nonLessonStatuses = ['holiday', 'teaching-break', 'recital'];
     const lessonItems = Array.from(calendar.querySelectorAll('.lm-schedule-item, .calendar-month-event, .calendar-schedule-event')).filter(function(item) {
-        return !nonLessonStatuses.includes(item.dataset.lessonStatus || '') && item.dataset.lessonFadeAnimated !== 'true';
+        return !nonLessonStatuses.includes(item.dataset.lessonStatus || '') && item.dataset.lessonStaggerShown !== 'true';
     });
 
     lessonItems.forEach(function(item, index) {
-        item.dataset.lessonFadeAnimated = 'true';
-        item.style.setProperty('--calendar-lesson-fade-delay', `${index * 30}ms`);
-        item.style.setProperty('--calendar-lesson-fade-opacity', window.getComputedStyle(item).opacity || '1');
-        item.classList.add('calendar-calendar-lesson-fade-in');
+        item.dataset.lessonStaggerShown = 'true';
+        item.style.setProperty('--calendar-lesson-show-delay', `${index * 30}ms`);
+        item.classList.add('calendar-calendar-lesson-stagger-show');
         item.addEventListener('animationend', function() {
-            item.classList.remove('calendar-calendar-lesson-fade-in');
-            item.style.removeProperty('--calendar-lesson-fade-delay');
-            item.style.removeProperty('--calendar-lesson-fade-opacity');
+            item.classList.remove('calendar-calendar-lesson-stagger-show');
+            item.style.removeProperty('--calendar-lesson-show-delay');
         }, { once: true });
     });
 };
