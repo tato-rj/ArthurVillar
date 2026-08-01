@@ -32033,7 +32033,7 @@ button.setting-undo:hover {
 }
 
 .calendar-calendar-heartbeat-once {
-  animation-duration: 0.5s;
+  animation-duration: 0.4s;
   animation-name: calendar-calendar-heartbeat-once;
 }
 
@@ -32042,7 +32042,7 @@ button.setting-undo:hover {
     transform: scale(1);
   }
   35% {
-    transform: scale(1.2);
+    transform: scale(1.1);
   }
 }
 .calendar-schedule-event-title,
