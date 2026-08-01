@@ -45,6 +45,7 @@ class Event extends BaseModel
     {
         return [
             'users' => 'Meeting',
+            'school' => 'Work',
             'handshake' => 'Trial lesson',
             'masks-theater' => 'Theater',
             'ticket' => 'Concert',
