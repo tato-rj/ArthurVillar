@@ -321,6 +321,7 @@ class EventTest extends BaseTest
             ->assertSee('events-table', false)
             ->assertDontSee('js-revert-canceled-event', false)
             ->assertSee('Delete event')
+            ->assertDontSee('<th>Status</th>', false)
             ->assertSee('<th>Actions</th>', false);
 
         $rows = collect($this->getJson(route('calendar.tables.events'))->assertOk()->json('data'));

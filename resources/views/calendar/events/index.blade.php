@@ -33,7 +33,6 @@
                     <th>Starts</th>
                     <th>Ends</th>
                     <th>Type</th>
-                    <th>Status</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -114,13 +113,6 @@ $(function() {
                 {data: 'starts_at', name: 'starts_at', render: function(data, type) { return type === 'display' ? formatTime(data) : data; }},
                 {data: 'ends_at', name: 'ends_at', render: function(data, type) { return type === 'display' ? formatTime(data) : data; }},
                 {data: 'type', name: 'type', defaultContent: ''},
-                {
-                    data: 'status',
-                    name: 'status',
-                    render: function(data) {
-                        return `<span class="${data === 'Canceled' ? 'text-light' : 'text-green'}">${data}</span>`;
-                    },
-                },
                 {
                     data: 'id', name: 'actions', orderable: false, searchable: false, className: 'text-right',
                     render: function(data) {

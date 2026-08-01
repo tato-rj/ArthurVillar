@@ -97,7 +97,11 @@ $(function() {
                 data: 'response_status', name: 'response_status', defaultContent: '',
                 render: function(data, type) {
                     const status = formatStatus(data);
-                    return type === 'display' ? textRenderer.display(status) : status;
+
+                    if (type !== 'display') return status;
+
+                    const color = status === 'Accepted' ? 'text-green' : 'text-muted';
+                    return `<span class="${color}">${textRenderer.display(status)}</span>`;
                 },
             },
         ],

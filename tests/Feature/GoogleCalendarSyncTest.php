@@ -453,6 +453,8 @@ class GoogleCalendarSyncTest extends BaseTest
             ->assertSee('Google Events')
             ->assertSee('google-events-table', false)
             ->assertSee('tables\\/google-events', false)
+            ->assertSee('<th>Response</th>', false)
+            ->assertSee("status === 'Accepted' ? 'text-green' : 'text-muted'", false)
             ->assertDontSee('aria-label="Event source"', false)
             ->assertDontSee('New event')
             ->assertDontSee('create-event-modal', false);
