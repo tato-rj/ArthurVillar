@@ -5956,6 +5956,15 @@ var animateCalendarLessonItems = function animateCalendarLessonItems(calendar) {
       item.classList.remove('calendar-calendar-lesson-fade-in');
       item.style.removeProperty('--calendar-lesson-fade-delay');
       item.style.removeProperty('--calendar-lesson-fade-opacity');
+
+      // Run Animate.css after the fade so its animation declaration does not
+      // override the staggered entrance animation above.
+      item.classList.add('animate__animated', 'animate__heartBeat');
+      item.addEventListener('animationend', function () {
+        item.classList.remove('animate__animated', 'animate__heartBeat');
+      }, {
+        once: true
+      });
     }, {
       once: true
     });
