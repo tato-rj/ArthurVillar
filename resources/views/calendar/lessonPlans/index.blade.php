@@ -37,44 +37,44 @@
             'placeholder' => 'Filter by plan date range',
         ])
 
-        <div class="calendar-date-range dropdown" id="lesson-plans-row-filters">
-            <button
-                type="button"
-                class="calendar-date-range-toggle"
-                data-bs-toggle="dropdown"
-                data-bs-auto-close="outside"
-                aria-expanded="false">
-                @fa(['icon' => 'filter', 'mr' => 0])
-                <span>Filter plans</span>
-                @fa(['icon' => 'angle-down', 'mr' => 0])
-            </button>
-
-            <div class="dropdown-menu p-3">
-                <div class="small fw-bold opacity-4 mb-2">STATUS</div>
-
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="active" id="lesson-plan-status-active" data-lesson-plan-status-filter @checked($selectedPlanStatuses->contains('active'))>
-                    <label class="form-check-label" for="lesson-plan-status-active">Active plans</label>
-                </div>
-
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="inactive" id="lesson-plan-status-inactive" data-lesson-plan-status-filter @checked($selectedPlanStatuses->contains('inactive'))>
-                    <label class="form-check-label" for="lesson-plan-status-inactive">Inactive plans</label>
-                </div>
-
-                <div class="small fw-bold opacity-4 mt-3 mb-2">TYPE</div>
-
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="recurring" id="lesson-plan-type-recurring" data-lesson-plan-type-filter @checked($selectedPlanTypes->contains('recurring'))>
-                    <label class="form-check-label" for="lesson-plan-type-recurring">Recurring lessons</label>
-                </div>
-
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="single" id="lesson-plan-type-single" data-lesson-plan-type-filter @checked($selectedPlanTypes->contains('single'))>
-                    <label class="form-check-label" for="lesson-plan-type-single">Single lessons</label>
-                </div>
-            </div>
-        </div>
+        @tablefilter([
+            'id' => 'lesson-plans-row-filters',
+            'placeholder' => 'Filter plans',
+            'groups' => [
+                'Status' => [
+                    [
+                        'id' => 'lesson-plan-status-active',
+                        'label' => 'Active plans',
+                        'value' => 'active',
+                        'checked' => $selectedPlanStatuses->contains('active'),
+                        'attributes' => ['data-lesson-plan-status-filter' => ''],
+                    ],
+                    [
+                        'id' => 'lesson-plan-status-inactive',
+                        'label' => 'Inactive plans',
+                        'value' => 'inactive',
+                        'checked' => $selectedPlanStatuses->contains('inactive'),
+                        'attributes' => ['data-lesson-plan-status-filter' => ''],
+                    ],
+                ],
+                'Type' => [
+                    [
+                        'id' => 'lesson-plan-type-recurring',
+                        'label' => 'Recurring lessons',
+                        'value' => 'recurring',
+                        'checked' => $selectedPlanTypes->contains('recurring'),
+                        'attributes' => ['data-lesson-plan-type-filter' => ''],
+                    ],
+                    [
+                        'id' => 'lesson-plan-type-single',
+                        'label' => 'Single lessons',
+                        'value' => 'single',
+                        'checked' => $selectedPlanTypes->contains('single'),
+                        'attributes' => ['data-lesson-plan-type-filter' => ''],
+                    ],
+                ],
+            ],
+        ])
     </div>
 
     <div id="lesson-plans-container" class="calendar-table-container calendar-table-container-lg">

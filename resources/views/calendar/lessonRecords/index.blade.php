@@ -28,37 +28,35 @@
             'placeholder' => 'Filter by lesson date',
         ])
 
-        <div class="calendar-date-range dropdown" id="lesson-records-row-filters">
-            <button
-                type="button"
-                class="calendar-date-range-toggle"
-                data-bs-toggle="dropdown"
-                data-bs-auto-close="outside"
-                aria-expanded="false">
-                @fa(['icon' => 'filter', 'mr' => 0])
-                <span>Filter records</span>
-                @fa(['icon' => 'angle-down', 'mr' => 0])
-            </button>
-
-            <div class="dropdown-menu p-3">
-                <div class="small fw-bold opacity-4 mb-2">STATUS</div>
-
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="paid" id="lesson-record-status-paid" data-lesson-record-status-filter @checked($selectedRecordStatuses->contains('paid'))>
-                    <label class="form-check-label" for="lesson-record-status-paid">Paid lessons</label>
-                </div>
-
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="unpaid" id="lesson-record-status-unpaid" data-lesson-record-status-filter @checked($selectedRecordStatuses->contains('unpaid'))>
-                    <label class="form-check-label" for="lesson-record-status-unpaid">Unpaid lessons</label>
-                </div>
-
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="canceled" id="lesson-record-status-canceled" data-lesson-record-status-filter @checked($selectedRecordStatuses->contains('canceled'))>
-                    <label class="form-check-label" for="lesson-record-status-canceled">Canceled lessons</label>
-                </div>
-            </div>
-        </div>
+        @tablefilter([
+            'id' => 'lesson-records-row-filters',
+            'placeholder' => 'Filter records',
+            'groups' => [
+                'Status' => [
+                    [
+                        'id' => 'lesson-record-status-paid',
+                        'label' => 'Paid lessons',
+                        'value' => 'paid',
+                        'checked' => $selectedRecordStatuses->contains('paid'),
+                        'attributes' => ['data-lesson-record-status-filter' => ''],
+                    ],
+                    [
+                        'id' => 'lesson-record-status-unpaid',
+                        'label' => 'Unpaid lessons',
+                        'value' => 'unpaid',
+                        'checked' => $selectedRecordStatuses->contains('unpaid'),
+                        'attributes' => ['data-lesson-record-status-filter' => ''],
+                    ],
+                    [
+                        'id' => 'lesson-record-status-canceled',
+                        'label' => 'Canceled lessons',
+                        'value' => 'canceled',
+                        'checked' => $selectedRecordStatuses->contains('canceled'),
+                        'attributes' => ['data-lesson-record-status-filter' => ''],
+                    ],
+                ],
+            ],
+        ])
     </div>
 
     <div id="lesson-records-container" class="calendar-table-container calendar-table-container-lg">
@@ -77,6 +75,21 @@
                 </tr>
             </thead>
         </table>
+
+        <div class="border rounded mt-3" id="lesson-records-totals" aria-live="polite">
+            <div class="d-flex align-items-center justify-content-between border-bottom px-3 py-2" data-lesson-record-total="paid">
+                <span>Total paid</span>
+                <strong class="text-green" data-lesson-record-total-amount>$0</strong>
+            </div>
+            <div class="d-flex align-items-center justify-content-between border-bottom px-3 py-2" data-lesson-record-total="unpaid">
+                <span>Total unpaid</span>
+                <strong class="text-red" data-lesson-record-total-amount>$0</strong>
+            </div>
+            <div class="d-flex align-items-center justify-content-between px-3 py-2" data-lesson-record-total="canceled">
+                <span>Total canceled</span>
+                <strong class="text-light" data-lesson-record-total-amount>$0</strong>
+            </div>
+        </div>
     </div>
 </section>
 @endsection
@@ -138,6 +151,52 @@ $(function() {
         }).format(cents / 100);
     };
 
+    const formatTotal = function(value) {
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2,
+        }).format(Number(value || 0) / 100);
+    };
+
+    const updateLessonRecordTotals = function(table) {
+        const totals = {
+            paid: 0,
+            unpaid: 0,
+            canceled: 0,
+        };
+
+        table.rows({page: 'current'}).data().each(function(row) {
+            const status = row.status === 'Confirmed'
+                ? 'paid'
+                : String(row.status || '').toLowerCase();
+
+            if (Object.prototype.hasOwnProperty.call(totals, status)) {
+                totals[status] += Number(row.fee_amount || 0);
+            }
+        });
+
+        const enabledStatuses = new Set(
+            Array.from(document.querySelectorAll('[data-lesson-record-status-filter]:checked'))
+                .map(function(input) {
+                    return input.value;
+                })
+        );
+
+        document.querySelector('#lesson-records-totals').hidden = enabledStatuses.size === 0;
+
+        document.querySelectorAll('[data-lesson-record-total]').forEach(function(totalRow) {
+            const status = totalRow.dataset.lessonRecordTotal;
+            if (enabledStatuses.has(status)) {
+                totalRow.style.removeProperty('display');
+            } else {
+                totalRow.style.setProperty('display', 'none', 'important');
+            }
+            totalRow.querySelector('[data-lesson-record-total-amount]').textContent = formatTotal(totals[status]);
+        });
+    };
+
     const formatTime = function(value) {
         if (!value) {
             return '';
@@ -180,7 +239,10 @@ $(function() {
         serverSide: true,
         autoWidth: false,
         scrollX: true,
-        drawCallback: initializePaymentPopovers,
+        drawCallback: function() {
+            initializePaymentPopovers();
+            updateLessonRecordTotals(this.api());
+        },
         language: {
             search: '',
             searchPlaceholder: 'Search',
@@ -317,6 +379,7 @@ $(function() {
     });
 
     $('#lesson-records-row-filters').on('change', 'input[type="checkbox"]', function() {
+        updateLessonRecordTotals(lessonRecordsTable);
         lessonRecordsTable.ajax.reload(null, true);
     });
 

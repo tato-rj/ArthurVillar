@@ -144,5 +144,6 @@ class AppServiceProvider extends ServiceProvider
         \Blade::include('components.pagetitle');
         \Blade::include('components.cropper');
         \Blade::include('components.date-range', 'daterange');
+        \Blade::include('components.table-filter', 'tablefilter');
     }
 }
