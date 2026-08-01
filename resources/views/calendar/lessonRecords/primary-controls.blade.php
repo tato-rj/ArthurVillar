@@ -4,7 +4,7 @@
 	</button>
 
 	<div id="lesson-attendance">
-		<button id="lesson-taught" data-url="{{route('calendar.lessons.store')}}" type="button" class="btn btn-primary w-100 mb-2">
+		<button id="lesson-taught" data-url="{{route('calendar.lessons.store')}}" type="button" class="btn btn-primary w-100">
 			@fa(['icon' => 'calendar-check'])Lesson taught
 		</button>
 	</div>
