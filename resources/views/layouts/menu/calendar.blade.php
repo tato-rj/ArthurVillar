@@ -16,7 +16,13 @@
         'calendar.lesson-records.index' => 'Records',
       ]
     ],
-    'calendar.events.index' => 'Events',
+    [
+      'label' => 'Events',
+      'children' => [
+        'calendar.events.index' => 'My events',
+        'calendar.events.google' => 'Google events',
+      ]
+    ],
     'calendar.waiting-list.index' => 'Waiting list*',
     'calendar.recitals.index' => 'Recitals',
     'calendar.locations.index' => 'Locations*',

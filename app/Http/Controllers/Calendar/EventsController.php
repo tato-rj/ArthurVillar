@@ -11,14 +11,16 @@ class EventsController extends Controller
 {
     public function index()
     {
-        $source = request('source') === 'google' ? 'google' : 'general';
+        $source = 'general';
 
         return view('calendar.events.combined', compact('source'));
     }
 
     public function google()
     {
-        return redirect()->route('calendar.events.index', ['source' => 'google']);
+        $source = 'google';
+
+        return view('calendar.events.combined', compact('source'));
     }
 
     public function store(Request $request)

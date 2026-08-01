@@ -18,9 +18,11 @@ class EventTest extends BaseTest
 
         $this->get(route('calendar.events.index'))
             ->assertOk()
+            ->assertSee('My Events')
             ->assertSee('New event')
             ->assertSee('events-table', false)
             ->assertSee('create-event-modal', false)
+            ->assertDontSee('aria-label="Event source"', false)
             ->assertDontSee('<th>Notes</th>', false)
             ->assertDontSee('type="time"', false)
             ->assertSee('name="starts_at"', false)
@@ -34,6 +36,12 @@ class EventTest extends BaseTest
             ->assertSee('value="09:15"', false)
             ->assertSee('value="09:30"', false)
             ->assertSee('value="09:45"', false);
+
+        $this->get(route('calendar.events.index', ['source' => 'google']))
+            ->assertOk()
+            ->assertSee('events-table', false)
+            ->assertDontSee('google-events-table', false)
+            ->assertDontSee('aria-label="Event source"', false);
     }
 
     /** @test */

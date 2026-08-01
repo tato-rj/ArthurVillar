@@ -449,13 +449,11 @@ class GoogleCalendarSyncTest extends BaseTest
         $this->signIn();
 
         $this->get(route('calendar.events.google'))
-            ->assertRedirect(route('calendar.events.index', ['source' => 'google']));
-
-        $this->get(route('calendar.events.index', ['source' => 'google']))
             ->assertOk()
-            ->assertSee('Events')
+            ->assertSee('Google Events')
             ->assertSee('google-events-table', false)
             ->assertSee('tables\\/google-events', false)
+            ->assertDontSee('aria-label="Event source"', false)
             ->assertDontSee('New event')
             ->assertDontSee('create-event-modal', false);
     }

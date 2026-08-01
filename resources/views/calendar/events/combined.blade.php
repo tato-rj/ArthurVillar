@@ -1,4 +1,4 @@
-@extends('layouts.app', ['title' => 'Events'])
+@extends('layouts.app', ['title' => $source === 'general' ? 'My Events' : 'Google Events'])
 
 @push('header')
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
@@ -6,31 +6,20 @@
 
 @section('content')
 <section class="container py-5">
-    {{ Breadcrumbs::render('calendar.events.index') }}
+    {{ Breadcrumbs::render($source === 'general' ? 'calendar.events.index' : 'calendar.events.google') }}
 
     <div class="row mb-4">
         @pagetitle([
-            'label' => 'Events',
-            'subtitle' => 'Your events and imported Google Calendar events in one place.',
+            'label' => $source === 'general' ? 'My Events' : 'Google Events',
+            'subtitle' => $source === 'general'
+                ? 'Events you created in this calendar.'
+                : 'Events imported from your connected Google Calendars.',
             'modal' => $source === 'general' ? [
                 'target' => '#create-event-modal',
                 'icon' => 'plus',
                 'label' => 'New event'
             ] : null
         ])
-    </div>
-
-    <div class="d-flex justify-content-center mb-4">
-        <div class="btn-group" role="group" aria-label="Event source">
-            <a class="btn {{$source === 'general' ? 'btn-secondary' : 'btn-outline-secondary'}}"
-               href="{{route('calendar.events.index', ['source' => 'general'])}}">
-                @fa(['icon' => 'calendar-day'])My events
-            </a>
-            <a class="btn {{$source === 'google' ? 'btn-secondary' : 'btn-outline-secondary'}}"
-               href="{{route('calendar.events.index', ['source' => 'google'])}}">
-                @fa(['icon' => 'google', 'fa_type' => '-brands'])Google
-            </a>
-        </div>
     </div>
 
     @if($source === 'general')
@@ -182,7 +171,6 @@ $(function() {
             },
             extraParams: function() {
                 return {
-                    source: 'general',
                     scheduled_from: $('#events-scheduled-from').val(),
                     scheduled_to: $('#events-scheduled-to').val(),
                 };
@@ -284,10 +272,6 @@ $(function() {
                     },
                 },
             ],
-        }, {
-            extraParams: function() {
-                return {source: 'google'};
-            },
         });
     @endif
 });
