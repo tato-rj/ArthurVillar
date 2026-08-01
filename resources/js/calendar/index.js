@@ -271,6 +271,7 @@ const startCalendarLoadingProgress = function(fetchId) {
     state.loadingBarProgress = 0;
     bar.hidden = false;
     bar.style.transition = 'none';
+    bar.style.opacity = '1';
     bar.style.width = '0%';
     void bar.offsetWidth;
     bar.style.transition = 'width 180ms ease-out';
@@ -301,6 +302,7 @@ const finishCalendarLoadingProgress = function(fetchId) {
         state.loadingBarTimer = null;
     }
 
+    bar.style.opacity = '1';
     bar.style.transition = 'width 140ms ease-out';
     setCalendarLoadingProgress(fetchId, 100);
     state.loadingBarHideTimer = window.setTimeout(function() {
@@ -308,13 +310,22 @@ const finishCalendarLoadingProgress = function(fetchId) {
             return;
         }
 
-        bar.hidden = true;
-        bar.style.transition = 'none';
-        bar.style.width = '0%';
-        state.loadingBarProgress = 0;
-        state.loadingBarFetchId = null;
-        state.loadingBarHideTimer = null;
-    }, 180);
+        bar.style.transition = 'opacity 240ms ease-out';
+        bar.style.opacity = '0';
+        state.loadingBarHideTimer = window.setTimeout(function() {
+            if (state.loadingBarFetchId !== fetchId) {
+                return;
+            }
+
+            bar.hidden = true;
+            bar.style.transition = 'none';
+            bar.style.opacity = '1';
+            bar.style.width = '0%';
+            state.loadingBarProgress = 0;
+            state.loadingBarFetchId = null;
+            state.loadingBarHideTimer = null;
+        }, 260);
+    }, 160);
 };
 
 const readCalendarJsonResponse = function(response, fetchId) {
