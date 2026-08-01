@@ -107,7 +107,9 @@ $(function() {
                 searchable: false,
                 className: 'text-center',
                 render: function(data, type) {
-                    return type === 'display' ? `<span class="text-green">${data}</span>` : data;
+                    return type === 'display' && Number(data) !== 0
+                        ? `<span class="text-green">${data}</span>`
+                        : data;
                 },
             },
             {
@@ -116,7 +118,9 @@ $(function() {
                 searchable: false,
                 className: 'text-center',
                 render: function(data, type) {
-                    return type === 'display' ? `<span class="text-red">${data}</span>` : data;
+                    return type === 'display' && Number(data) !== 0
+                        ? `<span class="text-red">${data}</span>`
+                        : data;
                 },
             },
             {
@@ -125,7 +129,9 @@ $(function() {
                 searchable: false,
                 className: 'text-center',
                 render: function(data, type) {
-                    return type === 'display' ? `<span class="text-muted">${data}</span>` : data;
+                    return type === 'display' && Number(data) !== 0
+                        ? `<span class="text-light">${data}</span>`
+                        : data;
                 },
             },
             {
