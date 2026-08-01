@@ -24,7 +24,7 @@
                 <span data-lesson-record-total-divider> · </span>Total unpaid <span class="text-red" data-lesson-record-total-amount>$0</span>
             </span>
             <span data-lesson-record-total="canceled">
-                <span data-lesson-record-total-divider> · </span>Total canceled <span class="text-muted" data-lesson-record-total-amount>$0</span>
+                <span data-lesson-record-total-divider> · </span>Total canceled <span class="text-light" data-lesson-record-total-amount>$0</span>
             </span>
         </div>
         @endslot
