@@ -37,13 +37,14 @@ const state = {
     calendarFetchId: 0,
     didAutoNowScroll: false,
     birthdayWindow: 5,
-    suppressNextScheduleAnimation: false,
+    calendarRenderMode: 'animated',
     scheduleWindowStart: null,
     pendingScheduleScrollTop: null,
     pendingScheduleHeaderPreview: null,
     travelRouteCache: new Map(),
     travelRouteRequests: new Map(),
     scheduleTravelAnimations: new WeakMap(),
+    activeRequestControllers: new Set(),
 };
 
 const calendarTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/New_York';
@@ -80,6 +81,8 @@ const monthVisibleEventLimit = 3;
 const travelArrivalBufferMinutes = 5;
 const sidebarHiddenQuery = '(max-width: 1000px)';
 const dayMilliseconds = 24 * 60 * 60 * 1000;
+const calendarRequestTimeoutMilliseconds = 20 * 1000;
+const calendarStaleAfterMilliseconds = 5 * 60 * 1000;
 
 const scheduleGridViews = ['day', '2-days', 'week'];
 const calendarEventTypes = ['recurring', 'single', 'general', 'google', 'canceled'];
@@ -227,6 +230,44 @@ const isRangeLoaded = function(range) {
     return getRangeKey(state.loadedRange) === getRangeKey(range);
 };
 
+const fetchCalendarResource = function(url, options) {
+    if (typeof AbortController !== 'function') {
+        return fetch(url, options);
+    }
+
+    const controller = new AbortController();
+    const requestOptions = Object.assign({}, options || {}, {
+        signal: controller.signal,
+    });
+    let didTimeout = false;
+    const timeout = window.setTimeout(function() {
+        didTimeout = true;
+        controller.abort();
+    }, calendarRequestTimeoutMilliseconds);
+
+    state.activeRequestControllers.add(controller);
+
+    return fetch(url, requestOptions)
+        .catch(function(error) {
+            if (didTimeout) {
+                throw new Error('The request timed out. Please try again.');
+            }
+
+            throw error;
+        })
+        .finally(function() {
+            window.clearTimeout(timeout);
+            state.activeRequestControllers.delete(controller);
+        });
+};
+
+const cancelPendingCalendarRequests = function() {
+    state.activeRequestControllers.forEach(function(controller) {
+        controller.abort();
+    });
+    state.activeRequestControllers.clear();
+};
+
 const getTodayDate = function() {
     const now = new Date();
 
@@ -326,7 +367,7 @@ const fetchPlannedLessons = function(range) {
 
     const fetchId = state.calendarFetchId;
 
-    return fetch(url, {
+    return fetchCalendarResource(url, {
         headers: {
             Accept: 'application/json',
         },
@@ -1708,11 +1749,10 @@ const patchScheduleItems = function(calendar) {
 };
 
 const animateCalendarLessonItems = function(calendar) {
-    if (state.suppressNextScheduleAnimation) {
+    if (state.calendarRenderMode === 'discreet') {
         calendar.querySelectorAll('.lm-schedule-item, .calendar-month-event, .calendar-schedule-event').forEach(function(item) {
             item.dataset.lessonFadeAnimated = 'true';
         });
-        state.suppressNextScheduleAnimation = false;
         return;
     }
 
@@ -2182,7 +2222,7 @@ const getResponseErrorMessage = function(payload, fallback) {
 };
 
 const requestJson = function(url, options, fallbackError) {
-    return fetch(url, options).then(function(response) {
+    return fetchCalendarResource(url, options).then(function(response) {
         return response.json().catch(function() {
             return {};
         }).then(function(payload) {
@@ -3653,7 +3693,8 @@ const renderScheduleItemTravel = function(item, event, route, cacheKey, options)
         item.dataset.travelRouteState = 'shown';
     }
 
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (state.calendarRenderMode === 'discreet'
+        || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         extension.style.height = `${extensionHeight}px`;
         extension.style.minHeight = '';
         extension.style.opacity = '.7';
@@ -5924,7 +5965,7 @@ const loadCalendarEditModal = function(button, sourceModal, container) {
 
     button.disabled = true;
 
-    fetch(url, {
+    fetchCalendarResource(url, {
         headers: {
             'Accept': 'text/html',
             'X-Requested-With': 'XMLHttpRequest',
@@ -7157,7 +7198,6 @@ document.addEventListener('DOMContentLoaded', function() {
             state.scheduleWindowStart = cloneDate(nextStart);
         }
         state.didAutoNowScroll = true;
-        state.suppressNextScheduleAnimation = true;
         window.clearTimeout(scheduleHeaderRenderTimer);
         scheduleHeaderRenderTimer = window.setTimeout(function() {
             scheduleHeaderRenderTimer = null;
@@ -7203,6 +7243,10 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     const closeCalendarSearch = function() {
+        if (studentSearch && studentSearch.value.trim() !== '') {
+            return;
+        }
+
         if (calendarSearch) {
             calendarSearch.removeAttribute('selected');
         }
@@ -7414,7 +7458,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     };
 
-    const render = function() {
+    const render = function(options) {
+        const renderMode = options && options.mode === 'discreet' ? 'discreet' : 'animated';
+
+        state.calendarRenderMode = renderMode;
+
         if (scheduleHeaderRenderTimer !== null) {
             window.clearTimeout(scheduleHeaderRenderTimer);
             scheduleHeaderRenderTimer = null;
@@ -7429,7 +7477,7 @@ document.addEventListener('DOMContentLoaded', function() {
             calendar.classList.add('calendar-schedule-range-transitioning');
             fetchPlannedLessons(visibleRange).then(function() {
                 if (isRangeLoaded(getVisibleDateRange())) {
-                    render();
+                    render({ mode: renderMode });
                 }
             });
 
@@ -7557,8 +7605,7 @@ document.addEventListener('DOMContentLoaded', function() {
         state.pendingRangeKey = null;
 
         return fetchPlannedLessons(visibleRange).then(function() {
-            state.suppressNextScheduleAnimation = true;
-            render();
+            render({ mode: 'discreet' });
 
             requestAnimationFrame(function() {
                 const refreshedSchedule = calendar.querySelector('.lm-schedule');
@@ -7569,6 +7616,81 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
         });
+    };
+
+    let calendarInactiveAt = document.hidden ? Date.now() : null;
+    let staleCalendarRecovery = null;
+
+    const unlockCalendarMutationForms = function() {
+        document.querySelectorAll('#calendar-event-modal form, #calendar-edit-modal-container form').forEach(function(form) {
+            setFormSubmitting(form, false);
+        });
+    };
+
+    const markCalendarInactive = function() {
+        if (calendarInactiveAt === null) {
+            calendarInactiveAt = Date.now();
+        }
+    };
+
+    const recoverStaleCalendar = function(force) {
+        const inactiveAt = calendarInactiveAt;
+
+        calendarInactiveAt = null;
+
+        if (!force && (inactiveAt === null || Date.now() - inactiveAt < calendarStaleAfterMilliseconds)) {
+            return Promise.resolve();
+        }
+
+        if (staleCalendarRecovery) {
+            return staleCalendarRecovery;
+        }
+
+        const eventModalWasOpen = Boolean(calendarEventModal && calendarEventModal.classList.contains('show'));
+        const eventGuid = eventModalWasOpen ? calendarEventModal.dataset.eventGuid : '';
+        const eventModalType = eventModalWasOpen ? calendarEventModal.dataset.eventModalType : '';
+
+        state.calendarFetchId += 1;
+        state.loadedRange = null;
+        state.pendingRangeKey = null;
+        cancelPendingCalendarRequests();
+        unlockCalendarMutationForms();
+
+        if (eventModalWasOpen) {
+            resetLessonModalButtons(calendarEventModal);
+        }
+
+        staleCalendarRecovery = refreshCalendarAfterLessonMutation()
+            .then(function() {
+                if (!eventModalWasOpen || !eventGuid) {
+                    return;
+                }
+
+                const refreshedEvent = getEventByGuid(eventGuid);
+
+                if (!refreshedEvent) {
+                    hideBootstrapModal(calendarEventModal);
+                    return;
+                }
+
+                if (eventModalType === 'general' || refreshedEvent.isGeneralEvent) {
+                    openGeneralEventModal(refreshedEvent);
+                    return;
+                }
+
+                openLessonModal(refreshedEvent);
+            })
+            .catch(function(error) {
+                if (error && error.name !== 'AbortError') {
+                    console.error('Unable to refresh the calendar after inactivity.', error);
+                }
+            })
+            .finally(function() {
+                unlockCalendarMutationForms();
+                staleCalendarRecovery = null;
+            });
+
+        return staleCalendarRecovery;
     };
 
     if (today) {
@@ -8876,11 +8998,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.addEventListener('visibilitychange', function() {
         if (document.hidden) {
+            markCalendarInactive();
             stopSchedulePointerClock();
             return;
         }
 
         updateSchedulePointerClock();
+        recoverStaleCalendar(false);
+    });
+
+    window.addEventListener('pagehide', markCalendarInactive);
+    window.addEventListener('pageshow', function(event) {
+        recoverStaleCalendar(Boolean(event.persisted));
     });
 
     updateSchedulePointerClock();

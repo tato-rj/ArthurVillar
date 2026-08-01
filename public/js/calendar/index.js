@@ -4592,13 +4592,14 @@ var state = {
   calendarFetchId: 0,
   didAutoNowScroll: false,
   birthdayWindow: 5,
-  suppressNextScheduleAnimation: false,
+  calendarRenderMode: 'animated',
   scheduleWindowStart: null,
   pendingScheduleScrollTop: null,
   pendingScheduleHeaderPreview: null,
   travelRouteCache: new Map(),
   travelRouteRequests: new Map(),
-  scheduleTravelAnimations: new WeakMap()
+  scheduleTravelAnimations: new WeakMap(),
+  activeRequestControllers: new Set()
 };
 var calendarTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/New_York';
 var monthFormatter = new Intl.DateTimeFormat('en', {
@@ -4629,6 +4630,8 @@ var monthVisibleEventLimit = 3;
 var travelArrivalBufferMinutes = 5;
 var sidebarHiddenQuery = '(max-width: 1000px)';
 var dayMilliseconds = 24 * 60 * 60 * 1000;
+var calendarRequestTimeoutMilliseconds = 20 * 1000;
+var calendarStaleAfterMilliseconds = 5 * 60 * 1000;
 var scheduleGridViews = ['day', '2-days', 'week'];
 var calendarEventTypes = ['recurring', 'single', 'general', 'google', 'canceled'];
 var createLocalDate = function createLocalDate(year, month, day) {
@@ -4739,6 +4742,36 @@ var getRangeKey = function getRangeKey(range) {
 var isRangeLoaded = function isRangeLoaded(range) {
   return getRangeKey(state.loadedRange) === getRangeKey(range);
 };
+var fetchCalendarResource = function fetchCalendarResource(url, options) {
+  if (typeof AbortController !== 'function') {
+    return fetch(url, options);
+  }
+  var controller = new AbortController();
+  var requestOptions = Object.assign({}, options || {}, {
+    signal: controller.signal
+  });
+  var didTimeout = false;
+  var timeout = window.setTimeout(function () {
+    didTimeout = true;
+    controller.abort();
+  }, calendarRequestTimeoutMilliseconds);
+  state.activeRequestControllers.add(controller);
+  return fetch(url, requestOptions)["catch"](function (error) {
+    if (didTimeout) {
+      throw new Error('The request timed out. Please try again.');
+    }
+    throw error;
+  })["finally"](function () {
+    window.clearTimeout(timeout);
+    state.activeRequestControllers["delete"](controller);
+  });
+};
+var cancelPendingCalendarRequests = function cancelPendingCalendarRequests() {
+  state.activeRequestControllers.forEach(function (controller) {
+    controller.abort();
+  });
+  state.activeRequestControllers.clear();
+};
 var getTodayDate = function getTodayDate() {
   var now = new Date();
   return createLocalDate(now.getFullYear(), now.getMonth(), now.getDate());
@@ -4818,7 +4851,7 @@ var fetchPlannedLessons = function fetchPlannedLessons(range) {
   state.pendingRangeKey = rangeKey;
   state.calendarFetchId += 1;
   var fetchId = state.calendarFetchId;
-  return fetch(url, {
+  return fetchCalendarResource(url, {
     headers: {
       Accept: 'application/json'
     }
@@ -5901,11 +5934,10 @@ var patchScheduleItems = function patchScheduleItems(calendar) {
   });
 };
 var animateCalendarLessonItems = function animateCalendarLessonItems(calendar) {
-  if (state.suppressNextScheduleAnimation) {
+  if (state.calendarRenderMode === 'discreet') {
     calendar.querySelectorAll('.lm-schedule-item, .calendar-month-event, .calendar-schedule-event').forEach(function (item) {
       item.dataset.lessonFadeAnimated = 'true';
     });
-    state.suppressNextScheduleAnimation = false;
     return;
   }
   if (!scheduleGridViews.includes(state.view) || window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -6274,7 +6306,7 @@ var getResponseErrorMessage = function getResponseErrorMessage(payload, fallback
   return fallback;
 };
 var requestJson = function requestJson(url, options, fallbackError) {
-  return fetch(url, options).then(function (response) {
+  return fetchCalendarResource(url, options).then(function (response) {
     return response.json()["catch"](function () {
       return {};
     }).then(function (payload) {
@@ -7344,7 +7376,7 @@ var renderScheduleItemTravel = function renderScheduleItemTravel(item, event, ro
     item.dataset.travelRouteKey = cacheKey;
     item.dataset.travelRouteState = 'shown';
   }
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  if (state.calendarRenderMode === 'discreet' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     extension.style.height = "".concat(extensionHeight, "px");
     extension.style.minHeight = '';
     extension.style.opacity = '.7';
@@ -9093,7 +9125,7 @@ var loadCalendarEditModal = function loadCalendarEditModal(button, sourceModal, 
     return;
   }
   button.disabled = true;
-  fetch(url, {
+  fetchCalendarResource(url, {
     headers: {
       'Accept': 'text/html',
       'X-Requested-With': 'XMLHttpRequest'
@@ -10062,7 +10094,6 @@ document.addEventListener('DOMContentLoaded', function () {
       state.scheduleWindowStart = cloneDate(nextStart);
     }
     state.didAutoNowScroll = true;
-    state.suppressNextScheduleAnimation = true;
     window.clearTimeout(scheduleHeaderRenderTimer);
     scheduleHeaderRenderTimer = window.setTimeout(function () {
       scheduleHeaderRenderTimer = null;
@@ -10096,6 +10127,9 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   };
   var closeCalendarSearch = function closeCalendarSearch() {
+    if (studentSearch && studentSearch.value.trim() !== '') {
+      return;
+    }
     if (calendarSearch) {
       calendarSearch.removeAttribute('selected');
     }
@@ -10254,7 +10288,9 @@ document.addEventListener('DOMContentLoaded', function () {
       scrollScheduleToSelectedDate(agenda);
     });
   };
-  var _render = function render() {
+  var _render = function render(options) {
+    var renderMode = options && options.mode === 'discreet' ? 'discreet' : 'animated';
+    state.calendarRenderMode = renderMode;
     if (scheduleHeaderRenderTimer !== null) {
       window.clearTimeout(scheduleHeaderRenderTimer);
       scheduleHeaderRenderTimer = null;
@@ -10266,7 +10302,9 @@ document.addEventListener('DOMContentLoaded', function () {
       calendar.classList.add('calendar-schedule-range-transitioning');
       fetchPlannedLessons(visibleRange).then(function () {
         if (isRangeLoaded(getVisibleDateRange())) {
-          _render();
+          _render({
+            mode: renderMode
+          });
         }
       });
       return;
@@ -10374,8 +10412,9 @@ document.addEventListener('DOMContentLoaded', function () {
     state.loadedRange = null;
     state.pendingRangeKey = null;
     return fetchPlannedLessons(visibleRange).then(function () {
-      state.suppressNextScheduleAnimation = true;
-      _render();
+      _render({
+        mode: 'discreet'
+      });
       requestAnimationFrame(function () {
         var refreshedSchedule = calendar.querySelector('.lm-schedule');
         if (refreshedSchedule) {
@@ -10384,6 +10423,62 @@ document.addEventListener('DOMContentLoaded', function () {
         }
       });
     });
+  };
+  var calendarInactiveAt = document.hidden ? Date.now() : null;
+  var staleCalendarRecovery = null;
+  var unlockCalendarMutationForms = function unlockCalendarMutationForms() {
+    document.querySelectorAll('#calendar-event-modal form, #calendar-edit-modal-container form').forEach(function (form) {
+      setFormSubmitting(form, false);
+    });
+  };
+  var markCalendarInactive = function markCalendarInactive() {
+    if (calendarInactiveAt === null) {
+      calendarInactiveAt = Date.now();
+    }
+  };
+  var recoverStaleCalendar = function recoverStaleCalendar(force) {
+    var inactiveAt = calendarInactiveAt;
+    calendarInactiveAt = null;
+    if (!force && (inactiveAt === null || Date.now() - inactiveAt < calendarStaleAfterMilliseconds)) {
+      return Promise.resolve();
+    }
+    if (staleCalendarRecovery) {
+      return staleCalendarRecovery;
+    }
+    var eventModalWasOpen = Boolean(calendarEventModal && calendarEventModal.classList.contains('show'));
+    var eventGuid = eventModalWasOpen ? calendarEventModal.dataset.eventGuid : '';
+    var eventModalType = eventModalWasOpen ? calendarEventModal.dataset.eventModalType : '';
+    state.calendarFetchId += 1;
+    state.loadedRange = null;
+    state.pendingRangeKey = null;
+    cancelPendingCalendarRequests();
+    unlockCalendarMutationForms();
+    if (eventModalWasOpen) {
+      resetLessonModalButtons(calendarEventModal);
+    }
+    staleCalendarRecovery = refreshCalendarAfterLessonMutation().then(function () {
+      if (!eventModalWasOpen || !eventGuid) {
+        return;
+      }
+      var refreshedEvent = getEventByGuid(eventGuid);
+      if (!refreshedEvent) {
+        hideBootstrapModal(calendarEventModal);
+        return;
+      }
+      if (eventModalType === 'general' || refreshedEvent.isGeneralEvent) {
+        openGeneralEventModal(refreshedEvent);
+        return;
+      }
+      openLessonModal(refreshedEvent);
+    })["catch"](function (error) {
+      if (error && error.name !== 'AbortError') {
+        console.error('Unable to refresh the calendar after inactivity.', error);
+      }
+    })["finally"](function () {
+      unlockCalendarMutationForms();
+      staleCalendarRecovery = null;
+    });
+    return staleCalendarRecovery;
   };
   if (today) {
     today.addEventListener('click', function () {
@@ -11424,10 +11519,16 @@ document.addEventListener('DOMContentLoaded', function () {
   };
   document.addEventListener('visibilitychange', function () {
     if (document.hidden) {
+      markCalendarInactive();
       stopSchedulePointerClock();
       return;
     }
     _updateSchedulePointerClock();
+    recoverStaleCalendar(false);
+  });
+  window.addEventListener('pagehide', markCalendarInactive);
+  window.addEventListener('pageshow', function (event) {
+    recoverStaleCalendar(Boolean(event.persisted));
   });
   _updateSchedulePointerClock();
 });
