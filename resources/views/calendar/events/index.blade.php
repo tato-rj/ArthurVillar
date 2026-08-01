@@ -1,4 +1,4 @@
-@extends('layouts.app', ['title' => $source === 'general' ? 'My Events' : 'Google Events'])
+@extends('layouts.app', ['title' => 'My Events'])
 
 @push('header')
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
@@ -6,71 +6,49 @@
 
 @section('content')
 <section class="container py-5">
-    {{ Breadcrumbs::render($source === 'general' ? 'calendar.events.index' : 'calendar.events.google') }}
+    {{ Breadcrumbs::render('calendar.events.index') }}
 
     <div class="row mb-4">
         @pagetitle([
-            'label' => $source === 'general' ? 'My Events' : 'Google Events',
-            'subtitle' => $source === 'general'
-                ? 'Events you created in this calendar.'
-                : 'Events imported from your connected Google Calendars.',
-            'modal' => $source === 'general' ? [
+            'label' => 'My Events',
+            'subtitle' => 'Events you created in this calendar.',
+            'modal' => [
                 'target' => '#create-event-modal',
                 'icon' => 'plus',
                 'label' => 'New event'
-            ] : null
+            ]
         ])
     </div>
 
-    @if($source === 'general')
-        <div class="calendar-table-filters mb-3" id="events-scheduled-range">
-            @daterange([
-                'fromId' => 'events-scheduled-from',
-                'toId' => 'events-scheduled-to',
-                'fromValue' => request('scheduled_from'),
-                'toValue' => request('scheduled_to'),
-                'placeholder' => 'Filter by event date',
-            ])
-        </div>
+    <div class="calendar-table-filters mb-3" id="events-scheduled-range">
+        @daterange([
+            'fromId' => 'events-scheduled-from',
+            'toId' => 'events-scheduled-to',
+            'fromValue' => request('scheduled_from'),
+            'toValue' => request('scheduled_to'),
+            'placeholder' => 'Filter by event date',
+        ])
+    </div>
 
-        <div id="events-container" class="calendar-table-container calendar-table-container-lg">
-            <table id="events-table" class="display calendar-table">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Event</th>
-                        <th>Starts</th>
-                        <th>Ends</th>
-                        <th>Type</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-            </table>
-        </div>
-    @else
-        <div id="google-events-container" class="calendar-table-container calendar-table-container-lg">
-            <table id="google-events-table" class="display calendar-table">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Event</th>
-                        <th>Starts</th>
-                        <th>Ends</th>
-                        <th>Calendar</th>
-                        <th>Organizer</th>
-                        <th>Response</th>
-                    </tr>
-                </thead>
-            </table>
-        </div>
-    @endif
+    <div id="events-container" class="calendar-table-container calendar-table-container-lg">
+        <table id="events-table" class="display calendar-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Event</th>
+                    <th>Starts</th>
+                    <th>Ends</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
 </section>
 
-@if($source === 'general')
-    @include('calendar.events.create')
-    <div id="edit-event-modal-container"></div>
-@endif
+@include('calendar.events.create')
+<div id="edit-event-modal-container"></div>
 @endsection
 
 @push('scripts')
@@ -91,7 +69,6 @@ $(function() {
         return `${hour % 12 || 12}:${parts[1]} ${hour >= 12 ? 'PM' : 'AM'}`;
     };
 
-    @if($source === 'general')
         const showModal = function(modal) {
             if (window.bootstrap && window.bootstrap.Modal && typeof window.bootstrap.Modal.getOrCreateInstance === 'function') {
                 window.bootstrap.Modal.getOrCreateInstance(modal).show();
@@ -220,60 +197,6 @@ $(function() {
                     window.alert(error.message);
                 });
         });
-    @else
-        const formatStatus = function(value) {
-            return ({
-                accepted: 'Accepted',
-                declined: 'Declined',
-                needsAction: 'Awaiting response',
-                tentative: 'Maybe',
-            })[value] || value || '';
-        };
-
-        window.calendarDataTableState.create('#google-events-table', {
-            processing: false,
-            serverSide: true,
-            autoWidth: false,
-            scrollX: true,
-            order: [[0, 'asc'], [2, 'asc']],
-            language: {
-                search: '', searchPlaceholder: 'Search', lengthMenu: 'Show _MENU_ rows',
-                info: 'Showing _START_ to _END_ of _TOTAL_',
-                paginate: {
-                    previous: '<i class="fas fa-angle-left mr-0"></i>',
-                    next: '<i class="fas fa-angle-right mr-0"></i>',
-                },
-            },
-            ajax: @json(route('calendar.tables.google-events')),
-            columns: [
-                {data: 'scheduled_date', name: 'scheduled_date', searchable: false, render: function(data, type) { return type === 'display' ? formatDate(data) : data; }},
-                {data: 'name', name: 'name', render: textRenderer},
-                {
-                    data: 'starts_at', name: 'starts_at', searchable: false,
-                    render: function(data, type, row) {
-                        if (type !== 'display') return data;
-                        return row.all_day ? 'All day' : formatTime(data);
-                    },
-                },
-                {
-                    data: 'ends_at', name: 'ends_at', searchable: false,
-                    render: function(data, type, row) {
-                        if (type !== 'display') return data;
-                        return row.all_day ? '' : formatTime(data);
-                    },
-                },
-                {data: 'calendar', name: 'calendar', render: textRenderer},
-                {data: 'organizer', name: 'organizer', defaultContent: '', render: textRenderer},
-                {
-                    data: 'response_status', name: 'response_status', defaultContent: '',
-                    render: function(data, type) {
-                        const status = formatStatus(data);
-                        return type === 'display' ? textRenderer.display(status) : status;
-                    },
-                },
-            ],
-        });
-    @endif
 });
 </script>
 @endpush

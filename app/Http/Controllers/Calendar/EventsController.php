@@ -11,16 +11,12 @@ class EventsController extends Controller
 {
     public function index()
     {
-        $source = 'general';
-
-        return view('calendar.events.combined', compact('source'));
+        return view('calendar.events.index');
     }
 
     public function google()
     {
-        $source = 'google';
-
-        return view('calendar.events.combined', compact('source'));
+        return view('calendar.events.google');
     }
 
     public function store(Request $request)
