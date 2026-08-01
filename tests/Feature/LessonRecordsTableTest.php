@@ -135,6 +135,10 @@ class LessonRecordsTableTest extends BaseTest
         $this->get(route('calendar.lesson-records.index'))
             ->assertOk()
             ->assertSee('Lesson Records')
+            ->assertSee('Filter records')
+            ->assertSee('Paid lessons')
+            ->assertSee('Unpaid lessons')
+            ->assertSee('Canceled lessons')
             ->assertSee('lesson-records-table', false)
             ->assertSeeInOrder(['<th>Date</th>', '<th>Student</th>', '<th>Type</th>'], false)
             ->assertSee('<th>Payment</th>', false)
@@ -204,6 +208,53 @@ class LessonRecordsTableTest extends BaseTest
             ->assertOk()
             ->assertJsonFragment(['student' => 'Inside Canceled'])
             ->assertJsonMissing(['student' => 'Outside Canceled']);
+    }
+
+    /** @test */
+    public function it_filters_lesson_records_by_displayed_payment_status()
+    {
+        $paidStudent = Student::factory()->create(['first_name' => 'Paid', 'last_name' => 'Record']);
+        $unpaidStudent = Student::factory()->create(['first_name' => 'Unpaid', 'last_name' => 'Record']);
+        $canceledStudent = Student::factory()->create(['first_name' => 'Canceled', 'last_name' => 'Record']);
+
+        Lesson::factory()->create([
+            'student_id' => $paidStudent->id,
+            'paid_at' => '2026-07-10 12:00:00',
+            'canceled_at' => null,
+        ]);
+        Lesson::factory()->create([
+            'student_id' => $unpaidStudent->id,
+            'paid_at' => null,
+            'canceled_at' => null,
+        ]);
+        Lesson::factory()->create([
+            'student_id' => $canceledStudent->id,
+            'paid_at' => '2026-07-10 12:00:00',
+            'canceled_at' => '2026-07-11 12:00:00',
+        ]);
+
+        $this->signIn();
+
+        $paidRows = collect($this->getJson(route('calendar.tables.lesson-records', [
+            'record_statuses' => 'paid',
+        ]))->assertOk()->json('data'));
+        $this->assertSame(['Paid Record'], $paidRows->pluck('student')->values()->all());
+
+        $unpaidRows = collect($this->getJson(route('calendar.tables.lesson-records', [
+            'record_statuses' => 'unpaid',
+        ]))->assertOk()->json('data'));
+        $this->assertSame(['Unpaid Record'], $unpaidRows->pluck('student')->values()->all());
+
+        $canceledRows = collect($this->getJson(route('calendar.tables.lesson-records', [
+            'record_statuses' => 'canceled',
+        ]))->assertOk()->json('data'));
+        $this->assertSame(['Canceled Record'], $canceledRows->pluck('student')->values()->all());
+
+        $this->getJson(route('calendar.tables.lesson-records', [
+            'record_statuses' => 'none',
+        ]))
+            ->assertOk()
+            ->assertJsonCount(0, 'data');
     }
 
     /** @test */

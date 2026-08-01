@@ -724,6 +724,9 @@ class TablesController extends Controller
 
     private function lessonRecordRows()
     {
+        $recordStatuses = collect(explode(',', (string) request('record_statuses', 'paid,unpaid,canceled')))
+            ->intersect(['paid', 'unpaid', 'canceled'])
+            ->values();
         $driver = DB::connection()->getDriverName();
         $dateExpression = $driver === 'sqlite'
             ? "COALESCE(lessons.scheduled_date, date(lessons.starts_at))"
@@ -753,6 +756,29 @@ class TablesController extends Controller
 
         $lessons = Lesson::query()
             ->join('students', 'students.id', '=', 'lessons.student_id')
+            ->where(function ($query) use ($recordStatuses) {
+                if ($recordStatuses->contains('paid')) {
+                    $query->orWhere(function ($query) {
+                        $query->whereNull('lessons.canceled_at')
+                            ->whereNotNull('lessons.paid_at');
+                    });
+                }
+
+                if ($recordStatuses->contains('unpaid')) {
+                    $query->orWhere(function ($query) {
+                        $query->whereNull('lessons.canceled_at')
+                            ->whereNull('lessons.paid_at');
+                    });
+                }
+
+                if ($recordStatuses->contains('canceled')) {
+                    $query->orWhereNotNull('lessons.canceled_at');
+                }
+
+                if ($recordStatuses->isEmpty()) {
+                    $query->whereRaw('1 = 0');
+                }
+            })
             ->when(request('student_id'), function ($query, $studentId) {
                 $query->where('lessons.student_id', $studentId);
             })

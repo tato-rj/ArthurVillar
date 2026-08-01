@@ -2,9 +2,13 @@
 
 @push('header')
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
+<link href="{{ mix('css/calendar.css') }}" rel="stylesheet">
 @endpush
 
 @section('content')
+@php
+    $selectedRecordStatuses = collect(explode(',', request('record_statuses', 'paid,unpaid,canceled')));
+@endphp
 <section class="container py-5">
     {{ Breadcrumbs::render('calendar.lesson-records.index') }}
 
@@ -23,6 +27,38 @@
             'toValue' => request('scheduled_to'),
             'placeholder' => 'Filter by lesson date',
         ])
+
+        <div class="calendar-date-range dropdown" id="lesson-records-row-filters">
+            <button
+                type="button"
+                class="calendar-date-range-toggle"
+                data-bs-toggle="dropdown"
+                data-bs-auto-close="outside"
+                aria-expanded="false">
+                @fa(['icon' => 'filter', 'mr' => 0])
+                <span>Filter records</span>
+                @fa(['icon' => 'angle-down', 'mr' => 0])
+            </button>
+
+            <div class="dropdown-menu p-3">
+                <div class="small fw-bold opacity-4 mb-2">STATUS</div>
+
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="paid" id="lesson-record-status-paid" data-lesson-record-status-filter @checked($selectedRecordStatuses->contains('paid'))>
+                    <label class="form-check-label" for="lesson-record-status-paid">Paid lessons</label>
+                </div>
+
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="unpaid" id="lesson-record-status-unpaid" data-lesson-record-status-filter @checked($selectedRecordStatuses->contains('unpaid'))>
+                    <label class="form-check-label" for="lesson-record-status-unpaid">Unpaid lessons</label>
+                </div>
+
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="canceled" id="lesson-record-status-canceled" data-lesson-record-status-filter @checked($selectedRecordStatuses->contains('canceled'))>
+                    <label class="form-check-label" for="lesson-record-status-canceled">Canceled lessons</label>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div id="lesson-records-container" class="calendar-table-container calendar-table-container-lg">
@@ -50,6 +86,26 @@
 @include('calendar.tables.state')
 <script>
 $(function() {
+    const selectedFilterValues = function(selector) {
+        const values = Array.from(document.querySelectorAll(selector))
+            .filter(function(input) {
+                return input.checked;
+            })
+            .map(function(input) {
+                return input.value;
+            });
+
+        return values.length ? values.join(',') : 'none';
+    };
+
+    const restoreFilterValues = function(selector, value, defaultValue) {
+        const selected = new Set(String(value || defaultValue).split(','));
+
+        document.querySelectorAll(selector).forEach(function(input) {
+            input.checked = selected.has(input.value);
+        });
+    };
+
     const capitalize = function(value) {
         value = String(value || '');
 
@@ -140,6 +196,7 @@ $(function() {
             data: function(data) {
                 data.scheduled_from = $('#lesson-records-scheduled-from').val();
                 data.scheduled_to = $('#lesson-records-scheduled-to').val();
+                data.record_statuses = selectedFilterValues('[data-lesson-record-status-filter]');
             },
         },
         columns: [
@@ -244,17 +301,23 @@ $(function() {
         restore: function(params) {
             $('#lesson-records-scheduled-from').val(params.get('scheduled_from') || '');
             $('#lesson-records-scheduled-to').val(params.get('scheduled_to') || '');
+            restoreFilterValues('[data-lesson-record-status-filter]', params.get('record_statuses'), 'paid,unpaid,canceled');
         },
         extraParams: function() {
             return {
                 scheduled_from: $('#lesson-records-scheduled-from').val(),
                 scheduled_to: $('#lesson-records-scheduled-to').val(),
+                record_statuses: selectedFilterValues('[data-lesson-record-status-filter]'),
             };
         },
     });
 
     $('#lesson-records-scheduled-range').on('date-range:change', function() {
         lessonRecordsTable.ajax.reload();
+    });
+
+    $('#lesson-records-row-filters').on('change', 'input[type="checkbox"]', function() {
+        lessonRecordsTable.ajax.reload(null, true);
     });
 
 });
