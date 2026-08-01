@@ -16,17 +16,10 @@
 <section class="container py-5">
     {{ Breadcrumbs::render('calendar.lesson-plans.index') }}
 
-    <div class="row mb-4">
-        @pagetitle([
-            'label' => 'Lesson Plans',
-            'subtitle' => 'Recurring and one-time teaching commitments.',
-            'modal' => [
-                'target' => '#create-calendar-lesson-plan-modal',
-                'icon' => 'plus',
-                'label' => 'New lesson'
-            ]
-        ])
-    </div>
+    @pagetitle([
+        'label' => 'Lesson Plans',
+        'subtitle' => 'Recurring and one-time teaching commitments.'
+    ])
 
     <div class="calendar-table-filters mb-3" id="lesson-plans-starts-range">
         @daterange([
@@ -97,13 +90,11 @@
 </section>
 <div id="edit-lesson-plan-modal-container"></div>
 <div id="edit-single-lesson-plan-modal-container"></div>
-@include('calendar.lessonPlans.create')
 @endsection
 
 @push('scripts')
 <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
 @include('calendar.tables.state')
-@include('calendar.lessonPlans.create-scripts')
 <script>
 $(function() {
     const selectedFilterValues = function(selector) {

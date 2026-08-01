@@ -13,10 +13,22 @@
     {{ Breadcrumbs::render('calendar.lesson-records.index') }}
 
     <div class="row mb-4">
-        @pagetitle([
-            'label' => 'Lesson Records',
-            'subtitle' => 'Paid, unpaid, and canceled lesson records.'
-        ])
+        @component('components.pagetitle', ['label' => 'Lesson Records'])
+
+        @slot('subtitle')
+        <div class="text-center" id="lesson-records-totals" aria-live="polite">
+            <span data-lesson-record-total="paid">
+                Total paid <span class="text-green" data-lesson-record-total-amount>$0</span>
+            </span>
+            <span data-lesson-record-total="unpaid">
+                <span data-lesson-record-total-divider> · </span>Total unpaid <span class="text-red" data-lesson-record-total-amount>$0</span>
+            </span>
+            <span data-lesson-record-total="canceled">
+                <span data-lesson-record-total-divider> · </span>Total canceled <span class="text-muted" data-lesson-record-total-amount>$0</span>
+            </span>
+        </div>
+        @endslot
+        @endcomponent
     </div>
 
     <div class="calendar-table-filters mb-3" id="lesson-records-scheduled-range">
@@ -75,21 +87,6 @@
                 </tr>
             </thead>
         </table>
-
-        <div class="border rounded mt-3" id="lesson-records-totals" aria-live="polite">
-            <div class="d-flex align-items-center justify-content-between border-bottom px-3 py-2" data-lesson-record-total="paid">
-                <span>Total paid</span>
-                <strong class="text-green" data-lesson-record-total-amount>$0</strong>
-            </div>
-            <div class="d-flex align-items-center justify-content-between border-bottom px-3 py-2" data-lesson-record-total="unpaid">
-                <span>Total unpaid</span>
-                <strong class="text-red" data-lesson-record-total-amount>$0</strong>
-            </div>
-            <div class="d-flex align-items-center justify-content-between px-3 py-2" data-lesson-record-total="canceled">
-                <span>Total canceled</span>
-                <strong class="text-light" data-lesson-record-total-amount>$0</strong>
-            </div>
-        </div>
     </div>
 </section>
 @endsection
@@ -184,16 +181,25 @@ $(function() {
                 })
         );
 
-        document.querySelector('#lesson-records-totals').hidden = enabledStatuses.size === 0;
+        const totalsContainer = document.querySelector('#lesson-records-totals');
+        totalsContainer.hidden = enabledStatuses.size === 0;
+        let visibleTotalIndex = 0;
 
         document.querySelectorAll('[data-lesson-record-total]').forEach(function(totalRow) {
             const status = totalRow.dataset.lessonRecordTotal;
-            if (enabledStatuses.has(status)) {
-                totalRow.style.removeProperty('display');
-            } else {
-                totalRow.style.setProperty('display', 'none', 'important');
+            const isVisible = enabledStatuses.has(status);
+            totalRow.hidden = !isVisible;
+
+            const divider = totalRow.querySelector('[data-lesson-record-total-divider]');
+            if (divider) {
+                divider.hidden = !isVisible || visibleTotalIndex === 0;
             }
+
             totalRow.querySelector('[data-lesson-record-total-amount]').textContent = formatTotal(totals[status]);
+
+            if (isVisible) {
+                visibleTotalIndex += 1;
+            }
         });
     };
 
