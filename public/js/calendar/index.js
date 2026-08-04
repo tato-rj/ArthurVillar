@@ -7273,16 +7273,12 @@ var updateScheduleItemTravelClasses = function updateScheduleItemTravelClasses(i
   item.classList.toggle('has-calendar-schedule-travel-before', hasBefore);
   item.classList.toggle('has-calendar-schedule-travel-after', hasAfter);
 };
-var updateScheduleTravelOverlapLayers = function updateScheduleTravelOverlapLayers(schedule) {
+var getScheduleTravelConflictPairs = function getScheduleTravelConflictPairs(schedule) {
   if (!schedule) {
-    return;
+    return [];
   }
   var items = Array.from(schedule.querySelectorAll('.lm-schedule-item:not([holding-event])'));
-  items.forEach(function (item) {
-    item.removeAttribute('travel-overlapping-event');
-    item.removeAttribute('travel-conflicting-event');
-    item.style.removeProperty('--calendar-travel-overlap-z-index');
-  });
+  var pairs = [];
   schedule.querySelectorAll('.calendar-schedule-travel').forEach(function (extension) {
     var owner = extension.parentElement;
     var ownerEvent = getEventByScheduleItem(owner);
@@ -7306,13 +7302,41 @@ var updateScheduleTravelOverlapLayers = function updateScheduleTravelOverlapLaye
       if (!event || isCanceledCalendarEvent(event) || event.allDay || date !== ownerDate || getTimeMinutes(event.start) >= travelEnd || getTimeMinutes(event.end) <= travelStart) {
         return;
       }
-      var eventDuration = Math.max(1, getTimeMinutes(event.end) - getTimeMinutes(event.start));
-      owner.setAttribute('travel-conflicting-event', '');
-      item.setAttribute('travel-conflicting-event', '');
-      item.setAttribute('travel-overlapping-event', '');
-      item.style.setProperty('--calendar-travel-overlap-z-index', String(5000 - Math.min(eventDuration, 1440)));
+      pairs.push({
+        owner: owner,
+        ownerEvent: ownerEvent,
+        item: item,
+        event: event
+      });
     });
   });
+  return pairs;
+};
+var updateScheduleTravelOverlapLayers = function updateScheduleTravelOverlapLayers(schedule) {
+  if (!schedule) {
+    return;
+  }
+  var items = Array.from(schedule.querySelectorAll('.lm-schedule-item:not([holding-event])'));
+  items.forEach(function (item) {
+    item.removeAttribute('travel-overlapping-event');
+    item.removeAttribute('travel-conflicting-event');
+    item.style.removeProperty('--calendar-travel-overlap-z-index');
+  });
+  getScheduleTravelConflictPairs(schedule).forEach(function (pair) {
+    if (isIgnoredConflictPair(pair.ownerEvent, pair.event)) {
+      return;
+    }
+    var eventDuration = Math.max(1, getTimeMinutes(pair.event.end) - getTimeMinutes(pair.event.start));
+    pair.owner.setAttribute('travel-conflicting-event', '');
+    pair.item.setAttribute('travel-conflicting-event', '');
+    pair.item.setAttribute('travel-overlapping-event', '');
+    pair.item.style.setProperty('--calendar-travel-overlap-z-index', String(5000 - Math.min(eventDuration, 1440)));
+  });
+  var modal = document.getElementById('calendar-event-modal');
+  var modalEvent = modal && modal.classList.contains('show') ? getEventByGuid(modal.dataset.eventGuid) : null;
+  if (modalEvent) {
+    updateConflictToggle(modal, modalEvent);
+  }
 };
 var removeScheduleTravelExtension = function removeScheduleTravelExtension(extension) {
   if (!extension) {
@@ -8683,6 +8707,12 @@ var getConflictingEvents = function getConflictingEvents(event) {
   }
   var date = parseDateString(String(event.date).substring(0, 10));
   var conflicts = new Map();
+  var addConflict = function addConflict(conflictingEvent) {
+    var key = getConflictEventKey(conflictingEvent);
+    if (conflictingEvent && key) {
+      conflicts.set(key, conflictingEvent);
+    }
+  };
   getOverlappingTimedEventPairs(getEventsForDate(date)).forEach(function (pair) {
     var conflictingEvent = null;
     if (isSameConflictEvent(pair[0], event)) {
@@ -8690,10 +8720,16 @@ var getConflictingEvents = function getConflictingEvents(event) {
     } else if (isSameConflictEvent(pair[1], event)) {
       conflictingEvent = pair[0];
     }
-    var key = getConflictEventKey(conflictingEvent);
-    if (conflictingEvent && key) {
-      conflicts.set(key, conflictingEvent);
-    }
+    addConflict(conflictingEvent);
+  });
+  document.querySelectorAll('#calendar .lm-schedule').forEach(function (schedule) {
+    getScheduleTravelConflictPairs(schedule).forEach(function (pair) {
+      if (isSameConflictEvent(pair.ownerEvent, event)) {
+        addConflict(pair.event);
+      } else if (isSameConflictEvent(pair.event, event)) {
+        addConflict(pair.ownerEvent);
+      }
+    });
   });
   return Array.from(conflicts.values());
 };
