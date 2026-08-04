@@ -5314,6 +5314,21 @@ const getConflictPairId = function(firstEventKey, secondEventKey) {
     return JSON.stringify([firstEventKey, secondEventKey].sort());
 };
 
+const isSameConflictEvent = function(firstEvent, secondEvent) {
+    if (!firstEvent || !secondEvent) {
+        return false;
+    }
+
+    const firstEventKey = getConflictEventKey(firstEvent);
+    const secondEventKey = getConflictEventKey(secondEvent);
+
+    if (firstEventKey && secondEventKey) {
+        return firstEventKey === secondEventKey;
+    }
+
+    return Boolean(firstEvent.guid && firstEvent.guid === secondEvent.guid);
+};
+
 const setIgnoredConflictPairs = function(pairs) {
     state.ignoredConflictPairs = new Set(
         (Array.isArray(pairs) ? pairs : [])
@@ -5390,9 +5405,9 @@ const getConflictingEvents = function(event) {
     getOverlappingTimedEventPairs(getEventsForDate(date)).forEach(function(pair) {
         let conflictingEvent = null;
 
-        if (pair[0].guid === event.guid) {
+        if (isSameConflictEvent(pair[0], event)) {
             conflictingEvent = pair[1];
-        } else if (pair[1].guid === event.guid) {
+        } else if (isSameConflictEvent(pair[1], event)) {
             conflictingEvent = pair[0];
         }
 

@@ -8620,6 +8620,17 @@ var getConflictEventKey = function getConflictEventKey(event) {
 var getConflictPairId = function getConflictPairId(firstEventKey, secondEventKey) {
   return JSON.stringify([firstEventKey, secondEventKey].sort());
 };
+var isSameConflictEvent = function isSameConflictEvent(firstEvent, secondEvent) {
+  if (!firstEvent || !secondEvent) {
+    return false;
+  }
+  var firstEventKey = getConflictEventKey(firstEvent);
+  var secondEventKey = getConflictEventKey(secondEvent);
+  if (firstEventKey && secondEventKey) {
+    return firstEventKey === secondEventKey;
+  }
+  return Boolean(firstEvent.guid && firstEvent.guid === secondEvent.guid);
+};
 var setIgnoredConflictPairs = function setIgnoredConflictPairs(pairs) {
   state.ignoredConflictPairs = new Set((Array.isArray(pairs) ? pairs : []).filter(function (pair) {
     return Array.isArray(pair) && pair.length === 2 && pair[0] && pair[1];
@@ -8674,9 +8685,9 @@ var getConflictingEvents = function getConflictingEvents(event) {
   var conflicts = new Map();
   getOverlappingTimedEventPairs(getEventsForDate(date)).forEach(function (pair) {
     var conflictingEvent = null;
-    if (pair[0].guid === event.guid) {
+    if (isSameConflictEvent(pair[0], event)) {
       conflictingEvent = pair[1];
-    } else if (pair[1].guid === event.guid) {
+    } else if (isSameConflictEvent(pair[1], event)) {
       conflictingEvent = pair[0];
     }
     var key = getConflictEventKey(conflictingEvent);
