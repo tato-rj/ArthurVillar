@@ -11,15 +11,17 @@ if (config) {
         return Uint8Array.from([...rawData].map(character => character.charCodeAt(0)));
     };
 
-    const setStatus = function(message, enabled) {
+    let subscriptionSync = null;
+
+    const setStatus = function(message, enabled, actionRequired) {
         document.querySelectorAll('[data-web-push-status]').forEach(function(element) {
-            element.textContent = enabled === true ? '' : message;
-            element.hidden = enabled === true;
+            element.textContent = message || '';
+            element.hidden = enabled === true || !message;
             element.classList.toggle('text-danger', enabled === false);
         });
 
         document.querySelectorAll('[data-enable-push-notifications]').forEach(function(button) {
-            button.hidden = enabled === true;
+            button.hidden = actionRequired !== true;
         });
     };
 
@@ -36,24 +38,76 @@ if (config) {
         return payload;
     };
 
+    const syncSubscription = function(subscription) {
+        if (!subscriptionSync) {
+            subscriptionSync = axios.post(config.subscribeUrl, subscriptionPayload(subscription))
+                .catch(function(error) {
+                    subscriptionSync = null;
+                    throw error;
+                });
+        }
+
+        return subscriptionSync;
+    };
+
+    const subscribeDevice = async function() {
+        if (!config.publicKey) {
+            throw new Error('Push notifications are not configured on the server.');
+        }
+
+        const worker = await registration;
+        let subscription = await worker.pushManager.getSubscription();
+
+        if (!subscription) {
+            subscription = await worker.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: base64UrlToUint8Array(config.publicKey),
+            });
+        }
+
+        setStatus('', true, false);
+        await syncSubscription(subscription);
+
+        return subscription;
+    };
+
     const refreshStatus = async function() {
         if (!supportsWebPush) {
-            setStatus('Web Push is not supported by this browser.', false);
+            setStatus('Web Push is not supported by this browser.', false, false);
             return;
         }
 
         if (Notification.permission === 'denied') {
-            setStatus('Notifications are blocked in this device’s settings.', false);
+            setStatus('Notifications are blocked in this device’s settings.', false, false);
             return;
         }
 
-        const subscription = await (await registration).pushManager.getSubscription();
+        if (Notification.permission === 'default') {
+            setStatus('Notifications must be enabled on this device.', null, true);
+            return;
+        }
 
-        if (subscription) {
-            await axios.post(config.subscribeUrl, subscriptionPayload(subscription));
-            setStatus('Notifications are enabled on this device.', true);
-        } else {
-            setStatus('Notifications must be enabled on at least one device.');
+        try {
+            await subscribeDevice();
+        } catch (error) {
+            let subscription = null;
+
+            try {
+                const worker = await registration;
+                subscription = await worker.pushManager.getSubscription();
+            } catch (registrationError) {
+                subscription = null;
+            }
+
+            if (subscription) {
+                // The browser is subscribed. Keep the form quiet and retry the
+                // server synchronization the next time state is checked.
+                setStatus('', true, false);
+                return;
+            }
+
+            const message = error.response?.data?.message || error.message || 'Could not restore notifications on this device.';
+            setStatus(message, false, true);
         }
     };
 
@@ -67,9 +121,7 @@ if (config) {
         options.hidden = !event.target.checked;
 
         if (event.target.checked) {
-            refreshStatus().catch(function() {
-                setStatus('Could not check notification status on this device.', false);
-            });
+            refreshStatus();
         }
     });
 
@@ -95,21 +147,10 @@ if (config) {
                 throw new Error('Notification permission was not granted.');
             }
 
-            const worker = await registration;
-            let subscription = await worker.pushManager.getSubscription();
-
-            if (!subscription) {
-                subscription = await worker.pushManager.subscribe({
-                    userVisibleOnly: true,
-                    applicationServerKey: base64UrlToUint8Array(config.publicKey),
-                });
-            }
-
-            await axios.post(config.subscribeUrl, subscriptionPayload(subscription));
-            setStatus('Notifications are enabled on this device.', true);
+            await subscribeDevice();
         } catch (error) {
             const message = error.response?.data?.message || error.message || 'Could not enable notifications.';
-            setStatus(message, false);
+            setStatus(message, false, true);
         } finally {
             button.disabled = false;
         }
@@ -117,9 +158,7 @@ if (config) {
 
     document.addEventListener('DOMContentLoaded', function() {
         if (document.querySelector('[data-web-push-status]')) {
-            refreshStatus().catch(function() {
-                setStatus('Could not check notification status on this device.', false);
-            });
+            refreshStatus();
         }
 
         const observer = new MutationObserver(function(mutations) {
@@ -132,9 +171,7 @@ if (config) {
             });
 
             if (addedNotificationForm) {
-                refreshStatus().catch(function() {
-                    setStatus('Could not check notification status on this device.', false);
-                });
+                refreshStatus();
             }
         });
 

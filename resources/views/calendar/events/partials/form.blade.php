@@ -103,12 +103,10 @@
             @endforeach
         @endselect
 
-        <button type="button" class="btn btn-outline-warning rounded btn-sm" data-enable-push-notifications>
+        <button type="button" class="btn btn-outline-warning rounded btn-sm" data-enable-push-notifications hidden>
             @fa(['icon' => 'bell']) Enable notifications on this device
         </button>
-        <div class="form-text mt-2" data-web-push-status>
-            Notifications must be enabled on at least one device.
-        </div>
+        <div class="form-text mt-2" data-web-push-status hidden></div>
     </div>
 </div>
 

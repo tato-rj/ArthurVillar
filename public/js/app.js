@@ -4516,14 +4516,15 @@ if (config) {
       return character.charCodeAt(0);
     }));
   };
-  var setStatus = function setStatus(message, enabled) {
+  var subscriptionSync = null;
+  var setStatus = function setStatus(message, enabled, actionRequired) {
     document.querySelectorAll('[data-web-push-status]').forEach(function (element) {
-      element.textContent = enabled === true ? '' : message;
-      element.hidden = enabled === true;
+      element.textContent = message || '';
+      element.hidden = enabled === true || !message;
       element.classList.toggle('text-danger', enabled === false);
     });
     document.querySelectorAll('[data-enable-push-notifications]').forEach(function (button) {
-      button.hidden = enabled === true;
+      button.hidden = actionRequired !== true;
     });
   };
   var registration = supportsWebPush ? navigator.serviceWorker.register(config.serviceWorkerUrl) : Promise.reject(new Error('Web Push is not supported by this browser.'));
@@ -4532,52 +4533,130 @@ if (config) {
     payload.content_encoding = PushManager.supportedContentEncodings ? PushManager.supportedContentEncodings[0] : null;
     return payload;
   };
-  var refreshStatus = /*#__PURE__*/function () {
+  var syncSubscription = function syncSubscription(subscription) {
+    if (!subscriptionSync) {
+      subscriptionSync = axios.post(config.subscribeUrl, subscriptionPayload(subscription))["catch"](function (error) {
+        subscriptionSync = null;
+        throw error;
+      });
+    }
+    return subscriptionSync;
+  };
+  var subscribeDevice = /*#__PURE__*/function () {
     var _ref = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
-      var subscription;
+      var worker, subscription;
       return _regenerator().w(function (_context) {
         while (1) switch (_context.n) {
           case 0:
-            if (supportsWebPush) {
+            if (config.publicKey) {
               _context.n = 1;
               break;
             }
-            setStatus('Web Push is not supported by this browser.', false);
-            return _context.a(2);
+            throw new Error('Push notifications are not configured on the server.');
           case 1:
-            if (!(Notification.permission === 'denied')) {
-              _context.n = 2;
+            _context.n = 2;
+            return registration;
+          case 2:
+            worker = _context.v;
+            _context.n = 3;
+            return worker.pushManager.getSubscription();
+          case 3:
+            subscription = _context.v;
+            if (subscription) {
+              _context.n = 5;
               break;
             }
-            setStatus('Notifications are blocked in this device’s settings.', false);
-            return _context.a(2);
-          case 2:
-            _context.n = 3;
-            return registration;
-          case 3:
             _context.n = 4;
-            return _context.v.pushManager.getSubscription();
+            return worker.pushManager.subscribe({
+              userVisibleOnly: true,
+              applicationServerKey: base64UrlToUint8Array(config.publicKey)
+            });
           case 4:
             subscription = _context.v;
-            if (!subscription) {
-              _context.n = 6;
-              break;
-            }
-            _context.n = 5;
-            return axios.post(config.subscribeUrl, subscriptionPayload(subscription));
           case 5:
-            setStatus('Notifications are enabled on this device.', true);
-            _context.n = 7;
-            break;
+            setStatus('', true, false);
+            _context.n = 6;
+            return syncSubscription(subscription);
           case 6:
-            setStatus('Notifications must be enabled on at least one device.');
-          case 7:
-            return _context.a(2);
+            return _context.a(2, subscription);
         }
       }, _callee);
     }));
-    return function refreshStatus() {
+    return function subscribeDevice() {
       return _ref.apply(this, arguments);
+    };
+  }();
+  var refreshStatus = /*#__PURE__*/function () {
+    var _ref2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee2() {
+      var _error$response, subscription, worker, message, _t, _t2;
+      return _regenerator().w(function (_context2) {
+        while (1) switch (_context2.p = _context2.n) {
+          case 0:
+            if (supportsWebPush) {
+              _context2.n = 1;
+              break;
+            }
+            setStatus('Web Push is not supported by this browser.', false, false);
+            return _context2.a(2);
+          case 1:
+            if (!(Notification.permission === 'denied')) {
+              _context2.n = 2;
+              break;
+            }
+            setStatus('Notifications are blocked in this device’s settings.', false, false);
+            return _context2.a(2);
+          case 2:
+            if (!(Notification.permission === 'default')) {
+              _context2.n = 3;
+              break;
+            }
+            setStatus('Notifications must be enabled on this device.', null, true);
+            return _context2.a(2);
+          case 3:
+            _context2.p = 3;
+            _context2.n = 4;
+            return subscribeDevice();
+          case 4:
+            _context2.n = 12;
+            break;
+          case 5:
+            _context2.p = 5;
+            _t = _context2.v;
+            subscription = null;
+            _context2.p = 6;
+            _context2.n = 7;
+            return registration;
+          case 7:
+            worker = _context2.v;
+            _context2.n = 8;
+            return worker.pushManager.getSubscription();
+          case 8:
+            subscription = _context2.v;
+            _context2.n = 10;
+            break;
+          case 9:
+            _context2.p = 9;
+            _t2 = _context2.v;
+            subscription = null;
+          case 10:
+            if (!subscription) {
+              _context2.n = 11;
+              break;
+            }
+            // The browser is subscribed. Keep the form quiet and retry the
+            // server synchronization the next time state is checked.
+            setStatus('', true, false);
+            return _context2.a(2);
+          case 11:
+            message = ((_error$response = _t.response) === null || _error$response === void 0 || (_error$response = _error$response.data) === null || _error$response === void 0 ? void 0 : _error$response.message) || _t.message || 'Could not restore notifications on this device.';
+            setStatus(message, false, true);
+          case 12:
+            return _context2.a(2);
+        }
+      }, _callee2, null, [[6, 9], [3, 5]]);
+    }));
+    return function refreshStatus() {
+      return _ref2.apply(this, arguments);
     };
   }();
   document.addEventListener('change', function (event) {
@@ -4588,91 +4667,66 @@ if (config) {
     var options = settings.querySelector('[data-event-notification-options]');
     options.hidden = !event.target.checked;
     if (event.target.checked) {
-      refreshStatus()["catch"](function () {
-        setStatus('Could not check notification status on this device.', false);
-      });
+      refreshStatus();
     }
   });
   document.addEventListener('click', /*#__PURE__*/function () {
-    var _ref2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee2(event) {
-      var button, permission, worker, subscription, _error$response, message, _t;
-      return _regenerator().w(function (_context2) {
-        while (1) switch (_context2.p = _context2.n) {
+    var _ref3 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee3(event) {
+      var button, permission, _error$response2, message, _t3;
+      return _regenerator().w(function (_context3) {
+        while (1) switch (_context3.p = _context3.n) {
           case 0:
             button = event.target.closest('[data-enable-push-notifications]');
             if (button) {
-              _context2.n = 1;
+              _context3.n = 1;
               break;
             }
-            return _context2.a(2);
+            return _context3.a(2);
           case 1:
             button.disabled = true;
-            _context2.p = 2;
+            _context3.p = 2;
             if (!(!supportsWebPush || !config.publicKey)) {
-              _context2.n = 3;
+              _context3.n = 3;
               break;
             }
             throw new Error(!config.publicKey ? 'Push notifications are not configured on the server.' : 'Web Push is not supported by this browser.');
           case 3:
-            _context2.n = 4;
+            _context3.n = 4;
             return Notification.requestPermission();
           case 4:
-            permission = _context2.v;
+            permission = _context3.v;
             if (!(permission !== 'granted')) {
-              _context2.n = 5;
+              _context3.n = 5;
               break;
             }
             throw new Error('Notification permission was not granted.');
           case 5:
-            _context2.n = 6;
-            return registration;
+            _context3.n = 6;
+            return subscribeDevice();
           case 6:
-            worker = _context2.v;
-            _context2.n = 7;
-            return worker.pushManager.getSubscription();
-          case 7:
-            subscription = _context2.v;
-            if (subscription) {
-              _context2.n = 9;
-              break;
-            }
-            _context2.n = 8;
-            return worker.pushManager.subscribe({
-              userVisibleOnly: true,
-              applicationServerKey: base64UrlToUint8Array(config.publicKey)
-            });
-          case 8:
-            subscription = _context2.v;
-          case 9:
-            _context2.n = 10;
-            return axios.post(config.subscribeUrl, subscriptionPayload(subscription));
-          case 10:
-            setStatus('Notifications are enabled on this device.', true);
-            _context2.n = 12;
+            _context3.n = 8;
             break;
-          case 11:
-            _context2.p = 11;
-            _t = _context2.v;
-            message = ((_error$response = _t.response) === null || _error$response === void 0 || (_error$response = _error$response.data) === null || _error$response === void 0 ? void 0 : _error$response.message) || _t.message || 'Could not enable notifications.';
-            setStatus(message, false);
-          case 12:
-            _context2.p = 12;
+          case 7:
+            _context3.p = 7;
+            _t3 = _context3.v;
+            message = ((_error$response2 = _t3.response) === null || _error$response2 === void 0 || (_error$response2 = _error$response2.data) === null || _error$response2 === void 0 ? void 0 : _error$response2.message) || _t3.message || 'Could not enable notifications.';
+            setStatus(message, false, true);
+          case 8:
+            _context3.p = 8;
             button.disabled = false;
-            return _context2.f(12);
-          case 13:
-            return _context2.a(2);
+            return _context3.f(8);
+          case 9:
+            return _context3.a(2);
         }
-      }, _callee2, null, [[2, 11, 12, 13]]);
+      }, _callee3, null, [[2, 7, 8, 9]]);
     }));
     return function (_x) {
-      return _ref2.apply(this, arguments);
+      return _ref3.apply(this, arguments);
     };
   }());
   document.addEventListener('DOMContentLoaded', function () {
     if (document.querySelector('[data-web-push-status]')) {
-      refreshStatus()["catch"](function () {
-        setStatus('Could not check notification status on this device.', false);
-      });
+      refreshStatus();
     }
     var observer = new MutationObserver(function (mutations) {
       var addedNotificationForm = mutations.some(function (mutation) {
@@ -4681,9 +4735,7 @@ if (config) {
         });
       });
       if (addedNotificationForm) {
-        refreshStatus()["catch"](function () {
-          setStatus('Could not check notification status on this device.', false);
-        });
+        refreshStatus();
       }
     });
     observer.observe(document.body, {
