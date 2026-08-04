@@ -13,7 +13,7 @@
     'value' => isset($event) && $event->scheduled_date ? $event->scheduled_date->toDateString() : old('scheduled_date'),
 ])
 
-<div class="row">
+<div class="row" data-general-event-time-fields>
     @select(['label' => 'Starts at', 'name' => 'starts_at', 'grid' => 'col', 'required' => true])
         <option value=""></option>
         @foreach(timeslots(8, 21, 15) as $time)

@@ -5994,6 +5994,9 @@ const prepareDuplicateGeneralEventForm = function(modal, event, options) {
     }
 
     form.reset();
+    if (typeof window.resetEventTimeFields === 'function') {
+        window.resetEventTimeFields(form);
+    }
     setNamedFormValue(form, 'name', event.title);
     setNamedFormValue(form, 'scheduled_date', settings.preserveDate ? event.date : '');
     setNamedFormValue(form, 'starts_at', event.start);
@@ -6003,6 +6006,10 @@ const prepareDuplicateGeneralEventForm = function(modal, event, options) {
     setNamedFormValue(form, 'state', event.state);
     setNamedFormValue(form, 'postal_code', event.postalCode);
     setNamedFormValue(form, 'notes', event.notes);
+
+    if (typeof window.refreshEventTimeFields === 'function') {
+        window.refreshEventTimeFields(form);
+    }
 
     form.querySelectorAll('[data-event-type-input]').forEach(function(input) {
         input.checked = input.value === event.eventType;
@@ -6158,6 +6165,9 @@ const initializeCalendarEditModal = function(modal) {
 
     initializeSingleLessonPlanForms(modal);
     initializeLessonPlanForms(modal);
+    if (typeof window.initializeEventTimeFields === 'function') {
+        window.initializeEventTimeFields(modal);
+    }
 
     const currencyInputs = modal.querySelectorAll('[data-mask="usd"]');
 

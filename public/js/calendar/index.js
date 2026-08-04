@@ -9145,6 +9145,9 @@ var prepareDuplicateGeneralEventForm = function prepareDuplicateGeneralEventForm
     return false;
   }
   form.reset();
+  if (typeof window.resetEventTimeFields === 'function') {
+    window.resetEventTimeFields(form);
+  }
   setNamedFormValue(form, 'name', event.title);
   setNamedFormValue(form, 'scheduled_date', settings.preserveDate ? event.date : '');
   setNamedFormValue(form, 'starts_at', event.start);
@@ -9154,6 +9157,9 @@ var prepareDuplicateGeneralEventForm = function prepareDuplicateGeneralEventForm
   setNamedFormValue(form, 'state', event.state);
   setNamedFormValue(form, 'postal_code', event.postalCode);
   setNamedFormValue(form, 'notes', event.notes);
+  if (typeof window.refreshEventTimeFields === 'function') {
+    window.refreshEventTimeFields(form);
+  }
   form.querySelectorAll('[data-event-type-input]').forEach(function (input) {
     input.checked = input.value === event.eventType;
     input.dispatchEvent(new window.Event('change', {
@@ -9279,6 +9285,9 @@ var initializeCalendarEditModal = function initializeCalendarEditModal(modal) {
   }
   initializeSingleLessonPlanForms(modal);
   initializeLessonPlanForms(modal);
+  if (typeof window.initializeEventTimeFields === 'function') {
+    window.initializeEventTimeFields(modal);
+  }
   var currencyInputs = modal.querySelectorAll('[data-mask="usd"]');
   if (currencyInputs.length && typeof window.Inputmask === 'function') {
     new window.Inputmask({

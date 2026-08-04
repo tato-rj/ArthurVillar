@@ -3792,6 +3792,189 @@ window.calendarDateRanges = {
 
 /***/ },
 
+/***/ "./resources/js/components/event-time-fields.js"
+/*!******************************************************!*\
+  !*** ./resources/js/components/event-time-fields.js ***!
+  \******************************************************/
+() {
+
+var SELECTOR = '[data-general-event-time-fields]';
+var DEFAULT_DURATION_MINUTES = 60;
+var MINIMUM_DURATION_MINUTES = 15;
+var timeToMinutes = function timeToMinutes(value) {
+  var match = String(value || '').match(/^(\d{1,2}):(\d{2})/);
+  if (!match) {
+    return null;
+  }
+  return Number(match[1]) * 60 + Number(match[2]);
+};
+var formatDuration = function formatDuration(minutes) {
+  if (minutes >= 60) {
+    var hours = minutes / 60;
+    return "".concat(Number.isInteger(hours) ? hours : hours.toFixed(1), " hr");
+  }
+  return "".concat(minutes, " min");
+};
+var cacheEndOptions = function cacheEndOptions(endSelect) {
+  if (!Array.isArray(endSelect.generalEventEndOptions)) {
+    endSelect.generalEventEndOptions = Array.from(endSelect.options).map(function (option) {
+      return {
+        value: option.value,
+        label: option.textContent
+      };
+    });
+  }
+  return endSelect.generalEventEndOptions;
+};
+var restoreEndOptions = function restoreEndOptions(endSelect, preferredValue) {
+  var options = cacheEndOptions(endSelect);
+  endSelect.innerHTML = '';
+  options.forEach(function (option) {
+    endSelect.add(new Option(option.label, option.value));
+  });
+  endSelect.value = preferredValue || '';
+};
+var renderEndOptions = function renderEndOptions(container, preferredValue) {
+  var startSelect = container.querySelector('select[name="starts_at"]');
+  var endSelect = container.querySelector('select[name="ends_at"]');
+  if (!startSelect || !endSelect) {
+    return;
+  }
+  var startMinutes = timeToMinutes(startSelect.value);
+  if (startMinutes === null) {
+    restoreEndOptions(endSelect, preferredValue || endSelect.value);
+    return;
+  }
+  var options = cacheEndOptions(endSelect).filter(function (option) {
+    var endMinutes = timeToMinutes(option.value);
+    return option.value === '' || endMinutes !== null && endMinutes > startMinutes;
+  });
+  endSelect.innerHTML = '';
+  options.forEach(function (option) {
+    var endMinutes = timeToMinutes(option.value);
+    var label = option.value === '' ? option.label : "".concat(option.label, " (").concat(formatDuration(endMinutes - startMinutes), ")");
+    endSelect.add(new Option(label, option.value));
+  });
+  var selectedValue = preferredValue || '';
+  endSelect.value = Array.from(endSelect.options).some(function (option) {
+    return option.value === selectedValue;
+  }) ? selectedValue : '';
+};
+var getMaximumEndMinutes = function getMaximumEndMinutes(endSelect) {
+  return cacheEndOptions(endSelect).reduce(function (maximum, option) {
+    var minutes = timeToMinutes(option.value);
+    return minutes === null ? maximum : Math.max(maximum, minutes);
+  }, 0);
+};
+var minutesToTime = function minutesToTime(minutes) {
+  var hours = Math.floor(minutes / 60);
+  var remainder = minutes % 60;
+  return "".concat(String(hours).padStart(2, '0'), ":").concat(String(remainder).padStart(2, '0'));
+};
+var refresh = function refresh(container) {
+  var startSelect = container.querySelector('select[name="starts_at"]');
+  var endSelect = container.querySelector('select[name="ends_at"]');
+  if (!startSelect || !endSelect) {
+    return;
+  }
+  var startMinutes = timeToMinutes(startSelect.value);
+  var endMinutes = timeToMinutes(endSelect.value);
+  if (startMinutes !== null && endMinutes !== null && endMinutes > startMinutes) {
+    container.generalEventDurationMinutes = endMinutes - startMinutes;
+  }
+  renderEndOptions(container, endSelect.value);
+};
+var initialize = function initialize(container) {
+  if (!container || container.generalEventTimeFieldsInitialized) {
+    return;
+  }
+  var startSelect = container.querySelector('select[name="starts_at"]');
+  var endSelect = container.querySelector('select[name="ends_at"]');
+  if (!startSelect || !endSelect) {
+    return;
+  }
+  container.generalEventTimeFieldsInitialized = true;
+  cacheEndOptions(endSelect);
+  refresh(container);
+  startSelect.addEventListener('change', function () {
+    var startMinutes = timeToMinutes(startSelect.value);
+    if (startMinutes === null) {
+      renderEndOptions(container, '');
+      return;
+    }
+    var currentEndMinutes = timeToMinutes(endSelect.value);
+    var currentDifference = currentEndMinutes !== null && currentEndMinutes > startMinutes ? currentEndMinutes - startMinutes : null;
+    var duration = container.generalEventDurationMinutes || currentDifference || DEFAULT_DURATION_MINUTES;
+    var maximumEnd = getMaximumEndMinutes(endSelect);
+    var shiftedEnd = Math.min(startMinutes + Math.max(MINIMUM_DURATION_MINUTES, duration), maximumEnd);
+    renderEndOptions(container, minutesToTime(shiftedEnd));
+  });
+  endSelect.addEventListener('change', function () {
+    var startMinutes = timeToMinutes(startSelect.value);
+    var endMinutes = timeToMinutes(endSelect.value);
+    if (startMinutes !== null && endMinutes !== null && endMinutes > startMinutes) {
+      container.generalEventDurationMinutes = endMinutes - startMinutes;
+    }
+  });
+  var form = container.closest('form');
+  if (form && !form.generalEventTimeResetListener) {
+    form.generalEventTimeResetListener = true;
+    form.addEventListener('reset', function () {
+      window.setTimeout(function () {
+        window.resetEventTimeFields(form);
+        window.refreshEventTimeFields(form);
+      }, 0);
+    });
+  }
+};
+var eachContainer = function eachContainer(root, callback) {
+  var scope = root && root.querySelectorAll ? root : document;
+  if (scope.matches && scope.matches(SELECTOR)) {
+    callback(scope);
+  }
+  scope.querySelectorAll(SELECTOR).forEach(callback);
+};
+window.initializeEventTimeFields = function (root) {
+  eachContainer(root, initialize);
+};
+window.resetEventTimeFields = function (root) {
+  eachContainer(root, function (container) {
+    var endSelect = container.querySelector('select[name="ends_at"]');
+    container.generalEventDurationMinutes = null;
+    if (endSelect) {
+      restoreEndOptions(endSelect, endSelect.value);
+    }
+  });
+};
+window.refreshEventTimeFields = function (root) {
+  eachContainer(root, function (container) {
+    initialize(container);
+    refresh(container);
+  });
+};
+var observeDynamicForms = function observeDynamicForms() {
+  window.initializeEventTimeFields(document);
+  new MutationObserver(function (mutations) {
+    mutations.forEach(function (mutation) {
+      mutation.addedNodes.forEach(function (node) {
+        if (node.nodeType === Node.ELEMENT_NODE) {
+          window.initializeEventTimeFields(node);
+        }
+      });
+    });
+  }).observe(document.body, {
+    childList: true,
+    subtree: true
+  });
+};
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', observeDynamicForms);
+} else {
+  observeDynamicForms();
+}
+
+/***/ },
+
 /***/ "./resources/js/components/event-type.js"
 /*!***********************************************!*\
   !*** ./resources/js/components/event-type.js ***!
@@ -3885,6 +4068,7 @@ __webpack_require__(/*! ./alerts */ "./resources/js/components/alerts.js");
 __webpack_require__(/*! ./address-autocomplete */ "./resources/js/components/address-autocomplete.js");
 __webpack_require__(/*! ./date-range */ "./resources/js/components/date-range.js");
 __webpack_require__(/*! ./event-type */ "./resources/js/components/event-type.js");
+__webpack_require__(/*! ./event-time-fields */ "./resources/js/components/event-time-fields.js");
 __webpack_require__(/*! ./form */ "./resources/js/components/form.js");
 
 /***/ },
