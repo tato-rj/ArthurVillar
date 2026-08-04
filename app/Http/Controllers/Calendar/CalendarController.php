@@ -18,6 +18,7 @@ class CalendarController extends Controller
             'teachingBreaks' => $teachingBreaks,
             'recitals' => $recitals,
             'generalEvents' => $generalEvents,
+            'ignoredConflicts' => $ignoredConflicts,
             'calendarRange' => $calendarRange,
         ] = $scheduler->payload($request);
 
@@ -29,6 +30,7 @@ class CalendarController extends Controller
                 'teachingBreaks' => $teachingBreaks,
                 'recitals' => $recitals,
                 'generalEvents' => $generalEvents,
+                'ignoredConflicts' => $ignoredConflicts,
                 'calendarRange' => $calendarRange,
             ]);
         }
@@ -43,6 +45,6 @@ class CalendarController extends Controller
             ->first();
         $birthdayWindow = Student::birthdayWindow();
 
-        return view('calendar.index', compact('plannedLessons', 'singleLessonPlans', 'holidays', 'teachingBreaks', 'recitals', 'generalEvents', 'calendarRange', 'locations', 'homeLocation', 'birthdayWindow'));
+        return view('calendar.index', compact('plannedLessons', 'singleLessonPlans', 'holidays', 'teachingBreaks', 'recitals', 'generalEvents', 'ignoredConflicts', 'calendarRange', 'locations', 'homeLocation', 'birthdayWindow'));
     }
 }

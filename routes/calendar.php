@@ -13,6 +13,10 @@ Route::post('address-autocomplete', 'AddressAutocompleteController@search')
 Route::post('address-autocomplete/details', 'AddressAutocompleteController@details')
     ->middleware('throttle:60,1')
     ->name('address-autocomplete.details');
+Route::post('conflict-exceptions', 'ConflictExceptionsController@store')
+    ->name('conflict-exceptions.store');
+Route::delete('conflict-exceptions', 'ConflictExceptionsController@destroy')
+    ->name('conflict-exceptions.destroy');
 
 Route::prefix('google-calendar')->name('google-calendar.')->group(function() {
 	Route::get('connect', 'GoogleCalendarController@connect')->name('connect');

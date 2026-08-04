@@ -3,6 +3,7 @@
 namespace App\Calendar;
 
 use App\Calendar\Traits\Holidays;
+use App\Models\Calendar\ConflictException;
 use App\Models\Calendar\EarlyPayment;
 use App\Models\Calendar\Event;
 use App\Models\Calendar\GoogleCalendarEvent;
@@ -30,6 +31,16 @@ class Scheduler
             'teachingBreaks' => $this->teachingBreaks($range),
             'recitals' => $this->recitals($range),
             'generalEvents' => $this->generalEvents($range, $request->user()?->id),
+            'ignoredConflicts' => $request->user()
+                ? ConflictException::query()
+                    ->where('user_id', $request->user()->id)
+                    ->get(['first_event_key', 'second_event_key'])
+                    ->map(fn (ConflictException $exception) => [
+                        $exception->first_event_key,
+                        $exception->second_event_key,
+                    ])
+                    ->values()
+                : collect(),
             'calendarRange' => $range,
         ];
     }

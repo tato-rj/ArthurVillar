@@ -108,6 +108,14 @@
     </div>
 </div>
 
+<div id="ignore-conflict" class="px-3 mt-2" data-event-modal-expanded-content hidden>
+    <div class="border-top pt-4 mt-4">
+        <button type="button" class="btn btn-outline-secondary w-100" data-conflict-toggle>
+            @fa(['icon' => 'triangle-exclamation'])<span data-conflict-toggle-label>Ignore conflict</span>
+        </button>
+    </div>
+</div>
+
 <div class="px-3 mt-2" data-event-modal-expand-toggle-container>
     <button
         type="button"
