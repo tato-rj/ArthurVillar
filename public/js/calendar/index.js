@@ -7722,7 +7722,18 @@ var renderTravelRoute = function renderTravelRoute(section, route) {
       duration_seconds: route.duration_seconds
     }, 0);
   }
-  origin.textContent = [route.origin, route.destination].filter(Boolean).map(compactPhysicalLocation).join(' to ');
+  var routeLocations = [route.origin, route.destination].filter(Boolean).map(compactPhysicalLocation);
+  origin.replaceChildren();
+  routeLocations.forEach(function (location, index) {
+    if (index > 0) {
+      var arrow = document.createElement('i');
+      arrow.className = 'fa-solid fa-arrow-right-long mx-1';
+      arrow.style.opacity = '.5';
+      arrow.setAttribute('aria-hidden', 'true');
+      origin.appendChild(arrow);
+    }
+    origin.appendChild(document.createTextNode(location));
+  });
   section.querySelector('[data-travel-route-loading]').hidden = true;
   section.querySelector('[data-travel-route-content]').hidden = false;
   section.hidden = false;
