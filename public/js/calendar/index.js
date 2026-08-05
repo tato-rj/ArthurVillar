@@ -7727,7 +7727,7 @@ var renderTravelRoute = function renderTravelRoute(section, route) {
   routeLocations.forEach(function (location, index) {
     if (index > 0) {
       var arrow = document.createElement('i');
-      arrow.className = 'fa-solid fa-arrow-right-long mx-1';
+      arrow.className = 'fa-solid fa-arrow-right-long mx-2';
       arrow.style.opacity = '.5';
       arrow.setAttribute('aria-hidden', 'true');
       origin.appendChild(arrow);
