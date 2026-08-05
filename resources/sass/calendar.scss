@@ -1936,6 +1936,10 @@ button.single-lesson-plan-create[selected] i {
     gap: 0.65rem;
     grid-template-columns: 1.25rem minmax(0, 1fr);
     min-width: 0;
+
+    a:not(.btn) {
+        @extend .text-red;
+    }
 }
 
 .calendar-modal-detail[hidden],

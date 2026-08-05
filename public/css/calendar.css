@@ -25381,7 +25381,7 @@ h1, .h1 {
 .text-stone, .alert-stone {
   color: #78716c !important;
 }
-.text-red, #general-event-details a:not(.btn):not(.invitation-offscreen-indicator):not(.invitation-duration-option):not(.calendar-calendar-search[selected]), #recital-location a, .calendar-general-event-notes a:not(.btn):not(.invitation-offscreen-indicator):not(.invitation-duration-option):not(.calendar-calendar-search[selected]), .alert-red, #calendar-event-modal[data-event-modal-type=lesson][data-lesson-status=unpaid] div#lesson-status {
+.text-red, #general-event-details a:not(.btn):not(.invitation-offscreen-indicator):not(.invitation-duration-option):not(.calendar-calendar-search[selected]), .calendar-modal-detail a:not(.btn):not(.invitation-offscreen-indicator):not(.invitation-duration-option):not(.calendar-calendar-search[selected]), #recital-location a, .calendar-general-event-notes a:not(.btn):not(.invitation-offscreen-indicator):not(.invitation-duration-option):not(.calendar-calendar-search[selected]), .alert-red, #calendar-event-modal[data-event-modal-type=lesson][data-lesson-status=unpaid] div#lesson-status {
   color: #ff4b4b !important;
 }
 .text-orange, .alert-orange {
@@ -33169,7 +33169,6 @@ button.single-lesson-plan-create[selected] i {
   grid-template-columns: 1.25rem minmax(0, 1fr);
   min-width: 0;
 }
-
 .calendar-modal-detail[hidden],
 .calendar-modal-detail-section[hidden] {
   display: none !important;
