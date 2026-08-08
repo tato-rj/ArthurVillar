@@ -2812,7 +2812,7 @@ const populateLessonModal = function(modal, event) {
     }
 
     if (lessonLocation && lessonLocationContent) {
-        const hasLocation = renderEventLocation(
+        const hasLocation = !isHomeCalendarLocation(event && event.location) && renderEventLocation(
             lessonLocationContent,
             lessonLocationIcon,
             event && event.location
@@ -3291,6 +3291,36 @@ const locationValue = function(location) {
     }
 
     return String(location.address || location.name || physicalLocationQuery(location)).trim();
+};
+
+const normalizeLocationIdentity = function(value) {
+    return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+};
+
+const isHomeCalendarLocation = function(location) {
+    const home = window.calendarHomeLocation;
+
+    if (!location || !home) {
+        return false;
+    }
+
+    const homeAddress = normalizeLocationIdentity(home.address);
+    const homeValues = [
+        home.address,
+        home.name,
+        physicalLocationQuery(home),
+    ].map(normalizeLocationIdentity).filter(Boolean);
+    const locationValues = location && typeof location === 'object'
+        ? [location.address, location.name, physicalLocationQuery(location)]
+        : [location];
+
+    return locationValues
+        .map(normalizeLocationIdentity)
+        .filter(Boolean)
+        .some(function(value) {
+            return homeValues.includes(value)
+                || (homeAddress && value.startsWith(homeAddress));
+        });
 };
 
 const isVirtualLocation = function(value) {
@@ -4553,19 +4583,12 @@ const openGeneralEventModal = function(event, options) {
     if (organizerSection) organizerSection.hidden = !(event.organizerName || event.organizerEmail);
     if (organizer) organizer.textContent = event.organizerName || event.organizerEmail || '';
     if (location && locationSection) {
-        locationSection.hidden = !renderEventLocation(location, locationIcon, event.location);
+        locationSection.hidden = isHomeCalendarLocation(event.location)
+            || !renderEventLocation(location, locationIcon, event.location);
     }
     if (address && addressSection) {
-        const usesUrlLocation = event.externalProvider === 'google'
-            && Boolean(normalizeHttpUrl(locationValue(event.location)));
-        const homeLocation = usesUrlLocation ? window.calendarHomeLocation : null;
-
-        addressSection.hidden = !homeLocation
-            || !renderEventLocation(
-                address,
-                addressSection.querySelector('.calendar-modal-detail-icon'),
-                homeLocation
-            );
+        address.innerHTML = '';
+        addressSection.hidden = true;
     }
     if (edit) {
         edit.dataset.url = event.editUrl || '';
