@@ -377,8 +377,8 @@ class InvitationIndexTest extends BaseTest
             ->assertSee('Lunch meeting')
             ->assertSee('Pick a convenient afternoon.')
             ->assertSee('2026-08-10T13:30')
-            ->assertSee("const scheduleStart = '08:00';", false)
-            ->assertSee("const scheduleEnd = '22:00';", false)
+            ->assertSee("const scheduleStart = '06:00';", false)
+            ->assertSee("const scheduleEnd = '23:00';", false)
             ->assertSee('validRange: [scheduleStart, scheduleEnd]', false);
 
         $this->assertSame(

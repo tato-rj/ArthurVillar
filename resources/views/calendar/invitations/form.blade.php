@@ -160,8 +160,8 @@ $(function() {
     const nextCount = document.getElementById('invitation-next-count');
     const initialStarts = @json(array_values($optionValues));
     const fixedDurations = [15, 30, 60, 90, 120];
-    const scheduleStart = '08:00';
-    const scheduleEnd = '22:00';
+    const scheduleStart = '06:00';
+    const scheduleEnd = '23:00';
     let duration = Number(durationInput.value || 60);
     let normalizingEvents = false;
 
