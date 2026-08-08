@@ -144,7 +144,11 @@ class LessonPlansTableTest extends BaseTest
             ->assertOk()
             ->assertSee('Lesson Plans')
             ->assertSee('lesson-plans-table', false)
-            ->assertSee('New lesson')
+            ->assertSee('New lesson plan')
+            ->assertSee('data-bs-target="#create-calendar-lesson-plan-modal"', false)
+            ->assertSee('id="create-calendar-lesson-plan-modal"', false)
+            ->assertSee('data-lesson-plan-form', false)
+            ->assertSee('calendarLessonPlanCreateForms', false)
             ->assertDontSee('Lesson plan type');
 
         $response = $this->getJson(route(

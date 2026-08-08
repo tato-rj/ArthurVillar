@@ -18,7 +18,12 @@
 
     @pagetitle([
         'label' => 'Lesson Plans',
-        'subtitle' => 'Recurring and one-time teaching commitments.'
+        'subtitle' => 'Recurring and one-time teaching commitments.',
+        'modal' => [
+            'target' => '#create-calendar-lesson-plan-modal',
+            'icon' => 'plus',
+            'label' => 'New lesson plan'
+        ]
     ])
 
     <div class="calendar-table-filters mb-3" id="lesson-plans-starts-range">
@@ -88,6 +93,7 @@
         </table>
     </div>
 </section>
+@include('calendar.lessonPlans.create')
 <div id="edit-lesson-plan-modal-container"></div>
 <div id="edit-single-lesson-plan-modal-container"></div>
 @endsection
@@ -95,6 +101,7 @@
 @push('scripts')
 <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
 @include('calendar.tables.state')
+@include('calendar.lessonPlans.create-scripts')
 <script>
 $(function() {
     const selectedFilterValues = function(selector) {
