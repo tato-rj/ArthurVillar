@@ -1,6 +1,6 @@
 <div class="{{$mb ?? 'form-group'}} text-left {{$grid ?? null}} {{$classes ?? null}}">
   @isset($label)
-    @label
+    @label(['label' => $label, 'icon' => null])
   @endisset
 
   <div class="form-select-control {{iftrue(isset($icon), 'has-icon')}}">

@@ -93,17 +93,19 @@
 			<section class="calendar-settings-section" aria-labelledby="settings-calendar-initial-view-title">
 				<h6 id="settings-calendar-initial-view-title">Calendar options</h6>
 
-				@select(['label' => 'Initial view in desktop', 'icon' => 'desktop', 'name' => 'calendar_default_desktop_view', 'id' => 'calendar-default-desktop-view'])
-					@foreach($calendarViewOptions as $calendarView => $calendarViewLabel)
-						<option value="{{$calendarView}}" {{iftrue($selectedDesktopCalendarView === $calendarView, 'selected')}}>{{$calendarViewLabel}}</option>
-					@endforeach
-				@endselect
+				<div class="row"> 
+					@select(['grid' => 'col', 'label' => 'Initial view in desktop', 'icon' => 'desktop', 'name' => 'calendar_default_desktop_view', 'id' => 'calendar-default-desktop-view'])
+						@foreach($calendarViewOptions as $calendarView => $calendarViewLabel)
+							<option value="{{$calendarView}}" {{iftrue($selectedDesktopCalendarView === $calendarView, 'selected')}}>{{$calendarViewLabel}}</option>
+						@endforeach
+					@endselect
 
-				@select(['label' => 'Initial view in mobile', 'icon' => 'mobile', 'name' => 'calendar_default_mobile_view', 'id' => 'calendar-default-mobile-view'])
-					@foreach($calendarViewOptions as $calendarView => $calendarViewLabel)
-						<option value="{{$calendarView}}" {{iftrue($selectedMobileCalendarView === $calendarView, 'selected')}}>{{$calendarViewLabel}}</option>
-					@endforeach
-				@endselect
+					@select(['grid' => 'col', 'label' => 'Initial view in mobile', 'icon' => 'mobile', 'name' => 'calendar_default_mobile_view', 'id' => 'calendar-default-mobile-view'])
+						@foreach($calendarViewOptions as $calendarView => $calendarViewLabel)
+							<option value="{{$calendarView}}" {{iftrue($selectedMobileCalendarView === $calendarView, 'selected')}}>{{$calendarViewLabel}}</option>
+						@endforeach
+					@endselect
+				</div>
 			</section>
 
 			<section class="calendar-settings-section" aria-labelledby="settings-appearance-title">
