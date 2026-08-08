@@ -33,11 +33,11 @@
           @endif
         </title>
 
-        {{-- @if(\View::exists('layouts.favicon.'.subdomain())) --}}
-            {{-- @include('layouts.favicon.'.subdomain()) --}}
-        {{-- @else --}}
+        @if(\View::exists('layouts.favicon.'.subdomain()))
+            @include('layouts.favicon.'.subdomain())
+        @else
             <link href="{{asset('/favicon/favicon.ico')}}" rel="icon" type="image/x-icon">
-        {{-- @endif --}}
+        @endif
         
         <link href="{{ mix('css/app.css') }}" rel="stylesheet">
 
