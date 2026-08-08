@@ -12,7 +12,9 @@ class StudentsController extends Controller
 {
     public function index()
     {
-        return view('calendar.students.index');
+        return view('calendar.students.index', [
+            'studentsGrandTotal' => Student::query()->count(),
+        ]);
     }
 
     public function store(Request $request)

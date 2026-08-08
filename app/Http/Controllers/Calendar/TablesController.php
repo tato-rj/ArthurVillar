@@ -1024,6 +1024,7 @@ class TablesController extends Controller
             ->orderColumn('unpaid_lessons_count', 'unpaid_lessons_count $1, students.id $1')
             ->orderColumn('canceled_lessons_count', 'canceled_lessons_count $1, students.id $1')
             ->orderColumn('is_adult', 'students.is_adult $1, students.id $1')
+            ->with('grand_total', Student::query()->count())
             ->toJson();
     }
 }

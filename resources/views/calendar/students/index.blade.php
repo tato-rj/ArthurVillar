@@ -10,7 +10,7 @@
     {{ Breadcrumbs::render('calendar.students.index') }}
 
     <div class="row mb-4">
-        @pagetitle([
+        @component('components.pagetitle', [
             'label' => 'Students',
             'modal' => [
                 'target' => '#create-student-modal',
@@ -18,6 +18,16 @@
                 'label' => 'New student'
             ]
         ])
+        @slot('subtitle')
+        <div class="text-center" id="students-totals" aria-live="polite">
+            Total of <span data-students-grand-total>{{$studentsGrandTotal}} {{\Illuminate\Support\Str::plural('student', $studentsGrandTotal)}}</span>
+            <span data-students-location-summary hidden>
+                · <span data-students-location-total>0 students</span>
+                from <span data-students-location-labels>selected locations</span>
+            </span>
+        </div>
+        @endslot
+        @endcomponent
     </div>
 
     <div class="calendar-table-filters mb-3">
@@ -99,6 +109,55 @@ $(function() {
         });
     };
 
+    const pluralizeStudents = function(total) {
+        const count = Number(total || 0);
+
+        return `${count} ${count === 1 ? 'student' : 'students'}`;
+    };
+
+    const selectedLocationLabels = function() {
+        return Array.from(document.querySelectorAll('[data-student-location-filter]:checked'))
+            .map(function(input) {
+                const label = document.querySelector(`label[for="${input.id}"]`);
+
+                return label ? label.textContent.trim() : input.value;
+            });
+    };
+
+    const formatLocationLabels = function(labels) {
+        if (!labels.length) {
+            return 'selected locations';
+        }
+
+        if (labels.length === 1) {
+            return labels[0];
+        }
+
+        if (labels.length === 2) {
+            return `${labels[0]} and ${labels[1]}`;
+        }
+
+        return `${labels.slice(0, -1).join(', ')}, and ${labels[labels.length - 1]}`;
+    };
+
+    const updateStudentTotals = function(response) {
+        const grandTotal = document.querySelector('[data-students-grand-total]');
+        const locationSummary = document.querySelector('[data-students-location-summary]');
+        const locationTotal = document.querySelector('[data-students-location-total]');
+        const locationLabels = document.querySelector('[data-students-location-labels]');
+
+        if (!grandTotal || !locationSummary || !locationTotal || !locationLabels) {
+            return;
+        }
+
+        const labels = selectedLocationLabels();
+
+        grandTotal.textContent = pluralizeStudents(response.grand_total);
+        locationTotal.textContent = pluralizeStudents(response.recordsTotal);
+        locationLabels.textContent = formatLocationLabels(labels);
+        locationSummary.hidden = false;
+    };
+
     const showModal = function(modal) {
         if (window.bootstrap && window.bootstrap.Modal && typeof window.bootstrap.Modal.getOrCreateInstance === 'function') {
             window.bootstrap.Modal.getOrCreateInstance(modal).show();
@@ -135,6 +194,11 @@ $(function() {
             url: @json(route('calendar.tables.students')),
             data: function(data) {
                 data.student_locations = selectedFilterValues('[data-student-location-filter]');
+            },
+            dataSrc: function(response) {
+                updateStudentTotals(response);
+
+                return response.data;
             },
         },
         columns: [

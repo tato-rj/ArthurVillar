@@ -78,11 +78,19 @@ class StudentsTableTest extends BaseTest
             ->assertOk()
             ->assertSee('Filter students')
             ->assertSee('data-student-location-filter', false)
+            ->assertSee('data-students-grand-total', false)
+            ->assertSee('4 students')
+            ->assertSee('data-students-location-summary', false)
             ->assertSee('student_locations', false);
 
-        $rows = $this->json('GET', route('calendar.tables.students'), $this->studentTableRequest([
+        $response = $this->json('GET', route('calendar.tables.students'), $this->studentTableRequest([
             'student_locations' => 'home,online',
-        ]))->assertOk()->json('data');
+        ]))
+            ->assertOk()
+            ->assertJsonPath('grand_total', 4)
+            ->assertJsonPath('recordsTotal', 2);
+
+        $rows = $response->json('data');
 
         $this->assertEqualsCanonicalizing(['Home', 'Online'], collect($rows)->pluck('first_name')->all());
 
