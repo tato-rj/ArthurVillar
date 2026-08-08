@@ -5,7 +5,20 @@
 @endpush
 
 @section('content')
-@php($selectedStudentLocations = collect(explode(',', request('student_locations', 'home,online,bkcm'))))
+@php
+    $selectedStudentLocations = collect(explode(',', request('student_locations', 'home,online,bkcm')));
+    $selectedStudentLocationPhrases = collect([
+        'home' => 'at home',
+        'bkcm' => 'at BKCM',
+        'online' => 'online',
+    ])->filter(fn ($phrase, $location) => $selectedStudentLocations->contains($location))->values();
+    $studentsInitialLocationDescription = match ($selectedStudentLocationPhrases->count()) {
+        0 => '',
+        1 => ' '.$selectedStudentLocationPhrases->first(),
+        2 => ' '.$selectedStudentLocationPhrases->join(' and '),
+        default => ' '.$selectedStudentLocationPhrases->slice(0, -1)->join(', ').', and '.$selectedStudentLocationPhrases->last(),
+    };
+@endphp
 <section class="container py-5">
     {{ Breadcrumbs::render('calendar.students.index') }}
 
@@ -20,7 +33,7 @@
         ])
         @slot('subtitle')
         <div class="text-center" id="students-totals" aria-live="polite">
-            Total of <span data-students-total>{{$studentsGrandTotal}} {{\Illuminate\Support\Str::plural('student', $studentsGrandTotal)}}</span>
+            Total of <span data-students-total>{{$studentsInitialTotal}} {{\Illuminate\Support\Str::plural('student', $studentsInitialTotal)}}</span><span data-students-location-description>{{$studentsInitialLocationDescription}}</span>
         </div>
         @endslot
         @endcomponent
@@ -111,14 +124,50 @@ $(function() {
         return `${count} ${count === 1 ? 'student' : 'students'}`;
     };
 
+    const selectedLocationDescription = function() {
+        const selected = new Set(
+            Array.from(document.querySelectorAll('[data-student-location-filter]:checked'))
+                .map(function(input) {
+                    return input.value;
+                })
+        );
+        const phrases = [
+            ['home', 'at home'],
+            ['bkcm', 'at BKCM'],
+            ['online', 'online'],
+        ]
+            .filter(function(location) {
+                return selected.has(location[0]);
+            })
+            .map(function(location) {
+                return location[1];
+            });
+
+        if (!phrases.length) {
+            return '';
+        }
+
+        if (phrases.length === 1) {
+            return ` ${phrases[0]}`;
+        }
+
+        if (phrases.length === 2) {
+            return ` ${phrases[0]} and ${phrases[1]}`;
+        }
+
+        return ` ${phrases.slice(0, -1).join(', ')}, and ${phrases[phrases.length - 1]}`;
+    };
+
     const updateStudentTotals = function(response) {
         const total = document.querySelector('[data-students-total]');
+        const locationDescription = document.querySelector('[data-students-location-description]');
 
-        if (!total) {
+        if (!total || !locationDescription) {
             return;
         }
 
         total.textContent = pluralizeStudents(response.recordsTotal);
+        locationDescription.textContent = selectedLocationDescription();
     };
 
     const showModal = function(modal) {

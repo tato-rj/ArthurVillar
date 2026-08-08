@@ -79,8 +79,14 @@ class StudentsTableTest extends BaseTest
             ->assertSee('Filter students')
             ->assertSee('data-student-location-filter', false)
             ->assertSee('data-students-total', false)
-            ->assertSee('4 students')
+            ->assertSee('3 students')
+            ->assertSee('at home, at BKCM, and online')
             ->assertSee('student_locations', false);
+
+        $this->get(route('calendar.students.index', ['student_locations' => 'home,bkcm']))
+            ->assertOk()
+            ->assertSee('2 students')
+            ->assertSee('at home and at BKCM');
 
         $response = $this->json('GET', route('calendar.tables.students'), $this->studentTableRequest([
             'student_locations' => 'home,online',

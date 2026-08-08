@@ -6,14 +6,26 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\Calendar\{Location, Student, WaitingList};
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class StudentsController extends Controller
 {
     public function index()
     {
+        $selectedLocations = collect(explode(',', request('student_locations', 'home,online,bkcm')))
+            ->intersect(['home', 'online', 'bkcm'])
+            ->values();
+        $studentsInitialTotal = $selectedLocations->isEmpty()
+            ? 0
+            : Student::query()
+                ->whereHas('location', function ($query) use ($selectedLocations) {
+                    $query->whereIn(DB::raw('LOWER(name)'), $selectedLocations);
+                })
+                ->count();
+
         return view('calendar.students.index', [
-            'studentsGrandTotal' => Student::query()->count(),
+            'studentsInitialTotal' => $studentsInitialTotal,
         ]);
     }
 
