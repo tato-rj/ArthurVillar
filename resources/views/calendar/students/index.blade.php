@@ -5,6 +5,7 @@
 @endpush
 
 @section('content')
+@php($selectedStudentLocations = collect(explode(',', request('student_locations', 'home,online,bkcm'))))
 <section class="container py-5">
     {{ Breadcrumbs::render('calendar.students.index') }}
 
@@ -18,6 +19,39 @@
             ]
         ])
     </div>
+
+    <div class="calendar-table-filters mb-3">
+        @tablefilter([
+            'id' => 'students-row-filters',
+            'placeholder' => 'Filter students',
+            'groups' => [
+                'Location' => [
+                    [
+                        'id' => 'student-location-home',
+                        'label' => 'Home',
+                        'value' => 'home',
+                        'checked' => $selectedStudentLocations->contains('home'),
+                        'attributes' => ['data-student-location-filter' => ''],
+                    ],
+                    [
+                        'id' => 'student-location-online',
+                        'label' => 'Online',
+                        'value' => 'online',
+                        'checked' => $selectedStudentLocations->contains('online'),
+                        'attributes' => ['data-student-location-filter' => ''],
+                    ],
+                    [
+                        'id' => 'student-location-bkcm',
+                        'label' => 'BKCM',
+                        'value' => 'bkcm',
+                        'checked' => $selectedStudentLocations->contains('bkcm'),
+                        'attributes' => ['data-student-location-filter' => ''],
+                    ],
+                ],
+            ],
+        ])
+    </div>
+
     <div id="students-container" class="calendar-table-container">
         <table id="students-table" class="display calendar-table">
             <thead>
@@ -45,6 +79,26 @@
 @include('calendar.tables.state')
 <script>
 $(function() {
+    const selectedFilterValues = function(selector) {
+        const values = Array.from(document.querySelectorAll(selector))
+            .filter(function(input) {
+                return input.checked;
+            })
+            .map(function(input) {
+                return input.value;
+            });
+
+        return values.length ? values.join(',') : 'none';
+    };
+
+    const restoreFilterValues = function(selector, value, defaultValue) {
+        const selected = new Set(String(value || defaultValue).split(','));
+
+        document.querySelectorAll(selector).forEach(function(input) {
+            input.checked = selected.has(input.value);
+        });
+    };
+
     const showModal = function(modal) {
         if (window.bootstrap && window.bootstrap.Modal && typeof window.bootstrap.Modal.getOrCreateInstance === 'function') {
             window.bootstrap.Modal.getOrCreateInstance(modal).show();
@@ -77,7 +131,12 @@ $(function() {
                 next: '<i class="fas fa-angle-right mr-0"></i>',
             },
         },
-        ajax: @json(route('calendar.tables.students')),
+        ajax: {
+            url: @json(route('calendar.tables.students')),
+            data: function(data) {
+                data.student_locations = selectedFilterValues('[data-student-location-filter]');
+            },
+        },
         columns: [
             {data: 'name', name: 'name'},
             {
@@ -164,6 +223,19 @@ $(function() {
                 },
             },
         ],
+    }, {
+        restore: function(params) {
+            restoreFilterValues('[data-student-location-filter]', params.get('student_locations'), 'home,online,bkcm');
+        },
+        extraParams: function() {
+            return {
+                student_locations: selectedFilterValues('[data-student-location-filter]'),
+            };
+        },
+    });
+
+    $('#students-row-filters').on('change', 'input[type="checkbox"]', function() {
+        studentsTable.ajax.reload(null, true);
     });
 
     $('#students-table').on('click', '.js-edit-student', function() {

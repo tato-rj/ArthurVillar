@@ -60,6 +60,40 @@ class StudentsTableTest extends BaseTest
     }
 
     /** @test */
+    public function it_filters_students_by_location()
+    {
+        $home = Location::factory()->create(['name' => 'Home']);
+        $online = Location::factory()->create(['name' => 'Online']);
+        $bkcm = Location::factory()->create(['name' => 'BKCM']);
+        $other = Location::factory()->create(['name' => 'Other']);
+
+        Student::factory()->create(['first_name' => 'Home', 'location_id' => $home->id]);
+        Student::factory()->create(['first_name' => 'Online', 'location_id' => $online->id]);
+        Student::factory()->create(['first_name' => 'BKCM', 'location_id' => $bkcm->id]);
+        Student::factory()->create(['first_name' => 'Other', 'location_id' => $other->id]);
+
+        $this->signIn();
+
+        $this->get(route('calendar.students.index'))
+            ->assertOk()
+            ->assertSee('Filter students')
+            ->assertSee('data-student-location-filter', false)
+            ->assertSee('student_locations', false);
+
+        $rows = $this->json('GET', route('calendar.tables.students'), $this->studentTableRequest([
+            'student_locations' => 'home,online',
+        ]))->assertOk()->json('data');
+
+        $this->assertEqualsCanonicalizing(['Home', 'Online'], collect($rows)->pluck('first_name')->all());
+
+        $this->json('GET', route('calendar.tables.students'), $this->studentTableRequest([
+            'student_locations' => 'none',
+        ]))
+            ->assertOk()
+            ->assertJsonCount(0, 'data');
+    }
+
+    /** @test */
     public function it_counts_paid_unpaid_and_canceled_lessons_for_each_student()
     {
         $student = Student::factory()->create(['first_name' => 'Lesson', 'last_name' => 'Counts']);

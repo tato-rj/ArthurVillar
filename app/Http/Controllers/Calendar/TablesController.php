@@ -911,9 +911,22 @@ class TablesController extends Controller
     public function students()
     {
         $driver = DB::connection()->getDriverName();
+        $locationFilterRequested = request()->has('student_locations');
+        $selectedLocations = collect(explode(',', request('student_locations', '')))
+            ->intersect(['home', 'online', 'bkcm'])
+            ->values();
 
         $students = Student::query()
             ->leftJoin('locations', 'locations.id', '=', 'students.location_id')
+            ->when($locationFilterRequested, function ($query) use ($selectedLocations) {
+                if ($selectedLocations->isEmpty()) {
+                    $query->whereRaw('1 = 0');
+
+                    return;
+                }
+
+                $query->whereIn(DB::raw('LOWER(locations.name)'), $selectedLocations);
+            })
             ->select([
                 'students.id',
                 'students.first_name',

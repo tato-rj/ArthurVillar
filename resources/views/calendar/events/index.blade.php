@@ -10,7 +10,12 @@
 
         @pagetitle([
             'label' => 'My Events',
-            'subtitle' => 'Events you created in this calendar.'
+            'subtitle' => 'Events you created in this calendar.',
+            'modal' => [
+                'target' => '#create-event-modal',
+                'icon' => 'plus',
+                'label' => 'New event'
+            ]
         ])
 
 
