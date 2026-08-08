@@ -65,7 +65,7 @@ class Event extends BaseModel
     {
         $times = [];
 
-        for ($minutes = 0; $minutes < 24 * 60; $minutes += 15) {
+        for ($minutes = 7 * 60; $minutes <= 23 * 60; $minutes += 15) {
             $times[] = sprintf('%02d:%02d', intdiv($minutes, 60), $minutes % 60);
         }
 

@@ -91,15 +91,15 @@
 			</section>
 
 			<section class="calendar-settings-section" aria-labelledby="settings-calendar-initial-view-title">
-				<h6 id="settings-calendar-initial-view-title">Calendar initial view</h6>
+				<h6 id="settings-calendar-initial-view-title">Calendar options</h6>
 
-				@select(['icon' => 'desktop', 'name' => 'calendar_default_desktop_view', 'id' => 'calendar-default-desktop-view'])
+				@select(['label' => 'Initial view in desktop', 'icon' => 'desktop', 'name' => 'calendar_default_desktop_view', 'id' => 'calendar-default-desktop-view'])
 					@foreach($calendarViewOptions as $calendarView => $calendarViewLabel)
 						<option value="{{$calendarView}}" {{iftrue($selectedDesktopCalendarView === $calendarView, 'selected')}}>{{$calendarViewLabel}}</option>
 					@endforeach
 				@endselect
 
-				@select(['icon' => 'mobile', 'name' => 'calendar_default_mobile_view', 'id' => 'calendar-default-mobile-view'])
+				@select(['label' => 'Initial view in mobile', 'icon' => 'mobile', 'name' => 'calendar_default_mobile_view', 'id' => 'calendar-default-mobile-view'])
 					@foreach($calendarViewOptions as $calendarView => $calendarViewLabel)
 						<option value="{{$calendarView}}" {{iftrue($selectedMobileCalendarView === $calendarView, 'selected')}}>{{$calendarViewLabel}}</option>
 					@endforeach

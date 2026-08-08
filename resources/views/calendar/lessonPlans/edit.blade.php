@@ -41,7 +41,7 @@
 
 	<div class="row">
 		@select(['label' => 'Start time', 'name' => 'start_time', 'grid' => 'col'])
-			@foreach(timeslots(9, 21, 15) as $time)
+			@foreach(\App\Models\Calendar\LessonPlan::timeOptions() as $time)
 				@option(['name' => 'start_time', 'label' => \App\Models\Calendar\LessonPlan::timeLabel($time), 'value' => $time, 'selected' => $lessonPlan->start_time == $time])
 			@endforeach
 		@endselect
