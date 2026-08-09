@@ -1,5 +1,5 @@
 		<div class="calendar-calendar-toolbar-views" style="flex: 0 0 auto;">
-			<label class="calendar-calendar-view">
+			<label class="calendar-calendar-view calendar-calendar-header-control">
 				<span class="sr-only">Calendar view</span>
 				<select data-calendar-view>
 					<option value="schedule">Schedule</option>

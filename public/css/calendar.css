@@ -31616,6 +31616,16 @@ td, th {
   background: #e8eaed;
 }
 
+.calendar-calendar-header-control {
+  border-radius: 999px;
+  transition: background-color 0.2s;
+}
+
+button.calendar-calendar-header-control:not(:disabled):hover,
+label.calendar-calendar-header-control:hover {
+  background-color: #e8eaed !important;
+}
+
 .calendar-mini-calendar-weekdays,
 .calendar-mini-calendar-grid {
   display: grid;
