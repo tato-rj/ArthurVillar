@@ -7654,10 +7654,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 300);
     });
 
-    const useDesktopScheduleHeaderNavigation = function() {
-        return scheduleGridViews.includes(state.view)
-            && window.matchMedia
-            && window.matchMedia('(min-width: 768px)').matches;
+    const useScheduleHeaderNavigation = function() {
+        return scheduleGridViews.includes(state.view);
     };
 
     const navigateCalendarByArrow = function(direction) {
@@ -7665,7 +7663,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return false;
         }
 
-        if (useDesktopScheduleHeaderNavigation()) {
+        if (useScheduleHeaderNavigation()) {
             return navigateScheduleHeaderByArrow(direction);
         }
 
@@ -9263,7 +9261,7 @@ document.addEventListener('DOMContentLoaded', function() {
             || e.ctrlKey
             || e.altKey
             || e.shiftKey
-            || !useDesktopScheduleHeaderNavigation()
+            || !useScheduleHeaderNavigation()
             || isScheduleHoldNavigationSuppressed()
             || document.querySelector('.modal.show, .offcanvas.show, dialog[open]')) {
             return;

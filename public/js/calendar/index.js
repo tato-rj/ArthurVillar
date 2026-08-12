@@ -10439,14 +10439,14 @@ document.addEventListener('DOMContentLoaded', function () {
       _render();
     }, 300);
   });
-  var useDesktopScheduleHeaderNavigation = function useDesktopScheduleHeaderNavigation() {
-    return scheduleGridViews.includes(state.view) && window.matchMedia && window.matchMedia('(min-width: 768px)').matches;
+  var useScheduleHeaderNavigation = function useScheduleHeaderNavigation() {
+    return scheduleGridViews.includes(state.view);
   };
   var navigateCalendarByArrow = function navigateCalendarByArrow(direction) {
     if (!direction || isScheduleHoldNavigationSuppressed()) {
       return false;
     }
-    if (useDesktopScheduleHeaderNavigation()) {
+    if (useScheduleHeaderNavigation()) {
       return navigateScheduleHeaderByArrow(direction);
     }
     move(direction);
@@ -11725,7 +11725,7 @@ document.addEventListener('DOMContentLoaded', function () {
     clearScheduleItemHold();
   });
   document.addEventListener('keydown', function (e) {
-    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight' || e.metaKey || e.ctrlKey || e.altKey || e.shiftKey || !useDesktopScheduleHeaderNavigation() || isScheduleHoldNavigationSuppressed() || document.querySelector('.modal.show, .offcanvas.show, dialog[open]')) {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight' || e.metaKey || e.ctrlKey || e.altKey || e.shiftKey || !useScheduleHeaderNavigation() || isScheduleHoldNavigationSuppressed() || document.querySelector('.modal.show, .offcanvas.show, dialog[open]')) {
       return;
     }
     var target = e.target;
