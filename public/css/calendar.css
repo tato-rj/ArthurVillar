@@ -31534,7 +31534,6 @@ td, th {
 .calendar-calendar-nav {
   align-items: center;
   display: flex;
-  gap: 0.25rem;
 }
 
 .calendar-calendar-label {
