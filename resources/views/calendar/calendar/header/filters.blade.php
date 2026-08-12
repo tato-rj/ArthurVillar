@@ -1,5 +1,5 @@
 		<div class="calendar-calendar-filter dropdown">
-			<button type="button" class="btn-raw calendar-calendar-filter-toggle calendar-calendar-header-control px-2" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" aria-label="Filter calendar">
+			<button type="button" class="btn-raw calendar-calendar-icon-button calendar-calendar-filter-toggle calendar-calendar-header-control" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" aria-label="Filter calendar">
 				@fa(['icon' => 'filter', 'mr' => 0, 'fa_color' => 'black'])
 			</button>
 			<div class="dropdown-menu dropdown-menu-end calendar-calendar-filter-menu p-3">

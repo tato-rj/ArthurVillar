@@ -31508,7 +31508,10 @@ td, th {
   border-color: transparent;
   border-radius: 50%;
   color: #3c4043;
-  font-size: 1.25rem;
+  flex: 0 0 38px;
+  min-width: 38px;
+  padding: 0 !important;
+  width: 38px;
 }
 
 .calendar-calendar-today {

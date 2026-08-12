@@ -1,6 +1,6 @@
 	<div class="calendar-calendar-toolbar" aria-label="Calendar controls">
 		<div class="calendar-calendar-view-offcanvas-control">
-			<button data-bs-toggle="offcanvas" href="#calendar-offcanvas-views" class="btn btn-raw px-2 calendar-calendar-header-control">
+			<button data-bs-toggle="offcanvas" href="#calendar-offcanvas-views" class="btn btn-raw calendar-calendar-icon-button calendar-calendar-header-control">
 				@fa(['icon' => 'ellipsis-vertical', 'mr' => 0, 'fa_size' => 'xl'])
 			</button>	
 		</div>
