@@ -293,7 +293,17 @@ button.setting-undo {
     display: grid;
     flex: 1 1 100%;
     grid-template-columns: auto minmax(0, 1fr) auto;
+    height: 38px;
+    max-height: 38px;
+    padding: 0;
     width: 100%;
+
+    .calendar-calendar-header-control,
+    .calendar-calendar-header-control:hover,
+    .calendar-calendar-header-control:focus,
+    .calendar-calendar-header-control:active {
+        background: transparent !important;
+    }
 
     .fa {
         opacity: .4;
@@ -311,6 +321,7 @@ button.setting-undo {
         border: 0;
         color: #202124;
         font: inherit;
+        height: 100%;
         min-width: 0;
         outline: 0;
         display: block !important;
