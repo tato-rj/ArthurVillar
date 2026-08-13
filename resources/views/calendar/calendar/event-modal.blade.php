@@ -93,14 +93,14 @@
 @include('calendar.events.modal-notes')
 
 <div class="px-3" data-event-modal-section="lesson">
-    @include('calendar.lessonRecords.primary-controls')
+    @include('calendar.lessons.lessonRecords.primary-controls')
 </div>
 
 <div class="px-3" data-event-modal-expanded-content>
     <div data-event-modal-section="lesson">
-        @include('calendar.lessonRecords.reschedule')
-        @include('calendar.lessonRecords.cancel')
-        @include('calendar.lessonRecords.controls')
+        @include('calendar.lessons.lessonRecords.reschedule')
+        @include('calendar.lessons.lessonRecords.cancel')
+        @include('calendar.lessons.lessonRecords.controls')
     </div>
 
     <div data-event-modal-section="general" hidden>

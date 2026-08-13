@@ -14,5 +14,5 @@
 	@fa(['icon' => 'plus', 'mr' => 0])
 </button>
 
-@include('calendar.lessonPlans.create')
+@include('calendar.lessons.lessonPlans.create')
 @include('calendar.events.create')

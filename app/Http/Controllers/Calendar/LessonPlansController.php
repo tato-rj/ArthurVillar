@@ -15,12 +15,12 @@ class LessonPlansController extends Controller
 {
     public function index()
     {
-        return view('calendar.lessonPlans.index');
+        return view('calendar.lessons.lessonPlans.index');
     }
 
     public function edit(LessonPlan $lessonPlan)
     {
-        return view('calendar.lessonPlans.edit', compact('lessonPlan'));
+        return view('calendar.lessons.lessonPlans.edit', compact('lessonPlan'));
     }
 
     public function store(Request $request)

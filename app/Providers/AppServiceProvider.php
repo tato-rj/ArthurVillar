@@ -63,7 +63,7 @@ class AppServiceProvider extends ServiceProvider
             ]);
         });
 
-        \View::composer(['calendar.lessonPlans.create', 'calendar.lessonPlans.edit', 'calendar.singleLessonPlans.edit', 'calendar.students.create', 'calendar.students.edit'], function($view) {
+        \View::composer(['calendar.lessons.lessonPlans.create', 'calendar.lessons.lessonPlans.edit', 'calendar.lessons.singleLessonPlans.edit', 'calendar.students.create', 'calendar.students.edit'], function($view) {
             $view->with([
                 'locations' => Location::query()
                     ->teaching()
@@ -73,7 +73,7 @@ class AppServiceProvider extends ServiceProvider
             ]);
         });
 
-        \View::composer(['calendar.lessonPlans.create'], function($view) {
+        \View::composer(['calendar.lessons.lessonPlans.create'], function($view) {
             $view->with([
                 'students' => Student::query()
                     ->with('location')

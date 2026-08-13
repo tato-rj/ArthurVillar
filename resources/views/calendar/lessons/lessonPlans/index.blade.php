@@ -93,7 +93,7 @@
         </table>
     </div>
 </section>
-@include('calendar.lessonPlans.create')
+@include('calendar.lessons.lessonPlans.create')
 <div id="edit-lesson-plan-modal-container"></div>
 <div id="edit-single-lesson-plan-modal-container"></div>
 @endsection
@@ -101,7 +101,7 @@
 @push('scripts')
 <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
 @include('calendar.tables.state')
-@include('calendar.lessonPlans.create-scripts')
+@include('calendar.lessons.lessonPlans.create-scripts')
 <script>
 $(function() {
     const selectedFilterValues = function(selector) {

@@ -15,7 +15,7 @@ class SingleLessonPlansController extends Controller
     {
         $singleLessonPlan->load('student', 'location');
 
-        return view('calendar.singleLessonPlans.edit', compact('singleLessonPlan'));
+        return view('calendar.lessons.singleLessonPlans.edit', compact('singleLessonPlan'));
     }
 
     public function store(Request $request)

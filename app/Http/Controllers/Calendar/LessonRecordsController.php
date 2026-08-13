@@ -9,13 +9,13 @@ class LessonRecordsController extends Controller
 {
     public function index()
     {
-        return view('calendar.lessonRecords.index');
+        return view('calendar.lessons.lessonRecords.index');
     }
 
     public function student(Student $student)
     {
         $student->load('lessonPlans.location');
 
-        return view('calendar.lessonRecords.student', compact('student'));
+        return view('calendar.lessons.lessonRecords.student', compact('student'));
     }
 }
