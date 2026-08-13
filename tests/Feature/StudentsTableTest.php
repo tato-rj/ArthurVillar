@@ -136,7 +136,7 @@ class StudentsTableTest extends BaseTest
     }
 
     /** @test */
-    public function it_shows_student_registrations_confirmed_unpaid_and_future_missed_lessons()
+    public function it_shows_student_registrations_confirmed_and_unpaid_lessons_in_one_table_and_future_missed_lessons()
     {
         Carbon::setTestNow('2026-07-01 12:00:00');
 
@@ -211,8 +211,10 @@ class StudentsTableTest extends BaseTest
             ->assertSee('Wednesday, August 5, 2026')
             ->assertSee('Confirmed lessons')
             ->assertSee('$65')
-            ->assertSee('Unpaid lessons')
-            ->assertSee('$55')
+            ->assertSee('<span class="badge bg-green text-white" title="Confirmed lessons">1</span>', false)
+            ->assertSee('<span class="badge bg-red text-white ml-2" title="Unpaid lessons">1</span>', false)
+            ->assertSee('<div class="text-red font-weight-bold">Unpaid</div>', false)
+            ->assertDontSee('$55')
             ->assertDontSee('$45')
             ->assertSee('Wednesday, July 8, 2026')
             ->assertSee('Holiday: Summer Holiday')
