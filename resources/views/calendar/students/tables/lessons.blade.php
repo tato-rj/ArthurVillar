@@ -4,12 +4,14 @@
         <div class="d-flex align-items-center">
             <span class="badge bg-green text-white" title="Confirmed lessons">{{$confirmedLessons->count()}}</span>
             <span class="badge bg-red text-white ml-2" title="Unpaid lessons">{{$unpaidLessons->count()}}</span>
+            <span class="badge bg-light text-dark ml-2" title="Canceled lessons">{{$canceledLessons->count()}}</span>
         </div>
     </div>
 
     @php
         $lessons = $confirmedLessons
             ->concat($unpaidLessons)
+            ->concat($canceledLessons)
             ->sortByDesc(fn ($lesson) => ($lesson->scheduled_date ?: $lesson->starts_at)->timestamp);
     @endphp
 
@@ -35,7 +37,9 @@
                         </td>
                         <td>{{$lesson->lesson_plan_id ? 'Recurring' : 'Single'}}</td>
                         <td>
-                            @if($lesson->paid_at)
+                            @if($lesson->canceled_at)
+                                <div class="text-light font-weight-bold">Canceled</div>
+                            @elseif($lesson->paid_at)
                                 <div class="text-green font-weight-bold">
                                     {{$lesson->fee_amount !== null ? payment()->usd($lesson->fee_amount) : '—'}}
                                 </div>
@@ -47,7 +51,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="3" class="opacity-4">No confirmed or unpaid lessons.</td>
+                        <td colspan="3" class="opacity-4">No confirmed, unpaid, or canceled lessons.</td>
                     </tr>
                 @endforelse
             </tbody>

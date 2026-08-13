@@ -95,6 +95,14 @@ class StudentsController extends Controller
             ->sortByDesc(fn ($lesson) => ($lesson->scheduled_date ?: $lesson->starts_at)->timestamp)
             ->values();
 
+        $canceledLessons = $student->lessons()
+            ->with('lessonPlan')
+            ->whereNotNull('canceled_at')
+            ->latest('starts_at')
+            ->get()
+            ->sortByDesc(fn ($lesson) => ($lesson->scheduled_date ?: $lesson->starts_at)->timestamp)
+            ->values();
+
         return view('calendar.students.show', compact(
             'student',
             'missedLessonPlan',
@@ -102,7 +110,8 @@ class StudentsController extends Controller
             'registeredLessonPlans',
             'registeredSingleLessons',
             'confirmedLessons',
-            'unpaidLessons'
+            'unpaidLessons',
+            'canceledLessons'
         ));
     }
 

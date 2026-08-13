@@ -32,8 +32,8 @@
 
         <div class="col-lg-9 col-md-8 col-11">
             @include('calendar.students.tables.plans')
-            @include('calendar.students.tables.confirmed')
-            @include('calendar.students.tables.missed')
+            @include('calendar.students.tables.lessons')
+            {{-- @include('calendar.students.tables.missed') --}}
         </div>
     </div>
 
