@@ -1,3 +1,10 @@
+@if($student->hasParent())
+<div class="mb-3">
+    <div class="small opacity-4">@fa(['icon' => 'people-roof', 'fa_color' => 'grey'])Parent name</div>
+    <div class="font-weight-bold text-break">{{$student->parent_name}}</div>
+</div>
+@endif
+
 <div class="mb-3">
     <div class="small opacity-4">@fa(['icon' => 'envelope', 'fa_color' => 'grey'])Email</div>
     <div class="font-weight-bold text-break">{{$student->email}}</div>
@@ -7,13 +14,6 @@
     <div class="small opacity-4">@fa(['icon' => 'phone', 'fa_color' => 'grey'])Phone</div>
     <div class="font-weight-bold">{{$student->phone ?: '—'}}</div>
 </div>
-
-@if($student->hasParent())
-<div class="mb-3">
-    <div class="small opacity-4">@fa(['icon' => 'people-roof', 'fa_color' => 'grey'])Parent name</div>
-    <div class="font-weight-bold text-break">{{$student->parent_name}}</div>
-</div>
-@endif
 
 <div class="mb-3">
     <div class="small opacity-4">@fa(['icon' => 'cake-candles', 'fa_color' => 'grey'])Age</div>

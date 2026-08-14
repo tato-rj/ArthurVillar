@@ -26,11 +26,11 @@
     </div>
 
     <div class="row">
-        <div class="col-lg-3 col-md-4 col-12">
+        <div class="col-lg-3 col-md-4 col-11 mx-auto mb-4">
             @include('calendar.students.details')
         </div>
 
-        <div class="col-lg-9 col-md-8 col-11">
+        <div class="col-lg-9 col-md-8 col-11 mx-auto mb-4">
             @include('calendar.students.plans')
         </div>
     </div>
