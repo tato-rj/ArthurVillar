@@ -72,6 +72,17 @@ class LessonPlan extends BaseModel
         return $this->status === 'active';
     }
 
+    public function isPast()
+    {
+        return ! $this->isCurrent() && $this->ends_on < now();
+    }
+
+    public function isUpcoming()
+    {
+        return ! $this->isCurrent() && $this->starts_on > now();
+    
+    }
+
     public function getStatusAttribute()
     {
         if (! $this->starts_on || ! $this->ends_on) {
