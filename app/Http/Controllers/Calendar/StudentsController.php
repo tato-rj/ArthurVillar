@@ -71,7 +71,7 @@ class StudentsController extends Controller
 
         $registeredSingleLessons = $student->singleLessonPlans()
             ->with('location')
-            ->where('status', 'active')
+            // ->where('status', 'active')
             ->whereDate('scheduled_date', '>=', $today->toDateString())
             ->orderBy('scheduled_date')
             ->orderBy('start_time')
