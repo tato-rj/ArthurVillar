@@ -62,17 +62,17 @@ class StudentsController extends Controller
             ? $missedLessonPlan->missedLessonDates($today)
             : collect();
 
-        $registeredLessonPlans = $student->lessonPlans()
+        $recurringLessonPlans = $student->lessonPlans()
             ->with('location')
             ->whereNull('canceled_at')
             ->get();
             // ->filter(fn ($lessonPlan) => $lessonPlan->isCurrent())
             // ->values();
 
-        $registeredSingleLessons = $student->singleLessonPlans()
+        $singleLessonsPlans = $student->singleLessonPlans()
             ->with('location')
             ->where('status', 'active')
-            ->whereDate('scheduled_date', '>=', $today->toDateString())
+            // ->whereDate('scheduled_date', '>=', $today->toDateString())
             ->orderBy('scheduled_date')
             ->orderBy('start_time')
             ->get();
@@ -81,8 +81,8 @@ class StudentsController extends Controller
             'student',
             'missedLessonPlan',
             'missedDates',
-            'registeredLessonPlans',
-            'registeredSingleLessons'
+            'recurringLessonPlans',
+            'singleLessonsPlans'
         ));
     }
 

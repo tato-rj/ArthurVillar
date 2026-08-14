@@ -27,6 +27,16 @@ class SingleLessonPlan extends BaseModel
         return $this->hasMany(EarlyPayment::class);
     }
 
+    public function scopeUpcoming($query)
+    {
+        return $query->whereDate('scheduled_date', '>=', now());
+    }
+
+    public function isUpcoming()
+    {
+        return $this->scheduled_date >= now();
+    }
+
     public function associatedLessons()
     {
         $date = $this->scheduled_date->toDateString();
