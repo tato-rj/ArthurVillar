@@ -56,31 +56,23 @@ class StudentsController extends Controller
 
     public function show(Student $student)
     {
-        $today = today()->startOfDay();
-        $missedLessonPlan = $student->currentLessonPlan();
-        $missedDates = $missedLessonPlan
-            ? $missedLessonPlan->missedLessonDates($today)
-            : collect();
-
         $recurringLessonPlans = $student->lessonPlans()
             ->with('location')
-            ->whereNull('canceled_at')
+            // ->whereNull('canceled_at')
             ->get();
             // ->filter(fn ($lessonPlan) => $lessonPlan->isCurrent())
             // ->values();
 
         $singleLessonsPlans = $student->singleLessonPlans()
             ->with('location')
-            ->where('status', 'active')
+            // ->where('status', 'active')
             // ->whereDate('scheduled_date', '>=', $today->toDateString())
             ->orderBy('scheduled_date')
             ->orderBy('start_time')
             ->get();
-            
+
         return view('calendar.students.show', compact(
             'student',
-            'missedLessonPlan',
-            'missedDates',
             'recurringLessonPlans',
             'singleLessonsPlans'
         ));

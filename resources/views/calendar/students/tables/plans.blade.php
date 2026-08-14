@@ -4,7 +4,7 @@
 
     @foreach($recurringLessonPlans as $lessonPlan)
         <div class="border rounded p-4 mb-3">
-            <div class="">
+            <div class="{{$loop->last ? null : 'border-bottom pb-3 mb-3'}}">
                 <div class="small font-weight-bold text-{{$lessonPlan->isCurrent() ? 'green' : 'light'}} mb-1">{{$lessonPlan->isCurrent() ? 'CURRENT' : 'PAST'}}</div>
                 <div class="font-weight-bold">
                     {{ucfirst($lessonPlan->weekday_name)}} at {{\App\Models\Calendar\LessonPlan::timeLabel($lessonPlan->start_time)}}

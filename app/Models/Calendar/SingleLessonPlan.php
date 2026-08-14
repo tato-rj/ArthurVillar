@@ -29,12 +29,12 @@ class SingleLessonPlan extends BaseModel
 
     public function scopeUpcoming($query)
     {
-        return $query->whereDate('scheduled_date', '>=', now());
+        return $query->whereDate('scheduled_date', '>=', today()->startOfDay());
     }
 
     public function isUpcoming()
     {
-        return $this->scheduled_date >= now();
+        return $this->scheduled_date >= today()->startOfDay();
     }
 
     public function associatedLessons()
