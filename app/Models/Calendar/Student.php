@@ -42,6 +42,11 @@ class Student extends BaseModel
         return $this->hasMany(Lesson::class);   
     }
 
+    public function siblings()
+    {
+        return Student::whereNotNull('parent_name')->where('parent_name', $this->parent_name)->exceptThis();
+    }
+
     public function location()
     {
         return $this->belongsTo(Location::class);

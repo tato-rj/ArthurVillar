@@ -12,6 +12,11 @@ class BaseModel extends Model
 
     protected $guarded = [];
 
+    public function scopeExceptThis($query)
+    {
+        return $query->where('id', '!=', $this->id);
+    }
+
     public function formatDate($attr, $format)
     {
         if (! $this->$attr)

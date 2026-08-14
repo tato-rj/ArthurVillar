@@ -1,3 +1,14 @@
+@if($student->siblings()->exists())
+<div class="mb-3">
+    <div class="small opacity-4">@fa(['icon' => 'children', 'fa_color' => 'grey'])Related to</div>
+    @foreach($student->siblings()->get() as $sibling)
+    <a class="link-red" href="{{route('calendar.students.show', $sibling)}}">
+        <div class="font-weight-bold text-break">{{$sibling->full_name}}</div>
+    </a>
+    @endforeach
+</div>
+@endif
+
 @if($student->hasParent())
 <div class="mb-3">
     <div class="small opacity-4">@fa(['icon' => 'people-roof', 'fa_color' => 'grey'])Parent name</div>
