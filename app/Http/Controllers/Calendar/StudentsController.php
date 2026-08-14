@@ -76,7 +76,7 @@ class StudentsController extends Controller
             ->orderBy('scheduled_date')
             ->orderBy('start_time')
             ->get();
-
+return $recurringLessonPlans;
         return view('calendar.students.show', compact(
             'student',
             'missedLessonPlan',
