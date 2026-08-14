@@ -56,6 +56,11 @@ class Student extends BaseModel
     {
         return $this->hasManyThrough(ScheduleOverride::class, LessonPlan::class);
     }
+
+    public function hasParent()
+    {
+        return (bool) $this->parent_name;
+    }
     
     public function currentLessonPlan()
     {
