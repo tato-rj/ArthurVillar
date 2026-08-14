@@ -20,7 +20,7 @@
             <div class="small opacity-6">
                 {{$lessonPlan->recurrence}}
                 @if($lessonPlan->starts_on && $lessonPlan->ends_on)
-                · {{$lessonPlan->starts_on->format('M j, Y')}}–{{$lessonPlan->ends_on->format('M j, Y')}}
+                · {{$lessonPlan->starts_on->format('M j, Y')}} – {{$lessonPlan->ends_on->format('M j, Y')}}
                 @endif
             </div>
             @if($lessonPlan->location)
