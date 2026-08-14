@@ -26,8 +26,9 @@
 @unless($singleLessonsPlans->isEmpty())
 
     <h5 class="mb-3">Single  Lesson Plans</h5>
-    @foreach($singleLessonsPlans as $lessonPlan)
+
     <div class="border rounded p-4 mb-3">
+    @foreach($singleLessonsPlans as $lessonPlan)
         <div class="{{$loop->last ? null: 'border-bottom pb-3 mb-3'}}">
             <div class="small font-weight-bold text-{{$lessonPlan->isUpcoming() ? 'green' : 'light'}} mb-1">{{$lessonPlan->isUpcoming() ? 'UPCOMING' : 'PAST'}}</div>
             <div class="font-weight-bold">
@@ -41,8 +42,8 @@
             <div class="small mt-1">@fa(['icon' => 'location-dot', 'classes' => 'opacity-4']){{$lessonPlan->location->name}}</div>
             @endif
         </div>
-    </div>
     @endforeach
+    </div>
 @endunless
 
 @if($recurringLessonPlans->isEmpty() && $singleLessonsPlans->isEmpty())
