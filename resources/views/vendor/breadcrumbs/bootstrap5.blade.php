@@ -1,5 +1,5 @@
 <div class="row mb-3">
-    <div class="col-12 mx-auto">
+    <div class="col-11 mx-auto">
     @unless ($breadcrumbs->isEmpty())
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
