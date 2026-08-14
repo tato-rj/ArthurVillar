@@ -3,7 +3,8 @@
     <h5 class="mb-3">Recurring Lesson Plans</h5>
 
     @foreach($recurringLessonPlans as $lessonPlan)
-        <div class="border rounded p-4 mb-3">
+    {{$lessonPlan->id}}
+{{--         <div class="border rounded p-4 mb-3">
             <div class="{{$loop->last ? null : 'border-bottom pb-3 mb-3'}}">
                 <div class="small font-weight-bold text-{{$lessonPlan->isCurrent() ? 'green' : 'light'}} mb-1">{{$lessonPlan->isCurrent() ? 'CURRENT' : 'PAST'}}</div>
                 <div class="font-weight-bold">
@@ -19,7 +20,7 @@
                 <div class="small mt-1">@fa(['icon' => 'location-dot', 'classes' => 'opacity-4']){{$lessonPlan->location->name}}</div>
                 @endif
             </div>
-        </div>
+        </div> --}}
     @endforeach
 @endunless
 
