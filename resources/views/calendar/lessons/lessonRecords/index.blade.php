@@ -16,7 +16,7 @@
         @component('components.pagetitle', ['label' => 'Lesson Records'])
 
         @slot('subtitle')
-        <div class="text-center" id="lesson-records-totals" aria-live="polite">
+        <div class="text-center" id="lesson-records-totals" aria-live="polite" hidden>
             <span data-lesson-record-total="paid">
                 Total paid <span class="text-green" data-lesson-record-total-amount>$0</span>
             </span>
@@ -380,12 +380,15 @@ $(function() {
         },
     });
 
+    lessonRecordsTable.on('preXhr.dt', function() {
+        document.querySelector('#lesson-records-totals').hidden = true;
+    });
+
     $('#lesson-records-scheduled-range').on('date-range:change', function() {
         lessonRecordsTable.ajax.reload();
     });
 
     $('#lesson-records-row-filters').on('change', 'input[type="checkbox"]', function() {
-        updateLessonRecordTotals(lessonRecordsTable);
         lessonRecordsTable.ajax.reload(null, true);
     });
 

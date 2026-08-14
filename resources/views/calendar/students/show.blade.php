@@ -5,9 +5,24 @@
     {{ Breadcrumbs::render('calendar.students.show', $student) }}
 
     <div class="row mb-4">
-        @pagetitle([
+        @component('components.pagetitle', [
             'label' => $student->full_name
         ])
+
+        @slot('subtitle')
+        <div class="d-center">
+            <a href="{{route('calendar.lesson-records.index', ['search' => $student->full_name, 'record_statuses' => 'paid'])}}">
+                <span class="badge bg-green text-white border border-green" title="Confirmed lessons">{{$confirmedLessons->count()}} paid</span>
+            </a>
+            <a href="{{route('calendar.lesson-records.index', ['search' => $student->full_name, 'record_statuses' => 'unpaid'])}}">
+            <span class="badge bg-red text-white ml-2 border border-red" title="Unpaid lessons">{{$unpaidLessons->count()}} unpaid</span>
+            </a>
+            <a href="{{route('calendar.lesson-records.index', ['search' => $student->full_name, 'record_statuses' => 'canceled'])}}">
+            <span class="badge bg-light text-dark ml-2 border" title="Canceled lessons">{{$canceledLessons->count()}} canceled</span>
+            </a>
+        </div>
+        @endslot
+        @endcomponent
     </div>
 
     <div class="row">
@@ -32,8 +47,6 @@
 
         <div class="col-lg-9 col-md-8 col-11">
             @include('calendar.students.tables.plans')
-            @include('calendar.students.tables.lessons')
-            {{-- @include('calendar.students.tables.missed') --}}
         </div>
     </div>
 

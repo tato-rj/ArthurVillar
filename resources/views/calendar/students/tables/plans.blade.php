@@ -1,12 +1,9 @@
-<div class="border rounded p-4 mb-3">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3 class="h5 mb-0">Currently registered lessons</h3>
-        <span class="badge bg-light text-dark">
-            {{$registeredLessonPlans->count() + $registeredSingleLessons->count()}}
-        </span>
-    </div>
+
+
+    <h5 class="mb-3">Lesson Plans</h5>
 
     @forelse($registeredLessonPlans as $lessonPlan)
+    <div class="border rounded p-4 mb-3">
         <div class="{{$loop->last ? null: 'border-bottom pb-3 mb-3'}}">
             <div class="small font-weight-bold text-green mb-1">RECURRING LESSON</div>
             <div class="font-weight-bold">
@@ -22,10 +19,12 @@
                 <div class="small mt-1">@fa(['icon' => 'location-dot', 'classes' => 'opacity-4']){{$lessonPlan->location->name}}</div>
             @endif
         </div>
+    </div>
     @empty
     @endforelse
 
     @foreach($registeredSingleLessons as $singleLesson)
+    <div class="border rounded p-4 mb-3">
         <div class="{{$loop->last ? null: 'border-bottom pb-3 mb-3'}}">
             <div class="small font-weight-bold text-green mb-1">SINGLE LESSON</div>
             <div class="font-weight-bold">
@@ -39,9 +38,10 @@
                 <div class="small mt-1">@fa(['icon' => 'location-dot', 'classes' => 'opacity-4']){{$singleLesson->location->name}}</div>
             @endif
         </div>
+    </div>
     @endforeach
 
     @if($registeredLessonPlans->isEmpty() && $registeredSingleLessons->isEmpty())
         <div class="opacity-4">No current or upcoming lesson registrations.</div>
     @endif
-</div>
+
