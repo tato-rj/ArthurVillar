@@ -67,6 +67,11 @@ class Lesson extends BaseModel
         return $query->whereNotNull('paid_at');
     }
 
+    public function scopeCanceled($query)
+    {
+        return $query->whereNotNull('canceled_at');
+    }
+
     public function scopeStartingBetween($query, $startDate, $endDate)
     {
         return $query

@@ -12,13 +12,13 @@
         @slot('subtitle')
         <div class="d-center">
             <a href="{{route('calendar.lesson-records.index', ['search' => $student->full_name, 'record_statuses' => 'paid'])}}">
-                <span class="badge bg-green text-white border border-green" title="Confirmed lessons">{{$confirmedLessons->count()}} paid</span>
+                <span class="badge bg-green text-white border border-green" title="Confirmed lessons">{{$student->lessons()->paid()->count()}} paid</span>
             </a>
             <a href="{{route('calendar.lesson-records.index', ['search' => $student->full_name, 'record_statuses' => 'unpaid'])}}">
-            <span class="badge bg-red text-white ml-2 border border-red" title="Unpaid lessons">{{$unpaidLessons->count()}} unpaid</span>
+            <span class="badge bg-red text-white ml-2 border border-red" title="Unpaid lessons">{{$student->lessons()->unpaid()->count()}} unpaid</span>
             </a>
             <a href="{{route('calendar.lesson-records.index', ['search' => $student->full_name, 'record_statuses' => 'canceled'])}}">
-            <span class="badge bg-light text-dark ml-2 border" title="Canceled lessons">{{$canceledLessons->count()}} canceled</span>
+            <span class="badge bg-light text-dark ml-2 border" title="Canceled lessons">{{$student->lessons()->canceled()->count()}} canceled</span>
             </a>
         </div>
         @endslot

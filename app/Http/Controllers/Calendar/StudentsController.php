@@ -65,53 +65,24 @@ class StudentsController extends Controller
         $registeredLessonPlans = $student->lessonPlans()
             ->with('location')
             ->whereNull('canceled_at')
-            ->get()
-            ->filter(fn ($lessonPlan) => $lessonPlan->isCurrent())
-            ->values();
+            ->get();
+            // ->filter(fn ($lessonPlan) => $lessonPlan->isCurrent())
+            // ->values();
 
         $registeredSingleLessons = $student->singleLessonPlans()
             ->with('location')
-            // ->where('status', 'active')
+            ->where('status', 'active')
             ->whereDate('scheduled_date', '>=', $today->toDateString())
             ->orderBy('scheduled_date')
             ->orderBy('start_time')
             ->get();
-
-        $confirmedLessons = $student->lessons()
-            ->with('lessonPlan')
-            ->whereNull('canceled_at')
-            ->whereNotNull('paid_at')
-            ->latest('starts_at')
-            ->get()
-            ->sortByDesc(fn ($lesson) => ($lesson->scheduled_date ?: $lesson->starts_at)->timestamp)
-            ->values();
-
-        $unpaidLessons = $student->lessons()
-            ->with('lessonPlan')
-            ->whereNull('canceled_at')
-            ->whereNull('paid_at')
-            ->latest('starts_at')
-            ->get()
-            ->sortByDesc(fn ($lesson) => ($lesson->scheduled_date ?: $lesson->starts_at)->timestamp)
-            ->values();
-
-        $canceledLessons = $student->lessons()
-            ->with('lessonPlan')
-            ->whereNotNull('canceled_at')
-            ->latest('starts_at')
-            ->get()
-            ->sortByDesc(fn ($lesson) => ($lesson->scheduled_date ?: $lesson->starts_at)->timestamp)
-            ->values();
 
         return view('calendar.students.show', compact(
             'student',
             'missedLessonPlan',
             'missedDates',
             'registeredLessonPlans',
-            'registeredSingleLessons',
-            'confirmedLessons',
-            'unpaidLessons',
-            'canceledLessons'
+            'registeredSingleLessons'
         ));
     }
 
