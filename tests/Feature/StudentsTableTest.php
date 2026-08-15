@@ -97,6 +97,13 @@ class StudentsTableTest extends BaseTest
         $rows = $response->json('data');
 
         $this->assertEqualsCanonicalizing(['Home', 'Online'], collect($rows)->pluck('first_name')->all());
+        $this->assertSame('house', collect($rows)->firstWhere('location', 'Home')['location_icon']);
+        $this->assertSame('globe', collect($rows)->firstWhere('location', 'Online')['location_icon']);
+
+        $this->get(route('calendar.students.index'))
+            ->assertOk()
+            ->assertSee('row.location_icon', false)
+            ->assertSee('fa-${row.location_icon}', false);
 
         $this->json('GET', route('calendar.tables.students'), $this->studentTableRequest([
             'student_locations' => 'none',

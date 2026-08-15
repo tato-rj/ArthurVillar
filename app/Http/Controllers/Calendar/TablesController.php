@@ -955,6 +955,9 @@ class TablesController extends Controller
             ->addColumn('name', function (Student $student) {
                 return trim($student->first_name.' '.$student->last_name);
             })
+            ->addColumn('location_icon', function (Student $student) {
+                return Location::iconForName($student->location);
+            })
             ->filterColumn('name', function ($query, $keyword) use ($driver) {
                 $nameExpression = $driver === 'sqlite'
                     ? "students.first_name || ' ' || students.last_name"

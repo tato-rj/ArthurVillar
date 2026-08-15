@@ -9,6 +9,16 @@ use App\Models\Calendar\{Lesson, LessonPlan, Location, Student};
 class LocationTest extends BaseTest
 {
     /** @test */
+    public function it_resolves_calendar_icons_from_the_location_model()
+    {
+        $this->assertSame('house', Location::iconForName('Home'));
+        $this->assertSame('globe', Location::iconForName('Online'));
+        $this->assertSame('building', Location::iconForName('BKCM'));
+        $this->assertSame('building', Location::iconForName('Teaching Studio'));
+        $this->assertNull(Location::iconForName(null));
+    }
+
+    /** @test */
     public function it_manages_teaching_and_recital_locations_on_one_page()
     {
         $this->signIn();

@@ -5961,16 +5961,6 @@ var formatModalEventTime = function formatModalEventTime(time) {
 var formatAgendaEventTime = function formatAgendaEventTime(time) {
   return formatModalEventTime(time).toUpperCase();
 };
-var getLessonLocationIcon = function getLessonLocationIcon(locationName) {
-  var location = String(locationName || '').trim().toLowerCase();
-  if (location.includes('home')) {
-    return 'house';
-  }
-  if (location.includes('online')) {
-    return 'globe';
-  }
-  return 'building';
-};
 var getCalendarEventIcon = function getCalendarEventIcon(event) {
   if (!event) {
     return {
@@ -5983,7 +5973,7 @@ var getCalendarEventIcon = function getCalendarEventIcon(event) {
     title: event.eventType || '',
     style: event.externalProvider === 'google' ? 'fa-brands' : 'fa-solid'
   } : {
-    name: getLessonLocationIcon(event.locationName),
+    name: event.location && event.location.icon ? event.location.icon : '',
     title: event.locationName || '',
     style: 'fa-solid'
   };

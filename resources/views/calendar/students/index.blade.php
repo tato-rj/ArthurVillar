@@ -98,6 +98,8 @@
 @include('calendar.tables.state')
 <script>
 $(function() {
+    const textRenderer = $.fn.dataTable.render.text();
+
     const selectedFilterValues = function(selector) {
         const values = Array.from(document.querySelectorAll(selector))
             .filter(function(input) {
@@ -232,8 +234,17 @@ $(function() {
             {
                 data: 'location',
                 name: 'location',
-                render: function(data) {
-                    return data || '';
+                render: function(data, type, row) {
+                    if (type !== 'display' || !data) {
+                        return data || '';
+                    }
+
+                    const location = textRenderer.display(data);
+                    const icon = /^[a-z0-9-]+$/.test(row.location_icon || '')
+                        ? `<i class="fas fa-${row.location_icon} mr-2 opacity-6 text-blue" aria-hidden="true"></i>`
+                        : '';
+
+                    return `${icon}${location}`;
                 },
             },
             {

@@ -1777,20 +1777,6 @@ const formatAgendaEventTime = function(time) {
     return formatModalEventTime(time).toUpperCase();
 };
 
-const getLessonLocationIcon = function(locationName) {
-    const location = String(locationName || '').trim().toLowerCase();
-
-    if (location.includes('home')) {
-        return 'house';
-    }
-
-    if (location.includes('online')) {
-        return 'globe';
-    }
-
-    return 'building';
-};
-
 const getCalendarEventIcon = function(event) {
     if (!event) {
         return { name: '', title: '' };
@@ -1803,7 +1789,7 @@ const getCalendarEventIcon = function(event) {
             style: event.externalProvider === 'google' ? 'fa-brands' : 'fa-solid',
         }
         : {
-            name: getLessonLocationIcon(event.locationName),
+            name: event.location && event.location.icon ? event.location.icon : '',
             title: event.locationName || '',
             style: 'fa-solid',
         };

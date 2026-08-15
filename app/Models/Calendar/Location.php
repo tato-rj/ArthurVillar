@@ -9,6 +9,10 @@ class Location extends BaseModel
     public const USAGE_TEACHING = 'teaching';
     public const USAGE_RECITAL = 'recital';
 
+    protected $appends = [
+        'icon',
+    ];
+
     protected $casts = [
         'fee_amount' => 'integer',
         'tax_withheld_percentage' => 'decimal:2',
@@ -21,6 +25,40 @@ class Location extends BaseModel
             self::USAGE_TEACHING,
             self::USAGE_RECITAL,
         ];
+    }
+
+    public static function iconOptions(): array
+    {
+        return [
+            'house' => 'Home',
+            'globe' => 'Online',
+            'building' => 'BKCM',
+        ];
+    }
+
+    public static function iconForName(?string $name): ?string
+    {
+        if (! $name) {
+            return null;
+        }
+
+        foreach (static::iconOptions() as $icon => $locationName) {
+            if (strcasecmp(trim($name), $locationName) === 0) {
+                return $icon;
+            }
+        }
+
+        return 'building';
+    }
+
+    public function icon(): ?string
+    {
+        return static::iconForName($this->name);
+    }
+
+    public function getIconAttribute(): ?string
+    {
+        return $this->icon();
     }
 
     public function scopeGeneral($query)

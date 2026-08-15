@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use Carbon\Carbon;
 use Tests\BaseTest;
+use App\Calendar\Scheduler;
 use App\Models\Calendar\{Student, LessonPlan, Lesson, TeachingBreak, Holiday, Location, ScheduleOverride};
 
 class CalendarTest extends BaseTest
@@ -19,8 +20,10 @@ class CalendarTest extends BaseTest
     public function students_with_a_lesson_plan_show_on_the_calendar()
     {
         $date = today()->startOfWeek(Carbon::SUNDAY)->addDays(2);
+        $location = Location::factory()->create(['name' => 'Online']);
 
         LessonPlan::factory()->student($this->student)->create([
+            'location_id' => $location->id,
             'weekday' => LessonPlan::fromCarbonWeekday($date->dayOfWeek),
             'starts_on' => $date->toDateString(),
         ]);
@@ -30,7 +33,16 @@ class CalendarTest extends BaseTest
         $this->get(route('calendar.home', [
             'view' => 'week',
             'date' => $date->toDateString(),
-        ]))->assertOk()->assertSee($this->student->first_name);
+        ]))
+            ->assertOk()
+            ->assertSee($this->student->first_name);
+
+        $lessonPlan = app(Scheduler::class)->plannedLessons([
+            'start' => $date->toDateString(),
+            'end' => $date->toDateString(),
+        ])->first();
+
+        $this->assertSame('globe', $lessonPlan['location']['icon']);
     }
 
     /** @test */
