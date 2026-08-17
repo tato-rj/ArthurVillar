@@ -43,7 +43,9 @@
 
 <div class="mb-3">
     <div class="small opacity-4">@fa(['icon' => 'money-bill-wave', 'fa_color' => 'grey'])Payment method</div>
-    <div class="font-weight-bold">{{$student->payment_method ?: '—'}}</div>
+    <div class="font-weight-bold {{$student->payment_exempt ? 'text-green' : ''}}">
+        {{$student->payment_exempt ? 'Exempt' : ($student->payment_method ?: '—')}}
+    </div>
 </div>
 
 @if($student->notes)

@@ -324,6 +324,10 @@ $(function() {
                         return `<span class="text-light text-decoration-line-through">${amount}</span>`;
                     }
 
+                    if (row.payment_exempt) {
+                        return '<span class="text-green">Exempt</span>';
+                    }
+
                     if (!row.paid_at) {
                         return `<span class="text-red">${amount}</span>`;
                     }

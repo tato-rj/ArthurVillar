@@ -96,7 +96,9 @@ class Scheduler
                         'lesson_status' => $lessonStatus,
                         'calendar_status' => $lessonStatus,
                         'early_payment_id' => $earlyPayment ? $earlyPayment->id : null,
-                        'fee_amount' => $lesson && $lesson->fee_amount ? $lesson->fee_amount : $singleLessonPlan->netFeeAmount(),
+                        'fee_amount' => $singleLessonPlan->student->payment_exempt
+                            ? 0
+                            : ($lesson && $lesson->fee_amount ? $lesson->fee_amount : $singleLessonPlan->netFeeAmount()),
                         'canceled_by' => $lesson ? $lesson->canceled_by : '',
                         'lesson_edit_url' => $lesson ? route('calendar.lessons.edit', $lesson) : '',
                         'lesson_payment_url' => $lesson ? $lesson->paymentUrl : '',
@@ -222,7 +224,9 @@ class Scheduler
                 'lesson_status' => $lessonStatus,
                 'calendar_status' => $lessonStatus,
                 'early_payment_id' => $earlyPayment ? $earlyPayment->id : null,
-                'fee_amount' => $lesson && $lesson->fee_amount ? $lesson->fee_amount : $lessonPlan->netFeeAmount(),
+                'fee_amount' => $lessonPlan->student->payment_exempt
+                    ? 0
+                    : ($lesson && $lesson->fee_amount ? $lesson->fee_amount : $lessonPlan->netFeeAmount()),
                 'canceled_by' => $lesson ? $lesson->canceled_by : '',
                 'lesson_edit_url' => $lesson ? route('calendar.lessons.edit', $lesson) : '',
                 'lesson_payment_url' => $lesson ? $lesson->paymentUrl : '',
@@ -257,7 +261,9 @@ class Scheduler
                     'lesson_id' => $lesson ? $lesson->id : null,
                     'lesson_status' => $lessonStatus,
                     'early_payment_id' => $earlyPayment ? $earlyPayment->id : null,
-                    'fee_amount' => $lesson && $lesson->fee_amount ? $lesson->fee_amount : $lessonPlan->netFeeAmount(),
+                    'fee_amount' => $lessonPlan->student->payment_exempt
+                        ? 0
+                        : ($lesson && $lesson->fee_amount ? $lesson->fee_amount : $lessonPlan->netFeeAmount()),
                     'canceled_by' => $lesson ? $lesson->canceled_by : '',
                     'calendar_status' => $lessonStatus === 'unconfirmed'
                         ? 'rescheduled'
@@ -274,7 +280,7 @@ class Scheduler
                 return $lessonDate->betweenIncluded($start, $end)
                     && ! $this->lessonStartsOnOccurrence($lesson, Carbon::parse($lesson->scheduled_date ?: $lesson->starts_at), $lesson->scheduled_start_time ?: Carbon::parse($lesson->starts_at)->format('H:i'));
             })
-            ->each(function ($lesson) use (&$occurrences) {
+            ->each(function ($lesson) use (&$occurrences, $lessonPlan) {
                 $startTime = Carbon::parse($lesson->starts_at)->format('H:i');
                 $endTime = Carbon::parse($lesson->ends_at)->format('H:i');
 
@@ -287,7 +293,9 @@ class Scheduler
                     'lesson_id' => $lesson->id,
                     'lesson_status' => $lesson->paymentStatus(),
                     'calendar_status' => $lesson->paymentStatus(),
-                    'fee_amount' => $lesson->fee_amount ?: ($lesson->lessonPlan ? $lesson->lessonPlan->fee_amount : null),
+                    'fee_amount' => $lessonPlan->student->payment_exempt
+                        ? 0
+                        : ($lesson->fee_amount ?: ($lesson->lessonPlan ? $lesson->lessonPlan->fee_amount : null)),
                     'canceled_by' => $lesson->canceled_by,
                     'lesson_edit_url' => route('calendar.lessons.edit', $lesson),
                     'lesson_payment_url' => $lesson->paymentUrl,

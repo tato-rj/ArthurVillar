@@ -1174,6 +1174,69 @@ class CalendarLessonFlowTest extends BaseTest
     }
 
     /** @test */
+    public function confirming_a_lesson_for_a_payment_exempt_student_immediately_marks_it_paid_with_no_fee()
+    {
+        $student = Student::factory()->create([
+            'payment_exempt' => true,
+            'payment_method' => 'Venmo',
+        ]);
+        $lessonPlan = LessonPlan::factory()->create([
+            'student_id' => $student->id,
+            'start_time' => '15:30',
+            'duration_minutes' => 45,
+            'fee_amount' => 8000,
+            'payment_method' => 'Venmo',
+        ]);
+
+        $this->signIn();
+
+        $response = $this->postJson(route('calendar.lessons.store'), [
+            'lesson_plan_id' => $lessonPlan->id,
+            'single_lesson_plan_id' => '',
+            'date' => '2026-07-15',
+            'start' => '15:30',
+            'end' => '16:15',
+            'scheduled_date' => '2026-07-15',
+            'scheduled_start_time' => '15:30',
+        ]);
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('status', 'paid')
+            ->assertJsonPath('payment_exempt', true);
+
+        $lesson = Lesson::findOrFail($response->json('lesson_id'));
+
+        $this->assertNotNull($lesson->paid_at);
+        $this->assertSame(0, $lesson->fee_amount);
+        $this->assertNull($lesson->payment_method);
+    }
+
+    /** @test */
+    public function it_rejects_early_payment_for_a_payment_exempt_student()
+    {
+        Carbon::setTestNow('2026-07-10 12:00:00');
+        $student = Student::factory()->create(['payment_exempt' => true]);
+        $lessonPlan = LessonPlan::factory()->create(['student_id' => $student->id]);
+
+        $this->signIn();
+
+        $this->postJson(route('calendar.lessons.early-payments.store'), [
+            'lesson_plan_id' => $lessonPlan->id,
+            'single_lesson_plan_id' => '',
+            'date' => '2026-07-15',
+            'scheduled_date' => '2026-07-15',
+            'scheduled_start_time' => $lessonPlan->start_time,
+        ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('date');
+
+        $this->assertDatabaseCount('early_payments', 0);
+
+        Carbon::setTestNow();
+    }
+
+    /** @test */
     public function it_can_take_attendance_for_a_lesson_that_ends_after_nine_pm()
     {
         $lessonPlan = LessonPlan::factory()->create([

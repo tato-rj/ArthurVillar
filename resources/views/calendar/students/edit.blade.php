@@ -95,6 +95,19 @@
         @feedback(['input' => 'notes'])
     </div>
 
+    <div class="form-check">
+        <input
+            class="form-check-input"
+            type="checkbox"
+            value="1"
+            name="payment_exempt"
+            id="payment_exempt_{{$student->id}}"
+            {{iftrue($student->payment_exempt, 'checked')}}>
+        <label class="form-check-label" for="payment_exempt_{{$student->id}}">
+            Payment exempt?
+        </label>
+    </div>
+
     <div class="form-check mb-4">
         <input
             class="form-check-input"

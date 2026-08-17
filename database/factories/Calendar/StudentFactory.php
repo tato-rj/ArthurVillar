@@ -27,6 +27,7 @@ class StudentFactory extends Factory
                                     ->format('Y-m-d'),
             'location_id' => Location::query()->teaching()->inRandomOrder()->value('id') ?: Location::factory(),
             'payment_method' => $this->faker->randomElement(['Venmo', 'Zelle', 'Cash/check']),
+            'payment_exempt' => false,
         ];
     }
 }

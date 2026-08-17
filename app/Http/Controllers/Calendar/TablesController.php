@@ -800,6 +800,7 @@ class TablesController extends Controller
                 'lessons.paid_at',
                 'lessons.canceled_at',
                 'lessons.canceled_by',
+                'students.payment_exempt',
                 DB::raw("$studentExpression as student"),
                 DB::raw("$dateExpression as scheduled_date"),
                 DB::raw("$timeExpression as start_time"),

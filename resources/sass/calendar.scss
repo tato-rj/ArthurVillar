@@ -1881,6 +1881,10 @@ button.single-lesson-plan-create[selected] i {
     }
 }
 
+#calendar-event-modal[data-event-modal-type="lesson"][data-lesson-status="paid"][data-payment-exempt="true"] {
+    div#lesson-status:after {content: 'Payment exempt'}
+}
+
 #calendar-event-modal[data-event-modal-type="lesson"][data-lesson-status="early-payment"] {
     #confirm-payment, #early-payment {
         display: none;

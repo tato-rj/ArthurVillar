@@ -295,6 +295,25 @@ class StudentsTableTest extends BaseTest
     }
 
     /** @test */
+    public function it_can_create_a_payment_exempt_student()
+    {
+        $this->signIn();
+
+        $this->post(route('calendar.students.store'), [
+            'first_name' => 'Nora',
+            'last_name' => 'Stone',
+            'gender' => 'female',
+            'email' => 'nora@example.com',
+            'payment_exempt' => 1,
+        ])->assertSessionHas('success');
+
+        $this->assertDatabaseHas('students', [
+            'email' => 'nora@example.com',
+            'payment_exempt' => true,
+        ]);
+    }
+
+    /** @test */
     public function it_can_search_students_by_adult_status_without_showing_an_adult_column()
     {
         Student::factory()->create([

@@ -2706,7 +2706,7 @@ const updateLessonTimeDependentControls = function(modal, event) {
     if (earlyPayment) {
         preserveButtonLabel(earlyPayment);
         earlyPayment.disabled = !event || !hasLessonSource;
-        earlyPayment.style.display = event && !canUseActions && event.lessonStatus === 'unconfirmed' ? '' : 'none';
+        earlyPayment.style.display = event && !event.paymentExempt && !canUseActions && event.lessonStatus === 'unconfirmed' ? '' : 'none';
         restoreButtonLabel(earlyPayment);
     }
 };
@@ -2938,6 +2938,7 @@ const populateLessonModal = function(modal, event) {
 
     modal.dataset.lessonStatus = event && event.lessonStatus ? event.lessonStatus : 'unconfirmed';
     modal.dataset.lessonCanceledBy = event && event.canceledBy ? event.canceledBy : '';
+    modal.dataset.paymentExempt = event && event.paymentExempt ? 'true' : 'false';
 };
 
 const openLessonModal = function(event, options) {
@@ -4719,10 +4720,14 @@ const updateLessonModalState = function(modal, payload) {
     const earlyPayment = modal.querySelector('#early-payment');
     const hasEarlyPaymentId = payload && Object.prototype.hasOwnProperty.call(payload, 'early_payment_id');
     const earlyPaymentId = hasEarlyPaymentId ? (payload.early_payment_id || '') : (event ? event.earlyPaymentId : '');
+    const paymentExempt = payload && Object.prototype.hasOwnProperty.call(payload, 'payment_exempt')
+        ? Boolean(payload.payment_exempt)
+        : Boolean(event && event.paymentExempt);
 
     modal.dataset.lessonStatus = status;
     modal.dataset.lessonCanceledBy = payload && payload.canceled_by ? payload.canceled_by : '';
     modal.dataset.earlyPaymentId = earlyPaymentId;
+    modal.dataset.paymentExempt = paymentExempt ? 'true' : 'false';
 
     if (payload && payload.lesson_deleted) {
         modal.dataset.lessonId = '';
@@ -4759,6 +4764,11 @@ const updateLessonModalState = function(modal, payload) {
         event.lessonId = payload && payload.lesson_deleted ? '' : (lessonId || event.lessonId || '');
         event.scheduleOverrideId = payload && payload.schedule_override_deleted ? '' : event.scheduleOverrideId;
         event.earlyPaymentId = earlyPaymentId;
+        event.paymentExempt = paymentExempt;
+
+        if (paymentExempt) {
+            event.feeAmount = 0;
+        }
     }
 
     updateLessonScheduleControls(modal, event || {
@@ -5969,7 +5979,8 @@ const getPlannedLessonEvents = function(range) {
                     lessonStatus,
                     calendarStatus: occurrence.calendar_status || lessonStatus,
                     'data-lesson-status': occurrence.calendar_status || lessonStatus,
-                    feeAmount: occurrence.fee_amount || lesson.fee_amount || 0,
+                    feeAmount: lesson.student && lesson.student.payment_exempt ? 0 : (occurrence.fee_amount || lesson.fee_amount || 0),
+                    paymentExempt: Boolean(lesson.student && lesson.student.payment_exempt),
                     studentId: lesson.student_id || (lesson.student && lesson.student.id) || '',
                     paymentMethod: lesson.payment_method || (lesson.student && lesson.student.payment_method) || '',
                     notes: lesson.notes || '',
@@ -6047,7 +6058,8 @@ const getPlannedLessonEvents = function(range) {
                 lessonStatus,
                 calendarStatus: lessonStatus,
                 'data-lesson-status': lessonStatus,
-                feeAmount: confirmedLesson && confirmedLesson.fee_amount ? confirmedLesson.fee_amount : (lesson.fee_amount || 0),
+                feeAmount: lesson.student && lesson.student.payment_exempt ? 0 : (confirmedLesson && confirmedLesson.fee_amount ? confirmedLesson.fee_amount : (lesson.fee_amount || 0)),
+                paymentExempt: Boolean(lesson.student && lesson.student.payment_exempt),
                 studentId: lesson.student_id || (lesson.student && lesson.student.id) || '',
                 paymentMethod: lesson.payment_method || (lesson.student && lesson.student.payment_method) || '',
                 notes: lesson.notes || '',

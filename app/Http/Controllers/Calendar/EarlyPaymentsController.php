@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Calendar;
 use App\Http\Controllers\Controller;
 use App\Models\Calendar\EarlyPayment;
 use App\Models\Calendar\LessonPlan;
+use App\Models\Calendar\SingleLessonPlan;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -42,6 +43,16 @@ class EarlyPaymentsController extends Controller
         if ($lessonPlanId && $singleLessonPlanId) {
             throw ValidationException::withMessages([
                 'lesson_plan_id' => 'Choose either a recurring or single lesson occurrence.',
+            ]);
+        }
+
+        $student = $singleLessonPlanId
+            ? SingleLessonPlan::with('student')->findOrFail($singleLessonPlanId)->student
+            : LessonPlan::with('student')->findOrFail($lessonPlanId)->student;
+
+        if ($student->payment_exempt) {
+            throw ValidationException::withMessages([
+                'date' => 'Payment is not required for this student.',
             ]);
         }
 

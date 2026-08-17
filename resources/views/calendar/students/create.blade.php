@@ -86,7 +86,14 @@
 	</div>
 	
 	<div class="form-check">
-	  <input class="form-check-input" type="checkbox" value="{{old('is_adult')}}" name="is_adult" id="is_adult">
+	  <input class="form-check-input" type="checkbox" value="1" name="payment_exempt" id="payment_exempt" {{iftrue(old('payment_exempt'), 'checked')}}>
+	  <label class="form-check-label" for="payment_exempt">
+	    Payment exempt?
+	  </label>
+	</div>
+
+	<div class="form-check">
+	  <input class="form-check-input" type="checkbox" value="1" name="is_adult" id="is_adult" {{iftrue(old('is_adult'), 'checked')}}>
 	  <label class="form-check-label" for="is_adult">
 	    Adult student?
 	  </label>

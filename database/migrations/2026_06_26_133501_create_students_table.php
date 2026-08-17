@@ -33,6 +33,7 @@ return new class extends Migration
 
             $table->string('status')->default('active');
             $table->boolean('is_adult')->default(false);
+            $table->boolean('payment_exempt')->default(false);
 
             $table->text('notes')->nullable();
             $table->timestamps();

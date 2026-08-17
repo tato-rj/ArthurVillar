@@ -10,7 +10,10 @@ class Student extends BaseModel
 
     protected $dates = ['date_of_birth'];
 
-    protected $casts = ['is_adult' => 'boolean'];
+    protected $casts = [
+        'is_adult' => 'boolean',
+        'payment_exempt' => 'boolean',
+    ];
 
     protected static function booted()
     {

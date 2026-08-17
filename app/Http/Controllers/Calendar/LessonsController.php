@@ -40,14 +40,20 @@ class LessonsController extends Controller
                 ->lockForUpdate()
                 ->first();
 
-            if ($earlyPayment) {
+            $paymentExempt = (bool) $lesson['model']->student->payment_exempt;
+
+            if ($earlyPayment || $paymentExempt) {
                 $lesson['model']->pay();
-                $earlyPayment->delete();
+
+                if ($earlyPayment) {
+                    $earlyPayment->delete();
+                }
             }
 
             return [
                 'lesson' => $lesson,
                 'early_payment_consumed' => (bool) $earlyPayment,
+                'payment_exempt' => $paymentExempt,
             ];
         });
 
@@ -61,6 +67,7 @@ class LessonsController extends Controller
             'schedule_override_deleted' => $lesson['schedule_override_deleted'],
             'early_payment_id' => '',
             'early_payment_consumed' => $result['early_payment_consumed'],
+            'payment_exempt' => $result['payment_exempt'],
         ]);
     }
 
@@ -213,7 +220,9 @@ class LessonsController extends Controller
                 $lesson->update([
                     'paid_at' => null,
                     'payment_method' => null,
-                    'fee_amount' => $lesson->lessonPlan ? $lesson->lessonPlan->netFeeAmount() : $lesson->fee_amount,
+                    'fee_amount' => $lesson->student->payment_exempt
+                        ? 0
+                        : ($lesson->lessonPlan ? $lesson->lessonPlan->netFeeAmount() : $lesson->fee_amount),
                 ]);
 
                 $payload['lesson_reverted'] = true;
@@ -265,7 +274,7 @@ class LessonsController extends Controller
             'scheduled_date' => $scheduledDate,
             'scheduled_start_time' => $scheduledStartTime,
             'ends_at' => $endsAt,
-            'fee_amount' => $lessonPlan->netFeeAmount(),
+            'fee_amount' => $lessonPlan->student->payment_exempt ? 0 : $lessonPlan->netFeeAmount(),
         ]);
 
         if (! $lesson->scheduled_date || ! $lesson->scheduled_start_time) {
@@ -307,8 +316,8 @@ class LessonsController extends Controller
             'scheduled_date' => $scheduledDate,
             'scheduled_start_time' => $scheduledStartTime,
             'ends_at' => $endsAt,
-            'fee_amount' => $singleLessonPlan->netFeeAmount(),
-            'payment_method' => $singleLessonPlan->payment_method,
+            'fee_amount' => $singleLessonPlan->student->payment_exempt ? 0 : $singleLessonPlan->netFeeAmount(),
+            'payment_method' => $singleLessonPlan->student->payment_exempt ? null : $singleLessonPlan->payment_method,
             'notes' => $singleLessonPlan->notes,
         ]);
 

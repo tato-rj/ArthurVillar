@@ -93,6 +93,7 @@ class StudentsController extends Controller
                 Rule::exists('locations', 'id')->where('usage', Location::USAGE_TEACHING),
             ],
             'payment_method' => ['nullable', 'string', 'max:255'],
+            'payment_exempt' => ['nullable', 'boolean'],
             'is_adult' => ['nullable', 'boolean'],
             'notes' => ['nullable', 'string'],
             'waiting_list_id' => ['nullable', 'exists:waiting_lists,id'],
@@ -110,6 +111,7 @@ class StudentsController extends Controller
             'phone' => $data['phone'] ?? null,
             'location_id' => $data['location_id'] ?? null,
             'payment_method' => $data['payment_method'] ?? null,
+            'payment_exempt' => $data['payment_exempt'] ?? false,
             'is_adult' => $data['is_adult'] ?? false,
             'notes' => $data['notes'] ?? null,
             'date_of_birth' => ! empty($data['date_of_birth'])
