@@ -172,6 +172,30 @@ class StudentsTableTest extends BaseTest
     }
 
     /** @test */
+    public function it_marks_paid_and_unpaid_counts_as_not_applicable_for_payment_exempt_students()
+    {
+        Student::factory()->create([
+            'first_name' => 'Payment',
+            'last_name' => 'Exempt',
+            'payment_exempt' => true,
+        ]);
+
+        $this->signIn();
+
+        $row = collect($this->json('GET', route('calendar.tables.students'), $this->studentTableRequest())
+            ->assertOk()
+            ->json('data'))
+            ->firstWhere('name', 'Payment Exempt');
+
+        $this->assertTrue((bool) $row['payment_exempt']);
+
+        $response = $this->get(route('calendar.students.index'))->assertOk();
+
+        $this->assertSame(2, substr_count($response->getContent(), 'row.payment_exempt'));
+        $this->assertSame(2, substr_count($response->getContent(), 'aria-label="Not applicable">—</span>'));
+    }
+
+    /** @test */
     public function it_shows_student_registrations_lesson_statuses_in_one_table_and_future_missed_lessons()
     {
         Carbon::setTestNow('2026-07-01 12:00:00');

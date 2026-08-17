@@ -253,7 +253,11 @@ $(function() {
                 name: 'paid_lessons_count',
                 searchable: false,
                 className: 'text-center',
-                render: function(data, type) {
+                render: function(data, type, row) {
+                    if (type === 'display' && row.payment_exempt) {
+                        return '<span class="text-light" title="Payment exempt" aria-label="Not applicable">—</span>';
+                    }
+
                     return type === 'display' && Number(data) !== 0
                         ? `<span class="text-green">${data}</span>`
                         : data;
@@ -264,7 +268,11 @@ $(function() {
                 name: 'unpaid_lessons_count',
                 searchable: false,
                 className: 'text-center',
-                render: function(data, type) {
+                render: function(data, type, row) {
+                    if (type === 'display' && row.payment_exempt) {
+                        return '<span class="text-light" title="Payment exempt" aria-label="Not applicable">—</span>';
+                    }
+
                     return type === 'display' && Number(data) !== 0
                         ? `<span class="text-red">${data}</span>`
                         : data;

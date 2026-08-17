@@ -937,6 +937,7 @@ class TablesController extends Controller
                 'students.email',
                 'students.phone',
                 'students.is_adult',
+                'students.payment_exempt',
                 'students.date_of_birth',
                 'locations.name as location',
             ])
