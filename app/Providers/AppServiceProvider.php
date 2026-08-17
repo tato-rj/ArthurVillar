@@ -42,6 +42,11 @@ class AppServiceProvider extends ServiceProvider
                         'icon' => 'book',
                         'label' => 'Theory',
                         'url' => $protocol . 'theory.' . config('app.domain')
+                    ],
+                    [
+                        'icon' => 'note-sticky',
+                        'label' => 'Reminder',
+                        'url' => $protocol . 'reminder.' . config('app.domain')
                     ]
                 ]
             ]);

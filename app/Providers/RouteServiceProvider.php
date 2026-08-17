@@ -49,6 +49,12 @@ class RouteServiceProvider extends ServiceProvider
                 ->group(base_path('routes/theory.php'));
 
             Route::middleware('web')
+                ->domain('reminder.'.config('app.domain'))
+                ->namespace($this->namespace.'\\Reminder')
+                ->name('reminder.')
+                ->group(base_path('routes/reminder.php'));
+
+            Route::middleware('web')
                 ->domain('calendar.'.config('app.domain'))
                 ->namespace($this->namespace.'\\Calendar')
                 ->name('calendar.')
