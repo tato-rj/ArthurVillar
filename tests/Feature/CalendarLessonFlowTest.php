@@ -191,6 +191,236 @@ class CalendarLessonFlowTest extends BaseTest
     }
 
     /** @test */
+    public function lesson_edit_forms_offer_single_and_recurring_repeat_options()
+    {
+        $singleLessonPlan = SingleLessonPlan::factory()->create();
+        $lessonPlan = LessonPlan::factory()->create();
+
+        $this->signIn();
+
+        $this->get(route('calendar.single-lesson-plans.edit', $singleLessonPlan))
+            ->assertOk()
+            ->assertSee('name="repeat"', false)
+            ->assertSee('Does not repeat')
+            ->assertSee('Every week')
+            ->assertSee('Every other week')
+            ->assertSee('data-lesson-repeat-end', false);
+
+        $this->get(route('calendar.lesson-plans.edit', $lessonPlan))
+            ->assertOk()
+            ->assertSee('name="repeat"', false)
+            ->assertSee('Does not repeat')
+            ->assertSee('Every week')
+            ->assertSee('Every other week')
+            ->assertSee('data-lesson-repeat-end', false);
+    }
+
+    /** @test */
+    public function converting_single_lessons_to_recurring_preserves_confirmed_paid_and_canceled_records()
+    {
+        $this->signIn();
+
+        $states = [
+            'confirmed' => [
+                'paid_at' => null,
+                'payment_method' => null,
+                'canceled_at' => null,
+                'canceled_by' => null,
+            ],
+            'paid' => [
+                'paid_at' => '2026-07-01 10:00:00',
+                'payment_method' => 'Venmo',
+                'canceled_at' => null,
+                'canceled_by' => null,
+            ],
+            'canceled' => [
+                'paid_at' => null,
+                'payment_method' => null,
+                'canceled_at' => '2026-07-01 11:00:00',
+                'canceled_by' => 'student',
+            ],
+        ];
+
+        foreach ($states as $state => $recordState) {
+            $student = Student::factory()->create();
+            $singleLessonPlan = SingleLessonPlan::factory()->student($student)->create([
+                'scheduled_date' => '2026-07-15',
+                'start_time' => '15:30',
+                'duration_minutes' => 45,
+                'fee_amount' => 6000,
+                'payment_method' => 'Venmo',
+                'notes' => "{$state} plan notes",
+            ]);
+            $lesson = Lesson::factory()->create(array_merge([
+                'student_id' => $student->id,
+                'lesson_plan_id' => null,
+                'scheduled_date' => '2026-07-15',
+                'scheduled_start_time' => '15:30',
+                'starts_at' => '2026-07-15 15:30:00',
+                'ends_at' => '2026-07-15 16:15:00',
+                'fee_amount' => 5500,
+                'notes' => "{$state} record notes",
+            ], $recordState));
+
+            $this->patch(
+                route('calendar.single-lesson-plans.update', $singleLessonPlan),
+                $this->singleLessonPlanPayload($singleLessonPlan, [
+                    'repeat' => '1',
+                    'ends_on' => '2026-10-15',
+                ])
+            )->assertSessionHas('success');
+
+            $lessonPlan = LessonPlan::where('student_id', $student->id)->firstOrFail();
+            $preservedLesson = $lesson->fresh();
+
+            $this->assertDatabaseMissing('single_lesson_plans', ['id' => $singleLessonPlan->id]);
+            $this->assertSame($lessonPlan->id, $preservedLesson->lesson_plan_id);
+            $this->assertSame($recordState['paid_at'], optional($preservedLesson->paid_at)->format('Y-m-d H:i:s'));
+            $this->assertSame($recordState['payment_method'], $preservedLesson->payment_method);
+            $this->assertSame($recordState['canceled_at'], optional($preservedLesson->canceled_at)->format('Y-m-d H:i:s'));
+            $this->assertSame($recordState['canceled_by'], $preservedLesson->canceled_by);
+            $this->assertEquals(5500, $preservedLesson->fee_amount);
+            $this->assertSame("{$state} record notes", $preservedLesson->notes);
+        }
+    }
+
+    /** @test */
+    public function converting_a_single_lesson_to_recurring_preserves_its_early_payment()
+    {
+        $singleLessonPlan = SingleLessonPlan::factory()->create([
+            'scheduled_date' => '2026-07-15',
+            'start_time' => '15:30',
+        ]);
+        $earlyPayment = EarlyPayment::factory()->create([
+            'lesson_plan_id' => null,
+            'single_lesson_plan_id' => $singleLessonPlan->id,
+            'scheduled_date' => '2026-07-15',
+            'scheduled_start_time' => '15:30',
+        ]);
+
+        $this->signIn();
+
+        $this->patch(
+            route('calendar.single-lesson-plans.update', $singleLessonPlan),
+            $this->singleLessonPlanPayload($singleLessonPlan, [
+                'repeat' => '2',
+                'ends_on' => '2026-10-15',
+            ])
+        )->assertSessionHas('success');
+
+        $lessonPlan = LessonPlan::where('student_id', $singleLessonPlan->student_id)->firstOrFail();
+        $preservedEarlyPayment = $earlyPayment->fresh();
+
+        $this->assertSame($lessonPlan->id, $preservedEarlyPayment->lesson_plan_id);
+        $this->assertNull($preservedEarlyPayment->single_lesson_plan_id);
+        $this->assertSame('2026-07-15', $preservedEarlyPayment->scheduled_date->toDateString());
+        $this->assertSame('15:30', $preservedEarlyPayment->scheduled_start_time);
+    }
+
+    /** @test */
+    public function a_single_lesson_cannot_be_converted_to_a_plan_that_overlaps_an_existing_plan()
+    {
+        $student = Student::factory()->create();
+        $existingLessonPlan = LessonPlan::factory()->student($student)->create([
+            'starts_on' => '2026-07-01',
+            'ends_on' => '2026-09-01',
+        ]);
+        $singleLessonPlan = SingleLessonPlan::factory()->student($student)->create([
+            'scheduled_date' => '2026-07-15',
+            'start_time' => '15:30',
+        ]);
+
+        $this->signIn();
+
+        $this->patch(
+            route('calendar.single-lesson-plans.update', $singleLessonPlan),
+            $this->singleLessonPlanPayload($singleLessonPlan, [
+                'repeat' => '1',
+                'ends_on' => '2026-10-15',
+            ])
+        )->assertSessionHasErrors('scheduled_date');
+
+        $this->assertDatabaseHas('lesson_plans', ['id' => $existingLessonPlan->id]);
+        $this->assertDatabaseHas('single_lesson_plans', ['id' => $singleLessonPlan->id]);
+        $this->assertSame(1, LessonPlan::where('student_id', $student->id)->count());
+    }
+
+    /** @test */
+    public function converting_an_unused_recurring_plan_to_single_removes_the_other_occurrences()
+    {
+        $lessonPlan = LessonPlan::factory()->create([
+            'starts_on' => '2026-07-15',
+            'ends_on' => '2026-10-15',
+            'start_time' => '15:30',
+            'duration_minutes' => 45,
+            'recurrence_interval' => 1,
+        ]);
+        $override = ScheduleOverride::factory()->lessonPlan($lessonPlan)->create();
+
+        $this->signIn();
+
+        $this->patch(route('calendar.lesson-plans.update', $lessonPlan), $this->lessonPlanPayload([
+            'student_id' => $lessonPlan->student_id,
+            'location_id' => $lessonPlan->location_id,
+            'repeat' => 'none',
+            'starts_on' => '2026-07-15',
+            'ends_on' => '',
+            'start_time' => '15:30',
+        ]))->assertSessionHas('success');
+
+        $this->assertDatabaseMissing('lesson_plans', ['id' => $lessonPlan->id]);
+        $this->assertDatabaseMissing('schedule_overrides', ['id' => $override->id]);
+        $this->assertDatabaseHas('single_lesson_plans', [
+            'student_id' => $lessonPlan->student_id,
+            'scheduled_date' => '2026-07-15 00:00:00',
+            'start_time' => '15:30',
+        ]);
+    }
+
+    /** @test */
+    public function a_recurring_plan_with_lesson_history_cannot_be_converted_to_single()
+    {
+        $lessonPlan = LessonPlan::factory()->create();
+        $lesson = Lesson::factory()->lessonPlan($lessonPlan)->create(['paid_at' => now()]);
+
+        $this->signIn();
+
+        $this->patch(route('calendar.lesson-plans.update', $lessonPlan), $this->lessonPlanPayload([
+            'student_id' => $lessonPlan->student_id,
+            'location_id' => $lessonPlan->location_id,
+            'repeat' => 'none',
+            'starts_on' => $lessonPlan->starts_on->toDateString(),
+            'ends_on' => '',
+        ]))
+            ->assertSessionHasErrors('repeat');
+
+        $this->assertDatabaseHas('lesson_plans', ['id' => $lessonPlan->id]);
+        $this->assertDatabaseHas('lessons', ['id' => $lesson->id, 'lesson_plan_id' => $lessonPlan->id]);
+        $this->assertDatabaseCount('single_lesson_plans', 0);
+    }
+
+    /** @test */
+    public function a_recurring_plan_with_early_payment_cannot_be_converted_to_single()
+    {
+        $lessonPlan = LessonPlan::factory()->create();
+        $earlyPayment = EarlyPayment::factory()->create(['lesson_plan_id' => $lessonPlan->id]);
+
+        $this->signIn();
+
+        $this->patch(route('calendar.lesson-plans.update', $lessonPlan), $this->lessonPlanPayload([
+            'student_id' => $lessonPlan->student_id,
+            'location_id' => $lessonPlan->location_id,
+            'repeat' => 'none',
+            'starts_on' => $lessonPlan->starts_on->toDateString(),
+            'ends_on' => '',
+        ]))->assertSessionHasErrors('repeat');
+
+        $this->assertDatabaseHas('lesson_plans', ['id' => $lessonPlan->id]);
+        $this->assertDatabaseHas('early_payments', ['id' => $earlyPayment->id]);
+        $this->assertDatabaseCount('single_lesson_plans', 0);
+    }
+
+    /** @test */
     public function it_does_not_create_a_lesson_plan_that_overlaps_another_complete_lesson_plan()
     {
         $student = Student::factory()->create();
@@ -1591,6 +1821,22 @@ class CalendarLessonFlowTest extends BaseTest
             'location_id' => Location::factory()->create()->id,
             'status' => 'active',
             'notes' => '',
+        ], $overrides);
+    }
+
+    private function singleLessonPlanPayload(SingleLessonPlan $singleLessonPlan, array $overrides = [])
+    {
+        return array_merge([
+            'student_id' => $singleLessonPlan->student_id,
+            'location_id' => $singleLessonPlan->location_id,
+            'scheduled_date' => $singleLessonPlan->scheduled_date->toDateString(),
+            'repeat' => 'none',
+            'ends_on' => '',
+            'start_time' => $singleLessonPlan->start_time,
+            'duration_minutes' => $singleLessonPlan->duration_minutes,
+            'fee_amount' => (string) ($singleLessonPlan->fee_amount / 100),
+            'payment_method' => $singleLessonPlan->payment_method,
+            'notes' => $singleLessonPlan->notes,
         ], $overrides);
     }
 }

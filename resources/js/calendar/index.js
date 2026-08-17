@@ -6400,6 +6400,56 @@ const initializeCalendarEditModal = function(modal) {
             rightAlign: false,
         }).mask(currencyInputs);
     }
+
+    const lessonForm = modal.querySelector('[data-single-lesson-plan-form], [data-lesson-plan-form]');
+
+    if (lessonForm && lessonForm.dataset.calendarAjaxSubmitInitialized !== 'true') {
+        lessonForm.dataset.calendarAjaxSubmitInitialized = 'true';
+        lessonForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const submitButton = lessonForm.querySelector('[type="submit"]');
+
+            if (submitButton) {
+                submitButton.disabled = true;
+            }
+
+            fetch(lessonForm.action, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: new FormData(lessonForm),
+            })
+                .then(function(response) {
+                    if (response.ok) {
+                        window.location.reload();
+                        return;
+                    }
+
+                    return response.json()
+                        .catch(function() {
+                            return {};
+                        })
+                        .then(function(payload) {
+                            const validationErrors = payload.errors ? Object.values(payload.errors) : [];
+                            const validationMessage = validationErrors.length
+                                ? (Array.isArray(validationErrors[0]) ? validationErrors[0][0] : validationErrors[0])
+                                : '';
+
+                            throw new Error(validationMessage || payload.message || 'Unable to update this lesson.');
+                        });
+                })
+                .catch(function(error) {
+                    showCalendarEditError(modal, error.message);
+
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                    }
+                });
+        });
+    }
 };
 
 const loadCalendarEditModal = function(button, sourceModal, container) {
@@ -7103,8 +7153,10 @@ const initializeSingleLessonPlanForms = function(root) {
 
         const locationSelect = form.querySelector('select[name="location_id"]');
         const durationSelect = form.querySelector('select[name="duration_minutes"]');
+        const repeatSelect = form.querySelector('select[name="repeat"]');
 
         setSingleLessonOnlineFields(form, false);
+        syncLessonRepeatFields(form, false);
 
         if (locationSelect && durationSelect) {
             syncSingleLessonFee(form);
@@ -7120,6 +7172,12 @@ const initializeSingleLessonPlanForms = function(root) {
         if (durationSelect) {
             durationSelect.addEventListener('change', function() {
                 syncSingleLessonFee(form);
+            });
+        }
+
+        if (repeatSelect) {
+            repeatSelect.addEventListener('change', function() {
+                syncLessonRepeatFields(form, true);
             });
         }
 

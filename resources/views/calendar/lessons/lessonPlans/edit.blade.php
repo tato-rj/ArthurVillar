@@ -1,5 +1,6 @@
 @modal(['title' => 'Edit lesson plan', 'id' => 'edit-lessonPlan-'.$lessonPlan->id.'-modal'])
 @php($lessonPlanIsOnline = optional($lessonPlan->location)->name && strtolower($lessonPlan->location->name) === 'online')
+@php($lessonPlanRepeat = (string) old('repeat', $lessonPlan->recurrence_interval))
 <form method="POST" action="{{route('calendar.lesson-plans.update', $lessonPlan)}}" data-lesson-plan-form>
 	@csrf
 	@method('PATCH')
@@ -26,15 +27,15 @@
 	</div>
 
 	<div class="row">
-		@select(['label' => 'Repeat', 'name' => 'recurrence_interval', 'grid' => 'col'])
-			@foreach(['Every week', 'Every other week'] as $frequency)
-				@option(['name' => 'recurrence_interval', 'label' => $frequency, 'value' => $loop->iteration, 'selected' => $lessonPlan->recurrence_interval == $loop->iteration])
-			@endforeach
+		@select(['label' => 'Repeat', 'name' => 'repeat', 'grid' => 'col', 'required' => true])
+			@option(['name' => 'repeat', 'label' => 'Does not repeat', 'value' => 'none', 'selected' => $lessonPlanRepeat === 'none'])
+			@option(['name' => 'repeat', 'label' => 'Every week', 'value' => 1, 'selected' => $lessonPlanRepeat === '1'])
+			@option(['name' => 'repeat', 'label' => 'Every other week', 'value' => 2, 'selected' => $lessonPlanRepeat === '2'])
 		@endselect
 	</div>
 
-	<div class="row">
-		@input(['label' => 'Ends on', 'name' => 'ends_on', 'type' => 'date', 'value' => optional($lessonPlan->ends_on)->format('Y-m-d'), 'grid' => 'col'])
+	<div data-lesson-repeat-end @if($lessonPlanRepeat === 'none') style="display: none;" @endif>
+		@input(['label' => 'Ends on', 'name' => 'ends_on', 'type' => 'date', 'value' => old('ends_on', optional($lessonPlan->ends_on)->format('Y-m-d')), 'required' => $lessonPlanRepeat !== 'none', 'disabled' => $lessonPlanRepeat === 'none'])
 	</div>
 
 	<label class="small fw-bold opacity-6 mb-3">@fa(['icon' => 'clock'])TIME</label>

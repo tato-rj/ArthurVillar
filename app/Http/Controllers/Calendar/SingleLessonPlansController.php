@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Calendar;
 
 use App\Http\Controllers\Controller;
 use App\Models\Calendar\{LessonPlan, Location, SingleLessonPlan};
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 
 class SingleLessonPlansController extends Controller
@@ -30,10 +32,54 @@ class SingleLessonPlansController extends Controller
     public function update(Request $request, SingleLessonPlan $singleLessonPlan)
     {
         $data = $this->validateSingleLessonPlan($request);
+        $repeat = (string) ($data['repeat'] ?? 'none');
+
+        if ($repeat !== 'none') {
+            $data['repeat'] = (int) $repeat;
+            $this->convertToLessonPlan($singleLessonPlan, $data);
+
+            return back()->with('success', 'The single lesson was successfully changed to a lesson plan');
+        }
 
         $singleLessonPlan->update($this->singleLessonPlanAttributes($data, $singleLessonPlan));
 
         return back()->with('success', 'The single lesson was successfully updated');
+    }
+
+    private function convertToLessonPlan(SingleLessonPlan $singleLessonPlan, array $data)
+    {
+        return DB::transaction(function () use ($singleLessonPlan, $data) {
+            $singleLessonPlan = SingleLessonPlan::query()->lockForUpdate()->findOrFail($singleLessonPlan->id);
+            $startsOn = $this->lessonDate($data['scheduled_date']);
+            $endsOn = $this->lessonDate($data['ends_on']);
+
+            $this->validateLessonPlanDoesNotOverlap($singleLessonPlan->student_id, $startsOn, $endsOn);
+
+            $lessons = $singleLessonPlan->associatedLessons()->lockForUpdate()->get();
+            $lessonPlan = LessonPlan::create($this->lessonPlanAttributes($singleLessonPlan, $data, $startsOn, $endsOn));
+            $startsAt = Carbon::createFromFormat('Y-m-d H:i', $startsOn.' '.$data['start_time']);
+
+            $lessons->each(function ($lesson) use ($lessonPlan, $startsAt, $startsOn, $data) {
+                $lesson->update([
+                    'lesson_plan_id' => $lessonPlan->id,
+                    'scheduled_date' => $startsOn,
+                    'scheduled_start_time' => $data['start_time'],
+                    'starts_at' => $startsAt,
+                    'ends_at' => $startsAt->copy()->addMinutes((int) $data['duration_minutes']),
+                ]);
+            });
+
+            $singleLessonPlan->earlyPayments()->update([
+                'lesson_plan_id' => $lessonPlan->id,
+                'single_lesson_plan_id' => null,
+                'scheduled_date' => $startsOn,
+                'scheduled_start_time' => $data['start_time'],
+            ]);
+
+            $singleLessonPlan->delete();
+
+            return $lessonPlan;
+        });
     }
 
     public function destroy(SingleLessonPlan $singleLessonPlan)
@@ -91,7 +137,14 @@ class SingleLessonPlansController extends Controller
     {
         return $request->validate([
             'student_id' => ['required', 'exists:students,id'],
+            'repeat' => ['nullable', Rule::in(['none', '1', '2'])],
             'scheduled_date' => ['required', 'date'],
+            'ends_on' => [
+                Rule::requiredIf(fn () => (string) $request->input('repeat', 'none') !== 'none'),
+                'nullable',
+                'date',
+                'after_or_equal:scheduled_date',
+            ],
             'start_time' => ['required', 'date_format:H:i', Rule::in(LessonPlan::timeOptions())],
             'duration_minutes' => ['required', 'integer', 'min:15'],
             'fee_amount' => ['nullable', 'string'],
@@ -105,6 +158,42 @@ class SingleLessonPlansController extends Controller
             'status' => ['nullable', 'string', 'max:255'],
             'notes' => ['nullable', 'string'],
         ]);
+    }
+
+    private function lessonPlanAttributes(SingleLessonPlan $singleLessonPlan, array $data, $startsOn, $endsOn)
+    {
+        return [
+            'student_id' => $singleLessonPlan->student_id,
+            'weekday' => LessonPlan::fromCarbonWeekday(Carbon::parse($startsOn)->dayOfWeek),
+            'recurrence_interval' => (int) $data['repeat'],
+            'starts_on' => $startsOn,
+            'ends_on' => $endsOn,
+            'start_time' => $data['start_time'],
+            'duration_minutes' => $data['duration_minutes'],
+            'fee_amount' => $this->lessonFeeAmount($data),
+            'payment_method' => $data['payment_method'] ?? null,
+            'location_id' => $data['location_id'],
+            'meeting_url' => $this->isOnlineLocation($data['location_id']) ? ($data['meeting_url'] ?? null) : null,
+            'notes_url' => $this->isOnlineLocation($data['location_id']) ? ($data['notes_url'] ?? null) : null,
+            'notes' => $data['notes'] ?? null,
+        ];
+    }
+
+    private function validateLessonPlanDoesNotOverlap($studentId, $startsOn, $endsOn)
+    {
+        $hasOverlappingLessonPlan = LessonPlan::query()
+            ->where('student_id', $studentId)
+            ->whereNotNull('starts_on')
+            ->whereNotNull('ends_on')
+            ->whereDate('starts_on', '<=', $endsOn)
+            ->whereDate('ends_on', '>=', $startsOn)
+            ->exists();
+
+        if ($hasOverlappingLessonPlan) {
+            throw ValidationException::withMessages([
+                'scheduled_date' => 'This lesson plan overlaps with another lesson plan.',
+            ]);
+        }
     }
 
     private function singleLessonPlanAttributes(array $data, SingleLessonPlan $singleLessonPlan = null)

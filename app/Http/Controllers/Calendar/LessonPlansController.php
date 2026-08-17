@@ -56,12 +56,45 @@ class LessonPlansController extends Controller
     public function update(Request $request, LessonPlan $lessonPlan)
     {
         $data = $this->validateLessonPlan($request);
+        $repeat = (string) ($data['repeat'] ?? $data['recurrence_interval']);
+
+        if ($repeat === 'none') {
+            $data['student_id'] = $lessonPlan->student_id;
+            $this->convertToSingleLessonPlan($lessonPlan, $data);
+
+            return back()->with('success', 'The lesson plan was successfully changed to a single lesson');
+        }
+
+        $data['recurrence_interval'] = (int) $repeat;
 
         $this->validateLessonPlanDoesNotOverlap($lessonPlan->student_id, $data['starts_on'] ?? null, $data['ends_on'] ?? null, $lessonPlan);
 
         $lessonPlan->update($this->lessonPlanAttributes($data, $lessonPlan));
 
         return back()->with('success', 'The lesson plan was successfully updated');
+    }
+
+    private function convertToSingleLessonPlan(LessonPlan $lessonPlan, array $data)
+    {
+        return DB::transaction(function () use ($lessonPlan, $data) {
+            $lessonPlan = LessonPlan::query()->lockForUpdate()->findOrFail($lessonPlan->id);
+            $hasLessonHistory = $lessonPlan->lessons()->exists();
+            $hasPaymentHistory = $lessonPlan->earlyPayments()->exists();
+            $hasCancellationHistory = (bool) ($lessonPlan->canceled_at || $lessonPlan->canceled_from);
+
+            if ($hasLessonHistory || $hasPaymentHistory || $hasCancellationHistory) {
+                throw ValidationException::withMessages([
+                    'repeat' => 'This lesson plan cannot be changed to a single lesson because it has recorded lesson, payment, or cancellation history. Confirmed, paid, canceled, and early-paid occurrences must remain attached to their recurring plan.',
+                ]);
+            }
+
+            $singleLessonPlan = SingleLessonPlan::create($this->singleLessonPlanAttributes($data));
+
+            $lessonPlan->scheduleOverrides()->delete();
+            $lessonPlan->delete();
+
+            return $singleLessonPlan;
+        });
     }
 
     public function destroy(LessonPlan $lessonPlan)
@@ -146,8 +179,13 @@ class LessonPlansController extends Controller
     {
         return $request->validate([
             'student_id' => ['required', 'exists:students,id'],
-            'recurrence_interval' => ['required', 'integer', 'min:1'],
-            'starts_on' => ['nullable', 'date'],
+            'repeat' => ['nullable', Rule::in(['none', '1', '2'])],
+            'recurrence_interval' => ['nullable', 'required_without:repeat', 'integer', Rule::in([1, 2])],
+            'starts_on' => [
+                Rule::requiredIf(fn () => (string) $request->input('repeat') === 'none'),
+                'nullable',
+                'date',
+            ],
             'ends_on' => ['nullable', 'date', 'after_or_equal:starts_on'],
             'start_time' => ['required', 'date_format:H:i', Rule::in(LessonPlan::timeOptions())],
             'duration_minutes' => ['required', 'integer', 'min:15'],

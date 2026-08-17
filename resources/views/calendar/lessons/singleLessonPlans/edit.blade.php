@@ -1,5 +1,6 @@
 @modal(['title' => 'Edit single lesson', 'id' => 'edit-single-lesson-plan-'.$singleLessonPlan->id.'-modal'])
 @php($singleLessonPlanIsOnline = optional($singleLessonPlan->location)->name && strtolower($singleLessonPlan->location->name) === 'online')
+@php($singleLessonRepeat = (string) old('repeat', 'none'))
 <form method="POST" action="{{route('calendar.single-lesson-plans.update', $singleLessonPlan)}}" data-single-lesson-plan-form>
 	@csrf
 	@method('PATCH')
@@ -26,6 +27,18 @@
 
 	<div class="row">
 		@input(['label' => 'Date', 'name' => 'scheduled_date', 'type' => 'date', 'value' => optional($singleLessonPlan->scheduled_date)->format('Y-m-d'), 'grid' => 'col', 'required' => true])
+	</div>
+
+	<div class="row">
+		@select(['label' => 'Repeat', 'name' => 'repeat', 'grid' => 'col', 'required' => true])
+			@option(['name' => 'repeat', 'label' => 'Does not repeat', 'value' => 'none', 'selected' => $singleLessonRepeat === 'none'])
+			@option(['name' => 'repeat', 'label' => 'Every week', 'value' => 1, 'selected' => $singleLessonRepeat === '1'])
+			@option(['name' => 'repeat', 'label' => 'Every other week', 'value' => 2, 'selected' => $singleLessonRepeat === '2'])
+		@endselect
+	</div>
+
+	<div data-lesson-repeat-end @if($singleLessonRepeat === 'none') style="display: none;" @endif>
+		@input(['label' => 'Ends on', 'name' => 'ends_on', 'type' => 'date', 'value' => old('ends_on'), 'required' => $singleLessonRepeat !== 'none', 'disabled' => $singleLessonRepeat === 'none'])
 	</div>
 
 	<label class="small fw-bold opacity-6 mb-3">@fa(['icon' => 'clock'])TIME</label>
