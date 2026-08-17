@@ -1,4 +1,9 @@
 <div class="calendar-calendar-create-menu" data-calendar-create-menu>
+	<button type="button" class="calendar-calendar-create-menu-option" data-calendar-create-student>
+		@fa(['icon' => 'user-plus', 'mr' => 2])
+		Add a student
+	</button>
+
 	<button type="button" class="calendar-calendar-create-menu-option" data-calendar-create-lesson>
 		@fa(['icon' => 'calendar-day', 'mr' => 2])
 		Create a lesson
@@ -16,3 +21,4 @@
 
 @include('calendar.lessons.lessonPlans.create')
 @include('calendar.events.create')
+@include('calendar.students.create')

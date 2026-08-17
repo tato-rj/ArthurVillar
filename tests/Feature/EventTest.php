@@ -481,6 +481,18 @@ class EventTest extends BaseTest
     }
 
     /** @test */
+    public function calendar_create_menu_can_open_the_student_form()
+    {
+        $this->signIn();
+
+        $this->get(route('calendar.home'))
+            ->assertOk()
+            ->assertSee('data-calendar-create-student', false)
+            ->assertSee('Add a student')
+            ->assertSee('id="create-student-modal"', false);
+    }
+
+    /** @test */
     public function an_event_can_send_a_notification_to_the_user_who_enabled_it()
     {
         $user = $this->signIn();

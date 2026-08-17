@@ -7283,6 +7283,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const eventTypeFilters = document.querySelector('[data-calendar-event-type-filters]');
     const calendarCreateMenu = document.querySelector('[data-calendar-create-menu]');
     const calendarCreateToggle = document.querySelector('[data-calendar-create-toggle]');
+    const calendarCreateStudent = document.querySelector('[data-calendar-create-student]');
     const calendarCreateLesson = document.querySelector('[data-calendar-create-lesson]');
     const calendarCreateEvent = document.querySelector('[data-calendar-create-event]');
     const calendarFilter = document.querySelector('.calendar-calendar-filter');
@@ -7449,6 +7450,12 @@ document.addEventListener('DOMContentLoaded', function() {
     if (calendarCreateLesson) {
         calendarCreateLesson.addEventListener('click', function() {
             openCalendarCreateModal('create-calendar-lesson-plan-modal');
+        });
+    }
+
+    if (calendarCreateStudent) {
+        calendarCreateStudent.addEventListener('click', function() {
+            openCalendarCreateModal('create-student-modal');
         });
     }
 

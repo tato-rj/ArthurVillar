@@ -10147,6 +10147,7 @@ document.addEventListener('DOMContentLoaded', function () {
   var eventTypeFilters = document.querySelector('[data-calendar-event-type-filters]');
   var calendarCreateMenu = document.querySelector('[data-calendar-create-menu]');
   var calendarCreateToggle = document.querySelector('[data-calendar-create-toggle]');
+  var calendarCreateStudent = document.querySelector('[data-calendar-create-student]');
   var calendarCreateLesson = document.querySelector('[data-calendar-create-lesson]');
   var calendarCreateEvent = document.querySelector('[data-calendar-create-event]');
   var calendarFilter = document.querySelector('.calendar-calendar-filter');
@@ -10282,6 +10283,11 @@ document.addEventListener('DOMContentLoaded', function () {
   if (calendarCreateLesson) {
     calendarCreateLesson.addEventListener('click', function () {
       openCalendarCreateModal('create-calendar-lesson-plan-modal');
+    });
+  }
+  if (calendarCreateStudent) {
+    calendarCreateStudent.addEventListener('click', function () {
+      openCalendarCreateModal('create-student-modal');
     });
   }
   if (calendarCreateEvent) {
