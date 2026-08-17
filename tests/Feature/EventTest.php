@@ -32,6 +32,10 @@ class EventTest extends BaseTest
             ->assertSee('name="city"', false)
             ->assertSee('name="state"', false)
             ->assertSee('name="postal_code"', false)
+            ->assertSee('name="travel_mode"', false)
+            ->assertSee('Public transit')
+            ->assertSee('Walking')
+            ->assertSee('Driving')
             ->assertSee('<th>Type</th>', false)
             ->assertSee('value="09:00"', false)
             ->assertSee('value="09:15"', false)
@@ -65,6 +69,8 @@ class EventTest extends BaseTest
 
         $event = Event::where('name', 'Dinner reservation')->firstOrFail();
 
+        $this->assertSame('TRANSIT', $event->travel_mode);
+
         $this->patch(route('calendar.events.update', $event), [
             'name' => 'Dinner with friends',
             'scheduled_date' => '2026-08-16',
@@ -75,6 +81,7 @@ class EventTest extends BaseTest
             'city' => 'Brooklyn',
             'state' => 'NY',
             'postal_code' => '11217',
+            'travel_mode' => 'DRIVE',
             'notes' => 'Updated notes',
         ])->assertRedirect();
 
@@ -88,6 +95,7 @@ class EventTest extends BaseTest
             'city' => 'Brooklyn',
             'state' => 'NY',
             'postal_code' => '11217',
+            'travel_mode' => 'DRIVE',
             'notes' => 'Updated notes',
         ]);
         $this->assertSame('2026-08-16', $event->fresh()->scheduled_date->toDateString());
@@ -182,6 +190,7 @@ class EventTest extends BaseTest
             'city' => 'Jersey City',
             'state' => 'NJ',
             'postal_code' => '07302',
+            'travel_mode' => 'WALK',
             'notes' => 'Original notes',
         ]);
         $this->signIn();
@@ -192,6 +201,8 @@ class EventTest extends BaseTest
             ->assertSee('value="Meeting"', false)
             ->assertSee('value="80 Erie St"', false)
             ->assertSee('value="Jersey City"', false)
+            ->assertSee('name="travel_mode"', false)
+            ->assertSee('value="WALK"', false)
             ->assertSee('btn btn-secondary btn-sm btn-wide', false);
 
         $this->patchJson(route('calendar.events.update', $event), [
@@ -204,6 +215,7 @@ class EventTest extends BaseTest
             'city' => 'Brooklyn',
             'state' => 'NY',
             'postal_code' => '11217',
+            'travel_mode' => 'DRIVE',
             'notes' => 'Updated notes',
         ])
             ->assertOk()
@@ -213,6 +225,7 @@ class EventTest extends BaseTest
             ->assertJsonPath('event.address', '58 7th Ave')
             ->assertJsonPath('event.location.city', 'Brooklyn')
             ->assertJsonPath('event.location.state', 'NY')
+            ->assertJsonPath('event.travel_mode', 'DRIVE')
             ->assertJsonPath('event.edit_url', route('calendar.events.edit', $event));
     }
 

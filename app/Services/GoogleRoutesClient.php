@@ -24,27 +24,18 @@ class GoogleRoutesClient
         string $origin,
         string $destination,
         CarbonImmutable $routeAt,
-        string $timePreference = 'arrival'
+        string $timePreference = 'arrival',
+        string $travelMode = 'TRANSIT'
     ): ?array
     {
         if (! $this->isConfigured()) {
             return null;
         }
 
-        $walking = $this->request('WALK', $origin, $destination);
-        $walkingThreshold = (int) config('calendar.google_routes.walking_threshold_minutes', 20) * 60;
+        $travelMode = strtoupper($travelMode);
+        $route = $this->request($travelMode, $origin, $destination, $routeAt, $timePreference);
 
-        if ($walking && $walking['duration_seconds'] <= $walkingThreshold) {
-            return $this->normalizeRoute($walking, 'WALK', $routeAt, $timePreference);
-        }
-
-        $transit = $this->request('TRANSIT', $origin, $destination, $routeAt, $timePreference);
-
-        if ($transit) {
-            return $this->normalizeRoute($transit, 'TRANSIT', $routeAt, $timePreference);
-        }
-
-        return $walking ? $this->normalizeRoute($walking, 'WALK', $routeAt, $timePreference) : null;
+        return $route ? $this->normalizeRoute($route, $travelMode, $routeAt, $timePreference) : null;
     }
 
     private function request(
@@ -86,7 +77,7 @@ class GoogleRoutesClient
         return [
             'duration_seconds' => $this->seconds($route['duration']),
             'distance_meters' => isset($route['distanceMeters']) ? (int) $route['distanceMeters'] : null,
-            'steps' => $this->steps($route),
+            'steps' => $this->steps($route, $travelMode),
         ];
     }
 
@@ -127,8 +118,15 @@ class GoogleRoutesClient
         ];
     }
 
-    private function steps(array $route): array
+    private function steps(array $route, string $travelMode): array
     {
+        if ($travelMode !== 'TRANSIT') {
+            return [[
+                'mode' => $travelMode,
+                'duration_seconds' => $this->seconds($route['duration'] ?? '0s'),
+            ]];
+        }
+
         $steps = collect(data_get($route, 'legs.0.steps', []));
         $result = [];
         $walkingSeconds = 0;

@@ -31,6 +31,17 @@
 
 @include('calendar.partials.address-fields', ['addressable' => $event ?? null])
 
+@select(['label' => 'Directions', 'name' => 'travel_mode', 'required' => true])
+    @foreach(\App\Models\Calendar\Event::travelModeOptions() as $travelMode => $travelModeLabel)
+        @option([
+            'name' => 'travel_mode',
+            'label' => $travelModeLabel,
+            'value' => $travelMode,
+            'selected' => old('travel_mode', $event->travel_mode ?? 'TRANSIT') === $travelMode,
+        ])
+    @endforeach
+@endselect
+
 @php
     $selectedType = old('type', $event->type ?? null);
     $typeInputSuffix = $event->id ?? 'new';

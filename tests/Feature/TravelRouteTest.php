@@ -69,6 +69,7 @@ class TravelRouteTest extends BaseTest
             'arrival_at' => '2026-07-24T17:00:00',
             'destination_address' => '100 Montgomery St, Jersey City, NJ',
             'destination_label' => '100 Montgomery St, Jersey City',
+            'travel_mode' => 'WALK',
         ];
 
         $this->postJson(route('calendar.travel-route.show'), $payload)
@@ -101,7 +102,7 @@ class TravelRouteTest extends BaseTest
     }
 
     /** @test */
-    public function it_uses_transit_when_the_walking_route_exceeds_the_threshold()
+    public function it_uses_public_transit_by_default_without_checking_a_walking_route()
     {
         Carbon::setTestNow('2026-07-23 10:00:00');
         config(['calendar.google_routes.api_key' => 'test-key']);
@@ -165,9 +166,50 @@ class TravelRouteTest extends BaseTest
             ->assertJsonPath('route.steps.1.line_name', 'PATH')
             ->assertJsonPath('route.steps.1.vehicle_type', 'SUBWAY');
 
-        Http::assertSentCount(2);
+        Http::assertSentCount(1);
         Http::assertSent(fn (Request $request) => $request['travelMode'] === 'TRANSIT'
             && $request['arrivalTime'] === '2026-07-24T21:00:00Z');
+    }
+
+    /** @test */
+    public function it_calculates_a_driving_route_when_the_event_requests_driving_directions()
+    {
+        config(['calendar.google_routes.api_key' => 'test-key']);
+        $this->signIn();
+
+        Location::factory()->create([
+            'name' => 'Home',
+            'address' => '80 Erie St',
+            'city' => 'Jersey City',
+            'state' => 'NJ',
+        ]);
+        Http::fake([
+            'routes.googleapis.com/*' => Http::response([
+                'routes' => [[
+                    'duration' => '900s',
+                    'distanceMeters' => 6400,
+                    'legs' => [['steps' => [[
+                        'travelMode' => 'DRIVE',
+                        'staticDuration' => '900s',
+                    ]]]],
+                ]],
+            ]),
+        ]);
+
+        $this->postJson(route('calendar.travel-route.show'), [
+            'event_key' => 'general-event-51-2026-07-24',
+            'arrival_at' => '2026-07-24T17:00:00',
+            'destination_address' => 'Lincoln Center, New York, NY',
+            'destination_label' => 'Lincoln Center',
+            'travel_mode' => 'DRIVE',
+        ])
+            ->assertOk()
+            ->assertJsonPath('route.mode', 'DRIVE')
+            ->assertJsonPath('route.duration_seconds', 900)
+            ->assertJsonPath('route.steps.0.mode', 'DRIVE');
+
+        Http::assertSentCount(1);
+        Http::assertSent(fn (Request $request) => $request['travelMode'] === 'DRIVE');
     }
 
     /** @test */
@@ -358,6 +400,7 @@ class TravelRouteTest extends BaseTest
             'arrival_at' => '2026-07-24T13:55:00',
             'destination_address' => '80 Erie St, Jersey City, NJ',
             'destination_label' => 'Home',
+            'travel_mode' => 'WALK',
         ])
             ->assertOk()
             ->assertJsonPath('route.origin', '58 7th Ave, Brooklyn, NY')

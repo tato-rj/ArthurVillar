@@ -56,6 +56,15 @@ class Event extends BaseModel
         ];
     }
 
+    public static function travelModeOptions(): array
+    {
+        return [
+            'TRANSIT' => 'Public transit',
+            'WALK' => 'Walking',
+            'DRIVE' => 'Driving',
+        ];
+    }
+
     public function typeIcon(): ?string
     {
         return array_search($this->type, static::typeOptions(), true) ?: null;
@@ -115,6 +124,7 @@ class Event extends BaseModel
             'city' => $this->city,
             'state' => $this->state,
             'postal_code' => $this->postal_code,
+            'travel_mode' => $this->travel_mode,
             'location' => $location,
             'notification_enabled' => $this->notification_user_id !== null,
             'notification_minutes_before' => $this->notification_minutes_before,

@@ -19,7 +19,8 @@ class CalendarTravelRoutes
         string $destinationLabel,
         CarbonImmutable $arrivalAt,
         bool $force = false,
-        string $timePreference = 'arrival'
+        string $timePreference = 'arrival',
+        string $travelMode = 'TRANSIT'
     ): ?TravelRoute {
         if (! $this->client->isConfigured() || empty($origin['address'])) {
             return null;
@@ -30,6 +31,7 @@ class CalendarTravelRoutes
             $destinationAddress,
             $arrivalAt->utc()->toIso8601String(),
             $timePreference,
+            $travelMode,
         ]));
         $cached = TravelRoute::query()
             ->where('user_id', $userId)
@@ -59,7 +61,8 @@ class CalendarTravelRoutes
             $origin['address'],
             $destinationAddress,
             $arrivalAt,
-            $timePreference
+            $timePreference,
+            $travelMode
         );
 
         if (! $route) {
@@ -101,7 +104,8 @@ class CalendarTravelRoutes
                     : $travelRoute->arrival_at
             ),
             true,
-            $isReturnHome ? 'departure' : 'arrival'
+            $isReturnHome ? 'departure' : 'arrival',
+            $travelRoute->travel_mode
         );
     }
 

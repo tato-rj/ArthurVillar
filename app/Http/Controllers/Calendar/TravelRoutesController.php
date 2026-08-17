@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Calendar;
 
 use App\Http\Controllers\Controller;
+use App\Models\Calendar\Event;
 use App\Services\CalendarTravelOrigin;
 use App\Services\CalendarTravelRoutes;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class TravelRoutesController extends Controller
 {
@@ -20,6 +22,7 @@ class TravelRoutesController extends Controller
             'arrival_at' => ['required', 'date'],
             'destination_address' => ['required', 'string', 'max:1000'],
             'destination_label' => ['required', 'string', 'max:255'],
+            'travel_mode' => ['sometimes', Rule::in(array_keys(Event::travelModeOptions()))],
         ]);
         $arrivalAt = CarbonImmutable::parse($data['arrival_at'], config('calendar.timezone'));
         $now = CarbonImmutable::now(config('calendar.timezone'));
@@ -43,7 +46,10 @@ class TravelRoutesController extends Controller
             $origin,
             $data['destination_address'],
             $data['destination_label'],
-            $arrivalAt
+            $arrivalAt,
+            false,
+            'arrival',
+            $data['travel_mode'] ?? 'TRANSIT'
         );
 
         return $route
@@ -67,6 +73,7 @@ class TravelRoutesController extends Controller
             'departure_at' => ['required', 'date'],
             'origin_address' => ['required', 'string', 'max:1000'],
             'origin_label' => ['required', 'string', 'max:255'],
+            'travel_mode' => ['sometimes', Rule::in(array_keys(Event::travelModeOptions()))],
         ]);
         $departureAt = CarbonImmutable::parse($data['departure_at'], config('calendar.timezone'));
         $now = CarbonImmutable::now(config('calendar.timezone'));
@@ -87,7 +94,8 @@ class TravelRoutesController extends Controller
             $home['label'] ?? 'Home',
             $departureAt,
             false,
-            'departure'
+            'departure',
+            $data['travel_mode'] ?? 'TRANSIT'
         );
 
         return $route

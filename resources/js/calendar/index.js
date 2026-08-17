@@ -2145,6 +2145,7 @@ const getGeneralEvent = function(generalEvent) {
         city: generalEvent.city || '',
         state: generalEvent.state || '',
         postalCode: generalEvent.postal_code || '',
+        travelMode: generalEvent.travel_mode || 'TRANSIT',
         notificationEnabled: Boolean(generalEvent.notification_enabled),
         notificationMinutesBefore: generalEvent.notification_minutes_before,
         editUrl: generalEvent.edit_url || '',
@@ -3439,6 +3440,7 @@ const getTravelRouteRequestDetails = function(event) {
         arrivalAt,
         destination.address,
         destination.label,
+        event.travelMode || 'TRANSIT',
     ].join('|');
 
     return {
@@ -3448,14 +3450,14 @@ const getTravelRouteRequestDetails = function(event) {
             arrival_at: arrivalAt,
             destination_address: destination.address,
             destination_label: destination.label,
+            travel_mode: event.travelMode || 'TRANSIT',
         },
     };
 };
 
-const hasTransitTransportation = function(route) {
-    return Boolean(route) && Array.isArray(route.steps) && route.steps.some(function(step) {
-        return String(step && step.mode || '').toUpperCase() === 'TRANSIT';
-    });
+const hasSupportedTravelMode = function(route) {
+    return Boolean(route)
+        && ['TRANSIT', 'WALK', 'DRIVE'].includes(String(route.mode || '').toUpperCase());
 };
 
 const requestTravelRouteForEvent = function(event, details) {
@@ -3488,7 +3490,7 @@ const requestTravelRouteForEvent = function(event, details) {
         .then(function(payload) {
             const route = payload.route
                 && Number(payload.route.duration_seconds || 0) > 0
-                && hasTransitTransportation(payload.route)
+                && hasSupportedTravelMode(payload.route)
                 ? payload.route
                 : null;
 
@@ -3846,6 +3848,7 @@ const getReturnHomeTravelRouteRequestDetails = function(item, event) {
         departureAt,
         origin.address,
         homeAddress,
+        event.travelMode || 'TRANSIT',
     ].join('|');
 
     return {
@@ -3856,6 +3859,7 @@ const getReturnHomeTravelRouteRequestDetails = function(item, event) {
             departure_at: departureAt,
             origin_address: origin.address,
             origin_label: origin.label,
+            travel_mode: event.travelMode || 'TRANSIT',
         },
     };
 };
@@ -3889,7 +3893,7 @@ const getScheduleTravelExtensionRoute = function(extension) {
 };
 
 const renderScheduleItemTravel = function(item, event, route, cacheKey, options) {
-    if (!item || !route || Number(route.duration_seconds || 0) <= 0 || !hasTransitTransportation(route)) {
+    if (!item || !route || Number(route.duration_seconds || 0) <= 0 || !hasSupportedTravelMode(route)) {
         clearScheduleItemTravel(item, event);
         return;
     }
@@ -3906,7 +3910,10 @@ const renderScheduleItemTravel = function(item, event, route, cacheKey, options)
     const extension = document.createElement('div');
     const icon = document.createElement('i');
     const label = document.createElement('span');
-    const isTransit = String(route.mode || '').toUpperCase() === 'TRANSIT';
+    const travelMode = String(route.mode || '').toUpperCase();
+    const travelIcon = travelMode === 'TRANSIT'
+        ? 'fa-train-subway'
+        : (travelMode === 'DRIVE' ? 'fa-car' : 'fa-person-walking');
 
     clearScheduleItemTravel(item, event, {
         preserveItemState: Boolean(options && options.preserveItemState),
@@ -3942,7 +3949,7 @@ const renderScheduleItemTravel = function(item, event, route, cacheKey, options)
         '--calendar-schedule-event-color',
         window.getComputedStyle(targetItem).backgroundColor || '#6b7280'
     );
-    extension.dataset.travelMode = isTransit ? 'transit' : 'walk';
+    extension.dataset.travelMode = travelMode.toLowerCase();
     extension.dataset.travelPosition = placement.position;
     extension.dataset.travelDurationMinutes = String(roundedMinutes);
     extension.dataset.travelEventGuid = getScheduleTravelOwnerGuid(event);
@@ -3950,7 +3957,7 @@ const renderScheduleItemTravel = function(item, event, route, cacheKey, options)
     extension.travelRoute = route;
     extension.title = `${route.origin} to ${route.destination}: ${durationMinutes} min travel time`;
     extension.setAttribute('aria-hidden', 'true');
-    icon.className = `fas ${isTransit ? 'fa-train-subway' : 'fa-person-walking'}`;
+    icon.className = `fas ${travelIcon}`;
     label.textContent = `${durationMinutes} min travel time`;
     extension.appendChild(icon);
     extension.appendChild(label);
@@ -4114,8 +4121,8 @@ const appendTravelStep = function(container, step, index) {
 
     item.className = 'calendar-travel-route-step';
 
-    if (step.mode === 'WALK') {
-        icon.className = 'fas fa-person-walking';
+    if (step.mode === 'WALK' || step.mode === 'DRIVE') {
+        icon.className = step.mode === 'DRIVE' ? 'fas fa-car' : 'fas fa-person-walking';
         item.appendChild(icon);
 
         const minutes = Math.max(1, Math.round(Number(step.duration_seconds || 0) / 60));
@@ -4162,7 +4169,7 @@ const renderTravelRoute = function(section, route) {
 
     if (!steps.children.length && durationMinutes) {
         appendTravelStep(steps, {
-            mode: route.mode === 'TRANSIT' ? 'TRANSIT' : 'WALK',
+            mode: route.mode || 'TRANSIT',
             duration_seconds: route.duration_seconds,
         }, 0);
     }
@@ -4213,7 +4220,7 @@ const getScheduleItemTravelRoutes = function(item) {
         const route = getScheduleTravelExtensionRoute(extension);
         const existingRoute = routesByPosition.get(position);
 
-        if (!route || Number(route.duration_seconds || 0) <= 0 || !hasTransitTransportation(route)) {
+        if (!route || Number(route.duration_seconds || 0) <= 0 || !hasSupportedTravelMode(route)) {
             return;
         }
 
@@ -6224,6 +6231,7 @@ const prepareDuplicateGeneralEventForm = function(modal, event, options) {
     setNamedFormValue(form, 'city', event.city);
     setNamedFormValue(form, 'state', event.state);
     setNamedFormValue(form, 'postal_code', event.postalCode);
+    setNamedFormValue(form, 'travel_mode', event.travelMode || 'TRANSIT');
     setNamedFormValue(form, 'notes', event.notes);
 
     if (typeof window.refreshEventTimeFields === 'function') {

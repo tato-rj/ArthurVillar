@@ -125,6 +125,7 @@ class EventsController extends Controller
             'city' => ['nullable', 'string', 'max:255'],
             'state' => ['nullable', 'string', Rule::in(array_keys(config('us_states')))],
             'postal_code' => ['nullable', 'string', 'max:20'],
+            'travel_mode' => ['sometimes', Rule::in(array_keys(Event::travelModeOptions()))],
             'notes' => ['nullable', 'string'],
             'send_notification' => ['nullable', 'boolean'],
             'notification_minutes_before' => [
