@@ -6000,6 +6000,7 @@ const getPlannedLessonEvents = function(range) {
                     paymentUrl: occurrence.lesson_payment_url || occurrence.payment_url || '',
                     meetingUrl: occurrence.meeting_url || lesson.meeting_url || '',
                     notesUrl: occurrence.notes_url || lesson.notes_url || '',
+                    travelMode: occurrence.travel_mode || 'TRANSIT',
                     studentFirstName: getStudentFirstName(lesson.student),
                     hasBirthdayThisWeek: studentHasBirthdayInWeek(lesson.student, dateString),
                     hasBirthdayNearEvent: studentHasBirthdayNearEvent(lesson.student, dateString),

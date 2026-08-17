@@ -104,6 +104,7 @@ class Scheduler
                         'lesson_payment_url' => $lesson ? $lesson->paymentUrl : '',
                         'meeting_url' => $singleLessonPlan->meeting_url,
                         'notes_url' => $singleLessonPlan->notes_url,
+                        'travel_mode' => $singleLessonPlan->travel_mode ?: 'TRANSIT',
                     ]],
                 ]);
             })
@@ -230,6 +231,7 @@ class Scheduler
                 'canceled_by' => $lesson ? $lesson->canceled_by : '',
                 'lesson_edit_url' => $lesson ? route('calendar.lessons.edit', $lesson) : '',
                 'lesson_payment_url' => $lesson ? $lesson->paymentUrl : '',
+                'travel_mode' => $lessonPlan->travel_mode ?: 'TRANSIT',
             ];
 
             $occurrence->addDays($intervalDays);
@@ -270,6 +272,7 @@ class Scheduler
                         : $lessonStatus,
                     'lesson_edit_url' => $lesson ? route('calendar.lessons.edit', $lesson) : '',
                     'lesson_payment_url' => $lesson ? $lesson->paymentUrl : '',
+                    'travel_mode' => $lessonPlan->travel_mode ?: 'TRANSIT',
                 ];
             });
 
@@ -299,6 +302,7 @@ class Scheduler
                     'canceled_by' => $lesson->canceled_by,
                     'lesson_edit_url' => route('calendar.lessons.edit', $lesson),
                     'lesson_payment_url' => $lesson->paymentUrl,
+                    'travel_mode' => $lessonPlan->travel_mode ?: 'TRANSIT',
                 ];
             });
 

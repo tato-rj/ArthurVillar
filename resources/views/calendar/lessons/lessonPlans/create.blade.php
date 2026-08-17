@@ -66,6 +66,12 @@
 			@option(['name' => 'location_id', 'label' => $location->name, 'value' => $location->id, 'selected' => old('location_id', optional($selectedStudent)->location_id) == $location->id, 'data' => ['fee-amount' => $location->feeAmountForInput(), 'is-online' => strtolower($location->name) === 'online' ? 1 : 0]])
 		@endforeach
 	@endselect
+
+	@select(['placeholder' => 'Directions', 'name' => 'travel_mode', 'grid' => 'col', 'required' => true])
+		@option(['name' => 'travel_mode', 'label' => 'Public transit', 'value' => 'TRANSIT', 'selected' => old('travel_mode', 'TRANSIT') === 'TRANSIT'])
+		@option(['name' => 'travel_mode', 'label' => 'Walking', 'value' => 'WALK', 'selected' => old('travel_mode') === 'WALK'])
+		@option(['name' => 'travel_mode', 'label' => 'Driving', 'value' => 'DRIVE', 'selected' => old('travel_mode') === 'DRIVE'])
+	@endselect
 	
 	<div class="lesson-plan-online-field">
 		@input(['placeholder' => 'Meeting URL', 'name' => 'meeting_url', 'type' => 'url', 'value' => old('meeting_url')])

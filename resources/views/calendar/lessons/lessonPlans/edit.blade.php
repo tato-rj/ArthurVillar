@@ -14,6 +14,12 @@
 		@endforeach
 	@endselect
 
+	@select(['label' => 'Directions', 'name' => 'travel_mode', 'grid' => 'col', 'required' => true])
+		@option(['name' => 'travel_mode', 'label' => 'Public transit', 'value' => 'TRANSIT', 'selected' => old('travel_mode', $lessonPlan->travel_mode ?: 'TRANSIT') === 'TRANSIT'])
+		@option(['name' => 'travel_mode', 'label' => 'Walking', 'value' => 'WALK', 'selected' => old('travel_mode', $lessonPlan->travel_mode) === 'WALK'])
+		@option(['name' => 'travel_mode', 'label' => 'Driving', 'value' => 'DRIVE', 'selected' => old('travel_mode', $lessonPlan->travel_mode) === 'DRIVE'])
+	@endselect
+
 	<div class="lesson-plan-online-field lesson-plan-meeting-url-field" @unless($lessonPlanIsOnline) style="display: none;" @endunless>
 		@input(['label' => 'Meeting URL', 'name' => 'meeting_url', 'type' => 'url', 'value' => $lessonPlan->meeting_url, 'disabled' => ! $lessonPlanIsOnline])
 	</div>

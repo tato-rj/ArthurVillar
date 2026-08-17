@@ -938,6 +938,7 @@ class CalendarLessonFlowTest extends BaseTest
             'duration_minutes' => 45,
             'starts_on' => '2026-07-01',
             'recurrence_interval' => 1,
+            'travel_mode' => 'DRIVE',
         ]);
 
         $pastOverride = ScheduleOverride::factory()->lessonPlan($lessonPlan)->create([
@@ -987,6 +988,7 @@ class CalendarLessonFlowTest extends BaseTest
         $this->assertSame(6, (int) $newLessonPlan->weekday);
         $this->assertSame('16:00', $newLessonPlan->start_time);
         $this->assertSame(60, (int) $newLessonPlan->duration_minutes);
+        $this->assertSame('DRIVE', $newLessonPlan->travel_mode);
 
         $this->assertDatabaseHas('schedule_overrides', [
             'id' => $pastOverride->id,
@@ -1804,6 +1806,42 @@ class CalendarLessonFlowTest extends BaseTest
         $this->assertSame($lesson->id, $occurrence['lesson_id']);
         $this->assertSame('unpaid', $occurrence['lesson_status']);
         $this->assertSame('unpaid', $occurrence['calendar_status']);
+    }
+
+    /** @test */
+    public function calendar_payload_uses_the_recurring_lesson_plans_travel_mode_for_every_occurrence()
+    {
+        $lessonPlan = LessonPlan::factory()->create([
+            'weekday' => 4,
+            'start_time' => '15:30',
+            'starts_on' => '2026-07-01',
+            'ends_on' => '2026-07-31',
+            'travel_mode' => 'DRIVE',
+        ]);
+
+        $payload = app(Scheduler::class)->plannedLessons([
+            'start' => '2026-07-01',
+            'end' => '2026-07-31',
+        ])->firstWhere('id', $lessonPlan->id);
+
+        $this->assertNotEmpty($payload['occurrences']);
+        $this->assertSame(['DRIVE'], collect($payload['occurrences'])->pluck('travel_mode')->unique()->values()->all());
+    }
+
+    /** @test */
+    public function calendar_payload_uses_the_single_lesson_plans_travel_mode()
+    {
+        $singleLessonPlan = SingleLessonPlan::factory()->create([
+            'scheduled_date' => '2026-07-15',
+            'travel_mode' => 'WALK',
+        ]);
+
+        $payload = app(Scheduler::class)->singleLessonPlans([
+            'start' => '2026-07-01',
+            'end' => '2026-07-31',
+        ])->firstWhere('id', $singleLessonPlan->id);
+
+        $this->assertSame('WALK', $payload['occurrences'][0]['travel_mode']);
     }
 
     private function lessonPlanPayload(array $overrides = [])

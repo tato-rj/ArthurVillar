@@ -157,6 +157,7 @@ class SingleLessonPlansController extends Controller
             'notes_url' => ['nullable', 'url', 'max:2048'],
             'status' => ['nullable', 'string', 'max:255'],
             'notes' => ['nullable', 'string'],
+            'travel_mode' => ['nullable', Rule::in(['TRANSIT', 'WALK', 'DRIVE'])],
         ]);
     }
 
@@ -176,6 +177,7 @@ class SingleLessonPlansController extends Controller
             'meeting_url' => $this->isOnlineLocation($data['location_id']) ? ($data['meeting_url'] ?? null) : null,
             'notes_url' => $this->isOnlineLocation($data['location_id']) ? ($data['notes_url'] ?? null) : null,
             'notes' => $data['notes'] ?? null,
+            'travel_mode' => $data['travel_mode'] ?? $singleLessonPlan->travel_mode ?? 'TRANSIT',
         ];
     }
 
@@ -210,6 +212,7 @@ class SingleLessonPlansController extends Controller
             'notes_url' => $this->isOnlineLocation($data['location_id']) ? ($data['notes_url'] ?? null) : null,
             'status' => $data['status'] ?? 'active',
             'notes' => $data['notes'] ?? null,
+            'travel_mode' => $data['travel_mode'] ?? 'TRANSIT',
         ];
     }
 

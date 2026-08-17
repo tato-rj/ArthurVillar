@@ -236,6 +236,7 @@ $(function() {
         }
 
         setFormFieldValue(form, 'location_id', lessonPlan.location_id);
+        setFormFieldValue(form, 'travel_mode', lessonPlan.travel_mode || 'TRANSIT');
         setFormFieldValue(form, 'repeat', lessonPlan.plan_type === 'single' ? 'none' : lessonPlan.recurrence_interval);
         setFormFieldValue(form, 'starts_on', '');
         setFormFieldValue(form, 'ends_on', '');
