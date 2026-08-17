@@ -2,6 +2,7 @@
 
 @push('header')
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
+<link href="{{ mix('css/calendar.css') }}" rel="stylesheet">
 @endpush
 
 @section('content')

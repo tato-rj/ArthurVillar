@@ -73,7 +73,7 @@ class AppServiceProvider extends ServiceProvider
             ]);
         });
 
-        \View::composer(['calendar.lessons.lessonPlans.create'], function($view) {
+        \View::composer(['calendar.lessons.lessonPlans.create', 'calendar.students.create'], function($view) {
             $view->with([
                 'students' => Student::query()
                     ->with('location')

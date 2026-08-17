@@ -37,6 +37,35 @@ class StudentsTableTest extends BaseTest
     }
 
     /** @test */
+    public function the_new_student_modal_can_copy_contact_defaults_from_a_sibling()
+    {
+        $location = Location::factory()->create();
+        $sibling = Student::factory()->create([
+            'first_name' => 'Nora',
+            'last_name' => 'Stone',
+            'parent_name' => 'Alex Stone',
+            'email' => 'alex@example.com',
+            'phone' => '201-555-0100',
+            'location_id' => $location->id,
+            'payment_method' => 'Venmo',
+        ]);
+        $this->signIn();
+
+        $this->get(route('calendar.students.index'))
+            ->assertOk()
+            ->assertSee('Sibling of')
+            ->assertSee('data-sibling-combobox', false)
+            ->assertSee('data-sibling-id="'.$sibling->id.'"', false)
+            ->assertSee('data-sibling-last-name="Stone"', false)
+            ->assertSee('data-sibling-parent-name="Alex Stone"', false)
+            ->assertSee('data-sibling-email="alex@example.com"', false)
+            ->assertSee('data-sibling-location-id="'.$location->id.'"', false)
+            ->assertSee('data-sibling-payment-method="Venmo"', false)
+            ->assertSee('data-sibling-phone="201-555-0100"', false)
+            ->assertSee('populateStudentFormFromSibling', false);
+    }
+
+    /** @test */
     public function it_displays_and_sorts_the_combined_name_by_first_name()
     {
         Student::factory()->create(['first_name' => 'Zoe', 'last_name' => 'Able']);
