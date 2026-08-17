@@ -45,6 +45,8 @@
 		</div>
 	</div>
 
+	<hr>
+
 	<div class="row"> 
 		@input(['placeholder' => 'First name', 'name' => 'first_name', 'required' => true, 'value' => old('first_name'), 'grid' => 'col'])
 		@input(['placeholder' => 'Last name', 'name' => 'last_name', 'required' => true, 'value' => old('last_name'), 'grid' => 'col'])

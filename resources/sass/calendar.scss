@@ -959,6 +959,10 @@ button.setting-undo {
     gap: 0.5rem;
 }
 
+.modal hr {
+    @extend .my-4, .mx-1;
+}
+
 .calendar-month-day-events-conflict {
     align-items: center;
     color: #d93025;
