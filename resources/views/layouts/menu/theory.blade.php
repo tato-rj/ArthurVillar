@@ -1,9 +1,4 @@
-@include('layouts.menu.nav', ['home' => 'theory.home', 
-  'header' => 
-  [
-    'title' => 'Theory',
-    'icon' => 'book'
-  ], 
+@include('layouts.menu.nav', ['home' => 'theory.home',
   'routes' => 
   [
     'theory.audio.index' => 'Audio Control',

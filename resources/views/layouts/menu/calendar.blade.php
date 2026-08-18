@@ -1,9 +1,4 @@
-@include('layouts.menu.nav', [ 
-  'header' => 
-  [
-    'title' => 'Calendar',
-    'icon' => 'calendar-days'
-  ], 
+@include('layouts.menu.nav', [
   'routes' => 
   [
     'calendar.home' => 'Calendar',

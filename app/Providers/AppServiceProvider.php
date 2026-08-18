@@ -45,8 +45,8 @@ class AppServiceProvider extends ServiceProvider
                     ],
                     [
                         'icon' => 'note-sticky',
-                        'label' => 'Reminder',
-                        'url' => $protocol . 'reminder.' . config('app.domain')
+                        'label' => 'Reminders',
+                        'url' => $protocol . 'reminders.' . config('app.domain')
                     ]
                 ]
             ]);
