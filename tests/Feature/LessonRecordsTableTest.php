@@ -150,6 +150,7 @@ class LessonRecordsTableTest extends BaseTest
             ->assertSee('text-decoration-line-through', false)
             ->assertDontSee('js-revert-canceled-lesson', false)
             ->assertSee('<th>Actions</th>', false)
+            ->assertSee('data-pay-lesson', false)
             ->assertSee('Delete lesson record');
 
         $response = $this->getJson(route('calendar.tables.lesson-records'))->assertOk();
@@ -272,5 +273,22 @@ class LessonRecordsTableTest extends BaseTest
             ->assertSessionHas('success', 'The lesson record was successfully deleted');
 
         $this->assertDatabaseMissing('lessons', ['id' => $lesson->id]);
+    }
+
+    /** @test */
+    public function an_unpaid_lesson_record_can_be_marked_as_paid()
+    {
+        $lesson = Lesson::factory()->create([
+            'paid_at' => null,
+            'canceled_at' => null,
+        ]);
+
+        $this->signIn();
+
+        $this->postJson(route('calendar.lessons.payment.store', $lesson))
+            ->assertOk()
+            ->assertJsonPath('status', 'paid');
+
+        $this->assertNotNull($lesson->fresh()->paid_at);
     }
 }

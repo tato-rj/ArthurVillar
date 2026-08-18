@@ -354,10 +354,15 @@ $(function() {
                 orderable: false,
                 searchable: false,
                 className: 'text-right',
-                render: function(data) {
+                render: function(data, type, row) {
                     const deleteUrl = @json(route('calendar.lessons.destroy', ['lesson' => '__lesson__'])).replace('__lesson__', data);
+                    const paymentUrl = @json(route('calendar.lessons.payment.store', ['lesson' => '__lesson__'])).replace('__lesson__', data);
+                    const paidButton = row.status === 'Unpaid'
+                        ? `<button type="button" class="btn btn-sm btn-green rounded" data-pay-lesson data-url="${paymentUrl}">Paid</button>`
+                        : '';
 
                     return `<div class="calendar-table-actions">
+                        ${paidButton}
                         <form method="POST" action="${deleteUrl}" confirm>
                             @csrf
                             @method('DELETE')
@@ -394,6 +399,35 @@ $(function() {
 
     $('#lesson-records-row-filters').on('change', 'input[type="checkbox"]', function() {
         lessonRecordsTable.ajax.reload(null, true);
+    });
+
+    $('#lesson-records-table').on('click', '[data-pay-lesson]', function() {
+        const button = this;
+        const originalLabel = button.textContent;
+
+        button.disabled = true;
+        button.textContent = 'Saving…';
+
+        fetch(button.dataset.url, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': @json(csrf_token()),
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        })
+            .then(function(response) {
+                if (!response.ok) {
+                    throw new Error('Unable to mark this lesson as paid.');
+                }
+
+                lessonRecordsTable.ajax.reload(null, false);
+            })
+            .catch(function(error) {
+                button.disabled = false;
+                button.textContent = originalLabel;
+                window.alert(error.message);
+            });
     });
 
 });
