@@ -7343,10 +7343,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const previous = document.querySelector('[data-calendar-prev]');
     const next = document.querySelector('[data-calendar-next]');
     const view = document.querySelector('[data-calendar-view]');
-    const miniLabel = document.querySelector('[data-mini-label]');
-    const miniGrid = document.querySelector('[data-mini-grid]');
-    const miniPrevious = document.querySelector('[data-mini-prev]');
-    const miniNext = document.querySelector('[data-mini-next]');
+    const miniCalendars = Array.from(document.querySelectorAll('[data-mini-calendar]'));
+    const miniCalendarOffcanvas = document.getElementById('calendar-mini-calendar-offcanvas');
     const calendarEventModal = document.getElementById('calendar-event-modal');
     const calendarEventModalExpandToggle = calendarEventModal
         ? calendarEventModal.querySelector('[data-event-modal-expand-toggle]')
@@ -7823,44 +7821,52 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     const renderMiniCalendar = function() {
-        if (!miniLabel || !miniGrid) {
+        if (!miniCalendars.length) {
             return;
         }
 
         const miniMonthLabel = monthFormatter.format(state.miniDate);
-
-        miniLabel.textContent = miniMonthLabel;
-        miniLabel.setAttribute('aria-label', `Open ${miniMonthLabel} in month view`);
-        miniGrid.innerHTML = '';
-
         const gridStart = startOfMonthGrid(state.miniDate);
         const selected = toDateString(state.date);
         const today = todayString();
 
-        for (let i = 0; i < 42; i++) {
-            const date = addDays(gridStart, i);
-            const dateString = toDateString(date);
-            const button = document.createElement('button');
+        miniCalendars.forEach(function(miniCalendar) {
+            const miniLabel = miniCalendar.querySelector('[data-mini-label]');
+            const miniGrid = miniCalendar.querySelector('[data-mini-grid]');
 
-            button.type = 'button';
-            button.className = 'calendar-mini-calendar-date';
-            button.textContent = date.getDate();
-            button.dataset.date = dateString;
-
-            if (date.getMonth() !== state.miniDate.getMonth()) {
-                button.classList.add('is-muted');
+            if (!miniLabel || !miniGrid) {
+                return;
             }
 
-            if (dateString === selected) {
-                button.classList.add('is-selected');
-            }
+            miniLabel.textContent = miniMonthLabel;
+            miniLabel.setAttribute('aria-label', `Open ${miniMonthLabel} in month view`);
+            miniGrid.innerHTML = '';
 
-            if (dateString === today) {
-                button.classList.add('is-today');
-            }
+            for (let i = 0; i < 42; i++) {
+                const date = addDays(gridStart, i);
+                const dateString = toDateString(date);
+                const button = document.createElement('button');
 
-            miniGrid.appendChild(button);
-        }
+                button.type = 'button';
+                button.className = 'calendar-mini-calendar-date';
+                button.textContent = date.getDate();
+                button.dataset.date = dateString;
+
+                if (date.getMonth() !== state.miniDate.getMonth()) {
+                    button.classList.add('is-muted');
+                }
+
+                if (dateString === selected) {
+                    button.classList.add('is-selected');
+                }
+
+                if (dateString === today) {
+                    button.classList.add('is-today');
+                }
+
+                miniGrid.appendChild(button);
+            }
+        });
     };
 
     const getVisibleScheduleDay = function(agenda) {
@@ -8328,27 +8334,22 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    if (miniPrevious) {
-        miniPrevious.addEventListener('click', function() {
-            if (isScheduleHoldNavigationSuppressed()) {
-                return;
-            }
+    const closeMiniCalendarOffcanvas = function() {
+        if (!miniCalendarOffcanvas || !miniCalendarOffcanvas.classList.contains('show')) {
+            return;
+        }
 
-            state.miniDate = addMonths(state.miniDate, -1);
-            renderMiniCalendar();
-        });
-    }
+        if (window.bootstrap && window.bootstrap.Offcanvas && typeof window.bootstrap.Offcanvas.getOrCreateInstance === 'function') {
+            window.bootstrap.Offcanvas.getOrCreateInstance(miniCalendarOffcanvas).hide();
+            return;
+        }
 
-    if (miniNext) {
-        miniNext.addEventListener('click', function() {
-            if (isScheduleHoldNavigationSuppressed()) {
-                return;
-            }
+        const close = miniCalendarOffcanvas.querySelector('[data-bs-dismiss="offcanvas"]');
 
-            state.miniDate = addMonths(state.miniDate, 1);
-            renderMiniCalendar();
-        });
-    }
+        if (close) {
+            close.click();
+        }
+    };
 
     const openMiniCalendarMonth = function() {
         if (isScheduleHoldNavigationSuppressed()) {
@@ -8362,25 +8363,57 @@ document.addEventListener('DOMContentLoaded', function() {
         if (state.view === 'month') {
             syncViewControls();
             render();
+        } else {
+            setCalendarView('month');
+        }
+
+        closeMiniCalendarOffcanvas();
+    };
+
+    miniCalendars.forEach(function(miniCalendar) {
+        const miniPrevious = miniCalendar.querySelector('[data-mini-prev]');
+        const miniNext = miniCalendar.querySelector('[data-mini-next]');
+        const miniLabel = miniCalendar.querySelector('[data-mini-label]');
+        const miniGrid = miniCalendar.querySelector('[data-mini-grid]');
+
+        if (miniPrevious) {
+            miniPrevious.addEventListener('click', function() {
+                if (isScheduleHoldNavigationSuppressed()) {
+                    return;
+                }
+
+                state.miniDate = addMonths(state.miniDate, -1);
+                renderMiniCalendar();
+            });
+        }
+
+        if (miniNext) {
+            miniNext.addEventListener('click', function() {
+                if (isScheduleHoldNavigationSuppressed()) {
+                    return;
+                }
+
+                state.miniDate = addMonths(state.miniDate, 1);
+                renderMiniCalendar();
+            });
+        }
+
+        if (miniLabel) {
+            miniLabel.addEventListener('click', openMiniCalendarMonth);
+            miniLabel.addEventListener('keydown', function(e) {
+                if (e.key !== 'Enter' && e.key !== ' ') {
+                    return;
+                }
+
+                e.preventDefault();
+                openMiniCalendarMonth();
+            });
+        }
+
+        if (!miniGrid) {
             return;
         }
 
-        setCalendarView('month');
-    };
-
-    if (miniLabel) {
-        miniLabel.addEventListener('click', openMiniCalendarMonth);
-        miniLabel.addEventListener('keydown', function(e) {
-            if (e.key !== 'Enter' && e.key !== ' ') {
-                return;
-            }
-
-            e.preventDefault();
-            openMiniCalendarMonth();
-        });
-    }
-
-    if (miniGrid) {
         miniGrid.addEventListener('click', function(e) {
             if (isScheduleHoldNavigationSuppressed()) {
                 return;
@@ -8396,15 +8429,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
             setSelectedDate(parseDateString(button.dataset.date));
 
-            if (state.view === deviceView) {
+            if (state.view !== deviceView) {
+                setCalendarView(deviceView);
+            } else {
                 syncViewControls();
                 render();
-                return;
             }
 
-            setCalendarView(deviceView);
+            closeMiniCalendarOffcanvas();
         });
-    }
+    });
 
     const lessonTaught = document.getElementById('lesson-taught');
 

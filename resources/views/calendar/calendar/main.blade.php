@@ -7,6 +7,7 @@
 		{{iftrue($highlightConflictingEvents, 'data-highlight-conflicting-events')}}
 	></div>
 	@include('calendar.calendar.create-lesson-overlay')
+	@include('calendar.calendar.mini-calendar-overlay')
 </div>
 
 @include('calendar.calendar.views')

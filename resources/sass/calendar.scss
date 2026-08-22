@@ -283,6 +283,32 @@ label.calendar-calendar-header-control:hover {
     border: .5px solid rgba(251,230,105);
 }
 
+.mini-calendar-show {
+    @extend .shadow, .bg-primary, .rounded-sm, .border, .border-black;
+
+    bottom: 20px;
+    display: none;
+    height: 50px;
+    position: absolute;
+    right: 80px;
+    width: 50px;
+    z-index: 5;
+}
+
+.calendar-mini-calendar-offcanvas {
+    height: auto;
+    max-height: calc(100vh - 1rem);
+
+    .offcanvas-body {
+        overflow-y: auto;
+        width: 100%;
+    }
+
+    .calendar-mini-calendar {
+        width: 100%;
+    }
+}
+
 button.setting-undo {
     opacity: .6;
 
@@ -2425,6 +2451,7 @@ button.single-lesson-plan-create[selected] i {
         border-left: 0 !important;
     }
     .calendar-calendar-sidebar {display: none !important}
+    .mini-calendar-show {display: block}
     .calendar-calendar-body {display: block !important}
     .calendar-calendar-main  {margin-right: 0 !important}
     .calendar-calendar-toolbar-views {display: none !important}
