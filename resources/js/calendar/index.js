@@ -143,8 +143,14 @@ const parseNullableDateString = function(value) {
     return value ? parseDateString(String(value).substring(0, 10)) : null;
 };
 
+const getDeviceCalendarView = function() {
+    return window.matchMedia && window.matchMedia('(max-width: 767.98px)').matches
+        ? '2-days'
+        : 'week';
+};
+
 const getDefaultCalendarView = function() {
-    const isMobile = window.matchMedia && window.matchMedia('(max-width: 767.98px)').matches;
+    const isMobile = getDeviceCalendarView() === '2-days';
     const configuredView = isMobile
         ? window.calendarDefaultMobileCalendarView
         : window.calendarDefaultDesktopCalendarView;
@@ -153,7 +159,7 @@ const getDefaultCalendarView = function() {
         return configuredView;
     }
 
-    return isMobile ? '2-days' : 'week';
+    return getDeviceCalendarView();
 };
 
 const isSidebarHiddenViewport = function() {
@@ -7821,7 +7827,10 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        miniLabel.textContent = monthFormatter.format(state.miniDate);
+        const miniMonthLabel = monthFormatter.format(state.miniDate);
+
+        miniLabel.textContent = miniMonthLabel;
+        miniLabel.setAttribute('aria-label', `Open ${miniMonthLabel} in month view`);
         miniGrid.innerHTML = '';
 
         const gridStart = startOfMonthGrid(state.miniDate);
@@ -8341,6 +8350,36 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    const openMiniCalendarMonth = function() {
+        if (isScheduleHoldNavigationSuppressed()) {
+            return;
+        }
+
+        const month = createLocalDate(state.miniDate.getFullYear(), state.miniDate.getMonth(), 1);
+
+        setSelectedDate(month);
+
+        if (state.view === 'month') {
+            syncViewControls();
+            render();
+            return;
+        }
+
+        setCalendarView('month');
+    };
+
+    if (miniLabel) {
+        miniLabel.addEventListener('click', openMiniCalendarMonth);
+        miniLabel.addEventListener('keydown', function(e) {
+            if (e.key !== 'Enter' && e.key !== ' ') {
+                return;
+            }
+
+            e.preventDefault();
+            openMiniCalendarMonth();
+        });
+    }
+
     if (miniGrid) {
         miniGrid.addEventListener('click', function(e) {
             if (isScheduleHoldNavigationSuppressed()) {
@@ -8353,8 +8392,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
+            const deviceView = getDeviceCalendarView();
+
             setSelectedDate(parseDateString(button.dataset.date));
-            render();
+
+            if (state.view === deviceView) {
+                syncViewControls();
+                render();
+                return;
+            }
+
+            setCalendarView(deviceView);
         });
     }
 
