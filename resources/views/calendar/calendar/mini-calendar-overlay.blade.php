@@ -18,7 +18,7 @@
 	<div class="offcanvas-header pb-0">
 		<button type="button" class="btn-close text-reset ms-auto" data-bs-dismiss="offcanvas" aria-label="Close"></button>
 	</div>
-	<div class="offcanvas-body pt-0">
+	<div class="offcanvas-body ">
 		@include('calendar.calendar.sidebar.mini-calendar')
 	</div>
 </div>
