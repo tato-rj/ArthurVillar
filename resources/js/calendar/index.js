@@ -8370,11 +8370,61 @@ document.addEventListener('DOMContentLoaded', function() {
         closeMiniCalendarOffcanvas();
     };
 
+    let miniCalendarSwipeClickSuppressedUntil = 0;
+
     miniCalendars.forEach(function(miniCalendar) {
         const miniPrevious = miniCalendar.querySelector('[data-mini-prev]');
         const miniNext = miniCalendar.querySelector('[data-mini-next]');
         const miniLabel = miniCalendar.querySelector('[data-mini-label]');
         const miniGrid = miniCalendar.querySelector('[data-mini-grid]');
+        let swipeStart = null;
+
+        miniCalendar.addEventListener('pointerdown', function(e) {
+            if (!e.isPrimary || (e.pointerType === 'mouse' && e.button !== 0)) {
+                return;
+            }
+
+            if (e.target.closest('[data-mini-prev], [data-mini-next]')) {
+                return;
+            }
+
+            swipeStart = {
+                x: e.clientX,
+                y: e.clientY,
+                at: Date.now(),
+                pointerId: e.pointerId,
+            };
+        });
+
+        miniCalendar.addEventListener('pointercancel', function() {
+            swipeStart = null;
+        });
+
+        miniCalendar.addEventListener('pointerup', function(e) {
+            if (!swipeStart || swipeStart.pointerId !== e.pointerId) {
+                return;
+            }
+
+            const horizontalDistance = e.clientX - swipeStart.x;
+            const verticalDistance = e.clientY - swipeStart.y;
+            const elapsed = Date.now() - swipeStart.at;
+
+            swipeStart = null;
+
+            if (elapsed > 750
+                || Math.abs(horizontalDistance) < 40
+                || Math.abs(horizontalDistance) <= Math.abs(verticalDistance) * 1.25) {
+                return;
+            }
+
+            miniCalendarSwipeClickSuppressedUntil = Date.now() + 400;
+
+            if (horizontalDistance < 0 && miniNext) {
+                miniNext.click();
+            } else if (horizontalDistance > 0 && miniPrevious) {
+                miniPrevious.click();
+            }
+        });
 
         if (miniPrevious) {
             miniPrevious.addEventListener('click', function() {
@@ -8399,7 +8449,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         if (miniLabel) {
-            miniLabel.addEventListener('click', openMiniCalendarMonth);
+            miniLabel.addEventListener('click', function() {
+                if (Date.now() < miniCalendarSwipeClickSuppressedUntil) {
+                    return;
+                }
+
+                openMiniCalendarMonth();
+            });
             miniLabel.addEventListener('keydown', function(e) {
                 if (e.key !== 'Enter' && e.key !== ' ') {
                     return;
@@ -8415,7 +8471,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         miniGrid.addEventListener('click', function(e) {
-            if (isScheduleHoldNavigationSuppressed()) {
+            if (Date.now() < miniCalendarSwipeClickSuppressedUntil
+                || isScheduleHoldNavigationSuppressed()) {
                 return;
             }
 

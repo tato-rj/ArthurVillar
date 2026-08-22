@@ -15,10 +15,10 @@
 	id="calendar-mini-calendar-offcanvas"
 	aria-label="Mini calendar"
 >
-	<div class="offcanvas-header pb-0">
+{{-- 	<div class="offcanvas-header pb-0">
 		<button type="button" class="btn-close text-reset ms-auto" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-	</div>
-	<div class="offcanvas-body ">
+	</div> --}}
+	<div class="offcanvas-body py-4">
 		@include('calendar.calendar.sidebar.mini-calendar')
 	</div>
 </div>
