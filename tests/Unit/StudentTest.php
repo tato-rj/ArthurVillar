@@ -53,6 +53,36 @@ class StudentTest extends BaseTest
     }
 
     /** @test */
+    public function paid_unpaid_and_canceled_lesson_counts_are_mutually_exclusive()
+    {
+        $lessonPlan = LessonPlan::factory()->student($this->student)->create([
+            'starts_on' => today()->subMonth()->toDateString(),
+            'ends_on' => today()->addMonth()->toDateString(),
+        ]);
+
+        Lesson::factory()->lessonPlan($lessonPlan)->create([
+            'paid_at' => null,
+            'canceled_at' => null,
+        ]);
+        Lesson::factory()->lessonPlan($lessonPlan)->create([
+            'paid_at' => now(),
+            'canceled_at' => null,
+        ]);
+        Lesson::factory()->lessonPlan($lessonPlan)->create([
+            'paid_at' => null,
+            'canceled_at' => now(),
+        ]);
+        Lesson::factory()->lessonPlan($lessonPlan)->create([
+            'paid_at' => now(),
+            'canceled_at' => now(),
+        ]);
+
+        $this->assertSame(1, $this->student->lessons()->unpaid()->count());
+        $this->assertSame(1, $this->student->lessons()->paid()->count());
+        $this->assertSame(2, $this->student->lessons()->canceled()->count());
+    }
+
+    /** @test */
     public function a_student_has_many_schedule_overrides_through_lesson_plans()
     {
         $lessonPlan = LessonPlan::factory()->student($this->student)->create();

@@ -65,12 +65,16 @@ class Lesson extends BaseModel
 
     public function scopeUnpaid($query)
     {
-        return $query->whereNull('paid_at');
+        return $query
+            ->whereNull('paid_at')
+            ->whereNull('canceled_at');
     }
 
     public function scopePaid($query)
     {
-        return $query->whereNotNull('paid_at');
+        return $query
+            ->whereNotNull('paid_at')
+            ->whereNull('canceled_at');
     }
 
     public function scopeCanceled($query)

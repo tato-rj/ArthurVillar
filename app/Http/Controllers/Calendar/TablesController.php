@@ -947,13 +947,13 @@ class TablesController extends Controller
             ])
             ->withCount([
                 'lessons as paid_lessons_count' => function ($query) {
-                    $query->whereNotNull('paid_at')->whereNull('canceled_at');
+                    $query->paid();
                 },
                 'lessons as unpaid_lessons_count' => function ($query) {
-                    $query->whereNull('paid_at')->whereNull('canceled_at');
+                    $query->unpaid();
                 },
                 'lessons as canceled_lessons_count' => function ($query) {
-                    $query->whereNotNull('canceled_at');
+                    $query->canceled();
                 },
             ]);
 
