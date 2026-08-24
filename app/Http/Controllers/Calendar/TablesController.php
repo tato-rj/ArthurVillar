@@ -916,20 +916,12 @@ class TablesController extends Controller
         $selectedLocations = collect(explode(',', request('student_locations', '')))
             ->intersect(['home', 'online', 'bkcm'])
             ->values();
-        $selectedStatuses = collect(explode(',', request('student_statuses', 'active')))
-            ->intersect(['active', 'archived'])
-            ->values();
+        $showArchivedStudents = request('student_archived') === 'archived';
 
         $students = Student::query()
             ->leftJoin('locations', 'locations.id', '=', 'students.location_id')
-            ->when($selectedStatuses->isEmpty(), function ($query) {
-                $query->whereRaw('1 = 0');
-            })
-            ->when($selectedStatuses->count() === 1, function ($query) use ($selectedStatuses) {
-                $selectedStatuses->first() === 'archived'
-                    ? $query->archived()
-                    : $query->active();
-            })
+            ->when($showArchivedStudents, fn ($query) => $query->archived())
+            ->unless($showArchivedStudents, fn ($query) => $query->whereNull('students.archived_at'))
             ->when($locationFilterRequested, function ($query) use ($selectedLocations) {
                 if ($selectedLocations->isEmpty()) {
                     $query->whereRaw('1 = 0');

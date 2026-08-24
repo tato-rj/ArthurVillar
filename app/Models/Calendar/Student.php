@@ -31,11 +31,6 @@ class Student extends BaseModel
         return (new static)->birthdayWindow;
     }
 
-    public function scopeActive($query)
-    {
-        return $query->whereNull('students.archived_at');
-    }
-
     public function scopeArchived($query)
     {
         return $query->whereNotNull('students.archived_at');
@@ -68,7 +63,7 @@ class Student extends BaseModel
 
     public function siblings()
     {
-        return Student::active()->whereNotNull('parent_name')->where('parent_name', $this->parent_name)->exceptThis();
+        return Student::whereNull('archived_at')->whereNotNull('parent_name')->where('parent_name', $this->parent_name)->exceptThis();
     }
 
     public function location()

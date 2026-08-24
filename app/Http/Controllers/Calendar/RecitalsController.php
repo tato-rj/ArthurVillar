@@ -16,7 +16,7 @@ class RecitalsController extends Controller
             ->where('is_active', true)
             ->orderBy('name')
             ->get();
-        $students = Student::query()->active()->orderBy('first_name')->orderBy('last_name')->get();
+        $students = Student::query()->whereNull('archived_at')->orderBy('first_name')->orderBy('last_name')->get();
 
         return view('calendar.recitals.index', compact('locations', 'students'));
     }

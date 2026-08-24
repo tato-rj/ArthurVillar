@@ -369,7 +369,7 @@ class StudentsTableTest extends BaseTest
     /** @test */
     public function archived_students_are_hidden_by_default_and_can_be_filtered_on_the_index()
     {
-        $active = Student::factory()->create(['first_name' => 'Active']);
+        $current = Student::factory()->create(['first_name' => 'Current']);
         $archived = Student::factory()->create([
             'first_name' => 'Archived',
             'archived_at' => now(),
@@ -378,38 +378,30 @@ class StudentsTableTest extends BaseTest
 
         $this->get(route('calendar.students.index'))
             ->assertOk()
-            ->assertSee('data-student-status-filter', false)
-            ->assertSee('student_statuses', false)
+            ->assertSee('data-student-archived-filter', false)
+            ->assertSee('student_archived', false)
             ->assertDontSee('deleteUrl', false);
 
         $defaultRows = $this->json('GET', route('calendar.tables.students'), $this->studentTableRequest())
             ->assertOk()
             ->json('data');
 
-        $this->assertSame([$active->id], collect($defaultRows)->pluck('id')->all());
+        $this->assertSame([$current->id], collect($defaultRows)->pluck('id')->all());
 
         $archivedRows = $this->json('GET', route('calendar.tables.students'), $this->studentTableRequest([
-            'student_statuses' => 'archived',
+            'student_archived' => 'archived',
         ]))
             ->assertOk()
             ->json('data');
 
         $this->assertSame([$archived->id], collect($archivedRows)->pluck('id')->all());
         $this->assertNotNull($archivedRows[0]['archived_at']);
-
-        $allRows = $this->json('GET', route('calendar.tables.students'), $this->studentTableRequest([
-            'student_statuses' => 'active,archived',
-        ]))
-            ->assertOk()
-            ->json('data');
-
-        $this->assertEqualsCanonicalizing([$active->id, $archived->id], collect($allRows)->pluck('id')->all());
     }
 
     /** @test */
     public function archived_students_are_excluded_from_student_selection_inputs()
     {
-        $active = Student::factory()->create([
+        $current = Student::factory()->create([
             'first_name' => 'Visible',
             'last_name' => 'Student',
         ]);
@@ -422,12 +414,12 @@ class StudentsTableTest extends BaseTest
 
         $this->get(route('calendar.students.index'))
             ->assertOk()
-            ->assertSee('data-sibling-id="'.$active->id.'"', false)
+            ->assertSee('data-sibling-id="'.$current->id.'"', false)
             ->assertDontSee('data-sibling-id="'.$archived->id.'"', false);
 
         $this->get(route('calendar.recitals.index'))
             ->assertOk()
-            ->assertSee('data-student-id="'.$active->id.'"', false)
+            ->assertSee('data-student-id="'.$current->id.'"', false)
             ->assertDontSee('data-student-id="'.$archived->id.'"', false);
     }
 

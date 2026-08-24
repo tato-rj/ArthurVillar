@@ -8,7 +8,7 @@
 @section('content')
 @php
     $selectedStudentLocations = collect(explode(',', request('student_locations', 'home,online,bkcm')));
-    $selectedStudentStatuses = collect(explode(',', request('student_statuses', 'active')));
+    $showArchivedStudents = request('student_archived') === 'archived';
     $selectedStudentLocationPhrases = collect([
         'home' => 'at home',
         'bkcm' => 'at BKCM',
@@ -69,20 +69,13 @@
                         'attributes' => ['data-student-location-filter' => ''],
                     ],
                 ],
-                'Status' => [
+                'Archive' => [
                     [
-                        'id' => 'student-status-active',
-                        'label' => 'Active',
-                        'value' => 'active',
-                        'checked' => $selectedStudentStatuses->contains('active'),
-                        'attributes' => ['data-student-status-filter' => ''],
-                    ],
-                    [
-                        'id' => 'student-status-archived',
+                        'id' => 'student-archived',
                         'label' => 'Archived',
                         'value' => 'archived',
-                        'checked' => $selectedStudentStatuses->contains('archived'),
-                        'attributes' => ['data-student-status-filter' => ''],
+                        'checked' => $showArchivedStudents,
+                        'attributes' => ['data-student-archived-filter' => ''],
                     ],
                 ],
             ],
@@ -226,7 +219,7 @@ $(function() {
             url: @json(route('calendar.tables.students')),
             data: function(data) {
                 data.student_locations = selectedFilterValues('[data-student-location-filter]');
-                data.student_statuses = selectedFilterValues('[data-student-status-filter]');
+                data.student_archived = selectedFilterValues('[data-student-archived-filter]');
             },
             dataSrc: function(response) {
                 updateStudentTotals(response);
@@ -348,12 +341,12 @@ $(function() {
     }, {
         restore: function(params) {
             restoreFilterValues('[data-student-location-filter]', params.get('student_locations'), 'home,online,bkcm');
-            restoreFilterValues('[data-student-status-filter]', params.get('student_statuses'), 'active');
+            restoreFilterValues('[data-student-archived-filter]', params.get('student_archived'), 'none');
         },
         extraParams: function() {
             return {
                 student_locations: selectedFilterValues('[data-student-location-filter]'),
-                student_statuses: selectedFilterValues('[data-student-status-filter]'),
+                student_archived: selectedFilterValues('[data-student-archived-filter]'),
             };
         },
     });

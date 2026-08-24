@@ -16,17 +16,12 @@ class StudentsController extends Controller
         $selectedLocations = collect(explode(',', request('student_locations', 'home,online,bkcm')))
             ->intersect(['home', 'online', 'bkcm'])
             ->values();
-        $selectedStatuses = collect(explode(',', request('student_statuses', 'active')))
-            ->intersect(['active', 'archived'])
-            ->values();
-        $studentsInitialTotal = $selectedLocations->isEmpty() || $selectedStatuses->isEmpty()
+        $showArchivedStudents = request('student_archived') === 'archived';
+        $studentsInitialTotal = $selectedLocations->isEmpty()
             ? 0
             : Student::query()
-                ->when($selectedStatuses->count() === 1, function ($query) use ($selectedStatuses) {
-                    $selectedStatuses->first() === 'archived'
-                        ? $query->archived()
-                        : $query->active();
-                })
+                ->when($showArchivedStudents, fn ($query) => $query->archived())
+                ->unless($showArchivedStudents, fn ($query) => $query->whereNull('students.archived_at'))
                 ->whereHas('location', function ($query) use ($selectedLocations) {
                     $query->whereIn(DB::raw('LOWER(name)'), $selectedLocations);
                 })
@@ -73,7 +68,6 @@ class StudentsController extends Controller
 
         $singleLessonsPlans = $student->singleLessonPlans()
             ->with('location')
-            // ->where('status', 'active')
             // ->whereDate('scheduled_date', '>=', $today->toDateString())
             ->orderBy('scheduled_date')
             ->orderBy('start_time')
