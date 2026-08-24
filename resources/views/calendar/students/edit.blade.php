@@ -123,4 +123,27 @@
 
     @submit(['label' => 'Submit', 'theme' => 'primary'])
 </form>
+
+<hr>
+
+<div class="d-center">
+    @if($student->archived_at)
+    <form class="w-100" method="POST" action="{{route('calendar.students.unarchive', $student)}}">
+        @csrf
+        @method('PATCH')
+        @submit(['label' => 'Unarchive', 'icon' => ['name' => 'box-open', 'position' => 'left'], 'theme' => 'outline-grey'])
+    </form>
+    @else
+    <form class="w-100" method="POST" action="{{route('calendar.students.archive', $student)}}">
+        @csrf
+        @method('PATCH')
+        @submit(['label' => 'Archive', 'icon' => ['name' => 'box-archive', 'position' => 'left'], 'theme' => 'outline-grey'])
+    </form>
+    @endif
+    <form method="POST" action="{{route('calendar.students.destroy', $student)}}" confirm>
+        @csrf
+        @method('DELETE')
+        @submit(['label' => 'Delete', 'icon' => ['name' => 'trash-alt', 'position' => 'left'], 'theme' => 'red'])
+    </form>
+</div>
 @endmodal

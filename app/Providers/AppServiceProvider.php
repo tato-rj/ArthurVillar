@@ -81,6 +81,7 @@ class AppServiceProvider extends ServiceProvider
         \View::composer(['calendar.lessons.lessonPlans.create', 'calendar.students.create'], function($view) {
             $view->with([
                 'students' => Student::query()
+                    ->active()
                     ->with('location')
                     ->orderBy('first_name')
                     ->orderBy('last_name')

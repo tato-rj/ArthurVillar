@@ -31,7 +31,7 @@ return new class extends Migration
 
             $table->string('payment_method')->nullable();
 
-            $table->string('status')->default('active');
+            $table->timestamp('archived_at')->nullable();
             $table->boolean('is_adult')->default(false);
             $table->boolean('payment_exempt')->default(false);
 

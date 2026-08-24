@@ -8,6 +8,7 @@
 @section('content')
 @php
     $selectedStudentLocations = collect(explode(',', request('student_locations', 'home,online,bkcm')));
+    $selectedStudentStatuses = collect(explode(',', request('student_statuses', 'active')));
     $selectedStudentLocationPhrases = collect([
         'home' => 'at home',
         'bkcm' => 'at BKCM',
@@ -66,6 +67,22 @@
                         'value' => 'bkcm',
                         'checked' => $selectedStudentLocations->contains('bkcm'),
                         'attributes' => ['data-student-location-filter' => ''],
+                    ],
+                ],
+                'Status' => [
+                    [
+                        'id' => 'student-status-active',
+                        'label' => 'Active',
+                        'value' => 'active',
+                        'checked' => $selectedStudentStatuses->contains('active'),
+                        'attributes' => ['data-student-status-filter' => ''],
+                    ],
+                    [
+                        'id' => 'student-status-archived',
+                        'label' => 'Archived',
+                        'value' => 'archived',
+                        'checked' => $selectedStudentStatuses->contains('archived'),
+                        'attributes' => ['data-student-status-filter' => ''],
                     ],
                 ],
             ],
@@ -209,6 +226,7 @@ $(function() {
             url: @json(route('calendar.tables.students')),
             data: function(data) {
                 data.student_locations = selectedFilterValues('[data-student-location-filter]');
+                data.student_statuses = selectedFilterValues('[data-student-status-filter]');
             },
             dataSrc: function(response) {
                 updateStudentTotals(response);
@@ -217,7 +235,21 @@ $(function() {
             },
         },
         columns: [
-            {data: 'name', name: 'name'},
+            {
+                data: 'name',
+                name: 'name',
+                render: function(data, type, row) {
+                    if (type !== 'display') {
+                        return data;
+                    }
+
+                    const name = textRenderer.display(data);
+
+                    return row.archived_at
+                        ? `${name} <span class="badge bg-light text-dark ml-2">Archived</span>`
+                        : name;
+                },
+            },
             {
                 data: 'gender',
                 name: 'gender',
@@ -301,7 +333,6 @@ $(function() {
                 searchable: false,
                 className: 'text-right',
                 render: function(data, type, row) {
-                    const deleteUrl = @json(route('calendar.students.destroy', ['student' => '__student__'])).replace('__student__', data);
                     const editUrl = @json(route('calendar.students.edit', ['student' => '__student__'])).replace('__student__', data);
                     const infoUrl = @json(route('calendar.students.show', ['student' => '__student__'])).replace('__student__', data);
 
@@ -309,11 +340,6 @@ $(function() {
                         <div class="calendar-table-actions">
                             <a href="${infoUrl}" class="btn btn-sm btn-secondary rounded" aria-label="Student info" title="Student info">@fa(['icon' => 'circle-info', 'mr' => 0])</a>
                             <button type="button" class="btn btn-sm btn-warning rounded js-edit-student" data-url="${editUrl}" aria-label="Edit student" title="Edit student">@fa(['icon' => 'pen-to-square', 'mr' => 0])</button>
-                            <form method="POST" action="${deleteUrl}" confirm>
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-sm btn-red rounded">@fa(['icon' => 'trash-alt', 'mr' => 0])</button>
-                            </form>
                         </div>
                     `;
                 },
@@ -322,10 +348,12 @@ $(function() {
     }, {
         restore: function(params) {
             restoreFilterValues('[data-student-location-filter]', params.get('student_locations'), 'home,online,bkcm');
+            restoreFilterValues('[data-student-status-filter]', params.get('student_statuses'), 'active');
         },
         extraParams: function() {
             return {
                 student_locations: selectedFilterValues('[data-student-location-filter]'),
+                student_statuses: selectedFilterValues('[data-student-status-filter]'),
             };
         },
     });

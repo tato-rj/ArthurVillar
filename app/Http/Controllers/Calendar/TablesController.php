@@ -916,9 +916,20 @@ class TablesController extends Controller
         $selectedLocations = collect(explode(',', request('student_locations', '')))
             ->intersect(['home', 'online', 'bkcm'])
             ->values();
+        $selectedStatuses = collect(explode(',', request('student_statuses', 'active')))
+            ->intersect(['active', 'archived'])
+            ->values();
 
         $students = Student::query()
             ->leftJoin('locations', 'locations.id', '=', 'students.location_id')
+            ->when($selectedStatuses->isEmpty(), function ($query) {
+                $query->whereRaw('1 = 0');
+            })
+            ->when($selectedStatuses->count() === 1, function ($query) use ($selectedStatuses) {
+                $selectedStatuses->first() === 'archived'
+                    ? $query->archived()
+                    : $query->active();
+            })
             ->when($locationFilterRequested, function ($query) use ($selectedLocations) {
                 if ($selectedLocations->isEmpty()) {
                     $query->whereRaw('1 = 0');
@@ -939,6 +950,7 @@ class TablesController extends Controller
                 'students.is_adult',
                 'students.payment_exempt',
                 'students.date_of_birth',
+                'students.archived_at',
                 'locations.name as location',
             ])
             ->withCount([
@@ -971,6 +983,9 @@ class TablesController extends Controller
                 return $student->date_of_birth
                     ? carbon($student->date_of_birth)->format('m/d/Y')
                     : '';
+            })
+            ->editColumn('archived_at', function (Student $student) {
+                return $student->archived_at?->toIso8601String();
             })
             ->addColumn('age', function (Student $student) {
                 return $student->age;

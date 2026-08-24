@@ -53,6 +53,9 @@ Route::prefix('students')->name('students.')->group(function() {
 	Route::post('', 'StudentsController@store')->name('store');
 
 	Route::prefix('{student}')->group(function() {
+		Route::patch('archive', 'StudentsController@archive')->name('archive');
+		Route::patch('unarchive', 'StudentsController@unarchive')->name('unarchive');
+
 		Route::get('', 'StudentsController@show')->name('show');
 
 		Route::get('edit', 'StudentsController@edit')->name('edit');

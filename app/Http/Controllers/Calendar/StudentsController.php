@@ -16,9 +16,17 @@ class StudentsController extends Controller
         $selectedLocations = collect(explode(',', request('student_locations', 'home,online,bkcm')))
             ->intersect(['home', 'online', 'bkcm'])
             ->values();
-        $studentsInitialTotal = $selectedLocations->isEmpty()
+        $selectedStatuses = collect(explode(',', request('student_statuses', 'active')))
+            ->intersect(['active', 'archived'])
+            ->values();
+        $studentsInitialTotal = $selectedLocations->isEmpty() || $selectedStatuses->isEmpty()
             ? 0
             : Student::query()
+                ->when($selectedStatuses->count() === 1, function ($query) use ($selectedStatuses) {
+                    $selectedStatuses->first() === 'archived'
+                        ? $query->archived()
+                        : $query->active();
+                })
                 ->whereHas('location', function ($query) use ($selectedLocations) {
                     $query->whereIn(DB::raw('LOWER(name)'), $selectedLocations);
                 })
@@ -76,6 +84,20 @@ class StudentsController extends Controller
             'recurringLessonPlans',
             'singleLessonsPlans'
         ));
+    }
+
+    public function archive(Student $student)
+    {
+        $student->archive();
+
+        return back()->with('success', 'The student was successfully archived');
+    }
+
+    public function unarchive(Student $student)
+    {
+        $student->unarchive();
+
+        return back()->with('success', 'The student was successfully unarchived');
     }
 
     private function validateStudent(Request $request)

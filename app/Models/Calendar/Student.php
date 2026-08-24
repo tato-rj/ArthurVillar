@@ -8,11 +8,12 @@ class Student extends BaseModel
 {
     protected $birthdayWindow = 5; //in before and after days
 
-    protected $dates = ['date_of_birth'];
+    protected $dates = ['date_of_birth', 'archived_at'];
 
     protected $casts = [
         'is_adult' => 'boolean',
         'payment_exempt' => 'boolean',
+        'archived_at' => 'datetime',
     ];
 
     protected static function booted()
@@ -28,6 +29,26 @@ class Student extends BaseModel
     public static function birthdayWindow()
     {
         return (new static)->birthdayWindow;
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->whereNull('students.archived_at');
+    }
+
+    public function scopeArchived($query)
+    {
+        return $query->whereNotNull('students.archived_at');
+    }
+
+    public function archive()
+    {
+        return $this->forceFill(['archived_at' => now()])->save();
+    }
+
+    public function unarchive()
+    {
+        return $this->forceFill(['archived_at' => null])->save();
     }
 
     public function lessonPlans()
@@ -47,7 +68,7 @@ class Student extends BaseModel
 
     public function siblings()
     {
-        return Student::whereNotNull('parent_name')->where('parent_name', $this->parent_name)->exceptThis();
+        return Student::active()->whereNotNull('parent_name')->where('parent_name', $this->parent_name)->exceptThis();
     }
 
     public function location()

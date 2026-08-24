@@ -762,7 +762,6 @@ const createScheduleHeaderDragPreview = function(headerRow) {
         rail,
         dayWidth,
         initialX: -(bufferDays * dayWidth),
-        maxDistance: bufferDays * dayWidth,
     };
 };
 
@@ -902,9 +901,10 @@ const bindScheduleHeaderDrag = function(calendar, navigateByDays) {
         }
 
         const current = drag;
-        const offset = commit && current.active && current.preview
+        const rawOffset = commit && current.active && current.preview
             ? Math.round(-(current.baseX + current.deltaX - current.anchorX) / current.preview.dayWidth)
             : 0;
+        const offset = Math.sign(rawOffset);
 
         if (!current.active || !current.preview || !commit) {
             clearDrag();
@@ -1012,8 +1012,8 @@ const bindScheduleHeaderDrag = function(calendar, navigateByDays) {
         }
 
         e.preventDefault();
-        const minimumX = drag.anchorX - drag.preview.maxDistance;
-        const maximumX = drag.anchorX + drag.preview.maxDistance;
+        const minimumX = drag.anchorX - drag.preview.dayWidth;
+        const maximumX = drag.anchorX + drag.preview.dayWidth;
         const resistedDeltaX = deltaX * dragMovementRatio;
         const nextX = Math.max(minimumX, Math.min(maximumX, drag.baseX + resistedDeltaX));
 
@@ -1025,6 +1025,8 @@ const bindScheduleHeaderDrag = function(calendar, navigateByDays) {
         if (!dayOffset || drag || !scheduleGridViews.includes(state.view)) {
             return false;
         }
+
+        dayOffset = Math.sign(dayOffset);
 
         const row = calendar.querySelector('.lm-schedule thead tr:not(.calendar-schedule-holiday-row)');
         const interrupted = takeSettlingPreview();
@@ -6915,20 +6917,8 @@ const getLabel = function() {
     return monthFormatter.format(state.date);
 };
 
-const move = function(direction) {
-    if (state.view === 'day') {
-        setSelectedDate(addDays(state.date, direction));
-    } else if (state.view === '2-days') {
-        setSelectedDate(addDays(state.date, direction * 2));
-    } else if (state.view === 'week') {
-        const rolling = isValidDate(state.scheduleWindowStart);
-        const nextStart = addDays(getVisibleScheduleDates()[0], direction * 7);
-
-        setSelectedDate(nextStart);
-        if (rolling) {
-            state.scheduleWindowStart = cloneDate(nextStart);
-        }
-    } else if (state.view === 'month' || state.view === 'schedule') {
+const moveCalendarByMonth = function(direction) {
+    if (state.view === 'month' || state.view === 'schedule') {
         setSelectedDate(addMonths(state.date, direction));
     }
 };
@@ -7383,6 +7373,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let scheduleHoldNavigationSuppressedUntil = 0;
     let pendingEventCopySequence = 0;
     let scheduleHeaderRenderTimer = null;
+    const scheduleHoldEdgeNavigationDelay = 1000;
 
     const isScheduleHoldNavigationSuppressed = function() {
         return Boolean(scheduleItemHold && scheduleItemHold.active)
@@ -7700,6 +7691,24 @@ document.addEventListener('DOMContentLoaded', function() {
         render();
     };
 
+    const moveScheduleByOneDay = function(direction) {
+        direction = Math.sign(direction);
+
+        if (!direction || !scheduleGridViews.includes(state.view)) {
+            return false;
+        }
+
+        const nextStart = addDays(getVisibleScheduleDates()[0], direction);
+
+        setSelectedDate(nextStart);
+        if (state.view === 'week') {
+            state.scheduleWindowStart = cloneDate(nextStart);
+        }
+        state.didAutoNowScroll = true;
+
+        return true;
+    };
+
     const navigateScheduleHeaderByArrow = bindScheduleHeaderDrag(calendar, function(dayOffset, preview) {
         if (!dayOffset || isScheduleHoldNavigationSuppressed()) {
             if (preview) {
@@ -7709,8 +7718,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         const schedule = calendar.querySelector('.lm-schedule');
-        const nextStart = addDays(getVisibleScheduleDates()[0], dayOffset);
-        const keepRollingWeek = state.view === 'week';
 
         if (state.pendingScheduleHeaderPreview
             && state.pendingScheduleHeaderPreview !== preview) {
@@ -7718,11 +7725,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         state.pendingScheduleHeaderPreview = preview;
         state.pendingScheduleScrollTop = schedule ? schedule.scrollTop : null;
-        setSelectedDate(nextStart);
-        if (keepRollingWeek) {
-            state.scheduleWindowStart = cloneDate(nextStart);
-        }
-        state.didAutoNowScroll = true;
+        moveScheduleByOneDay(dayOffset);
         window.clearTimeout(scheduleHeaderRenderTimer);
         scheduleHeaderRenderTimer = window.setTimeout(function() {
             scheduleHeaderRenderTimer = null;
@@ -7743,7 +7746,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return navigateScheduleHeaderByArrow(direction);
         }
 
-        move(direction);
+        moveCalendarByMonth(direction);
         render();
 
         return true;
@@ -8953,6 +8956,217 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     };
 
+    const stopScheduleHoldEdgeNavigation = function(hold) {
+        if (!hold) {
+            return;
+        }
+
+        if (hold.edgeNavigationTimer) {
+            window.clearTimeout(hold.edgeNavigationTimer);
+            hold.edgeNavigationTimer = null;
+        }
+        hold.edgeNavigationDirection = 0;
+    };
+
+    const getScheduleHoldEdgeDirection = function(hold) {
+        if (!hold || !hold.active) {
+            return 0;
+        }
+
+        const schedule = hold.schedule && hold.schedule.isConnected
+            ? hold.schedule
+            : calendar.querySelector('.lm-schedule');
+
+        if (!schedule) {
+            return 0;
+        }
+
+        const bounds = schedule.getBoundingClientRect();
+
+        if (hold.lastX < bounds.left) {
+            return -1;
+        }
+        if (hold.lastX > bounds.right) {
+            return 1;
+        }
+
+        return 0;
+    };
+
+    const waitForScheduleHoldRender = function(hold, previousSchedule) {
+        return new Promise(function(resolve) {
+            const check = function() {
+                if (!scheduleItemHold || scheduleItemHold !== hold || !hold.active) {
+                    resolve(null);
+                    return;
+                }
+
+                const schedule = calendar.querySelector('.lm-schedule');
+
+                if (schedule && schedule !== previousSchedule && !calendar.classList.contains('calendar-schedule-range-transitioning')) {
+                    resolve(schedule);
+                    return;
+                }
+
+                window.setTimeout(check, 50);
+            };
+
+            check();
+        });
+    };
+
+    const restartScheduleHoldAfterEdgeNavigation = function(hold, schedule, cloneTemplate, rowIndex, direction) {
+        if (!scheduleItemHold || scheduleItemHold !== hold || !hold.active || !schedule) {
+            return false;
+        }
+
+        const rows = Array.from(schedule.querySelectorAll('tbody tr')).filter(function(row) {
+            return row.querySelector('td[data-date], td[data-real-date]');
+        });
+        const row = rows[Math.max(0, Math.min(rowIndex, rows.length - 1))];
+        const cells = row ? Array.from(row.cells).filter(function(cell) {
+            return (cell.hasAttribute('data-date') || cell.hasAttribute('data-real-date'))
+                && !cell.classList.contains('calendar-schedule-hidden-column');
+        }) : [];
+        const target = direction < 0 ? cells[0] : cells[cells.length - 1];
+
+        if (!target) {
+            return false;
+        }
+
+        const clone = cloneTemplate.cloneNode(true);
+        const event = hold.item.event;
+        const date = target.getAttribute('data-real-date') || target.getAttribute('data-date');
+
+        clone.removeAttribute('id');
+        clone.setAttribute('holding-event', '');
+        clone.setAttribute('aria-hidden', 'true');
+        clone.event = event;
+        clone.date = date || cloneTemplate.date || event.date;
+        clone.weekday = date ? parseDateString(date).getDay() : event.weekday;
+        clone.start = cloneTemplate.getAttribute('data-start') || cloneTemplate.start || event.start;
+        clone.end = cloneTemplate.getAttribute('data-end') || cloneTemplate.end || event.end;
+        target.appendChild(clone);
+
+        hold.clone = clone;
+        hold.schedule = schedule;
+        hold.scheduleTouchAction = schedule.style.touchAction;
+        hold.scheduleOverscrollBehavior = schedule.style.overscrollBehavior;
+        hold.scheduleOverflow = schedule.style.overflow;
+        schedule.style.cursor = hold.copyMode ? 'copy' : 'move';
+        schedule.style.touchAction = 'none';
+        schedule.style.overscrollBehavior = 'none';
+        schedule.style.overflow = 'hidden';
+        removeDuplicateScheduleItems(schedule, clone);
+        setScheduleHoldCopyMode(hold, hold.copyModeRequested);
+
+        clone.dispatchEvent(new MouseEvent('mousedown', {
+            bubbles: true,
+            cancelable: true,
+            view: window,
+            button: 0,
+            buttons: 1,
+            clientX: hold.lastX,
+            clientY: hold.lastY,
+        }));
+        document.dispatchEvent(new MouseEvent('mousemove', {
+            bubbles: true,
+            cancelable: true,
+            view: window,
+            button: 0,
+            buttons: 1,
+            clientX: hold.lastX,
+            clientY: hold.lastY,
+        }));
+        queueScheduleHoldTimeUpdate(hold);
+
+        return true;
+    };
+
+    const navigateScheduleHoldAtEdge = function(hold, direction) {
+        if (!scheduleItemHold || scheduleItemHold !== hold || !hold.active
+            || getScheduleHoldEdgeDirection(hold) !== direction) {
+            stopScheduleHoldEdgeNavigation(hold);
+            return;
+        }
+
+        const previousSchedule = hold.schedule;
+        const previousRows = previousSchedule
+            ? Array.from(previousSchedule.querySelectorAll('tbody tr')).filter(function(row) {
+                return row.querySelector('td[data-date], td[data-real-date]');
+            })
+            : [];
+        const cloneRow = hold.clone ? hold.clone.closest('tr') : null;
+        const rowIndex = Math.max(0, previousRows.indexOf(cloneRow));
+        const cloneTemplate = hold.clone ? hold.clone.cloneNode(true) : null;
+
+        if (!previousSchedule || !cloneTemplate) {
+            stopScheduleHoldEdgeNavigation(hold);
+            return;
+        }
+
+        hold.edgeNavigationTimer = null;
+        hold.edgeNavigating = true;
+        removeScheduleHoldTime(hold);
+        document.dispatchEvent(new MouseEvent('mouseup', {
+            bubbles: true,
+            cancelable: true,
+            view: window,
+            button: 0,
+            buttons: 0,
+            clientX: hold.lastX,
+            clientY: hold.lastY,
+        }));
+        state.pendingScheduleScrollTop = previousSchedule.scrollTop;
+        state.didAutoNowScroll = true;
+        moveScheduleByOneDay(direction);
+        render();
+
+        waitForScheduleHoldRender(hold, previousSchedule).then(function(schedule) {
+            if (!scheduleItemHold || scheduleItemHold !== hold || !hold.active) {
+                return;
+            }
+
+            hold.edgeNavigating = false;
+            if (!restartScheduleHoldAfterEdgeNavigation(hold, schedule, cloneTemplate, rowIndex, direction)) {
+                clearScheduleItemHold(hold.pointerId);
+                return;
+            }
+
+            if (hold.pendingEdgeRelease) {
+                const release = hold.pendingEdgeRelease;
+
+                hold.pendingEdgeRelease = null;
+                finishScheduleNativeDrag(hold, release.clientX, release.clientY, true);
+                return;
+            }
+
+            updateScheduleHoldEdgeNavigation(hold);
+        });
+    };
+
+    const updateScheduleHoldEdgeNavigation = function(hold) {
+        if (!hold || hold !== scheduleItemHold || !hold.active || hold.edgeNavigating) {
+            return;
+        }
+
+        const direction = getScheduleHoldEdgeDirection(hold);
+
+        if (!direction) {
+            stopScheduleHoldEdgeNavigation(hold);
+            return;
+        }
+        if (hold.edgeNavigationDirection === direction && hold.edgeNavigationTimer) {
+            return;
+        }
+
+        stopScheduleHoldEdgeNavigation(hold);
+        hold.edgeNavigationDirection = direction;
+        hold.edgeNavigationTimer = window.setTimeout(function() {
+            navigateScheduleHoldAtEdge(hold, direction);
+        }, scheduleHoldEdgeNavigationDelay);
+    };
+
     const finishScheduleNativeDrag = function(hold, clientX, clientY, commitVisualDrop) {
         if (!hold || !hold.active || hold.nativeDragFinished) {
             return;
@@ -9244,6 +9458,8 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        stopScheduleHoldEdgeNavigation(scheduleItemHold);
+        scheduleItemHold.edgeNavigating = false;
         finishScheduleNativeDrag(scheduleItemHold);
         window.clearTimeout(scheduleItemHold.timer);
         if (scheduleItemHold.active) {
@@ -9322,6 +9538,10 @@ document.addEventListener('DOMContentLoaded', function() {
             scheduleTouchAction: '',
             scheduleOverscrollBehavior: '',
             scheduleOverflow: '',
+            edgeNavigationDirection: 0,
+            edgeNavigationTimer: null,
+            edgeNavigating: false,
+            pendingEdgeRelease: null,
             timer: window.setTimeout(function() {
                 if (!scheduleItemHold || scheduleItemHold.item !== item || !item.isConnected) {
                     return;
@@ -9381,7 +9601,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     });
 
-    calendar.addEventListener('pointermove', function(e) {
+    document.addEventListener('pointermove', function(e) {
         if (!scheduleItemHold || scheduleItemHold.pointerId !== e.pointerId) {
             return;
         }
@@ -9409,6 +9629,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }));
             }
             queueScheduleHoldTimeUpdate(scheduleItemHold);
+            updateScheduleHoldEdgeNavigation(scheduleItemHold);
             return;
         }
 
@@ -9418,6 +9639,18 @@ document.addEventListener('DOMContentLoaded', function() {
     }, { passive: false });
 
     document.addEventListener('pointerup', function(e) {
+        if (scheduleItemHold
+            && scheduleItemHold.pointerId === e.pointerId
+            && scheduleItemHold.active
+            && scheduleItemHold.edgeNavigating) {
+            e.preventDefault();
+            scheduleItemHold.pendingEdgeRelease = {
+                clientX: e.clientX,
+                clientY: e.clientY,
+            };
+            return;
+        }
+
         if (scheduleItemHold
             && scheduleItemHold.pointerId === e.pointerId
             && scheduleItemHold.active
@@ -9434,6 +9667,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.addEventListener('mouseup', function(e) {
         if (scheduleItemHold && scheduleItemHold.active) {
+            if (scheduleItemHold.edgeNavigating) {
+                return;
+            }
             if (scheduleItemHold.pointerType === 'mouse') {
                 setScheduleHoldCopyMode(
                     scheduleItemHold,

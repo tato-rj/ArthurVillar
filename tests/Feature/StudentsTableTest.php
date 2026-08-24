@@ -338,6 +338,100 @@ class StudentsTableTest extends BaseTest
     }
 
     /** @test */
+    public function it_can_archive_and_unarchive_a_student_from_the_edit_modal()
+    {
+        $student = Student::factory()->create();
+        $this->signIn();
+
+        $this->get(route('calendar.students.edit', $student))
+            ->assertOk()
+            ->assertSee(route('calendar.students.archive', $student), false)
+            ->assertSee(route('calendar.students.destroy', $student), false)
+            ->assertSee('Archive')
+            ->assertSee('Delete');
+
+        $this->patch(route('calendar.students.archive', $student))
+            ->assertSessionHas('success');
+
+        $this->assertNotNull($student->fresh()->archived_at);
+
+        $this->get(route('calendar.students.edit', $student))
+            ->assertOk()
+            ->assertSee(route('calendar.students.unarchive', $student), false)
+            ->assertSee('Unarchive');
+
+        $this->patch(route('calendar.students.unarchive', $student))
+            ->assertSessionHas('success');
+
+        $this->assertNull($student->fresh()->archived_at);
+    }
+
+    /** @test */
+    public function archived_students_are_hidden_by_default_and_can_be_filtered_on_the_index()
+    {
+        $active = Student::factory()->create(['first_name' => 'Active']);
+        $archived = Student::factory()->create([
+            'first_name' => 'Archived',
+            'archived_at' => now(),
+        ]);
+        $this->signIn();
+
+        $this->get(route('calendar.students.index'))
+            ->assertOk()
+            ->assertSee('data-student-status-filter', false)
+            ->assertSee('student_statuses', false)
+            ->assertDontSee('deleteUrl', false);
+
+        $defaultRows = $this->json('GET', route('calendar.tables.students'), $this->studentTableRequest())
+            ->assertOk()
+            ->json('data');
+
+        $this->assertSame([$active->id], collect($defaultRows)->pluck('id')->all());
+
+        $archivedRows = $this->json('GET', route('calendar.tables.students'), $this->studentTableRequest([
+            'student_statuses' => 'archived',
+        ]))
+            ->assertOk()
+            ->json('data');
+
+        $this->assertSame([$archived->id], collect($archivedRows)->pluck('id')->all());
+        $this->assertNotNull($archivedRows[0]['archived_at']);
+
+        $allRows = $this->json('GET', route('calendar.tables.students'), $this->studentTableRequest([
+            'student_statuses' => 'active,archived',
+        ]))
+            ->assertOk()
+            ->json('data');
+
+        $this->assertEqualsCanonicalizing([$active->id, $archived->id], collect($allRows)->pluck('id')->all());
+    }
+
+    /** @test */
+    public function archived_students_are_excluded_from_student_selection_inputs()
+    {
+        $active = Student::factory()->create([
+            'first_name' => 'Visible',
+            'last_name' => 'Student',
+        ]);
+        $archived = Student::factory()->create([
+            'first_name' => 'Hidden',
+            'last_name' => 'Student',
+            'archived_at' => now(),
+        ]);
+        $this->signIn();
+
+        $this->get(route('calendar.students.index'))
+            ->assertOk()
+            ->assertSee('data-sibling-id="'.$active->id.'"', false)
+            ->assertDontSee('data-sibling-id="'.$archived->id.'"', false);
+
+        $this->get(route('calendar.recitals.index'))
+            ->assertOk()
+            ->assertSee('data-student-id="'.$active->id.'"', false)
+            ->assertDontSee('data-student-id="'.$archived->id.'"', false);
+    }
+
+    /** @test */
     public function it_can_search_students_by_adult_status_without_showing_an_adult_column()
     {
         Student::factory()->create([
