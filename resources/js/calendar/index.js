@@ -7362,11 +7362,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const calendarCreateLesson = document.querySelector('[data-calendar-create-lesson]');
     const calendarCreateEvent = document.querySelector('[data-calendar-create-event]');
     const calendarFilter = document.querySelector('.calendar-calendar-filter');
+    const calendarFilterMenu = calendarFilter
+        ? calendarFilter.querySelector('.calendar-calendar-filter-menu')
+        : null;
     const calendarFilterReset = document.querySelector('[data-calendar-filter-reset]');
+    const calendarSettingsModal = document.getElementById('settings-modal');
     let calendarCreateBackdrop = null;
 
     if (!calendar) {
         return;
+    }
+
+    if (calendarSettingsModal && calendarSettingsModal.parentElement !== document.body) {
+        document.body.appendChild(calendarSettingsModal);
     }
 
     let scheduleItemHold = null;
@@ -8337,6 +8345,18 @@ document.addEventListener('DOMContentLoaded', function() {
         calendarMobileToolbarControls.addEventListener('click', function() {
             closeCalendarSearch(true);
             calendarToolbar.removeAttribute('data-mobile-toolbar-view');
+        });
+    }
+
+    if (calendarFilter && calendarFilterMenu) {
+        calendarFilter.addEventListener('show.bs.dropdown', function() {
+            calendarFilterMenu.classList.add('calendar-calendar-filter-menu-portaled');
+            document.body.appendChild(calendarFilterMenu);
+        });
+
+        calendarFilter.addEventListener('hidden.bs.dropdown', function() {
+            calendarFilterMenu.classList.remove('calendar-calendar-filter-menu-portaled');
+            calendarFilter.appendChild(calendarFilterMenu);
         });
     }
 
