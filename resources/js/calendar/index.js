@@ -61,6 +61,12 @@ const monthFormatter = new Intl.DateTimeFormat('en', {
     year: 'numeric',
 });
 
+const compactMonthFormatter = new Intl.DateTimeFormat('en', {
+    month: 'short',
+    timeZone: calendarTimeZone,
+    year: 'numeric',
+});
+
 const shortMonthFormatter = new Intl.DateTimeFormat('en', {
     month: 'short',
     timeZone: calendarTimeZone,
@@ -73,6 +79,13 @@ const birthdayMonthFormatter = new Intl.DateTimeFormat('en', {
 
 const dayFormatter = new Intl.DateTimeFormat('en', {
     month: 'long',
+    day: 'numeric',
+    timeZone: calendarTimeZone,
+    year: 'numeric',
+});
+
+const compactDayFormatter = new Intl.DateTimeFormat('en', {
+    month: 'short',
     day: 'numeric',
     timeZone: calendarTimeZone,
     year: 'numeric',
@@ -6887,7 +6900,7 @@ const getRangeLabel = function(start, end) {
     const sameYear = start.getFullYear() === end.getFullYear();
 
     if (sameMonth && sameYear) {
-        return monthFormatter.format(start);
+        return (isSidebarHiddenViewport() ? compactMonthFormatter : monthFormatter).format(start);
     }
 
     if (sameYear) {
@@ -6899,11 +6912,11 @@ const getRangeLabel = function(start, end) {
 
 const getLabel = function() {
     if (state.view === 'schedule') {
-        return monthFormatter.format(state.date);
+        return (isSidebarHiddenViewport() ? compactMonthFormatter : monthFormatter).format(state.date);
     }
 
     if (state.view === 'day') {
-        return dayFormatter.format(state.date);
+        return (isSidebarHiddenViewport() ? compactDayFormatter : dayFormatter).format(state.date);
     }
 
     if (state.view === '2-days') {
@@ -6914,7 +6927,7 @@ const getLabel = function() {
         return getWeekLabel(state.date);
     }
 
-    return monthFormatter.format(state.date);
+    return (isSidebarHiddenViewport() ? compactMonthFormatter : monthFormatter).format(state.date);
 };
 
 const moveCalendarByMonth = function(direction) {
@@ -7827,7 +7840,13 @@ document.addEventListener('DOMContentLoaded', function() {
     syncViewControls();
     syncCalendarInsightsPlacement();
 
-    window.addEventListener('resize', syncCalendarInsightsPlacement);
+    window.addEventListener('resize', function() {
+        syncCalendarInsightsPlacement();
+
+        if (label) {
+            label.textContent = getLabel();
+        }
+    });
 
     if (studentSearch) {
         state.studentSearch = studentSearch.value;
@@ -7914,7 +7933,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const visibleDateString = toDateString(visibleDate);
 
         if (label) {
-            label.textContent = monthFormatter.format(visibleDate);
+            label.textContent = (isSidebarHiddenViewport() ? compactMonthFormatter : monthFormatter).format(visibleDate);
         }
 
         if (toDateString(state.date) !== visibleDateString) {
