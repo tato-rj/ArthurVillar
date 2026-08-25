@@ -33646,6 +33646,7 @@ button.single-lesson-plan-create[selected] i {
   .calendar-calendar-toolbar {
     gap: 0;
     overflow: hidden;
+    width: 100%;
   }
   .calendar-calendar-toolbar .calendar-calendar-filter i,
   .calendar-calendar-toolbar .calendar-calendar-settings i {
