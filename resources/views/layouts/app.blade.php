@@ -47,7 +47,7 @@
         @include('layouts.overlay')
 
         @unless(isset($noMenu))
-        <div class="position-absolute top-0 right-0 py-4 pr-4 pl-2 z-10">
+        <div class="app-menu-container position-absolute top-0 right-0 py-4 pr-4 pl-2 z-10">
             @auth
             @includeIf('layouts.menu.'.subdomain())
             @endauth

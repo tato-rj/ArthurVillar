@@ -7346,6 +7346,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const calendarToolbar = calendarSearch ? calendarSearch.closest('.calendar-calendar-toolbar') : null;
     const calendarSearchToggle = calendarSearch ? calendarSearch.querySelector('[data-calendar-search-toggle]') : null;
     const calendarSearchClear = calendarSearch ? calendarSearch.querySelector('[data-calendar-search-clear]') : null;
+    const calendarMobileToolbarSettings = document.querySelector('[data-calendar-mobile-toolbar-settings]');
+    const calendarMobileToolbarControls = document.querySelector('[data-calendar-mobile-toolbar-controls]');
     const studentSearch = calendarSearch ? calendarSearch.querySelector('input[name="search"]') : null;
     const offcanvasViews = document.getElementById('calendar-offcanvas-views');
     const offcanvasViewItems = Array.from(document.querySelectorAll('[data-calendar-offcanvas-view]'));
@@ -7768,8 +7770,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    const closeCalendarSearch = function() {
-        if (studentSearch && studentSearch.value.trim() !== '') {
+    const closeCalendarSearch = function(force) {
+        if (!force && studentSearch && studentSearch.value.trim() !== '') {
             return;
         }
 
@@ -8322,6 +8324,19 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             e.stopPropagation();
             clearCalendarSearch();
+        });
+    }
+
+    if (calendarMobileToolbarSettings && calendarToolbar) {
+        calendarMobileToolbarSettings.addEventListener('click', function() {
+            calendarToolbar.setAttribute('data-mobile-toolbar-view', 'settings');
+        });
+    }
+
+    if (calendarMobileToolbarControls && calendarToolbar) {
+        calendarMobileToolbarControls.addEventListener('click', function() {
+            closeCalendarSearch(true);
+            calendarToolbar.removeAttribute('data-mobile-toolbar-view');
         });
     }
 

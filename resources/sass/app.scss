@@ -771,3 +771,10 @@ textarea.no-resize {
     display: none;
   }
 }
+
+@media (max-width: 1000px) {
+  .app-menu-container,
+  .navbar-toggler.hide-in-webapp {
+    display: none !important;
+  }
+}
