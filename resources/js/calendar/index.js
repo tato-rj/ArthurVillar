@@ -792,7 +792,7 @@ const removeScheduleHeaderDragPreview = function(preview) {
 };
 
 const bindScheduleHeaderDrag = function(calendar, navigateByDays) {
-    const dragMovementRatio = 0.68;
+    const fastFlickDuration = 280;
     const settleDuration = 240;
     let drag = null;
     let settlingPreview = null;
@@ -917,7 +917,10 @@ const bindScheduleHeaderDrag = function(calendar, navigateByDays) {
         const rawOffset = commit && current.active && current.preview
             ? Math.round(-(current.baseX + current.deltaX - current.anchorX) / current.preview.dayWidth)
             : 0;
-        const offset = Math.sign(rawOffset);
+        const elapsed = performance.now() - current.startedAt;
+        const offset = rawOffset && elapsed <= fastFlickDuration
+            ? Math.sign(rawOffset)
+            : rawOffset;
 
         if (!current.active || !current.preview || !commit) {
             clearDrag();
@@ -964,6 +967,7 @@ const bindScheduleHeaderDrag = function(calendar, navigateByDays) {
             row,
             pointerId,
             inputType,
+            startedAt: performance.now(),
             startX: clientX,
             startY: clientY,
             deltaX: 0,
@@ -1025,10 +1029,7 @@ const bindScheduleHeaderDrag = function(calendar, navigateByDays) {
         }
 
         e.preventDefault();
-        const minimumX = drag.anchorX - drag.preview.dayWidth;
-        const maximumX = drag.anchorX + drag.preview.dayWidth;
-        const resistedDeltaX = deltaX * dragMovementRatio;
-        const nextX = Math.max(minimumX, Math.min(maximumX, drag.baseX + resistedDeltaX));
+        const nextX = drag.baseX + deltaX;
 
         drag.deltaX = nextX - drag.baseX;
         drag.preview.rail.style.transform = `translate3d(${nextX}px, 0, 0)`;
@@ -7714,14 +7715,12 @@ document.addEventListener('DOMContentLoaded', function() {
         render();
     };
 
-    const moveScheduleByOneDay = function(direction) {
-        direction = Math.sign(direction);
-
-        if (!direction || !scheduleGridViews.includes(state.view)) {
+    const moveScheduleByDays = function(dayOffset) {
+        if (!dayOffset || !scheduleGridViews.includes(state.view)) {
             return false;
         }
 
-        const nextStart = addDays(getVisibleScheduleDates()[0], direction);
+        const nextStart = addDays(getVisibleScheduleDates()[0], dayOffset);
 
         setSelectedDate(nextStart);
         if (state.view === 'week') {
@@ -7748,7 +7747,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         state.pendingScheduleHeaderPreview = preview;
         state.pendingScheduleScrollTop = schedule ? schedule.scrollTop : null;
-        moveScheduleByOneDay(dayOffset);
+        moveScheduleByDays(dayOffset);
         window.clearTimeout(scheduleHeaderRenderTimer);
         scheduleHeaderRenderTimer = window.setTimeout(function() {
             scheduleHeaderRenderTimer = null;
@@ -9173,7 +9172,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }));
         state.pendingScheduleScrollTop = previousSchedule.scrollTop;
         state.didAutoNowScroll = true;
-        moveScheduleByOneDay(direction);
+        moveScheduleByDays(direction);
         render();
 
         waitForScheduleHoldRender(hold, previousSchedule).then(function(schedule) {
