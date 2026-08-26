@@ -7221,6 +7221,9 @@ var getTravelDestination = function getTravelDestination(event) {
   } : null;
 };
 var getTravelRouteRequestDetails = function getTravelRouteRequestDetails(event) {
+  if (String(event && event.travelMode || '').toUpperCase() === 'NONE') {
+    return null;
+  }
   var destination = getTravelDestination(event);
   var startAt = getEventStartDateTime(event);
   var isCanceled = event && (event.calendarStatus === 'canceled' || event.lessonStatus === 'canceled');
@@ -7490,6 +7493,9 @@ var clearScheduleItemReturnHomeTravel = function clearScheduleItemReturnHomeTrav
   delete item.dataset.returnHomeTravelRouteState;
 };
 var getReturnHomeTravelRouteRequestDetails = function getReturnHomeTravelRouteRequestDetails(item, event) {
+  if (String(event && event.travelMode || '').toUpperCase() === 'NONE') {
+    return null;
+  }
   var origin = getTravelDestination(event);
   var home = window.calendarHomeLocation;
   var homeAddress = physicalLocationQuery(home);

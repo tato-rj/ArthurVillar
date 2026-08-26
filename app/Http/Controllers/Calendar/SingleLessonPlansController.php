@@ -157,7 +157,7 @@ class SingleLessonPlansController extends Controller
             'notes_url' => ['nullable', 'url', 'max:2048'],
             'status' => ['nullable', 'string', 'max:255'],
             'notes' => ['nullable', 'string'],
-            'travel_mode' => ['nullable', Rule::in(['TRANSIT', 'WALK', 'DRIVE'])],
+            'travel_mode' => ['nullable', Rule::in(['NONE', 'TRANSIT', 'WALK', 'DRIVE'])],
         ]);
     }
 

@@ -198,7 +198,7 @@ class LessonPlansController extends Controller
             'meeting_url' => ['nullable', 'url', 'max:2048'],
             'notes_url' => ['nullable', 'url', 'max:2048'],
             'notes' => ['nullable', 'string'],
-            'travel_mode' => ['nullable', Rule::in(['TRANSIT', 'WALK', 'DRIVE'])],
+            'travel_mode' => ['nullable', Rule::in(['NONE', 'TRANSIT', 'WALK', 'DRIVE'])],
         ]);
     }
 
@@ -228,7 +228,7 @@ class LessonPlansController extends Controller
             'meeting_url' => ['nullable', 'url', 'max:2048'],
             'notes_url' => ['nullable', 'url', 'max:2048'],
             'notes' => ['nullable', 'string'],
-            'travel_mode' => ['nullable', Rule::in(['TRANSIT', 'WALK', 'DRIVE'])],
+            'travel_mode' => ['nullable', Rule::in(['NONE', 'TRANSIT', 'WALK', 'DRIVE'])],
         ]);
     }
 

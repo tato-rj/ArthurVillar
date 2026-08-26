@@ -33,6 +33,7 @@ class EventTest extends BaseTest
             ->assertSee('name="state"', false)
             ->assertSee('name="postal_code"', false)
             ->assertSee('name="travel_mode"', false)
+            ->assertSee('No directions')
             ->assertSee('Public transit')
             ->assertSee('Walking')
             ->assertSee('Driving')

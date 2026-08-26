@@ -27,7 +27,9 @@ class TravelRoutesController extends Controller
         $arrivalAt = CarbonImmutable::parse($data['arrival_at'], config('calendar.timezone'));
         $now = CarbonImmutable::now(config('calendar.timezone'));
 
-        if ($arrivalAt->lte($now) || $arrivalAt->gt($now->addDays(100))) {
+        if (($data['travel_mode'] ?? null) === 'NONE'
+            || $arrivalAt->lte($now)
+            || $arrivalAt->gt($now->addDays(100))) {
             return response()->noContent();
         }
 
@@ -79,7 +81,10 @@ class TravelRoutesController extends Controller
         $now = CarbonImmutable::now(config('calendar.timezone'));
         $home = $originFinder->home();
 
-        if (! $home || $departureAt->lte($now) || $departureAt->gt($now->addDays(100))) {
+        if (($data['travel_mode'] ?? null) === 'NONE'
+            || ! $home
+            || $departureAt->lte($now)
+            || $departureAt->gt($now->addDays(100))) {
             return response()->noContent();
         }
 

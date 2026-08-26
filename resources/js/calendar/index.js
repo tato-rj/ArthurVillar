@@ -3432,6 +3432,10 @@ const getTravelDestination = function(event) {
 };
 
 const getTravelRouteRequestDetails = function(event) {
+    if (String(event && event.travelMode || '').toUpperCase() === 'NONE') {
+        return null;
+    }
+
     const destination = getTravelDestination(event);
     const startAt = getEventStartDateTime(event);
     const isCanceled = event && (event.calendarStatus === 'canceled' || event.lessonStatus === 'canceled');
@@ -3834,6 +3838,10 @@ const clearScheduleItemReturnHomeTravel = function(item, event) {
 };
 
 const getReturnHomeTravelRouteRequestDetails = function(item, event) {
+    if (String(event && event.travelMode || '').toUpperCase() === 'NONE') {
+        return null;
+    }
+
     const origin = getTravelDestination(event);
     const home = window.calendarHomeLocation;
     const homeAddress = physicalLocationQuery(home);

@@ -59,6 +59,7 @@ class Event extends BaseModel
     public static function travelModeOptions(): array
     {
         return [
+            'NONE' => 'No directions',
             'TRANSIT' => 'Public transit',
             'WALK' => 'Walking',
             'DRIVE' => 'Driving',

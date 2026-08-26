@@ -1844,6 +1844,34 @@ class CalendarLessonFlowTest extends BaseTest
         $this->assertSame('WALK', $payload['occurrences'][0]['travel_mode']);
     }
 
+    /** @test */
+    public function calendar_payload_preserves_disabled_directions_for_lessons()
+    {
+        $lessonPlan = LessonPlan::factory()->create([
+            'weekday' => 4,
+            'start_time' => '15:30',
+            'starts_on' => '2026-07-01',
+            'ends_on' => '2026-07-31',
+            'travel_mode' => 'NONE',
+        ]);
+        $singleLessonPlan = SingleLessonPlan::factory()->create([
+            'scheduled_date' => '2026-07-15',
+            'travel_mode' => 'NONE',
+        ]);
+
+        $recurringPayload = app(Scheduler::class)->plannedLessons([
+            'start' => '2026-07-01',
+            'end' => '2026-07-31',
+        ])->firstWhere('id', $lessonPlan->id);
+        $singlePayload = app(Scheduler::class)->singleLessonPlans([
+            'start' => '2026-07-01',
+            'end' => '2026-07-31',
+        ])->firstWhere('id', $singleLessonPlan->id);
+
+        $this->assertSame(['NONE'], collect($recurringPayload['occurrences'])->pluck('travel_mode')->unique()->values()->all());
+        $this->assertSame('NONE', $singlePayload['occurrences'][0]['travel_mode']);
+    }
+
     private function lessonPlanPayload(array $overrides = [])
     {
         return array_merge([
