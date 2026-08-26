@@ -97,6 +97,21 @@
 @include('calendar.tables.state')
 <script>
 $(function() {
+    const showLessonRecordModal = function(modal) {
+        if (!modal) {
+            return;
+        }
+
+        if (window.bootstrap && window.bootstrap.Modal && typeof window.bootstrap.Modal.getOrCreateInstance === 'function') {
+            window.bootstrap.Modal.getOrCreateInstance(modal).show();
+            return;
+        }
+
+        if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
+            window.jQuery(modal).modal('show');
+        }
+    };
+
     const selectedFilterValues = function(selector) {
         const values = Array.from(document.querySelectorAll(selector))
             .filter(function(input) {
@@ -462,7 +477,7 @@ $(function() {
                 const container = document.getElementById('edit-lesson-record-modal-container');
 
                 container.innerHTML = html;
-                showModal(container.querySelector('.modal'));
+                showLessonRecordModal(container.querySelector('.modal'));
             })
             .catch(function(error) {
                 console.error(error);

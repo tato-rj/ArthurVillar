@@ -152,6 +152,7 @@ class LessonRecordsTableTest extends BaseTest
             ->assertSee('<th>Actions</th>', false)
             ->assertSee('data-pay-lesson', false)
             ->assertSee('js-edit-lesson-record', false)
+            ->assertSee('showLessonRecordModal', false)
             ->assertSee('Edit lesson record')
             ->assertSee('Delete lesson record');
 
