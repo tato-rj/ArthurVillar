@@ -7397,8 +7397,8 @@ document.addEventListener('DOMContentLoaded', function() {
     let scheduleHoldNavigationSuppressedUntil = 0;
     let pendingEventCopySequence = 0;
     let scheduleHeaderRenderTimer = null;
-    const scheduleHoldEdgeNavigationDelay = 1000;
-    const scheduleHoldTouchEdgeInset = 24;
+    const scheduleHoldEdgeNavigationDelay = 800;
+    const scheduleHoldTouchEdgeInset = 48;
 
     const isScheduleHoldNavigationSuppressed = function() {
         return Boolean(scheduleItemHold && scheduleItemHold.active)
