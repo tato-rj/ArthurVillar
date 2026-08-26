@@ -173,10 +173,6 @@ class Scheduler
             return $this->occurrenceKey($date, $startTime);
         });
 
-        if ($endsOn && $endsOn->lt($start)) {
-            return $occurrences;
-        }
-
         if ($occurrence->lt($start)) {
             $daysUntilRange = $occurrence->diffInDays($start, false);
             $intervalsToSkip = intdiv(max(0, $daysUntilRange), $intervalDays);

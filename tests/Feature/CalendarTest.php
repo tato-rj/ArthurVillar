@@ -405,4 +405,39 @@ class CalendarTest extends BaseTest
 
         Carbon::setTestNow();
     }
+
+    /** @test */
+    public function rescheduled_lessons_show_in_narrow_views_after_the_lesson_plan_has_ended()
+    {
+        $lessonPlan = LessonPlan::factory()->student($this->student)->create([
+            'weekday' => 4,
+            'start_time' => '15:30',
+            'duration_minutes' => 45,
+            'starts_on' => '2026-07-01',
+            'ends_on' => '2026-07-08',
+            'recurrence_interval' => 1,
+        ]);
+
+        ScheduleOverride::factory()->lessonPlan($lessonPlan)->create([
+            'original_date' => '2026-07-08',
+            'original_start_time' => '15:30',
+            'new_date' => '2026-07-09',
+            'new_start_time' => '16:00',
+            'duration_minutes' => 45,
+        ]);
+
+        $this->signIn();
+
+        foreach (['day', '2-days'] as $view) {
+            $this->getJson(route('calendar.home', [
+                'view' => $view,
+                'date' => '2026-07-09',
+                'lesson_plans' => 1,
+            ]))
+                ->assertOk()
+                ->assertJsonPath('plannedLessons.0.occurrences.0.date', '2026-07-09')
+                ->assertJsonPath('plannedLessons.0.occurrences.0.start', '16:00')
+                ->assertJsonPath('plannedLessons.0.occurrences.0.calendar_status', 'rescheduled');
+        }
+    }
 }
