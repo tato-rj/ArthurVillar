@@ -3932,7 +3932,9 @@ const renderScheduleItemTravel = function(item, event, route, cacheKey, options)
     const extension = document.createElement('div');
     const icon = document.createElement('i');
     const label = document.createElement('span');
-    const travelMode = String(route.mode || '').toUpperCase();
+    const travelMode = String(
+        (options && options.travelMode) || route.mode || ''
+    ).toUpperCase();
     const travelIcon = travelMode === 'TRANSIT'
         ? 'fa-train-subway'
         : (travelMode === 'DRIVE' ? 'fa-car' : 'fa-person-walking');
@@ -4051,6 +4053,7 @@ const patchScheduleItemReturnHomeTravel = function(item, event) {
                 {
                     placement: { item, position: 'after' },
                     preserveItemState: true,
+                    travelMode: event.travelMode || 'TRANSIT',
                 }
             );
             item.dataset.returnHomeTravelRouteState = 'shown';

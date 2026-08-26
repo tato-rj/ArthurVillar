@@ -7551,7 +7551,7 @@ var renderScheduleItemTravel = function renderScheduleItemTravel(item, event, ro
   var extension = document.createElement('div');
   var icon = document.createElement('i');
   var label = document.createElement('span');
-  var travelMode = String(route.mode || '').toUpperCase();
+  var travelMode = String(options && options.travelMode || route.mode || '').toUpperCase();
   var travelIcon = travelMode === 'TRANSIT' ? 'fa-train-subway' : travelMode === 'DRIVE' ? 'fa-car' : 'fa-person-walking';
   clearScheduleItemTravel(item, event, {
     preserveItemState: Boolean(options && options.preserveItemState)
@@ -7638,7 +7638,8 @@ var patchScheduleItemReturnHomeTravel = function patchScheduleItemReturnHomeTrav
         item: item,
         position: 'after'
       },
-      preserveItemState: true
+      preserveItemState: true,
+      travelMode: event.travelMode || 'TRANSIT'
     });
     item.dataset.returnHomeTravelRouteState = 'shown';
   })["catch"](function (error) {

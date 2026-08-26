@@ -482,4 +482,47 @@ class TravelRouteTest extends BaseTest
             'duration_seconds' => 1800,
         ]);
     }
+
+    /** @test */
+    public function it_uses_the_events_walking_mode_for_the_return_home_route()
+    {
+        config(['calendar.google_routes.api_key' => 'test-key']);
+        $this->signIn();
+        TravelRoute::query()
+            ->where('event_key', 'return-home:general-event-51-2026-07-24')
+            ->delete();
+
+        Location::factory()->create([
+            'name' => 'Home',
+            'address' => '80 Erie St',
+            'city' => 'Jersey City',
+            'state' => 'NJ',
+        ]);
+        Http::fake([
+            'routes.googleapis.com/*' => Http::response([
+                'routes' => [[
+                    'duration' => '1200s',
+                    'distanceMeters' => 1600,
+                    'legs' => [['steps' => [[
+                        'travelMode' => 'WALK',
+                        'staticDuration' => '1200s',
+                    ]]]],
+                ]],
+            ]),
+        ]);
+
+        $this->postJson(route('calendar.travel-route.return-home'), [
+            'event_key' => 'general-event-51-2026-07-24',
+            'departure_at' => '2026-07-24T17:00:00',
+            'origin_address' => '100 Montgomery St, Jersey City, NJ',
+            'origin_label' => 'Montgomery Office',
+            'travel_mode' => 'WALK',
+        ])
+            ->assertOk()
+            ->assertJsonPath('route.mode', 'WALK')
+            ->assertJsonPath('route.steps.0.mode', 'WALK')
+            ->assertJsonPath('route.return_home', true);
+
+        Http::assertSent(fn (Request $request) => $request['travelMode'] === 'WALK');
+    }
 }
