@@ -7398,6 +7398,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let pendingEventCopySequence = 0;
     let scheduleHeaderRenderTimer = null;
     const scheduleHoldEdgeNavigationDelay = 1000;
+    const scheduleHoldTouchEdgeInset = 24;
 
     const isScheduleHoldNavigationSuppressed = function() {
         return Boolean(scheduleItemHold && scheduleItemHold.active)
@@ -9035,11 +9036,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         const bounds = schedule.getBoundingClientRect();
+        const edgeInset = hold.pointerType !== 'mouse' && isSidebarHiddenViewport()
+            ? Math.min(scheduleHoldTouchEdgeInset, bounds.width / 4)
+            : 0;
 
-        if (hold.lastX < bounds.left) {
+        if (hold.lastX <= bounds.left + edgeInset) {
             return -1;
         }
-        if (hold.lastX > bounds.right) {
+        if (hold.lastX >= bounds.right - edgeInset) {
             return 1;
         }
 
