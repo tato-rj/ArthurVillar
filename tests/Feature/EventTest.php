@@ -101,6 +101,22 @@ class EventTest extends BaseTest
         ]);
         $this->assertSame('2026-08-16', $event->fresh()->scheduled_date->toDateString());
 
+        $this->patch(route('calendar.events.update', $event), [
+            'name' => 'Dinner with friends',
+            'scheduled_date' => '2026-08-16',
+            'starts_at' => '19:00',
+            'ends_at' => '21:00',
+            'type' => 'Meeting',
+            'address' => '58 7th Ave',
+            'city' => 'Brooklyn',
+            'state' => 'NY',
+            'postal_code' => '11217',
+            'travel_mode' => 'NONE',
+            'notes' => 'Updated notes',
+        ])->assertRedirect();
+
+        $this->assertSame('NONE', $event->fresh()->travel_mode);
+
         $this->delete(route('calendar.events.destroy', $event))->assertRedirect();
         $this->assertDatabaseHas('events', ['id' => $event->id]);
         $this->assertNotNull($event->fresh()->canceled_at);

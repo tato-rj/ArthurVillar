@@ -3830,6 +3830,14 @@ const clearScheduleItemReturnHomeTravel = function(item, event) {
         return;
     }
 
+    item.querySelectorAll(':scope > .calendar-schedule-travel').forEach(function(extension) {
+        const route = getScheduleTravelExtensionRoute(extension);
+
+        if (route && route.return_home) {
+            removeScheduleTravelExtension(extension);
+        }
+    });
+
     clearScheduleItemTravel(item, getReturnHomeOwnerEvent(event), {
         preserveItemState: true,
     });

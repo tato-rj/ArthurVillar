@@ -7486,6 +7486,12 @@ var clearScheduleItemReturnHomeTravel = function clearScheduleItemReturnHomeTrav
   if (!item || !event) {
     return;
   }
+  item.querySelectorAll(':scope > .calendar-schedule-travel').forEach(function (extension) {
+    var route = getScheduleTravelExtensionRoute(extension);
+    if (route && route.return_home) {
+      removeScheduleTravelExtension(extension);
+    }
+  });
   clearScheduleItemTravel(item, getReturnHomeOwnerEvent(event), {
     preserveItemState: true
   });
