@@ -151,6 +151,8 @@ class LessonRecordsTableTest extends BaseTest
             ->assertDontSee('js-revert-canceled-lesson', false)
             ->assertSee('<th>Actions</th>', false)
             ->assertSee('data-pay-lesson', false)
+            ->assertSee('js-edit-lesson-record', false)
+            ->assertSee('Edit lesson record')
             ->assertSee('Delete lesson record');
 
         $response = $this->getJson(route('calendar.tables.lesson-records'))->assertOk();
@@ -290,5 +292,60 @@ class LessonRecordsTableTest extends BaseTest
             ->assertJsonPath('status', 'paid');
 
         $this->assertNotNull($lesson->fresh()->paid_at);
+    }
+
+    /** @test */
+    public function a_lesson_record_can_be_edited_without_changing_its_lesson_plan()
+    {
+        $student = Student::factory()->create([
+            'first_name' => 'Editable',
+            'last_name' => 'Record',
+        ]);
+        $lessonPlan = LessonPlan::factory()->student($student)->create([
+            'start_time' => '15:00',
+            'duration_minutes' => 45,
+            'fee_amount' => 6000,
+        ]);
+        $lesson = Lesson::factory()->lessonPlan($lessonPlan)->create([
+            'scheduled_date' => '2026-07-08',
+            'scheduled_start_time' => '15:00',
+            'starts_at' => '2026-07-08 15:00:00',
+            'ends_at' => '2026-07-08 15:45:00',
+            'fee_amount' => 6000,
+            'paid_at' => null,
+        ]);
+
+        $this->signIn();
+
+        $this->get(route('calendar.lessons.edit', $lesson))
+            ->assertOk()
+            ->assertSee('Edit lesson record')
+            ->assertSee('Editable Record')
+            ->assertSee('name="duration_minutes"', false);
+
+        $this->patch(route('calendar.lessons.update', $lesson), [
+            'date' => '2026-07-09',
+            'start_time' => '16:15',
+            'duration_minutes' => 60,
+            'fee_amount' => '75.50',
+            'status' => 'paid',
+            'paid_at' => '2026-07-10 12:30',
+            'payment_method' => 'Zelle',
+            'notes' => 'Corrected historical record.',
+        ])->assertSessionHasNoErrors();
+
+        $lesson->refresh();
+
+        $this->assertSame('2026-07-09', $lesson->scheduled_date->toDateString());
+        $this->assertSame('16:15', $lesson->scheduled_start_time);
+        $this->assertSame('2026-07-09 16:15:00', $lesson->starts_at->format('Y-m-d H:i:s'));
+        $this->assertSame('2026-07-09 17:15:00', $lesson->ends_at->format('Y-m-d H:i:s'));
+        $this->assertSame(7550, (int) $lesson->fee_amount);
+        $this->assertSame('2026-07-10 12:30:00', $lesson->paid_at->format('Y-m-d H:i:s'));
+        $this->assertSame('Zelle', $lesson->payment_method);
+        $this->assertSame('Corrected historical record.', $lesson->notes);
+        $this->assertSame('15:00', $lessonPlan->fresh()->start_time);
+        $this->assertSame(45, $lessonPlan->fresh()->duration_minutes);
+        $this->assertSame(6000, (int) $lessonPlan->fresh()->fee_amount);
     }
 }

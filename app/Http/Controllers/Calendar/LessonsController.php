@@ -336,7 +336,53 @@ class LessonsController extends Controller
 
     public function edit(Lesson $lesson)
     {
-        return $lesson;
+        $lesson->load('student');
+
+        return view('calendar.lessons.lessonRecords.edit', compact('lesson'));
+    }
+
+    public function update(Request $request, Lesson $lesson)
+    {
+        $data = $request->validate([
+            'date' => ['required', 'date_format:Y-m-d'],
+            'start_time' => ['required', 'date_format:H:i'],
+            'duration_minutes' => ['required', 'integer', 'min:1', 'max:1440'],
+            'fee_amount' => ['nullable', 'string'],
+            'status' => ['required', Rule::in(['unpaid', 'paid', 'canceled'])],
+            'paid_at' => ['nullable', 'date'],
+            'payment_method' => ['nullable', 'string', 'max:255'],
+            'canceled_at' => ['nullable', 'date'],
+            'canceled_by' => ['nullable', Rule::in(['student', 'teacher'])],
+            'notes' => ['nullable', 'string'],
+        ]);
+
+        $startsAt = Carbon::createFromFormat('Y-m-d H:i', $data['date'].' '.$data['start_time']);
+        $status = $data['status'];
+        $paidAt = $status === 'paid'
+            ? ($data['paid_at'] ?? $lesson->paid_at ?? now())
+            : null;
+        $canceledAt = $status === 'canceled'
+            ? ($data['canceled_at'] ?? $lesson->canceled_at ?? now())
+            : null;
+
+        $lesson->update([
+            'scheduled_date' => $data['date'],
+            'scheduled_start_time' => $data['start_time'],
+            'starts_at' => $startsAt,
+            'ends_at' => $startsAt->copy()->addMinutes((int) $data['duration_minutes']),
+            'fee_amount' => $lesson->student->payment_exempt
+                ? 0
+                : $this->feeAmount($data['fee_amount'] ?? null),
+            'paid_at' => $paidAt,
+            'payment_method' => $lesson->student->payment_exempt
+                ? null
+                : ($data['payment_method'] ?? null),
+            'canceled_at' => $canceledAt,
+            'canceled_by' => $status === 'canceled' ? ($data['canceled_by'] ?? null) : null,
+            'notes' => $data['notes'] ?? null,
+        ]);
+
+        return back()->with('success', 'The lesson record was successfully updated');
     }
 
     public function destroy(Lesson $lesson)
@@ -344,5 +390,12 @@ class LessonsController extends Controller
         $lesson->delete();
 
         return back()->with('success', 'The lesson record was successfully deleted');
+    }
+
+    private function feeAmount($value)
+    {
+        $value = preg_replace('/[^0-9.]/', '', (string) $value);
+
+        return $value === '' ? null : (int) round(((float) $value) * 100);
     }
 }

@@ -89,6 +89,7 @@
         </table>
     </div>
 </section>
+<div id="edit-lesson-record-modal-container"></div>
 @endsection
 
 @push('scripts')
@@ -355,6 +356,7 @@ $(function() {
                 searchable: false,
                 className: 'text-right',
                 render: function(data, type, row) {
+                    const editUrl = @json(route('calendar.lessons.edit', ['lesson' => '__lesson__'])).replace('__lesson__', data);
                     const deleteUrl = @json(route('calendar.lessons.destroy', ['lesson' => '__lesson__'])).replace('__lesson__', data);
                     const paymentUrl = @json(route('calendar.lessons.payment.store', ['lesson' => '__lesson__'])).replace('__lesson__', data);
                     const paidButton = row.status === 'Unpaid'
@@ -363,6 +365,9 @@ $(function() {
 
                     return `<div class="calendar-table-actions">
                         ${paidButton}
+                        <button type="button" class="btn btn-sm btn-warning rounded js-edit-lesson-record" data-url="${editUrl}" aria-label="Edit lesson record" title="Edit lesson record">
+                            @fa(['icon' => 'pen-to-square', 'mr' => 0])
+                        </button>
                         <form method="POST" action="${deleteUrl}" confirm>
                             @csrf
                             @method('DELETE')
@@ -427,6 +432,44 @@ $(function() {
                 button.disabled = false;
                 button.textContent = originalLabel;
                 window.alert(error.message);
+            });
+    });
+
+    $('#lesson-records-table').on('click', '.js-edit-lesson-record', function() {
+        const button = this;
+        const url = button.dataset.url;
+
+        if (!url) {
+            return;
+        }
+
+        button.disabled = true;
+
+        fetch(url, {
+            headers: {
+                'Accept': 'text/html',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        })
+            .then(function(response) {
+                if (!response.ok) {
+                    throw new Error('Unable to load lesson record form.');
+                }
+
+                return response.text();
+            })
+            .then(function(html) {
+                const container = document.getElementById('edit-lesson-record-modal-container');
+
+                container.innerHTML = html;
+                showModal(container.querySelector('.modal'));
+            })
+            .catch(function(error) {
+                console.error(error);
+                window.alert(error.message);
+            })
+            .finally(function() {
+                button.disabled = false;
             });
     });
 

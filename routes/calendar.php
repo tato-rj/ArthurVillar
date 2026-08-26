@@ -216,6 +216,7 @@ Route::prefix('lessons')->name('lessons.')->group(function() {
 
 	Route::prefix('{lesson}')->group(function() {
 		Route::get('', 'LessonsController@edit')->name('edit');
+		Route::patch('', 'LessonsController@update')->name('update');
 		Route::delete('', 'LessonsController@destroy')->name('destroy');
 
 		Route::prefix('payments')->name('payment.')->group(function() {
