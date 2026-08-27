@@ -37,7 +37,7 @@
 	<div class="bg-blue" hidden></div>
 </div>
 
-<section class="calendar-calendar container-fluid pb-3">
+<section class="calendar-calendar container-fluid py-3">
 	<div class="calendar-calendar-body">
 		@include('calendar.calendar.sidebar')
 		@include('calendar.calendar.main')

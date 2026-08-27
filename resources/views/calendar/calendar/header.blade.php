@@ -16,7 +16,7 @@
 				</button>
 			</div>
 
-			<div class="calendar-calendar-toolbar-pane calendar-calendar-toolbar-pane-settings position-relative">
+			<div class="calendar-calendar-toolbar-pane calendar-calendar-toolbar-pane-settings">
 				<button type="button" class="btn-raw calendar-calendar-icon-button calendar-calendar-header-control calendar-calendar-toolbar-toggle calendar-calendar-toolbar-toggle-back" data-calendar-mobile-toolbar-controls aria-label="Show calendar controls">
 					@fa(['icon' => 'arrow-right-to-bracket', 'mr' => 0])
 				</button>
