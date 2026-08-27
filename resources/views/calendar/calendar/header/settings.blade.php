@@ -106,6 +106,12 @@
 						@endforeach
 					@endselect
 				</div>
+
+				@select(['label' => 'Week starts on', 'icon' => 'calendar-week', 'name' => 'calendar_week_starts_on', 'id' => 'calendar-week-starts-on'])
+					@foreach($calendarWeekStartOptions as $weekStart => $weekStartLabel)
+						<option value="{{$weekStart}}" {{iftrue($selectedCalendarWeekStart === $weekStart, 'selected')}}>{{$weekStartLabel}}</option>
+					@endforeach
+				@endselect
 			</section>
 
 			<section class="calendar-settings-section" aria-labelledby="settings-appearance-title">

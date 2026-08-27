@@ -17,6 +17,7 @@ class SettingsController extends Controller
             'calendar_show_travel_times' => ['required', 'boolean'],
             'calendar_default_desktop_view' => ['required', Rule::in(['schedule', 'day', '2-days', 'week', 'month'])],
             'calendar_default_mobile_view' => ['required', Rule::in(['schedule', 'day', '2-days', 'week', 'month'])],
+            'calendar_week_starts_on' => ['required', Rule::in(['saturday', 'sunday', 'monday'])],
             'unconfirmed_lesson_color' => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'unpaid_lesson_color' => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'paid_lesson_color' => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
@@ -59,6 +60,12 @@ class SettingsController extends Controller
         Settings::setValue(
             'calendar.default_mobile_view',
             $request->input('calendar_default_mobile_view'),
+            Settings::TYPE_STRING
+        );
+
+        Settings::setValue(
+            'calendar.week_starts_on',
+            $request->input('calendar_week_starts_on'),
             Settings::TYPE_STRING
         );
 

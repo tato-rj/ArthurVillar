@@ -92,7 +92,12 @@ const compactDayFormatter = new Intl.DateTimeFormat('en', {
 });
 
 const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const monthWeekdays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+const calendarWeekStartDay = [0, 1, 6].includes(Number(window.calendarWeekStartDay))
+    ? Number(window.calendarWeekStartDay)
+    : 0;
+const monthWeekdays = Array.from({ length: 7 }, function(_, index) {
+    return weekdays[(calendarWeekStartDay + index) % 7].toUpperCase();
+});
 const calendarViews = ['schedule', 'day', '2-days', 'week', 'month'];
 const scheduleStart = '06:00';
 const scheduleEnd = '23:00';
@@ -637,11 +642,15 @@ const getDateRangeDates = function(range) {
 
 const getScheduleValue = function() {
     if (state.view === '2-days') {
-        return toDateString(addDays(getTwoDaysBackingStart(), 1));
+        return toDateString(addDays(getNativeWeekStart(state.date), 1));
     }
 
-    if (state.view === 'week' && isValidDate(state.scheduleWindowStart)) {
-        return toDateString(addDays(startOfWeek(state.scheduleWindowStart), 1));
+    if (state.view === 'week') {
+        const referenceDate = isValidDate(state.scheduleWindowStart)
+            ? state.scheduleWindowStart
+            : state.date;
+
+        return toDateString(addDays(getNativeWeekStart(referenceDate), 1));
     }
 
     if (scheduleGridViews.includes(state.view)) {
@@ -1302,14 +1311,15 @@ const getScheduleRenderEvents = function() {
         return !(event.allDay && event.externalProvider === 'google');
     });
 
-    if (state.view !== '2-days' && !(state.view === 'week' && isValidDate(state.scheduleWindowStart))) {
+    if (state.view !== '2-days' && state.view !== 'week') {
         return events;
     }
 
     const visibleDateStrings = getVisibleScheduleDates().map(toDateString);
-    const backingStart = state.view === '2-days'
-        ? getTwoDaysBackingStart()
-        : startOfWeek(state.scheduleWindowStart);
+    const backingReference = state.view === 'week' && isValidDate(state.scheduleWindowStart)
+        ? state.scheduleWindowStart
+        : state.date;
+    const backingStart = getNativeWeekStart(backingReference);
 
     return events
         .filter(isEventInsideVisibleRange)
@@ -6897,12 +6907,16 @@ const addMonths = function(date, months) {
 const startOfMonthGrid = function(date) {
     const start = createLocalDate(date.getFullYear(), date.getMonth(), 1);
 
-    start.setDate(start.getDate() - start.getDay());
+    start.setDate(start.getDate() - ((start.getDay() - calendarWeekStartDay + 7) % 7));
 
     return start;
 };
 
 const startOfWeek = function(date) {
+    return addDays(date, -((date.getDay() - calendarWeekStartDay + 7) % 7));
+};
+
+const getNativeWeekStart = function(date) {
     return addDays(date, -date.getDay());
 };
 

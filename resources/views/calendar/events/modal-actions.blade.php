@@ -26,13 +26,9 @@
             </div>
 
             <div class="calendar-date-picker-weekdays" aria-hidden="true">
-                <span>S</span>
-                <span>M</span>
-                <span>T</span>
-                <span>W</span>
-                <span>T</span>
-                <span>F</span>
-                <span>S</span>
+                @foreach($calendarWeekdayInitials as $weekdayInitial)
+                    <span>{{$weekdayInitial}}</span>
+                @endforeach
             </div>
 
             <div class="calendar-date-picker-grid" data-general-event-reschedule-datepicker-grid></div>

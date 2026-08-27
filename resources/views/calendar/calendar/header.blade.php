@@ -1,6 +1,6 @@
 	<div class="calendar-calendar-toolbar" aria-label="Calendar controls">
 		<div class="calendar-calendar-toolbar-track">
-			<div class="calendar-calendar-toolbar-pane calendar-calendar-toolbar-pane-controls">
+			<div class="calendar-calendar-toolbar-pane calendar-calendar-toolbar-pane-controls position-relative">
 				<div class="calendar-calendar-view-offcanvas-control">
 					<button data-bs-toggle="offcanvas" href="#calendar-offcanvas-views" class="btn btn-raw calendar-calendar-icon-button calendar-calendar-header-control">
 						@fa(['icon' => 'ellipsis-vertical', 'mr' => 0, 'fa_size' => 'xl'])
@@ -16,7 +16,7 @@
 				</button>
 			</div>
 
-			<div class="calendar-calendar-toolbar-pane calendar-calendar-toolbar-pane-settings">
+			<div class="calendar-calendar-toolbar-pane calendar-calendar-toolbar-pane-settings position-relative">
 				<button type="button" class="btn-raw calendar-calendar-icon-button calendar-calendar-header-control calendar-calendar-toolbar-toggle calendar-calendar-toolbar-toggle-back" data-calendar-mobile-toolbar-controls aria-label="Show calendar controls">
 					@fa(['icon' => 'arrow-right-to-bracket', 'mr' => 0])
 				</button>

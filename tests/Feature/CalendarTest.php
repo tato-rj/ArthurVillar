@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use Carbon\Carbon;
 use Tests\BaseTest;
 use App\Calendar\Scheduler;
-use App\Models\Calendar\{Student, LessonPlan, Lesson, TeachingBreak, Holiday, Location, ScheduleOverride};
+use App\Models\Calendar\{Student, LessonPlan, Lesson, TeachingBreak, Holiday, Location, ScheduleOverride, Settings};
 
 class CalendarTest extends BaseTest
 {
@@ -43,6 +43,38 @@ class CalendarTest extends BaseTest
         ])->first();
 
         $this->assertSame('globe', $lessonPlan['location']['icon']);
+    }
+
+    /** @test */
+    public function calendar_ranges_follow_the_selected_beginning_of_the_week()
+    {
+        Settings::setValue('calendar.week_starts_on', 'monday');
+
+        $mondayRange = app(Scheduler::class)->range(request()->merge([
+            'view' => 'week',
+            'date' => '2026-08-27',
+        ]));
+
+        $this->assertSame('2026-08-24', $mondayRange['start']);
+        $this->assertSame('2026-08-30', $mondayRange['end']);
+
+        Settings::setValue('calendar.week_starts_on', 'saturday');
+
+        $saturdayRange = app(Scheduler::class)->range(request()->replace([
+            'view' => 'week',
+            'date' => '2026-08-27',
+        ]));
+
+        $this->assertSame('2026-08-22', $saturdayRange['start']);
+        $this->assertSame('2026-08-28', $saturdayRange['end']);
+
+        $saturdayMonthRange = app(Scheduler::class)->range(request()->replace([
+            'view' => 'month',
+            'date' => '2026-08-27',
+        ]));
+
+        $this->assertSame('2026-08-01', $saturdayMonthRange['start']);
+        $this->assertSame('2026-09-11', $saturdayMonthRange['end']);
     }
 
     /** @test */

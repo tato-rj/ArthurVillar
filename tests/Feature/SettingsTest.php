@@ -14,13 +14,16 @@ class SettingsTest extends BaseTest
 
         $this->get(route('calendar.home'))
             ->assertOk()
-            ->assertSeeInOrder(['View options', 'Show calendar insights', 'Show holidays', 'Show travel times', 'Show cancelled lessons', 'Calendar initial view', 'fa-desktop', 'fa-mobile', 'Appearance', 'Unconfirmed lessons'])
+            ->assertSeeInOrder(['View options', 'Show calendar insights', 'Show holidays', 'Show travel times', 'Show cancelled lessons', 'Calendar options', 'fa-desktop', 'fa-mobile', 'Week starts on', 'Appearance', 'Unconfirmed lessons'])
             ->assertDontSee('Display options')
             ->assertSee('fa-desktop', false)
             ->assertSee('fa-mobile', false)
             ->assertSee('form-select-icon', false)
             ->assertSee('<option value="week" selected>Week</option>', false)
             ->assertSee('<option value="2-days" selected>2 Days</option>', false)
+            ->assertSee('<option value="sunday" selected>Sunday</option>', false)
+            ->assertSee('Saturday')
+            ->assertSee('Monday')
             ->assertDontSee('on desktop')
             ->assertDontSee('on mobile')
             ->assertDontSee('Desktop calendar view')
@@ -83,6 +86,7 @@ class SettingsTest extends BaseTest
                 'calendar_show_travel_times' => false,
                 'calendar_default_desktop_view' => 'month',
                 'calendar_default_mobile_view' => 'day',
+                'calendar_week_starts_on' => 'monday',
                 'unconfirmed_lesson_color' => '#3057D5',
                 'unpaid_lesson_color' => '#AA0000',
                 'paid_lesson_color' => '#00AA00',
@@ -121,6 +125,11 @@ class SettingsTest extends BaseTest
         $this->assertDatabaseHas('settings', [
             'key' => 'calendar.default_mobile_view',
             'value' => 'day',
+            'type' => Settings::TYPE_STRING,
+        ]);
+        $this->assertDatabaseHas('settings', [
+            'key' => 'calendar.week_starts_on',
+            'value' => 'monday',
             'type' => Settings::TYPE_STRING,
         ]);
         $this->assertDatabaseHas('settings', [
@@ -216,6 +225,25 @@ class SettingsTest extends BaseTest
             ->assertOk()
             ->assertSee('window.calendarDefaultDesktopCalendarView = "month";', false)
             ->assertSee('window.calendarDefaultMobileCalendarView = "day";', false);
+    }
+
+    /** @test */
+    public function the_selected_week_start_is_exposed_to_the_calendar()
+    {
+        $this->signIn();
+        Settings::setValue('calendar.week_starts_on', 'monday');
+
+        $this->get(route('calendar.home'))
+            ->assertOk()
+            ->assertSee('window.calendarWeekStartDay = 1;', false)
+            ->assertSee('<option value="monday" selected>Monday</option>', false);
+
+        Settings::setValue('calendar.week_starts_on', 'saturday');
+
+        $this->get(route('calendar.home'))
+            ->assertOk()
+            ->assertSee('window.calendarWeekStartDay = 6;', false)
+            ->assertSee('<option value="saturday" selected>Saturday</option>', false);
     }
 
     /** @test */

@@ -35,6 +35,7 @@ class CalendarServiceProvider extends ServiceProvider
                 'calendar.show_travel_times' => true,
                 'calendar.default_desktop_view' => 'week',
                 'calendar.default_mobile_view' => '2-days',
+                'calendar.week_starts_on' => 'sunday',
                 'appearance.unconfirmed_lesson_color' => '#6b7280',
                 'appearance.unpaid_lesson_color' => '#ff4b4b',
                 'appearance.paid_lesson_color' => '#58cc02',
@@ -73,6 +74,18 @@ class CalendarServiceProvider extends ServiceProvider
             $canceledLessonColor = $value('appearance.canceled_lesson_color');
             $generalEventColor = $value('appearance.general_event_color');
             $googleEventColor = $value('appearance.google_event_color');
+            $selectedCalendarWeekStart = old('calendar_week_starts_on', $value('calendar.week_starts_on'));
+            $calendarWeekStartOptions = [
+                'saturday' => 'Saturday',
+                'sunday' => 'Sunday',
+                'monday' => 'Monday',
+            ];
+            $weekdayInitials = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+            $weekdayStartIndex = ['sunday' => 0, 'monday' => 1, 'saturday' => 6][$selectedCalendarWeekStart] ?? 0;
+            $calendarWeekdayInitials = array_merge(
+                array_slice($weekdayInitials, $weekdayStartIndex),
+                array_slice($weekdayInitials, 0, $weekdayStartIndex)
+            );
             $googleCalendarConnections = auth()->check()
                 ? GoogleCalendarConnection::query()
                     ->where('user_id', auth()->id())
@@ -88,6 +101,9 @@ class CalendarServiceProvider extends ServiceProvider
                 'defaultMobileCalendarView' => $value('calendar.default_mobile_view'),
                 'selectedDesktopCalendarView' => old('calendar_default_desktop_view', $value('calendar.default_desktop_view')),
                 'selectedMobileCalendarView' => old('calendar_default_mobile_view', $value('calendar.default_mobile_view')),
+                'selectedCalendarWeekStart' => $selectedCalendarWeekStart,
+                'calendarWeekStartOptions' => $calendarWeekStartOptions,
+                'calendarWeekdayInitials' => $calendarWeekdayInitials,
                 'calendarViewOptions' => $calendarViewOptions,
                 'unconfirmedLessonColor' => $unconfirmedLessonColor,
                 'unpaidLessonColor' => $unpaidLessonColor,

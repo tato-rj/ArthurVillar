@@ -33,10 +33,12 @@ td, th {white-space: nowrap;}
     align-content: start;
     display: grid;
     gap: 1.5rem;
-    padding-top: .3rem;
+    padding-top: 18px;
 }
 
-.calendar-calendar-main {
+.calendar-calendar-main {    padding-top: 12px;
+    padding-bottom: 12px;
+    height: 62px;
     min-width: 0;
 }
 
@@ -44,7 +46,9 @@ td, th {white-space: nowrap;}
     align-items: center;
     display: flex;
     gap: 1rem;
-    margin-bottom: 12px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    // margin-bottom: 12px;
 }
 
 .calendar-calendar-toolbar-track,
@@ -135,6 +139,17 @@ button.calendar-calendar-toolbar-toggle {
 .calendar-calendar-nav {
     align-items: center;
     display: flex;
+}
+
+.app-menu-container {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    height: 62px;
+
+    .navbar-toggler {
+        vertical-align: middle;
+        height: 100%;
+    }
 }
 
 .calendar-calendar-label {
@@ -2455,6 +2470,7 @@ button.single-lesson-plan-create[selected] i {
         box-sizing: border-box;
         gap: 0;
         overflow: hidden;
+        position: relative;
         padding-right: 0 !important;
         padding-left: 0 !important;
         width: 100%;
@@ -2526,13 +2542,31 @@ button.single-lesson-plan-create[selected] i {
 
     button.calendar-calendar-toolbar-toggle {
         display: inline-flex;
-        margin-left: auto;
-        margin-right: .5rem;
+        // margin-left: auto;
+        // margin-right: .5rem;
+        position: absolute;
+        top: 0;
+        right: 0;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.1);
+        width: 44px;
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
     }
 
     .calendar-calendar-toolbar-toggle-back {
-        margin-left: .5rem !important;
-        margin-right: auto;
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.1);
+        width: 44px;
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+        border-top-right-radius: 999px !important;
+        border-bottom-right-radius: 999px !important;
+        // margin-left: .5rem !important;
+        // margin-right: auto;
 
         i {transform: scaleX(-1)}
     }

@@ -37,7 +37,7 @@
 	<div class="bg-blue" hidden></div>
 </div>
 
-<section class="calendar-calendar container-fluid py-3">
+<section class="calendar-calendar container-fluid pb-3">
 	<div class="calendar-calendar-body">
 		@include('calendar.calendar.sidebar')
 		@include('calendar.calendar.main')
@@ -68,6 +68,7 @@ window.calendarBirthdayWindow = @json($birthdayWindow);
 window.calendarShowHolidays = @json($showHolidays);
 window.calendarDefaultDesktopCalendarView = @json($defaultDesktopCalendarView);
 window.calendarDefaultMobileCalendarView = @json($defaultMobileCalendarView);
+window.calendarWeekStartDay = @json(['sunday' => 0, 'monday' => 1, 'saturday' => 6][$selectedCalendarWeekStart] ?? 0);
 window.calendarLocations = @json($locations->map(fn ($location) => [
 	'id' => $location->id,
 	'name' => $location->name,

@@ -10,6 +10,7 @@ use App\Models\Calendar\GoogleCalendarEvent;
 use App\Models\Calendar\LessonPlan;
 use App\Models\Calendar\Recital;
 use App\Models\Calendar\SingleLessonPlan;
+use App\Models\Calendar\Settings;
 use App\Models\Calendar\Student;
 use App\Models\Calendar\TeachingBreak;
 use Carbon\Carbon;
@@ -561,14 +562,23 @@ class Scheduler
             $start = $date->copy()->startOfMonth()->subMonth();
             $end = $date->copy()->startOfMonth()->addMonths(4)->endOfMonth();
         } elseif ($view === 'month') {
-            $start = $date->copy()->startOfMonth()->startOfWeek(Carbon::SUNDAY);
+            $start = $date->copy()->startOfMonth()->startOfWeek($this->weekStartDay());
             $end = $start->copy()->addDays(41);
         } else {
-            $start = $date->copy()->startOfWeek(Carbon::SUNDAY);
+            $start = $date->copy()->startOfWeek($this->weekStartDay());
             $end = $start->copy()->addDays(6);
         }
 
         return $this->rangePayload($view, $date, $start, $end);
+    }
+
+    private function weekStartDay(): int
+    {
+        return match (Settings::getValue('calendar.week_starts_on', 'sunday')) {
+            'saturday' => Carbon::SATURDAY,
+            'monday' => Carbon::MONDAY,
+            default => Carbon::SUNDAY,
+        };
     }
 
     public function view(Request $request)
