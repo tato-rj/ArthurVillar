@@ -6302,7 +6302,7 @@ var getGeneralEventCalendarEvents = function getGeneralEventCalendarEvents() {
     }
     var isGoogleEvent = generalEvent.external_provider === 'google';
     var eventType = isGoogleEvent ? 'google' : 'general';
-    if (isGoogleEvent && !['accepted', 'needsAction'].includes(generalEvent.response_status)) {
+    if (isGoogleEvent && !['accepted', 'tentative', 'needsAction'].includes(generalEvent.response_status)) {
       return false;
     }
     return state.selectedEventTypes.includes(eventType);

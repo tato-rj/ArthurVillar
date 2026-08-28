@@ -478,6 +478,10 @@ class GoogleCalendarSyncTest extends BaseTest
             $this->storedMeetingAttributes('declined-event'),
             ['response_status' => 'declined']
         ));
+        $tentativeEvent = $connection->events()->create(array_replace(
+            $this->storedMeetingAttributes('tentative-event'),
+            ['response_status' => 'tentative']
+        ));
         $oldEvent = $connection->events()->create(array_replace(
             $this->storedMeetingAttributes('old-remote-event'),
             [
@@ -494,6 +498,7 @@ class GoogleCalendarSyncTest extends BaseTest
         ], $user->id);
         $googleEvent = $calendarEvents->firstWhere('id', 'google-'.$event->id);
         $googleAllDayEvent = $calendarEvents->firstWhere('id', 'google-'.$allDayEvent->id);
+        $googleTentativeEvent = $calendarEvents->firstWhere('id', 'google-'.$tentativeEvent->id);
 
         $this->assertNotNull($googleEvent);
         $this->assertSame('arthur@example.com', $googleEvent['event_type']);
@@ -511,6 +516,8 @@ class GoogleCalendarSyncTest extends BaseTest
         $this->assertSame('2026-08-12', $googleAllDayEvent['scheduled_date']);
         $this->assertSame('00:00', $googleAllDayEvent['starts_at']);
         $this->assertSame('23:45', $googleAllDayEvent['ends_at']);
+        $this->assertNotNull($googleTentativeEvent);
+        $this->assertSame('tentative', $googleTentativeEvent['response_status']);
         $this->assertNull($calendarEvents->firstWhere('id', 'google-'.$declinedEvent->id));
         $this->assertNull($calendarEvents->firstWhere('id', 'google-'.$oldEvent->id));
     }

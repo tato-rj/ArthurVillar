@@ -2210,7 +2210,7 @@ const getGeneralEventCalendarEvents = function() {
             const isGoogleEvent = generalEvent.external_provider === 'google';
             const eventType = isGoogleEvent ? 'google' : 'general';
 
-            if (isGoogleEvent && !['accepted', 'needsAction'].includes(generalEvent.response_status)) {
+            if (isGoogleEvent && !['accepted', 'tentative', 'needsAction'].includes(generalEvent.response_status)) {
                 return false;
             }
 

@@ -131,7 +131,7 @@ class GoogleCalendarController extends Controller
         abort_unless($connection && $connection->user_id === $request->user()->id, 404);
 
         $validated = $request->validate([
-            'response_status' => ['required', 'in:accepted,declined'],
+            'response_status' => ['required', 'in:accepted,tentative,declined'],
         ]);
 
         try {
