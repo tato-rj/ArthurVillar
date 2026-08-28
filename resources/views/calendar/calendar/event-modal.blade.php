@@ -26,7 +26,7 @@
         <div class="alert alert-danger small mb-3" data-lesson-action-error hidden></div>
     </div>
 
-    <div data-event-modal-section="general" data-event-modal-expanded-content hidden>
+    <div data-event-modal-section="general" hidden>
         <div class="alert alert-danger small mb-3" data-general-event-action-error hidden></div>
     </div>
 
@@ -84,6 +84,20 @@
         <div class="calendar-modal-detail" data-event-modal-section="general" hidden>
             @fa(['icon' => 'bell', 'mr' => 0, 'classes' => 'calendar-modal-detail-icon'])
             <span id="general-event-notification"></span>
+        </div>
+    </div>
+
+    <div class="border-top pt-3 mt-3" data-google-event-response-section hidden>
+        <div class="d-flex align-items-center justify-content-between">
+            <span class="small font-weight-bold">Going?</span>
+            <div class="btn-group" role="group" aria-label="Respond to Google Calendar invitation">
+                <button type="button" class="btn btn-sm btn-outline-dark" data-google-event-response="accepted">
+                    @fa(['icon' => 'check'])Yes
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-dark" data-google-event-response="declined">
+                    @fa(['icon' => 'xmark'])No
+                </button>
+            </div>
         </div>
     </div>
 </div>

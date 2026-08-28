@@ -4,10 +4,13 @@ namespace App\Http\Controllers\Calendar;
 
 use App\Http\Controllers\Controller;
 use App\Models\Calendar\GoogleCalendarConnection;
+use App\Models\Calendar\GoogleCalendarEvent;
 use App\Services\GoogleCalendarClient;
 use App\Services\GoogleCalendarSync;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use RuntimeException;
 use Throwable;
 
 class GoogleCalendarController extends Controller
@@ -116,6 +119,62 @@ class GoogleCalendarController extends Controller
             'success',
             "{$connection->calendar_name} synchronized ({$changes} changes received)."
         );
+    }
+
+    public function respond(
+        Request $request,
+        GoogleCalendarEvent $event,
+        GoogleCalendarClient $client
+    ) {
+        $connection = $event->calendarConnection;
+
+        abort_unless($connection && $connection->user_id === $request->user()->id, 404);
+
+        $validated = $request->validate([
+            'response_status' => ['required', 'in:accepted,declined'],
+        ]);
+
+        try {
+            $googleEvent = $client->respondToEvent(
+                $connection,
+                $event,
+                $validated['response_status']
+            );
+        } catch (RequestException $exception) {
+            report($exception);
+
+            $message = $exception->response->status() === 403
+                ? 'Reconnect this Google account in Settings to allow event responses, then try again.'
+                : 'Google Calendar could not save your response. Please try again.';
+
+            return response()->json(['message' => $message], 422);
+        } catch (RuntimeException $exception) {
+            report($exception);
+
+            return response()->json(['message' => $exception->getMessage()], 422);
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return response()->json(['message' => 'Unable to save your Google Calendar response.'], 422);
+        }
+
+        $attendees = collect($event->attendees ?? [])->map(function (array $attendee) use ($validated) {
+            if (($attendee['self'] ?? false) === true) {
+                $attendee['responseStatus'] = $validated['response_status'];
+            }
+
+            return $attendee;
+        })->values()->all();
+
+        $event->update([
+            'attendees' => $attendees,
+            'response_status' => $validated['response_status'],
+            'google_updated_at' => $googleEvent['updated'] ?? $event->google_updated_at,
+        ]);
+
+        return response()->json([
+            'event' => $event->fresh()->load('calendarConnection')->calendarPayload(),
+        ]);
     }
 
     public function disconnect(Request $request, GoogleCalendarConnection $connection)

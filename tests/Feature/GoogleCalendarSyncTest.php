@@ -7,7 +7,7 @@ use App\Models\Calendar\GoogleCalendarConnection;
 use App\Models\Calendar\GoogleCalendarEvent;
 use App\Models\Calendar\Settings;
 use App\Services\GoogleCalendarSync;
-use Carbon\CarbonImmutable;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 use Tests\BaseTest;
 
@@ -25,7 +25,7 @@ class GoogleCalendarSyncTest extends BaseTest
     }
 
     /** @test */
-    public function it_redirects_to_google_with_offline_read_only_access_and_oauth_state()
+    public function it_redirects_to_google_with_offline_event_access_and_oauth_state()
     {
         $this->signIn();
 
@@ -41,11 +41,79 @@ class GoogleCalendarSyncTest extends BaseTest
         $this->assertSame('consent select_account', $query['prompt']);
         $this->assertArrayNotHasKey('login_hint', $query);
         $this->assertSame(
-            'openid profile https://www.googleapis.com/auth/calendar.calendars.readonly https://www.googleapis.com/auth/calendar.events.readonly',
+            'openid profile https://www.googleapis.com/auth/calendar.calendars.readonly https://www.googleapis.com/auth/calendar.events.owned',
             $query['scope']
         );
         $this->assertNotEmpty($query['state']);
         $this->assertSame($query['state'], session('google_calendar_oauth_state'));
+    }
+
+    /** @test */
+    public function it_responds_to_an_imported_google_invitation_for_the_connected_account()
+    {
+        $user = $this->signIn();
+        $connection = GoogleCalendarConnection::create([
+            'user_id' => $user->id,
+            'calendar_id' => 'arthur@example.com',
+            'calendar_name' => 'Arthur',
+            'access_token' => 'access-token',
+            'refresh_token' => 'refresh-token',
+            'token_expires_at' => now()->addHour(),
+        ]);
+        $event = $connection->events()->create(array_replace(
+            $this->storedMeetingAttributes('remote/event'),
+            [
+                'attendees' => [
+                    ['email' => 'arthur@example.com', 'self' => true, 'responseStatus' => 'needsAction'],
+                    ['email' => 'host@example.com', 'organizer' => true, 'responseStatus' => 'accepted'],
+                ],
+            ]
+        ));
+
+        Http::fake([
+            'https://www.googleapis.com/calendar/v3/calendars/*/events/*' => Http::response([
+                'id' => 'remote/event',
+                'updated' => '2026-08-28T15:00:00Z',
+            ]),
+        ]);
+
+        $this->patchJson(route('calendar.google-calendar.events.respond', $event), [
+            'response_status' => 'accepted',
+        ])->assertOk()
+            ->assertJsonPath('event.response_status', 'accepted');
+
+        $this->assertSame('accepted', $event->fresh()->response_status);
+        $this->assertSame('accepted', collect($event->fresh()->attendees)->firstWhere('self', true)['responseStatus']);
+
+        Http::assertSent(function ($request) {
+            return $request->method() === 'PATCH'
+                && str_contains($request->url(), '/calendars/arthur%40example.com/events/remote%2Fevent')
+                && $request['attendeesOmitted'] === true
+                && count($request['attendees']) === 1
+                && $request['attendees'][0]['email'] === 'arthur@example.com'
+                && $request['attendees'][0]['responseStatus'] === 'accepted';
+        });
+    }
+
+    /** @test */
+    public function it_does_not_allow_a_user_to_respond_to_another_users_google_invitation()
+    {
+        $owner = $this->signIn();
+        $connection = GoogleCalendarConnection::create([
+            'user_id' => $owner->id,
+            'calendar_id' => 'owner@example.com',
+            'calendar_name' => 'Owner',
+            'access_token' => 'access-token',
+        ]);
+        $event = $connection->events()->create($this->storedMeetingAttributes('private-event'));
+
+        $this->signIn();
+
+        $this->patchJson(route('calendar.google-calendar.events.respond', $event), [
+            'response_status' => 'declined',
+        ])->assertNotFound();
+
+        Http::assertNothingSent();
     }
 
     /** @test */
@@ -123,7 +191,7 @@ class GoogleCalendarSyncTest extends BaseTest
     /** @test */
     public function the_oauth_callback_connects_without_waiting_for_the_first_sync()
     {
-        CarbonImmutable::setTestNow('2026-07-21 12:00:00');
+        Carbon::setTestNow('2026-07-21 12:00:00');
         $user = $this->signIn();
         $state = 'valid-oauth-state';
 
@@ -163,7 +231,7 @@ class GoogleCalendarSyncTest extends BaseTest
 
         Http::assertNotSent(fn ($request) => str_contains($request->url(), '/events'));
 
-        CarbonImmutable::setTestNow();
+        Carbon::setTestNow();
     }
 
     /** @test */
@@ -247,7 +315,7 @@ class GoogleCalendarSyncTest extends BaseTest
     /** @test */
     public function sync_limits_recurring_occurrences_to_the_configured_month_horizon()
     {
-        CarbonImmutable::setTestNow('2026-07-21 12:00:00');
+        Carbon::setTestNow('2026-07-21 12:00:00');
         $user = $this->signIn();
         $connection = GoogleCalendarConnection::create([
             'user_id' => $user->id,
@@ -299,7 +367,7 @@ class GoogleCalendarSyncTest extends BaseTest
 
         $this->assertDatabaseHas('google_calendar_events', ['google_event_id' => 'far-recurring-event']);
 
-        CarbonImmutable::setTestNow();
+        Carbon::setTestNow();
     }
 
     /** @test */
@@ -432,6 +500,10 @@ class GoogleCalendarSyncTest extends BaseTest
         $this->assertSame('google', $googleEvent['event_type_icon']);
         $this->assertSame('https://calendar.google.com/event?eid=remote', $googleEvent['external_url']);
         $this->assertSame('needsAction', $googleEvent['response_status']);
+        $this->assertSame(
+            route('calendar.google-calendar.events.respond', $event),
+            $googleEvent['response_url']
+        );
         $this->assertTrue($googleEvent['read_only']);
         $this->assertSame('', $googleEvent['edit_url']);
         $this->assertNotNull($googleAllDayEvent);

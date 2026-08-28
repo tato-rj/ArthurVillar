@@ -150,6 +150,7 @@ class GoogleCalendarEvent extends BaseModel
             'external_url' => $this->safeUrl($this->html_link),
             'meeting_url' => $this->safeUrl($this->meeting_url),
             'response_status' => $this->response_status,
+            'response_url' => route('calendar.google-calendar.events.respond', $this),
             'organizer_name' => $this->organizer_name,
             'organizer_email' => $this->organizer_email,
             'location' => $this->location,

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Calendar\GoogleCalendarConnection;
+use App\Models\Calendar\GoogleCalendarEvent;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
@@ -13,7 +14,7 @@ class GoogleCalendarClient
     private const TOKEN_URL = 'https://oauth2.googleapis.com/token';
     private const API_URL = 'https://www.googleapis.com/calendar/v3';
     private const USER_INFO_URL = 'https://openidconnect.googleapis.com/v1/userinfo';
-    private const SCOPE = 'openid profile https://www.googleapis.com/auth/calendar.calendars.readonly https://www.googleapis.com/auth/calendar.events.readonly';
+    private const SCOPE = 'openid profile https://www.googleapis.com/auth/calendar.calendars.readonly https://www.googleapis.com/auth/calendar.events.owned';
 
     public function isConfigured(): bool
     {
@@ -75,6 +76,39 @@ class GoogleCalendarClient
             ->get(
                 self::API_URL.'/calendars/'.rawurlencode($connection->calendar_id).'/events',
                 $parameters
+            )
+            ->throw()
+            ->json();
+    }
+
+    public function respondToEvent(
+        GoogleCalendarConnection $connection,
+        GoogleCalendarEvent $event,
+        string $responseStatus
+    ): array {
+        $selfAttendee = collect($event->attendees ?? [])->firstWhere('self', true);
+
+        if (! $selfAttendee) {
+            throw new RuntimeException('This Google event no longer includes the connected account as an attendee.');
+        }
+
+        $attendeeEmail = $selfAttendee['email'] ?? null;
+
+        if (! $attendeeEmail) {
+            throw new RuntimeException('Google did not provide an email address for the connected attendee.');
+        }
+
+        return $this->request($this->accessToken($connection))
+            ->patch(
+                self::API_URL.'/calendars/'.rawurlencode($connection->calendar_id)
+                    .'/events/'.rawurlencode($event->google_event_id),
+                [
+                    'attendees' => [[
+                        'email' => $attendeeEmail,
+                        'responseStatus' => $responseStatus,
+                    ]],
+                    'attendeesOmitted' => true,
+                ]
             )
             ->throw()
             ->json();

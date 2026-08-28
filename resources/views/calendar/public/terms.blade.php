@@ -11,7 +11,7 @@
             @include('calendar.public.navigation')
 
             <h1 class="mb-2">Terms of Service</h1>
-            <p class="text-muted">Effective July 24, 2026</p>
+            <p class="text-muted">Effective August 28, 2026</p>
 
             <p>Studio Calendar is a private scheduling application created and operated by Arthur Villar for his own personal and professional organization. It is not offered to the public as a commercial product or service.</p>
 
@@ -19,7 +19,7 @@
             <p>No public account registration, subscription, purchase, or payment is offered through Studio Calendar. Access to its private scheduling features is limited to the owner and any access explicitly authorized by him.</p>
 
             <h2 class="h4 mt-5">Google Calendar connection</h2>
-            <p>Connecting a Google account authorizes read-only access to the calendar information described in the <a href="{{route('calendar.privacy')}}">Privacy Policy</a>. Studio Calendar does not create, edit, or delete events in Google Calendar. A connection may be removed from Studio Calendar or revoked through Google Account settings.</p>
+            <p>Connecting a Google account authorizes access to the calendar information described in the <a href="{{route('calendar.privacy')}}">Privacy Policy</a> and allows Studio Calendar to submit the owner's accepted or declined RSVP status. Studio Calendar does not create or delete Google Calendar events or modify other event details. A connection may be removed from Studio Calendar or revoked through Google Account settings.</p>
 
             <h2 class="h4 mt-5">Availability</h2>
             <p>The application is provided for personal use on an as-is and as-available basis. Its features may be changed, suspended, or discontinued at any time. No guarantee is made that synchronization will always be uninterrupted, complete, or error-free.</p>

@@ -11,7 +11,7 @@
             @include('calendar.public.navigation')
 
             <h1 class="mb-2">Privacy Policy</h1>
-            <p class="text-muted">Effective July 24, 2026</p>
+            <p class="text-muted">Effective August 28, 2026</p>
 
             <p>Studio Calendar is a private, non-commercial scheduling application created and operated by Arthur Villar for his own use. This policy explains how the application handles information when a Google account is connected.</p>
 
@@ -25,7 +25,7 @@
             <p>The application processes calendar changes and retains relevant meetings where the connected account is an attendee, is not the organizer, and has not declined. Other downloaded events are not retained as imported Studio Calendar events.</p>
 
             <h2 class="h4 mt-5">How the information is used</h2>
-            <p>Google information is used only to identify the connected calendar, synchronize relevant events, display those events in Studio Calendar, and help the owner identify scheduling conflicts. The integration is read-only and cannot create, modify, or delete Google Calendar events.</p>
+            <p>Google information is used only to identify the connected calendar, synchronize relevant events, display those events in Studio Calendar, help the owner identify scheduling conflicts, and submit the owner's accepted or declined response to invitations. Studio Calendar does not create or delete Google Calendar events and modifies only the connected account's RSVP status when the owner selects Yes or No.</p>
             <p>When the owner enters a street address, the application may send the partial address text to Google Maps Platform to display address suggestions and complete the selected city, state, and postal code. Selected addresses are stored only as part of the location or event record created by the owner.</p>
 
             <h2 class="h4 mt-5">Storage and security</h2>

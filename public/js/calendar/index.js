@@ -6284,6 +6284,7 @@ var getGeneralEvent = function getGeneralEvent(generalEvent) {
     externalUrl: generalEvent.external_url || '',
     meetingUrl: generalEvent.meeting_url || '',
     responseStatus: generalEvent.response_status || '',
+    responseUrl: generalEvent.response_url || '',
     organizerName: generalEvent.organizer_name || '',
     organizerEmail: generalEvent.organizer_email || '',
     location: generalEvent.location || '',
@@ -8032,6 +8033,7 @@ var openGeneralEventModal = function openGeneralEventModal(event, options) {
   var edit = modal.querySelector('#event-edit');
   var revert = modal.querySelector('#event-revert');
   var controls = modal.querySelector('#general-event-controls');
+  var googleResponseSection = modal.querySelector('[data-google-event-response-section]');
   var rescheduleForm = modal.querySelector('#reschedule-general-event form');
   var rescheduleDate = modal.querySelector('#reschedule-general-event-date');
   var rescheduleStartTime = modal.querySelector('#reschedule-general-event-start-time');
@@ -8112,6 +8114,17 @@ var openGeneralEventModal = function openGeneralEventModal(event, options) {
     } else {
       controls.style.removeProperty('display');
     }
+  }
+  if (googleResponseSection) {
+    googleResponseSection.hidden = event.externalProvider !== 'google' || !event.responseUrl;
+    googleResponseSection.querySelectorAll('[data-google-event-response]').forEach(function (button) {
+      var isSelected = button.dataset.googleEventResponse === event.responseStatus;
+      button.classList.toggle('btn-dark', isSelected);
+      button.classList.toggle('btn-outline-dark', !isSelected);
+      button.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+      button.disabled = false;
+      restoreButtonLabel(button);
+    });
   }
   modal.dataset.eventGuid = event.guid || '';
   modal.dataset.eventId = event.id || '';
@@ -11281,6 +11294,45 @@ document.addEventListener('DOMContentLoaded', function () {
     var _rescheduleDate = generalEventModal.querySelector('#reschedule-general-event-date');
     var _rescheduleStartTime = generalEventModal.querySelector('#reschedule-general-event-start-time');
     var _rescheduleEndTime = generalEventModal.querySelector('#reschedule-general-event-end-time');
+    var googleResponseButtons = Array.from(generalEventModal.querySelectorAll('[data-google-event-response]'));
+    googleResponseButtons.forEach(function (button) {
+      button.addEventListener('click', function (e) {
+        e.preventDefault();
+        var event = generalEventModal.generalEvent;
+        var responseStatus = button.dataset.googleEventResponse;
+        if (!event || !event.responseUrl || !responseStatus) {
+          return;
+        }
+        googleResponseButtons.forEach(function (responseButton) {
+          responseButton.disabled = true;
+        });
+        preserveButtonLabel(button);
+        button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2" aria-hidden="true"></i>Saving';
+        clearGeneralEventActionError(generalEventModal);
+        requestJson(event.responseUrl, {
+          method: 'PATCH',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': window.calendarCsrfToken || '',
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          body: JSON.stringify({
+            response_status: responseStatus
+          })
+        }, 'Unable to save your Google Calendar response.').then(function () {
+          hideBootstrapModal(generalEventModal);
+          return refreshCalendarAfterLessonMutation();
+        })["catch"](function (error) {
+          console.error(error);
+          showGeneralEventActionError(generalEventModal, error.message);
+          googleResponseButtons.forEach(function (responseButton) {
+            responseButton.disabled = false;
+          });
+          restoreButtonLabel(button);
+        });
+      });
+    });
     if (duplicateButton) {
       duplicateButton.addEventListener('click', function (e) {
         e.preventDefault();

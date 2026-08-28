@@ -17,7 +17,7 @@
             <p>Studio Calendar keeps lessons, recurring lesson plans, teaching breaks, recitals, expenses, and general events together in one scheduling interface. It is a personal administrative tool and is not offered as a commercial service.</p>
 
             <h2 class="h4 mt-5">Google Calendar integration</h2>
-            <p>A Google account can be connected to display relevant Google Calendar events alongside studio events. The integration is read-only: Studio Calendar cannot create, edit, or delete anything in Google Calendar.</p>
+            <p>A Google account can be connected to display relevant Google Calendar events alongside studio events and to accept or decline invitations. Studio Calendar does not create or delete Google Calendar events and modifies only the connected account's RSVP status when a response is submitted.</p>
             <p>The application uses Google Calendar data only to synchronize relevant event details and make scheduling conflicts visible. A connected account can be disconnected at any time, which removes its stored connection and imported events from Studio Calendar.</p>
 
             <h2 class="h4 mt-5">Personal and non-commercial use</h2>
