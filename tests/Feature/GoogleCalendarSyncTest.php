@@ -251,6 +251,7 @@ class GoogleCalendarSyncTest extends BaseTest
             'https://www.googleapis.com/calendar/v3/calendars/*/events*' => Http::response([
                 'items' => [
                     $this->googleMeeting('invited-meeting', 'needsAction'),
+                    $this->googleMeeting('tentative-meeting', 'tentative'),
                     array_replace_recursive($this->googleMeeting('old-invited-meeting', 'accepted'), [
                         'start' => ['dateTime' => '2026-06-30T15:00:00-04:00'],
                         'end' => ['dateTime' => '2026-06-30T16:00:00-04:00'],
@@ -270,6 +271,11 @@ class GoogleCalendarSyncTest extends BaseTest
         $this->assertDatabaseHas('google_calendar_events', [
             'google_calendar_connection_id' => $connection->id,
             'google_event_id' => 'invited-meeting',
+            'response_status' => 'needsAction',
+        ]);
+        $this->assertDatabaseHas('google_calendar_events', [
+            'google_calendar_connection_id' => $connection->id,
+            'google_event_id' => 'tentative-meeting',
             'response_status' => 'needsAction',
         ]);
         $this->assertDatabaseMissing('google_calendar_events', ['google_event_id' => 'my-own-meeting']);
@@ -498,7 +504,7 @@ class GoogleCalendarSyncTest extends BaseTest
         ], $user->id);
         $googleEvent = $calendarEvents->firstWhere('id', 'google-'.$event->id);
         $googleAllDayEvent = $calendarEvents->firstWhere('id', 'google-'.$allDayEvent->id);
-        $googleTentativeEvent = $calendarEvents->firstWhere('id', 'google-'.$tentativeEvent->id);
+        $googleUnansweredEvent = $calendarEvents->firstWhere('id', 'google-'.$tentativeEvent->id);
 
         $this->assertNotNull($googleEvent);
         $this->assertSame('arthur@example.com', $googleEvent['event_type']);
@@ -516,8 +522,9 @@ class GoogleCalendarSyncTest extends BaseTest
         $this->assertSame('2026-08-12', $googleAllDayEvent['scheduled_date']);
         $this->assertSame('00:00', $googleAllDayEvent['starts_at']);
         $this->assertSame('23:45', $googleAllDayEvent['ends_at']);
-        $this->assertNotNull($googleTentativeEvent);
-        $this->assertSame('tentative', $googleTentativeEvent['response_status']);
+        $this->assertSame('needsAction', $tentativeEvent->fresh()->response_status);
+        $this->assertNotNull($googleUnansweredEvent);
+        $this->assertSame('needsAction', $googleUnansweredEvent['response_status']);
         $this->assertNull($calendarEvents->firstWhere('id', 'google-'.$declinedEvent->id));
         $this->assertNull($calendarEvents->firstWhere('id', 'google-'.$oldEvent->id));
     }

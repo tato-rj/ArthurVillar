@@ -691,13 +691,9 @@ button.setting-undo {
 }
 
 #calendar .calendar-calendar-general-event[data-external-provider="google"][data-response-status="needsAction"],
-#calendar .calendar-calendar-general-event[data-external-provider="google"][data-response-status="tentative"],
 #calendar .calendar-month-event-general[data-external-provider="google"][data-response-status="needsAction"],
-#calendar .calendar-month-event-general[data-external-provider="google"][data-response-status="tentative"],
 #calendar .calendar-schedule-event-general[data-external-provider="google"][data-response-status="needsAction"],
-#calendar .calendar-schedule-event-general[data-external-provider="google"][data-response-status="tentative"],
-.calendar-month-day-events-modal-list .calendar-month-event-general[data-external-provider="google"][data-response-status="needsAction"],
-.calendar-month-day-events-modal-list .calendar-month-event-general[data-external-provider="google"][data-response-status="tentative"] {
+.calendar-month-day-events-modal-list .calendar-month-event-general[data-external-provider="google"][data-response-status="needsAction"] {
     background: #fff;
     border: 2px solid var(--calendar-google-event-color, #4285F4);
     color: var(--calendar-google-event-color, #4285F4);
@@ -1319,8 +1315,7 @@ button.setting-undo {
     width: 100%;
 }
 
-.calendar-schedule-google-all-day[data-response-status="needsAction"],
-.calendar-schedule-google-all-day[data-response-status="tentative"] {
+.calendar-schedule-google-all-day[data-response-status="needsAction"] {
     background: #fff;
     color: var(--calendar-google-event-color, #4285F4);
 }

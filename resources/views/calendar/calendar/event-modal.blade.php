@@ -99,9 +99,6 @@
             <button type="button" class="btn btn-sm btn-outline-dark mr-2" data-google-event-response="accepted">
                 @fa(['icon' => 'check'])Yes
             </button>
-            <button type="button" class="btn btn-sm btn-outline-dark mr-2" data-google-event-response="tentative">
-                @fa(['icon' => 'question'])Maybe
-            </button>
             <button type="button" class="btn btn-sm btn-outline-dark" data-google-event-response="declined">
                 @fa(['icon' => 'xmark'])No
             </button>

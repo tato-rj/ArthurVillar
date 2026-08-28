@@ -28,6 +28,11 @@ class GoogleCalendarEvent extends BaseModel
         return $this->belongsTo(GoogleCalendarConnection::class, 'google_calendar_connection_id');
     }
 
+    public function setResponseStatusAttribute(?string $value): void
+    {
+        $this->attributes['response_status'] = $value === 'tentative' ? 'needsAction' : $value;
+    }
+
     public static function syncCutoff(): Carbon
     {
         return Carbon::parse(
