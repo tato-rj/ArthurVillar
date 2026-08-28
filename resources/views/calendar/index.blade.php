@@ -28,13 +28,14 @@
 #loading-bar div {
 	width: 0%;
 	height: 100%;
+	background: #4285F4;
 }
 </style>
 @endpush
 
 @section('content')
 <div id="loading-bar">
-	<div class="bg-blue" hidden></div>
+	<div hidden></div>
 </div>
 
 <section class="calendar-calendar container-fluid py-3">
