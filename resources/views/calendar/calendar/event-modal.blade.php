@@ -86,25 +86,25 @@
             <span id="general-event-notification"></span>
         </div>
     </div>
-
-    <div class="border-top pt-3 mt-3" data-google-event-response-section hidden>
-        <div class="d-flex align-items-center justify-content-between">
-            <span class="small font-weight-bold">Going?</span>
-            <div class="btn-group" role="group" aria-label="Respond to Google Calendar invitation">
-                <button type="button" class="btn btn-sm btn-outline-dark" data-google-event-response="accepted">
-                    @fa(['icon' => 'check'])Yes
-                </button>
-                <button type="button" class="btn btn-sm btn-outline-dark" data-google-event-response="declined">
-                    @fa(['icon' => 'xmark'])No
-                </button>
-            </div>
-        </div>
-    </div>
 </div>
 
 @include('calendar.calendar.travel-route')
 
 @include('calendar.events.modal-notes')
+
+<div class="border-top pt-3 mt-3" data-google-event-response-section hidden>
+    <div class="d-flex align-items-center justify-content-between">
+        <span class="small font-weight-bold">Going?</span>
+        <div class="btn-group" role="group" aria-label="Respond to Google Calendar invitation">
+            <button type="button" class="btn btn-sm btn-outline-dark mr-2" data-google-event-response="accepted">
+                @fa(['icon' => 'check'])Yes
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-dark" data-google-event-response="declined">
+                @fa(['icon' => 'xmark'])No
+            </button>
+        </div>
+    </div>
+</div>
 
 <div class="px-3" data-event-modal-section="lesson">
     @include('calendar.lessons.lessonRecords.primary-controls')
