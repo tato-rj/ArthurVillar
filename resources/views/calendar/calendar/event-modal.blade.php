@@ -92,9 +92,9 @@
 
 @include('calendar.events.modal-notes')
 
-<div class="border-top px-3 pt-3 mt-3" data-google-event-response-section hidden>
+<div class="border-to px-3 p-3 mt-3" data-google-event-response-section hidden>
     <div class="d-flex align-items-center justify-content-between">
-        <span class="small font-weight-bold">Going?</span>
+        <span class="small font-weight-bold">Are you joining?</span>
         <div class="btn-group" role="group" aria-label="Respond to Google Calendar invitation">
             <button type="button" class="btn btn-sm btn-outline-dark mr-2" data-google-event-response="accepted">
                 @fa(['icon' => 'check'])Yes
