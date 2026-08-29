@@ -32428,6 +32428,19 @@ button.setting-undo:hover {
   touch-action: pan-y;
 }
 
+#calendar .lm-schedule thead tr:not(.calendar-schedule-holiday-row) td::after {
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.2), transparent);
+  border: 0;
+  border-top: 1px solid var(--lm-border-color, #ddd);
+  bottom: -9px;
+  height: 9px;
+  pointer-events: none;
+}
+
+#calendar .lm-schedule thead tr:not(.calendar-schedule-holiday-row) td[data-selected=true]::after {
+  border-top-color: rgb(251, 230, 105);
+}
+
 @media (pointer: coarse) {
   #calendar .lm-schedule thead tr:not(.calendar-schedule-holiday-row) td {
     touch-action: none;
