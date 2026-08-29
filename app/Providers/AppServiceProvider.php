@@ -34,11 +34,6 @@ class AppServiceProvider extends ServiceProvider
                         'url' => $protocol . 'calendar.' . config('app.domain')
                     ],
                     [
-                        'icon' => 'users',
-                        'label' => 'Schedule',
-                        'url' => $protocol . 'schedule.' . config('app.domain')
-                    ],
-                    [
                         'icon' => 'book',
                         'label' => 'Theory',
                         'url' => $protocol . 'theory.' . config('app.domain')
