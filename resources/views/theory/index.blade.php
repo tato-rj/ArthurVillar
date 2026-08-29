@@ -1,4 +1,4 @@
-@extends('layouts.app', ['title' => 'Music Theory Challenges'])
+@extends('layouts.app')
 
 @push('header')
 <link href="{{ mix('css/musicgames.css') }}" rel="stylesheet">

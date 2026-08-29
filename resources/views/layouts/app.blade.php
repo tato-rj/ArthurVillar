@@ -22,11 +22,11 @@
           (Local)
           @endif
 
-          @if(isset($title))
-            @if($subdomain = subdomain())
-            {{$title . ' | ' . ucfirst($subdomain)}}
+          @if($subdomain = ucfirst(subdomain()))
+            @if(isset($title))
+            {{$subdomain . ' | ' . $title}}
             @else
-            {{$title}}
+            {{$subdomain}}
             @endif
           @else
           {{config('app.name')}}
