@@ -32429,7 +32429,7 @@ button.setting-undo:hover {
 }
 
 #calendar .lm-schedule thead tr:not(.calendar-schedule-holiday-row) td::after {
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.2), transparent);
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.1), transparent);
   border: 0;
   border-top: 1px solid var(--lm-border-color, #ddd);
   bottom: -9px;
