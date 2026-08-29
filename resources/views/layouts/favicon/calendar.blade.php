@@ -15,7 +15,7 @@ window.webPushConfig = @json($webPushConfig);
 
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="App">
+<meta name="apple-mobile-web-app-title" content="{{ucfirst(subdomain())}}">
 
 <link rel="apple-touch-icon" sizes="57x57" href="{{asset('/favicon/calendar/apple-icon-57x57.png')}}">
 <link rel="apple-touch-icon" sizes="60x60" href="{{asset('/favicon/calendar/apple-icon-60x60.png')}}">
