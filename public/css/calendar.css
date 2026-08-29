@@ -32442,7 +32442,9 @@ button.setting-undo:hover {
 }
 
 #calendar .lm-schedule thead.calendar-schedule-has-all-day-row tr:not(.calendar-schedule-holiday-row) td::after {
-  content: none;
+  background: none;
+  bottom: 0;
+  height: 0;
 }
 
 @media (pointer: coarse) {
