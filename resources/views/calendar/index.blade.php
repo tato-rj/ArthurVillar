@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.app', ['title' => now()->format('M jS')])
 
 @push('header')
 <link href="/css/vendor/calendarjs.css" rel="stylesheet">
