@@ -32570,6 +32570,12 @@ button.setting-undo:hover {
   opacity: 0.3;
 }
 
+#calendar [data-calendar-schedule-bed].text-primary,
+#calendar [data-calendar-schedule-bed].text-yellow,
+#calendar [data-calendar-schedule-bed].alert-yellow {
+  opacity: 1;
+}
+
 .calendar-schedule-holiday-row {
   height: 2.75rem;
 }

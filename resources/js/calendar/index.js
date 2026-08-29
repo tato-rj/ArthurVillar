@@ -1173,6 +1173,31 @@ const formatScheduleHour = function(value) {
     return `${displayHour} ${period}`;
 };
 
+const updateScheduleBoundaryBedStates = function(calendar) {
+    const now = new Date();
+    const currentMinutes = (now.getHours() * 60)
+        + now.getMinutes()
+        + (now.getSeconds() / 60);
+    const todayIsVisible = getVisibleScheduleDates().some(function(date) {
+        return toDateString(date) === todayString();
+    });
+    const startBedIsActive = todayIsVisible
+        && currentMinutes > 0
+        && currentMinutes < getTimeMinutes(scheduleStart);
+    const endBedIsActive = todayIsVisible
+        && currentMinutes > getTimeMinutes(scheduleEnd)
+        && currentMinutes < (24 * 60);
+
+    calendar.querySelectorAll('[data-calendar-schedule-bed]').forEach(function(marker) {
+        const isStartBed = marker.dataset.calendarScheduleBed === 'start';
+        const activeClass = isStartBed ? 'text-primary' : 'text-yellow';
+        const isActive = isStartBed ? startBedIsActive : endBedIsActive;
+
+        marker.classList.toggle(activeClass, isActive);
+        marker.classList.toggle('text-grey', !isActive);
+    });
+};
+
 const patchScheduleTimeLabels = function(calendar) {
     calendar.querySelectorAll('.calendar-schedule-end-boundary-time').forEach(function(marker) {
         marker.remove();
@@ -1190,6 +1215,7 @@ const patchScheduleTimeLabels = function(calendar) {
         if (isStartBoundary || isEndBoundary) {
             const icon = document.createElement('i');
 
+            label.dataset.calendarScheduleBed = isStartBoundary ? 'start' : 'end';
             icon.className = 'fa-solid fa-bed';
             icon.setAttribute('aria-hidden', 'true');
             label.replaceChildren(icon);
@@ -1198,6 +1224,8 @@ const patchScheduleTimeLabels = function(calendar) {
             return;
         }
 
+        delete label.dataset.calendarScheduleBed;
+        label.classList.remove('text-primary', 'text-yellow', 'text-grey');
         label.textContent = formatScheduleHour(time);
         label.removeAttribute('aria-label');
         label.removeAttribute('aria-hidden');
@@ -1213,12 +1241,15 @@ const patchScheduleTimeLabels = function(calendar) {
         const icon = document.createElement('i');
 
         marker.className = 'calendar-schedule-end-boundary-time';
+        marker.dataset.calendarScheduleBed = 'end';
         marker.setAttribute('aria-label', 'End of day');
         icon.className = 'fa-solid fa-bed';
         icon.setAttribute('aria-hidden', 'true');
         marker.appendChild(icon);
         gutter.appendChild(marker);
     }
+
+    updateScheduleBoundaryBedStates(calendar);
 };
 
 const getTimeMinutes = function(value) {
@@ -10095,6 +10126,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (scheduleGridViews.includes(state.view)) {
             patchSchedulePointer(calendar);
+            updateScheduleBoundaryBedStates(calendar);
         }
 
         const nextSecondDelay = Math.max(50, 1000 - (Date.now() % 1000));

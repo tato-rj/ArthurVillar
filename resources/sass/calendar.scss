@@ -1224,6 +1224,11 @@ button.setting-undo {
     opacity: .3;
 }
 
+#calendar [data-calendar-schedule-bed].text-primary,
+#calendar [data-calendar-schedule-bed].text-yellow {
+    opacity: 1;
+}
+
 // Holidays and special events
 
 .calendar-schedule-holiday-row {
