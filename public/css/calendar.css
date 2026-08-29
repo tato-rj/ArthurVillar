@@ -32905,7 +32905,7 @@ button.single-lesson-plan-create[selected] i {
 }
 
 #calendar .lm-schedule .lm-schedule-index.calendar-schedule-boundary-time {
-  margin-top: 8px;
+  margin-top: 10px;
 }
 
 #calendar .lm-schedule td:has(> .lm-schedule-index) {
