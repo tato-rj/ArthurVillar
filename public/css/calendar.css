@@ -32586,7 +32586,7 @@ button.setting-undo:hover {
 }
 
 .calendar-schedule-holiday-row td {
-  background: transparent !important;
+  background: var(--lm-background-color, #fff) !important;
 }
 
 .lm-schedule thead td.calendar-schedule-holiday-cell {
