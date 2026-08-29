@@ -32441,6 +32441,10 @@ button.setting-undo:hover {
   border-top-color: rgb(251, 230, 105);
 }
 
+#calendar .lm-schedule thead.calendar-schedule-has-all-day-row tr:not(.calendar-schedule-holiday-row) td::after {
+  content: none;
+}
+
 @media (pointer: coarse) {
   #calendar .lm-schedule thead tr:not(.calendar-schedule-holiday-row) td {
     touch-action: none;
@@ -32618,10 +32622,22 @@ button.setting-undo:hover {
 }
 
 .lm-schedule thead td.calendar-schedule-holiday-zone::before,
-.lm-schedule thead td.calendar-schedule-holiday-zone::after,
-.lm-schedule thead td.calendar-schedule-holiday-cell::before,
-.lm-schedule thead td.calendar-schedule-holiday-cell::after {
+.lm-schedule thead td.calendar-schedule-holiday-cell::before {
   content: none;
+}
+
+#calendar .lm-schedule thead td.calendar-schedule-holiday-zone::after,
+#calendar .lm-schedule thead td.calendar-schedule-holiday-cell::after {
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.1), transparent);
+  border: 0;
+  border-top: 1px solid var(--lm-border-color, #ddd);
+  bottom: -9px;
+  content: "";
+  height: 9px;
+  left: 0;
+  pointer-events: none;
+  position: absolute;
+  width: 100%;
 }
 
 .calendar-schedule-holiday {

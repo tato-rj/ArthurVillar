@@ -1964,6 +1964,8 @@ const patchScheduleHolidays = function(calendar) {
             || getAllDayGoogleEventsForDate(date).length > 0;
     });
 
+    thead.classList.toggle('calendar-schedule-has-all-day-row', hasBanner);
+
     if (!hasBanner) {
         return;
     }

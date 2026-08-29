@@ -6102,6 +6102,7 @@ var patchScheduleHolidays = function patchScheduleHolidays(calendar) {
   var hasBanner = visibleDates.some(function (date) {
     return getHolidaysForDate(date).length > 0 || getBreaksForDate(date).length > 0 || getRecitalsForDate(date).length > 0 || getAllDayGoogleEventsForDate(date).length > 0;
   });
+  thead.classList.toggle('calendar-schedule-has-all-day-row', hasBanner);
   if (!hasBanner) {
     return;
   }
