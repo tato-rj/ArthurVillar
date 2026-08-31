@@ -10,6 +10,301 @@ $calendar-item-border-radius: 12px;
   --calendar-background: #f9fafd;
 }
 
+@mixin calendar-dark-theme {
+    color-scheme: dark;
+    --calendar-background: #111318;
+    --lm-background-color: #1b1d21;
+    --lm-background-color-active: #303134;
+    --lm-background-color-header: #283142;
+    --lm-background-color-highlight: #1f3760;
+    --lm-border-color: #45494f;
+    --lm-border-color-light: #34383e;
+    --lm-font-color: #e8eaed;
+    --lm-font-grayout: #9aa0a6;
+    --lm-main-color: #8ab4f8;
+    --lm-main-color-deep: #aecbfa;
+
+    body {
+        background: var(--calendar-background);
+        color: #e8eaed;
+    }
+
+    .calendar-calendar,
+    .calendar-calendar-toolbar,
+    .calendar-calendar-sidebar,
+    .calendar-calendar-main {
+        color: #e8eaed;
+    }
+
+    .calendar-calendar-button,
+    .calendar-calendar-view,
+    .calendar-month-calendar,
+    .calendar-schedule-agenda,
+    #calendar.calendar-calendar-day-view .lm-schedule,
+    #calendar.calendar-calendar-two-days-view .lm-schedule,
+    #calendar.calendar-calendar-week-view .lm-schedule,
+    .calendar-schedule-month-bar,
+    .calendar-schedule-header-drag-preview,
+    .calendar-schedule-header-drag-gutter,
+    .calendar-schedule-header-drag-day,
+    .calendar-schedule-holiday-row td,
+    .lm-schedule thead td.calendar-schedule-holiday-cell {
+        background: #1b1d21 !important;
+        border-color: #45494f !important;
+        color: #e8eaed;
+    }
+
+    .calendar-calendar-icon-button,
+    .calendar-mini-calendar,
+    .calendar-mini-calendar-nav,
+    .calendar-mini-calendar-date,
+    .calendar-month-weekdays > div,
+    .calendar-month-day,
+    .calendar-month-event,
+    .calendar-month-more,
+    .calendar-schedule-event,
+    .calendar-date-picker,
+    .calendar-date-picker-day,
+    .calendar-date-picker-nav button,
+    .calendar-date-picker-weekdays,
+    .calendar-time-picker span {
+        color: #e8eaed;
+    }
+
+    .calendar-calendar-icon-button i {
+        color: inherit !important;
+    }
+
+    .calendar-mini-calendar-weekdays,
+    .calendar-mini-calendar-date.is-muted,
+    .calendar-calendar-search,
+    .calendar-calendar-search[selected] .calendar-calendar-search-clear,
+    .calendar-calendar-search[selected] input::placeholder,
+    .calendar-schedule-date,
+    .calendar-schedule-empty,
+    .calendar-month-day.is-muted,
+    .calendar-modal-detail-icon,
+    .calendar-travel-route-loading,
+    .calendar-travel-route-origin,
+    .calendar-google-account-avatar-fallback,
+    .form-select-control > .form-select-icon {
+        color: #bdc1c6;
+    }
+
+    button.calendar-calendar-header-control:not(:disabled):hover,
+    label.calendar-calendar-header-control:hover,
+    .calendar-mini-calendar-nav:hover,
+    .calendar-calendar-filter-option:hover,
+    .calendar-date-picker-nav button:hover,
+    .calendar-month-event:hover,
+    .calendar-month-more:hover {
+        background: #303134 !important;
+    }
+
+    .calendar-calendar-search[selected],
+    .calendar-calendar-search[selected]:hover,
+    .calendar-calendar-search[selected]:focus,
+    .calendar-calendar-search[selected]:active,
+    .calendar-calendar-search[selected]:focus-within,
+    .calendar-mini-calendar-date:hover,
+    .calendar-date-picker-day:hover {
+        background: #283142 !important;
+    }
+
+    .calendar-month-day {
+        background: #1b1d21;
+        border-color: #45494f;
+    }
+
+    .calendar-month-day:hover {
+        background: #24262b;
+    }
+
+    .calendar-month-day.is-muted {
+        background: #17191d;
+    }
+
+    .calendar-mini-calendar-date.is-today:not(.is-selected),
+    .calendar-schedule-day.is-today .calendar-schedule-weekday,
+    .calendar-date-picker-day.is-today:not(.is-selected) {
+        color: #8ab4f8;
+    }
+
+    .calendar-schedule-day.is-today .calendar-schedule-number,
+    .calendar-month-day.is-today .calendar-month-day-number {
+        background: #8ab4f8;
+        color: #202124;
+    }
+
+    .calendar-schedule-day.is-selected:not(.is-today) .calendar-schedule-number,
+    .calendar-month-day.is-selected:not(.is-today) .calendar-month-day-number,
+    .calendar-date-picker-day.is-selected {
+        background: #1f3760;
+        color: #d2e3fc;
+    }
+
+    .calendar-month-weekdays > div,
+    .calendar-month-day,
+    .calendar-schedule-empty,
+    .calendar-month-calendar,
+    .calendar-schedule-agenda {
+        border-color: #45494f;
+    }
+
+    #calendar .calendar-schedule-travel {
+        background: color-mix(in srgb, var(--calendar-schedule-event-color, #6b7280) 22%, #202124);
+        border-color: #45494f;
+        color: #e8eaed;
+    }
+
+    #calendar .lm-schedule-item[data-lesson-status="canceled"],
+    #calendar .calendar-month-event[data-lesson-status="canceled"],
+    #calendar .calendar-month-event-dot[data-lesson-status="canceled"],
+    #calendar .calendar-schedule-event[data-lesson-status="canceled"] {
+        background: color-mix(in srgb, var(--calendar-canceled-lesson-color, #fff) 14%, #202124);
+        border-color: #5f6368 !important;
+        color: #e8eaed !important;
+    }
+
+    .modal-content,
+    .dropdown-menu,
+    .popover,
+    .offcanvas,
+    .calendar-calendar-filter-menu {
+        --bs-modal-bg: #24262b;
+        --bs-modal-color: #e8eaed;
+        --bs-dropdown-bg: #24262b;
+        --bs-dropdown-color: #e8eaed;
+        --bs-dropdown-link-color: #e8eaed;
+        --bs-dropdown-link-hover-bg: #303134;
+        --bs-popover-bg: #24262b;
+        --bs-offcanvas-bg: #24262b;
+        --bs-offcanvas-color: #e8eaed;
+        background-color: #24262b;
+        border-color: #45494f;
+        color: #e8eaed;
+    }
+
+    .modal-header,
+    .modal-footer {
+        border-color: #45494f;
+    }
+
+    .modal-title,
+    .modal-title.text-secondary {
+        color: #e8eaed !important;
+    }
+
+    .modal .btn-outline-secondary,
+    .modal .btn-outline-dark {
+        background: transparent;
+        border-color: #9aa0a6 !important;
+        color: #e8eaed !important;
+    }
+
+    .modal .btn-outline-secondary:hover,
+    .modal .btn-outline-secondary:active,
+    .modal .btn-outline-dark:hover,
+    .modal .btn-outline-dark:active {
+        background: #3c4043;
+        border-color: #bdc1c6 !important;
+        color: #fff !important;
+    }
+
+    .modal .btn-outline-secondary:focus-visible,
+    .modal .btn-outline-dark:focus-visible,
+    .modal [data-event-modal-expand-toggle]:focus-visible {
+        outline: 2px solid #8ab4f8 !important;
+        outline-offset: 2px !important;
+        box-shadow: 0 0 0 .2rem rgba(138, 180, 248, .24) !important;
+    }
+
+    .modal [data-event-modal-expand-toggle] {
+        background: #303134;
+        border: 1px solid #45494f;
+        color: #aecbfa !important;
+        font-weight: 700;
+        transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+    }
+
+    .modal [data-event-modal-expand-toggle]:hover,
+    .modal [data-event-modal-expand-toggle]:active {
+        background: #3c4043;
+        border-color: #5f6368;
+        color: #d2e3fc !important;
+    }
+
+    .btn-close {
+        filter: invert(1) grayscale(100%) brightness(180%);
+    }
+
+    .form-control,
+    .form-select,
+    .form-check-input,
+    .calendar-time-picker select {
+        background-color: #303134;
+        border-color: #5f6368;
+        color: #e8eaed;
+    }
+
+    .form-select {
+        --bs-form-select-bg-img: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23bdc1c6' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+    }
+
+    .form-control::placeholder {
+        color: #9aa0a6;
+    }
+
+    .form-control:focus,
+    .form-select:focus,
+    .form-check-input:focus {
+        border-color: #8ab4f8;
+        box-shadow: 0 0 0 .2rem rgba(138, 180, 248, .24);
+    }
+
+    .form-check-input:checked {
+        background-color: #8ab4f8;
+        border-color: #8ab4f8;
+    }
+
+    .btn-white,
+    .btn-light,
+    .bg-white,
+    .bg-light {
+        background-color: #303134 !important;
+        border-color: #5f6368 !important;
+        color: #e8eaed !important;
+    }
+
+    .calendar-google-account-avatar-fallback {
+        background: #303134;
+    }
+
+    .calendar-settings-color-picker {
+        border-color: #5f6368;
+    }
+
+    .calendar-calendar-button:focus-visible,
+    .calendar-calendar-icon-button:focus-visible,
+    .calendar-mini-calendar-nav:focus-visible,
+    .calendar-mini-calendar-date:focus-visible,
+    .calendar-month-day:focus-visible,
+    .calendar-date-picker-day:focus-visible {
+        outline: 2px solid #8ab4f8;
+        outline-offset: 2px;
+    }
+}
+
+html[data-calendar-theme="dark"] {
+    @include calendar-dark-theme;
+}
+
+@media (prefers-color-scheme: dark) {
+    html[data-calendar-theme="device"] {
+        @include calendar-dark-theme;
+    }
+}
+
 input[type="date"],
 input[type="month"] {text-align: left;}
 td, th {white-space: nowrap;}

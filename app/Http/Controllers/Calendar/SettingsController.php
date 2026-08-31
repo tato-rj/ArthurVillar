@@ -18,6 +18,7 @@ class SettingsController extends Controller
             'calendar_default_desktop_view' => ['required', Rule::in(['schedule', 'day', '2-days', 'week', 'month'])],
             'calendar_default_mobile_view' => ['required', Rule::in(['schedule', 'day', '2-days', 'week', 'month'])],
             'calendar_week_starts_on' => ['required', Rule::in(['saturday', 'sunday', 'monday'])],
+            'appearance_theme' => ['required', Rule::in(['light', 'dark', 'device'])],
             'unconfirmed_lesson_color' => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'unpaid_lesson_color' => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'paid_lesson_color' => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
@@ -66,6 +67,12 @@ class SettingsController extends Controller
         Settings::setValue(
             'calendar.week_starts_on',
             $request->input('calendar_week_starts_on'),
+            Settings::TYPE_STRING
+        );
+
+        Settings::setValue(
+            'appearance.theme',
+            $request->input('appearance_theme'),
             Settings::TYPE_STRING
         );
 

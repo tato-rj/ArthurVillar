@@ -1,6 +1,7 @@
 @extends('layouts.app', ['title' => now()->format('M jS')])
 
 @push('header')
+<script>document.documentElement.dataset.calendarTheme = @json($selectedAppearanceTheme);</script>
 <link href="/css/vendor/calendarjs.css" rel="stylesheet">
 <link href="{{ mix('css/calendar.css') }}" rel="stylesheet">
 <style>

@@ -63,6 +63,14 @@ class SettingsSeeder extends Seeder
         );
 
         Settings::query()->firstOrCreate(
+            ['key' => 'appearance.theme'],
+            [
+                'value' => 'device',
+                'type' => Settings::TYPE_STRING,
+            ]
+        );
+
+        Settings::query()->firstOrCreate(
             ['key' => 'appearance.unpaid_lesson_color'],
             [
                 'value' => '#ff4b4b',

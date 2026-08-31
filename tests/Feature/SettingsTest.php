@@ -14,7 +14,7 @@ class SettingsTest extends BaseTest
 
         $this->get(route('calendar.home'))
             ->assertOk()
-            ->assertSeeInOrder(['View options', 'Show calendar insights', 'Show holidays', 'Show travel times', 'Show cancelled lessons', 'Calendar options', 'fa-desktop', 'fa-mobile', 'Week starts on', 'Appearance', 'Unconfirmed lessons'])
+            ->assertSeeInOrder(['View options', 'Show calendar insights', 'Show holidays', 'Show travel times', 'Show cancelled lessons', 'Calendar options', 'fa-desktop', 'fa-mobile', 'Week starts on', 'Appearance', 'Theme', 'Device settings', 'Unconfirmed lessons'])
             ->assertDontSee('Display options')
             ->assertSee('fa-desktop', false)
             ->assertSee('fa-mobile', false)
@@ -29,6 +29,7 @@ class SettingsTest extends BaseTest
             ->assertDontSee('Desktop calendar view')
             ->assertDontSee('Mobile calendar view')
             ->assertSee('type="color"', false)
+            ->assertSee('<option value="device" selected>Device settings</option>', false)
             ->assertSee('value="#6b7280"', false)
             ->assertSee('data-setting-original="#6b7280"', false)
             ->assertSee('data-setting-target="unconfirmed-lesson-color"', false)
@@ -61,6 +62,27 @@ class SettingsTest extends BaseTest
     }
 
     /** @test */
+    public function the_calendar_theme_is_applied_before_the_calendar_styles_load()
+    {
+        $this->signIn();
+
+        $this->get(route('calendar.home'))
+            ->assertOk()
+            ->assertSeeInOrder([
+                'document.documentElement.dataset.calendarTheme = "device";',
+                '/css/vendor/calendarjs.css',
+                'css/calendar.css',
+            ], false);
+
+        Settings::setValue('appearance.theme', 'dark', Settings::TYPE_STRING);
+
+        $this->get(route('calendar.home'))
+            ->assertOk()
+            ->assertSee('document.documentElement.dataset.calendarTheme = "dark";', false)
+            ->assertSee('<option value="dark" selected>Dark</option>', false);
+    }
+
+    /** @test */
     public function it_saves_the_show_cancelled_lessons_preference_as_a_boolean_setting()
     {
         $user = $this->signIn();
@@ -87,6 +109,7 @@ class SettingsTest extends BaseTest
                 'calendar_default_desktop_view' => 'month',
                 'calendar_default_mobile_view' => 'day',
                 'calendar_week_starts_on' => 'monday',
+                'appearance_theme' => 'dark',
                 'unconfirmed_lesson_color' => '#3057D5',
                 'unpaid_lesson_color' => '#AA0000',
                 'paid_lesson_color' => '#00AA00',
@@ -135,6 +158,11 @@ class SettingsTest extends BaseTest
         $this->assertDatabaseHas('settings', [
             'key' => 'appearance.unconfirmed_lesson_color',
             'value' => '#3057d5',
+            'type' => Settings::TYPE_STRING,
+        ]);
+        $this->assertDatabaseHas('settings', [
+            'key' => 'appearance.theme',
+            'value' => 'dark',
             'type' => Settings::TYPE_STRING,
         ]);
         $this->assertDatabaseHas('settings', [

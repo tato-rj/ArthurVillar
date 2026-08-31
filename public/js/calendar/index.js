@@ -10271,7 +10271,29 @@ document.addEventListener('DOMContentLoaded', function () {
   var calendarFilterMenu = calendarFilter ? calendarFilter.querySelector('.calendar-calendar-filter-menu') : null;
   var calendarFilterReset = document.querySelector('[data-calendar-filter-reset]');
   var calendarSettingsModal = document.getElementById('settings-modal');
+  var appearanceTheme = document.getElementById('appearance-theme');
+  var deviceDarkMode = window.matchMedia('(prefers-color-scheme: dark)');
   var calendarCreateBackdrop = null;
+  var updateCalendarBrowserTheme = function updateCalendarBrowserTheme() {
+    var preference = document.documentElement.dataset.calendarTheme || 'device';
+    var isDark = preference === 'dark' || preference === 'device' && deviceDarkMode.matches;
+    var themeColor = document.querySelector('meta[name="theme-color"]');
+    if (themeColor) {
+      themeColor.content = isDark ? '#111318' : '#ffffff';
+    }
+  };
+  if (appearanceTheme) {
+    appearanceTheme.addEventListener('change', function () {
+      document.documentElement.dataset.calendarTheme = appearanceTheme.value;
+      updateCalendarBrowserTheme();
+    });
+  }
+  if (typeof deviceDarkMode.addEventListener === 'function') {
+    deviceDarkMode.addEventListener('change', updateCalendarBrowserTheme);
+  } else {
+    deviceDarkMode.addListener(updateCalendarBrowserTheme);
+  }
+  updateCalendarBrowserTheme();
   if (!calendar) {
     return;
   }

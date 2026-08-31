@@ -31419,6 +31419,529 @@ body {
   --calendar-background: #f9fafd;
 }
 
+html[data-calendar-theme=dark] {
+  color-scheme: dark;
+  --calendar-background: #111318;
+  --lm-background-color: #1b1d21;
+  --lm-background-color-active: #303134;
+  --lm-background-color-header: #283142;
+  --lm-background-color-highlight: #1f3760;
+  --lm-border-color: #45494f;
+  --lm-border-color-light: #34383e;
+  --lm-font-color: #e8eaed;
+  --lm-font-grayout: #9aa0a6;
+  --lm-main-color: #8ab4f8;
+  --lm-main-color-deep: #aecbfa;
+}
+html[data-calendar-theme=dark] body {
+  background: var(--calendar-background);
+  color: #e8eaed;
+}
+html[data-calendar-theme=dark] .calendar-calendar,
+html[data-calendar-theme=dark] .calendar-calendar-toolbar,
+html[data-calendar-theme=dark] .calendar-calendar-sidebar,
+html[data-calendar-theme=dark] .calendar-calendar-main {
+  color: #e8eaed;
+}
+html[data-calendar-theme=dark] .calendar-calendar-button,
+html[data-calendar-theme=dark] .calendar-calendar-view,
+html[data-calendar-theme=dark] .calendar-month-calendar,
+html[data-calendar-theme=dark] .calendar-schedule-agenda,
+html[data-calendar-theme=dark] #calendar.calendar-calendar-day-view .lm-schedule,
+html[data-calendar-theme=dark] #calendar.calendar-calendar-two-days-view .lm-schedule,
+html[data-calendar-theme=dark] #calendar.calendar-calendar-week-view .lm-schedule,
+html[data-calendar-theme=dark] .calendar-schedule-month-bar,
+html[data-calendar-theme=dark] .calendar-schedule-header-drag-preview,
+html[data-calendar-theme=dark] .calendar-schedule-header-drag-gutter,
+html[data-calendar-theme=dark] .calendar-schedule-header-drag-day,
+html[data-calendar-theme=dark] .calendar-schedule-holiday-row td,
+html[data-calendar-theme=dark] .lm-schedule thead td.calendar-schedule-holiday-cell {
+  background: #1b1d21 !important;
+  border-color: #45494f !important;
+  color: #e8eaed;
+}
+html[data-calendar-theme=dark] .calendar-calendar-icon-button,
+html[data-calendar-theme=dark] .calendar-mini-calendar,
+html[data-calendar-theme=dark] .calendar-mini-calendar-nav,
+html[data-calendar-theme=dark] .calendar-mini-calendar-date,
+html[data-calendar-theme=dark] .calendar-month-weekdays > div,
+html[data-calendar-theme=dark] .calendar-month-day,
+html[data-calendar-theme=dark] .calendar-month-event,
+html[data-calendar-theme=dark] .calendar-month-more,
+html[data-calendar-theme=dark] .calendar-schedule-event,
+html[data-calendar-theme=dark] .calendar-date-picker,
+html[data-calendar-theme=dark] .calendar-date-picker-day,
+html[data-calendar-theme=dark] .calendar-date-picker-nav button,
+html[data-calendar-theme=dark] .calendar-date-picker-weekdays,
+html[data-calendar-theme=dark] .calendar-time-picker span {
+  color: #e8eaed;
+}
+html[data-calendar-theme=dark] .calendar-calendar-icon-button i {
+  color: inherit !important;
+}
+html[data-calendar-theme=dark] .calendar-calendar-search[selected] input::-moz-placeholder {
+  color: #bdc1c6;
+}
+html[data-calendar-theme=dark] .calendar-mini-calendar-weekdays,
+html[data-calendar-theme=dark] .calendar-mini-calendar-date.is-muted,
+html[data-calendar-theme=dark] .calendar-calendar-search,
+html[data-calendar-theme=dark] .calendar-calendar-search[selected] .calendar-calendar-search-clear,
+html[data-calendar-theme=dark] .calendar-calendar-search[selected] input::placeholder,
+html[data-calendar-theme=dark] .calendar-schedule-date,
+html[data-calendar-theme=dark] .calendar-schedule-empty,
+html[data-calendar-theme=dark] .calendar-month-day.is-muted,
+html[data-calendar-theme=dark] .calendar-modal-detail-icon,
+html[data-calendar-theme=dark] .calendar-travel-route-loading,
+html[data-calendar-theme=dark] .calendar-travel-route-origin,
+html[data-calendar-theme=dark] .calendar-google-account-avatar-fallback,
+html[data-calendar-theme=dark] .form-select-control > .form-select-icon {
+  color: #bdc1c6;
+}
+html[data-calendar-theme=dark] button.calendar-calendar-header-control:not(:disabled):hover,
+html[data-calendar-theme=dark] label.calendar-calendar-header-control:hover,
+html[data-calendar-theme=dark] .calendar-mini-calendar-nav:hover,
+html[data-calendar-theme=dark] .calendar-calendar-filter-option:hover,
+html[data-calendar-theme=dark] .calendar-date-picker-nav button:hover,
+html[data-calendar-theme=dark] .calendar-month-event:hover,
+html[data-calendar-theme=dark] .calendar-month-more:hover {
+  background: #303134 !important;
+}
+html[data-calendar-theme=dark] .calendar-calendar-search[selected],
+html[data-calendar-theme=dark] .calendar-calendar-search[selected]:hover,
+html[data-calendar-theme=dark] .calendar-calendar-search[selected]:focus,
+html[data-calendar-theme=dark] .calendar-calendar-search[selected]:active,
+html[data-calendar-theme=dark] .calendar-calendar-search[selected]:focus-within,
+html[data-calendar-theme=dark] .calendar-mini-calendar-date:hover,
+html[data-calendar-theme=dark] .calendar-date-picker-day:hover {
+  background: #283142 !important;
+}
+html[data-calendar-theme=dark] .calendar-month-day {
+  background: #1b1d21;
+  border-color: #45494f;
+}
+html[data-calendar-theme=dark] .calendar-month-day:hover {
+  background: #24262b;
+}
+html[data-calendar-theme=dark] .calendar-month-day.is-muted {
+  background: #17191d;
+}
+html[data-calendar-theme=dark] .calendar-mini-calendar-date.is-today:not(.is-selected),
+html[data-calendar-theme=dark] .calendar-schedule-day.is-today .calendar-schedule-weekday,
+html[data-calendar-theme=dark] .calendar-date-picker-day.is-today:not(.is-selected) {
+  color: #8ab4f8;
+}
+html[data-calendar-theme=dark] .calendar-schedule-day.is-today .calendar-schedule-number,
+html[data-calendar-theme=dark] .calendar-month-day.is-today .calendar-month-day-number {
+  background: #8ab4f8;
+  color: #202124;
+}
+html[data-calendar-theme=dark] .calendar-schedule-day.is-selected:not(.is-today) .calendar-schedule-number,
+html[data-calendar-theme=dark] .calendar-month-day.is-selected:not(.is-today) .calendar-month-day-number,
+html[data-calendar-theme=dark] .calendar-date-picker-day.is-selected {
+  background: #1f3760;
+  color: #d2e3fc;
+}
+html[data-calendar-theme=dark] .calendar-month-weekdays > div,
+html[data-calendar-theme=dark] .calendar-month-day,
+html[data-calendar-theme=dark] .calendar-schedule-empty,
+html[data-calendar-theme=dark] .calendar-month-calendar,
+html[data-calendar-theme=dark] .calendar-schedule-agenda {
+  border-color: #45494f;
+}
+html[data-calendar-theme=dark] #calendar .calendar-schedule-travel {
+  background: color-mix(in srgb, var(--calendar-schedule-event-color, #6b7280) 22%, #202124);
+  border-color: #45494f;
+  color: #e8eaed;
+}
+html[data-calendar-theme=dark] #calendar .lm-schedule-item[data-lesson-status=canceled],
+html[data-calendar-theme=dark] #calendar .calendar-month-event[data-lesson-status=canceled],
+html[data-calendar-theme=dark] #calendar .calendar-month-event-dot[data-lesson-status=canceled],
+html[data-calendar-theme=dark] #calendar .calendar-schedule-event[data-lesson-status=canceled] {
+  background: color-mix(in srgb, var(--calendar-canceled-lesson-color, #fff) 14%, #202124);
+  border-color: #5f6368 !important;
+  color: #e8eaed !important;
+}
+html[data-calendar-theme=dark] .modal-content,
+html[data-calendar-theme=dark] .dropdown-menu,
+html[data-calendar-theme=dark] .popover,
+html[data-calendar-theme=dark] .offcanvas,
+html[data-calendar-theme=dark] .calendar-calendar-filter-menu {
+  --bs-modal-bg: #24262b;
+  --bs-modal-color: #e8eaed;
+  --bs-dropdown-bg: #24262b;
+  --bs-dropdown-color: #e8eaed;
+  --bs-dropdown-link-color: #e8eaed;
+  --bs-dropdown-link-hover-bg: #303134;
+  --bs-popover-bg: #24262b;
+  --bs-offcanvas-bg: #24262b;
+  --bs-offcanvas-color: #e8eaed;
+  background-color: #24262b;
+  border-color: #45494f;
+  color: #e8eaed;
+}
+html[data-calendar-theme=dark] .modal-header,
+html[data-calendar-theme=dark] .modal-footer {
+  border-color: #45494f;
+}
+html[data-calendar-theme=dark] .modal-title,
+html[data-calendar-theme=dark] .modal-title.text-secondary {
+  color: #e8eaed !important;
+}
+html[data-calendar-theme=dark] .modal .btn-outline-secondary, html[data-calendar-theme=dark] .modal .invitation-duration-option:not(:hover):not(.active),
+html[data-calendar-theme=dark] .modal .btn-outline-dark {
+  background: transparent;
+  border-color: #9aa0a6 !important;
+  color: #e8eaed !important;
+}
+html[data-calendar-theme=dark] .modal .btn-outline-secondary:hover, html[data-calendar-theme=dark] .modal .invitation-duration-option:hover:not(:hover):not(.active),
+html[data-calendar-theme=dark] .modal .btn-outline-secondary:active,
+html[data-calendar-theme=dark] .modal .invitation-duration-option:active:not(:hover):not(.active),
+html[data-calendar-theme=dark] .modal .btn-outline-dark:hover,
+html[data-calendar-theme=dark] .modal .btn-outline-dark:active {
+  background: #3c4043;
+  border-color: #bdc1c6 !important;
+  color: #fff !important;
+}
+html[data-calendar-theme=dark] .modal .btn-outline-secondary:focus-visible, html[data-calendar-theme=dark] .modal .invitation-duration-option:focus-visible:not(:hover):not(.active),
+html[data-calendar-theme=dark] .modal .btn-outline-dark:focus-visible,
+html[data-calendar-theme=dark] .modal [data-event-modal-expand-toggle]:focus-visible {
+  outline: 2px solid #8ab4f8 !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 0.2rem rgba(138, 180, 248, 0.24) !important;
+}
+html[data-calendar-theme=dark] .modal [data-event-modal-expand-toggle] {
+  background: #303134;
+  border: 1px solid #45494f;
+  color: #aecbfa !important;
+  font-weight: 700;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+html[data-calendar-theme=dark] .modal [data-event-modal-expand-toggle]:hover,
+html[data-calendar-theme=dark] .modal [data-event-modal-expand-toggle]:active {
+  background: #3c4043;
+  border-color: #5f6368;
+  color: #d2e3fc !important;
+}
+html[data-calendar-theme=dark] .btn-close {
+  filter: invert(1) grayscale(100%) brightness(180%);
+}
+html[data-calendar-theme=dark] .form-control,
+html[data-calendar-theme=dark] .form-select,
+html[data-calendar-theme=dark] .form-check-input,
+html[data-calendar-theme=dark] .calendar-time-picker select {
+  background-color: #303134;
+  border-color: #5f6368;
+  color: #e8eaed;
+}
+html[data-calendar-theme=dark] .form-select {
+  --bs-form-select-bg-img: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23bdc1c6' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+}
+html[data-calendar-theme=dark] .form-control::-moz-placeholder {
+  color: #9aa0a6;
+}
+html[data-calendar-theme=dark] .form-control::placeholder {
+  color: #9aa0a6;
+}
+html[data-calendar-theme=dark] .form-control:focus,
+html[data-calendar-theme=dark] .form-select:focus,
+html[data-calendar-theme=dark] .form-check-input:focus {
+  border-color: #8ab4f8;
+  box-shadow: 0 0 0 0.2rem rgba(138, 180, 248, 0.24);
+}
+html[data-calendar-theme=dark] .form-check-input:checked {
+  background-color: #8ab4f8;
+  border-color: #8ab4f8;
+}
+html[data-calendar-theme=dark] .btn-white, html[data-calendar-theme=dark] .invitation-offscreen-indicator,
+html[data-calendar-theme=dark] .btn-light,
+html[data-calendar-theme=dark] .bg-white,
+html[data-calendar-theme=dark] .bg-light,
+html[data-calendar-theme=dark] .calendar-time-picker select,
+.calendar-time-picker html[data-calendar-theme=dark] select,
+html[data-calendar-theme=dark] .calendar-date-picker,
+html[data-calendar-theme=dark] .calendar-general-event-notes {
+  background-color: #303134 !important;
+  border-color: #5f6368 !important;
+  color: #e8eaed !important;
+}
+html[data-calendar-theme=dark] .calendar-google-account-avatar-fallback {
+  background: #303134;
+}
+html[data-calendar-theme=dark] .calendar-settings-color-picker {
+  border-color: #5f6368;
+}
+html[data-calendar-theme=dark] .calendar-calendar-button:focus-visible,
+html[data-calendar-theme=dark] .calendar-calendar-icon-button:focus-visible,
+html[data-calendar-theme=dark] .calendar-mini-calendar-nav:focus-visible,
+html[data-calendar-theme=dark] .calendar-mini-calendar-date:focus-visible,
+html[data-calendar-theme=dark] .calendar-month-day:focus-visible,
+html[data-calendar-theme=dark] .calendar-date-picker-day:focus-visible {
+  outline: 2px solid #8ab4f8;
+  outline-offset: 2px;
+}
+
+@media (prefers-color-scheme: dark) {
+  html[data-calendar-theme=device] {
+    color-scheme: dark;
+    --calendar-background: #111318;
+    --lm-background-color: #1b1d21;
+    --lm-background-color-active: #303134;
+    --lm-background-color-header: #283142;
+    --lm-background-color-highlight: #1f3760;
+    --lm-border-color: #45494f;
+    --lm-border-color-light: #34383e;
+    --lm-font-color: #e8eaed;
+    --lm-font-grayout: #9aa0a6;
+    --lm-main-color: #8ab4f8;
+    --lm-main-color-deep: #aecbfa;
+  }
+  html[data-calendar-theme=device] body {
+    background: var(--calendar-background);
+    color: #e8eaed;
+  }
+  html[data-calendar-theme=device] .calendar-calendar,
+  html[data-calendar-theme=device] .calendar-calendar-toolbar,
+  html[data-calendar-theme=device] .calendar-calendar-sidebar,
+  html[data-calendar-theme=device] .calendar-calendar-main {
+    color: #e8eaed;
+  }
+  html[data-calendar-theme=device] .calendar-calendar-button,
+  html[data-calendar-theme=device] .calendar-calendar-view,
+  html[data-calendar-theme=device] .calendar-month-calendar,
+  html[data-calendar-theme=device] .calendar-schedule-agenda,
+  html[data-calendar-theme=device] #calendar.calendar-calendar-day-view .lm-schedule,
+  html[data-calendar-theme=device] #calendar.calendar-calendar-two-days-view .lm-schedule,
+  html[data-calendar-theme=device] #calendar.calendar-calendar-week-view .lm-schedule,
+  html[data-calendar-theme=device] .calendar-schedule-month-bar,
+  html[data-calendar-theme=device] .calendar-schedule-header-drag-preview,
+  html[data-calendar-theme=device] .calendar-schedule-header-drag-gutter,
+  html[data-calendar-theme=device] .calendar-schedule-header-drag-day,
+  html[data-calendar-theme=device] .calendar-schedule-holiday-row td,
+  html[data-calendar-theme=device] .lm-schedule thead td.calendar-schedule-holiday-cell {
+    background: #1b1d21 !important;
+    border-color: #45494f !important;
+    color: #e8eaed;
+  }
+  html[data-calendar-theme=device] .calendar-calendar-icon-button,
+  html[data-calendar-theme=device] .calendar-mini-calendar,
+  html[data-calendar-theme=device] .calendar-mini-calendar-nav,
+  html[data-calendar-theme=device] .calendar-mini-calendar-date,
+  html[data-calendar-theme=device] .calendar-month-weekdays > div,
+  html[data-calendar-theme=device] .calendar-month-day,
+  html[data-calendar-theme=device] .calendar-month-event,
+  html[data-calendar-theme=device] .calendar-month-more,
+  html[data-calendar-theme=device] .calendar-schedule-event,
+  html[data-calendar-theme=device] .calendar-date-picker,
+  html[data-calendar-theme=device] .calendar-date-picker-day,
+  html[data-calendar-theme=device] .calendar-date-picker-nav button,
+  html[data-calendar-theme=device] .calendar-date-picker-weekdays,
+  html[data-calendar-theme=device] .calendar-time-picker span {
+    color: #e8eaed;
+  }
+  html[data-calendar-theme=device] .calendar-calendar-icon-button i {
+    color: inherit !important;
+  }
+  html[data-calendar-theme=device] .calendar-calendar-search[selected] input::-moz-placeholder {
+    color: #bdc1c6;
+  }
+  html[data-calendar-theme=device] .calendar-mini-calendar-weekdays,
+  html[data-calendar-theme=device] .calendar-mini-calendar-date.is-muted,
+  html[data-calendar-theme=device] .calendar-calendar-search,
+  html[data-calendar-theme=device] .calendar-calendar-search[selected] .calendar-calendar-search-clear,
+  html[data-calendar-theme=device] .calendar-calendar-search[selected] input::placeholder,
+  html[data-calendar-theme=device] .calendar-schedule-date,
+  html[data-calendar-theme=device] .calendar-schedule-empty,
+  html[data-calendar-theme=device] .calendar-month-day.is-muted,
+  html[data-calendar-theme=device] .calendar-modal-detail-icon,
+  html[data-calendar-theme=device] .calendar-travel-route-loading,
+  html[data-calendar-theme=device] .calendar-travel-route-origin,
+  html[data-calendar-theme=device] .calendar-google-account-avatar-fallback,
+  html[data-calendar-theme=device] .form-select-control > .form-select-icon {
+    color: #bdc1c6;
+  }
+  html[data-calendar-theme=device] button.calendar-calendar-header-control:not(:disabled):hover,
+  html[data-calendar-theme=device] label.calendar-calendar-header-control:hover,
+  html[data-calendar-theme=device] .calendar-mini-calendar-nav:hover,
+  html[data-calendar-theme=device] .calendar-calendar-filter-option:hover,
+  html[data-calendar-theme=device] .calendar-date-picker-nav button:hover,
+  html[data-calendar-theme=device] .calendar-month-event:hover,
+  html[data-calendar-theme=device] .calendar-month-more:hover {
+    background: #303134 !important;
+  }
+  html[data-calendar-theme=device] .calendar-calendar-search[selected],
+  html[data-calendar-theme=device] .calendar-calendar-search[selected]:hover,
+  html[data-calendar-theme=device] .calendar-calendar-search[selected]:focus,
+  html[data-calendar-theme=device] .calendar-calendar-search[selected]:active,
+  html[data-calendar-theme=device] .calendar-calendar-search[selected]:focus-within,
+  html[data-calendar-theme=device] .calendar-mini-calendar-date:hover,
+  html[data-calendar-theme=device] .calendar-date-picker-day:hover {
+    background: #283142 !important;
+  }
+  html[data-calendar-theme=device] .calendar-month-day {
+    background: #1b1d21;
+    border-color: #45494f;
+  }
+  html[data-calendar-theme=device] .calendar-month-day:hover {
+    background: #24262b;
+  }
+  html[data-calendar-theme=device] .calendar-month-day.is-muted {
+    background: #17191d;
+  }
+  html[data-calendar-theme=device] .calendar-mini-calendar-date.is-today:not(.is-selected),
+  html[data-calendar-theme=device] .calendar-schedule-day.is-today .calendar-schedule-weekday,
+  html[data-calendar-theme=device] .calendar-date-picker-day.is-today:not(.is-selected) {
+    color: #8ab4f8;
+  }
+  html[data-calendar-theme=device] .calendar-schedule-day.is-today .calendar-schedule-number,
+  html[data-calendar-theme=device] .calendar-month-day.is-today .calendar-month-day-number {
+    background: #8ab4f8;
+    color: #202124;
+  }
+  html[data-calendar-theme=device] .calendar-schedule-day.is-selected:not(.is-today) .calendar-schedule-number,
+  html[data-calendar-theme=device] .calendar-month-day.is-selected:not(.is-today) .calendar-month-day-number,
+  html[data-calendar-theme=device] .calendar-date-picker-day.is-selected {
+    background: #1f3760;
+    color: #d2e3fc;
+  }
+  html[data-calendar-theme=device] .calendar-month-weekdays > div,
+  html[data-calendar-theme=device] .calendar-month-day,
+  html[data-calendar-theme=device] .calendar-schedule-empty,
+  html[data-calendar-theme=device] .calendar-month-calendar,
+  html[data-calendar-theme=device] .calendar-schedule-agenda {
+    border-color: #45494f;
+  }
+  html[data-calendar-theme=device] #calendar .calendar-schedule-travel {
+    background: color-mix(in srgb, var(--calendar-schedule-event-color, #6b7280) 22%, #202124);
+    border-color: #45494f;
+    color: #e8eaed;
+  }
+  html[data-calendar-theme=device] #calendar .lm-schedule-item[data-lesson-status=canceled],
+  html[data-calendar-theme=device] #calendar .calendar-month-event[data-lesson-status=canceled],
+  html[data-calendar-theme=device] #calendar .calendar-month-event-dot[data-lesson-status=canceled],
+  html[data-calendar-theme=device] #calendar .calendar-schedule-event[data-lesson-status=canceled] {
+    background: color-mix(in srgb, var(--calendar-canceled-lesson-color, #fff) 14%, #202124);
+    border-color: #5f6368 !important;
+    color: #e8eaed !important;
+  }
+  html[data-calendar-theme=device] .modal-content,
+  html[data-calendar-theme=device] .dropdown-menu,
+  html[data-calendar-theme=device] .popover,
+  html[data-calendar-theme=device] .offcanvas,
+  html[data-calendar-theme=device] .calendar-calendar-filter-menu {
+    --bs-modal-bg: #24262b;
+    --bs-modal-color: #e8eaed;
+    --bs-dropdown-bg: #24262b;
+    --bs-dropdown-color: #e8eaed;
+    --bs-dropdown-link-color: #e8eaed;
+    --bs-dropdown-link-hover-bg: #303134;
+    --bs-popover-bg: #24262b;
+    --bs-offcanvas-bg: #24262b;
+    --bs-offcanvas-color: #e8eaed;
+    background-color: #24262b;
+    border-color: #45494f;
+    color: #e8eaed;
+  }
+  html[data-calendar-theme=device] .modal-header,
+  html[data-calendar-theme=device] .modal-footer {
+    border-color: #45494f;
+  }
+  html[data-calendar-theme=device] .modal-title,
+  html[data-calendar-theme=device] .modal-title.text-secondary {
+    color: #e8eaed !important;
+  }
+  html[data-calendar-theme=device] .modal .btn-outline-secondary, html[data-calendar-theme=device] .modal .invitation-duration-option:not(:hover):not(.active),
+  html[data-calendar-theme=device] .modal .btn-outline-dark {
+    background: transparent;
+    border-color: #9aa0a6 !important;
+    color: #e8eaed !important;
+  }
+  html[data-calendar-theme=device] .modal .btn-outline-secondary:hover, html[data-calendar-theme=device] .modal .invitation-duration-option:hover:not(:hover):not(.active),
+  html[data-calendar-theme=device] .modal .btn-outline-secondary:active,
+  html[data-calendar-theme=device] .modal .invitation-duration-option:active:not(:hover):not(.active),
+  html[data-calendar-theme=device] .modal .btn-outline-dark:hover,
+  html[data-calendar-theme=device] .modal .btn-outline-dark:active {
+    background: #3c4043;
+    border-color: #bdc1c6 !important;
+    color: #fff !important;
+  }
+  html[data-calendar-theme=device] .modal .btn-outline-secondary:focus-visible, html[data-calendar-theme=device] .modal .invitation-duration-option:focus-visible:not(:hover):not(.active),
+  html[data-calendar-theme=device] .modal .btn-outline-dark:focus-visible,
+  html[data-calendar-theme=device] .modal [data-event-modal-expand-toggle]:focus-visible {
+    outline: 2px solid #8ab4f8 !important;
+    outline-offset: 2px !important;
+    box-shadow: 0 0 0 0.2rem rgba(138, 180, 248, 0.24) !important;
+  }
+  html[data-calendar-theme=device] .modal [data-event-modal-expand-toggle] {
+    background: #303134;
+    border: 1px solid #45494f;
+    color: #aecbfa !important;
+    font-weight: 700;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  }
+  html[data-calendar-theme=device] .modal [data-event-modal-expand-toggle]:hover,
+  html[data-calendar-theme=device] .modal [data-event-modal-expand-toggle]:active {
+    background: #3c4043;
+    border-color: #5f6368;
+    color: #d2e3fc !important;
+  }
+  html[data-calendar-theme=device] .btn-close {
+    filter: invert(1) grayscale(100%) brightness(180%);
+  }
+  html[data-calendar-theme=device] .form-control,
+  html[data-calendar-theme=device] .form-select,
+  html[data-calendar-theme=device] .form-check-input,
+  html[data-calendar-theme=device] .calendar-time-picker select {
+    background-color: #303134;
+    border-color: #5f6368;
+    color: #e8eaed;
+  }
+  html[data-calendar-theme=device] .form-select {
+    --bs-form-select-bg-img: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23bdc1c6' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+  }
+  html[data-calendar-theme=device] .form-control::-moz-placeholder {
+    color: #9aa0a6;
+  }
+  html[data-calendar-theme=device] .form-control::placeholder {
+    color: #9aa0a6;
+  }
+  html[data-calendar-theme=device] .form-control:focus,
+  html[data-calendar-theme=device] .form-select:focus,
+  html[data-calendar-theme=device] .form-check-input:focus {
+    border-color: #8ab4f8;
+    box-shadow: 0 0 0 0.2rem rgba(138, 180, 248, 0.24);
+  }
+  html[data-calendar-theme=device] .form-check-input:checked {
+    background-color: #8ab4f8;
+    border-color: #8ab4f8;
+  }
+  html[data-calendar-theme=device] .btn-white, html[data-calendar-theme=device] .invitation-offscreen-indicator,
+  html[data-calendar-theme=device] .btn-light,
+  html[data-calendar-theme=device] .bg-white,
+  html[data-calendar-theme=device] .bg-light,
+  html[data-calendar-theme=device] .calendar-time-picker select,
+  .calendar-time-picker html[data-calendar-theme=device] select,
+  html[data-calendar-theme=device] .calendar-date-picker,
+  html[data-calendar-theme=device] .calendar-general-event-notes {
+    background-color: #303134 !important;
+    border-color: #5f6368 !important;
+    color: #e8eaed !important;
+  }
+  html[data-calendar-theme=device] .calendar-google-account-avatar-fallback {
+    background: #303134;
+  }
+  html[data-calendar-theme=device] .calendar-settings-color-picker {
+    border-color: #5f6368;
+  }
+  html[data-calendar-theme=device] .calendar-calendar-button:focus-visible,
+  html[data-calendar-theme=device] .calendar-calendar-icon-button:focus-visible,
+  html[data-calendar-theme=device] .calendar-mini-calendar-nav:focus-visible,
+  html[data-calendar-theme=device] .calendar-mini-calendar-date:focus-visible,
+  html[data-calendar-theme=device] .calendar-month-day:focus-visible,
+  html[data-calendar-theme=device] .calendar-date-picker-day:focus-visible {
+    outline: 2px solid #8ab4f8;
+    outline-offset: 2px;
+  }
+}
 input[type=date],
 input[type=month] {
   text-align: left;

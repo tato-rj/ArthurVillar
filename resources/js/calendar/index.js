@@ -7461,7 +7461,33 @@ document.addEventListener('DOMContentLoaded', function() {
         : null;
     const calendarFilterReset = document.querySelector('[data-calendar-filter-reset]');
     const calendarSettingsModal = document.getElementById('settings-modal');
+    const appearanceTheme = document.getElementById('appearance-theme');
+    const deviceDarkMode = window.matchMedia('(prefers-color-scheme: dark)');
     let calendarCreateBackdrop = null;
+
+    const updateCalendarBrowserTheme = function() {
+        const preference = document.documentElement.dataset.calendarTheme || 'device';
+        const isDark = preference === 'dark' || (preference === 'device' && deviceDarkMode.matches);
+        const themeColor = document.querySelector('meta[name="theme-color"]');
+
+        if (themeColor) {
+            themeColor.content = isDark ? '#111318' : '#ffffff';
+        }
+    };
+
+    if (appearanceTheme) {
+        appearanceTheme.addEventListener('change', function() {
+            document.documentElement.dataset.calendarTheme = appearanceTheme.value;
+            updateCalendarBrowserTheme();
+        });
+    }
+
+    if (typeof deviceDarkMode.addEventListener === 'function') {
+        deviceDarkMode.addEventListener('change', updateCalendarBrowserTheme);
+    } else {
+        deviceDarkMode.addListener(updateCalendarBrowserTheme);
+    }
+    updateCalendarBrowserTheme();
 
     if (!calendar) {
         return;

@@ -117,6 +117,12 @@
 			<section class="calendar-settings-section" aria-labelledby="settings-appearance-title">
 				<h6 id="settings-appearance-title">Appearance</h6>
 
+				@select(['label' => 'Theme', 'icon' => 'circle-half-stroke', 'name' => 'appearance_theme', 'id' => 'appearance-theme'])
+					<option value="light" {{iftrue($selectedAppearanceTheme === 'light', 'selected')}}>Light</option>
+					<option value="dark" {{iftrue($selectedAppearanceTheme === 'dark', 'selected')}}>Dark</option>
+					<option value="device" {{iftrue($selectedAppearanceTheme === 'device', 'selected')}}>Device settings</option>
+				@endselect
+
 				@foreach($appearanceSettings as $appearanceSetting)
 					<div class="d-apart mb-3">
 						<div class="d-flex align-items-center">
