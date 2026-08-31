@@ -288,6 +288,102 @@ $calendar-item-border-radius: 12px;
         border-color: #5f6368;
     }
 
+    .calendar-student-combobox-control {
+        background: #303134;
+        border-color: #5f6368;
+        color: #e8eaed;
+    }
+
+    .calendar-student-combobox-control:focus-within {
+        border-color: #8ab4f8;
+        box-shadow: 0 0 0 .2rem rgba(138, 180, 248, .24) !important;
+    }
+
+    .calendar-student-combobox-control input {
+        background: transparent;
+        caret-color: #8ab4f8;
+        color: #e8eaed;
+        -webkit-text-fill-color: #e8eaed;
+    }
+
+    .calendar-student-combobox-control input::placeholder {
+        color: #9aa0a6;
+        opacity: 1;
+        -webkit-text-fill-color: #9aa0a6;
+    }
+
+    .calendar-student-combobox-control i {
+        color: #bdc1c6 !important;
+    }
+
+    .calendar-student-combobox-menu {
+        background: #24262b;
+        border-color: #5f6368 !important;
+        color: #e8eaed;
+    }
+
+    .calendar-student-combobox-option {
+        color: #e8eaed;
+    }
+
+    .calendar-student-combobox-option:hover,
+    .calendar-student-combobox-option:focus {
+        background: #303134;
+        color: #fff;
+    }
+
+    .calendar-student-combobox-option:focus-visible {
+        outline: 2px solid #8ab4f8 !important;
+        outline-offset: -2px !important;
+    }
+
+    .calendar-student-combobox-empty {
+        color: #bdc1c6;
+    }
+
+    #calendar-offcanvas-views {
+        background: #1b1d21;
+        color: #e8eaed;
+    }
+
+    #calendar-offcanvas-views .calendar-calendar-offcanvas-views li {
+        border-left: 3px solid transparent;
+        color: #e8eaed;
+        transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+    }
+
+    #calendar-offcanvas-views .calendar-calendar-offcanvas-views button {
+        color: inherit;
+        text-align: left;
+        width: 100%;
+    }
+
+    #calendar-offcanvas-views .calendar-calendar-offcanvas-views button i {
+        color: inherit !important;
+    }
+
+    #calendar-offcanvas-views .calendar-calendar-offcanvas-views li:hover,
+    #calendar-offcanvas-views .calendar-calendar-offcanvas-views li:focus-within {
+        background: #303134;
+        color: #fff;
+    }
+
+    #calendar-offcanvas-views .calendar-calendar-offcanvas-views li[selected] {
+        background: #1f3760;
+        border-left-color: #8ab4f8;
+        color: #d2e3fc;
+    }
+
+    #calendar-offcanvas-views .calendar-calendar-offcanvas-views button:focus-visible {
+        outline: 2px solid #8ab4f8 !important;
+        outline-offset: 2px !important;
+        box-shadow: 0 0 0 .2rem rgba(138, 180, 248, .24) !important;
+    }
+
+    #calendar-offcanvas-views .calendar-calendar-offcanvas-insights {
+        border-color: #45494f;
+    }
+
     .calendar-calendar-button:focus-visible,
     .calendar-calendar-icon-button:focus-visible,
     .calendar-mini-calendar-nav:focus-visible,
