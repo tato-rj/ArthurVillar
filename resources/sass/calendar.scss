@@ -29,6 +29,10 @@ $calendar-item-border-radius: 12px;
         color: #e8eaed;
     }
 
+    input {
+        background: transparent !important;
+    }
+
     .calendar-calendar,
     .calendar-calendar-toolbar,
     .calendar-calendar-sidebar,

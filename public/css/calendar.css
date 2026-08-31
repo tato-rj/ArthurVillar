@@ -31437,6 +31437,9 @@ html[data-calendar-theme=dark] body {
   background: var(--calendar-background);
   color: #e8eaed;
 }
+html[data-calendar-theme=dark] input {
+  background: transparent !important;
+}
 html[data-calendar-theme=dark] .calendar-calendar,
 html[data-calendar-theme=dark] .calendar-calendar-toolbar,
 html[data-calendar-theme=dark] .calendar-calendar-sidebar,
@@ -31698,6 +31701,9 @@ html[data-calendar-theme=dark] .calendar-date-picker-day:focus-visible {
   html[data-calendar-theme=device] body {
     background: var(--calendar-background);
     color: #e8eaed;
+  }
+  html[data-calendar-theme=device] input {
+    background: transparent !important;
   }
   html[data-calendar-theme=device] .calendar-calendar,
   html[data-calendar-theme=device] .calendar-calendar-toolbar,
