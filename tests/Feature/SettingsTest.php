@@ -69,7 +69,7 @@ class SettingsTest extends BaseTest
         $this->get(route('calendar.home'))
             ->assertOk()
             ->assertSeeInOrder([
-                'document.documentElement.dataset.calendarTheme = "device";',
+                'window.calendarThemePreference = "device";',
                 '/css/vendor/calendarjs.css',
                 'css/calendar.css',
             ], false);
@@ -78,7 +78,7 @@ class SettingsTest extends BaseTest
 
         $this->get(route('calendar.home'))
             ->assertOk()
-            ->assertSee('document.documentElement.dataset.calendarTheme = "dark";', false)
+            ->assertSee('window.calendarThemePreference = "dark";', false)
             ->assertSee('<option value="dark" selected>Dark</option>', false);
     }
 

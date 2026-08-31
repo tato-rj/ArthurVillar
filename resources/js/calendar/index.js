@@ -7465,29 +7465,40 @@ document.addEventListener('DOMContentLoaded', function() {
     const deviceDarkMode = window.matchMedia('(prefers-color-scheme: dark)');
     let calendarCreateBackdrop = null;
 
-    const updateCalendarBrowserTheme = function() {
-        const preference = document.documentElement.dataset.calendarTheme || 'device';
-        const isDark = preference === 'dark' || (preference === 'device' && deviceDarkMode.matches);
+    const applyCalendarTheme = function(preference) {
+        const normalizedPreference = ['light', 'dark', 'device'].includes(preference) ? preference : 'device';
+        const resolvedTheme = normalizedPreference === 'device'
+            ? (deviceDarkMode.matches ? 'dark' : 'light')
+            : normalizedPreference;
+
+        document.documentElement.dataset.calendarThemePreference = normalizedPreference;
+        document.documentElement.dataset.calendarTheme = resolvedTheme;
+
         const themeColor = document.querySelector('meta[name="theme-color"]');
 
         if (themeColor) {
-            themeColor.content = isDark ? '#111318' : '#ffffff';
+            themeColor.content = resolvedTheme === 'dark' ? '#111318' : '#ffffff';
         }
     };
 
     if (appearanceTheme) {
         appearanceTheme.addEventListener('change', function() {
-            document.documentElement.dataset.calendarTheme = appearanceTheme.value;
-            updateCalendarBrowserTheme();
+            applyCalendarTheme(appearanceTheme.value);
         });
     }
 
+    const updateCalendarDeviceTheme = function() {
+        if (document.documentElement.dataset.calendarThemePreference === 'device') {
+            applyCalendarTheme('device');
+        }
+    };
+
     if (typeof deviceDarkMode.addEventListener === 'function') {
-        deviceDarkMode.addEventListener('change', updateCalendarBrowserTheme);
+        deviceDarkMode.addEventListener('change', updateCalendarDeviceTheme);
     } else {
-        deviceDarkMode.addListener(updateCalendarBrowserTheme);
+        deviceDarkMode.addListener(updateCalendarDeviceTheme);
     }
-    updateCalendarBrowserTheme();
+    applyCalendarTheme(document.documentElement.dataset.calendarThemePreference || window.calendarThemePreference);
 
     if (!calendar) {
         return;
@@ -10166,12 +10177,14 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        updateCalendarDeviceTheme();
         updateSchedulePointerClock();
         recoverStaleCalendar(false);
     });
 
     window.addEventListener('pagehide', markCalendarInactive);
     window.addEventListener('pageshow', function(event) {
+        updateCalendarDeviceTheme();
         recoverStaleCalendar(Boolean(event.persisted));
     });
 

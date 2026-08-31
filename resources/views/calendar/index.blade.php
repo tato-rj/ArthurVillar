@@ -1,7 +1,18 @@
 @extends('layouts.app', ['title' => now()->format('M jS')])
 
 @push('header')
-<script>document.documentElement.dataset.calendarTheme = @json($selectedAppearanceTheme);</script>
+<script>
+window.calendarThemePreference = @json($selectedAppearanceTheme);
+(function () {
+    var preference = window.calendarThemePreference;
+    var deviceUsesDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    document.documentElement.dataset.calendarThemePreference = preference;
+    document.documentElement.dataset.calendarTheme = preference === 'device'
+        ? (deviceUsesDarkMode ? 'dark' : 'light')
+        : preference;
+})();
+</script>
 <link href="/css/vendor/calendarjs.css" rel="stylesheet">
 <link href="{{ mix('css/calendar.css') }}" rel="stylesheet">
 <style>

@@ -10274,26 +10274,32 @@ document.addEventListener('DOMContentLoaded', function () {
   var appearanceTheme = document.getElementById('appearance-theme');
   var deviceDarkMode = window.matchMedia('(prefers-color-scheme: dark)');
   var calendarCreateBackdrop = null;
-  var updateCalendarBrowserTheme = function updateCalendarBrowserTheme() {
-    var preference = document.documentElement.dataset.calendarTheme || 'device';
-    var isDark = preference === 'dark' || preference === 'device' && deviceDarkMode.matches;
+  var applyCalendarTheme = function applyCalendarTheme(preference) {
+    var normalizedPreference = ['light', 'dark', 'device'].includes(preference) ? preference : 'device';
+    var resolvedTheme = normalizedPreference === 'device' ? deviceDarkMode.matches ? 'dark' : 'light' : normalizedPreference;
+    document.documentElement.dataset.calendarThemePreference = normalizedPreference;
+    document.documentElement.dataset.calendarTheme = resolvedTheme;
     var themeColor = document.querySelector('meta[name="theme-color"]');
     if (themeColor) {
-      themeColor.content = isDark ? '#111318' : '#ffffff';
+      themeColor.content = resolvedTheme === 'dark' ? '#111318' : '#ffffff';
     }
   };
   if (appearanceTheme) {
     appearanceTheme.addEventListener('change', function () {
-      document.documentElement.dataset.calendarTheme = appearanceTheme.value;
-      updateCalendarBrowserTheme();
+      applyCalendarTheme(appearanceTheme.value);
     });
   }
+  var updateCalendarDeviceTheme = function updateCalendarDeviceTheme() {
+    if (document.documentElement.dataset.calendarThemePreference === 'device') {
+      applyCalendarTheme('device');
+    }
+  };
   if (typeof deviceDarkMode.addEventListener === 'function') {
-    deviceDarkMode.addEventListener('change', updateCalendarBrowserTheme);
+    deviceDarkMode.addEventListener('change', updateCalendarDeviceTheme);
   } else {
-    deviceDarkMode.addListener(updateCalendarBrowserTheme);
+    deviceDarkMode.addListener(updateCalendarDeviceTheme);
   }
-  updateCalendarBrowserTheme();
+  applyCalendarTheme(document.documentElement.dataset.calendarThemePreference || window.calendarThemePreference);
   if (!calendar) {
     return;
   }
@@ -12417,11 +12423,13 @@ document.addEventListener('DOMContentLoaded', function () {
       stopSchedulePointerClock();
       return;
     }
+    updateCalendarDeviceTheme();
     _updateSchedulePointerClock();
     recoverStaleCalendar(false);
   });
   window.addEventListener('pagehide', markCalendarInactive);
   window.addEventListener('pageshow', function (event) {
+    updateCalendarDeviceTheme();
     recoverStaleCalendar(Boolean(event.persisted));
   });
   _updateSchedulePointerClock();
