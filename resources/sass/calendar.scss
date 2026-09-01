@@ -242,6 +242,32 @@ $calendar-item-border-radius: 12px;
         filter: invert(1) grayscale(100%) brightness(180%);
     }
 
+    #calendar-event-modal #header-buttons .btn-raw {
+        border-radius: 50%;
+        color: #e8eaed !important;
+        opacity: .75;
+        transition: background-color .15s ease, opacity .15s ease;
+    }
+
+    #calendar-event-modal #header-buttons .btn-raw i {
+        color: inherit !important;
+    }
+
+    #calendar-event-modal #header-buttons .btn-raw:hover,
+    #calendar-event-modal #header-buttons .btn-raw:active {
+        background: #3c4043;
+        color: #fff !important;
+        opacity: 1;
+    }
+
+    #calendar-event-modal #header-buttons .btn-raw:focus-visible {
+        color: #fff !important;
+        opacity: 1;
+        outline: 2px solid #8ab4f8 !important;
+        outline-offset: 2px !important;
+        box-shadow: 0 0 0 .2rem rgba(138, 180, 248, .24) !important;
+    }
+
     .form-control,
     .form-select,
     .form-check-input,

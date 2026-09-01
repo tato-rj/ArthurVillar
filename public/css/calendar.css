@@ -31628,6 +31628,30 @@ html[data-calendar-theme=dark] .modal [data-event-modal-expand-toggle]:active {
 html[data-calendar-theme=dark] .btn-close {
   filter: invert(1) grayscale(100%) brightness(180%);
 }
+html[data-calendar-theme=dark] #calendar-event-modal #header-buttons .btn-raw, html[data-calendar-theme=dark] #calendar-event-modal #header-buttons .calendar-student-combobox-option, html[data-calendar-theme=dark] #calendar-event-modal #header-buttons .calendar-calendar-create-menu-option {
+  border-radius: 50%;
+  color: #e8eaed !important;
+  opacity: 0.75;
+  transition: background-color 0.15s ease, opacity 0.15s ease;
+}
+html[data-calendar-theme=dark] #calendar-event-modal #header-buttons .btn-raw i, html[data-calendar-theme=dark] #calendar-event-modal #header-buttons .calendar-student-combobox-option i, html[data-calendar-theme=dark] #calendar-event-modal #header-buttons .calendar-calendar-create-menu-option i {
+  color: inherit !important;
+}
+html[data-calendar-theme=dark] #calendar-event-modal #header-buttons .btn-raw:hover, html[data-calendar-theme=dark] #calendar-event-modal #header-buttons .calendar-student-combobox-option:hover, html[data-calendar-theme=dark] #calendar-event-modal #header-buttons .calendar-calendar-create-menu-option:hover,
+html[data-calendar-theme=dark] #calendar-event-modal #header-buttons .btn-raw:active,
+html[data-calendar-theme=dark] #calendar-event-modal #header-buttons .calendar-student-combobox-option:active,
+html[data-calendar-theme=dark] #calendar-event-modal #header-buttons .calendar-calendar-create-menu-option:active {
+  background: #3c4043;
+  color: #fff !important;
+  opacity: 1;
+}
+html[data-calendar-theme=dark] #calendar-event-modal #header-buttons .btn-raw:focus-visible, html[data-calendar-theme=dark] #calendar-event-modal #header-buttons .calendar-student-combobox-option:focus-visible, html[data-calendar-theme=dark] #calendar-event-modal #header-buttons .calendar-calendar-create-menu-option:focus-visible {
+  color: #fff !important;
+  opacity: 1;
+  outline: 2px solid #8ab4f8 !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 0.2rem rgba(138, 180, 248, 0.24) !important;
+}
 html[data-calendar-theme=dark] .form-control,
 html[data-calendar-theme=dark] .form-select,
 html[data-calendar-theme=dark] .form-check-input,
@@ -31975,6 +31999,30 @@ html[data-calendar-theme=dark] .calendar-date-picker-day:focus-visible {
   }
   html[data-calendar-theme=device] .btn-close {
     filter: invert(1) grayscale(100%) brightness(180%);
+  }
+  html[data-calendar-theme=device] #calendar-event-modal #header-buttons .btn-raw, html[data-calendar-theme=device] #calendar-event-modal #header-buttons .calendar-student-combobox-option, html[data-calendar-theme=device] #calendar-event-modal #header-buttons .calendar-calendar-create-menu-option {
+    border-radius: 50%;
+    color: #e8eaed !important;
+    opacity: 0.75;
+    transition: background-color 0.15s ease, opacity 0.15s ease;
+  }
+  html[data-calendar-theme=device] #calendar-event-modal #header-buttons .btn-raw i, html[data-calendar-theme=device] #calendar-event-modal #header-buttons .calendar-student-combobox-option i, html[data-calendar-theme=device] #calendar-event-modal #header-buttons .calendar-calendar-create-menu-option i {
+    color: inherit !important;
+  }
+  html[data-calendar-theme=device] #calendar-event-modal #header-buttons .btn-raw:hover, html[data-calendar-theme=device] #calendar-event-modal #header-buttons .calendar-student-combobox-option:hover, html[data-calendar-theme=device] #calendar-event-modal #header-buttons .calendar-calendar-create-menu-option:hover,
+  html[data-calendar-theme=device] #calendar-event-modal #header-buttons .btn-raw:active,
+  html[data-calendar-theme=device] #calendar-event-modal #header-buttons .calendar-student-combobox-option:active,
+  html[data-calendar-theme=device] #calendar-event-modal #header-buttons .calendar-calendar-create-menu-option:active {
+    background: #3c4043;
+    color: #fff !important;
+    opacity: 1;
+  }
+  html[data-calendar-theme=device] #calendar-event-modal #header-buttons .btn-raw:focus-visible, html[data-calendar-theme=device] #calendar-event-modal #header-buttons .calendar-student-combobox-option:focus-visible, html[data-calendar-theme=device] #calendar-event-modal #header-buttons .calendar-calendar-create-menu-option:focus-visible {
+    color: #fff !important;
+    opacity: 1;
+    outline: 2px solid #8ab4f8 !important;
+    outline-offset: 2px !important;
+    box-shadow: 0 0 0 0.2rem rgba(138, 180, 248, 0.24) !important;
   }
   html[data-calendar-theme=device] .form-control,
   html[data-calendar-theme=device] .form-select,
