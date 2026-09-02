@@ -1916,6 +1916,7 @@ const patchScheduleItems = function(calendar) {
         item.classList.toggle('is-short', isShort);
         item.classList.toggle('calendar-calendar-general-event', Boolean(event && event.isGeneralEvent));
         item.toggleAttribute('data-read-only', Boolean(event && event.readOnly));
+        item.toggleAttribute('data-hide-outgoing-directions', String(event && event.travelMode || '').toUpperCase() === 'NONE');
         item.dataset.externalProvider = event && event.externalProvider ? event.externalProvider : '';
         item.dataset.responseStatus = event && event.responseStatus ? event.responseStatus : '';
         item.setAttribute(
@@ -1937,6 +1938,7 @@ const patchScheduleItems = function(calendar) {
         applyEventOverlapAttribute(item, event);
         patchScheduleItemTravel(item, event);
         patchScheduleItemReturnHomeTravel(item, event);
+        updateScheduleItemTravelClasses(item);
     });
 };
 
@@ -3590,7 +3592,8 @@ const updateScheduleItemTravelClasses = function(item) {
     }
 
     const hasBefore = Boolean(item.querySelector(':scope > .calendar-schedule-travel[data-travel-position="before"]'));
-    const hasAfter = Boolean(item.querySelector(':scope > .calendar-schedule-travel[data-travel-position="after"]'));
+    const hasAfter = !item.hasAttribute('data-hide-outgoing-directions')
+        && Boolean(item.querySelector(':scope > .calendar-schedule-travel[data-travel-position="after"]'));
 
     item.classList.toggle('has-calendar-schedule-travel', hasBefore || hasAfter);
     item.classList.toggle('has-calendar-schedule-travel-before', hasBefore);

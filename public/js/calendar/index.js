@@ -6067,6 +6067,7 @@ var patchScheduleItems = function patchScheduleItems(calendar) {
     item.classList.toggle('is-short', isShort);
     item.classList.toggle('calendar-calendar-general-event', Boolean(event && event.isGeneralEvent));
     item.toggleAttribute('data-read-only', Boolean(event && event.readOnly));
+    item.toggleAttribute('data-hide-outgoing-directions', String(event && event.travelMode || '').toUpperCase() === 'NONE');
     item.dataset.externalProvider = event && event.externalProvider ? event.externalProvider : '';
     item.dataset.responseStatus = event && event.responseStatus ? event.responseStatus : '';
     item.setAttribute('data-display-time', event && event.externalProvider === 'google' ? 'from Google Calendar' : isShort ? formatEventTime(start) : "".concat(formatEventTime(start), " - ").concat(formatEventTime(end)));
@@ -6078,6 +6079,7 @@ var patchScheduleItems = function patchScheduleItems(calendar) {
     applyEventOverlapAttribute(item, event);
     patchScheduleItemTravel(item, event);
     patchScheduleItemReturnHomeTravel(item, event);
+    updateScheduleItemTravelClasses(item);
   });
 };
 var animateCalendarLessonItems = function animateCalendarLessonItems(calendar) {
@@ -7321,7 +7323,7 @@ var updateScheduleItemTravelClasses = function updateScheduleItemTravelClasses(i
     return;
   }
   var hasBefore = Boolean(item.querySelector(':scope > .calendar-schedule-travel[data-travel-position="before"]'));
-  var hasAfter = Boolean(item.querySelector(':scope > .calendar-schedule-travel[data-travel-position="after"]'));
+  var hasAfter = !item.hasAttribute('data-hide-outgoing-directions') && Boolean(item.querySelector(':scope > .calendar-schedule-travel[data-travel-position="after"]'));
   item.classList.toggle('has-calendar-schedule-travel', hasBefore || hasAfter);
   item.classList.toggle('has-calendar-schedule-travel-before', hasBefore);
   item.classList.toggle('has-calendar-schedule-travel-after', hasAfter);

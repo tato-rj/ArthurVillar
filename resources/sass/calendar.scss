@@ -2171,7 +2171,8 @@ button.single-lesson-plan-create[selected] i {
     text-overflow: ellipsis;
 }
 
-#calendar .lm-schedule-item[holding-event] > .calendar-schedule-travel {
+#calendar .lm-schedule-item[holding-event] > .calendar-schedule-travel,
+#calendar .lm-schedule-item[data-hide-outgoing-directions] > .calendar-schedule-travel[data-travel-position="after"] {
     display: none;
 }
 
