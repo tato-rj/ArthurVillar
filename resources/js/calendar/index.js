@@ -1,5 +1,6 @@
 import { spring } from 'motion';
 import { animate } from 'motion/mini';
+import { bindCalendarNavigationMenu } from './navigation-menu';
 
 const DOMPurify = require('dompurify');
 const calendarjs = window.calendarjs;
@@ -1048,8 +1049,6 @@ const bindScheduleHeaderDrag = function(calendar, navigateByDays) {
         if (!dayOffset || drag || !scheduleGridViews.includes(state.view)) {
             return false;
         }
-
-        dayOffset = Math.sign(dayOffset);
 
         const row = calendar.querySelector('.lm-schedule thead tr:not(.calendar-schedule-holiday-row)');
         const interrupted = takeSettlingPreview();
@@ -8390,17 +8389,35 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    if (previous) {
-        previous.addEventListener('click', function() {
-            navigateCalendarByArrow(-1);
-        });
-    }
+    bindCalendarNavigationMenu(previous, next, function(direction, unit) {
+        if (isScheduleHoldNavigationSuppressed()) {
+            return;
+        }
+        if (!unit) {
+            navigateCalendarByArrow(direction);
+            return;
+        }
+        if (unit !== 'month' && useScheduleHeaderNavigation()) {
+            navigateScheduleHeaderByArrow(direction * (unit === 'week' ? 7 : 1));
+            return;
+        }
 
-    if (next) {
-        next.addEventListener('click', function() {
-            navigateCalendarByArrow(1);
-        });
-    }
+        const currentDate = useScheduleHeaderNavigation() ? getVisibleScheduleDates()[0] : state.date;
+        let targetDate;
+        if (unit === 'month') {
+            // Clamp month-end dates instead of overflowing into the following month.
+            targetDate = createLocalDate(currentDate.getFullYear(), currentDate.getMonth() + direction, 1);
+            const lastDay = createLocalDate(targetDate.getFullYear(), targetDate.getMonth() + 1, 0).getDate();
+            targetDate.setDate(Math.min(currentDate.getDate(), lastDay));
+        } else {
+            targetDate = addDays(currentDate, direction * (unit === 'week' ? 7 : 1));
+        }
+        setSelectedDate(targetDate);
+        if (state.view === 'week') {
+            state.scheduleWindowStart = cloneDate(targetDate);
+        }
+        render();
+    });
 
     if (view) {
         view.addEventListener('change', function() {

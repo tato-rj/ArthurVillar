@@ -1,6 +1,187 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
+/***/ "./resources/js/calendar/navigation-menu.js"
+/*!**************************************************!*\
+  !*** ./resources/js/calendar/navigation-menu.js ***!
+  \**************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   bindCalendarNavigationMenu: () => (/* binding */ bindCalendarNavigationMenu)
+/* harmony export */ });
+function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+var bindCalendarNavigationMenu = function bindCalendarNavigationMenu(previous, next, navigate) {
+  var menu = document.createElement('div');
+  menu.id = 'calendar-navigation-menu';
+  menu.className = 'dropdown-menu calendar-calendar-nav-menu';
+  menu.setAttribute('role', 'menu');
+  document.body.appendChild(menu);
+  var activeButton = null;
+  var activeDirection = 0;
+  var holdTimer = null;
+  var pressedButton = null;
+  var suppressedButton = null;
+  var cancelHold = function cancelHold() {
+    window.clearTimeout(holdTimer);
+    holdTimer = null;
+    pressedButton = null;
+  };
+  var closeMenu = function closeMenu() {
+    var restoreFocus = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+    if (!activeButton) {
+      return;
+    }
+    var button = activeButton;
+    activeButton = null;
+    menu.classList.remove('show');
+    button.setAttribute('aria-expanded', 'false');
+    if (restoreFocus) {
+      button.focus();
+    }
+  };
+  var options = ['day', 'week', 'month'].map(function (unit) {
+    var option = document.createElement('button');
+    option.type = 'button';
+    option.className = 'dropdown-item';
+    option.textContent = unit.charAt(0).toUpperCase() + unit.slice(1);
+    option.setAttribute('role', 'menuitem');
+    option.tabIndex = -1;
+    option.addEventListener('click', function () {
+      var direction = activeDirection;
+      closeMenu(true);
+      navigate(direction, unit);
+    });
+    menu.appendChild(option);
+    return option;
+  });
+  var openMenu = function openMenu(button, direction) {
+    cancelHold();
+    closeMenu();
+    activeButton = button;
+    activeDirection = direction;
+    button.setAttribute('aria-expanded', 'true');
+    menu.setAttribute('aria-label', direction < 0 ? 'Move backward' : 'Move forward');
+    menu.classList.add('show');
+    var rect = button.getBoundingClientRect();
+    menu.style.left = "".concat(Math.max(8, Math.min(rect.left, window.innerWidth - menu.offsetWidth - 8)), "px");
+    menu.style.top = "".concat(Math.max(8, Math.min(rect.bottom + 6, window.innerHeight - menu.offsetHeight - 8)), "px");
+    options[0].focus({
+      preventScroll: true
+    });
+  };
+  [[previous, -1], [next, 1]].forEach(function (_ref) {
+    var _ref2 = _slicedToArray(_ref, 2),
+      button = _ref2[0],
+      direction = _ref2[1];
+    if (!button) {
+      return;
+    }
+    button.setAttribute('aria-haspopup', 'menu');
+    button.setAttribute('aria-expanded', 'false');
+    button.setAttribute('aria-controls', menu.id);
+    button.title = "".concat(direction < 0 ? 'Previous' : 'Next', " (hold for day, week, or month)");
+    button.addEventListener('pointerdown', function (event) {
+      if (event.button !== 0 || !event.isPrimary) {
+        return;
+      }
+      cancelHold();
+      closeMenu();
+      suppressedButton = null;
+      pressedButton = button;
+      holdTimer = window.setTimeout(function () {
+        suppressedButton = button;
+        openMenu(button, direction);
+      }, 450);
+    });
+    button.addEventListener('pointerleave', function () {
+      if (pressedButton === button) {
+        suppressedButton = button;
+        cancelHold();
+      }
+    });
+    button.addEventListener('contextmenu', function (event) {
+      event.preventDefault();
+    });
+    button.addEventListener('click', function (event) {
+      cancelHold();
+      if (suppressedButton === button) {
+        suppressedButton = null;
+        event.preventDefault();
+        return;
+      }
+      closeMenu();
+      navigate(direction);
+    });
+    button.addEventListener('keydown', function (event) {
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        openMenu(button, direction);
+        if (event.key === 'ArrowUp') {
+          options[options.length - 1].focus();
+        }
+      } else if (event.key === 'Enter' || event.key === ' ') {
+        suppressedButton = null;
+      }
+    });
+  });
+  menu.addEventListener('keydown', function (event) {
+    var index = options.indexOf(document.activeElement);
+    if (['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) {
+      event.preventDefault();
+      var nextIndex = event.key === 'Home' ? 0 : event.key === 'End' ? options.length - 1 : (index + (event.key === 'ArrowDown' ? 1 : -1) + options.length) % options.length;
+      options[nextIndex].focus();
+    } else if (event.key === 'Tab') {
+      closeMenu(true);
+    }
+  });
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape') {
+      if (pressedButton) {
+        suppressedButton = pressedButton;
+      }
+      cancelHold();
+      closeMenu(true);
+    }
+  });
+  document.addEventListener('pointerup', cancelHold);
+  document.addEventListener('pointercancel', function () {
+    suppressedButton = pressedButton || suppressedButton;
+    cancelHold();
+    closeMenu();
+  });
+  document.addEventListener('pointerdown', function (event) {
+    if (activeButton && !menu.contains(event.target) && !activeButton.contains(event.target)) {
+      closeMenu();
+    }
+  });
+  document.addEventListener('focusin', function (event) {
+    if (activeButton && !menu.contains(event.target) && event.target !== activeButton) {
+      closeMenu();
+    }
+  });
+  window.addEventListener('blur', function () {
+    suppressedButton = pressedButton || suppressedButton;
+    cancelHold();
+    closeMenu();
+  });
+  window.addEventListener('resize', function () {
+    closeMenu();
+  });
+  document.addEventListener('scroll', function () {
+    closeMenu();
+  }, true);
+};
+
+/***/ },
+
 /***/ "./node_modules/dompurify/dist/purify.cjs.js"
 /*!***************************************************!*\
   !*** ./node_modules/dompurify/dist/purify.cjs.js ***!
@@ -4554,7 +4735,9 @@ var __webpack_exports__ = {};
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var motion__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! motion */ "./node_modules/motion-dom/dist/es/animation/generators/spring.mjs");
 /* harmony import */ var motion_mini__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! motion/mini */ "./node_modules/framer-motion/dist/es/animation/animators/waapi/animate-style.mjs");
+/* harmony import */ var _navigation_menu__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./navigation-menu */ "./resources/js/calendar/navigation-menu.js");
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+
 
 
 var DOMPurify = __webpack_require__(/*! dompurify */ "./node_modules/dompurify/dist/purify.cjs.js");
@@ -5402,7 +5585,6 @@ var bindScheduleHeaderDrag = function bindScheduleHeaderDrag(calendar, navigateB
     if (!dayOffset || drag || !scheduleGridViews.includes(state.view)) {
       return false;
     }
-    dayOffset = Math.sign(dayOffset);
     var row = calendar.querySelector('.lm-schedule thead tr:not(.calendar-schedule-holiday-row)');
     var interrupted = takeSettlingPreview();
     var preview = interrupted ? interrupted.preview : createScheduleHeaderDragPreview(row);
@@ -10998,16 +11180,34 @@ document.addEventListener('DOMContentLoaded', function () {
       _render();
     });
   }
-  if (previous) {
-    previous.addEventListener('click', function () {
-      navigateCalendarByArrow(-1);
-    });
-  }
-  if (next) {
-    next.addEventListener('click', function () {
-      navigateCalendarByArrow(1);
-    });
-  }
+  (0,_navigation_menu__WEBPACK_IMPORTED_MODULE_2__.bindCalendarNavigationMenu)(previous, next, function (direction, unit) {
+    if (isScheduleHoldNavigationSuppressed()) {
+      return;
+    }
+    if (!unit) {
+      navigateCalendarByArrow(direction);
+      return;
+    }
+    if (unit !== 'month' && useScheduleHeaderNavigation()) {
+      navigateScheduleHeaderByArrow(direction * (unit === 'week' ? 7 : 1));
+      return;
+    }
+    var currentDate = useScheduleHeaderNavigation() ? getVisibleScheduleDates()[0] : state.date;
+    var targetDate;
+    if (unit === 'month') {
+      // Clamp month-end dates instead of overflowing into the following month.
+      targetDate = createLocalDate(currentDate.getFullYear(), currentDate.getMonth() + direction, 1);
+      var lastDay = createLocalDate(targetDate.getFullYear(), targetDate.getMonth() + 1, 0).getDate();
+      targetDate.setDate(Math.min(currentDate.getDate(), lastDay));
+    } else {
+      targetDate = addDays(currentDate, direction * (unit === 'week' ? 7 : 1));
+    }
+    setSelectedDate(targetDate);
+    if (state.view === 'week') {
+      state.scheduleWindowStart = cloneDate(targetDate);
+    }
+    _render();
+  });
   if (view) {
     view.addEventListener('change', function () {
       if (isScheduleHoldNavigationSuppressed()) {
