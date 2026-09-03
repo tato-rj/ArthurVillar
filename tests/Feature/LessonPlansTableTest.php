@@ -168,6 +168,28 @@ class LessonPlansTableTest extends BaseTest
         $this->assertSame(45, $row['duration_minutes']);
     }
 
+    /** @test */
+    public function the_new_lesson_modal_hides_payment_for_a_preselected_exempt_student()
+    {
+        $exempt = Student::factory()->create(['payment_exempt' => true]);
+        $paying = Student::factory()->create(['payment_exempt' => false]);
+        $this->signIn();
+
+        foreach ([$exempt, $paying] as $student) {
+            $response = $this->withSession(['_old_input' => ['student_id' => $student->id]])
+                ->get(route('calendar.lesson-plans.index'))
+                ->assertOk()
+                ->assertSee('data-student-payment-exempt="1"', false)
+                ->assertSee('data-student-payment-exempt="0"', false);
+
+            if ($student->payment_exempt) {
+                $response->assertSee('data-lesson-payment-section hidden', false);
+            } else {
+                $response->assertDontSee('data-lesson-payment-section hidden', false);
+            }
+        }
+    }
+
     private function lessonPlanTableColumns(): array
     {
         return collect([

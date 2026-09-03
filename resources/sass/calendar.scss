@@ -189,6 +189,14 @@ $calendar-item-border-radius: 12px;
         color: #e8eaed;
     }
 
+    .calendar-calendar-nav-menu .dropdown-item,
+    .calendar-calendar-filter-menu,
+    .calendar-calendar-filter-menu label,
+    .calendar-calendar-filter-menu button,
+    .calendar-calendar-filter-menu button i {
+        color: #e8eaed !important;
+    }
+
     .modal-header,
     .modal-footer {
         border-color: #45494f;
@@ -224,8 +232,8 @@ $calendar-item-border-radius: 12px;
     }
 
     .modal [data-event-modal-expand-toggle] {
-        background: #303134;
-        border: 1px solid #45494f;
+        // background: #303134;
+        // border: 1px solid #45494f;
         color: #aecbfa !important;
         font-weight: 700;
         transition: background-color .15s ease, border-color .15s ease, color .15s ease;
@@ -233,8 +241,8 @@ $calendar-item-border-radius: 12px;
 
     .modal [data-event-modal-expand-toggle]:hover,
     .modal [data-event-modal-expand-toggle]:active {
-        background: #3c4043;
-        border-color: #5f6368;
+        // background: #3c4043;
+        // border-color: #5f6368;
         color: #d2e3fc !important;
     }
 
@@ -243,10 +251,9 @@ $calendar-item-border-radius: 12px;
     }
 
     #calendar-event-modal #header-buttons .btn-raw {
-        border-radius: 50%;
+        background: transparent;
         color: #e8eaed !important;
-        opacity: .75;
-        transition: background-color .15s ease, opacity .15s ease;
+        transition: color .15s ease, opacity .15s ease;
     }
 
     #calendar-event-modal #header-buttons .btn-raw i {
@@ -255,7 +262,7 @@ $calendar-item-border-radius: 12px;
 
     #calendar-event-modal #header-buttons .btn-raw:hover,
     #calendar-event-modal #header-buttons .btn-raw:active {
-        background: #3c4043;
+        background: transparent;
         color: #fff !important;
         opacity: 1;
     }
@@ -434,6 +441,11 @@ html[data-calendar-theme="dark"] {
 input[type="date"],
 input[type="month"] {text-align: left;}
 td, th {white-space: nowrap;}
+
+textarea,
+html[data-calendar-theme] textarea.form-control {
+    background: transparent !important;
+}
 
 // Calendar layout
 

@@ -338,6 +338,54 @@ class StudentsTableTest extends BaseTest
     }
 
     /** @test */
+    public function student_forms_present_payment_exemption_as_a_payment_method_choice()
+    {
+        $student = Student::factory()->create([
+            'payment_method' => 'Venmo',
+            'payment_exempt' => true,
+        ]);
+        $this->signIn();
+
+        $this->get(route('calendar.students.index'))
+            ->assertOk()
+            ->assertSee('name="student_payment_method"', false)
+            ->assertSee('>Payment exempt</option>', false)
+            ->assertSee('name="payment_exempt" value="0"', false)
+            ->assertDontSee('Payment exempt?');
+
+        $this->get(route('calendar.students.edit', $student))
+            ->assertOk()
+            ->assertSee('value="payment_exempt" selected', false)
+            ->assertSee('name="payment_exempt" value="1"', false)
+            ->assertSee('name="payment_method" value="Venmo"', false)
+            ->assertDontSee('Payment exempt?');
+    }
+
+    /** @test */
+    public function payment_method_choices_keep_the_existing_student_exemption_contract()
+    {
+        $student = Student::factory()->create(['payment_method' => 'Venmo']);
+        $this->signIn();
+        $attributes = [
+            'first_name' => $student->first_name,
+            'last_name' => $student->last_name,
+            'gender' => $student->gender,
+            'email' => $student->email,
+        ];
+
+        foreach ([['payment_exempt', 'Venmo', 1], ['Zelle', 'Zelle', 0]] as [$choice, $method, $exempt]) {
+            $this->patch(route('calendar.students.update', $student), $attributes + [
+                'student_payment_method' => $choice,
+                'payment_method' => $method,
+                'payment_exempt' => $exempt,
+            ])->assertSessionHas('success');
+
+            $this->assertSame((bool) $exempt, $student->fresh()->payment_exempt);
+            $this->assertSame($method, $student->fresh()->payment_method);
+        }
+    }
+
+    /** @test */
     public function it_can_archive_and_unarchive_a_student_from_the_edit_modal()
     {
         $student = Student::factory()->create();

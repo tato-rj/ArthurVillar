@@ -68,11 +68,11 @@
 		@endforeach
 	@endselect
 
-	@select(['placeholder' => 'Default payment method', 'name' => 'payment_method'])
-		@foreach(payment()->methods() as $method)
-			@option(['name' => 'payment_method', 'label' => $method, 'value' => $method, 'selected' => old('payment_method') == $method])
-		@endforeach
-	@endselect
+	@include('calendar.students.payment-method', [
+		'placeholder' => 'Default payment method',
+		'paymentMethod' => old('payment_method'),
+		'paymentExempt' => (bool) old('payment_exempt'),
+	])
 
 	<div class="row"> 
 		@input(['placeholder' => 'Phone', 'name' => 'phone', 'value' => old('phone'), 'mask' => 'phone', 'grid' => 'col'])
@@ -85,13 +85,6 @@
 		@feedback(['input' => 'notes'])
 	</div>
 	
-	<div class="form-check">
-	  <input class="form-check-input" type="checkbox" value="1" name="payment_exempt" id="payment_exempt" {{iftrue(old('payment_exempt'), 'checked')}}>
-	  <label class="form-check-label" for="payment_exempt">
-	    Payment exempt?
-	  </label>
-	</div>
-
 	<div class="form-check">
 	  <input class="form-check-input" type="checkbox" value="1" name="is_adult" id="is_adult" {{iftrue(old('is_adult'), 'checked')}}>
 	  <label class="form-check-label" for="is_adult">
@@ -149,7 +142,7 @@ document.addEventListener('DOMContentLoaded', function() {
             parent_name: option.dataset.siblingParentName || '',
             email: option.dataset.siblingEmail || '',
             location_id: option.dataset.siblingLocationId || '',
-            payment_method: option.dataset.siblingPaymentMethod || '',
+            student_payment_method: option.dataset.siblingPaymentMethod || '',
             phone: option.dataset.siblingPhone || '',
         };
 

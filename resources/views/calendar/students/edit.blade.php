@@ -60,16 +60,13 @@
             @endforeach
         @endselect
 
-        @select(['label' => 'Default payment method', 'placeholder' => '', 'name' => 'payment_method', 'grid' => 'col'])
-            @foreach(payment()->methods() as $method)
-                @option([
-                    'name' => 'payment_method',
-                    'label' => $method,
-                    'value' => $method,
-                    'selected' => $student->payment_method == $method
-                ])
-            @endforeach
-        @endselect
+        @include('calendar.students.payment-method', [
+            'label' => 'Default payment method',
+            'placeholder' => '',
+            'grid' => 'col',
+            'paymentMethod' => old('payment_method', $student->payment_method),
+            'paymentExempt' => (bool) old('payment_exempt', $student->payment_exempt),
+        ])
     </div>
 
     <div class="row">
@@ -93,19 +90,6 @@
         @label(['label' => 'Notes'])
         <textarea class="form-control rounded no-resize" name="notes" rows="5">{{$student->notes}}</textarea>
         @feedback(['input' => 'notes'])
-    </div>
-
-    <div class="form-check">
-        <input
-            class="form-check-input"
-            type="checkbox"
-            value="1"
-            name="payment_exempt"
-            id="payment_exempt_{{$student->id}}"
-            {{iftrue($student->payment_exempt, 'checked')}}>
-        <label class="form-check-label" for="payment_exempt_{{$student->id}}">
-            Payment exempt?
-        </label>
     </div>
 
     <div class="form-check mb-4">

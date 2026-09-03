@@ -47,7 +47,8 @@
 						data-student-id="{{$student->id}}"
 						data-student-name="{{$studentName}}"
 						data-student-location-id="{{$student->location_id}}"
-						data-student-payment-method="{{$student->payment_method}}">
+						data-student-payment-method="{{$student->payment_method}}"
+						data-student-payment-exempt="{{$student->payment_exempt ? '1' : '0'}}">
 						{{$studentName}}
 					</button>
 				@endforeach
@@ -114,15 +115,17 @@
 		@endselect
 	</div>
 
-	<label class="small fw-bold opacity-6 mb-3">@fa(['icon' => 'money-bill-wave'])PAYMENT</label>
-	<div class="row"> 
-		@input(['placeholder' => 'Fee', 'name' => 'fee_amount', 'value' => old('fee_amount'), 'mask' => 'usd', 'grid' => 'col'])
+	<div data-lesson-payment-section {{iftrue(optional($selectedStudent)->payment_exempt, 'hidden')}}>
+		<label class="small fw-bold opacity-6 mb-3">@fa(['icon' => 'money-bill-wave'])PAYMENT</label>
+		<div class="row">
+			@input(['placeholder' => 'Fee', 'name' => 'fee_amount', 'value' => old('fee_amount'), 'mask' => 'usd', 'grid' => 'col'])
 
-		@select(['placeholder' => 'Payment method', 'name' => 'payment_method', 'grid' => 'col'])
-			@foreach(payment()->methods() as $method)
-				@option(['name' => 'payment_method', 'label' => $method, 'value' => $method, 'selected' => old('payment_method', optional($selectedStudent)->payment_method) == $method])
-			@endforeach
-		@endselect
+			@select(['placeholder' => 'Payment method', 'name' => 'payment_method', 'grid' => 'col'])
+				@foreach(payment()->methods() as $method)
+					@option(['name' => 'payment_method', 'label' => $method, 'value' => $method, 'selected' => old('payment_method', optional($selectedStudent)->payment_method) == $method])
+				@endforeach
+			@endselect
+		</div>
 	</div>
 
 	@textarea(['placeholder' => 'Notes', 'name' => 'notes', 'value' => old('notes'), 'rows' => 3])
