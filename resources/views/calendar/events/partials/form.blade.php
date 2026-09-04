@@ -120,5 +120,3 @@
         <div class="form-text mt-2" data-web-push-status hidden></div>
     </div>
 </div>
-
-@submit(['label' => 'Confirm', 'theme' => 'primary'])

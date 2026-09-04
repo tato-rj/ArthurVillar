@@ -78,6 +78,6 @@
 
 	@textarea(['label' => 'Notes', 'name' => 'notes', 'value' => $singleLessonPlan->notes, 'rows' => 3])
 
-	@submit(['label' => 'Submit', 'theme' => 'primary'])
+	@submit(['label' => 'Save changes', 'theme' => 'primary'])
 </form>
 @endmodal

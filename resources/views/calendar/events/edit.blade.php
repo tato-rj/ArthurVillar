@@ -3,5 +3,6 @@
     @method('PATCH')
     @csrf
     @include('calendar.events.partials.form', ['event' => $event])
+    @submit(['label' => 'Save changes', 'theme' => 'primary'])
 </form>
 @endmodal

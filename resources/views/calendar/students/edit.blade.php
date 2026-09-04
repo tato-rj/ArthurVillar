@@ -105,7 +105,7 @@
         </label>
     </div>
 
-    @submit(['label' => 'Submit', 'theme' => 'primary'])
+    @submit(['label' => 'Save changes', 'theme' => 'primary'])
 </form>
 
 <hr>
