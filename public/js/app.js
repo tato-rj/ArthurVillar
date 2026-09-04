@@ -3040,6 +3040,264 @@ window.Confetti = (__webpack_require__(/*! canvas-confetti */ "./node_modules/ca
 
 /***/ },
 
+/***/ "./resources/js/app.js"
+/*!*****************************!*\
+  !*** ./resources/js/app.js ***!
+  \*****************************/
+(__unused_webpack_module, __unused_webpack_exports, __webpack_require__) {
+
+function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+__webpack_require__(/*! ./bootstrap/setup */ "./resources/js/bootstrap/setup.js");
+__webpack_require__(/*! ./helpers */ "./resources/js/helpers/index.js");
+__webpack_require__(/*! ./extensions */ "./resources/js/extensions/index.js");
+__webpack_require__(/*! ./components */ "./resources/js/components/index.js");
+__webpack_require__(/*! ./utilities */ "./resources/js/utilities/index.js");
+__webpack_require__(/*! ./web-push */ "./resources/js/web-push.js");
+document.addEventListener("touchstart", function () {}, {
+  passive: true
+});
+$(window).on('load', function () {
+  $('.modal.modal-autoshow').modal('show');
+});
+$(function () {
+  $('.leaderboard-modal').on('show.bs.modal', function () {
+    var $players = $(this).find('.leaderboard-player');
+    $players.stop(true, true).css({
+      opacity: 0,
+      top: '6px',
+      position: 'relative'
+    });
+    $players.each(function (index) {
+      $(this).delay(index * 100).animate({
+        opacity: 1,
+        top: 0
+      }, 180);
+    });
+  });
+});
+$(document).on('change', '[name$="-leaderboard-range"]', function () {
+  var url = $(this).data('url');
+  var $players = $(this).closest('.leaderboard-wrapper').find('.leaderboard-players');
+  axios.get(url).then(function (response) {
+    $players.html(response.data);
+  })["catch"](function () {
+    alert('Something went wrong...');
+  });
+});
+$(document).on('change', 'select[name="item-filter"]', function () {
+  $('#filters-container select').not(this).each(function () {
+    $(this).find('option:first').prop('selected', true);
+  });
+  var item = $(this).val();
+  $('table tbody tr').each(function () {
+    if ($(this).find('td').filter(function () {
+      return $(this).text().trim().toLowerCase() === item.toLowerCase();
+    }).length > 0 || item === '') {
+      $(this).show();
+    } else {
+      $(this).hide();
+    }
+  });
+});
+$(document).on('click', '#clear-filters', function () {
+  $('table tbody tr').show();
+  $('#filters-container select').each(function () {
+    $(this).find('option:first').prop('selected', true);
+  });
+});
+$(document).on('click', '.subdomain-select-toggle', function (e) {
+  e.stopPropagation();
+  var $select = $(this).closest('.subdomains-select');
+  var isOpen = $select.toggleClass('is-open').hasClass('is-open');
+  $(this).attr('aria-expanded', isOpen);
+});
+$(document).on('click', function () {
+  $('.subdomains-select.is-open').removeClass('is-open').find('.subdomain-select-toggle').attr('aria-expanded', false);
+});
+$(document).on('keydown', function (e) {
+  if (e.key !== 'Escape') {
+    return;
+  }
+  $('.subdomains-select.is-open').removeClass('is-open').find('.subdomain-select-toggle').attr('aria-expanded', false).trigger('focus');
+});
+window.autocomplete = function (inp, arr) {
+  var currentFocus;
+  inp.addEventListener('input', function () {
+    var a,
+      b,
+      i,
+      val = this.value;
+    closeAllLists();
+    if (!val) {
+      return false;
+    }
+    currentFocus = -1;
+    a = document.createElement('DIV');
+    a.setAttribute('id', this.id + 'autocomplete-list');
+    a.setAttribute('class', 'autocomplete-items');
+    this.parentNode.appendChild(a);
+    for (i = 0; i < arr.length; i++) {
+      if (arr[i].substr(0, val.length).toUpperCase() == val.toUpperCase()) {
+        b = document.createElement('DIV');
+        b.innerHTML = '<strong>' + arr[i].substr(0, val.length) + '</strong>';
+        b.innerHTML += arr[i].substr(val.length);
+        b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
+        b.addEventListener('click', function () {
+          inp.value = this.getElementsByTagName('input')[0].value;
+          closeAllLists();
+        });
+        a.appendChild(b);
+      }
+    }
+  });
+  inp.addEventListener('keydown', function (e) {
+    var x = document.getElementById(this.id + 'autocomplete-list');
+    if (x) {
+      x = x.getElementsByTagName('div');
+    }
+    if (e.keyCode == 40) {
+      currentFocus++;
+      addActive(x);
+    } else if (e.keyCode == 38) {
+      currentFocus--;
+      addActive(x);
+    } else if (e.keyCode == 13) {
+      e.preventDefault();
+      if (currentFocus > -1 && x) {
+        x[currentFocus].click();
+      }
+    }
+  });
+  function addActive(x) {
+    if (!x) {
+      return false;
+    }
+    removeActive(x);
+    if (currentFocus >= x.length) {
+      currentFocus = 0;
+    }
+    if (currentFocus < 0) {
+      currentFocus = x.length - 1;
+    }
+    x[currentFocus].classList.add('autocomplete-active');
+  }
+  function removeActive(x) {
+    for (var i = 0; i < x.length; i++) {
+      x[i].classList.remove('autocomplete-active');
+    }
+  }
+  function closeAllLists(elmnt) {
+    var x = document.getElementsByClassName('autocomplete-items');
+    for (var i = 0; i < x.length; i++) {
+      if (elmnt != x[i] && elmnt != inp) {
+        x[i].parentNode.removeChild(x[i]);
+      }
+    }
+  }
+  document.addEventListener('click', function (e) {
+    closeAllLists(e.target);
+  });
+};
+document.addEventListener("DOMContentLoaded", function () {
+  var ranges = document.querySelectorAll('input[type="range"][data-range-labels]');
+  var _iterator = _createForOfIteratorHelper(ranges),
+    _step;
+  try {
+    var _loop = function _loop() {
+      var _range$closest, _ref, _ref2, _range$nextElementSib;
+      var range = _step.value;
+      var wrap = (_range$closest = range.closest(".mb-4")) !== null && _range$closest !== void 0 ? _range$closest : range.parentElement;
+      var labelsSel = range.dataset.rangeLabels; // e.g. "#speedLabels"
+      var labelsWrap = (_ref = (_ref2 = labelsSel ? wrap === null || wrap === void 0 ? void 0 : wrap.querySelector(labelsSel) : null) !== null && _ref2 !== void 0 ? _ref2 : labelsSel ? document.querySelector(labelsSel) : null) !== null && _ref !== void 0 ? _ref : labelsSel !== null && labelsSel !== void 0 && labelsSel.startsWith("#") && ((_range$nextElementSib = range.nextElementSibling) === null || _range$nextElementSib === void 0 ? void 0 : _range$nextElementSib.id) === labelsSel.slice(1) ? range.nextElementSibling : null;
+      if (!labelsWrap) return 1; // continue
+      var labels = Array.from(labelsWrap.querySelectorAll("label"));
+      var updateLabels = function updateLabels() {
+        var idx = Number(range.value);
+        labels.forEach(function (label, i) {
+          label.classList.toggle("text-black", i === idx);
+          label.classList.toggle("text-light", i !== idx);
+        });
+      };
+      updateLabels();
+      range.addEventListener("input", updateLabels);
+      range.addEventListener("change", updateLabels);
+    };
+    for (_iterator.s(); !(_step = _iterator.n()).done;) {
+      if (_loop()) continue;
+    }
+  } catch (err) {
+    _iterator.e(err);
+  } finally {
+    _iterator.f();
+  }
+});
+$('.form-number button').on('click', function () {
+  var $input = $(this).siblings('input');
+  var current = parseInt($input.val(), 10) || 0;
+  if ($(this).data('direction') === 'down' && current > $input.attr('min')) {
+    $input.val(current - 1);
+  } else if ($(this).data('direction') === 'up' && current < $input.attr('max')) {
+    $input.val(current + 1);
+  }
+});
+$(document).on('click', '.avatar-picker .player-avatar', function () {
+  var $clickedAvatar = $(this);
+  var $option = $clickedAvatar.closest('.avatar-option');
+  var $container = $clickedAvatar.closest('.avatar-picker');
+  var $radio = $option.find('input[type="radio"][name="avatar_url"]');
+  if (!$radio.length) return;
+  $radio.prop('checked', true).trigger('change');
+  $container.find('.player-avatar').addClass('opacity-2');
+  $clickedAvatar.removeClass('opacity-2');
+});
+
+// /public/js/settings-toggles.js (example path)
+// settings/toggles.js
+$(document).off("change.settingsToggles").on("change.settingsToggles", 'input[multichoice], input[singlechoice]', function () {
+  var $this = $(this);
+  var isSingle = $this.is("[singlechoice]");
+  var name = $this.attr("name");
+  if (isSingle && $this.prop("checked")) {
+    $("input[singlechoice][name=\"".concat(CSS.escape(name), "\"]")).not(this).prop("checked", false);
+  }
+  var $scope = isSingle ? $("input[singlechoice][name=\"".concat(CSS.escape(name), "\"]")) : $this;
+  $scope.each(function () {
+    var $label = $(this).siblings("label");
+    $label.removeClass("btn-white btn-secondary");
+    $label.addClass(this.checked ? "btn-secondary" : "btn-white");
+  });
+});
+$(document).on('click', 'button[data-form]', function () {
+  var formID = $(this).data('form');
+  $('form' + formID).submit();
+});
+$(document).on('click', 'form[confirm] button[type="submit"]', function (e) {
+  if (!confirm('⚠️ Are you sure?\nThis action cannot be undone')) return e.preventDefault();
+});
+$(document).ready(function () {
+  new Inputmask({
+    "mask": "99:99"
+  }).mask(document.querySelectorAll('input[name="start_time"], input[name="end_time"], [data-mask="time"]'));
+  new Inputmask({
+    "mask": "(999) 999-9999"
+  }).mask(document.querySelectorAll('[data-mask="phone"]'));
+  new Inputmask({
+    alias: "numeric",
+    groupSeparator: ",",
+    prefix: "$ ",
+    autoGroup: true,
+    digits: 0,
+    rightAlign: false
+  }).mask(document.querySelectorAll('[data-mask="usd"]'));
+  new Inputmask({
+    "mask": "99/99/9999"
+  }).mask(document.querySelectorAll('[name="born_in"], [name="died_in"], [data-mask="date"]'));
+});
+
+/***/ },
+
 /***/ "./resources/js/bootstrap/setup.js"
 /*!*****************************************!*\
   !*** ./resources/js/bootstrap/setup.js ***!
@@ -46188,6 +46446,58 @@ var __WEBPACK_AMD_DEFINE_RESULT__;/**
 
 /***/ },
 
+/***/ "./resources/sass/app.scss"
+/*!*********************************!*\
+  !*** ./resources/sass/app.scss ***!
+  \*********************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+// extracted by mini-css-extract-plugin
+
+
+/***/ },
+
+/***/ "./resources/sass/calendar.scss"
+/*!**************************************!*\
+  !*** ./resources/sass/calendar.scss ***!
+  \**************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+// extracted by mini-css-extract-plugin
+
+
+/***/ },
+
+/***/ "./resources/sass/schedule.scss"
+/*!**************************************!*\
+  !*** ./resources/sass/schedule.scss ***!
+  \**************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+// extracted by mini-css-extract-plugin
+
+
+/***/ },
+
+/***/ "./resources/sass/musicgames.scss"
+/*!****************************************!*\
+  !*** ./resources/sass/musicgames.scss ***!
+  \****************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+// extracted by mini-css-extract-plugin
+
+
+/***/ },
+
 /***/ "./node_modules/process/browser.js"
 /*!*****************************************!*\
   !*** ./node_modules/process/browser.js ***!
@@ -51233,7 +51543,42 @@ var create = module.exports.create;
 /******/ 		return module.exports;
 /******/ 	}
 /******/ 	
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__webpack_require__.m = __webpack_modules__;
+/******/ 	
 /************************************************************************/
+/******/ 	/* webpack/runtime/chunk loaded */
+/******/ 	(() => {
+/******/ 		var deferred = [];
+/******/ 		__webpack_require__.O = (result, chunkIds, fn, priority) => {
+/******/ 			if(chunkIds) {
+/******/ 				priority = priority || 0;
+/******/ 				for(var i = deferred.length; i > 0 && deferred[i - 1][2] > priority; i--) deferred[i] = deferred[i - 1];
+/******/ 				deferred[i] = [chunkIds, fn, priority];
+/******/ 				return;
+/******/ 			}
+/******/ 			var notFulfilled = Infinity;
+/******/ 			for (var i = 0; i < deferred.length; i++) {
+/******/ 				var [chunkIds, fn, priority] = deferred[i];
+/******/ 				var fulfilled = true;
+/******/ 				for (var j = 0; j < chunkIds.length; j++) {
+/******/ 					if ((priority & 1 === 0 || notFulfilled >= priority) && Object.keys(__webpack_require__.O).every((key) => (__webpack_require__.O[key](chunkIds[j])))) {
+/******/ 						chunkIds.splice(j--, 1);
+/******/ 					} else {
+/******/ 						fulfilled = false;
+/******/ 						if(priority < notFulfilled) notFulfilled = priority;
+/******/ 					}
+/******/ 				}
+/******/ 				if(fulfilled) {
+/******/ 					deferred.splice(i--, 1)
+/******/ 					var r = fn();
+/******/ 					if (r !== undefined) result = r;
+/******/ 				}
+/******/ 			}
+/******/ 			return result;
+/******/ 		};
+/******/ 	})();
+/******/ 	
 /******/ 	/* webpack/runtime/define property getters */
 /******/ 	(() => {
 /******/ 		// define getter functions for harmony exports
@@ -51283,263 +51628,74 @@ var create = module.exports.create;
 /******/ 		};
 /******/ 	})();
 /******/ 	
+/******/ 	/* webpack/runtime/jsonp chunk loading */
+/******/ 	(() => {
+/******/ 		// no baseURI
+/******/ 		
+/******/ 		// object to store loaded and loading chunks
+/******/ 		// undefined = chunk not loaded, null = chunk preloaded/prefetched
+/******/ 		// [resolve, reject, Promise] = chunk loading, 0 = chunk loaded
+/******/ 		var installedChunks = {
+/******/ 			"/js/app": 0,
+/******/ 			"css/musicgames": 0,
+/******/ 			"css/schedule": 0,
+/******/ 			"css/calendar": 0,
+/******/ 			"css/app": 0
+/******/ 		};
+/******/ 		
+/******/ 		// no chunk on demand loading
+/******/ 		
+/******/ 		// no prefetching
+/******/ 		
+/******/ 		// no preloaded
+/******/ 		
+/******/ 		// no HMR
+/******/ 		
+/******/ 		// no HMR manifest
+/******/ 		
+/******/ 		__webpack_require__.O.j = (chunkId) => (installedChunks[chunkId] === 0);
+/******/ 		
+/******/ 		// install a JSONP callback for chunk loading
+/******/ 		var webpackJsonpCallback = (parentChunkLoadingFunction, data) => {
+/******/ 			var [chunkIds, moreModules, runtime] = data;
+/******/ 			// add "moreModules" to the modules object,
+/******/ 			// then flag all "chunkIds" as loaded and fire callback
+/******/ 			var moduleId, chunkId, i = 0;
+/******/ 			if(chunkIds.some((id) => (installedChunks[id] !== 0))) {
+/******/ 				for(moduleId in moreModules) {
+/******/ 					if(__webpack_require__.o(moreModules, moduleId)) {
+/******/ 						__webpack_require__.m[moduleId] = moreModules[moduleId];
+/******/ 					}
+/******/ 				}
+/******/ 				if(runtime) var result = runtime(__webpack_require__);
+/******/ 			}
+/******/ 			if(parentChunkLoadingFunction) parentChunkLoadingFunction(data);
+/******/ 			for(;i < chunkIds.length; i++) {
+/******/ 				chunkId = chunkIds[i];
+/******/ 				if(__webpack_require__.o(installedChunks, chunkId) && installedChunks[chunkId]) {
+/******/ 					installedChunks[chunkId][0]();
+/******/ 				}
+/******/ 				installedChunks[chunkId] = 0;
+/******/ 			}
+/******/ 			return __webpack_require__.O(result);
+/******/ 		}
+/******/ 		
+/******/ 		var chunkLoadingGlobal = self["webpackChunk"] = self["webpackChunk"] || [];
+/******/ 		chunkLoadingGlobal.forEach(webpackJsonpCallback.bind(null, 0));
+/******/ 		chunkLoadingGlobal.push = webpackJsonpCallback.bind(null, chunkLoadingGlobal.push.bind(chunkLoadingGlobal));
+/******/ 	})();
+/******/ 	
 /************************************************************************/
-var __webpack_exports__ = {};
-// This entry needs to be wrapped in an IIFE because it needs to be isolated against other modules in the chunk.
-(() => {
-/*!*****************************!*\
-  !*** ./resources/js/app.js ***!
-  \*****************************/
-function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
-function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
-function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
-__webpack_require__(/*! ./bootstrap/setup */ "./resources/js/bootstrap/setup.js");
-__webpack_require__(/*! ./helpers */ "./resources/js/helpers/index.js");
-__webpack_require__(/*! ./extensions */ "./resources/js/extensions/index.js");
-__webpack_require__(/*! ./components */ "./resources/js/components/index.js");
-__webpack_require__(/*! ./utilities */ "./resources/js/utilities/index.js");
-__webpack_require__(/*! ./web-push */ "./resources/js/web-push.js");
-document.addEventListener("touchstart", function () {}, {
-  passive: true
-});
-$(window).on('load', function () {
-  $('.modal.modal-autoshow').modal('show');
-});
-$(function () {
-  $('.leaderboard-modal').on('show.bs.modal', function () {
-    var $players = $(this).find('.leaderboard-player');
-    $players.stop(true, true).css({
-      opacity: 0,
-      top: '6px',
-      position: 'relative'
-    });
-    $players.each(function (index) {
-      $(this).delay(index * 100).animate({
-        opacity: 1,
-        top: 0
-      }, 180);
-    });
-  });
-});
-$(document).on('change', '[name$="-leaderboard-range"]', function () {
-  var url = $(this).data('url');
-  var $players = $(this).closest('.leaderboard-wrapper').find('.leaderboard-players');
-  axios.get(url).then(function (response) {
-    $players.html(response.data);
-  })["catch"](function () {
-    alert('Something went wrong...');
-  });
-});
-$(document).on('change', 'select[name="item-filter"]', function () {
-  $('#filters-container select').not(this).each(function () {
-    $(this).find('option:first').prop('selected', true);
-  });
-  var item = $(this).val();
-  $('table tbody tr').each(function () {
-    if ($(this).find('td').filter(function () {
-      return $(this).text().trim().toLowerCase() === item.toLowerCase();
-    }).length > 0 || item === '') {
-      $(this).show();
-    } else {
-      $(this).hide();
-    }
-  });
-});
-$(document).on('click', '#clear-filters', function () {
-  $('table tbody tr').show();
-  $('#filters-container select').each(function () {
-    $(this).find('option:first').prop('selected', true);
-  });
-});
-$(document).on('click', '.subdomain-select-toggle', function (e) {
-  e.stopPropagation();
-  var $select = $(this).closest('.subdomains-select');
-  var isOpen = $select.toggleClass('is-open').hasClass('is-open');
-  $(this).attr('aria-expanded', isOpen);
-});
-$(document).on('click', function () {
-  $('.subdomains-select.is-open').removeClass('is-open').find('.subdomain-select-toggle').attr('aria-expanded', false);
-});
-$(document).on('keydown', function (e) {
-  if (e.key !== 'Escape') {
-    return;
-  }
-  $('.subdomains-select.is-open').removeClass('is-open').find('.subdomain-select-toggle').attr('aria-expanded', false).trigger('focus');
-});
-window.autocomplete = function (inp, arr) {
-  var currentFocus;
-  inp.addEventListener('input', function () {
-    var a,
-      b,
-      i,
-      val = this.value;
-    closeAllLists();
-    if (!val) {
-      return false;
-    }
-    currentFocus = -1;
-    a = document.createElement('DIV');
-    a.setAttribute('id', this.id + 'autocomplete-list');
-    a.setAttribute('class', 'autocomplete-items');
-    this.parentNode.appendChild(a);
-    for (i = 0; i < arr.length; i++) {
-      if (arr[i].substr(0, val.length).toUpperCase() == val.toUpperCase()) {
-        b = document.createElement('DIV');
-        b.innerHTML = '<strong>' + arr[i].substr(0, val.length) + '</strong>';
-        b.innerHTML += arr[i].substr(val.length);
-        b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
-        b.addEventListener('click', function () {
-          inp.value = this.getElementsByTagName('input')[0].value;
-          closeAllLists();
-        });
-        a.appendChild(b);
-      }
-    }
-  });
-  inp.addEventListener('keydown', function (e) {
-    var x = document.getElementById(this.id + 'autocomplete-list');
-    if (x) {
-      x = x.getElementsByTagName('div');
-    }
-    if (e.keyCode == 40) {
-      currentFocus++;
-      addActive(x);
-    } else if (e.keyCode == 38) {
-      currentFocus--;
-      addActive(x);
-    } else if (e.keyCode == 13) {
-      e.preventDefault();
-      if (currentFocus > -1 && x) {
-        x[currentFocus].click();
-      }
-    }
-  });
-  function addActive(x) {
-    if (!x) {
-      return false;
-    }
-    removeActive(x);
-    if (currentFocus >= x.length) {
-      currentFocus = 0;
-    }
-    if (currentFocus < 0) {
-      currentFocus = x.length - 1;
-    }
-    x[currentFocus].classList.add('autocomplete-active');
-  }
-  function removeActive(x) {
-    for (var i = 0; i < x.length; i++) {
-      x[i].classList.remove('autocomplete-active');
-    }
-  }
-  function closeAllLists(elmnt) {
-    var x = document.getElementsByClassName('autocomplete-items');
-    for (var i = 0; i < x.length; i++) {
-      if (elmnt != x[i] && elmnt != inp) {
-        x[i].parentNode.removeChild(x[i]);
-      }
-    }
-  }
-  document.addEventListener('click', function (e) {
-    closeAllLists(e.target);
-  });
-};
-document.addEventListener("DOMContentLoaded", function () {
-  var ranges = document.querySelectorAll('input[type="range"][data-range-labels]');
-  var _iterator = _createForOfIteratorHelper(ranges),
-    _step;
-  try {
-    var _loop = function _loop() {
-      var _range$closest, _ref, _ref2, _range$nextElementSib;
-      var range = _step.value;
-      var wrap = (_range$closest = range.closest(".mb-4")) !== null && _range$closest !== void 0 ? _range$closest : range.parentElement;
-      var labelsSel = range.dataset.rangeLabels; // e.g. "#speedLabels"
-      var labelsWrap = (_ref = (_ref2 = labelsSel ? wrap === null || wrap === void 0 ? void 0 : wrap.querySelector(labelsSel) : null) !== null && _ref2 !== void 0 ? _ref2 : labelsSel ? document.querySelector(labelsSel) : null) !== null && _ref !== void 0 ? _ref : labelsSel !== null && labelsSel !== void 0 && labelsSel.startsWith("#") && ((_range$nextElementSib = range.nextElementSibling) === null || _range$nextElementSib === void 0 ? void 0 : _range$nextElementSib.id) === labelsSel.slice(1) ? range.nextElementSibling : null;
-      if (!labelsWrap) return 1; // continue
-      var labels = Array.from(labelsWrap.querySelectorAll("label"));
-      var updateLabels = function updateLabels() {
-        var idx = Number(range.value);
-        labels.forEach(function (label, i) {
-          label.classList.toggle("text-black", i === idx);
-          label.classList.toggle("text-light", i !== idx);
-        });
-      };
-      updateLabels();
-      range.addEventListener("input", updateLabels);
-      range.addEventListener("change", updateLabels);
-    };
-    for (_iterator.s(); !(_step = _iterator.n()).done;) {
-      if (_loop()) continue;
-    }
-  } catch (err) {
-    _iterator.e(err);
-  } finally {
-    _iterator.f();
-  }
-});
-$('.form-number button').on('click', function () {
-  var $input = $(this).siblings('input');
-  var current = parseInt($input.val(), 10) || 0;
-  if ($(this).data('direction') === 'down' && current > $input.attr('min')) {
-    $input.val(current - 1);
-  } else if ($(this).data('direction') === 'up' && current < $input.attr('max')) {
-    $input.val(current + 1);
-  }
-});
-$(document).on('click', '.avatar-picker .player-avatar', function () {
-  var $clickedAvatar = $(this);
-  var $option = $clickedAvatar.closest('.avatar-option');
-  var $container = $clickedAvatar.closest('.avatar-picker');
-  var $radio = $option.find('input[type="radio"][name="avatar_url"]');
-  if (!$radio.length) return;
-  $radio.prop('checked', true).trigger('change');
-  $container.find('.player-avatar').addClass('opacity-2');
-  $clickedAvatar.removeClass('opacity-2');
-});
-
-// /public/js/settings-toggles.js (example path)
-// settings/toggles.js
-$(document).off("change.settingsToggles").on("change.settingsToggles", 'input[multichoice], input[singlechoice]', function () {
-  var $this = $(this);
-  var isSingle = $this.is("[singlechoice]");
-  var name = $this.attr("name");
-  if (isSingle && $this.prop("checked")) {
-    $("input[singlechoice][name=\"".concat(CSS.escape(name), "\"]")).not(this).prop("checked", false);
-  }
-  var $scope = isSingle ? $("input[singlechoice][name=\"".concat(CSS.escape(name), "\"]")) : $this;
-  $scope.each(function () {
-    var $label = $(this).siblings("label");
-    $label.removeClass("btn-white btn-secondary");
-    $label.addClass(this.checked ? "btn-secondary" : "btn-white");
-  });
-});
-$(document).on('click', 'button[data-form]', function () {
-  var formID = $(this).data('form');
-  $('form' + formID).submit();
-});
-$(document).on('click', 'form[confirm] button[type="submit"]', function (e) {
-  if (!confirm('⚠️ Are you sure?\nThis action cannot be undone')) return e.preventDefault();
-});
-$(document).ready(function () {
-  new Inputmask({
-    "mask": "99:99"
-  }).mask(document.querySelectorAll('input[name="start_time"], input[name="end_time"], [data-mask="time"]'));
-  new Inputmask({
-    "mask": "(999) 999-9999"
-  }).mask(document.querySelectorAll('[data-mask="phone"]'));
-  new Inputmask({
-    alias: "numeric",
-    groupSeparator: ",",
-    prefix: "$ ",
-    autoGroup: true,
-    digits: 0,
-    rightAlign: false
-  }).mask(document.querySelectorAll('[data-mask="usd"]'));
-  new Inputmask({
-    "mask": "99/99/9999"
-  }).mask(document.querySelectorAll('[name="born_in"], [name="died_in"], [data-mask="date"]'));
-});
-})();
-
+/******/ 	
+/******/ 	// startup
+/******/ 	// Load entry module and return exports
+/******/ 	// This entry module depends on other loaded chunks and execution need to be delayed
+/******/ 	__webpack_require__.O(undefined, ["css/musicgames","css/schedule","css/calendar","css/app"], () => (__webpack_require__("./resources/js/app.js")))
+/******/ 	__webpack_require__.O(undefined, ["css/musicgames","css/schedule","css/calendar","css/app"], () => (__webpack_require__("./resources/sass/app.scss")))
+/******/ 	__webpack_require__.O(undefined, ["css/musicgames","css/schedule","css/calendar","css/app"], () => (__webpack_require__("./resources/sass/calendar.scss")))
+/******/ 	__webpack_require__.O(undefined, ["css/musicgames","css/schedule","css/calendar","css/app"], () => (__webpack_require__("./resources/sass/schedule.scss")))
+/******/ 	var __webpack_exports__ = __webpack_require__.O(undefined, ["css/musicgames","css/schedule","css/calendar","css/app"], () => (__webpack_require__("./resources/sass/musicgames.scss")))
+/******/ 	__webpack_exports__ = __webpack_require__.O(__webpack_exports__);
+/******/ 	
 /******/ })()
 ;
