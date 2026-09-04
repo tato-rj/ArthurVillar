@@ -29,7 +29,7 @@ $calendar-item-border-radius: 12px;
         color: #e8eaed;
     }
 
-    input {
+    input:not([type="checkbox"]):not([type="radio"]) {
         background: transparent !important;
     }
 
@@ -300,8 +300,8 @@ $calendar-item-border-radius: 12px;
     }
 
     .form-check-input:checked {
-        background-color: #8ab4f8;
-        border-color: #8ab4f8;
+        background-color: #8ab4f8 !important;
+        border-color: #8ab4f8 !important;
     }
 
     .form-check-input:checked[type="checkbox"] {
@@ -314,8 +314,8 @@ $calendar-item-border-radius: 12px;
 
     .form-check-input[type="checkbox"]:indeterminate {
         --bs-form-check-bg-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23202124' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M6 10h8'/%3e%3c/svg%3e");
-        background-color: #8ab4f8;
-        border-color: #8ab4f8;
+        background-color: #8ab4f8 !important;
+        border-color: #8ab4f8 !important;
     }
 
     .btn-white,

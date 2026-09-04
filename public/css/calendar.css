@@ -31437,7 +31437,7 @@ html[data-calendar-theme=dark] body {
   background: var(--calendar-background);
   color: #e8eaed;
 }
-html[data-calendar-theme=dark] input {
+html[data-calendar-theme=dark] input:not([type=checkbox]):not([type=radio]) {
   background: transparent !important;
 }
 html[data-calendar-theme=dark] .calendar-calendar,
@@ -31678,8 +31678,8 @@ html[data-calendar-theme=dark] .form-check-input:focus {
   box-shadow: 0 0 0 0.2rem rgba(138, 180, 248, 0.24);
 }
 html[data-calendar-theme=dark] .form-check-input:checked {
-  background-color: #8ab4f8;
-  border-color: #8ab4f8;
+  background-color: #8ab4f8 !important;
+  border-color: #8ab4f8 !important;
 }
 html[data-calendar-theme=dark] .form-check-input:checked[type=checkbox] {
   --bs-form-check-bg-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23202124' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='m6 10 3 3 6-6'/%3e%3c/svg%3e");
@@ -31689,8 +31689,8 @@ html[data-calendar-theme=dark] .form-check-input:checked[type=radio] {
 }
 html[data-calendar-theme=dark] .form-check-input[type=checkbox]:indeterminate {
   --bs-form-check-bg-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23202124' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M6 10h8'/%3e%3c/svg%3e");
-  background-color: #8ab4f8;
-  border-color: #8ab4f8;
+  background-color: #8ab4f8 !important;
+  border-color: #8ab4f8 !important;
 }
 html[data-calendar-theme=dark] .btn-white, html[data-calendar-theme=dark] .invitation-offscreen-indicator,
 html[data-calendar-theme=dark] .btn-light,
@@ -31824,7 +31824,7 @@ html[data-calendar-theme=dark] .calendar-date-picker-day:focus-visible {
     background: var(--calendar-background);
     color: #e8eaed;
   }
-  html[data-calendar-theme=device] input {
+  html[data-calendar-theme=device] input:not([type=checkbox]):not([type=radio]) {
     background: transparent !important;
   }
   html[data-calendar-theme=device] .calendar-calendar,
@@ -32065,8 +32065,8 @@ html[data-calendar-theme=dark] .calendar-date-picker-day:focus-visible {
     box-shadow: 0 0 0 0.2rem rgba(138, 180, 248, 0.24);
   }
   html[data-calendar-theme=device] .form-check-input:checked {
-    background-color: #8ab4f8;
-    border-color: #8ab4f8;
+    background-color: #8ab4f8 !important;
+    border-color: #8ab4f8 !important;
   }
   html[data-calendar-theme=device] .form-check-input:checked[type=checkbox] {
     --bs-form-check-bg-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23202124' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='m6 10 3 3 6-6'/%3e%3c/svg%3e");
@@ -32076,8 +32076,8 @@ html[data-calendar-theme=dark] .calendar-date-picker-day:focus-visible {
   }
   html[data-calendar-theme=device] .form-check-input[type=checkbox]:indeterminate {
     --bs-form-check-bg-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23202124' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M6 10h8'/%3e%3c/svg%3e");
-    background-color: #8ab4f8;
-    border-color: #8ab4f8;
+    background-color: #8ab4f8 !important;
+    border-color: #8ab4f8 !important;
   }
   html[data-calendar-theme=device] .btn-white, html[data-calendar-theme=device] .invitation-offscreen-indicator,
   html[data-calendar-theme=device] .btn-light,
