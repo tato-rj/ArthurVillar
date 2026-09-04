@@ -8676,16 +8676,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            const deviceView = getDeviceCalendarView();
-
             setSelectedDate(parseDateString(button.dataset.date));
-
-            if (state.view !== deviceView) {
-                setCalendarView(deviceView);
-            } else {
-                syncViewControls();
-                render();
-            }
+            syncViewControls();
+            render();
 
             closeMiniCalendarOffcanvas();
         });

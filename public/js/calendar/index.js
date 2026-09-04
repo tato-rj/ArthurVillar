@@ -11412,14 +11412,9 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!button) {
         return;
       }
-      var deviceView = getDeviceCalendarView();
       setSelectedDate(parseDateString(button.dataset.date));
-      if (state.view !== deviceView) {
-        setCalendarView(deviceView);
-      } else {
-        syncViewControls();
-        _render();
-      }
+      syncViewControls();
+      _render();
       closeMiniCalendarOffcanvas();
     });
   });
