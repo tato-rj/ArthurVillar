@@ -8,6 +8,7 @@
 	></div>
 	@include('calendar.calendar.create-lesson-overlay')
 	@include('calendar.calendar.mini-calendar-overlay')
+	@include('calendar.calendar.student-overlay')
 </div>
 
 @include('calendar.calendar.views')

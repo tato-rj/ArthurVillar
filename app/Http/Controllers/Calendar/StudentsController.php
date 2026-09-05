@@ -80,6 +80,25 @@ class StudentsController extends Controller
         ));
     }
 
+    public function lessonPlans(Student $student)
+    {
+        $plans = $student->lessonPlans()->with('location')->get()->map(function ($plan) {
+            return ['plan' => $plan, 'single' => false,
+                'current' => ! $plan->canceled_at && $plan->isCurrent(),
+                'date' => optional($plan->starts_on)->format('Y-m-d') ?? ''];
+        })->concat($student->singleLessonPlans()->with('location')->get()->map(function ($plan) {
+            return ['plan' => $plan, 'single' => true,
+                'current' => $plan->scheduled_date && $plan->scheduled_date->isToday(),
+                'date' => optional($plan->scheduled_date)->format('Y-m-d') ?? ''];
+        }))->sort(function ($a, $b) {
+            return ($b['current'] <=> $a['current'])
+                ?: strcmp($b['date'], $a['date'])
+                ?: ($b['plan']->id <=> $a['plan']->id);
+        })->values();
+
+        return view('calendar.students.mobile-plans', compact('student', 'plans'));
+    }
+
     public function archive(Student $student)
     {
         $student->archive();

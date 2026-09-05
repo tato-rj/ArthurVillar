@@ -6601,6 +6601,12 @@ const loadCalendarEditModal = function(button, sourceModal, container) {
 
             button.disabled = false;
 
+            if (sourceModal && sourceModal.classList.contains('offcanvas') && sourceModal.classList.contains('show')) {
+                sourceModal.addEventListener('hidden.bs.offcanvas', showEditModal, { once: true });
+                sourceModal.querySelector('[data-bs-dismiss="offcanvas"]').click();
+                return;
+            }
+
             if (sourceModal && sourceModal.classList.contains('show')) {
                 sourceModal.addEventListener('hidden.bs.modal', showEditModal, { once: true });
                 hideBootstrapModal(sourceModal);
@@ -7438,6 +7444,56 @@ document.addEventListener('DOMContentLoaded', function() {
     const lessonModal = calendarEventModal;
     const generalEventModal = calendarEventModal;
     const calendarEditModalContainer = document.getElementById('calendar-edit-modal-container');
+    const studentPanel = document.getElementById('calendar-student-offcanvas');
+    if (studentPanel) {
+        const results = studentPanel.querySelector('[data-student-plans]');
+        const error = studentPanel.querySelector('[data-general-event-action-error]');
+        let requestId = 0;
+        let selectedUrl = '';
+        const loadPlans = function(url) {
+            const id = ++requestId;
+            error.hidden = true;
+            results.hidden = false;
+            results.textContent = 'Loading lesson plans…';
+            fetchCalendarResource(url, { headers: { 'Accept': 'text/html', 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(function(response) {
+                    if (!response.ok) throw new Error('Unable to load lesson plans. Select the student to try again.');
+                    return response.text();
+                })
+                .then(function(html) {
+                    if (id === requestId) results.innerHTML = html;
+                })
+                .catch(function(exception) {
+                    if (id !== requestId) return;
+                    results.textContent = '';
+                    showGeneralEventActionError(studentPanel, exception.message);
+                });
+        };
+        studentPanel.addEventListener('input', function(e) {
+            if (!e.target.matches('[data-student-combobox-input]')) return;
+            ++requestId;
+            selectedUrl = '';
+            results.hidden = true;
+            results.textContent = '';
+            error.hidden = true;
+        });
+        studentPanel.addEventListener('click', function(e) {
+            const option = e.target.closest('[data-plans-url]');
+            if (option) {
+                selectedUrl = option.dataset.plansUrl;
+                loadPlans(selectedUrl);
+            }
+            const edit = e.target.closest('[data-student-plan-edit]');
+            if (edit) {
+                error.hidden = true;
+                loadCalendarEditModal(edit, studentPanel, calendarEditModalContainer);
+            }
+        });
+        studentPanel.addEventListener('show.bs.offcanvas', function() {
+            if (selectedUrl) loadPlans(selectedUrl);
+        });
+    }
+
     const calendarSearch = document.querySelector('.calendar-calendar-search');
     const calendarToolbar = calendarSearch ? calendarSearch.closest('.calendar-calendar-toolbar') : null;
     const calendarSearchToggle = calendarSearch ? calendarSearch.querySelector('[data-calendar-search-toggle]') : null;

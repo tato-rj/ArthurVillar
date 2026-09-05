@@ -31757,6 +31757,15 @@ html[data-calendar-theme=dark] .calendar-student-combobox-option:focus-visible {
   outline: 2px solid #8ab4f8 !important;
   outline-offset: -2px !important;
 }
+html[data-calendar-theme=dark] .calendar-student-offcanvas .calendar-student-plan.is-muted {
+  background: #292c32;
+  border-color: #5f6368;
+  color: #bdc1c6;
+}
+html[data-calendar-theme=dark] .calendar-student-offcanvas .calendar-student-plan.is-muted:hover, html[data-calendar-theme=dark] .calendar-student-offcanvas .calendar-student-plan.is-muted:focus-visible {
+  background: #34383e;
+  color: #e8eaed;
+}
 html[data-calendar-theme=dark] .calendar-student-combobox-empty {
   color: #bdc1c6;
 }
@@ -32143,6 +32152,15 @@ html[data-calendar-theme=dark] .calendar-date-picker-day:focus-visible {
   html[data-calendar-theme=device] .calendar-student-combobox-option:focus-visible {
     outline: 2px solid #8ab4f8 !important;
     outline-offset: -2px !important;
+  }
+  html[data-calendar-theme=device] .calendar-student-offcanvas .calendar-student-plan.is-muted {
+    background: #292c32;
+    border-color: #5f6368;
+    color: #bdc1c6;
+  }
+  html[data-calendar-theme=device] .calendar-student-offcanvas .calendar-student-plan.is-muted:hover, html[data-calendar-theme=device] .calendar-student-offcanvas .calendar-student-plan.is-muted:focus-visible {
+    background: #34383e;
+    color: #e8eaed;
   }
   html[data-calendar-theme=device] .calendar-student-combobox-empty {
     color: #bdc1c6;
@@ -34909,4 +34927,44 @@ input[name=name] {
 
 .invitation-result-name {
   display: inline-block;
+}
+
+.calendar-student-show {
+  right: 140px;
+}
+
+.calendar-student-offcanvas {
+  --bs-offcanvas-height: auto;
+  height: auto;
+  max-height: 85vh;
+  max-height: 85dvh;
+}
+.calendar-student-offcanvas .offcanvas-body {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+.calendar-student-offcanvas .calendar-student-combobox-menu {
+  position: static;
+  margin-top: 0.35rem;
+}
+.calendar-student-offcanvas .calendar-student-plan {
+  text-align: left;
+  padding: 1rem;
+  border: 1px solid var(--bs-border-color, #dee2e6);
+  border-radius: 0.5rem;
+  background: transparent;
+  color: inherit;
+}
+.calendar-student-offcanvas .calendar-student-plan.is-muted {
+  color: var(--bs-secondary-color, #6c757d);
+}
+.calendar-student-offcanvas .calendar-student-plan.is-current {
+  border: 2px solid #198754;
+  background: rgba(25, 135, 84, 0.12);
+}
+.calendar-student-offcanvas .calendar-student-plan:hover {
+  background: rgba(25, 135, 84, 0.18);
+}
+.calendar-student-offcanvas .calendar-student-plan:focus-visible {
+  outline: 3px solid #198754;
+  outline-offset: 2px;
 }

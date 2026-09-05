@@ -384,6 +384,18 @@ $calendar-item-border-radius: 12px;
         outline-offset: -2px !important;
     }
 
+    .calendar-student-offcanvas .calendar-student-plan.is-muted {
+        background: #292c32;
+        border-color: #5f6368;
+        color: #bdc1c6;
+
+        &:hover,
+        &:focus-visible {
+            background: #34383e;
+            color: #e8eaed;
+        }
+    }
+
     .calendar-student-combobox-empty {
         color: #bdc1c6;
     }
@@ -3409,4 +3421,26 @@ input[name="name"] {
 
 .invitation-result-name {
     display: inline-block;
+}
+
+.calendar-student-show { right: 140px; }
+.calendar-student-offcanvas {
+    --bs-offcanvas-height: auto;
+    height: auto;
+    max-height: 85vh;
+    max-height: 85dvh;
+    .offcanvas-body { padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
+    .calendar-student-combobox-menu { position: static; margin-top: .35rem; }
+    .calendar-student-plan {
+        text-align: left;
+        padding: 1rem;
+        border: 1px solid var(--bs-border-color, #dee2e6);
+        border-radius: .5rem;
+        background: transparent;
+        color: inherit;
+        &.is-muted { color: var(--bs-secondary-color, #6c757d); }
+        &.is-current { border: 2px solid #198754; background: rgba(25, 135, 84, .12); }
+        &:hover { background: rgba(25, 135, 84, .18); }
+        &:focus-visible { outline: 3px solid #198754; outline-offset: 2px; }
+    }
 }
