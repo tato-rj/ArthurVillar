@@ -31,6 +31,10 @@
 
 	<div class="row">
 		@input(['label' => 'Date', 'name' => 'starts_on', 'type' => 'date', 'value' => optional($lessonPlan->starts_on)->format('Y-m-d'), 'grid' => 'col'])
+
+		<div data-lesson-repeat-end @if($lessonPlanRepeat === 'none') style="display: none;" @else class="col" @endif>
+			@input(['label' => 'Ends on', 'name' => 'ends_on', 'type' => 'date', 'value' => old('ends_on', optional($lessonPlan->ends_on)->format('Y-m-d')), 'required' => $lessonPlanRepeat !== 'none', 'disabled' => $lessonPlanRepeat === 'none'])
+		</div>
 	</div>
 
 	<div class="row">
@@ -39,10 +43,6 @@
 			@option(['name' => 'repeat', 'label' => 'Every week', 'value' => 1, 'selected' => $lessonPlanRepeat === '1'])
 			@option(['name' => 'repeat', 'label' => 'Every other week', 'value' => 2, 'selected' => $lessonPlanRepeat === '2'])
 		@endselect
-	</div>
-
-	<div data-lesson-repeat-end @if($lessonPlanRepeat === 'none') style="display: none;" @endif>
-		@input(['label' => 'Ends on', 'name' => 'ends_on', 'type' => 'date', 'value' => old('ends_on', optional($lessonPlan->ends_on)->format('Y-m-d')), 'required' => $lessonPlanRepeat !== 'none', 'disabled' => $lessonPlanRepeat === 'none'])
 	</div>
 
 	<label class="small fw-bold opacity-6 mb-3">@fa(['icon' => 'clock'])TIME</label>
