@@ -5,7 +5,7 @@
 </button>
 <div class="offcanvas offcanvas-bottom calendar-student-offcanvas" tabindex="-1"
     id="calendar-student-offcanvas" aria-label="Student lesson plans">
-    <div class="offcanvas-body">
+    <div class="offcanvas-body pb-4">
         <div class="d-flex align-items-center gap-3">
             <div class="calendar-student-combobox flex-grow-1" data-student-combobox>
                 <div class="form-control d-flex align-items-center calendar-student-combobox-control">
