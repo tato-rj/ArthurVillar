@@ -65,11 +65,11 @@ export function buildPiano() {
         const beam = box('underframe', [width,.16,Math.hypot(dx,dz)], [(a[0]+b[0])/2,1.145,(a[1]+b[1])/2], spruce);
         beam.rotation.y = Math.atan2(dx,dz);
     }
-    // Rectangular structural posts form a fan between the belly rail and tail.
-    bellyBeam([-1.30,-.08],[-.91,-2.43], .18);
-    bellyBeam([-.53,-.08],[-.86,-2.43], .17);
-    bellyBeam([.30,-.08],[-.80,-2.36], .17);
-    bellyBeam([1.14,-.08],[-.69,-2.22], .17);
+    // Run the fan braces into the rear edge of the key bed (z=.46), with a small overlap.
+    bellyBeam([-1.30,.48],[-.91,-2.43], .18);
+    bellyBeam([-.53,.48],[-.86,-2.43], .17);
+    bellyBeam([.30,.48],[-.80,-2.36], .17);
+    bellyBeam([1.14,.48],[-.69,-2.22], .17);
     bellyBeam([-1.29,-.81],[.39,-.81], .13);
     bellyBeam([-1.25,-1.63],[-.05,-1.63], .13);
     for (const [x,z] of [[-1.31,1.22],[1.31,1.22],[-.78,-2.33]]) {
@@ -81,11 +81,11 @@ export function buildPiano() {
     // The lid rotates around the straight bass-side hinge, not its center.
     const lid = slab('lid', outline(1.02), .065, 0, ebony);
     lid.geometry.translate(1.49,0,0); groups.get('lid').position.set(-1.49,1.75,0); groups.get('lid').rotation.z = .48;
-    // Lean inward from the treble rim to a socket on the open lid's underside.
+    // Mount below the rim's top edge on its inner face, leaning toward the lid socket.
     const propTip = new THREE.Vector3(.85 + 1.49, -.065, -.22)
         .applyAxisAngle(new THREE.Vector3(0, 0, 1), .48)
         .add(groups.get('lid').position);
-    rod('prop', [1.21,1.69,-.22], propTip.toArray(), .023, ebony);
+    rod('prop', [1.12,1.56,-.22], propTip.toArray(), .023, ebony);
     for (const z of [-1.8,-.5,.7]) rod('rim', [-1.49,1.72,z-.08],[-1.49,1.72,z+.08], .026, gold);
     const plateShape = outline(.905); plateShape.holes.push(new THREE.Path(outline(.76).getPoints(60))); slab('plate', plateShape, .07, 1.48, gold);
     box('plate', [2.66,.08,.21],[0,1.48,.64],gold);
@@ -125,7 +125,8 @@ export function buildPiano() {
         if(!black) naturalIndex++;
     }
     box('balance-rail',[2.69,.035,.055],[0,1.23,.76],wood); box('balance-rail',[2.69,.012,.04],[0,1.258,.76],red);
-    box('damper-rail',[2.67,.035,.035],[0,1.32,-.05],wood);
+    // Keep both ends clear of the inner rim, including the narrowing treble curve.
+    box('damper-rail',[2.48,.035,.035],[-.05,1.32,-.05],wood);
     // Illustrative string scale: wound bass strings cross over the steel strings.
     for (let i=0;i<64;i++) {
         const x=-1.15+i/63*2.36, endZ=-2.35+Math.pow(i/63,.83)*2.57, endX=-.75+i/63*1.9;
