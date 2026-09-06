@@ -50,7 +50,7 @@ class RouteServiceProvider extends ServiceProvider
 
             Route::middleware('web')
                 ->domain('instruments.'.config('app.domain'))
-                ->namespace($this->namespace.'\\Piano')
+                ->namespace($this->namespace.'\\Instruments')
                 ->name('instruments.')
                 ->group(base_path('routes/instruments.php'));
 

@@ -2,4 +2,4 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::get('', 'PianoController@index')->name('home');
+Route::get('', 'InstrumentsController@piano')->name('piano');
