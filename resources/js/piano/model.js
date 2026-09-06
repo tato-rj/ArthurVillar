@@ -81,7 +81,11 @@ export function buildPiano() {
     // The lid rotates around the straight bass-side hinge, not its center.
     const lid = slab('lid', outline(1.02), .065, 0, ebony);
     lid.geometry.translate(1.49,0,0); groups.get('lid').position.set(-1.49,1.75,0); groups.get('lid').rotation.z = .48;
-    rod('prop', [.72,1.7,-.22], [.72,2.87,-.22], .023, wood);
+    // Lean inward from the treble rim to a socket on the open lid's underside.
+    const propTip = new THREE.Vector3(.85 + 1.49, -.065, -.22)
+        .applyAxisAngle(new THREE.Vector3(0, 0, 1), .48)
+        .add(groups.get('lid').position);
+    rod('prop', [1.21,1.69,-.22], propTip.toArray(), .023, ebony);
     for (const z of [-1.8,-.5,.7]) rod('rim', [-1.49,1.72,z-.08],[-1.49,1.72,z+.08], .026, gold);
     const plateShape = outline(.905); plateShape.holes.push(new THREE.Path(outline(.76).getPoints(60))); slab('plate', plateShape, .07, 1.48, gold);
     box('plate', [2.66,.08,.21],[0,1.48,.64],gold);

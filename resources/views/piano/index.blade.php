@@ -9,7 +9,7 @@
     <div id="piano-stage" aria-label="Interactive 3D grand piano. Drag to rotate, scroll to zoom." tabindex="0"></div>
     <header class="atlas-header">
         <div class="atlas-brand"><h1>Piano Atlas</h1><p>The grand piano, inside and out.</p></div>
-        <nav class="atlas-modes" aria-label="Model layout"><button class="is-active" data-layout="assembled" aria-pressed="true">Instrument</button><button data-layout="exploded" aria-pressed="false">Exploded</button><button data-layout="catalog" aria-pressed="false">Parts library</button></nav>
+        <nav class="atlas-modes" aria-label="Model layout"><button class="is-active" data-layout="assembled" aria-pressed="true">Complete</button><button data-layout="exploded" aria-pressed="false">Exploded</button><button data-layout="catalog" aria-pressed="false">Parts library</button></nav>
         <div class="atlas-search-wrap"><label class="atlas-search"><span aria-hidden="true">⌕</span><input id="part-search" type="search" placeholder="Find a part…" aria-label="Find a piano part" autocomplete="off"><kbd>/</kbd></label><div id="search-results" class="atlas-search-results" hidden></div></div>
     </header>
     <aside class="atlas-systems atlas-panel" aria-label="Piano systems">
