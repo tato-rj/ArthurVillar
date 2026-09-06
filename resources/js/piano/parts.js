@@ -13,9 +13,10 @@ export const systems = [
 export const parts = [
     ['rim', 'Bent rim', 'case', 'The curved, laminated wooden case gives the grand its silhouette and supports the soundboard and plate.', 'Laminated hardwood', 'Structure', ['soundboard', 'plate']],
     ['underframe', 'Wooden underframe', 'case', 'Heavy wooden posts brace the underside of the soundboard and connect the curved rim to the front bed. The enclosed wooden belly separates the strings from the space below the piano.', 'Structural timber', 'Belly support', ['soundboard', 'ribs', 'keybed', 'rim']],
-    ['lid', 'Grand lid', 'case', 'The hinged lid covers the strings. Opening it changes the direction and projection of sound into the room.', 'Polished hardwood', 'Projection', ['prop', 'rim']],
+    ['lid', 'Grand lid', 'case', 'The main lid covers the strings. Its hinged front leaf folds back on top when open, then unfolds over the music desk when closed. The music rack folds flat underneath.', 'Polished hardwood', 'Projection', ['prop', 'rim']],
     ['prop', 'Lid prop', 'case', 'A wooden support holds the lid at its open position.', 'Hardwood', 'Support', ['lid']],
-    ['fallboard', 'Fallboard', 'case', 'This cover folds down over the keys when the instrument is not in use. It is shown open here.', 'Finished hardwood', 'Key protection', ['white-keys', 'black-keys']],
+    ['desk', 'Music rack', 'case', 'The gently tilted rack holds sheet music above the keyboard. Its shaped upper edge, lower ledge, and supporting desk sit in the open front section ahead of the main lid.', 'Finished hardwood', 'Sheet music support', ['fallboard', 'lid']],
+    ['fallboard', 'Fallboard', 'case', 'The fallboard is the front panel immediately behind the keys. It protects the keyboard when folded down; it is shown in its open position here, separate from the curved rim.', 'Finished hardwood', 'Key protection', ['white-keys', 'black-keys']],
     ['keybed', 'Key bed', 'case', 'A rigid platform supports the keyboard and action assembly at the front of the instrument.', 'Hardwood', 'Structure', ['key-levers', 'rim']],
     ['white-keys', 'White keys', 'keyboard', 'The 52 white keys play the natural notes. Together with the black keys they span A0 to C8.', 'Wood / synthetic tops', 'Player input', ['black-keys', 'key-levers']],
     ['black-keys', 'Black keys', 'keyboard', 'The 36 raised black keys form repeating groups of two and three, providing the sharps and flats.', 'Wood / dark keytops', 'Player input', ['white-keys', 'key-levers']],

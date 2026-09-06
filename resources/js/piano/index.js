@@ -39,7 +39,7 @@ function initialize() {
     light.shadow.mapSize.set(2048,2048); Object.assign(light.shadow.camera,{left:-8,right:8,top:8,bottom:-8}); light.shadow.bias=-.0007; light.shadow.normalBias=.025; scene.add(light);
     const fill = new THREE.DirectionalLight('#dfebf1', 1.5); fill.position.set(-5,3,-5); scene.add(fill);
     const floor = new THREE.Mesh(new THREE.PlaneGeometry(200,200),new THREE.ShadowMaterial({color:'#52645a',opacity:.13})); floor.rotation.x=-Math.PI/2; floor.position.y=.01; floor.receiveShadow=true; scene.add(floor);
-    const { root, groups } = buildPiano(); scene.add(root);
+    const { root, groups, lidFlap, rack, rackSupports } = buildPiano(); scene.add(root);
     const controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping=true; controls.dampingFactor=.075; controls.minDistance=1; controls.maxDistance=40; controls.maxPolarAngle=Math.PI*.91; controls.autoRotateSpeed=.6;
     const state = { layout:'assembled', explode:0, selected:null, isolated:null, labels:false, lid:true, visible:new Set(systems.map(s=>s.id)), hovered:null, hidden:new Set() };
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -110,7 +110,7 @@ function initialize() {
     $('restore-parts').addEventListener('click',()=>{showAll();resetCamera();});
     function resetCamera(top=false) {
         let position,target;
-        if(state.layout==='catalog'){const y=window.innerWidth<650?-1.65:1.7;target=new THREE.Vector3(0,y,0);position=new THREE.Vector3(0,y,window.innerWidth<650?34:22);}
+        if(state.layout==='catalog'){const rows=Math.ceil(parts.length/(window.innerWidth<650?4:8)),y=4.2-(rows-1)*1.67/2;target=new THREE.Vector3(0,y,0);position=new THREE.Vector3(0,y,window.innerWidth<650?Math.max(34,rows*4.25):22);}
         else if(state.explode>0){target=new THREE.Vector3(0,1.9,-.5);position=new THREE.Vector3(7,6.7,9).multiplyScalar(window.innerWidth<650?1.45:1.22);}
         else {target=new THREE.Vector3(-.25,1.0,-.45);position=new THREE.Vector3(6.1,5.3,7.1).multiplyScalar(window.innerWidth<650?1.85:1.10);}
         if(top)position=target.clone().add(new THREE.Vector3(0,Math.max(9,position.distanceTo(target)),.001));
@@ -176,10 +176,20 @@ function initialize() {
     camera.position.copy(cameraTween.position);controls.target.copy(cameraTween.target);cameraTween=null;controls.update();
     $('atlas-loading').hidden=true;
     let previous=performance.now();
+    let lidProgress = 1;
     function animate(now){
         requestAnimationFrame(animate);if(document.hidden)return;
         const delta=Math.min((now-previous)/1000,.05);previous=now;const alpha=reducedMotion?1:1-Math.exp(-delta*8);
-        groups.forEach((g,id)=>{const t=targets.get(id);g.position.lerp(t.pos,alpha);g.scale.lerp(new THREE.Vector3(t.scale,t.scale,t.scale),alpha);const rotation=t.rot.clone();if(id==='lid'&&state.layout!=='catalog')rotation.z=state.lid?.48:0;g.rotation.x=THREE.MathUtils.lerp(g.rotation.x,rotation.x,alpha);g.rotation.y=THREE.MathUtils.lerp(g.rotation.y,rotation.y,alpha);g.rotation.z=THREE.MathUtils.lerp(g.rotation.z,rotation.z,alpha);if(id==='prop')g.visible=isVisible(parts.find(p=>p.id===id))&&(state.lid||state.layout==='catalog');});
+        // Open: fold the front leaf, lift the lid, then raise the rack. Close in reverse.
+        const lidTarget = state.layout === 'catalog' || state.lid ? 1 : 0;
+        const step = reducedMotion ? 1 : delta / 1.8;
+        lidProgress += Math.sign(lidTarget - lidProgress) * Math.min(step, Math.abs(lidTarget - lidProgress));
+        const mainOpen = THREE.MathUtils.smoothstep(lidProgress, .30, .75);
+        const rackOpen = THREE.MathUtils.smoothstep(lidProgress, .75, 1);
+        lidFlap.rotation.x = -Math.PI * THREE.MathUtils.smoothstep(lidProgress, 0, .30);
+        rack.rotation.x = THREE.MathUtils.lerp(-Math.PI / 2, -.30, rackOpen);
+        rackSupports.forEach(support => { support.visible = rackOpen > .98; });
+        groups.forEach((g,id)=>{const t=targets.get(id);const pos=t.pos.clone();if(id==='desk'&&state.layout!=='catalog')pos.y-=.16*(1-rackOpen);g.position.lerp(pos,alpha);g.scale.lerp(new THREE.Vector3(t.scale,t.scale,t.scale),alpha);const rotation=t.rot.clone();if(id==='lid'&&state.layout!=='catalog')rotation.z=.48*mainOpen;g.rotation.x=THREE.MathUtils.lerp(g.rotation.x,rotation.x,alpha);g.rotation.y=THREE.MathUtils.lerp(g.rotation.y,rotation.y,alpha);g.rotation.z=THREE.MathUtils.lerp(g.rotation.z,rotation.z,alpha);if(id==='prop')g.visible=isVisible(parts.find(p=>p.id===id))&&(mainOpen>.95||state.layout==='catalog');});
         if(cameraTween){camera.position.lerp(cameraTween.position,alpha);controls.target.lerp(cameraTween.target,alpha);if(camera.position.distanceTo(cameraTween.position)<.005)cameraTween=null;}
         controls.update();renderer.render(scene,camera);
         const placed=[];

@@ -6,7 +6,7 @@ The landing route is `instruments.home`, registered in `routes/instruments.php`.
 - `index.js`: scene, orbit/zoom, selection, search, system visibility, isolation,
   exploded layout, parts library, labels, and lid controls.
 - `model.js`: self-contained procedural Three.js model and wood texture.
-- `parts.js`: the 32 selectable component groups and educational descriptions.
+- `parts.js`: the 33 selectable component groups and educational descriptions.
 - `resources/views/piano/index.blade.php`: accessible interface and panels.
 - `resources/sass/piano/index.scss`: desktop and mobile layout.
 
