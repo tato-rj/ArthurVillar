@@ -4,7 +4,7 @@
     @method('PATCH')
 
     <label class="small fw-bold opacity-6 mb-3">@fa(['icon' => 'user'])STUDENT</label>
-    <div class="font-weight-bold mb-3">{{$lesson->student->full_name}}</div>
+    <div class="font-weight-bold mb-3">{{$lesson->student?->full_name ?? 'Group class'}}</div>
 
     <label class="small fw-bold opacity-6 mb-3">@fa(['icon' => 'calendar-day'])LESSON</label>
 
@@ -17,7 +17,7 @@
     <div class="row">
         @input(['label' => 'Duration (minutes)', 'name' => 'duration_minutes', 'type' => 'number', 'value' => $lesson->starts_at->diffInMinutes($lesson->ends_at), 'min' => 1, 'max' => 1440, 'grid' => 'col', 'required' => true])
 
-        @input(['label' => 'Fee', 'name' => 'fee_amount', 'type' => 'number', 'value' => $lesson->fee_amount !== null ? ($lesson->fee_amount / 100) : null, 'min' => 0, 'step' => '0.01', 'grid' => 'col', 'disabled' => $lesson->student->payment_exempt])
+        @input(['label' => 'Fee', 'name' => 'fee_amount', 'type' => 'number', 'value' => $lesson->fee_amount !== null ? ($lesson->fee_amount / 100) : null, 'min' => 0, 'step' => '0.01', 'grid' => 'col', 'disabled' => (bool) $lesson->student?->payment_exempt])
     </div>
 
     <label class="small fw-bold opacity-6 mb-3">@fa(['icon' => 'money-bill-wave'])STATUS</label>

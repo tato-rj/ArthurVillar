@@ -172,6 +172,84 @@ class CalendarLessonFlowTest extends BaseTest
     }
 
     /** @test */
+    public function lesson_creation_requires_either_a_student_or_the_group_class_checkbox()
+    {
+        $this->signIn();
+
+        $this->post(route('calendar.lesson-plans.store'), [
+            'location_id' => Location::factory()->create()->id,
+            'starts_on' => '2026-07-08',
+            'repeat' => 'none',
+            'start_time' => '15:30',
+            'duration_minutes' => 45,
+        ])->assertSessionHasErrors('student_id');
+
+        $this->assertDatabaseCount('lesson_plans', 0);
+        $this->assertDatabaseCount('single_lesson_plans', 0);
+    }
+
+    /** @test */
+    public function group_classes_create_and_confirm_without_a_student()
+    {
+        $location = Location::factory()->create();
+        $this->signIn();
+
+        $this->post(route('calendar.lesson-plans.store'), [
+            'is_group' => 1,
+            'student_id' => '',
+            'location_id' => $location->id,
+            'starts_on' => '2026-07-08',
+            'repeat' => '1',
+            'ends_on' => '2026-08-08',
+            'start_time' => '15:30',
+            'duration_minutes' => 45,
+            'fee_amount' => '60',
+            'payment_method' => 'Venmo',
+        ])->assertRedirect();
+
+        $lessonPlan = LessonPlan::whereNull('student_id')->firstOrFail();
+
+        $response = $this->postJson(route('calendar.lessons.store'), [
+            'lesson_plan_id' => $lessonPlan->id,
+            'date' => '2026-07-08',
+            'start' => '15:30',
+            'end' => '16:15',
+            'scheduled_date' => '2026-07-08',
+            'scheduled_start_time' => '15:30',
+        ])->assertOk()->assertJsonPath('status', 'unpaid');
+
+        $this->assertDatabaseHas('lessons', [
+            'id' => $response->json('lesson_id'),
+            'student_id' => null,
+            'lesson_plan_id' => $lessonPlan->id,
+        ]);
+
+        $this->get($response->json('edit_url'))
+            ->assertOk()
+            ->assertSee('Group class');
+    }
+
+    /** @test */
+    public function one_time_group_classes_are_scheduled_without_a_student()
+    {
+        $this->signIn();
+
+        $this->post(route('calendar.lesson-plans.store'), [
+            'is_group' => 1,
+            'location_id' => Location::factory()->create()->id,
+            'starts_on' => '2026-07-08',
+            'repeat' => 'none',
+            'start_time' => '15:30',
+            'duration_minutes' => 45,
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('single_lesson_plans', [
+            'student_id' => null,
+            'scheduled_date' => '2026-07-08 00:00:00',
+        ]);
+    }
+
+    /** @test */
     public function recurring_lessons_require_an_end_date_in_the_unified_form()
     {
         $this->signIn();

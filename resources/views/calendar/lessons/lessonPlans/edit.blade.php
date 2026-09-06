@@ -5,6 +5,7 @@
 	@csrf
 	@method('PATCH')
 	<input type="hidden" name="student_id" value="{{$lessonPlan->student_id}}">
+	<input type="hidden" name="is_group" value="{{$lessonPlan->student_id ? 0 : 1}}">
 
 	<label class="small fw-bold opacity-6 mb-3">@fa(['icon' => 'calendar-day'])SCHEDULE</label>
 	

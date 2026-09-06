@@ -50,7 +50,7 @@ class EarlyPaymentsController extends Controller
             ? SingleLessonPlan::with('student')->findOrFail($singleLessonPlanId)->student
             : LessonPlan::with('student')->findOrFail($lessonPlanId)->student;
 
-        if ($student->payment_exempt) {
+        if ($student?->payment_exempt) {
             throw ValidationException::withMessages([
                 'date' => 'Payment is not required for this student.',
             ]);

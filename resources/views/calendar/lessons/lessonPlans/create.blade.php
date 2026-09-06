@@ -1,6 +1,7 @@
 @modal(['title' => 'New lesson', 'id' => 'create-calendar-lesson-plan-modal'])
 @php
 	$oldStudentId = old('student_id');
+	$isGroupClass = (bool) old('is_group', false);
 	$oldRepeat = (string) old('repeat', 'none');
 	$selectedStudent = isset($students)
 		? $students->first(fn ($student) => (string) $student->id === (string) $oldStudentId)
@@ -58,6 +59,19 @@
 		</div>
 
 		@feedback(['input' => 'student_id'])
+	</div>
+
+	<div class="form-check mb-4">
+		<input type="hidden" name="is_group" value="0">
+		<input
+			class="form-check-input"
+			type="checkbox"
+			name="is_group"
+			value="1"
+			id="create-calendar-group-class"
+			data-group-class
+			@if($isGroupClass) checked @endif>
+		<label class="form-check-label" for="create-calendar-group-class">This lesson is for a group class</label>
 	</div>
 
 	<label class="small fw-bold opacity-6 mb-3">@fa(['icon' => 'calendar-day'])SCHEDULE</label>

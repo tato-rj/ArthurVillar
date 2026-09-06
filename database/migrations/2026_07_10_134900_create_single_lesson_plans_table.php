@@ -17,6 +17,7 @@ return new class extends Migration
             $table->id();
 
             $table->foreignId('student_id')
+                ->nullable()
                 ->constrained()
                 ->cascadeOnDelete();
 

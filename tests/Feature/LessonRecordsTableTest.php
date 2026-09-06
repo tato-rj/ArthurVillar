@@ -10,6 +10,24 @@ use Tests\BaseTest;
 class LessonRecordsTableTest extends BaseTest
 {
     /** @test */
+    public function it_lists_confirmed_group_classes_without_a_student()
+    {
+        $lesson = Lesson::factory()->create([
+            'student_id' => null,
+            'lesson_plan_id' => null,
+        ]);
+        $this->signIn();
+
+        $rows = collect($this->getJson(route('calendar.tables.lesson-records'))
+            ->assertOk()
+            ->json('data'));
+
+        $row = $rows->firstWhere('id', $lesson->id);
+
+        $this->assertSame('Group class', $row['student']);
+    }
+
+    /** @test */
     public function it_filters_lessons_by_scheduled_date_range()
     {
         $insideStudent = Student::factory()->create([

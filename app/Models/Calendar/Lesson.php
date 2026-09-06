@@ -43,7 +43,7 @@ class Lesson extends BaseModel
 
     public function pay()
     {
-        $paymentExempt = (bool) $this->student->payment_exempt;
+        $paymentExempt = (bool) $this->student?->payment_exempt;
 
         return $this->update([
             'canceled_by' => null,

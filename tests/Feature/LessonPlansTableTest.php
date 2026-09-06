@@ -11,6 +11,27 @@ use Tests\BaseTest;
 class LessonPlansTableTest extends BaseTest
 {
     /** @test */
+    public function it_lists_lesson_plans_without_students_as_group_classes()
+    {
+        $lessonPlan = LessonPlan::factory()->create([
+            'student_id' => null,
+            'starts_on' => today()->subDay(),
+            'ends_on' => today()->addDay(),
+        ]);
+        $this->signIn();
+
+        $rows = collect($this->getJson(route(
+            'calendar.tables.lesson-plans',
+            $this->lessonPlanTableRequest()
+        ))->assertOk()->json('data'));
+
+        $row = $rows->firstWhere('id', $lessonPlan->id);
+
+        $this->assertSame('Group class', $row['student']);
+        $this->assertNull($row['student_id']);
+    }
+
+    /** @test */
     public function it_excludes_canceled_recurring_plans()
     {
         $student = Student::factory()->create([

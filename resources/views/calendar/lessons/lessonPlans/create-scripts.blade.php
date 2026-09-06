@@ -96,6 +96,7 @@ window.calendarLessonPlanCreateForms = window.calendarLessonPlanCreateForms || (
         const form = option ? option.closest('form') : null;
         const locationSelect = form ? form.querySelector('select[name="location_id"]') : null;
         const paymentMethodSelect = form ? form.querySelector('select[name="payment_method"]') : null;
+        const paymentSection = form ? form.querySelector('[data-lesson-payment-section]') : null;
 
         if (locationSelect && option.dataset.studentLocationId) {
             locationSelect.value = option.dataset.studentLocationId;
@@ -106,7 +107,40 @@ window.calendarLessonPlanCreateForms = window.calendarLessonPlanCreateForms || (
             paymentMethodSelect.value = option.dataset.studentPaymentMethod;
         }
 
+        if (paymentSection) {
+            paymentSection.hidden = option.dataset.studentPaymentExempt === '1';
+        }
+
         syncFee(form);
+    };
+
+    const syncGroupClass = function(form) {
+        const checkbox = form ? form.querySelector('[data-group-class]') : null;
+        const combobox = form ? form.querySelector('[data-student-combobox]') : null;
+        const input = combobox ? combobox.querySelector('[data-student-combobox-input]') : null;
+        const value = combobox ? combobox.querySelector('[data-student-combobox-value]') : null;
+        const paymentSection = form ? form.querySelector('[data-lesson-payment-section]') : null;
+        const isGroupClass = !!(checkbox && checkbox.checked);
+
+        if (!checkbox || !combobox || !input || !value) {
+            return;
+        }
+
+        if (isGroupClass) {
+            input.value = '';
+            value.value = '';
+            input.setCustomValidity('');
+            closeCombobox(combobox);
+
+            if (paymentSection) {
+                paymentSection.hidden = false;
+            }
+        }
+
+        input.disabled = isGroupClass;
+        value.disabled = isGroupClass;
+        value.required = !isGroupClass;
+        combobox.classList.toggle('opacity-6', isGroupClass);
     };
 
     const initializeComboboxes = function(root) {
@@ -166,6 +200,12 @@ window.calendarLessonPlanCreateForms = window.calendarLessonPlanCreateForms || (
 
             if (form) {
                 form.addEventListener('submit', function(event) {
+                    const groupClass = form.querySelector('[data-group-class]');
+
+                    if (groupClass && groupClass.checked) {
+                        return;
+                    }
+
                     if (!value || value.value) {
                         return;
                     }
@@ -210,6 +250,7 @@ window.calendarLessonPlanCreateForms = window.calendarLessonPlanCreateForms || (
             const locationSelect = form.querySelector('select[name="location_id"]');
             const durationSelect = form.querySelector('select[name="duration_minutes"]');
             const repeatSelect = form.querySelector('select[name="repeat"]');
+            const groupClass = form.querySelector('[data-group-class]');
             const onlineSelector = form.matches('[data-single-lesson-plan-form]')
                 ? '.single-lesson-plan-online-field'
                 : '.lesson-plan-online-field';
@@ -217,6 +258,13 @@ window.calendarLessonPlanCreateForms = window.calendarLessonPlanCreateForms || (
             syncOnlineFields(form, onlineSelector, false);
             syncFee(form);
             syncRepeatFields(form, false);
+            syncGroupClass(form);
+
+            if (groupClass) {
+                groupClass.addEventListener('change', function() {
+                    syncGroupClass(form);
+                });
+            }
 
             if (locationSelect) {
                 locationSelect.addEventListener('change', function() {

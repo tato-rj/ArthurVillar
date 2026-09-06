@@ -225,6 +225,7 @@ $(function() {
 
         const studentInput = form.querySelector('[data-student-combobox-input]');
         const studentValue = form.querySelector('[data-student-combobox-value]');
+        const groupClass = form.querySelector('[data-group-class]');
 
         if (studentInput) {
             studentInput.value = lessonPlan.student || '';
@@ -233,6 +234,11 @@ $(function() {
 
         if (studentValue) {
             studentValue.value = lessonPlan.student_id || '';
+        }
+
+        if (groupClass) {
+            groupClass.checked = !lessonPlan.student_id;
+            groupClass.dispatchEvent(new Event('change', { bubbles: true }));
         }
 
         setFormFieldValue(form, 'location_id', lessonPlan.location_id);

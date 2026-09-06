@@ -238,8 +238,8 @@ class TablesController extends Controller
     {
         $driver = DB::connection()->getDriverName();
         $studentExpression = $driver === 'sqlite'
-            ? "students.first_name || ' ' || COALESCE(students.last_name, '')"
-            : "CONCAT(students.first_name, ' ', COALESCE(students.last_name, ''))";
+            ? "COALESCE(students.first_name || ' ' || COALESCE(students.last_name, ''), 'Group class')"
+            : "COALESCE(CONCAT(students.first_name, ' ', COALESCE(students.last_name, '')), 'Group class')";
         $weekdayExpression = "CASE lesson_plans.weekday
             WHEN 1 THEN 'sunday'
             WHEN 2 THEN 'monday'
@@ -327,7 +327,7 @@ class TablesController extends Controller
             ->intersect(['active', 'inactive'])
             ->values();
         $recurringPlans = DB::table('lesson_plans')
-            ->join('students', 'students.id', '=', 'lesson_plans.student_id')
+            ->leftJoin('students', 'students.id', '=', 'lesson_plans.student_id')
             ->leftJoin('locations', 'locations.id', '=', 'lesson_plans.location_id')
             ->whereNull('lesson_plans.canceled_at')
             ->select([
@@ -355,7 +355,7 @@ class TablesController extends Controller
             ]);
 
         $singlePlans = DB::table('single_lesson_plans')
-            ->join('students', 'students.id', '=', 'single_lesson_plans.student_id')
+            ->leftJoin('students', 'students.id', '=', 'single_lesson_plans.student_id')
             ->leftJoin('locations', 'locations.id', '=', 'single_lesson_plans.location_id')
             ->select([
                 'single_lesson_plans.id',
@@ -449,11 +449,11 @@ class TablesController extends Controller
     {
         $driver = DB::connection()->getDriverName();
         $studentExpression = $driver === 'sqlite'
-            ? "students.first_name || ' ' || COALESCE(students.last_name, '')"
-            : "CONCAT(students.first_name, ' ', COALESCE(students.last_name, ''))";
+            ? "COALESCE(students.first_name || ' ' || COALESCE(students.last_name, ''), 'Group class')"
+            : "COALESCE(CONCAT(students.first_name, ' ', COALESCE(students.last_name, '')), 'Group class')";
 
         $lessonPlans = SingleLessonPlan::query()
-            ->join('students', 'students.id', '=', 'single_lesson_plans.student_id')
+            ->leftJoin('students', 'students.id', '=', 'single_lesson_plans.student_id')
             ->leftJoin('locations', 'locations.id', '=', 'single_lesson_plans.location_id')
             ->when(request('scheduled_from'), function ($query, $date) {
                 $query->whereDate('single_lesson_plans.scheduled_date', '>=', $date);
@@ -545,7 +545,7 @@ class TablesController extends Controller
                 });
 
                 return [
-                    'students_count' => $lessonPlans->pluck('student_id')->unique()->count(),
+                    'students_count' => $lessonPlans->pluck('student_id')->filter()->unique()->count(),
                     'lesson_plans_count' => $lessonPlans->count(),
                     'average_lesson_length' => $lessonPlans->avg('duration_minutes'),
                     'average_lesson_fee' => $lessonPlans->avg('fee_amount'),
@@ -561,7 +561,7 @@ class TablesController extends Controller
                         ])
                         ->map(function ($lessonPlan) {
                             return [
-                                'name' => trim(($lessonPlan->student->first_name ?? '').' '.($lessonPlan->student->last_name ?? '')),
+                                'name' => $lessonPlan->student?->full_name ?? 'Group class',
                                 'weekday' => ucfirst($lessonPlan->weekdayName ?? ''),
                                 'start_time' => $lessonPlan->start_time,
                                 'duration_minutes' => (int) $lessonPlan->duration_minutes,
@@ -753,12 +753,12 @@ class TablesController extends Controller
             ? "CAST(strftime('%w', lessons.starts_at) AS INTEGER) + 1"
             : 'DAYOFWEEK(lessons.starts_at)';
         $studentExpression = $driver === 'sqlite'
-            ? "students.first_name || ' ' || COALESCE(students.last_name, '')"
-            : "CONCAT(students.first_name, ' ', COALESCE(students.last_name, ''))";
+            ? "COALESCE(students.first_name || ' ' || COALESCE(students.last_name, ''), 'Group class')"
+            : "COALESCE(CONCAT(students.first_name, ' ', COALESCE(students.last_name, '')), 'Group class')";
         $lessonTypeExpression = "CASE WHEN lessons.lesson_plan_id IS NULL THEN 'Single' ELSE 'Recurring' END";
 
         $lessons = Lesson::query()
-            ->join('students', 'students.id', '=', 'lessons.student_id')
+            ->leftJoin('students', 'students.id', '=', 'lessons.student_id')
             ->where(function ($query) use ($recordStatuses) {
                 if ($recordStatuses->contains('paid')) {
                     $query->orWhere(function ($query) {

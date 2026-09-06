@@ -35,7 +35,7 @@ class LessonPlansController extends Controller
         }
 
         $data['recurrence_interval'] = (int) $repeat;
-        $this->validateLessonPlanDoesNotOverlap($data['student_id'], $data['starts_on'], $data['ends_on']);
+        $this->validateLessonPlanDoesNotOverlap($data['student_id'] ?? null, $data['starts_on'], $data['ends_on']);
         LessonPlan::create($this->lessonPlanAttributes($data));
 
         return back()->with('success', 'The lesson plan was successfully added');
@@ -178,7 +178,8 @@ class LessonPlansController extends Controller
     private function validateLessonPlan(Request $request)
     {
         return $request->validate([
-            'student_id' => ['required', 'exists:students,id'],
+            'is_group' => ['nullable', 'boolean'],
+            'student_id' => ['nullable', Rule::requiredIf(fn () => ! $request->boolean('is_group')), 'exists:students,id'],
             'repeat' => ['nullable', Rule::in(['none', '1', '2'])],
             'recurrence_interval' => ['nullable', 'required_without:repeat', 'integer', Rule::in([1, 2])],
             'starts_on' => [
@@ -205,7 +206,8 @@ class LessonPlansController extends Controller
     private function validateLessonCreation(Request $request)
     {
         return $request->validate([
-            'student_id' => ['required', 'exists:students,id'],
+            'is_group' => ['nullable', 'boolean'],
+            'student_id' => ['nullable', Rule::requiredIf(fn () => ! $request->boolean('is_group')), 'exists:students,id'],
             'repeat' => ['nullable', Rule::in(['none', '1', '2'])],
             'recurrence_interval' => ['nullable', 'integer', Rule::in([1, 2])],
             'starts_on' => ['required', 'date'],
@@ -234,7 +236,7 @@ class LessonPlansController extends Controller
 
     private function validateLessonPlanDoesNotOverlap($studentId, $startsOn, $endsOn, LessonPlan $ignoreLessonPlan = null)
     {
-        if (empty($startsOn) || empty($endsOn)) {
+        if (empty($studentId) || empty($startsOn) || empty($endsOn)) {
             return;
         }
 
@@ -265,7 +267,9 @@ class LessonPlansController extends Controller
             : null;
 
         return [
-            'student_id' => $lessonPlan ? $lessonPlan->student_id : $data['student_id'],
+            'student_id' => $lessonPlan
+                ? $lessonPlan->student_id
+                : (! empty($data['is_group']) ? null : ($data['student_id'] ?? null)),
             'weekday' => $startsOn
                 ? LessonPlan::fromCarbonWeekday(Carbon::parse($startsOn)->dayOfWeek)
                 : ($lessonPlan ? $lessonPlan->weekday : null),
@@ -289,7 +293,7 @@ class LessonPlansController extends Controller
     private function singleLessonPlanAttributes(array $data)
     {
         return [
-            'student_id' => $data['student_id'],
+            'student_id' => ! empty($data['is_group']) ? null : ($data['student_id'] ?? null),
             'scheduled_date' => $this->lessonPlanDate($data['starts_on']),
             'start_time' => $data['start_time'],
             'duration_minutes' => $data['duration_minutes'],

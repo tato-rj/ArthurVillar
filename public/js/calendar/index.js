@@ -9197,7 +9197,7 @@ var syncRescheduleTimePicker = function syncRescheduleTimePicker(startSelect, en
 };
 var getStudentName = function getStudentName(student) {
   if (!student) {
-    return 'No title';
+    return 'Group class';
   }
   return [student.first_name, student.last_name].filter(Boolean).join(' ') || 'No title';
 };
@@ -9310,6 +9310,9 @@ var lessonMatchesStudentSearch = function lessonMatchesStudentSearch(lesson) {
     return true;
   }
   var student = lesson.student || {};
+  if (!lesson.student) {
+    return 'group class'.includes(query);
+  }
   var firstName = String(student.first_name || '').toLowerCase();
   var lastName = String(student.last_name || '').toLowerCase();
   var fullName = [firstName, lastName].filter(Boolean).join(' ');
@@ -9625,6 +9628,7 @@ var prepareDuplicateSingleLessonForm = function prepareDuplicateSingleLessonForm
   var combobox = form.querySelector('[data-student-combobox]');
   var studentInput = combobox ? combobox.querySelector('[data-student-combobox-input]') : null;
   var studentValue = combobox ? combobox.querySelector('[data-student-combobox-value]') : null;
+  var groupClass = form.querySelector('[data-group-class]');
   var studentOptions = combobox ? Array.from(combobox.querySelectorAll('[data-student-combobox-option]')) : [];
   var matchingStudent = studentOptions.find(function (option) {
     return event.studentId && String(option.dataset.studentId || '') === String(event.studentId);
@@ -9637,6 +9641,10 @@ var prepareDuplicateSingleLessonForm = function prepareDuplicateSingleLessonForm
   }
   if (studentValue) {
     studentValue.value = matchingStudent ? matchingStudent.dataset.studentId || '' : event.studentId || '';
+  }
+  if (groupClass) {
+    groupClass.checked = !event.studentId;
+    syncGroupClassSelection(form);
   }
   if (matchingStudent) {
     syncFormDefaultsFromStudentOption(matchingStudent);
@@ -10166,6 +10174,35 @@ var syncFormPaymentMethodFromStudentOption = function syncFormPaymentMethodFromS
 var syncFormDefaultsFromStudentOption = function syncFormDefaultsFromStudentOption(option) {
   syncFormLocationFromStudentOption(option);
   syncFormPaymentMethodFromStudentOption(option);
+  var form = option ? option.closest('form') : null;
+  var paymentSection = form ? form.querySelector('[data-lesson-payment-section]') : null;
+  if (paymentSection) {
+    paymentSection.hidden = option.dataset.studentPaymentExempt === '1';
+  }
+};
+var syncGroupClassSelection = function syncGroupClassSelection(form) {
+  var checkbox = form ? form.querySelector('[data-group-class]') : null;
+  var combobox = form ? form.querySelector('[data-student-combobox]') : null;
+  var input = combobox ? combobox.querySelector('[data-student-combobox-input]') : null;
+  var value = combobox ? combobox.querySelector('[data-student-combobox-value]') : null;
+  var paymentSection = form ? form.querySelector('[data-lesson-payment-section]') : null;
+  var isGroupClass = !!(checkbox && checkbox.checked);
+  if (!checkbox || !combobox || !input || !value) {
+    return;
+  }
+  if (isGroupClass) {
+    input.value = '';
+    value.value = '';
+    input.setCustomValidity('');
+    closeStudentCombobox(combobox);
+    if (paymentSection) {
+      paymentSection.hidden = false;
+    }
+  }
+  input.disabled = isGroupClass;
+  value.disabled = isGroupClass;
+  value.required = !isGroupClass;
+  combobox.classList.toggle('opacity-6', isGroupClass);
 };
 var initializeStudentComboboxes = function initializeStudentComboboxes() {
   var comboboxes = Array.from(document.querySelectorAll('[data-student-combobox]'));
@@ -10205,6 +10242,10 @@ var initializeStudentComboboxes = function initializeStudentComboboxes() {
     var form = combobox.closest('form');
     if (form) {
       form.addEventListener('submit', function (e) {
+        var groupClass = form.querySelector('[data-group-class]');
+        if (groupClass && groupClass.checked) {
+          return;
+        }
         if (!value.value) {
           var typedName = input.value.trim().toLowerCase();
           var exactMatch = options.find(function (option) {
@@ -10368,9 +10409,16 @@ var initializeLessonPlanForms = function initializeLessonPlanForms(root) {
     var locationSelect = form.querySelector('select[name="location_id"]');
     var durationSelect = form.querySelector('select[name="duration_minutes"]');
     var repeatSelect = form.querySelector('select[name="repeat"]');
+    var groupClass = form.querySelector('[data-group-class]');
     var modal = form.closest('#create-calendar-lesson-plan-modal');
     setLessonPlanOnlineFields(form, false);
     syncLessonRepeatFields(form, false);
+    syncGroupClassSelection(form);
+    if (groupClass) {
+      groupClass.addEventListener('change', function () {
+        syncGroupClassSelection(form);
+      });
+    }
     if (locationSelect && durationSelect) {
       syncLessonPlanFee(form);
     }

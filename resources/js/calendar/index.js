@@ -5860,7 +5860,7 @@ const syncRescheduleTimePicker = function(startSelect, endSelect, changedField) 
 
 const getStudentName = function(student) {
     if (!student) {
-        return 'No title';
+        return 'Group class';
     }
 
     return [student.first_name, student.last_name].filter(Boolean).join(' ') || 'No title';
@@ -6008,6 +6008,11 @@ const lessonMatchesStudentSearch = function(lesson) {
     }
 
     const student = lesson.student || {};
+
+    if (!lesson.student) {
+        return 'group class'.includes(query);
+    }
+
     const firstName = String(student.first_name || '').toLowerCase();
     const lastName = String(student.last_name || '').toLowerCase();
     const fullName = [firstName, lastName].filter(Boolean).join(' ');
@@ -6400,6 +6405,7 @@ const prepareDuplicateSingleLessonForm = function(modal, event) {
     const combobox = form.querySelector('[data-student-combobox]');
     const studentInput = combobox ? combobox.querySelector('[data-student-combobox-input]') : null;
     const studentValue = combobox ? combobox.querySelector('[data-student-combobox-value]') : null;
+    const groupClass = form.querySelector('[data-group-class]');
     const studentOptions = combobox
         ? Array.from(combobox.querySelectorAll('[data-student-combobox-option]'))
         : [];
@@ -6420,6 +6426,10 @@ const prepareDuplicateSingleLessonForm = function(modal, event) {
         studentValue.value = matchingStudent
             ? (matchingStudent.dataset.studentId || '')
             : (event.studentId || '');
+    }
+    if (groupClass) {
+        groupClass.checked = !event.studentId;
+        syncGroupClassSelection(form);
     }
     if (matchingStudent) {
         syncFormDefaultsFromStudentOption(matchingStudent);
@@ -7102,6 +7112,42 @@ const syncFormPaymentMethodFromStudentOption = function(option) {
 const syncFormDefaultsFromStudentOption = function(option) {
     syncFormLocationFromStudentOption(option);
     syncFormPaymentMethodFromStudentOption(option);
+
+    const form = option ? option.closest('form') : null;
+    const paymentSection = form ? form.querySelector('[data-lesson-payment-section]') : null;
+
+    if (paymentSection) {
+        paymentSection.hidden = option.dataset.studentPaymentExempt === '1';
+    }
+};
+
+const syncGroupClassSelection = function(form) {
+    const checkbox = form ? form.querySelector('[data-group-class]') : null;
+    const combobox = form ? form.querySelector('[data-student-combobox]') : null;
+    const input = combobox ? combobox.querySelector('[data-student-combobox-input]') : null;
+    const value = combobox ? combobox.querySelector('[data-student-combobox-value]') : null;
+    const paymentSection = form ? form.querySelector('[data-lesson-payment-section]') : null;
+    const isGroupClass = !!(checkbox && checkbox.checked);
+
+    if (!checkbox || !combobox || !input || !value) {
+        return;
+    }
+
+    if (isGroupClass) {
+        input.value = '';
+        value.value = '';
+        input.setCustomValidity('');
+        closeStudentCombobox(combobox);
+
+        if (paymentSection) {
+            paymentSection.hidden = false;
+        }
+    }
+
+    input.disabled = isGroupClass;
+    value.disabled = isGroupClass;
+    value.required = !isGroupClass;
+    combobox.classList.toggle('opacity-6', isGroupClass);
 };
 
 const initializeStudentComboboxes = function() {
@@ -7151,6 +7197,12 @@ const initializeStudentComboboxes = function() {
 
         if (form) {
             form.addEventListener('submit', function(e) {
+                const groupClass = form.querySelector('[data-group-class]');
+
+                if (groupClass && groupClass.checked) {
+                    return;
+                }
+
                 if (!value.value) {
                     const typedName = input.value.trim().toLowerCase();
                     const exactMatch = options.find(function(option) {
@@ -7361,10 +7413,18 @@ const initializeLessonPlanForms = function(root) {
         const locationSelect = form.querySelector('select[name="location_id"]');
         const durationSelect = form.querySelector('select[name="duration_minutes"]');
         const repeatSelect = form.querySelector('select[name="repeat"]');
+        const groupClass = form.querySelector('[data-group-class]');
         const modal = form.closest('#create-calendar-lesson-plan-modal');
 
         setLessonPlanOnlineFields(form, false);
         syncLessonRepeatFields(form, false);
+        syncGroupClassSelection(form);
+
+        if (groupClass) {
+            groupClass.addEventListener('change', function() {
+                syncGroupClassSelection(form);
+            });
+        }
 
         if (locationSelect && durationSelect) {
             syncLessonPlanFee(form);

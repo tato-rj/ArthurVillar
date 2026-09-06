@@ -40,7 +40,7 @@ class LessonsController extends Controller
                 ->lockForUpdate()
                 ->first();
 
-            $paymentExempt = (bool) $lesson['model']->student->payment_exempt;
+            $paymentExempt = (bool) $lesson['model']->student?->payment_exempt;
 
             if ($earlyPayment || $paymentExempt) {
                 $lesson['model']->pay();
@@ -220,7 +220,7 @@ class LessonsController extends Controller
                 $lesson->update([
                     'paid_at' => null,
                     'payment_method' => null,
-                    'fee_amount' => $lesson->student->payment_exempt
+                    'fee_amount' => $lesson->student?->payment_exempt
                         ? 0
                         : ($lesson->lessonPlan ? $lesson->lessonPlan->netFeeAmount() : $lesson->fee_amount),
                 ]);
@@ -270,11 +270,11 @@ class LessonsController extends Controller
             'lesson_plan_id' => $lessonPlan->id,
             'starts_at' => $startsAt,
         ], [
-            'student_id' => $lessonPlan->student->id,
+            'student_id' => $lessonPlan->student_id,
             'scheduled_date' => $scheduledDate,
             'scheduled_start_time' => $scheduledStartTime,
             'ends_at' => $endsAt,
-            'fee_amount' => $lessonPlan->student->payment_exempt ? 0 : $lessonPlan->netFeeAmount(),
+            'fee_amount' => $lessonPlan->student?->payment_exempt ? 0 : $lessonPlan->netFeeAmount(),
         ]);
 
         if (! $lesson->scheduled_date || ! $lesson->scheduled_start_time) {
@@ -316,8 +316,8 @@ class LessonsController extends Controller
             'scheduled_date' => $scheduledDate,
             'scheduled_start_time' => $scheduledStartTime,
             'ends_at' => $endsAt,
-            'fee_amount' => $singleLessonPlan->student->payment_exempt ? 0 : $singleLessonPlan->netFeeAmount(),
-            'payment_method' => $singleLessonPlan->student->payment_exempt ? null : $singleLessonPlan->payment_method,
+            'fee_amount' => $singleLessonPlan->student?->payment_exempt ? 0 : $singleLessonPlan->netFeeAmount(),
+            'payment_method' => $singleLessonPlan->student?->payment_exempt ? null : $singleLessonPlan->payment_method,
             'notes' => $singleLessonPlan->notes,
         ]);
 
@@ -370,11 +370,11 @@ class LessonsController extends Controller
             'scheduled_start_time' => $data['start_time'],
             'starts_at' => $startsAt,
             'ends_at' => $startsAt->copy()->addMinutes((int) $data['duration_minutes']),
-            'fee_amount' => $lesson->student->payment_exempt
+            'fee_amount' => $lesson->student?->payment_exempt
                 ? 0
                 : $this->feeAmount($data['fee_amount'] ?? null),
             'paid_at' => $paidAt,
-            'payment_method' => $lesson->student->payment_exempt
+            'payment_method' => $lesson->student?->payment_exempt
                 ? null
                 : ($data['payment_method'] ?? null),
             'canceled_at' => $canceledAt,

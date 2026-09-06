@@ -136,7 +136,8 @@ class SingleLessonPlansController extends Controller
     private function validateSingleLessonPlan(Request $request)
     {
         return $request->validate([
-            'student_id' => ['required', 'exists:students,id'],
+            'is_group' => ['nullable', 'boolean'],
+            'student_id' => ['nullable', Rule::requiredIf(fn () => ! $request->boolean('is_group')), 'exists:students,id'],
             'repeat' => ['nullable', Rule::in(['none', '1', '2'])],
             'scheduled_date' => ['required', 'date'],
             'ends_on' => [
@@ -183,6 +184,10 @@ class SingleLessonPlansController extends Controller
 
     private function validateLessonPlanDoesNotOverlap($studentId, $startsOn, $endsOn)
     {
+        if (empty($studentId)) {
+            return;
+        }
+
         $hasOverlappingLessonPlan = LessonPlan::query()
             ->where('student_id', $studentId)
             ->whereNotNull('starts_on')
@@ -201,7 +206,9 @@ class SingleLessonPlansController extends Controller
     private function singleLessonPlanAttributes(array $data, SingleLessonPlan $singleLessonPlan = null)
     {
         return [
-            'student_id' => $singleLessonPlan ? $singleLessonPlan->student_id : $data['student_id'],
+            'student_id' => $singleLessonPlan
+                ? $singleLessonPlan->student_id
+                : (! empty($data['is_group']) ? null : ($data['student_id'] ?? null)),
             'scheduled_date' => $this->lessonDate($data['scheduled_date']),
             'start_time' => $data['start_time'],
             'duration_minutes' => $data['duration_minutes'],

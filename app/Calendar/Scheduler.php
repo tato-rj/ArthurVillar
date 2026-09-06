@@ -66,7 +66,10 @@ class Scheduler
             ->map(function (SingleLessonPlan $singleLessonPlan) {
                 $date = $singleLessonPlan->scheduled_date->toDateString();
                 $startTime = $singleLessonPlan->start_time;
-                $lesson = $singleLessonPlan->student->lessons->first(function ($lesson) use ($date, $startTime) {
+                $candidateLessons = $singleLessonPlan->student
+                    ? $singleLessonPlan->student->lessons
+                    : $singleLessonPlan->associatedLessons()->get();
+                $lesson = $candidateLessons->first(function ($lesson) use ($date, $startTime) {
                     $scheduledDate = $lesson->scheduled_date
                         ? Carbon::parse($lesson->scheduled_date)->toDateString()
                         : Carbon::parse($lesson->starts_at)->toDateString();
@@ -97,7 +100,7 @@ class Scheduler
                         'lesson_status' => $lessonStatus,
                         'calendar_status' => $lessonStatus,
                         'early_payment_id' => $earlyPayment ? $earlyPayment->id : null,
-                        'fee_amount' => $singleLessonPlan->student->payment_exempt
+                        'fee_amount' => $singleLessonPlan->student?->payment_exempt
                             ? 0
                             : ($lesson && $lesson->fee_amount ? $lesson->fee_amount : $singleLessonPlan->netFeeAmount()),
                         'canceled_by' => $lesson ? $lesson->canceled_by : '',
@@ -222,7 +225,7 @@ class Scheduler
                 'lesson_status' => $lessonStatus,
                 'calendar_status' => $lessonStatus,
                 'early_payment_id' => $earlyPayment ? $earlyPayment->id : null,
-                'fee_amount' => $lessonPlan->student->payment_exempt
+                'fee_amount' => $lessonPlan->student?->payment_exempt
                     ? 0
                     : ($lesson && $lesson->fee_amount ? $lesson->fee_amount : $lessonPlan->netFeeAmount()),
                 'canceled_by' => $lesson ? $lesson->canceled_by : '',
@@ -260,7 +263,7 @@ class Scheduler
                     'lesson_id' => $lesson ? $lesson->id : null,
                     'lesson_status' => $lessonStatus,
                     'early_payment_id' => $earlyPayment ? $earlyPayment->id : null,
-                    'fee_amount' => $lessonPlan->student->payment_exempt
+                    'fee_amount' => $lessonPlan->student?->payment_exempt
                         ? 0
                         : ($lesson && $lesson->fee_amount ? $lesson->fee_amount : $lessonPlan->netFeeAmount()),
                     'canceled_by' => $lesson ? $lesson->canceled_by : '',
@@ -293,7 +296,7 @@ class Scheduler
                     'lesson_id' => $lesson->id,
                     'lesson_status' => $lesson->paymentStatus(),
                     'calendar_status' => $lesson->paymentStatus(),
-                    'fee_amount' => $lessonPlan->student->payment_exempt
+                    'fee_amount' => $lessonPlan->student?->payment_exempt
                         ? 0
                         : ($lesson->fee_amount ?: ($lesson->lessonPlan ? $lesson->lessonPlan->fee_amount : null)),
                     'canceled_by' => $lesson->canceled_by,
@@ -432,7 +435,9 @@ class Scheduler
 
                 $lessons->push([
                     'lesson_plan_id' => $lessonPlan['id'] ?? null,
-                    'student' => trim(($lessonPlan['student']['first_name'] ?? '').' '.($lessonPlan['student']['last_name'] ?? '')),
+                    'student' => isset($lessonPlan['student'])
+                        ? trim(($lessonPlan['student']['first_name'] ?? '').' '.($lessonPlan['student']['last_name'] ?? ''))
+                        : 'Group class',
                     'date' => $occurrence['date'] ?? null,
                     'start' => $occurrence['start'] ?? null,
                     'end' => $occurrence['end'] ?? null,
