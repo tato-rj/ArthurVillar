@@ -1,0 +1,1 @@
+<footer class="atlas-footer"><span>Drag to orbit <i>·</i> Scroll to zoom <i>·</i> Click to explore</span><span><a href="{{$reference}}" target="_blank" rel="noopener">Anatomy reference ↗</a></span></footer>

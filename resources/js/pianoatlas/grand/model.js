@@ -131,12 +131,88 @@ export function buildPiano() {
         .add(groups.get('lid').position);
     rod('prop', [1.12,1.56,-.22], propTip.toArray(), .023, ebony);
     for (const z of [-1.8,-.5,.22]) rod('rim', [-1.49,1.72,z-.08],[-1.49,1.72,z+.08], .026, gold);
-    const plateShape = outline(.905); plateShape.holes.push(new THREE.Path(outline(.76).getPoints(60))); slab('plate', plateShape, .07, 1.48, gold);
-    box('plate', [2.66,.08,.21],[0,1.48,.64],gold);
-    rod('braces',[-1.16,1.51,.59],[-.85,1.51,-2.42], .055,gold);
-    rod('braces',[-.28,1.51,.59],[-.72,1.51,-2.35], .05,gold);
-    rod('braces',[.66,1.51,.59],[-.35,1.51,-1.96], .05,gold);
-    rod('braces',[1.2,1.51,.59],[.43,1.51,-.55], .045,gold);
+    // A cast perimeter and broad curved web surround the open string field.
+    const plateFinish = material('#c5a453', .58, .36);
+    const plateShape = outline(.905);
+    const stringWindow = new THREE.Path();
+    stringWindow.moveTo(-1.17, .45);
+    stringWindow.lineTo(1.04, .45);
+    stringWindow.bezierCurveTo(1.03, -.20, .22, -.55, .02, -1.30);
+    stringWindow.bezierCurveTo(-.19, -2.04, -.49, -2.31, -.84, -2.30);
+    stringWindow.bezierCurveTo(-1.08, -2.28, -1.17, -2.11, -1.17, -1.89);
+    stringWindow.closePath();
+    plateShape.holes.push(stringWindow);
+
+    // Through-holes and their raised cast collars follow the curved treble web.
+    const outerWeb = plateShape.getPoints(180);
+    const innerWeb = stringWindow.getPoints(180);
+    function rightEdgeAt(points, z) {
+        const hits = [];
+        for (let i = 0; i < points.length - 1; i++) {
+            const a = points[i], b = points[i + 1];
+            if ((a.y <= z && b.y > z) || (b.y <= z && a.y > z)) {
+                hits.push(a.x + (z - a.y) * (b.x - a.x) / (b.y - a.y));
+            }
+        }
+        return Math.max(...hits);
+    }
+    const platePorts = [-2.19, -1.91, -1.57, -1.18, -.79, -.45, -.15].map(z => {
+        const outer = rightEdgeAt(outerWeb, z);
+        const inner = rightEdgeAt(innerWeb, z);
+        return [(outer + inner) / 2, z, Math.min(.085, (outer - inner) * .22)];
+    });
+    platePorts.forEach(([x, z, radius]) => {
+        const hole = new THREE.Path();
+        hole.absarc(x, z, radius, 0, Math.PI * 2, true);
+        plateShape.holes.push(hole);
+    });
+    slab('plate', plateShape, .075, 1.48, plateFinish);
+    platePorts.forEach(([x, z, radius]) => {
+        const collar = mesh('plate', new THREE.TorusGeometry(radius + .012, .012, 8, 32), gold, x, 1.489, z);
+        collar.rotation.x = Math.PI / 2;
+    });
+
+    // Raised edge bead, bolt bosses, and slotted fasteners along the casting.
+    const castingEdge = outline(.876).getPoints(100);
+    const bead = new THREE.CatmullRomCurve3(castingEdge.map(p => new THREE.Vector3(p.x, 1.493, p.y)), true);
+    mesh('plate', new THREE.TubeGeometry(bead, 180, .012, 6, true), gold);
+    castingEdge.filter((_, i) => i % 12 === 0).forEach(p => {
+        mesh('plate', new THREE.CylinderGeometry(.028, .034, .012, 12), gold, p.x, 1.495, p.y);
+        mesh('plate', new THREE.CylinderGeometry(.017, .017, .012, 6), plateFinish, p.x, 1.507, p.y);
+        box('plate', [.022, .002, .003], [p.x, 1.514, p.y], edge);
+    });
+
+    // Thick tuning-pin apron with a raised lip and recessed pin sockets.
+    box('plate', [2.56, .025, .025], [0, 1.49, .82], gold);
+    for (let row = 0; row < 3; row++) {
+        for (let i = 0; i < 44; i++) {
+            const socket = mesh('plate', new THREE.RingGeometry(.008, .012, 8), plateFinish,
+                -1.21 + i * .056 + (row % 2) * .014, 1.489, .57 + row * .075);
+            socket.rotation.x = -Math.PI / 2;
+        }
+    }
+
+    // Cast struts have broad feet and a raised spine rather than round rods.
+    function castStrut(a, b, width) {
+        const dx = b[0] - a[0], dz = b[1] - a[1];
+        const length = Math.hypot(dx, dz);
+        const nx = -dz / length, nz = dx / length;
+        const shape = new THREE.Shape();
+        shape.moveTo(a[0] + nx * width, a[1] + nz * width);
+        shape.lineTo(b[0] + nx * width * .6, b[1] + nz * width * .6);
+        shape.lineTo(b[0] - nx * width * .6, b[1] - nz * width * .6);
+        shape.lineTo(a[0] - nx * width, a[1] - nz * width);
+        shape.closePath();
+        slab('braces', shape, .075, 1.51, plateFinish);
+        rod('braces', [a[0], 1.52, a[1]], [b[0], 1.52, b[1]], .018, gold);
+        for (const [x, z] of [a, b]) {
+            mesh('braces', new THREE.CylinderGeometry(width, width, .025, 16), gold, x, 1.51, z);
+        }
+    }
+    castStrut([-1.12, .55], [-.85, -2.37], .065);
+    castStrut([-.28, .55], [-.72, -2.29], .055);
+    castStrut([.66, .55], [-.22, -1.86], .052);
+    castStrut([1.17, .55], [.54, -.53], .045);
     box('pinblock',[2.63,.12,.20],[0,1.38,.63],wood);
     const boardPoints = outline(.90).getPoints(160);
     for (let i=0;i<12;i++) {
@@ -155,6 +231,8 @@ export function buildPiano() {
     let naturalIndex=0;
     const keyWidth=2.70/52;
     for (let midi=21;midi<=108;midi++) {
+        const actionParts = ['white-keys', 'black-keys', 'key-levers', 'wippens', 'shanks', 'hammers', 'dampers'];
+        const starts = actionParts.map(id => groups.get(id).children.length);
         const black=[1,3,6,8,10].includes(midi%12);
         const x = black ? -1.35+naturalIndex*keyWidth : -1.35+(naturalIndex+.5)*keyWidth;
         const key=box(black?'black-keys':'white-keys', [black ? keyWidth*.59 : keyWidth*.95,black?.095:.055,black?.32:.44], [x,black?1.362:1.303,black?1.06:1.12],black?ebony:white);
@@ -166,6 +244,7 @@ export function buildPiano() {
         rod('shanks',[ax,1.39,.42],[ax,1.49,.04],.008,wood);
         const hammer=mesh('hammers',new THREE.SphereGeometry(.032,8,6),felt,ax,1.50,.04); hammer.scale.set(.43,1.1,1.4);
         if(midi<90) { box('dampers',[.023,.033,.09],[ax,1.595,-.04],ebony); box('dampers',[.022,.013,.078],[ax,1.572,-.04],felt); rod('dampers',[ax,1.56,-.04],[ax,1.34,-.04],.004,steel); }
+        actionParts.forEach((id, i) => groups.get(id).children.slice(starts[i]).forEach(part => { part.userData.midi = midi; }));
         if(!black) naturalIndex++;
     }
     box('balance-rail',[2.69,.035,.055],[0,1.23,.76],wood); box('balance-rail',[2.69,.012,.04],[0,1.258,.76],red);
