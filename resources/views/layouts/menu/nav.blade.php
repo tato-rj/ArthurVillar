@@ -2,7 +2,7 @@
 
 <div class="offcanvas border-0 offcanvas-end" style="width: auto; min-width: 220px;" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
   <div class="offcanvas-header d-apart">
-    <div class="position-relative w-100">
+{{--     <div class="position-relative w-100">
       <ul class="subdomains-select border rounded-sm" aria-label="Switch website">
         @foreach($subdomains as $subdomain)
         @php($isCurrentSubdomain = strtolower($subdomain['label']) == subdomain())
@@ -19,11 +19,11 @@
         </li>
         @endforeach
       </ul>
-    </div>
+    </div> --}}
 
     <button style="font-size: 70%" type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
   </div>
-  <div class="offcanvas-body pt-3">
+  <div class="offcanvas-body pt-0">
     <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
       @isset($home)
       <li class="nav-item">

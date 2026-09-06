@@ -565,5 +565,7 @@
     "/images/vendor/flag-icons/flags/1x1/xk.svg?2e923b4cb7449d2571906aede00fee91": "/images/vendor/flag-icons/flags/1x1/xk.svg?2e923b4cb7449d2571906aede00fee91?id=bb93418fd2f1a062bd90eb8a13e4b0ee",
     "/css/schedule.css": "/css/schedule.css?id=55d4806e4b00f1996f010bd8f94259d2",
     "/css/calendar.css": "/css/calendar.css?id=eea8d69535609317ff9eb38308a89b82",
-    "/css/app.css": "/css/app.css?id=9cc3f524c376228650186ef816971fdb"
+    "/css/app.css": "/css/app.css?id=9cc3f524c376228650186ef816971fdb",
+    "/js/piano/index.js": "/js/piano/index.js?id=86bfe61d003813cc0ae2511b6181c0a1",
+    "/css/piano.css": "/css/piano.css?id=a468c40f287ea958d14804cbbe1ac780"
 }

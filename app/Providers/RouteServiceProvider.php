@@ -48,6 +48,12 @@ class RouteServiceProvider extends ServiceProvider
                 ->name('theory.')
                 ->group(base_path('routes/theory.php'));
 
+            Route::middleware('web')
+                ->domain('instruments.'.config('app.domain'))
+                ->namespace($this->namespace.'\\Piano')
+                ->name('instruments.')
+                ->group(base_path('routes/instruments.php'));
+
             Route::middleware(['web', 'auth'])
                 ->domain('reminders.'.config('app.domain'))
                 ->namespace($this->namespace.'\\Reminders')

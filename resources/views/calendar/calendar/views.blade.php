@@ -1,6 +1,6 @@
 <div class="offcanvas offcanvas-start" style="width: auto; min-width: 220px;" tabindex="-1" id="calendar-offcanvas-views">
   <div class="offcanvas-header">
-    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    <button type="button" style="font-size: 70%" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
   </div>
   <div class="offcanvas-body pt-0 ps-0">
     <ul class="navbar-nav justify-content-end flex-grow-1 pe-3 calendar-calendar-offcanvas-views">

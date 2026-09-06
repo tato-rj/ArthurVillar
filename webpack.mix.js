@@ -13,6 +13,7 @@ const mix = require('laravel-mix');
 
 mix.js('resources/js/app.js', 'public/js')
     .js('resources/js/calendar/index.js', 'public/js/calendar')
+    .js('resources/js/piano/index.js', 'public/js/piano')
     .js('resources/js/music/admin-soundeffects.js', 'public/js/music')
     .js('resources/js/music/games/intervalslab.js', 'public/js/music')
     .js('resources/js/music/games/chordslab.js', 'public/js/music')
@@ -28,6 +29,7 @@ mix.js('resources/js/app.js', 'public/js')
     .js('resources/js/music/games/beathero.js', 'public/js/music')
     .sass('resources/sass/app.scss', 'public/css')
     .sass('resources/sass/calendar.scss', 'public/css')
+    .sass('resources/sass/piano/index.scss', 'public/css/piano.css')
     .sass('resources/sass/schedule.scss', 'public/css')
     .sass('resources/sass/musicgames.scss', 'public/css')
     .version();
