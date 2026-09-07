@@ -9021,6 +9021,10 @@ var updateConflictToggle = function updateConflictToggle(modal, event) {
   if (!section || !button) {
     return;
   }
+  if (event && event.externalProvider === 'google') {
+    setCalendarEventModalExpandAvailable(modal, canToggle);
+    setCalendarEventModalExpanded(modal, canToggle && modal.dataset.eventModalExpanded === 'true');
+  }
   section.hidden = !canToggle;
   if (!canToggle) {
     button.disabled = false;

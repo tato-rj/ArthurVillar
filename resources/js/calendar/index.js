@@ -5625,6 +5625,14 @@ const updateConflictToggle = function(modal, event) {
         return;
     }
 
+    if (event && event.externalProvider === 'google') {
+        setCalendarEventModalExpandAvailable(modal, canToggle);
+        setCalendarEventModalExpanded(
+            modal,
+            canToggle && modal.dataset.eventModalExpanded === 'true'
+        );
+    }
+
     section.hidden = !canToggle;
 
     if (!canToggle) {
