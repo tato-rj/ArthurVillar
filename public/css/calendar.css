@@ -33823,6 +33823,10 @@ button.single-lesson-plan-create[selected] i {
   z-index: var(--calendar-travel-overlap-z-index, 3000);
 }
 
+#calendar .lm-schedule-item[travel-layer-overlapping-event] {
+  z-index: var(--calendar-travel-overlap-z-index, 3000);
+}
+
 #calendar .lm-schedule-item.has-calendar-schedule-travel-before {
   border-radius: 0 0 12px 12px;
 }

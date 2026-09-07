@@ -3672,7 +3672,6 @@ const getScheduleTravelConflictPairs = function(schedule) {
                 || isCanceledCalendarEvent(event)
                 || event.allDay
                 || date !== ownerDate
-                || touchesOwnerBoundary
                 || eventStart >= travelEnd
                 || eventEnd <= travelStart) {
                 return;
@@ -3683,6 +3682,7 @@ const getScheduleTravelConflictPairs = function(schedule) {
                 ownerEvent,
                 item,
                 event,
+                touchesOwnerBoundary,
             });
         });
     });
@@ -3698,28 +3698,31 @@ const updateScheduleTravelOverlapLayers = function(schedule) {
     const items = Array.from(schedule.querySelectorAll('.lm-schedule-item:not([holding-event])'));
 
     items.forEach(function(item) {
+        item.removeAttribute('travel-layer-overlapping-event');
         item.removeAttribute('travel-overlapping-event');
         item.removeAttribute('travel-conflicting-event');
         item.style.removeProperty('--calendar-travel-overlap-z-index');
     });
 
     getScheduleTravelConflictPairs(schedule).forEach(function(pair) {
-        if (isIgnoredConflictPair(pair.ownerEvent, pair.event)) {
-            return;
-        }
-
         const eventDuration = Math.max(
             1,
             getTimeMinutes(pair.event.end) - getTimeMinutes(pair.event.start)
         );
 
-        pair.owner.setAttribute('travel-conflicting-event', '');
-        pair.item.setAttribute('travel-conflicting-event', '');
-        pair.item.setAttribute('travel-overlapping-event', '');
+        pair.item.setAttribute('travel-layer-overlapping-event', '');
         pair.item.style.setProperty(
             '--calendar-travel-overlap-z-index',
             String(5000 - Math.min(eventDuration, 1440))
         );
+
+        if (pair.touchesOwnerBoundary || isIgnoredConflictPair(pair.ownerEvent, pair.event)) {
+            return;
+        }
+
+        pair.owner.setAttribute('travel-conflicting-event', '');
+        pair.item.setAttribute('travel-conflicting-event', '');
+        pair.item.setAttribute('travel-overlapping-event', '');
     });
 
     const modal = document.getElementById('calendar-event-modal');
@@ -5627,6 +5630,10 @@ const getConflictingEvents = function(event) {
 
     document.querySelectorAll('#calendar .lm-schedule').forEach(function(schedule) {
         getScheduleTravelConflictPairs(schedule).forEach(function(pair) {
+            if (pair.touchesOwnerBoundary) {
+                return;
+            }
+
             if (isSameConflictEvent(pair.ownerEvent, event)) {
                 addConflict(pair.event);
             } else if (isSameConflictEvent(pair.event, event)) {
