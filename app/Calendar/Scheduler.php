@@ -148,6 +148,8 @@ class Scheduler
             unset($payload['early_payments']);
 
             return array_merge($payload, [
+                'ends_on' => $lessonPlan->ends_on?->toDateString(),
+                'projected_occurrence_count' => $lessonPlan->projectedLessonCount(),
                 'occurrences' => $occurrences,
             ]);
         })

@@ -177,7 +177,11 @@ class LessonPlan extends BaseModel
             $date = $occurrence->toDateString();
             $key = $this->projectedLessonOccurrenceKey($date, $this->start_time);
 
-            if (! $excludedDates->has($date) && ! $canceledOccurrences->has($key)) {
+            if (
+                ! $excludedDates->has($date)
+                && ! $canceledOccurrences->has($key)
+                && ! $this->isCanceledOn($occurrence)
+            ) {
                 $count++;
             }
 

@@ -41,6 +41,11 @@
             <span data-event-modal-date></span>
         </div>
 
+        <div class="calendar-modal-detail" data-event-modal-section="lesson" data-lesson-plan-summary-section hidden>
+            @fa(['icon' => 'calendar-check', 'mr' => 0, 'classes' => 'calendar-modal-detail-icon'])
+            <span data-lesson-plan-summary></span>
+        </div>
+
         <div class="calendar-modal-detail">
             @fa(['icon' => 'clock', 'mr' => 0, 'classes' => 'calendar-modal-detail-icon'])
             <span data-event-modal-time></span>

@@ -2809,6 +2809,8 @@ const scheduleLessonActionAvailability = function(modal, event) {
 const populateLessonModal = function(modal, event) {
     const title = modal.querySelector('.modal-title');
     const date = modal.querySelector('[data-event-modal-date]');
+    const lessonPlanSummary = modal.querySelector('[data-lesson-plan-summary]');
+    const lessonPlanSummarySection = modal.querySelector('[data-lesson-plan-summary-section]');
     const time = modal.querySelector('[data-event-modal-time]');
     const recurrence = modal.querySelector('#lesson-recurrence');
     const birthday = modal.querySelector('#lesson-birthday');
@@ -2839,6 +2841,27 @@ const populateLessonModal = function(modal, event) {
 
     if (date) {
         date.textContent = event && event.date ? modalDateFormatter.format(parseDateString(event.date.substring(0, 10))) : '';
+    }
+
+    if (lessonPlanSummary && lessonPlanSummarySection) {
+        const isRecurringLesson = Boolean(event && event.lessonPlanId);
+        const endsOn = isRecurringLesson ? String(event.lessonPlanEndsOn || '').substring(0, 10) : '';
+        const occurrenceCount = isRecurringLesson && Number.isFinite(Number(event.lessonPlanOccurrenceCount))
+            ? Number(event.lessonPlanOccurrenceCount)
+            : null;
+
+        if (endsOn && occurrenceCount !== null) {
+            const occurrenceLabel = occurrenceCount === 1 ? 'occurrence' : 'occurrences';
+
+            lessonPlanSummary.textContent = `Ends ${modalDateFormatter.format(parseDateString(endsOn))} · ${occurrenceCount} ${occurrenceLabel}`;
+            lessonPlanSummarySection.hidden = false;
+        } else if (isRecurringLesson && !endsOn) {
+            lessonPlanSummary.textContent = 'No end date · Ongoing';
+            lessonPlanSummarySection.hidden = false;
+        } else {
+            lessonPlanSummary.textContent = '';
+            lessonPlanSummarySection.hidden = true;
+        }
     }
 
     if (time) {
@@ -3639,13 +3662,19 @@ const getScheduleTravelConflictPairs = function(schedule) {
             const date = cell
                 ? (cell.getAttribute('data-real-date') || cell.getAttribute('data-date'))
                 : '';
+            const eventStart = event ? getTimeMinutes(event.start) : 0;
+            const eventEnd = event ? getTimeMinutes(event.end) : 0;
+            const touchesOwnerBoundary = extension.dataset.travelPosition === 'after'
+                ? eventStart === ownerEnd
+                : eventEnd === ownerStart;
 
             if (!event
                 || isCanceledCalendarEvent(event)
                 || event.allDay
                 || date !== ownerDate
-                || getTimeMinutes(event.start) >= travelEnd
-                || getTimeMinutes(event.end) <= travelStart) {
+                || touchesOwnerBoundary
+                || eventStart >= travelEnd
+                || eventEnd <= travelStart) {
                 return;
             }
 
@@ -5619,18 +5648,11 @@ const updateConflictToggle = function(modal, event) {
     const canToggle = Boolean(
         eventKey
         && conflictingEventKeys.length
+        && !(event && event.externalProvider === 'google')
     );
 
     if (!section || !button) {
         return;
-    }
-
-    if (event && event.externalProvider === 'google') {
-        setCalendarEventModalExpandAvailable(modal, canToggle);
-        setCalendarEventModalExpanded(
-            modal,
-            canToggle && modal.dataset.eventModalExpanded === 'true'
-        );
     }
 
     section.hidden = !canToggle;
@@ -6092,6 +6114,8 @@ const getPlannedLessonEvents = function(range) {
                     earlyPaymentId: occurrence.early_payment_id || '',
                     scheduleOverrideId: occurrence.schedule_override_id || '',
                     recurrence: isSingleLessonPlan ? 'Single lesson' : (lesson.recurrence || ''),
+                    lessonPlanEndsOn: isSingleLessonPlan ? '' : (lesson.ends_on || ''),
+                    lessonPlanOccurrenceCount: isSingleLessonPlan ? null : lesson.projected_occurrence_count,
                     isSingleLessonPlan,
                     originalDate: occurrence.original_date || dateString,
                     originalStartTime: occurrence.original_start_time || start,

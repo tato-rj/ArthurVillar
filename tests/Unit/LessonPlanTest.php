@@ -195,6 +195,22 @@ class LessonPlanTest extends BaseTest
     }
 
     /** @test */
+    public function a_projected_lesson_count_excludes_occurrences_after_a_future_cancellation()
+    {
+        $lessonPlan = LessonPlan::factory()->create([
+            'weekday' => 6,
+            'start_time' => '15:30',
+            'starts_on' => '2026-12-04',
+            'ends_on' => '2026-12-25',
+            'recurrence_interval' => 1,
+            'canceled_from' => '2026-12-18',
+            'canceled_at' => '2026-12-10 10:00:00',
+        ]);
+
+        $this->assertSame(2, $lessonPlan->projectedLessonCount());
+    }
+
+    /** @test */
     public function it_projects_lesson_count_after_discounting_breaks_cancellations_and_holidays()
     {
         $lessonPlan = LessonPlan::factory()->create([

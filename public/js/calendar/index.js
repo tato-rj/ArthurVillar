@@ -6933,6 +6933,8 @@ var _scheduleLessonActionAvailability = function scheduleLessonActionAvailabilit
 var populateLessonModal = function populateLessonModal(modal, event) {
   var title = modal.querySelector('.modal-title');
   var date = modal.querySelector('[data-event-modal-date]');
+  var lessonPlanSummary = modal.querySelector('[data-lesson-plan-summary]');
+  var lessonPlanSummarySection = modal.querySelector('[data-lesson-plan-summary-section]');
   var time = modal.querySelector('[data-event-modal-time]');
   var recurrence = modal.querySelector('#lesson-recurrence');
   var birthday = modal.querySelector('#lesson-birthday');
@@ -6961,6 +6963,22 @@ var populateLessonModal = function populateLessonModal(modal, event) {
   renderLessonModalTitle(title, event);
   if (date) {
     date.textContent = event && event.date ? modalDateFormatter.format(parseDateString(event.date.substring(0, 10))) : '';
+  }
+  if (lessonPlanSummary && lessonPlanSummarySection) {
+    var isRecurringLesson = Boolean(event && event.lessonPlanId);
+    var endsOn = isRecurringLesson ? String(event.lessonPlanEndsOn || '').substring(0, 10) : '';
+    var occurrenceCount = isRecurringLesson && Number.isFinite(Number(event.lessonPlanOccurrenceCount)) ? Number(event.lessonPlanOccurrenceCount) : null;
+    if (endsOn && occurrenceCount !== null) {
+      var occurrenceLabel = occurrenceCount === 1 ? 'occurrence' : 'occurrences';
+      lessonPlanSummary.textContent = "Ends ".concat(modalDateFormatter.format(parseDateString(endsOn)), " \xB7 ").concat(occurrenceCount, " ").concat(occurrenceLabel);
+      lessonPlanSummarySection.hidden = false;
+    } else if (isRecurringLesson && !endsOn) {
+      lessonPlanSummary.textContent = 'No end date · Ongoing';
+      lessonPlanSummarySection.hidden = false;
+    } else {
+      lessonPlanSummary.textContent = '';
+      lessonPlanSummarySection.hidden = true;
+    }
   }
   if (time) {
     var start = event && event.start ? formatModalEventTime(event.start) : '';
@@ -7536,7 +7554,10 @@ var getScheduleTravelConflictPairs = function getScheduleTravelConflictPairs(sch
       var event = getEventByScheduleItem(item);
       var cell = item.closest('td[data-date]');
       var date = cell ? cell.getAttribute('data-real-date') || cell.getAttribute('data-date') : '';
-      if (!event || isCanceledCalendarEvent(event) || event.allDay || date !== ownerDate || getTimeMinutes(event.start) >= travelEnd || getTimeMinutes(event.end) <= travelStart) {
+      var eventStart = event ? getTimeMinutes(event.start) : 0;
+      var eventEnd = event ? getTimeMinutes(event.end) : 0;
+      var touchesOwnerBoundary = extension.dataset.travelPosition === 'after' ? eventStart === ownerEnd : eventEnd === ownerStart;
+      if (!event || isCanceledCalendarEvent(event) || event.allDay || date !== ownerDate || touchesOwnerBoundary || eventStart >= travelEnd || eventEnd <= travelStart) {
         return;
       }
       pairs.push({
@@ -9017,13 +9038,9 @@ var updateConflictToggle = function updateConflictToggle(modal, event) {
   var eventKey = getConflictEventKey(event);
   var conflictingEvents = getConflictingEvents(event);
   var conflictingEventKeys = conflictingEvents.map(getConflictEventKey).filter(Boolean);
-  var canToggle = Boolean(eventKey && conflictingEventKeys.length);
+  var canToggle = Boolean(eventKey && conflictingEventKeys.length && !(event && event.externalProvider === 'google'));
   if (!section || !button) {
     return;
-  }
-  if (event && event.externalProvider === 'google') {
-    setCalendarEventModalExpandAvailable(modal, canToggle);
-    setCalendarEventModalExpanded(modal, canToggle && modal.dataset.eventModalExpanded === 'true');
   }
   section.hidden = !canToggle;
   if (!canToggle) {
@@ -9371,6 +9388,8 @@ var getPlannedLessonEvents = function getPlannedLessonEvents(range) {
           earlyPaymentId: occurrence.early_payment_id || '',
           scheduleOverrideId: occurrence.schedule_override_id || '',
           recurrence: isSingleLessonPlan ? 'Single lesson' : lesson.recurrence || '',
+          lessonPlanEndsOn: isSingleLessonPlan ? '' : lesson.ends_on || '',
+          lessonPlanOccurrenceCount: isSingleLessonPlan ? null : lesson.projected_occurrence_count,
           isSingleLessonPlan: isSingleLessonPlan,
           originalDate: occurrence.original_date || dateString,
           originalStartTime: occurrence.original_start_time || start,

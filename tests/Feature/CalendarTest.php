@@ -46,6 +46,26 @@ class CalendarTest extends BaseTest
     }
 
     /** @test */
+    public function recurring_lesson_payload_includes_its_end_date_and_projected_occurrence_count()
+    {
+        $lessonPlan = LessonPlan::factory()->student($this->student)->create([
+            'weekday' => 4,
+            'start_time' => '15:30',
+            'starts_on' => '2026-07-01',
+            'ends_on' => '2026-07-08',
+            'recurrence_interval' => 1,
+        ]);
+
+        $payload = app(Scheduler::class)->plannedLessons([
+            'start' => '2026-07-01',
+            'end' => '2026-07-01',
+        ])->firstWhere('id', $lessonPlan->id);
+
+        $this->assertSame('2026-07-08', $payload['ends_on']);
+        $this->assertSame(2, $payload['projected_occurrence_count']);
+    }
+
+    /** @test */
     public function calendar_ranges_follow_the_selected_beginning_of_the_week()
     {
         Settings::setValue('calendar.week_starts_on', 'monday');
