@@ -1176,6 +1176,12 @@ button.setting-undo {
     background: var(--calendar-google-event-color, #4285F4);
 }
 
+#calendar .calendar-calendar-general-event[data-external-provider="google"][data-response-status="accepted"],
+#calendar .calendar-month-event-general[data-external-provider="google"][data-response-status="accepted"],
+#calendar .calendar-schedule-event-general[data-external-provider="google"][data-response-status="accepted"] {
+    opacity: 1;
+}
+
 #calendar .calendar-calendar-general-event[data-external-provider="google"][data-response-status="needsAction"],
 #calendar .calendar-month-event-general[data-external-provider="google"][data-response-status="needsAction"],
 #calendar .calendar-schedule-event-general[data-external-provider="google"][data-response-status="needsAction"],
@@ -2082,11 +2088,6 @@ button.single-lesson-plan-create[selected] i {
         opacity: .4;
     }
 
-    .lm-schedule-item[data-external-provider="google"][data-response-status="accepted"][past-event],
-    .calendar-month-event[data-external-provider="google"][data-response-status="accepted"][past-event],
-    .calendar-schedule-event[data-external-provider="google"][data-response-status="accepted"][past-event] {
-        opacity: 1;
-    }
 }
 
 #calendar .lm-schedule-item:not([past-event]), #calendar .calendar-schedule-event:not([past-event]) {
