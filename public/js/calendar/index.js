@@ -9017,7 +9017,7 @@ var updateConflictToggle = function updateConflictToggle(modal, event) {
   var eventKey = getConflictEventKey(event);
   var conflictingEvents = getConflictingEvents(event);
   var conflictingEventKeys = conflictingEvents.map(getConflictEventKey).filter(Boolean);
-  var canToggle = Boolean(eventKey && conflictingEventKeys.length && !(event && event.externalProvider === 'google'));
+  var canToggle = Boolean(eventKey && conflictingEventKeys.length);
   if (!section || !button) {
     return;
   }

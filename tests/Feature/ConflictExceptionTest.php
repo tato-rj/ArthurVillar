@@ -74,4 +74,33 @@ class ConflictExceptionTest extends BaseTest
             'second_event_key' => $secondEventKey,
         ]);
     }
+
+    /** @test */
+    public function it_stores_and_removes_a_google_calendar_conflict_exception()
+    {
+        $user = $this->signIn();
+
+        $this->postJson(route('calendar.conflict-exceptions.store'), [
+            'event_key' => 'google-event:87',
+            'conflicting_event_keys' => ['general-event:34'],
+        ])
+            ->assertOk()
+            ->assertJsonPath('ignored_conflicts.0.0', 'general-event:34')
+            ->assertJsonPath('ignored_conflicts.0.1', 'google-event:87');
+
+        $this->assertDatabaseHas('calendar_conflict_exceptions', [
+            'user_id' => $user->id,
+            'first_event_key' => 'general-event:34',
+            'second_event_key' => 'google-event:87',
+        ]);
+
+        $this->deleteJson(route('calendar.conflict-exceptions.destroy'), [
+            'event_key' => 'google-event:87',
+            'conflicting_event_keys' => ['general-event:34'],
+        ])
+            ->assertOk()
+            ->assertJsonPath('ignored_conflicts', []);
+
+        $this->assertSame(0, ConflictException::query()->count());
+    }
 }

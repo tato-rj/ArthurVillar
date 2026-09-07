@@ -5619,7 +5619,6 @@ const updateConflictToggle = function(modal, event) {
     const canToggle = Boolean(
         eventKey
         && conflictingEventKeys.length
-        && !(event && event.externalProvider === 'google')
     );
 
     if (!section || !button) {
