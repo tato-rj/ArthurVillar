@@ -2080,7 +2080,13 @@ button.single-lesson-plan-create[selected] i {
     .calendar-schedule-event[past-event],
     .calendar-month-event-holiday[past-event] {
         opacity: .4;
-    } 
+    }
+
+    .lm-schedule-item[data-external-provider="google"][data-response-status="accepted"][past-event],
+    .calendar-month-event[data-external-provider="google"][data-response-status="accepted"][past-event],
+    .calendar-schedule-event[data-external-provider="google"][data-response-status="accepted"][past-event] {
+        opacity: 1;
+    }
 }
 
 #calendar .lm-schedule-item:not([past-event]), #calendar .calendar-schedule-event:not([past-event]) {

@@ -33729,6 +33729,11 @@ button.single-lesson-plan-create[selected] i {
 #calendar[data-transparent-past-events] .calendar-month-event-holiday[past-event] {
   opacity: 0.4;
 }
+#calendar[data-transparent-past-events] .lm-schedule-item[data-external-provider=google][data-response-status=accepted][past-event],
+#calendar[data-transparent-past-events] .calendar-month-event[data-external-provider=google][data-response-status=accepted][past-event],
+#calendar[data-transparent-past-events] .calendar-schedule-event[data-external-provider=google][data-response-status=accepted][past-event] {
+  opacity: 1;
+}
 
 #calendar .calendar-schedule-holding-time {
   font-size: 0.9em;
