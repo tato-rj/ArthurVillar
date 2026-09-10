@@ -56,8 +56,8 @@
 		@endselect
 
 		@select(['label' => 'Duration', 'name' => 'duration_minutes', 'grid' => 'col'])
-			@foreach([30, 45, 60, 90] as $duration)
-				@option(['name' => 'duration_minutes', 'label' => $duration, 'value' => $duration, 'selected' => $lessonPlan->duration_minutes == $duration])
+			@foreach(\App\Models\Calendar\LessonPlan::durationOptions() as $duration)
+				@option(['name' => 'duration_minutes', 'label' => $duration . ' min', 'value' => $duration, 'selected' => $lessonPlan->duration_minutes == $duration])
 			@endforeach
 		@endselect
 	</div>

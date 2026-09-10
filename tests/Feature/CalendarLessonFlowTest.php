@@ -96,7 +96,8 @@ class CalendarLessonFlowTest extends BaseTest
         $this->get(route('calendar.lesson-plans.index'))
             ->assertOk()
             ->assertSee('Teaching Studio')
-            ->assertDontSee('Concert Hall');
+            ->assertDontSee('Concert Hall')
+            ->assertSee('value="15"', false);
     }
 
     /** @test */
@@ -140,6 +141,48 @@ class CalendarLessonFlowTest extends BaseTest
             'notes' => 'One time only.',
         ]);
         $this->assertDatabaseCount('lesson_plans', 0);
+    }
+
+    /** @test */
+    public function fifteen_minute_lessons_can_be_created_edited_and_rendered_on_the_calendar()
+    {
+        $student = Student::factory()->create();
+        $location = Location::factory()->create();
+        $this->signIn();
+
+        $this->post(route('calendar.lesson-plans.store'), [
+            'student_id' => $student->id,
+            'location_id' => $location->id,
+            'starts_on' => '2026-07-08',
+            'repeat' => 'none',
+            'start_time' => '15:30',
+            'duration_minutes' => 15,
+        ])->assertRedirect();
+
+        $singleLessonPlan = SingleLessonPlan::where('student_id', $student->id)->firstOrFail();
+
+        $this->assertSame(15, (int) $singleLessonPlan->duration_minutes);
+        $this->assertSame(
+            '15:45',
+            app(Scheduler::class)->singleLessonPlans([
+                'start' => '2026-07-08',
+                'end' => '2026-07-08',
+            ])->firstWhere('id', $singleLessonPlan->id)['occurrences'][0]['end']
+        );
+
+        $this->patch(
+            route('calendar.single-lesson-plans.update', $singleLessonPlan),
+            $this->singleLessonPlanPayload($singleLessonPlan, [
+                'start_time' => '16:00',
+                'duration_minutes' => 15,
+            ])
+        )->assertRedirect();
+
+        $this->assertDatabaseHas('single_lesson_plans', [
+            'id' => $singleLessonPlan->id,
+            'start_time' => '16:00',
+            'duration_minutes' => 15,
+        ]);
     }
 
     /** @test */
@@ -279,6 +322,7 @@ class CalendarLessonFlowTest extends BaseTest
         $this->get(route('calendar.single-lesson-plans.edit', $singleLessonPlan))
             ->assertOk()
             ->assertSee('name="repeat"', false)
+            ->assertSee('value="15"', false)
             ->assertSee('Does not repeat')
             ->assertSee('Every week')
             ->assertSee('Every other week')
@@ -287,6 +331,7 @@ class CalendarLessonFlowTest extends BaseTest
         $this->get(route('calendar.lesson-plans.edit', $lessonPlan))
             ->assertOk()
             ->assertSee('name="repeat"', false)
+            ->assertSee('value="15"', false)
             ->assertSee('Does not repeat')
             ->assertSee('Every week')
             ->assertSee('Every other week')

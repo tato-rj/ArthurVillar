@@ -581,6 +581,11 @@ class LessonPlan extends BaseModel
         return $times;
     }
 
+    public static function durationOptions(): array
+    {
+        return [15, 30, 45, 60, 90];
+    }
+
     public static function timeLabel($value)
     {
         return Carbon::createFromFormat('H:i', static::normalizeTime($value))->format('g:i A');

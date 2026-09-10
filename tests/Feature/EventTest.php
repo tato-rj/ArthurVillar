@@ -163,6 +163,52 @@ class EventTest extends BaseTest
     }
 
     /** @test */
+    public function events_can_be_created_and_updated_with_a_fifteen_minute_duration()
+    {
+        $this->signIn();
+
+        $this->post(route('calendar.events.store'), [
+            'name' => 'Short appointment',
+            'scheduled_date' => '2026-08-15',
+            'starts_at' => '14:00',
+            'ends_at' => '14:15',
+        ])->assertRedirect();
+
+        $event = Event::where('name', 'Short appointment')->firstOrFail();
+
+        $this->assertSame('14:00', $event->starts_at);
+        $this->assertSame('14:15', $event->ends_at);
+
+        $this->patch(route('calendar.events.update', $event), [
+            'name' => 'Updated short appointment',
+            'scheduled_date' => '2026-08-16',
+            'starts_at' => '15:30',
+            'ends_at' => '15:45',
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('events', [
+            'id' => $event->id,
+            'name' => 'Updated short appointment',
+            'starts_at' => '15:30',
+            'ends_at' => '15:45',
+        ]);
+
+        $this->patchJson(route('calendar.events.reschedule', $event), [
+            'scheduled_date' => '2026-08-17',
+            'starts_at' => '16:00',
+            'ends_at' => '16:15',
+        ])->assertOk();
+
+        $calendarEvent = app(Scheduler::class)->generalEvents([
+            'start' => '2026-08-17',
+            'end' => '2026-08-18',
+        ])->firstWhere('id', $event->id);
+
+        $this->assertSame('16:00', substr($calendarEvent['starts_at'], 0, 5));
+        $this->assertSame('16:15', substr($calendarEvent['ends_at'], 0, 5));
+    }
+
+    /** @test */
     public function calendar_modal_can_reschedule_an_event_with_json()
     {
         $event = Event::factory()->create([
