@@ -39,6 +39,7 @@ const state = {
     didAutoNowScroll: false,
     birthdayWindow: 5,
     calendarRenderMode: 'animated',
+    centerInitialScheduleDate: false,
     lessonActionAvailabilityTimer: null,
     scheduleWindowStart: null,
     pendingScheduleScrollTop: null,
@@ -183,6 +184,14 @@ const getDefaultCalendarView = function() {
 
 const isSidebarHiddenViewport = function() {
     return window.matchMedia && window.matchMedia(sidebarHiddenQuery).matches;
+};
+
+const isStandaloneWebApp = function() {
+    const displayModeIsStandalone = window.matchMedia
+        && window.matchMedia('(display-mode: standalone)').matches;
+    const iosIsStandalone = window.navigator && window.navigator.standalone === true;
+
+    return Boolean(displayModeIsStandalone || iosIsStandalone);
 };
 
 const getUrlState = function() {
@@ -7716,6 +7725,7 @@ document.addEventListener('DOMContentLoaded', function() {
     state.birthdayWindow = normalizeBirthdayWindow(window.calendarBirthdayWindow);
 
     const urlState = getUrlState();
+    const opensInStandaloneWebApp = isStandaloneWebApp();
     state.view = urlState.view;
 
     if (urlState.eventTypes !== null) {
@@ -7726,7 +7736,10 @@ document.addEventListener('DOMContentLoaded', function() {
         state.selectedLocationIds = urlState.locationIds;
     }
 
-    if (isValidDate(urlState.date)) {
+    if (opensInStandaloneWebApp) {
+        setSelectedDate(getTodayDate());
+        state.centerInitialScheduleDate = state.view === 'schedule';
+    } else if (isValidDate(urlState.date)) {
         setSelectedDate(urlState.date);
     } else if (!state.date) {
         setSelectedDate(getTodayDate());
@@ -7734,10 +7747,14 @@ document.addEventListener('DOMContentLoaded', function() {
         state.miniDate = cloneDate(state.date);
     }
 
-    if (state.view === 'week' && isValidDate(urlState.windowStart)) {
-        state.scheduleWindowStart = cloneDate(urlState.windowStart);
-        state.date = cloneDate(state.scheduleWindowStart);
-        state.miniDate = cloneDate(state.date);
+    if (state.view === 'week') {
+        if (opensInStandaloneWebApp) {
+            state.scheduleWindowStart = addDays(state.date, -3);
+        } else if (isValidDate(urlState.windowStart)) {
+            state.scheduleWindowStart = cloneDate(urlState.windowStart);
+            state.date = cloneDate(state.scheduleWindowStart);
+            state.miniDate = cloneDate(state.date);
+        }
     }
 
     const syncViewControls = function() {
@@ -8279,6 +8296,21 @@ document.addEventListener('DOMContentLoaded', function() {
             || firstDay;
 
         if (!target) {
+            return;
+        }
+
+        if (state.centerInitialScheduleDate && selected === todayString()) {
+            const firstItem = agenda.firstElementChild;
+            const centeredTop = firstItem
+                ? target.offsetTop - firstItem.offsetTop - ((agenda.clientHeight - target.offsetHeight) / 2)
+                : target.offsetTop;
+
+            agenda.scrollTo({
+                behavior: 'auto',
+                top: Math.max(0, centeredTop),
+            });
+            state.centerInitialScheduleDate = false;
+            syncScheduleLabelToScroll(agenda);
             return;
         }
 

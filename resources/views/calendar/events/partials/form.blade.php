@@ -97,7 +97,8 @@
 
 @if(!empty($showGoogleCalendarImport))
 <fieldset data-event-google-calendar-fields data-google-conference-import {{iftrue(!$eventUsesGoogleCalendar, 'hidden disabled')}}>
-    <label for="google-conference-info" class="form-label">Google Calendar conference info</label>
+    <div class="form-group">
+    <label for="google-conference-info" class="form-label w-100 mb-1 ml-3 text-nowrap">Google Calendar conference info</label>
     <div class="form-control">
         <textarea
             id="google-conference-info"
@@ -105,8 +106,9 @@
             rows="9"
             placeholder="Paste the conference info copied from Google Calendar"
             data-google-conference-import-text></textarea>
-    </div>
+    
     <div class="text-red mt-2" role="alert" data-google-conference-import-error hidden></div>
+    </div>
 </fieldset>
 @endif
 
@@ -115,7 +117,6 @@
     $typeInputSuffix = $event->id ?? 'new';
 @endphp
 
-<fieldset data-event-additional-fields {{iftrue($eventUsesGoogleCalendar, 'hidden disabled')}}>
 <div class="form-group">
     @label(['label' => 'Type'])
     <div class="d-flex flex-wrap gap-1" data-event-type-options>
@@ -143,6 +144,7 @@
     </div>
 </div>
 
+<fieldset data-event-additional-fields {{iftrue($eventUsesGoogleCalendar, 'hidden disabled')}}>
 @textarea([
     'label' => 'Notes',
     'name' => 'notes',

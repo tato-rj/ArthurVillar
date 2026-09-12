@@ -68,6 +68,7 @@ class EventTest extends BaseTest
             'scheduled_date' => '2026-09-11',
             'starts_at' => '11:00',
             'ends_at' => '12:00',
+            'type' => 'Meeting',
             'location_type' => 'google_calendar',
             'meeting_url' => 'https://meet.google.com/xvp-pbsr-mnv',
             'travel_mode' => 'WALK',
@@ -77,6 +78,7 @@ class EventTest extends BaseTest
         $event = Event::where('name', 'Theory syllabus')->firstOrFail();
 
         $this->assertTrue($event->is_online);
+        $this->assertSame('Meeting', $event->type);
         $this->assertSame('https://meet.google.com/xvp-pbsr-mnv', $event->meeting_url);
         $this->assertSame('WALK', $event->travel_mode);
     }
