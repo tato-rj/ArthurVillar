@@ -3792,6 +3792,59 @@ window.calendarDateRanges = {
 
 /***/ },
 
+/***/ "./resources/js/components/event-location-fields.js"
+/*!**********************************************************!*\
+  !*** ./resources/js/components/event-location-fields.js ***!
+  \**********************************************************/
+() {
+
+var refreshEventLocationFields = function refreshEventLocationFields(container, locationType) {
+  var root = container ? container.closest('[data-event-location-fields]') || container.querySelector('[data-event-location-fields]') : null;
+  if (!root) {
+    return;
+  }
+  var typeInput = root.querySelector('[data-event-location-type]');
+  var type = locationType || (typeInput ? typeInput.value : 'in_person');
+  var isOnline = type === 'online';
+  var inPersonFields = root.querySelector('[data-event-in-person-fields]');
+  var onlineFields = root.querySelector('[data-event-online-fields]');
+  if (typeInput) {
+    typeInput.value = isOnline ? 'online' : 'in_person';
+  }
+  if (inPersonFields) {
+    inPersonFields.hidden = isOnline;
+    inPersonFields.disabled = isOnline;
+  }
+  if (onlineFields) {
+    onlineFields.hidden = !isOnline;
+    onlineFields.disabled = !isOnline;
+  }
+  root.querySelectorAll('[data-event-location-option]').forEach(function (button) {
+    var selected = button.dataset.eventLocationOption === (isOnline ? 'online' : 'in_person');
+    button.classList.toggle('btn-secondary', selected);
+    button.classList.toggle('btn-white', !selected);
+    button.setAttribute('aria-pressed', selected ? 'true' : 'false');
+  });
+};
+window.refreshEventLocationFields = refreshEventLocationFields;
+document.addEventListener('click', function (event) {
+  var button = event.target.closest('[data-event-location-option]');
+  if (!button) {
+    return;
+  }
+  refreshEventLocationFields(button, button.dataset.eventLocationOption);
+});
+document.addEventListener('reset', function (event) {
+  if (!event.target.querySelector('[data-event-location-fields]')) {
+    return;
+  }
+  window.setTimeout(function () {
+    refreshEventLocationFields(event.target);
+  });
+});
+
+/***/ },
+
 /***/ "./resources/js/components/event-time-fields.js"
 /*!******************************************************!*\
   !*** ./resources/js/components/event-time-fields.js ***!
@@ -4068,6 +4121,7 @@ __webpack_require__(/*! ./alerts */ "./resources/js/components/alerts.js");
 __webpack_require__(/*! ./address-autocomplete */ "./resources/js/components/address-autocomplete.js");
 __webpack_require__(/*! ./date-range */ "./resources/js/components/date-range.js");
 __webpack_require__(/*! ./event-type */ "./resources/js/components/event-type.js");
+__webpack_require__(/*! ./event-location-fields */ "./resources/js/components/event-location-fields.js");
 __webpack_require__(/*! ./event-time-fields */ "./resources/js/components/event-time-fields.js");
 __webpack_require__(/*! ./form */ "./resources/js/components/form.js");
 __webpack_require__(/*! ./student-payment-method */ "./resources/js/components/student-payment-method.js");

@@ -221,7 +221,7 @@ class LessonsController extends Controller
                     'paid_at' => null,
                     'payment_method' => null,
                     'fee_amount' => $lesson->student?->payment_exempt
-                        ? 0
+                        ? null
                         : ($lesson->lessonPlan ? $lesson->lessonPlan->netFeeAmount() : $lesson->fee_amount),
                 ]);
 
@@ -274,7 +274,7 @@ class LessonsController extends Controller
             'scheduled_date' => $scheduledDate,
             'scheduled_start_time' => $scheduledStartTime,
             'ends_at' => $endsAt,
-            'fee_amount' => $lessonPlan->student?->payment_exempt ? 0 : $lessonPlan->netFeeAmount(),
+            'fee_amount' => $lessonPlan->student?->payment_exempt ? null : $lessonPlan->netFeeAmount(),
         ]);
 
         if (! $lesson->scheduled_date || ! $lesson->scheduled_start_time) {
@@ -316,7 +316,7 @@ class LessonsController extends Controller
             'scheduled_date' => $scheduledDate,
             'scheduled_start_time' => $scheduledStartTime,
             'ends_at' => $endsAt,
-            'fee_amount' => $singleLessonPlan->student?->payment_exempt ? 0 : $singleLessonPlan->netFeeAmount(),
+            'fee_amount' => $singleLessonPlan->student?->payment_exempt ? null : $singleLessonPlan->netFeeAmount(),
             'payment_method' => $singleLessonPlan->student?->payment_exempt ? null : $singleLessonPlan->payment_method,
             'notes' => $singleLessonPlan->notes,
         ]);
@@ -371,7 +371,7 @@ class LessonsController extends Controller
             'starts_at' => $startsAt,
             'ends_at' => $startsAt->copy()->addMinutes((int) $data['duration_minutes']),
             'fee_amount' => $lesson->student?->payment_exempt
-                ? 0
+                ? null
                 : $this->feeAmount($data['fee_amount'] ?? null),
             'paid_at' => $paidAt,
             'payment_method' => $lesson->student?->payment_exempt

@@ -32,6 +32,9 @@ class EventTest extends BaseTest
             ->assertSee('name="city"', false)
             ->assertSee('name="state"', false)
             ->assertSee('name="postal_code"', false)
+            ->assertSee('name="meeting_url"', false)
+            ->assertSee('data-event-location-option="in_person"', false)
+            ->assertSee('data-event-location-option="online"', false)
             ->assertSee('name="travel_mode"', false)
             ->assertSee('No directions')
             ->assertSee('Public transit')
@@ -120,6 +123,81 @@ class EventTest extends BaseTest
         $this->delete(route('calendar.events.destroy', $event))->assertRedirect();
         $this->assertDatabaseHas('events', ['id' => $event->id]);
         $this->assertNotNull($event->fresh()->canceled_at);
+    }
+
+    /** @test */
+    public function it_stores_only_the_fields_for_the_selected_event_location_type()
+    {
+        $this->signIn();
+
+        $this->post(route('calendar.events.store'), [
+            'name' => 'Video call',
+            'scheduled_date' => '2026-08-15',
+            'starts_at' => '18:30',
+            'ends_at' => '20:00',
+            'location_type' => 'online',
+            'meeting_url' => 'https://example.com/meeting',
+            'address' => '80 Erie St',
+            'city' => 'Jersey City',
+            'state' => 'NJ',
+            'postal_code' => '07302',
+            'travel_mode' => 'DRIVE',
+        ])->assertRedirect();
+
+        $event = Event::where('name', 'Video call')->firstOrFail();
+
+        $this->assertSame('https://example.com/meeting', $event->meeting_url);
+        $this->assertTrue($event->is_online);
+        $this->assertNull($event->address);
+        $this->assertNull($event->city);
+        $this->assertNull($event->state);
+        $this->assertNull($event->postal_code);
+        $this->assertSame('NONE', $event->travel_mode);
+        $this->assertSame('https://example.com/meeting', $event->calendarPayload()['meeting_url']);
+
+        $this->get(route('calendar.events.edit', $event))
+            ->assertOk()
+            ->assertSee('value="online" data-event-location-type', false)
+            ->assertSee('data-event-online-fields', false)
+            ->assertSee('https://example.com/meeting');
+
+        $this->patch(route('calendar.events.update', $event), [
+            'name' => 'Studio meeting',
+            'scheduled_date' => '2026-08-15',
+            'starts_at' => '18:30',
+            'ends_at' => '20:00',
+            'location_type' => 'in_person',
+            'meeting_url' => 'https://example.com/stale-meeting',
+            'address' => '58 7th Ave',
+            'city' => 'Brooklyn',
+            'state' => 'NY',
+            'postal_code' => '11217',
+            'travel_mode' => 'WALK',
+        ])->assertRedirect();
+
+        $event->refresh();
+
+        $this->assertNull($event->meeting_url);
+        $this->assertFalse($event->is_online);
+        $this->assertSame('58 7th Ave', $event->address);
+        $this->assertSame('WALK', $event->travel_mode);
+    }
+
+    /** @test */
+    public function an_online_event_url_must_be_valid_when_provided()
+    {
+        $this->signIn();
+
+        $attributes = [
+            'name' => 'Video call',
+            'scheduled_date' => '2026-08-15',
+            'starts_at' => '18:30',
+            'ends_at' => '20:00',
+            'location_type' => 'online',
+        ];
+
+        $this->post(route('calendar.events.store'), $attributes + ['meeting_url' => 'not a url'])
+            ->assertSessionHasErrors('meeting_url');
     }
 
     /** @test */

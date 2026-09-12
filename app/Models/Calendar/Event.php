@@ -11,6 +11,7 @@ class Event extends BaseModel
 {
     protected $casts = [
         'scheduled_date' => 'date',
+        'is_online' => 'boolean',
         'canceled_at' => 'datetime',
         'notification_sent_at' => 'datetime',
     ];
@@ -126,6 +127,8 @@ class Event extends BaseModel
             'state' => $this->state,
             'postal_code' => $this->postal_code,
             'travel_mode' => $this->travel_mode,
+            'is_online' => $this->is_online,
+            'meeting_url' => $this->meeting_url,
             'location' => $location,
             'notification_enabled' => $this->notification_user_id !== null,
             'notification_minutes_before' => $this->notification_minutes_before,

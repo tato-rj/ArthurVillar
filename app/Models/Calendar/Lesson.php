@@ -3,9 +3,12 @@
 namespace App\Models\Calendar;
 
 use App\Models\BaseModel;
+use App\Models\Traits\NullsPaymentExemptFees;
 
 class Lesson extends BaseModel
 {
+    use NullsPaymentExemptFees;
+
     protected $dates = [
         'canceled_at',
         'paid_at',
@@ -53,7 +56,7 @@ class Lesson extends BaseModel
                 ? null
                 : ($this->lessonPlan ? $this->lessonPlan->payment_method : $this->payment_method),
             'fee_amount' => $paymentExempt
-                ? 0
+                ? null
                 : ($this->lessonPlan ? $this->lessonPlan->netFeeAmount() : $this->fee_amount),
         ]);
     }

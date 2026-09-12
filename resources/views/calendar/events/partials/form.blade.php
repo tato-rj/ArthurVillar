@@ -1,3 +1,29 @@
+@php
+    $eventIsOnline = old('location_type', isset($event) && $event->is_online ? 'online' : 'in_person') === 'online';
+@endphp
+
+<div data-event-location-fields>
+    <input type="hidden" name="location_type" value="{{$eventIsOnline ? 'online' : 'in_person'}}" data-event-location-type>
+
+    <div class="d-center">
+        <div class="btn-group mb-2" role="group" aria-label="Event location">
+            <button
+                type="button"
+                class="btn {{$eventIsOnline ? 'btn-white' : 'btn-secondary'}} rounded-right-0 btn-sm btn-wide"
+                data-event-location-option="in_person"
+                aria-pressed="{{$eventIsOnline ? 'false' : 'true'}}">
+                In person
+            </button>
+            <button
+                type="button"
+                class="btn {{$eventIsOnline ? 'btn-secondary' : 'btn-white'}} rounded-left-0 btn-sm btn-wide"
+                data-event-location-option="online"
+                aria-pressed="{{$eventIsOnline ? 'true' : 'false'}}">
+                Online
+            </button>
+        </div>
+    </div>
+
 @input([
     'label' => 'Name',
     'name' => 'name',
@@ -29,18 +55,30 @@
     @endselect
 </div>
 
-@include('calendar.partials.address-fields', ['addressable' => $event ?? null])
+<fieldset data-event-in-person-fields {{iftrue($eventIsOnline, 'hidden disabled')}}>
+    @include('calendar.partials.address-fields', ['addressable' => $event ?? null])
 
-@select(['label' => 'Directions', 'name' => 'travel_mode', 'required' => true])
-    @foreach(\App\Models\Calendar\Event::travelModeOptions() as $travelMode => $travelModeLabel)
-        @option([
-            'name' => 'travel_mode',
-            'label' => $travelModeLabel,
-            'value' => $travelMode,
-            'selected' => old('travel_mode', $event->travel_mode ?? 'TRANSIT') === $travelMode,
-        ])
-    @endforeach
-@endselect
+    @select(['label' => 'Directions', 'name' => 'travel_mode', 'required' => true])
+        @foreach(\App\Models\Calendar\Event::travelModeOptions() as $travelMode => $travelModeLabel)
+            @option([
+                'name' => 'travel_mode',
+                'label' => $travelModeLabel,
+                'value' => $travelMode,
+                'selected' => old('travel_mode', $event->travel_mode ?? 'TRANSIT') === $travelMode,
+            ])
+        @endforeach
+    @endselect
+</fieldset>
+
+<fieldset data-event-online-fields {{iftrue(!$eventIsOnline, 'hidden disabled')}}>
+    @input([
+        'label' => 'URL',
+        'name' => 'meeting_url',
+        'type' => 'url',
+        'value' => old('meeting_url', $event->meeting_url ?? null),
+        'placeholder' => 'https://',
+    ])
+</fieldset>
 
 @php
     $selectedType = old('type', $event->type ?? null);
@@ -119,4 +157,5 @@
         </button>
         <div class="form-text mt-2" data-web-push-status hidden></div>
     </div>
+</div>
 </div>

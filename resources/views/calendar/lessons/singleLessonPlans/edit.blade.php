@@ -1,6 +1,7 @@
 @modal(['title' => 'Edit single lesson', 'id' => 'edit-single-lesson-plan-'.$singleLessonPlan->id.'-modal'])
 @php($singleLessonPlanIsOnline = optional($singleLessonPlan->location)->name && strtolower($singleLessonPlan->location->name) === 'online')
 @php($singleLessonRepeat = (string) old('repeat', 'none'))
+@php($singleLessonPlanPaymentExempt = (bool) $singleLessonPlan->student?->payment_exempt)
 <form method="POST" action="{{route('calendar.single-lesson-plans.update', $singleLessonPlan)}}" data-single-lesson-plan-form>
 	@csrf
 	@method('PATCH')
@@ -65,16 +66,18 @@
 		@endselect
 	</div>
 
-	<label class="small fw-bold opacity-6 mb-3">@fa(['icon' => 'money-bill-wave'])PAYMENT</label>
+	<div data-lesson-payment-section {{iftrue($singleLessonPlanPaymentExempt, 'hidden')}}>
+		<label class="small fw-bold opacity-6 mb-3">@fa(['icon' => 'money-bill-wave'])PAYMENT</label>
 
-	<div class="row">
-		@input(['label' => 'Fee', 'name' => 'fee_amount', 'value' => $singleLessonPlan->fee_amount ? ($singleLessonPlan->fee_amount / 100) : null, 'mask' => 'usd', 'grid' => 'col'])
+		<div class="row">
+			@input(['label' => 'Fee', 'name' => 'fee_amount', 'value' => $singleLessonPlan->fee_amount ? ($singleLessonPlan->fee_amount / 100) : null, 'mask' => 'usd', 'grid' => 'col'])
 
-		@select(['label' => 'Payment method', 'name' => 'payment_method', 'grid' => 'col'])
-			@foreach(payment()->methods() as $method)
-				@option(['name' => 'payment_method', 'label' => $method, 'value' => $method, 'selected' => $singleLessonPlan->payment_method == $method])
-			@endforeach
-		@endselect
+			@select(['label' => 'Payment method', 'name' => 'payment_method', 'grid' => 'col'])
+				@foreach(payment()->methods() as $method)
+					@option(['name' => 'payment_method', 'label' => $method, 'value' => $method, 'selected' => $singleLessonPlan->payment_method == $method])
+				@endforeach
+			@endselect
+		</div>
 	</div>
 
 	@textarea(['label' => 'Notes', 'name' => 'notes', 'value' => $singleLessonPlan->notes, 'rows' => 3])

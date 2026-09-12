@@ -211,6 +211,23 @@ class LessonPlansTableTest extends BaseTest
         }
     }
 
+    /** @test */
+    public function lesson_plan_edit_modals_hide_payment_for_exempt_students()
+    {
+        $student = Student::factory()->create(['payment_exempt' => true]);
+        $lessonPlan = LessonPlan::factory()->student($student)->create();
+        $singleLessonPlan = SingleLessonPlan::factory()->student($student)->create();
+        $this->signIn();
+
+        $this->get(route('calendar.lesson-plans.edit', $lessonPlan))
+            ->assertOk()
+            ->assertSee('data-lesson-payment-section hidden', false);
+
+        $this->get(route('calendar.single-lesson-plans.edit', $singleLessonPlan))
+            ->assertOk()
+            ->assertSee('data-lesson-payment-section hidden', false);
+    }
+
     private function lessonPlanTableColumns(): array
     {
         return collect([

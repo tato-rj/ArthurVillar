@@ -317,6 +317,13 @@ class LessonPlansController extends Controller
 
     private function lessonFeeAmount(array $data)
     {
+        if (Student::query()
+            ->whereKey($data['student_id'] ?? null)
+            ->where('payment_exempt', true)
+            ->exists()) {
+            return null;
+        }
+
         $feeAmount = $this->feeAmount($data['fee_amount'] ?? null);
 
         if ($feeAmount !== null) {

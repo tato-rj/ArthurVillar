@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Calendar;
 
 use App\Http\Controllers\Controller;
-use App\Models\Calendar\{LessonPlan, Location, SingleLessonPlan};
+use App\Models\Calendar\{LessonPlan, Location, SingleLessonPlan, Student};
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -237,6 +237,13 @@ class SingleLessonPlansController extends Controller
 
     private function lessonFeeAmount(array $data)
     {
+        if (Student::query()
+            ->whereKey($data['student_id'] ?? null)
+            ->where('payment_exempt', true)
+            ->exists()) {
+            return null;
+        }
+
         $feeAmount = $this->feeAmount($data['fee_amount'] ?? null);
 
         if ($feeAmount !== null) {

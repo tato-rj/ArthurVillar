@@ -1563,8 +1563,82 @@ class CalendarLessonFlowTest extends BaseTest
         $lesson = Lesson::findOrFail($response->json('lesson_id'));
 
         $this->assertNotNull($lesson->paid_at);
-        $this->assertSame(0, $lesson->fee_amount);
+        $this->assertNull($lesson->fee_amount);
         $this->assertNull($lesson->payment_method);
+    }
+
+    /** @test */
+    public function payment_exempt_students_never_store_lesson_fees()
+    {
+        $student = Student::factory()->create(['payment_exempt' => true]);
+        $location = Location::factory()->create(['fee_amount' => 9000]);
+
+        $lessonPlan = LessonPlan::factory()->student($student)->create([
+            'fee_amount' => 8000,
+        ]);
+        $singleLessonPlan = SingleLessonPlan::factory()->student($student)->create([
+            'fee_amount' => 8000,
+        ]);
+        $lesson = Lesson::factory()->create([
+            'student_id' => $student->id,
+            'lesson_plan_id' => $lessonPlan->id,
+            'fee_amount' => 8000,
+        ]);
+
+        $this->assertNull($lessonPlan->fresh()->fee_amount);
+        $this->assertNull($singleLessonPlan->fresh()->fee_amount);
+        $this->assertNull($lesson->fresh()->fee_amount);
+
+        $this->signIn();
+
+        $this->patch(route('calendar.lesson-plans.update', $lessonPlan), [
+            'student_id' => $student->id,
+            'is_group' => 0,
+            'repeat' => '1',
+            'starts_on' => '2026-07-01',
+            'ends_on' => '2026-08-31',
+            'start_time' => '15:30',
+            'duration_minutes' => 45,
+            'fee_amount' => '75',
+            'payment_method' => 'Venmo',
+            'location_id' => $location->id,
+            'travel_mode' => 'NONE',
+        ])->assertSessionHas('success');
+
+        $this->patch(route('calendar.single-lesson-plans.update', $singleLessonPlan), [
+            'student_id' => $student->id,
+            'is_group' => 0,
+            'repeat' => 'none',
+            'scheduled_date' => '2026-09-15',
+            'start_time' => '15:30',
+            'duration_minutes' => 45,
+            'fee_amount' => '75',
+            'payment_method' => 'Venmo',
+            'location_id' => $location->id,
+            'travel_mode' => 'NONE',
+        ])->assertSessionHas('success');
+
+        $this->assertNull($lessonPlan->fresh()->fee_amount);
+        $this->assertNull($singleLessonPlan->fresh()->fee_amount);
+    }
+
+    /** @test */
+    public function marking_a_student_payment_exempt_clears_existing_lesson_fees()
+    {
+        $student = Student::factory()->create(['payment_exempt' => false]);
+        $lessonPlan = LessonPlan::factory()->student($student)->create(['fee_amount' => 8000]);
+        $singleLessonPlan = SingleLessonPlan::factory()->student($student)->create(['fee_amount' => 8000]);
+        $lesson = Lesson::factory()->create([
+            'student_id' => $student->id,
+            'lesson_plan_id' => $lessonPlan->id,
+            'fee_amount' => 8000,
+        ]);
+
+        $student->update(['payment_exempt' => true]);
+
+        $this->assertNull($lessonPlan->fresh()->fee_amount);
+        $this->assertNull($singleLessonPlan->fresh()->fee_amount);
+        $this->assertNull($lesson->fresh()->fee_amount);
     }
 
     /** @test */

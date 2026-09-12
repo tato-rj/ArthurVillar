@@ -4,12 +4,13 @@ namespace App\Models\Calendar;
 
 use App\Calendar\Traits\Holidays;
 use App\Models\BaseModel;
+use App\Models\Traits\NullsPaymentExemptFees;
 use Carbon\Carbon;
 use InvalidArgumentException;
 
 class LessonPlan extends BaseModel
 {
-    use Holidays;
+    use Holidays, NullsPaymentExemptFees;
 
     public const WEEKDAYS = [
         1 => 'sunday',

@@ -18,6 +18,16 @@ class Student extends BaseModel
 
     protected static function booted()
     {
+        static::saved(function (Student $student) {
+            if (! $student->payment_exempt || ! $student->wasChanged('payment_exempt')) {
+                return;
+            }
+
+            $student->lessonPlans()->update(['fee_amount' => null]);
+            $student->singleLessonPlans()->update(['fee_amount' => null]);
+            $student->lessons()->update(['fee_amount' => null]);
+        });
+
         static::deleting(function (Student $student) {
             $student->scheduleOverrides()->delete();
             $student->lessons()->delete();

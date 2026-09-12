@@ -33,7 +33,7 @@ class EventsController extends Controller
 
     public function update(Request $request, Event $event)
     {
-        $event->update($this->eventAttributes($request));
+        $event->update($this->eventAttributes($request, $event));
 
         if ($request->expectsJson()) {
             return response()->json([
@@ -113,7 +113,7 @@ class EventsController extends Controller
         return back()->with('success', 'The event cancellation was successfully reverted');
     }
 
-    private function eventAttributes(Request $request): array
+    private function eventAttributes(Request $request, ?Event $event = null): array
     {
         $attributes = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -125,6 +125,12 @@ class EventsController extends Controller
             'city' => ['nullable', 'string', 'max:255'],
             'state' => ['nullable', 'string', Rule::in(array_keys(config('us_states')))],
             'postal_code' => ['nullable', 'string', 'max:20'],
+            'location_type' => ['nullable', Rule::in(['in_person', 'online'])],
+            'meeting_url' => [
+                'nullable',
+                'url',
+                'max:2048',
+            ],
             'travel_mode' => ['sometimes', Rule::in(array_keys(Event::travelModeOptions()))],
             'notes' => ['nullable', 'string'],
             'send_notification' => ['nullable', 'boolean'],
@@ -136,7 +142,21 @@ class EventsController extends Controller
             ],
         ]);
 
-        unset($attributes['send_notification']);
+        $locationType = $attributes['location_type'] ?? ($event?->is_online ? 'online' : 'in_person');
+
+        unset($attributes['send_notification'], $attributes['location_type']);
+
+        $attributes['is_online'] = $locationType === 'online';
+
+        if ($locationType === 'online') {
+            $attributes['address'] = null;
+            $attributes['city'] = null;
+            $attributes['state'] = null;
+            $attributes['postal_code'] = null;
+            $attributes['travel_mode'] = 'NONE';
+        } else {
+            $attributes['meeting_url'] = null;
+        }
 
         if ($request->boolean('send_notification')) {
             $attributes['notification_user_id'] = $request->user()->id;

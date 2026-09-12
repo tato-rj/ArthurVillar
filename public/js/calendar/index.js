@@ -6480,6 +6480,7 @@ var getGeneralEvent = function getGeneralEvent(generalEvent) {
     state: generalEvent.state || '',
     postalCode: generalEvent.postal_code || '',
     travelMode: generalEvent.travel_mode || 'TRANSIT',
+    isOnline: Boolean(generalEvent.is_online || generalEvent.meeting_url),
     notificationEnabled: Boolean(generalEvent.notification_enabled),
     notificationMinutesBefore: generalEvent.notification_minutes_before,
     editUrl: generalEvent.edit_url || '',
@@ -9600,10 +9601,15 @@ var prepareDuplicateGeneralEventForm = function prepareDuplicateGeneralEventForm
   setNamedFormValue(form, 'city', event.city);
   setNamedFormValue(form, 'state', event.state);
   setNamedFormValue(form, 'postal_code', event.postalCode);
+  setNamedFormValue(form, 'meeting_url', event.meetingUrl);
+  setNamedFormValue(form, 'location_type', event.isOnline ? 'online' : 'in_person');
   setNamedFormValue(form, 'travel_mode', event.travelMode || 'TRANSIT');
   setNamedFormValue(form, 'notes', event.notes);
   if (typeof window.refreshEventTimeFields === 'function') {
     window.refreshEventTimeFields(form);
+  }
+  if (typeof window.refreshEventLocationFields === 'function') {
+    window.refreshEventLocationFields(form);
   }
   form.querySelectorAll('[data-event-type-input]').forEach(function (input) {
     input.checked = input.value === event.eventType;

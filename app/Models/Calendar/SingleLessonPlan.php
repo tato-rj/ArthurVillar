@@ -3,11 +3,14 @@
 namespace App\Models\Calendar;
 
 use App\Models\BaseModel;
+use App\Models\Traits\NullsPaymentExemptFees;
 use Carbon\Carbon;
 use InvalidArgumentException;
 
 class SingleLessonPlan extends BaseModel
 {
+    use NullsPaymentExemptFees;
+
     protected $dates = [
         'scheduled_date',
     ];

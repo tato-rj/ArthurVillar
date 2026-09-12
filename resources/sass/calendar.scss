@@ -3455,3 +3455,13 @@ input[name="name"] {
         &:focus-visible { outline: 3px solid #198754; outline-offset: 2px; }
     }
 }
+
+.rounded-right-0 {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+
+.rounded-left-0 {
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+}
