@@ -8589,7 +8589,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            setSelectedDate(getTodayDate());
+            const currentToday = getTodayDate();
+
+            setSelectedDate(currentToday);
+            if (state.view === 'week') {
+                state.scheduleWindowStart = cloneDate(currentToday);
+            }
             render();
         });
     }

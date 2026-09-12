@@ -11353,7 +11353,11 @@ document.addEventListener('DOMContentLoaded', function () {
       if (isScheduleHoldNavigationSuppressed()) {
         return;
       }
-      setSelectedDate(getTodayDate());
+      var currentToday = getTodayDate();
+      setSelectedDate(currentToday);
+      if (state.view === 'week') {
+        state.scheduleWindowStart = cloneDate(currentToday);
+      }
       _render();
     });
   }
