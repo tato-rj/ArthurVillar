@@ -23,10 +23,11 @@ class EventTest extends BaseTest
             ->assertSee('data-bs-target="#create-event-modal"', false)
             ->assertSee('events-table', false)
             ->assertSee('id="create-event-modal"', false)
-            ->assertSee('Use Google Calendar conference info')
-            ->assertSee('id="google-conference-import-modal"', false)
+            ->assertSee('Google Calendar')
+            ->assertSee('data-event-location-option="google_calendar"', false)
+            ->assertSee('data-event-google-calendar-fields', false)
             ->assertSee('data-google-conference-import-text', false)
-            ->assertSee('data-google-conference-import-notification-toggle', false)
+            ->assertDontSee('id="google-conference-import-modal"', false)
             ->assertDontSee('aria-label="Event source"', false)
             ->assertDontSee('<th>Notes</th>', false)
             ->assertDontSee('type="time"', false)
@@ -55,6 +56,29 @@ class EventTest extends BaseTest
             ->assertSee('events-table', false)
             ->assertDontSee('google-events-table', false)
             ->assertDontSee('aria-label="Event source"', false);
+    }
+
+    /** @test */
+    public function it_creates_an_event_from_google_calendar_conference_info_fields()
+    {
+        $this->signIn();
+
+        $this->post(route('calendar.events.store'), [
+            'name' => 'Theory syllabus',
+            'scheduled_date' => '2026-09-11',
+            'starts_at' => '11:00',
+            'ends_at' => '12:00',
+            'location_type' => 'google_calendar',
+            'meeting_url' => 'https://meet.google.com/xvp-pbsr-mnv',
+            'travel_mode' => 'WALK',
+            'send_notification' => '0',
+        ])->assertRedirect();
+
+        $event = Event::where('name', 'Theory syllabus')->firstOrFail();
+
+        $this->assertTrue($event->is_online);
+        $this->assertSame('https://meet.google.com/xvp-pbsr-mnv', $event->meeting_url);
+        $this->assertSame('WALK', $event->travel_mode);
     }
 
     /** @test */
@@ -163,6 +187,7 @@ class EventTest extends BaseTest
             ->assertOk()
             ->assertSee('value="online" data-event-location-type', false)
             ->assertSee('data-event-online-fields', false)
+            ->assertDontSee('data-event-location-option="google_calendar"', false)
             ->assertSee('https://example.com/meeting');
 
         $this->patch(route('calendar.events.update', $event), [

@@ -57,18 +57,23 @@ input[type="range"].big-thumb {
   border-bottom-left-radius: 0 !important;
 }
 
-.btn-group div:first-of-type .btn {
-    border-top-right-radius: 0 !important;
-    border-bottom-right-radius: 0 !important;
-}
-
-.btn-group div:last-of-type .btn {
-    border-top-left-radius: 0 !important;
-    border-bottom-left-radius: 0 !important;
-}
-
-.btn-group div:not(:first-of-type):not(:last-of-type) .btn {
+.btn-group {
+  > .btn,
+  > div > .btn {
     border-radius: 0 !important;
+  }
+
+  > .btn:first-of-type,
+  > div:first-of-type > .btn {
+    border-top-left-radius: $corner-radius !important;
+    border-bottom-left-radius: $corner-radius !important;
+  }
+
+  > .btn:last-of-type,
+  > div:last-of-type > .btn {
+    border-top-right-radius: $corner-radius !important;
+    border-bottom-right-radius: $corner-radius !important;
+  }
 }
 
 /* WebKit thumb */

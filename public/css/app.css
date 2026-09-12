@@ -31405,18 +31405,19 @@ input[type=range].big-thumb {
   border-bottom-left-radius: 0 !important;
 }
 
-.btn-group div:first-of-type .btn {
-  border-top-right-radius: 0 !important;
-  border-bottom-right-radius: 0 !important;
-}
-
-.btn-group div:last-of-type .btn {
-  border-top-left-radius: 0 !important;
-  border-bottom-left-radius: 0 !important;
-}
-
-.btn-group div:not(:first-of-type):not(:last-of-type) .btn {
+.btn-group > .btn,
+.btn-group > div > .btn {
   border-radius: 0 !important;
+}
+.btn-group > .btn:first-of-type,
+.btn-group > div:first-of-type > .btn {
+  border-top-left-radius: 2rem !important;
+  border-bottom-left-radius: 2rem !important;
+}
+.btn-group > .btn:last-of-type,
+.btn-group > div:last-of-type > .btn {
+  border-top-right-radius: 2rem !important;
+  border-bottom-right-radius: 2rem !important;
 }
 
 /* WebKit thumb */

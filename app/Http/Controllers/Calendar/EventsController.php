@@ -125,7 +125,7 @@ class EventsController extends Controller
             'city' => ['nullable', 'string', 'max:255'],
             'state' => ['nullable', 'string', Rule::in(array_keys(config('us_states')))],
             'postal_code' => ['nullable', 'string', 'max:20'],
-            'location_type' => ['nullable', Rule::in(['in_person', 'online'])],
+            'location_type' => ['nullable', Rule::in(['in_person', 'online', 'google_calendar'])],
             'meeting_url' => [
                 'nullable',
                 'url',
@@ -146,15 +146,18 @@ class EventsController extends Controller
 
         unset($attributes['send_notification'], $attributes['location_type']);
 
-        $attributes['is_online'] = $locationType === 'online';
+        $attributes['is_online'] = in_array($locationType, ['online', 'google_calendar'], true);
 
-        if ($locationType === 'online') {
+        if (in_array($locationType, ['online', 'google_calendar'], true)) {
             $attributes['address'] = null;
             $attributes['city'] = null;
             $attributes['state'] = null;
             $attributes['postal_code'] = null;
+        }
+
+        if ($locationType === 'online') {
             $attributes['travel_mode'] = 'NONE';
-        } else {
+        } elseif ($locationType === 'in_person') {
             $attributes['meeting_url'] = null;
         }
 

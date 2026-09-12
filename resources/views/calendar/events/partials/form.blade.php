@@ -1,22 +1,24 @@
 @php
-    $eventIsOnline = old('location_type', isset($event) && $event->is_online ? 'online' : 'in_person') === 'online';
+    $eventLocationType = old('location_type', isset($event) && $event->is_online ? 'online' : 'in_person');
+    $eventUsesGoogleCalendar = !empty($showGoogleCalendarImport) && $eventLocationType === 'google_calendar';
+    $eventIsOnline = $eventLocationType === 'online';
 @endphp
 
 <div data-event-location-fields>
-    <input type="hidden" name="location_type" value="{{$eventIsOnline ? 'online' : 'in_person'}}" data-event-location-type>
+    <input type="hidden" name="location_type" value="{{$eventUsesGoogleCalendar ? 'google_calendar' : ($eventIsOnline ? 'online' : 'in_person')}}" data-event-location-type>
 
     <div class="d-center">
         <div class="btn-group mb-2" role="group" aria-label="Event location">
             <button
                 type="button"
-                class="btn {{$eventIsOnline ? 'btn-white' : 'btn-secondary'}} rounded-right-0 btn-sm btn-wide"
+                class="btn {{$eventIsOnline || $eventUsesGoogleCalendar ? 'btn-white' : 'btn-secondary'}} btn-sm btn-wide"
                 data-event-location-option="in_person"
-                aria-pressed="{{$eventIsOnline ? 'false' : 'true'}}">
+                aria-pressed="{{$eventIsOnline || $eventUsesGoogleCalendar ? 'false' : 'true'}}">
                 In person
             </button>
             <button
                 type="button"
-                class="btn {{$eventIsOnline ? 'btn-secondary' : 'btn-white'}} {{!empty($showGoogleCalendarImport) ? 'rounded-0' : 'rounded-left-0'}} btn-sm btn-wide"
+                class="btn {{$eventIsOnline ? 'btn-secondary' : 'btn-white'}} btn-sm btn-wide"
                 data-event-location-option="online"
                 aria-pressed="{{$eventIsOnline ? 'true' : 'false'}}">
                 Online
@@ -24,16 +26,16 @@
             @if(!empty($showGoogleCalendarImport))
             <button
                 type="button"
-                class="btn btn-white rounded-left-0 btn-sm btn-wide"
-                data-google-conference-import-open
-                aria-haspopup="dialog"
-                aria-controls="google-conference-import-modal">
+                class="btn {{$eventUsesGoogleCalendar ? 'btn-secondary' : 'btn-white'}} btn-sm btn-wide"
+                data-event-location-option="google_calendar"
+                aria-pressed="{{$eventUsesGoogleCalendar ? 'true' : 'false'}}">
                 Google Calendar
             </button>
             @endif
         </div>
     </div>
 
+<fieldset data-event-standard-fields {{iftrue($eventUsesGoogleCalendar, 'hidden disabled')}}>
 @input([
     'label' => 'Name',
     'name' => 'name',
@@ -64,10 +66,13 @@
         @endforeach
     @endselect
 </div>
+</fieldset>
 
-<fieldset data-event-in-person-fields {{iftrue($eventIsOnline, 'hidden disabled')}}>
+<fieldset data-event-in-person-fields {{iftrue($eventIsOnline || $eventUsesGoogleCalendar, 'hidden disabled')}}>
     @include('calendar.partials.address-fields', ['addressable' => $event ?? null])
+</fieldset>
 
+<fieldset data-event-directions-fields {{iftrue($eventIsOnline, 'hidden disabled')}}>
     @select(['label' => 'Directions', 'name' => 'travel_mode', 'required' => true])
         @foreach(\App\Models\Calendar\Event::travelModeOptions() as $travelMode => $travelModeLabel)
             @option([
@@ -80,7 +85,7 @@
     @endselect
 </fieldset>
 
-<fieldset data-event-online-fields {{iftrue(!$eventIsOnline, 'hidden disabled')}}>
+<fieldset data-event-online-fields {{iftrue(!$eventIsOnline, 'hidden')}} {{iftrue(!$eventIsOnline && !$eventUsesGoogleCalendar, 'disabled')}}>
     @input([
         'label' => 'URL',
         'name' => 'meeting_url',
@@ -90,11 +95,27 @@
     ])
 </fieldset>
 
+@if(!empty($showGoogleCalendarImport))
+<fieldset data-event-google-calendar-fields data-google-conference-import {{iftrue(!$eventUsesGoogleCalendar, 'hidden disabled')}}>
+    <label for="google-conference-info" class="form-label">Google Calendar conference info</label>
+    <div class="form-control">
+        <textarea
+            id="google-conference-info"
+            class="border-0 w-100 h-100"
+            rows="9"
+            placeholder="Paste the conference info copied from Google Calendar"
+            data-google-conference-import-text></textarea>
+    </div>
+    <div class="text-red mt-2" role="alert" data-google-conference-import-error hidden></div>
+</fieldset>
+@endif
+
 @php
     $selectedType = old('type', $event->type ?? null);
     $typeInputSuffix = $event->id ?? 'new';
 @endphp
 
+<fieldset data-event-additional-fields {{iftrue($eventUsesGoogleCalendar, 'hidden disabled')}}>
 <div class="form-group">
     @label(['label' => 'Type'])
     <div class="d-flex flex-wrap gap-1" data-event-type-options>
@@ -128,6 +149,7 @@
     'value' => $event->notes ?? old('notes'),
     'rows' => 5,
 ])
+</fieldset>
 
 @php
     $defaultNotificationMinutes = \App\Models\Calendar\Event::defaultNotificationMinutesBefore();

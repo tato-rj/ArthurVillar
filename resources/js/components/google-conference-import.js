@@ -1,5 +1,3 @@
-const IMPORT_MODAL_ID = 'google-conference-import-modal';
-const CREATE_MODAL_ID = 'create-event-modal';
 const DATE_LINE_PATTERN = /^(?:(Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday)\s*,\s*)?([A-Za-z]+)\s+(\d{1,2})(?:\s*,\s*(\d{4}))?\s*[·⋅•]\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm))\s*[–—-]\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm))$/i;
 const GOOGLE_MEET_PATTERN = /(?:https?:\/\/)?meet\.google\.com\/[a-z\d-]+(?:[/?#][^\s<>\])"']*)?/i;
 const MONTHS = {
@@ -167,52 +165,6 @@ const parseGoogleConferenceInfo = function(value, referenceDate) {
 
 window.parseGoogleCalendarConferenceInfo = parseGoogleConferenceInfo;
 
-const showModal = function(modal) {
-    if (window.bootstrap && window.bootstrap.Modal && typeof window.bootstrap.Modal.getOrCreateInstance === 'function') {
-        window.bootstrap.Modal.getOrCreateInstance(modal).show();
-        return;
-    }
-
-    if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
-        window.jQuery(modal).modal('show');
-    }
-};
-
-const hideModal = function(modal) {
-    if (window.bootstrap && window.bootstrap.Modal && typeof window.bootstrap.Modal.getOrCreateInstance === 'function') {
-        window.bootstrap.Modal.getOrCreateInstance(modal).hide();
-        return;
-    }
-
-    if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
-        window.jQuery(modal).modal('hide');
-    }
-};
-
-const transitionModals = function(fromModal, toModal, callback) {
-    let transitioned = false;
-    const finish = function() {
-        if (transitioned) {
-            return;
-        }
-
-        transitioned = true;
-        if (typeof callback === 'function') {
-            callback();
-        }
-        showModal(toModal);
-    };
-
-    if (fromModal && fromModal.classList.contains('show')) {
-        fromModal.addEventListener('hidden.bs.modal', finish, { once: true });
-        hideModal(fromModal);
-        window.setTimeout(finish, 250);
-        return;
-    }
-
-    finish();
-};
-
 const hasOption = function(select, value) {
     return select && Array.from(select.options).some(function(option) {
         return option.value === value;
@@ -235,15 +187,23 @@ const applyConferenceInfo = function(form, parsed) {
     const dateInput = form.elements.namedItem('scheduled_date');
     const startSelect = form.elements.namedItem('starts_at');
     const endSelect = form.elements.namedItem('ends_at');
-    const locationType = form.elements.namedItem('location_type');
     const meetingUrl = form.elements.namedItem('meeting_url');
+    const standardFields = form.querySelector('[data-event-standard-fields]');
 
     if (!supportedEventTime(parsed.startsAt) || !supportedEventTime(parsed.endsAt)) {
         throw new Error('The event times must use 15-minute increments between 7:00 AM and 11:00 PM.');
     }
 
+    if (!nameInput || !dateInput || !startSelect || !endSelect || !meetingUrl) {
+        throw new Error('The event form is missing a field required for this import.');
+    }
+
     if (typeof window.initializeEventTimeFields === 'function') {
         window.initializeEventTimeFields(form);
+    }
+
+    if (standardFields) {
+        standardFields.disabled = false;
     }
 
     nameInput.value = parsed.title;
@@ -259,46 +219,30 @@ const applyConferenceInfo = function(form, parsed) {
 
     endSelect.value = parsed.endsAt;
     endSelect.dispatchEvent(new window.Event('change', { bubbles: true }));
-    locationType.value = 'online';
     meetingUrl.value = parsed.meetingUrl;
-
-    if (typeof window.refreshEventLocationFields === 'function') {
-        window.refreshEventLocationFields(form);
-    }
-
     meetingUrl.dispatchEvent(new window.Event('change', { bubbles: true }));
 };
 
-const initialize = function() {
-    const importModal = document.getElementById(IMPORT_MODAL_ID);
-    const createModal = document.getElementById(CREATE_MODAL_ID);
-
-    if (!importModal || !createModal || importModal.googleConferenceImportInitialized) {
+const initializeImporter = function(importer) {
+    if (!importer || importer.googleConferenceImportInitialized) {
         return;
     }
 
-    const form = createModal.querySelector('form');
-    const importer = importModal.querySelector('[data-google-conference-import]');
+    const form = importer.closest('form');
 
-    if (!form || !importer) {
+    if (!form) {
         return;
     }
 
     const textarea = importer.querySelector('[data-google-conference-import-text]');
     const error = importer.querySelector('[data-google-conference-import-error]');
-    const applyButton = importer.querySelector('[data-google-conference-import-apply]');
-    const importNotificationToggle = importer.querySelector('[data-google-conference-import-notification-toggle]');
-    const importNotificationOptions = importer.querySelector('[data-google-conference-import-notification-options]');
-    const importNotificationMinutes = importer.querySelector('[data-google-conference-import-notification-minutes]');
-    const formNotificationToggle = form.querySelector('[data-event-notification-toggle]');
-    const formNotificationMinutes = form.elements.namedItem('notification_minutes_before');
-    let returnToCreate = false;
+    const locationType = form.elements.namedItem('location_type');
 
-    if (!textarea || !error || !applyButton) {
+    if (!textarea || !error || !locationType) {
         return;
     }
 
-    importModal.googleConferenceImportInitialized = true;
+    importer.googleConferenceImportInitialized = true;
 
     const clearError = function() {
         error.textContent = '';
@@ -310,82 +254,44 @@ const initialize = function() {
         error.hidden = false;
     };
 
-    const refreshImportNotificationFields = function() {
-        if (importNotificationOptions && importNotificationToggle) {
-            importNotificationOptions.hidden = !importNotificationToggle.checked;
-        }
-    };
-
-    const syncNotificationFieldsFromForm = function() {
-        if (!importNotificationToggle || !formNotificationToggle) {
+    form.addEventListener('submit', function(event) {
+        if (locationType.value !== 'google_calendar') {
             return;
         }
 
-        importNotificationToggle.checked = formNotificationToggle.checked;
-        if (importNotificationMinutes && formNotificationMinutes) {
-            importNotificationMinutes.value = formNotificationMinutes.value;
-        }
-        refreshImportNotificationFields();
-    };
-
-    const applyNotificationFieldsToForm = function() {
-        if (!importNotificationToggle || !formNotificationToggle) {
-            return;
-        }
-
-        formNotificationToggle.checked = importNotificationToggle.checked;
-        if (importNotificationMinutes && formNotificationMinutes) {
-            formNotificationMinutes.value = importNotificationMinutes.value;
-        }
-        formNotificationToggle.dispatchEvent(new window.Event('change', { bubbles: true }));
-    };
-
-    createModal.querySelectorAll('[data-google-conference-import-open]').forEach(function(button) {
-        button.addEventListener('click', function() {
-            clearError();
-            syncNotificationFieldsFromForm();
-            returnToCreate = true;
-            transitionModals(createModal, importModal, function() {
-                window.setTimeout(function() {
-                    textarea.focus();
-                }, 100);
-            });
-        });
-    });
-
-    const importValue = function() {
         try {
             const parsed = parseGoogleConferenceInfo(textarea.value);
 
             applyConferenceInfo(form, parsed);
-            applyNotificationFieldsToForm();
             clearError();
-            hideModal(importModal);
         } catch (importError) {
+            event.preventDefault();
             displayError(importError.message || 'The conference info could not be imported.');
+            if (typeof window.refreshEventLocationFields === 'function') {
+                window.refreshEventLocationFields(form, 'google_calendar');
+            }
+            textarea.focus();
         }
-    };
+    });
 
-    if (importNotificationToggle) {
-        importNotificationToggle.addEventListener('change', refreshImportNotificationFields);
-    }
-
-    applyButton.addEventListener('click', importValue);
+    textarea.addEventListener('input', clearError);
     textarea.addEventListener('keydown', function(event) {
         if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
             event.preventDefault();
-            importValue();
+            form.requestSubmit();
         }
     });
 
-    importModal.addEventListener('hidden.bs.modal', function() {
-        if (!returnToCreate) {
-            return;
-        }
-
-        returnToCreate = false;
-        showModal(createModal);
+    form.addEventListener('reset', function() {
+        window.setTimeout(function() {
+            textarea.value = '';
+            clearError();
+        }, 0);
     });
+};
+
+const initialize = function() {
+    document.querySelectorAll('[data-google-conference-import]').forEach(initializeImporter);
 };
 
 if (document.readyState === 'loading') {
