@@ -7751,24 +7751,22 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (opensInStandaloneWebApp) {
-        setSelectedDate(getTodayDate());
+        setSelectedDateAsViewStart(getTodayDate());
         state.centerInitialScheduleDate = state.view === 'schedule';
     } else if (isValidDate(urlState.date)) {
         setSelectedDate(urlState.date);
     } else if (!state.date) {
-        setSelectedDate(getTodayDate());
+        setSelectedDateAsViewStart(getTodayDate());
     } else {
         state.miniDate = cloneDate(state.date);
     }
 
-    if (state.view === 'week') {
-        if (opensInStandaloneWebApp) {
-            state.scheduleWindowStart = addDays(state.date, -3);
-        } else if (isValidDate(urlState.windowStart)) {
-            state.scheduleWindowStart = cloneDate(urlState.windowStart);
-            state.date = cloneDate(state.scheduleWindowStart);
-            state.miniDate = cloneDate(state.date);
-        }
+    if (state.view === 'week'
+        && !opensInStandaloneWebApp
+        && isValidDate(urlState.windowStart)) {
+        state.scheduleWindowStart = cloneDate(urlState.windowStart);
+        state.date = cloneDate(state.scheduleWindowStart);
+        state.miniDate = cloneDate(state.date);
     }
 
     const syncViewControls = function() {
