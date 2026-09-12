@@ -26,6 +26,7 @@ class EventTest extends BaseTest
             ->assertSee('Use Google Calendar conference info')
             ->assertSee('id="google-conference-import-modal"', false)
             ->assertSee('data-google-conference-import-text', false)
+            ->assertSee('data-google-conference-import-notification-toggle', false)
             ->assertDontSee('aria-label="Event source"', false)
             ->assertDontSee('<th>Notes</th>', false)
             ->assertDontSee('type="time"', false)

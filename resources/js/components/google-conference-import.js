@@ -279,12 +279,22 @@ const initialize = function() {
 
     const form = createModal.querySelector('form');
     const importer = importModal.querySelector('[data-google-conference-import]');
+
+    if (!form || !importer) {
+        return;
+    }
+
     const textarea = importer.querySelector('[data-google-conference-import-text]');
     const error = importer.querySelector('[data-google-conference-import-error]');
     const applyButton = importer.querySelector('[data-google-conference-import-apply]');
+    const importNotificationToggle = importer.querySelector('[data-google-conference-import-notification-toggle]');
+    const importNotificationOptions = importer.querySelector('[data-google-conference-import-notification-options]');
+    const importNotificationMinutes = importer.querySelector('[data-google-conference-import-notification-minutes]');
+    const formNotificationToggle = form.querySelector('[data-event-notification-toggle]');
+    const formNotificationMinutes = form.elements.namedItem('notification_minutes_before');
     let returnToCreate = false;
 
-    if (!form || !textarea || !error || !applyButton) {
+    if (!textarea || !error || !applyButton) {
         return;
     }
 
@@ -300,9 +310,40 @@ const initialize = function() {
         error.hidden = false;
     };
 
+    const refreshImportNotificationFields = function() {
+        if (importNotificationOptions && importNotificationToggle) {
+            importNotificationOptions.hidden = !importNotificationToggle.checked;
+        }
+    };
+
+    const syncNotificationFieldsFromForm = function() {
+        if (!importNotificationToggle || !formNotificationToggle) {
+            return;
+        }
+
+        importNotificationToggle.checked = formNotificationToggle.checked;
+        if (importNotificationMinutes && formNotificationMinutes) {
+            importNotificationMinutes.value = formNotificationMinutes.value;
+        }
+        refreshImportNotificationFields();
+    };
+
+    const applyNotificationFieldsToForm = function() {
+        if (!importNotificationToggle || !formNotificationToggle) {
+            return;
+        }
+
+        formNotificationToggle.checked = importNotificationToggle.checked;
+        if (importNotificationMinutes && formNotificationMinutes) {
+            formNotificationMinutes.value = importNotificationMinutes.value;
+        }
+        formNotificationToggle.dispatchEvent(new window.Event('change', { bubbles: true }));
+    };
+
     createModal.querySelectorAll('[data-google-conference-import-open]').forEach(function(button) {
         button.addEventListener('click', function() {
             clearError();
+            syncNotificationFieldsFromForm();
             returnToCreate = true;
             transitionModals(createModal, importModal, function() {
                 window.setTimeout(function() {
@@ -317,12 +358,17 @@ const initialize = function() {
             const parsed = parseGoogleConferenceInfo(textarea.value);
 
             applyConferenceInfo(form, parsed);
+            applyNotificationFieldsToForm();
             clearError();
             hideModal(importModal);
         } catch (importError) {
             displayError(importError.message || 'The conference info could not be imported.');
         }
     };
+
+    if (importNotificationToggle) {
+        importNotificationToggle.addEventListener('change', refreshImportNotificationFields);
+    }
 
     applyButton.addEventListener('click', importValue);
     textarea.addEventListener('keydown', function(event) {

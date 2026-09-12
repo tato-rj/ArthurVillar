@@ -16,11 +16,21 @@
             </button>
             <button
                 type="button"
-                class="btn {{$eventIsOnline ? 'btn-secondary' : 'btn-white'}} rounded-left-0 btn-sm btn-wide"
+                class="btn {{$eventIsOnline ? 'btn-secondary' : 'btn-white'}} {{!empty($showGoogleCalendarImport) ? 'rounded-0' : 'rounded-left-0'}} btn-sm btn-wide"
                 data-event-location-option="online"
                 aria-pressed="{{$eventIsOnline ? 'true' : 'false'}}">
                 Online
             </button>
+            @if(!empty($showGoogleCalendarImport))
+            <button
+                type="button"
+                class="btn btn-white rounded-left-0 btn-sm btn-wide"
+                data-google-conference-import-open
+                aria-haspopup="dialog"
+                aria-controls="google-conference-import-modal">
+                Google Calendar
+            </button>
+            @endif
         </div>
     </div>
 
