@@ -453,6 +453,14 @@ const setSelectedDate = function(date) {
     state.scheduleWindowStart = null;
 };
 
+const setSelectedDateAsViewStart = function(date) {
+    setSelectedDate(date);
+
+    if (state.view === 'week') {
+        state.scheduleWindowStart = cloneDate(date);
+    }
+};
+
 const getVisibleDateRange = function() {
     if (state.view === 'schedule') {
         const start = createLocalDate(state.date.getFullYear(), state.date.getMonth() - 1, 1);
@@ -8591,10 +8599,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const currentToday = getTodayDate();
 
-            setSelectedDate(currentToday);
-            if (state.view === 'week') {
-                state.scheduleWindowStart = cloneDate(currentToday);
-            }
+            setSelectedDateAsViewStart(currentToday);
             render();
         });
     }
@@ -8886,7 +8891,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            setSelectedDate(parseDateString(button.dataset.date));
+            const selectedDate = parseDateString(button.dataset.date);
+
+            setSelectedDateAsViewStart(selectedDate);
             syncViewControls();
             render();
 

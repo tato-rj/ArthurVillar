@@ -5102,6 +5102,12 @@ var setSelectedDate = function setSelectedDate(date) {
   state.didAutoNowScroll = false;
   state.scheduleWindowStart = null;
 };
+var setSelectedDateAsViewStart = function setSelectedDateAsViewStart(date) {
+  setSelectedDate(date);
+  if (state.view === 'week') {
+    state.scheduleWindowStart = cloneDate(date);
+  }
+};
 var getVisibleDateRange = function getVisibleDateRange() {
   if (state.view === 'schedule') {
     var _start = createLocalDate(state.date.getFullYear(), state.date.getMonth() - 1, 1);
@@ -11354,10 +11360,7 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
       }
       var currentToday = getTodayDate();
-      setSelectedDate(currentToday);
-      if (state.view === 'week') {
-        state.scheduleWindowStart = cloneDate(currentToday);
-      }
+      setSelectedDateAsViewStart(currentToday);
       _render();
     });
   }
@@ -11593,7 +11596,8 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!button) {
         return;
       }
-      setSelectedDate(parseDateString(button.dataset.date));
+      var selectedDate = parseDateString(button.dataset.date);
+      setSelectedDateAsViewStart(selectedDate);
       syncViewControls();
       _render();
       closeMiniCalendarOffcanvas();
