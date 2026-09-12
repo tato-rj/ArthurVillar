@@ -26,6 +26,14 @@ window.calendarLessonPlanCreateForms = window.calendarLessonPlanCreateForms || (
             visibleCount += isVisible ? 1 : 0;
         });
 
+        combobox.querySelectorAll('[data-student-combobox-group]').forEach(function(group) {
+            const hasVisibleOption = Array.from(group.querySelectorAll('[data-student-combobox-option]')).some(function(option) {
+                return option.style.display !== 'none';
+            });
+
+            group.style.display = hasVisibleOption ? '' : 'none';
+        });
+
         if (empty) {
             empty.style.display = visibleCount ? 'none' : '';
         }

@@ -15,13 +15,28 @@
                     @fa(['icon' => 'angle-down', 'mr' => 0, 'fa_color' => 'grey'])
                 </div>
                 <div class="calendar-student-combobox-menu" data-student-combobox-menu>
-                    @foreach($students ?? [] as $student)
-                        <button type="button" class="calendar-student-combobox-option"
-                            data-student-combobox-option data-student-id="{{$student->id}}"
-                            data-student-name="{{$student->full_name}}"
-                            data-plans-url="{{route('calendar.students.lesson-plans', $student)}}">
-                            {{$student->full_name}}
-                        </button>
+                    @foreach(collect($students ?? [])->groupBy(fn ($student) => optional($student->location)->name ?: 'No location')->sortKeys(SORT_NATURAL | SORT_FLAG_CASE) as $locationName => $locationStudents)
+                        @php
+                            $groupLocation = $locationStudents->first()->location;
+                            $groupLocationIcon = optional($groupLocation)->icon;
+                            $groupLabelId = 'panel-student-location-'.($groupLocation->id ?? 'none');
+                        @endphp
+                        <div data-student-combobox-group data-student-location-name="{{$locationName}}" role="group" aria-labelledby="{{$groupLabelId}}">
+                            <div id="{{$groupLabelId}}" class="calendar-student-combobox-group-label" data-student-combobox-group-label>
+                                @if($groupLocationIcon)
+                                    @fa(['icon' => $groupLocationIcon, 'mr' => 1])
+                                @endif
+                                {{$locationName}}
+                            </div>
+                            @foreach($locationStudents as $student)
+                                <button type="button" class="calendar-student-combobox-option"
+                                    data-student-combobox-option data-student-id="{{$student->id}}"
+                                    data-student-name="{{$student->full_name}}"
+                                    data-plans-url="{{route('calendar.students.lesson-plans', $student)}}">
+                                    {{$student->full_name}}
+                                </button>
+                            @endforeach
+                        </div>
                     @endforeach
                     <div class="small text-muted p-2" data-student-combobox-empty hidden>No students found.</div>
                 </div>

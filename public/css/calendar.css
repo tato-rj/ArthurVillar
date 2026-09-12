@@ -18683,7 +18683,8 @@ textarea.form-control-lg {
   pointer-events: auto !important;
 }
 
-.rounded, .calendar-general-event-notes, .calendar-calendar-search[selected], form .form-control, form .form-select, .dropzone-container, .dropzone {
+.rounded, .calendar-student-combobox-option:hover,
+.calendar-student-combobox-option:focus, .calendar-student-combobox-menu, .calendar-general-event-notes, .calendar-calendar-search[selected], form .form-control, form .form-select, .dropzone-container, .dropzone {
   border-radius: var(--bs-border-radius) !important;
 }
 
@@ -24878,7 +24879,8 @@ h1, .h1 {
   font-size: 2em;
 }
 
-.rounded, .calendar-general-event-notes, .calendar-calendar-search[selected], form .form-control, form .form-select, .dropzone-container, .dropzone {
+.rounded, .calendar-student-combobox-option:hover,
+.calendar-student-combobox-option:focus, .calendar-student-combobox-menu, .calendar-general-event-notes, .calendar-calendar-search[selected], form .form-control, form .form-select, .dropzone-container, .dropzone {
   border-radius: 2rem !important;
 }
 
@@ -24902,7 +24904,7 @@ h1, .h1 {
   border-bottom-left-radius: 2rem !important;
 }
 
-.rounded-sm, .calendar-time-picker select, .calendar-date-picker, .calendar-student-combobox-menu, button.single-lesson-plan-create, .mini-calendar-show {
+.rounded-sm, .calendar-time-picker select, .calendar-date-picker, button.single-lesson-plan-create, .mini-calendar-show {
   border-radius: 0.25rem !important;
 }
 
@@ -31748,6 +31750,9 @@ html[data-calendar-theme=dark] .calendar-student-combobox-menu {
 html[data-calendar-theme=dark] .calendar-student-combobox-option {
   color: #e8eaed;
 }
+html[data-calendar-theme=dark] .calendar-student-combobox-group-label {
+  color: #9aa0a6;
+}
 html[data-calendar-theme=dark] .calendar-student-combobox-option:hover,
 html[data-calendar-theme=dark] .calendar-student-combobox-option:focus {
   background: #303134;
@@ -32143,6 +32148,9 @@ html[data-calendar-theme=dark] .calendar-date-picker-day:focus-visible {
   }
   html[data-calendar-theme=device] .calendar-student-combobox-option {
     color: #e8eaed;
+  }
+  html[data-calendar-theme=device] .calendar-student-combobox-group-label {
+    color: #9aa0a6;
   }
   html[data-calendar-theme=device] .calendar-student-combobox-option:hover,
   html[data-calendar-theme=device] .calendar-student-combobox-option:focus {
@@ -33643,6 +33651,19 @@ button.single-lesson-plan-create[selected] i {
   padding: 0.65rem 0.75rem;
   text-align: left;
   width: 100%;
+}
+
+.calendar-student-combobox-group + .calendar-student-combobox-group {
+  margin-top: 0.3rem;
+}
+
+.calendar-student-combobox-group-label {
+  color: #6c757d;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 0.45rem 0.75rem 0.2rem;
+  text-transform: uppercase;
 }
 
 .calendar-student-combobox-option:hover,

@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Calendar\LessonPlan;
+use App\Models\Calendar\Location;
 use App\Models\Calendar\SingleLessonPlan;
 use App\Models\Calendar\Student;
 use Carbon\Carbon;
@@ -10,6 +11,36 @@ use Tests\BaseTest;
 
 class LessonPlansTableTest extends BaseTest
 {
+    /** @test */
+    public function it_groups_students_by_location_in_the_new_lesson_picker()
+    {
+        $home = Location::factory()->create(['name' => 'Home']);
+        $online = Location::factory()->create(['name' => 'Online']);
+        $homeStudent = Student::factory()->create([
+            'first_name' => 'John',
+            'last_name' => 'Doe',
+            'location_id' => $home->id,
+        ]);
+        $onlineStudent = Student::factory()->create([
+            'first_name' => 'Jane',
+            'last_name' => 'Dow',
+            'location_id' => $online->id,
+        ]);
+        $this->signIn();
+
+        $response = $this->get(route('calendar.lesson-plans.index'))->assertOk();
+        $document = new \DOMDocument();
+        @$document->loadHTML($response->getContent());
+        $xpath = new \DOMXPath($document);
+        $modal = '//*[@id="create-calendar-lesson-plan-modal"]';
+
+        $this->assertSame(1, $xpath->query($modal.'//*[@data-student-location-name="Home"]//*[@data-student-id="'.$homeStudent->id.'"]')->length);
+        $this->assertSame(1, $xpath->query($modal.'//*[@data-student-location-name="Online"]//*[@data-student-id="'.$onlineStudent->id.'"]')->length);
+        $this->assertSame(0, $xpath->query($modal.'//*[@data-student-location-name="Home"]//*[@data-student-id="'.$onlineStudent->id.'"]')->length);
+        $this->assertSame(1, $xpath->query($modal.'//*[@data-student-location-name="Home"]//*[contains(concat(" ", normalize-space(@class), " "), " fa-house ")]')->length);
+        $this->assertSame(1, $xpath->query($modal.'//*[@data-student-location-name="Online"]//*[contains(concat(" ", normalize-space(@class), " "), " fa-globe ")]')->length);
+    }
+
     /** @test */
     public function it_lists_lesson_plans_without_students_as_group_classes()
     {

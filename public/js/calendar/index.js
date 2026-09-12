@@ -10171,6 +10171,11 @@ var filterStudentComboboxOptions = function filterStudentComboboxOptions(combobo
       visibleCount += 1;
     }
   });
+  combobox.querySelectorAll('[data-student-combobox-group]').forEach(function (group) {
+    group.hidden = !Array.from(group.querySelectorAll('[data-student-combobox-option]')).some(function (option) {
+      return !option.hidden;
+    });
+  });
   if (empty) {
     empty.hidden = visibleCount > 0;
   }

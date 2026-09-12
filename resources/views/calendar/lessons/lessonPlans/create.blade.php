@@ -10,6 +10,9 @@
 	$selectedStudentName = $selectedStudent
 		? trim($selectedStudent->first_name . ' ' . $selectedStudent->last_name)
 		: '';
+	$studentsByLocation = collect($students ?? [])
+		->groupBy(fn ($student) => optional($student->location)->name ?: 'No location')
+		->sortKeys(SORT_NATURAL | SORT_FLAG_CASE);
 @endphp
 
 <form method="POST" action="{{route('calendar.lesson-plans.store')}}" data-lesson-plan-form>
@@ -39,19 +42,34 @@
 			</div>
 
 			<div class="calendar-student-combobox-menu" data-student-combobox-menu>
-				@foreach($students ?? [] as $student)
-					@php($studentName = trim($student->first_name . ' ' . $student->last_name))
-					<button
-						type="button"
-						class="calendar-student-combobox-option"
-						data-student-combobox-option
-						data-student-id="{{$student->id}}"
-						data-student-name="{{$studentName}}"
-						data-student-location-id="{{$student->location_id}}"
-						data-student-payment-method="{{$student->payment_method}}"
-						data-student-payment-exempt="{{$student->payment_exempt ? '1' : '0'}}">
-						{{$studentName}}
-					</button>
+				@foreach($studentsByLocation as $locationName => $locationStudents)
+					@php
+						$groupLocation = $locationStudents->first()->location;
+						$groupLocationIcon = optional($groupLocation)->icon;
+						$groupLabelId = 'lesson-student-location-'.($groupLocation->id ?? 'none');
+					@endphp
+					<div data-student-combobox-group data-student-location-name="{{$locationName}}" role="group" aria-labelledby="{{$groupLabelId}}">
+						<div id="{{$groupLabelId}}" class="calendar-student-combobox-group-label" data-student-combobox-group-label>
+							@if($groupLocationIcon)
+								@fa(['icon' => $groupLocationIcon, 'mr' => 1])
+							@endif
+							{{$locationName}}
+						</div>
+						@foreach($locationStudents as $student)
+							@php($studentName = trim($student->first_name . ' ' . $student->last_name))
+							<button
+								type="button"
+								class="calendar-student-combobox-option"
+								data-student-combobox-option
+								data-student-id="{{$student->id}}"
+								data-student-name="{{$studentName}}"
+								data-student-location-id="{{$student->location_id}}"
+								data-student-payment-method="{{$student->payment_method}}"
+								data-student-payment-exempt="{{$student->payment_exempt ? '1' : '0'}}">
+								{{$studentName}}
+							</button>
+						@endforeach
+					</div>
 				@endforeach
 
 				<div class="calendar-student-combobox-empty" data-student-combobox-empty>No students found</div>

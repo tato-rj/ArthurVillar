@@ -373,6 +373,10 @@ $calendar-item-border-radius: 12px;
         color: #e8eaed;
     }
 
+    .calendar-student-combobox-group-label {
+        color: #9aa0a6;
+    }
+
     .calendar-student-combobox-option:hover,
     .calendar-student-combobox-option:focus {
         background: #303134;
@@ -1959,7 +1963,7 @@ button.single-lesson-plan-create[selected] i {
 }
 
 .calendar-student-combobox-menu {
-    @extend .shadow, .rounded-sm, .border;
+    @extend .shadow, .rounded, .border;
     background: #fff;
     display: none;
     left: 0;
@@ -1986,8 +1990,22 @@ button.single-lesson-plan-create[selected] i {
     width: 100%;
 }
 
+.calendar-student-combobox-group + .calendar-student-combobox-group {
+    margin-top: 0.3rem;
+}
+
+.calendar-student-combobox-group-label {
+    color: #6c757d;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 0.45rem 0.75rem 0.2rem;
+    text-transform: uppercase;
+}
+
 .calendar-student-combobox-option:hover,
 .calendar-student-combobox-option:focus {
+    @extend .rounded;
     background: #eef3fb;
 }
 
