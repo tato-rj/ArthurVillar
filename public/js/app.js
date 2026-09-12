@@ -4160,7 +4160,7 @@ $(document).on('click', '.btn[data-trigger="loader"]', function () {
   \*************************************************************/
 () {
 
-var DATE_LINE_PATTERN = /^(?:(Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday)\s*,\s*)?([A-Za-z]+)\s+(\d{1,2})(?:\s*,\s*(\d{4}))?\s*[·⋅•]\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm))\s*[–—-]\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm))$/i;
+var DATE_LINE_PATTERN = /^(?:(Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday)\s*,\s*)?([A-Za-z]+)\s+(\d{1,2})(?:\s*,\s*(\d{4}))?\s*[·⋅•]\s*(\d{1,2}(?::\d{2})?)\s*(am|pm)?\s*[–—-]\s*(\d{1,2}(?::\d{2})?)\s*(am|pm)$/i;
 var GOOGLE_MEET_PATTERN = /(?:https?:\/\/)?meet\.google\.com\/[a-z\d-]+(?:[/?#][^\s<>\])"']*)?/i;
 var MONTHS = {
   january: 0,
@@ -4255,8 +4255,10 @@ var parseGoogleConferenceInfo = function parseGoogleConferenceInfo(value, refere
   var today = referenceDate instanceof Date ? referenceDate : new Date();
   var year = specifiedYear || inferYear(month, day, weekday, today);
   var date = typeof month === 'number' ? validDate(year, month, day) : null;
-  var startsAt = parseTime(dateMatch[5]);
-  var endsAt = parseTime(dateMatch[6]);
+  // Google omits the first meridiem when both times share it, for example
+  // "10:00 – 10:30am". In that format the ending meridiem applies to both.
+  var startsAt = parseTime("".concat(dateMatch[5]).concat(dateMatch[6] || dateMatch[8]));
+  var endsAt = parseTime("".concat(dateMatch[7]).concat(dateMatch[8]));
   var meetMatch = lines.join('\n').match(GOOGLE_MEET_PATTERN);
   var title = lines.slice(0, dateLineIndex).join(' ').replace(/^["“]|["”]$/g, '').trim();
   if (!title) {

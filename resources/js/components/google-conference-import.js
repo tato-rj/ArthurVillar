@@ -1,4 +1,4 @@
-const DATE_LINE_PATTERN = /^(?:(Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday)\s*,\s*)?([A-Za-z]+)\s+(\d{1,2})(?:\s*,\s*(\d{4}))?\s*[·⋅•]\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm))\s*[–—-]\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm))$/i;
+const DATE_LINE_PATTERN = /^(?:(Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday)\s*,\s*)?([A-Za-z]+)\s+(\d{1,2})(?:\s*,\s*(\d{4}))?\s*[·⋅•]\s*(\d{1,2}(?::\d{2})?)\s*(am|pm)?\s*[–—-]\s*(\d{1,2}(?::\d{2})?)\s*(am|pm)$/i;
 const GOOGLE_MEET_PATTERN = /(?:https?:\/\/)?meet\.google\.com\/[a-z\d-]+(?:[/?#][^\s<>\])"']*)?/i;
 const MONTHS = {
     january: 0,
@@ -131,8 +131,10 @@ const parseGoogleConferenceInfo = function(value, referenceDate) {
     const today = referenceDate instanceof Date ? referenceDate : new Date();
     const year = specifiedYear || inferYear(month, day, weekday, today);
     const date = typeof month === 'number' ? validDate(year, month, day) : null;
-    const startsAt = parseTime(dateMatch[5]);
-    const endsAt = parseTime(dateMatch[6]);
+    // Google omits the first meridiem when both times share it, for example
+    // "10:00 – 10:30am". In that format the ending meridiem applies to both.
+    const startsAt = parseTime(`${dateMatch[5]}${dateMatch[6] || dateMatch[8]}`);
+    const endsAt = parseTime(`${dateMatch[7]}${dateMatch[8]}`);
     const meetMatch = lines.join('\n').match(GOOGLE_MEET_PATTERN);
     const title = lines.slice(0, dateLineIndex).join(' ').replace(/^["“]|["”]$/g, '').trim();
 
