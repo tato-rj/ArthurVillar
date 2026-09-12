@@ -8,7 +8,7 @@
     <input type="hidden" name="location_type" value="{{$eventUsesGoogleCalendar ? 'google_calendar' : ($eventIsOnline ? 'online' : 'in_person')}}" data-event-location-type>
 
     <div class="d-center">
-        <div class="btn-group mb-2" role="group" aria-label="Event location">
+        <div class="btn-group mb-3" role="group" aria-label="Event location">
             <button
                 type="button"
                 class="btn {{$eventIsOnline || $eventUsesGoogleCalendar ? 'btn-white' : 'btn-secondary'}} btn-sm btn-wide"
