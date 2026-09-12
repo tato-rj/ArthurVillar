@@ -4111,6 +4111,294 @@ $(document).on('click', '.btn[data-trigger="loader"]', function () {
 
 /***/ },
 
+/***/ "./resources/js/components/google-conference-import.js"
+/*!*************************************************************!*\
+  !*** ./resources/js/components/google-conference-import.js ***!
+  \*************************************************************/
+() {
+
+var IMPORT_MODAL_ID = 'google-conference-import-modal';
+var CREATE_MODAL_ID = 'create-event-modal';
+var DATE_LINE_PATTERN = /^(?:(Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday)\s*,\s*)?([A-Za-z]+)\s+(\d{1,2})(?:\s*,\s*(\d{4}))?\s*[·⋅•]\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm))\s*[–—-]\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm))$/i;
+var GOOGLE_MEET_PATTERN = /(?:https?:\/\/)?meet\.google\.com\/[a-z\d-]+(?:[/?#][^\s<>\])"']*)?/i;
+var MONTHS = {
+  january: 0,
+  february: 1,
+  march: 2,
+  april: 3,
+  may: 4,
+  june: 5,
+  july: 6,
+  august: 7,
+  september: 8,
+  october: 9,
+  november: 10,
+  december: 11
+};
+var WEEKDAYS = {
+  sunday: 0,
+  monday: 1,
+  tuesday: 2,
+  wednesday: 3,
+  thursday: 4,
+  friday: 5,
+  saturday: 6
+};
+var cleanLine = function cleanLine(value) {
+  return String(value || '').replace(/[\u00a0\u202f]/g, ' ').replace(/\\_/g, '_').trim();
+};
+var parseTime = function parseTime(value) {
+  var match = cleanLine(value).match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)$/i);
+  if (!match) {
+    return null;
+  }
+  var hour = Number(match[1]);
+  var minute = Number(match[2] || 0);
+  if (hour < 1 || hour > 12 || minute > 59) {
+    return null;
+  }
+  if (match[3].toLowerCase() === 'am') {
+    hour = hour === 12 ? 0 : hour;
+  } else {
+    hour = hour === 12 ? 12 : hour + 12;
+  }
+  return "".concat(String(hour).padStart(2, '0'), ":").concat(String(minute).padStart(2, '0'));
+};
+var validDate = function validDate(year, month, day) {
+  var date = new Date(year, month, day);
+  return date.getFullYear() === year && date.getMonth() === month && date.getDate() === day ? date : null;
+};
+var inferYear = function inferYear(month, day, weekday, today) {
+  var currentYear = today.getFullYear();
+  if (typeof weekday !== 'number') {
+    var thisYear = validDate(currentYear, month, day);
+    var todayAtMidnight = new Date(currentYear, today.getMonth(), today.getDate());
+    return thisYear && thisYear >= todayAtMidnight ? currentYear : currentYear + 1;
+  }
+  var candidates = [];
+  for (var year = currentYear - 3; year <= currentYear + 5; year += 1) {
+    var date = validDate(year, month, day);
+    if (date && date.getDay() === weekday) {
+      candidates.push(date);
+    }
+  }
+  if (!candidates.length) {
+    return currentYear;
+  }
+  candidates.sort(function (first, second) {
+    var firstDistance = Math.abs(first.getTime() - today.getTime());
+    var secondDistance = Math.abs(second.getTime() - today.getTime());
+    return firstDistance === secondDistance ? first.getTime() - second.getTime() : firstDistance - secondDistance;
+  });
+  return candidates[0].getFullYear();
+};
+var formatDateValue = function formatDateValue(date) {
+  return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, '0'), String(date.getDate()).padStart(2, '0')].join('-');
+};
+var parseGoogleConferenceInfo = function parseGoogleConferenceInfo(value, referenceDate) {
+  var lines = String(value || '').split(/\r?\n/).map(cleanLine).filter(Boolean);
+  var dateLineIndex = lines.findIndex(function (line) {
+    return DATE_LINE_PATTERN.test(line);
+  });
+  if (!lines.length) {
+    throw new Error('Paste the conference info from Google Calendar first.');
+  }
+  if (dateLineIndex < 0) {
+    throw new Error('The event date and time could not be found in the pasted conference info.');
+  }
+  var dateMatch = lines[dateLineIndex].match(DATE_LINE_PATTERN);
+  var month = MONTHS[dateMatch[2].toLowerCase()];
+  var day = Number(dateMatch[3]);
+  var specifiedYear = dateMatch[4] ? Number(dateMatch[4]) : null;
+  var weekday = dateMatch[1] ? WEEKDAYS[dateMatch[1].toLowerCase()] : null;
+  var today = referenceDate instanceof Date ? referenceDate : new Date();
+  var year = specifiedYear || inferYear(month, day, weekday, today);
+  var date = typeof month === 'number' ? validDate(year, month, day) : null;
+  var startsAt = parseTime(dateMatch[5]);
+  var endsAt = parseTime(dateMatch[6]);
+  var meetMatch = lines.join('\n').match(GOOGLE_MEET_PATTERN);
+  var title = lines.slice(0, dateLineIndex).join(' ').replace(/^["“]|["”]$/g, '').trim();
+  if (!title) {
+    throw new Error('The event title could not be found in the pasted conference info.');
+  }
+  if (!date || !startsAt || !endsAt) {
+    throw new Error('The event date and time could not be read from the pasted conference info.');
+  }
+  if (endsAt <= startsAt) {
+    throw new Error('The event end time must be later than its start time.');
+  }
+  if (!meetMatch) {
+    throw new Error('A Google Meet video call link could not be found in the pasted conference info.');
+  }
+  var meetingUrl = meetMatch[0].replace(/[.,;:]+$/, '');
+  return {
+    title: title,
+    date: formatDateValue(date),
+    startsAt: startsAt,
+    endsAt: endsAt,
+    meetingUrl: /^https?:\/\//i.test(meetingUrl) ? meetingUrl : "https://".concat(meetingUrl)
+  };
+};
+window.parseGoogleCalendarConferenceInfo = parseGoogleConferenceInfo;
+var showModal = function showModal(modal) {
+  if (window.bootstrap && window.bootstrap.Modal && typeof window.bootstrap.Modal.getOrCreateInstance === 'function') {
+    window.bootstrap.Modal.getOrCreateInstance(modal).show();
+    return;
+  }
+  if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
+    window.jQuery(modal).modal('show');
+  }
+};
+var hideModal = function hideModal(modal) {
+  if (window.bootstrap && window.bootstrap.Modal && typeof window.bootstrap.Modal.getOrCreateInstance === 'function') {
+    window.bootstrap.Modal.getOrCreateInstance(modal).hide();
+    return;
+  }
+  if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
+    window.jQuery(modal).modal('hide');
+  }
+};
+var transitionModals = function transitionModals(fromModal, toModal, callback) {
+  var transitioned = false;
+  var finish = function finish() {
+    if (transitioned) {
+      return;
+    }
+    transitioned = true;
+    if (typeof callback === 'function') {
+      callback();
+    }
+    showModal(toModal);
+  };
+  if (fromModal && fromModal.classList.contains('show')) {
+    fromModal.addEventListener('hidden.bs.modal', finish, {
+      once: true
+    });
+    hideModal(fromModal);
+    window.setTimeout(finish, 250);
+    return;
+  }
+  finish();
+};
+var hasOption = function hasOption(select, value) {
+  return select && Array.from(select.options).some(function (option) {
+    return option.value === value;
+  });
+};
+var supportedEventTime = function supportedEventTime(value) {
+  var parts = String(value || '').split(':');
+  var minutes = Number(parts[0]) * 60 + Number(parts[1]);
+  return parts.length === 2 && Number.isInteger(minutes) && minutes >= 7 * 60 && minutes <= 23 * 60 && minutes % 15 === 0;
+};
+var applyConferenceInfo = function applyConferenceInfo(form, parsed) {
+  var nameInput = form.elements.namedItem('name');
+  var dateInput = form.elements.namedItem('scheduled_date');
+  var startSelect = form.elements.namedItem('starts_at');
+  var endSelect = form.elements.namedItem('ends_at');
+  var locationType = form.elements.namedItem('location_type');
+  var meetingUrl = form.elements.namedItem('meeting_url');
+  if (!supportedEventTime(parsed.startsAt) || !supportedEventTime(parsed.endsAt)) {
+    throw new Error('The event times must use 15-minute increments between 7:00 AM and 11:00 PM.');
+  }
+  if (typeof window.initializeEventTimeFields === 'function') {
+    window.initializeEventTimeFields(form);
+  }
+  nameInput.value = parsed.title;
+  dateInput.value = parsed.date;
+  startSelect.value = parsed.startsAt;
+  nameInput.dispatchEvent(new window.Event('change', {
+    bubbles: true
+  }));
+  dateInput.dispatchEvent(new window.Event('change', {
+    bubbles: true
+  }));
+  startSelect.dispatchEvent(new window.Event('change', {
+    bubbles: true
+  }));
+  if (!hasOption(endSelect, parsed.endsAt)) {
+    throw new Error('The event end time is outside the available time range.');
+  }
+  endSelect.value = parsed.endsAt;
+  endSelect.dispatchEvent(new window.Event('change', {
+    bubbles: true
+  }));
+  locationType.value = 'online';
+  meetingUrl.value = parsed.meetingUrl;
+  if (typeof window.refreshEventLocationFields === 'function') {
+    window.refreshEventLocationFields(form);
+  }
+  meetingUrl.dispatchEvent(new window.Event('change', {
+    bubbles: true
+  }));
+};
+var initialize = function initialize() {
+  var importModal = document.getElementById(IMPORT_MODAL_ID);
+  var createModal = document.getElementById(CREATE_MODAL_ID);
+  if (!importModal || !createModal || importModal.googleConferenceImportInitialized) {
+    return;
+  }
+  var form = createModal.querySelector('form');
+  var importer = importModal.querySelector('[data-google-conference-import]');
+  var textarea = importer.querySelector('[data-google-conference-import-text]');
+  var error = importer.querySelector('[data-google-conference-import-error]');
+  var applyButton = importer.querySelector('[data-google-conference-import-apply]');
+  var returnToCreate = false;
+  if (!form || !textarea || !error || !applyButton) {
+    return;
+  }
+  importModal.googleConferenceImportInitialized = true;
+  var clearError = function clearError() {
+    error.textContent = '';
+    error.hidden = true;
+  };
+  var displayError = function displayError(message) {
+    error.textContent = message;
+    error.hidden = false;
+  };
+  createModal.querySelectorAll('[data-google-conference-import-open]').forEach(function (button) {
+    button.addEventListener('click', function () {
+      clearError();
+      returnToCreate = true;
+      transitionModals(createModal, importModal, function () {
+        window.setTimeout(function () {
+          textarea.focus();
+        }, 100);
+      });
+    });
+  });
+  var importValue = function importValue() {
+    try {
+      var parsed = parseGoogleConferenceInfo(textarea.value);
+      applyConferenceInfo(form, parsed);
+      clearError();
+      hideModal(importModal);
+    } catch (importError) {
+      displayError(importError.message || 'The conference info could not be imported.');
+    }
+  };
+  applyButton.addEventListener('click', importValue);
+  textarea.addEventListener('keydown', function (event) {
+    if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
+      event.preventDefault();
+      importValue();
+    }
+  });
+  importModal.addEventListener('hidden.bs.modal', function () {
+    if (!returnToCreate) {
+      return;
+    }
+    returnToCreate = false;
+    showModal(createModal);
+  });
+};
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initialize);
+} else {
+  initialize();
+}
+
+/***/ },
+
 /***/ "./resources/js/components/index.js"
 /*!******************************************!*\
   !*** ./resources/js/components/index.js ***!
@@ -4123,6 +4411,7 @@ __webpack_require__(/*! ./date-range */ "./resources/js/components/date-range.js
 __webpack_require__(/*! ./event-type */ "./resources/js/components/event-type.js");
 __webpack_require__(/*! ./event-location-fields */ "./resources/js/components/event-location-fields.js");
 __webpack_require__(/*! ./event-time-fields */ "./resources/js/components/event-time-fields.js");
+__webpack_require__(/*! ./google-conference-import */ "./resources/js/components/google-conference-import.js");
 __webpack_require__(/*! ./form */ "./resources/js/components/form.js");
 __webpack_require__(/*! ./student-payment-method */ "./resources/js/components/student-payment-method.js");
 __webpack_require__(/*! ./lesson-payment-section */ "./resources/js/components/lesson-payment-section.js");

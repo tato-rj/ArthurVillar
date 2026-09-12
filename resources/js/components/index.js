@@ -4,6 +4,7 @@ require('./date-range');
 require('./event-type');
 require('./event-location-fields');
 require('./event-time-fields');
+require('./google-conference-import');
 require('./form');
 require('./student-payment-method');
 require('./lesson-payment-section');
