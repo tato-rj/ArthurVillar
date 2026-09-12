@@ -9,11 +9,13 @@ const refreshEventLocationFields = function(container, locationType) {
     const type = locationType || (typeInput ? typeInput.value : 'in_person');
     const isOnline = type === 'online';
     const usesGoogleCalendar = type === 'google_calendar';
+    const usesOnlineLocation = isOnline || usesGoogleCalendar;
     const inPersonFields = root.querySelector('[data-event-in-person-fields]');
     const onlineFields = root.querySelector('[data-event-online-fields]');
     const googleCalendarFields = root.querySelector('[data-event-google-calendar-fields]');
     const standardFields = root.querySelector('[data-event-standard-fields]');
     const directionsFields = root.querySelector('[data-event-directions-fields]');
+    const typeFields = root.querySelector('[data-event-type-fields]');
     const additionalFields = root.querySelector('[data-event-additional-fields]');
 
     if (typeInput) {
@@ -41,8 +43,21 @@ const refreshEventLocationFields = function(container, locationType) {
     }
 
     if (directionsFields) {
-        directionsFields.hidden = isOnline;
-        directionsFields.disabled = isOnline;
+        directionsFields.hidden = usesOnlineLocation;
+        directionsFields.disabled = usesOnlineLocation;
+    }
+
+    if (typeFields) {
+        typeFields.hidden = usesGoogleCalendar;
+    }
+
+    if (usesGoogleCalendar && typeFields) {
+        const meetingType = typeFields.querySelector('[data-event-type-input][value="Meeting"]');
+
+        if (meetingType && !meetingType.checked) {
+            meetingType.checked = true;
+            meetingType.dispatchEvent(new window.Event('change', { bubbles: true }));
+        }
     }
 
     if (additionalFields) {

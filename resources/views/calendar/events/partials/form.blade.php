@@ -72,7 +72,7 @@
     @include('calendar.partials.address-fields', ['addressable' => $event ?? null])
 </fieldset>
 
-<fieldset data-event-directions-fields {{iftrue($eventIsOnline, 'hidden disabled')}}>
+<fieldset data-event-directions-fields {{iftrue($eventIsOnline || $eventUsesGoogleCalendar, 'hidden disabled')}}>
     @select(['label' => 'Directions', 'name' => 'travel_mode', 'required' => true])
         @foreach(\App\Models\Calendar\Event::travelModeOptions() as $travelMode => $travelModeLabel)
             @option([
@@ -113,11 +113,11 @@
 @endif
 
 @php
-    $selectedType = old('type', $event->type ?? null);
+    $selectedType = $eventUsesGoogleCalendar ? 'Meeting' : old('type', $event->type ?? null);
     $typeInputSuffix = $event->id ?? 'new';
 @endphp
 
-<div class="form-group">
+<div class="form-group" data-event-type-fields {{iftrue($eventUsesGoogleCalendar, 'hidden')}}>
     @label(['label' => 'Type'])
     <div class="d-flex flex-wrap gap-1" data-event-type-options>
         @foreach(\App\Models\Calendar\Event::typeOptions() as $typeIcon => $typeName)

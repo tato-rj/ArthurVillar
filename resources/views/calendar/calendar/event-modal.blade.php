@@ -97,7 +97,7 @@
 
 @include('calendar.events.modal-notes')
 
-<div class="border-to px-3 pt- mt-3" data-google-event-response-section hidden>
+<div class="border-to px-3 pt- mt-3" data-event-modal-section="general" data-google-event-response-section hidden>
     <div class="d-flex align-items-center justify-content-between">
         <span class="small font-weight-bold">Going?</span>
         <div class="btn-group" role="group" aria-label="Respond to Google Calendar invitation">

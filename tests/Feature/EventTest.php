@@ -68,7 +68,7 @@ class EventTest extends BaseTest
             'scheduled_date' => '2026-09-11',
             'starts_at' => '11:00',
             'ends_at' => '12:00',
-            'type' => 'Meeting',
+            'type' => 'Haircut',
             'location_type' => 'google_calendar',
             'meeting_url' => 'https://meet.google.com/xvp-pbsr-mnv',
             'travel_mode' => 'WALK',
@@ -80,7 +80,7 @@ class EventTest extends BaseTest
         $this->assertTrue($event->is_online);
         $this->assertSame('Meeting', $event->type);
         $this->assertSame('https://meet.google.com/xvp-pbsr-mnv', $event->meeting_url);
-        $this->assertSame('WALK', $event->travel_mode);
+        $this->assertSame('NONE', $event->travel_mode);
     }
 
     /** @test */
@@ -663,6 +663,16 @@ class EventTest extends BaseTest
             ->assertSee('data-calendar-filter-reset', false);
 
         $this->assertSame(1, substr_count($response->getContent(), 'id="calendar-event-modal"'));
+    }
+
+    /** @test */
+    public function google_response_controls_are_scoped_to_general_events_in_the_shared_modal()
+    {
+        $this->signIn();
+
+        $this->get(route('calendar.home'))
+            ->assertOk()
+            ->assertSee('data-event-modal-section="general" data-google-event-response-section', false);
     }
 
     /** @test */

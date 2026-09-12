@@ -15,7 +15,7 @@
 <form method="POST" action="{{route('calendar.lesson-plans.store')}}" data-lesson-plan-form>
 	@csrf
 
-	<label class="small fw-bold opacity-6 mb-3">@fa(['icon' => 'user'])STUDENT</label>
+	@include('calendar.components.sectiontitle', ['icon' => 'user', 'label' => 'STUDENT'])
 
 	<div class="form-group text-left">
 		<div class="calendar-student-combobox" data-student-combobox>
@@ -74,7 +74,7 @@
 		<label class="form-check-label" for="create-calendar-group-class">This lesson is for a group class</label>
 	</div>
 
-	<label class="small fw-bold opacity-6 mb-3">@fa(['icon' => 'calendar-day'])SCHEDULE</label>
+	@include('calendar.components.sectiontitle', ['icon' => 'calendar-day', 'label' => 'SCHEDULE'])
 
 	@select(['placeholder' => 'Location', 'name' => 'location_id', 'grid' => 'col', 'required' => true])
 		@foreach($locations as $location)
@@ -113,7 +113,7 @@
 		@input(['placeholder' => 'Ends on', 'name' => 'ends_on', 'type' => 'date', 'value' => old('ends_on'), 'required' => $oldRepeat !== 'none', 'disabled' => $oldRepeat === 'none'])
 	</div>
 
-	<label class="small fw-bold opacity-6 mb-3">@fa(['icon' => 'clock'])TIME</label>
+	@include('calendar.components.sectiontitle', ['icon' => 'clock', 'label' => 'TIME'])
 
 	<div class="row"> 
 		@select(['placeholder' => 'Start time', 'name' => 'start_time', 'grid' => 'col', 'required' => true])
@@ -130,7 +130,7 @@
 	</div>
 
 	<div data-lesson-payment-section {{iftrue(optional($selectedStudent)->payment_exempt, 'hidden')}}>
-		<label class="small fw-bold opacity-6 mb-3">@fa(['icon' => 'money-bill-wave'])PAYMENT</label>
+		@include('calendar.components.sectiontitle', ['icon' => 'money-bill-wave', 'label' => 'PAYMENT'])
 		<div class="row">
 			@input(['placeholder' => 'Fee', 'name' => 'fee_amount', 'value' => old('fee_amount'), 'mask' => 'usd', 'grid' => 'col'])
 

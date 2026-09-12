@@ -148,6 +148,10 @@ class EventsController extends Controller
 
         $attributes['is_online'] = in_array($locationType, ['online', 'google_calendar'], true);
 
+        if ($locationType === 'google_calendar') {
+            $attributes['type'] = 'Meeting';
+        }
+
         if (in_array($locationType, ['online', 'google_calendar'], true)) {
             $attributes['address'] = null;
             $attributes['city'] = null;
@@ -155,7 +159,7 @@ class EventsController extends Controller
             $attributes['postal_code'] = null;
         }
 
-        if ($locationType === 'online') {
+        if (in_array($locationType, ['online', 'google_calendar'], true)) {
             $attributes['travel_mode'] = 'NONE';
         } elseif ($locationType === 'in_person') {
             $attributes['meeting_url'] = null;

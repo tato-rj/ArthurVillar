@@ -5,7 +5,13 @@
 	<input type="hidden" name="notes" value="{{old('notes')}}">
 
 	<div class="form-group text-left">
-		<label class="small fw-bold opacity-6 mb-2" for="student-sibling-search">Sibling of</label>
+
+		@include('calendar.components.sectiontitle', [
+			'icon' => 'children', 
+			'label' => 'SIBLING OF',
+			'attr' => ['for' => 'student-sibling-search']
+			])
+	
 		<div class="calendar-student-combobox" data-sibling-combobox>
 			<div class="form-control d-flex align-items-center calendar-student-combobox-control">
 				<input
@@ -47,21 +53,40 @@
 
 	<hr>
 
+		@include('calendar.components.sectiontitle', ['icon' => 'user', 'label' => 'STUDENT'])
 	<div class="row"> 
 		@input(['placeholder' => 'First name', 'name' => 'first_name', 'required' => true, 'value' => old('first_name'), 'grid' => 'col'])
 		@input(['placeholder' => 'Last name', 'name' => 'last_name', 'required' => true, 'value' => old('last_name'), 'grid' => 'col'])
 	</div>
 
-	@select(['placeholder' => 'Gender', 'name' => 'gender', 'required' => true])
-		@foreach(['female' => 'Female', 'male' => 'Male'] as $value => $genderLabel)
-			@option(['name' => 'gender', 'label' => $genderLabel, 'value' => $value, 'selected' => old('gender') === $value])
-		@endforeach
-	@endselect
+	<div class="row"> 
+		@select(['placeholder' => 'Gender', 'name' => 'gender', 'required' => true, 'grid' => 'col'])
+			@foreach(['female' => 'Female', 'male' => 'Male'] as $value => $genderLabel)
+				@option(['name' => 'gender', 'label' => $genderLabel, 'value' => $value, 'selected' => old('gender') === $value])
+			@endforeach
+		@endselect
+
+		@input(['placeholder' => 'Date of birth', 'name' => 'date_of_birth', 'value' => old('date_of_birth'), 'mask' => 'date', 'grid' => 'col'])
+	</div>
 
 	@input(['placeholder' => 'Parent name', 'name' => 'parent_name', 'value' => old('parent_name')])
 
-	@input(['placeholder' => 'Email', 'name' => 'email', 'value' => old('email'), 'required' => true])
+	<div class="form-group">
+		<div class="form-check">
+		  <input class="form-check-input" type="checkbox" value="1" name="is_adult" id="is_adult" {{iftrue(old('is_adult'), 'checked')}}>
+		  <label class="form-check-label" for="is_adult">Adult student?</label>
+		</div>
+	</div>
 
+	@include('calendar.components.sectiontitle', ['icon' => 'phone', 'label' => 'CONTACT'])
+
+	<div class="row"> 
+		@input(['placeholder' => 'Email', 'name' => 'email', 'value' => old('email'), 'required' => true, 'grid' => 'col'])
+		@input(['placeholder' => 'Phone', 'name' => 'phone', 'value' => old('phone'), 'mask' => 'phone', 'grid' => 'col'])
+	</div>
+
+	@include('calendar.components.sectiontitle', ['icon' => 'building', 'label' => 'LOCATION'])
+	
 	@select(['placeholder' => 'Default location', 'name' => 'location_id'])
 		@foreach($locations ?? [] as $location)
 			@option(['name' => 'location_id', 'label' => $location->name, 'value' => $location->id, 'selected' => old('location_id') == $location->id])
@@ -74,22 +99,10 @@
 		'paymentExempt' => (bool) old('payment_exempt'),
 	])
 
-	<div class="row"> 
-		@input(['placeholder' => 'Phone', 'name' => 'phone', 'value' => old('phone'), 'mask' => 'phone', 'grid' => 'col'])
-		@input(['placeholder' => 'Date of birth', 'name' => 'date_of_birth', 'value' => old('date_of_birth'), 'mask' => 'date', 'grid' => 'col'])
-	</div>
-
 	<div class="form-group text-left">
 		@label(['label' => 'Notes'])
 		<textarea class="form-control rounded no-resize" name="notes" rows="5">{{old('notes')}}</textarea>
 		@feedback(['input' => 'notes'])
-	</div>
-	
-	<div class="form-check">
-	  <input class="form-check-input" type="checkbox" value="1" name="is_adult" id="is_adult" {{iftrue(old('is_adult'), 'checked')}}>
-	  <label class="form-check-label" for="is_adult">
-	    Adult student?
-	  </label>
 	</div>
 
 	@submit(['label' => 'Submit', 'theme' => 'primary'])

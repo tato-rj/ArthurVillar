@@ -3807,11 +3807,13 @@ var refreshEventLocationFields = function refreshEventLocationFields(container, 
   var type = locationType || (typeInput ? typeInput.value : 'in_person');
   var isOnline = type === 'online';
   var usesGoogleCalendar = type === 'google_calendar';
+  var usesOnlineLocation = isOnline || usesGoogleCalendar;
   var inPersonFields = root.querySelector('[data-event-in-person-fields]');
   var onlineFields = root.querySelector('[data-event-online-fields]');
   var googleCalendarFields = root.querySelector('[data-event-google-calendar-fields]');
   var standardFields = root.querySelector('[data-event-standard-fields]');
   var directionsFields = root.querySelector('[data-event-directions-fields]');
+  var typeFields = root.querySelector('[data-event-type-fields]');
   var additionalFields = root.querySelector('[data-event-additional-fields]');
   if (typeInput) {
     typeInput.value = usesGoogleCalendar ? 'google_calendar' : isOnline ? 'online' : 'in_person';
@@ -3833,8 +3835,20 @@ var refreshEventLocationFields = function refreshEventLocationFields(container, 
     standardFields.disabled = usesGoogleCalendar;
   }
   if (directionsFields) {
-    directionsFields.hidden = isOnline;
-    directionsFields.disabled = isOnline;
+    directionsFields.hidden = usesOnlineLocation;
+    directionsFields.disabled = usesOnlineLocation;
+  }
+  if (typeFields) {
+    typeFields.hidden = usesGoogleCalendar;
+  }
+  if (usesGoogleCalendar && typeFields) {
+    var meetingType = typeFields.querySelector('[data-event-type-input][value="Meeting"]');
+    if (meetingType && !meetingType.checked) {
+      meetingType.checked = true;
+      meetingType.dispatchEvent(new window.Event('change', {
+        bubbles: true
+      }));
+    }
   }
   if (additionalFields) {
     additionalFields.hidden = usesGoogleCalendar;
