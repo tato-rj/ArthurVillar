@@ -6166,6 +6166,12 @@ var modalDateFormatter = new Intl.DateTimeFormat('en', {
   day: 'numeric',
   timeZone: calendarTimeZone
 });
+var recurrenceEndDateFormatter = new Intl.DateTimeFormat('en', {
+  month: 'long',
+  day: 'numeric',
+  year: 'numeric',
+  timeZone: calendarTimeZone
+});
 var formatEventTime = function formatEventTime(time) {
   if (!time) {
     return '';
@@ -6971,7 +6977,7 @@ var populateLessonModal = function populateLessonModal(modal, event) {
     var occurrenceCount = isRecurringLesson && Number.isFinite(Number(event.lessonPlanOccurrenceCount)) ? Number(event.lessonPlanOccurrenceCount) : null;
     if (endsOn && occurrenceCount !== null) {
       var occurrenceLabel = occurrenceCount === 1 ? 'occurrence' : 'occurrences';
-      lessonPlanSummary.textContent = "Ends ".concat(modalDateFormatter.format(parseDateString(endsOn)), " \xB7 ").concat(occurrenceCount, " ").concat(occurrenceLabel);
+      lessonPlanSummary.textContent = "Ends on ".concat(recurrenceEndDateFormatter.format(parseDateString(endsOn)), " \xB7 ").concat(occurrenceCount, " ").concat(occurrenceLabel);
       lessonPlanSummarySection.hidden = false;
     } else if (isRecurringLesson && !endsOn) {
       lessonPlanSummary.textContent = 'No end date · Ongoing';

@@ -7,3 +7,4 @@ require('./event-time-fields');
 require('./form');
 require('./student-payment-method');
 require('./lesson-payment-section');
+require('./url-input');

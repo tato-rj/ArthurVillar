@@ -1813,6 +1813,13 @@ const modalDateFormatter = new Intl.DateTimeFormat('en', {
     timeZone: calendarTimeZone,
 });
 
+const recurrenceEndDateFormatter = new Intl.DateTimeFormat('en', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: calendarTimeZone,
+});
+
 const formatEventTime = function(time) {
     if (!time) {
         return '';
@@ -2854,7 +2861,7 @@ const populateLessonModal = function(modal, event) {
         if (endsOn && occurrenceCount !== null) {
             const occurrenceLabel = occurrenceCount === 1 ? 'occurrence' : 'occurrences';
 
-            lessonPlanSummary.textContent = `Ends ${modalDateFormatter.format(parseDateString(endsOn))} · ${occurrenceCount} ${occurrenceLabel}`;
+            lessonPlanSummary.textContent = `Ends on ${recurrenceEndDateFormatter.format(parseDateString(endsOn))} · ${occurrenceCount} ${occurrenceLabel}`;
             lessonPlanSummarySection.hidden = false;
         } else if (isRecurringLesson && !endsOn) {
             lessonPlanSummary.textContent = 'No end date · Ongoing';

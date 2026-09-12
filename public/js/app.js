@@ -4126,6 +4126,7 @@ __webpack_require__(/*! ./event-time-fields */ "./resources/js/components/event-
 __webpack_require__(/*! ./form */ "./resources/js/components/form.js");
 __webpack_require__(/*! ./student-payment-method */ "./resources/js/components/student-payment-method.js");
 __webpack_require__(/*! ./lesson-payment-section */ "./resources/js/components/lesson-payment-section.js");
+__webpack_require__(/*! ./url-input */ "./resources/js/components/url-input.js");
 
 /***/ },
 
@@ -4212,6 +4213,50 @@ document.addEventListener('change', function (event) {
 document.addEventListener('submit', function (event) {
   event.target.querySelectorAll('[data-student-payment-method]').forEach(syncStudentPaymentMethod);
 }, true);
+
+/***/ },
+
+/***/ "./resources/js/components/url-input.js"
+/*!**********************************************!*\
+  !*** ./resources/js/components/url-input.js ***!
+  \**********************************************/
+() {
+
+var urlInputSelector = 'input[type="url"]';
+var normalizeUrlInput = function normalizeUrlInput(input) {
+  if (!input || !input.matches(urlInputSelector)) {
+    return;
+  }
+  var value = input.value.trim();
+  if (!value) {
+    input.value = '';
+    return;
+  }
+  if (/^[a-z][a-z\d+.-]*:\/\//i.test(value)) {
+    input.value = value;
+    return;
+  }
+  input.value = value.startsWith('//') ? "https:".concat(value) : "https://".concat(value.replace(/^\/+/, ''));
+};
+document.addEventListener('paste', function (event) {
+  if (!event.target.matches(urlInputSelector)) {
+    return;
+  }
+  window.setTimeout(function () {
+    normalizeUrlInput(event.target);
+  });
+});
+document.addEventListener('change', function (event) {
+  normalizeUrlInput(event.target);
+});
+document.addEventListener('focusout', function (event) {
+  normalizeUrlInput(event.target);
+});
+document.addEventListener('keydown', function (event) {
+  if (event.key === 'Enter') {
+    normalizeUrlInput(event.target);
+  }
+});
 
 /***/ },
 

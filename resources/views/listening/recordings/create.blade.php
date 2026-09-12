@@ -35,7 +35,7 @@
     </div>
     <textarea style="display: none" name="description">{!!old('description')!!}</textarea>
 
-	@input(['placeholder' => 'Youtube url', 'name' => 'youtube_url', 'required' => true, 'value' => old('youtube_url')])
+	@input(['placeholder' => 'Youtube url', 'name' => 'youtube_url', 'type' => 'url', 'required' => true, 'value' => old('youtube_url')])
 
 	<div class="row">
 		@input(['placeholder' => 'Start', 'grid' => 'col', 'name' => 'start_time', 'value' => old('start_time')])

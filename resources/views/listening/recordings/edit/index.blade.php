@@ -61,7 +61,7 @@
                 </div>
                 <textarea style="display: none" name="description">{!!$recording->description!!}</textarea>
 
-                @input(['label' => 'Source URL', 'name' => 'source_url', 'value' => $recording->source_url])
+                @input(['label' => 'Source URL', 'name' => 'source_url', 'type' => 'url', 'value' => $recording->source_url])
 
                 <div class="d-flex align-items-center form-group">
                     @if($audioUrl = $recording->storage('audio_path'))
