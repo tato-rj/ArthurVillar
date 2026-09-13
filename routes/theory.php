@@ -2,6 +2,12 @@
 
 use Illuminate\Support\Facades\Route;
 
+Route::get('/_connectivity', function () {
+	return response('', 204)
+		->header('X-Connectivity', 'online')
+		->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+})->name('connectivity');
+
 Route::middleware('auth')->group(function() {
 	Route::get('audio', 'TheoryController@audio')->name('audio.index');
 
@@ -51,4 +57,3 @@ Route::prefix('leaderboard')->name('leaderboard.')->group(function() {
 	
 	Route::post('', 'LeaderboardsController@store')->name('store');
 });
-

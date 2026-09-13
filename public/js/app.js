@@ -46863,10 +46863,36 @@ var __WEBPACK_AMD_DEFINE_RESULT__;/**
 
 /***/ },
 
+/***/ "./resources/sass/musicgames.scss"
+/*!****************************************!*\
+  !*** ./resources/sass/musicgames.scss ***!
+  \****************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+// extracted by mini-css-extract-plugin
+
+
+/***/ },
+
 /***/ "./resources/sass/app.scss"
 /*!*********************************!*\
   !*** ./resources/sass/app.scss ***!
   \*********************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+// extracted by mini-css-extract-plugin
+
+
+/***/ },
+
+/***/ "./resources/sass/offline.scss"
+/*!*************************************!*\
+  !*** ./resources/sass/offline.scss ***!
+  \*************************************/
 (__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -46906,19 +46932,6 @@ __webpack_require__.r(__webpack_exports__);
 /*!**************************************!*\
   !*** ./resources/sass/schedule.scss ***!
   \**************************************/
-(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-// extracted by mini-css-extract-plugin
-
-
-/***/ },
-
-/***/ "./resources/sass/musicgames.scss"
-/*!****************************************!*\
-  !*** ./resources/sass/musicgames.scss ***!
-  \****************************************/
 (__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -52067,11 +52080,12 @@ var create = module.exports.create;
 /******/ 		// [resolve, reject, Promise] = chunk loading, 0 = chunk loaded
 /******/ 		var installedChunks = {
 /******/ 			"/js/app": 0,
-/******/ 			"css/musicgames": 0,
 /******/ 			"css/schedule": 0,
 /******/ 			"css/calendar": 0,
 /******/ 			"css/app": 0,
-/******/ 			"css/pianoatlas": 0
+/******/ 			"css/musicgames": 0,
+/******/ 			"css/pianoatlas": 0,
+/******/ 			"css/offline": 0
 /******/ 		};
 /******/ 		
 /******/ 		// no chunk on demand loading
@@ -52121,12 +52135,13 @@ var create = module.exports.create;
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module depends on other loaded chunks and execution need to be delayed
-/******/ 	__webpack_require__.O(undefined, ["css/musicgames","css/schedule","css/calendar","css/app","css/pianoatlas"], () => (__webpack_require__("./resources/js/app.js")))
-/******/ 	__webpack_require__.O(undefined, ["css/musicgames","css/schedule","css/calendar","css/app","css/pianoatlas"], () => (__webpack_require__("./resources/sass/app.scss")))
-/******/ 	__webpack_require__.O(undefined, ["css/musicgames","css/schedule","css/calendar","css/app","css/pianoatlas"], () => (__webpack_require__("./resources/sass/calendar.scss")))
-/******/ 	__webpack_require__.O(undefined, ["css/musicgames","css/schedule","css/calendar","css/app","css/pianoatlas"], () => (__webpack_require__("./resources/sass/pianoatlas.scss")))
-/******/ 	__webpack_require__.O(undefined, ["css/musicgames","css/schedule","css/calendar","css/app","css/pianoatlas"], () => (__webpack_require__("./resources/sass/schedule.scss")))
-/******/ 	var __webpack_exports__ = __webpack_require__.O(undefined, ["css/musicgames","css/schedule","css/calendar","css/app","css/pianoatlas"], () => (__webpack_require__("./resources/sass/musicgames.scss")))
+/******/ 	__webpack_require__.O(undefined, ["css/schedule","css/calendar","css/app","css/musicgames","css/pianoatlas","css/offline"], () => (__webpack_require__("./resources/js/app.js")))
+/******/ 	__webpack_require__.O(undefined, ["css/schedule","css/calendar","css/app","css/musicgames","css/pianoatlas","css/offline"], () => (__webpack_require__("./resources/sass/app.scss")))
+/******/ 	__webpack_require__.O(undefined, ["css/schedule","css/calendar","css/app","css/musicgames","css/pianoatlas","css/offline"], () => (__webpack_require__("./resources/sass/offline.scss")))
+/******/ 	__webpack_require__.O(undefined, ["css/schedule","css/calendar","css/app","css/musicgames","css/pianoatlas","css/offline"], () => (__webpack_require__("./resources/sass/calendar.scss")))
+/******/ 	__webpack_require__.O(undefined, ["css/schedule","css/calendar","css/app","css/musicgames","css/pianoatlas","css/offline"], () => (__webpack_require__("./resources/sass/pianoatlas.scss")))
+/******/ 	__webpack_require__.O(undefined, ["css/schedule","css/calendar","css/app","css/musicgames","css/pianoatlas","css/offline"], () => (__webpack_require__("./resources/sass/schedule.scss")))
+/******/ 	var __webpack_exports__ = __webpack_require__.O(undefined, ["css/schedule","css/calendar","css/app","css/musicgames","css/pianoatlas","css/offline"], () => (__webpack_require__("./resources/sass/musicgames.scss")))
 /******/ 	__webpack_exports__ = __webpack_require__.O(__webpack_exports__);
 /******/ 	
 /******/ })()

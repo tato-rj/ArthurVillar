@@ -1,0 +1,102 @@
+.offline-state {
+  --offline-background: #ffffff;
+  --offline-foreground: #171717;
+  --offline-muted: #6b7280;
+  align-items: center;
+  background: var(--offline-background);
+  color: var(--offline-foreground);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-y: auto;
+  padding: calc(2rem + env(safe-area-inset-top)) calc(1.5rem + env(safe-area-inset-right)) calc(2rem + env(safe-area-inset-bottom)) calc(1.5rem + env(safe-area-inset-left));
+  position: fixed;
+  text-align: center;
+  font-family: inherit;
+  z-index: 20000;
+}
+.offline-state[hidden] {
+  display: none !important;
+}
+
+.offline-state__content {
+  margin: auto;
+  max-width: 34rem;
+  width: 100%;
+}
+
+.offline-state__illustration {
+  animation: offline-drift 5s ease-in-out infinite;
+  display: block;
+  height: auto;
+  margin: 0 auto clamp(1rem, 4vh, 2.25rem);
+  max-width: min(19rem, 72vw);
+  -webkit-user-select: none;
+     -moz-user-select: none;
+          user-select: none;
+  width: 100%;
+}
+
+.offline-state__title {
+  color: inherit;
+  font-size: clamp(1.75rem, 6vw, 2.5rem);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.08;
+  margin: 0;
+}
+
+.offline-state__description {
+  color: var(--offline-muted);
+  font-size: clamp(1rem, 3.8vw, 1.125rem);
+  line-height: 1.55;
+  margin: 1rem auto 1.75rem;
+  max-width: 29rem;
+}
+
+html.is-offline,
+html.is-offline body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+@keyframes offline-drift {
+  0%, 100% {
+    transform: rotate(-1.5deg) translateY(0);
+  }
+  50% {
+    transform: rotate(1.5deg) translateY(-0.5rem);
+  }
+}
+@media (prefers-color-scheme: dark) {
+  .offline-state {
+    --offline-background: #101112;
+    --offline-foreground: #f8fafc;
+    --offline-muted: #9ca3af;
+    color-scheme: dark;
+  }
+}
+html[data-calendar-theme=dark] .offline-state {
+  --offline-background: #101112;
+  --offline-foreground: #f8fafc;
+  --offline-muted: #9ca3af;
+  color-scheme: dark;
+}
+
+html[data-calendar-theme=light] .offline-state {
+  --offline-background: #ffffff;
+  --offline-foreground: #171717;
+  --offline-muted: #6b7280;
+  color-scheme: light;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .offline-state__illustration {
+    animation: none;
+  }
+  .offline-state__retry {
+    transition: none;
+  }
+}

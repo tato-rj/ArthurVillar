@@ -12,6 +12,7 @@ const mix = require('laravel-mix');
  */
 
 mix.js('resources/js/app.js', 'public/js')
+    .js('resources/js/offline.js', 'public/js')
     .js('resources/js/calendar/index.js', 'public/js/calendar')
     .js('resources/js/pianoatlas/action/index.js', 'public/js/pianoatlas/action.js')
     .js('resources/js/pianoatlas/grand/index.js', 'public/js/pianoatlas/grand.js')
@@ -30,6 +31,7 @@ mix.js('resources/js/app.js', 'public/js')
     .js('resources/js/music/games/openstaff.js', 'public/js/music')
     .js('resources/js/music/games/beathero.js', 'public/js/music')
     .sass('resources/sass/app.scss', 'public/css')
+    .sass('resources/sass/offline.scss', 'public/css')
     .sass('resources/sass/calendar.scss', 'public/css')
     .sass('resources/sass/pianoatlas.scss', 'public/css/pianoatlas.css')
     .sass('resources/sass/schedule.scss', 'public/css')

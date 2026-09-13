@@ -1,5 +1,6 @@
 {
-    "/js/app.js": "/js/app.js?id=110debf6d50d954e309199797f95291e",
+    "/js/app.js": "/js/app.js?id=0d9e05b4b7e070e825ccd9992ec34f51",
+    "/js/offline.js": "/js/offline.js?id=1c14c55e3782f8d8c503823d6dd8bd50",
     "/js/calendar/index.js": "/js/calendar/index.js?id=6ff1a818e7d8b4312a17ae66bb242be2",
     "/js/pianoatlas/action.js": "/js/pianoatlas/action.js?id=302864f2e8a8364f4c7ed93ce5486fbc",
     "/js/pianoatlas/grand.js": "/js/pianoatlas/grand.js?id=a2254792029db9ad2e8279f3d6459158",
@@ -17,7 +18,7 @@
     "/js/music/memorywizard.js": "/js/music/memorywizard.js?id=4247a48ae8c11daaef9ecba8009a4ef1",
     "/js/music/openstaff.js": "/js/music/openstaff.js?id=667a708770051d22aaea99d433d534a3",
     "/js/music/beathero.js": "/js/music/beathero.js?id=1bc8714bb2c0ebc2702b2a4d7f5afdbf",
-    "/css/musicgames.css": "/css/musicgames.css?id=7f688de1261c86d4556366e796fd0f46",
+    "/css/schedule.css": "/css/schedule.css?id=55d4806e4b00f1996f010bd8f94259d2",
     "/fonts/vendor/@fortawesome/fontawesome-free/webfa-brands-400.woff2?c210719e60948b211a1260f79812efe5": "/fonts/vendor/@fortawesome/fontawesome-free/webfa-brands-400.woff2?c210719e60948b211a1260f79812efe5?id=552e767fb6056f7f34a4783c2933556e",
     "/fonts/vendor/@fortawesome/fontawesome-free/webfa-brands-400.ttf?1815e00441357e01619e5793e1caa78a": "/fonts/vendor/@fortawesome/fontawesome-free/webfa-brands-400.ttf?1815e00441357e01619e5793e1caa78a?id=7c8d1eaa468e8de72642d3fc43ee5ed2",
     "/fonts/vendor/@fortawesome/fontawesome-free/webfa-regular-400.woff2?89999bdf5d835c0120257222e5568fec": "/fonts/vendor/@fortawesome/fontawesome-free/webfa-regular-400.woff2?89999bdf5d835c0120257222e5568fec?id=25bde24dc00e5dce8f1bfa8164b3b7b1",
@@ -566,8 +567,9 @@
     "/images/vendor/flag-icons/flags/1x1/un.svg?61c437d90a5a5757d696234053f46a57": "/images/vendor/flag-icons/flags/1x1/un.svg?61c437d90a5a5757d696234053f46a57?id=beb2701ba8d645844586612fb9ee9518",
     "/images/vendor/flag-icons/flags/4x3/xk.svg?574f9c5bed5f12b51e1f0ae61759da3e": "/images/vendor/flag-icons/flags/4x3/xk.svg?574f9c5bed5f12b51e1f0ae61759da3e?id=13d6a7678c810b9e477d5a633c1afc80",
     "/images/vendor/flag-icons/flags/1x1/xk.svg?2e923b4cb7449d2571906aede00fee91": "/images/vendor/flag-icons/flags/1x1/xk.svg?2e923b4cb7449d2571906aede00fee91?id=bb93418fd2f1a062bd90eb8a13e4b0ee",
-    "/css/schedule.css": "/css/schedule.css?id=55d4806e4b00f1996f010bd8f94259d2",
     "/css/calendar.css": "/css/calendar.css?id=f5038a199f9135e14a049489c442c4da",
     "/css/app.css": "/css/app.css?id=2090c1c3c407d622942bf4e791331abe",
-    "/css/pianoatlas.css": "/css/pianoatlas.css?id=21a0e7ecea6ba812eaefa47414a53959"
+    "/css/musicgames.css": "/css/musicgames.css?id=7f688de1261c86d4556366e796fd0f46",
+    "/css/pianoatlas.css": "/css/pianoatlas.css?id=21a0e7ecea6ba812eaefa47414a53959",
+    "/css/offline.css": "/css/offline.css?id=32cf1de737cdecf3cc4e42d4da6c5180"
 }

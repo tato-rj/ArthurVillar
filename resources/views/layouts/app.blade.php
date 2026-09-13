@@ -41,10 +41,18 @@
         
         <link href="{{ mix('css/app.css') }}" rel="stylesheet">
 
+        @if(in_array(subdomain(), ['calendar', 'theory'], true))
+            <link href="{{ mix('css/offline.css') }}" rel="stylesheet">
+        @endif
+
         @stack('header')
     </head>
     <body class="antialiased">
         @include('layouts.overlay')
+
+        @if(in_array(subdomain(), ['calendar', 'theory'], true))
+            @include('layouts.offline')
+        @endif
 
         @unless(isset($noMenu))
         <div class="app-menu-container position-absolute top-0 right-0 py-4 pr-4 pl-2 z-10">
@@ -59,6 +67,11 @@
         @include('layouts.alerts')
 
         <script src="{{ mix('js/app.js') }}"></script>
+
+        @if(in_array(subdomain(), ['calendar', 'theory'], true))
+            <script src="{{ mix('js/offline.js') }}"></script>
+        @endif
+
         @stack('scripts')
     </body>
 </html>
