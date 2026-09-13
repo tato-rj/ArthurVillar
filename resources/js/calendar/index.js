@@ -6075,7 +6075,6 @@ const teachingBreakMatchesCalendarSearch = function(teachingBreak) {
 
     return calendarValuesMatchSearch([
         teachingBreak.title,
-        teachingBreak.reason,
         'teaching break',
         'break',
     ].concat(locations.map(function(location) {
@@ -6102,7 +6101,6 @@ const generalEventMatchesCalendarSearch = function(event) {
     return calendarValuesMatchSearch([
         event.name,
         event.event_type,
-        event.notes,
         event.address,
         event.city,
         event.state,

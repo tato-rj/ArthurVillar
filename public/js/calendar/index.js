@@ -9357,7 +9357,7 @@ var holidayMatchesCalendarSearch = function holidayMatchesCalendarSearch(holiday
 };
 var teachingBreakMatchesCalendarSearch = function teachingBreakMatchesCalendarSearch(teachingBreak) {
   var locations = Array.isArray(teachingBreak.locations) ? teachingBreak.locations : [];
-  return calendarValuesMatchSearch([teachingBreak.title, teachingBreak.reason, 'teaching break', 'break'].concat(locations.map(function (location) {
+  return calendarValuesMatchSearch([teachingBreak.title, 'teaching break', 'break'].concat(locations.map(function (location) {
     return location.name;
   })));
 };
@@ -9370,7 +9370,7 @@ var recitalMatchesCalendarSearch = function recitalMatchesCalendarSearch(recital
 };
 var generalEventMatchesCalendarSearch = function generalEventMatchesCalendarSearch(event) {
   var location = event.location || {};
-  return calendarValuesMatchSearch([event.name, event.event_type, event.notes, event.address, event.city, event.state, event.postal_code, event.organizer_name, event.organizer_email, location.name || event.location, event.external_provider === 'google' ? 'Google Calendar' : '']);
+  return calendarValuesMatchSearch([event.name, event.event_type, event.address, event.city, event.state, event.postal_code, event.organizer_name, event.organizer_email, location.name || event.location, event.external_provider === 'google' ? 'Google Calendar' : '']);
 };
 var lessonMatchesStudentSearch = function lessonMatchesStudentSearch(lesson) {
   var query = normalizeStudentSearch(state.studentSearch);
