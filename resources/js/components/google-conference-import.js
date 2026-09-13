@@ -1,38 +1,67 @@
-const DATE_LINE_PATTERN = /^(?:(Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday)\s*,\s*)?([A-Za-z]+)\s+(\d{1,2})(?:\s*,\s*(\d{4}))?\s*[·⋅•]\s*(\d{1,2}(?::\d{2})?)\s*(am|pm)?\s*[–—-]\s*(\d{1,2}(?::\d{2})?)\s*(am|pm)$/i;
+const DATE_LINE_PATTERN = /^(?:([A-Za-z]+)\s*,\s*)?([A-Za-z]+)\.?\s+(\d{1,2})(?:\s*,\s*(\d{4}))?\s*(?:[·⋅•]|\bat\b)\s*(\d{1,2}(?::\d{2})?)\s*((?:a|p)\.?\s*m\.?)?\s*[–—−-]\s*(\d{1,2}(?::\d{2})?)\s*((?:a|p)\.?\s*m\.?)?$/i;
 const GOOGLE_MEET_PATTERN = /(?:https?:\/\/)?meet\.google\.com\/[a-z\d-]+(?:[/?#][^\s<>\])"']*)?/i;
 const MONTHS = {
+    jan: 0,
     january: 0,
+    feb: 1,
     february: 1,
+    mar: 2,
     march: 2,
+    apr: 3,
     april: 3,
     may: 4,
+    jun: 5,
     june: 5,
+    jul: 6,
     july: 6,
+    aug: 7,
     august: 7,
+    sep: 8,
+    sept: 8,
     september: 8,
+    oct: 9,
     october: 9,
+    nov: 10,
     november: 10,
+    dec: 11,
     december: 11,
 };
 const WEEKDAYS = {
+    sun: 0,
     sunday: 0,
+    mon: 1,
     monday: 1,
+    tue: 2,
+    tues: 2,
     tuesday: 2,
+    wed: 3,
     wednesday: 3,
+    thu: 4,
+    thur: 4,
+    thurs: 4,
     thursday: 4,
+    fri: 5,
     friday: 5,
+    sat: 6,
     saturday: 6,
 };
 
 const cleanLine = function(value) {
     return String(value || '')
-        .replace(/[\u00a0\u202f]/g, ' ')
+        .replace(/[\u00a0\u1680\u2000-\u200a\u202f\u205f\u3000]/g, ' ')
+        .replace(/[\u200b-\u200f\u202a-\u202e\u2060\u2066-\u2069\ufeff]/g, '')
         .replace(/\\_/g, '_')
         .trim();
 };
 
-const parseTime = function(value) {
-    const match = cleanLine(value).match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)$/i);
+const normalizeMeridiem = function(value) {
+    const meridiem = cleanLine(value).replace(/[.\s]/g, '').toLowerCase();
+
+    return ['am', 'pm'].includes(meridiem) ? meridiem : null;
+};
+
+const parseTime = function(value, fallbackMeridiem) {
+    const match = cleanLine(value).match(/^(\d{1,2})(?::(\d{2}))?\s*((?:a|p)\.?\s*m\.?)?$/i);
 
     if (!match) {
         return null;
@@ -40,14 +69,15 @@ const parseTime = function(value) {
 
     let hour = Number(match[1]);
     const minute = Number(match[2] || 0);
+    const meridiem = normalizeMeridiem(match[3] || fallbackMeridiem);
 
-    if (hour < 1 || hour > 12 || minute > 59) {
+    if (minute > 59 || (meridiem ? hour < 1 || hour > 12 : hour < 0 || hour > 23)) {
         return null;
     }
 
-    if (match[3].toLowerCase() === 'am') {
+    if (meridiem === 'am') {
         hour = hour === 12 ? 0 : hour;
-    } else {
+    } else if (meridiem === 'pm') {
         hour = hour === 12 ? 12 : hour + 12;
     }
 
@@ -124,17 +154,17 @@ const parseGoogleConferenceInfo = function(value, referenceDate) {
     }
 
     const dateMatch = lines[dateLineIndex].match(DATE_LINE_PATTERN);
-    const month = MONTHS[dateMatch[2].toLowerCase()];
+    const month = MONTHS[dateMatch[2].replace(/\.$/, '').toLowerCase()];
     const day = Number(dateMatch[3]);
     const specifiedYear = dateMatch[4] ? Number(dateMatch[4]) : null;
-    const weekday = dateMatch[1] ? WEEKDAYS[dateMatch[1].toLowerCase()] : null;
+    const weekday = dateMatch[1] ? WEEKDAYS[dateMatch[1].replace(/\.$/, '').toLowerCase()] : null;
     const today = referenceDate instanceof Date ? referenceDate : new Date();
     const year = specifiedYear || inferYear(month, day, weekday, today);
     const date = typeof month === 'number' ? validDate(year, month, day) : null;
-    // Google omits the first meridiem when both times share it, for example
-    // "10:00 – 10:30am". In that format the ending meridiem applies to both.
-    const startsAt = parseTime(`${dateMatch[5]}${dateMatch[6] || dateMatch[8]}`);
-    const endsAt = parseTime(`${dateMatch[7]}${dateMatch[8]}`);
+    // Google often includes the meridiem only once when both times share it.
+    // Accept it on either side, and accept period-free 24-hour time as well.
+    const startsAt = parseTime(dateMatch[5], dateMatch[6] || dateMatch[8]);
+    const endsAt = parseTime(dateMatch[7], dateMatch[8] || dateMatch[6]);
     const meetMatch = lines.join('\n').match(GOOGLE_MEET_PATTERN);
     const title = lines.slice(0, dateLineIndex).join(' ').replace(/^["“]|["”]$/g, '').trim();
 
