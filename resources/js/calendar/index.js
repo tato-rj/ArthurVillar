@@ -1767,7 +1767,7 @@ const getHolidaysForDateString = function(dateString) {
 
     return state.holidays.filter(function(holiday) {
         return holiday.date === dateString;
-    });
+    }).filter(holidayMatchesCalendarSearch);
 };
 
 const getHolidaysForDate = function(date) {
@@ -1800,7 +1800,7 @@ const getBreaksForDateString = function(dateString) {
         return !locations.length || locations.some(function(location) {
             return locationIsSelected(location.id);
         });
-    });
+    }).filter(teachingBreakMatchesCalendarSearch);
 };
 
 const getBreaksForDate = function(date) {
@@ -1810,7 +1810,7 @@ const getBreaksForDate = function(date) {
 const getRecitalsForDateString = function(dateString) {
     return state.recitals.filter(function(recital) {
         return String(recital.date || '').substring(0, 10) === dateString;
-    });
+    }).filter(recitalMatchesCalendarSearch);
 };
 
 const getRecitalsForDate = function(date) {
@@ -6051,14 +6051,67 @@ const normalizeStudentSearch = function(value) {
     return String(value || '').trim().toLowerCase();
 };
 
-const generalEventMatchesCalendarSearch = function(event) {
+const calendarValuesMatchSearch = function(values) {
     const query = normalizeStudentSearch(state.studentSearch);
 
     if (query.length < 3) {
         return true;
     }
 
-    return String(event.event_type || '').toLowerCase().includes(query);
+    return values.some(function(value) {
+        return String(value || '').toLowerCase().includes(query);
+    });
+};
+
+const holidayMatchesCalendarSearch = function(holiday) {
+    return calendarValuesMatchSearch([
+        holiday.title,
+        'holiday',
+    ]);
+};
+
+const teachingBreakMatchesCalendarSearch = function(teachingBreak) {
+    const locations = Array.isArray(teachingBreak.locations) ? teachingBreak.locations : [];
+
+    return calendarValuesMatchSearch([
+        teachingBreak.title,
+        teachingBreak.reason,
+        'teaching break',
+        'break',
+    ].concat(locations.map(function(location) {
+        return location.name;
+    })));
+};
+
+const recitalMatchesCalendarSearch = function(recital) {
+    const students = Array.isArray(recital.students) ? recital.students : [];
+    const location = recital.location || {};
+
+    return calendarValuesMatchSearch([
+        recital.name,
+        'recital',
+        location.name,
+    ].concat(students.map(function(student) {
+        return student.name;
+    })));
+};
+
+const generalEventMatchesCalendarSearch = function(event) {
+    const location = event.location || {};
+
+    return calendarValuesMatchSearch([
+        event.name,
+        event.event_type,
+        event.notes,
+        event.address,
+        event.city,
+        event.state,
+        event.postal_code,
+        event.organizer_name,
+        event.organizer_email,
+        location.name || event.location,
+        event.external_provider === 'google' ? 'Google Calendar' : '',
+    ]);
 };
 
 const lessonMatchesStudentSearch = function(lesson) {
