@@ -54,11 +54,12 @@ class BeatHeroSettings extends GameFactory
             'numOfChallenges' => 4,
             'numOfMeasures' => 2,
             'bpm' => 60,
+            'micSensitivity' => 70,
             'timeSignatures' => ['4/4'],
             'notesValues' => ['half', 'quarter', 'eigth'],
             'sound' => true,
             'includeRests' => false,
-            'useVoice' => true
+            'useVoice' => false
         ];
     }
 

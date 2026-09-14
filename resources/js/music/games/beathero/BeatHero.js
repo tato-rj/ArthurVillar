@@ -12,6 +12,7 @@ export class BeatHero {
     this._resizeHandler = null;
     this._timeSignature = this._pickTimeSignature();
     this._bpm = this._normalizeBpm(this.opts.bpm);
+    this._micSensitivity = this._normalizeMicSensitivity(this.opts.micSensitivity);
     this._includeRests = this._normalizeBoolOption(this.opts.includeRests);
     this._useVoice = this._normalizeBoolOption(this.opts.useVoice);
     this._enabledNoteValues = this._normalizeNoteOptions(this.opts.notesValues || this.opts.notes);
@@ -38,8 +39,10 @@ export class BeatHero {
     this._voiceSource = null;
     this._voiceStream = null;
     this._voiceFrame = null;
-    this._voiceBaseline = 0.008;
+    this._voiceBaseline = 0.003;
+    this._voicePeakBaseline = 0.008;
     this._voicePreviousLevel = 0;
+    this._voicePreviousPeak = 0;
     this._voiceIsActive = false;
     this._voiceInputStarting = false;
     this._voiceTapArmed = true;
@@ -63,6 +66,7 @@ export class BeatHero {
     this._wirePlayControls();
     this._wireTapControls();
     this._wireVoiceControls();
+    this._wireSettingsRanges();
     if (this._useVoice) this._startVoiceInput();
 
     if (!this._resizeHandler) {
@@ -249,6 +253,20 @@ export class BeatHero {
       event.preventDefault();
       this._stopVoiceInput();
       this._startVoiceInput();
+    });
+  }
+
+  _wireSettingsRanges() {
+    document.querySelectorAll("[data-beat-hero-range-output]").forEach((range) => {
+      const output = document.querySelector(range.dataset.beatHeroRangeOutput);
+      if (!output) return;
+
+      const updateOutput = () => {
+        output.textContent = `${range.value}${range.dataset.outputSuffix || ""}`;
+      };
+
+      updateOutput();
+      range.addEventListener("input", updateOutput);
     });
   }
 
@@ -569,8 +587,8 @@ export class BeatHero {
       this._voiceStream = stream;
       this._voiceSource = this._voiceAudioContext.createMediaStreamSource(stream);
       this._voiceAnalyser = this._voiceAudioContext.createAnalyser();
-      this._voiceAnalyser.fftSize = 512;
-      this._voiceData = new Uint8Array(this._voiceAnalyser.fftSize);
+      this._voiceAnalyser.fftSize = 2048;
+      this._voiceData = new Float32Array(this._voiceAnalyser.fftSize);
       this._voiceSource.connect(this._voiceAnalyser);
 
       this._voiceIsActive = true;
@@ -609,8 +627,10 @@ export class BeatHero {
     this._voiceData = null;
     this._voiceSource = null;
     this._voiceStream = null;
-    this._voiceBaseline = 0.008;
+    this._voiceBaseline = 0.003;
+    this._voicePeakBaseline = 0.008;
     this._voicePreviousLevel = 0;
+    this._voicePreviousPeak = 0;
     this._voiceIsActive = false;
     this._voiceInputStarting = false;
     this._voiceTapArmed = true;
@@ -621,24 +641,43 @@ export class BeatHero {
   _listenForVoiceTaps() {
     if (!this._voiceAnalyser || !this._voiceData) return;
 
-    this._voiceAnalyser.getByteTimeDomainData(this._voiceData);
-    const level = this._voiceInputLevel(this._voiceData);
+    this._voiceAnalyser.getFloatTimeDomainData(this._voiceData);
+    const { level, peak } = this._voiceInputMetrics(this._voiceData);
     const now = performance.now();
-    const threshold = Math.max(0.028, this._voiceBaseline * 2.6);
-    const attackThreshold = Math.max(0.01, this._voiceBaseline * 0.7);
-    const releaseThreshold = Math.max(0.018, this._voiceBaseline * 1.45);
+    const sensitivityScale = this._voiceSensitivityScale();
+    const threshold = Math.max(
+      0.006 * sensitivityScale,
+      this._voiceBaseline * (1.3 + sensitivityScale * 0.43),
+    );
+    const peakThreshold = Math.max(
+      0.018 * sensitivityScale,
+      this._voicePeakBaseline * (1.45 + sensitivityScale * 0.595),
+    );
+    const attackThreshold = Math.max(
+      0.0015 * sensitivityScale,
+      this._voiceBaseline * (0.18 + sensitivityScale * 0.13),
+    );
+    const peakAttackThreshold = Math.max(
+      0.004 * sensitivityScale,
+      this._voicePeakBaseline * (0.15 + sensitivityScale * 0.108),
+    );
+    const releaseThreshold = Math.max(0.0045, this._voiceBaseline * 1.25);
+    const peakReleaseThreshold = Math.max(0.012, this._voicePeakBaseline * 1.4);
     const attack = level - this._voicePreviousLevel;
+    const peakAttack = peak - this._voicePreviousPeak;
     const isVoiceTap = (
       this._voiceTapArmed
       && now >= this._voiceDetectionReadyAt
       && (
         (level > threshold && attack > attackThreshold)
-        || level > Math.max(0.085, this._voiceBaseline * 4)
+        || (peak > peakThreshold && peakAttack > peakAttackThreshold)
       )
     );
 
-    const baselineRate = level > threshold ? 0.004 : 0.035;
-    this._voiceBaseline = (this._voiceBaseline * (1 - baselineRate)) + (Math.min(level, 0.08) * baselineRate);
+    const baselineRate = level > threshold ? 0.003 : 0.04;
+    const peakBaselineRate = peak > peakThreshold ? 0.002 : 0.03;
+    this._voiceBaseline = (this._voiceBaseline * (1 - baselineRate)) + (Math.min(level, 0.06) * baselineRate);
+    this._voicePeakBaseline = (this._voicePeakBaseline * (1 - peakBaselineRate)) + (Math.min(peak, 0.1) * peakBaselineRate);
 
     if (isVoiceTap && now - this._lastVoiceTapTime > 120) {
       this._voiceTapArmed = false;
@@ -647,11 +686,16 @@ export class BeatHero {
         this._handleTapAt(now - this._voiceTapOffsetMs, this._voiceTapWindowMs);
       }
       this._flashVoiceTapDetected();
-    } else if (!this._voiceTapArmed && level < releaseThreshold) {
+    } else if (
+      !this._voiceTapArmed
+      && level < releaseThreshold
+      && peak < peakReleaseThreshold
+    ) {
       this._voiceTapArmed = true;
     }
 
     this._voicePreviousLevel = level;
+    this._voicePreviousPeak = peak;
 
     this._voiceFrame = requestAnimationFrame(() => this._listenForVoiceTaps());
   }
@@ -696,15 +740,25 @@ export class BeatHero {
     }, 160);
   }
 
-  _voiceInputLevel(data) {
+  _voiceInputMetrics(data) {
     let sum = 0;
+    let peak = 0;
 
     data.forEach((value) => {
-      const centered = (value - 128) / 128;
-      sum += centered * centered;
+      peak = Math.max(peak, Math.abs(value));
+      sum += value * value;
     });
 
-    return Math.sqrt(sum / data.length);
+    return {
+      level: Math.sqrt(sum / data.length),
+      peak,
+    };
+  }
+
+  _voiceSensitivityScale() {
+    const sensitivity = this._micSensitivity / 100;
+
+    return 1.8 - sensitivity * 1.25;
   }
 
   _scheduleRhythmAnimations(intervalMs) {
@@ -975,9 +1029,16 @@ export class BeatHero {
 
   _normalizeBpm(value) {
     const bpm = Number(value);
-    if (!Number.isFinite(bpm) || bpm <= 0) return 80;
+    if (!Number.isFinite(bpm)) return 60;
 
-    return bpm;
+    return Math.min(200, Math.max(40, bpm));
+  }
+
+  _normalizeMicSensitivity(value) {
+    const sensitivity = Number(value);
+    if (!Number.isFinite(sensitivity)) return 70;
+
+    return Math.min(100, Math.max(0, sensitivity));
   }
 
   _normalizeMeasureCount(value) {

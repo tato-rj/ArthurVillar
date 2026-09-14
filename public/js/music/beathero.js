@@ -50,6 +50,7 @@ var BeatHero = /*#__PURE__*/function () {
     this._resizeHandler = null;
     this._timeSignature = this._pickTimeSignature();
     this._bpm = this._normalizeBpm(this.opts.bpm);
+    this._micSensitivity = this._normalizeMicSensitivity(this.opts.micSensitivity);
     this._includeRests = this._normalizeBoolOption(this.opts.includeRests);
     this._useVoice = this._normalizeBoolOption(this.opts.useVoice);
     this._enabledNoteValues = this._normalizeNoteOptions(this.opts.notesValues || this.opts.notes);
@@ -76,8 +77,10 @@ var BeatHero = /*#__PURE__*/function () {
     this._voiceSource = null;
     this._voiceStream = null;
     this._voiceFrame = null;
-    this._voiceBaseline = 0.008;
+    this._voiceBaseline = 0.003;
+    this._voicePeakBaseline = 0.008;
     this._voicePreviousLevel = 0;
+    this._voicePreviousPeak = 0;
     this._voiceIsActive = false;
     this._voiceInputStarting = false;
     this._voiceTapArmed = true;
@@ -103,6 +106,7 @@ var BeatHero = /*#__PURE__*/function () {
       this._wirePlayControls();
       this._wireTapControls();
       this._wireVoiceControls();
+      this._wireSettingsRanges();
       if (this._useVoice) this._startVoiceInput();
       if (!this._resizeHandler) {
         this._resizeHandler = function () {
@@ -285,6 +289,19 @@ var BeatHero = /*#__PURE__*/function () {
         event.preventDefault();
         _this4._stopVoiceInput();
         _this4._startVoiceInput();
+      });
+    }
+  }, {
+    key: "_wireSettingsRanges",
+    value: function _wireSettingsRanges() {
+      document.querySelectorAll("[data-beat-hero-range-output]").forEach(function (range) {
+        var output = document.querySelector(range.dataset.beatHeroRangeOutput);
+        if (!output) return;
+        var updateOutput = function updateOutput() {
+          output.textContent = "".concat(range.value).concat(range.dataset.outputSuffix || "");
+        };
+        updateOutput();
+        range.addEventListener("input", updateOutput);
       });
     }
   }, {
@@ -632,8 +649,8 @@ var BeatHero = /*#__PURE__*/function () {
         _this7._voiceStream = stream;
         _this7._voiceSource = _this7._voiceAudioContext.createMediaStreamSource(stream);
         _this7._voiceAnalyser = _this7._voiceAudioContext.createAnalyser();
-        _this7._voiceAnalyser.fftSize = 512;
-        _this7._voiceData = new Uint8Array(_this7._voiceAnalyser.fftSize);
+        _this7._voiceAnalyser.fftSize = 2048;
+        _this7._voiceData = new Float32Array(_this7._voiceAnalyser.fftSize);
         _this7._voiceSource.connect(_this7._voiceAnalyser);
         _this7._voiceIsActive = true;
         _this7._voiceInputStarting = false;
@@ -668,8 +685,10 @@ var BeatHero = /*#__PURE__*/function () {
       this._voiceData = null;
       this._voiceSource = null;
       this._voiceStream = null;
-      this._voiceBaseline = 0.008;
+      this._voiceBaseline = 0.003;
+      this._voicePeakBaseline = 0.008;
       this._voicePreviousLevel = 0;
+      this._voicePreviousPeak = 0;
       this._voiceIsActive = false;
       this._voiceInputStarting = false;
       this._voiceTapArmed = true;
@@ -681,16 +700,25 @@ var BeatHero = /*#__PURE__*/function () {
     value: function _listenForVoiceTaps() {
       var _this8 = this;
       if (!this._voiceAnalyser || !this._voiceData) return;
-      this._voiceAnalyser.getByteTimeDomainData(this._voiceData);
-      var level = this._voiceInputLevel(this._voiceData);
+      this._voiceAnalyser.getFloatTimeDomainData(this._voiceData);
+      var _this$_voiceInputMetr = this._voiceInputMetrics(this._voiceData),
+        level = _this$_voiceInputMetr.level,
+        peak = _this$_voiceInputMetr.peak;
       var now = performance.now();
-      var threshold = Math.max(0.028, this._voiceBaseline * 2.6);
-      var attackThreshold = Math.max(0.01, this._voiceBaseline * 0.7);
-      var releaseThreshold = Math.max(0.018, this._voiceBaseline * 1.45);
+      var sensitivityScale = this._voiceSensitivityScale();
+      var threshold = Math.max(0.006 * sensitivityScale, this._voiceBaseline * (1.3 + sensitivityScale * 0.43));
+      var peakThreshold = Math.max(0.018 * sensitivityScale, this._voicePeakBaseline * (1.45 + sensitivityScale * 0.595));
+      var attackThreshold = Math.max(0.0015 * sensitivityScale, this._voiceBaseline * (0.18 + sensitivityScale * 0.13));
+      var peakAttackThreshold = Math.max(0.004 * sensitivityScale, this._voicePeakBaseline * (0.15 + sensitivityScale * 0.108));
+      var releaseThreshold = Math.max(0.0045, this._voiceBaseline * 1.25);
+      var peakReleaseThreshold = Math.max(0.012, this._voicePeakBaseline * 1.4);
       var attack = level - this._voicePreviousLevel;
-      var isVoiceTap = this._voiceTapArmed && now >= this._voiceDetectionReadyAt && (level > threshold && attack > attackThreshold || level > Math.max(0.085, this._voiceBaseline * 4));
-      var baselineRate = level > threshold ? 0.004 : 0.035;
-      this._voiceBaseline = this._voiceBaseline * (1 - baselineRate) + Math.min(level, 0.08) * baselineRate;
+      var peakAttack = peak - this._voicePreviousPeak;
+      var isVoiceTap = this._voiceTapArmed && now >= this._voiceDetectionReadyAt && (level > threshold && attack > attackThreshold || peak > peakThreshold && peakAttack > peakAttackThreshold);
+      var baselineRate = level > threshold ? 0.003 : 0.04;
+      var peakBaselineRate = peak > peakThreshold ? 0.002 : 0.03;
+      this._voiceBaseline = this._voiceBaseline * (1 - baselineRate) + Math.min(level, 0.06) * baselineRate;
+      this._voicePeakBaseline = this._voicePeakBaseline * (1 - peakBaselineRate) + Math.min(peak, 0.1) * peakBaselineRate;
       if (isVoiceTap && now - this._lastVoiceTapTime > 120) {
         this._voiceTapArmed = false;
         this._lastVoiceTapTime = now;
@@ -698,10 +726,11 @@ var BeatHero = /*#__PURE__*/function () {
           this._handleTapAt(now - this._voiceTapOffsetMs, this._voiceTapWindowMs);
         }
         this._flashVoiceTapDetected();
-      } else if (!this._voiceTapArmed && level < releaseThreshold) {
+      } else if (!this._voiceTapArmed && level < releaseThreshold && peak < peakReleaseThreshold) {
         this._voiceTapArmed = true;
       }
       this._voicePreviousLevel = level;
+      this._voicePreviousPeak = peak;
       this._voiceFrame = requestAnimationFrame(function () {
         return _this8._listenForVoiceTaps();
       });
@@ -748,14 +777,24 @@ var BeatHero = /*#__PURE__*/function () {
       }, 160);
     }
   }, {
-    key: "_voiceInputLevel",
-    value: function _voiceInputLevel(data) {
+    key: "_voiceInputMetrics",
+    value: function _voiceInputMetrics(data) {
       var sum = 0;
+      var peak = 0;
       data.forEach(function (value) {
-        var centered = (value - 128) / 128;
-        sum += centered * centered;
+        peak = Math.max(peak, Math.abs(value));
+        sum += value * value;
       });
-      return Math.sqrt(sum / data.length);
+      return {
+        level: Math.sqrt(sum / data.length),
+        peak: peak
+      };
+    }
+  }, {
+    key: "_voiceSensitivityScale",
+    value: function _voiceSensitivityScale() {
+      var sensitivity = this._micSensitivity / 100;
+      return 1.8 - sensitivity * 1.25;
     }
   }, {
     key: "_scheduleRhythmAnimations",
@@ -1055,8 +1094,15 @@ var BeatHero = /*#__PURE__*/function () {
     key: "_normalizeBpm",
     value: function _normalizeBpm(value) {
       var bpm = Number(value);
-      if (!Number.isFinite(bpm) || bpm <= 0) return 80;
-      return bpm;
+      if (!Number.isFinite(bpm)) return 60;
+      return Math.min(200, Math.max(40, bpm));
+    }
+  }, {
+    key: "_normalizeMicSensitivity",
+    value: function _normalizeMicSensitivity(value) {
+      var sensitivity = Number(value);
+      if (!Number.isFinite(sensitivity)) return 70;
+      return Math.min(100, Math.max(0, sensitivity));
     }
   }, {
     key: "_normalizeMeasureCount",
