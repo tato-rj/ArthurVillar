@@ -58,7 +58,7 @@ class BeatHeroSettings extends GameFactory
             'notesValues' => ['half', 'quarter', 'eigth'],
             'sound' => true,
             'includeRests' => false,
-            'useVoice' => false
+            'useVoice' => true
         ];
     }
 
