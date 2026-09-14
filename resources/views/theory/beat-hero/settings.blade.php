@@ -16,7 +16,7 @@
 
   @component('theory.components.settings.section', ['title' => 'PREFERENCES'])
     @include('theory.components.settings.toggle', ['label' => 'Sound effects', 'name' => 'sound'])
-    @include('theory.components.settings.toggle', ['label' => 'Use voice', 'name' => 'useVoice'])
+    @include('theory.components.settings.toggle', ['label' => 'Use microphone to tap', 'name' => 'useVoice'])
   @endcomponent
 
   <button type="submit" class="btn btn-primary w-100">Start new game</button>

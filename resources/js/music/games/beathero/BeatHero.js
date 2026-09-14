@@ -6,6 +6,7 @@ export class BeatHero {
       wrapperSelector: "#game-wrapper",
       previewSelector: "#preview-score",
       tapSelector: "#tap-wrapper",
+      micSelector: "#mic-tap-wrapper",
       ...options,
     };
     this._resizeHandler = null;
@@ -34,14 +35,18 @@ export class BeatHero {
     this._voiceAudioContext = null;
     this._voiceAnalyser = null;
     this._voiceData = null;
+    this._voiceSource = null;
     this._voiceStream = null;
     this._voiceFrame = null;
-    this._voiceBaseline = 0.02;
+    this._voiceBaseline = 0.008;
     this._voicePreviousLevel = 0;
     this._voiceIsActive = false;
     this._voiceInputStarting = false;
+    this._voiceTapArmed = true;
+    this._voiceDetectionReadyAt = 0;
+    this._voiceUiResetTimeout = null;
     this._lastVoiceTapTime = 0;
-    this._voiceTapOffsetMs = 120;
+    this._voiceTapOffsetMs = 60;
     this._goodTapCount = 0;
     this._badTapCount = 0;
     this.$playWrap = null;
@@ -57,6 +62,7 @@ export class BeatHero {
     this._syncInputMode();
     this._wirePlayControls();
     this._wireTapControls();
+    this._wireVoiceControls();
     if (this._useVoice) this._startVoiceInput();
 
     if (!this._resizeHandler) {
@@ -235,12 +241,30 @@ export class BeatHero {
     });
   }
 
+  _wireVoiceControls() {
+    const retryButton = document.querySelector("#mic-tap-retry");
+    if (!retryButton) return;
+
+    retryButton.addEventListener("click", (event) => {
+      event.preventDefault();
+      this._stopVoiceInput();
+      this._startVoiceInput();
+    });
+  }
+
   _syncInputMode() {
     const tapWrapper = document.querySelector(this.opts.tapSelector);
-    if (!tapWrapper) return;
+    const micWrapper = document.querySelector(this.opts.micSelector);
 
-    tapWrapper.classList.toggle("d-none", this._useVoice);
-    tapWrapper.style.display = this._useVoice ? "none" : "";
+    if (tapWrapper) {
+      tapWrapper.classList.toggle("d-none", this._useVoice);
+      tapWrapper.style.display = this._useVoice ? "none" : "";
+    }
+
+    if (micWrapper) {
+      micWrapper.classList.toggle("d-none", !this._useVoice);
+      micWrapper.style.display = this._useVoice ? "block" : "none";
+    }
   }
 
   _setPlayButtons(isPlaying) {
@@ -474,7 +498,8 @@ export class BeatHero {
   }
 
   _animateTapFeedback(className) {
-    const feedback = document.querySelector("#tap-feedback");
+    const feedbackSelector = this._useVoice ? "#mic-tap-feedback" : "#tap-feedback";
+    const feedback = document.querySelector(feedbackSelector);
     if (!feedback) return;
 
     feedback.classList.remove("good-tap", "bad-tap");
@@ -499,30 +524,38 @@ export class BeatHero {
   }
 
   _startVoiceInput() {
-    if (
-      this._voiceIsActive
-      || this._voiceInputStarting
-    ) return Promise.resolve();
+    if (this._voiceIsActive) {
+      this._voiceAudioContext?.resume?.();
+      return Promise.resolve();
+    }
+    if (this._voiceInputStarting) return Promise.resolve();
 
     if (!window.isSecureContext) {
       console.warn("Beat Hero voice input needs HTTPS or localhost to request microphone access.");
+      this._setVoiceInputState("unavailable", "Use HTTPS or localhost to enable the microphone.");
       return Promise.resolve();
     }
 
     if (!navigator.mediaDevices?.getUserMedia) {
       console.warn("Beat Hero voice input is not supported by this browser.");
+      this._setVoiceInputState("unavailable", "This browser cannot access microphone input.");
       return Promise.resolve();
     }
 
     const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
-    if (!AudioContextCtor) return Promise.resolve();
+    if (!AudioContextCtor) {
+      this._setVoiceInputState("unavailable", "This browser cannot analyze live audio.");
+      return Promise.resolve();
+    }
 
-      this._voiceInputStarting = true;
+    this._voiceInputStarting = true;
+    this._setVoiceInputState("connecting");
     return navigator.mediaDevices.getUserMedia({
       audio: {
         echoCancellation: true,
-        noiseSuppression: true,
-        autoGainControl: true,
+        noiseSuppression: false,
+        autoGainControl: false,
+        channelCount: 1,
       },
     }).then((stream) => {
       if (!this._useVoice && !this._metronomeIsStarting && !this._metronomeInterval) {
@@ -532,18 +565,29 @@ export class BeatHero {
       }
 
       this._voiceAudioContext = new AudioContextCtor();
+      this._voiceAudioContext.resume?.();
       this._voiceStream = stream;
-      const source = this._voiceAudioContext.createMediaStreamSource(stream);
+      this._voiceSource = this._voiceAudioContext.createMediaStreamSource(stream);
       this._voiceAnalyser = this._voiceAudioContext.createAnalyser();
       this._voiceAnalyser.fftSize = 512;
       this._voiceData = new Uint8Array(this._voiceAnalyser.fftSize);
-      source.connect(this._voiceAnalyser);
+      this._voiceSource.connect(this._voiceAnalyser);
 
       this._voiceIsActive = true;
       this._voiceInputStarting = false;
+      this._voiceTapArmed = true;
+      this._voiceDetectionReadyAt = performance.now() + 350;
+      this._setVoiceInputState("listening");
       this._listenForVoiceTaps();
-    }).catch(() => {
+    }).catch((error) => {
       this._voiceInputStarting = false;
+      const wasBlocked = ["NotAllowedError", "SecurityError"].includes(error?.name);
+      this._setVoiceInputState(
+        wasBlocked ? "blocked" : "unavailable",
+        wasBlocked
+          ? "Allow microphone access, then try again."
+          : "No microphone is available on this device.",
+      );
     });
   }
 
@@ -553,16 +597,24 @@ export class BeatHero {
       this._voiceFrame = null;
     }
 
+    if (this._voiceUiResetTimeout) {
+      clearTimeout(this._voiceUiResetTimeout);
+      this._voiceUiResetTimeout = null;
+    }
+
     this._voiceStream?.getTracks?.().forEach((track) => track.stop());
     this._voiceAudioContext?.close?.();
     this._voiceAudioContext = null;
     this._voiceAnalyser = null;
     this._voiceData = null;
+    this._voiceSource = null;
     this._voiceStream = null;
-    this._voiceBaseline = 0.02;
+    this._voiceBaseline = 0.008;
     this._voicePreviousLevel = 0;
     this._voiceIsActive = false;
     this._voiceInputStarting = false;
+    this._voiceTapArmed = true;
+    this._voiceDetectionReadyAt = 0;
     this._lastVoiceTapTime = 0;
   }
 
@@ -572,25 +624,76 @@ export class BeatHero {
     this._voiceAnalyser.getByteTimeDomainData(this._voiceData);
     const level = this._voiceInputLevel(this._voiceData);
     const now = performance.now();
-    const threshold = Math.max(0.038, this._voiceBaseline * 1.9);
-    const attackThreshold = Math.max(0.014, this._voiceBaseline * 0.55);
+    const threshold = Math.max(0.028, this._voiceBaseline * 2.6);
+    const attackThreshold = Math.max(0.01, this._voiceBaseline * 0.7);
+    const releaseThreshold = Math.max(0.018, this._voiceBaseline * 1.45);
     const attack = level - this._voicePreviousLevel;
     const isVoiceTap = (
-      (level > threshold && attack > attackThreshold)
-      || level > Math.max(0.07, this._voiceBaseline * 2.8)
+      this._voiceTapArmed
+      && now >= this._voiceDetectionReadyAt
+      && (
+        (level > threshold && attack > attackThreshold)
+        || level > Math.max(0.085, this._voiceBaseline * 4)
+      )
     );
 
-    const baselineRate = level > threshold ? 0.012 : 0.045;
-    this._voiceBaseline = (this._voiceBaseline * (1 - baselineRate)) + (Math.min(level, 0.14) * baselineRate);
+    const baselineRate = level > threshold ? 0.004 : 0.035;
+    this._voiceBaseline = (this._voiceBaseline * (1 - baselineRate)) + (Math.min(level, 0.08) * baselineRate);
 
     if (isVoiceTap && now - this._lastVoiceTapTime > 120) {
+      this._voiceTapArmed = false;
       this._lastVoiceTapTime = now;
-      this._handleTapAt(now - this._voiceTapOffsetMs, this._voiceTapWindowMs);
+      if (this._rhythmStartTime !== null) {
+        this._handleTapAt(now - this._voiceTapOffsetMs, this._voiceTapWindowMs);
+      }
+      this._flashVoiceTapDetected();
+    } else if (!this._voiceTapArmed && level < releaseThreshold) {
+      this._voiceTapArmed = true;
     }
 
     this._voicePreviousLevel = level;
 
     this._voiceFrame = requestAnimationFrame(() => this._listenForVoiceTaps());
+  }
+
+  _setVoiceInputState(state, detail = "") {
+    const icon = document.querySelector("#mic-tap-icon");
+    const status = document.querySelector("#mic-tap-status");
+    const retryButton = document.querySelector("#mic-tap-retry");
+    const isReady = state === "connecting" || state === "listening";
+
+    if (icon) {
+      icon.classList.remove("connecting", "listening", "detected", "blocked");
+      icon.classList.add(state === "unavailable" ? "blocked" : state);
+      icon.querySelector('[data-mic-icon="active"]')?.classList.toggle("d-none", !isReady);
+      icon.querySelector('[data-mic-icon="inactive"]')?.classList.toggle("d-none", isReady);
+    }
+
+    if (status) {
+      const labels = {
+        connecting: "Connecting...",
+        listening: "Listening... clap or tap the rhythm",
+        blocked: "Microphone blocked",
+        unavailable: "Microphone unavailable",
+      };
+      status.textContent = detail || labels[state] || "";
+    }
+
+    if (retryButton) {
+      retryButton.style.display = ["blocked", "unavailable"].includes(state) ? "inline-block" : "none";
+    }
+  }
+
+  _flashVoiceTapDetected() {
+    const icon = document.querySelector("#mic-tap-icon");
+    if (!icon) return;
+
+    icon.classList.add("detected");
+    if (this._voiceUiResetTimeout) clearTimeout(this._voiceUiResetTimeout);
+    this._voiceUiResetTimeout = setTimeout(() => {
+      icon.classList.remove("detected");
+      this._voiceUiResetTimeout = null;
+    }, 160);
   }
 
   _voiceInputLevel(data) {

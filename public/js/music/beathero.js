@@ -44,7 +44,8 @@ var BeatHero = /*#__PURE__*/function () {
     this.opts = _objectSpread({
       wrapperSelector: "#game-wrapper",
       previewSelector: "#preview-score",
-      tapSelector: "#tap-wrapper"
+      tapSelector: "#tap-wrapper",
+      micSelector: "#mic-tap-wrapper"
     }, options);
     this._resizeHandler = null;
     this._timeSignature = this._pickTimeSignature();
@@ -72,14 +73,18 @@ var BeatHero = /*#__PURE__*/function () {
     this._voiceAudioContext = null;
     this._voiceAnalyser = null;
     this._voiceData = null;
+    this._voiceSource = null;
     this._voiceStream = null;
     this._voiceFrame = null;
-    this._voiceBaseline = 0.02;
+    this._voiceBaseline = 0.008;
     this._voicePreviousLevel = 0;
     this._voiceIsActive = false;
     this._voiceInputStarting = false;
+    this._voiceTapArmed = true;
+    this._voiceDetectionReadyAt = 0;
+    this._voiceUiResetTimeout = null;
     this._lastVoiceTapTime = 0;
-    this._voiceTapOffsetMs = 120;
+    this._voiceTapOffsetMs = 60;
     this._goodTapCount = 0;
     this._badTapCount = 0;
     this.$playWrap = null;
@@ -97,6 +102,7 @@ var BeatHero = /*#__PURE__*/function () {
       this._syncInputMode();
       this._wirePlayControls();
       this._wireTapControls();
+      this._wireVoiceControls();
       if (this._useVoice) this._startVoiceInput();
       if (!this._resizeHandler) {
         this._resizeHandler = function () {
@@ -270,12 +276,30 @@ var BeatHero = /*#__PURE__*/function () {
       });
     }
   }, {
+    key: "_wireVoiceControls",
+    value: function _wireVoiceControls() {
+      var _this4 = this;
+      var retryButton = document.querySelector("#mic-tap-retry");
+      if (!retryButton) return;
+      retryButton.addEventListener("click", function (event) {
+        event.preventDefault();
+        _this4._stopVoiceInput();
+        _this4._startVoiceInput();
+      });
+    }
+  }, {
     key: "_syncInputMode",
     value: function _syncInputMode() {
       var tapWrapper = document.querySelector(this.opts.tapSelector);
-      if (!tapWrapper) return;
-      tapWrapper.classList.toggle("d-none", this._useVoice);
-      tapWrapper.style.display = this._useVoice ? "none" : "";
+      var micWrapper = document.querySelector(this.opts.micSelector);
+      if (tapWrapper) {
+        tapWrapper.classList.toggle("d-none", this._useVoice);
+        tapWrapper.style.display = this._useVoice ? "none" : "";
+      }
+      if (micWrapper) {
+        micWrapper.classList.toggle("d-none", !this._useVoice);
+        micWrapper.style.display = this._useVoice ? "block" : "none";
+      }
     }
   }, {
     key: "_setPlayButtons",
@@ -287,7 +311,7 @@ var BeatHero = /*#__PURE__*/function () {
   }, {
     key: "_startMetronome",
     value: function _startMetronome() {
-      var _this4 = this;
+      var _this5 = this;
       if (this._isMetronomeActive()) return;
       if (!window.Tone) {
         this._setPlayButtons(false);
@@ -301,31 +325,31 @@ var BeatHero = /*#__PURE__*/function () {
       this._setPlayButtons(true);
       this._metronomeIsStarting = true;
       this._ensureMetronomeAudio().then(function () {
-        if (!_this4._metronomeIsStarting) return;
-        _this4._metronomeStartTimeout = setTimeout(function () {
-          if (!_this4._metronomeIsStarting) return;
-          var intervalMs = 60000 / _this4._bpm;
+        if (!_this5._metronomeIsStarting) return;
+        _this5._metronomeStartTimeout = setTimeout(function () {
+          if (!_this5._metronomeIsStarting) return;
+          var intervalMs = 60000 / _this5._bpm;
           var playBeat = function playBeat() {
-            if (_this4._shouldStopAtEndOfPiece()) {
-              _this4._stopMetronome();
+            if (_this5._shouldStopAtEndOfPiece()) {
+              _this5._stopMetronome();
               return;
             }
-            _this4._advanceMeasureIfNeeded();
-            _this4._playMetronomeClick(_this4._isMetronomeDownbeat());
-            _this4._updateBeatCount(intervalMs);
-            _this4._handleMetronomeBeat(intervalMs);
-            _this4._metronomeTickIndex += 1;
+            _this5._advanceMeasureIfNeeded();
+            _this5._playMetronomeClick(_this5._isMetronomeDownbeat());
+            _this5._updateBeatCount(intervalMs);
+            _this5._handleMetronomeBeat(intervalMs);
+            _this5._metronomeTickIndex += 1;
           };
-          _this4._metronomeStartTimeout = null;
-          _this4._metronomeIsStarting = false;
-          _this4._metronomeTickIndex = 0;
-          _this4._rhythmPlaybackStarted = false;
+          _this5._metronomeStartTimeout = null;
+          _this5._metronomeIsStarting = false;
+          _this5._metronomeTickIndex = 0;
+          _this5._rhythmPlaybackStarted = false;
           playBeat();
-          _this4._metronomeInterval = setInterval(playBeat, intervalMs);
+          _this5._metronomeInterval = setInterval(playBeat, intervalMs);
         }, 1000);
       })["catch"](function () {
-        _this4._metronomeIsStarting = false;
-        _this4._setPlayButtons(false);
+        _this5._metronomeIsStarting = false;
+        _this5._setPlayButtons(false);
       });
     }
   }, {
@@ -460,16 +484,16 @@ var BeatHero = /*#__PURE__*/function () {
   }, {
     key: "_prepareTapSchedule",
     value: function _prepareTapSchedule(intervalMs) {
-      var _this5 = this;
+      var _this6 = this;
       this._clearTapSchedule();
       this._rhythmStartTime = performance.now();
       this._tapWindowMs = this._tapTimingWindow(intervalMs);
       this._voiceTapWindowMs = this._voiceTapTimingWindow(intervalMs);
       this._tapEvents = this._rhythmPlaybackSchedule().filter(function (event) {
-        return !_this5._isRestDuration(event.duration);
+        return !_this6._isRestDuration(event.duration);
       }).map(function (event) {
         return _objectSpread(_objectSpread({}, event), {}, {
-          time: _this5._rhythmStartTime + event.beatOffset * intervalMs,
+          time: _this6._rhythmStartTime + event.beatOffset * intervalMs,
           tapped: false
         });
       });
@@ -532,7 +556,8 @@ var BeatHero = /*#__PURE__*/function () {
   }, {
     key: "_animateTapFeedback",
     value: function _animateTapFeedback(className) {
-      var feedback = document.querySelector("#tap-feedback");
+      var feedbackSelector = this._useVoice ? "#mic-tap-feedback" : "#tap-feedback";
+      var feedback = document.querySelector(feedbackSelector);
       if (!feedback) return;
       feedback.classList.remove("good-tap", "bad-tap");
       void feedback.offsetWidth;
@@ -561,92 +586,166 @@ var BeatHero = /*#__PURE__*/function () {
     key: "_startVoiceInput",
     value: function _startVoiceInput() {
       var _navigator$mediaDevic,
-        _this6 = this;
-      if (this._voiceIsActive || this._voiceInputStarting) return Promise.resolve();
+        _this7 = this;
+      if (this._voiceIsActive) {
+        var _this$_voiceAudioCont, _this$_voiceAudioCont2;
+        (_this$_voiceAudioCont = this._voiceAudioContext) === null || _this$_voiceAudioCont === void 0 || (_this$_voiceAudioCont2 = _this$_voiceAudioCont.resume) === null || _this$_voiceAudioCont2 === void 0 || _this$_voiceAudioCont2.call(_this$_voiceAudioCont);
+        return Promise.resolve();
+      }
+      if (this._voiceInputStarting) return Promise.resolve();
       if (!window.isSecureContext) {
         console.warn("Beat Hero voice input needs HTTPS or localhost to request microphone access.");
+        this._setVoiceInputState("unavailable", "Use HTTPS or localhost to enable the microphone.");
         return Promise.resolve();
       }
       if (!((_navigator$mediaDevic = navigator.mediaDevices) !== null && _navigator$mediaDevic !== void 0 && _navigator$mediaDevic.getUserMedia)) {
         console.warn("Beat Hero voice input is not supported by this browser.");
+        this._setVoiceInputState("unavailable", "This browser cannot access microphone input.");
         return Promise.resolve();
       }
       var AudioContextCtor = window.AudioContext || window.webkitAudioContext;
-      if (!AudioContextCtor) return Promise.resolve();
+      if (!AudioContextCtor) {
+        this._setVoiceInputState("unavailable", "This browser cannot analyze live audio.");
+        return Promise.resolve();
+      }
       this._voiceInputStarting = true;
+      this._setVoiceInputState("connecting");
       return navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true
+          noiseSuppression: false,
+          autoGainControl: false,
+          channelCount: 1
         }
       }).then(function (stream) {
-        if (!_this6._useVoice && !_this6._metronomeIsStarting && !_this6._metronomeInterval) {
+        var _this7$_voiceAudioCon, _this7$_voiceAudioCon2;
+        if (!_this7._useVoice && !_this7._metronomeIsStarting && !_this7._metronomeInterval) {
           var _stream$getTracks;
           (_stream$getTracks = stream.getTracks) === null || _stream$getTracks === void 0 || _stream$getTracks.call(stream).forEach(function (track) {
             return track.stop();
           });
-          _this6._voiceInputStarting = false;
+          _this7._voiceInputStarting = false;
           return;
         }
-        _this6._voiceAudioContext = new AudioContextCtor();
-        _this6._voiceStream = stream;
-        var source = _this6._voiceAudioContext.createMediaStreamSource(stream);
-        _this6._voiceAnalyser = _this6._voiceAudioContext.createAnalyser();
-        _this6._voiceAnalyser.fftSize = 512;
-        _this6._voiceData = new Uint8Array(_this6._voiceAnalyser.fftSize);
-        source.connect(_this6._voiceAnalyser);
-        _this6._voiceIsActive = true;
-        _this6._voiceInputStarting = false;
-        _this6._listenForVoiceTaps();
-      })["catch"](function () {
-        _this6._voiceInputStarting = false;
+        _this7._voiceAudioContext = new AudioContextCtor();
+        (_this7$_voiceAudioCon = (_this7$_voiceAudioCon2 = _this7._voiceAudioContext).resume) === null || _this7$_voiceAudioCon === void 0 || _this7$_voiceAudioCon.call(_this7$_voiceAudioCon2);
+        _this7._voiceStream = stream;
+        _this7._voiceSource = _this7._voiceAudioContext.createMediaStreamSource(stream);
+        _this7._voiceAnalyser = _this7._voiceAudioContext.createAnalyser();
+        _this7._voiceAnalyser.fftSize = 512;
+        _this7._voiceData = new Uint8Array(_this7._voiceAnalyser.fftSize);
+        _this7._voiceSource.connect(_this7._voiceAnalyser);
+        _this7._voiceIsActive = true;
+        _this7._voiceInputStarting = false;
+        _this7._voiceTapArmed = true;
+        _this7._voiceDetectionReadyAt = performance.now() + 350;
+        _this7._setVoiceInputState("listening");
+        _this7._listenForVoiceTaps();
+      })["catch"](function (error) {
+        _this7._voiceInputStarting = false;
+        var wasBlocked = ["NotAllowedError", "SecurityError"].includes(error === null || error === void 0 ? void 0 : error.name);
+        _this7._setVoiceInputState(wasBlocked ? "blocked" : "unavailable", wasBlocked ? "Allow microphone access, then try again." : "No microphone is available on this device.");
       });
     }
   }, {
     key: "_stopVoiceInput",
     value: function _stopVoiceInput() {
-      var _this$_voiceStream, _this$_voiceStream$ge, _this$_voiceAudioCont, _this$_voiceAudioCont2;
+      var _this$_voiceStream, _this$_voiceStream$ge, _this$_voiceAudioCont3, _this$_voiceAudioCont4;
       if (this._voiceFrame) {
         cancelAnimationFrame(this._voiceFrame);
         this._voiceFrame = null;
       }
+      if (this._voiceUiResetTimeout) {
+        clearTimeout(this._voiceUiResetTimeout);
+        this._voiceUiResetTimeout = null;
+      }
       (_this$_voiceStream = this._voiceStream) === null || _this$_voiceStream === void 0 || (_this$_voiceStream$ge = _this$_voiceStream.getTracks) === null || _this$_voiceStream$ge === void 0 || _this$_voiceStream$ge.call(_this$_voiceStream).forEach(function (track) {
         return track.stop();
       });
-      (_this$_voiceAudioCont = this._voiceAudioContext) === null || _this$_voiceAudioCont === void 0 || (_this$_voiceAudioCont2 = _this$_voiceAudioCont.close) === null || _this$_voiceAudioCont2 === void 0 || _this$_voiceAudioCont2.call(_this$_voiceAudioCont);
+      (_this$_voiceAudioCont3 = this._voiceAudioContext) === null || _this$_voiceAudioCont3 === void 0 || (_this$_voiceAudioCont4 = _this$_voiceAudioCont3.close) === null || _this$_voiceAudioCont4 === void 0 || _this$_voiceAudioCont4.call(_this$_voiceAudioCont3);
       this._voiceAudioContext = null;
       this._voiceAnalyser = null;
       this._voiceData = null;
+      this._voiceSource = null;
       this._voiceStream = null;
-      this._voiceBaseline = 0.02;
+      this._voiceBaseline = 0.008;
       this._voicePreviousLevel = 0;
       this._voiceIsActive = false;
       this._voiceInputStarting = false;
+      this._voiceTapArmed = true;
+      this._voiceDetectionReadyAt = 0;
       this._lastVoiceTapTime = 0;
     }
   }, {
     key: "_listenForVoiceTaps",
     value: function _listenForVoiceTaps() {
-      var _this7 = this;
+      var _this8 = this;
       if (!this._voiceAnalyser || !this._voiceData) return;
       this._voiceAnalyser.getByteTimeDomainData(this._voiceData);
       var level = this._voiceInputLevel(this._voiceData);
       var now = performance.now();
-      var threshold = Math.max(0.038, this._voiceBaseline * 1.9);
-      var attackThreshold = Math.max(0.014, this._voiceBaseline * 0.55);
+      var threshold = Math.max(0.028, this._voiceBaseline * 2.6);
+      var attackThreshold = Math.max(0.01, this._voiceBaseline * 0.7);
+      var releaseThreshold = Math.max(0.018, this._voiceBaseline * 1.45);
       var attack = level - this._voicePreviousLevel;
-      var isVoiceTap = level > threshold && attack > attackThreshold || level > Math.max(0.07, this._voiceBaseline * 2.8);
-      var baselineRate = level > threshold ? 0.012 : 0.045;
-      this._voiceBaseline = this._voiceBaseline * (1 - baselineRate) + Math.min(level, 0.14) * baselineRate;
+      var isVoiceTap = this._voiceTapArmed && now >= this._voiceDetectionReadyAt && (level > threshold && attack > attackThreshold || level > Math.max(0.085, this._voiceBaseline * 4));
+      var baselineRate = level > threshold ? 0.004 : 0.035;
+      this._voiceBaseline = this._voiceBaseline * (1 - baselineRate) + Math.min(level, 0.08) * baselineRate;
       if (isVoiceTap && now - this._lastVoiceTapTime > 120) {
+        this._voiceTapArmed = false;
         this._lastVoiceTapTime = now;
-        this._handleTapAt(now - this._voiceTapOffsetMs, this._voiceTapWindowMs);
+        if (this._rhythmStartTime !== null) {
+          this._handleTapAt(now - this._voiceTapOffsetMs, this._voiceTapWindowMs);
+        }
+        this._flashVoiceTapDetected();
+      } else if (!this._voiceTapArmed && level < releaseThreshold) {
+        this._voiceTapArmed = true;
       }
       this._voicePreviousLevel = level;
       this._voiceFrame = requestAnimationFrame(function () {
-        return _this7._listenForVoiceTaps();
+        return _this8._listenForVoiceTaps();
       });
+    }
+  }, {
+    key: "_setVoiceInputState",
+    value: function _setVoiceInputState(state) {
+      var detail = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "";
+      var icon = document.querySelector("#mic-tap-icon");
+      var status = document.querySelector("#mic-tap-status");
+      var retryButton = document.querySelector("#mic-tap-retry");
+      var isReady = state === "connecting" || state === "listening";
+      if (icon) {
+        var _icon$querySelector, _icon$querySelector2;
+        icon.classList.remove("connecting", "listening", "detected", "blocked");
+        icon.classList.add(state === "unavailable" ? "blocked" : state);
+        (_icon$querySelector = icon.querySelector('[data-mic-icon="active"]')) === null || _icon$querySelector === void 0 || _icon$querySelector.classList.toggle("d-none", !isReady);
+        (_icon$querySelector2 = icon.querySelector('[data-mic-icon="inactive"]')) === null || _icon$querySelector2 === void 0 || _icon$querySelector2.classList.toggle("d-none", isReady);
+      }
+      if (status) {
+        var labels = {
+          connecting: "Connecting...",
+          listening: "Listening... clap or tap the rhythm",
+          blocked: "Microphone blocked",
+          unavailable: "Microphone unavailable"
+        };
+        status.textContent = detail || labels[state] || "";
+      }
+      if (retryButton) {
+        retryButton.style.display = ["blocked", "unavailable"].includes(state) ? "inline-block" : "none";
+      }
+    }
+  }, {
+    key: "_flashVoiceTapDetected",
+    value: function _flashVoiceTapDetected() {
+      var _this9 = this;
+      var icon = document.querySelector("#mic-tap-icon");
+      if (!icon) return;
+      icon.classList.add("detected");
+      if (this._voiceUiResetTimeout) clearTimeout(this._voiceUiResetTimeout);
+      this._voiceUiResetTimeout = setTimeout(function () {
+        icon.classList.remove("detected");
+        _this9._voiceUiResetTimeout = null;
+      }, 160);
     }
   }, {
     key: "_voiceInputLevel",
@@ -661,19 +760,19 @@ var BeatHero = /*#__PURE__*/function () {
   }, {
     key: "_scheduleRhythmAnimations",
     value: function _scheduleRhythmAnimations(intervalMs) {
-      var _this8 = this;
+      var _this0 = this;
       this._clearRhythmAnimationTimeouts();
       this._rhythmPlaybackSchedule().forEach(function (event) {
         var timeout = setTimeout(function () {
-          _this8._animateRhythmNote(event.index);
+          _this0._animateRhythmNote(event.index);
         }, event.beatOffset * intervalMs);
-        _this8._rhythmAnimationTimeouts.push(timeout);
+        _this0._rhythmAnimationTimeouts.push(timeout);
       });
     }
   }, {
     key: "_rhythmPlaybackSchedule",
     value: function _rhythmPlaybackSchedule() {
-      var _this9 = this;
+      var _this1 = this;
       var beatOffset = 0;
       return this._rhythm.map(function (duration, index) {
         var event = {
@@ -681,7 +780,7 @@ var BeatHero = /*#__PURE__*/function () {
           beatOffset: beatOffset,
           duration: duration
         };
-        beatOffset += _this9._durationToBeatBlocks(duration);
+        beatOffset += _this1._durationToBeatBlocks(duration);
         return event;
       });
     }
@@ -700,17 +799,17 @@ var BeatHero = /*#__PURE__*/function () {
   }, {
     key: "_clearRhythmNoteAnimations",
     value: function _clearRhythmNoteAnimations() {
-      var _this0 = this;
+      var _this10 = this;
       var wrapper = document.querySelector(this.opts.wrapperSelector);
       wrapper === null || wrapper === void 0 || wrapper.querySelectorAll(".vf-notehead.beat-hero-highlight, .vf-notehead.pulsate").forEach(function (notehead) {
-        _this0._setNoteheadHighlight(notehead, false);
+        _this10._setNoteheadHighlight(notehead, false);
       });
     }
   }, {
     key: "_animateRhythmNote",
     value: function _animateRhythmNote(index) {
       var _wrapper$querySelecto,
-        _this1 = this;
+        _this11 = this;
       var wrapper = document.querySelector(this.opts.wrapperSelector);
       var note = wrapper === null || wrapper === void 0 || (_wrapper$querySelecto = wrapper.querySelectorAll(".vf-stavenote")) === null || _wrapper$querySelecto === void 0 ? void 0 : _wrapper$querySelecto[index];
       var notehead = note === null || note === void 0 ? void 0 : note.querySelector(".vf-notehead");
@@ -718,7 +817,7 @@ var BeatHero = /*#__PURE__*/function () {
       this._setNoteheadHighlight(notehead, true);
       _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_0__.GameAudio.playRhythmHit();
       var timeout = setTimeout(function () {
-        _this1._setNoteheadHighlight(notehead, false);
+        _this11._setNoteheadHighlight(notehead, false);
       }, 200);
       this._rhythmHighlightTimeouts.push(timeout);
     }
@@ -773,7 +872,7 @@ var BeatHero = /*#__PURE__*/function () {
   }, {
     key: "_drawQuarterGrid",
     value: function _drawQuarterGrid(_ref4) {
-      var _this10 = this;
+      var _this12 = this;
       var VF = _ref4.VF,
         context = _ref4.context,
         stave = _ref4.stave,
@@ -800,7 +899,7 @@ var BeatHero = /*#__PURE__*/function () {
         var division = Math.max(0, (finalBarlineX - noteOffset) / beatCount);
         tickContext.setX(firstNoteX + beatCursor * division);
         note.draw();
-        beatCursor += _this10._durationToBeatBlocks(rhythm[index]);
+        beatCursor += _this12._durationToBeatBlocks(rhythm[index]);
       });
       beams.forEach(function (beam) {
         beam.setContext(context).draw();
@@ -969,12 +1068,12 @@ var BeatHero = /*#__PURE__*/function () {
   }, {
     key: "_resetMeasureQueue",
     value: function _resetMeasureQueue() {
-      var _this11 = this;
+      var _this13 = this;
       this._activeMeasureNumber = 1;
       this._measures = Array.from({
         length: this._numOfMeasures
       }, function () {
-        return _this11._makeRandomRhythm();
+        return _this13._makeRandomRhythm();
       });
       this._syncCurrentMeasures();
     }
@@ -1009,10 +1108,10 @@ var BeatHero = /*#__PURE__*/function () {
   }, {
     key: "_normalizeTimeSignatures",
     value: function _normalizeTimeSignatures(timeSignatures) {
-      var _this12 = this;
+      var _this14 = this;
       var values = Array.isArray(timeSignatures) && timeSignatures.length ? timeSignatures : ["4/4"];
       var normalized = values.map(function (value) {
-        return _this12._parseTimeSignature(value);
+        return _this14._parseTimeSignature(value);
       }).filter(Boolean);
       return normalized.length ? normalized : [{
         beats: 4,
@@ -1057,14 +1156,14 @@ var BeatHero = /*#__PURE__*/function () {
   }, {
     key: "_makeRandomRhythm",
     value: function _makeRandomRhythm() {
-      var _this13 = this;
+      var _this15 = this;
       var rhythm = [];
       var rhythmCells = this._rhythmCellsForEnabledNotes();
       var beatsRemaining = this._measureBeatBlocks();
       var previousHadEighths = false;
       while (beatsRemaining > 0) {
         var fittingChoices = rhythmCells.filter(function (cell) {
-          return cell.beats <= beatsRemaining && _this13._canCompleteRhythm(beatsRemaining - cell.beats, rhythmCells);
+          return cell.beats <= beatsRemaining && _this15._canCompleteRhythm(beatsRemaining - cell.beats, rhythmCells);
         });
         var separatedChoices = fittingChoices.filter(function (cell) {
           return !(previousHadEighths && cell.hasEighths);
@@ -1078,7 +1177,7 @@ var BeatHero = /*#__PURE__*/function () {
         }
         var cell = safeChoices[Math.floor(Math.random() * safeChoices.length)];
         rhythm.push.apply(rhythm, _toConsumableArray(cell.durations.map(function (duration) {
-          return _this13._maybeRestDuration(duration);
+          return _this15._maybeRestDuration(duration);
         })));
         beatsRemaining -= cell.beats;
         previousHadEighths = cell.hasEighths;
@@ -1088,11 +1187,11 @@ var BeatHero = /*#__PURE__*/function () {
   }, {
     key: "_canCompleteRhythm",
     value: function _canCompleteRhythm(beatsRemaining, rhythmCells) {
-      var _this14 = this;
+      var _this16 = this;
       if (beatsRemaining === 0) return true;
       if (beatsRemaining < 0) return false;
       return rhythmCells.some(function (cell) {
-        return cell.beats <= beatsRemaining && _this14._canCompleteRhythm(beatsRemaining - cell.beats, rhythmCells);
+        return cell.beats <= beatsRemaining && _this16._canCompleteRhythm(beatsRemaining - cell.beats, rhythmCells);
       });
     }
   }, {

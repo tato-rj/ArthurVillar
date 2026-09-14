@@ -131,12 +131,51 @@
     opacity: 0;
   }
 
+  #tap-wrapper,
+  #mic-tap-wrapper {
+    height: 160px;
+    width: 280px;
+  }
+
   #tap-wrapper {
     background: white;
     border: 4px dashed lightgrey;
-    height: 160px;
-    width: 280px;
+  }
 
+  #mic-tap-wrapper {
+    display: none;
+  }
+
+  #mic-tap-icon {
+    opacity: .1;
+    transition: color .2s ease, opacity .2s ease;
+  }
+
+  #mic-tap-icon.connecting,
+  #mic-tap-icon.listening {
+    color: #ffc800;
+    animation: playSoundIconPulse .55s ease-in-out infinite alternate;
+  }
+
+  #mic-tap-icon.detected {
+    color: #58cc02;
+    opacity: 1;
+  }
+
+  #mic-tap-icon.blocked {
+    color: #ff4b4b;
+    opacity: 1;
+  }
+
+  #mic-tap-status {
+    min-height: 24px;
+    padding: 0 12px;
+    text-align: center;
+    width: 100%;
+  }
+
+  #mic-tap-retry {
+    display: none;
   }
 
   @keyframes fadeAnimation {
@@ -177,9 +216,20 @@
         </div>
       </div>
       <div id="tap-wrapper" class="mx-auto mb-3 noselect position-relative">
-        <div id="tap-feedback"></div>
+        <div id="tap-feedback" class="tap-feedback"></div>
         <div class="d-center h-100 w-100">
           <h1 class="opacity-2 m-0">TAP HERE</h1>
+        </div>
+      </div>
+      <div id="mic-tap-wrapper" class="mx-auto mb-3 noselect position-relative" aria-live="polite">
+        <div id="mic-tap-feedback" class="tap-feedback"></div>
+        <div class="d-center flex-column h-100 w-100">
+          <div id="mic-tap-icon" class="mb-2" aria-hidden="true">
+            <span data-mic-icon="inactive">@fa(['icon' => 'microphone-lines-slash', 'mr' => 0, 'fa_size' => '5x'])</span>
+            <span data-mic-icon="active" class="d-none">@fa(['icon' => 'microphone-lines', 'mr' => 0, 'fa_size' => '5x'])</span>
+          </div>
+          <div id="mic-tap-status" class="fw-bold text-secondary">Connecting...</div>
+          <button id="mic-tap-retry" type="button" class="btn btn-sm btn-outline-secondary mt-2">Try microphone again</button>
         </div>
       </div>
       @include('theory.components.prompt')
