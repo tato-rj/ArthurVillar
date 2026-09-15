@@ -3,9 +3,11 @@
 
     @isset($instructions)
     <div class="position-relative">
+      @if(!empty($instructions))
       <div id="instructions" class="fw-bold text-center mb-3">
         <h6 class="m-0 text-grey" style="line-height: 1.4">{{$instructions ?? null}} </h6>
       </div>
+      @endif
       <div id="check" class="btn-floating w-100 invisible mb-3" style="display: none">
         <button state="waiting" class="btn w-100"></button>
       </div>

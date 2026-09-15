@@ -1,1212 +1,704 @@
+import { renderFinalResultsOverlay } from "../shared/finalResults.js";
 import { GameAudio } from "../shared/GameAudio.js";
 
 export class BeatHero {
+  static MIN_CHALLENGES = 2;
+  static MAX_CHALLENGES = 12;
+  static DEFAULT_FIGURE_IDS = [
+    "quarter",
+    "two-eighths",
+    "four-sixteenths",
+    "eighth-two-sixteenths",
+  ];
+
+  static FIGURES = [
+    {
+      id: "quarter",
+      label: "Quarter note",
+      events: [0],
+      notes: [{ value: 4 }],
+    },
+    {
+      id: "two-eighths",
+      label: "Two eighth notes",
+      events: [0, 0.5],
+      notes: [{ value: 8 }, { value: 8 }],
+    },
+    {
+      id: "eighth-two-sixteenths",
+      label: "Eighth note, two sixteenth notes",
+      events: [0, 0.5, 0.75],
+      notes: [{ value: 8 }, { value: 16 }, { value: 16 }],
+    },
+    {
+      id: "sixteenth-eighth-sixteenth",
+      label: "Sixteenth note, eighth note, sixteenth note",
+      events: [0, 0.25, 0.75],
+      notes: [{ value: 16 }, { value: 8 }, { value: 16 }],
+    },
+    {
+      id: "two-sixteenths-eighth",
+      label: "Two sixteenth notes, eighth note",
+      events: [0, 0.25, 0.5],
+      notes: [{ value: 16 }, { value: 16 }, { value: 8 }],
+    },
+    {
+      id: "four-sixteenths",
+      label: "Four sixteenth notes",
+      events: [0, 0.25, 0.5, 0.75],
+      notes: [{ value: 16 }, { value: 16 }, { value: 16 }, { value: 16 }],
+    },
+    {
+      id: "dotted-eighth-sixteenth",
+      label: "Dotted eighth note, sixteenth note",
+      events: [0, 0.75],
+      notes: [{ value: 8, dotted: true }, { value: 16 }],
+    },
+    {
+      id: "sixteenth-dotted-eighth",
+      label: "Sixteenth note, dotted eighth note",
+      events: [0, 0.25],
+      notes: [{ value: 16 }, { value: 8, dotted: true }],
+    },
+  ];
+
   constructor(options = {}) {
     this.opts = {
-      wrapperSelector: "#game-wrapper",
-      previewSelector: "#preview-score",
-      tapSelector: "#tap-wrapper",
-      micSelector: "#mic-tap-wrapper",
+      wrapperSelector: "#rhythm-card-grid",
+      dotsSelector: "#sequence-dots",
+      statusSelector: "#sequence-status",
+      numOfChallenges: 4,
+      bpm: 80,
+      practiceMode: false,
+      figures: BeatHero.DEFAULT_FIGURE_IDS,
+      sound: true,
       ...options,
     };
-    this._resizeHandler = null;
-    this._timeSignature = this._pickTimeSignature();
-    this._bpm = this._normalizeBpm(this.opts.bpm);
-    this._micSensitivity = this._normalizeMicSensitivity(this.opts.micSensitivity);
-    this._includeRests = this._normalizeBoolOption(this.opts.includeRests);
-    this._useVoice = this._normalizeBoolOption(this.opts.useVoice);
-    this._enabledNoteValues = this._normalizeNoteOptions(this.opts.notesValues || this.opts.notes);
-    this._numOfMeasures = this._normalizeMeasureCount(this.opts.numOfMeasures);
-    this._measures = [];
-    this._rhythm = [];
-    this._previewRhythm = null;
-    this._activeMeasureNumber = 1;
-    this._metronomeInterval = null;
-    this._metronomeStartTimeout = null;
-    this._rhythmAnimationTimeouts = [];
-    this._rhythmHighlightTimeouts = [];
-    this._metronomeTickIndex = 0;
-    this._rhythmPlaybackStarted = false;
-    this._metronomeAudioReady = false;
-    this._metronomeIsStarting = false;
-    this._rhythmStartTime = null;
-    this._tapEvents = [];
-    this._tapWindowMs = 120;
-    this._voiceTapWindowMs = 180;
-    this._voiceAudioContext = null;
-    this._voiceAnalyser = null;
-    this._voiceData = null;
-    this._voiceSource = null;
-    this._voiceStream = null;
-    this._voiceFrame = null;
-    this._voiceBaseline = 0.003;
-    this._voicePeakBaseline = 0.008;
-    this._voicePreviousLevel = 0;
-    this._voicePreviousPeak = 0;
-    this._voiceIsActive = false;
-    this._voiceInputStarting = false;
-    this._voiceTapArmed = true;
-    this._voiceDetectionReadyAt = 0;
-    this._voiceUiResetTimeout = null;
-    this._lastVoiceTapTime = 0;
-    this._voiceTapOffsetMs = 60;
-    this._goodTapCount = 0;
-    this._badTapCount = 0;
-    this.$playWrap = null;
-    this.$playPlayBtn = null;
-    this.$playStopBtn = null;
-    this._resetMeasureQueue();
+
+    this.opts.numOfChallenges = this._normalizeChallengeCount(this.opts.numOfChallenges);
+    this.opts.bpm = this._normalizeBpm(this.opts.bpm);
+    this.opts.practiceMode = this._normalizeBool(this.opts.practiceMode);
+    this.opts.figures = this._normalizeFigureIds(this.opts.figures);
+    this.opts.sound = this._normalizeBool(this.opts.sound);
+
+    this.$grid = $(this.opts.wrapperSelector);
+    this.$dots = $(this.opts.dotsSelector);
+    this.$status = $(this.opts.statusSelector);
+    this.$playWrap = $("#play");
+    this.$playBtn = this.$playWrap.find('button[action="play"]');
+    this.$stopBtn = this.$playWrap.find('button[action="stop"]');
+    this.$continueWrap = $("#continue");
+    this.$continueBtn = this.$continueWrap.find("button");
+    this.$progressBar = $("#progress-bar");
+    this.$progressCounter = $("#progress-counter");
+    this.$points = $("#points");
+    this.$increment = $("#increment");
+    this.$finalOverlay = $("#final-overlay");
+
+    this._cards = [];
+    this._answer = [];
+    this._selection = [];
+    this._round = 1;
+    this._roundHadMistake = false;
+    this._madeAnyMistake = false;
+    this._state = "ready";
+    this._inputLocked = false;
+    this._pointsValue = 0;
+    this._correctTaps = 0;
+    this._wrongTaps = 0;
+    this._startedAt = Date.now();
+    this._timers = new Set();
+    this._rhythmSynth = null;
+    this._uiSynth = null;
+    this._uiNoise = null;
+    this._audioReady = false;
   }
 
   start() {
-    this.renderChallenge();
-    this._resetTapFeedbackCounts();
-    this._showInitialControls();
-    this._syncInputMode();
-    this._wirePlayControls();
-    this._wireTapControls();
-    this._wireVoiceControls();
-    this._wireSettingsRanges();
-    if (this._useVoice) this._startVoiceInput();
+    if (!this.$grid.length) return;
 
-    if (!this._resizeHandler) {
-      this._resizeHandler = () => this.renderChallenge();
-      window.addEventListener("resize", this._resizeHandler);
-    }
+    this._wireControls();
+    this._wireFigurePicker();
+    this._resetGameUi();
+    this._startRound();
   }
 
-  renderChallenge() {
-    const wrapper = document.querySelector(this.opts.wrapperSelector);
-    const previewWrapper = document.querySelector(this.opts.previewSelector);
-    if (!wrapper && !previewWrapper) return;
-
-    this._setPreviewWrapperVisible(Boolean(this._previewRhythm));
-
-    if (this._previewRhythm) {
-      this._renderRhythmMeasure({
-        wrapper: previewWrapper,
-        rhythm: this._previewRhythm,
-        showClef: false,
-        showTimeSignature: false,
-        showBarlines: false,
-        isFinalMeasure: this._activeMeasureNumber + 1 >= this._numOfMeasures,
+  _wireControls() {
+    this.$playBtn
+      .off("click.beatHero")
+      .on("click.beatHero", (event) => {
+        event.preventDefault();
+        this._playChallenge();
       });
-    } else {
-      this._clearRhythmMeasure(previewWrapper);
-    }
 
-    this._renderRhythmMeasure({
-      wrapper,
-      rhythm: this._rhythm,
-      showTimeSignature: this._activeMeasureNumber === 1,
-      isFinalMeasure: this._activeMeasureNumber >= this._numOfMeasures,
-    });
+    this.$stopBtn
+      .off("click.beatHero")
+      .on("click.beatHero", (event) => {
+        event.preventDefault();
+        this._stopChallenge();
+      });
+
+    this.$grid
+      .off("click.beatHero", ".rhythm-card")
+      .on("click.beatHero", ".rhythm-card", (event) => {
+        event.preventDefault();
+        this._handleCardTap(event.currentTarget);
+      });
+
+    this.$continueBtn
+      .off("click.beatHero")
+      .on("click.beatHero", (event) => {
+        event.preventDefault();
+        this._continue();
+      });
   }
 
-  _setPreviewWrapperVisible(isVisible) {
-    const previewWrapper = document.querySelector(this.opts.previewSelector);
-    const previewContainer = previewWrapper?.closest("#preview-wrapper") || previewWrapper;
-    if (!previewContainer) return;
+  _wireFigurePicker() {
+    const picker = document.querySelector("[data-beat-hero-symbol-picker]");
+    if (!picker) return;
 
-    previewContainer.classList.toggle("d-none", !isVisible);
-    previewContainer.style.display = isVisible ? "block" : "none";
-  }
+    const checkboxes = [...picker.querySelectorAll(".beat-hero-symbol-input")];
+    const message = document.querySelector("[data-beat-hero-symbol-message]");
+    const form = picker.closest("form");
 
-  _renderRhythmMeasure({
-    wrapper,
-    rhythm,
-    showClef = true,
-    showTimeSignature = true,
-    showBarlines = true,
-    isFinalMeasure = false,
-  }) {
-    if (!wrapper) return;
-
-    wrapper.innerHTML = "";
-    wrapper.classList.add("beat-hero-wrapper");
-    if (wrapper.matches(this.opts.wrapperSelector)) {
-      const beatCount = document.createElement("div");
-      beatCount.id = "beat-count";
-      wrapper.appendChild(beatCount);
-    }
-
-    const VF = window.Vex?.Flow;
-    if (!VF) {
-      wrapper.textContent = "VexFlow could not be loaded.";
-      return;
-    }
-
-    const width = Math.max(1, Math.floor(wrapper.clientWidth || 1));
-    const height = 190;
-    const renderer = new VF.Renderer(wrapper, VF.Renderer.Backends.SVG);
-    renderer.resize(width, height);
-
-    const context = renderer.getContext();
-    context.setFont("Arial", 10);
-
-    const stave = new VF.Stave(18, 24, width - 36, {
-      fill_style: "#273043",
-      spacing_between_lines_px: 14,
+    picker.querySelectorAll("[data-beat-hero-figure-thumbnail]").forEach((thumbnail) => {
+      const figure = BeatHero.FIGURES.find((item) => item.id === thumbnail.dataset.beatHeroFigureThumbnail);
+      if (figure) thumbnail.innerHTML = this._figureSvg(figure);
     });
 
-    stave.setConfigForLines([
-      { visible: false },
-      { visible: false },
-      { visible: true },
-      { visible: false },
-      { visible: false },
-    ]);
+    const selectedCount = () => checkboxes.filter((checkbox) => checkbox.checked).length;
+    const showCount = (error = "") => {
+      if (!message) return;
+      message.classList.toggle("is-error", Boolean(error));
+      message.textContent = error || `${selectedCount()} selected`;
+    };
 
-    if (showClef) stave.addClef("percussion");
-    if (showTimeSignature) stave.addTimeSignature(this._timeSignatureLabel());
-    if (isFinalMeasure) {
-      stave.setEndBarType?.(VF.Barline?.type?.END ?? 3);
-    }
-    stave.setContext(context).draw();
+    checkboxes.forEach((checkbox) => {
+      checkbox.addEventListener("change", () => {
+        const count = selectedCount();
 
-    const stemDirection = VF.Stem?.UP || 1;
-    const glyphFontScale = this._rhythmNoteGlyphFontScale(wrapper);
-    const notes = rhythm.map((duration) =>
-      new VF.StaveNote({
-        clef: "percussion",
-        keys: ["b/4"],
-        duration,
-        glyph_font_scale: glyphFontScale,
-        stem_direction: stemDirection,
-      }),
-    );
-    this._extendStems(notes, 8);
-    this._removeNoteSpacing(notes);
+        if (count < 2) {
+          checkbox.checked = true;
+          showCount("Choose at least 2 symbols.");
+          return;
+        }
 
-    const beams = VF.Beam.generateBeams(notes, {
-      stem_direction: stemDirection,
+        if (count > 4) {
+          checkbox.checked = false;
+          showCount("Choose no more than 4 symbols.");
+          return;
+        }
+
+        showCount();
+      });
     });
 
-    this._drawQuarterGrid({
-      VF,
-      context,
-      stave,
-      notes,
-      beams,
-      rhythm,
-      width,
+    form?.addEventListener("submit", (event) => {
+      const count = selectedCount();
+      if (count >= 2 && count <= 4) return;
+
+      event.preventDefault();
+      showCount("Choose between 2 and 4 symbols.");
     });
 
-    this._alignVerticalStaveLines(wrapper);
-    if (!showBarlines) this._removeVerticalStaveLines(wrapper);
-    this._extendRenderedStems(wrapper, 10);
-    this._moveStemTopAttachments(wrapper, 10);
+    showCount();
   }
 
-  _clearRhythmMeasure(wrapper) {
-    if (!wrapper) return;
+  _resetGameUi() {
+    this._round = 1;
+    this._pointsValue = 0;
+    this._correctTaps = 0;
+    this._wrongTaps = 0;
+    this._madeAnyMistake = false;
+    this._startedAt = Date.now();
 
-    wrapper.innerHTML = "";
-    wrapper.classList.add("beat-hero-wrapper");
-  }
-
-  _showInitialControls() {
+    $("#timer").hide();
+    $("#feedback-success").hide();
+    $("#check, #help, #skip").hide();
     $("#controls").show();
-    $("#instructions").show();
-    $("#check").show().removeClass("invisible");
-    $("#continue").hide();
-  }
-
-  _wirePlayControls() {
-    this.$playWrap = $("#play");
-    this.$playPlayBtn = this.$playWrap.find('button[action="play"]');
-    this.$playStopBtn = this.$playWrap.find('button[action="stop"]');
-
-    this.$playPlayBtn
-      .off("click.beatHeroMetronome")
-      .on("click.beatHeroMetronome", (event) => {
-        event.preventDefault();
-        if (this._useVoice) this._startVoiceInput();
-        this._startMetronome();
-      });
-
-    this.$playStopBtn
-      .off("click.beatHeroMetronome")
-      .on("click.beatHeroMetronome", (event) => {
-        event.preventDefault();
-        this._stopMetronome();
-      });
-
+    this.$finalOverlay.hide();
+    this.$continueWrap.hide();
+    this.$points.text("0");
+    this.$increment.css("opacity", 0);
+    this.$progressBar.data("progress", 0).css("width", "0%");
+    this.$progressCounter.text(this.opts.practiceMode ? "Practice" : `0 of ${this.opts.numOfChallenges}`);
     this._setPlayButtons(false);
   }
 
-  _wireTapControls() {
-    const tapWrapper = document.querySelector(this.opts.tapSelector);
-    if (!tapWrapper) return;
+  _startRound() {
+    this._cancelTimers();
+    this._state = "ready";
+    this._inputLocked = false;
+    this._selection = [];
+    this._roundHadMistake = false;
+    this.$continueWrap.hide();
 
-    tapWrapper.addEventListener("pointerdown", (event) => {
-      event.preventDefault();
-      this._handleTap();
-    });
+    const pool = BeatHero.FIGURES.filter((figure) => this.opts.figures.includes(figure.id));
+    const cards = [];
+    while (cards.length < 8) {
+      cards.push(...this._shuffle(pool));
+    }
+    this._cards = this._shuffle(cards.slice(0, 8));
+    this._answer = this._shuffle(pool).slice(0, 2);
+
+    this._renderCards();
+    this._resetDots();
+    this._setStatus("Press Play, listen to the two rhythms, then tap their cards in the same order.");
+    this._setPlayButtons(false);
   }
 
-  _wireVoiceControls() {
-    const retryButton = document.querySelector("#mic-tap-retry");
-    if (!retryButton) return;
+  _renderCards() {
+    const html = this._cards.map((figure, index) => `
+      <button
+        type="button"
+        class="rhythm-card"
+        data-figure-id="${figure.id}"
+        aria-label="Card ${index + 1}: ${figure.label}"
+      >
+        <span class="rhythm-card__number" aria-hidden="true"></span>
+        <span class="rhythm-card__figure" aria-hidden="true">
+          ${this._figureSvg(figure)}
+        </span>
+      </button>
+    `).join("");
 
-    retryButton.addEventListener("click", (event) => {
-      event.preventDefault();
-      this._stopVoiceInput();
-      this._startVoiceInput();
-    });
+    this.$grid.html(html);
   }
 
-  _wireSettingsRanges() {
-    document.querySelectorAll("[data-beat-hero-range-output]").forEach((range) => {
-      const output = document.querySelector(range.dataset.beatHeroRangeOutput);
-      if (!output) return;
+  _figureSvg(figure) {
+    const notes = figure.notes || [];
+    const positions = this._notePositions(notes.length);
+    const stemTop = 27;
+    const headY = 69;
 
-      const updateOutput = () => {
-        output.textContent = `${range.value}${range.dataset.outputSuffix || ""}`;
-      };
+    const heads = notes.map((note, index) => {
+      const x = positions[index];
+      const dot = note.dotted
+        ? `<circle class="rhythm-note-dot" cx="${x + 14}" cy="66" r="2.6"></circle>`
+        : "";
+      return `
+        <ellipse class="rhythm-note-head" cx="${x}" cy="${headY}" rx="8" ry="5.7" transform="rotate(-20 ${x} ${headY})"></ellipse>
+        <line class="rhythm-note-stem" x1="${x + 6}" y1="${headY - 2}" x2="${x + 6}" y2="${stemTop}"></line>
+        ${dot}
+      `;
+    }).join("");
 
-      updateOutput();
-      range.addEventListener("input", updateOutput);
-    });
+    const beamed = notes.length > 1
+      ? this._beamSvg(notes, positions, stemTop)
+      : this._flagSvg(notes[0], positions[0], stemTop);
+
+    return `
+      <svg viewBox="0 0 100 100" role="presentation" focusable="false">
+        ${heads}
+        ${beamed}
+      </svg>
+    `;
   }
 
-  _syncInputMode() {
-    const tapWrapper = document.querySelector(this.opts.tapSelector);
-    const micWrapper = document.querySelector(this.opts.micSelector);
+  _beamSvg(notes, positions, stemTop) {
+    const stems = positions.map((x) => x + 6);
+    const first = stems[0];
+    const last = stems[stems.length - 1];
+    const mainBeam = `<line class="rhythm-note-beam" x1="${first}" y1="${stemTop}" x2="${last}" y2="${stemTop}"></line>`;
+    const sixteenthIndexes = notes
+      .map((note, index) => (note.value === 16 ? index : -1))
+      .filter((index) => index >= 0);
+    const secondary = [];
 
-    if (tapWrapper) {
-      tapWrapper.classList.toggle("d-none", this._useVoice);
-      tapWrapper.style.display = this._useVoice ? "none" : "";
+    let cursor = 0;
+    while (cursor < sixteenthIndexes.length) {
+      const group = [sixteenthIndexes[cursor]];
+      while (
+        cursor + 1 < sixteenthIndexes.length
+        && sixteenthIndexes[cursor + 1] === sixteenthIndexes[cursor] + 1
+      ) {
+        cursor += 1;
+        group.push(sixteenthIndexes[cursor]);
+      }
+
+      if (group.length > 1) {
+        secondary.push(`<line class="rhythm-note-beam rhythm-note-beam--secondary" x1="${stems[group[0]]}" y1="${stemTop + 10}" x2="${stems[group[group.length - 1]]}" y2="${stemTop + 10}"></line>`);
+      } else {
+        const index = group[0];
+        const pointsLeft = index === notes.length - 1;
+        secondary.push(`<line class="rhythm-note-beam rhythm-note-beam--secondary" x1="${stems[index]}" y1="${stemTop + 10}" x2="${stems[index] + (pointsLeft ? -11 : 11)}" y2="${stemTop + 10}"></line>`);
+      }
+      cursor += 1;
     }
 
-    if (micWrapper) {
-      micWrapper.classList.toggle("d-none", !this._useVoice);
-      micWrapper.style.display = this._useVoice ? "block" : "none";
-    }
+    return `${mainBeam}${secondary.join("")}`;
   }
 
-  _setPlayButtons(isPlaying) {
-    if (this.$playPlayBtn?.length) this.$playPlayBtn.toggle(!isPlaying);
-    if (this.$playStopBtn?.length) this.$playStopBtn.toggle(!!isPlaying);
+  _flagSvg(note, x, stemTop) {
+    if (!note || note.value < 8) return "";
+
+    const stemX = x + 6;
+    return `<path class="rhythm-note-flag" d="M ${stemX} ${stemTop} C ${stemX + 17} ${stemTop + 5}, ${stemX + 16} ${stemTop + 18}, ${stemX + 7} ${stemTop + 24}"></path>`;
   }
 
-  _startMetronome() {
-    if (this._isMetronomeActive()) return;
+  _notePositions(count) {
+    if (count <= 1) return [50];
+    if (count === 2) return [29, 70];
+    if (count === 3) return [22, 50, 78];
+    return [16, 39, 62, 84];
+  }
 
-    if (!window.Tone) {
-      this._setPlayButtons(false);
-      return;
-    }
+  async _playChallenge() {
+    if (this._state === "playing" || this._state === "complete") return;
 
-    if (this._shouldRewindMeasureQueueForPlayback()) {
-      this._rewindMeasureQueue();
-      this.renderChallenge();
-    }
-    this._resetTapFeedbackCounts();
-
+    this._cancelTimers();
+    this._clearSelectionMarks();
+    this._selection = [];
+    this._state = "playing";
+    this._inputLocked = true;
+    this._resetDots();
+    this._setStatus("Listen carefully…");
     this._setPlayButtons(true);
-    this._metronomeIsStarting = true;
 
-    this._ensureMetronomeAudio().then(() => {
-      if (!this._metronomeIsStarting) return;
+    await this._ensureAudio();
+    if (this._state !== "playing") return;
 
-      this._metronomeStartTimeout = setTimeout(() => {
-        if (!this._metronomeIsStarting) return;
+    const beatMs = this._beatMs();
+    const slotMs = beatMs;
 
-        const intervalMs = 60000 / this._bpm;
-        const playBeat = () => {
-          if (this._shouldStopAtEndOfPiece()) {
-            this._stopMetronome();
-            return;
-          }
-
-          this._advanceMeasureIfNeeded();
-          this._playMetronomeClick(this._isMetronomeDownbeat());
-          this._updateBeatCount(intervalMs);
-          this._handleMetronomeBeat(intervalMs);
-          this._metronomeTickIndex += 1;
-        };
-
-        this._metronomeStartTimeout = null;
-        this._metronomeIsStarting = false;
-        this._metronomeTickIndex = 0;
-        this._rhythmPlaybackStarted = false;
-        playBeat();
-        this._metronomeInterval = setInterval(playBeat, intervalMs);
-      }, 1000);
-    }).catch(() => {
-      this._metronomeIsStarting = false;
-      this._setPlayButtons(false);
+    this._answer.forEach((figure, index) => {
+      const startsAt = index * slotMs;
+      this._setTimer(() => this._activateDot(index), startsAt);
+      this._scheduleFigureAudio(figure, startsAt);
+      this._setTimer(() => this._completeDot(index), startsAt + beatMs);
     });
+
+    this._setTimer(() => {
+      this._state = "answering";
+      this._inputLocked = false;
+      this._setPlayButtons(false);
+      this._resetDots();
+      this._setStatus("Now tap the two cards you heard, in order.");
+    }, (this._answer.length * slotMs) + 120);
   }
 
-  _stopMetronome({ resetButtons = true } = {}) {
-    if (this._metronomeStartTimeout) {
-      clearTimeout(this._metronomeStartTimeout);
-      this._metronomeStartTimeout = null;
-    }
+  _stopChallenge() {
+    if (this._state !== "playing") return;
 
-    if (this._metronomeInterval) {
-      clearInterval(this._metronomeInterval);
-      this._metronomeInterval = null;
-    }
-
-    this._metronomeIsStarting = false;
-    this._clearRhythmAnimationTimeouts();
-    this._clearRhythmNoteAnimations();
-    this._clearBeatCount();
-    this._clearTapSchedule();
-    if (!this._useVoice) this._stopVoiceInput();
-    this._metronomeTickIndex = 0;
-    this._rhythmPlaybackStarted = false;
-
-    if (resetButtons) this._setPlayButtons(false);
+    this._cancelTimers();
+    this._state = "ready";
+    this._inputLocked = false;
+    this._resetDots();
+    this._setPlayButtons(false);
+    this._setStatus("Playback stopped. Press Play when you’re ready.");
   }
 
-  async _ensureMetronomeAudio() {
-    if (!window.Tone || this._metronomeAudioReady) return;
+  async _handleCardTap(cardElement) {
+    if (this._inputLocked || this._state === "playing" || this._state === "complete") return;
 
-    await GameAudio.ensureMetronomeAudio();
-    this._metronomeAudioReady = true;
-  }
+    const figure = this._cards.find((item) => item.id === cardElement.dataset.figureId);
+    if (!figure) return;
 
-  _isMetronomeActive() {
-    return Boolean(
-      this._metronomeIsStarting
-      || this._metronomeStartTimeout
-      || this._metronomeInterval,
-    );
-  }
+    this._inputLocked = true;
+    await this._ensureAudio();
+    this._scheduleFigureAudio(figure, 0, cardElement);
 
-  _isMetronomeDownbeat() {
-    const groupSize = Math.max(1, this._timeSignature.beats);
-
-    return this._metronomeTickIndex % groupSize === 0;
-  }
-
-  _shouldStopAtEndOfPiece() {
-    const countInBeats = Math.max(1, this._timeSignature.beats);
-    const totalMeasureBeats = this._measurePlaybackBeats() * this._numOfMeasures;
-
-    return this._metronomeTickIndex >= countInBeats + totalMeasureBeats;
-  }
-
-  _advanceMeasureIfNeeded() {
-    const countInBeats = Math.max(1, this._timeSignature.beats);
-    const measureBeats = this._measurePlaybackBeats();
-    if (this._metronomeTickIndex < countInBeats) return;
-
-    const elapsedMeasureBeats = this._metronomeTickIndex - countInBeats;
-    if (elapsedMeasureBeats === 0 || elapsedMeasureBeats % measureBeats !== 0) return;
-    if (this._activeMeasureNumber >= this._numOfMeasures) return;
-
-    this._promotePreviewMeasure();
-  }
-
-  _playMetronomeClick(isDownbeat = false) {
-    GameAudio.playMetronomeClick(isDownbeat);
-  }
-
-  _updateBeatCount(intervalMs) {
-    const beatCount = document.querySelector(`${this.opts.wrapperSelector} #beat-count`);
-    if (!beatCount) return;
-
-    const beatsPerMeasure = Math.max(1, this._timeSignature.beats);
-    const count = (this._metronomeTickIndex % beatsPerMeasure) + 1;
-
-    beatCount.textContent = String(count);
-    beatCount.style.animationDuration = `${Math.round(intervalMs)}ms`;
-    beatCount.classList.remove("beat-animation");
-    void beatCount.offsetWidth;
-    beatCount.classList.add("beat-animation");
-  }
-
-  _clearBeatCount() {
-    const beatCount = document.querySelector(`${this.opts.wrapperSelector} #beat-count`);
-    if (!beatCount) return;
-
-    beatCount.textContent = "";
-    beatCount.classList.remove("beat-animation");
-    beatCount.style.animationDuration = "";
-  }
-
-  _handleMetronomeBeat(intervalMs) {
-    if (this._rhythmPlaybackStarted) return;
-
-    const countInBeats = Math.max(1, this._timeSignature.beats);
-    if (this._metronomeTickIndex < countInBeats) return;
-
-    this._rhythmPlaybackStarted = true;
-    this._prepareTapSchedule(intervalMs);
-  }
-
-  _promotePreviewMeasure() {
-    if (!this._previewRhythm) return;
-
-    this._clearRhythmAnimationTimeouts();
-    this._clearRhythmNoteAnimations();
-    this._clearTapSchedule();
-    this._activeMeasureNumber += 1;
-    this._syncCurrentMeasures();
-    this._rhythmPlaybackStarted = false;
-    this.renderChallenge();
-  }
-
-  _prepareTapSchedule(intervalMs) {
-    this._clearTapSchedule();
-    this._rhythmStartTime = performance.now();
-    this._tapWindowMs = this._tapTimingWindow(intervalMs);
-    this._voiceTapWindowMs = this._voiceTapTimingWindow(intervalMs);
-    this._tapEvents = this._rhythmPlaybackSchedule()
-      .filter((event) => !this._isRestDuration(event.duration))
-      .map((event) => ({
-        ...event,
-        time: this._rhythmStartTime + (event.beatOffset * intervalMs),
-        tapped: false,
-      }));
-  }
-
-  _clearTapSchedule() {
-    this._rhythmStartTime = null;
-    this._tapEvents = [];
-  }
-
-  _tapTimingWindow(intervalMs) {
-    return Math.min(260, Math.max(130, intervalMs * 0.28));
-  }
-
-  _voiceTapTimingWindow(intervalMs) {
-    return Math.min(360, Math.max(190, intervalMs * 0.42));
-  }
-
-  _handleTap() {
-    this._handleTapAt(performance.now());
-  }
-
-  _handleTapAt(tapTime, timingWindow = this._tapWindowMs) {
-    const event = this._findMatchingTapEvent(tapTime, timingWindow);
-    if (!event) {
-      console.log("Wrong tap");
-      this._badTapCount += 1;
-      this._renderTapFeedbackCounts();
-      this._animateTapFeedback("bad-tap");
+    if (this._state === "ready") {
+      cardElement.classList.add("is-previewing");
+      this._setStatus("Press Play, listen to the two rhythms, then tap their cards in the same order.");
+      this._setTimer(() => {
+        cardElement.classList.remove("is-previewing");
+        this._inputLocked = false;
+      }, this._beatMs());
       return;
     }
 
-    event.tapped = true;
-    console.log("Good tap");
-    this._goodTapCount += 1;
-    this._renderTapFeedbackCounts();
-    this._animateTapFeedback("good-tap");
-    this._animateRhythmNote(event.index);
-  }
+    if (this._state !== "answering") return;
 
-  _resetTapFeedbackCounts() {
-    this._goodTapCount = 0;
-    this._badTapCount = 0;
-    this._renderTapFeedbackCounts();
-  }
+    this._inputLocked = true;
+    const answerIndex = this._selection.length;
+    const expected = this._answer[answerIndex];
+    this._activateDot(answerIndex);
 
-  _renderTapFeedbackCounts() {
-    const goodCount = document.querySelector("#feedback-count .feedback-count-good span");
-    const badCount = document.querySelector("#feedback-count .feedback-count-bad span");
+    if (expected && expected.id === figure.id) {
+      this._correctTaps += 1;
+      this._selection.push(figure);
+      cardElement.classList.remove("is-wrong");
+      cardElement.classList.add("is-correct");
+      cardElement.querySelector(".rhythm-card__number").textContent = String(answerIndex + 1);
+      this._chooseDot(answerIndex);
 
-    if (goodCount) goodCount.textContent = String(this._goodTapCount);
-    if (badCount) badCount.textContent = String(this._badTapCount);
-  }
-
-  _animateTapFeedback(className) {
-    const feedbackSelector = this._useVoice ? "#mic-tap-feedback" : "#tap-feedback";
-    const feedback = document.querySelector(feedbackSelector);
-    if (!feedback) return;
-
-    feedback.classList.remove("good-tap", "bad-tap");
-    void feedback.offsetWidth;
-    feedback.classList.add(className);
-  }
-
-  _findMatchingTapEvent(tapTime, timingWindow = this._tapWindowMs) {
-    const availableEvents = this._tapEvents.filter((event) => !event.tapped);
-    if (!availableEvents.length) return null;
-
-    const closestEvent = availableEvents.reduce((closest, event) => {
-      const distance = Math.abs(event.time - tapTime);
-      if (!closest || distance < closest.distance) return { event, distance };
-
-      return closest;
-    }, null);
-
-    if (!closestEvent || closestEvent.distance > timingWindow) return null;
-
-    return closestEvent.event;
-  }
-
-  _startVoiceInput() {
-    if (this._voiceIsActive) {
-      this._voiceAudioContext?.resume?.();
-      return Promise.resolve();
-    }
-    if (this._voiceInputStarting) return Promise.resolve();
-
-    if (!window.isSecureContext) {
-      console.warn("Beat Hero voice input needs HTTPS or localhost to request microphone access.");
-      this._setVoiceInputState("unavailable", "Use HTTPS or localhost to enable the microphone.");
-      return Promise.resolve();
-    }
-
-    if (!navigator.mediaDevices?.getUserMedia) {
-      console.warn("Beat Hero voice input is not supported by this browser.");
-      this._setVoiceInputState("unavailable", "This browser cannot access microphone input.");
-      return Promise.resolve();
-    }
-
-    const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
-    if (!AudioContextCtor) {
-      this._setVoiceInputState("unavailable", "This browser cannot analyze live audio.");
-      return Promise.resolve();
-    }
-
-    this._voiceInputStarting = true;
-    this._setVoiceInputState("connecting");
-    return navigator.mediaDevices.getUserMedia({
-      audio: {
-        echoCancellation: true,
-        noiseSuppression: false,
-        autoGainControl: false,
-        channelCount: 1,
-      },
-    }).then((stream) => {
-      if (!this._useVoice && !this._metronomeIsStarting && !this._metronomeInterval) {
-        stream.getTracks?.().forEach((track) => track.stop());
-        this._voiceInputStarting = false;
+      if (this._selection.length === this._answer.length) {
+        this._finishRound();
         return;
       }
 
-      this._voiceAudioContext = new AudioContextCtor();
-      this._voiceAudioContext.resume?.();
-      this._voiceStream = stream;
-      this._voiceSource = this._voiceAudioContext.createMediaStreamSource(stream);
-      this._voiceAnalyser = this._voiceAudioContext.createAnalyser();
-      this._voiceAnalyser.fftSize = 2048;
-      this._voiceData = new Float32Array(this._voiceAnalyser.fftSize);
-      this._voiceSource.connect(this._voiceAnalyser);
+      this._setStatus("Great — now choose the second card.");
+      this._setTimer(() => {
+        this._inputLocked = false;
+      }, this._beatMs());
+      return;
+    }
 
-      this._voiceIsActive = true;
-      this._voiceInputStarting = false;
-      this._voiceTapArmed = true;
-      this._voiceDetectionReadyAt = performance.now() + 350;
-      this._setVoiceInputState("listening");
-      this._listenForVoiceTaps();
-    }).catch((error) => {
-      this._voiceInputStarting = false;
-      const wasBlocked = ["NotAllowedError", "SecurityError"].includes(error?.name);
-      this._setVoiceInputState(
-        wasBlocked ? "blocked" : "unavailable",
-        wasBlocked
-          ? "Allow microphone access, then try again."
-          : "No microphone is available on this device.",
-      );
+    this._wrongTaps += 1;
+    this._roundHadMistake = true;
+    this._madeAnyMistake = true;
+    cardElement.classList.add("is-wrong");
+    this._wrongDot(answerIndex);
+    this._setStatus("Not quite. Start again with the first card.");
+    this._playFailSound();
+
+    const resetDelay = Math.min(800, Math.max(600, Math.round(this._beatMs() * 0.75)));
+    this._setTimer(() => {
+      this._selection = [];
+      this._clearSelectionMarks();
+      this._resetDots();
+      this._inputLocked = false;
+    }, resetDelay);
+  }
+
+  _finishRound() {
+    this._state = "complete";
+    this._inputLocked = true;
+    const earned = this._roundHadMistake ? 1 : 2;
+    this._pointsValue += earned;
+    this.$points.text(String(this._pointsValue));
+    this.$increment.text(`+${earned}`).css("opacity", 1);
+    this._setTimer(() => this.$increment.css("opacity", 0), 900);
+    this._updateProgress();
+    this._setStatus("Perfect order! Ready for another pair?");
+    this._setPlayButtons(false);
+    this.$playWrap.hide();
+    this.$continueWrap.show();
+    this.$continueBtn.text(
+      !this.opts.practiceMode && this._round >= this.opts.numOfChallenges
+        ? "View results"
+        : "Continue",
+    );
+    this._playSuccessSound();
+  }
+
+  _continue() {
+    if (this._state !== "complete") return;
+
+    if (!this.opts.practiceMode && this._round >= this.opts.numOfChallenges) {
+      this._showFinalResults();
+      return;
+    }
+
+    this._round += 1;
+    this.$playWrap.show();
+    this._startRound();
+  }
+
+  _updateProgress() {
+    if (this.opts.practiceMode) {
+      this.$progressCounter.text("Practice");
+      return;
+    }
+
+    const completed = Math.min(this._round, this.opts.numOfChallenges);
+    const progress = (completed / this.opts.numOfChallenges) * 100;
+    this.$progressBar.data("progress", progress).css("width", `${progress}%`);
+    this.$progressCounter.text(`${completed} of ${this.opts.numOfChallenges}`);
+  }
+
+  _showFinalResults() {
+    this._cancelTimers();
+    this.$continueWrap.hide();
+    this.$playWrap.hide();
+    $("#controls").hide();
+
+    const totalTaps = this._correctTaps + this._wrongTaps;
+    const accuracy = totalTaps ? Math.round((this._correctTaps / totalTaps) * 100) : 0;
+    const durationSec = Math.max(0, Math.floor((Date.now() - this._startedAt) / 1000));
+
+    renderFinalResultsOverlay({
+      $finalOverlay: this.$finalOverlay,
+      rounds: this.opts.numOfChallenges,
+      score: this._pointsValue,
+      accuracy,
+      durationSec,
+      settingsBonus: false,
+      playFinalSfx: () => this._playFinalSound(),
     });
   }
 
-  _stopVoiceInput() {
-    if (this._voiceFrame) {
-      cancelAnimationFrame(this._voiceFrame);
-      this._voiceFrame = null;
-    }
+  _scheduleFigureAudio(figure, startsAtMs = 0, cardElement = null) {
+    const beatMs = this._beatMs();
 
-    if (this._voiceUiResetTimeout) {
-      clearTimeout(this._voiceUiResetTimeout);
-      this._voiceUiResetTimeout = null;
-    }
+    figure.events.forEach((offset) => {
+      this._setTimer(() => {
+        this._playRhythmHit();
+        if (!cardElement) return;
 
-    this._voiceStream?.getTracks?.().forEach((track) => track.stop());
-    this._voiceAudioContext?.close?.();
-    this._voiceAudioContext = null;
-    this._voiceAnalyser = null;
-    this._voiceData = null;
-    this._voiceSource = null;
-    this._voiceStream = null;
-    this._voiceBaseline = 0.003;
-    this._voicePeakBaseline = 0.008;
-    this._voicePreviousLevel = 0;
-    this._voicePreviousPeak = 0;
-    this._voiceIsActive = false;
-    this._voiceInputStarting = false;
-    this._voiceTapArmed = true;
-    this._voiceDetectionReadyAt = 0;
-    this._lastVoiceTapTime = 0;
+        cardElement.classList.remove("is-sounding");
+        void cardElement.offsetWidth;
+        cardElement.classList.add("is-sounding");
+        this._setTimer(() => cardElement.classList.remove("is-sounding"), 120);
+      }, startsAtMs + (offset * beatMs));
+    });
   }
 
-  _listenForVoiceTaps() {
-    if (!this._voiceAnalyser || !this._voiceData) return;
+  async _ensureAudio() {
+    if (!window.Tone) return;
 
-    this._voiceAnalyser.getFloatTimeDomainData(this._voiceData);
-    const { level, peak } = this._voiceInputMetrics(this._voiceData);
-    const now = performance.now();
-    const sensitivityScale = this._voiceSensitivityScale();
-    const threshold = Math.max(
-      0.006 * sensitivityScale,
-      this._voiceBaseline * (1.3 + sensitivityScale * 0.43),
-    );
-    const peakThreshold = Math.max(
-      0.018 * sensitivityScale,
-      this._voicePeakBaseline * (1.45 + sensitivityScale * 0.595),
-    );
-    const attackThreshold = Math.max(
-      0.0015 * sensitivityScale,
-      this._voiceBaseline * (0.18 + sensitivityScale * 0.13),
-    );
-    const peakAttackThreshold = Math.max(
-      0.004 * sensitivityScale,
-      this._voicePeakBaseline * (0.15 + sensitivityScale * 0.108),
-    );
-    const releaseThreshold = Math.max(0.0045, this._voiceBaseline * 1.25);
-    const peakReleaseThreshold = Math.max(0.012, this._voicePeakBaseline * 1.4);
-    const attack = level - this._voicePreviousLevel;
-    const peakAttack = peak - this._voicePreviousPeak;
-    const isVoiceTap = (
-      this._voiceTapArmed
-      && now >= this._voiceDetectionReadyAt
-      && (
-        (level > threshold && attack > attackThreshold)
-        || (peak > peakThreshold && peakAttack > peakAttackThreshold)
-      )
-    );
-
-    const baselineRate = level > threshold ? 0.003 : 0.04;
-    const peakBaselineRate = peak > peakThreshold ? 0.002 : 0.03;
-    this._voiceBaseline = (this._voiceBaseline * (1 - baselineRate)) + (Math.min(level, 0.06) * baselineRate);
-    this._voicePeakBaseline = (this._voicePeakBaseline * (1 - peakBaselineRate)) + (Math.min(peak, 0.1) * peakBaselineRate);
-
-    if (isVoiceTap && now - this._lastVoiceTapTime > 120) {
-      this._voiceTapArmed = false;
-      this._lastVoiceTapTime = now;
-      if (this._rhythmStartTime !== null) {
-        this._handleTapAt(now - this._voiceTapOffsetMs, this._voiceTapWindowMs);
+    try {
+      await Tone.start();
+      await GameAudio.ensureMetronomeAudio();
+      if (!this._rhythmSynth) {
+        this._rhythmSynth = new Tone.MembraneSynth({
+          pitchDecay: 0.012,
+          octaves: 0.8,
+          oscillator: { type: "sine" },
+          envelope: { attack: 0.001, decay: 0.085, sustain: 0, release: 0.02 },
+          volume: -2,
+        }).toDestination();
       }
-      this._flashVoiceTapDetected();
-    } else if (
-      !this._voiceTapArmed
-      && level < releaseThreshold
-      && peak < peakReleaseThreshold
-    ) {
-      this._voiceTapArmed = true;
-    }
-
-    this._voicePreviousLevel = level;
-    this._voicePreviousPeak = peak;
-
-    this._voiceFrame = requestAnimationFrame(() => this._listenForVoiceTaps());
-  }
-
-  _setVoiceInputState(state, detail = "") {
-    const icon = document.querySelector("#mic-tap-icon");
-    const status = document.querySelector("#mic-tap-status");
-    const retryButton = document.querySelector("#mic-tap-retry");
-    const isReady = state === "connecting" || state === "listening";
-
-    if (icon) {
-      icon.classList.remove("connecting", "listening", "detected", "blocked");
-      icon.classList.add(state === "unavailable" ? "blocked" : state);
-      icon.querySelector('[data-mic-icon="active"]')?.classList.toggle("d-none", !isReady);
-      icon.querySelector('[data-mic-icon="inactive"]')?.classList.toggle("d-none", isReady);
-    }
-
-    if (status) {
-      const labels = {
-        connecting: "Connecting...",
-        listening: "Listening... clap or tap the rhythm",
-        blocked: "Microphone blocked",
-        unavailable: "Microphone unavailable",
-      };
-      status.textContent = detail || labels[state] || "";
-    }
-
-    if (retryButton) {
-      retryButton.style.display = ["blocked", "unavailable"].includes(state) ? "inline-block" : "none";
-    }
-  }
-
-  _flashVoiceTapDetected() {
-    const icon = document.querySelector("#mic-tap-icon");
-    if (!icon) return;
-
-    icon.classList.add("detected");
-    if (this._voiceUiResetTimeout) clearTimeout(this._voiceUiResetTimeout);
-    this._voiceUiResetTimeout = setTimeout(() => {
-      icon.classList.remove("detected");
-      this._voiceUiResetTimeout = null;
-    }, 160);
-  }
-
-  _voiceInputMetrics(data) {
-    let sum = 0;
-    let peak = 0;
-
-    data.forEach((value) => {
-      peak = Math.max(peak, Math.abs(value));
-      sum += value * value;
-    });
-
-    return {
-      level: Math.sqrt(sum / data.length),
-      peak,
-    };
-  }
-
-  _voiceSensitivityScale() {
-    const sensitivity = this._micSensitivity / 100;
-
-    return 1.8 - sensitivity * 1.25;
-  }
-
-  _scheduleRhythmAnimations(intervalMs) {
-    this._clearRhythmAnimationTimeouts();
-
-    this._rhythmPlaybackSchedule().forEach((event) => {
-      const timeout = setTimeout(() => {
-        this._animateRhythmNote(event.index);
-      }, event.beatOffset * intervalMs);
-
-      this._rhythmAnimationTimeouts.push(timeout);
-    });
-  }
-
-  _rhythmPlaybackSchedule() {
-    let beatOffset = 0;
-
-    return this._rhythm.map((duration, index) => {
-      const event = { index, beatOffset, duration };
-      beatOffset += this._durationToBeatBlocks(duration);
-
-      return event;
-    });
-  }
-
-  _clearRhythmAnimationTimeouts() {
-    this._rhythmAnimationTimeouts.forEach((timeout) => clearTimeout(timeout));
-    this._rhythmAnimationTimeouts = [];
-    this._rhythmHighlightTimeouts.forEach((timeout) => clearTimeout(timeout));
-    this._rhythmHighlightTimeouts = [];
-  }
-
-  _clearRhythmNoteAnimations() {
-    const wrapper = document.querySelector(this.opts.wrapperSelector);
-    wrapper?.querySelectorAll(".vf-notehead.beat-hero-highlight, .vf-notehead.pulsate").forEach((notehead) => {
-      this._setNoteheadHighlight(notehead, false);
-    });
-  }
-
-  _animateRhythmNote(index) {
-    const wrapper = document.querySelector(this.opts.wrapperSelector);
-    const note = wrapper?.querySelectorAll(".vf-stavenote")?.[index];
-    const notehead = note?.querySelector(".vf-notehead");
-    if (!notehead) return;
-
-    this._setNoteheadHighlight(notehead, true);
-    GameAudio.playRhythmHit();
-
-    const timeout = setTimeout(() => {
-      this._setNoteheadHighlight(notehead, false);
-    }, 200);
-    this._rhythmHighlightTimeouts.push(timeout);
-  }
-
-  _setNoteheadHighlight(notehead, isHighlighted) {
-    const paths = [notehead, ...notehead.querySelectorAll("path")];
-
-    notehead.classList.toggle("beat-hero-highlight", isHighlighted);
-    notehead.classList.toggle("pulsate", isHighlighted);
-    paths.forEach((element) => {
-      if (isHighlighted) {
-        element.style.fill = "#1cb0f6";
-        element.style.stroke = "#1cb0f6";
-      } else {
-        element.style.fill = "";
-        element.style.stroke = "";
+      if (this.opts.sound && !this._audioReady) {
+        this._uiSynth = GameAudio.createUiPolySynth();
+        this._uiNoise = GameAudio.createUiNoiseSynth();
+        this._audioReady = true;
       }
-    });
-  }
-
-  _drawRhythmWithFormatter({ VF, context, stave, notes, beams, width }) {
-    const voice = new VF.Voice({
-      num_beats: this._timeSignature.beats,
-      beat_value: this._timeSignature.beatValue,
-    });
-    voice.addTickables(notes);
-
-    const formatter = new VF.Formatter();
-    formatter.joinVoices([voice]);
-
-    if (formatter.createTickContexts && formatter.preFormat) {
-      formatter.createTickContexts([voice]);
-      this._setTickContextPadding(formatter.getTickContexts?.(), 0);
-      formatter.preFormat(width - 170, context, [voice], stave);
-      formatter.postFormat?.();
-    } else {
-      formatter.format([voice], width - 170);
-      this._setTickContextPadding(formatter.getTickContexts?.(), 0);
+    } catch (_) {
+      this._setStatus("Audio could not start. Check your browser sound settings.");
     }
+  }
 
-    voice.draw(context, stave);
+  _playRhythmHit() {
+    if (!this._rhythmSynth || !window.Tone) return;
 
-    beams.forEach((beam) => {
-      beam.setContext(context).draw();
+    this._rhythmSynth.triggerAttackRelease("C5", "32n", Tone.now(), 0.95);
+  }
+
+  _playSuccessSound() {
+    if (!this.opts.sound || !this._uiSynth || !window.Tone) return;
+
+    const now = Tone.now();
+    ["C6", "E6", "G6"].forEach((note, index) => {
+      this._uiSynth.triggerAttackRelease(note, 0.08, now + (index * 0.055), GameAudio.scale("successBasic", 0.5));
     });
   }
 
-  _drawQuarterGrid({ VF, context, stave, notes, beams, rhythm, width }) {
-    const firstNoteX = 0;
-    const finalBarlineX = width - 16;
-    const beatCount = Math.max(1, this._timeSignature.beats);
-    let beatCursor = 0;
-    let firstStemX = null;
+  _playFailSound() {
+    if (!this.opts.sound || !this._audioReady || !window.Tone) return;
 
-    notes.forEach((note, index) => {
-      const tickContext = new VF.TickContext();
-      tickContext.addTickable(note).preFormat();
-      tickContext.setX(firstNoteX);
+    const now = Tone.now();
+    this._uiNoise?.triggerAttackRelease(0.06, now, GameAudio.scale("failNoise", 0.35));
+    this._uiSynth?.triggerAttackRelease("A2", 0.1, now + 0.02, GameAudio.scale("failNote", 0.45));
+  }
 
-      note.setContext(context);
-      note.setStave(stave);
+  _playFinalSound() {
+    if (!this.opts.sound || !this._uiSynth || !window.Tone) return;
 
-      if (firstStemX === null) {
-        firstStemX = note.getStemX?.();
-      }
-
-      const noteOffset = Number.isFinite(firstStemX) ? firstStemX : 0;
-      const division = Math.max(0, (finalBarlineX - noteOffset) / beatCount);
-      tickContext.setX(firstNoteX + beatCursor * division);
-
-      note.draw();
-      beatCursor += this._durationToBeatBlocks(rhythm[index]);
-    });
-
-    beams.forEach((beam) => {
-      beam.setContext(context).draw();
+    const now = Tone.now();
+    ["C5", "E5", "G5", "C6"].forEach((note, index) => {
+      this._uiSynth.triggerAttackRelease(note, 0.16, now + (index * 0.08), GameAudio.scale("final", 0.5));
     });
   }
 
-  _removeNoteSpacing(notes) {
-    notes.forEach((note) => {
-      note.setExtraLeftPx?.(0);
-      note.setExtraRightPx?.(0);
-    });
+  _activateDot(index) {
+    const dot = this.$dots.find(".sequence-dot").get(index);
+    if (!dot) return;
+
+    dot.classList.remove("is-complete", "is-wrong", "is-chosen");
+    dot.classList.add("is-active");
   }
 
-  _setTickContextPadding(tickContexts, padding) {
-    if (!tickContexts) return;
+  _completeDot(index) {
+    const dot = this.$dots.find(".sequence-dot").get(index);
+    if (!dot) return;
 
-    const contexts = tickContexts instanceof Map
-      ? [...tickContexts.values()]
-      : Object.values(tickContexts);
-
-    contexts.forEach((tickContext) => {
-      tickContext?.setPadding?.(padding);
-    });
+    dot.classList.remove("is-active");
+    dot.classList.add("is-complete");
   }
 
-  _alignVerticalStaveLines(wrapper) {
-    const barlines = wrapper.querySelectorAll("svg rect");
-    const finalBarline = barlines[barlines.length - 1];
-    if (!finalBarline) return;
+  _chooseDot(index) {
+    const dot = this.$dots.find(".sequence-dot").get(index);
+    if (!dot) return;
 
-    const x = parseFloat(finalBarline.getAttribute("x"));
-    if (Number.isFinite(x)) finalBarline.setAttribute("x", String(x + 2));
+    dot.classList.remove("is-active", "is-wrong");
+    dot.classList.add("is-chosen");
   }
 
-  _removeVerticalStaveLines(wrapper) {
-    wrapper.querySelectorAll("svg rect").forEach((rect) => rect.remove());
+  _wrongDot(index) {
+    const dot = this.$dots.find(".sequence-dot").get(index);
+    if (!dot) return;
+
+    dot.classList.remove("is-active", "is-complete", "is-chosen");
+    dot.classList.add("is-wrong");
   }
 
-  _extendStems(notes, extension) {
-    notes.forEach((note) => {
-      const stem = note.getStem?.();
-      stem?.setExtension?.(extension);
-    });
+  _resetDots() {
+    this.$dots.find(".sequence-dot").removeClass("is-active is-complete is-chosen is-wrong");
   }
 
-  _extendRenderedStems(wrapper, extension) {
-    wrapper.querySelectorAll(".vf-stem path").forEach((path) => {
-      const d = path.getAttribute("d") || "";
-      const match = d.match(/^M([\d.-]+) ([\d.-]+)L([\d.-]+) ([\d.-]+)$/);
-      if (!match) return;
-
-      const [, startX, startY, endX, endY] = match;
-      const stemTop = parseFloat(endY);
-      if (!Number.isFinite(stemTop)) return;
-
-      path.setAttribute(
-        "d",
-        `M${startX} ${startY}L${endX} ${stemTop - extension}`,
-      );
-    });
+  _clearSelectionMarks() {
+    this.$grid.find(".rhythm-card")
+      .removeClass("is-correct is-wrong is-previewing is-sounding");
+    this.$grid.find(".rhythm-card__number").text("");
   }
 
-  _moveStemTopAttachments(wrapper, extension) {
-    wrapper.querySelectorAll(".vf-flag, .vf-beam").forEach((element) => {
-      const transform = element.getAttribute("transform") || "";
-      element.setAttribute("transform", `${transform} translate(0 -${extension})`.trim());
-    });
-
-    this._moveUnclassifiedEighthFlags(wrapper, 4.5);
+  _setPlayButtons(isPlaying) {
+    this.$playWrap.show();
+    this.$playBtn.toggle(!isPlaying);
+    this.$stopBtn.toggle(isPlaying);
   }
 
-  _moveUnclassifiedEighthFlags(wrapper, extension) {
-    wrapper.querySelectorAll("svg path").forEach((path) => {
-      if (path.getAttribute("class")) return;
-
-      const d = path.getAttribute("d") || "";
-      const match = d.match(/^M([\d.-]+) ([\d.-]+)/);
-      if (!match || !d.includes("C") || !d.includes("L")) return;
-
-      const [, startX] = match;
-      if (parseFloat(startX) < 80) return;
-
-      const transform = path.getAttribute("transform") || "";
-      path.setAttribute("transform", `${transform} translate(0 -${extension})`.trim());
-    });
+  _setStatus(message) {
+    this.$status.text(message);
   }
 
-  _rhythmNoteGlyphFontScale(wrapper) {
-    const styles = getComputedStyle(wrapper);
-    const noteWidth = this._pxFromCssVar(styles, "--note-width", 28);
-    const noteHeight = this._pxFromCssVar(styles, "--note-height", 22);
-
-    return Math.round(Math.max(noteWidth * 2, noteHeight * 2.55));
+  _beatMs() {
+    return 60000 / this.opts.bpm;
   }
 
-  _pxFromCssVar(styles, name, fallback) {
-    const value = parseFloat(styles.getPropertyValue(name));
-    return Number.isFinite(value) ? value : fallback;
+  _setTimer(callback, delayMs) {
+    const timer = setTimeout(() => {
+      this._timers.delete(timer);
+      callback();
+    }, Math.max(0, delayMs));
+    this._timers.add(timer);
+    return timer;
   }
 
-  _timeSignatureLabel() {
-    return `${this._timeSignature.beats}/${this._timeSignature.beatValue}`;
+  _cancelTimers() {
+    this._timers.forEach((timer) => clearTimeout(timer));
+    this._timers.clear();
   }
 
-  _measureBeatBlocks() {
-    return this._timeSignature.beats * (4 / this._timeSignature.beatValue);
+  _shuffle(items) {
+    const shuffled = [...items];
+    for (let index = shuffled.length - 1; index > 0; index -= 1) {
+      const other = Math.floor(Math.random() * (index + 1));
+      [shuffled[index], shuffled[other]] = [shuffled[other], shuffled[index]];
+    }
+    return shuffled;
   }
 
-  _measurePlaybackBeats() {
-    return Math.max(1, this._timeSignature.beats);
-  }
-
-  _durationToBeatBlocks(duration) {
-    const noteDuration = this._durationWithoutRest(duration);
-
-    return {
-      w: 4,
-      h: 2,
-      q: 1,
-      8: 0.5,
-    }[noteDuration] || 1;
-  }
-
-  _durationWithoutRest(duration) {
-    return String(duration || "").replace(/r$/, "");
-  }
-
-  _isRestDuration(duration) {
-    return String(duration || "").endsWith("r");
-  }
-
-  _maybeRestDuration(duration) {
-    if (!this._includeRests || Math.random() < 0.5) return duration;
-
-    return `${duration}r`;
-  }
-
-  _normalizeBoolOption(value) {
-    return (
-      value === true
-      || value === 1
-      || ["1", "true", "on", "yes"].includes(String(value).toLowerCase())
-    );
+  _normalizeChallengeCount(value) {
+    const count = Math.trunc(Number(value));
+    if (!Number.isFinite(count)) return 4;
+    return Math.min(BeatHero.MAX_CHALLENGES, Math.max(BeatHero.MIN_CHALLENGES, count));
   }
 
   _normalizeBpm(value) {
     const bpm = Number(value);
-    if (!Number.isFinite(bpm)) return 60;
-
-    return Math.min(200, Math.max(40, bpm));
+    if (!Number.isFinite(bpm)) return 80;
+    return Math.min(160, Math.max(50, bpm));
   }
 
-  _normalizeMicSensitivity(value) {
-    const sensitivity = Number(value);
-    if (!Number.isFinite(sensitivity)) return 70;
+  _normalizeFigureIds(value) {
+    const validIds = new Set(BeatHero.FIGURES.map((figure) => figure.id));
+    const selected = [...new Set(Array.isArray(value) ? value : [])]
+      .filter((figureId) => validIds.has(figureId))
+      .slice(0, 4);
 
-    return Math.min(100, Math.max(0, sensitivity));
+    BeatHero.DEFAULT_FIGURE_IDS.forEach((figureId) => {
+      if (selected.length < 2 && !selected.includes(figureId)) selected.push(figureId);
+    });
+
+    return selected;
   }
 
-  _normalizeMeasureCount(value) {
-    const count = Number(value);
-    if (!Number.isInteger(count) || count <= 0) return 1;
-
-    return count;
-  }
-
-  _resetMeasureQueue() {
-    this._activeMeasureNumber = 1;
-    this._measures = Array.from(
-      { length: this._numOfMeasures },
-      () => this._makeRandomRhythm(),
-    );
-    this._syncCurrentMeasures();
-  }
-
-  _rewindMeasureQueue() {
-    if (!this._measures.length) {
-      this._resetMeasureQueue();
-      return;
-    }
-
-    this._activeMeasureNumber = 1;
-    this._syncCurrentMeasures();
-  }
-
-  _syncCurrentMeasures() {
-    const currentIndex = Math.max(0, this._activeMeasureNumber - 1);
-
-    this._rhythm = this._measures[currentIndex] || [];
-    this._previewRhythm = this._measures[currentIndex + 1] || null;
-  }
-
-  _shouldRewindMeasureQueueForPlayback() {
-    return this._activeMeasureNumber > 1 || !this._rhythm.length;
-  }
-
-  _pickTimeSignature() {
-    const signatures = this._normalizeTimeSignatures(
-      this.opts.timeSignatures || this.opts.timeSignatues,
-    );
-
-    return signatures[Math.floor(Math.random() * signatures.length)];
-  }
-
-  _normalizeTimeSignatures(timeSignatures) {
-    const values = Array.isArray(timeSignatures) && timeSignatures.length
-      ? timeSignatures
-      : ["4/4"];
-    const normalized = values
-      .map((value) => this._parseTimeSignature(value))
-      .filter(Boolean);
-
-    return normalized.length
-      ? normalized
-      : [{ beats: 4, beatValue: 4 }];
-  }
-
-  _parseTimeSignature(value) {
-    const match = String(value || "").trim().match(/^(\d+)\s*\/\s*(\d+)$/);
-    if (!match) return null;
-
-    const beats = Number(match[1]);
-    const beatValue = Number(match[2]);
-    if (!Number.isInteger(beats) || !Number.isInteger(beatValue)) return null;
-    if (beats <= 0 || beatValue <= 0) return null;
-
-    return { beats, beatValue };
-  }
-
-  _normalizeNoteOptions(notes) {
-    const aliases = {
-      whole: "whole",
-      w: "whole",
-      half: "half",
-      h: "half",
-      quarter: "quarter",
-      q: "quarter",
-      eigth: "eighth",
-      eighth: "eighth",
-      eight: "eighth",
-      "8": "eighth",
-    };
-    const values = Array.isArray(notes) && notes.length
-      ? notes
-      : ["whole", "half", "quarter", "eighth"];
-    const normalized = values
-      .map((note) => aliases[String(note).toLowerCase()])
-      .filter(Boolean);
-
-    return new Set(normalized.length ? normalized : ["quarter"]);
-  }
-
-  _makeRandomRhythm() {
-    const rhythm = [];
-    const rhythmCells = this._rhythmCellsForEnabledNotes();
-    let beatsRemaining = this._measureBeatBlocks();
-    let previousHadEighths = false;
-
-    while (beatsRemaining > 0) {
-      const fittingChoices = rhythmCells.filter(
-        (cell) => cell.beats <= beatsRemaining && this._canCompleteRhythm(
-          beatsRemaining - cell.beats,
-          rhythmCells,
-        ),
-      );
-      const separatedChoices = fittingChoices.filter(
-        (cell) => !(previousHadEighths && cell.hasEighths),
-      );
-      const safeChoices = separatedChoices.length
-        ? separatedChoices
-        : fittingChoices;
-      if (!safeChoices.length) {
-        rhythm.push(this._maybeRestDuration("q"));
-        beatsRemaining -= 1;
-        previousHadEighths = false;
-        continue;
-      }
-      const cell = safeChoices[Math.floor(Math.random() * safeChoices.length)];
-
-      rhythm.push(
-        ...cell.durations.map((duration) => this._maybeRestDuration(duration)),
-      );
-      beatsRemaining -= cell.beats;
-      previousHadEighths = cell.hasEighths;
-    }
-
-    return rhythm;
-  }
-
-  _canCompleteRhythm(beatsRemaining, rhythmCells) {
-    if (beatsRemaining === 0) return true;
-    if (beatsRemaining < 0) return false;
-
-    return rhythmCells.some((cell) => (
-      cell.beats <= beatsRemaining
-      && this._canCompleteRhythm(beatsRemaining - cell.beats, rhythmCells)
-    ));
-  }
-
-  _rhythmCellsForEnabledNotes() {
-    const enabled = this._enabledNoteValues;
-    const cells = [];
-
-    if (enabled.has("whole")) {
-      cells.push({ durations: ["w"], beats: 4, hasEighths: false });
-    }
-
-    if (enabled.has("half")) {
-      cells.push({ durations: ["h"], beats: 2, hasEighths: false });
-    }
-
-    if (enabled.has("quarter")) {
-      cells.push({ durations: ["q"], beats: 1, hasEighths: false });
-    }
-
-    if (enabled.has("eighth")) {
-      cells.push({ durations: ["8", "8"], beats: 1, hasEighths: true });
-    }
-
-    if (enabled.has("eighth") && enabled.has("quarter")) {
-      cells.push({ durations: ["8", "q", "8"], beats: 2, hasEighths: true });
-    }
-
-    return cells.length
-      ? cells
-      : [{ durations: ["q"], beats: 1, hasEighths: false }];
+  _normalizeBool(value) {
+    return value === true
+      || value === 1
+      || ["1", "true", "on", "yes"].includes(String(value).toLowerCase());
   }
 }

@@ -9,3 +9,4 @@ require('./form');
 require('./student-payment-method');
 require('./lesson-payment-section');
 require('./url-input');
+require('./value-thumb-range');

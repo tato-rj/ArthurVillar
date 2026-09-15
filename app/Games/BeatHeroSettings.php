@@ -4,7 +4,25 @@ namespace App\Games;
 
 class BeatHeroSettings extends GameFactory
 {
-    protected array $bonusPoints = ['includeRests'];
+    private const FIGURE_CHOICES = [
+        'quarter' => 'Quarter note',
+        'two-eighths' => 'Two eighth notes',
+        'eighth-two-sixteenths' => 'Eighth note, two sixteenth notes',
+        'sixteenth-eighth-sixteenth' => 'Sixteenth note, eighth note, sixteenth note',
+        'two-sixteenths-eighth' => 'Two sixteenth notes, eighth note',
+        'four-sixteenths' => 'Four sixteenth notes',
+        'dotted-eighth-sixteenth' => 'Dotted eighth note, sixteenth note',
+        'sixteenth-dotted-eighth' => 'Sixteenth note, dotted eighth note',
+    ];
+
+    private const DEFAULT_FIGURES = [
+        'quarter',
+        'two-eighths',
+        'four-sixteenths',
+        'eighth-two-sixteenths',
+    ];
+
+    protected array $bonusPoints = [];
     protected array $categories = ['rhythm', 'reading'];
 
     public function public()
@@ -24,7 +42,7 @@ class BeatHeroSettings extends GameFactory
 
     public function gameDescription() : string
     {
-        return 'Tap the notated rhythms shown within each measure.';
+        return 'Listen to two rhythm cards, then find them in the right order.';
     }
 
     public function gameTheme(): string
@@ -44,7 +62,7 @@ class BeatHeroSettings extends GameFactory
 
     protected function requiredToggleKeys(): array
     {
-        return ['sound', 'showNoteNames', 'solfege', 'allowDottedRhythms', 'showDetails', 'includeRests', 'useVoice'];
+        return ['practiceMode', 'sound'];
     }
 
     protected function defaults(): array
@@ -52,22 +70,45 @@ class BeatHeroSettings extends GameFactory
         return [
             'practiceMode' => false,
             'numOfChallenges' => 4,
-            'numOfMeasures' => 2,
-            'bpm' => 60,
-            'micSensitivity' => 70,
-            'timeSignatures' => ['4/4'],
-            'notesValues' => ['half', 'quarter', 'eigth'],
+            'bpm' => 80,
             'sound' => true,
-            'includeRests' => false,
-            'useVoice' => false
+            'figures' => self::DEFAULT_FIGURES,
         ];
+    }
+
+    public function figureChoices(): array
+    {
+        return self::FIGURE_CHOICES;
     }
 
     public function options($key = null)
     {
         $options = $this->applyUserPreferences();
+        $options['figures'] = $this->normalizeFigures($options['figures'] ?? []);
         $array = $this->buildOptions($options);
 
         return $key ? $array[$key] : $array;
+    }
+
+    private function normalizeFigures($figures): array
+    {
+        $figures = is_array($figures) ? $figures : [];
+        $figures = array_values(array_unique(array_filter(
+            $figures,
+            fn ($figure) => is_string($figure) && array_key_exists($figure, self::FIGURE_CHOICES)
+        )));
+
+        if (count($figures) > 4) {
+            $figures = array_slice($figures, 0, 4);
+        }
+
+        foreach (self::DEFAULT_FIGURES as $defaultFigure) {
+            if (count($figures) >= 2) break;
+            if (!in_array($defaultFigure, $figures, true)) {
+                $figures[] = $defaultFigure;
+            }
+        }
+
+        return $figures;
     }
 }

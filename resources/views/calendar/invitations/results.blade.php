@@ -47,4 +47,28 @@
             @endforeach
         </div>
     @endforeach
+
+    <div class="invitation-results-participants border-top pt-4">
+        <h6 class="mb-2">People who responded</h6>
+
+        <ul class="list-unstyled mb-0">
+            @foreach($invitation->participants as $participant)
+                <li class="d-apart py-2 {{ $loop->last ? '' : 'border-bottom' }}">
+                    <span class="mr-3">{{ $participant->name }}</span>
+
+                    <form method="POST" action="{{ route('calendar.invitations.participants.destroy', [$invitation, $participant]) }}" confirm class="mb-0">
+                        @csrf
+                        @method('DELETE')
+                        <button
+                            type="submit"
+                            class="btn btn-sm btn-red rounded"
+                            title="Delete all responses from {{ $participant->name }}"
+                            aria-label="Delete all responses from {{ $participant->name }}">
+                            @fa(['icon' => 'trash-alt'])Delete
+                        </button>
+                    </form>
+                </li>
+            @endforeach
+        </ul>
+    </div>
 @endmodal

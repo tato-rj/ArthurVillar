@@ -1,64 +1,56 @@
-
 @modal(['title' => fa('gear').'Game settings', 'id' => str_slug($settings->gameName()).'-settings-modal'])
-<form id="intervals-settings" method="GET" action="{{ $settings->gameUrl() }}">
+<form id="beat-hero-settings" method="GET" action="{{ $settings->gameUrl() }}">
   @component('theory.components.settings.section', ['title' => 'SETUP'])
     @include('theory.components.settings.count', ['label' => 'Number of rounds', 'name' => 'numOfChallenges', 'min' => 2, 'max' => 12])
-    @include('theory.components.settings.count', ['label' => 'Number of measures', 'name' => 'numOfMeasures', 'min' => 1, 'max' => 8])
-    <div class="mb-3">
-      <div class="d-apart">
-        <label for="beat-hero-bpm">Metronome</label>
-        <output id="beat-hero-bpm-output" for="beat-hero-bpm" class="fw-bold">{{$settings->options('bpm')}} BPM</output>
-      </div>
-      <input
-        id="beat-hero-bpm"
-        type="range"
-        name="bpm"
-        class="form-range mt-2 big-thumb"
-        min="40"
-        max="200"
-        step="5"
-        value="{{$settings->options('bpm')}}"
-        data-beat-hero-range-output="#beat-hero-bpm-output"
-        data-output-suffix=" BPM">
-      <div class="d-flex justify-content-between small text-light">
-        <span>40 BPM</span>
-        <span>200 BPM</span>
-      </div>
-    </div>
+
+    @include('theory.components.settings.value-range', [
+      'label' => 'Playback tempo',
+      'name' => 'bpm',
+      'id' => 'beat-hero-bpm',
+      'min' => 50,
+      'max' => 160,
+      'step' => 5,
+      'value' => $settings->options('bpm'),
+      'minLabel' => '50 BPM',
+      'maxLabel' => '160 BPM',
+    ])
+
     @include('theory.components.settings.toggle', ['label' => 'Practice mode', 'name' => 'practiceMode'])
   @endcomponent
 
   @component('theory.components.settings.section', ['title' => 'MATERIAL'])
-    @include('theory.components.settings.multichoice', ['label' => 'Time Signatures', 'name' => 'timeSignatures', 'options' => $settings->getTimeSignatures(), 'game' => $settings->gameName()])
+    <fieldset class="mb-1">
+      <legend class="h6 mb-1">Rhythm symbols</legend>
+      <p class="small text-light mb-2">Choose 2 to 4</p>
 
-    @include('theory.components.settings.multichoice', ['label' => 'Notes', 'name' => 'notesValues', 'options' => $settings->getNotesValues(), 'game' => $settings->gameName()])
-    @include('theory.components.settings.toggle', ['label' => 'Include rests', 'name' => 'includeRests'])
+      <div class="beat-hero-symbol-picker" data-beat-hero-symbol-picker>
+        @foreach($settings->figureChoices() as $figureId => $figureLabel)
+          <div class="beat-hero-symbol-choice">
+            <input
+              id="beat-hero-figure-{{$figureId}}"
+              class="beat-hero-symbol-input"
+              type="checkbox"
+              name="figures[]"
+              value="{{$figureId}}"
+              {{in_array($figureId, $settings->options('figures'), true) ? 'checked' : null}}>
+            <label
+              class="beat-hero-symbol-option"
+              for="beat-hero-figure-{{$figureId}}"
+              title="{{$figureLabel}}"
+              aria-label="{{$figureLabel}}">
+              <span class="beat-hero-symbol-figure" data-beat-hero-figure-thumbnail="{{$figureId}}" aria-hidden="true"></span>
+              <span class="beat-hero-symbol-check" aria-hidden="true">✓</span>
+            </label>
+          </div>
+        @endforeach
+      </div>
+
+      <p class="beat-hero-symbol-message small fw-bold mb-0 mt-2" data-beat-hero-symbol-message aria-live="polite"></p>
+    </fieldset>
   @endcomponent
 
   @component('theory.components.settings.section', ['title' => 'PREFERENCES'])
-    @include('theory.components.settings.toggle', ['label' => 'Sound effects', 'name' => 'sound'])
-    @include('theory.components.settings.toggle', ['label' => 'Use microphone to tap', 'name' => 'useVoice'])
-    <div class="mb-3">
-      <div class="d-apart">
-        <label for="beat-hero-mic-sensitivity">Microphone sensitivity</label>
-        <output id="beat-hero-mic-sensitivity-output" for="beat-hero-mic-sensitivity" class="fw-bold">{{$settings->options('micSensitivity')}}%</output>
-      </div>
-      <input
-        id="beat-hero-mic-sensitivity"
-        type="range"
-        name="micSensitivity"
-        class="form-range mt-2 big-thumb"
-        min="0"
-        max="100"
-        step="5"
-        value="{{$settings->options('micSensitivity')}}"
-        data-beat-hero-range-output="#beat-hero-mic-sensitivity-output"
-        data-output-suffix="%">
-      <div class="d-flex justify-content-between small text-light">
-        <span>Low sensitivity</span>
-        <span>High sensitivity</span>
-      </div>
-    </div>
+    @include('theory.components.settings.toggle', ['label' => 'Feedback sounds', 'name' => 'sound'])
   @endcomponent
 
   <button type="submit" class="btn btn-primary w-100">Start new game</button>

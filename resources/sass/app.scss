@@ -120,6 +120,72 @@ input[type="range"].big-thumb {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Reusable range control with its selected value centered in the handle. */
+.value-thumb-range {
+  --value-thumb-width: 52px;
+  position: relative;
+  height: 32px;
+  margin-top: 8px;
+}
+
+.value-thumb-range__input {
+  display: block;
+  height: 32px;
+  margin: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.value-thumb-range__input::-webkit-slider-thumb {
+  width: var(--value-thumb-width);
+  height: 32px;
+  margin-top: -12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.value-thumb-range__input::-moz-range-thumb {
+  width: var(--value-thumb-width);
+  height: 32px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.value-thumb-range__value {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: calc(var(--value-thumb-width) / 2);
+  display: grid;
+  place-items: center;
+  width: var(--value-thumb-width);
+  height: 26px;
+  padding: 0;
+  border-radius: 999px;
+  background: #000;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  transition: box-shadow .15s ease;
+}
+
+.value-thumb-range__input:focus-visible + .value-thumb-range__value {
+  box-shadow: 0 0 0 4px rgba(28, 176, 246, .24);
+}
+
+.value-thumb-range__limits {
+  display: flex;
+  justify-content: space-between;
+  color: #b7bdc7;
+  font-size: .875em;
+}
+
 .navbar-nav hr {
   margin: .5rem 0;
 }

@@ -2,9 +2,6 @@
 
 @push('header')
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Music&display=swap" rel="stylesheet">
 <link href="{{ mix('css/musicgames.css') }}" rel="stylesheet">
 
 <script>
@@ -12,182 +9,305 @@
 </script>
 
 <style>
-  .beat-hero-wrapper {
-    --rhythm-staff-width: 380px;
-    --rhythm-staff-line-thickness: calc(var(--staff-line-thickness) * .5);
-    min-height: 190px;
-    width: var(--rhythm-staff-width);
-    {{-- overflow: hidden; --}}
-    margin-left: auto;
-    margin-right: auto;
-    margin-bottom: -20px;
-  }
-
-  #preview-wrapper {
-    display: none;
-    --rhythm-staff-width: 380px;
-    width: var(--rhythm-staff-width);
+  .beat-hero-game {
+    --beat-hero-ink: #174a76;
+    --beat-hero-blue: #1cb0f6;
+    --beat-hero-gold: #f6c945;
+    --beat-hero-green: #58cc02;
+    --beat-hero-red: #ff4b4b;
+    max-width: 760px;
     margin: 0 auto;
   }
 
-  #preview-wrapper {
-    margin-bottom: -90px;
+  .sequence-dots {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    min-height: 48px;
+    margin: 2px 0 4px;
   }
 
-  #preview-score {
-    min-height: auto !important;
-    margin-top: -36px;
+  .sequence-dot {
+    width: 30px;
+    height: 30px;
+    border: 1px solid black;
+    border-radius: 10px;
+    background: #fff;
+    transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease, transform .15s ease;
   }
 
-  #preview-score svg {
-    height: 120px !important;
+  .sequence-dot.is-active {
+    border-color: var(--beat-hero-gold);
+    background: var(--beat-hero-ink);
+    box-shadow: 0 0 0 1px yellow;
+    transform: scale(1.08);
   }
 
-  .beat-hero-wrapper svg {
+  .sequence-dot.is-complete {
+    border-color: #b9d8ee;
+    background: #d9effd;
+  }
+
+  .sequence-dot.is-chosen {
+    border-color: var(--beat-hero-green);
+    background: var(--beat-hero-green);
+    box-shadow: 0 0 0 5px rgba(88, 204, 2, .14);
+  }
+
+  .sequence-dot.is-wrong {
+    border-color: var(--beat-hero-red);
+    background: var(--beat-hero-red);
+    box-shadow: 0 0 0 5px rgba(255, 75, 75, .14);
+  }
+
+  #sequence-status {
+    min-height: 25px;
+    margin: 0 0 16px;
+    color: #6b7680;
+    font-weight: 700;
+  }
+
+  .rhythm-card-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 36px;
+    width: 100%;
+  }
+
+  .rhythm-card:hover {
+    transform: translateY(-2px);
+  }
+
+  .rhythm-card:active {
+    transform: translateY(2px);
+  }
+
+  .rhythm-card:focus-visible {
+    outline-offset: 3px;
+  }
+
+  .rhythm-card.is-previewing {
+    border-color: var(--beat-hero-blue);
+    background: #f3fbff;
+  }
+
+  .rhythm-card.is-correct {
+    box-shadow: 0 0px 0 var(--beat-hero-green), 0 0 0 4px var(--beat-hero-green) !important;
+  }
+
+  .rhythm-card.is-wrong {
+    box-shadow: 0 4px 0 var(--beat-hero-red), 0 0 0 4px var(--beat-hero-red) !important;
+    animation: rhythmCardShake .35s ease;
+  }
+
+  .rhythm-card.is-sounding .rhythm-card__figure {
+    transform: scale(1.07);
+  }
+
+  .rhythm-card__number {
+    position: absolute;
+    z-index: 2;
+    top: 8px;
+    right: 8px;
+    display: none;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--beat-hero-green);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 900;
+  }
+
+  .rhythm-card.is-correct .rhythm-card__number {
+    display: grid;
+  }
+
+  .rhythm-card__figure {
     display: block;
     width: 100%;
-    height: auto;
+    height: 100%;
+    transition: transform .12s ease, opacity .15s ease;
   }
 
-  .beat-hero-wrapper .vf-stave path {
-    stroke-width: var(--rhythm-staff-line-thickness) !important;
+  .rhythm-card__figure svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .rhythm-note-head,
+  .rhythm-note-dot {
+    fill: currentColor;
+  }
+
+  .rhythm-note-stem {
+    stroke: currentColor;
+    stroke-width: 4;
     stroke-linecap: round;
   }
 
-  .beat-hero-wrapper svg rect {
-    rx: .2rem;
-    transform: translateX(calc(((1px - var(--rhythm-staff-line-thickness)) / 2) - 1px));
-    width: var(--rhythm-staff-line-thickness);
+  .rhythm-note-beam {
+    stroke: currentColor;
+    stroke-width: 7;
+    stroke-linecap: square;
   }
 
-  .beat-hero-wrapper svg rect:last-of-type {
-    transform: translateX(0);
+  .rhythm-note-beam--secondary {
+    stroke-width: 6;
   }
 
-  .beat-hero-wrapper svg rect:first-of-type {
-    transform: translateX(calc(((1px - var(--rhythm-staff-line-thickness)) / 2) - 2px));
+  .rhythm-note-flag {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 5;
+    stroke-linecap: round;
   }
 
-  .beat-hero-wrapper .vf-notehead {
-    transform-box: fill-box;
-    transform-origin: center;
+  #play {
+    min-height: 62px;
+    margin: 18px 0 12px;
   }
 
-  .beat-hero-wrapper .vf-notehead.pulsate {
-    animation: pulse .25s;
+  #play button {
+    min-width: 132px;
   }
 
-  @keyframes pulse {
-    0% {
-      transform: scale(2);
-    }
-
-    50% {
-      transform: scale(.85);
-    }
-
-    75% {
-      transform: scale(1.1);
-    }
-
-    100% {
-      transform: scale(1);
-    }
+  .beat-hero-symbol-picker {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 6px;
   }
 
-  #beat-count {
+  .beat-hero-symbol-choice {
+    position: relative;
+    min-width: 0;
+  }
+
+  .beat-hero-symbol-input {
     position: absolute;
-    left: 16px;
-    top: 0;
-    font-size: 2.8rem;
-    font-weight: bold;
+    width: 1px;
+    height: 1px;
     opacity: 0;
-    color: #1cb0f6;
+    pointer-events: none;
   }
 
-  .beat-animation {
-    animation: fadeAnimation 1200ms;
+  .beat-hero-symbol-option {
+    position: relative;
+    display: block;
+    aspect-ratio: 1.1;
+    margin: 0;
+    overflow: hidden;
+    border: 2px solid #d9dde0;
+    border-radius: 9px;
+    background: #fff;
+    color: var(--beat-hero-ink);
+    cursor: pointer;
+    transition: border-color .15s ease, background-color .15s ease, transform .15s ease;
   }
 
-  .good-tap {
+  .beat-hero-symbol-option:hover {
+    border-color: #9ed9f6;
+    transform: translateY(-1px);
+  }
+
+  .beat-hero-symbol-input:focus-visible + .beat-hero-symbol-option {
+    outline: 3px solid rgba(28, 176, 246, .3);
+    outline-offset: 2px;
+  }
+
+  .beat-hero-symbol-input:checked + .beat-hero-symbol-option {
+    border-color: var(--beat-hero-blue);
+    background: #eef9ff;
+    box-shadow: inset 0 0 0 1px var(--beat-hero-blue);
+  }
+
+  .beat-hero-symbol-figure {
+    display: block;
     width: 100%;
     height: 100%;
-    position: absolute;
-    top: 0;
-    left: o;
-    background: #58cc02;
-    animation: fadeAnimation 500ms;
-    opacity: 0;
+    padding: 2px;
   }
 
-  .bad-tap {
+  .beat-hero-symbol-figure svg {
+    display: block;
     width: 100%;
     height: 100%;
+  }
+
+  .beat-hero-symbol-check {
     position: absolute;
-    top: 0;
-    left: o;
-    background: #ffc800;
-    animation: fadeAnimation 500ms;
-    opacity: 0;
-  }
-
-  #tap-wrapper,
-  #mic-tap-wrapper {
-    height: 160px;
-    width: 280px;
-  }
-
-  #tap-wrapper {
-    background: white;
-    border: 4px dashed lightgrey;
-  }
-
-  #mic-tap-wrapper {
+    top: 3px;
+    right: 3px;
     display: none;
+    place-items: center;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--beat-hero-blue);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 900;
+    line-height: 1;
   }
 
-  #mic-tap-icon {
-    opacity: .1;
-    transition: color .2s ease, opacity .2s ease;
+  .beat-hero-symbol-input:checked + .beat-hero-symbol-option .beat-hero-symbol-check {
+    display: grid;
   }
 
-  #mic-tap-icon.connecting,
-  #mic-tap-icon.listening {
-    color: #ffc800;
-    animation: playSoundIconPulse .55s ease-in-out infinite alternate;
+  .beat-hero-symbol-message {
+    min-height: 17px;
+    color: #6b7680;
   }
 
-  #mic-tap-icon.detected {
-    color: #58cc02;
-    opacity: 1;
+  .beat-hero-symbol-message.is-error {
+    color: var(--beat-hero-red);
   }
 
-  #mic-tap-icon.blocked {
-    color: #ff4b4b;
-    opacity: 1;
+  @keyframes rhythmCardShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
   }
 
-  #mic-tap-status {
-    min-height: 24px;
-    padding: 0 12px;
-    text-align: center;
-    width: 100%;
-  }
-
-  #mic-tap-retry {
-    display: none;
-  }
-
-  @keyframes fadeAnimation {
-    0% {
-      opacity: .8;
+  @media (max-width: 575.98px) {
+    .beat-hero-game {
+      width: calc(100vw - 24px);
+      margin-left: calc(50% - 50vw + 12px);
     }
 
-    100% {
-      opacity: 0;
+    .rhythm-card-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .rhythm-card__number {
+      top: 5px;
+      right: 5px;
+      width: 21px;
+      height: 21px;
+      font-size: 12px;
+    }
+
+    #sequence-status {
+      margin-bottom: 12px;
+      font-size: .9rem;
     }
   }
 
+  @media (prefers-reduced-motion: reduce) {
+    .rhythm-card,
+    .rhythm-card__figure,
+    .sequence-dot {
+      transition: none;
+    }
+
+    .rhythm-card.is-wrong {
+      animation: none;
+    }
+  }
 </style>
 @endpush
 
@@ -198,50 +318,25 @@
   <div class="row">
     <div class="col-lg-6 col-md-8 col-11 mx-auto text-center mb-2">
       @include('theory.components.counter')
-      @include('theory.components.timer')
     </div>
-    <div class="col-12 mx-auto mb-2 position-relative">
-      <div id="preview-wrapper" class="opacity-2">
-        <div class="fw-bold text-right mx-auto" style="font-size: 60%; width: 217px;">UP NEXT</div>
-        <div id="preview-score"></div>
-      </div>
-      <div id="game-wrapper" class="position-relative">
-      </div>
-      <div id="feedback-count" class="d-center fw-bold mb-2">
-        <div class="feedback-count-good mx-3 text-green">
-          @fa(['icon' => 'check', 'mr' => 1])correct <span></span>
+
+    <div class="col-lg-8 col-md-10 col-12 mx-auto text-center position-relative">
+      <div class="beat-hero-game">
+        <div id="sequence-dots" class="sequence-dots" aria-label="Two-card sequence progress">
+          <span class="sequence-dot" aria-hidden="true"></span>
+          <span class="sequence-dot" aria-hidden="true"></span>
         </div>
-        <div class="feedback-count-bad mx-3 text-red">
-          @fa(['icon' => 'times', 'mr' => 1])missed <span></span>
-        </div>
+
+        <p id="sequence-status" aria-live="polite"></p>
+
+        <div id="rhythm-card-grid" class="rhythm-card-grid mb-4" aria-label="Rhythm cards"></div>
+
+        @include('theory.components.play')
       </div>
-      <div id="tap-wrapper" class="mx-auto mb-3 noselect position-relative">
-        <div id="tap-feedback" class="tap-feedback"></div>
-        <div class="d-center h-100 w-100">
-          <h1 class="opacity-2 m-0">TAP HERE</h1>
-        </div>
-      </div>
-      <div id="mic-tap-wrapper" class="mx-auto mb-3 noselect position-relative" aria-live="polite">
-        <div id="mic-tap-feedback" class="tap-feedback"></div>
-        <div class="d-center flex-column h-100 w-100">
-          <div id="mic-tap-icon" class="mb-2" aria-hidden="true">
-            <span data-mic-icon="inactive">@fa(['icon' => 'microphone-lines-slash', 'mr' => 0, 'fa_size' => '5x'])</span>
-            <span data-mic-icon="active" class="d-none">@fa(['icon' => 'microphone-lines', 'mr' => 0, 'fa_size' => '5x'])</span>
-          </div>
-          <div id="mic-tap-status" class="fw-bold text-secondary">Connecting...</div>
-          <button id="mic-tap-retry" type="button" class="btn btn-sm btn-outline-secondary mt-2">Try microphone again</button>
-        </div>
-      </div>
-      @include('theory.components.prompt')
-      @include('theory.components.feedback')
-      @include('theory.components.play')
     </div>
 
     <div class="col-lg-6 col-md-8 col-11 mx-auto">
-{{--       <div id="instructions" class="fw-bold text-center">
-        <h6 class="m-0 text-red">Swipe or use the arrows to control the snake</h6>
-      </div> --}}
-      @include('theory.components.controls')
+      @include('theory.components.controls', ['instructions' => ''])
       @include('theory.beat-hero.settings')
       @include('theory.components.leaderboard.show')
       @include('theory.components.preferences')
@@ -254,6 +349,5 @@
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.5/build/cjs/vexflow.js"></script>
 <script src="{{ mix('js/music/beathero.js') }}"></script>
 @endpush

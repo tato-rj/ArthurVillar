@@ -4445,6 +4445,7 @@ __webpack_require__(/*! ./form */ "./resources/js/components/form.js");
 __webpack_require__(/*! ./student-payment-method */ "./resources/js/components/student-payment-method.js");
 __webpack_require__(/*! ./lesson-payment-section */ "./resources/js/components/lesson-payment-section.js");
 __webpack_require__(/*! ./url-input */ "./resources/js/components/url-input.js");
+__webpack_require__(/*! ./value-thumb-range */ "./resources/js/components/value-thumb-range.js");
 
 /***/ },
 
@@ -4575,6 +4576,50 @@ document.addEventListener('keydown', function (event) {
     normalizeUrlInput(event.target);
   }
 });
+
+/***/ },
+
+/***/ "./resources/js/components/value-thumb-range.js"
+/*!******************************************************!*\
+  !*** ./resources/js/components/value-thumb-range.js ***!
+  \******************************************************/
+() {
+
+var RANGE_SELECTOR = "input[data-value-thumb-range]";
+function updateValueThumbRange(range) {
+  var wrapper = range.closest(".value-thumb-range");
+  var output = wrapper === null || wrapper === void 0 ? void 0 : wrapper.querySelector(".value-thumb-range__value");
+  if (!wrapper || !output) return;
+  var min = Number(range.min);
+  var max = Number(range.max);
+  var value = Number(range.value);
+  var progress = max === min ? 0 : (value - min) / (max - min);
+  var thumbWidth = Number(range.dataset.valueThumbWidth || 52);
+  var thumbOffset = thumbWidth / 2 - progress * thumbWidth;
+  output.textContent = range.value;
+  output.style.left = "calc(".concat(progress * 100, "% + ").concat(thumbOffset, "px)");
+}
+function initializeValueThumbRanges() {
+  var root = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : document;
+  root.querySelectorAll(RANGE_SELECTOR).forEach(function (range) {
+    updateValueThumbRange(range);
+    if (range.dataset.valueThumbRangeReady) return;
+    range.dataset.valueThumbRangeReady = "true";
+    range.addEventListener("input", function () {
+      return updateValueThumbRange(range);
+    });
+    range.addEventListener("change", function () {
+      return updateValueThumbRange(range);
+    });
+  });
+}
+document.addEventListener("DOMContentLoaded", function () {
+  return initializeValueThumbRanges();
+});
+window.ValueThumbRange = {
+  initialize: initializeValueThumbRanges,
+  update: updateValueThumbRange
+};
 
 /***/ },
 

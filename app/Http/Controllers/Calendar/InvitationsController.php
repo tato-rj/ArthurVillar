@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Calendar;
 use App\Http\Controllers\Controller;
 use App\Models\Calendar\Invitation;
 use App\Models\Calendar\InvitationOption;
+use App\Models\Calendar\InvitationParticipant;
 use App\Models\Calendar\InvitationVote;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -29,19 +30,24 @@ class InvitationsController extends Controller
     {
         $invitation
             ->loadCount('participants')
-            ->load(['options' => function ($query) {
-                $query
-                    ->with(['votes.participant'])
-                    ->withCount([
-                        'votes as yes_responses_count' => function ($query) {
-                            $query->where('status', InvitationVote::YES);
-                        },
-                        'votes as maybe_responses_count' => function ($query) {
-                            $query->where('status', InvitationVote::MAYBE);
-                        },
-                    ])
-                    ->orderBy('starts_at');
-            }]);
+            ->load([
+                'participants' => function ($query) {
+                    $query->orderBy('name')->orderBy('id');
+                },
+                'options' => function ($query) {
+                    $query
+                        ->with(['votes.participant'])
+                        ->withCount([
+                            'votes as yes_responses_count' => function ($query) {
+                                $query->where('status', InvitationVote::YES);
+                            },
+                            'votes as maybe_responses_count' => function ($query) {
+                                $query->where('status', InvitationVote::MAYBE);
+                            },
+                        ])
+                        ->orderBy('starts_at');
+                },
+            ]);
 
         $rankedOptions = $invitation->options
             ->sort(function (InvitationOption $first, InvitationOption $second) {
@@ -133,6 +139,17 @@ class InvitationsController extends Controller
         return redirect()
             ->route('calendar.invitations.index')
             ->with('success', 'The invitation was successfully deleted');
+    }
+
+    public function destroyParticipant(Invitation $invitation, InvitationParticipant $participant)
+    {
+        abort_unless($participant->invitation_id === $invitation->id, 404);
+
+        $participant->delete();
+
+        return redirect()
+            ->route('calendar.invitations.index')
+            ->with('success', 'The participant responses were successfully deleted');
     }
 
     private function validateInvitation(Request $request): array

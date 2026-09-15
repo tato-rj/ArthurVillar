@@ -12,1282 +12,839 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   BeatHero: () => (/* binding */ BeatHero)
 /* harmony export */ });
-/* harmony import */ var _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../shared/GameAudio.js */ "./resources/js/music/games/shared/GameAudio.js");
+/* harmony import */ var _shared_finalResults_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../shared/finalResults.js */ "./resources/js/music/games/shared/finalResults.js");
+/* harmony import */ var _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../shared/GameAudio.js */ "./resources/js/music/games/shared/GameAudio.js");
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
-function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
-function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
-function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
+function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
 function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
 function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
 function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
 function _iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
 function _arrayWithoutHoles(r) { if (Array.isArray(r)) return _arrayLikeToArray(r); }
 function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
-function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
-function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
-function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
-function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
 function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
 function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
-function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
 function _classCallCheck(a, n) { if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function"); }
 function _defineProperties(e, r) { for (var t = 0; t < r.length; t++) { var o = r[t]; o.enumerable = o.enumerable || !1, o.configurable = !0, "value" in o && (o.writable = !0), Object.defineProperty(e, _toPropertyKey(o.key), o); } }
 function _createClass(e, r, t) { return r && _defineProperties(e.prototype, r), t && _defineProperties(e, t), Object.defineProperty(e, "prototype", { writable: !1 }), e; }
+function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
 function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
 function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+
 
 var BeatHero = /*#__PURE__*/function () {
   function BeatHero() {
     var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
     _classCallCheck(this, BeatHero);
     this.opts = _objectSpread({
-      wrapperSelector: "#game-wrapper",
-      previewSelector: "#preview-score",
-      tapSelector: "#tap-wrapper",
-      micSelector: "#mic-tap-wrapper"
+      wrapperSelector: "#rhythm-card-grid",
+      dotsSelector: "#sequence-dots",
+      statusSelector: "#sequence-status",
+      numOfChallenges: 4,
+      bpm: 80,
+      practiceMode: false,
+      figures: BeatHero.DEFAULT_FIGURE_IDS,
+      sound: true
     }, options);
-    this._resizeHandler = null;
-    this._timeSignature = this._pickTimeSignature();
-    this._bpm = this._normalizeBpm(this.opts.bpm);
-    this._micSensitivity = this._normalizeMicSensitivity(this.opts.micSensitivity);
-    this._includeRests = this._normalizeBoolOption(this.opts.includeRests);
-    this._useVoice = this._normalizeBoolOption(this.opts.useVoice);
-    this._enabledNoteValues = this._normalizeNoteOptions(this.opts.notesValues || this.opts.notes);
-    this._numOfMeasures = this._normalizeMeasureCount(this.opts.numOfMeasures);
-    this._measures = [];
-    this._rhythm = [];
-    this._previewRhythm = null;
-    this._activeMeasureNumber = 1;
-    this._metronomeInterval = null;
-    this._metronomeStartTimeout = null;
-    this._rhythmAnimationTimeouts = [];
-    this._rhythmHighlightTimeouts = [];
-    this._metronomeTickIndex = 0;
-    this._rhythmPlaybackStarted = false;
-    this._metronomeAudioReady = false;
-    this._metronomeIsStarting = false;
-    this._rhythmStartTime = null;
-    this._tapEvents = [];
-    this._tapWindowMs = 120;
-    this._voiceTapWindowMs = 180;
-    this._voiceAudioContext = null;
-    this._voiceAnalyser = null;
-    this._voiceData = null;
-    this._voiceSource = null;
-    this._voiceStream = null;
-    this._voiceFrame = null;
-    this._voiceBaseline = 0.003;
-    this._voicePeakBaseline = 0.008;
-    this._voicePreviousLevel = 0;
-    this._voicePreviousPeak = 0;
-    this._voiceIsActive = false;
-    this._voiceInputStarting = false;
-    this._voiceTapArmed = true;
-    this._voiceDetectionReadyAt = 0;
-    this._voiceUiResetTimeout = null;
-    this._lastVoiceTapTime = 0;
-    this._voiceTapOffsetMs = 60;
-    this._goodTapCount = 0;
-    this._badTapCount = 0;
-    this.$playWrap = null;
-    this.$playPlayBtn = null;
-    this.$playStopBtn = null;
-    this._resetMeasureQueue();
+    this.opts.numOfChallenges = this._normalizeChallengeCount(this.opts.numOfChallenges);
+    this.opts.bpm = this._normalizeBpm(this.opts.bpm);
+    this.opts.practiceMode = this._normalizeBool(this.opts.practiceMode);
+    this.opts.figures = this._normalizeFigureIds(this.opts.figures);
+    this.opts.sound = this._normalizeBool(this.opts.sound);
+    this.$grid = $(this.opts.wrapperSelector);
+    this.$dots = $(this.opts.dotsSelector);
+    this.$status = $(this.opts.statusSelector);
+    this.$playWrap = $("#play");
+    this.$playBtn = this.$playWrap.find('button[action="play"]');
+    this.$stopBtn = this.$playWrap.find('button[action="stop"]');
+    this.$continueWrap = $("#continue");
+    this.$continueBtn = this.$continueWrap.find("button");
+    this.$progressBar = $("#progress-bar");
+    this.$progressCounter = $("#progress-counter");
+    this.$points = $("#points");
+    this.$increment = $("#increment");
+    this.$finalOverlay = $("#final-overlay");
+    this._cards = [];
+    this._answer = [];
+    this._selection = [];
+    this._round = 1;
+    this._roundHadMistake = false;
+    this._madeAnyMistake = false;
+    this._state = "ready";
+    this._inputLocked = false;
+    this._pointsValue = 0;
+    this._correctTaps = 0;
+    this._wrongTaps = 0;
+    this._startedAt = Date.now();
+    this._timers = new Set();
+    this._rhythmSynth = null;
+    this._uiSynth = null;
+    this._uiNoise = null;
+    this._audioReady = false;
   }
   return _createClass(BeatHero, [{
     key: "start",
     value: function start() {
+      if (!this.$grid.length) return;
+      this._wireControls();
+      this._wireFigurePicker();
+      this._resetGameUi();
+      this._startRound();
+    }
+  }, {
+    key: "_wireControls",
+    value: function _wireControls() {
       var _this = this;
-      this.renderChallenge();
-      this._resetTapFeedbackCounts();
-      this._showInitialControls();
-      this._syncInputMode();
-      this._wirePlayControls();
-      this._wireTapControls();
-      this._wireVoiceControls();
-      this._wireSettingsRanges();
-      if (this._useVoice) this._startVoiceInput();
-      if (!this._resizeHandler) {
-        this._resizeHandler = function () {
-          return _this.renderChallenge();
-        };
-        window.addEventListener("resize", this._resizeHandler);
-      }
-    }
-  }, {
-    key: "renderChallenge",
-    value: function renderChallenge() {
-      var wrapper = document.querySelector(this.opts.wrapperSelector);
-      var previewWrapper = document.querySelector(this.opts.previewSelector);
-      if (!wrapper && !previewWrapper) return;
-      this._setPreviewWrapperVisible(Boolean(this._previewRhythm));
-      if (this._previewRhythm) {
-        this._renderRhythmMeasure({
-          wrapper: previewWrapper,
-          rhythm: this._previewRhythm,
-          showClef: false,
-          showTimeSignature: false,
-          showBarlines: false,
-          isFinalMeasure: this._activeMeasureNumber + 1 >= this._numOfMeasures
-        });
-      } else {
-        this._clearRhythmMeasure(previewWrapper);
-      }
-      this._renderRhythmMeasure({
-        wrapper: wrapper,
-        rhythm: this._rhythm,
-        showTimeSignature: this._activeMeasureNumber === 1,
-        isFinalMeasure: this._activeMeasureNumber >= this._numOfMeasures
+      this.$playBtn.off("click.beatHero").on("click.beatHero", function (event) {
+        event.preventDefault();
+        _this._playChallenge();
+      });
+      this.$stopBtn.off("click.beatHero").on("click.beatHero", function (event) {
+        event.preventDefault();
+        _this._stopChallenge();
+      });
+      this.$grid.off("click.beatHero", ".rhythm-card").on("click.beatHero", ".rhythm-card", function (event) {
+        event.preventDefault();
+        _this._handleCardTap(event.currentTarget);
+      });
+      this.$continueBtn.off("click.beatHero").on("click.beatHero", function (event) {
+        event.preventDefault();
+        _this._continue();
       });
     }
   }, {
-    key: "_setPreviewWrapperVisible",
-    value: function _setPreviewWrapperVisible(isVisible) {
-      var previewWrapper = document.querySelector(this.opts.previewSelector);
-      var previewContainer = (previewWrapper === null || previewWrapper === void 0 ? void 0 : previewWrapper.closest("#preview-wrapper")) || previewWrapper;
-      if (!previewContainer) return;
-      previewContainer.classList.toggle("d-none", !isVisible);
-      previewContainer.style.display = isVisible ? "block" : "none";
-    }
-  }, {
-    key: "_renderRhythmMeasure",
-    value: function _renderRhythmMeasure(_ref) {
-      var _window$Vex, _VF$Stem;
-      var wrapper = _ref.wrapper,
-        rhythm = _ref.rhythm,
-        _ref$showClef = _ref.showClef,
-        showClef = _ref$showClef === void 0 ? true : _ref$showClef,
-        _ref$showTimeSignatur = _ref.showTimeSignature,
-        showTimeSignature = _ref$showTimeSignatur === void 0 ? true : _ref$showTimeSignatur,
-        _ref$showBarlines = _ref.showBarlines,
-        showBarlines = _ref$showBarlines === void 0 ? true : _ref$showBarlines,
-        _ref$isFinalMeasure = _ref.isFinalMeasure,
-        isFinalMeasure = _ref$isFinalMeasure === void 0 ? false : _ref$isFinalMeasure;
-      if (!wrapper) return;
-      wrapper.innerHTML = "";
-      wrapper.classList.add("beat-hero-wrapper");
-      if (wrapper.matches(this.opts.wrapperSelector)) {
-        var beatCount = document.createElement("div");
-        beatCount.id = "beat-count";
-        wrapper.appendChild(beatCount);
-      }
-      var VF = (_window$Vex = window.Vex) === null || _window$Vex === void 0 ? void 0 : _window$Vex.Flow;
-      if (!VF) {
-        wrapper.textContent = "VexFlow could not be loaded.";
-        return;
-      }
-      var width = Math.max(1, Math.floor(wrapper.clientWidth || 1));
-      var height = 190;
-      var renderer = new VF.Renderer(wrapper, VF.Renderer.Backends.SVG);
-      renderer.resize(width, height);
-      var context = renderer.getContext();
-      context.setFont("Arial", 10);
-      var stave = new VF.Stave(18, 24, width - 36, {
-        fill_style: "#273043",
-        spacing_between_lines_px: 14
-      });
-      stave.setConfigForLines([{
-        visible: false
-      }, {
-        visible: false
-      }, {
-        visible: true
-      }, {
-        visible: false
-      }, {
-        visible: false
-      }]);
-      if (showClef) stave.addClef("percussion");
-      if (showTimeSignature) stave.addTimeSignature(this._timeSignatureLabel());
-      if (isFinalMeasure) {
-        var _stave$setEndBarType, _VF$Barline$type$END, _VF$Barline;
-        (_stave$setEndBarType = stave.setEndBarType) === null || _stave$setEndBarType === void 0 || _stave$setEndBarType.call(stave, (_VF$Barline$type$END = (_VF$Barline = VF.Barline) === null || _VF$Barline === void 0 || (_VF$Barline = _VF$Barline.type) === null || _VF$Barline === void 0 ? void 0 : _VF$Barline.END) !== null && _VF$Barline$type$END !== void 0 ? _VF$Barline$type$END : 3);
-      }
-      stave.setContext(context).draw();
-      var stemDirection = ((_VF$Stem = VF.Stem) === null || _VF$Stem === void 0 ? void 0 : _VF$Stem.UP) || 1;
-      var glyphFontScale = this._rhythmNoteGlyphFontScale(wrapper);
-      var notes = rhythm.map(function (duration) {
-        return new VF.StaveNote({
-          clef: "percussion",
-          keys: ["b/4"],
-          duration: duration,
-          glyph_font_scale: glyphFontScale,
-          stem_direction: stemDirection
-        });
-      });
-      this._extendStems(notes, 8);
-      this._removeNoteSpacing(notes);
-      var beams = VF.Beam.generateBeams(notes, {
-        stem_direction: stemDirection
-      });
-      this._drawQuarterGrid({
-        VF: VF,
-        context: context,
-        stave: stave,
-        notes: notes,
-        beams: beams,
-        rhythm: rhythm,
-        width: width
-      });
-      this._alignVerticalStaveLines(wrapper);
-      if (!showBarlines) this._removeVerticalStaveLines(wrapper);
-      this._extendRenderedStems(wrapper, 10);
-      this._moveStemTopAttachments(wrapper, 10);
-    }
-  }, {
-    key: "_clearRhythmMeasure",
-    value: function _clearRhythmMeasure(wrapper) {
-      if (!wrapper) return;
-      wrapper.innerHTML = "";
-      wrapper.classList.add("beat-hero-wrapper");
-    }
-  }, {
-    key: "_showInitialControls",
-    value: function _showInitialControls() {
-      $("#controls").show();
-      $("#instructions").show();
-      $("#check").show().removeClass("invisible");
-      $("#continue").hide();
-    }
-  }, {
-    key: "_wirePlayControls",
-    value: function _wirePlayControls() {
+    key: "_wireFigurePicker",
+    value: function _wireFigurePicker() {
       var _this2 = this;
-      this.$playWrap = $("#play");
-      this.$playPlayBtn = this.$playWrap.find('button[action="play"]');
-      this.$playStopBtn = this.$playWrap.find('button[action="stop"]');
-      this.$playPlayBtn.off("click.beatHeroMetronome").on("click.beatHeroMetronome", function (event) {
-        event.preventDefault();
-        if (_this2._useVoice) _this2._startVoiceInput();
-        _this2._startMetronome();
+      var picker = document.querySelector("[data-beat-hero-symbol-picker]");
+      if (!picker) return;
+      var checkboxes = _toConsumableArray(picker.querySelectorAll(".beat-hero-symbol-input"));
+      var message = document.querySelector("[data-beat-hero-symbol-message]");
+      var form = picker.closest("form");
+      picker.querySelectorAll("[data-beat-hero-figure-thumbnail]").forEach(function (thumbnail) {
+        var figure = BeatHero.FIGURES.find(function (item) {
+          return item.id === thumbnail.dataset.beatHeroFigureThumbnail;
+        });
+        if (figure) thumbnail.innerHTML = _this2._figureSvg(figure);
       });
-      this.$playStopBtn.off("click.beatHeroMetronome").on("click.beatHeroMetronome", function (event) {
-        event.preventDefault();
-        _this2._stopMetronome();
+      var selectedCount = function selectedCount() {
+        return checkboxes.filter(function (checkbox) {
+          return checkbox.checked;
+        }).length;
+      };
+      var showCount = function showCount() {
+        var error = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "";
+        if (!message) return;
+        message.classList.toggle("is-error", Boolean(error));
+        message.textContent = error || "".concat(selectedCount(), " selected");
+      };
+      checkboxes.forEach(function (checkbox) {
+        checkbox.addEventListener("change", function () {
+          var count = selectedCount();
+          if (count < 2) {
+            checkbox.checked = true;
+            showCount("Choose at least 2 symbols.");
+            return;
+          }
+          if (count > 4) {
+            checkbox.checked = false;
+            showCount("Choose no more than 4 symbols.");
+            return;
+          }
+          showCount();
+        });
       });
+      form === null || form === void 0 || form.addEventListener("submit", function (event) {
+        var count = selectedCount();
+        if (count >= 2 && count <= 4) return;
+        event.preventDefault();
+        showCount("Choose between 2 and 4 symbols.");
+      });
+      showCount();
+    }
+  }, {
+    key: "_resetGameUi",
+    value: function _resetGameUi() {
+      this._round = 1;
+      this._pointsValue = 0;
+      this._correctTaps = 0;
+      this._wrongTaps = 0;
+      this._madeAnyMistake = false;
+      this._startedAt = Date.now();
+      $("#timer").hide();
+      $("#feedback-success").hide();
+      $("#check, #help, #skip").hide();
+      $("#controls").show();
+      this.$finalOverlay.hide();
+      this.$continueWrap.hide();
+      this.$points.text("0");
+      this.$increment.css("opacity", 0);
+      this.$progressBar.data("progress", 0).css("width", "0%");
+      this.$progressCounter.text(this.opts.practiceMode ? "Practice" : "0 of ".concat(this.opts.numOfChallenges));
       this._setPlayButtons(false);
     }
   }, {
-    key: "_wireTapControls",
-    value: function _wireTapControls() {
+    key: "_startRound",
+    value: function _startRound() {
       var _this3 = this;
-      var tapWrapper = document.querySelector(this.opts.tapSelector);
-      if (!tapWrapper) return;
-      tapWrapper.addEventListener("pointerdown", function (event) {
-        event.preventDefault();
-        _this3._handleTap();
+      this._cancelTimers();
+      this._state = "ready";
+      this._inputLocked = false;
+      this._selection = [];
+      this._roundHadMistake = false;
+      this.$continueWrap.hide();
+      var pool = BeatHero.FIGURES.filter(function (figure) {
+        return _this3.opts.figures.includes(figure.id);
       });
+      var cards = [];
+      while (cards.length < 8) {
+        cards.push.apply(cards, _toConsumableArray(this._shuffle(pool)));
+      }
+      this._cards = this._shuffle(cards.slice(0, 8));
+      this._answer = this._shuffle(pool).slice(0, 2);
+      this._renderCards();
+      this._resetDots();
+      this._setStatus("Press Play, listen to the two rhythms, then tap their cards in the same order.");
+      this._setPlayButtons(false);
     }
   }, {
-    key: "_wireVoiceControls",
-    value: function _wireVoiceControls() {
+    key: "_renderCards",
+    value: function _renderCards() {
       var _this4 = this;
-      var retryButton = document.querySelector("#mic-tap-retry");
-      if (!retryButton) return;
-      retryButton.addEventListener("click", function (event) {
-        event.preventDefault();
-        _this4._stopVoiceInput();
-        _this4._startVoiceInput();
+      var html = this._cards.map(function (figure, index) {
+        return "\n      <button\n        type=\"button\"\n        class=\"rhythm-card\"\n        data-figure-id=\"".concat(figure.id, "\"\n        aria-label=\"Card ").concat(index + 1, ": ").concat(figure.label, "\"\n      >\n        <span class=\"rhythm-card__number\" aria-hidden=\"true\"></span>\n        <span class=\"rhythm-card__figure\" aria-hidden=\"true\">\n          ").concat(_this4._figureSvg(figure), "\n        </span>\n      </button>\n    ");
+      }).join("");
+      this.$grid.html(html);
+    }
+  }, {
+    key: "_figureSvg",
+    value: function _figureSvg(figure) {
+      var notes = figure.notes || [];
+      var positions = this._notePositions(notes.length);
+      var stemTop = 27;
+      var headY = 69;
+      var heads = notes.map(function (note, index) {
+        var x = positions[index];
+        var dot = note.dotted ? "<circle class=\"rhythm-note-dot\" cx=\"".concat(x + 14, "\" cy=\"66\" r=\"2.6\"></circle>") : "";
+        return "\n        <ellipse class=\"rhythm-note-head\" cx=\"".concat(x, "\" cy=\"").concat(headY, "\" rx=\"8\" ry=\"5.7\" transform=\"rotate(-20 ").concat(x, " ").concat(headY, ")\"></ellipse>\n        <line class=\"rhythm-note-stem\" x1=\"").concat(x + 6, "\" y1=\"").concat(headY - 2, "\" x2=\"").concat(x + 6, "\" y2=\"").concat(stemTop, "\"></line>\n        ").concat(dot, "\n      ");
+      }).join("");
+      var beamed = notes.length > 1 ? this._beamSvg(notes, positions, stemTop) : this._flagSvg(notes[0], positions[0], stemTop);
+      return "\n      <svg viewBox=\"0 0 100 100\" role=\"presentation\" focusable=\"false\">\n        ".concat(heads, "\n        ").concat(beamed, "\n      </svg>\n    ");
+    }
+  }, {
+    key: "_beamSvg",
+    value: function _beamSvg(notes, positions, stemTop) {
+      var stems = positions.map(function (x) {
+        return x + 6;
       });
-    }
-  }, {
-    key: "_wireSettingsRanges",
-    value: function _wireSettingsRanges() {
-      document.querySelectorAll("[data-beat-hero-range-output]").forEach(function (range) {
-        var output = document.querySelector(range.dataset.beatHeroRangeOutput);
-        if (!output) return;
-        var updateOutput = function updateOutput() {
-          output.textContent = "".concat(range.value).concat(range.dataset.outputSuffix || "");
-        };
-        updateOutput();
-        range.addEventListener("input", updateOutput);
+      var first = stems[0];
+      var last = stems[stems.length - 1];
+      var mainBeam = "<line class=\"rhythm-note-beam\" x1=\"".concat(first, "\" y1=\"").concat(stemTop, "\" x2=\"").concat(last, "\" y2=\"").concat(stemTop, "\"></line>");
+      var sixteenthIndexes = notes.map(function (note, index) {
+        return note.value === 16 ? index : -1;
+      }).filter(function (index) {
+        return index >= 0;
       });
+      var secondary = [];
+      var cursor = 0;
+      while (cursor < sixteenthIndexes.length) {
+        var group = [sixteenthIndexes[cursor]];
+        while (cursor + 1 < sixteenthIndexes.length && sixteenthIndexes[cursor + 1] === sixteenthIndexes[cursor] + 1) {
+          cursor += 1;
+          group.push(sixteenthIndexes[cursor]);
+        }
+        if (group.length > 1) {
+          secondary.push("<line class=\"rhythm-note-beam rhythm-note-beam--secondary\" x1=\"".concat(stems[group[0]], "\" y1=\"").concat(stemTop + 10, "\" x2=\"").concat(stems[group[group.length - 1]], "\" y2=\"").concat(stemTop + 10, "\"></line>"));
+        } else {
+          var index = group[0];
+          var pointsLeft = index === notes.length - 1;
+          secondary.push("<line class=\"rhythm-note-beam rhythm-note-beam--secondary\" x1=\"".concat(stems[index], "\" y1=\"").concat(stemTop + 10, "\" x2=\"").concat(stems[index] + (pointsLeft ? -11 : 11), "\" y2=\"").concat(stemTop + 10, "\"></line>"));
+        }
+        cursor += 1;
+      }
+      return "".concat(mainBeam).concat(secondary.join(""));
     }
   }, {
-    key: "_syncInputMode",
-    value: function _syncInputMode() {
-      var tapWrapper = document.querySelector(this.opts.tapSelector);
-      var micWrapper = document.querySelector(this.opts.micSelector);
-      if (tapWrapper) {
-        tapWrapper.classList.toggle("d-none", this._useVoice);
-        tapWrapper.style.display = this._useVoice ? "none" : "";
-      }
-      if (micWrapper) {
-        micWrapper.classList.toggle("d-none", !this._useVoice);
-        micWrapper.style.display = this._useVoice ? "block" : "none";
-      }
+    key: "_flagSvg",
+    value: function _flagSvg(note, x, stemTop) {
+      if (!note || note.value < 8) return "";
+      var stemX = x + 6;
+      return "<path class=\"rhythm-note-flag\" d=\"M ".concat(stemX, " ").concat(stemTop, " C ").concat(stemX + 17, " ").concat(stemTop + 5, ", ").concat(stemX + 16, " ").concat(stemTop + 18, ", ").concat(stemX + 7, " ").concat(stemTop + 24, "\"></path>");
     }
   }, {
-    key: "_setPlayButtons",
-    value: function _setPlayButtons(isPlaying) {
-      var _this$$playPlayBtn, _this$$playStopBtn;
-      if ((_this$$playPlayBtn = this.$playPlayBtn) !== null && _this$$playPlayBtn !== void 0 && _this$$playPlayBtn.length) this.$playPlayBtn.toggle(!isPlaying);
-      if ((_this$$playStopBtn = this.$playStopBtn) !== null && _this$$playStopBtn !== void 0 && _this$$playStopBtn.length) this.$playStopBtn.toggle(!!isPlaying);
+    key: "_notePositions",
+    value: function _notePositions(count) {
+      if (count <= 1) return [50];
+      if (count === 2) return [29, 70];
+      if (count === 3) return [22, 50, 78];
+      return [16, 39, 62, 84];
     }
   }, {
-    key: "_startMetronome",
-    value: function _startMetronome() {
-      var _this5 = this;
-      if (this._isMetronomeActive()) return;
-      if (!window.Tone) {
-        this._setPlayButtons(false);
-        return;
-      }
-      if (this._shouldRewindMeasureQueueForPlayback()) {
-        this._rewindMeasureQueue();
-        this.renderChallenge();
-      }
-      this._resetTapFeedbackCounts();
-      this._setPlayButtons(true);
-      this._metronomeIsStarting = true;
-      this._ensureMetronomeAudio().then(function () {
-        if (!_this5._metronomeIsStarting) return;
-        _this5._metronomeStartTimeout = setTimeout(function () {
-          if (!_this5._metronomeIsStarting) return;
-          var intervalMs = 60000 / _this5._bpm;
-          var playBeat = function playBeat() {
-            if (_this5._shouldStopAtEndOfPiece()) {
-              _this5._stopMetronome();
-              return;
-            }
-            _this5._advanceMeasureIfNeeded();
-            _this5._playMetronomeClick(_this5._isMetronomeDownbeat());
-            _this5._updateBeatCount(intervalMs);
-            _this5._handleMetronomeBeat(intervalMs);
-            _this5._metronomeTickIndex += 1;
-          };
-          _this5._metronomeStartTimeout = null;
-          _this5._metronomeIsStarting = false;
-          _this5._metronomeTickIndex = 0;
-          _this5._rhythmPlaybackStarted = false;
-          playBeat();
-          _this5._metronomeInterval = setInterval(playBeat, intervalMs);
-        }, 1000);
-      })["catch"](function () {
-        _this5._metronomeIsStarting = false;
-        _this5._setPlayButtons(false);
-      });
-    }
-  }, {
-    key: "_stopMetronome",
-    value: function _stopMetronome() {
-      var _ref2 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
-        _ref2$resetButtons = _ref2.resetButtons,
-        resetButtons = _ref2$resetButtons === void 0 ? true : _ref2$resetButtons;
-      if (this._metronomeStartTimeout) {
-        clearTimeout(this._metronomeStartTimeout);
-        this._metronomeStartTimeout = null;
-      }
-      if (this._metronomeInterval) {
-        clearInterval(this._metronomeInterval);
-        this._metronomeInterval = null;
-      }
-      this._metronomeIsStarting = false;
-      this._clearRhythmAnimationTimeouts();
-      this._clearRhythmNoteAnimations();
-      this._clearBeatCount();
-      this._clearTapSchedule();
-      if (!this._useVoice) this._stopVoiceInput();
-      this._metronomeTickIndex = 0;
-      this._rhythmPlaybackStarted = false;
-      if (resetButtons) this._setPlayButtons(false);
-    }
-  }, {
-    key: "_ensureMetronomeAudio",
+    key: "_playChallenge",
     value: function () {
-      var _ensureMetronomeAudio2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
+      var _playChallenge2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
+        var _this5 = this;
+        var beatMs, slotMs;
         return _regenerator().w(function (_context) {
           while (1) switch (_context.n) {
             case 0:
-              if (!(!window.Tone || this._metronomeAudioReady)) {
+              if (!(this._state === "playing" || this._state === "complete")) {
                 _context.n = 1;
                 break;
               }
               return _context.a(2);
             case 1:
+              this._cancelTimers();
+              this._clearSelectionMarks();
+              this._selection = [];
+              this._state = "playing";
+              this._inputLocked = true;
+              this._resetDots();
+              this._setStatus("Listen carefully…");
+              this._setPlayButtons(true);
               _context.n = 2;
-              return _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_0__.GameAudio.ensureMetronomeAudio();
+              return this._ensureAudio();
             case 2:
-              this._metronomeAudioReady = true;
+              if (!(this._state !== "playing")) {
+                _context.n = 3;
+                break;
+              }
+              return _context.a(2);
             case 3:
+              beatMs = this._beatMs();
+              slotMs = beatMs;
+              this._answer.forEach(function (figure, index) {
+                var startsAt = index * slotMs;
+                _this5._setTimer(function () {
+                  return _this5._activateDot(index);
+                }, startsAt);
+                _this5._scheduleFigureAudio(figure, startsAt);
+                _this5._setTimer(function () {
+                  return _this5._completeDot(index);
+                }, startsAt + beatMs);
+              });
+              this._setTimer(function () {
+                _this5._state = "answering";
+                _this5._inputLocked = false;
+                _this5._setPlayButtons(false);
+                _this5._resetDots();
+                _this5._setStatus("Now tap the two cards you heard, in order.");
+              }, this._answer.length * slotMs + 120);
+            case 4:
               return _context.a(2);
           }
         }, _callee, this);
       }));
-      function _ensureMetronomeAudio() {
-        return _ensureMetronomeAudio2.apply(this, arguments);
+      function _playChallenge() {
+        return _playChallenge2.apply(this, arguments);
       }
-      return _ensureMetronomeAudio;
+      return _playChallenge;
     }()
   }, {
-    key: "_isMetronomeActive",
-    value: function _isMetronomeActive() {
-      return Boolean(this._metronomeIsStarting || this._metronomeStartTimeout || this._metronomeInterval);
+    key: "_stopChallenge",
+    value: function _stopChallenge() {
+      if (this._state !== "playing") return;
+      this._cancelTimers();
+      this._state = "ready";
+      this._inputLocked = false;
+      this._resetDots();
+      this._setPlayButtons(false);
+      this._setStatus("Playback stopped. Press Play when you’re ready.");
     }
   }, {
-    key: "_isMetronomeDownbeat",
-    value: function _isMetronomeDownbeat() {
-      var groupSize = Math.max(1, this._timeSignature.beats);
-      return this._metronomeTickIndex % groupSize === 0;
+    key: "_handleCardTap",
+    value: function () {
+      var _handleCardTap2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee2(cardElement) {
+        var _this6 = this;
+        var figure, answerIndex, expected, resetDelay;
+        return _regenerator().w(function (_context2) {
+          while (1) switch (_context2.n) {
+            case 0:
+              if (!(this._inputLocked || this._state === "playing" || this._state === "complete")) {
+                _context2.n = 1;
+                break;
+              }
+              return _context2.a(2);
+            case 1:
+              figure = this._cards.find(function (item) {
+                return item.id === cardElement.dataset.figureId;
+              });
+              if (figure) {
+                _context2.n = 2;
+                break;
+              }
+              return _context2.a(2);
+            case 2:
+              this._inputLocked = true;
+              _context2.n = 3;
+              return this._ensureAudio();
+            case 3:
+              this._scheduleFigureAudio(figure, 0, cardElement);
+              if (!(this._state === "ready")) {
+                _context2.n = 4;
+                break;
+              }
+              cardElement.classList.add("is-previewing");
+              this._setStatus("Press Play, listen to the two rhythms, then tap their cards in the same order.");
+              this._setTimer(function () {
+                cardElement.classList.remove("is-previewing");
+                _this6._inputLocked = false;
+              }, this._beatMs());
+              return _context2.a(2);
+            case 4:
+              if (!(this._state !== "answering")) {
+                _context2.n = 5;
+                break;
+              }
+              return _context2.a(2);
+            case 5:
+              this._inputLocked = true;
+              answerIndex = this._selection.length;
+              expected = this._answer[answerIndex];
+              this._activateDot(answerIndex);
+              if (!(expected && expected.id === figure.id)) {
+                _context2.n = 7;
+                break;
+              }
+              this._correctTaps += 1;
+              this._selection.push(figure);
+              cardElement.classList.remove("is-wrong");
+              cardElement.classList.add("is-correct");
+              cardElement.querySelector(".rhythm-card__number").textContent = String(answerIndex + 1);
+              this._chooseDot(answerIndex);
+              if (!(this._selection.length === this._answer.length)) {
+                _context2.n = 6;
+                break;
+              }
+              this._finishRound();
+              return _context2.a(2);
+            case 6:
+              this._setStatus("Great — now choose the second card.");
+              this._setTimer(function () {
+                _this6._inputLocked = false;
+              }, this._beatMs());
+              return _context2.a(2);
+            case 7:
+              this._wrongTaps += 1;
+              this._roundHadMistake = true;
+              this._madeAnyMistake = true;
+              cardElement.classList.add("is-wrong");
+              this._wrongDot(answerIndex);
+              this._setStatus("Not quite. Start again with the first card.");
+              this._playFailSound();
+              resetDelay = Math.min(800, Math.max(600, Math.round(this._beatMs() * 0.75)));
+              this._setTimer(function () {
+                _this6._selection = [];
+                _this6._clearSelectionMarks();
+                _this6._resetDots();
+                _this6._inputLocked = false;
+              }, resetDelay);
+            case 8:
+              return _context2.a(2);
+          }
+        }, _callee2, this);
+      }));
+      function _handleCardTap(_x) {
+        return _handleCardTap2.apply(this, arguments);
+      }
+      return _handleCardTap;
+    }()
+  }, {
+    key: "_finishRound",
+    value: function _finishRound() {
+      var _this7 = this;
+      this._state = "complete";
+      this._inputLocked = true;
+      var earned = this._roundHadMistake ? 1 : 2;
+      this._pointsValue += earned;
+      this.$points.text(String(this._pointsValue));
+      this.$increment.text("+".concat(earned)).css("opacity", 1);
+      this._setTimer(function () {
+        return _this7.$increment.css("opacity", 0);
+      }, 900);
+      this._updateProgress();
+      this._setStatus("Perfect order! Ready for another pair?");
+      this._setPlayButtons(false);
+      this.$playWrap.hide();
+      this.$continueWrap.show();
+      this.$continueBtn.text(!this.opts.practiceMode && this._round >= this.opts.numOfChallenges ? "View results" : "Continue");
+      this._playSuccessSound();
     }
   }, {
-    key: "_shouldStopAtEndOfPiece",
-    value: function _shouldStopAtEndOfPiece() {
-      var countInBeats = Math.max(1, this._timeSignature.beats);
-      var totalMeasureBeats = this._measurePlaybackBeats() * this._numOfMeasures;
-      return this._metronomeTickIndex >= countInBeats + totalMeasureBeats;
-    }
-  }, {
-    key: "_advanceMeasureIfNeeded",
-    value: function _advanceMeasureIfNeeded() {
-      var countInBeats = Math.max(1, this._timeSignature.beats);
-      var measureBeats = this._measurePlaybackBeats();
-      if (this._metronomeTickIndex < countInBeats) return;
-      var elapsedMeasureBeats = this._metronomeTickIndex - countInBeats;
-      if (elapsedMeasureBeats === 0 || elapsedMeasureBeats % measureBeats !== 0) return;
-      if (this._activeMeasureNumber >= this._numOfMeasures) return;
-      this._promotePreviewMeasure();
-    }
-  }, {
-    key: "_playMetronomeClick",
-    value: function _playMetronomeClick() {
-      var isDownbeat = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
-      _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_0__.GameAudio.playMetronomeClick(isDownbeat);
-    }
-  }, {
-    key: "_updateBeatCount",
-    value: function _updateBeatCount(intervalMs) {
-      var beatCount = document.querySelector("".concat(this.opts.wrapperSelector, " #beat-count"));
-      if (!beatCount) return;
-      var beatsPerMeasure = Math.max(1, this._timeSignature.beats);
-      var count = this._metronomeTickIndex % beatsPerMeasure + 1;
-      beatCount.textContent = String(count);
-      beatCount.style.animationDuration = "".concat(Math.round(intervalMs), "ms");
-      beatCount.classList.remove("beat-animation");
-      void beatCount.offsetWidth;
-      beatCount.classList.add("beat-animation");
-    }
-  }, {
-    key: "_clearBeatCount",
-    value: function _clearBeatCount() {
-      var beatCount = document.querySelector("".concat(this.opts.wrapperSelector, " #beat-count"));
-      if (!beatCount) return;
-      beatCount.textContent = "";
-      beatCount.classList.remove("beat-animation");
-      beatCount.style.animationDuration = "";
-    }
-  }, {
-    key: "_handleMetronomeBeat",
-    value: function _handleMetronomeBeat(intervalMs) {
-      if (this._rhythmPlaybackStarted) return;
-      var countInBeats = Math.max(1, this._timeSignature.beats);
-      if (this._metronomeTickIndex < countInBeats) return;
-      this._rhythmPlaybackStarted = true;
-      this._prepareTapSchedule(intervalMs);
-    }
-  }, {
-    key: "_promotePreviewMeasure",
-    value: function _promotePreviewMeasure() {
-      if (!this._previewRhythm) return;
-      this._clearRhythmAnimationTimeouts();
-      this._clearRhythmNoteAnimations();
-      this._clearTapSchedule();
-      this._activeMeasureNumber += 1;
-      this._syncCurrentMeasures();
-      this._rhythmPlaybackStarted = false;
-      this.renderChallenge();
-    }
-  }, {
-    key: "_prepareTapSchedule",
-    value: function _prepareTapSchedule(intervalMs) {
-      var _this6 = this;
-      this._clearTapSchedule();
-      this._rhythmStartTime = performance.now();
-      this._tapWindowMs = this._tapTimingWindow(intervalMs);
-      this._voiceTapWindowMs = this._voiceTapTimingWindow(intervalMs);
-      this._tapEvents = this._rhythmPlaybackSchedule().filter(function (event) {
-        return !_this6._isRestDuration(event.duration);
-      }).map(function (event) {
-        return _objectSpread(_objectSpread({}, event), {}, {
-          time: _this6._rhythmStartTime + event.beatOffset * intervalMs,
-          tapped: false
-        });
-      });
-    }
-  }, {
-    key: "_clearTapSchedule",
-    value: function _clearTapSchedule() {
-      this._rhythmStartTime = null;
-      this._tapEvents = [];
-    }
-  }, {
-    key: "_tapTimingWindow",
-    value: function _tapTimingWindow(intervalMs) {
-      return Math.min(260, Math.max(130, intervalMs * 0.28));
-    }
-  }, {
-    key: "_voiceTapTimingWindow",
-    value: function _voiceTapTimingWindow(intervalMs) {
-      return Math.min(360, Math.max(190, intervalMs * 0.42));
-    }
-  }, {
-    key: "_handleTap",
-    value: function _handleTap() {
-      this._handleTapAt(performance.now());
-    }
-  }, {
-    key: "_handleTapAt",
-    value: function _handleTapAt(tapTime) {
-      var timingWindow = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : this._tapWindowMs;
-      var event = this._findMatchingTapEvent(tapTime, timingWindow);
-      if (!event) {
-        console.log("Wrong tap");
-        this._badTapCount += 1;
-        this._renderTapFeedbackCounts();
-        this._animateTapFeedback("bad-tap");
+    key: "_continue",
+    value: function _continue() {
+      if (this._state !== "complete") return;
+      if (!this.opts.practiceMode && this._round >= this.opts.numOfChallenges) {
+        this._showFinalResults();
         return;
       }
-      event.tapped = true;
-      console.log("Good tap");
-      this._goodTapCount += 1;
-      this._renderTapFeedbackCounts();
-      this._animateTapFeedback("good-tap");
-      this._animateRhythmNote(event.index);
+      this._round += 1;
+      this.$playWrap.show();
+      this._startRound();
     }
   }, {
-    key: "_resetTapFeedbackCounts",
-    value: function _resetTapFeedbackCounts() {
-      this._goodTapCount = 0;
-      this._badTapCount = 0;
-      this._renderTapFeedbackCounts();
-    }
-  }, {
-    key: "_renderTapFeedbackCounts",
-    value: function _renderTapFeedbackCounts() {
-      var goodCount = document.querySelector("#feedback-count .feedback-count-good span");
-      var badCount = document.querySelector("#feedback-count .feedback-count-bad span");
-      if (goodCount) goodCount.textContent = String(this._goodTapCount);
-      if (badCount) badCount.textContent = String(this._badTapCount);
-    }
-  }, {
-    key: "_animateTapFeedback",
-    value: function _animateTapFeedback(className) {
-      var feedbackSelector = this._useVoice ? "#mic-tap-feedback" : "#tap-feedback";
-      var feedback = document.querySelector(feedbackSelector);
-      if (!feedback) return;
-      feedback.classList.remove("good-tap", "bad-tap");
-      void feedback.offsetWidth;
-      feedback.classList.add(className);
-    }
-  }, {
-    key: "_findMatchingTapEvent",
-    value: function _findMatchingTapEvent(tapTime) {
-      var timingWindow = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : this._tapWindowMs;
-      var availableEvents = this._tapEvents.filter(function (event) {
-        return !event.tapped;
-      });
-      if (!availableEvents.length) return null;
-      var closestEvent = availableEvents.reduce(function (closest, event) {
-        var distance = Math.abs(event.time - tapTime);
-        if (!closest || distance < closest.distance) return {
-          event: event,
-          distance: distance
-        };
-        return closest;
-      }, null);
-      if (!closestEvent || closestEvent.distance > timingWindow) return null;
-      return closestEvent.event;
-    }
-  }, {
-    key: "_startVoiceInput",
-    value: function _startVoiceInput() {
-      var _navigator$mediaDevic,
-        _this7 = this;
-      if (this._voiceIsActive) {
-        var _this$_voiceAudioCont, _this$_voiceAudioCont2;
-        (_this$_voiceAudioCont = this._voiceAudioContext) === null || _this$_voiceAudioCont === void 0 || (_this$_voiceAudioCont2 = _this$_voiceAudioCont.resume) === null || _this$_voiceAudioCont2 === void 0 || _this$_voiceAudioCont2.call(_this$_voiceAudioCont);
-        return Promise.resolve();
+    key: "_updateProgress",
+    value: function _updateProgress() {
+      if (this.opts.practiceMode) {
+        this.$progressCounter.text("Practice");
+        return;
       }
-      if (this._voiceInputStarting) return Promise.resolve();
-      if (!window.isSecureContext) {
-        console.warn("Beat Hero voice input needs HTTPS or localhost to request microphone access.");
-        this._setVoiceInputState("unavailable", "Use HTTPS or localhost to enable the microphone.");
-        return Promise.resolve();
-      }
-      if (!((_navigator$mediaDevic = navigator.mediaDevices) !== null && _navigator$mediaDevic !== void 0 && _navigator$mediaDevic.getUserMedia)) {
-        console.warn("Beat Hero voice input is not supported by this browser.");
-        this._setVoiceInputState("unavailable", "This browser cannot access microphone input.");
-        return Promise.resolve();
-      }
-      var AudioContextCtor = window.AudioContext || window.webkitAudioContext;
-      if (!AudioContextCtor) {
-        this._setVoiceInputState("unavailable", "This browser cannot analyze live audio.");
-        return Promise.resolve();
-      }
-      this._voiceInputStarting = true;
-      this._setVoiceInputState("connecting");
-      return navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: false,
-          autoGainControl: false,
-          channelCount: 1
-        }
-      }).then(function (stream) {
-        var _this7$_voiceAudioCon, _this7$_voiceAudioCon2;
-        if (!_this7._useVoice && !_this7._metronomeIsStarting && !_this7._metronomeInterval) {
-          var _stream$getTracks;
-          (_stream$getTracks = stream.getTracks) === null || _stream$getTracks === void 0 || _stream$getTracks.call(stream).forEach(function (track) {
-            return track.stop();
-          });
-          _this7._voiceInputStarting = false;
-          return;
-        }
-        _this7._voiceAudioContext = new AudioContextCtor();
-        (_this7$_voiceAudioCon = (_this7$_voiceAudioCon2 = _this7._voiceAudioContext).resume) === null || _this7$_voiceAudioCon === void 0 || _this7$_voiceAudioCon.call(_this7$_voiceAudioCon2);
-        _this7._voiceStream = stream;
-        _this7._voiceSource = _this7._voiceAudioContext.createMediaStreamSource(stream);
-        _this7._voiceAnalyser = _this7._voiceAudioContext.createAnalyser();
-        _this7._voiceAnalyser.fftSize = 2048;
-        _this7._voiceData = new Float32Array(_this7._voiceAnalyser.fftSize);
-        _this7._voiceSource.connect(_this7._voiceAnalyser);
-        _this7._voiceIsActive = true;
-        _this7._voiceInputStarting = false;
-        _this7._voiceTapArmed = true;
-        _this7._voiceDetectionReadyAt = performance.now() + 350;
-        _this7._setVoiceInputState("listening");
-        _this7._listenForVoiceTaps();
-      })["catch"](function (error) {
-        _this7._voiceInputStarting = false;
-        var wasBlocked = ["NotAllowedError", "SecurityError"].includes(error === null || error === void 0 ? void 0 : error.name);
-        _this7._setVoiceInputState(wasBlocked ? "blocked" : "unavailable", wasBlocked ? "Allow microphone access, then try again." : "No microphone is available on this device.");
-      });
+      var completed = Math.min(this._round, this.opts.numOfChallenges);
+      var progress = completed / this.opts.numOfChallenges * 100;
+      this.$progressBar.data("progress", progress).css("width", "".concat(progress, "%"));
+      this.$progressCounter.text("".concat(completed, " of ").concat(this.opts.numOfChallenges));
     }
   }, {
-    key: "_stopVoiceInput",
-    value: function _stopVoiceInput() {
-      var _this$_voiceStream, _this$_voiceStream$ge, _this$_voiceAudioCont3, _this$_voiceAudioCont4;
-      if (this._voiceFrame) {
-        cancelAnimationFrame(this._voiceFrame);
-        this._voiceFrame = null;
-      }
-      if (this._voiceUiResetTimeout) {
-        clearTimeout(this._voiceUiResetTimeout);
-        this._voiceUiResetTimeout = null;
-      }
-      (_this$_voiceStream = this._voiceStream) === null || _this$_voiceStream === void 0 || (_this$_voiceStream$ge = _this$_voiceStream.getTracks) === null || _this$_voiceStream$ge === void 0 || _this$_voiceStream$ge.call(_this$_voiceStream).forEach(function (track) {
-        return track.stop();
-      });
-      (_this$_voiceAudioCont3 = this._voiceAudioContext) === null || _this$_voiceAudioCont3 === void 0 || (_this$_voiceAudioCont4 = _this$_voiceAudioCont3.close) === null || _this$_voiceAudioCont4 === void 0 || _this$_voiceAudioCont4.call(_this$_voiceAudioCont3);
-      this._voiceAudioContext = null;
-      this._voiceAnalyser = null;
-      this._voiceData = null;
-      this._voiceSource = null;
-      this._voiceStream = null;
-      this._voiceBaseline = 0.003;
-      this._voicePeakBaseline = 0.008;
-      this._voicePreviousLevel = 0;
-      this._voicePreviousPeak = 0;
-      this._voiceIsActive = false;
-      this._voiceInputStarting = false;
-      this._voiceTapArmed = true;
-      this._voiceDetectionReadyAt = 0;
-      this._lastVoiceTapTime = 0;
-    }
-  }, {
-    key: "_listenForVoiceTaps",
-    value: function _listenForVoiceTaps() {
+    key: "_showFinalResults",
+    value: function _showFinalResults() {
       var _this8 = this;
-      if (!this._voiceAnalyser || !this._voiceData) return;
-      this._voiceAnalyser.getFloatTimeDomainData(this._voiceData);
-      var _this$_voiceInputMetr = this._voiceInputMetrics(this._voiceData),
-        level = _this$_voiceInputMetr.level,
-        peak = _this$_voiceInputMetr.peak;
-      var now = performance.now();
-      var sensitivityScale = this._voiceSensitivityScale();
-      var threshold = Math.max(0.006 * sensitivityScale, this._voiceBaseline * (1.3 + sensitivityScale * 0.43));
-      var peakThreshold = Math.max(0.018 * sensitivityScale, this._voicePeakBaseline * (1.45 + sensitivityScale * 0.595));
-      var attackThreshold = Math.max(0.0015 * sensitivityScale, this._voiceBaseline * (0.18 + sensitivityScale * 0.13));
-      var peakAttackThreshold = Math.max(0.004 * sensitivityScale, this._voicePeakBaseline * (0.15 + sensitivityScale * 0.108));
-      var releaseThreshold = Math.max(0.0045, this._voiceBaseline * 1.25);
-      var peakReleaseThreshold = Math.max(0.012, this._voicePeakBaseline * 1.4);
-      var attack = level - this._voicePreviousLevel;
-      var peakAttack = peak - this._voicePreviousPeak;
-      var isVoiceTap = this._voiceTapArmed && now >= this._voiceDetectionReadyAt && (level > threshold && attack > attackThreshold || peak > peakThreshold && peakAttack > peakAttackThreshold);
-      var baselineRate = level > threshold ? 0.003 : 0.04;
-      var peakBaselineRate = peak > peakThreshold ? 0.002 : 0.03;
-      this._voiceBaseline = this._voiceBaseline * (1 - baselineRate) + Math.min(level, 0.06) * baselineRate;
-      this._voicePeakBaseline = this._voicePeakBaseline * (1 - peakBaselineRate) + Math.min(peak, 0.1) * peakBaselineRate;
-      if (isVoiceTap && now - this._lastVoiceTapTime > 120) {
-        this._voiceTapArmed = false;
-        this._lastVoiceTapTime = now;
-        if (this._rhythmStartTime !== null) {
-          this._handleTapAt(now - this._voiceTapOffsetMs, this._voiceTapWindowMs);
+      this._cancelTimers();
+      this.$continueWrap.hide();
+      this.$playWrap.hide();
+      $("#controls").hide();
+      var totalTaps = this._correctTaps + this._wrongTaps;
+      var accuracy = totalTaps ? Math.round(this._correctTaps / totalTaps * 100) : 0;
+      var durationSec = Math.max(0, Math.floor((Date.now() - this._startedAt) / 1000));
+      (0,_shared_finalResults_js__WEBPACK_IMPORTED_MODULE_0__.renderFinalResultsOverlay)({
+        $finalOverlay: this.$finalOverlay,
+        rounds: this.opts.numOfChallenges,
+        score: this._pointsValue,
+        accuracy: accuracy,
+        durationSec: durationSec,
+        settingsBonus: false,
+        playFinalSfx: function playFinalSfx() {
+          return _this8._playFinalSound();
         }
-        this._flashVoiceTapDetected();
-      } else if (!this._voiceTapArmed && level < releaseThreshold && peak < peakReleaseThreshold) {
-        this._voiceTapArmed = true;
-      }
-      this._voicePreviousLevel = level;
-      this._voicePreviousPeak = peak;
-      this._voiceFrame = requestAnimationFrame(function () {
-        return _this8._listenForVoiceTaps();
       });
     }
   }, {
-    key: "_setVoiceInputState",
-    value: function _setVoiceInputState(state) {
-      var detail = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "";
-      var icon = document.querySelector("#mic-tap-icon");
-      var status = document.querySelector("#mic-tap-status");
-      var retryButton = document.querySelector("#mic-tap-retry");
-      var isReady = state === "connecting" || state === "listening";
-      if (icon) {
-        var _icon$querySelector, _icon$querySelector2;
-        icon.classList.remove("connecting", "listening", "detected", "blocked");
-        icon.classList.add(state === "unavailable" ? "blocked" : state);
-        (_icon$querySelector = icon.querySelector('[data-mic-icon="active"]')) === null || _icon$querySelector === void 0 || _icon$querySelector.classList.toggle("d-none", !isReady);
-        (_icon$querySelector2 = icon.querySelector('[data-mic-icon="inactive"]')) === null || _icon$querySelector2 === void 0 || _icon$querySelector2.classList.toggle("d-none", isReady);
-      }
-      if (status) {
-        var labels = {
-          connecting: "Connecting...",
-          listening: "Listening... clap or tap the rhythm",
-          blocked: "Microphone blocked",
-          unavailable: "Microphone unavailable"
-        };
-        status.textContent = detail || labels[state] || "";
-      }
-      if (retryButton) {
-        retryButton.style.display = ["blocked", "unavailable"].includes(state) ? "inline-block" : "none";
-      }
-    }
-  }, {
-    key: "_flashVoiceTapDetected",
-    value: function _flashVoiceTapDetected() {
+    key: "_scheduleFigureAudio",
+    value: function _scheduleFigureAudio(figure) {
       var _this9 = this;
-      var icon = document.querySelector("#mic-tap-icon");
-      if (!icon) return;
-      icon.classList.add("detected");
-      if (this._voiceUiResetTimeout) clearTimeout(this._voiceUiResetTimeout);
-      this._voiceUiResetTimeout = setTimeout(function () {
-        icon.classList.remove("detected");
-        _this9._voiceUiResetTimeout = null;
-      }, 160);
-    }
-  }, {
-    key: "_voiceInputMetrics",
-    value: function _voiceInputMetrics(data) {
-      var sum = 0;
-      var peak = 0;
-      data.forEach(function (value) {
-        peak = Math.max(peak, Math.abs(value));
-        sum += value * value;
-      });
-      return {
-        level: Math.sqrt(sum / data.length),
-        peak: peak
-      };
-    }
-  }, {
-    key: "_voiceSensitivityScale",
-    value: function _voiceSensitivityScale() {
-      var sensitivity = this._micSensitivity / 100;
-      return 1.8 - sensitivity * 1.25;
-    }
-  }, {
-    key: "_scheduleRhythmAnimations",
-    value: function _scheduleRhythmAnimations(intervalMs) {
-      var _this0 = this;
-      this._clearRhythmAnimationTimeouts();
-      this._rhythmPlaybackSchedule().forEach(function (event) {
-        var timeout = setTimeout(function () {
-          _this0._animateRhythmNote(event.index);
-        }, event.beatOffset * intervalMs);
-        _this0._rhythmAnimationTimeouts.push(timeout);
+      var startsAtMs = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+      var cardElement = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
+      var beatMs = this._beatMs();
+      figure.events.forEach(function (offset) {
+        _this9._setTimer(function () {
+          _this9._playRhythmHit();
+          if (!cardElement) return;
+          cardElement.classList.remove("is-sounding");
+          void cardElement.offsetWidth;
+          cardElement.classList.add("is-sounding");
+          _this9._setTimer(function () {
+            return cardElement.classList.remove("is-sounding");
+          }, 120);
+        }, startsAtMs + offset * beatMs);
       });
     }
   }, {
-    key: "_rhythmPlaybackSchedule",
-    value: function _rhythmPlaybackSchedule() {
-      var _this1 = this;
-      var beatOffset = 0;
-      return this._rhythm.map(function (duration, index) {
-        var event = {
-          index: index,
-          beatOffset: beatOffset,
-          duration: duration
-        };
-        beatOffset += _this1._durationToBeatBlocks(duration);
-        return event;
-      });
-    }
-  }, {
-    key: "_clearRhythmAnimationTimeouts",
-    value: function _clearRhythmAnimationTimeouts() {
-      this._rhythmAnimationTimeouts.forEach(function (timeout) {
-        return clearTimeout(timeout);
-      });
-      this._rhythmAnimationTimeouts = [];
-      this._rhythmHighlightTimeouts.forEach(function (timeout) {
-        return clearTimeout(timeout);
-      });
-      this._rhythmHighlightTimeouts = [];
-    }
-  }, {
-    key: "_clearRhythmNoteAnimations",
-    value: function _clearRhythmNoteAnimations() {
-      var _this10 = this;
-      var wrapper = document.querySelector(this.opts.wrapperSelector);
-      wrapper === null || wrapper === void 0 || wrapper.querySelectorAll(".vf-notehead.beat-hero-highlight, .vf-notehead.pulsate").forEach(function (notehead) {
-        _this10._setNoteheadHighlight(notehead, false);
-      });
-    }
-  }, {
-    key: "_animateRhythmNote",
-    value: function _animateRhythmNote(index) {
-      var _wrapper$querySelecto,
-        _this11 = this;
-      var wrapper = document.querySelector(this.opts.wrapperSelector);
-      var note = wrapper === null || wrapper === void 0 || (_wrapper$querySelecto = wrapper.querySelectorAll(".vf-stavenote")) === null || _wrapper$querySelecto === void 0 ? void 0 : _wrapper$querySelecto[index];
-      var notehead = note === null || note === void 0 ? void 0 : note.querySelector(".vf-notehead");
-      if (!notehead) return;
-      this._setNoteheadHighlight(notehead, true);
-      _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_0__.GameAudio.playRhythmHit();
-      var timeout = setTimeout(function () {
-        _this11._setNoteheadHighlight(notehead, false);
-      }, 200);
-      this._rhythmHighlightTimeouts.push(timeout);
-    }
-  }, {
-    key: "_setNoteheadHighlight",
-    value: function _setNoteheadHighlight(notehead, isHighlighted) {
-      var paths = [notehead].concat(_toConsumableArray(notehead.querySelectorAll("path")));
-      notehead.classList.toggle("beat-hero-highlight", isHighlighted);
-      notehead.classList.toggle("pulsate", isHighlighted);
-      paths.forEach(function (element) {
-        if (isHighlighted) {
-          element.style.fill = "#1cb0f6";
-          element.style.stroke = "#1cb0f6";
-        } else {
-          element.style.fill = "";
-          element.style.stroke = "";
-        }
-      });
-    }
-  }, {
-    key: "_drawRhythmWithFormatter",
-    value: function _drawRhythmWithFormatter(_ref3) {
-      var VF = _ref3.VF,
-        context = _ref3.context,
-        stave = _ref3.stave,
-        notes = _ref3.notes,
-        beams = _ref3.beams,
-        width = _ref3.width;
-      var voice = new VF.Voice({
-        num_beats: this._timeSignature.beats,
-        beat_value: this._timeSignature.beatValue
-      });
-      voice.addTickables(notes);
-      var formatter = new VF.Formatter();
-      formatter.joinVoices([voice]);
-      if (formatter.createTickContexts && formatter.preFormat) {
-        var _formatter$getTickCon, _formatter$postFormat;
-        formatter.createTickContexts([voice]);
-        this._setTickContextPadding((_formatter$getTickCon = formatter.getTickContexts) === null || _formatter$getTickCon === void 0 ? void 0 : _formatter$getTickCon.call(formatter), 0);
-        formatter.preFormat(width - 170, context, [voice], stave);
-        (_formatter$postFormat = formatter.postFormat) === null || _formatter$postFormat === void 0 || _formatter$postFormat.call(formatter);
-      } else {
-        var _formatter$getTickCon2;
-        formatter.format([voice], width - 170);
-        this._setTickContextPadding((_formatter$getTickCon2 = formatter.getTickContexts) === null || _formatter$getTickCon2 === void 0 ? void 0 : _formatter$getTickCon2.call(formatter), 0);
+    key: "_ensureAudio",
+    value: function () {
+      var _ensureAudio2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee3() {
+        var _t;
+        return _regenerator().w(function (_context3) {
+          while (1) switch (_context3.p = _context3.n) {
+            case 0:
+              if (window.Tone) {
+                _context3.n = 1;
+                break;
+              }
+              return _context3.a(2);
+            case 1:
+              _context3.p = 1;
+              _context3.n = 2;
+              return Tone.start();
+            case 2:
+              _context3.n = 3;
+              return _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_1__.GameAudio.ensureMetronomeAudio();
+            case 3:
+              if (!this._rhythmSynth) {
+                this._rhythmSynth = new Tone.MembraneSynth({
+                  pitchDecay: 0.012,
+                  octaves: 0.8,
+                  oscillator: {
+                    type: "sine"
+                  },
+                  envelope: {
+                    attack: 0.001,
+                    decay: 0.085,
+                    sustain: 0,
+                    release: 0.02
+                  },
+                  volume: -2
+                }).toDestination();
+              }
+              if (this.opts.sound && !this._audioReady) {
+                this._uiSynth = _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_1__.GameAudio.createUiPolySynth();
+                this._uiNoise = _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_1__.GameAudio.createUiNoiseSynth();
+                this._audioReady = true;
+              }
+              _context3.n = 5;
+              break;
+            case 4:
+              _context3.p = 4;
+              _t = _context3.v;
+              this._setStatus("Audio could not start. Check your browser sound settings.");
+            case 5:
+              return _context3.a(2);
+          }
+        }, _callee3, this, [[1, 4]]);
+      }));
+      function _ensureAudio() {
+        return _ensureAudio2.apply(this, arguments);
       }
-      voice.draw(context, stave);
-      beams.forEach(function (beam) {
-        beam.setContext(context).draw();
+      return _ensureAudio;
+    }()
+  }, {
+    key: "_playRhythmHit",
+    value: function _playRhythmHit() {
+      if (!this._rhythmSynth || !window.Tone) return;
+      this._rhythmSynth.triggerAttackRelease("C5", "32n", Tone.now(), 0.95);
+    }
+  }, {
+    key: "_playSuccessSound",
+    value: function _playSuccessSound() {
+      var _this0 = this;
+      if (!this.opts.sound || !this._uiSynth || !window.Tone) return;
+      var now = Tone.now();
+      ["C6", "E6", "G6"].forEach(function (note, index) {
+        _this0._uiSynth.triggerAttackRelease(note, 0.08, now + index * 0.055, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_1__.GameAudio.scale("successBasic", 0.5));
       });
     }
   }, {
-    key: "_drawQuarterGrid",
-    value: function _drawQuarterGrid(_ref4) {
-      var _this12 = this;
-      var VF = _ref4.VF,
-        context = _ref4.context,
-        stave = _ref4.stave,
-        notes = _ref4.notes,
-        beams = _ref4.beams,
-        rhythm = _ref4.rhythm,
-        width = _ref4.width;
-      var firstNoteX = 0;
-      var finalBarlineX = width - 16;
-      var beatCount = Math.max(1, this._timeSignature.beats);
-      var beatCursor = 0;
-      var firstStemX = null;
-      notes.forEach(function (note, index) {
-        var tickContext = new VF.TickContext();
-        tickContext.addTickable(note).preFormat();
-        tickContext.setX(firstNoteX);
-        note.setContext(context);
-        note.setStave(stave);
-        if (firstStemX === null) {
-          var _note$getStemX;
-          firstStemX = (_note$getStemX = note.getStemX) === null || _note$getStemX === void 0 ? void 0 : _note$getStemX.call(note);
-        }
-        var noteOffset = Number.isFinite(firstStemX) ? firstStemX : 0;
-        var division = Math.max(0, (finalBarlineX - noteOffset) / beatCount);
-        tickContext.setX(firstNoteX + beatCursor * division);
-        note.draw();
-        beatCursor += _this12._durationToBeatBlocks(rhythm[index]);
-      });
-      beams.forEach(function (beam) {
-        beam.setContext(context).draw();
+    key: "_playFailSound",
+    value: function _playFailSound() {
+      var _this$_uiNoise, _this$_uiSynth;
+      if (!this.opts.sound || !this._audioReady || !window.Tone) return;
+      var now = Tone.now();
+      (_this$_uiNoise = this._uiNoise) === null || _this$_uiNoise === void 0 || _this$_uiNoise.triggerAttackRelease(0.06, now, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_1__.GameAudio.scale("failNoise", 0.35));
+      (_this$_uiSynth = this._uiSynth) === null || _this$_uiSynth === void 0 || _this$_uiSynth.triggerAttackRelease("A2", 0.1, now + 0.02, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_1__.GameAudio.scale("failNote", 0.45));
+    }
+  }, {
+    key: "_playFinalSound",
+    value: function _playFinalSound() {
+      var _this1 = this;
+      if (!this.opts.sound || !this._uiSynth || !window.Tone) return;
+      var now = Tone.now();
+      ["C5", "E5", "G5", "C6"].forEach(function (note, index) {
+        _this1._uiSynth.triggerAttackRelease(note, 0.16, now + index * 0.08, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_1__.GameAudio.scale("final", 0.5));
       });
     }
   }, {
-    key: "_removeNoteSpacing",
-    value: function _removeNoteSpacing(notes) {
-      notes.forEach(function (note) {
-        var _note$setExtraLeftPx, _note$setExtraRightPx;
-        (_note$setExtraLeftPx = note.setExtraLeftPx) === null || _note$setExtraLeftPx === void 0 || _note$setExtraLeftPx.call(note, 0);
-        (_note$setExtraRightPx = note.setExtraRightPx) === null || _note$setExtraRightPx === void 0 || _note$setExtraRightPx.call(note, 0);
+    key: "_activateDot",
+    value: function _activateDot(index) {
+      var dot = this.$dots.find(".sequence-dot").get(index);
+      if (!dot) return;
+      dot.classList.remove("is-complete", "is-wrong", "is-chosen");
+      dot.classList.add("is-active");
+    }
+  }, {
+    key: "_completeDot",
+    value: function _completeDot(index) {
+      var dot = this.$dots.find(".sequence-dot").get(index);
+      if (!dot) return;
+      dot.classList.remove("is-active");
+      dot.classList.add("is-complete");
+    }
+  }, {
+    key: "_chooseDot",
+    value: function _chooseDot(index) {
+      var dot = this.$dots.find(".sequence-dot").get(index);
+      if (!dot) return;
+      dot.classList.remove("is-active", "is-wrong");
+      dot.classList.add("is-chosen");
+    }
+  }, {
+    key: "_wrongDot",
+    value: function _wrongDot(index) {
+      var dot = this.$dots.find(".sequence-dot").get(index);
+      if (!dot) return;
+      dot.classList.remove("is-active", "is-complete", "is-chosen");
+      dot.classList.add("is-wrong");
+    }
+  }, {
+    key: "_resetDots",
+    value: function _resetDots() {
+      this.$dots.find(".sequence-dot").removeClass("is-active is-complete is-chosen is-wrong");
+    }
+  }, {
+    key: "_clearSelectionMarks",
+    value: function _clearSelectionMarks() {
+      this.$grid.find(".rhythm-card").removeClass("is-correct is-wrong is-previewing is-sounding");
+      this.$grid.find(".rhythm-card__number").text("");
+    }
+  }, {
+    key: "_setPlayButtons",
+    value: function _setPlayButtons(isPlaying) {
+      this.$playWrap.show();
+      this.$playBtn.toggle(!isPlaying);
+      this.$stopBtn.toggle(isPlaying);
+    }
+  }, {
+    key: "_setStatus",
+    value: function _setStatus(message) {
+      this.$status.text(message);
+    }
+  }, {
+    key: "_beatMs",
+    value: function _beatMs() {
+      return 60000 / this.opts.bpm;
+    }
+  }, {
+    key: "_setTimer",
+    value: function _setTimer(callback, delayMs) {
+      var _this10 = this;
+      var timer = setTimeout(function () {
+        _this10._timers["delete"](timer);
+        callback();
+      }, Math.max(0, delayMs));
+      this._timers.add(timer);
+      return timer;
+    }
+  }, {
+    key: "_cancelTimers",
+    value: function _cancelTimers() {
+      this._timers.forEach(function (timer) {
+        return clearTimeout(timer);
       });
+      this._timers.clear();
     }
   }, {
-    key: "_setTickContextPadding",
-    value: function _setTickContextPadding(tickContexts, padding) {
-      if (!tickContexts) return;
-      var contexts = tickContexts instanceof Map ? _toConsumableArray(tickContexts.values()) : Object.values(tickContexts);
-      contexts.forEach(function (tickContext) {
-        var _tickContext$setPaddi;
-        tickContext === null || tickContext === void 0 || (_tickContext$setPaddi = tickContext.setPadding) === null || _tickContext$setPaddi === void 0 || _tickContext$setPaddi.call(tickContext, padding);
-      });
+    key: "_shuffle",
+    value: function _shuffle(items) {
+      var shuffled = _toConsumableArray(items);
+      for (var index = shuffled.length - 1; index > 0; index -= 1) {
+        var other = Math.floor(Math.random() * (index + 1));
+        var _ref = [shuffled[other], shuffled[index]];
+        shuffled[index] = _ref[0];
+        shuffled[other] = _ref[1];
+      }
+      return shuffled;
     }
   }, {
-    key: "_alignVerticalStaveLines",
-    value: function _alignVerticalStaveLines(wrapper) {
-      var barlines = wrapper.querySelectorAll("svg rect");
-      var finalBarline = barlines[barlines.length - 1];
-      if (!finalBarline) return;
-      var x = parseFloat(finalBarline.getAttribute("x"));
-      if (Number.isFinite(x)) finalBarline.setAttribute("x", String(x + 2));
-    }
-  }, {
-    key: "_removeVerticalStaveLines",
-    value: function _removeVerticalStaveLines(wrapper) {
-      wrapper.querySelectorAll("svg rect").forEach(function (rect) {
-        return rect.remove();
-      });
-    }
-  }, {
-    key: "_extendStems",
-    value: function _extendStems(notes, extension) {
-      notes.forEach(function (note) {
-        var _note$getStem, _stem$setExtension;
-        var stem = (_note$getStem = note.getStem) === null || _note$getStem === void 0 ? void 0 : _note$getStem.call(note);
-        stem === null || stem === void 0 || (_stem$setExtension = stem.setExtension) === null || _stem$setExtension === void 0 || _stem$setExtension.call(stem, extension);
-      });
-    }
-  }, {
-    key: "_extendRenderedStems",
-    value: function _extendRenderedStems(wrapper, extension) {
-      wrapper.querySelectorAll(".vf-stem path").forEach(function (path) {
-        var d = path.getAttribute("d") || "";
-        var match = d.match(/^M([\d.-]+) ([\d.-]+)L([\d.-]+) ([\d.-]+)$/);
-        if (!match) return;
-        var _match = _slicedToArray(match, 5),
-          startX = _match[1],
-          startY = _match[2],
-          endX = _match[3],
-          endY = _match[4];
-        var stemTop = parseFloat(endY);
-        if (!Number.isFinite(stemTop)) return;
-        path.setAttribute("d", "M".concat(startX, " ").concat(startY, "L").concat(endX, " ").concat(stemTop - extension));
-      });
-    }
-  }, {
-    key: "_moveStemTopAttachments",
-    value: function _moveStemTopAttachments(wrapper, extension) {
-      wrapper.querySelectorAll(".vf-flag, .vf-beam").forEach(function (element) {
-        var transform = element.getAttribute("transform") || "";
-        element.setAttribute("transform", "".concat(transform, " translate(0 -").concat(extension, ")").trim());
-      });
-      this._moveUnclassifiedEighthFlags(wrapper, 4.5);
-    }
-  }, {
-    key: "_moveUnclassifiedEighthFlags",
-    value: function _moveUnclassifiedEighthFlags(wrapper, extension) {
-      wrapper.querySelectorAll("svg path").forEach(function (path) {
-        if (path.getAttribute("class")) return;
-        var d = path.getAttribute("d") || "";
-        var match = d.match(/^M([\d.-]+) ([\d.-]+)/);
-        if (!match || !d.includes("C") || !d.includes("L")) return;
-        var _match2 = _slicedToArray(match, 2),
-          startX = _match2[1];
-        if (parseFloat(startX) < 80) return;
-        var transform = path.getAttribute("transform") || "";
-        path.setAttribute("transform", "".concat(transform, " translate(0 -").concat(extension, ")").trim());
-      });
-    }
-  }, {
-    key: "_rhythmNoteGlyphFontScale",
-    value: function _rhythmNoteGlyphFontScale(wrapper) {
-      var styles = getComputedStyle(wrapper);
-      var noteWidth = this._pxFromCssVar(styles, "--note-width", 28);
-      var noteHeight = this._pxFromCssVar(styles, "--note-height", 22);
-      return Math.round(Math.max(noteWidth * 2, noteHeight * 2.55));
-    }
-  }, {
-    key: "_pxFromCssVar",
-    value: function _pxFromCssVar(styles, name, fallback) {
-      var value = parseFloat(styles.getPropertyValue(name));
-      return Number.isFinite(value) ? value : fallback;
-    }
-  }, {
-    key: "_timeSignatureLabel",
-    value: function _timeSignatureLabel() {
-      return "".concat(this._timeSignature.beats, "/").concat(this._timeSignature.beatValue);
-    }
-  }, {
-    key: "_measureBeatBlocks",
-    value: function _measureBeatBlocks() {
-      return this._timeSignature.beats * (4 / this._timeSignature.beatValue);
-    }
-  }, {
-    key: "_measurePlaybackBeats",
-    value: function _measurePlaybackBeats() {
-      return Math.max(1, this._timeSignature.beats);
-    }
-  }, {
-    key: "_durationToBeatBlocks",
-    value: function _durationToBeatBlocks(duration) {
-      var noteDuration = this._durationWithoutRest(duration);
-      return {
-        w: 4,
-        h: 2,
-        q: 1,
-        8: 0.5
-      }[noteDuration] || 1;
-    }
-  }, {
-    key: "_durationWithoutRest",
-    value: function _durationWithoutRest(duration) {
-      return String(duration || "").replace(/r$/, "");
-    }
-  }, {
-    key: "_isRestDuration",
-    value: function _isRestDuration(duration) {
-      return String(duration || "").endsWith("r");
-    }
-  }, {
-    key: "_maybeRestDuration",
-    value: function _maybeRestDuration(duration) {
-      if (!this._includeRests || Math.random() < 0.5) return duration;
-      return "".concat(duration, "r");
-    }
-  }, {
-    key: "_normalizeBoolOption",
-    value: function _normalizeBoolOption(value) {
-      return value === true || value === 1 || ["1", "true", "on", "yes"].includes(String(value).toLowerCase());
+    key: "_normalizeChallengeCount",
+    value: function _normalizeChallengeCount(value) {
+      var count = Math.trunc(Number(value));
+      if (!Number.isFinite(count)) return 4;
+      return Math.min(BeatHero.MAX_CHALLENGES, Math.max(BeatHero.MIN_CHALLENGES, count));
     }
   }, {
     key: "_normalizeBpm",
     value: function _normalizeBpm(value) {
       var bpm = Number(value);
-      if (!Number.isFinite(bpm)) return 60;
-      return Math.min(200, Math.max(40, bpm));
+      if (!Number.isFinite(bpm)) return 80;
+      return Math.min(160, Math.max(50, bpm));
     }
   }, {
-    key: "_normalizeMicSensitivity",
-    value: function _normalizeMicSensitivity(value) {
-      var sensitivity = Number(value);
-      if (!Number.isFinite(sensitivity)) return 70;
-      return Math.min(100, Math.max(0, sensitivity));
-    }
-  }, {
-    key: "_normalizeMeasureCount",
-    value: function _normalizeMeasureCount(value) {
-      var count = Number(value);
-      if (!Number.isInteger(count) || count <= 0) return 1;
-      return count;
-    }
-  }, {
-    key: "_resetMeasureQueue",
-    value: function _resetMeasureQueue() {
-      var _this13 = this;
-      this._activeMeasureNumber = 1;
-      this._measures = Array.from({
-        length: this._numOfMeasures
-      }, function () {
-        return _this13._makeRandomRhythm();
+    key: "_normalizeFigureIds",
+    value: function _normalizeFigureIds(value) {
+      var validIds = new Set(BeatHero.FIGURES.map(function (figure) {
+        return figure.id;
+      }));
+      var selected = _toConsumableArray(new Set(Array.isArray(value) ? value : [])).filter(function (figureId) {
+        return validIds.has(figureId);
+      }).slice(0, 4);
+      BeatHero.DEFAULT_FIGURE_IDS.forEach(function (figureId) {
+        if (selected.length < 2 && !selected.includes(figureId)) selected.push(figureId);
       });
-      this._syncCurrentMeasures();
+      return selected;
     }
   }, {
-    key: "_rewindMeasureQueue",
-    value: function _rewindMeasureQueue() {
-      if (!this._measures.length) {
-        this._resetMeasureQueue();
-        return;
-      }
-      this._activeMeasureNumber = 1;
-      this._syncCurrentMeasures();
-    }
-  }, {
-    key: "_syncCurrentMeasures",
-    value: function _syncCurrentMeasures() {
-      var currentIndex = Math.max(0, this._activeMeasureNumber - 1);
-      this._rhythm = this._measures[currentIndex] || [];
-      this._previewRhythm = this._measures[currentIndex + 1] || null;
-    }
-  }, {
-    key: "_shouldRewindMeasureQueueForPlayback",
-    value: function _shouldRewindMeasureQueueForPlayback() {
-      return this._activeMeasureNumber > 1 || !this._rhythm.length;
-    }
-  }, {
-    key: "_pickTimeSignature",
-    value: function _pickTimeSignature() {
-      var signatures = this._normalizeTimeSignatures(this.opts.timeSignatures || this.opts.timeSignatues);
-      return signatures[Math.floor(Math.random() * signatures.length)];
-    }
-  }, {
-    key: "_normalizeTimeSignatures",
-    value: function _normalizeTimeSignatures(timeSignatures) {
-      var _this14 = this;
-      var values = Array.isArray(timeSignatures) && timeSignatures.length ? timeSignatures : ["4/4"];
-      var normalized = values.map(function (value) {
-        return _this14._parseTimeSignature(value);
-      }).filter(Boolean);
-      return normalized.length ? normalized : [{
-        beats: 4,
-        beatValue: 4
-      }];
-    }
-  }, {
-    key: "_parseTimeSignature",
-    value: function _parseTimeSignature(value) {
-      var match = String(value || "").trim().match(/^(\d+)\s*\/\s*(\d+)$/);
-      if (!match) return null;
-      var beats = Number(match[1]);
-      var beatValue = Number(match[2]);
-      if (!Number.isInteger(beats) || !Number.isInteger(beatValue)) return null;
-      if (beats <= 0 || beatValue <= 0) return null;
-      return {
-        beats: beats,
-        beatValue: beatValue
-      };
-    }
-  }, {
-    key: "_normalizeNoteOptions",
-    value: function _normalizeNoteOptions(notes) {
-      var aliases = {
-        whole: "whole",
-        w: "whole",
-        half: "half",
-        h: "half",
-        quarter: "quarter",
-        q: "quarter",
-        eigth: "eighth",
-        eighth: "eighth",
-        eight: "eighth",
-        "8": "eighth"
-      };
-      var values = Array.isArray(notes) && notes.length ? notes : ["whole", "half", "quarter", "eighth"];
-      var normalized = values.map(function (note) {
-        return aliases[String(note).toLowerCase()];
-      }).filter(Boolean);
-      return new Set(normalized.length ? normalized : ["quarter"]);
-    }
-  }, {
-    key: "_makeRandomRhythm",
-    value: function _makeRandomRhythm() {
-      var _this15 = this;
-      var rhythm = [];
-      var rhythmCells = this._rhythmCellsForEnabledNotes();
-      var beatsRemaining = this._measureBeatBlocks();
-      var previousHadEighths = false;
-      while (beatsRemaining > 0) {
-        var fittingChoices = rhythmCells.filter(function (cell) {
-          return cell.beats <= beatsRemaining && _this15._canCompleteRhythm(beatsRemaining - cell.beats, rhythmCells);
-        });
-        var separatedChoices = fittingChoices.filter(function (cell) {
-          return !(previousHadEighths && cell.hasEighths);
-        });
-        var safeChoices = separatedChoices.length ? separatedChoices : fittingChoices;
-        if (!safeChoices.length) {
-          rhythm.push(this._maybeRestDuration("q"));
-          beatsRemaining -= 1;
-          previousHadEighths = false;
-          continue;
-        }
-        var cell = safeChoices[Math.floor(Math.random() * safeChoices.length)];
-        rhythm.push.apply(rhythm, _toConsumableArray(cell.durations.map(function (duration) {
-          return _this15._maybeRestDuration(duration);
-        })));
-        beatsRemaining -= cell.beats;
-        previousHadEighths = cell.hasEighths;
-      }
-      return rhythm;
-    }
-  }, {
-    key: "_canCompleteRhythm",
-    value: function _canCompleteRhythm(beatsRemaining, rhythmCells) {
-      var _this16 = this;
-      if (beatsRemaining === 0) return true;
-      if (beatsRemaining < 0) return false;
-      return rhythmCells.some(function (cell) {
-        return cell.beats <= beatsRemaining && _this16._canCompleteRhythm(beatsRemaining - cell.beats, rhythmCells);
-      });
-    }
-  }, {
-    key: "_rhythmCellsForEnabledNotes",
-    value: function _rhythmCellsForEnabledNotes() {
-      var enabled = this._enabledNoteValues;
-      var cells = [];
-      if (enabled.has("whole")) {
-        cells.push({
-          durations: ["w"],
-          beats: 4,
-          hasEighths: false
-        });
-      }
-      if (enabled.has("half")) {
-        cells.push({
-          durations: ["h"],
-          beats: 2,
-          hasEighths: false
-        });
-      }
-      if (enabled.has("quarter")) {
-        cells.push({
-          durations: ["q"],
-          beats: 1,
-          hasEighths: false
-        });
-      }
-      if (enabled.has("eighth")) {
-        cells.push({
-          durations: ["8", "8"],
-          beats: 1,
-          hasEighths: true
-        });
-      }
-      if (enabled.has("eighth") && enabled.has("quarter")) {
-        cells.push({
-          durations: ["8", "q", "8"],
-          beats: 2,
-          hasEighths: true
-        });
-      }
-      return cells.length ? cells : [{
-        durations: ["q"],
-        beats: 1,
-        hasEighths: false
-      }];
+    key: "_normalizeBool",
+    value: function _normalizeBool(value) {
+      return value === true || value === 1 || ["1", "true", "on", "yes"].includes(String(value).toLowerCase());
     }
   }]);
 }();
+_defineProperty(BeatHero, "MIN_CHALLENGES", 2);
+_defineProperty(BeatHero, "MAX_CHALLENGES", 12);
+_defineProperty(BeatHero, "DEFAULT_FIGURE_IDS", ["quarter", "two-eighths", "four-sixteenths", "eighth-two-sixteenths"]);
+_defineProperty(BeatHero, "FIGURES", [{
+  id: "quarter",
+  label: "Quarter note",
+  events: [0],
+  notes: [{
+    value: 4
+  }]
+}, {
+  id: "two-eighths",
+  label: "Two eighth notes",
+  events: [0, 0.5],
+  notes: [{
+    value: 8
+  }, {
+    value: 8
+  }]
+}, {
+  id: "eighth-two-sixteenths",
+  label: "Eighth note, two sixteenth notes",
+  events: [0, 0.5, 0.75],
+  notes: [{
+    value: 8
+  }, {
+    value: 16
+  }, {
+    value: 16
+  }]
+}, {
+  id: "sixteenth-eighth-sixteenth",
+  label: "Sixteenth note, eighth note, sixteenth note",
+  events: [0, 0.25, 0.75],
+  notes: [{
+    value: 16
+  }, {
+    value: 8
+  }, {
+    value: 16
+  }]
+}, {
+  id: "two-sixteenths-eighth",
+  label: "Two sixteenth notes, eighth note",
+  events: [0, 0.25, 0.5],
+  notes: [{
+    value: 16
+  }, {
+    value: 16
+  }, {
+    value: 8
+  }]
+}, {
+  id: "four-sixteenths",
+  label: "Four sixteenth notes",
+  events: [0, 0.25, 0.5, 0.75],
+  notes: [{
+    value: 16
+  }, {
+    value: 16
+  }, {
+    value: 16
+  }, {
+    value: 16
+  }]
+}, {
+  id: "dotted-eighth-sixteenth",
+  label: "Dotted eighth note, sixteenth note",
+  events: [0, 0.75],
+  notes: [{
+    value: 8,
+    dotted: true
+  }, {
+    value: 16
+  }]
+}, {
+  id: "sixteenth-dotted-eighth",
+  label: "Sixteenth note, dotted eighth note",
+  events: [0, 0.25],
+  notes: [{
+    value: 16
+  }, {
+    value: 8,
+    dotted: true
+  }]
+}]);
 
 /***/ },
 
@@ -1989,6 +1546,224 @@ _defineProperty(GameAudio, "SOUND_LIBRARY", [{
   description: "Short hinge/fall sound used by ToneTrek block reveals."
 }]);
 _defineProperty(GameAudio, "_previewSynths", {});
+
+/***/ },
+
+/***/ "./resources/js/music/games/shared/finalResults.js"
+/*!*********************************************************!*\
+  !*** ./resources/js/music/games/shared/finalResults.js ***!
+  \*********************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   renderFinalResultsOverlay: () => (/* binding */ renderFinalResultsOverlay)
+/* harmony export */ });
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+function renderFinalResultsOverlay(_ref) {
+  var _window, _window2, _window3;
+  var $finalOverlay = _ref.$finalOverlay,
+    _ref$rounds = _ref.rounds,
+    rounds = _ref$rounds === void 0 ? 0 : _ref$rounds,
+    _ref$score = _ref.score,
+    score = _ref$score === void 0 ? 0 : _ref$score,
+    _ref$accuracy = _ref.accuracy,
+    accuracy = _ref$accuracy === void 0 ? 0 : _ref$accuracy,
+    _ref$durationSec = _ref.durationSec,
+    durationSec = _ref$durationSec === void 0 ? 0 : _ref$durationSec,
+    _ref$settingsBonus = _ref.settingsBonus,
+    settingsBonus = _ref$settingsBonus === void 0 ? false : _ref$settingsBonus,
+    _ref$clearCountupTime = _ref.clearCountupTimers,
+    clearCountupTimers = _ref$clearCountupTime === void 0 ? null : _ref$clearCountupTime,
+    _ref$countupTimers = _ref.countupTimers,
+    countupTimers = _ref$countupTimers === void 0 ? null : _ref$countupTimers,
+    _ref$animateMetrics = _ref.animateMetrics,
+    animateMetrics = _ref$animateMetrics === void 0 ? null : _ref$animateMetrics,
+    _ref$playFinalSfx = _ref.playFinalSfx,
+    playFinalSfx = _ref$playFinalSfx === void 0 ? null : _ref$playFinalSfx;
+  if (!$finalOverlay || !$finalOverlay.length) return;
+  var CountUpCtor = (_window = window) === null || _window === void 0 || (_window = _window.CountUp) === null || _window === void 0 ? void 0 : _window.CountUp;
+  var DURATION = 3.5;
+  if (typeof clearCountupTimers === "function") clearCountupTimers();
+  var setMetricAnimationDelays = function setMetricAnimationDelays() {
+    var $boxes = $finalOverlay.find("#metrics-boxes > div");
+    if (!$boxes.length) return;
+    var BASE_DELAY_MS = 260;
+    var STEP_DELAY_MS = 260;
+    $boxes.each(function (i, el) {
+      var delayMs = BASE_DELAY_MS + i * STEP_DELAY_MS;
+      el.style.animationDelay = "".concat(delayMs, "ms");
+    });
+  };
+  var mmss = function mmss(secs) {
+    var v = Math.max(0, Math.floor(Number(secs) || 0));
+    var mm = String(Math.floor(v / 60)).padStart(2, "0");
+    var ss = String(v % 60).padStart(2, "0");
+    return "".concat(mm, ":").concat(ss);
+  };
+  var setSaveResultField = function setSaveResultField(name, value) {
+    var $input = $("#save-results-modal input[name=\"".concat(name, "\"]")).first();
+    if (!$input.length) return;
+    $input.val(String(value !== null && value !== void 0 ? value : "").trim());
+  };
+  var getFinalPointsPreviewElements = function getFinalPointsPreviewElements() {
+    var $modal = $("#save-results-modal");
+    var $finalPoints = $modal.find("#finalPoints");
+    return {
+      $modal: $modal,
+      $finalPoints: $finalPoints
+    };
+  };
+  var countFinalPoints = function countFinalPoints(value) {
+    var _getFinalPointsPrevie = getFinalPointsPreviewElements(),
+      $finalPoints = _getFinalPointsPrevie.$finalPoints;
+    if (!$finalPoints.length) return;
+    var finalPoints = Number(value);
+    if (!Number.isFinite(finalPoints)) {
+      $finalPoints.text(value !== null && value !== void 0 ? value : "");
+      return;
+    }
+    if (!CountUpCtor) {
+      $finalPoints.text(String(Math.round(finalPoints)));
+      return;
+    }
+    var counter = new CountUpCtor($finalPoints[0], finalPoints, {
+      duration: 1.4,
+      decimalPlaces: 0
+    });
+    if (!counter.error) counter.start();else $finalPoints.text(String(Math.round(finalPoints)));
+  };
+  var fetchFinalPointsPreview = function fetchFinalPointsPreview() {
+    var _getFinalPointsPrevie2 = getFinalPointsPreviewElements(),
+      $modal = _getFinalPointsPrevie2.$modal,
+      $finalPoints = _getFinalPointsPrevie2.$finalPoints;
+    if (!$modal.length || !$finalPoints.length || !window.axios) return;
+    var url = $modal.data("final-points-url");
+    if (!url) return;
+    $modal.removeData("final-points-value");
+    $finalPoints.text("");
+    window.axios.get(url, {
+      params: {
+        game: $modal.find('input[name="game"]').val(),
+        rounds: rounds,
+        score: score,
+        accuracy: accuracy,
+        duration: Math.max(0, Math.floor(Number(durationSec) || 0))
+      }
+    }).then(function (response) {
+      var _response$data$finalP, _response$data;
+      var value = (_response$data$finalP = response === null || response === void 0 || (_response$data = response.data) === null || _response$data === void 0 ? void 0 : _response$data.finalPoints) !== null && _response$data$finalP !== void 0 ? _response$data$finalP : response === null || response === void 0 ? void 0 : response.data;
+      $modal.data("final-points-value", value);
+      if ($modal.hasClass("show")) countFinalPoints(value);
+    })["catch"](function () {
+      $modal.data("final-points-value", "");
+      if ($modal.hasClass("show")) $finalPoints.text("");
+    });
+  };
+  var bindFinalPointsPreview = function bindFinalPointsPreview() {
+    var _getFinalPointsPrevie3 = getFinalPointsPreviewElements(),
+      $modal = _getFinalPointsPrevie3.$modal,
+      $finalPoints = _getFinalPointsPrevie3.$finalPoints;
+    if (!$modal.length || !$finalPoints.length) return;
+    $modal.off("show.bs.modal.finalPoints").on("show.bs.modal.finalPoints", function () {
+      $finalPoints.text("");
+    }).off("shown.bs.modal.finalPoints").on("shown.bs.modal.finalPoints", function () {
+      var value = $modal.data("final-points-value");
+      if (value == null) {
+        $finalPoints.text("...");
+        return;
+      }
+      countFinalPoints(value);
+    });
+  };
+  var pushCountupTimer = function pushCountupTimer(id) {
+    if (Array.isArray(countupTimers)) countupTimers.push(id);
+  };
+  var countTo = function countTo(selector, endVal) {
+    var opts = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+    var el = $finalOverlay.find(selector)[0];
+    if (!el) return;
+    var startCount = function startCount() {
+      if (!CountUpCtor) {
+        el.textContent = String(opts.formattingFn ? opts.formattingFn(endVal) : endVal) + (opts.suffix || "");
+        return;
+      }
+      var c = new CountUpCtor(el, endVal, _objectSpread({
+        duration: DURATION
+      }, opts));
+      if (!c.error) c.start();
+    };
+    var $box = $(el).closest("#metrics-boxes > div");
+    var rawDelay = $box.length ? parseFloat($box[0].style.animationDelay || "0") : 0;
+    var delayMs = Number.isFinite(rawDelay) ? Math.max(0, rawDelay) : 0;
+    if (delayMs <= 0) {
+      startCount();
+      return;
+    }
+    var tid = setTimeout(startCount, delayMs + 40);
+    pushCountupTimer(tid);
+  };
+  var $greeting = $finalOverlay.find("#result-greeting");
+  var $greetingTitle = $greeting.find("h1");
+  var $settingsBonus = $finalOverlay.find("#settings-bonus-earned");
+  var $resultImg = $finalOverlay.find("img").first();
+  var resultGreetings = {
+    encouraging: ["Keep going!", "Nice try!", "You are learning!", "Getting there!", "Good effort!", "Keep practicing!", "Almost there!", "Let's try that again!", "Try another round!", "You are getting closer!"],
+    strong: ["Great job!", "Well done!", "Nice work!", "Good one!", "Solid round!", "Looking good!", "You did it!", "That was good!", "Way to go!", "Good progress!"],
+    excellent: ["You got it!", "Impressive!", "Fantastic!", "Excellent!", "Nailed it!", "Brilliant!", "Outstanding!", "Amazing round!", "That was sharp!", "Top notch!"]
+  };
+  var randomFrom = function randomFrom(items) {
+    return items[Math.floor(Math.random() * items.length)];
+  };
+  var resultGreeting = accuracy < 50 ? randomFrom(resultGreetings.encouraging) : accuracy <= 80 ? randomFrom(resultGreetings.strong) : randomFrom(resultGreetings.excellent);
+  if (accuracy < 50) {
+    $greetingTitle.text(resultGreeting);
+    if ($resultImg.length) {
+      var cur = String($resultImg.attr("src") || "");
+      if (cur.includes("trophy.svg")) $resultImg.attr("src", cur.replace("trophy.svg", "plant.svg"));
+    }
+  } else {
+    $greetingTitle.text(resultGreeting);
+    if ($resultImg.length) {
+      var _cur = String($resultImg.attr("src") || "");
+      if (_cur.includes("plant.svg")) $resultImg.attr("src", _cur.replace("plant.svg", "trophy.svg"));
+    }
+  }
+  $settingsBonus.toggle(!!settingsBonus);
+  $finalOverlay.show();
+  var Confetti = ((_window2 = window) === null || _window2 === void 0 ? void 0 : _window2.Confetti) || ((_window3 = window) === null || _window3 === void 0 ? void 0 : _window3.confetti);
+  if (typeof Confetti === "function") {
+    Confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: {
+        y: 0.6
+      },
+      zIndex: 1001
+    });
+  }
+  if (typeof animateMetrics === "function") animateMetrics();else setMetricAnimationDelays();
+  countTo('span[name="rounds"]', rounds);
+  countTo('span[name="score"]', score);
+  countTo('span[name="accuracy"]', accuracy, {
+    suffix: "%"
+  });
+  countTo('span[name="duration"]', durationSec, {
+    formattingFn: mmss
+  });
+  setSaveResultField("rounds", rounds);
+  setSaveResultField("score", score);
+  setSaveResultField("accuracy", "".concat(accuracy, "%"));
+  setSaveResultField("duration", mmss(durationSec));
+  bindFinalPointsPreview();
+  fetchFinalPointsPreview();
+  if (typeof playFinalSfx === "function") playFinalSfx();
+}
 
 /***/ }
 

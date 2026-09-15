@@ -35,6 +35,8 @@ Route::prefix('invitations')->name('invitations.')->group(function() {
 
 	Route::prefix('{invitation}')->group(function() {
 		Route::get('responses', 'InvitationsController@results')->name('results');
+		Route::delete('participants/{participant}', 'InvitationsController@destroyParticipant')
+			->name('participants.destroy');
 		Route::get('', 'InvitationsController@edit')->name('edit');
 		Route::patch('', 'InvitationsController@update')->name('update');
 		Route::delete('', 'InvitationsController@destroy')->name('destroy');

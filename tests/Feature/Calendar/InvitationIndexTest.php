@@ -132,7 +132,52 @@ class InvitationIndexTest extends BaseTest
             ->assertSee('people responded')
             ->assertSee('Available Guest')
             ->assertSee('Maybe Guest')
+            ->assertSee('People who responded')
+            ->assertSee(route('calendar.invitations.participants.destroy', [$invitation, $yesParticipant]), false)
+            ->assertSee('Delete all responses from Available Guest')
             ->assertSee('10:00 AM to 11:00 AM');
+    }
+
+    /** @test */
+    public function it_deletes_all_responses_from_a_participant()
+    {
+        $invitation = Invitation::factory()->create();
+        $option = InvitationOption::factory()->for($invitation)->create();
+        $participant = InvitationParticipant::create([
+            'invitation_id' => $invitation->id,
+            'name' => 'Uninvited Guest',
+        ]);
+        $vote = InvitationVote::create([
+            'invitation_participant_id' => $participant->id,
+            'invitation_option_id' => $option->id,
+            'status' => InvitationVote::YES,
+        ]);
+
+        $this->signIn();
+
+        $this->delete(route('calendar.invitations.participants.destroy', [$invitation, $participant]))
+            ->assertRedirect(route('calendar.invitations.index'));
+
+        $this->assertDatabaseMissing('invitation_participants', ['id' => $participant->id]);
+        $this->assertDatabaseMissing('invitation_votes', ['id' => $vote->id]);
+    }
+
+    /** @test */
+    public function it_cannot_delete_a_participant_through_a_different_invitation()
+    {
+        $invitation = Invitation::factory()->create();
+        $otherInvitation = Invitation::factory()->create();
+        $participant = InvitationParticipant::create([
+            'invitation_id' => $otherInvitation->id,
+            'name' => 'Other Guest',
+        ]);
+
+        $this->signIn();
+
+        $this->delete(route('calendar.invitations.participants.destroy', [$invitation, $participant]))
+            ->assertNotFound();
+
+        $this->assertDatabaseHas('invitation_participants', ['id' => $participant->id]);
     }
 
     /** @test */

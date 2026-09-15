@@ -1,5 +1,5 @@
 {
-    "/js/app.js": "/js/app.js?id=0d9e05b4b7e070e825ccd9992ec34f51",
+    "/js/app.js": "/js/app.js?id=0a3ca3158a94780ed31eafffd3e3239a",
     "/js/offline.js": "/js/offline.js?id=1c14c55e3782f8d8c503823d6dd8bd50",
     "/js/calendar/index.js": "/js/calendar/index.js?id=6ee7e30438d024aa3cf34eceb659bb2b",
     "/js/pianoatlas/action.js": "/js/pianoatlas/action.js?id=302864f2e8a8364f4c7ed93ce5486fbc",
@@ -17,7 +17,7 @@
     "/js/music/notematch.js": "/js/music/notematch.js?id=97d7d9011b77ce49986919d0b84a2426",
     "/js/music/memorywizard.js": "/js/music/memorywizard.js?id=4247a48ae8c11daaef9ecba8009a4ef1",
     "/js/music/openstaff.js": "/js/music/openstaff.js?id=667a708770051d22aaea99d433d534a3",
-    "/js/music/beathero.js": "/js/music/beathero.js?id=35a3454f58a5bdf9dcf4f0ac0cf78895",
+    "/js/music/beathero.js": "/js/music/beathero.js?id=9924a5d0ff2d59a569f45f7d238f3c50",
     "/css/schedule.css": "/css/schedule.css?id=55d4806e4b00f1996f010bd8f94259d2",
     "/fonts/vendor/@fortawesome/fontawesome-free/webfa-brands-400.woff2?c210719e60948b211a1260f79812efe5": "/fonts/vendor/@fortawesome/fontawesome-free/webfa-brands-400.woff2?c210719e60948b211a1260f79812efe5?id=552e767fb6056f7f34a4783c2933556e",
     "/fonts/vendor/@fortawesome/fontawesome-free/webfa-brands-400.ttf?1815e00441357e01619e5793e1caa78a": "/fonts/vendor/@fortawesome/fontawesome-free/webfa-brands-400.ttf?1815e00441357e01619e5793e1caa78a?id=7c8d1eaa468e8de72642d3fc43ee5ed2",
@@ -568,8 +568,8 @@
     "/images/vendor/flag-icons/flags/4x3/xk.svg?574f9c5bed5f12b51e1f0ae61759da3e": "/images/vendor/flag-icons/flags/4x3/xk.svg?574f9c5bed5f12b51e1f0ae61759da3e?id=13d6a7678c810b9e477d5a633c1afc80",
     "/images/vendor/flag-icons/flags/1x1/xk.svg?2e923b4cb7449d2571906aede00fee91": "/images/vendor/flag-icons/flags/1x1/xk.svg?2e923b4cb7449d2571906aede00fee91?id=bb93418fd2f1a062bd90eb8a13e4b0ee",
     "/css/calendar.css": "/css/calendar.css?id=f5038a199f9135e14a049489c442c4da",
-    "/css/app.css": "/css/app.css?id=2090c1c3c407d622942bf4e791331abe",
-    "/css/musicgames.css": "/css/musicgames.css?id=7f688de1261c86d4556366e796fd0f46",
+    "/css/app.css": "/css/app.css?id=0f6ee37685da7b7f511c11b6e09de7aa",
+    "/css/musicgames.css": "/css/musicgames.css?id=8900add502ca142c087a09c8423083ed",
     "/css/pianoatlas.css": "/css/pianoatlas.css?id=21a0e7ecea6ba812eaefa47414a53959",
     "/css/offline.css": "/css/offline.css?id=32cf1de737cdecf3cc4e42d4da6c5180"
 }
