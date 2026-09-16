@@ -201,7 +201,7 @@ class InvitationIndexTest extends BaseTest
             ]);
         });
 
-        foreach ([0, 1, 2] as $index) {
+        foreach ([0, 1, 2, 3, 4] as $index) {
             InvitationVote::create([
                 'invitation_participant_id' => $participants[$index]->id,
                 'invitation_option_id' => $winner->id,
@@ -250,6 +250,35 @@ class InvitationIndexTest extends BaseTest
     }
 
     /** @test */
+    public function it_does_not_mark_an_option_as_a_winner_without_a_yes_from_every_participant()
+    {
+        $invitation = Invitation::factory()->create();
+        $option = InvitationOption::factory()->for($invitation)->create();
+        $participants = collect(range(1, 3))->map(function ($number) use ($invitation) {
+            return InvitationParticipant::create([
+                'invitation_id' => $invitation->id,
+                'name' => "Guest {$number}",
+            ]);
+        });
+
+        foreach ([0, 1] as $index) {
+            InvitationVote::create([
+                'invitation_participant_id' => $participants[$index]->id,
+                'invitation_option_id' => $option->id,
+                'status' => InvitationVote::YES,
+            ]);
+        }
+
+        $this->signIn();
+
+        $content = $this->get(route('calendar.invitations.results', $invitation))
+            ->assertOk()
+            ->getContent();
+
+        $this->assertStringNotContainsString('data-status="winner"', $content);
+    }
+
+    /** @test */
     public function it_marks_exactly_tied_options_as_winners_without_a_second_best()
     {
         $invitation = Invitation::factory()->create();
@@ -271,19 +300,13 @@ class InvitationIndexTest extends BaseTest
         });
 
         foreach ([$firstWinner, $secondWinner] as $winner) {
-            foreach ([0, 1] as $index) {
+            foreach ([0, 1, 2] as $index) {
                 InvitationVote::create([
                     'invitation_participant_id' => $participants[$index]->id,
                     'invitation_option_id' => $winner->id,
                     'status' => InvitationVote::YES,
                 ]);
             }
-
-            InvitationVote::create([
-                'invitation_participant_id' => $participants[2]->id,
-                'invitation_option_id' => $winner->id,
-                'status' => InvitationVote::MAYBE,
-            ]);
         }
 
         InvitationVote::create([

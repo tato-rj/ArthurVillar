@@ -49,28 +49,9 @@ class InvitationsController extends Controller
                 },
             ]);
 
-        $rankedOptions = $invitation->options
-            ->sort(function (InvitationOption $first, InvitationOption $second) {
-                $yesComparison = $second->yes_responses_count <=> $first->yes_responses_count;
-
-                if ($yesComparison !== 0) {
-                    return $yesComparison;
-                }
-
-                $firstTotal = $first->yes_responses_count + $first->maybe_responses_count;
-                $secondTotal = $second->yes_responses_count + $second->maybe_responses_count;
-
-                return ($secondTotal <=> $firstTotal)
-                    ?: ($first->starts_at->timestamp <=> $second->starts_at->timestamp);
-            });
-
-        $topOption = $rankedOptions
-            ->first(fn (InvitationOption $option) => $option->yes_responses_count > 0);
-
-        $winners = $topOption
-            ? $rankedOptions->filter(function (InvitationOption $option) use ($topOption) {
-                return $option->yes_responses_count === $topOption->yes_responses_count
-                    && $option->maybe_responses_count === $topOption->maybe_responses_count;
+        $winners = $invitation->participants_count > 0
+            ? $invitation->options->filter(function (InvitationOption $option) use ($invitation) {
+                return $option->yes_responses_count === $invitation->participants_count;
             })
             : collect();
 
