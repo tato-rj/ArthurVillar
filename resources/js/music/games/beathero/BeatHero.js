@@ -1,5 +1,6 @@
 import { renderFinalResultsOverlay } from "../shared/finalResults.js";
 import { GameAudio } from "../shared/GameAudio.js";
+import { rhythmNotationSvg } from "./rhythmNotation.js";
 
 export class BeatHero {
   static MIN_CHALLENGES = 2;
@@ -68,6 +69,7 @@ export class BeatHero {
       dotsSelector: "#sequence-dots",
       statusSelector: "#sequence-status",
       numOfChallenges: 4,
+      numOfCards: 2,
       bpm: 80,
       practiceMode: false,
       figures: BeatHero.DEFAULT_FIGURE_IDS,
@@ -76,6 +78,7 @@ export class BeatHero {
     };
 
     this.opts.numOfChallenges = this._normalizeChallengeCount(this.opts.numOfChallenges);
+    this.opts.numOfCards = this._normalizeCardCount(this.opts.numOfCards);
     this.opts.bpm = this._normalizeBpm(this.opts.bpm);
     this.opts.practiceMode = this._normalizeBool(this.opts.practiceMode);
     this.opts.figures = this._normalizeFigureIds(this.opts.figures);
@@ -94,6 +97,9 @@ export class BeatHero {
     this.$points = $("#points");
     this.$increment = $("#increment");
     this.$finalOverlay = $("#final-overlay");
+    this._countIn = document.querySelector("#beat-hero-count-in");
+    this._countInWord = this._countIn?.querySelector("[data-count-in-word]");
+    this._playbackRun = 0;
 
     this._cards = [];
     this._answer = [];
@@ -239,11 +245,18 @@ export class BeatHero {
       cards.push(...this._shuffle(pool));
     }
     this._cards = this._shuffle(cards.slice(0, 8));
-    this._answer = this._shuffle(pool).slice(0, 2);
+    const sequence = [];
+    while (sequence.length < this.opts.numOfCards) {
+      sequence.push(...this._shuffle(pool));
+    }
+    this._answer = sequence.slice(0, this.opts.numOfCards);
 
     this._renderCards();
+    this.$dots
+      .attr("aria-label", `${this.opts.numOfCards}-card sequence progress`)
+      .html(this._answer.map(() => '<span class="sequence-dot" aria-hidden="true"></span>').join(""));
     this._resetDots();
-    this._setStatus("Press Play, listen to the two rhythms, then tap their cards in the same order.");
+    this._setStatus(this._readyInstructions());
     this._setPlayButtons(false);
   }
 
@@ -266,81 +279,7 @@ export class BeatHero {
   }
 
   _figureSvg(figure) {
-    const notes = figure.notes || [];
-    const positions = this._notePositions(notes.length);
-    const stemTop = 27;
-    const headY = 69;
-
-    const heads = notes.map((note, index) => {
-      const x = positions[index];
-      const dot = note.dotted
-        ? `<circle class="rhythm-note-dot" cx="${x + 14}" cy="66" r="2.6"></circle>`
-        : "";
-      return `
-        <ellipse class="rhythm-note-head" cx="${x}" cy="${headY}" rx="8" ry="5.7" transform="rotate(-20 ${x} ${headY})"></ellipse>
-        <line class="rhythm-note-stem" x1="${x + 6}" y1="${headY - 2}" x2="${x + 6}" y2="${stemTop}"></line>
-        ${dot}
-      `;
-    }).join("");
-
-    const beamed = notes.length > 1
-      ? this._beamSvg(notes, positions, stemTop)
-      : this._flagSvg(notes[0], positions[0], stemTop);
-
-    return `
-      <svg viewBox="0 0 100 100" role="presentation" focusable="false">
-        ${heads}
-        ${beamed}
-      </svg>
-    `;
-  }
-
-  _beamSvg(notes, positions, stemTop) {
-    const stems = positions.map((x) => x + 6);
-    const first = stems[0];
-    const last = stems[stems.length - 1];
-    const mainBeam = `<line class="rhythm-note-beam" x1="${first}" y1="${stemTop}" x2="${last}" y2="${stemTop}"></line>`;
-    const sixteenthIndexes = notes
-      .map((note, index) => (note.value === 16 ? index : -1))
-      .filter((index) => index >= 0);
-    const secondary = [];
-
-    let cursor = 0;
-    while (cursor < sixteenthIndexes.length) {
-      const group = [sixteenthIndexes[cursor]];
-      while (
-        cursor + 1 < sixteenthIndexes.length
-        && sixteenthIndexes[cursor + 1] === sixteenthIndexes[cursor] + 1
-      ) {
-        cursor += 1;
-        group.push(sixteenthIndexes[cursor]);
-      }
-
-      if (group.length > 1) {
-        secondary.push(`<line class="rhythm-note-beam rhythm-note-beam--secondary" x1="${stems[group[0]]}" y1="${stemTop + 10}" x2="${stems[group[group.length - 1]]}" y2="${stemTop + 10}"></line>`);
-      } else {
-        const index = group[0];
-        const pointsLeft = index === notes.length - 1;
-        secondary.push(`<line class="rhythm-note-beam rhythm-note-beam--secondary" x1="${stems[index]}" y1="${stemTop + 10}" x2="${stems[index] + (pointsLeft ? -11 : 11)}" y2="${stemTop + 10}"></line>`);
-      }
-      cursor += 1;
-    }
-
-    return `${mainBeam}${secondary.join("")}`;
-  }
-
-  _flagSvg(note, x, stemTop) {
-    if (!note || note.value < 8) return "";
-
-    const stemX = x + 6;
-    return `<path class="rhythm-note-flag" d="M ${stemX} ${stemTop} C ${stemX + 17} ${stemTop + 5}, ${stemX + 16} ${stemTop + 18}, ${stemX + 7} ${stemTop + 24}"></path>`;
-  }
-
-  _notePositions(count) {
-    if (count <= 1) return [50];
-    if (count === 2) return [29, 70];
-    if (count === 3) return [22, 50, 78];
-    return [16, 39, 62, 84];
+    return rhythmNotationSvg(figure);
   }
 
   async _playChallenge() {
@@ -352,17 +291,27 @@ export class BeatHero {
     this._state = "playing";
     this._inputLocked = true;
     this._resetDots();
-    this._setStatus("Listen carefully…");
+    this._setStatus("Get ready…");
     this._setPlayButtons(true);
 
+    const playbackRun = this._playbackRun;
     await this._ensureAudio();
-    if (this._state !== "playing") return;
+    if (this._state !== "playing" || playbackRun !== this._playbackRun) return;
 
     const beatMs = this._beatMs();
     const slotMs = beatMs;
+    const countInMs = 3 * beatMs;
+
+    this._showCountInWord("READY", beatMs);
+    this._setTimer(() => this._showCountInWord("SET", beatMs), beatMs);
+    this._setTimer(() => this._showCountInWord("GO!", beatMs), 2 * beatMs);
+    this._setTimer(() => {
+      this._hideCountIn();
+      this._setStatus("Listen carefully…");
+    }, countInMs);
 
     this._answer.forEach((figure, index) => {
-      const startsAt = index * slotMs;
+      const startsAt = countInMs + (index * slotMs);
       this._setTimer(() => this._activateDot(index), startsAt);
       this._scheduleFigureAudio(figure, startsAt);
       this._setTimer(() => this._completeDot(index), startsAt + beatMs);
@@ -373,8 +322,27 @@ export class BeatHero {
       this._inputLocked = false;
       this._setPlayButtons(false);
       this._resetDots();
-      this._setStatus("Now tap the two cards you heard, in order.");
-    }, (this._answer.length * slotMs) + 120);
+      this._setStatus(`Now tap the ${this.opts.numOfCards} cards you heard, in order.`);
+    }, countInMs + (this._answer.length * slotMs) + 120);
+  }
+
+  _showCountInWord(word, beatMs) {
+    if (!this._countIn || !this._countInWord) return;
+    this._countIn.hidden = false;
+    this._countInWord.classList.remove("animate__zoomIn");
+    this._countInWord.textContent = word;
+    this._countInWord.style.setProperty("--animate-duration", `${beatMs}ms`);
+    // Restart the entrance animation for each beat without moving its center.
+    void this._countInWord.offsetWidth;
+    this._countInWord.classList.add("animate__zoomIn");
+  }
+
+  _hideCountIn() {
+    if (this._countIn) this._countIn.hidden = true;
+    if (this._countInWord) {
+      this._countInWord.textContent = "";
+      this._countInWord.classList.remove("animate__zoomIn");
+    }
   }
 
   _stopChallenge() {
@@ -400,7 +368,7 @@ export class BeatHero {
 
     if (this._state === "ready") {
       cardElement.classList.add("is-previewing");
-      this._setStatus("Press Play, listen to the two rhythms, then tap their cards in the same order.");
+      this._setStatus(this._readyInstructions());
       this._setTimer(() => {
         cardElement.classList.remove("is-previewing");
         this._inputLocked = false;
@@ -420,7 +388,8 @@ export class BeatHero {
       this._selection.push(figure);
       cardElement.classList.remove("is-wrong");
       cardElement.classList.add("is-correct");
-      cardElement.querySelector(".rhythm-card__number").textContent = String(answerIndex + 1);
+      const badge = cardElement.querySelector(".rhythm-card__number");
+      badge.textContent = [badge.textContent, answerIndex + 1].filter(Boolean).join(", ");
       this._chooseDot(answerIndex);
 
       if (this._selection.length === this._answer.length) {
@@ -428,7 +397,7 @@ export class BeatHero {
         return;
       }
 
-      this._setStatus("Great — now choose the second card.");
+      this._setStatus(`Great — now choose card ${answerIndex + 2} of ${this.opts.numOfCards}.`);
       this._setTimer(() => {
         this._inputLocked = false;
       }, this._beatMs());
@@ -461,7 +430,7 @@ export class BeatHero {
     this.$increment.text(`+${earned}`).css("opacity", 1);
     this._setTimer(() => this.$increment.css("opacity", 0), 900);
     this._updateProgress();
-    this._setStatus("Perfect order! Ready for another pair?");
+    this._setStatus("Perfect order! Ready for another sequence?");
     this._setPlayButtons(false);
     this.$playWrap.hide();
     this.$continueWrap.show();
@@ -644,6 +613,13 @@ export class BeatHero {
     this.$status.text(message);
   }
 
+  _readyInstructions() {
+    const repeatHint = this.opts.numOfCards > this.opts.figures.length
+      ? " Rhythms can repeat; tap the same card again when needed."
+      : "";
+    return `Press Play, listen to the ${this.opts.numOfCards} rhythms, then tap their cards in the same order.${repeatHint}`;
+  }
+
   _beatMs() {
     return 60000 / this.opts.bpm;
   }
@@ -658,8 +634,10 @@ export class BeatHero {
   }
 
   _cancelTimers() {
+    this._playbackRun += 1;
     this._timers.forEach((timer) => clearTimeout(timer));
     this._timers.clear();
+    this._hideCountIn();
   }
 
   _shuffle(items) {
@@ -681,6 +659,12 @@ export class BeatHero {
     const bpm = Number(value);
     if (!Number.isFinite(bpm)) return 80;
     return Math.min(160, Math.max(50, bpm));
+  }
+
+  _normalizeCardCount(value) {
+    const count = Math.trunc(Number(value));
+    if (!Number.isFinite(count)) return 2;
+    return Math.min(6, Math.max(2, count));
   }
 
   _normalizeFigureIds(value) {

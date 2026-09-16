@@ -13,7 +13,9 @@ class PaymentsController extends Controller
         $lesson->pay();
 
         return response()->json([
-            'status' => $lesson->paymentStatus()
+            'status' => $lesson->paymentStatus(),
+            'fee_amount' => $lesson->fee_amount,
+            'payment_exempt' => (bool) $lesson->student?->payment_exempt,
         ]);
     }
 }

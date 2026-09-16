@@ -62,6 +62,7 @@ class LessonsController extends Controller
         return response()->json([
             'lesson_id' => $lesson['model']->id,
             'status' => $lesson['model']->paymentStatus(),
+            'fee_amount' => $lesson['model']->fee_amount,
             'edit_url' => route('calendar.lessons.edit', $lesson['model']),
             'payment_url' => $lesson['model']->paymentUrl,
             'schedule_override_deleted' => $lesson['schedule_override_deleted'],
@@ -84,6 +85,7 @@ class LessonsController extends Controller
             $payload = [
                 'lesson_id' => $lesson['model']->id,
                 'status' => $lesson['model']->paymentStatus(),
+                'fee_amount' => $lesson['model']->fee_amount,
                 'canceled_by' => '',
                 'edit_url' => route('calendar.lessons.edit', $lesson['model']),
                 'payment_url' => $lesson['model']->paymentUrl,
@@ -154,6 +156,7 @@ class LessonsController extends Controller
         $payload = [
             'lesson_id' => $lesson['model']->id,
             'status' => $lesson['model']->paymentStatus(),
+            'fee_amount' => $lesson['model']->fee_amount,
             'canceled_by' => $lesson['model']->canceled_by,
             'edit_url' => route('calendar.lessons.edit', $lesson['model']),
             'payment_url' => $lesson['model']->paymentUrl,
@@ -216,6 +219,30 @@ class LessonsController extends Controller
                 $payload['canceled_by'] = '';
                 $payload['edit_url'] = '';
                 $payload['payment_url'] = '';
+                $payload['fee_amount'] = $lesson->student?->payment_exempt
+                    ? null
+                    : ($lesson->lessonPlan ? $lesson->lessonPlan->netFeeAmount() : $lesson->fee_amount);
+
+                $singlePlan = $lesson->lesson_plan_id ? null : SingleLessonPlan::query()
+                    ->where('student_id', $lesson->student_id)
+                    ->whereDate('scheduled_date', $lesson->scheduled_date ?? $lesson->starts_at)
+                    ->where('start_time', $lesson->scheduled_start_time ?? $lesson->starts_at->format('H:i'))
+                    ->first();
+                $earlyPayment = ($lesson->lesson_plan_id || $singlePlan)
+                    ? EarlyPayment::query()->forOccurrence(
+                        $lesson->lesson_plan_id,
+                        $singlePlan?->id,
+                        $lesson->scheduled_date ?? $lesson->starts_at,
+                        $lesson->scheduled_start_time ?? $lesson->starts_at->format('H:i')
+                    )->first()
+                    : null;
+                $payload['early_payment_id'] = $earlyPayment?->id ?? '';
+                $payload['status'] = $lesson->lessonPlan?->isCanceledOn($lesson->scheduled_date ?? $lesson->starts_at)
+                    ? 'canceled'
+                    : ($earlyPayment ? 'early-payment' : 'unconfirmed');
+                if ($singlePlan) {
+                    $payload['fee_amount'] = $lesson->student?->payment_exempt ? null : $singlePlan->netFeeAmount();
+                }
             } else {
                 $lesson->update([
                     'paid_at' => null,
@@ -230,6 +257,7 @@ class LessonsController extends Controller
                 $payload['canceled_by'] = '';
                 $payload['edit_url'] = route('calendar.lessons.edit', $lesson);
                 $payload['payment_url'] = $lesson->paymentUrl;
+                $payload['fee_amount'] = $lesson->fee_amount;
             }
         }
 

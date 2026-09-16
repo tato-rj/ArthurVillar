@@ -16,6 +16,67 @@ use Tests\BaseTest;
 class CalendarLessonFlowTest extends BaseTest
 {
     /** @test */
+    public function payment_responses_include_the_saved_fee_for_in_place_calendar_totals()
+    {
+        $location = Location::factory()->create(['tax_withheld_percentage' => 25]);
+        $plan = LessonPlan::factory()->create(['location_id' => $location->id, 'fee_amount' => 8000]);
+        $lesson = Lesson::factory()->lessonPlan($plan)->create(['fee_amount' => 8000]);
+        $this->signIn();
+
+        $this->postJson(route('calendar.lessons.payment.store', $lesson))
+            ->assertOk()
+            ->assertJsonPath('status', 'paid')
+            ->assertJsonPath('fee_amount', 6000)
+            ->assertJsonPath('payment_exempt', false);
+
+        $this->postJson(route('calendar.lessons.revert'), ['lesson_id' => $lesson->id])
+            ->assertOk()
+            ->assertJsonPath('status', 'unpaid')
+            ->assertJsonPath('fee_amount', 6000);
+    }
+
+    /** @test */
+    public function reverting_a_cancellation_returns_the_retained_early_payment_without_a_calendar_fetch()
+    {
+        $plan = LessonPlan::factory()->create();
+        $lesson = Lesson::factory()->lessonPlan($plan)->create([
+            'scheduled_date' => '2026-07-08',
+            'scheduled_start_time' => '15:30',
+            'canceled_at' => now(),
+        ]);
+        $payment = EarlyPayment::factory()->create([
+            'lesson_plan_id' => $plan->id,
+            'single_lesson_plan_id' => null,
+            'scheduled_date' => '2026-07-08',
+            'scheduled_start_time' => '15:30',
+        ]);
+        $this->signIn();
+
+        $this->postJson(route('calendar.lessons.revert'), ['lesson_id' => $lesson->id])
+            ->assertOk()
+            ->assertJsonPath('status', 'early-payment')
+            ->assertJsonPath('early_payment_id', $payment->id)
+            ->assertJsonPath('lesson_deleted', true);
+    }
+
+    /** @test */
+    public function reverting_a_record_in_a_canceled_series_returns_the_occurrences_canceled_status()
+    {
+        $plan = LessonPlan::factory()->create(['canceled_from' => '2026-07-01']);
+        $lesson = Lesson::factory()->lessonPlan($plan)->create([
+            'scheduled_date' => '2026-07-08',
+            'scheduled_start_time' => '15:30',
+            'canceled_at' => now(),
+        ]);
+        $this->signIn();
+
+        $this->postJson(route('calendar.lessons.revert'), ['lesson_id' => $lesson->id])
+            ->assertOk()
+            ->assertJsonPath('status', 'canceled')
+            ->assertJsonPath('lesson_deleted', true);
+    }
+
+    /** @test */
     public function deleting_a_recurring_lesson_plan_deletes_its_lesson_records_and_overrides()
     {
         $lessonPlan = LessonPlan::factory()->create();
@@ -1514,6 +1575,7 @@ class CalendarLessonFlowTest extends BaseTest
         ])
             ->assertOk()
             ->assertJsonPath('status', 'unpaid')
+            ->assertJsonPath('fee_amount', 6000)
             ->assertJsonMissing(['single_lesson_plan_deleted' => true]);
 
         $this->assertDatabaseHas('single_lesson_plans', ['id' => $singleLessonPlan->id]);

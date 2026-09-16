@@ -9,6 +9,29 @@
 </script>
 
 <style>
+  .beat-hero-count-in {
+    position: fixed;
+    inset: 0;
+    z-index: 1040;
+    pointer-events: none;
+  }
+
+  .beat-hero-count-in__center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .beat-hero-count-in__word {
+    display: block;
+    font-size: clamp(3.5rem, 14vw, 8rem);
+    font-weight: 900;
+    line-height: 1;
+    white-space: nowrap;
+    {{-- text-shadow: 0 3px 0 rgba(0, 0, 0, .15); --}}
+  }
+
   .beat-hero-game {
     --beat-hero-ink: #174a76;
     --beat-hero-blue: #1cb0f6;
@@ -111,9 +134,10 @@
     right: 8px;
     display: none;
     place-items: center;
-    width: 26px;
+    min-width: 26px;
+    padding: 0 6px;
     height: 26px;
-    border-radius: 50%;
+    border-radius: 999px;
     background: var(--beat-hero-green);
     color: #fff;
     font-size: 14px;
@@ -138,34 +162,6 @@
     overflow: visible;
   }
 
-  .rhythm-note-head,
-  .rhythm-note-dot {
-    fill: currentColor;
-  }
-
-  .rhythm-note-stem {
-    stroke: currentColor;
-    stroke-width: 4;
-    stroke-linecap: round;
-  }
-
-  .rhythm-note-beam {
-    stroke: currentColor;
-    stroke-width: 7;
-    stroke-linecap: square;
-  }
-
-  .rhythm-note-beam--secondary {
-    stroke-width: 6;
-  }
-
-  .rhythm-note-flag {
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 5;
-    stroke-linecap: round;
-  }
-
   #play {
     min-height: 62px;
     margin: 18px 0 12px;
@@ -177,7 +173,9 @@
 
   .beat-hero-symbol-picker {
     display: grid;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    max-width: 340px;
+    margin: 0 auto;
     gap: 6px;
   }
 
@@ -286,7 +284,7 @@
     .rhythm-card__number {
       top: 5px;
       right: 5px;
-      width: 21px;
+      min-width: 21px;
       height: 21px;
       font-size: 12px;
     }
@@ -314,6 +312,12 @@
 @section('content')
 @include('theory.components.title')
 
+<div id="beat-hero-count-in" class="beat-hero-count-in" hidden>
+  <div class="beat-hero-count-in__center" role="status" aria-live="polite" aria-atomic="true">
+    <span class="beat-hero-count-in__word text-primary fw-bold animate__animated" data-count-in-word></span>
+  </div>
+</div>
+
 <section id="page-wrapper" class="container prevent-select">
   <div class="row">
     <div class="col-lg-6 col-md-8 col-11 mx-auto text-center mb-2">
@@ -322,10 +326,7 @@
 
     <div class="col-lg-8 col-md-10 col-12 mx-auto text-center position-relative">
       <div class="beat-hero-game">
-        <div id="sequence-dots" class="sequence-dots" aria-label="Two-card sequence progress">
-          <span class="sequence-dot" aria-hidden="true"></span>
-          <span class="sequence-dot" aria-hidden="true"></span>
-        </div>
+        <div id="sequence-dots" class="sequence-dots" aria-label="Rhythm sequence progress"></div>
 
         <p id="sequence-status" aria-live="polite"></p>
 

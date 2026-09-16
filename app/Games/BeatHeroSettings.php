@@ -42,7 +42,7 @@ class BeatHeroSettings extends GameFactory
 
     public function gameDescription() : string
     {
-        return 'Listen to two rhythm cards, then find them in the right order.';
+        return 'Listen to a sequence of rhythm cards, then find them in the right order.';
     }
 
     public function gameTheme(): string
@@ -70,6 +70,7 @@ class BeatHeroSettings extends GameFactory
         return [
             'practiceMode' => false,
             'numOfChallenges' => 4,
+            'numOfCards' => 2,
             'bpm' => 80,
             'sound' => true,
             'figures' => self::DEFAULT_FIGURES,
@@ -85,6 +86,8 @@ class BeatHeroSettings extends GameFactory
     {
         $options = $this->applyUserPreferences();
         $options['figures'] = $this->normalizeFigures($options['figures'] ?? []);
+        $count = $options['numOfCards'] ?? 2;
+        $options['numOfCards'] = is_numeric($count) ? (int) max(2, min(6, (float) $count)) : 2;
         $array = $this->buildOptions($options);
 
         return $key ? $array[$key] : $array;
