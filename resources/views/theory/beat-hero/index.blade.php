@@ -227,8 +227,8 @@
       @include('theory.components.counter')
     </div>
 
-    <div class="col-lg-8 col-md-10 col-12 mx-auto text-center position-relative">
-      <div class="beat-hero-game">
+    <div class="col-lg-8 col-md-10 col-11 mx-auto text-center position-relative">
+      <div class="beat-hero-game w-100 mx-auto">
         <div id="sequence-dots" class="sequence-dots" aria-label="Rhythm sequence progress"></div>
 
         @include('theory.components.instructions', ['instructionId' => 'sequence-status'])
