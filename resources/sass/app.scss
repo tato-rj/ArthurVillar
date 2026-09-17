@@ -128,30 +128,33 @@ input[type="range"].big-thumb {
   margin-top: 8px;
 }
 
-.value-thumb-range__input {
+/* Keep these overrides stronger than Bootstrap in page-specific bundles. */
+.value-thumb-range .value-thumb-range__input {
   display: block;
   height: 32px;
   margin: 0;
   -webkit-tap-highlight-color: transparent;
 }
 
-.value-thumb-range__input::-webkit-slider-thumb {
+.value-thumb-range .value-thumb-range__input::-webkit-slider-thumb {
   width: var(--value-thumb-width);
   height: 32px;
-  margin-top: -12px;
+  margin-top: calc((.5rem - 32px) / 2);
   border: 0;
   border-radius: 999px;
   background: transparent;
   box-shadow: none;
+  opacity: 0; /* The output paints the handle, including its focus ring. */
 }
 
-.value-thumb-range__input::-moz-range-thumb {
+.value-thumb-range .value-thumb-range__input::-moz-range-thumb {
   width: var(--value-thumb-width);
   height: 32px;
   border: 0;
   border-radius: 999px;
   background: transparent;
   box-shadow: none;
+  opacity: 0;
 }
 
 .value-thumb-range__value {

@@ -2073,8 +2073,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_mojsEffects_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/mojsEffects.js */ "./resources/js/music/games/shared/mojsEffects.js");
 /* harmony import */ var _shared_PromptUi_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/PromptUi.js */ "./resources/js/music/games/shared/PromptUi.js");
 /* harmony import */ var _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../shared/GameAudio.js */ "./resources/js/music/games/shared/GameAudio.js");
-/* harmony import */ var _shared_InstructionsUi_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../shared/InstructionsUi.js */ "./resources/js/music/games/shared/InstructionsUi.js");
+/* harmony import */ var _shared_GameCountdown_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../shared/GameCountdown.js */ "./resources/js/music/games/shared/GameCountdown.js");
+/* harmony import */ var _shared_InstructionsUi_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../shared/InstructionsUi.js */ "./resources/js/music/games/shared/InstructionsUi.js");
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
+function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
 function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
 function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
 function _classCallCheck(a, n) { if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function"); }
@@ -2090,8 +2095,10 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
 
 
 
+
 var NotePython = /*#__PURE__*/function () {
   function NotePython() {
+    var _this = this;
     var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
     _classCallCheck(this, NotePython);
     var defaults = {
@@ -2115,11 +2122,14 @@ var NotePython = /*#__PURE__*/function () {
     this.opts = _objectSpread(_objectSpread({}, defaults), options || {});
     this.ns = this.opts.namespace || "notePython";
     this.$board = $(this.opts.boardEl).first();
-    this.$countdown = $("#game-countdown").first();
-    this.$countdownText = this.$countdown.find("h1").first();
-    this.$startBtn = this.$countdown.find("button").first();
+    this._countdown = new _shared_GameCountdown_js__WEBPACK_IMPORTED_MODULE_5__.GameCountdown({
+      element: "#game-countdown",
+      soundEnabled: function soundEnabled() {
+        return _this._isSoundEnabled();
+      }
+    });
     this.prompt = new _shared_PromptUi_js__WEBPACK_IMPORTED_MODULE_3__.PromptUi("#prompt");
-    this.instructionsUi = new _shared_InstructionsUi_js__WEBPACK_IMPORTED_MODULE_5__.InstructionsUi("#instructions");
+    this.instructionsUi = new _shared_InstructionsUi_js__WEBPACK_IMPORTED_MODULE_6__.InstructionsUi("#instructions");
     this.$points = $("#points");
     this.$increment = $("#increment");
     this.$feedback = $("#feedback-success");
@@ -2516,31 +2526,31 @@ var NotePython = /*#__PURE__*/function () {
   }, {
     key: "_wireKeyboardControls",
     value: function _wireKeyboardControls() {
-      var _this = this;
+      var _this2 = this;
       var ns = ".toneTrailKeys.".concat(this.ns);
       $(document).off("keydown".concat(ns)).on("keydown".concat(ns), function (e) {
         var key = String(e.key || "").toLowerCase();
         if (key === "arrowup") {
           e.preventDefault();
-          _this._enqueueDirection({
+          _this2._enqueueDirection({
             dr: -1,
             dc: 0
           });
         } else if (key === "arrowdown") {
           e.preventDefault();
-          _this._enqueueDirection({
+          _this2._enqueueDirection({
             dr: 1,
             dc: 0
           });
         } else if (key === "arrowleft") {
           e.preventDefault();
-          _this._enqueueDirection({
+          _this2._enqueueDirection({
             dr: 0,
             dc: -1
           });
         } else if (key === "arrowright") {
           e.preventDefault();
-          _this._enqueueDirection({
+          _this2._enqueueDirection({
             dr: 0,
             dc: 1
           });
@@ -2551,7 +2561,7 @@ var NotePython = /*#__PURE__*/function () {
     key: "_wireSwipeControls",
     value: function _wireSwipeControls() {
       var _this$$board,
-        _this2 = this;
+        _this3 = this;
       if (!((_this$$board = this.$board) !== null && _this$$board !== void 0 && _this$$board.length)) return;
       var ns = ".toneTrailSwipe.".concat(this.ns);
       var startX = 0;
@@ -2561,7 +2571,7 @@ var NotePython = /*#__PURE__*/function () {
       var queueFromDelta = function queueFromDelta(dx, dy) {
         if (Math.max(Math.abs(dx), Math.abs(dy)) < minSwipe) return;
         if (Math.abs(dx) > Math.abs(dy)) {
-          _this2._enqueueDirection(dx > 0 ? {
+          _this3._enqueueDirection(dx > 0 ? {
             dr: 0,
             dc: 1
           } : {
@@ -2569,7 +2579,7 @@ var NotePython = /*#__PURE__*/function () {
             dc: -1
           });
         } else {
-          _this2._enqueueDirection(dy > 0 ? {
+          _this3._enqueueDirection(dy > 0 ? {
             dr: 1,
             dc: 0
           } : {
@@ -2607,26 +2617,26 @@ var NotePython = /*#__PURE__*/function () {
   }, {
     key: "_wireModalPause",
     value: function _wireModalPause() {
-      var _this3 = this;
+      var _this4 = this;
       var ns = ".toneTrailModalPause.".concat(this.ns);
       $(document).off("shown.bs.modal".concat(ns)).off("hidden.bs.modal".concat(ns)).on("shown.bs.modal".concat(ns), function () {
-        _this3._pausedByModal = true;
-        _this3._stopLoop();
+        _this4._pausedByModal = true;
+        _this4._stopLoop();
       }).on("hidden.bs.modal".concat(ns), function () {
         // If another modal is still open, stay paused.
         if ($(".modal.show").length) return;
-        if (!_this3._pausedByModal) return;
-        _this3._pausedByModal = false;
-        if (_this3._isGameOver) return;
-        if (!_this3._snake.length) return; // game not started yet
-        if (_this3._tickTimer != null) return;
-        _this3._startLoop();
+        if (!_this4._pausedByModal) return;
+        _this4._pausedByModal = false;
+        if (_this4._isGameOver) return;
+        if (!_this4._snake.length) return; // game not started yet
+        if (_this4._tickTimer != null) return;
+        _this4._startLoop();
       });
     }
   }, {
     key: "_spawnFoods",
     value: function _spawnFoods() {
-      var _this4 = this;
+      var _this5 = this;
       var count = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
       var _ref3 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
         _ref3$preferredRow = _ref3.preferredRow,
@@ -2645,16 +2655,16 @@ var NotePython = /*#__PURE__*/function () {
               r: r,
               c: c
             };
-            var occupiedBySnake = _this4._snake.some(function (s) {
-              return _this4._sameCell(s, cell);
+            var occupiedBySnake = _this5._snake.some(function (s) {
+              return _this5._sameCell(s, cell);
             });
-            var occupiedByFood = _this4._foods.some(function (f) {
-              return _this4._sameCell(f, cell);
+            var occupiedByFood = _this5._foods.some(function (f) {
+              return _this5._sameCell(f, cell);
             });
-            var occupiedByBomb = _this4._bombs.some(function (b) {
-              return _this4._sameCell(b, cell);
+            var occupiedByBomb = _this5._bombs.some(function (b) {
+              return _this5._sameCell(b, cell);
             });
-            var tooCloseToHead = _this4._isTooCloseToHead(cell, 2);
+            var tooCloseToHead = _this5._isTooCloseToHead(cell, 2);
             if (!occupiedBySnake && !occupiedByFood && !occupiedByBomb && !tooCloseToHead) free.push(cell);
           };
           for (var c = 0; c < this._cols; c += 1) {
@@ -2680,7 +2690,7 @@ var NotePython = /*#__PURE__*/function () {
   }, {
     key: "_spawnBombs",
     value: function _spawnBombs() {
-      var _this5 = this;
+      var _this6 = this;
       var count = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
       var _ref4 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
         _ref4$preferredRow = _ref4.preferredRow,
@@ -2700,16 +2710,16 @@ var NotePython = /*#__PURE__*/function () {
               r: r,
               c: c
             };
-            var occupiedBySnake = _this5._snake.some(function (s) {
-              return _this5._sameCell(s, cell);
+            var occupiedBySnake = _this6._snake.some(function (s) {
+              return _this6._sameCell(s, cell);
             });
-            var occupiedByFood = _this5._foods.some(function (f) {
-              return _this5._sameCell(f, cell);
+            var occupiedByFood = _this6._foods.some(function (f) {
+              return _this6._sameCell(f, cell);
             });
-            var occupiedByBomb = _this5._bombs.some(function (b) {
-              return _this5._sameCell(b, cell);
+            var occupiedByBomb = _this6._bombs.some(function (b) {
+              return _this6._sameCell(b, cell);
             });
-            var tooCloseToHead = _this5._isTooCloseToHead(cell, 2);
+            var tooCloseToHead = _this6._isTooCloseToHead(cell, 2);
             if (!occupiedBySnake && !occupiedByFood && !occupiedByBomb && !tooCloseToHead) free.push(cell);
           };
           for (var c = 0; c < this._cols; c += 1) {
@@ -2762,44 +2772,44 @@ var NotePython = /*#__PURE__*/function () {
   }, {
     key: "_renderEntities",
     value: function _renderEntities() {
-      var _this6 = this;
+      var _this7 = this;
       if (!this.$board.length) return;
       var $cells = this.$board.find(".board-cell");
       $cells.removeClass("snake snake-head food bomb animate__animated animate__rubberBand").html("");
       this._snake.forEach(function (cell, i) {
         var selector = ".board-cell[data-row=\"".concat(cell.r, "\"][data-col=\"").concat(cell.c, "\"]");
-        var $cell = _this6.$board.find(selector);
+        var $cell = _this7.$board.find(selector);
         if (!$cell.length) return;
         $cell.addClass("snake");
         if (i === 0) {
-          var _this6$_headNote;
+          var _this7$_headNote;
           $cell.addClass("snake-head");
-          if ((_this6$_headNote = _this6._headNote) !== null && _this6$_headNote !== void 0 && _this6$_headNote.display) $cell.html("<span class=\"food-note\">".concat(_this6._headNote.display, "</span>"));
+          if ((_this7$_headNote = _this7._headNote) !== null && _this7$_headNote !== void 0 && _this7$_headNote.display) $cell.html("<span class=\"food-note\">".concat(_this7._headNote.display, "</span>"));
         }
       });
       this._foods.forEach(function (food, i) {
         var _food$note;
-        var $food = _this6.$board.find(".board-cell[data-row=\"".concat(food.r, "\"][data-col=\"").concat(food.c, "\"]"));
+        var $food = _this7.$board.find(".board-cell[data-row=\"".concat(food.r, "\"][data-col=\"").concat(food.c, "\"]"));
         if (!$food.length) return;
         $food.addClass("food").html("<span class=\"food-note\">".concat(String(((_food$note = food.note) === null || _food$note === void 0 ? void 0 : _food$note.display) || ""), "</span>"));
-        if ((food === null || food === void 0 ? void 0 : food.id) == null || _this6._animatedFoodIds.has(food.id)) return;
-        _this6._animatedFoodIds.add(food.id);
+        if ((food === null || food === void 0 ? void 0 : food.id) == null || _this7._animatedFoodIds.has(food.id)) return;
+        _this7._animatedFoodIds.add(food.id);
         var tid = setTimeout(function () {
-          var $target = _this6.$board.find(".board-cell[data-row=\"".concat(food.r, "\"][data-col=\"").concat(food.c, "\"]")).first();
+          var $target = _this7.$board.find(".board-cell[data-row=\"".concat(food.r, "\"][data-col=\"").concat(food.c, "\"]")).first();
           if (!$target.length) return;
           $target.removeClass("animate__animated animate__rubberBand");
           // eslint-disable-next-line no-unused-expressions
           $target[0] && $target[0].offsetWidth;
           $target.addClass("animate__animated animate__rubberBand");
-          $target.off("animationend.".concat(_this6.ns, "FoodHB webkitAnimationEnd.").concat(_this6.ns, "FoodHB")).one("animationend.".concat(_this6.ns, "FoodHB webkitAnimationEnd.").concat(_this6.ns, "FoodHB"), function () {
+          $target.off("animationend.".concat(_this7.ns, "FoodHB webkitAnimationEnd.").concat(_this7.ns, "FoodHB")).one("animationend.".concat(_this7.ns, "FoodHB webkitAnimationEnd.").concat(_this7.ns, "FoodHB"), function () {
             $target.removeClass("animate__animated animate__rubberBand");
           });
         }, 0);
-        _this6._foodAnimTimeouts.push(tid);
+        _this7._foodAnimTimeouts.push(tid);
       });
       this._bombs.forEach(function (bomb) {
-        if (!_this6._showBombs()) return;
-        var $bomb = _this6.$board.find(".board-cell[data-row=\"".concat(bomb.r, "\"][data-col=\"").concat(bomb.c, "\"]"));
+        if (!_this7._showBombs()) return;
+        var $bomb = _this7.$board.find(".board-cell[data-row=\"".concat(bomb.r, "\"][data-col=\"").concat(bomb.c, "\"]"));
         if (!$bomb.length) return;
         $bomb.addClass("bomb").html('<div class="bomb"><i class="fa-solid fa-bomb"></i></div>');
       });
@@ -2821,7 +2831,7 @@ var NotePython = /*#__PURE__*/function () {
     key: "_hingeClearSnake",
     value: function _hingeClearSnake() {
       var _this$$board3,
-        _this7 = this;
+        _this8 = this;
       if (!((_this$$board3 = this.$board) !== null && _this$$board3 !== void 0 && _this$$board3.length)) return;
       var $targets = this.$board.find(".board-cell.snake, .board-cell.snake-head");
       if (!$targets.length) {
@@ -2834,25 +2844,25 @@ var NotePython = /*#__PURE__*/function () {
         var delay = i * 85;
         var tid = setTimeout(function () {
           var $el = $(el);
-          $el.removeClass("animate__animated animate__hinge animate__rubberBand").addClass("animate__animated animate__hinge").off("animationend.".concat(_this7.ns, "SnakeHinge webkitAnimationEnd.").concat(_this7.ns, "SnakeHinge")).one("animationend.".concat(_this7.ns, "SnakeHinge webkitAnimationEnd.").concat(_this7.ns, "SnakeHinge"), function () {
-            var _this7$$restart, _this7$$restart$show;
+          $el.removeClass("animate__animated animate__hinge animate__rubberBand").addClass("animate__animated animate__hinge").off("animationend.".concat(_this8.ns, "SnakeHinge webkitAnimationEnd.").concat(_this8.ns, "SnakeHinge")).one("animationend.".concat(_this8.ns, "SnakeHinge webkitAnimationEnd.").concat(_this8.ns, "SnakeHinge"), function () {
+            var _this8$$restart, _this8$$restart$show;
             $el.removeClass("snake snake-head animate__animated animate__hinge animate__rubberBand").html("").css("animation-delay", "");
-            if (i === lastIndex) (_this7$$restart = _this7.$restart) === null || _this7$$restart === void 0 || (_this7$$restart$show = _this7$$restart.show) === null || _this7$$restart$show === void 0 || _this7$$restart$show.call(_this7$$restart);
+            if (i === lastIndex) (_this8$$restart = _this8.$restart) === null || _this8$$restart === void 0 || (_this8$$restart$show = _this8$$restart.show) === null || _this8$$restart$show === void 0 || _this8$$restart$show.call(_this8$$restart);
           });
         }, delay);
-        _this7._countdownTimeouts.push(tid);
+        _this8._countdownTimeouts.push(tid);
       });
     }
   }, {
     key: "_explodeBombCollision",
     value: function _explodeBombCollision(hitCell) {
       var _this$$board4,
-        _this8 = this;
+        _this9 = this;
       if (!((_this$$board4 = this.$board) !== null && _this$$board4 !== void 0 && _this$$board4.length)) return;
       var parentEl = this.$board[0] || document.body;
       var explodedSelectors = [];
       this._snake.forEach(function (cell, i) {
-        var $cell = _this8.$board.find(".board-cell[data-row=\"".concat(cell.r, "\"][data-col=\"").concat(cell.c, "\"]")).first();
+        var $cell = _this9.$board.find(".board-cell[data-row=\"".concat(cell.r, "\"][data-col=\"").concat(cell.c, "\"]")).first();
         if (!$cell.length) return;
         (0,_shared_mojsEffects_js__WEBPACK_IMPORTED_MODULE_2__.playSnakeCellBreakBurstAtElement)($cell[0], {
           parentEl: parentEl,
@@ -2873,7 +2883,7 @@ var NotePython = /*#__PURE__*/function () {
       var deduped = Array.from(new Set(explodedSelectors));
       var tid = setTimeout(function () {
         deduped.forEach(function (selector) {
-          _this8.$board.find(selector).removeClass("snake snake-head bomb food animate__animated animate__rubberBand animate__hinge").html("");
+          _this9.$board.find(selector).removeClass("snake snake-head bomb food animate__animated animate__rubberBand animate__hinge").html("");
         });
       }, 110);
       this._countdownTimeouts.push(tid);
@@ -2881,12 +2891,12 @@ var NotePython = /*#__PURE__*/function () {
   }, {
     key: "_playBombHitFailSfx",
     value: function _playBombHitFailSfx() {
-      var _this9 = this;
+      var _this0 = this;
       if (!this._isSoundEnabled() || !window.Tone) return Promise.resolve(0);
       return this._ensureUiSfxAudio().then(function () {
         var _synth$get$oscillator;
-        var synth = _this9._uiSfxSynth;
-        var noiseSynth = _this9._uiSfxNoise;
+        var synth = _this0._uiSfxSynth;
+        var noiseSynth = _this0._uiSfxNoise;
         if (!synth) return 0;
         var now = Tone.now();
         var oldEnv = _objectSpread({}, synth.get().envelope);
@@ -2922,18 +2932,18 @@ var NotePython = /*#__PURE__*/function () {
             });
           } catch (_) {}
         }, restoreDelay);
-        _this9._countdownTimeouts.push(tid);
+        _this0._countdownTimeouts.push(tid);
         return restoreDelay;
       });
     }
   }, {
     key: "_playWallCrashSfx",
     value: function _playWallCrashSfx() {
-      var _this0 = this;
+      var _this1 = this;
       if (!this._isSoundEnabled() || !window.Tone) return;
       this._ensureUiSfxAudio().then(function () {
-        var synth = _this0._uiTimerSfxSynth || _this0._uiSfxSynth;
-        var noiseSynth = _this0._uiSfxNoise;
+        var synth = _this1._uiTimerSfxSynth || _this1._uiSfxSynth;
+        var noiseSynth = _this1._uiSfxNoise;
         if (!synth) return;
         var now = Tone.now();
         if (noiseSynth) {
@@ -2949,7 +2959,7 @@ var NotePython = /*#__PURE__*/function () {
     key: "_hingeClearBoardEntities",
     value: function _hingeClearBoardEntities() {
       var _this$$board5,
-        _this1 = this;
+        _this10 = this;
       if (!((_this$$board5 = this.$board) !== null && _this$$board5 !== void 0 && _this$$board5.length)) return;
       var $targets = this.$board.find(".board-cell").filter(function (_, el) {
         var $el = $(el);
@@ -2965,13 +2975,13 @@ var NotePython = /*#__PURE__*/function () {
         var delay = i * 85;
         var tid = setTimeout(function () {
           var $el = $(el);
-          $el.removeClass("animate__animated animate__hinge animate__rubberBand").addClass("animate__animated animate__hinge").off("animationend.".concat(_this1.ns, "BombHinge webkitAnimationEnd.").concat(_this1.ns, "BombHinge")).one("animationend.".concat(_this1.ns, "BombHinge webkitAnimationEnd.").concat(_this1.ns, "BombHinge"), function () {
-            var _this1$$restart, _this1$$restart$show;
+          $el.removeClass("animate__animated animate__hinge animate__rubberBand").addClass("animate__animated animate__hinge").off("animationend.".concat(_this10.ns, "BombHinge webkitAnimationEnd.").concat(_this10.ns, "BombHinge")).one("animationend.".concat(_this10.ns, "BombHinge webkitAnimationEnd.").concat(_this10.ns, "BombHinge"), function () {
+            var _this10$$restart, _this10$$restart$show;
             $el.removeClass("snake snake-head food bomb animate__animated animate__hinge animate__rubberBand").html("").css("animation-delay", "");
-            if (i === lastIndex) (_this1$$restart = _this1.$restart) === null || _this1$$restart === void 0 || (_this1$$restart$show = _this1$$restart.show) === null || _this1$$restart$show === void 0 || _this1$$restart$show.call(_this1$$restart);
+            if (i === lastIndex) (_this10$$restart = _this10.$restart) === null || _this10$$restart === void 0 || (_this10$$restart$show = _this10$$restart.show) === null || _this10$$restart$show === void 0 || _this10$$restart$show.call(_this10$$restart);
           });
         }, delay);
-        _this1._countdownTimeouts.push(tid);
+        _this10._countdownTimeouts.push(tid);
       });
     }
   }, {
@@ -2980,7 +2990,7 @@ var NotePython = /*#__PURE__*/function () {
       var _this$_snake2,
         _this$$board6,
         _this$$board6$addClas,
-        _this10 = this;
+        _this11 = this;
       if (this._isGameOver) return;
       var hitCell = (_this$_snake2 = this._snake) !== null && _this$_snake2 !== void 0 && _this$_snake2[0] ? this._wrapCell({
         r: this._snake[0].r + this._direction.dr,
@@ -2993,11 +3003,11 @@ var NotePython = /*#__PURE__*/function () {
       this._playWallCrashSfx();
       this._playBombHitFailSfx();
       this._runBoardPreExplosionShake(function () {
-        _this10._explodeBombCollision(hitCell);
+        _this11._explodeBombCollision(hitCell);
         var tid = setTimeout(function () {
-          _this10._hingeClearBoardEntities();
+          _this11._hingeClearBoardEntities();
         }, 520);
-        _this10._countdownTimeouts.push(tid);
+        _this11._countdownTimeouts.push(tid);
       });
     }
   }, {
@@ -3033,14 +3043,14 @@ var NotePython = /*#__PURE__*/function () {
     key: "_animateBoardCorrectHit",
     value: function _animateBoardCorrectHit() {
       var _this$$board8,
-        _this11 = this;
+        _this12 = this;
       if (!((_this$$board8 = this.$board) !== null && _this$$board8 !== void 0 && _this$$board8.length)) return;
       this.$board.removeClass("board-correct-hit");
       // eslint-disable-next-line no-unused-expressions
       this.$board[0] && this.$board[0].offsetWidth;
       this.$board.addClass("board-correct-hit");
       var tid = setTimeout(function () {
-        _this11.$board.removeClass("board-correct-hit");
+        _this12.$board.removeClass("board-correct-hit");
       }, 900);
       this._countdownTimeouts.push(tid);
     }
@@ -3048,14 +3058,14 @@ var NotePython = /*#__PURE__*/function () {
     key: "_animateBoardWrongHit",
     value: function _animateBoardWrongHit() {
       var _this$$board9,
-        _this12 = this;
+        _this13 = this;
       if (!((_this$$board9 = this.$board) !== null && _this$$board9 !== void 0 && _this$$board9.length)) return;
       this.$board.removeClass("board-wrong-hit");
       // eslint-disable-next-line no-unused-expressions
       this.$board[0] && this.$board[0].offsetWidth;
       this.$board.addClass("board-wrong-hit");
       var tid = setTimeout(function () {
-        _this12.$board.removeClass("board-wrong-hit");
+        _this13.$board.removeClass("board-wrong-hit");
       }, 420);
       this._countdownTimeouts.push(tid);
     }
@@ -3063,7 +3073,7 @@ var NotePython = /*#__PURE__*/function () {
     key: "_animateSnakeFinalCelebrate",
     value: function _animateSnakeFinalCelebrate() {
       var _this$$board0,
-        _this13 = this;
+        _this14 = this;
       if (!((_this$$board0 = this.$board) !== null && _this$$board0 !== void 0 && _this$$board0.length)) return;
       var $cells = this.$board.find(".board-cell.snake");
       $cells.each(function (_, el) {
@@ -3072,7 +3082,7 @@ var NotePython = /*#__PURE__*/function () {
         $el.removeClass("animate__animated animate__shakeY").css("animation-duration", "".concat(dur, "s"));
         // eslint-disable-next-line no-unused-expressions
         el && el.offsetWidth;
-        $el.addClass("animate__animated animate__shakeY").off("animationend.".concat(_this13.ns, "SnakeCelebrate webkitAnimationEnd.").concat(_this13.ns, "SnakeCelebrate")).one("animationend.".concat(_this13.ns, "SnakeCelebrate webkitAnimationEnd.").concat(_this13.ns, "SnakeCelebrate"), function () {
+        $el.addClass("animate__animated animate__shakeY").off("animationend.".concat(_this14.ns, "SnakeCelebrate webkitAnimationEnd.").concat(_this14.ns, "SnakeCelebrate")).one("animationend.".concat(_this14.ns, "SnakeCelebrate webkitAnimationEnd.").concat(_this14.ns, "SnakeCelebrate"), function () {
           $el.removeClass("animate__animated animate__shakeY").css("animation-duration", "");
         });
       });
@@ -3080,7 +3090,7 @@ var NotePython = /*#__PURE__*/function () {
   }, {
     key: "_advanceSnake",
     value: function _advanceSnake() {
-      var _this14 = this,
+      var _this15 = this,
         _eatenFood$note;
       if (!this._snake.length || this._isGameOver) return;
       if (this._directionQueue.length) {
@@ -3100,14 +3110,14 @@ var NotePython = /*#__PURE__*/function () {
       }
       var next = this._wrapCell(rawNext);
       var hitBomb = this._showBombs() && this._bombs.some(function (bomb) {
-        return _this14._sameCell(bomb, next);
+        return _this15._sameCell(bomb, next);
       });
       if (hitBomb) {
         this._handleBombCollision();
         return;
       }
       var eatenFoodIdx = this._foods.findIndex(function (f) {
-        return _this14._sameCell(f, next);
+        return _this15._sameCell(f, next);
       });
       var eatenFood = eatenFoodIdx >= 0 ? this._foods[eatenFoodIdx] : null;
       var validTargets = new Set((Array.isArray(this._targetNotes) ? this._targetNotes : []).map(function (n) {
@@ -3155,8 +3165,8 @@ var NotePython = /*#__PURE__*/function () {
           this._stats.finishedAtMs = Date.now();
           if (this._finalResultsTimeoutId != null) clearTimeout(this._finalResultsTimeoutId);
           this._finalResultsTimeoutId = setTimeout(function () {
-            _this14._finalResultsTimeoutId = null;
-            _this14._showFinalResults();
+            _this15._finalResultsTimeoutId = null;
+            _this15._showFinalResults();
           }, 1600);
           return;
         }
@@ -3164,12 +3174,12 @@ var NotePython = /*#__PURE__*/function () {
           $interval: this.$interval,
           delayMs: 700,
           onDone: function onDone() {
-            if (_this14._isGameOver) return;
-            _this14._setIntervalUIWithDirection(_this14._pickInterval(), _this14._pickIntervalDirection());
-            _this14._spawnFoods(2);
-            _this14._spawnBombs(1);
-            _this14._ensureTargetFoodPresent();
-            _this14._renderEntities();
+            if (_this15._isGameOver) return;
+            _this15._setIntervalUIWithDirection(_this15._pickInterval(), _this15._pickIntervalDirection());
+            _this15._spawnFoods(2);
+            _this15._spawnBombs(1);
+            _this15._ensureTargetFoodPresent();
+            _this15._renderEntities();
           }
         });
         return;
@@ -3197,6 +3207,8 @@ var NotePython = /*#__PURE__*/function () {
   }, {
     key: "_clearCountdownTimers",
     value: function _clearCountdownTimers() {
+      var _this$_countdown;
+      (_this$_countdown = this._countdown) === null || _this$_countdown === void 0 || _this$_countdown.cancel();
       if (!Array.isArray(this._countdownTimeouts)) {
         this._countdownTimeouts = [];
         return;
@@ -3207,105 +3219,56 @@ var NotePython = /*#__PURE__*/function () {
       this._countdownTimeouts = [];
     }
   }, {
-    key: "_showCountdownStep",
-    value: function _showCountdownStep(text) {
-      if (!this.$countdownText.length) return;
-      this.$countdownText.removeClass("animate__animated animate__bounceInDown").text(String(text || ""));
-      // eslint-disable-next-line no-unused-expressions
-      this.$countdownText[0] && this.$countdownText[0].offsetWidth;
-      this.$countdownText.addClass("animate__animated animate__bounceInDown");
-    }
-  }, {
-    key: "_playCountdownBeepSfx",
-    value: function _playCountdownBeepSfx() {
-      if (!this._isSoundEnabled()) return;
-      this._ensureUiSfxAudio();
-      if (!window.Tone) return;
-      var synth = this._uiTimerSfxSynth || this._uiSfxSynth;
-      if (!synth) return;
-      var now = Tone.now();
-      synth.triggerAttackRelease("B5", 0.09, now, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__.GameAudio.scale("countdownBeep", 0.5));
-    }
-  }, {
-    key: "_playCountdownGoFanfareSfx",
-    value: function _playCountdownGoFanfareSfx() {
-      return _base_BaseStaffGame_js__WEBPACK_IMPORTED_MODULE_0__.BaseStaffGame.prototype._playRunStartFanfareSfx.call(this);
-    }
-  }, {
     key: "_runCountdownThenStart",
-    value: function _runCountdownThenStart() {
-      var _this15 = this;
-      if (!this.$countdown.length || !this.$countdownText.length) {
-        this._placeInitialSnake();
-        this._spawnFoods(2, {
-          preferredRow: this._rows - 2
-        });
-        if (this._showBombs()) this._spawnBombs(2);
-        this._ensureTargetFoodPresent();
-        this._renderEntities();
-        this._startLoop();
-        return;
+    value: function () {
+      var _runCountdownThenStart2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
+        var _this16 = this;
+        return _regenerator().w(function (_context) {
+          while (1) switch (_context.n) {
+            case 0:
+              _context.n = 1;
+              return this._countdown.prepareAudio();
+            case 1:
+              this._countdown.start({
+                beatMs: 1000,
+                onComplete: function onComplete() {
+                  _this16._placeInitialSnake();
+                  _this16._directionQueue = [];
+                  _this16._spawnFoods(2, {
+                    preferredRow: _this16._rows - 2
+                  });
+                  if (_this16._showBombs()) _this16._spawnBombs(2);
+                  _this16._ensureTargetFoodPresent();
+                  _this16._renderEntities();
+                  _this16._startLoop();
+                }
+              });
+            case 2:
+              return _context.a(2);
+          }
+        }, _callee, this);
+      }));
+      function _runCountdownThenStart() {
+        return _runCountdownThenStart2.apply(this, arguments);
       }
-      this.$countdown.show();
-      this.$startBtn.hide();
-      this.$countdownText.show();
-      var steps = ["3", "2", "1", "GO!"];
-      var stepMs = 1000;
-      steps.forEach(function (label, i) {
-        var tid = setTimeout(function () {
-          _this15._showCountdownStep(label);
-          var soundTid = setTimeout(function () {
-            if (label === "GO!") _this15._playCountdownGoFanfareSfx();else _this15._playCountdownBeepSfx();
-          }, 90);
-          _this15._countdownTimeouts.push(soundTid);
-        }, i * stepMs);
-        _this15._countdownTimeouts.push(tid);
-      });
-      var doneTid = setTimeout(function () {
-        _this15.$countdown.remove();
-        _this15.$countdown = $();
-        _this15.$countdownText = $();
-        _this15._placeInitialSnake();
-        _this15._directionQueue = [];
-        _this15._spawnFoods(2, {
-          preferredRow: _this15._rows - 2
-        });
-        if (_this15._showBombs()) _this15._spawnBombs(2);
-        _this15._ensureTargetFoodPresent();
-        _this15._renderEntities();
-        _this15._startLoop();
-      }, steps.length * stepMs + 500);
-      this._countdownTimeouts.push(doneTid);
-    }
+      return _runCountdownThenStart;
+    }()
   }, {
     key: "_awaitStartThenCountdown",
     value: function _awaitStartThenCountdown() {
-      var _this16 = this;
-      if (!this.$countdown.length) {
-        this._runCountdownThenStart();
-        return;
-      }
-      if (!this.$startBtn.length) {
-        this._runCountdownThenStart();
-        return;
-      }
-      this.$countdown.show();
-      this.$countdownText.text("").hide();
-      this.$startBtn.show();
-      this.$startBtn.off("click.".concat(this.ns, "Start")).one("click.".concat(this.ns, "Start"), function (e) {
-        e.preventDefault();
-        _this16.$startBtn.hide();
-        _this16._runCountdownThenStart();
+      var _this17 = this;
+      this._countdown.showStart(function () {
+        return _this17._runCountdownThenStart();
       });
     }
   }, {
     key: "_startLoop",
     value: function _startLoop() {
-      var _this17 = this;
+      var _this18 = this;
       if (this._pausedByModal) return;
       this._stopLoop();
       this._tickTimer = setInterval(function () {
-        _this17._advanceSnake();
+        _this18._advanceSnake();
       }, this._snakeSpeedMs());
     }
   }, {
@@ -3436,7 +3399,7 @@ var NotePython = /*#__PURE__*/function () {
   }, {
     key: "_showFinalResults",
     value: function _showFinalResults() {
-      var _this18 = this,
+      var _this19 = this,
         _this$$controls,
         _this$$controls$hide;
       if (this._isPracticeMode()) return;
@@ -3452,9 +3415,9 @@ var NotePython = /*#__PURE__*/function () {
       });
       if (perfectGame) {
         var tid = setTimeout(function () {
-          var _this18$$doublePoints, _this18$$doublePoints2;
-          (_this18$$doublePoints = _this18.$doublePoints) === null || _this18$$doublePoints === void 0 || (_this18$$doublePoints2 = _this18$$doublePoints.show) === null || _this18$$doublePoints2 === void 0 || _this18$$doublePoints2.call(_this18$$doublePoints);
-          _this18._playPerfectGameBonusSfx();
+          var _this19$$doublePoints, _this19$$doublePoints2;
+          (_this19$$doublePoints = _this19.$doublePoints) === null || _this19$$doublePoints === void 0 || (_this19$$doublePoints2 = _this19$$doublePoints.show) === null || _this19$$doublePoints2 === void 0 || _this19$$doublePoints2.call(_this19$$doublePoints);
+          _this19._playPerfectGameBonusSfx();
         }, 1750);
         this._countdownTimeouts.push(tid);
       } else {
@@ -3477,14 +3440,14 @@ var NotePython = /*#__PURE__*/function () {
         durationSec: durationSec,
         settingsBonus: scoreSummary.settingsBonus,
         clearCountupTimers: function clearCountupTimers() {
-          return _this18._clearFinalCountupTimers();
+          return _this19._clearFinalCountupTimers();
         },
         countupTimers: this._finalCountupTimeouts,
         animateMetrics: function animateMetrics() {
-          return _this18._animateFinalMetricsWithSfx();
+          return _this19._animateFinalMetricsWithSfx();
         },
         playFinalSfx: function playFinalSfx() {
-          return _this18._playFinalSfx();
+          return _this19._playFinalSfx();
         }
       });
     }
@@ -4312,6 +4275,189 @@ _defineProperty(GameAudio, "SOUND_LIBRARY", [{
   description: "Short hinge/fall sound used by ToneTrek block reveals."
 }]);
 _defineProperty(GameAudio, "_previewSynths", {});
+
+/***/ },
+
+/***/ "./resources/js/music/games/shared/GameCountdown.js"
+/*!**********************************************************!*\
+  !*** ./resources/js/music/games/shared/GameCountdown.js ***!
+  \**********************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   GameCountdown: () => (/* binding */ GameCountdown)
+/* harmony export */ });
+/* harmony import */ var _GameAudio_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./GameAudio.js */ "./resources/js/music/games/shared/GameAudio.js");
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
+function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+function _classCallCheck(a, n) { if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function"); }
+function _defineProperties(e, r) { for (var t = 0; t < r.length; t++) { var o = r[t]; o.enumerable = o.enumerable || !1, o.configurable = !0, "value" in o && (o.writable = !0), Object.defineProperty(e, _toPropertyKey(o.key), o); } }
+function _createClass(e, r, t) { return r && _defineProperties(e.prototype, r), t && _defineProperties(e, t), Object.defineProperty(e, "prototype", { writable: !1 }), e; }
+function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+
+var GameCountdown = /*#__PURE__*/function () {
+  function GameCountdown() {
+    var _this$element, _this$element2;
+    var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+      element = _ref.element,
+      _ref$soundEnabled = _ref.soundEnabled,
+      soundEnabled = _ref$soundEnabled === void 0 ? function () {
+        return true;
+      } : _ref$soundEnabled;
+    _classCallCheck(this, GameCountdown);
+    this.element = typeof element === "string" ? document.querySelector(element) : element;
+    this.valueElement = ((_this$element = this.element) === null || _this$element === void 0 ? void 0 : _this$element.querySelector("[data-game-countdown-value]")) || null;
+    this.startButton = ((_this$element2 = this.element) === null || _this$element2 === void 0 ? void 0 : _this$element2.querySelector("[data-game-countdown-start]")) || null;
+    this.soundEnabled = soundEnabled;
+    this._timers = new Set();
+    this._startHandler = null;
+  }
+  return _createClass(GameCountdown, [{
+    key: "exists",
+    get: function get() {
+      return Boolean(this.element && this.valueElement);
+    }
+  }, {
+    key: "prepareAudio",
+    value: function () {
+      var _prepareAudio = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
+        var _t;
+        return _regenerator().w(function (_context) {
+          while (1) switch (_context.p = _context.n) {
+            case 0:
+              if (!(!this._soundEnabled() || !window.Tone)) {
+                _context.n = 1;
+                break;
+              }
+              return _context.a(2);
+            case 1:
+              _context.p = 1;
+              _context.n = 2;
+              return _GameAudio_js__WEBPACK_IMPORTED_MODULE_0__.GameAudio.ensureMetronomeAudio();
+            case 2:
+              _context.n = 4;
+              break;
+            case 3:
+              _context.p = 3;
+              _t = _context.v;
+            case 4:
+              return _context.a(2);
+          }
+        }, _callee, this, [[1, 3]]);
+      }));
+      function prepareAudio() {
+        return _prepareAudio.apply(this, arguments);
+      }
+      return prepareAudio;
+    }()
+  }, {
+    key: "showStart",
+    value: function showStart(onStart) {
+      var _this = this;
+      this.cancel();
+      if (!this.exists || !this.startButton) {
+        onStart === null || onStart === void 0 || onStart();
+        return;
+      }
+      this.element.hidden = false;
+      this.valueElement.hidden = true;
+      this.valueElement.textContent = "";
+      this.startButton.hidden = false;
+      this._startHandler = function (event) {
+        event.preventDefault();
+        _this._removeStartHandler();
+        _this.startButton.hidden = true;
+        onStart === null || onStart === void 0 || onStart();
+      };
+      this.startButton.addEventListener("click", this._startHandler, {
+        once: true
+      });
+    }
+  }, {
+    key: "start",
+    value: function start() {
+      var _this2 = this;
+      var _ref2 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+        _ref2$beatMs = _ref2.beatMs,
+        beatMs = _ref2$beatMs === void 0 ? 1000 : _ref2$beatMs,
+        onComplete = _ref2.onComplete;
+      this.cancel();
+      var interval = Math.max(1, Number(beatMs) || 1000);
+      var duration = GameCountdown.STEPS.length * interval;
+      if (!this.exists) {
+        this._setTimer(function () {
+          return onComplete === null || onComplete === void 0 ? void 0 : onComplete();
+        }, duration);
+        return duration;
+      }
+      this.element.hidden = false;
+      if (this.startButton) this.startButton.hidden = true;
+      this.valueElement.hidden = false;
+      GameCountdown.STEPS.forEach(function (label, index) {
+        var showStep = function showStep() {
+          _this2.valueElement.textContent = label;
+          if (_this2._soundEnabled()) _GameAudio_js__WEBPACK_IMPORTED_MODULE_0__.GameAudio.playMetronomeClick(label === "GO!");
+        };
+        if (index === 0) showStep();else _this2._setTimer(showStep, index * interval);
+      });
+      this._setTimer(function () {
+        _this2.hide();
+        onComplete === null || onComplete === void 0 || onComplete();
+      }, duration);
+      return duration;
+    }
+  }, {
+    key: "hide",
+    value: function hide() {
+      if (this.element) this.element.hidden = true;
+      if (this.valueElement) {
+        this.valueElement.hidden = true;
+        this.valueElement.textContent = "";
+      }
+    }
+  }, {
+    key: "cancel",
+    value: function cancel() {
+      this._timers.forEach(function (timer) {
+        return clearTimeout(timer);
+      });
+      this._timers.clear();
+      this._removeStartHandler();
+      this.hide();
+    }
+  }, {
+    key: "_setTimer",
+    value: function _setTimer(callback, delayMs) {
+      var _this3 = this;
+      var timer = setTimeout(function () {
+        _this3._timers["delete"](timer);
+        callback();
+      }, Math.max(0, delayMs));
+      this._timers.add(timer);
+      return timer;
+    }
+  }, {
+    key: "_removeStartHandler",
+    value: function _removeStartHandler() {
+      if (this.startButton && this._startHandler) {
+        this.startButton.removeEventListener("click", this._startHandler);
+      }
+      this._startHandler = null;
+    }
+  }, {
+    key: "_soundEnabled",
+    value: function _soundEnabled() {
+      return typeof this.soundEnabled === "function" ? Boolean(this.soundEnabled()) : Boolean(this.soundEnabled);
+    }
+  }]);
+}();
+_defineProperty(GameCountdown, "STEPS", ["3", "2", "1", "GO!"]);
 
 /***/ },
 

@@ -1,5 +1,6 @@
 import { renderFinalResultsOverlay } from "../shared/finalResults.js";
 import { GameAudio } from "../shared/GameAudio.js";
+import { GameCountdown } from "../shared/GameCountdown.js";
 import { rhythmNotationSvg } from "./rhythmNotation.js";
 
 export class BeatHero {
@@ -97,8 +98,10 @@ export class BeatHero {
     this.$points = $("#points");
     this.$increment = $("#increment");
     this.$finalOverlay = $("#final-overlay");
-    this._countIn = document.querySelector("#beat-hero-count-in");
-    this._countInWord = this._countIn?.querySelector("[data-count-in-word]");
+    this._countdown = new GameCountdown({
+      element: "#beat-hero-count-in",
+      soundEnabled: () => this.opts.sound,
+    });
     this._playbackRun = 0;
 
     this._cards = [];
@@ -121,10 +124,10 @@ export class BeatHero {
   }
 
   start() {
+    this._wireFigurePicker();
     if (!this.$grid.length) return;
 
     this._wireControls();
-    this._wireFigurePicker();
     this._resetGameUi();
     this._startRound();
   }
@@ -189,22 +192,16 @@ export class BeatHero {
           return;
         }
 
-        if (count > 4) {
-          checkbox.checked = false;
-          showCount("Choose no more than 4 symbols.");
-          return;
-        }
-
         showCount();
       });
     });
 
     form?.addEventListener("submit", (event) => {
       const count = selectedCount();
-      if (count >= 2 && count <= 4) return;
+      if (count >= 2) return;
 
       event.preventDefault();
-      showCount("Choose between 2 and 4 symbols.");
+      showCount("Choose at least 2 symbols.");
     });
 
     showCount();
@@ -240,11 +237,7 @@ export class BeatHero {
     this.$continueWrap.hide();
 
     const pool = BeatHero.FIGURES.filter((figure) => this.opts.figures.includes(figure.id));
-    const cards = [];
-    while (cards.length < 8) {
-      cards.push(...this._shuffle(pool));
-    }
-    this._cards = this._shuffle(cards.slice(0, 8));
+    this._cards = this._shuffle(pool);
     const sequence = [];
     while (sequence.length < this.opts.numOfCards) {
       sequence.push(...this._shuffle(pool));
@@ -254,7 +247,9 @@ export class BeatHero {
     this._renderCards();
     this.$dots
       .attr("aria-label", `${this.opts.numOfCards}-card sequence progress`)
-      .html(this._answer.map(() => '<span class="sequence-dot" aria-hidden="true"></span>').join(""));
+      .html(this._answer.map((_, index) => `
+        <span class="sequence-dot" aria-hidden="true">${this._dotNumberMarkup(index)}</span>
+      `).join(""));
     this._resetDots();
     this._setStatus(this._readyInstructions());
     this._setPlayButtons(false);
@@ -275,7 +270,9 @@ export class BeatHero {
       </button>
     `).join("");
 
-    this.$grid.html(html);
+    this.$grid
+      .attr("data-card-count", this._cards.length)
+      .html(html);
   }
 
   _figureSvg(figure) {
@@ -300,13 +297,8 @@ export class BeatHero {
 
     const beatMs = this._beatMs();
     const slotMs = beatMs;
-    const countInMs = 3 * beatMs;
-
-    this._showCountInWord("READY", beatMs);
-    this._setTimer(() => this._showCountInWord("SET", beatMs), beatMs);
-    this._setTimer(() => this._showCountInWord("GO!", beatMs), 2 * beatMs);
+    const countInMs = this._countdown.start({ beatMs });
     this._setTimer(() => {
-      this._hideCountIn();
       this._setStatus("Listen carefully…");
     }, countInMs);
 
@@ -324,25 +316,6 @@ export class BeatHero {
       this._resetDots();
       this._setStatus(`Now tap the ${this.opts.numOfCards} cards you heard, in order.`);
     }, countInMs + (this._answer.length * slotMs) + 120);
-  }
-
-  _showCountInWord(word, beatMs) {
-    if (!this._countIn || !this._countInWord) return;
-    this._countIn.hidden = false;
-    this._countInWord.classList.remove("animate__zoomIn");
-    this._countInWord.textContent = word;
-    this._countInWord.style.setProperty("--animate-duration", `${beatMs}ms`);
-    // Restart the entrance animation for each beat without moving its center.
-    void this._countInWord.offsetWidth;
-    this._countInWord.classList.add("animate__zoomIn");
-  }
-
-  _hideCountIn() {
-    if (this._countIn) this._countIn.hidden = true;
-    if (this._countInWord) {
-      this._countInWord.textContent = "";
-      this._countInWord.classList.remove("animate__zoomIn");
-    }
   }
 
   _stopChallenge() {
@@ -390,7 +363,7 @@ export class BeatHero {
       cardElement.classList.add("is-correct");
       const badge = cardElement.querySelector(".rhythm-card__number");
       badge.textContent = [badge.textContent, answerIndex + 1].filter(Boolean).join(", ");
-      this._chooseDot(answerIndex);
+      this._chooseDot(answerIndex, figure);
 
       if (this._selection.length === this._answer.length) {
         this._finishRound();
@@ -577,24 +550,33 @@ export class BeatHero {
     dot.classList.add("is-complete");
   }
 
-  _chooseDot(index) {
+  _chooseDot(index, figure) {
     const dot = this.$dots.find(".sequence-dot").get(index);
-    if (!dot) return;
+    if (!dot || !figure) return;
 
     dot.classList.remove("is-active", "is-wrong");
     dot.classList.add("is-chosen");
+    dot.innerHTML = `<span class="sequence-dot__figure">${this._figureSvg(figure)}</span>`;
   }
 
   _wrongDot(index) {
+    this._resetDots();
     const dot = this.$dots.find(".sequence-dot").get(index);
     if (!dot) return;
 
-    dot.classList.remove("is-active", "is-complete", "is-chosen");
     dot.classList.add("is-wrong");
   }
 
   _resetDots() {
-    this.$dots.find(".sequence-dot").removeClass("is-active is-complete is-chosen is-wrong");
+    this.$dots.find(".sequence-dot")
+      .removeClass("is-active is-complete is-chosen is-wrong")
+      .each((index, dot) => {
+        dot.innerHTML = this._dotNumberMarkup(index);
+      });
+  }
+
+  _dotNumberMarkup(index) {
+    return `<span class="sequence-dot__number">${index + 1}</span>`;
   }
 
   _clearSelectionMarks() {
@@ -637,7 +619,7 @@ export class BeatHero {
     this._playbackRun += 1;
     this._timers.forEach((timer) => clearTimeout(timer));
     this._timers.clear();
-    this._hideCountIn();
+    this._countdown.cancel();
   }
 
   _shuffle(items) {
@@ -670,8 +652,7 @@ export class BeatHero {
   _normalizeFigureIds(value) {
     const validIds = new Set(BeatHero.FIGURES.map((figure) => figure.id));
     const selected = [...new Set(Array.isArray(value) ? value : [])]
-      .filter((figureId) => validIds.has(figureId))
-      .slice(0, 4);
+      .filter((figureId) => validIds.has(figureId));
 
     BeatHero.DEFAULT_FIGURE_IDS.forEach((figureId) => {
       if (selected.length < 2 && !selected.includes(figureId)) selected.push(figureId);

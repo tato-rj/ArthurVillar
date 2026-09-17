@@ -31,7 +31,7 @@
   @component('theory.components.settings.section', ['title' => 'MATERIAL'])
     <fieldset class="mb-1">
       <legend class="h6 mb-1">Rhythm symbols</legend>
-      <p class="small text-light mb-2">Choose 2 to 4</p>
+      <p class="small text-light mb-2">Choose at least 2</p>
 
       <div class="beat-hero-symbol-picker" data-beat-hero-symbol-picker>
         @foreach($settings->figureChoices() as $figureId => $figureLabel)
@@ -66,3 +66,9 @@
   <button type="submit" class="btn btn-primary w-100">Start new game</button>
 </form>
 @endmodal
+
+@once
+  @push('scripts')
+    <script src="{{ mix('js/music/beathero.js') }}"></script>
+  @endpush
+@endonce

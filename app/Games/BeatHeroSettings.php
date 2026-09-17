@@ -27,7 +27,7 @@ class BeatHeroSettings extends GameFactory
 
     public function public()
     {
-        return local();
+        return true;
     }
 
     public function gameName(): string
@@ -100,10 +100,6 @@ class BeatHeroSettings extends GameFactory
             $figures,
             fn ($figure) => is_string($figure) && array_key_exists($figure, self::FIGURE_CHOICES)
         )));
-
-        if (count($figures) > 4) {
-            $figures = array_slice($figures, 0, 4);
-        }
 
         foreach (self::DEFAULT_FIGURES as $defaultFigure) {
             if (count($figures) >= 2) break;

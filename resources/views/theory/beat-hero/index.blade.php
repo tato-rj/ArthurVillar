@@ -9,35 +9,7 @@
 </script>
 
 <style>
-  .beat-hero-count-in {
-    position: fixed;
-    inset: 0;
-    z-index: 1040;
-    pointer-events: none;
-  }
-
-  .beat-hero-count-in__center {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-  }
-
-  .beat-hero-count-in__word {
-    display: block;
-    font-size: clamp(3.5rem, 14vw, 8rem);
-    font-weight: 900;
-    line-height: 1;
-    white-space: nowrap;
-    {{-- text-shadow: 0 3px 0 rgba(0, 0, 0, .15); --}}
-  }
-
   .beat-hero-game {
-    --beat-hero-ink: #174a76;
-    --beat-hero-blue: #1cb0f6;
-    --beat-hero-gold: #f6c945;
-    --beat-hero-green: #58cc02;
-    --beat-hero-red: #ff4b4b;
     max-width: 760px;
     margin: 0 auto;
   }
@@ -47,21 +19,32 @@
     justify-content: center;
     gap: 18px;
     min-height: 48px;
-    margin: 2px 0 4px;
+    margin-bottom: 1rem;
   }
 
   .sequence-dot {
-    width: 30px;
-    height: 30px;
+    display: grid;
+    place-items: center;
+    width: 50px;
+    height: 50px;
     border: 1px solid black;
-    border-radius: 10px;
+    border-radius: 14px;
     background: #fff;
-    transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+    color: var(--beat-hero-ink);
+    font-size: 1.25rem;
+    font-weight: 900;
+    line-height: 1;
+    transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease, color .15s ease, transform .15s ease;
+  }
+
+  .sequence-dot__number {
+    opacity: .4;
   }
 
   .sequence-dot.is-active {
     border-color: var(--beat-hero-gold);
     background: var(--beat-hero-ink);
+    color: #fff;
     box-shadow: 0 0 0 1px yellow;
     transform: scale(1.08);
   }
@@ -74,13 +57,28 @@
   .sequence-dot.is-chosen {
     border-color: var(--beat-hero-green);
     background: var(--beat-hero-green);
+    color: #fff;
     box-shadow: 0 0 0 5px rgba(88, 204, 2, .14);
   }
 
   .sequence-dot.is-wrong {
     border-color: var(--beat-hero-red);
     background: var(--beat-hero-red);
+    color: #fff;
     box-shadow: 0 0 0 5px rgba(255, 75, 75, .14);
+  }
+
+  .sequence-dot__figure {
+    display: block;
+    width: 100%;
+    height: 100%;
+    padding: 3px;
+  }
+
+  .sequence-dot__figure svg {
+    display: block;
+    width: 100%;
+    height: 100%;
   }
 
   #sequence-status {
@@ -91,10 +89,16 @@
   }
 
   .rhythm-card-grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: 36px;
     width: 100%;
+  }
+
+  .rhythm-card-grid .rhythm-card {
+    flex: 0 1 calc((100% - 108px) / 4);
+    max-width: 160px;
   }
 
   .rhythm-card:hover {
@@ -171,99 +175,6 @@
     min-width: 132px;
   }
 
-  .beat-hero-symbol-picker {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    max-width: 340px;
-    margin: 0 auto;
-    gap: 6px;
-  }
-
-  .beat-hero-symbol-choice {
-    position: relative;
-    min-width: 0;
-  }
-
-  .beat-hero-symbol-input {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    opacity: 0;
-    pointer-events: none;
-  }
-
-  .beat-hero-symbol-option {
-    position: relative;
-    display: block;
-    aspect-ratio: 1.1;
-    margin: 0;
-    overflow: hidden;
-    border: 2px solid #d9dde0;
-    border-radius: 9px;
-    background: #fff;
-    color: var(--beat-hero-ink);
-    cursor: pointer;
-    transition: border-color .15s ease, background-color .15s ease, transform .15s ease;
-  }
-
-  .beat-hero-symbol-option:hover {
-    border-color: #9ed9f6;
-    transform: translateY(-1px);
-  }
-
-  .beat-hero-symbol-input:focus-visible + .beat-hero-symbol-option {
-    outline: 3px solid rgba(28, 176, 246, .3);
-    outline-offset: 2px;
-  }
-
-  .beat-hero-symbol-input:checked + .beat-hero-symbol-option {
-    border-color: var(--beat-hero-blue);
-    background: #eef9ff;
-    box-shadow: inset 0 0 0 1px var(--beat-hero-blue);
-  }
-
-  .beat-hero-symbol-figure {
-    display: block;
-    width: 100%;
-    height: 100%;
-    padding: 2px;
-  }
-
-  .beat-hero-symbol-figure svg {
-    display: block;
-    width: 100%;
-    height: 100%;
-  }
-
-  .beat-hero-symbol-check {
-    position: absolute;
-    top: 3px;
-    right: 3px;
-    display: none;
-    place-items: center;
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    background: var(--beat-hero-blue);
-    color: #fff;
-    font-size: 9px;
-    font-weight: 900;
-    line-height: 1;
-  }
-
-  .beat-hero-symbol-input:checked + .beat-hero-symbol-option .beat-hero-symbol-check {
-    display: grid;
-  }
-
-  .beat-hero-symbol-message {
-    min-height: 17px;
-    color: #6b7680;
-  }
-
-  .beat-hero-symbol-message.is-error {
-    color: var(--beat-hero-red);
-  }
-
   @keyframes rhythmCardShake {
     0%, 100% { transform: translateX(0); }
     25% { transform: translateX(-6px); }
@@ -277,8 +188,17 @@
     }
 
     .rhythm-card-grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 12px;
+    }
+
+    .rhythm-card-grid .rhythm-card {
+      flex-basis: calc((100% - 24px) / 3);
+      max-width: none;
+    }
+
+    .rhythm-card-grid[data-card-count="2"] .rhythm-card {
+      flex-basis: calc((100% - 12px) / 2);
+      max-width: 160px;
     }
 
     .rhythm-card__number {
@@ -312,11 +232,7 @@
 @section('content')
 @include('theory.components.title')
 
-<div id="beat-hero-count-in" class="beat-hero-count-in" hidden>
-  <div class="beat-hero-count-in__center" role="status" aria-live="polite" aria-atomic="true">
-    <span class="beat-hero-count-in__word text-primary fw-bold animate__animated" data-count-in-word></span>
-  </div>
-</div>
+@include('theory.components.game-countdown', ['id' => 'beat-hero-count-in', 'screen' => true])
 
 <section id="page-wrapper" class="container prevent-select">
   <div class="row">
@@ -350,5 +266,4 @@
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.js"></script>
-<script src="{{ mix('js/music/beathero.js') }}"></script>
 @endpush

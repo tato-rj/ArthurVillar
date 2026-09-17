@@ -14,7 +14,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _shared_finalResults_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../shared/finalResults.js */ "./resources/js/music/games/shared/finalResults.js");
 /* harmony import */ var _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../shared/GameAudio.js */ "./resources/js/music/games/shared/GameAudio.js");
-/* harmony import */ var _rhythmNotation_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./rhythmNotation.js */ "./resources/js/music/games/beathero/rhythmNotation.js");
+/* harmony import */ var _shared_GameCountdown_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/GameCountdown.js */ "./resources/js/music/games/shared/GameCountdown.js");
+/* harmony import */ var _rhythmNotation_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./rhythmNotation.js */ "./resources/js/music/games/beathero/rhythmNotation.js");
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
 function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
@@ -37,9 +38,10 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
 
 
 
+
 var BeatHero = /*#__PURE__*/function () {
   function BeatHero() {
-    var _this$_countIn;
+    var _this = this;
     var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
     _classCallCheck(this, BeatHero);
     this.opts = _objectSpread({
@@ -72,8 +74,12 @@ var BeatHero = /*#__PURE__*/function () {
     this.$points = $("#points");
     this.$increment = $("#increment");
     this.$finalOverlay = $("#final-overlay");
-    this._countIn = document.querySelector("#beat-hero-count-in");
-    this._countInWord = (_this$_countIn = this._countIn) === null || _this$_countIn === void 0 ? void 0 : _this$_countIn.querySelector("[data-count-in-word]");
+    this._countdown = new _shared_GameCountdown_js__WEBPACK_IMPORTED_MODULE_2__.GameCountdown({
+      element: "#beat-hero-count-in",
+      soundEnabled: function soundEnabled() {
+        return _this.opts.sound;
+      }
+    });
     this._playbackRun = 0;
     this._cards = [];
     this._answer = [];
@@ -96,37 +102,37 @@ var BeatHero = /*#__PURE__*/function () {
   return _createClass(BeatHero, [{
     key: "start",
     value: function start() {
+      this._wireFigurePicker();
       if (!this.$grid.length) return;
       this._wireControls();
-      this._wireFigurePicker();
       this._resetGameUi();
       this._startRound();
     }
   }, {
     key: "_wireControls",
     value: function _wireControls() {
-      var _this = this;
+      var _this2 = this;
       this.$playBtn.off("click.beatHero").on("click.beatHero", function (event) {
         event.preventDefault();
-        _this._playChallenge();
+        _this2._playChallenge();
       });
       this.$stopBtn.off("click.beatHero").on("click.beatHero", function (event) {
         event.preventDefault();
-        _this._stopChallenge();
+        _this2._stopChallenge();
       });
       this.$grid.off("click.beatHero", ".rhythm-card").on("click.beatHero", ".rhythm-card", function (event) {
         event.preventDefault();
-        _this._handleCardTap(event.currentTarget);
+        _this2._handleCardTap(event.currentTarget);
       });
       this.$continueBtn.off("click.beatHero").on("click.beatHero", function (event) {
         event.preventDefault();
-        _this._continue();
+        _this2._continue();
       });
     }
   }, {
     key: "_wireFigurePicker",
     value: function _wireFigurePicker() {
-      var _this2 = this;
+      var _this3 = this;
       var picker = document.querySelector("[data-beat-hero-symbol-picker]");
       if (!picker) return;
       var checkboxes = _toConsumableArray(picker.querySelectorAll(".beat-hero-symbol-input"));
@@ -136,7 +142,7 @@ var BeatHero = /*#__PURE__*/function () {
         var figure = BeatHero.FIGURES.find(function (item) {
           return item.id === thumbnail.dataset.beatHeroFigureThumbnail;
         });
-        if (figure) thumbnail.innerHTML = _this2._figureSvg(figure);
+        if (figure) thumbnail.innerHTML = _this3._figureSvg(figure);
       });
       var selectedCount = function selectedCount() {
         return checkboxes.filter(function (checkbox) {
@@ -157,19 +163,14 @@ var BeatHero = /*#__PURE__*/function () {
             showCount("Choose at least 2 symbols.");
             return;
           }
-          if (count > 4) {
-            checkbox.checked = false;
-            showCount("Choose no more than 4 symbols.");
-            return;
-          }
           showCount();
         });
       });
       form === null || form === void 0 || form.addEventListener("submit", function (event) {
         var count = selectedCount();
-        if (count >= 2 && count <= 4) return;
+        if (count >= 2) return;
         event.preventDefault();
-        showCount("Choose between 2 and 4 symbols.");
+        showCount("Choose at least 2 symbols.");
       });
       showCount();
     }
@@ -197,7 +198,7 @@ var BeatHero = /*#__PURE__*/function () {
   }, {
     key: "_startRound",
     value: function _startRound() {
-      var _this3 = this;
+      var _this4 = this;
       this._cancelTimers();
       this._state = "ready";
       this._inputLocked = false;
@@ -205,21 +206,17 @@ var BeatHero = /*#__PURE__*/function () {
       this._roundHadMistake = false;
       this.$continueWrap.hide();
       var pool = BeatHero.FIGURES.filter(function (figure) {
-        return _this3.opts.figures.includes(figure.id);
+        return _this4.opts.figures.includes(figure.id);
       });
-      var cards = [];
-      while (cards.length < 8) {
-        cards.push.apply(cards, _toConsumableArray(this._shuffle(pool)));
-      }
-      this._cards = this._shuffle(cards.slice(0, 8));
+      this._cards = this._shuffle(pool);
       var sequence = [];
       while (sequence.length < this.opts.numOfCards) {
         sequence.push.apply(sequence, _toConsumableArray(this._shuffle(pool)));
       }
       this._answer = sequence.slice(0, this.opts.numOfCards);
       this._renderCards();
-      this.$dots.attr("aria-label", "".concat(this.opts.numOfCards, "-card sequence progress")).html(this._answer.map(function () {
-        return '<span class="sequence-dot" aria-hidden="true"></span>';
+      this.$dots.attr("aria-label", "".concat(this.opts.numOfCards, "-card sequence progress")).html(this._answer.map(function (_, index) {
+        return "\n        <span class=\"sequence-dot\" aria-hidden=\"true\">".concat(_this4._dotNumberMarkup(index), "</span>\n      ");
       }).join(""));
       this._resetDots();
       this._setStatus(this._readyInstructions());
@@ -228,22 +225,22 @@ var BeatHero = /*#__PURE__*/function () {
   }, {
     key: "_renderCards",
     value: function _renderCards() {
-      var _this4 = this;
+      var _this5 = this;
       var html = this._cards.map(function (figure, index) {
-        return "\n      <button\n        type=\"button\"\n        class=\"rhythm-card\"\n        data-figure-id=\"".concat(figure.id, "\"\n        aria-label=\"Card ").concat(index + 1, ": ").concat(figure.label, "\"\n      >\n        <span class=\"rhythm-card__number\" aria-hidden=\"true\"></span>\n        <span class=\"rhythm-card__figure\" aria-hidden=\"true\">\n          ").concat(_this4._figureSvg(figure), "\n        </span>\n      </button>\n    ");
+        return "\n      <button\n        type=\"button\"\n        class=\"rhythm-card\"\n        data-figure-id=\"".concat(figure.id, "\"\n        aria-label=\"Card ").concat(index + 1, ": ").concat(figure.label, "\"\n      >\n        <span class=\"rhythm-card__number\" aria-hidden=\"true\"></span>\n        <span class=\"rhythm-card__figure\" aria-hidden=\"true\">\n          ").concat(_this5._figureSvg(figure), "\n        </span>\n      </button>\n    ");
       }).join("");
-      this.$grid.html(html);
+      this.$grid.attr("data-card-count", this._cards.length).html(html);
     }
   }, {
     key: "_figureSvg",
     value: function _figureSvg(figure) {
-      return (0,_rhythmNotation_js__WEBPACK_IMPORTED_MODULE_2__.rhythmNotationSvg)(figure);
+      return (0,_rhythmNotation_js__WEBPACK_IMPORTED_MODULE_3__.rhythmNotationSvg)(figure);
     }
   }, {
     key: "_playChallenge",
     value: function () {
       var _playChallenge2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
-        var _this5 = this;
+        var _this6 = this;
         var playbackRun, beatMs, slotMs, countInMs;
         return _regenerator().w(function (_context) {
           while (1) switch (_context.n) {
@@ -274,34 +271,28 @@ var BeatHero = /*#__PURE__*/function () {
             case 3:
               beatMs = this._beatMs();
               slotMs = beatMs;
-              countInMs = 3 * beatMs;
-              this._showCountInWord("READY", beatMs);
+              countInMs = this._countdown.start({
+                beatMs: beatMs
+              });
               this._setTimer(function () {
-                return _this5._showCountInWord("SET", beatMs);
-              }, beatMs);
-              this._setTimer(function () {
-                return _this5._showCountInWord("GO!", beatMs);
-              }, 2 * beatMs);
-              this._setTimer(function () {
-                _this5._hideCountIn();
-                _this5._setStatus("Listen carefully…");
+                _this6._setStatus("Listen carefully…");
               }, countInMs);
               this._answer.forEach(function (figure, index) {
                 var startsAt = countInMs + index * slotMs;
-                _this5._setTimer(function () {
-                  return _this5._activateDot(index);
+                _this6._setTimer(function () {
+                  return _this6._activateDot(index);
                 }, startsAt);
-                _this5._scheduleFigureAudio(figure, startsAt);
-                _this5._setTimer(function () {
-                  return _this5._completeDot(index);
+                _this6._scheduleFigureAudio(figure, startsAt);
+                _this6._setTimer(function () {
+                  return _this6._completeDot(index);
                 }, startsAt + beatMs);
               });
               this._setTimer(function () {
-                _this5._state = "answering";
-                _this5._inputLocked = false;
-                _this5._setPlayButtons(false);
-                _this5._resetDots();
-                _this5._setStatus("Now tap the ".concat(_this5.opts.numOfCards, " cards you heard, in order."));
+                _this6._state = "answering";
+                _this6._inputLocked = false;
+                _this6._setPlayButtons(false);
+                _this6._resetDots();
+                _this6._setStatus("Now tap the ".concat(_this6.opts.numOfCards, " cards you heard, in order."));
               }, countInMs + this._answer.length * slotMs + 120);
             case 4:
               return _context.a(2);
@@ -313,27 +304,6 @@ var BeatHero = /*#__PURE__*/function () {
       }
       return _playChallenge;
     }()
-  }, {
-    key: "_showCountInWord",
-    value: function _showCountInWord(word, beatMs) {
-      if (!this._countIn || !this._countInWord) return;
-      this._countIn.hidden = false;
-      this._countInWord.classList.remove("animate__zoomIn");
-      this._countInWord.textContent = word;
-      this._countInWord.style.setProperty("--animate-duration", "".concat(beatMs, "ms"));
-      // Restart the entrance animation for each beat without moving its center.
-      void this._countInWord.offsetWidth;
-      this._countInWord.classList.add("animate__zoomIn");
-    }
-  }, {
-    key: "_hideCountIn",
-    value: function _hideCountIn() {
-      if (this._countIn) this._countIn.hidden = true;
-      if (this._countInWord) {
-        this._countInWord.textContent = "";
-        this._countInWord.classList.remove("animate__zoomIn");
-      }
-    }
   }, {
     key: "_stopChallenge",
     value: function _stopChallenge() {
@@ -349,7 +319,7 @@ var BeatHero = /*#__PURE__*/function () {
     key: "_handleCardTap",
     value: function () {
       var _handleCardTap2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee2(cardElement) {
-        var _this6 = this;
+        var _this7 = this;
         var figure, answerIndex, expected, badge, resetDelay;
         return _regenerator().w(function (_context2) {
           while (1) switch (_context2.n) {
@@ -382,7 +352,7 @@ var BeatHero = /*#__PURE__*/function () {
               this._setStatus(this._readyInstructions());
               this._setTimer(function () {
                 cardElement.classList.remove("is-previewing");
-                _this6._inputLocked = false;
+                _this7._inputLocked = false;
               }, this._beatMs());
               return _context2.a(2);
             case 4:
@@ -406,7 +376,7 @@ var BeatHero = /*#__PURE__*/function () {
               cardElement.classList.add("is-correct");
               badge = cardElement.querySelector(".rhythm-card__number");
               badge.textContent = [badge.textContent, answerIndex + 1].filter(Boolean).join(", ");
-              this._chooseDot(answerIndex);
+              this._chooseDot(answerIndex, figure);
               if (!(this._selection.length === this._answer.length)) {
                 _context2.n = 6;
                 break;
@@ -416,7 +386,7 @@ var BeatHero = /*#__PURE__*/function () {
             case 6:
               this._setStatus("Great \u2014 now choose card ".concat(answerIndex + 2, " of ").concat(this.opts.numOfCards, "."));
               this._setTimer(function () {
-                _this6._inputLocked = false;
+                _this7._inputLocked = false;
               }, this._beatMs());
               return _context2.a(2);
             case 7:
@@ -429,10 +399,10 @@ var BeatHero = /*#__PURE__*/function () {
               this._playFailSound();
               resetDelay = Math.min(800, Math.max(600, Math.round(this._beatMs() * 0.75)));
               this._setTimer(function () {
-                _this6._selection = [];
-                _this6._clearSelectionMarks();
-                _this6._resetDots();
-                _this6._inputLocked = false;
+                _this7._selection = [];
+                _this7._clearSelectionMarks();
+                _this7._resetDots();
+                _this7._inputLocked = false;
               }, resetDelay);
             case 8:
               return _context2.a(2);
@@ -447,7 +417,7 @@ var BeatHero = /*#__PURE__*/function () {
   }, {
     key: "_finishRound",
     value: function _finishRound() {
-      var _this7 = this;
+      var _this8 = this;
       this._state = "complete";
       this._inputLocked = true;
       var earned = this._roundHadMistake ? 1 : 2;
@@ -455,7 +425,7 @@ var BeatHero = /*#__PURE__*/function () {
       this.$points.text(String(this._pointsValue));
       this.$increment.text("+".concat(earned)).css("opacity", 1);
       this._setTimer(function () {
-        return _this7.$increment.css("opacity", 0);
+        return _this8.$increment.css("opacity", 0);
       }, 900);
       this._updateProgress();
       this._setStatus("Perfect order! Ready for another sequence?");
@@ -492,7 +462,7 @@ var BeatHero = /*#__PURE__*/function () {
   }, {
     key: "_showFinalResults",
     value: function _showFinalResults() {
-      var _this8 = this;
+      var _this9 = this;
       this._cancelTimers();
       this.$continueWrap.hide();
       this.$playWrap.hide();
@@ -508,25 +478,25 @@ var BeatHero = /*#__PURE__*/function () {
         durationSec: durationSec,
         settingsBonus: false,
         playFinalSfx: function playFinalSfx() {
-          return _this8._playFinalSound();
+          return _this9._playFinalSound();
         }
       });
     }
   }, {
     key: "_scheduleFigureAudio",
     value: function _scheduleFigureAudio(figure) {
-      var _this9 = this;
+      var _this0 = this;
       var startsAtMs = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
       var cardElement = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
       var beatMs = this._beatMs();
       figure.events.forEach(function (offset) {
-        _this9._setTimer(function () {
-          _this9._playRhythmHit();
+        _this0._setTimer(function () {
+          _this0._playRhythmHit();
           if (!cardElement) return;
           cardElement.classList.remove("is-sounding");
           void cardElement.offsetWidth;
           cardElement.classList.add("is-sounding");
-          _this9._setTimer(function () {
+          _this0._setTimer(function () {
             return cardElement.classList.remove("is-sounding");
           }, 120);
         }, startsAtMs + offset * beatMs);
@@ -599,11 +569,11 @@ var BeatHero = /*#__PURE__*/function () {
   }, {
     key: "_playSuccessSound",
     value: function _playSuccessSound() {
-      var _this0 = this;
+      var _this1 = this;
       if (!this.opts.sound || !this._uiSynth || !window.Tone) return;
       var now = Tone.now();
       ["C6", "E6", "G6"].forEach(function (note, index) {
-        _this0._uiSynth.triggerAttackRelease(note, 0.08, now + index * 0.055, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_1__.GameAudio.scale("successBasic", 0.5));
+        _this1._uiSynth.triggerAttackRelease(note, 0.08, now + index * 0.055, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_1__.GameAudio.scale("successBasic", 0.5));
       });
     }
   }, {
@@ -618,11 +588,11 @@ var BeatHero = /*#__PURE__*/function () {
   }, {
     key: "_playFinalSound",
     value: function _playFinalSound() {
-      var _this1 = this;
+      var _this10 = this;
       if (!this.opts.sound || !this._uiSynth || !window.Tone) return;
       var now = Tone.now();
       ["C5", "E5", "G5", "C6"].forEach(function (note, index) {
-        _this1._uiSynth.triggerAttackRelease(note, 0.16, now + index * 0.08, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_1__.GameAudio.scale("final", 0.5));
+        _this10._uiSynth.triggerAttackRelease(note, 0.16, now + index * 0.08, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_1__.GameAudio.scale("final", 0.5));
       });
     }
   }, {
@@ -643,24 +613,33 @@ var BeatHero = /*#__PURE__*/function () {
     }
   }, {
     key: "_chooseDot",
-    value: function _chooseDot(index) {
+    value: function _chooseDot(index, figure) {
       var dot = this.$dots.find(".sequence-dot").get(index);
-      if (!dot) return;
+      if (!dot || !figure) return;
       dot.classList.remove("is-active", "is-wrong");
       dot.classList.add("is-chosen");
+      dot.innerHTML = "<span class=\"sequence-dot__figure\">".concat(this._figureSvg(figure), "</span>");
     }
   }, {
     key: "_wrongDot",
     value: function _wrongDot(index) {
+      this._resetDots();
       var dot = this.$dots.find(".sequence-dot").get(index);
       if (!dot) return;
-      dot.classList.remove("is-active", "is-complete", "is-chosen");
       dot.classList.add("is-wrong");
     }
   }, {
     key: "_resetDots",
     value: function _resetDots() {
-      this.$dots.find(".sequence-dot").removeClass("is-active is-complete is-chosen is-wrong");
+      var _this11 = this;
+      this.$dots.find(".sequence-dot").removeClass("is-active is-complete is-chosen is-wrong").each(function (index, dot) {
+        dot.innerHTML = _this11._dotNumberMarkup(index);
+      });
+    }
+  }, {
+    key: "_dotNumberMarkup",
+    value: function _dotNumberMarkup(index) {
+      return "<span class=\"sequence-dot__number\">".concat(index + 1, "</span>");
     }
   }, {
     key: "_clearSelectionMarks",
@@ -694,9 +673,9 @@ var BeatHero = /*#__PURE__*/function () {
   }, {
     key: "_setTimer",
     value: function _setTimer(callback, delayMs) {
-      var _this10 = this;
+      var _this12 = this;
       var timer = setTimeout(function () {
-        _this10._timers["delete"](timer);
+        _this12._timers["delete"](timer);
         callback();
       }, Math.max(0, delayMs));
       this._timers.add(timer);
@@ -710,7 +689,7 @@ var BeatHero = /*#__PURE__*/function () {
         return clearTimeout(timer);
       });
       this._timers.clear();
-      this._hideCountIn();
+      this._countdown.cancel();
     }
   }, {
     key: "_shuffle",
@@ -753,7 +732,7 @@ var BeatHero = /*#__PURE__*/function () {
       }));
       var selected = _toConsumableArray(new Set(Array.isArray(value) ? value : [])).filter(function (figureId) {
         return validIds.has(figureId);
-      }).slice(0, 4);
+      });
       BeatHero.DEFAULT_FIGURE_IDS.forEach(function (figureId) {
         if (selected.length < 2 && !selected.includes(figureId)) selected.push(figureId);
       });
@@ -1645,6 +1624,189 @@ _defineProperty(GameAudio, "SOUND_LIBRARY", [{
   description: "Short hinge/fall sound used by ToneTrek block reveals."
 }]);
 _defineProperty(GameAudio, "_previewSynths", {});
+
+/***/ },
+
+/***/ "./resources/js/music/games/shared/GameCountdown.js"
+/*!**********************************************************!*\
+  !*** ./resources/js/music/games/shared/GameCountdown.js ***!
+  \**********************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   GameCountdown: () => (/* binding */ GameCountdown)
+/* harmony export */ });
+/* harmony import */ var _GameAudio_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./GameAudio.js */ "./resources/js/music/games/shared/GameAudio.js");
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
+function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+function _classCallCheck(a, n) { if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function"); }
+function _defineProperties(e, r) { for (var t = 0; t < r.length; t++) { var o = r[t]; o.enumerable = o.enumerable || !1, o.configurable = !0, "value" in o && (o.writable = !0), Object.defineProperty(e, _toPropertyKey(o.key), o); } }
+function _createClass(e, r, t) { return r && _defineProperties(e.prototype, r), t && _defineProperties(e, t), Object.defineProperty(e, "prototype", { writable: !1 }), e; }
+function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+
+var GameCountdown = /*#__PURE__*/function () {
+  function GameCountdown() {
+    var _this$element, _this$element2;
+    var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+      element = _ref.element,
+      _ref$soundEnabled = _ref.soundEnabled,
+      soundEnabled = _ref$soundEnabled === void 0 ? function () {
+        return true;
+      } : _ref$soundEnabled;
+    _classCallCheck(this, GameCountdown);
+    this.element = typeof element === "string" ? document.querySelector(element) : element;
+    this.valueElement = ((_this$element = this.element) === null || _this$element === void 0 ? void 0 : _this$element.querySelector("[data-game-countdown-value]")) || null;
+    this.startButton = ((_this$element2 = this.element) === null || _this$element2 === void 0 ? void 0 : _this$element2.querySelector("[data-game-countdown-start]")) || null;
+    this.soundEnabled = soundEnabled;
+    this._timers = new Set();
+    this._startHandler = null;
+  }
+  return _createClass(GameCountdown, [{
+    key: "exists",
+    get: function get() {
+      return Boolean(this.element && this.valueElement);
+    }
+  }, {
+    key: "prepareAudio",
+    value: function () {
+      var _prepareAudio = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
+        var _t;
+        return _regenerator().w(function (_context) {
+          while (1) switch (_context.p = _context.n) {
+            case 0:
+              if (!(!this._soundEnabled() || !window.Tone)) {
+                _context.n = 1;
+                break;
+              }
+              return _context.a(2);
+            case 1:
+              _context.p = 1;
+              _context.n = 2;
+              return _GameAudio_js__WEBPACK_IMPORTED_MODULE_0__.GameAudio.ensureMetronomeAudio();
+            case 2:
+              _context.n = 4;
+              break;
+            case 3:
+              _context.p = 3;
+              _t = _context.v;
+            case 4:
+              return _context.a(2);
+          }
+        }, _callee, this, [[1, 3]]);
+      }));
+      function prepareAudio() {
+        return _prepareAudio.apply(this, arguments);
+      }
+      return prepareAudio;
+    }()
+  }, {
+    key: "showStart",
+    value: function showStart(onStart) {
+      var _this = this;
+      this.cancel();
+      if (!this.exists || !this.startButton) {
+        onStart === null || onStart === void 0 || onStart();
+        return;
+      }
+      this.element.hidden = false;
+      this.valueElement.hidden = true;
+      this.valueElement.textContent = "";
+      this.startButton.hidden = false;
+      this._startHandler = function (event) {
+        event.preventDefault();
+        _this._removeStartHandler();
+        _this.startButton.hidden = true;
+        onStart === null || onStart === void 0 || onStart();
+      };
+      this.startButton.addEventListener("click", this._startHandler, {
+        once: true
+      });
+    }
+  }, {
+    key: "start",
+    value: function start() {
+      var _this2 = this;
+      var _ref2 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+        _ref2$beatMs = _ref2.beatMs,
+        beatMs = _ref2$beatMs === void 0 ? 1000 : _ref2$beatMs,
+        onComplete = _ref2.onComplete;
+      this.cancel();
+      var interval = Math.max(1, Number(beatMs) || 1000);
+      var duration = GameCountdown.STEPS.length * interval;
+      if (!this.exists) {
+        this._setTimer(function () {
+          return onComplete === null || onComplete === void 0 ? void 0 : onComplete();
+        }, duration);
+        return duration;
+      }
+      this.element.hidden = false;
+      if (this.startButton) this.startButton.hidden = true;
+      this.valueElement.hidden = false;
+      GameCountdown.STEPS.forEach(function (label, index) {
+        var showStep = function showStep() {
+          _this2.valueElement.textContent = label;
+          if (_this2._soundEnabled()) _GameAudio_js__WEBPACK_IMPORTED_MODULE_0__.GameAudio.playMetronomeClick(label === "GO!");
+        };
+        if (index === 0) showStep();else _this2._setTimer(showStep, index * interval);
+      });
+      this._setTimer(function () {
+        _this2.hide();
+        onComplete === null || onComplete === void 0 || onComplete();
+      }, duration);
+      return duration;
+    }
+  }, {
+    key: "hide",
+    value: function hide() {
+      if (this.element) this.element.hidden = true;
+      if (this.valueElement) {
+        this.valueElement.hidden = true;
+        this.valueElement.textContent = "";
+      }
+    }
+  }, {
+    key: "cancel",
+    value: function cancel() {
+      this._timers.forEach(function (timer) {
+        return clearTimeout(timer);
+      });
+      this._timers.clear();
+      this._removeStartHandler();
+      this.hide();
+    }
+  }, {
+    key: "_setTimer",
+    value: function _setTimer(callback, delayMs) {
+      var _this3 = this;
+      var timer = setTimeout(function () {
+        _this3._timers["delete"](timer);
+        callback();
+      }, Math.max(0, delayMs));
+      this._timers.add(timer);
+      return timer;
+    }
+  }, {
+    key: "_removeStartHandler",
+    value: function _removeStartHandler() {
+      if (this.startButton && this._startHandler) {
+        this.startButton.removeEventListener("click", this._startHandler);
+      }
+      this._startHandler = null;
+    }
+  }, {
+    key: "_soundEnabled",
+    value: function _soundEnabled() {
+      return typeof this.soundEnabled === "function" ? Boolean(this.soundEnabled()) : Boolean(this.soundEnabled);
+    }
+  }]);
+}();
+_defineProperty(GameCountdown, "STEPS", ["3", "2", "1", "GO!"]);
 
 /***/ },
 

@@ -55,7 +55,7 @@
     animation: redBoard 0.4s 6;
   }
 
-  #game-countdown, #restart {
+  #restart {
     font-size: 3rem;
     z-index: 100;
   }
@@ -118,10 +118,10 @@
     <div class="col-12 mx-auto mb-2 position-relative">
       <div id="board-wrapper" style="display: none" class="text-center mx-auto position-relative ">
 
-          <div id="game-countdown" class="position-absolute w-100 h-100 d-center">
-            <button type="button" class="btn btn-primary btn-lg">START GAME</button>
-            <h1 class="animate__animated animate__bounceInDown"></h1>
-          </div>
+          @include('theory.components.game-countdown', [
+            'id' => 'game-countdown',
+            'startLabel' => 'START GAME',
+          ])
 
           <div id="restart" class="position-absolute w-100 h-100">
             <div class="d-center w-100 h-100">

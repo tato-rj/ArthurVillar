@@ -4,6 +4,7 @@ import { playSnakeCellBreakBurstAtElement } from "../shared/mojsEffects.js";
 import { playSmokePuffAtElement } from "../shared/mojsEffects.js";
 import { PromptUi } from "../shared/PromptUi.js";
 import { GameAudio } from "../shared/GameAudio.js";
+import { GameCountdown } from "../shared/GameCountdown.js";
 import { InstructionsUi } from "../shared/InstructionsUi.js";
 
 export class NotePython {
@@ -78,9 +79,10 @@ export class NotePython {
     this.opts = { ...defaults, ...(options || {}) };
     this.ns = this.opts.namespace || "notePython";
     this.$board = $(this.opts.boardEl).first();
-    this.$countdown = $("#game-countdown").first();
-    this.$countdownText = this.$countdown.find("h1").first();
-    this.$startBtn = this.$countdown.find("button").first();
+    this._countdown = new GameCountdown({
+      element: "#game-countdown",
+      soundEnabled: () => this._isSoundEnabled(),
+    });
     this.prompt = new PromptUi("#prompt");
     this.instructionsUi = new InstructionsUi("#instructions");
     this.$points = $("#points");
@@ -1095,6 +1097,7 @@ export class NotePython {
   }
 
   _clearCountdownTimers() {
+    this._countdown?.cancel();
     if (!Array.isArray(this._countdownTimeouts)) {
       this._countdownTimeouts = [];
       return;
@@ -1103,97 +1106,24 @@ export class NotePython {
     this._countdownTimeouts = [];
   }
 
-  _showCountdownStep(text) {
-    if (!this.$countdownText.length) return;
-    this.$countdownText
-      .removeClass("animate__animated animate__bounceInDown")
-      .text(String(text || ""));
-    // eslint-disable-next-line no-unused-expressions
-    this.$countdownText[0] && this.$countdownText[0].offsetWidth;
-    this.$countdownText.addClass("animate__animated animate__bounceInDown");
-  }
-
-  _playCountdownBeepSfx() {
-    if (!this._isSoundEnabled()) return;
-    this._ensureUiSfxAudio();
-    if (!window.Tone) return;
-    const synth = this._uiTimerSfxSynth || this._uiSfxSynth;
-    if (!synth) return;
-    const now = Tone.now();
-    synth.triggerAttackRelease("B5", 0.09, now, GameAudio.scale("countdownBeep", 0.5));
-  }
-
-  _playCountdownGoFanfareSfx() {
-    return BaseStaffGame.prototype._playRunStartFanfareSfx.call(this);
-  }
-
-  _runCountdownThenStart() {
-    if (!this.$countdown.length || !this.$countdownText.length) {
-      this._placeInitialSnake();
-      this._spawnFoods(2, { preferredRow: this._rows - 2 });
-      if (this._showBombs()) this._spawnBombs(2);
-      this._ensureTargetFoodPresent();
-      this._renderEntities();
-      this._startLoop();
-      return;
-    }
-
-    this.$countdown.show();
-    this.$startBtn.hide();
-    this.$countdownText.show();
-
-    const steps = ["3", "2", "1", "GO!"];
-    const stepMs = 1000;
-
-    steps.forEach((label, i) => {
-      const tid = setTimeout(() => {
-        this._showCountdownStep(label);
-        const soundTid = setTimeout(() => {
-          if (label === "GO!") this._playCountdownGoFanfareSfx();
-          else this._playCountdownBeepSfx();
-        }, 90);
-        this._countdownTimeouts.push(soundTid);
-      }, i * stepMs);
-      this._countdownTimeouts.push(tid);
+  async _runCountdownThenStart() {
+    await this._countdown.prepareAudio();
+    this._countdown.start({
+      beatMs: 1000,
+      onComplete: () => {
+        this._placeInitialSnake();
+        this._directionQueue = [];
+        this._spawnFoods(2, { preferredRow: this._rows - 2 });
+        if (this._showBombs()) this._spawnBombs(2);
+        this._ensureTargetFoodPresent();
+        this._renderEntities();
+        this._startLoop();
+      },
     });
-
-    const doneTid = setTimeout(() => {
-      this.$countdown.remove();
-      this.$countdown = $();
-      this.$countdownText = $();
-      this._placeInitialSnake();
-      this._directionQueue = [];
-      this._spawnFoods(2, { preferredRow: this._rows - 2 });
-      if (this._showBombs()) this._spawnBombs(2);
-      this._ensureTargetFoodPresent();
-      this._renderEntities();
-      this._startLoop();
-    }, (steps.length * stepMs) + 500);
-    this._countdownTimeouts.push(doneTid);
   }
 
   _awaitStartThenCountdown() {
-    if (!this.$countdown.length) {
-      this._runCountdownThenStart();
-      return;
-    }
-
-    if (!this.$startBtn.length) {
-      this._runCountdownThenStart();
-      return;
-    }
-
-    this.$countdown.show();
-    this.$countdownText.text("").hide();
-    this.$startBtn.show();
-
-    this.$startBtn
-      .off(`click.${this.ns}Start`)
-      .one(`click.${this.ns}Start`, (e) => {
-        e.preventDefault();
-        this.$startBtn.hide();
-        this._runCountdownThenStart();
-      });
+    this._countdown.showStart(() => this._runCountdownThenStart());
   }
 
   _startLoop() {

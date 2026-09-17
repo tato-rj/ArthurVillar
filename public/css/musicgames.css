@@ -31379,6 +31379,43 @@ body {
   background-color: #f7f7f7;
 }
 
+.game-countdown {
+  position: absolute;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.game-countdown--screen {
+  position: fixed;
+  z-index: 1040;
+}
+
+.game-countdown__center {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+.game-countdown__value,
+.game-countdown__center [data-game-countdown-start] {
+  grid-area: 1/1;
+}
+
+.game-countdown__value {
+  margin: 0;
+  color: #111;
+  font-size: clamp(6rem, 25vw, 12rem);
+  font-weight: 900;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.game-countdown__center [data-game-countdown-start] {
+  pointer-events: auto;
+}
+
 .animate__animated {
   --animate-duration: 0.8s;
 }
@@ -31416,6 +31453,11 @@ body {
   --ink: #111;
   --ghost: #90d5ff;
   --ghost-opacity: 0.5;
+  --beat-hero-ink: #174a76;
+  --beat-hero-blue: #1cb0f6;
+  --beat-hero-gold: #f6c945;
+  --beat-hero-green: #58cc02;
+  --beat-hero-red: #ff4b4b;
 }
 
 /* ==========================================================================
@@ -31521,6 +31563,99 @@ body {
 /* ==========================================================================
    UI Elements
    ========================================================================== */
+.beat-hero-symbol-picker {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  max-width: 340px;
+  margin: 0 auto;
+  gap: 6px;
+}
+
+.beat-hero-symbol-choice {
+  position: relative;
+  min-width: 0;
+}
+
+.beat-hero-symbol-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.beat-hero-symbol-option {
+  position: relative;
+  display: block;
+  aspect-ratio: 1.1;
+  margin: 0;
+  overflow: hidden;
+  border: 2px solid #d9dde0;
+  border-radius: 9px;
+  background: #fff;
+  color: var(--beat-hero-ink);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease, transform 0.15s ease;
+}
+
+.beat-hero-symbol-option:hover {
+  border-color: #9ed9f6;
+  transform: translateY(-1px);
+}
+
+.beat-hero-symbol-input:focus-visible + .beat-hero-symbol-option {
+  outline: 3px solid rgba(28, 176, 246, 0.3);
+  outline-offset: 2px;
+}
+
+.beat-hero-symbol-input:checked + .beat-hero-symbol-option {
+  border-color: var(--beat-hero-blue);
+  background: #eef9ff;
+  box-shadow: inset 0 0 0 1px var(--beat-hero-blue);
+}
+
+.beat-hero-symbol-figure {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 2px;
+}
+
+.beat-hero-symbol-figure svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.beat-hero-symbol-check {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  display: none;
+  place-items: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--beat-hero-blue);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.beat-hero-symbol-input:checked + .beat-hero-symbol-option .beat-hero-symbol-check {
+  display: grid;
+}
+
+.beat-hero-symbol-message {
+  min-height: 17px;
+  color: #6b7680;
+}
+
+.beat-hero-symbol-message.is-error {
+  color: var(--beat-hero-red);
+}
+
 #prompt {
   font-size: 3rem;
   font-weight: 700;
