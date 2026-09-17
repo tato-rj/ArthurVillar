@@ -4737,6 +4737,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var motion_mini__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! motion/mini */ "./node_modules/framer-motion/dist/es/animation/animators/waapi/animate-style.mjs");
 /* harmony import */ var _navigation_menu__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./navigation-menu */ "./resources/js/calendar/navigation-menu.js");
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
 
 
 
@@ -4763,6 +4766,11 @@ var state = {
   studentSearch: '',
   loadedRange: null,
   pendingRangeKey: null,
+  pendingRangeRequest: null,
+  rangeCache: new Map(),
+  loadedRangeAt: 0,
+  calendarDataRevision: 0,
+  renderGeneration: 0,
   scheduleObserver: null,
   schedulePatchFrame: null,
   scheduleLabelFrame: null,
@@ -4783,6 +4791,9 @@ var state = {
   pendingScheduleScrollTop: null,
   pendingScheduleHeaderPreview: null,
   travelRouteCache: new Map(),
+  travelRouteGeneration: 0,
+  travelRequestQueue: [],
+  activeTravelRequests: 0,
   travelRouteDateRevisions: new Map(),
   travelRouteRequests: new Map(),
   scheduleTravelAnimations: new WeakMap(),
@@ -4956,7 +4967,52 @@ var getRangeKey = function getRangeKey(range) {
   return normalizedRange ? "".concat(normalizedRange.start, ":").concat(normalizedRange.end) : '';
 };
 var isRangeLoaded = function isRangeLoaded(range) {
-  return getRangeKey(state.loadedRange) === getRangeKey(range);
+  if (rangeContains(state.loadedRange, range) && Date.now() - state.loadedRangeAt < 60000) {
+    return true;
+  }
+  var _iterator = _createForOfIteratorHelper(state.rangeCache.values()),
+    _step;
+  try {
+    for (_iterator.s(); !(_step = _iterator.n()).done;) {
+      var entry = _step.value;
+      if (Date.now() - entry.fetchedAt < 60000 && rangeContains(entry.range, range)) {
+        applyCalendarPayload(entry.payload, entry.range, entry.fetchedAt);
+        return true;
+      }
+    }
+  } catch (err) {
+    _iterator.e(err);
+  } finally {
+    _iterator.f();
+  }
+  return false;
+};
+var rangeContains = function rangeContains(outer, inner) {
+  var a = normalizeRange(outer);
+  var b = normalizeRange(inner);
+  return Boolean(a && b && a.start <= b.start && a.end >= b.end);
+};
+var applyCalendarPayload = function applyCalendarPayload(payload, range, fetchedAt) {
+  ['plannedLessons', 'singleLessonPlans', 'holidays', 'teachingBreaks', 'recitals', 'generalEvents'].forEach(function (key) {
+    state[key] = Array.isArray(payload[key]) ? payload[key] : [];
+  });
+  setIgnoredConflictPairs(payload.ignoredConflicts);
+  state.loadedRange = normalizeRange(payload.calendarRange) || normalizeRange(range);
+  state.loadedRangeAt = fetchedAt;
+};
+var cacheCalendarPayload = function cacheCalendarPayload(payload, range, fetchedAt) {
+  var key = getRangeKey(range);
+  state.rangeCache["delete"](key);
+  state.rangeCache.set(key, {
+    payload: payload,
+    range: normalizeRange(range),
+    fetchedAt: fetchedAt
+  });
+  while (state.rangeCache.size > 6) state.rangeCache["delete"](state.rangeCache.keys().next().value);
+};
+var invalidateCalendarDataCache = function invalidateCalendarDataCache() {
+  state.rangeCache.clear();
+  state.calendarDataRevision += 1;
 };
 var getCalendarLoadingBar = function getCalendarLoadingBar() {
   return document.querySelector('#loading-bar > div');
@@ -5069,6 +5125,15 @@ var fetchCalendarResource = function fetchCalendarResource(url, options) {
     return fetch(url, options);
   }
   var controller = new AbortController();
+  var externalSignal = options && options.signal;
+  var abort = function abort() {
+    controller.abort();
+  };
+  if (externalSignal) {
+    if (externalSignal.aborted) controller.abort();else externalSignal.addEventListener('abort', abort, {
+      once: true
+    });
+  }
   var requestOptions = Object.assign({}, options || {}, {
     signal: controller.signal
   });
@@ -5086,6 +5151,7 @@ var fetchCalendarResource = function fetchCalendarResource(url, options) {
   })["finally"](function () {
     window.clearTimeout(timeout);
     state.activeRequestControllers["delete"](controller);
+    if (externalSignal) externalSignal.removeEventListener('abort', abort);
   });
 };
 var cancelPendingCalendarRequests = function cancelPendingCalendarRequests() {
@@ -5161,15 +5227,32 @@ var getCalendarEventRange = function getCalendarEventRange() {
     end: createLocalDate(year + 1, 11, 31)
   };
 };
-var fetchPlannedLessons = function fetchPlannedLessons(range) {
+var _fetchPlannedLessons = function fetchPlannedLessons(range) {
   var normalizedRange = normalizeRange(range);
   if (!normalizedRange) {
     return Promise.resolve();
   }
-  var rangeKey = getRangeKey(normalizedRange);
-  if (state.pendingRangeKey === rangeKey) {
-    return Promise.resolve();
+
+  // Fetch neighboring dates with the visible range so arrow navigation is usually local.
+  if (state.view !== 'schedule') {
+    normalizedRange = {
+      start: toDateString(addDays(parseDateString(normalizedRange.start), -14)),
+      end: toDateString(addDays(parseDateString(normalizedRange.end), 14))
+    };
   }
+  var rangeKey = getRangeKey(normalizedRange);
+  var revision = state.calendarDataRevision;
+  if (state.pendingRangeRequest && state.pendingRangeRequest.key === rangeKey && state.pendingRangeRequest.revision === revision) {
+    return state.pendingRangeRequest.promise;
+  }
+  if (state.pendingRangeRequest) state.pendingRangeRequest.controller.abort();
+  var pending = {
+    key: rangeKey,
+    revision: revision,
+    controller: new AbortController(),
+    promise: null
+  };
+  state.pendingRangeRequest = pending;
   var url = new URL(window.location.href);
   url.searchParams.set('view', state.view);
   url.searchParams.set('date', toDateString(state.date));
@@ -5180,7 +5263,8 @@ var fetchPlannedLessons = function fetchPlannedLessons(range) {
   state.calendarFetchId += 1;
   var fetchId = state.calendarFetchId;
   startCalendarLoadingProgress(fetchId);
-  return fetchCalendarResource(url, {
+  pending.promise = fetchCalendarResource(url, {
+    signal: pending.controller.signal,
     headers: {
       Accept: 'application/json'
     }
@@ -5190,29 +5274,32 @@ var fetchPlannedLessons = function fetchPlannedLessons(range) {
     }
     return readCalendarJsonResponse(response, fetchId);
   }).then(function (payload) {
-    if (fetchId !== state.calendarFetchId || getRangeKey(getVisibleDateRange()) !== rangeKey) {
-      return;
+    if (pending !== state.pendingRangeRequest) return false;
+    if (revision !== state.calendarDataRevision) {
+      state.pendingRangeRequest = null;
+      return _fetchPlannedLessons(getVisibleDateRange());
     }
-    state.plannedLessons = Array.isArray(payload.plannedLessons) ? payload.plannedLessons : [];
-    state.singleLessonPlans = Array.isArray(payload.singleLessonPlans) ? payload.singleLessonPlans : [];
-    state.holidays = Array.isArray(payload.holidays) ? payload.holidays : [];
-    state.teachingBreaks = Array.isArray(payload.teachingBreaks) ? payload.teachingBreaks : [];
-    state.recitals = Array.isArray(payload.recitals) ? payload.recitals : [];
-    state.generalEvents = Array.isArray(payload.generalEvents) ? payload.generalEvents : [];
-    setIgnoredConflictPairs(payload.ignoredConflicts);
-    state.loadedRange = normalizeRange(payload.calendarRange) || normalizedRange;
+    var fetchedAt = Date.now();
+    cacheCalendarPayload(payload, normalizedRange, fetchedAt);
+    if (rangeContains(normalizedRange, getVisibleDateRange())) {
+      applyCalendarPayload(payload, normalizedRange, fetchedAt);
+      return true;
+    }
+    return false;
   })["catch"](function (error) {
-    if (fetchId !== state.calendarFetchId) {
-      return;
-    }
+    if (pending !== state.pendingRangeRequest || error.name === 'AbortError') return false;
     console.error(error);
-    state.loadedRange = normalizedRange;
+    // Keep the existing calendar on failure; never mark missing dates as loaded.
+    return false;
   })["finally"](function () {
     if (state.pendingRangeKey === rangeKey && fetchId === state.calendarFetchId) {
       state.pendingRangeKey = null;
     }
+    if (state.pendingRangeRequest === pending) state.pendingRangeRequest = null;
+    _drainTravelRequests();
     finishCalendarLoadingProgress(fetchId);
   });
+  return pending.promise;
 };
 var getVisibleScheduleDates = function getVisibleScheduleDates() {
   if (state.view === 'day') {
@@ -5822,7 +5909,7 @@ var getVisibleCalendarEvents = function getVisibleCalendarEvents() {
 };
 var getScheduleRenderEvents = function getScheduleRenderEvents() {
   var events = getVisibleCalendarEvents().filter(function (event) {
-    return !(event.allDay && event.externalProvider === 'google');
+    return isEventInsideVisibleRange(event) && !(event.allDay && event.externalProvider === 'google');
   });
   if (state.view !== '2-days' && state.view !== 'week') {
     return events;
@@ -7481,7 +7568,7 @@ var getTravelRouteRequestDetails = function getTravelRouteRequestDetails(event) 
   var arrivalDate = new Date(startAt.getTime() - travelArrivalBufferMinutes * 60 * 1000);
   var arrivalTime = [String(arrivalDate.getHours()).padStart(2, '0'), String(arrivalDate.getMinutes()).padStart(2, '0'), '00'].join(':');
   var arrivalAt = "".concat(toDateString(arrivalDate), "T").concat(arrivalTime);
-  var cacheKey = [state.calendarFetchId, state.travelRouteDateRevisions.get(event.date) || 0, eventKey, arrivalAt, destination.address, destination.label, event.travelMode || 'TRANSIT'].join('|');
+  var cacheKey = [state.travelRouteGeneration, state.travelRouteDateRevisions.get(event.date) || 0, eventKey, arrivalAt, destination.address, destination.label, event.travelMode || 'TRANSIT'].join('|');
   return {
     cacheKey: cacheKey,
     payload: {
@@ -7496,6 +7583,21 @@ var getTravelRouteRequestDetails = function getTravelRouteRequestDetails(event) 
 var hasSupportedTravelMode = function hasSupportedTravelMode(route) {
   return Boolean(route) && ['TRANSIT', 'WALK', 'DRIVE'].includes(String(route.mode || '').toUpperCase());
 };
+var _drainTravelRequests = function drainTravelRequests() {
+  if (state.pendingLessonMutations.size || state.pendingRangeRequest) return;
+  while (state.activeTravelRequests < 2 && state.travelRequestQueue.length) {
+    var task = state.travelRequestQueue.shift();
+    if (!task.isRelevant()) {
+      task.resolve(null);
+      continue;
+    }
+    state.activeTravelRequests += 1;
+    Promise.resolve().then(task.send).then(task.resolve, task.reject)["finally"](function () {
+      state.activeTravelRequests -= 1;
+      _drainTravelRequests();
+    });
+  }
+};
 var requestTravelRouteForEvent = function requestTravelRouteForEvent(event, details) {
   var requestDetails = details || getTravelRouteRequestDetails(event);
   if (!requestDetails) {
@@ -7508,21 +7610,43 @@ var requestTravelRouteForEvent = function requestTravelRouteForEvent(event, deta
   if (state.travelRouteRequests.has(requestDetails.cacheKey)) {
     return state.travelRouteRequests.get(requestDetails.cacheKey);
   }
-  var request = requestJson(requestDetails.url || window.calendarTravelRouteUrl, {
-    method: 'POST',
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-      'X-CSRF-TOKEN': window.calendarCsrfToken || '',
-      'X-Requested-With': 'XMLHttpRequest'
-    },
-    body: JSON.stringify(requestDetails.payload)
-  }, 'Unable to calculate travel time.').then(function (payload) {
+  var send = function send() {
+    return requestJson(requestDetails.url || window.calendarTravelRouteUrl, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': window.calendarCsrfToken || '',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: JSON.stringify(requestDetails.payload)
+    }, 'Unable to calculate travel time.');
+  };
+  var generation = state.travelRouteGeneration;
+  var dateRevision = state.travelRouteDateRevisions.get(event.date);
+  var request = new Promise(function (resolve, reject) {
+    state.travelRequestQueue.push({
+      send: send,
+      resolve: resolve,
+      reject: reject,
+      isRelevant: function isRelevant() {
+        return generation === state.travelRouteGeneration && dateRevision === state.travelRouteDateRevisions.get(event.date) && rangeContains(getVisibleDateRange(), {
+          start: event.date,
+          end: event.date
+        });
+      }
+    });
+    _drainTravelRequests();
+  }).then(function (payload) {
+    if (!payload) return null;
     var route = payload.route && Number(payload.route.duration_seconds || 0) > 0 && hasSupportedTravelMode(payload.route) ? payload.route : null;
     state.travelRouteCache.set(requestDetails.cacheKey, {
       fetchedAt: Date.now(),
       route: route
     });
+    while (state.travelRouteCache.size > 128) {
+      state.travelRouteCache["delete"](state.travelRouteCache.keys().next().value);
+    }
     return route;
   })["finally"](function () {
     state.travelRouteRequests["delete"](requestDetails.cacheKey);
@@ -7766,7 +7890,7 @@ var getReturnHomeTravelRouteRequestDetails = function getReturnHomeTravelRouteRe
   var eventKey = getScheduleTravelOwnerGuid(event);
   var departureTime = [String(endsAt.getHours()).padStart(2, '0'), String(endsAt.getMinutes()).padStart(2, '0'), '00'].join(':');
   var departureAt = "".concat(toDateString(endsAt), "T").concat(departureTime);
-  var cacheKey = [state.calendarFetchId, state.travelRouteDateRevisions.get(event.date) || 0, 'return-home', eventKey, departureAt, origin.address, homeAddress, event.travelMode || 'TRANSIT'].join('|');
+  var cacheKey = [state.travelRouteGeneration, state.travelRouteDateRevisions.get(event.date) || 0, 'return-home', eventKey, departureAt, origin.address, homeAddress, event.travelMode || 'TRANSIT'].join('|');
   return {
     cacheKey: cacheKey,
     url: window.calendarReturnHomeTravelRouteUrl,
@@ -8177,6 +8301,7 @@ var updateGeneralEventNotesInState = function updateGeneralEventNotesInState(mod
   if (!modal || !updatedEvent) {
     return;
   }
+  invalidateCalendarDataCache();
   var notes = updatedEvent.notes || '';
   var storedEvent = state.generalEvents.find(function (event) {
     return String(event.id) === String(updatedEvent.id) && !event.external_provider;
@@ -8556,6 +8681,7 @@ var mutateLesson = function mutateLesson(modal, send, refreshCalendar) {
     return modal.dataset.eventModalType === 'lesson' && modal.dataset.eventGuid === guid;
   };
   return send().then(function (payload) {
+    invalidateCalendarDataCache();
     var event = getEventByGuid(guid) || originalEvent;
     // Rescheduling and changes to a whole series can move/add/remove occurrences.
     var movesOccurrence = payload.schedule_override_deleted && !payload.lesson_id || payload.lesson_deleted && (event.date !== (event.originalDate || event.date) || event.start !== (event.originalStartTime || event.start));
@@ -8589,6 +8715,7 @@ var mutateLesson = function mutateLesson(modal, send, refreshCalendar) {
     if (isCurrentLesson()) showLessonActionError(modal, error.message);
   })["finally"](function () {
     state.pendingLessonMutations["delete"](guid);
+    _drainTravelRequests();
     if (isCurrentLesson()) setLessonMutationBusy(modal, false);
   });
 };
@@ -8931,14 +9058,16 @@ var getOverlappingTimedEventPairs = function getOverlappingTimedEventPairs(event
     };
   }).filter(function (event) {
     return event.end > event.start;
+  }).sort(function (a, b) {
+    return a.start - b.start;
   });
   var pairs = [];
   timedEvents.forEach(function (event, index) {
-    timedEvents.slice(index + 1).forEach(function (otherEvent) {
-      if (event.start < otherEvent.end && otherEvent.start < event.end) {
-        pairs.push([event.event, otherEvent.event]);
-      }
-    });
+    for (var i = index + 1; i < timedEvents.length; i++) {
+      var otherEvent = timedEvents[i];
+      if (otherEvent.start >= event.end) break;
+      pairs.push([event.event, otherEvent.event]);
+    }
   });
   return pairs;
 };
@@ -10638,6 +10767,7 @@ document.addEventListener('DOMContentLoaded', function () {
   setIgnoredConflictPairs(window.calendarIgnoredConflicts);
   state.locations = Array.isArray(window.calendarLocations) ? window.calendarLocations : [];
   state.loadedRange = normalizeRange(window.calendarCalendarRange);
+  state.loadedRangeAt = Date.now();
   state.birthdayWindow = normalizeBirthdayWindow(window.calendarBirthdayWindow);
   var urlState = getUrlState();
   var opensInStandaloneWebApp = isStandaloneWebApp();
@@ -10898,7 +11028,7 @@ document.addEventListener('DOMContentLoaded', function () {
     scheduleHeaderRenderTimer = window.setTimeout(function () {
       scheduleHeaderRenderTimer = null;
       _render();
-    }, 300);
+    }, 80);
   });
   var useScheduleHeaderNavigation = function useScheduleHeaderNavigation() {
     return scheduleGridViews.includes(state.view);
@@ -11114,6 +11244,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   };
   var _render = function render(options) {
+    var generation = ++state.renderGeneration;
     var renderMode = options && options.mode === 'discreet' ? 'discreet' : 'animated';
     state.calendarRenderMode = renderMode;
     if (scheduleHeaderRenderTimer !== null) {
@@ -11125,8 +11256,10 @@ document.addEventListener('DOMContentLoaded', function () {
     updateCalendarUrl();
     if (!isRangeLoaded(visibleRange)) {
       calendar.classList.add('calendar-schedule-range-transitioning');
-      fetchPlannedLessons(visibleRange).then(function () {
-        if (isRangeLoaded(getVisibleDateRange())) {
+      _fetchPlannedLessons(visibleRange).then(function (loaded) {
+        if (generation !== state.renderGeneration) return;
+        calendar.classList.remove('calendar-schedule-range-transitioning');
+        if (loaded && isRangeLoaded(getVisibleDateRange())) {
           _render({
             mode: renderMode
           });
@@ -11135,6 +11268,12 @@ document.addEventListener('DOMContentLoaded', function () {
       return;
     }
     calendar.classList.remove('calendar-schedule-range-transitioning');
+    if (state.pendingRangeRequest) {
+      state.pendingRangeRequest.controller.abort();
+      state.pendingRangeRequest = null;
+      state.pendingRangeKey = null;
+      _drainTravelRequests();
+    }
     disconnectScheduleObserver();
     if (state.schedulePatchFrame) {
       cancelAnimationFrame(state.schedulePatchFrame);
@@ -11201,6 +11340,10 @@ document.addEventListener('DOMContentLoaded', function () {
           queueSchedulePatch(calendar);
         }
       });
+      if (state.schedulePatchFrame) {
+        cancelAnimationFrame(state.schedulePatchFrame);
+        state.schedulePatchFrame = null;
+      }
       patchSchedule(calendar);
       if (state.pendingScheduleHeaderPreview) {
         var preview = state.pendingScheduleHeaderPreview;
@@ -11230,13 +11373,15 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   };
   var refreshCalendarAfterLessonMutation = function refreshCalendarAfterLessonMutation() {
+    invalidateCalendarDataCache();
+    state.travelRouteGeneration += 1;
     var schedule = calendar.querySelector('.lm-schedule');
     var scrollTop = schedule ? schedule.scrollTop : 0;
     var scrollLeft = schedule ? schedule.scrollLeft : 0;
     var visibleRange = getVisibleDateRange();
     state.loadedRange = null;
     state.pendingRangeKey = null;
-    return fetchPlannedLessons(visibleRange).then(function () {
+    return _fetchPlannedLessons(visibleRange).then(function () {
       _render({
         mode: 'discreet'
       });
@@ -11843,6 +11988,7 @@ document.addEventListener('DOMContentLoaded', function () {
             conflicting_event_keys: conflictingEventKeys
           })
         }, action === 'show' ? 'Unable to show this conflict.' : 'Unable to ignore this conflict.').then(function (payload) {
+          invalidateCalendarDataCache();
           setIgnoredConflictPairs(payload.ignored_conflicts);
           _render({
             mode: 'discreet'

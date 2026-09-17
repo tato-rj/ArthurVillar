@@ -155,7 +155,7 @@ class LessonPlan extends BaseModel
             : $this->fee_amount;
     }
 
-    public function projectedLessonCount()
+    public function projectedLessonCount($excludedDates = null, $canceledOccurrences = null)
     {
         if (! $this->starts_on || ! $this->ends_on) {
             return null;
@@ -168,8 +168,8 @@ class LessonPlan extends BaseModel
             return 0;
         }
 
-        $excludedDates = $this->projectedLessonExcludedDates($start, $end);
-        $canceledOccurrences = $this->projectedLessonCanceledOccurrences($start, $end);
+        $excludedDates = $excludedDates ?? $this->projectedLessonExcludedDates($start, $end);
+        $canceledOccurrences = $canceledOccurrences ?? $this->projectedLessonCanceledOccurrences($start, $end);
         $occurrence = $start->copy()->addDays(($this->carbonWeekday() - $start->dayOfWeek + 7) % 7);
         $intervalDays = max(1, (int) $this->recurrence_interval) * 7;
         $count = 0;
@@ -190,6 +190,59 @@ class LessonPlan extends BaseModel
         }
 
         return $count;
+    }
+
+    public static function projectedLessonCounts($plans)
+    {
+        $bounded = $plans->filter(fn ($plan) => $plan->starts_on && $plan->ends_on);
+        if ($bounded->isEmpty()) {
+            return collect();
+        }
+
+        $start = $bounded->min('starts_on')->copy()->startOfDay();
+        $end = $bounded->max('ends_on')->copy()->startOfDay();
+        $breaks = TeachingBreak::with('locations')->overlapping($start->toDateString(), $end->toDateString())->get();
+        $holidays = Holiday::observed()->get();
+        $holidayDates = collect();
+        for ($year = $start->year - 1; $year <= $end->year + 1; $year++) {
+            foreach ($holidays as $holiday) {
+                foreach ($holiday->datesForYear($year) as $date) {
+                    $holidayDates->put($date['date']->toDateString(), true);
+                }
+            }
+        }
+        $canceled = Lesson::whereIn('lesson_plan_id', $bounded->modelKeys())
+            ->whereNotNull('canceled_at')
+            ->relevantBetween($start->toDateString(), $end->toDateString())
+            ->get()->groupBy('lesson_plan_id');
+        $exclusionsByLocation = [];
+
+        return $bounded->mapWithKeys(function ($plan) use ($breaks, $holidayDates, $canceled, $start, $end, &$exclusionsByLocation) {
+            $locationKey = (string) $plan->location_id;
+            if (! isset($exclusionsByLocation[$locationKey])) {
+                $dates = collect($holidayDates->all());
+                foreach ($breaks as $break) {
+                    if (! $break->appliesToLocation($plan->location_id)) {
+                        continue;
+                    }
+                    $date = $break->starts_on->copy()->max($start)->startOfDay();
+                    $last = $break->ends_on->copy()->min($end)->startOfDay();
+                    while ($date->lte($last)) {
+                        $dates->put($date->toDateString(), true);
+                        $date->addDay();
+                    }
+                }
+                $exclusionsByLocation[$locationKey] = $dates;
+            }
+            $canceledKeys = $canceled->get($plan->id, collect())->mapWithKeys(function ($lesson) use ($plan) {
+                return [$plan->projectedLessonOccurrenceKey(
+                    $lesson->scheduled_date ?: $lesson->starts_at,
+                    $lesson->scheduled_start_time ?: $lesson->starts_at->format('H:i')
+                ) => true];
+            });
+
+            return [$plan->id => $plan->projectedLessonCount($exclusionsByLocation[$locationKey], $canceledKeys)];
+        });
     }
 
     public function missedLessonDates(Carbon $from = null)

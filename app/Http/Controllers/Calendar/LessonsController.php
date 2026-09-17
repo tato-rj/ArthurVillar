@@ -286,7 +286,7 @@ class LessonsController extends Controller
 
     private function recurringLessonFromRequest(array $data, bool $deleteScheduleOverride = true)
     {
-        $lessonPlan = LessonPlan::findOrFail($data['lesson_plan_id']);
+        $lessonPlan = LessonPlan::with(['student', 'location'])->findOrFail($data['lesson_plan_id']);
         $startsAt = Carbon::createFromFormat('Y-m-d H:i', $data['date'].' '.$data['start']);
         $endsAt = $data['end']
             ? Carbon::createFromFormat('Y-m-d H:i', $data['date'].' '.$data['end'])
@@ -312,6 +312,8 @@ class LessonsController extends Controller
             ]);
         }
 
+        $lesson->setRelation('student', $lessonPlan->student);
+        $lesson->setRelation('lessonPlan', $lessonPlan);
         $scheduleOverrideDeleted = false;
 
         if ($deleteScheduleOverride && ! empty($data['schedule_override_id'])) {
@@ -348,6 +350,9 @@ class LessonsController extends Controller
             'payment_method' => $singleLessonPlan->student?->payment_exempt ? null : $singleLessonPlan->payment_method,
             'notes' => $singleLessonPlan->notes,
         ]);
+
+        $lesson->setRelation('student', $singleLessonPlan->student);
+        $lesson->setRelation('lessonPlan', null);
 
         if (! $lesson->scheduled_date || ! $lesson->scheduled_start_time) {
             $lesson->update([

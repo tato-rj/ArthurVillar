@@ -21,7 +21,7 @@ class CalendarTravelOrigin
         $home = $this->home();
         $candidates = collect();
 
-        $this->appendLessons($candidates, $this->scheduler->plannedLessons($range), $targetAt, $home);
+        $this->appendLessons($candidates, $this->scheduler->plannedLessons($range, true, false), $targetAt, $home);
         $this->appendLessons($candidates, $this->scheduler->singleLessonPlans($range), $targetAt, $home);
         $this->appendGeneralEvents($candidates, $this->scheduler->generalEvents($range, $userId), $targetAt, $home);
         $this->appendRecitals($candidates, $this->scheduler->recitals($range), $targetAt, $home);

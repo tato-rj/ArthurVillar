@@ -84,8 +84,9 @@ class Scheduler
                     ? $lesson->paymentStatus()
                     : ($earlyPayment ? 'early-payment' : 'unconfirmed');
 
-                $payload = $singleLessonPlan->toArray();
-                unset($payload['early_payments']);
+                $payload = $singleLessonPlan->makeHidden('earlyPayments')->toArray();
+                // Occurrences already carry the lesson data used by the calendar.
+                unset($payload['student']['lessons']);
 
                 return array_merge($payload, [
                     'type' => 'single-lesson-plan',
@@ -115,7 +116,7 @@ class Scheduler
             ->values();
     }
 
-    public function plannedLessons(array $range, bool $applyTeachingBreaks = true)
+    public function plannedLessons(array $range, bool $applyTeachingBreaks = true, bool $includeSummary = true)
     {
         $excludedProjectedDates = $applyTeachingBreaks ? $this->excludedProjectedLessonDates($range) : $this->emptyProjectedLessonExclusions();
         $lessonPlans = LessonPlan::with([
@@ -142,14 +143,16 @@ class Scheduler
             })
             ->get();
 
-        return $lessonPlans->map(function (LessonPlan $lessonPlan) use ($range, $excludedProjectedDates) {
+        $counts = $includeSummary ? LessonPlan::projectedLessonCounts($lessonPlans) : collect();
+
+        return $lessonPlans->map(function (LessonPlan $lessonPlan) use ($range, $excludedProjectedDates, $counts) {
             $occurrences = $this->occurrences($lessonPlan, $range, $excludedProjectedDates);
-            $payload = $lessonPlan->toArray();
-            unset($payload['early_payments']);
+            $payload = $lessonPlan->setAppends(['recurrence', 'weekdayName'])
+                ->makeHidden(['earlyPayments', 'lessons', 'scheduleOverrides'])->toArray();
 
             return array_merge($payload, [
                 'ends_on' => $lessonPlan->ends_on?->toDateString(),
-                'projected_occurrence_count' => $lessonPlan->projectedLessonCount(),
+                'projected_occurrence_count' => $counts->get($lessonPlan->id),
                 'occurrences' => $occurrences,
             ]);
         })
@@ -425,7 +428,7 @@ class Scheduler
         $lessons = collect();
         $locationIds = collect($locationIds)->filter()->map(fn ($id) => (int) $id)->values();
 
-        $this->plannedLessons($range, false)->each(function ($lessonPlan) use ($lessons, $locationIds) {
+        $this->plannedLessons($range, false, false)->each(function ($lessonPlan) use ($lessons, $locationIds) {
             if ($locationIds->isNotEmpty() && ! $locationIds->contains((int) ($lessonPlan['location_id'] ?? 0))) {
                 return;
             }
