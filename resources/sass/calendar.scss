@@ -1228,22 +1228,43 @@ button.setting-undo {
 }
 
 .calendar-calendar-lesson-stagger-show {
-    animation: calendar-calendar-lesson-stagger-show 1ms step-end var(--calendar-lesson-show-delay, 0ms) both;
+    transform-origin: 50% 65%;
+    will-change: transform;
+    animation: calendar-calendar-lesson-stagger-show 420ms cubic-bezier(.22, .75, .3, 1) var(--calendar-lesson-show-delay, 0ms) both;
+
+    &[holding-event] {
+        animation: none;
+    }
 }
 
 @keyframes calendar-calendar-lesson-stagger-show {
-    from {
+    0% {
         visibility: hidden;
+        transform: translateY(8px) scale(.72, .56);
     }
 
-    to {
+    1% {
         visibility: visible;
+    }
+
+    55% {
+        transform: translateY(-2px) scale(1.035, 1.065);
+    }
+
+    78% {
+        transform: translateY(1px) scale(.99, .975);
+    }
+
+    100% {
+        visibility: visible;
+        transform: translateY(0) scale(1);
     }
 }
 
 @media (prefers-reduced-motion: reduce) {
     .calendar-calendar-lesson-stagger-show {
         animation: none;
+        will-change: auto;
     }
 }
 

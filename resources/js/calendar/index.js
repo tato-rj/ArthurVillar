@@ -2059,10 +2059,15 @@ const animateCalendarLessonItems = function(calendar) {
         item.dataset.lessonStaggerShown = 'true';
         item.style.setProperty('--calendar-lesson-show-delay', `${index * 30}ms`);
         item.classList.add('calendar-calendar-lesson-stagger-show');
-        item.addEventListener('animationend', function() {
+        const finishEntrance = function(event) {
+            if (event.target !== item || event.animationName !== 'calendar-calendar-lesson-stagger-show') return;
             item.classList.remove('calendar-calendar-lesson-stagger-show');
             item.style.removeProperty('--calendar-lesson-show-delay');
-        }, { once: true });
+            item.removeEventListener('animationend', finishEntrance);
+            item.removeEventListener('animationcancel', finishEntrance);
+        };
+        item.addEventListener('animationend', finishEntrance);
+        item.addEventListener('animationcancel', finishEntrance);
     });
 };
 

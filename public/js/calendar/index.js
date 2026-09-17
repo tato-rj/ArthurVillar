@@ -6391,12 +6391,15 @@ var animateCalendarLessonItems = function animateCalendarLessonItems(calendar) {
     item.dataset.lessonStaggerShown = 'true';
     item.style.setProperty('--calendar-lesson-show-delay', "".concat(index * 30, "ms"));
     item.classList.add('calendar-calendar-lesson-stagger-show');
-    item.addEventListener('animationend', function () {
+    var _finishEntrance = function finishEntrance(event) {
+      if (event.target !== item || event.animationName !== 'calendar-calendar-lesson-stagger-show') return;
       item.classList.remove('calendar-calendar-lesson-stagger-show');
       item.style.removeProperty('--calendar-lesson-show-delay');
-    }, {
-      once: true
-    });
+      item.removeEventListener('animationend', _finishEntrance);
+      item.removeEventListener('animationcancel', _finishEntrance);
+    };
+    item.addEventListener('animationend', _finishEntrance);
+    item.addEventListener('animationcancel', _finishEntrance);
   });
 };
 var patchScheduleHolidays = function patchScheduleHolidays(calendar) {
