@@ -1,4 +1,7 @@
-import { renderFinalResultsOverlay } from "../shared/finalResults.js";
+import {
+  renderFinalResultsOverlay,
+  queueFinalResultsReveal,
+} from "../shared/finalResults.js";
 import { BaseStaffGame } from "../base/BaseStaffGame.js";
 import { GameAudio } from "../shared/GameAudio.js";
 import { InstructionsUi } from "../shared/InstructionsUi.js";
@@ -611,10 +614,13 @@ export class ToneTrek {
       this.$table.find('td.block input[name="note"]').prop("disabled", true);
       this.$helpBtn.hide();
       if (this._currentRound >= this.opts.numOfChallenges) {
-        this.$checkBtn.attr("state", "final").empty();
         this.$checkWrap.hide();
         this.$continueWrap.hide();
-        const tid = setTimeout(() => this._showFinalResults(), 1400);
+        const tid = queueFinalResultsReveal({
+          $button: this.$checkBtn,
+          showFinalResults: () => this._showFinalResults(),
+          delayMs: 1400,
+        });
         this._revealTimeouts.push(tid);
       } else {
         this.$checkWrap.hide();
@@ -1156,7 +1162,10 @@ export class ToneTrek {
 
     if (this._wouldReachLastRoundAfterAdvance()) {
       this._stats.finishedAtMs = Date.now();
-      const tid = setTimeout(() => this._showFinalResults(), 600);
+      const tid = queueFinalResultsReveal({
+        showFinalResults: () => this._showFinalResults(),
+        delayMs: 600,
+      });
       this._revealTimeouts.push(tid);
       return;
     }

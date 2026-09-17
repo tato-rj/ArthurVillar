@@ -1152,10 +1152,12 @@ var BaseStaffGame = /*#__PURE__*/function () {
       var reachedEnd = this._updateProgressBar() >= 100;
       if (reachedEnd && !this._isPracticeMode()) {
         this._stats.finishedAtMs = Date.now();
-        this.$checkBtn.attr("state", "final").empty();
-        setTimeout(function () {
-          return _this16._showFinalResults();
-        }, 1600);
+        (0,_shared_finalResults_js__WEBPACK_IMPORTED_MODULE_2__.queueFinalResultsReveal)({
+          $button: this.$checkBtn,
+          showFinalResults: function showFinalResults() {
+            return _this16._showFinalResults();
+          }
+        });
         return;
       }
       this._setTimedOutInteractivityDisabled(false);
@@ -1700,10 +1702,13 @@ var BaseStaffGame = /*#__PURE__*/function () {
       if (earned > 0) this._showIncrement(earned);
       if (this._updateProgressBar() >= 100) {
         this._stats.finishedAtMs = Date.now();
-        this.$checkBtn.attr("state", "final").empty();
-        setTimeout(function () {
-          return _this25._showFinalResults();
-        }, finalDelayMs);
+        (0,_shared_finalResults_js__WEBPACK_IMPORTED_MODULE_2__.queueFinalResultsReveal)({
+          $button: this.$checkBtn,
+          showFinalResults: function showFinalResults() {
+            return _this25._showFinalResults();
+          },
+          delayMs: finalDelayMs
+        });
       } else {
         $("#check").hide();
         $("#continue").show();
@@ -4941,6 +4946,8 @@ function fixedNoteToStaffPosition(staff, noteStr) {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   DEFAULT_FINAL_RESULTS_REVEAL_DELAY_MS: () => (/* binding */ DEFAULT_FINAL_RESULTS_REVEAL_DELAY_MS),
+/* harmony export */   queueFinalResultsReveal: () => (/* binding */ queueFinalResultsReveal),
 /* harmony export */   renderFinalResultsOverlay: () => (/* binding */ renderFinalResultsOverlay)
 /* harmony export */ });
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
@@ -4949,27 +4956,43 @@ function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t =
 function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
 function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
 function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
-function renderFinalResultsOverlay(_ref) {
+var DEFAULT_FINAL_RESULTS_REVEAL_DELAY_MS = 1600;
+function queueFinalResultsReveal() {
+  var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+    _ref$$button = _ref.$button,
+    $button = _ref$$button === void 0 ? null : _ref$$button,
+    showFinalResults = _ref.showFinalResults,
+    _ref$delayMs = _ref.delayMs,
+    delayMs = _ref$delayMs === void 0 ? DEFAULT_FINAL_RESULTS_REVEAL_DELAY_MS : _ref$delayMs;
+  if ($button !== null && $button !== void 0 && $button.length) {
+    $button.attr("state", "final").empty().disable();
+  }
+  var delay = Math.max(0, Number(delayMs) || 0);
+  return setTimeout(function () {
+    return showFinalResults === null || showFinalResults === void 0 ? void 0 : showFinalResults();
+  }, delay);
+}
+function renderFinalResultsOverlay(_ref2) {
   var _window, _window2, _window3;
-  var $finalOverlay = _ref.$finalOverlay,
-    _ref$rounds = _ref.rounds,
-    rounds = _ref$rounds === void 0 ? 0 : _ref$rounds,
-    _ref$score = _ref.score,
-    score = _ref$score === void 0 ? 0 : _ref$score,
-    _ref$accuracy = _ref.accuracy,
-    accuracy = _ref$accuracy === void 0 ? 0 : _ref$accuracy,
-    _ref$durationSec = _ref.durationSec,
-    durationSec = _ref$durationSec === void 0 ? 0 : _ref$durationSec,
-    _ref$settingsBonus = _ref.settingsBonus,
-    settingsBonus = _ref$settingsBonus === void 0 ? false : _ref$settingsBonus,
-    _ref$clearCountupTime = _ref.clearCountupTimers,
-    clearCountupTimers = _ref$clearCountupTime === void 0 ? null : _ref$clearCountupTime,
-    _ref$countupTimers = _ref.countupTimers,
-    countupTimers = _ref$countupTimers === void 0 ? null : _ref$countupTimers,
-    _ref$animateMetrics = _ref.animateMetrics,
-    animateMetrics = _ref$animateMetrics === void 0 ? null : _ref$animateMetrics,
-    _ref$playFinalSfx = _ref.playFinalSfx,
-    playFinalSfx = _ref$playFinalSfx === void 0 ? null : _ref$playFinalSfx;
+  var $finalOverlay = _ref2.$finalOverlay,
+    _ref2$rounds = _ref2.rounds,
+    rounds = _ref2$rounds === void 0 ? 0 : _ref2$rounds,
+    _ref2$score = _ref2.score,
+    score = _ref2$score === void 0 ? 0 : _ref2$score,
+    _ref2$accuracy = _ref2.accuracy,
+    accuracy = _ref2$accuracy === void 0 ? 0 : _ref2$accuracy,
+    _ref2$durationSec = _ref2.durationSec,
+    durationSec = _ref2$durationSec === void 0 ? 0 : _ref2$durationSec,
+    _ref2$settingsBonus = _ref2.settingsBonus,
+    settingsBonus = _ref2$settingsBonus === void 0 ? false : _ref2$settingsBonus,
+    _ref2$clearCountupTim = _ref2.clearCountupTimers,
+    clearCountupTimers = _ref2$clearCountupTim === void 0 ? null : _ref2$clearCountupTim,
+    _ref2$countupTimers = _ref2.countupTimers,
+    countupTimers = _ref2$countupTimers === void 0 ? null : _ref2$countupTimers,
+    _ref2$animateMetrics = _ref2.animateMetrics,
+    animateMetrics = _ref2$animateMetrics === void 0 ? null : _ref2$animateMetrics,
+    _ref2$playFinalSfx = _ref2.playFinalSfx,
+    playFinalSfx = _ref2$playFinalSfx === void 0 ? null : _ref2$playFinalSfx;
   if (!$finalOverlay || !$finalOverlay.length) return;
   var CountUpCtor = (_window = window) === null || _window === void 0 || (_window = _window.CountUp) === null || _window === void 0 ? void 0 : _window.CountUp;
   var DURATION = 3.5;

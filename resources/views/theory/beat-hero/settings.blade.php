@@ -3,28 +3,6 @@
   @component('theory.components.settings.section', ['title' => 'SETUP'])
     @include('theory.components.settings.count', ['label' => 'Number of rounds', 'name' => 'numOfChallenges', 'min' => 2, 'max' => 12])
 
-    @include('theory.components.settings.value-range', [
-      'label' => 'Cards to play',
-      'name' => 'numOfCards',
-      'id' => 'beat-hero-card-count',
-      'min' => 2,
-      'max' => 6,
-      'step' => 1,
-      'value' => $settings->options('numOfCards'),
-    ])
-
-    @include('theory.components.settings.value-range', [
-      'label' => 'Playback tempo',
-      'name' => 'bpm',
-      'id' => 'beat-hero-bpm',
-      'min' => 50,
-      'max' => 160,
-      'step' => 5,
-      'value' => $settings->options('bpm'),
-      'minLabel' => '50 BPM',
-      'maxLabel' => '160 BPM',
-    ])
-
     @include('theory.components.settings.toggle', ['label' => 'Practice mode', 'name' => 'practiceMode'])
   @endcomponent
 
@@ -60,7 +38,27 @@
   @endcomponent
 
   @component('theory.components.settings.section', ['title' => 'PREFERENCES'])
-    @include('theory.components.settings.toggle', ['label' => 'Feedback sounds', 'name' => 'sound'])
+    @include('theory.components.settings.value-range', [
+      'label' => 'Cards to play',
+      'name' => 'numOfCards',
+      'id' => 'beat-hero-card-count',
+      'min' => 2,
+      'max' => 6,
+      'step' => 1,
+      'value' => $settings->options('numOfCards'),
+    ])
+
+    @include('theory.components.settings.value-range', [
+      'label' => 'Metronome speed (bpm)',
+      'name' => 'bpm',
+      'id' => 'beat-hero-bpm',
+      'min' => 50,
+      'max' => 160,
+      'step' => 5,
+      'value' => $settings->options('bpm'),
+      'minLabel' => '50 BPM',
+      'maxLabel' => '160 BPM',
+    ])
   @endcomponent
 
   <button type="submit" class="btn btn-primary w-100">Start new game</button>

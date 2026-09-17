@@ -232,8 +232,6 @@
 @section('content')
 @include('theory.components.title')
 
-@include('theory.components.game-countdown', ['id' => 'beat-hero-count-in', 'screen' => true])
-
 <section id="page-wrapper" class="container prevent-select">
   <div class="row">
     <div class="col-lg-6 col-md-8 col-11 mx-auto text-center mb-2">

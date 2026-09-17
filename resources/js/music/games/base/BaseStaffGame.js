@@ -1,7 +1,10 @@
 // resources/js/music/games/base/BaseStaffGame.js
 import { Staff } from "../../staff/Staff.js";
 import { pickOne, spellNoteFromState, stepToLetterOctave } from "../../staff/staffUtils.js";
-import { renderFinalResultsOverlay } from "../shared/finalResults.js";
+import {
+  renderFinalResultsOverlay,
+  queueFinalResultsReveal,
+} from "../shared/finalResults.js";
 import { PromptUi } from "../shared/PromptUi.js";
 import { GameAudio } from "../shared/GameAudio.js";
 import { PianoKeyboardUi } from "../shared/PianoKeyboardUi.js";
@@ -1110,8 +1113,10 @@ export class BaseStaffGame {
     const reachedEnd = this._updateProgressBar() >= 100;
     if (reachedEnd && !this._isPracticeMode()) {
       this._stats.finishedAtMs = Date.now();
-      this.$checkBtn.attr("state", "final").empty();
-      setTimeout(() => this._showFinalResults(), 1600);
+      queueFinalResultsReveal({
+        $button: this.$checkBtn,
+        showFinalResults: () => this._showFinalResults(),
+      });
       return;
     }
 
@@ -1651,8 +1656,11 @@ export class BaseStaffGame {
 
     if (this._updateProgressBar() >= 100) {
       this._stats.finishedAtMs = Date.now();
-      this.$checkBtn.attr("state", "final").empty();
-      setTimeout(() => this._showFinalResults(), finalDelayMs);
+      queueFinalResultsReveal({
+        $button: this.$checkBtn,
+        showFinalResults: () => this._showFinalResults(),
+        delayMs: finalDelayMs,
+      });
     } else {
       $("#check").hide();
       $("#continue").show();

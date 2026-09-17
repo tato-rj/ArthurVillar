@@ -12750,7 +12750,7 @@ textarea.form-control-lg {
   opacity: var(--bs-btn-disabled-opacity);
 }
 
-.btn-primary, #controls #check button[state=waiting], #controls #check button[state=final] {
+.btn-primary, #controls button[state=waiting], #controls button[state=final] {
   --bs-btn-color: #fff;
   --bs-btn-bg: #0d6efd;
   --bs-btn-border-color: #0d6efd;
@@ -17196,7 +17196,7 @@ textarea.form-control-lg {
   transform: translateY(-50%) !important;
 }
 
-.border, .btn-warning {
+.border, .beat-hero-symbol-option, .btn-warning {
   border: var(--bs-border-width) var(--bs-border-style) var(--bs-border-color) !important;
 }
 
@@ -17271,7 +17271,7 @@ textarea.form-control-lg {
   border-color: rgba(var(--bs-light-rgb), var(--bs-border-opacity)) !important;
 }
 
-.border-dark {
+.border-dark, .beat-hero-symbol-option {
   --bs-border-opacity: 1;
   border-color: rgba(var(--bs-dark-rgb), var(--bs-border-opacity)) !important;
 }
@@ -25743,23 +25743,23 @@ h1, .h1 {
   background-color: white !important;
   border-color: white !important;
 }
-.btn-primary, #controls #check button[state=waiting], #controls #check button[state=final] {
+.btn-primary, #controls button[state=waiting], #controls button[state=final] {
   color: black !important;
   background-color: #ffe54c;
   border-color: black !important;
   border-radius: 2rem !important;
 }
-.btn-primary:hover, #controls #check button[state=waiting]:hover, #controls #check button[state=final]:hover {
+.btn-primary:hover, #controls button[state=waiting]:hover, #controls button[state=final]:hover {
   color: black !important;
   background-color: rgb(255, 231.9631284916, 96.4);
 }
-.btn-primary:active, #controls #check button[state=waiting]:active, #controls #check button[state=final]:active {
+.btn-primary:active, #controls button[state=waiting]:active, #controls button[state=final]:active {
   background-color: rgb(255, 223.0737430168, 35.2) !important;
 }
-.btn-primary:focus, #controls #check button[state=waiting]:focus, #controls #check button[state=final]:focus {
+.btn-primary:focus, #controls button[state=waiting]:focus, #controls button[state=final]:focus {
   background-color: #ffe54c;
 }
-.btn-primary:disabled, #controls #check button[state=waiting]:disabled, #controls #check button[state=final]:disabled {
+.btn-primary:disabled, #controls button[state=waiting]:disabled, #controls button[state=final]:disabled {
   background-color: rgb(255, 236.4078212291, 127) !important;
   border-color: rgb(25.5, 25.5, 25.5) !important;
 }
@@ -29498,7 +29498,7 @@ h1, .h1 {
   opacity: 1;
 }
 
-.border-dark {
+.border-dark, .beat-hero-symbol-option {
   border-color: #374151 !important;
 }
 .border-light {
@@ -31386,11 +31386,6 @@ body {
   pointer-events: none;
 }
 
-.game-countdown--screen {
-  position: fixed;
-  z-index: 1040;
-}
-
 .game-countdown__center {
   position: absolute;
   inset: 0;
@@ -31403,17 +31398,16 @@ body {
   grid-area: 1/1;
 }
 
-.game-countdown__value {
-  margin: 0;
-  color: #111;
-  font-size: clamp(6rem, 25vw, 12rem);
-  font-weight: 900;
-  line-height: 1;
-  white-space: nowrap;
-}
-
 .game-countdown__center [data-game-countdown-start] {
   pointer-events: auto;
+}
+
+.game-countdown__button {
+  min-width: 132px;
+}
+
+button.is-counting-down {
+  font-weight: 900;
 }
 
 .animate__animated {
@@ -31510,11 +31504,11 @@ body {
   display: none;
 }
 
-#controls #check button[state=waiting]::before {
+#controls button[state=waiting]::before {
   content: "Check my answer";
 }
 
-#controls #check button[state=final]::before {
+#controls button[state=final]::before {
   content: "Final results, let's see...";
 }
 
@@ -31598,20 +31592,13 @@ body {
   transition: border-color 0.15s ease, background-color 0.15s ease, transform 0.15s ease;
 }
 
-.beat-hero-symbol-option:hover {
-  border-color: #9ed9f6;
-  transform: translateY(-1px);
-}
-
 .beat-hero-symbol-input:focus-visible + .beat-hero-symbol-option {
   outline: 3px solid rgba(28, 176, 246, 0.3);
   outline-offset: 2px;
 }
 
 .beat-hero-symbol-input:checked + .beat-hero-symbol-option {
-  border-color: var(--beat-hero-blue);
   background: #eef9ff;
-  box-shadow: inset 0 0 0 1px var(--beat-hero-blue);
 }
 
 .beat-hero-symbol-figure {

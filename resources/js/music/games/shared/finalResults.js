@@ -1,3 +1,21 @@
+export const DEFAULT_FINAL_RESULTS_REVEAL_DELAY_MS = 1600;
+
+export function queueFinalResultsReveal({
+  $button = null,
+  showFinalResults,
+  delayMs = DEFAULT_FINAL_RESULTS_REVEAL_DELAY_MS,
+} = {}) {
+  if ($button?.length) {
+    $button
+      .attr("state", "final")
+      .empty()
+      .disable();
+  }
+
+  const delay = Math.max(0, Number(delayMs) || 0);
+  return setTimeout(() => showFinalResults?.(), delay);
+}
+
 export function renderFinalResultsOverlay({
   $finalOverlay,
   rounds = 0,

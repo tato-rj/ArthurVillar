@@ -1,5 +1,8 @@
 import { BaseStaffGame } from "../base/BaseStaffGame.js";
-import { renderFinalResultsOverlay } from "../shared/finalResults.js";
+import {
+  renderFinalResultsOverlay,
+  queueFinalResultsReveal,
+} from "../shared/finalResults.js";
 import { playSnakeCellBreakBurstAtElement } from "../shared/mojsEffects.js";
 import { playSmokePuffAtElement } from "../shared/mojsEffects.js";
 import { PromptUi } from "../shared/PromptUi.js";
@@ -1054,10 +1057,12 @@ export class NotePython {
         this._animateSnakeFinalCelebrate();
         this._stats.finishedAtMs = Date.now();
         if (this._finalResultsTimeoutId != null) clearTimeout(this._finalResultsTimeoutId);
-        this._finalResultsTimeoutId = setTimeout(() => {
-          this._finalResultsTimeoutId = null;
-          this._showFinalResults();
-        }, 1600);
+        this._finalResultsTimeoutId = queueFinalResultsReveal({
+          showFinalResults: () => {
+            this._finalResultsTimeoutId = null;
+            this._showFinalResults();
+          },
+        });
         return;
       }
 
@@ -1110,6 +1115,7 @@ export class NotePython {
     await this._countdown.prepareAudio();
     this._countdown.start({
       beatMs: 1000,
+      onCancel: () => this._awaitStartThenCountdown(),
       onComplete: () => {
         this._placeInitialSnake();
         this._directionQueue = [];

@@ -1,4 +1,7 @@
-import { renderFinalResultsOverlay } from "../shared/finalResults.js";
+import {
+  renderFinalResultsOverlay,
+  queueFinalResultsReveal,
+} from "../shared/finalResults.js";
 import { GameAudio } from "../shared/GameAudio.js";
 import { GameCountdown } from "../shared/GameCountdown.js";
 import { rhythmNotationSvg } from "./rhythmNotation.js";
@@ -99,7 +102,7 @@ export class BeatHero {
     this.$increment = $("#increment");
     this.$finalOverlay = $("#final-overlay");
     this._countdown = new GameCountdown({
-      element: "#beat-hero-count-in",
+      valueElement: this.$stopBtn.get(0),
       soundEnabled: () => this.opts.sound,
     });
     this._playbackRun = 0;
@@ -117,6 +120,9 @@ export class BeatHero {
     this._wrongTaps = 0;
     this._startedAt = Date.now();
     this._timers = new Set();
+    this._auditionTimers = new Set();
+    this._auditionRun = 0;
+    this._finalResultsTimer = null;
     this._rhythmSynth = null;
     this._uiSynth = null;
     this._uiNoise = null;
@@ -335,23 +341,24 @@ export class BeatHero {
     const figure = this._cards.find((item) => item.id === cardElement.dataset.figureId);
     if (!figure) return;
 
-    this._inputLocked = true;
-    await this._ensureAudio();
-    this._scheduleFigureAudio(figure, 0, cardElement);
+    const auditionRun = this._cancelCardAudition();
 
     if (this._state === "ready") {
+      await this._ensureAudio();
+      if (this._state !== "ready" || auditionRun !== this._auditionRun) return;
+
+      this._scheduleFigureAudio(figure, 0, cardElement);
       cardElement.classList.add("is-previewing");
       this._setStatus(this._readyInstructions());
-      this._setTimer(() => {
+      this._setAuditionTimer(() => {
         cardElement.classList.remove("is-previewing");
-        this._inputLocked = false;
       }, this._beatMs());
       return;
     }
 
     if (this._state !== "answering") return;
 
-    this._inputLocked = true;
+    this._scheduleFigureAudio(figure, 0, cardElement);
     const answerIndex = this._selection.length;
     const expected = this._answer[answerIndex];
     this._activateDot(answerIndex);
@@ -371,12 +378,10 @@ export class BeatHero {
       }
 
       this._setStatus(`Great — now choose card ${answerIndex + 2} of ${this.opts.numOfCards}.`);
-      this._setTimer(() => {
-        this._inputLocked = false;
-      }, this._beatMs());
       return;
     }
 
+    this._inputLocked = true;
     this._wrongTaps += 1;
     this._roundHadMistake = true;
     this._madeAnyMistake = true;
@@ -387,6 +392,7 @@ export class BeatHero {
 
     const resetDelay = Math.min(800, Math.max(600, Math.round(this._beatMs() * 0.75)));
     this._setTimer(() => {
+      this._cancelCardAudition();
       this._selection = [];
       this._clearSelectionMarks();
       this._resetDots();
@@ -407,11 +413,18 @@ export class BeatHero {
     this._setPlayButtons(false);
     this.$playWrap.hide();
     this.$continueWrap.show();
-    this.$continueBtn.text(
-      !this.opts.practiceMode && this._round >= this.opts.numOfChallenges
-        ? "View results"
-        : "Continue",
-    );
+    const isFinalRound = !this.opts.practiceMode && this._round >= this.opts.numOfChallenges;
+    if (isFinalRound) {
+      this._finalResultsTimer = queueFinalResultsReveal({
+        $button: this.$continueBtn,
+        showFinalResults: () => {
+          this._finalResultsTimer = null;
+          if (this._state === "complete") this._showFinalResults();
+        },
+      });
+    } else {
+      this.$continueBtn.removeAttr("state").text("Continue");
+    }
     this._playSuccessSound();
   }
 
@@ -463,18 +476,34 @@ export class BeatHero {
 
   _scheduleFigureAudio(figure, startsAtMs = 0, cardElement = null) {
     const beatMs = this._beatMs();
+    const setTimer = cardElement
+      ? (callback, delayMs) => this._setAuditionTimer(callback, delayMs)
+      : (callback, delayMs) => this._setTimer(callback, delayMs);
 
     figure.events.forEach((offset) => {
-      this._setTimer(() => {
+      setTimer(() => {
         this._playRhythmHit();
         if (!cardElement) return;
 
         cardElement.classList.remove("is-sounding");
         void cardElement.offsetWidth;
         cardElement.classList.add("is-sounding");
-        this._setTimer(() => cardElement.classList.remove("is-sounding"), 120);
+        this._setAuditionTimer(() => cardElement.classList.remove("is-sounding"), 120);
       }, startsAtMs + (offset * beatMs));
     });
+  }
+
+  _cancelCardAudition() {
+    this._auditionRun += 1;
+    this._auditionTimers.forEach((timer) => clearTimeout(timer));
+    this._auditionTimers.clear();
+    this.$grid.find(".rhythm-card").removeClass("is-previewing is-sounding");
+
+    try {
+      this._rhythmSynth?.triggerRelease?.(window.Tone?.now?.());
+    } catch (_) {}
+
+    return this._auditionRun;
   }
 
   async _ensureAudio() {
@@ -615,10 +644,22 @@ export class BeatHero {
     return timer;
   }
 
+  _setAuditionTimer(callback, delayMs) {
+    const timer = setTimeout(() => {
+      this._auditionTimers.delete(timer);
+      callback();
+    }, Math.max(0, delayMs));
+    this._auditionTimers.add(timer);
+    return timer;
+  }
+
   _cancelTimers() {
     this._playbackRun += 1;
     this._timers.forEach((timer) => clearTimeout(timer));
     this._timers.clear();
+    if (this._finalResultsTimer != null) clearTimeout(this._finalResultsTimer);
+    this._finalResultsTimer = null;
+    this._cancelCardAudition();
     this._countdown.cancel();
   }
 

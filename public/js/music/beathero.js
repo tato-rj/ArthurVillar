@@ -75,7 +75,7 @@ var BeatHero = /*#__PURE__*/function () {
     this.$increment = $("#increment");
     this.$finalOverlay = $("#final-overlay");
     this._countdown = new _shared_GameCountdown_js__WEBPACK_IMPORTED_MODULE_2__.GameCountdown({
-      element: "#beat-hero-count-in",
+      valueElement: this.$stopBtn.get(0),
       soundEnabled: function soundEnabled() {
         return _this.opts.sound;
       }
@@ -94,6 +94,9 @@ var BeatHero = /*#__PURE__*/function () {
     this._wrongTaps = 0;
     this._startedAt = Date.now();
     this._timers = new Set();
+    this._auditionTimers = new Set();
+    this._auditionRun = 0;
+    this._finalResultsTimer = null;
     this._rhythmSynth = null;
     this._uiSynth = null;
     this._uiNoise = null;
@@ -320,7 +323,7 @@ var BeatHero = /*#__PURE__*/function () {
     value: function () {
       var _handleCardTap2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee2(cardElement) {
         var _this7 = this;
-        var figure, answerIndex, expected, badge, resetDelay;
+        var figure, auditionRun, answerIndex, expected, badge, resetDelay;
         return _regenerator().w(function (_context2) {
           while (1) switch (_context2.n) {
             case 0:
@@ -339,35 +342,40 @@ var BeatHero = /*#__PURE__*/function () {
               }
               return _context2.a(2);
             case 2:
-              this._inputLocked = true;
-              _context2.n = 3;
-              return this._ensureAudio();
-            case 3:
-              this._scheduleFigureAudio(figure, 0, cardElement);
+              auditionRun = this._cancelCardAudition();
               if (!(this._state === "ready")) {
-                _context2.n = 4;
-                break;
-              }
-              cardElement.classList.add("is-previewing");
-              this._setStatus(this._readyInstructions());
-              this._setTimer(function () {
-                cardElement.classList.remove("is-previewing");
-                _this7._inputLocked = false;
-              }, this._beatMs());
-              return _context2.a(2);
-            case 4:
-              if (!(this._state !== "answering")) {
                 _context2.n = 5;
                 break;
               }
+              _context2.n = 3;
+              return this._ensureAudio();
+            case 3:
+              if (!(this._state !== "ready" || auditionRun !== this._auditionRun)) {
+                _context2.n = 4;
+                break;
+              }
+              return _context2.a(2);
+            case 4:
+              this._scheduleFigureAudio(figure, 0, cardElement);
+              cardElement.classList.add("is-previewing");
+              this._setStatus(this._readyInstructions());
+              this._setAuditionTimer(function () {
+                cardElement.classList.remove("is-previewing");
+              }, this._beatMs());
               return _context2.a(2);
             case 5:
-              this._inputLocked = true;
+              if (!(this._state !== "answering")) {
+                _context2.n = 6;
+                break;
+              }
+              return _context2.a(2);
+            case 6:
+              this._scheduleFigureAudio(figure, 0, cardElement);
               answerIndex = this._selection.length;
               expected = this._answer[answerIndex];
               this._activateDot(answerIndex);
               if (!(expected && expected.id === figure.id)) {
-                _context2.n = 7;
+                _context2.n = 8;
                 break;
               }
               this._correctTaps += 1;
@@ -378,18 +386,16 @@ var BeatHero = /*#__PURE__*/function () {
               badge.textContent = [badge.textContent, answerIndex + 1].filter(Boolean).join(", ");
               this._chooseDot(answerIndex, figure);
               if (!(this._selection.length === this._answer.length)) {
-                _context2.n = 6;
+                _context2.n = 7;
                 break;
               }
               this._finishRound();
               return _context2.a(2);
-            case 6:
-              this._setStatus("Great \u2014 now choose card ".concat(answerIndex + 2, " of ").concat(this.opts.numOfCards, "."));
-              this._setTimer(function () {
-                _this7._inputLocked = false;
-              }, this._beatMs());
-              return _context2.a(2);
             case 7:
+              this._setStatus("Great \u2014 now choose card ".concat(answerIndex + 2, " of ").concat(this.opts.numOfCards, "."));
+              return _context2.a(2);
+            case 8:
+              this._inputLocked = true;
               this._wrongTaps += 1;
               this._roundHadMistake = true;
               this._madeAnyMistake = true;
@@ -399,12 +405,13 @@ var BeatHero = /*#__PURE__*/function () {
               this._playFailSound();
               resetDelay = Math.min(800, Math.max(600, Math.round(this._beatMs() * 0.75)));
               this._setTimer(function () {
+                _this7._cancelCardAudition();
                 _this7._selection = [];
                 _this7._clearSelectionMarks();
                 _this7._resetDots();
                 _this7._inputLocked = false;
               }, resetDelay);
-            case 8:
+            case 9:
               return _context2.a(2);
           }
         }, _callee2, this);
@@ -432,7 +439,18 @@ var BeatHero = /*#__PURE__*/function () {
       this._setPlayButtons(false);
       this.$playWrap.hide();
       this.$continueWrap.show();
-      this.$continueBtn.text(!this.opts.practiceMode && this._round >= this.opts.numOfChallenges ? "View results" : "Continue");
+      var isFinalRound = !this.opts.practiceMode && this._round >= this.opts.numOfChallenges;
+      if (isFinalRound) {
+        this._finalResultsTimer = (0,_shared_finalResults_js__WEBPACK_IMPORTED_MODULE_0__.queueFinalResultsReveal)({
+          $button: this.$continueBtn,
+          showFinalResults: function showFinalResults() {
+            _this8._finalResultsTimer = null;
+            if (_this8._state === "complete") _this8._showFinalResults();
+          }
+        });
+      } else {
+        this.$continueBtn.removeAttr("state").text("Continue");
+      }
       this._playSuccessSound();
     }
   }, {
@@ -489,18 +507,38 @@ var BeatHero = /*#__PURE__*/function () {
       var startsAtMs = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
       var cardElement = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
       var beatMs = this._beatMs();
+      var setTimer = cardElement ? function (callback, delayMs) {
+        return _this0._setAuditionTimer(callback, delayMs);
+      } : function (callback, delayMs) {
+        return _this0._setTimer(callback, delayMs);
+      };
       figure.events.forEach(function (offset) {
-        _this0._setTimer(function () {
+        setTimer(function () {
           _this0._playRhythmHit();
           if (!cardElement) return;
           cardElement.classList.remove("is-sounding");
           void cardElement.offsetWidth;
           cardElement.classList.add("is-sounding");
-          _this0._setTimer(function () {
+          _this0._setAuditionTimer(function () {
             return cardElement.classList.remove("is-sounding");
           }, 120);
         }, startsAtMs + offset * beatMs);
       });
+    }
+  }, {
+    key: "_cancelCardAudition",
+    value: function _cancelCardAudition() {
+      this._auditionRun += 1;
+      this._auditionTimers.forEach(function (timer) {
+        return clearTimeout(timer);
+      });
+      this._auditionTimers.clear();
+      this.$grid.find(".rhythm-card").removeClass("is-previewing is-sounding");
+      try {
+        var _this$_rhythmSynth, _this$_rhythmSynth$tr, _window$Tone, _window$Tone$now;
+        (_this$_rhythmSynth = this._rhythmSynth) === null || _this$_rhythmSynth === void 0 || (_this$_rhythmSynth$tr = _this$_rhythmSynth.triggerRelease) === null || _this$_rhythmSynth$tr === void 0 || _this$_rhythmSynth$tr.call(_this$_rhythmSynth, (_window$Tone = window.Tone) === null || _window$Tone === void 0 || (_window$Tone$now = _window$Tone.now) === null || _window$Tone$now === void 0 ? void 0 : _window$Tone$now.call(_window$Tone));
+      } catch (_) {}
+      return this._auditionRun;
     }
   }, {
     key: "_ensureAudio",
@@ -682,6 +720,17 @@ var BeatHero = /*#__PURE__*/function () {
       return timer;
     }
   }, {
+    key: "_setAuditionTimer",
+    value: function _setAuditionTimer(callback, delayMs) {
+      var _this13 = this;
+      var timer = setTimeout(function () {
+        _this13._auditionTimers["delete"](timer);
+        callback();
+      }, Math.max(0, delayMs));
+      this._auditionTimers.add(timer);
+      return timer;
+    }
+  }, {
     key: "_cancelTimers",
     value: function _cancelTimers() {
       this._playbackRun += 1;
@@ -689,6 +738,9 @@ var BeatHero = /*#__PURE__*/function () {
         return clearTimeout(timer);
       });
       this._timers.clear();
+      if (this._finalResultsTimer != null) clearTimeout(this._finalResultsTimer);
+      this._finalResultsTimer = null;
+      this._cancelCardAudition();
       this._countdown.cancel();
     }
   }, {
@@ -1652,25 +1704,31 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
 
 var GameCountdown = /*#__PURE__*/function () {
   function GameCountdown() {
-    var _this$element, _this$element2;
+    var _this$element, _this$element2, _this$valueElement, _this$valueElement2, _this$valueElement3;
     var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
       element = _ref.element,
+      valueElement = _ref.valueElement,
       _ref$soundEnabled = _ref.soundEnabled,
       soundEnabled = _ref$soundEnabled === void 0 ? function () {
         return true;
       } : _ref$soundEnabled;
     _classCallCheck(this, GameCountdown);
     this.element = typeof element === "string" ? document.querySelector(element) : element;
-    this.valueElement = ((_this$element = this.element) === null || _this$element === void 0 ? void 0 : _this$element.querySelector("[data-game-countdown-value]")) || null;
+    this.valueElement = typeof valueElement === "string" ? document.querySelector(valueElement) : valueElement || ((_this$element = this.element) === null || _this$element === void 0 ? void 0 : _this$element.querySelector("[data-game-countdown-value]")) || null;
     this.startButton = ((_this$element2 = this.element) === null || _this$element2 === void 0 ? void 0 : _this$element2.querySelector("[data-game-countdown-start]")) || null;
+    this._valueIsExternal = Boolean(valueElement);
+    this._originalValueHtml = ((_this$valueElement = this.valueElement) === null || _this$valueElement === void 0 ? void 0 : _this$valueElement.innerHTML) || "";
+    this._originalAriaLive = (_this$valueElement2 = this.valueElement) === null || _this$valueElement2 === void 0 ? void 0 : _this$valueElement2.getAttribute("aria-live");
+    this._originalAriaAtomic = (_this$valueElement3 = this.valueElement) === null || _this$valueElement3 === void 0 ? void 0 : _this$valueElement3.getAttribute("aria-atomic");
     this.soundEnabled = soundEnabled;
     this._timers = new Set();
     this._startHandler = null;
+    this._cancelHandler = null;
   }
   return _createClass(GameCountdown, [{
     key: "exists",
     get: function get() {
-      return Boolean(this.element && this.valueElement);
+      return Boolean(this.valueElement);
     }
   }, {
     key: "prepareAudio",
@@ -1714,14 +1772,13 @@ var GameCountdown = /*#__PURE__*/function () {
         onStart === null || onStart === void 0 || onStart();
         return;
       }
-      this.element.hidden = false;
-      this.valueElement.hidden = true;
-      this.valueElement.textContent = "";
+      if (this.element) this.element.hidden = false;
+      this._restoreValue();
       this.startButton.hidden = false;
       this._startHandler = function (event) {
         event.preventDefault();
         _this._removeStartHandler();
-        _this.startButton.hidden = true;
+        if (_this.startButton !== _this.valueElement) _this.startButton.hidden = true;
         onStart === null || onStart === void 0 || onStart();
       };
       this.startButton.addEventListener("click", this._startHandler, {
@@ -1735,7 +1792,8 @@ var GameCountdown = /*#__PURE__*/function () {
       var _ref2 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
         _ref2$beatMs = _ref2.beatMs,
         beatMs = _ref2$beatMs === void 0 ? 1000 : _ref2$beatMs,
-        onComplete = _ref2.onComplete;
+        onComplete = _ref2.onComplete,
+        onCancel = _ref2.onCancel;
       this.cancel();
       var interval = Math.max(1, Number(beatMs) || 1000);
       var duration = GameCountdown.STEPS.length * interval;
@@ -1745,17 +1803,31 @@ var GameCountdown = /*#__PURE__*/function () {
         }, duration);
         return duration;
       }
-      this.element.hidden = false;
-      if (this.startButton) this.startButton.hidden = true;
+      if (this.element) this.element.hidden = false;
+      if (this.startButton && this.startButton !== this.valueElement) this.startButton.hidden = true;
       this.valueElement.hidden = false;
+      this.valueElement.classList.add("is-counting-down");
+      this.valueElement.setAttribute("aria-live", "polite");
+      this.valueElement.setAttribute("aria-atomic", "true");
+      if (onCancel) {
+        this._cancelHandler = function (event) {
+          event.preventDefault();
+          _this2.cancel();
+          onCancel();
+        };
+        this.valueElement.addEventListener("click", this._cancelHandler, {
+          once: true
+        });
+      }
       GameCountdown.STEPS.forEach(function (label, index) {
         var showStep = function showStep() {
           _this2.valueElement.textContent = label;
-          if (_this2._soundEnabled()) _GameAudio_js__WEBPACK_IMPORTED_MODULE_0__.GameAudio.playMetronomeClick(label === "GO!");
+          if (_this2._soundEnabled()) _GameAudio_js__WEBPACK_IMPORTED_MODULE_0__.GameAudio.playMetronomeClick(label === "Go!");
         };
         if (index === 0) showStep();else _this2._setTimer(showStep, index * interval);
       });
       this._setTimer(function () {
+        _this2._removeCancelHandler();
         _this2.hide();
         onComplete === null || onComplete === void 0 || onComplete();
       }, duration);
@@ -1764,11 +1836,8 @@ var GameCountdown = /*#__PURE__*/function () {
   }, {
     key: "hide",
     value: function hide() {
-      if (this.element) this.element.hidden = true;
-      if (this.valueElement) {
-        this.valueElement.hidden = true;
-        this.valueElement.textContent = "";
-      }
+      if (this.element && !this._valueIsExternal) this.element.hidden = true;
+      this._restoreValue();
     }
   }, {
     key: "cancel",
@@ -1778,6 +1847,7 @@ var GameCountdown = /*#__PURE__*/function () {
       });
       this._timers.clear();
       this._removeStartHandler();
+      this._removeCancelHandler();
       this.hide();
     }
   }, {
@@ -1800,13 +1870,31 @@ var GameCountdown = /*#__PURE__*/function () {
       this._startHandler = null;
     }
   }, {
+    key: "_removeCancelHandler",
+    value: function _removeCancelHandler() {
+      if (this.valueElement && this._cancelHandler) {
+        this.valueElement.removeEventListener("click", this._cancelHandler);
+      }
+      this._cancelHandler = null;
+    }
+  }, {
+    key: "_restoreValue",
+    value: function _restoreValue() {
+      if (!this.valueElement) return;
+      this.valueElement.innerHTML = this._originalValueHtml;
+      this.valueElement.classList.remove("is-counting-down");
+      if (!this._valueIsExternal) this.valueElement.hidden = this.valueElement !== this.startButton;
+      if (this._originalAriaLive == null) this.valueElement.removeAttribute("aria-live");else this.valueElement.setAttribute("aria-live", this._originalAriaLive);
+      if (this._originalAriaAtomic == null) this.valueElement.removeAttribute("aria-atomic");else this.valueElement.setAttribute("aria-atomic", this._originalAriaAtomic);
+    }
+  }, {
     key: "_soundEnabled",
     value: function _soundEnabled() {
       return typeof this.soundEnabled === "function" ? Boolean(this.soundEnabled()) : Boolean(this.soundEnabled);
     }
   }]);
 }();
-_defineProperty(GameCountdown, "STEPS", ["3", "2", "1", "GO!"]);
+_defineProperty(GameCountdown, "STEPS", ["Ready", "Set", "Go!"]);
 
 /***/ },
 
@@ -1818,6 +1906,8 @@ _defineProperty(GameCountdown, "STEPS", ["3", "2", "1", "GO!"]);
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   DEFAULT_FINAL_RESULTS_REVEAL_DELAY_MS: () => (/* binding */ DEFAULT_FINAL_RESULTS_REVEAL_DELAY_MS),
+/* harmony export */   queueFinalResultsReveal: () => (/* binding */ queueFinalResultsReveal),
 /* harmony export */   renderFinalResultsOverlay: () => (/* binding */ renderFinalResultsOverlay)
 /* harmony export */ });
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
@@ -1826,27 +1916,43 @@ function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t =
 function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
 function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
 function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
-function renderFinalResultsOverlay(_ref) {
+var DEFAULT_FINAL_RESULTS_REVEAL_DELAY_MS = 1600;
+function queueFinalResultsReveal() {
+  var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+    _ref$$button = _ref.$button,
+    $button = _ref$$button === void 0 ? null : _ref$$button,
+    showFinalResults = _ref.showFinalResults,
+    _ref$delayMs = _ref.delayMs,
+    delayMs = _ref$delayMs === void 0 ? DEFAULT_FINAL_RESULTS_REVEAL_DELAY_MS : _ref$delayMs;
+  if ($button !== null && $button !== void 0 && $button.length) {
+    $button.attr("state", "final").empty().disable();
+  }
+  var delay = Math.max(0, Number(delayMs) || 0);
+  return setTimeout(function () {
+    return showFinalResults === null || showFinalResults === void 0 ? void 0 : showFinalResults();
+  }, delay);
+}
+function renderFinalResultsOverlay(_ref2) {
   var _window, _window2, _window3;
-  var $finalOverlay = _ref.$finalOverlay,
-    _ref$rounds = _ref.rounds,
-    rounds = _ref$rounds === void 0 ? 0 : _ref$rounds,
-    _ref$score = _ref.score,
-    score = _ref$score === void 0 ? 0 : _ref$score,
-    _ref$accuracy = _ref.accuracy,
-    accuracy = _ref$accuracy === void 0 ? 0 : _ref$accuracy,
-    _ref$durationSec = _ref.durationSec,
-    durationSec = _ref$durationSec === void 0 ? 0 : _ref$durationSec,
-    _ref$settingsBonus = _ref.settingsBonus,
-    settingsBonus = _ref$settingsBonus === void 0 ? false : _ref$settingsBonus,
-    _ref$clearCountupTime = _ref.clearCountupTimers,
-    clearCountupTimers = _ref$clearCountupTime === void 0 ? null : _ref$clearCountupTime,
-    _ref$countupTimers = _ref.countupTimers,
-    countupTimers = _ref$countupTimers === void 0 ? null : _ref$countupTimers,
-    _ref$animateMetrics = _ref.animateMetrics,
-    animateMetrics = _ref$animateMetrics === void 0 ? null : _ref$animateMetrics,
-    _ref$playFinalSfx = _ref.playFinalSfx,
-    playFinalSfx = _ref$playFinalSfx === void 0 ? null : _ref$playFinalSfx;
+  var $finalOverlay = _ref2.$finalOverlay,
+    _ref2$rounds = _ref2.rounds,
+    rounds = _ref2$rounds === void 0 ? 0 : _ref2$rounds,
+    _ref2$score = _ref2.score,
+    score = _ref2$score === void 0 ? 0 : _ref2$score,
+    _ref2$accuracy = _ref2.accuracy,
+    accuracy = _ref2$accuracy === void 0 ? 0 : _ref2$accuracy,
+    _ref2$durationSec = _ref2.durationSec,
+    durationSec = _ref2$durationSec === void 0 ? 0 : _ref2$durationSec,
+    _ref2$settingsBonus = _ref2.settingsBonus,
+    settingsBonus = _ref2$settingsBonus === void 0 ? false : _ref2$settingsBonus,
+    _ref2$clearCountupTim = _ref2.clearCountupTimers,
+    clearCountupTimers = _ref2$clearCountupTim === void 0 ? null : _ref2$clearCountupTim,
+    _ref2$countupTimers = _ref2.countupTimers,
+    countupTimers = _ref2$countupTimers === void 0 ? null : _ref2$countupTimers,
+    _ref2$animateMetrics = _ref2.animateMetrics,
+    animateMetrics = _ref2$animateMetrics === void 0 ? null : _ref2$animateMetrics,
+    _ref2$playFinalSfx = _ref2.playFinalSfx,
+    playFinalSfx = _ref2$playFinalSfx === void 0 ? null : _ref2$playFinalSfx;
   if (!$finalOverlay || !$finalOverlay.length) return;
   var CountUpCtor = (_window = window) === null || _window === void 0 || (_window = _window.CountUp) === null || _window === void 0 ? void 0 : _window.CountUp;
   var DURATION = 3.5;

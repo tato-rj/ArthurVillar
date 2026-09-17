@@ -1,19 +1,26 @@
 import { GameAudio } from "./GameAudio.js";
 
 export class GameCountdown {
-  static STEPS = ["3", "2", "1", "GO!"];
+  static STEPS = ["Ready", "Set", "Go!"];
 
-  constructor({ element, soundEnabled = () => true } = {}) {
+  constructor({ element, valueElement, soundEnabled = () => true } = {}) {
     this.element = typeof element === "string" ? document.querySelector(element) : element;
-    this.valueElement = this.element?.querySelector("[data-game-countdown-value]") || null;
+    this.valueElement = typeof valueElement === "string"
+      ? document.querySelector(valueElement)
+      : valueElement || this.element?.querySelector("[data-game-countdown-value]") || null;
     this.startButton = this.element?.querySelector("[data-game-countdown-start]") || null;
+    this._valueIsExternal = Boolean(valueElement);
+    this._originalValueHtml = this.valueElement?.innerHTML || "";
+    this._originalAriaLive = this.valueElement?.getAttribute("aria-live");
+    this._originalAriaAtomic = this.valueElement?.getAttribute("aria-atomic");
     this.soundEnabled = soundEnabled;
     this._timers = new Set();
     this._startHandler = null;
+    this._cancelHandler = null;
   }
 
   get exists() {
-    return Boolean(this.element && this.valueElement);
+    return Boolean(this.valueElement);
   }
 
   async prepareAudio() {
@@ -32,21 +39,20 @@ export class GameCountdown {
       return;
     }
 
-    this.element.hidden = false;
-    this.valueElement.hidden = true;
-    this.valueElement.textContent = "";
+    if (this.element) this.element.hidden = false;
+    this._restoreValue();
     this.startButton.hidden = false;
 
     this._startHandler = (event) => {
       event.preventDefault();
       this._removeStartHandler();
-      this.startButton.hidden = true;
+      if (this.startButton !== this.valueElement) this.startButton.hidden = true;
       onStart?.();
     };
     this.startButton.addEventListener("click", this._startHandler, { once: true });
   }
 
-  start({ beatMs = 1000, onComplete } = {}) {
+  start({ beatMs = 1000, onComplete, onCancel } = {}) {
     this.cancel();
 
     const interval = Math.max(1, Number(beatMs) || 1000);
@@ -57,14 +63,26 @@ export class GameCountdown {
       return duration;
     }
 
-    this.element.hidden = false;
-    if (this.startButton) this.startButton.hidden = true;
+    if (this.element) this.element.hidden = false;
+    if (this.startButton && this.startButton !== this.valueElement) this.startButton.hidden = true;
     this.valueElement.hidden = false;
+    this.valueElement.classList.add("is-counting-down");
+    this.valueElement.setAttribute("aria-live", "polite");
+    this.valueElement.setAttribute("aria-atomic", "true");
+
+    if (onCancel) {
+      this._cancelHandler = (event) => {
+        event.preventDefault();
+        this.cancel();
+        onCancel();
+      };
+      this.valueElement.addEventListener("click", this._cancelHandler, { once: true });
+    }
 
     GameCountdown.STEPS.forEach((label, index) => {
       const showStep = () => {
         this.valueElement.textContent = label;
-        if (this._soundEnabled()) GameAudio.playMetronomeClick(label === "GO!");
+        if (this._soundEnabled()) GameAudio.playMetronomeClick(label === "Go!");
       };
 
       if (index === 0) showStep();
@@ -72,6 +90,7 @@ export class GameCountdown {
     });
 
     this._setTimer(() => {
+      this._removeCancelHandler();
       this.hide();
       onComplete?.();
     }, duration);
@@ -80,17 +99,15 @@ export class GameCountdown {
   }
 
   hide() {
-    if (this.element) this.element.hidden = true;
-    if (this.valueElement) {
-      this.valueElement.hidden = true;
-      this.valueElement.textContent = "";
-    }
+    if (this.element && !this._valueIsExternal) this.element.hidden = true;
+    this._restoreValue();
   }
 
   cancel() {
     this._timers.forEach((timer) => clearTimeout(timer));
     this._timers.clear();
     this._removeStartHandler();
+    this._removeCancelHandler();
     this.hide();
   }
 
@@ -108,6 +125,26 @@ export class GameCountdown {
       this.startButton.removeEventListener("click", this._startHandler);
     }
     this._startHandler = null;
+  }
+
+  _removeCancelHandler() {
+    if (this.valueElement && this._cancelHandler) {
+      this.valueElement.removeEventListener("click", this._cancelHandler);
+    }
+    this._cancelHandler = null;
+  }
+
+  _restoreValue() {
+    if (!this.valueElement) return;
+
+    this.valueElement.innerHTML = this._originalValueHtml;
+    this.valueElement.classList.remove("is-counting-down");
+    if (!this._valueIsExternal) this.valueElement.hidden = this.valueElement !== this.startButton;
+
+    if (this._originalAriaLive == null) this.valueElement.removeAttribute("aria-live");
+    else this.valueElement.setAttribute("aria-live", this._originalAriaLive);
+    if (this._originalAriaAtomic == null) this.valueElement.removeAttribute("aria-atomic");
+    else this.valueElement.setAttribute("aria-atomic", this._originalAriaAtomic);
   }
 
   _soundEnabled() {

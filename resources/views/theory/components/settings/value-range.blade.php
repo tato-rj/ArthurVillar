@@ -22,8 +22,8 @@
     <output class="value-thumb-range__value" for="{{$rangeId}}">{{$rangeValue}}</output>
   </div>
 
-  <div class="value-thumb-range__limits">
+{{--   <div class="value-thumb-range__limits">
     <span>{{$minLabel ?? $min}}</span>
     <span>{{$maxLabel ?? $max}}</span>
-  </div>
+  </div> --}}
 </div>
