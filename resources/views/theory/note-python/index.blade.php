@@ -116,13 +116,9 @@
       @include('theory.components.timer')
     </div>
     <div class="col-12 mx-auto mb-2 position-relative">
+      @include('theory.components.instructions', ['instructionContent' => 'Swipe or use the arrows to control the snake'])
+
       <div id="board-wrapper" style="display: none" class="text-center mx-auto position-relative ">
-
-          @include('theory.components.game-countdown', [
-            'id' => 'game-countdown',
-            'startLabel' => 'START GAME',
-          ])
-
           <div id="restart" class="position-absolute w-100 h-100">
             <div class="d-center w-100 h-100">
               <button onclick="window.location.reload();" type="button" class="btn btn-red btn-lg">@fa(['icon' => 'arrow-rotate-right'])RESTART</button>
@@ -136,10 +132,7 @@
     </div>
 
     <div class="col-lg-6 col-md-8 col-11 mx-auto">
-      <div id="instructions" class="fw-bold text-center">
-        <h6 class="m-0 text-red">Swipe or use the arrows to control the snake</h6>
-      </div>
-      @include('theory.components.controls')
+      @include('theory.components.controls', ['type' => 'play', 'playLabel' => 'Start game'])
       @include('theory.note-python.settings')
       @include('theory.components.leaderboard.show')
       @include('theory.components.preferences')

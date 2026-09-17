@@ -82,9 +82,11 @@ export class NotePython {
     this.opts = { ...defaults, ...(options || {}) };
     this.ns = this.opts.namespace || "notePython";
     this.$board = $(this.opts.boardEl).first();
+    this.$playWrap = $("#play");
+    this.$playBtn = this.$playWrap.find('button[action="play"]');
+    this.$stopBtn = this.$playWrap.find('button[action="stop"]');
     this._countdown = new GameCountdown({
-      element: "#game-countdown",
-      soundEnabled: () => this._isSoundEnabled(),
+      valueElement: this.$stopBtn.get(0),
     });
     this.prompt = new PromptUi("#prompt");
     this.instructionsUi = new InstructionsUi("#instructions");
@@ -111,6 +113,7 @@ export class NotePython {
     this._directionQueue = [];
     this._tickTimer = null;
     this._countdownTimeouts = [];
+    this._countdownRun = 0;
     this._isGameOver = false;
     this._currentIntervalAbbr = null;
     this._currentIntervalDirection = 1; // 1=up, -1=down
@@ -1112,11 +1115,16 @@ export class NotePython {
   }
 
   async _runCountdownThenStart() {
+    const countdownRun = ++this._countdownRun;
+    this._setPlayButtons(true);
     await this._countdown.prepareAudio();
+    if (countdownRun !== this._countdownRun) return;
+
     this._countdown.start({
       beatMs: 1000,
-      onCancel: () => this._awaitStartThenCountdown(),
       onComplete: () => {
+        if (countdownRun !== this._countdownRun) return;
+        this.$playWrap.hide();
         this._placeInitialSnake();
         this._directionQueue = [];
         this._spawnFoods(2, { preferredRow: this._rows - 2 });
@@ -1129,7 +1137,31 @@ export class NotePython {
   }
 
   _awaitStartThenCountdown() {
-    this._countdown.showStart(() => this._runCountdownThenStart());
+    this._setPlayButtons(false);
+  }
+
+  _wireStartControls() {
+    this.$playBtn
+      .off(`click.${this.ns}Start`)
+      .on(`click.${this.ns}Start`, (event) => {
+        event.preventDefault();
+        this._runCountdownThenStart();
+      });
+
+    this.$stopBtn
+      .off(`click.${this.ns}Start`)
+      .on(`click.${this.ns}Start`, (event) => {
+        event.preventDefault();
+        this._countdownRun += 1;
+        this._clearCountdownTimers();
+        this._awaitStartThenCountdown();
+      });
+  }
+
+  _setPlayButtons(isPlaying) {
+    this.$playWrap.show();
+    this.$playBtn.toggle(!isPlaying);
+    this.$stopBtn.toggle(isPlaying);
   }
 
   _startLoop() {
@@ -1170,6 +1202,7 @@ export class NotePython {
     }
     this._clearCountdownTimers();
     this._clearFoodAnimTimers();
+    this._wireStartControls();
     this._wireKeyboardControls();
     this._wireModalPause();
     this._armUiSfxOnFirstGesture();

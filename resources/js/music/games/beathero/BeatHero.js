@@ -103,7 +103,6 @@ export class BeatHero {
     this.$finalOverlay = $("#final-overlay");
     this._countdown = new GameCountdown({
       valueElement: this.$stopBtn.get(0),
-      soundEnabled: () => this.opts.sound,
     });
     this._playbackRun = 0;
 

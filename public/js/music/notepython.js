@@ -2103,7 +2103,6 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
 
 var NotePython = /*#__PURE__*/function () {
   function NotePython() {
-    var _this = this;
     var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
     _classCallCheck(this, NotePython);
     var defaults = {
@@ -2127,11 +2126,11 @@ var NotePython = /*#__PURE__*/function () {
     this.opts = _objectSpread(_objectSpread({}, defaults), options || {});
     this.ns = this.opts.namespace || "notePython";
     this.$board = $(this.opts.boardEl).first();
+    this.$playWrap = $("#play");
+    this.$playBtn = this.$playWrap.find('button[action="play"]');
+    this.$stopBtn = this.$playWrap.find('button[action="stop"]');
     this._countdown = new _shared_GameCountdown_js__WEBPACK_IMPORTED_MODULE_5__.GameCountdown({
-      element: "#game-countdown",
-      soundEnabled: function soundEnabled() {
-        return _this._isSoundEnabled();
-      }
+      valueElement: this.$stopBtn.get(0)
     });
     this.prompt = new _shared_PromptUi_js__WEBPACK_IMPORTED_MODULE_3__.PromptUi("#prompt");
     this.instructionsUi = new _shared_InstructionsUi_js__WEBPACK_IMPORTED_MODULE_6__.InstructionsUi("#instructions");
@@ -2161,6 +2160,7 @@ var NotePython = /*#__PURE__*/function () {
     this._directionQueue = [];
     this._tickTimer = null;
     this._countdownTimeouts = [];
+    this._countdownRun = 0;
     this._isGameOver = false;
     this._currentIntervalAbbr = null;
     this._currentIntervalDirection = 1; // 1=up, -1=down
@@ -2531,31 +2531,31 @@ var NotePython = /*#__PURE__*/function () {
   }, {
     key: "_wireKeyboardControls",
     value: function _wireKeyboardControls() {
-      var _this2 = this;
+      var _this = this;
       var ns = ".toneTrailKeys.".concat(this.ns);
       $(document).off("keydown".concat(ns)).on("keydown".concat(ns), function (e) {
         var key = String(e.key || "").toLowerCase();
         if (key === "arrowup") {
           e.preventDefault();
-          _this2._enqueueDirection({
+          _this._enqueueDirection({
             dr: -1,
             dc: 0
           });
         } else if (key === "arrowdown") {
           e.preventDefault();
-          _this2._enqueueDirection({
+          _this._enqueueDirection({
             dr: 1,
             dc: 0
           });
         } else if (key === "arrowleft") {
           e.preventDefault();
-          _this2._enqueueDirection({
+          _this._enqueueDirection({
             dr: 0,
             dc: -1
           });
         } else if (key === "arrowright") {
           e.preventDefault();
-          _this2._enqueueDirection({
+          _this._enqueueDirection({
             dr: 0,
             dc: 1
           });
@@ -2566,7 +2566,7 @@ var NotePython = /*#__PURE__*/function () {
     key: "_wireSwipeControls",
     value: function _wireSwipeControls() {
       var _this$$board,
-        _this3 = this;
+        _this2 = this;
       if (!((_this$$board = this.$board) !== null && _this$$board !== void 0 && _this$$board.length)) return;
       var ns = ".toneTrailSwipe.".concat(this.ns);
       var startX = 0;
@@ -2576,7 +2576,7 @@ var NotePython = /*#__PURE__*/function () {
       var queueFromDelta = function queueFromDelta(dx, dy) {
         if (Math.max(Math.abs(dx), Math.abs(dy)) < minSwipe) return;
         if (Math.abs(dx) > Math.abs(dy)) {
-          _this3._enqueueDirection(dx > 0 ? {
+          _this2._enqueueDirection(dx > 0 ? {
             dr: 0,
             dc: 1
           } : {
@@ -2584,7 +2584,7 @@ var NotePython = /*#__PURE__*/function () {
             dc: -1
           });
         } else {
-          _this3._enqueueDirection(dy > 0 ? {
+          _this2._enqueueDirection(dy > 0 ? {
             dr: 1,
             dc: 0
           } : {
@@ -2622,26 +2622,26 @@ var NotePython = /*#__PURE__*/function () {
   }, {
     key: "_wireModalPause",
     value: function _wireModalPause() {
-      var _this4 = this;
+      var _this3 = this;
       var ns = ".toneTrailModalPause.".concat(this.ns);
       $(document).off("shown.bs.modal".concat(ns)).off("hidden.bs.modal".concat(ns)).on("shown.bs.modal".concat(ns), function () {
-        _this4._pausedByModal = true;
-        _this4._stopLoop();
+        _this3._pausedByModal = true;
+        _this3._stopLoop();
       }).on("hidden.bs.modal".concat(ns), function () {
         // If another modal is still open, stay paused.
         if ($(".modal.show").length) return;
-        if (!_this4._pausedByModal) return;
-        _this4._pausedByModal = false;
-        if (_this4._isGameOver) return;
-        if (!_this4._snake.length) return; // game not started yet
-        if (_this4._tickTimer != null) return;
-        _this4._startLoop();
+        if (!_this3._pausedByModal) return;
+        _this3._pausedByModal = false;
+        if (_this3._isGameOver) return;
+        if (!_this3._snake.length) return; // game not started yet
+        if (_this3._tickTimer != null) return;
+        _this3._startLoop();
       });
     }
   }, {
     key: "_spawnFoods",
     value: function _spawnFoods() {
-      var _this5 = this;
+      var _this4 = this;
       var count = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
       var _ref3 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
         _ref3$preferredRow = _ref3.preferredRow,
@@ -2660,16 +2660,16 @@ var NotePython = /*#__PURE__*/function () {
               r: r,
               c: c
             };
-            var occupiedBySnake = _this5._snake.some(function (s) {
-              return _this5._sameCell(s, cell);
+            var occupiedBySnake = _this4._snake.some(function (s) {
+              return _this4._sameCell(s, cell);
             });
-            var occupiedByFood = _this5._foods.some(function (f) {
-              return _this5._sameCell(f, cell);
+            var occupiedByFood = _this4._foods.some(function (f) {
+              return _this4._sameCell(f, cell);
             });
-            var occupiedByBomb = _this5._bombs.some(function (b) {
-              return _this5._sameCell(b, cell);
+            var occupiedByBomb = _this4._bombs.some(function (b) {
+              return _this4._sameCell(b, cell);
             });
-            var tooCloseToHead = _this5._isTooCloseToHead(cell, 2);
+            var tooCloseToHead = _this4._isTooCloseToHead(cell, 2);
             if (!occupiedBySnake && !occupiedByFood && !occupiedByBomb && !tooCloseToHead) free.push(cell);
           };
           for (var c = 0; c < this._cols; c += 1) {
@@ -2695,7 +2695,7 @@ var NotePython = /*#__PURE__*/function () {
   }, {
     key: "_spawnBombs",
     value: function _spawnBombs() {
-      var _this6 = this;
+      var _this5 = this;
       var count = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
       var _ref4 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
         _ref4$preferredRow = _ref4.preferredRow,
@@ -2715,16 +2715,16 @@ var NotePython = /*#__PURE__*/function () {
               r: r,
               c: c
             };
-            var occupiedBySnake = _this6._snake.some(function (s) {
-              return _this6._sameCell(s, cell);
+            var occupiedBySnake = _this5._snake.some(function (s) {
+              return _this5._sameCell(s, cell);
             });
-            var occupiedByFood = _this6._foods.some(function (f) {
-              return _this6._sameCell(f, cell);
+            var occupiedByFood = _this5._foods.some(function (f) {
+              return _this5._sameCell(f, cell);
             });
-            var occupiedByBomb = _this6._bombs.some(function (b) {
-              return _this6._sameCell(b, cell);
+            var occupiedByBomb = _this5._bombs.some(function (b) {
+              return _this5._sameCell(b, cell);
             });
-            var tooCloseToHead = _this6._isTooCloseToHead(cell, 2);
+            var tooCloseToHead = _this5._isTooCloseToHead(cell, 2);
             if (!occupiedBySnake && !occupiedByFood && !occupiedByBomb && !tooCloseToHead) free.push(cell);
           };
           for (var c = 0; c < this._cols; c += 1) {
@@ -2777,44 +2777,44 @@ var NotePython = /*#__PURE__*/function () {
   }, {
     key: "_renderEntities",
     value: function _renderEntities() {
-      var _this7 = this;
+      var _this6 = this;
       if (!this.$board.length) return;
       var $cells = this.$board.find(".board-cell");
       $cells.removeClass("snake snake-head food bomb animate__animated animate__rubberBand").html("");
       this._snake.forEach(function (cell, i) {
         var selector = ".board-cell[data-row=\"".concat(cell.r, "\"][data-col=\"").concat(cell.c, "\"]");
-        var $cell = _this7.$board.find(selector);
+        var $cell = _this6.$board.find(selector);
         if (!$cell.length) return;
         $cell.addClass("snake");
         if (i === 0) {
-          var _this7$_headNote;
+          var _this6$_headNote;
           $cell.addClass("snake-head");
-          if ((_this7$_headNote = _this7._headNote) !== null && _this7$_headNote !== void 0 && _this7$_headNote.display) $cell.html("<span class=\"food-note\">".concat(_this7._headNote.display, "</span>"));
+          if ((_this6$_headNote = _this6._headNote) !== null && _this6$_headNote !== void 0 && _this6$_headNote.display) $cell.html("<span class=\"food-note\">".concat(_this6._headNote.display, "</span>"));
         }
       });
       this._foods.forEach(function (food, i) {
         var _food$note;
-        var $food = _this7.$board.find(".board-cell[data-row=\"".concat(food.r, "\"][data-col=\"").concat(food.c, "\"]"));
+        var $food = _this6.$board.find(".board-cell[data-row=\"".concat(food.r, "\"][data-col=\"").concat(food.c, "\"]"));
         if (!$food.length) return;
         $food.addClass("food").html("<span class=\"food-note\">".concat(String(((_food$note = food.note) === null || _food$note === void 0 ? void 0 : _food$note.display) || ""), "</span>"));
-        if ((food === null || food === void 0 ? void 0 : food.id) == null || _this7._animatedFoodIds.has(food.id)) return;
-        _this7._animatedFoodIds.add(food.id);
+        if ((food === null || food === void 0 ? void 0 : food.id) == null || _this6._animatedFoodIds.has(food.id)) return;
+        _this6._animatedFoodIds.add(food.id);
         var tid = setTimeout(function () {
-          var $target = _this7.$board.find(".board-cell[data-row=\"".concat(food.r, "\"][data-col=\"").concat(food.c, "\"]")).first();
+          var $target = _this6.$board.find(".board-cell[data-row=\"".concat(food.r, "\"][data-col=\"").concat(food.c, "\"]")).first();
           if (!$target.length) return;
           $target.removeClass("animate__animated animate__rubberBand");
           // eslint-disable-next-line no-unused-expressions
           $target[0] && $target[0].offsetWidth;
           $target.addClass("animate__animated animate__rubberBand");
-          $target.off("animationend.".concat(_this7.ns, "FoodHB webkitAnimationEnd.").concat(_this7.ns, "FoodHB")).one("animationend.".concat(_this7.ns, "FoodHB webkitAnimationEnd.").concat(_this7.ns, "FoodHB"), function () {
+          $target.off("animationend.".concat(_this6.ns, "FoodHB webkitAnimationEnd.").concat(_this6.ns, "FoodHB")).one("animationend.".concat(_this6.ns, "FoodHB webkitAnimationEnd.").concat(_this6.ns, "FoodHB"), function () {
             $target.removeClass("animate__animated animate__rubberBand");
           });
         }, 0);
-        _this7._foodAnimTimeouts.push(tid);
+        _this6._foodAnimTimeouts.push(tid);
       });
       this._bombs.forEach(function (bomb) {
-        if (!_this7._showBombs()) return;
-        var $bomb = _this7.$board.find(".board-cell[data-row=\"".concat(bomb.r, "\"][data-col=\"").concat(bomb.c, "\"]"));
+        if (!_this6._showBombs()) return;
+        var $bomb = _this6.$board.find(".board-cell[data-row=\"".concat(bomb.r, "\"][data-col=\"").concat(bomb.c, "\"]"));
         if (!$bomb.length) return;
         $bomb.addClass("bomb").html('<div class="bomb"><i class="fa-solid fa-bomb"></i></div>');
       });
@@ -2836,7 +2836,7 @@ var NotePython = /*#__PURE__*/function () {
     key: "_hingeClearSnake",
     value: function _hingeClearSnake() {
       var _this$$board3,
-        _this8 = this;
+        _this7 = this;
       if (!((_this$$board3 = this.$board) !== null && _this$$board3 !== void 0 && _this$$board3.length)) return;
       var $targets = this.$board.find(".board-cell.snake, .board-cell.snake-head");
       if (!$targets.length) {
@@ -2849,25 +2849,25 @@ var NotePython = /*#__PURE__*/function () {
         var delay = i * 85;
         var tid = setTimeout(function () {
           var $el = $(el);
-          $el.removeClass("animate__animated animate__hinge animate__rubberBand").addClass("animate__animated animate__hinge").off("animationend.".concat(_this8.ns, "SnakeHinge webkitAnimationEnd.").concat(_this8.ns, "SnakeHinge")).one("animationend.".concat(_this8.ns, "SnakeHinge webkitAnimationEnd.").concat(_this8.ns, "SnakeHinge"), function () {
-            var _this8$$restart, _this8$$restart$show;
+          $el.removeClass("animate__animated animate__hinge animate__rubberBand").addClass("animate__animated animate__hinge").off("animationend.".concat(_this7.ns, "SnakeHinge webkitAnimationEnd.").concat(_this7.ns, "SnakeHinge")).one("animationend.".concat(_this7.ns, "SnakeHinge webkitAnimationEnd.").concat(_this7.ns, "SnakeHinge"), function () {
+            var _this7$$restart, _this7$$restart$show;
             $el.removeClass("snake snake-head animate__animated animate__hinge animate__rubberBand").html("").css("animation-delay", "");
-            if (i === lastIndex) (_this8$$restart = _this8.$restart) === null || _this8$$restart === void 0 || (_this8$$restart$show = _this8$$restart.show) === null || _this8$$restart$show === void 0 || _this8$$restart$show.call(_this8$$restart);
+            if (i === lastIndex) (_this7$$restart = _this7.$restart) === null || _this7$$restart === void 0 || (_this7$$restart$show = _this7$$restart.show) === null || _this7$$restart$show === void 0 || _this7$$restart$show.call(_this7$$restart);
           });
         }, delay);
-        _this8._countdownTimeouts.push(tid);
+        _this7._countdownTimeouts.push(tid);
       });
     }
   }, {
     key: "_explodeBombCollision",
     value: function _explodeBombCollision(hitCell) {
       var _this$$board4,
-        _this9 = this;
+        _this8 = this;
       if (!((_this$$board4 = this.$board) !== null && _this$$board4 !== void 0 && _this$$board4.length)) return;
       var parentEl = this.$board[0] || document.body;
       var explodedSelectors = [];
       this._snake.forEach(function (cell, i) {
-        var $cell = _this9.$board.find(".board-cell[data-row=\"".concat(cell.r, "\"][data-col=\"").concat(cell.c, "\"]")).first();
+        var $cell = _this8.$board.find(".board-cell[data-row=\"".concat(cell.r, "\"][data-col=\"").concat(cell.c, "\"]")).first();
         if (!$cell.length) return;
         (0,_shared_mojsEffects_js__WEBPACK_IMPORTED_MODULE_2__.playSnakeCellBreakBurstAtElement)($cell[0], {
           parentEl: parentEl,
@@ -2888,7 +2888,7 @@ var NotePython = /*#__PURE__*/function () {
       var deduped = Array.from(new Set(explodedSelectors));
       var tid = setTimeout(function () {
         deduped.forEach(function (selector) {
-          _this9.$board.find(selector).removeClass("snake snake-head bomb food animate__animated animate__rubberBand animate__hinge").html("");
+          _this8.$board.find(selector).removeClass("snake snake-head bomb food animate__animated animate__rubberBand animate__hinge").html("");
         });
       }, 110);
       this._countdownTimeouts.push(tid);
@@ -2896,12 +2896,12 @@ var NotePython = /*#__PURE__*/function () {
   }, {
     key: "_playBombHitFailSfx",
     value: function _playBombHitFailSfx() {
-      var _this0 = this;
+      var _this9 = this;
       if (!this._isSoundEnabled() || !window.Tone) return Promise.resolve(0);
       return this._ensureUiSfxAudio().then(function () {
         var _synth$get$oscillator;
-        var synth = _this0._uiSfxSynth;
-        var noiseSynth = _this0._uiSfxNoise;
+        var synth = _this9._uiSfxSynth;
+        var noiseSynth = _this9._uiSfxNoise;
         if (!synth) return 0;
         var now = Tone.now();
         var oldEnv = _objectSpread({}, synth.get().envelope);
@@ -2937,18 +2937,18 @@ var NotePython = /*#__PURE__*/function () {
             });
           } catch (_) {}
         }, restoreDelay);
-        _this0._countdownTimeouts.push(tid);
+        _this9._countdownTimeouts.push(tid);
         return restoreDelay;
       });
     }
   }, {
     key: "_playWallCrashSfx",
     value: function _playWallCrashSfx() {
-      var _this1 = this;
+      var _this0 = this;
       if (!this._isSoundEnabled() || !window.Tone) return;
       this._ensureUiSfxAudio().then(function () {
-        var synth = _this1._uiTimerSfxSynth || _this1._uiSfxSynth;
-        var noiseSynth = _this1._uiSfxNoise;
+        var synth = _this0._uiTimerSfxSynth || _this0._uiSfxSynth;
+        var noiseSynth = _this0._uiSfxNoise;
         if (!synth) return;
         var now = Tone.now();
         if (noiseSynth) {
@@ -2964,7 +2964,7 @@ var NotePython = /*#__PURE__*/function () {
     key: "_hingeClearBoardEntities",
     value: function _hingeClearBoardEntities() {
       var _this$$board5,
-        _this10 = this;
+        _this1 = this;
       if (!((_this$$board5 = this.$board) !== null && _this$$board5 !== void 0 && _this$$board5.length)) return;
       var $targets = this.$board.find(".board-cell").filter(function (_, el) {
         var $el = $(el);
@@ -2980,13 +2980,13 @@ var NotePython = /*#__PURE__*/function () {
         var delay = i * 85;
         var tid = setTimeout(function () {
           var $el = $(el);
-          $el.removeClass("animate__animated animate__hinge animate__rubberBand").addClass("animate__animated animate__hinge").off("animationend.".concat(_this10.ns, "BombHinge webkitAnimationEnd.").concat(_this10.ns, "BombHinge")).one("animationend.".concat(_this10.ns, "BombHinge webkitAnimationEnd.").concat(_this10.ns, "BombHinge"), function () {
-            var _this10$$restart, _this10$$restart$show;
+          $el.removeClass("animate__animated animate__hinge animate__rubberBand").addClass("animate__animated animate__hinge").off("animationend.".concat(_this1.ns, "BombHinge webkitAnimationEnd.").concat(_this1.ns, "BombHinge")).one("animationend.".concat(_this1.ns, "BombHinge webkitAnimationEnd.").concat(_this1.ns, "BombHinge"), function () {
+            var _this1$$restart, _this1$$restart$show;
             $el.removeClass("snake snake-head food bomb animate__animated animate__hinge animate__rubberBand").html("").css("animation-delay", "");
-            if (i === lastIndex) (_this10$$restart = _this10.$restart) === null || _this10$$restart === void 0 || (_this10$$restart$show = _this10$$restart.show) === null || _this10$$restart$show === void 0 || _this10$$restart$show.call(_this10$$restart);
+            if (i === lastIndex) (_this1$$restart = _this1.$restart) === null || _this1$$restart === void 0 || (_this1$$restart$show = _this1$$restart.show) === null || _this1$$restart$show === void 0 || _this1$$restart$show.call(_this1$$restart);
           });
         }, delay);
-        _this10._countdownTimeouts.push(tid);
+        _this1._countdownTimeouts.push(tid);
       });
     }
   }, {
@@ -2995,7 +2995,7 @@ var NotePython = /*#__PURE__*/function () {
       var _this$_snake2,
         _this$$board6,
         _this$$board6$addClas,
-        _this11 = this;
+        _this10 = this;
       if (this._isGameOver) return;
       var hitCell = (_this$_snake2 = this._snake) !== null && _this$_snake2 !== void 0 && _this$_snake2[0] ? this._wrapCell({
         r: this._snake[0].r + this._direction.dr,
@@ -3008,11 +3008,11 @@ var NotePython = /*#__PURE__*/function () {
       this._playWallCrashSfx();
       this._playBombHitFailSfx();
       this._runBoardPreExplosionShake(function () {
-        _this11._explodeBombCollision(hitCell);
+        _this10._explodeBombCollision(hitCell);
         var tid = setTimeout(function () {
-          _this11._hingeClearBoardEntities();
+          _this10._hingeClearBoardEntities();
         }, 520);
-        _this11._countdownTimeouts.push(tid);
+        _this10._countdownTimeouts.push(tid);
       });
     }
   }, {
@@ -3048,14 +3048,14 @@ var NotePython = /*#__PURE__*/function () {
     key: "_animateBoardCorrectHit",
     value: function _animateBoardCorrectHit() {
       var _this$$board8,
-        _this12 = this;
+        _this11 = this;
       if (!((_this$$board8 = this.$board) !== null && _this$$board8 !== void 0 && _this$$board8.length)) return;
       this.$board.removeClass("board-correct-hit");
       // eslint-disable-next-line no-unused-expressions
       this.$board[0] && this.$board[0].offsetWidth;
       this.$board.addClass("board-correct-hit");
       var tid = setTimeout(function () {
-        _this12.$board.removeClass("board-correct-hit");
+        _this11.$board.removeClass("board-correct-hit");
       }, 900);
       this._countdownTimeouts.push(tid);
     }
@@ -3063,14 +3063,14 @@ var NotePython = /*#__PURE__*/function () {
     key: "_animateBoardWrongHit",
     value: function _animateBoardWrongHit() {
       var _this$$board9,
-        _this13 = this;
+        _this12 = this;
       if (!((_this$$board9 = this.$board) !== null && _this$$board9 !== void 0 && _this$$board9.length)) return;
       this.$board.removeClass("board-wrong-hit");
       // eslint-disable-next-line no-unused-expressions
       this.$board[0] && this.$board[0].offsetWidth;
       this.$board.addClass("board-wrong-hit");
       var tid = setTimeout(function () {
-        _this13.$board.removeClass("board-wrong-hit");
+        _this12.$board.removeClass("board-wrong-hit");
       }, 420);
       this._countdownTimeouts.push(tid);
     }
@@ -3078,7 +3078,7 @@ var NotePython = /*#__PURE__*/function () {
     key: "_animateSnakeFinalCelebrate",
     value: function _animateSnakeFinalCelebrate() {
       var _this$$board0,
-        _this14 = this;
+        _this13 = this;
       if (!((_this$$board0 = this.$board) !== null && _this$$board0 !== void 0 && _this$$board0.length)) return;
       var $cells = this.$board.find(".board-cell.snake");
       $cells.each(function (_, el) {
@@ -3087,7 +3087,7 @@ var NotePython = /*#__PURE__*/function () {
         $el.removeClass("animate__animated animate__shakeY").css("animation-duration", "".concat(dur, "s"));
         // eslint-disable-next-line no-unused-expressions
         el && el.offsetWidth;
-        $el.addClass("animate__animated animate__shakeY").off("animationend.".concat(_this14.ns, "SnakeCelebrate webkitAnimationEnd.").concat(_this14.ns, "SnakeCelebrate")).one("animationend.".concat(_this14.ns, "SnakeCelebrate webkitAnimationEnd.").concat(_this14.ns, "SnakeCelebrate"), function () {
+        $el.addClass("animate__animated animate__shakeY").off("animationend.".concat(_this13.ns, "SnakeCelebrate webkitAnimationEnd.").concat(_this13.ns, "SnakeCelebrate")).one("animationend.".concat(_this13.ns, "SnakeCelebrate webkitAnimationEnd.").concat(_this13.ns, "SnakeCelebrate"), function () {
           $el.removeClass("animate__animated animate__shakeY").css("animation-duration", "");
         });
       });
@@ -3095,7 +3095,7 @@ var NotePython = /*#__PURE__*/function () {
   }, {
     key: "_advanceSnake",
     value: function _advanceSnake() {
-      var _this15 = this,
+      var _this14 = this,
         _eatenFood$note;
       if (!this._snake.length || this._isGameOver) return;
       if (this._directionQueue.length) {
@@ -3115,14 +3115,14 @@ var NotePython = /*#__PURE__*/function () {
       }
       var next = this._wrapCell(rawNext);
       var hitBomb = this._showBombs() && this._bombs.some(function (bomb) {
-        return _this15._sameCell(bomb, next);
+        return _this14._sameCell(bomb, next);
       });
       if (hitBomb) {
         this._handleBombCollision();
         return;
       }
       var eatenFoodIdx = this._foods.findIndex(function (f) {
-        return _this15._sameCell(f, next);
+        return _this14._sameCell(f, next);
       });
       var eatenFood = eatenFoodIdx >= 0 ? this._foods[eatenFoodIdx] : null;
       var validTargets = new Set((Array.isArray(this._targetNotes) ? this._targetNotes : []).map(function (n) {
@@ -3171,8 +3171,8 @@ var NotePython = /*#__PURE__*/function () {
           if (this._finalResultsTimeoutId != null) clearTimeout(this._finalResultsTimeoutId);
           this._finalResultsTimeoutId = (0,_shared_finalResults_js__WEBPACK_IMPORTED_MODULE_1__.queueFinalResultsReveal)({
             showFinalResults: function showFinalResults() {
-              _this15._finalResultsTimeoutId = null;
-              _this15._showFinalResults();
+              _this14._finalResultsTimeoutId = null;
+              _this14._showFinalResults();
             }
           });
           return;
@@ -3181,12 +3181,12 @@ var NotePython = /*#__PURE__*/function () {
           $interval: this.$interval,
           delayMs: 700,
           onDone: function onDone() {
-            if (_this15._isGameOver) return;
-            _this15._setIntervalUIWithDirection(_this15._pickInterval(), _this15._pickIntervalDirection());
-            _this15._spawnFoods(2);
-            _this15._spawnBombs(1);
-            _this15._ensureTargetFoodPresent();
-            _this15._renderEntities();
+            if (_this14._isGameOver) return;
+            _this14._setIntervalUIWithDirection(_this14._pickInterval(), _this14._pickIntervalDirection());
+            _this14._spawnFoods(2);
+            _this14._spawnBombs(1);
+            _this14._ensureTargetFoodPresent();
+            _this14._renderEntities();
           }
         });
         return;
@@ -3229,31 +3229,39 @@ var NotePython = /*#__PURE__*/function () {
     key: "_runCountdownThenStart",
     value: function () {
       var _runCountdownThenStart2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
-        var _this16 = this;
+        var _this15 = this;
+        var countdownRun;
         return _regenerator().w(function (_context) {
           while (1) switch (_context.n) {
             case 0:
+              countdownRun = ++this._countdownRun;
+              this._setPlayButtons(true);
               _context.n = 1;
               return this._countdown.prepareAudio();
             case 1:
+              if (!(countdownRun !== this._countdownRun)) {
+                _context.n = 2;
+                break;
+              }
+              return _context.a(2);
+            case 2:
               this._countdown.start({
                 beatMs: 1000,
-                onCancel: function onCancel() {
-                  return _this16._awaitStartThenCountdown();
-                },
                 onComplete: function onComplete() {
-                  _this16._placeInitialSnake();
-                  _this16._directionQueue = [];
-                  _this16._spawnFoods(2, {
-                    preferredRow: _this16._rows - 2
+                  if (countdownRun !== _this15._countdownRun) return;
+                  _this15.$playWrap.hide();
+                  _this15._placeInitialSnake();
+                  _this15._directionQueue = [];
+                  _this15._spawnFoods(2, {
+                    preferredRow: _this15._rows - 2
                   });
-                  if (_this16._showBombs()) _this16._spawnBombs(2);
-                  _this16._ensureTargetFoodPresent();
-                  _this16._renderEntities();
-                  _this16._startLoop();
+                  if (_this15._showBombs()) _this15._spawnBombs(2);
+                  _this15._ensureTargetFoodPresent();
+                  _this15._renderEntities();
+                  _this15._startLoop();
                 }
               });
-            case 2:
+            case 3:
               return _context.a(2);
           }
         }, _callee, this);
@@ -3266,19 +3274,38 @@ var NotePython = /*#__PURE__*/function () {
   }, {
     key: "_awaitStartThenCountdown",
     value: function _awaitStartThenCountdown() {
-      var _this17 = this;
-      this._countdown.showStart(function () {
-        return _this17._runCountdownThenStart();
+      this._setPlayButtons(false);
+    }
+  }, {
+    key: "_wireStartControls",
+    value: function _wireStartControls() {
+      var _this16 = this;
+      this.$playBtn.off("click.".concat(this.ns, "Start")).on("click.".concat(this.ns, "Start"), function (event) {
+        event.preventDefault();
+        _this16._runCountdownThenStart();
       });
+      this.$stopBtn.off("click.".concat(this.ns, "Start")).on("click.".concat(this.ns, "Start"), function (event) {
+        event.preventDefault();
+        _this16._countdownRun += 1;
+        _this16._clearCountdownTimers();
+        _this16._awaitStartThenCountdown();
+      });
+    }
+  }, {
+    key: "_setPlayButtons",
+    value: function _setPlayButtons(isPlaying) {
+      this.$playWrap.show();
+      this.$playBtn.toggle(!isPlaying);
+      this.$stopBtn.toggle(isPlaying);
     }
   }, {
     key: "_startLoop",
     value: function _startLoop() {
-      var _this18 = this;
+      var _this17 = this;
       if (this._pausedByModal) return;
       this._stopLoop();
       this._tickTimer = setInterval(function () {
-        _this18._advanceSnake();
+        _this17._advanceSnake();
       }, this._snakeSpeedMs());
     }
   }, {
@@ -3319,6 +3346,7 @@ var NotePython = /*#__PURE__*/function () {
       }
       this._clearCountdownTimers();
       this._clearFoodAnimTimers();
+      this._wireStartControls();
       this._wireKeyboardControls();
       this._wireModalPause();
       this._armUiSfxOnFirstGesture();
@@ -3409,7 +3437,7 @@ var NotePython = /*#__PURE__*/function () {
   }, {
     key: "_showFinalResults",
     value: function _showFinalResults() {
-      var _this19 = this,
+      var _this18 = this,
         _this$$controls,
         _this$$controls$hide;
       if (this._isPracticeMode()) return;
@@ -3425,9 +3453,9 @@ var NotePython = /*#__PURE__*/function () {
       });
       if (perfectGame) {
         var tid = setTimeout(function () {
-          var _this19$$doublePoints, _this19$$doublePoints2;
-          (_this19$$doublePoints = _this19.$doublePoints) === null || _this19$$doublePoints === void 0 || (_this19$$doublePoints2 = _this19$$doublePoints.show) === null || _this19$$doublePoints2 === void 0 || _this19$$doublePoints2.call(_this19$$doublePoints);
-          _this19._playPerfectGameBonusSfx();
+          var _this18$$doublePoints, _this18$$doublePoints2;
+          (_this18$$doublePoints = _this18.$doublePoints) === null || _this18$$doublePoints === void 0 || (_this18$$doublePoints2 = _this18$$doublePoints.show) === null || _this18$$doublePoints2 === void 0 || _this18$$doublePoints2.call(_this18$$doublePoints);
+          _this18._playPerfectGameBonusSfx();
         }, 1750);
         this._countdownTimeouts.push(tid);
       } else {
@@ -3450,14 +3478,14 @@ var NotePython = /*#__PURE__*/function () {
         durationSec: durationSec,
         settingsBonus: scoreSummary.settingsBonus,
         clearCountupTimers: function clearCountupTimers() {
-          return _this19._clearFinalCountupTimers();
+          return _this18._clearFinalCountupTimers();
         },
         countupTimers: this._finalCountupTimeouts,
         animateMetrics: function animateMetrics() {
-          return _this19._animateFinalMetricsWithSfx();
+          return _this18._animateFinalMetricsWithSfx();
         },
         playFinalSfx: function playFinalSfx() {
-          return _this19._playFinalSfx();
+          return _this18._playFinalSfx();
         }
       });
     }
@@ -4316,11 +4344,7 @@ var GameCountdown = /*#__PURE__*/function () {
     var _this$element, _this$element2, _this$valueElement, _this$valueElement2, _this$valueElement3;
     var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
       element = _ref.element,
-      valueElement = _ref.valueElement,
-      _ref$soundEnabled = _ref.soundEnabled,
-      soundEnabled = _ref$soundEnabled === void 0 ? function () {
-        return true;
-      } : _ref$soundEnabled;
+      valueElement = _ref.valueElement;
     _classCallCheck(this, GameCountdown);
     this.element = typeof element === "string" ? document.querySelector(element) : element;
     this.valueElement = typeof valueElement === "string" ? document.querySelector(valueElement) : valueElement || ((_this$element = this.element) === null || _this$element === void 0 ? void 0 : _this$element.querySelector("[data-game-countdown-value]")) || null;
@@ -4329,7 +4353,6 @@ var GameCountdown = /*#__PURE__*/function () {
     this._originalValueHtml = ((_this$valueElement = this.valueElement) === null || _this$valueElement === void 0 ? void 0 : _this$valueElement.innerHTML) || "";
     this._originalAriaLive = (_this$valueElement2 = this.valueElement) === null || _this$valueElement2 === void 0 ? void 0 : _this$valueElement2.getAttribute("aria-live");
     this._originalAriaAtomic = (_this$valueElement3 = this.valueElement) === null || _this$valueElement3 === void 0 ? void 0 : _this$valueElement3.getAttribute("aria-atomic");
-    this.soundEnabled = soundEnabled;
     this._timers = new Set();
     this._startHandler = null;
     this._cancelHandler = null;
@@ -4347,7 +4370,7 @@ var GameCountdown = /*#__PURE__*/function () {
         return _regenerator().w(function (_context) {
           while (1) switch (_context.p = _context.n) {
             case 0:
-              if (!(!this._soundEnabled() || !window.Tone)) {
+              if (window.Tone) {
                 _context.n = 1;
                 break;
               }
@@ -4365,7 +4388,7 @@ var GameCountdown = /*#__PURE__*/function () {
             case 4:
               return _context.a(2);
           }
-        }, _callee, this, [[1, 3]]);
+        }, _callee, null, [[1, 3]]);
       }));
       function prepareAudio() {
         return _prepareAudio.apply(this, arguments);
@@ -4431,7 +4454,10 @@ var GameCountdown = /*#__PURE__*/function () {
       GameCountdown.STEPS.forEach(function (label, index) {
         var showStep = function showStep() {
           _this2.valueElement.textContent = label;
-          if (_this2._soundEnabled()) _GameAudio_js__WEBPACK_IMPORTED_MODULE_0__.GameAudio.playMetronomeClick(label === "Go!");
+          _this2.valueElement.classList.remove("game-countdown-step-pop");
+          void _this2.valueElement.offsetWidth;
+          _this2.valueElement.classList.add("game-countdown-step-pop");
+          _GameAudio_js__WEBPACK_IMPORTED_MODULE_0__.GameAudio.playMetronomeClick(label === "Go!");
         };
         if (index === 0) showStep();else _this2._setTimer(showStep, index * interval);
       });
@@ -4491,15 +4517,10 @@ var GameCountdown = /*#__PURE__*/function () {
     value: function _restoreValue() {
       if (!this.valueElement) return;
       this.valueElement.innerHTML = this._originalValueHtml;
-      this.valueElement.classList.remove("is-counting-down");
+      this.valueElement.classList.remove("is-counting-down", "game-countdown-step-pop");
       if (!this._valueIsExternal) this.valueElement.hidden = this.valueElement !== this.startButton;
       if (this._originalAriaLive == null) this.valueElement.removeAttribute("aria-live");else this.valueElement.setAttribute("aria-live", this._originalAriaLive);
       if (this._originalAriaAtomic == null) this.valueElement.removeAttribute("aria-atomic");else this.valueElement.setAttribute("aria-atomic", this._originalAriaAtomic);
-    }
-  }, {
-    key: "_soundEnabled",
-    value: function _soundEnabled() {
-      return typeof this.soundEnabled === "function" ? Boolean(this.soundEnabled()) : Boolean(this.soundEnabled);
     }
   }]);
 }();

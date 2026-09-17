@@ -18640,7 +18640,7 @@ textarea.form-control-lg {
   pointer-events: auto !important;
 }
 
-.rounded, .beat-hero-symbol-option, form .form-control, form .form-select, .dropzone-container, .dropzone {
+.rounded, form .form-control, form .form-select, .dropzone-container, .dropzone {
   border-radius: var(--bs-border-radius) !important;
 }
 
@@ -24835,7 +24835,7 @@ h1, .h1 {
   font-size: 2em;
 }
 
-.rounded, .beat-hero-symbol-option, form .form-control, form .form-select, .dropzone-container, .dropzone {
+.rounded, form .form-control, form .form-select, .dropzone-container, .dropzone {
   border-radius: 2rem !important;
 }
 
@@ -31379,6 +31379,25 @@ body {
   background-color: #f7f7f7;
 }
 
+#play {
+  display: grid;
+}
+
+#play > .btn-floating {
+  grid-area: 1/1;
+  min-width: 0;
+}
+
+.game-instructions {
+  margin: 0 0 16px;
+  color: #6b7680;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.4;
+  text-align: center;
+}
+
 .game-countdown {
   position: absolute;
   inset: 0;
@@ -31410,6 +31429,29 @@ button.is-counting-down {
   font-weight: 900;
 }
 
+button.game-countdown-step-pop {
+  animation: gameCountdownButtonPop 320ms cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+@keyframes gameCountdownButtonPop {
+  0% {
+    transform: translateY(-0.25em) scale(0.9);
+  }
+  52% {
+    transform: translateY(-0.25em) scale(1.09);
+  }
+  76% {
+    transform: translateY(-0.25em) scale(0.98);
+  }
+  100% {
+    transform: translateY(-0.25em) scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  button.game-countdown-step-pop {
+    animation: none;
+  }
+}
 .animate__animated {
   --animate-duration: 0.8s;
 }
@@ -31581,6 +31623,7 @@ button.is-counting-down {
 .beat-hero-symbol-option {
   position: relative;
   display: block;
+  border-radius: 16px;
   aspect-ratio: 1.1;
   margin: 0;
   overflow: hidden;
@@ -31614,8 +31657,8 @@ button.is-counting-down {
 
 .beat-hero-symbol-check {
   position: absolute;
-  top: 3px;
-  right: 3px;
+  top: 4px;
+  right: 4px;
   display: none;
   place-items: center;
   width: 14px;

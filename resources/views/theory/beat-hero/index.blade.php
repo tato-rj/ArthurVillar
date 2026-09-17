@@ -81,13 +81,6 @@
     height: 100%;
   }
 
-  #sequence-status {
-    min-height: 25px;
-    margin: 0 0 16px;
-    color: #6b7680;
-    font-weight: 700;
-  }
-
   .rhythm-card-grid {
     display: flex;
     flex-wrap: wrap;
@@ -167,12 +160,12 @@
   }
 
   #play {
-    min-height: 62px;
-    margin: 18px 0 12px;
+    {{-- min-height: 62px; --}}
+    {{-- margin: 18px 0 12px; --}}
   }
 
   #play button {
-    min-width: 132px;
+    {{-- min-width: 132px; --}}
   }
 
   @keyframes rhythmCardShake {
@@ -202,17 +195,13 @@
     }
 
     .rhythm-card__number {
-      top: 5px;
-      right: 5px;
+      top: 8px;
+      right: 8px;
       min-width: 21px;
       height: 21px;
       font-size: 12px;
     }
 
-    #sequence-status {
-      margin-bottom: 12px;
-      font-size: .9rem;
-    }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -242,16 +231,16 @@
       <div class="beat-hero-game">
         <div id="sequence-dots" class="sequence-dots" aria-label="Rhythm sequence progress"></div>
 
-        <p id="sequence-status" aria-live="polite"></p>
+        @include('theory.components.instructions', ['instructionId' => 'sequence-status'])
 
         <div id="rhythm-card-grid" class="rhythm-card-grid mb-4" aria-label="Rhythm cards"></div>
 
-        @include('theory.components.play')
+        {{-- @include('theory.components.play') --}}
       </div>
     </div>
 
     <div class="col-lg-6 col-md-8 col-11 mx-auto">
-      @include('theory.components.controls', ['instructions' => ''])
+      @include('theory.components.controls', ['type' => 'play'])
       @include('theory.beat-hero.settings')
       @include('theory.components.leaderboard.show')
       @include('theory.components.preferences')

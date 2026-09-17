@@ -3,7 +3,7 @@ import { GameAudio } from "./GameAudio.js";
 export class GameCountdown {
   static STEPS = ["Ready", "Set", "Go!"];
 
-  constructor({ element, valueElement, soundEnabled = () => true } = {}) {
+  constructor({ element, valueElement } = {}) {
     this.element = typeof element === "string" ? document.querySelector(element) : element;
     this.valueElement = typeof valueElement === "string"
       ? document.querySelector(valueElement)
@@ -13,7 +13,6 @@ export class GameCountdown {
     this._originalValueHtml = this.valueElement?.innerHTML || "";
     this._originalAriaLive = this.valueElement?.getAttribute("aria-live");
     this._originalAriaAtomic = this.valueElement?.getAttribute("aria-atomic");
-    this.soundEnabled = soundEnabled;
     this._timers = new Set();
     this._startHandler = null;
     this._cancelHandler = null;
@@ -24,7 +23,7 @@ export class GameCountdown {
   }
 
   async prepareAudio() {
-    if (!this._soundEnabled() || !window.Tone) return;
+    if (!window.Tone) return;
 
     try {
       await GameAudio.ensureMetronomeAudio();
@@ -82,7 +81,10 @@ export class GameCountdown {
     GameCountdown.STEPS.forEach((label, index) => {
       const showStep = () => {
         this.valueElement.textContent = label;
-        if (this._soundEnabled()) GameAudio.playMetronomeClick(label === "Go!");
+        this.valueElement.classList.remove("game-countdown-step-pop");
+        void this.valueElement.offsetWidth;
+        this.valueElement.classList.add("game-countdown-step-pop");
+        GameAudio.playMetronomeClick(label === "Go!");
       };
 
       if (index === 0) showStep();
@@ -138,7 +140,7 @@ export class GameCountdown {
     if (!this.valueElement) return;
 
     this.valueElement.innerHTML = this._originalValueHtml;
-    this.valueElement.classList.remove("is-counting-down");
+    this.valueElement.classList.remove("is-counting-down", "game-countdown-step-pop");
     if (!this._valueIsExternal) this.valueElement.hidden = this.valueElement !== this.startButton;
 
     if (this._originalAriaLive == null) this.valueElement.removeAttribute("aria-live");
@@ -147,9 +149,4 @@ export class GameCountdown {
     else this.valueElement.setAttribute("aria-atomic", this._originalAriaAtomic);
   }
 
-  _soundEnabled() {
-    return typeof this.soundEnabled === "function"
-      ? Boolean(this.soundEnabled())
-      : Boolean(this.soundEnabled);
-  }
 }

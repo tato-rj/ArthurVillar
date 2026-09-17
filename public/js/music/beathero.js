@@ -41,7 +41,6 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
 
 var BeatHero = /*#__PURE__*/function () {
   function BeatHero() {
-    var _this = this;
     var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
     _classCallCheck(this, BeatHero);
     this.opts = _objectSpread({
@@ -75,10 +74,7 @@ var BeatHero = /*#__PURE__*/function () {
     this.$increment = $("#increment");
     this.$finalOverlay = $("#final-overlay");
     this._countdown = new _shared_GameCountdown_js__WEBPACK_IMPORTED_MODULE_2__.GameCountdown({
-      valueElement: this.$stopBtn.get(0),
-      soundEnabled: function soundEnabled() {
-        return _this.opts.sound;
-      }
+      valueElement: this.$stopBtn.get(0)
     });
     this._playbackRun = 0;
     this._cards = [];
@@ -114,28 +110,28 @@ var BeatHero = /*#__PURE__*/function () {
   }, {
     key: "_wireControls",
     value: function _wireControls() {
-      var _this2 = this;
+      var _this = this;
       this.$playBtn.off("click.beatHero").on("click.beatHero", function (event) {
         event.preventDefault();
-        _this2._playChallenge();
+        _this._playChallenge();
       });
       this.$stopBtn.off("click.beatHero").on("click.beatHero", function (event) {
         event.preventDefault();
-        _this2._stopChallenge();
+        _this._stopChallenge();
       });
       this.$grid.off("click.beatHero", ".rhythm-card").on("click.beatHero", ".rhythm-card", function (event) {
         event.preventDefault();
-        _this2._handleCardTap(event.currentTarget);
+        _this._handleCardTap(event.currentTarget);
       });
       this.$continueBtn.off("click.beatHero").on("click.beatHero", function (event) {
         event.preventDefault();
-        _this2._continue();
+        _this._continue();
       });
     }
   }, {
     key: "_wireFigurePicker",
     value: function _wireFigurePicker() {
-      var _this3 = this;
+      var _this2 = this;
       var picker = document.querySelector("[data-beat-hero-symbol-picker]");
       if (!picker) return;
       var checkboxes = _toConsumableArray(picker.querySelectorAll(".beat-hero-symbol-input"));
@@ -145,7 +141,7 @@ var BeatHero = /*#__PURE__*/function () {
         var figure = BeatHero.FIGURES.find(function (item) {
           return item.id === thumbnail.dataset.beatHeroFigureThumbnail;
         });
-        if (figure) thumbnail.innerHTML = _this3._figureSvg(figure);
+        if (figure) thumbnail.innerHTML = _this2._figureSvg(figure);
       });
       var selectedCount = function selectedCount() {
         return checkboxes.filter(function (checkbox) {
@@ -201,7 +197,7 @@ var BeatHero = /*#__PURE__*/function () {
   }, {
     key: "_startRound",
     value: function _startRound() {
-      var _this4 = this;
+      var _this3 = this;
       this._cancelTimers();
       this._state = "ready";
       this._inputLocked = false;
@@ -209,7 +205,7 @@ var BeatHero = /*#__PURE__*/function () {
       this._roundHadMistake = false;
       this.$continueWrap.hide();
       var pool = BeatHero.FIGURES.filter(function (figure) {
-        return _this4.opts.figures.includes(figure.id);
+        return _this3.opts.figures.includes(figure.id);
       });
       this._cards = this._shuffle(pool);
       var sequence = [];
@@ -219,7 +215,7 @@ var BeatHero = /*#__PURE__*/function () {
       this._answer = sequence.slice(0, this.opts.numOfCards);
       this._renderCards();
       this.$dots.attr("aria-label", "".concat(this.opts.numOfCards, "-card sequence progress")).html(this._answer.map(function (_, index) {
-        return "\n        <span class=\"sequence-dot\" aria-hidden=\"true\">".concat(_this4._dotNumberMarkup(index), "</span>\n      ");
+        return "\n        <span class=\"sequence-dot\" aria-hidden=\"true\">".concat(_this3._dotNumberMarkup(index), "</span>\n      ");
       }).join(""));
       this._resetDots();
       this._setStatus(this._readyInstructions());
@@ -228,9 +224,9 @@ var BeatHero = /*#__PURE__*/function () {
   }, {
     key: "_renderCards",
     value: function _renderCards() {
-      var _this5 = this;
+      var _this4 = this;
       var html = this._cards.map(function (figure, index) {
-        return "\n      <button\n        type=\"button\"\n        class=\"rhythm-card\"\n        data-figure-id=\"".concat(figure.id, "\"\n        aria-label=\"Card ").concat(index + 1, ": ").concat(figure.label, "\"\n      >\n        <span class=\"rhythm-card__number\" aria-hidden=\"true\"></span>\n        <span class=\"rhythm-card__figure\" aria-hidden=\"true\">\n          ").concat(_this5._figureSvg(figure), "\n        </span>\n      </button>\n    ");
+        return "\n      <button\n        type=\"button\"\n        class=\"rhythm-card\"\n        data-figure-id=\"".concat(figure.id, "\"\n        aria-label=\"Card ").concat(index + 1, ": ").concat(figure.label, "\"\n      >\n        <span class=\"rhythm-card__number\" aria-hidden=\"true\"></span>\n        <span class=\"rhythm-card__figure\" aria-hidden=\"true\">\n          ").concat(_this4._figureSvg(figure), "\n        </span>\n      </button>\n    ");
       }).join("");
       this.$grid.attr("data-card-count", this._cards.length).html(html);
     }
@@ -243,7 +239,7 @@ var BeatHero = /*#__PURE__*/function () {
     key: "_playChallenge",
     value: function () {
       var _playChallenge2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
-        var _this6 = this;
+        var _this5 = this;
         var playbackRun, beatMs, slotMs, countInMs;
         return _regenerator().w(function (_context) {
           while (1) switch (_context.n) {
@@ -278,24 +274,24 @@ var BeatHero = /*#__PURE__*/function () {
                 beatMs: beatMs
               });
               this._setTimer(function () {
-                _this6._setStatus("Listen carefully…");
+                _this5._setStatus("Listen carefully…");
               }, countInMs);
               this._answer.forEach(function (figure, index) {
                 var startsAt = countInMs + index * slotMs;
-                _this6._setTimer(function () {
-                  return _this6._activateDot(index);
+                _this5._setTimer(function () {
+                  return _this5._activateDot(index);
                 }, startsAt);
-                _this6._scheduleFigureAudio(figure, startsAt);
-                _this6._setTimer(function () {
-                  return _this6._completeDot(index);
+                _this5._scheduleFigureAudio(figure, startsAt);
+                _this5._setTimer(function () {
+                  return _this5._completeDot(index);
                 }, startsAt + beatMs);
               });
               this._setTimer(function () {
-                _this6._state = "answering";
-                _this6._inputLocked = false;
-                _this6._setPlayButtons(false);
-                _this6._resetDots();
-                _this6._setStatus("Now tap the ".concat(_this6.opts.numOfCards, " cards you heard, in order."));
+                _this5._state = "answering";
+                _this5._inputLocked = false;
+                _this5._setPlayButtons(false);
+                _this5._resetDots();
+                _this5._setStatus("Now tap the ".concat(_this5.opts.numOfCards, " cards you heard, in order."));
               }, countInMs + this._answer.length * slotMs + 120);
             case 4:
               return _context.a(2);
@@ -322,7 +318,7 @@ var BeatHero = /*#__PURE__*/function () {
     key: "_handleCardTap",
     value: function () {
       var _handleCardTap2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee2(cardElement) {
-        var _this7 = this;
+        var _this6 = this;
         var figure, auditionRun, answerIndex, expected, badge, resetDelay;
         return _regenerator().w(function (_context2) {
           while (1) switch (_context2.n) {
@@ -405,11 +401,11 @@ var BeatHero = /*#__PURE__*/function () {
               this._playFailSound();
               resetDelay = Math.min(800, Math.max(600, Math.round(this._beatMs() * 0.75)));
               this._setTimer(function () {
-                _this7._cancelCardAudition();
-                _this7._selection = [];
-                _this7._clearSelectionMarks();
-                _this7._resetDots();
-                _this7._inputLocked = false;
+                _this6._cancelCardAudition();
+                _this6._selection = [];
+                _this6._clearSelectionMarks();
+                _this6._resetDots();
+                _this6._inputLocked = false;
               }, resetDelay);
             case 9:
               return _context2.a(2);
@@ -424,7 +420,7 @@ var BeatHero = /*#__PURE__*/function () {
   }, {
     key: "_finishRound",
     value: function _finishRound() {
-      var _this8 = this;
+      var _this7 = this;
       this._state = "complete";
       this._inputLocked = true;
       var earned = this._roundHadMistake ? 1 : 2;
@@ -432,7 +428,7 @@ var BeatHero = /*#__PURE__*/function () {
       this.$points.text(String(this._pointsValue));
       this.$increment.text("+".concat(earned)).css("opacity", 1);
       this._setTimer(function () {
-        return _this8.$increment.css("opacity", 0);
+        return _this7.$increment.css("opacity", 0);
       }, 900);
       this._updateProgress();
       this._setStatus("Perfect order! Ready for another sequence?");
@@ -444,8 +440,8 @@ var BeatHero = /*#__PURE__*/function () {
         this._finalResultsTimer = (0,_shared_finalResults_js__WEBPACK_IMPORTED_MODULE_0__.queueFinalResultsReveal)({
           $button: this.$continueBtn,
           showFinalResults: function showFinalResults() {
-            _this8._finalResultsTimer = null;
-            if (_this8._state === "complete") _this8._showFinalResults();
+            _this7._finalResultsTimer = null;
+            if (_this7._state === "complete") _this7._showFinalResults();
           }
         });
       } else {
@@ -480,7 +476,7 @@ var BeatHero = /*#__PURE__*/function () {
   }, {
     key: "_showFinalResults",
     value: function _showFinalResults() {
-      var _this9 = this;
+      var _this8 = this;
       this._cancelTimers();
       this.$continueWrap.hide();
       this.$playWrap.hide();
@@ -496,30 +492,30 @@ var BeatHero = /*#__PURE__*/function () {
         durationSec: durationSec,
         settingsBonus: false,
         playFinalSfx: function playFinalSfx() {
-          return _this9._playFinalSound();
+          return _this8._playFinalSound();
         }
       });
     }
   }, {
     key: "_scheduleFigureAudio",
     value: function _scheduleFigureAudio(figure) {
-      var _this0 = this;
+      var _this9 = this;
       var startsAtMs = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
       var cardElement = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
       var beatMs = this._beatMs();
       var setTimer = cardElement ? function (callback, delayMs) {
-        return _this0._setAuditionTimer(callback, delayMs);
+        return _this9._setAuditionTimer(callback, delayMs);
       } : function (callback, delayMs) {
-        return _this0._setTimer(callback, delayMs);
+        return _this9._setTimer(callback, delayMs);
       };
       figure.events.forEach(function (offset) {
         setTimer(function () {
-          _this0._playRhythmHit();
+          _this9._playRhythmHit();
           if (!cardElement) return;
           cardElement.classList.remove("is-sounding");
           void cardElement.offsetWidth;
           cardElement.classList.add("is-sounding");
-          _this0._setAuditionTimer(function () {
+          _this9._setAuditionTimer(function () {
             return cardElement.classList.remove("is-sounding");
           }, 120);
         }, startsAtMs + offset * beatMs);
@@ -607,11 +603,11 @@ var BeatHero = /*#__PURE__*/function () {
   }, {
     key: "_playSuccessSound",
     value: function _playSuccessSound() {
-      var _this1 = this;
+      var _this0 = this;
       if (!this.opts.sound || !this._uiSynth || !window.Tone) return;
       var now = Tone.now();
       ["C6", "E6", "G6"].forEach(function (note, index) {
-        _this1._uiSynth.triggerAttackRelease(note, 0.08, now + index * 0.055, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_1__.GameAudio.scale("successBasic", 0.5));
+        _this0._uiSynth.triggerAttackRelease(note, 0.08, now + index * 0.055, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_1__.GameAudio.scale("successBasic", 0.5));
       });
     }
   }, {
@@ -626,11 +622,11 @@ var BeatHero = /*#__PURE__*/function () {
   }, {
     key: "_playFinalSound",
     value: function _playFinalSound() {
-      var _this10 = this;
+      var _this1 = this;
       if (!this.opts.sound || !this._uiSynth || !window.Tone) return;
       var now = Tone.now();
       ["C5", "E5", "G5", "C6"].forEach(function (note, index) {
-        _this10._uiSynth.triggerAttackRelease(note, 0.16, now + index * 0.08, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_1__.GameAudio.scale("final", 0.5));
+        _this1._uiSynth.triggerAttackRelease(note, 0.16, now + index * 0.08, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_1__.GameAudio.scale("final", 0.5));
       });
     }
   }, {
@@ -669,9 +665,9 @@ var BeatHero = /*#__PURE__*/function () {
   }, {
     key: "_resetDots",
     value: function _resetDots() {
-      var _this11 = this;
+      var _this10 = this;
       this.$dots.find(".sequence-dot").removeClass("is-active is-complete is-chosen is-wrong").each(function (index, dot) {
-        dot.innerHTML = _this11._dotNumberMarkup(index);
+        dot.innerHTML = _this10._dotNumberMarkup(index);
       });
     }
   }, {
@@ -711,9 +707,9 @@ var BeatHero = /*#__PURE__*/function () {
   }, {
     key: "_setTimer",
     value: function _setTimer(callback, delayMs) {
-      var _this12 = this;
+      var _this11 = this;
       var timer = setTimeout(function () {
-        _this12._timers["delete"](timer);
+        _this11._timers["delete"](timer);
         callback();
       }, Math.max(0, delayMs));
       this._timers.add(timer);
@@ -722,9 +718,9 @@ var BeatHero = /*#__PURE__*/function () {
   }, {
     key: "_setAuditionTimer",
     value: function _setAuditionTimer(callback, delayMs) {
-      var _this13 = this;
+      var _this12 = this;
       var timer = setTimeout(function () {
-        _this13._auditionTimers["delete"](timer);
+        _this12._auditionTimers["delete"](timer);
         callback();
       }, Math.max(0, delayMs));
       this._auditionTimers.add(timer);
@@ -1707,11 +1703,7 @@ var GameCountdown = /*#__PURE__*/function () {
     var _this$element, _this$element2, _this$valueElement, _this$valueElement2, _this$valueElement3;
     var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
       element = _ref.element,
-      valueElement = _ref.valueElement,
-      _ref$soundEnabled = _ref.soundEnabled,
-      soundEnabled = _ref$soundEnabled === void 0 ? function () {
-        return true;
-      } : _ref$soundEnabled;
+      valueElement = _ref.valueElement;
     _classCallCheck(this, GameCountdown);
     this.element = typeof element === "string" ? document.querySelector(element) : element;
     this.valueElement = typeof valueElement === "string" ? document.querySelector(valueElement) : valueElement || ((_this$element = this.element) === null || _this$element === void 0 ? void 0 : _this$element.querySelector("[data-game-countdown-value]")) || null;
@@ -1720,7 +1712,6 @@ var GameCountdown = /*#__PURE__*/function () {
     this._originalValueHtml = ((_this$valueElement = this.valueElement) === null || _this$valueElement === void 0 ? void 0 : _this$valueElement.innerHTML) || "";
     this._originalAriaLive = (_this$valueElement2 = this.valueElement) === null || _this$valueElement2 === void 0 ? void 0 : _this$valueElement2.getAttribute("aria-live");
     this._originalAriaAtomic = (_this$valueElement3 = this.valueElement) === null || _this$valueElement3 === void 0 ? void 0 : _this$valueElement3.getAttribute("aria-atomic");
-    this.soundEnabled = soundEnabled;
     this._timers = new Set();
     this._startHandler = null;
     this._cancelHandler = null;
@@ -1738,7 +1729,7 @@ var GameCountdown = /*#__PURE__*/function () {
         return _regenerator().w(function (_context) {
           while (1) switch (_context.p = _context.n) {
             case 0:
-              if (!(!this._soundEnabled() || !window.Tone)) {
+              if (window.Tone) {
                 _context.n = 1;
                 break;
               }
@@ -1756,7 +1747,7 @@ var GameCountdown = /*#__PURE__*/function () {
             case 4:
               return _context.a(2);
           }
-        }, _callee, this, [[1, 3]]);
+        }, _callee, null, [[1, 3]]);
       }));
       function prepareAudio() {
         return _prepareAudio.apply(this, arguments);
@@ -1822,7 +1813,10 @@ var GameCountdown = /*#__PURE__*/function () {
       GameCountdown.STEPS.forEach(function (label, index) {
         var showStep = function showStep() {
           _this2.valueElement.textContent = label;
-          if (_this2._soundEnabled()) _GameAudio_js__WEBPACK_IMPORTED_MODULE_0__.GameAudio.playMetronomeClick(label === "Go!");
+          _this2.valueElement.classList.remove("game-countdown-step-pop");
+          void _this2.valueElement.offsetWidth;
+          _this2.valueElement.classList.add("game-countdown-step-pop");
+          _GameAudio_js__WEBPACK_IMPORTED_MODULE_0__.GameAudio.playMetronomeClick(label === "Go!");
         };
         if (index === 0) showStep();else _this2._setTimer(showStep, index * interval);
       });
@@ -1882,15 +1876,10 @@ var GameCountdown = /*#__PURE__*/function () {
     value: function _restoreValue() {
       if (!this.valueElement) return;
       this.valueElement.innerHTML = this._originalValueHtml;
-      this.valueElement.classList.remove("is-counting-down");
+      this.valueElement.classList.remove("is-counting-down", "game-countdown-step-pop");
       if (!this._valueIsExternal) this.valueElement.hidden = this.valueElement !== this.startButton;
       if (this._originalAriaLive == null) this.valueElement.removeAttribute("aria-live");else this.valueElement.setAttribute("aria-live", this._originalAriaLive);
       if (this._originalAriaAtomic == null) this.valueElement.removeAttribute("aria-atomic");else this.valueElement.setAttribute("aria-atomic", this._originalAriaAtomic);
-    }
-  }, {
-    key: "_soundEnabled",
-    value: function _soundEnabled() {
-      return typeof this.soundEnabled === "function" ? Boolean(this.soundEnabled()) : Boolean(this.soundEnabled);
     }
   }]);
 }();
