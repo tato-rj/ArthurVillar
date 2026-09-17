@@ -224,14 +224,12 @@ button.is-counting-down {
 }
 
 .beat-hero-symbol-option {
-  @extend .border, .border-dark;
+  @extend .border, .border-dark, .rounded;
   position: relative;
   display: block;
   aspect-ratio: 1.1;
   margin: 0;
   overflow: hidden;
-  border: 2px solid #d9dde0;
-  border-radius: 9px;
   background: #fff;
   color: var(--beat-hero-ink);
   cursor: pointer;

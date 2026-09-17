@@ -18640,7 +18640,7 @@ textarea.form-control-lg {
   pointer-events: auto !important;
 }
 
-.rounded, form .form-control, form .form-select, .dropzone-container, .dropzone {
+.rounded, .beat-hero-symbol-option, form .form-control, form .form-select, .dropzone-container, .dropzone {
   border-radius: var(--bs-border-radius) !important;
 }
 
@@ -24835,7 +24835,7 @@ h1, .h1 {
   font-size: 2em;
 }
 
-.rounded, form .form-control, form .form-select, .dropzone-container, .dropzone {
+.rounded, .beat-hero-symbol-option, form .form-control, form .form-select, .dropzone-container, .dropzone {
   border-radius: 2rem !important;
 }
 
@@ -31584,8 +31584,6 @@ button.is-counting-down {
   aspect-ratio: 1.1;
   margin: 0;
   overflow: hidden;
-  border: 2px solid #d9dde0;
-  border-radius: 9px;
   background: #fff;
   color: var(--beat-hero-ink);
   cursor: pointer;
