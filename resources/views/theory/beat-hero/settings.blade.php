@@ -38,6 +38,9 @@
   @endcomponent
 
   @component('theory.components.settings.section', ['title' => 'PREFERENCES'])
+    <input type="hidden" name="sound" value="0">
+    @include('theory.components.settings.toggle', ['label' => 'Sound effects', 'name' => 'sound'])
+
     @include('theory.components.settings.value-range', [
       'label' => 'Cards to play',
       'name' => 'numOfCards',

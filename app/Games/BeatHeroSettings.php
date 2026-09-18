@@ -62,7 +62,7 @@ class BeatHeroSettings extends GameFactory
 
     protected function requiredToggleKeys(): array
     {
-        return ['practiceMode', 'sound'];
+        return ['practiceMode'];
     }
 
     protected function defaults(): array
