@@ -32,6 +32,10 @@ export class GameAudio {
     metronomeDownbeat: 0.6,
     rhythmHit: 0.65,
     hinge: 0.55,
+    notePythonMelody: 1,
+    notePythonLowEnd: 1,
+    notePythonDrums: 1,
+    notePythonVictory: 1,
   };
 
   static SOUND_LIBRARY = [
@@ -154,6 +158,30 @@ export class GameAudio {
       label: "Hinge",
       volumeKey: "hinge",
       description: "Short hinge/fall sound used by ToneTrek block reveals.",
+    },
+    {
+      id: "notePythonMelody",
+      label: "Note Python Melody",
+      volumeKey: "notePythonMelody",
+      description: "Lead melody and fast arpeggios in the Note Python soundtrack.",
+    },
+    {
+      id: "notePythonLowEnd",
+      label: "Note Python Bass & Chords",
+      volumeKey: "notePythonLowEnd",
+      description: "Bass line and low harmony in the Note Python soundtrack.",
+    },
+    {
+      id: "notePythonDrums",
+      label: "Note Python Drums",
+      volumeKey: "notePythonDrums",
+      description: "Kick, snare, and hi-hat layers in the Note Python soundtrack.",
+    },
+    {
+      id: "notePythonVictory",
+      label: "Note Python Victory",
+      volumeKey: "notePythonVictory",
+      description: "Majestic fanfare at the end of a Note Python game.",
     },
   ];
 
@@ -402,6 +430,87 @@ export class GameAudio {
         noiseSynth.triggerAttackRelease(0.04, now, GameAudio.scale("hinge", 0.07));
         synth.triggerAttackRelease("E4", 0.04, now, GameAudio.scale("hinge", 0.12));
         synth.triggerAttackRelease("C4", 0.05, now + 0.04, GameAudio.scale("hinge", 0.16));
+      },
+      notePythonMelody: () => {
+        const lead = GameAudio._getPreviewSynth("notePythonLead", () => new Tone.Synth({
+          oscillator: { type: "triangle" },
+          envelope: { attack: 0.004, decay: 0.06, sustain: 0.3, release: 0.07 },
+          volume: -23,
+        }).toDestination());
+        const arp = GameAudio._getPreviewSynth("notePythonArp", () => new Tone.Synth({
+          oscillator: { type: "square" },
+          envelope: { attack: 0.004, decay: 0.06, sustain: 0.3, release: 0.04 },
+          volume: -30,
+        }).toDestination());
+        const now = Tone.now();
+        ["E4", "G4", "C5", "G4"].forEach((note, i) => {
+          lead.triggerAttackRelease(note, 0.18, now + i * 0.2, GameAudio.scale("notePythonMelody", 0.52));
+          arp.triggerAttackRelease(["C4", "E4", "G4", "B4"][i], 0.07, now + i * 0.2 + 0.1, GameAudio.scale("notePythonMelody", 0.5));
+        });
+      },
+      notePythonLowEnd: () => {
+        const bass = GameAudio._getPreviewSynth("notePythonBass", () => new Tone.Synth({
+          oscillator: { type: "triangle" },
+          envelope: { attack: 0.004, decay: 0.06, sustain: 0.3, release: 0.06 },
+          volume: -16,
+        }).toDestination());
+        const keys = GameAudio._getPreviewSynth("notePythonKeys", () => new Tone.PolySynth(Tone.Synth, {
+          oscillator: { type: "triangle" },
+          envelope: { attack: 0.008, decay: 0.12, sustain: 0.2, release: 0.09 },
+          volume: -27,
+        }).toDestination());
+        const now = Tone.now();
+        bass.triggerAttackRelease("C2", 0.42, now, GameAudio.scale("notePythonLowEnd", 0.75));
+        bass.triggerAttackRelease("G2", 0.32, now + 0.4, GameAudio.scale("notePythonLowEnd", 0.68));
+        keys.triggerAttackRelease(["C3", "E3", "G3"], 0.5, now, GameAudio.scale("notePythonLowEnd", 0.55));
+      },
+      notePythonDrums: () => {
+        const kick = GameAudio._getPreviewSynth("notePythonKick", () => new Tone.MembraneSynth({
+          pitchDecay: 0.025,
+          octaves: 2,
+          oscillator: { type: "sine" },
+          envelope: { attack: 0.001, decay: 0.15, sustain: 0, release: 0.04 },
+          volume: -17,
+        }).toDestination());
+        const snare = GameAudio._getPreviewSynth("notePythonSnare", () => new Tone.NoiseSynth({
+          noise: { type: "pink" },
+          envelope: { attack: 0.001, decay: 0.07, sustain: 0, release: 0.02 },
+          volume: -26,
+        }).toDestination());
+        const hats = GameAudio._getPreviewSynth("notePythonHats", () => new Tone.NoiseSynth({
+          noise: { type: "white" },
+          envelope: { attack: 0.001, decay: 0.012, sustain: 0, release: 0.008 },
+          volume: -38,
+        }).toDestination());
+        const now = Tone.now();
+        [0, 0.2, 0.4, 0.6].forEach((offset, i) => {
+          if (i % 2 === 0) kick.triggerAttackRelease("C1", 0.06, now + offset, GameAudio.scale("notePythonDrums", 0.8));
+          else snare.triggerAttackRelease(0.045, now + offset, GameAudio.scale("notePythonDrums", 0.65));
+          hats.triggerAttackRelease(0.01, now + offset + 0.1, GameAudio.scale("notePythonDrums", 0.3));
+        });
+      },
+      notePythonVictory: () => {
+        const brass = GameAudio._getPreviewSynth("notePythonVictoryBrass", () => new Tone.PolySynth(Tone.Synth, {
+          oscillator: { type: "square" },
+          envelope: { attack: 0.012, decay: 0.12, sustain: 0.5, release: 0.35 },
+          volume: -23,
+        }).toDestination());
+        const bass = GameAudio._getPreviewSynth("notePythonVictoryBass", () => new Tone.Synth({
+          oscillator: { type: "triangle" },
+          envelope: { attack: 0.004, decay: 0.06, sustain: 0.3, release: 0.4 },
+          volume: -17,
+        }).toDestination());
+        const now = Tone.now();
+        [
+          [0, 0.18, ["C4", "E4", "G4"]],
+          [0.25, 0.18, ["C4", "E4", "G4"]],
+          [0.5, 0.38, ["D4", "G4", "B4"]],
+          [1, 0.8, ["C4", "E4", "G4", "C5"]],
+        ].forEach(([offset, duration, notes]) => {
+          brass.triggerAttackRelease(notes, duration, now + offset, GameAudio.scale("notePythonVictory", 0.7));
+        });
+        bass.triggerAttackRelease("G2", 0.4, now + 0.5, GameAudio.scale("notePythonVictory", 0.8));
+        bass.triggerAttackRelease("C2", 0.8, now + 1, GameAudio.scale("notePythonVictory", 0.85));
       },
     };
 

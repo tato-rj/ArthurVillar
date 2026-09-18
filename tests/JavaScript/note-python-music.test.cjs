@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 
-function setup() {
+function setup(levels = {}) {
     let now = 10;
     const voices = [];
     const timers = new Map();
@@ -26,6 +26,7 @@ function setup() {
         window: { Tone: { Synth, PolySynth: Synth, MembraneSynth: Synth, NoiseSynth, now: () => now } },
         setTimeout: (callback, delay) => { timers.set(++timerId, { callback, delay }); return timerId; },
         clearTimeout: (id) => timers.delete(id),
+        GameAudio: { scale: (kind, base) => (levels[kind] ?? 1) * base },
     });
     const root = path.join(__dirname, '../../resources/js/music/games');
     const tempo = fs.readFileSync(path.join(root, 'shared/tempo.js'), 'utf8').replace(/^export /gm, '');
@@ -117,4 +118,23 @@ test('restart cancels a pending victory without leaving notes or timers behind',
     music.reset();
     assert.ok(voices.every((voice) => voice.disposed));
     assert.equal(timers.size, 0);
+});
+
+test('sound-effects controls independently scale every Note Python layer', () => {
+    const muted = {
+        notePythonMelody: 0,
+        notePythonLowEnd: 0,
+        notePythonDrums: 0,
+        notePythonVictory: 0,
+    };
+    const { music, voices } = setup(muted);
+    music.start(80);
+    for (let i = 0; i < 8; i++) music.playStep(5);
+    voices.slice(0, 7).forEach((voice) => {
+        voice.notes.forEach((note) => assert.equal(note.velocity, 0));
+    });
+    music.playVictory(80);
+    voices.slice(7).forEach((voice) => {
+        voice.notes.forEach((note) => assert.equal(note.velocity, 0));
+    });
 });

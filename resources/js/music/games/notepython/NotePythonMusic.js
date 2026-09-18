@@ -1,4 +1,5 @@
 import { beatMsForBpm } from "../shared/tempo.js";
+import { GameAudio } from "../shared/GameAudio.js";
 
 // An eight-bar chiptune in C major. Each entry is an eighth-note position;
 // keeping the harmony fixed lets layers enter and leave as the snake changes size.
@@ -86,40 +87,40 @@ export class NotePythonMusic {
     // Keep the warm register, but leave space at the start. Increase rhythmic
     // subdivisions and accents as the snake grows, never the underlying BPM.
     if (bar.melody[slot] && (lively || slot % 2 === 0)) {
-      lead.triggerAttackRelease(downOctave(bar.melody[slot]), this._eighth * (frantic ? 0.45 : 0.85), time, 0.5 + growth * 0.015);
+      lead.triggerAttackRelease(downOctave(bar.melody[slot]), this._eighth * (frantic ? 0.45 : 0.85), time, GameAudio.scale("notePythonMelody", 0.5 + growth * 0.015));
     }
     if (slot % (lively ? 2 : 4) === 0 || frantic || (driving && slot === 7)) {
       const note = slot % 4 >= 2 ? bar.fifth : bar.bass;
-      bass.triggerAttackRelease(note, this._eighth * (frantic ? 0.45 : 1.3), time, slot % 2 === 0 ? 0.7 + growth * 0.025 : 0.65);
+      bass.triggerAttackRelease(note, this._eighth * (frantic ? 0.45 : 1.3), time, GameAudio.scale("notePythonLowEnd", slot % 2 === 0 ? 0.7 + growth * 0.025 : 0.65));
     }
     if (growth >= 5 && slot % 4 === 3) {
-      bass.triggerAttackRelease(bar.fifth, this._eighth * 0.25, time + this._eighth / 2, 0.5);
+      bass.triggerAttackRelease(bar.fifth, this._eighth * 0.25, time + this._eighth / 2, GameAudio.scale("notePythonLowEnd", 0.5));
     }
     const playChord = frantic ? slot % 2 === 1 || (growth >= 4 && slot % 4 === 0)
       : driving ? slot === 0 || slot === 3 || slot === 6
         : lively ? slot % 4 === 0 : slot === 0;
     if (playChord) {
       const chord = bar.chord.slice(0, 3).map((note) => downOctave(downOctave(note)));
-      keys.triggerAttackRelease(chord, this._eighth * (frantic ? 0.4 : 1.5), time, lively ? 0.6 : 0.4);
+      keys.triggerAttackRelease(chord, this._eighth * (frantic ? 0.4 : 1.5), time, GameAudio.scale("notePythonLowEnd", lively ? 0.6 : 0.4));
     }
     if (driving && (frantic || slot % 2 === 1)) {
       const subdivisions = growth >= 6 && slot >= 6 ? 4 : frantic ? 2 : 1;
       for (let part = 0; part < subdivisions; part++) {
         const offset = frantic ? part / subdivisions : 0.5;
         const note = downOctave(bar.chord[(slot + part) % 4]);
-        arp.triggerAttackRelease(note, this._eighth * 0.18, time + offset * this._eighth, frantic ? 0.6 : 0.4);
+        arp.triggerAttackRelease(note, this._eighth * 0.18, time + offset * this._eighth, GameAudio.scale("notePythonMelody", frantic ? 0.6 : 0.4));
       }
     }
     if (slot % (driving ? 2 : 4) === 0 || (frantic && slot === 7)) {
-      kick.triggerAttackRelease("C1", 0.06, time, lively ? 0.85 : 0.6);
+      kick.triggerAttackRelease("C1", 0.06, time, GameAudio.scale("notePythonDrums", lively ? 0.85 : 0.6));
     }
-    if (lively ? slot % 4 === 2 : slot === 6) snare.triggerAttackRelease(0.045, time, lively ? 0.7 : 0.35);
-    if (growth >= 4 && slot === 7) snare.triggerAttackRelease(0.025, time + this._eighth / 2, 0.45);
+    if (lively ? slot % 4 === 2 : slot === 6) snare.triggerAttackRelease(0.045, time, GameAudio.scale("notePythonDrums", lively ? 0.7 : 0.35));
+    if (growth >= 4 && slot === 7) snare.triggerAttackRelease(0.025, time + this._eighth / 2, GameAudio.scale("notePythonDrums", 0.45));
     if (driving || (lively && slot % 2 === 1)) {
-      hats.triggerAttackRelease(0.01, time, slot % 2 === 1 ? 0.3 : 0.18);
+      hats.triggerAttackRelease(0.01, time, GameAudio.scale("notePythonDrums", slot % 2 === 1 ? 0.3 : 0.18));
     }
     if (growth >= 4 || (frantic && slot % 2 === 1)) {
-      hats.triggerAttackRelease(0.008, time + this._eighth / 2, 0.25);
+      hats.triggerAttackRelease(0.008, time + this._eighth / 2, GameAudio.scale("notePythonDrums", 0.25));
     }
   }
 
@@ -149,10 +150,10 @@ export class NotePythonMusic {
       [1, 0.75, ["D4", "G4", "B4"]],
       [2, 1.6, ["C4", "E4", "G4", "C5"]],
     ].forEach(([offset, duration, notes]) => {
-      brass.triggerAttackRelease(notes, duration * beat, start + offset * beat, 0.7);
+      brass.triggerAttackRelease(notes, duration * beat, start + offset * beat, GameAudio.scale("notePythonVictory", 0.7));
     });
-    bass.triggerAttackRelease("G2", beat * 0.8, start + beat, 0.8);
-    bass.triggerAttackRelease("C2", beat * 1.6, start + 2 * beat, 0.85);
+    bass.triggerAttackRelease("G2", beat * 0.8, start + beat, GameAudio.scale("notePythonVictory", 0.8));
+    bass.triggerAttackRelease("C2", beat * 1.6, start + 2 * beat, GameAudio.scale("notePythonVictory", 0.85));
     this._victoryTimer = setTimeout(() => this._stopVictory(), (4 * beat + 0.6) * 1000);
   }
 

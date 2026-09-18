@@ -3655,6 +3655,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   NotePythonMusic: () => (/* binding */ NotePythonMusic)
 /* harmony export */ });
 /* harmony import */ var _shared_tempo_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../shared/tempo.js */ "./resources/js/music/games/shared/tempo.js");
+/* harmony import */ var _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../shared/GameAudio.js */ "./resources/js/music/games/shared/GameAudio.js");
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
@@ -3667,6 +3668,7 @@ function _defineProperties(e, r) { for (var t = 0; t < r.length; t++) { var o = 
 function _createClass(e, r, t) { return r && _defineProperties(e.prototype, r), t && _defineProperties(e, t), Object.defineProperty(e, "prototype", { writable: !1 }), e; }
 function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
 function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+
 
 
 // An eight-bar chiptune in C major. Each entry is an eighth-note position;
@@ -3836,40 +3838,40 @@ var NotePythonMusic = /*#__PURE__*/function () {
       // Keep the warm register, but leave space at the start. Increase rhythmic
       // subdivisions and accents as the snake grows, never the underlying BPM.
       if (bar.melody[slot] && (lively || slot % 2 === 0)) {
-        lead.triggerAttackRelease(downOctave(bar.melody[slot]), this._eighth * (frantic ? 0.45 : 0.85), time, 0.5 + growth * 0.015);
+        lead.triggerAttackRelease(downOctave(bar.melody[slot]), this._eighth * (frantic ? 0.45 : 0.85), time, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_1__.GameAudio.scale("notePythonMelody", 0.5 + growth * 0.015));
       }
       if (slot % (lively ? 2 : 4) === 0 || frantic || driving && slot === 7) {
         var note = slot % 4 >= 2 ? bar.fifth : bar.bass;
-        bass.triggerAttackRelease(note, this._eighth * (frantic ? 0.45 : 1.3), time, slot % 2 === 0 ? 0.7 + growth * 0.025 : 0.65);
+        bass.triggerAttackRelease(note, this._eighth * (frantic ? 0.45 : 1.3), time, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_1__.GameAudio.scale("notePythonLowEnd", slot % 2 === 0 ? 0.7 + growth * 0.025 : 0.65));
       }
       if (growth >= 5 && slot % 4 === 3) {
-        bass.triggerAttackRelease(bar.fifth, this._eighth * 0.25, time + this._eighth / 2, 0.5);
+        bass.triggerAttackRelease(bar.fifth, this._eighth * 0.25, time + this._eighth / 2, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_1__.GameAudio.scale("notePythonLowEnd", 0.5));
       }
       var playChord = frantic ? slot % 2 === 1 || growth >= 4 && slot % 4 === 0 : driving ? slot === 0 || slot === 3 || slot === 6 : lively ? slot % 4 === 0 : slot === 0;
       if (playChord) {
         var chord = bar.chord.slice(0, 3).map(function (note) {
           return downOctave(downOctave(note));
         });
-        keys.triggerAttackRelease(chord, this._eighth * (frantic ? 0.4 : 1.5), time, lively ? 0.6 : 0.4);
+        keys.triggerAttackRelease(chord, this._eighth * (frantic ? 0.4 : 1.5), time, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_1__.GameAudio.scale("notePythonLowEnd", lively ? 0.6 : 0.4));
       }
       if (driving && (frantic || slot % 2 === 1)) {
         var subdivisions = growth >= 6 && slot >= 6 ? 4 : frantic ? 2 : 1;
         for (var part = 0; part < subdivisions; part++) {
           var offset = frantic ? part / subdivisions : 0.5;
           var _note = downOctave(bar.chord[(slot + part) % 4]);
-          arp.triggerAttackRelease(_note, this._eighth * 0.18, time + offset * this._eighth, frantic ? 0.6 : 0.4);
+          arp.triggerAttackRelease(_note, this._eighth * 0.18, time + offset * this._eighth, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_1__.GameAudio.scale("notePythonMelody", frantic ? 0.6 : 0.4));
         }
       }
       if (slot % (driving ? 2 : 4) === 0 || frantic && slot === 7) {
-        kick.triggerAttackRelease("C1", 0.06, time, lively ? 0.85 : 0.6);
+        kick.triggerAttackRelease("C1", 0.06, time, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_1__.GameAudio.scale("notePythonDrums", lively ? 0.85 : 0.6));
       }
-      if (lively ? slot % 4 === 2 : slot === 6) snare.triggerAttackRelease(0.045, time, lively ? 0.7 : 0.35);
-      if (growth >= 4 && slot === 7) snare.triggerAttackRelease(0.025, time + this._eighth / 2, 0.45);
+      if (lively ? slot % 4 === 2 : slot === 6) snare.triggerAttackRelease(0.045, time, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_1__.GameAudio.scale("notePythonDrums", lively ? 0.7 : 0.35));
+      if (growth >= 4 && slot === 7) snare.triggerAttackRelease(0.025, time + this._eighth / 2, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_1__.GameAudio.scale("notePythonDrums", 0.45));
       if (driving || lively && slot % 2 === 1) {
-        hats.triggerAttackRelease(0.01, time, slot % 2 === 1 ? 0.3 : 0.18);
+        hats.triggerAttackRelease(0.01, time, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_1__.GameAudio.scale("notePythonDrums", slot % 2 === 1 ? 0.3 : 0.18));
       }
       if (growth >= 4 || frantic && slot % 2 === 1) {
-        hats.triggerAttackRelease(0.008, time + this._eighth / 2, 0.25);
+        hats.triggerAttackRelease(0.008, time + this._eighth / 2, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_1__.GameAudio.scale("notePythonDrums", 0.25));
       }
     }
   }, {
@@ -3910,10 +3912,10 @@ var NotePythonMusic = /*#__PURE__*/function () {
           offset = _ref2[0],
           duration = _ref2[1],
           notes = _ref2[2];
-        brass.triggerAttackRelease(notes, duration * beat, start + offset * beat, 0.7);
+        brass.triggerAttackRelease(notes, duration * beat, start + offset * beat, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_1__.GameAudio.scale("notePythonVictory", 0.7));
       });
-      bass.triggerAttackRelease("G2", beat * 0.8, start + beat, 0.8);
-      bass.triggerAttackRelease("C2", beat * 1.6, start + 2 * beat, 0.85);
+      bass.triggerAttackRelease("G2", beat * 0.8, start + beat, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_1__.GameAudio.scale("notePythonVictory", 0.8));
+      bass.triggerAttackRelease("C2", beat * 1.6, start + 2 * beat, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_1__.GameAudio.scale("notePythonVictory", 0.85));
       this._victoryTimer = setTimeout(function () {
         return _this._stopVictory();
       }, (4 * beat + 0.6) * 1000);
@@ -4303,6 +4305,166 @@ var GameAudio = /*#__PURE__*/function () {
                   noiseSynth.triggerAttackRelease(0.04, now, GameAudio.scale("hinge", 0.07));
                   synth.triggerAttackRelease("E4", 0.04, now, GameAudio.scale("hinge", 0.12));
                   synth.triggerAttackRelease("C4", 0.05, now + 0.04, GameAudio.scale("hinge", 0.16));
+                },
+                notePythonMelody: function notePythonMelody() {
+                  var lead = GameAudio._getPreviewSynth("notePythonLead", function () {
+                    return new Tone.Synth({
+                      oscillator: {
+                        type: "triangle"
+                      },
+                      envelope: {
+                        attack: 0.004,
+                        decay: 0.06,
+                        sustain: 0.3,
+                        release: 0.07
+                      },
+                      volume: -23
+                    }).toDestination();
+                  });
+                  var arp = GameAudio._getPreviewSynth("notePythonArp", function () {
+                    return new Tone.Synth({
+                      oscillator: {
+                        type: "square"
+                      },
+                      envelope: {
+                        attack: 0.004,
+                        decay: 0.06,
+                        sustain: 0.3,
+                        release: 0.04
+                      },
+                      volume: -30
+                    }).toDestination();
+                  });
+                  var now = Tone.now();
+                  ["E4", "G4", "C5", "G4"].forEach(function (note, i) {
+                    lead.triggerAttackRelease(note, 0.18, now + i * 0.2, GameAudio.scale("notePythonMelody", 0.52));
+                    arp.triggerAttackRelease(["C4", "E4", "G4", "B4"][i], 0.07, now + i * 0.2 + 0.1, GameAudio.scale("notePythonMelody", 0.5));
+                  });
+                },
+                notePythonLowEnd: function notePythonLowEnd() {
+                  var bass = GameAudio._getPreviewSynth("notePythonBass", function () {
+                    return new Tone.Synth({
+                      oscillator: {
+                        type: "triangle"
+                      },
+                      envelope: {
+                        attack: 0.004,
+                        decay: 0.06,
+                        sustain: 0.3,
+                        release: 0.06
+                      },
+                      volume: -16
+                    }).toDestination();
+                  });
+                  var keys = GameAudio._getPreviewSynth("notePythonKeys", function () {
+                    return new Tone.PolySynth(Tone.Synth, {
+                      oscillator: {
+                        type: "triangle"
+                      },
+                      envelope: {
+                        attack: 0.008,
+                        decay: 0.12,
+                        sustain: 0.2,
+                        release: 0.09
+                      },
+                      volume: -27
+                    }).toDestination();
+                  });
+                  var now = Tone.now();
+                  bass.triggerAttackRelease("C2", 0.42, now, GameAudio.scale("notePythonLowEnd", 0.75));
+                  bass.triggerAttackRelease("G2", 0.32, now + 0.4, GameAudio.scale("notePythonLowEnd", 0.68));
+                  keys.triggerAttackRelease(["C3", "E3", "G3"], 0.5, now, GameAudio.scale("notePythonLowEnd", 0.55));
+                },
+                notePythonDrums: function notePythonDrums() {
+                  var kick = GameAudio._getPreviewSynth("notePythonKick", function () {
+                    return new Tone.MembraneSynth({
+                      pitchDecay: 0.025,
+                      octaves: 2,
+                      oscillator: {
+                        type: "sine"
+                      },
+                      envelope: {
+                        attack: 0.001,
+                        decay: 0.15,
+                        sustain: 0,
+                        release: 0.04
+                      },
+                      volume: -17
+                    }).toDestination();
+                  });
+                  var snare = GameAudio._getPreviewSynth("notePythonSnare", function () {
+                    return new Tone.NoiseSynth({
+                      noise: {
+                        type: "pink"
+                      },
+                      envelope: {
+                        attack: 0.001,
+                        decay: 0.07,
+                        sustain: 0,
+                        release: 0.02
+                      },
+                      volume: -26
+                    }).toDestination();
+                  });
+                  var hats = GameAudio._getPreviewSynth("notePythonHats", function () {
+                    return new Tone.NoiseSynth({
+                      noise: {
+                        type: "white"
+                      },
+                      envelope: {
+                        attack: 0.001,
+                        decay: 0.012,
+                        sustain: 0,
+                        release: 0.008
+                      },
+                      volume: -38
+                    }).toDestination();
+                  });
+                  var now = Tone.now();
+                  [0, 0.2, 0.4, 0.6].forEach(function (offset, i) {
+                    if (i % 2 === 0) kick.triggerAttackRelease("C1", 0.06, now + offset, GameAudio.scale("notePythonDrums", 0.8));else snare.triggerAttackRelease(0.045, now + offset, GameAudio.scale("notePythonDrums", 0.65));
+                    hats.triggerAttackRelease(0.01, now + offset + 0.1, GameAudio.scale("notePythonDrums", 0.3));
+                  });
+                },
+                notePythonVictory: function notePythonVictory() {
+                  var brass = GameAudio._getPreviewSynth("notePythonVictoryBrass", function () {
+                    return new Tone.PolySynth(Tone.Synth, {
+                      oscillator: {
+                        type: "square"
+                      },
+                      envelope: {
+                        attack: 0.012,
+                        decay: 0.12,
+                        sustain: 0.5,
+                        release: 0.35
+                      },
+                      volume: -23
+                    }).toDestination();
+                  });
+                  var bass = GameAudio._getPreviewSynth("notePythonVictoryBass", function () {
+                    return new Tone.Synth({
+                      oscillator: {
+                        type: "triangle"
+                      },
+                      envelope: {
+                        attack: 0.004,
+                        decay: 0.06,
+                        sustain: 0.3,
+                        release: 0.4
+                      },
+                      volume: -17
+                    }).toDestination();
+                  });
+                  var now = Tone.now();
+                  [[0, 0.18, ["C4", "E4", "G4"]], [0.25, 0.18, ["C4", "E4", "G4"]], [0.5, 0.38, ["D4", "G4", "B4"]], [1, 0.8, ["C4", "E4", "G4", "C5"]]].forEach(function (_ref3) {
+                    var _ref4 = _slicedToArray(_ref3, 3),
+                      offset = _ref4[0],
+                      duration = _ref4[1],
+                      notes = _ref4[2];
+                    brass.triggerAttackRelease(notes, duration, now + offset, GameAudio.scale("notePythonVictory", 0.7));
+                  });
+                  bass.triggerAttackRelease("G2", 0.4, now + 0.5, GameAudio.scale("notePythonVictory", 0.8));
+                  bass.triggerAttackRelease("C2", 0.8, now + 1, GameAudio.scale("notePythonVictory", 0.85));
                 }
               };
               (_previewers$soundId = previewers[soundId]) === null || _previewers$soundId === void 0 || _previewers$soundId.call(previewers);
@@ -4534,7 +4696,11 @@ _defineProperty(GameAudio, "VELOCITY", {
   metronomeBeat: 0.4,
   metronomeDownbeat: 0.6,
   rhythmHit: 0.65,
-  hinge: 0.55
+  hinge: 0.55,
+  notePythonMelody: 1,
+  notePythonLowEnd: 1,
+  notePythonDrums: 1,
+  notePythonVictory: 1
 });
 _defineProperty(GameAudio, "SOUND_LIBRARY", [{
   id: "staffNote",
@@ -4636,6 +4802,26 @@ _defineProperty(GameAudio, "SOUND_LIBRARY", [{
   label: "Hinge",
   volumeKey: "hinge",
   description: "Short hinge/fall sound used by ToneTrek block reveals."
+}, {
+  id: "notePythonMelody",
+  label: "Note Python Melody",
+  volumeKey: "notePythonMelody",
+  description: "Lead melody and fast arpeggios in the Note Python soundtrack."
+}, {
+  id: "notePythonLowEnd",
+  label: "Note Python Bass & Chords",
+  volumeKey: "notePythonLowEnd",
+  description: "Bass line and low harmony in the Note Python soundtrack."
+}, {
+  id: "notePythonDrums",
+  label: "Note Python Drums",
+  volumeKey: "notePythonDrums",
+  description: "Kick, snare, and hi-hat layers in the Note Python soundtrack."
+}, {
+  id: "notePythonVictory",
+  label: "Note Python Victory",
+  volumeKey: "notePythonVictory",
+  description: "Majestic fanfare at the end of a Note Python game."
 }]);
 _defineProperty(GameAudio, "_previewSynths", {});
 
