@@ -23,7 +23,7 @@ function setup() {
         triggerAttackRelease(duration, time, velocity) { super.triggerAttackRelease('noise', duration, time, velocity); }
     }
     const context = vm.createContext({
-        window: { Tone: { Synth, PolySynth: Synth, NoiseSynth, now: () => now } },
+        window: { Tone: { Synth, PolySynth: Synth, MembraneSynth: Synth, NoiseSynth, now: () => now } },
         setTimeout: (callback, delay) => { timers.set(++timerId, { callback, delay }); return timerId; },
         clearTimeout: (id) => timers.delete(id),
     });
@@ -49,7 +49,7 @@ test('the whole composition stays on the selected BPM at slow and fast settings'
         arpeggio.forEach((note, index) => {
             assert.ok(Math.abs(note.time - (10 + index * eighth / 2)) < 0.00001);
         });
-        assert.equal(voices[1].notes.length, 64, 'bass marks every quarter note');
+        assert.equal(voices[1].notes.length, 128, 'the largest snake gets an eighth-note bass groove');
     }
 });
 
@@ -61,24 +61,28 @@ test('growth adds activity and shrinking removes it using current length', () =>
         return voices.map((voice) => voice.notes.length);
     }
     const calm = phrase(2), lively = phrase(3), busy = phrase(5), wild = phrase(8);
-    assert.ok(lively[0] > calm[0]);
+    assert.ok(calm.every((count) => count > 0), 'even the smallest snake starts with a full instrumental groove');
     assert.ok(lively[1] > calm[1]);
-    assert.equal(calm[3], 0);
-    assert.equal(lively[2], 0);
+    assert.ok(lively[2] > calm[2]);
     assert.equal(busy[2], 8);
     assert.equal(wild[2], 16);
     const { music, voices, advance } = setup();
     music.start(60);
     music.playStep(8);
     const arpCount = voices[2].notes.length;
+    advance(1);
+    music.playStep(2); // A quiet offbeat still has one accompaniment note.
+    const quietCount = voices[2].notes.length;
     advance(0.5);
     music.playStep(2);
-    assert.equal(voices[2].notes.length, arpCount, 'shrinking calms the next move immediately');
+    assert.equal(quietCount, arpCount + 1);
+    assert.equal(voices[2].notes.length, quietCount, 'shrinking removes the continuous sixteenth-note layer');
 });
 
 test('pause cancels all background voices and resume creates only one fresh set', () => {
     const { music, voices, advance } = setup();
     music.start(80);
+    const voiceCount = voices.length;
     music.playStep(8);
     music.stop();
     assert.ok(voices.every((voice) => voice.disposed));
@@ -86,7 +90,7 @@ test('pause cancels all background voices and resume creates only one fresh set'
     advance(1);
     music.start(80);
     music.playStep(2);
-    assert.equal(voices.filter((voice) => !voice.disposed).length, 4);
+    assert.equal(voices.filter((voice) => !voice.disposed).length, voiceCount);
     music.reset();
     assert.ok(voices.every((voice) => voice.disposed));
 });
@@ -95,12 +99,14 @@ test('victory replaces the music with a finite tempo-matched cadence and cleans 
     const { music, voices, timers } = setup();
     music.start(60);
     music.playStep(8);
+    const background = voices.slice();
     music.playVictory(60);
-    assert.ok(voices.slice(0, 4).every((voice) => voice.disposed));
-    assert.deepEqual(voices[4].notes.map((note) => note.time), [10, 10.5, 11, 12]);
-    assert.equal(voices[4].notes.at(-1).duration, 1.6);
+    const fanfare = voices[background.length];
+    assert.ok(background.every((voice) => voice.disposed));
+    assert.deepEqual(fanfare.notes.map((note) => note.time), [10, 10.5, 11, 12]);
+    assert.equal(fanfare.notes.at(-1).duration, 1.6);
     music.stop(); // Showing the results must not cut off the cadence.
-    assert.equal(voices[4].disposed, false);
+    assert.equal(fanfare.disposed, false);
     assert.equal(timers.size, 1);
     [...timers.values()][0].callback();
     assert.ok(voices.every((voice) => voice.disposed));

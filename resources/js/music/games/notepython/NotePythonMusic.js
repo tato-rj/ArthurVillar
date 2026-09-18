@@ -13,6 +13,8 @@ const SONG = [
   { bass: "G2", fifth: "D3", chord: ["G4", "B4", "D5", "F5"], melody: ["E5", "D5", "B4", "D5", "G5", "F5", "D5", "B4"] },
 ];
 
+const downOctave = (note) => note.replace(/\d$/, (octave) => String(Number(octave) - 1));
+
 export class NotePythonMusic {
   constructor() {
     this._voices = null;
@@ -35,13 +37,30 @@ export class NotePythonMusic {
     this._eighth = beatMsForBpm(bpm) / 2000;
     this._nextTime = window.Tone.now();
     this._voices = {
-      lead: this._synth("square", -25),
-      bass: this._synth("triangle", -19),
-      arp: this._synth("square", -31),
-      drums: new window.Tone.NoiseSynth({
+      lead: this._synth("triangle", -23, 0.07),
+      bass: this._synth("triangle", -16, 0.06),
+      arp: this._synth("square", -34),
+      keys: new window.Tone.PolySynth(window.Tone.Synth, {
+        oscillator: { type: "triangle" },
+        envelope: { attack: 0.008, decay: 0.12, sustain: 0.2, release: 0.09 },
+        volume: -27,
+      }).toDestination(),
+      kick: new window.Tone.MembraneSynth({
+        pitchDecay: 0.025,
+        octaves: 2,
+        oscillator: { type: "sine" },
+        envelope: { attack: 0.001, decay: 0.15, sustain: 0, release: 0.04 },
+        volume: -17,
+      }).toDestination(),
+      snare: new window.Tone.NoiseSynth({
+        noise: { type: "pink" },
+        envelope: { attack: 0.001, decay: 0.07, sustain: 0, release: 0.02 },
+        volume: -26,
+      }).toDestination(),
+      hats: new window.Tone.NoiseSynth({
         noise: { type: "white" },
-        envelope: { attack: 0.001, decay: 0.025, sustain: 0, release: 0.01 },
-        volume: -33,
+        envelope: { attack: 0.001, decay: 0.012, sustain: 0, release: 0.008 },
+        volume: -38,
       }).toDestination(),
     };
   }
@@ -59,24 +78,34 @@ export class NotePythonMusic {
     const lively = snakeLength >= 3;
     const busy = snakeLength >= 5;
     const wild = snakeLength >= 8;
-    const { lead, bass, arp, drums } = this._voices;
+    const { lead, bass, arp, keys, kick, snare, hats } = this._voices;
 
-    if (bar.melody[slot] && (lively || slot % 2 === 0)) {
-      lead.triggerAttackRelease(bar.melody[slot], this._eighth * (lively ? 0.65 : 1.25), time, 0.65);
+    // A complete groove is present even for a tiny snake. Energy comes from
+    // rhythmic density, with the melody and accompaniment kept an octave lower.
+    if (bar.melody[slot]) {
+      lead.triggerAttackRelease(downOctave(bar.melody[slot]), this._eighth * 0.7, time, 0.55);
     }
-    if (slot % (lively ? 2 : 4) === 0) {
-      bass.triggerAttackRelease(slot % 4 === 2 ? bar.fifth : bar.bass, this._eighth * 1.3, time, 0.8);
+    if (slot % 2 === 0 || busy || (lively && slot === 7)) {
+      const note = slot % 4 >= 2 ? bar.fifth : bar.bass;
+      bass.triggerAttackRelease(note, this._eighth * (busy ? 0.55 : 0.85), time, slot % 2 === 0 ? 0.85 : 0.55);
+    }
+    if (slot === 0 || slot === 3 || slot === 6) {
+      const chord = bar.chord.slice(0, 3).map((note) => downOctave(downOctave(note)));
+      keys.triggerAttackRelease(chord, this._eighth * 0.8, time, slot === 0 ? 0.65 : 0.45);
     }
     if (wild) {
-      arp.triggerAttackRelease(bar.chord[(slot + 2) % 4], this._eighth * 0.3, time, 0.45);
+      arp.triggerAttackRelease(downOctave(bar.chord[(slot + 2) % 4]), this._eighth * 0.3, time, 0.4);
     }
-    if (busy) {
-      arp.triggerAttackRelease(bar.chord[slot % 4], this._eighth * 0.3, time + this._eighth / 2, 0.5);
+    if (busy || (lively ? slot % 2 === 1 : slot % 4 === 1)) {
+      arp.triggerAttackRelease(downOctave(bar.chord[slot % 4]), this._eighth * 0.3, time + this._eighth / 2, 0.4);
     }
-    if (lively && slot % 4 === 2) {
-      drums.triggerAttackRelease(0.035, time, 0.55);
-    } else if (busy && slot % 2 === 1) {
-      drums.triggerAttackRelease(0.012, time, 0.2);
+    if (slot % 4 === 0 || (busy && slot === 3) || (wild && slot === 7)) {
+      kick.triggerAttackRelease("C1", 0.06, time, slot % 4 === 0 ? 0.85 : 0.55);
+    }
+    if (slot % 4 === 2) snare.triggerAttackRelease(0.045, time, 0.6);
+    if (wild && slot === 7) snare.triggerAttackRelease(0.025, time + this._eighth / 2, 0.3);
+    if (busy || slot % 2 === 1) {
+      hats.triggerAttackRelease(0.01, time, slot % 2 === 1 ? 0.3 : 0.18);
     }
   }
 
