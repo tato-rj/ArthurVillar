@@ -78,16 +78,49 @@
   }
 
   .snake-head {
+    position: relative;
+    z-index: 1;
     background: #ffe54c;
     border: .5px solid black;
-    border-radius: 4px;
+    border-radius: 12px;
     transform: scale(1);
+  }
+
+  .snake-face {
+    position: absolute;
+    inset: 0;
+    transform: rotate(var(--snake-facing, 0deg));
+    pointer-events: none;
+  }
+
+  .snake-face::before,
+  .snake-face::after {
+    content: "";
+    position: absolute;
+    top: -9%;
+    width: 34%;
+    height: 36%;
+    border: 1.5px solid #292820;
+    border-radius: 50%;
+    background: radial-gradient(circle at 55% 35%, #292820 0 23%, transparent 26%), #fff;
+    box-shadow: 0 2px 0 rgba(0, 0, 0, .12);
+  }
+
+  .snake-face::before {
+    left: 9%;
+  }
+
+  .snake-face::after {
+    right: 9%;
+    top: -13%;
+    height: 40%;
+    background-position: -1px 2px;
   }
 
   .food {
     background: black;
     color: white;
-    border-radius: 4px;
+    border-radius: 12px;
     border: .5px solid white;
   }
 

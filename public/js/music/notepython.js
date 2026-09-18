@@ -2080,6 +2080,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../shared/GameAudio.js */ "./resources/js/music/games/shared/GameAudio.js");
 /* harmony import */ var _shared_GameCountdown_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../shared/GameCountdown.js */ "./resources/js/music/games/shared/GameCountdown.js");
 /* harmony import */ var _shared_InstructionsUi_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../shared/InstructionsUi.js */ "./resources/js/music/games/shared/InstructionsUi.js");
+/* harmony import */ var _NotePythonMusic_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./NotePythonMusic.js */ "./resources/js/music/games/notepython/NotePythonMusic.js");
+/* harmony import */ var _shared_tempo_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../shared/tempo.js */ "./resources/js/music/games/shared/tempo.js");
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
 function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
@@ -2101,6 +2103,8 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
 
 
 
+
+
 var NotePython = /*#__PURE__*/function () {
   function NotePython() {
     var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
@@ -2109,7 +2113,7 @@ var NotePython = /*#__PURE__*/function () {
       boardEl: "#board",
       rows: 9,
       cols: 9,
-      snakeSpeed: 500,
+      bpm: 80,
       sound: true,
       basePoints: 1,
       firstTryBonus: 2,
@@ -2124,6 +2128,7 @@ var NotePython = /*#__PURE__*/function () {
       namespace: "notePython"
     };
     this.opts = _objectSpread(_objectSpread({}, defaults), options || {});
+    this.opts.bpm = (0,_shared_tempo_js__WEBPACK_IMPORTED_MODULE_8__.normalizeMetronomeBpm)(this.opts.bpm);
     this.ns = this.opts.namespace || "notePython";
     this.$board = $(this.opts.boardEl).first();
     this.$playWrap = $("#play");
@@ -2159,6 +2164,7 @@ var NotePython = /*#__PURE__*/function () {
     }; // starts moving downward
     this._directionQueue = [];
     this._tickTimer = null;
+    this._music = new _NotePythonMusic_js__WEBPACK_IMPORTED_MODULE_7__.NotePythonMusic();
     this._countdownTimeouts = [];
     this._countdownRun = 0;
     this._isGameOver = false;
@@ -2223,8 +2229,12 @@ var NotePython = /*#__PURE__*/function () {
   }, {
     key: "_snakeSpeedMs",
     value: function _snakeSpeedMs() {
-      var n = Number(this.opts.snakeSpeed);
-      return Math.max(50, Math.floor(Number.isFinite(n) ? n : 500));
+      return (0,_shared_tempo_js__WEBPACK_IMPORTED_MODULE_8__.eighthNoteMsForBpm)(this.opts.bpm);
+    }
+  }, {
+    key: "_beatMs",
+    value: function _beatMs() {
+      return (0,_shared_tempo_js__WEBPACK_IMPORTED_MODULE_8__.beatMsForBpm)(this.opts.bpm);
     }
   }, {
     key: "_wrapCell",
@@ -2790,6 +2800,8 @@ var NotePython = /*#__PURE__*/function () {
           var _this6$_headNote;
           $cell.addClass("snake-head");
           if ((_this6$_headNote = _this6._headNote) !== null && _this6$_headNote !== void 0 && _this6$_headNote.display) $cell.html("<span class=\"food-note\">".concat(_this6._headNote.display, "</span>"));
+          var facing = _this6._direction.dc === 1 ? 90 : _this6._direction.dr === 1 ? 180 : _this6._direction.dc === -1 ? 270 : 0;
+          $cell.append("<span class=\"snake-face\" aria-hidden=\"true\" style=\"--snake-facing: ".concat(facing, "deg\"></span>"));
         }
       });
       this._foods.forEach(function (food, i) {
@@ -3166,6 +3178,7 @@ var NotePython = /*#__PURE__*/function () {
         if (!this._isPracticeMode() && this._roundsCompleted >= (Number(this.opts.numOfChallenges) || 4)) {
           this._isGameOver = true;
           this._stopLoop();
+          this._playFinalSfx();
           this._animateSnakeFinalCelebrate();
           this._stats.finishedAtMs = Date.now();
           if (this._finalResultsTimeoutId != null) clearTimeout(this._finalResultsTimeoutId);
@@ -3206,6 +3219,7 @@ var NotePython = /*#__PURE__*/function () {
   }, {
     key: "_stopLoop",
     value: function _stopLoop() {
+      this._music.stop();
       if (this._tickTimer != null) {
         clearInterval(this._tickTimer);
         this._tickTimer = null;
@@ -3246,7 +3260,7 @@ var NotePython = /*#__PURE__*/function () {
               return _context.a(2);
             case 2:
               this._countdown.start({
-                beatMs: 1000,
+                beatMs: this._beatMs(),
                 onComplete: function onComplete() {
                   if (countdownRun !== _this15._countdownRun) return;
                   _this15.$playWrap.hide();
@@ -3304,8 +3318,14 @@ var NotePython = /*#__PURE__*/function () {
       var _this17 = this;
       if (this._pausedByModal) return;
       this._stopLoop();
+      if (this._isSoundEnabled()) {
+        this._music.start(this.opts.bpm);
+        this._music.playStep(this._snake.length);
+      }
       this._tickTimer = setInterval(function () {
         _this17._advanceSnake();
+        if (_this17._isGameOver || _this17._tickTimer == null) return;
+        _this17._music.playStep(_this17._snake.length);
       }, this._snakeSpeedMs());
     }
   }, {
@@ -3338,8 +3358,19 @@ var NotePython = /*#__PURE__*/function () {
   }, {
     key: "start",
     value: function start() {
-      var _this$$feedback, _this$$feedback$hide, _this$$restart3, _this$$restart3$hide, _this$$board10, _this$$board10$remove;
+      var _this18 = this,
+        _this$$feedback,
+        _this$$feedback$hide,
+        _this$$restart3,
+        _this$$restart3$hide,
+        _this$$board10,
+        _this$$board10$remove;
       this._stopLoop();
+      this._music.reset();
+      $(window).off("pagehide.".concat(this.ns, "Music")).on("pagehide.".concat(this.ns, "Music"), function () {
+        _this18._stopLoop();
+        _this18._music.reset();
+      });
       if (this._finalResultsTimeoutId != null) {
         clearTimeout(this._finalResultsTimeoutId);
         this._finalResultsTimeoutId = null;
@@ -3437,7 +3468,7 @@ var NotePython = /*#__PURE__*/function () {
   }, {
     key: "_showFinalResults",
     value: function _showFinalResults() {
-      var _this18 = this,
+      var _this19 = this,
         _this$$controls,
         _this$$controls$hide;
       if (this._isPracticeMode()) return;
@@ -3453,9 +3484,8 @@ var NotePython = /*#__PURE__*/function () {
       });
       if (perfectGame) {
         var tid = setTimeout(function () {
-          var _this18$$doublePoints, _this18$$doublePoints2;
-          (_this18$$doublePoints = _this18.$doublePoints) === null || _this18$$doublePoints === void 0 || (_this18$$doublePoints2 = _this18$$doublePoints.show) === null || _this18$$doublePoints2 === void 0 || _this18$$doublePoints2.call(_this18$$doublePoints);
-          _this18._playPerfectGameBonusSfx();
+          var _this19$$doublePoints, _this19$$doublePoints2;
+          (_this19$$doublePoints = _this19.$doublePoints) === null || _this19$$doublePoints === void 0 || (_this19$$doublePoints2 = _this19$$doublePoints.show) === null || _this19$$doublePoints2 === void 0 || _this19$$doublePoints2.call(_this19$$doublePoints);
         }, 1750);
         this._countdownTimeouts.push(tid);
       } else {
@@ -3478,14 +3508,11 @@ var NotePython = /*#__PURE__*/function () {
         durationSec: durationSec,
         settingsBonus: scoreSummary.settingsBonus,
         clearCountupTimers: function clearCountupTimers() {
-          return _this18._clearFinalCountupTimers();
+          return _this19._clearFinalCountupTimers();
         },
         countupTimers: this._finalCountupTimeouts,
         animateMetrics: function animateMetrics() {
-          return _this18._animateFinalMetricsWithSfx();
-        },
-        playFinalSfx: function playFinalSfx() {
-          return _this18._playFinalSfx();
+          return _this19._animateFinalMetricsWithSfx();
         }
       });
     }
@@ -3502,11 +3529,13 @@ var NotePython = /*#__PURE__*/function () {
   }, {
     key: "_playSuccessSfxBasic",
     value: function _playSuccessSfxBasic() {
+      if (this._hasCompletedRounds()) return;
       return _base_BaseStaffGame_js__WEBPACK_IMPORTED_MODULE_0__.BaseStaffGame.prototype._playSuccessSfxBasic.call(this);
     }
   }, {
     key: "_playSuccessSfxBonus",
     value: function _playSuccessSfxBonus() {
+      if (this._hasCompletedRounds()) return;
       return _base_BaseStaffGame_js__WEBPACK_IMPORTED_MODULE_0__.BaseStaffGame.prototype._playSuccessSfxBonus.call(this);
     }
   }, {
@@ -3547,17 +3576,17 @@ var NotePython = /*#__PURE__*/function () {
   }, {
     key: "_playFinalSfx",
     value: function _playFinalSfx() {
-      return _base_BaseStaffGame_js__WEBPACK_IMPORTED_MODULE_0__.BaseStaffGame.prototype._playFinalSfx.call(this);
+      if (this._isSoundEnabled()) this._music.playVictory(this.opts.bpm);
     }
   }, {
-    key: "_playPerfectGameBonusSfx",
-    value: function _playPerfectGameBonusSfx() {
-      return _base_BaseStaffGame_js__WEBPACK_IMPORTED_MODULE_0__.BaseStaffGame.prototype._playPerfectGameBonusSfx.call(this);
+    key: "_hasCompletedRounds",
+    value: function _hasCompletedRounds() {
+      return !this._isPracticeMode() && this._roundsCompleted >= (Number(this.opts.numOfChallenges) || 4);
     }
   }, {
     key: "_playFinalMetricPopSfx",
-    value: function _playFinalMetricPopSfx(index) {
-      return _base_BaseStaffGame_js__WEBPACK_IMPORTED_MODULE_0__.BaseStaffGame.prototype._playFinalMetricPopSfx.call(this, index);
+    value: function _playFinalMetricPopSfx() {
+      // Let the victory cadence ring out beneath the animated results.
     }
   }, {
     key: "_clearFinalMetricsSfxTimers",
@@ -3612,6 +3641,231 @@ _defineProperty(NotePython, "LETTER_TO_SOLFEGE", {
   A: "La",
   B: "Si"
 });
+
+/***/ },
+
+/***/ "./resources/js/music/games/notepython/NotePythonMusic.js"
+/*!****************************************************************!*\
+  !*** ./resources/js/music/games/notepython/NotePythonMusic.js ***!
+  \****************************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   NotePythonMusic: () => (/* binding */ NotePythonMusic)
+/* harmony export */ });
+/* harmony import */ var _shared_tempo_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../shared/tempo.js */ "./resources/js/music/games/shared/tempo.js");
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+function _classCallCheck(a, n) { if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function"); }
+function _defineProperties(e, r) { for (var t = 0; t < r.length; t++) { var o = r[t]; o.enumerable = o.enumerable || !1, o.configurable = !0, "value" in o && (o.writable = !0), Object.defineProperty(e, _toPropertyKey(o.key), o); } }
+function _createClass(e, r, t) { return r && _defineProperties(e.prototype, r), t && _defineProperties(e, t), Object.defineProperty(e, "prototype", { writable: !1 }), e; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+
+
+// An eight-bar chiptune in C major. Each entry is an eighth-note position;
+// keeping the harmony fixed lets layers enter and leave as the snake changes size.
+var SONG = [{
+  bass: "C2",
+  fifth: "G2",
+  chord: ["C5", "E5", "G5", "B5"],
+  melody: ["E5", null, "G5", "E5", "C6", null, "G5", "E5"]
+}, {
+  bass: "C2",
+  fifth: "G2",
+  chord: ["C5", "E5", "G5", "B5"],
+  melody: ["D5", "E5", "G5", null, "E5", "D5", "C5", null]
+}, {
+  bass: "A2",
+  fifth: "E3",
+  chord: ["A4", "C5", "E5", "G5"],
+  melody: ["E5", null, "A5", "G5", "E5", null, "C5", "E5"]
+}, {
+  bass: "A2",
+  fifth: "E3",
+  chord: ["A4", "C5", "E5", "G5"],
+  melody: ["G5", "E5", "C5", null, "B4", "C5", "E5", null]
+}, {
+  bass: "F2",
+  fifth: "C3",
+  chord: ["F4", "A4", "C5", "E5"],
+  melody: ["A5", null, "G5", "E5", "F5", null, "A5", "C6"]
+}, {
+  bass: "F2",
+  fifth: "C3",
+  chord: ["F4", "A4", "C5", "E5"],
+  melody: ["A5", "G5", "F5", null, "E5", "F5", "A5", null]
+}, {
+  bass: "G2",
+  fifth: "D3",
+  chord: ["G4", "B4", "D5", "F5"],
+  melody: ["G5", null, "B5", "A5", "G5", null, "D5", "F5"]
+}, {
+  bass: "G2",
+  fifth: "D3",
+  chord: ["G4", "B4", "D5", "F5"],
+  melody: ["E5", "D5", "B4", "D5", "G5", "F5", "D5", "B4"]
+}];
+var NotePythonMusic = /*#__PURE__*/function () {
+  function NotePythonMusic() {
+    _classCallCheck(this, NotePythonMusic);
+    this._voices = null;
+    this._victoryVoices = [];
+    this._victoryTimer = null;
+    this._step = 0;
+  }
+  return _createClass(NotePythonMusic, [{
+    key: "_synth",
+    value: function _synth(type, volume) {
+      var release = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0.04;
+      return new window.Tone.Synth({
+        oscillator: {
+          type: type
+        },
+        envelope: {
+          attack: 0.004,
+          decay: 0.06,
+          sustain: 0.3,
+          release: release
+        },
+        volume: volume
+      }).toDestination();
+    }
+  }, {
+    key: "start",
+    value: function start(bpm) {
+      this.stop();
+      if (!window.Tone) return;
+      this._eighth = (0,_shared_tempo_js__WEBPACK_IMPORTED_MODULE_0__.beatMsForBpm)(bpm) / 2000;
+      this._nextTime = window.Tone.now();
+      this._voices = {
+        lead: this._synth("square", -25),
+        bass: this._synth("triangle", -19),
+        arp: this._synth("square", -31),
+        drums: new window.Tone.NoiseSynth({
+          noise: {
+            type: "white"
+          },
+          envelope: {
+            attack: 0.001,
+            decay: 0.025,
+            sustain: 0,
+            release: 0.01
+          },
+          volume: -33
+        }).toDestination()
+      };
+    }
+
+    // Called on the same eighth-note tick that moves the snake. Schedule extra
+    // sixteenths on the audio clock, without introducing another game timer.
+  }, {
+    key: "playStep",
+    value: function playStep(snakeLength) {
+      if (!this._voices) return;
+      var now = window.Tone.now();
+      var time = Math.max(now, this._nextTime);
+      this._nextTime = time + this._eighth;
+      var step = this._step++;
+      var slot = step % 8;
+      var bar = SONG[Math.floor(step / 8) % SONG.length];
+      var lively = snakeLength >= 3;
+      var busy = snakeLength >= 5;
+      var wild = snakeLength >= 8;
+      var _this$_voices = this._voices,
+        lead = _this$_voices.lead,
+        bass = _this$_voices.bass,
+        arp = _this$_voices.arp,
+        drums = _this$_voices.drums;
+      if (bar.melody[slot] && (lively || slot % 2 === 0)) {
+        lead.triggerAttackRelease(bar.melody[slot], this._eighth * (lively ? 0.65 : 1.25), time, 0.65);
+      }
+      if (slot % (lively ? 2 : 4) === 0) {
+        bass.triggerAttackRelease(slot % 4 === 2 ? bar.fifth : bar.bass, this._eighth * 1.3, time, 0.8);
+      }
+      if (wild) {
+        arp.triggerAttackRelease(bar.chord[(slot + 2) % 4], this._eighth * 0.3, time, 0.45);
+      }
+      if (busy) {
+        arp.triggerAttackRelease(bar.chord[slot % 4], this._eighth * 0.3, time + this._eighth / 2, 0.5);
+      }
+      if (lively && slot % 4 === 2) {
+        drums.triggerAttackRelease(0.035, time, 0.55);
+      } else if (busy && slot % 2 === 1) {
+        drums.triggerAttackRelease(0.012, time, 0.2);
+      }
+    }
+  }, {
+    key: "stop",
+    value: function stop() {
+      // Disposing also cancels notes scheduled just ahead of a collision/pause.
+      if (this._voices) Object.values(this._voices).forEach(function (voice) {
+        return voice.dispose();
+      });
+      this._voices = null;
+    }
+  }, {
+    key: "playVictory",
+    value: function playVictory(bpm) {
+      var _this = this;
+      this.reset();
+      if (!window.Tone) return;
+      var beat = (0,_shared_tempo_js__WEBPACK_IMPORTED_MODULE_0__.beatMsForBpm)(bpm) / 1000;
+      var start = window.Tone.now();
+      var brass = new window.Tone.PolySynth(window.Tone.Synth, {
+        oscillator: {
+          type: "square"
+        },
+        envelope: {
+          attack: 0.012,
+          decay: 0.12,
+          sustain: 0.5,
+          release: 0.35
+        },
+        volume: -23
+      }).toDestination();
+      var bass = this._synth("triangle", -17, 0.4);
+      this._victoryVoices = [brass, bass];
+
+      // A short heraldic call, dominant lift, then a broad tonic resolution.
+      [[0, 0.35, ["C4", "E4", "G4"]], [0.5, 0.35, ["C4", "E4", "G4"]], [1, 0.75, ["D4", "G4", "B4"]], [2, 1.6, ["C4", "E4", "G4", "C5"]]].forEach(function (_ref) {
+        var _ref2 = _slicedToArray(_ref, 3),
+          offset = _ref2[0],
+          duration = _ref2[1],
+          notes = _ref2[2];
+        brass.triggerAttackRelease(notes, duration * beat, start + offset * beat, 0.7);
+      });
+      bass.triggerAttackRelease("G2", beat * 0.8, start + beat, 0.8);
+      bass.triggerAttackRelease("C2", beat * 1.6, start + 2 * beat, 0.85);
+      this._victoryTimer = setTimeout(function () {
+        return _this._stopVictory();
+      }, (4 * beat + 0.6) * 1000);
+    }
+  }, {
+    key: "_stopVictory",
+    value: function _stopVictory() {
+      if (this._victoryTimer != null) clearTimeout(this._victoryTimer);
+      this._victoryTimer = null;
+      this._victoryVoices.forEach(function (voice) {
+        return voice.dispose();
+      });
+      this._victoryVoices = [];
+    }
+  }, {
+    key: "reset",
+    value: function reset() {
+      this.stop();
+      this._stopVictory();
+      this._step = 0;
+    }
+  }]);
+}();
 
 /***/ },
 
@@ -5999,6 +6253,38 @@ function chooseResultVariant(tier) {
     // The in-memory fallback still prevents repeats during this page's lifetime.
   }
   return next;
+}
+
+/***/ },
+
+/***/ "./resources/js/music/games/shared/tempo.js"
+/*!**************************************************!*\
+  !*** ./resources/js/music/games/shared/tempo.js ***!
+  \**************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   DEFAULT_METRONOME_BPM: () => (/* binding */ DEFAULT_METRONOME_BPM),
+/* harmony export */   MAX_METRONOME_BPM: () => (/* binding */ MAX_METRONOME_BPM),
+/* harmony export */   MIN_METRONOME_BPM: () => (/* binding */ MIN_METRONOME_BPM),
+/* harmony export */   beatMsForBpm: () => (/* binding */ beatMsForBpm),
+/* harmony export */   eighthNoteMsForBpm: () => (/* binding */ eighthNoteMsForBpm),
+/* harmony export */   normalizeMetronomeBpm: () => (/* binding */ normalizeMetronomeBpm)
+/* harmony export */ });
+var MIN_METRONOME_BPM = 50;
+var MAX_METRONOME_BPM = 160;
+var DEFAULT_METRONOME_BPM = 80;
+function normalizeMetronomeBpm(value) {
+  var bpm = Number(value);
+  if (!Number.isFinite(bpm)) return DEFAULT_METRONOME_BPM;
+  return Math.min(MAX_METRONOME_BPM, Math.max(MIN_METRONOME_BPM, bpm));
+}
+function beatMsForBpm(value) {
+  return 60000 / normalizeMetronomeBpm(value);
+}
+function eighthNoteMsForBpm(value) {
+  return beatMsForBpm(value) / 2;
 }
 
 /***/ },

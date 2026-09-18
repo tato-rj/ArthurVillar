@@ -4,6 +4,7 @@ import {
 } from "../shared/finalResults.js";
 import { GameAudio } from "../shared/GameAudio.js";
 import { GameCountdown } from "../shared/GameCountdown.js";
+import { beatMsForBpm, normalizeMetronomeBpm } from "../shared/tempo.js";
 import { rhythmNotationSvg } from "./rhythmNotation.js";
 
 export class BeatHero {
@@ -631,7 +632,7 @@ export class BeatHero {
   }
 
   _beatMs() {
-    return 60000 / this.opts.bpm;
+    return beatMsForBpm(this.opts.bpm);
   }
 
   _setTimer(callback, delayMs) {
@@ -678,9 +679,7 @@ export class BeatHero {
   }
 
   _normalizeBpm(value) {
-    const bpm = Number(value);
-    if (!Number.isFinite(bpm)) return 80;
-    return Math.min(160, Math.max(50, bpm));
+    return normalizeMetronomeBpm(value);
   }
 
   _normalizeCardCount(value) {

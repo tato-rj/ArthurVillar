@@ -9,6 +9,12 @@ import { PromptUi } from "../shared/PromptUi.js";
 import { GameAudio } from "../shared/GameAudio.js";
 import { GameCountdown } from "../shared/GameCountdown.js";
 import { InstructionsUi } from "../shared/InstructionsUi.js";
+import { NotePythonMusic } from "./NotePythonMusic.js";
+import {
+  beatMsForBpm,
+  eighthNoteMsForBpm,
+  normalizeMetronomeBpm,
+} from "../shared/tempo.js";
 
 export class NotePython {
   static INTERVAL_FULL_NAME_MAP = {
@@ -41,7 +47,7 @@ export class NotePython {
       boardEl: "#board",
       rows: 9,
       cols: 9,
-      snakeSpeed: 500,
+      bpm: 80,
       sound: true,
       basePoints: 1,
       firstTryBonus: 2,
@@ -80,6 +86,7 @@ export class NotePython {
     };
 
     this.opts = { ...defaults, ...(options || {}) };
+    this.opts.bpm = normalizeMetronomeBpm(this.opts.bpm);
     this.ns = this.opts.namespace || "notePython";
     this.$board = $(this.opts.boardEl).first();
     this.$playWrap = $("#play");
@@ -112,6 +119,7 @@ export class NotePython {
     this._direction = { dr: 1, dc: 0 }; // starts moving downward
     this._directionQueue = [];
     this._tickTimer = null;
+    this._music = new NotePythonMusic();
     this._countdownTimeouts = [];
     this._countdownRun = 0;
     this._isGameOver = false;
@@ -185,8 +193,11 @@ export class NotePython {
   }
 
   _snakeSpeedMs() {
-    const n = Number(this.opts.snakeSpeed);
-    return Math.max(50, Math.floor(Number.isFinite(n) ? n : 500));
+    return eighthNoteMsForBpm(this.opts.bpm);
+  }
+
+  _beatMs() {
+    return beatMsForBpm(this.opts.bpm);
   }
 
   _wrapCell({ r, c }) {
@@ -658,6 +669,10 @@ export class NotePython {
       if (i === 0) {
         $cell.addClass("snake-head");
         if (this._headNote?.display) $cell.html(`<span class="food-note">${this._headNote.display}</span>`);
+        const facing = this._direction.dc === 1 ? 90
+          : this._direction.dr === 1 ? 180
+            : this._direction.dc === -1 ? 270 : 0;
+        $cell.append(`<span class="snake-face" aria-hidden="true" style="--snake-facing: ${facing}deg"></span>`);
       }
     });
 
@@ -1057,6 +1072,7 @@ export class NotePython {
       if (!this._isPracticeMode() && this._roundsCompleted >= (Number(this.opts.numOfChallenges) || 4)) {
         this._isGameOver = true;
         this._stopLoop();
+        this._playFinalSfx();
         this._animateSnakeFinalCelebrate();
         this._stats.finishedAtMs = Date.now();
         if (this._finalResultsTimeoutId != null) clearTimeout(this._finalResultsTimeoutId);
@@ -1098,6 +1114,7 @@ export class NotePython {
   }
 
   _stopLoop() {
+    this._music.stop();
     if (this._tickTimer != null) {
       clearInterval(this._tickTimer);
       this._tickTimer = null;
@@ -1121,7 +1138,7 @@ export class NotePython {
     if (countdownRun !== this._countdownRun) return;
 
     this._countdown.start({
-      beatMs: 1000,
+      beatMs: this._beatMs(),
       onComplete: () => {
         if (countdownRun !== this._countdownRun) return;
         this.$playWrap.hide();
@@ -1167,8 +1184,15 @@ export class NotePython {
   _startLoop() {
     if (this._pausedByModal) return;
     this._stopLoop();
+    if (this._isSoundEnabled()) {
+      this._music.start(this.opts.bpm);
+      this._music.playStep(this._snake.length);
+    }
     this._tickTimer = setInterval(() => {
       this._advanceSnake();
+      if (this._isGameOver || this._tickTimer == null) return;
+
+      this._music.playStep(this._snake.length);
     }, this._snakeSpeedMs());
   }
 
@@ -1196,6 +1220,11 @@ export class NotePython {
 
   start() {
     this._stopLoop();
+    this._music.reset();
+    $(window).off(`pagehide.${this.ns}Music`).on(`pagehide.${this.ns}Music`, () => {
+      this._stopLoop();
+      this._music.reset();
+    });
     if (this._finalResultsTimeoutId != null) {
       clearTimeout(this._finalResultsTimeoutId);
       this._finalResultsTimeoutId = null;
@@ -1296,7 +1325,6 @@ export class NotePython {
     if (perfectGame) {
       const tid = setTimeout(() => {
         this.$doublePoints?.show?.();
-        this._playPerfectGameBonusSfx();
       }, 1750);
       this._countdownTimeouts.push(tid);
     } else {
@@ -1322,7 +1350,6 @@ export class NotePython {
       clearCountupTimers: () => this._clearFinalCountupTimers(),
       countupTimers: this._finalCountupTimeouts,
       animateMetrics: () => this._animateFinalMetricsWithSfx(),
-      playFinalSfx: () => this._playFinalSfx(),
     });
   }
 
@@ -1335,10 +1362,12 @@ export class NotePython {
   }
 
   _playSuccessSfxBasic() {
+    if (this._hasCompletedRounds()) return;
     return BaseStaffGame.prototype._playSuccessSfxBasic.call(this);
   }
 
   _playSuccessSfxBonus() {
+    if (this._hasCompletedRounds()) return;
     return BaseStaffGame.prototype._playSuccessSfxBonus.call(this);
   }
 
@@ -1371,15 +1400,16 @@ export class NotePython {
   }
 
   _playFinalSfx() {
-    return BaseStaffGame.prototype._playFinalSfx.call(this);
+    if (this._isSoundEnabled()) this._music.playVictory(this.opts.bpm);
   }
 
-  _playPerfectGameBonusSfx() {
-    return BaseStaffGame.prototype._playPerfectGameBonusSfx.call(this);
+  _hasCompletedRounds() {
+    return !this._isPracticeMode()
+      && this._roundsCompleted >= (Number(this.opts.numOfChallenges) || 4);
   }
 
-  _playFinalMetricPopSfx(index) {
-    return BaseStaffGame.prototype._playFinalMetricPopSfx.call(this, index);
+  _playFinalMetricPopSfx() {
+    // Let the victory cadence ring out beneath the animated results.
   }
 
   _clearFinalMetricsSfxTimers() {

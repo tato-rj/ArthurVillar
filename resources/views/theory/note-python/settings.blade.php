@@ -3,7 +3,17 @@
   @component('theory.components.settings.section', ['title' => 'SETUP'])
     @include('theory.components.settings.count', ['label' => 'Number of rounds', 'name' => 'numOfChallenges', 'min' => 2, 'max' => 12])
     @include('theory.components.settings.toggle', ['label' => 'Practice mode', 'name' => 'practiceMode'])
-    @include('theory.components.settings.speed', ['speeds' => ['Slow', 'Fast', 'Crazy']])
+    @include('theory.components.settings.value-range', [
+      'label' => 'Metronome speed (bpm)',
+      'name' => 'bpm',
+      'id' => 'note-python-bpm',
+      'min' => 50,
+      'max' => 160,
+      'step' => 5,
+      'value' => $settings->options('bpm'),
+      'minLabel' => '50 BPM',
+      'maxLabel' => '160 BPM',
+    ])
   @endcomponent
 
   @component('theory.components.settings.section', ['title' => 'MATERIAL'])

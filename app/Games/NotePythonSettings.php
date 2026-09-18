@@ -42,15 +42,10 @@ class NotePythonSettings extends GameFactory
         return ['sound', 'solfege', 'allowAccidentals', 'strictDirection', 'showBombs'];
     }
 
-    protected function snakeSpeeds(): array
-    {
-        return [600, 400, 200];
-    }
-
     protected function defaults(): array
     {
         return [
-            'speedIndex' => 0,
+            'bpm' => 80,
             'timeLimit' => 40,
             'practiceMode' => false,
             'timer' => false,
@@ -69,11 +64,8 @@ class NotePythonSettings extends GameFactory
     public function options($key = null)
     {
         $options = $this->applyUserPreferences();
-
-        $speeds = $this->snakeSpeeds();
-        $idx = (int) ($options['speedIndex'] ?? 0);
-        $idx = max(0, min($idx, count($speeds) - 1));
-        $options['snakeSpeed'] = $speeds[$idx];
+        $bpm = is_numeric($options['bpm'] ?? null) ? (float) $options['bpm'] : 80;
+        $options['bpm'] = (int) max(50, min(160, $bpm));
 
         $weights = $this->getAccidentalWeights()[(bool) $options['allowAccidentals']];
         $array = $this->buildOptions($options, ['accidentalWeights' => $weights]);

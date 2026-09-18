@@ -66,7 +66,7 @@
   border: 2px solid #e3e7eb;
   border-radius: 20px;
   background: #fff;
-  box-shadow: 0 3px 0 #edf0f3;
+  // box-shadow: 0 3px 0 #edf0f3;
   animation: resultMetricArrive 420ms ease-out both;
 
   &__label {
@@ -106,7 +106,7 @@
   &--score {
     background: #fff9df;
     border-color: #eedc94;
-    box-shadow: 0 3px 0 #eedc94;
+    // box-shadow: 0 3px 0 #eedc94;
     color: #816019;
     .result-metric__value { color: #6e4e10; }
   }
@@ -114,7 +114,7 @@
   &--accuracy {
     background: #eff9f3;
     border-color: #bfdecb;
-    box-shadow: 0 3px 0 #bfdecb;
+    // box-shadow: 0 3px 0 #bfdecb;
     color: #3b7359;
     .result-metric__value { color: #286449; }
   }
