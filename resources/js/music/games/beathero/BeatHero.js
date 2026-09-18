@@ -560,12 +560,8 @@ export class BeatHero {
   }
 
   _playFinalSound() {
-    if (!this.opts.sound || !this._uiSynth || !window.Tone) return;
-
-    const now = Tone.now();
-    ["C5", "E5", "G5", "C6"].forEach((note, index) => {
-      this._uiSynth.triggerAttackRelease(note, 0.16, now + (index * 0.08), GameAudio.scale("final", 0.5));
-    });
+    if (!this.opts.sound || !window.Tone) return;
+    GameAudio.playFinalResults();
   }
 
   _activateDot(index) {

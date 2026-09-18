@@ -1285,42 +1285,7 @@ var GameAudio = /*#__PURE__*/function () {
                   synth.triggerAttackRelease("A2", 0.18, now + 0.11, GameAudio.scale("wallCrash", 0.62));
                 },
                 "final": function _final() {
-                  var _synth$get$oscillator3;
-                  var synth = GameAudio._getPreviewSynth("uiPoly", function () {
-                    return GameAudio.createUiPolySynth();
-                  });
-                  var now = Tone.now();
-                  var oldEnv = _objectSpread({}, synth.get().envelope);
-                  var oldOsc = (_synth$get$oscillator3 = synth.get().oscillator) === null || _synth$get$oscillator3 === void 0 ? void 0 : _synth$get$oscillator3.type;
-                  try {
-                    synth.set({
-                      oscillator: {
-                        type: "sine"
-                      },
-                      envelope: {
-                        attack: 0.02,
-                        decay: 0.25,
-                        sustain: 0.35,
-                        release: 0.9
-                      }
-                    });
-                  } catch (_) {}
-                  ["C5", "E5", "G5", "B5", "D6", "G6"].forEach(function (n, i) {
-                    synth.triggerAttackRelease(n, 0.11, now + i * 0.08, GameAudio.scale("final", 0.44));
-                  });
-                  ["C6", "E6", "G6"].forEach(function (n) {
-                    synth.triggerAttackRelease(n, 0.28, now + 0.62, GameAudio.scale("final", 0.5));
-                  });
-                  setTimeout(function () {
-                    try {
-                      synth.set({
-                        oscillator: {
-                          type: oldOsc || "triangle"
-                        },
-                        envelope: oldEnv
-                      });
-                    } catch (_) {}
-                  }, 1700);
+                  GameAudio.playFinalResults();
                 },
                 finalMetric: function finalMetric() {
                   var synth = GameAudio._getPreviewSynth("uiTimer", function () {
@@ -1331,13 +1296,13 @@ var GameAudio = /*#__PURE__*/function () {
                   synth.triggerAttackRelease("C6", 0.045, now + 0.03, GameAudio.scale("finalMetric", 0.34));
                 },
                 perfectBonus: function perfectBonus() {
-                  var _synth$get$oscillator4;
+                  var _synth$get$oscillator3;
                   var synth = GameAudio._getPreviewSynth("uiPoly", function () {
                     return GameAudio.createUiPolySynth();
                   });
                   var now = Tone.now();
                   var oldEnv = _objectSpread({}, synth.get().envelope);
-                  var oldOsc = (_synth$get$oscillator4 = synth.get().oscillator) === null || _synth$get$oscillator4 === void 0 ? void 0 : _synth$get$oscillator4.type;
+                  var oldOsc = (_synth$get$oscillator3 = synth.get().oscillator) === null || _synth$get$oscillator3 === void 0 ? void 0 : _synth$get$oscillator3.type;
                   try {
                     synth.set({
                       oscillator: {
@@ -1615,6 +1580,110 @@ var GameAudio = /*#__PURE__*/function () {
         },
         volume: GameAudio.SYNTH_VOLUME_DB.uiPoly
       }).toDestination();
+    }
+  }, {
+    key: "playFinalResults",
+    value: function playFinalResults() {
+      if (!window.Tone) return;
+      var synth = GameAudio._getPreviewSynth("finalResults", function () {
+        return new Tone.PolySynth(Tone.Synth, {
+          oscillator: {
+            type: "sine"
+          },
+          envelope: {
+            attack: 0.02,
+            decay: 0.25,
+            sustain: 0.35,
+            release: 0.9
+          },
+          volume: GameAudio.SYNTH_VOLUME_DB.uiPoly
+        }).toDestination();
+      });
+      var now = Tone.now();
+      var variants = [function () {
+        ["C4", "G4", "C5", "E5"].forEach(function (note) {
+          return synth.triggerAttackRelease(note, 0.9, now, GameAudio.scale("final", 0.6));
+        });
+        ["G5", "A5", "B5", "C6", "D6", "E6", "G6"].forEach(function (note, index) {
+          synth.triggerAttackRelease(note, 0.08, now + 0.25 + index * 0.06, GameAudio.scale("final", 0.35));
+        });
+      }, function () {
+        ["C5", "E5", "G5", "B5", "D6", "G6"].forEach(function (note, index) {
+          synth.triggerAttackRelease(note, 0.11, now + index * 0.08, GameAudio.scale("final", 0.44));
+        });
+        ["C6", "E6", "G6"].forEach(function (note) {
+          return synth.triggerAttackRelease(note, 0.28, now + 0.62, GameAudio.scale("final", 0.5));
+        });
+      }, function () {
+        ["A3", "E4", "A4", "C5"].forEach(function (note) {
+          return synth.triggerAttackRelease(note, 0.45, now, GameAudio.scale("final", 0.45));
+        });
+        ["F4", "A4", "C5", "F5"].forEach(function (note) {
+          return synth.triggerAttackRelease(note, 0.52, now + 0.35, GameAudio.scale("final", 0.48));
+        });
+        ["C5", "F5", "A5"].forEach(function (note) {
+          return synth.triggerAttackRelease(note, 0.24, now + 0.78, GameAudio.scale("final", 0.4));
+        });
+      }, function () {
+        ["E5", "G5", "A5", "B5", "D6", "E6", "G6", "A6"].forEach(function (note, index) {
+          synth.triggerAttackRelease(note, 0.075, now + index * 0.055, GameAudio.scale("final", 0.34));
+        });
+        ["A5", "A6", "C7"].forEach(function (note) {
+          return synth.triggerAttackRelease(note, 0.2, now + 0.52, GameAudio.scale("final", 0.42));
+        });
+      }, function () {
+        ["D4", "A4", "D5", "F#5"].forEach(function (note) {
+          return synth.triggerAttackRelease(note, 0.36, now, GameAudio.scale("final", 0.45));
+        });
+        ["D5", "F#5", "A5", "D6", "F#6"].forEach(function (note, index) {
+          synth.triggerAttackRelease(note, 0.095, now + 0.2 + index * 0.065, GameAudio.scale("final", 0.4));
+        });
+      }, function () {
+        ["G3", "D4", "G4", "B4"].forEach(function (note) {
+          return synth.triggerAttackRelease(note, 0.4, now, GameAudio.scale("final", 0.4));
+        });
+        ["C4", "E4", "G4", "C5"].forEach(function (note) {
+          return synth.triggerAttackRelease(note, 0.44, now + 0.32, GameAudio.scale("final", 0.46));
+        });
+        ["E5", "G5", "C6"].forEach(function (note) {
+          return synth.triggerAttackRelease(note, 0.22, now + 0.72, GameAudio.scale("final", 0.4));
+        });
+      }, function () {
+        ["C6", "D6", "E6", "G6", "A6", "G6", "E6", "C7"].forEach(function (note, index) {
+          synth.triggerAttackRelease(note, 0.06, now + index * 0.048, GameAudio.scale("final", 0.3));
+        });
+        ["G6", "C7"].forEach(function (note) {
+          return synth.triggerAttackRelease(note, 0.2, now + 0.48, GameAudio.scale("final", 0.38));
+        });
+      }, function () {
+        ["F4", "C5", "A5"].forEach(function (note, index) {
+          synth.triggerAttackRelease(note, 0.16, now + index * 0.06, GameAudio.scale("final", 0.45));
+        });
+        ["G4", "D5", "B5"].forEach(function (note, index) {
+          synth.triggerAttackRelease(note, 0.16, now + 0.28 + index * 0.06, GameAudio.scale("final", 0.48));
+        });
+        ["C5", "E5", "G5", "C6"].forEach(function (note) {
+          return synth.triggerAttackRelease(note, 0.26, now + 0.54, GameAudio.scale("final", 0.44));
+        });
+      }, function () {
+        ["A6", "G6", "E6", "D6", "C6"].forEach(function (note, index) {
+          synth.triggerAttackRelease(note, 0.08, now + index * 0.06, GameAudio.scale("final", 0.34));
+        });
+        ["E6", "G6", "C7"].forEach(function (note) {
+          return synth.triggerAttackRelease(note, 0.24, now + 0.4, GameAudio.scale("final", 0.42));
+        });
+      }, function () {
+        ["C4", "E4", "G4", "C5"].forEach(function (note) {
+          return synth.triggerAttackRelease(note, 0.34, now, GameAudio.scale("final", 0.48));
+        });
+        ["E5", "G5", "B5", "D6", "E6"].forEach(function (note, index) {
+          synth.triggerAttackRelease(note, 0.09, now + 0.18 + index * 0.055, GameAudio.scale("final", 0.38));
+        });
+        ["C6", "E6", "G6", "C7"].forEach(function (note) {
+          return synth.triggerAttackRelease(note, 0.3, now + 0.58, GameAudio.scale("final", 0.5));
+        });
+      }];
+      variants[Math.floor(Math.random() * variants.length)]();
     }
   }, {
     key: "createUiNoiseSynth",
