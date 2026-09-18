@@ -15,6 +15,9 @@ const SONG = [
 ];
 
 const downOctave = (note) => note.replace(/\d$/, (octave) => String(Number(octave) - 1));
+// Root–third–fifth–third gives the faster layer a clear melodic contour.
+// Use the triad so sustained melody notes do not clash with a repeated seventh.
+const ARPEGGIO = [0, 1, 2, 1];
 
 export class NotePythonMusic {
   constructor() {
@@ -96,25 +99,31 @@ export class NotePythonMusic {
     if (growth >= 5 && slot % 4 === 3) {
       bass.triggerAttackRelease(bar.fifth, this._eighth * 0.25, time + this._eighth / 2, GameAudio.scale("notePythonLowEnd", 0.5));
     }
-    const playChord = frantic ? slot % 2 === 1 || (growth >= 4 && slot % 4 === 0)
-      : driving ? slot === 0 || slot === 3 || slot === 6
+    const playChord = driving ? slot % 2 === 0
         : lively ? slot % 4 === 0 : slot === 0;
     if (playChord) {
       const chord = bar.chord.slice(0, 3).map((note) => downOctave(downOctave(note)));
       keys.triggerAttackRelease(chord, this._eighth * (frantic ? 0.4 : 1.5), time, GameAudio.scale("notePythonLowEnd", lively ? 0.6 : 0.4));
     }
-    if (driving && (frantic || slot % 2 === 1)) {
-      const subdivisions = growth >= 6 && slot >= 6 ? 4 : frantic ? 2 : 1;
+    if (driving) {
+      // Stage three joins the snake's eighth-note pulse directly. Later stages
+      // subdivide that same pulse evenly; never shift it by half an eighth.
+      const subdivisions = frantic ? 2 : 1;
       for (let part = 0; part < subdivisions; part++) {
-        const offset = frantic ? part / subdivisions : 0.5;
-        const note = downOctave(bar.chord[(slot + part) % 4]);
-        arp.triggerAttackRelease(note, this._eighth * 0.18, time + offset * this._eighth, GameAudio.scale("notePythonMelody", frantic ? 0.6 : 0.4));
+        const offset = part / subdivisions;
+        const note = downOctave(bar.chord[ARPEGGIO[(slot * subdivisions + part) % ARPEGGIO.length]]);
+        const accent = (slot * subdivisions + part) % (2 * subdivisions) === 0;
+        arp.triggerAttackRelease(note, this._eighth * 0.18, time + offset * this._eighth, GameAudio.scale("notePythonMelody", accent ? 0.5 : 0.32));
       }
     }
     if (slot % (driving ? 2 : 4) === 0 || (frantic && slot === 7)) {
       kick.triggerAttackRelease("C1", 0.06, time, GameAudio.scale("notePythonDrums", lively ? 0.85 : 0.6));
     }
     if (lively ? slot % 4 === 2 : slot === 6) snare.triggerAttackRelease(0.045, time, GameAudio.scale("notePythonDrums", lively ? 0.7 : 0.35));
+    // Reserve the densest fills for the last beat of the bar. The bass and
+    // chord accents remain stable underneath, even for a very long snake.
+    if (growth >= 6 && slot === 6) snare.triggerAttackRelease(0.02, time + this._eighth / 2, GameAudio.scale("notePythonDrums", 0.25));
+    if (growth >= 6 && slot === 7) snare.triggerAttackRelease(0.02, time, GameAudio.scale("notePythonDrums", 0.3));
     if (growth >= 4 && slot === 7) snare.triggerAttackRelease(0.025, time + this._eighth / 2, GameAudio.scale("notePythonDrums", 0.45));
     if (driving || (lively && slot % 2 === 1)) {
       hats.triggerAttackRelease(0.01, time, GameAudio.scale("notePythonDrums", slot % 2 === 1 ? 0.3 : 0.18));

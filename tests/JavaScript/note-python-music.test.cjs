@@ -54,6 +54,41 @@ test('the whole composition stays on the selected BPM at slow and fast settings'
     }
 });
 
+test('stage three arpeggios enter on eighth notes with chords marking quarter notes', () => {
+    for (const bpm of [50, 80, 160]) {
+        const { music, voices, advance } = setup();
+        const eighth = 30 / bpm;
+        music.start(bpm);
+        for (let step = 0; step < 64; step++) {
+            music.playStep(4);
+            advance(eighth);
+        }
+        assert.equal(voices[2].notes.length, 64);
+        voices[2].notes.forEach((note, i) => {
+            assert.ok(Math.abs(note.time - (10 + i * eighth)) < 0.00001, 'arpeggio must land with the movement pulse');
+        });
+        voices[3].notes.forEach((note, i) => {
+            assert.ok(Math.abs(note.time - (10 + i * eighth * 2)) < 0.00001, 'chords must reinforce the quarter-note beat');
+        });
+    }
+});
+
+test('growth and shrink transitions keep every part on the same sixteenth-note grid', () => {
+    const { music, voices, advance } = setup();
+    const bpm = 160;
+    const eighth = 30 / bpm;
+    music.start(bpm);
+    const lengths = [2, 3, 4, 5, 6, 7, 8, 5, 4, 2];
+    for (let step = 0; step < 160; step++) {
+        music.playStep(lengths[Math.floor(step / 5) % lengths.length]);
+        advance(eighth);
+    }
+    voices.forEach((voice) => voice.notes.forEach((note) => {
+        const subdivision = (note.time - 10) / (eighth / 2);
+        assert.ok(Math.abs(subdivision - Math.round(subdivision)) < 0.00001, 'fills and transitions must stay on the shared beat grid');
+    }));
+});
+
 test('growth adds activity and shrinking removes it using current length', () => {
     function phrase(length) {
         const { music, voices, advance } = setup();
