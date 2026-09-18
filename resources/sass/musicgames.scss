@@ -125,7 +125,7 @@ button.game-countdown-step-pop {
   --ghost: #90d5ff;
   --ghost-opacity: 0.5;
 
-  --beat-hero-ink: #174a76;
+  --beat-hero-ink: #111;
   --beat-hero-blue: #1cb0f6;
   --beat-hero-gold: #f6c945;
   --beat-hero-green: #58cc02;
@@ -866,6 +866,7 @@ button.game-countdown-step-pop {
   min-width: 0;
   padding: 10px;
   overflow: hidden;
+  border: transparent;
   // border: 3px solid #e2e5e8;
   // border-radius: 22px;
   // background: #fff;

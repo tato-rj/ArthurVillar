@@ -31489,7 +31489,7 @@ button.game-countdown-step-pop {
   --ink: #111;
   --ghost: #90d5ff;
   --ghost-opacity: 0.5;
-  --beat-hero-ink: #174a76;
+  --beat-hero-ink: #111;
   --beat-hero-blue: #1cb0f6;
   --beat-hero-gold: #f6c945;
   --beat-hero-green: #58cc02;
@@ -32822,6 +32822,7 @@ button.game-countdown-step-pop {
   min-width: 0;
   padding: 10px;
   overflow: hidden;
+  border: transparent;
   color: var(--beat-hero-ink);
   cursor: pointer;
   touch-action: manipulation;

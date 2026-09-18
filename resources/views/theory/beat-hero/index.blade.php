@@ -27,7 +27,8 @@
     place-items: center;
     width: 50px;
     height: 50px;
-    border: 1px solid black;
+    border: transparent;
+    {{-- border: 1px solid black; --}}
     border-radius: 14px;
     background: #fff;
     color: var(--beat-hero-ink);
@@ -42,10 +43,10 @@
   }
 
   .sequence-dot.is-active {
-    border-color: var(--beat-hero-gold);
+    {{-- border-color: var(--beat-hero-gold); --}}
     background: var(--beat-hero-ink);
     color: #fff;
-    box-shadow: 0 0 0 1px yellow;
+    {{-- box-shadow: 0 0 0 1px yellow; --}}
     transform: scale(1.08);
   }
 
