@@ -31537,11 +31537,578 @@ button.game-countdown-step-pop {
    Layout / Containers
    ========================================================================== */
 #final-overlay {
-  background: rgba(255, 255, 255, 0.96);
+  position: fixed;
+  inset: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  background: rgba(255, 255, 255, 0.98);
   display: none;
   z-index: 1000;
 }
 
+.results-sheet {
+  width: min(480px, 100% - 36px);
+  min-height: 100%;
+  margin: 0 auto;
+  padding: 24px 0 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  color: #303744;
+  text-align: center;
+}
+
+.result-character {
+  width: 260px;
+  max-width: 65%;
+  margin: 0 auto 8px;
+  flex: 0 0 auto;
+}
+.result-character svg {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+.result-character__scene {
+  display: none;
+}
+.result-character__variant {
+  display: none;
+}
+
+[data-result-tier=excellent] .result-character__scene--excellent {
+  display: inline;
+}
+
+[data-result-tier=strong] .result-character__scene--strong {
+  display: inline;
+}
+
+[data-result-tier=encouraging] .result-character__scene--encouraging {
+  display: inline;
+}
+
+[data-result-variant="0"] .result-character__variant[data-character-variant="0"] {
+  display: inline;
+}
+
+[data-result-variant="1"] .result-character__variant[data-character-variant="1"] {
+  display: inline;
+}
+
+[data-result-variant="2"] .result-character__variant[data-character-variant="2"] {
+  display: inline;
+}
+
+[data-result-variant="3"] .result-character__variant[data-character-variant="3"] {
+  display: inline;
+}
+
+[data-result-variant="4"] .result-character__variant[data-character-variant="4"] {
+  display: inline;
+}
+
+.results-eyebrow {
+  margin: 0 0 7px;
+  color: #77818e;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.results-greeting h1, .results-greeting .h1 {
+  margin: 0;
+  font-size: clamp(28px, 4vw, 36px);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -1px;
+}
+
+.results-message {
+  margin: 10px 0 25px;
+  color: #6d7683;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.results-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  text-align: left;
+}
+
+.result-metric {
+  min-width: 0;
+  padding: 16px 20px;
+  border: 2px solid #e3e7eb;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 3px 0 #edf0f3;
+  animation: resultMetricArrive 420ms ease-out both;
+}
+.result-metric__label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+.result-metric__icon {
+  display: inline-flex;
+  color: #8894a3;
+}
+.result-metric__icon svg, .result-metric__icon i {
+  margin: 0 !important;
+  width: 14px;
+}
+.result-metric__value {
+  margin-top: 8px;
+  font-size: 27px;
+  font-weight: 800;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.8px;
+  overflow-wrap: anywhere;
+}
+.result-metric__detail {
+  margin-top: 5px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.result-metric--score, .result-metric--accuracy {
+  padding-top: 18px;
+  padding-bottom: 18px;
+}
+.result-metric--score .result-metric__value, .result-metric--accuracy .result-metric__value {
+  font-size: clamp(34px, 6vw, 44px);
+  margin-top: 12px;
+}
+.result-metric--score .result-metric__icon, .result-metric--accuracy .result-metric__icon {
+  color: inherit;
+}
+.result-metric--score {
+  background: #fff9df;
+  border-color: #eedc94;
+  box-shadow: 0 3px 0 #eedc94;
+  color: #816019;
+}
+.result-metric--score .result-metric__value {
+  color: #6e4e10;
+}
+.result-metric--accuracy {
+  background: #eff9f3;
+  border-color: #bfdecb;
+  box-shadow: 0 3px 0 #bfdecb;
+  color: #3b7359;
+}
+.result-metric--accuracy .result-metric__value {
+  color: #286449;
+}
+.result-metric--rounds .result-metric__label, .result-metric--duration .result-metric__label {
+  color: #75808e;
+  font-size: 12px;
+}
+
+.results-bonuses {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+#final-overlay .results-bonus {
+  position: static;
+  transform: none;
+  margin-top: 16px;
+  padding: 5px 11px;
+  border-radius: 20px;
+  background: #fff4c5;
+  color: #806118;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.5;
+}
+#final-overlay .results-bonus--settings {
+  background: #edf5ff;
+  color: #3d71a6;
+}
+
+.results-actions {
+  margin-top: 26px;
+  display: grid;
+  gap: 16px;
+}
+.results-actions__secondary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.results-actions__secondary .btn, .results-actions__secondary .rhythm-card {
+  font-size: 14px;
+  color: #525d6b;
+  border-color: #cdd3db;
+}
+
+.result-character__jumper {
+  transform-origin: 148px 155px;
+  animation: resultJump 1.8s ease-in-out 3;
+}
+
+.result-character__shadow {
+  transform-origin: 148px 170px;
+  animation: resultShadow 1.8s ease-in-out 3;
+}
+
+.result-character__sparkles {
+  transform-origin: 150px 95px;
+  animation: resultSparkle 1.8s ease-in-out 3;
+}
+
+.result-character__confetti {
+  animation: resultConfetti 1.8s ease-in-out 3;
+}
+
+.result-character__dancer {
+  transform-origin: 145px 160px;
+  animation: resultDance 2s ease-in-out 3;
+}
+
+.result-character__wave {
+  transform-origin: 173px 121px;
+  animation: resultWave 1s ease-in-out 5;
+}
+
+.result-character__melody {
+  animation: resultMelody 2s ease-in-out 3;
+}
+
+.result-character__eyes {
+  transform-origin: 137px 124px;
+  animation: resultBlink 3s linear 2;
+}
+
+.result-character__listener {
+  transform-origin: 145px 155px;
+  animation: resultNod 2.4s ease-in-out 3;
+}
+
+.result-character__listening {
+  animation: resultListen 2.4s ease-in-out 3;
+}
+
+.result-character__heart {
+  transform-origin: 219px 49px;
+  animation: resultHeart 2.4s ease-in-out 3;
+}
+
+.result-vignette__ambient {
+  animation: resultMelody 2s ease-in-out 3;
+}
+.result-vignette__eyes {
+  transform-origin: 137px 124px;
+  animation: resultBlink 3s linear 2;
+}
+.result-vignette__figure {
+  transform-origin: 145px 155px;
+}
+.result-vignette--star-catcher .result-vignette__figure {
+  animation: resultNod 2s ease-in-out 3;
+}
+.result-vignette__star {
+  transform-origin: 205px 91px;
+  animation: resultStarCatch 2s ease-in-out 3;
+}
+.result-vignette__baton {
+  transform-origin: 173px 121px;
+  animation: resultConduct 1.6s ease-in-out 4;
+}
+.result-vignette--duet .result-vignette__figure {
+  animation: resultDance 2s ease-in-out 3;
+}
+.result-vignette__friend {
+  transform-origin: 125px 160px;
+  animation: resultJump 2s 250ms ease-in-out 3;
+}
+.result-vignette--crowned .result-vignette__figure {
+  animation: resultRoyalBow 2.4s ease-in-out 3;
+}
+.result-vignette__left-hand {
+  transform-origin: 104px 125px;
+  animation: resultKeyTap 1s ease-in-out 6;
+}
+.result-vignette__right-hand {
+  transform-origin: 173px 124px;
+  animation: resultKeyTap 1s 500ms ease-in-out 6;
+}
+.result-vignette__keys {
+  animation: resultListen 1s ease-in-out 6;
+}
+.result-vignette__drumstick {
+  transform-origin: 173px 123px;
+  animation: resultDrumTap 800ms ease-in-out 7;
+}
+.result-vignette__drumhead {
+  transform-origin: 214px 130px;
+  animation: resultDrumHead 800ms ease-in-out 7;
+}
+.result-vignette__record {
+  animation: resultRecordSpin 2s linear 3;
+}
+.result-vignette__record--left {
+  transform-origin: 108px 161px;
+}
+.result-vignette__record--right {
+  transform-origin: 178px 161px;
+  animation-direction: reverse;
+}
+.result-vignette--reader .result-vignette__figure, .result-vignette--metronome .result-vignette__figure, .result-vignette--tea-break .result-vignette__figure {
+  animation: resultNod 2.4s ease-in-out 3;
+}
+.result-vignette__page {
+  transform-origin: 142px 157px;
+  animation: resultPageTurn 3s ease-in-out 2;
+}
+.result-vignette__pendulum {
+  transform-origin: 215px 152px;
+  animation: resultPracticeBeat 2s ease-in-out 3;
+}
+.result-vignette__steam {
+  animation: resultTeaSteam 2s ease-out 3;
+}
+
+@keyframes resultStarCatch {
+  0%, 100% {
+    transform: translateY(0) rotate(0);
+  }
+  50% {
+    transform: translateY(-9px) rotate(10deg);
+  }
+}
+@keyframes resultConduct {
+  0%, 100% {
+    transform: rotate(-8deg);
+  }
+  45% {
+    transform: rotate(16deg);
+  }
+  70% {
+    transform: rotate(3deg);
+  }
+}
+@keyframes resultRoyalBow {
+  0%, 65%, 100% {
+    transform: rotate(0);
+  }
+  35% {
+    transform: rotate(8deg) translateY(3px);
+  }
+}
+@keyframes resultKeyTap {
+  0%, 100% {
+    transform: rotate(0);
+  }
+  50% {
+    transform: rotate(-9deg);
+  }
+}
+@keyframes resultDrumTap {
+  0%, 100% {
+    transform: rotate(-12deg);
+  }
+  50% {
+    transform: rotate(10deg);
+  }
+}
+@keyframes resultDrumHead {
+  0%, 40%, 100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(0.7);
+  }
+}
+@keyframes resultRecordSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes resultPageTurn {
+  0%, 60%, 100% {
+    transform: scaleX(1);
+  }
+  40% {
+    transform: scaleX(0.15);
+  }
+}
+@keyframes resultPracticeBeat {
+  0%, 50%, 100% {
+    transform: rotate(0);
+  }
+  25% {
+    transform: rotate(20deg);
+  }
+  75% {
+    transform: rotate(-20deg);
+  }
+}
+@keyframes resultTeaSteam {
+  0% {
+    transform: translateY(3px);
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(-7px);
+    opacity: 0.25;
+  }
+}
+@keyframes resultMetricArrive {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes resultJump {
+  0%, 65%, 100% {
+    transform: translateY(0) rotate(0);
+  }
+  15% {
+    transform: translateY(3px) scale(1.04, 0.96);
+  }
+  36% {
+    transform: translateY(-17px) rotate(-7deg);
+  }
+  52% {
+    transform: translateY(1px) scale(1.04, 0.96);
+  }
+}
+@keyframes resultShadow {
+  0%, 65%, 100% {
+    transform: scaleX(1);
+  }
+  36% {
+    transform: scaleX(0.7);
+    opacity: 0.5;
+  }
+}
+@keyframes resultSparkle {
+  0%, 65%, 100% {
+    transform: scale(1);
+  }
+  36% {
+    transform: scale(1.09);
+    opacity: 0.6;
+  }
+}
+@keyframes resultConfetti {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  36% {
+    transform: translateY(-8px);
+  }
+}
+@keyframes resultDance {
+  0%, 100% {
+    transform: rotate(-4deg);
+  }
+  50% {
+    transform: rotate(5deg) translateY(-3px);
+  }
+}
+@keyframes resultWave {
+  0%, 100% {
+    transform: rotate(-8deg);
+  }
+  50% {
+    transform: rotate(12deg);
+  }
+}
+@keyframes resultMelody {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
+}
+@keyframes resultBlink {
+  0%, 44%, 50%, 100% {
+    transform: scaleY(1);
+  }
+  47% {
+    transform: scaleY(0.1);
+  }
+}
+@keyframes resultNod {
+  0%, 100% {
+    transform: rotate(0);
+  }
+  50% {
+    transform: rotate(4deg) translateY(2px);
+  }
+}
+@keyframes resultListen {
+  0%, 100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes resultHeart {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.13) translateY(-3px);
+  }
+}
+@media (max-width: 480px) {
+  .results-sheet {
+    padding-top: 18px;
+    padding-bottom: 24px;
+  }
+  .result-character {
+    width: 215px;
+    margin-bottom: 4px;
+  }
+  .results-message {
+    font-size: 14px;
+    margin-bottom: 21px;
+  }
+  .result-metric {
+    padding: 14px;
+    border-radius: 17px;
+  }
+  .result-metric__label {
+    font-size: 12px;
+  }
+  .result-metric__detail {
+    font-size: 11px;
+  }
+  .results-actions .btn, .results-actions .rhythm-card {
+    font-size: 14px;
+  }
+  .results-actions__secondary .btn, .results-actions__secondary .rhythm-card {
+    font-size: 13px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #final-overlay *, #final-overlay *::before, #final-overlay *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
 #controls {
   display: none;
 }

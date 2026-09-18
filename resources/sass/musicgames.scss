@@ -173,10 +173,16 @@ button.game-countdown-step-pop {
    Layout / Containers
    ========================================================================== */
 #final-overlay {
-  background: rgba(255, 255, 255, 0.96);
+  position: fixed;
+  inset: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  background: rgba(255, 255, 255, 0.98);
   display: none;
   z-index: 1000;
 }
+
+@import "music/results";
 
 #controls {
   display: none;

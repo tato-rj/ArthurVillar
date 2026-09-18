@@ -5,9 +5,6 @@
     {{-- <div class="position-relative"> --}}
       @include('theory.components.play', ['playLabel' => $playLabel ?? 'Play'])
     {{-- </div> --}}
-        <div id="continue" class="btn-floating w-100 mb-3" style="display: none;">
-        <button class="btn btn-green w-100">Continue</button>
-      </div>
     @else
       @isset($instructions)
       <div class="position-relative">
@@ -31,6 +28,10 @@
 
       @endisset
     @endif
+
+    <div id="continue" class="btn-floating w-100 mb-3" style="display: none;">
+      <button class="btn btn-green w-100">Continue</button>
+    </div>
 
     <div class="d-flex">
       @unless($settings->gameName() == 'Open Staff')

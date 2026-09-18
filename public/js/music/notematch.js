@@ -4950,12 +4950,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   queueFinalResultsReveal: () => (/* binding */ queueFinalResultsReveal),
 /* harmony export */   renderFinalResultsOverlay: () => (/* binding */ renderFinalResultsOverlay)
 /* harmony export */ });
+/* harmony import */ var _resultVariants_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./resultVariants.js */ "./resources/js/music/games/shared/resultVariants.js");
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
 function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
 function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
 function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
 function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+
 var DEFAULT_FINAL_RESULTS_REVEAL_DELAY_MS = 1600;
 function queueFinalResultsReveal() {
   var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
@@ -4973,7 +4975,7 @@ function queueFinalResultsReveal() {
   }, delay);
 }
 function renderFinalResultsOverlay(_ref2) {
-  var _window, _window2, _window3;
+  var _window, _window$matchMedia, _window2, _$greetingTitle$, _window3, _window4;
   var $finalOverlay = _ref2.$finalOverlay,
     _ref2$rounds = _ref2.rounds,
     rounds = _ref2$rounds === void 0 ? 0 : _ref2$rounds,
@@ -4995,7 +4997,8 @@ function renderFinalResultsOverlay(_ref2) {
     playFinalSfx = _ref2$playFinalSfx === void 0 ? null : _ref2$playFinalSfx;
   if (!$finalOverlay || !$finalOverlay.length) return;
   var CountUpCtor = (_window = window) === null || _window === void 0 || (_window = _window.CountUp) === null || _window === void 0 ? void 0 : _window.CountUp;
-  var DURATION = 3.5;
+  var reducedMotion = !!((_window$matchMedia = (_window2 = window).matchMedia) !== null && _window$matchMedia !== void 0 && _window$matchMedia.call(_window2, "(prefers-reduced-motion: reduce)").matches);
+  var DURATION = 1.4;
   if (typeof clearCountupTimers === "function") clearCountupTimers();
   var setMetricAnimationDelays = function setMetricAnimationDelays() {
     var $boxes = $finalOverlay.find("#metrics-boxes > div");
@@ -5035,7 +5038,7 @@ function renderFinalResultsOverlay(_ref2) {
       $finalPoints.text(value !== null && value !== void 0 ? value : "");
       return;
     }
-    if (!CountUpCtor) {
+    if (!CountUpCtor || reducedMotion) {
       $finalPoints.text(String(Math.round(finalPoints)));
       return;
     }
@@ -5096,18 +5099,18 @@ function renderFinalResultsOverlay(_ref2) {
     var el = $finalOverlay.find(selector)[0];
     if (!el) return;
     var startCount = function startCount() {
-      if (!CountUpCtor) {
+      if (!CountUpCtor || reducedMotion) {
         el.textContent = String(opts.formattingFn ? opts.formattingFn(endVal) : endVal) + (opts.suffix || "");
         return;
       }
       var c = new CountUpCtor(el, endVal, _objectSpread({
         duration: DURATION
       }, opts));
-      if (!c.error) c.start();
+      if (!c.error) c.start();else el.textContent = String(opts.formattingFn ? opts.formattingFn(endVal) : endVal) + (opts.suffix || "");
     };
     var $box = $(el).closest("#metrics-boxes > div");
     var rawDelay = $box.length ? parseFloat($box[0].style.animationDelay || "0") : 0;
-    var delayMs = Number.isFinite(rawDelay) ? Math.max(0, rawDelay) : 0;
+    var delayMs = !reducedMotion && Number.isFinite(rawDelay) ? Math.max(0, rawDelay) : 0;
     if (delayMs <= 0) {
       startCount();
       return;
@@ -5118,7 +5121,6 @@ function renderFinalResultsOverlay(_ref2) {
   var $greeting = $finalOverlay.find("#result-greeting");
   var $greetingTitle = $greeting.find("h1");
   var $settingsBonus = $finalOverlay.find("#settings-bonus-earned");
-  var $resultImg = $finalOverlay.find("img").first();
   var resultGreetings = {
     encouraging: ["Keep going!", "Nice try!", "You are learning!", "Getting there!", "Good effort!", "Keep practicing!", "Almost there!", "Let's try that again!", "Try another round!", "You are getting closer!"],
     strong: ["Great job!", "Well done!", "Nice work!", "Good one!", "Solid round!", "Looking good!", "You did it!", "That was good!", "Way to go!", "Good progress!"],
@@ -5127,24 +5129,24 @@ function renderFinalResultsOverlay(_ref2) {
   var randomFrom = function randomFrom(items) {
     return items[Math.floor(Math.random() * items.length)];
   };
-  var resultGreeting = accuracy < 50 ? randomFrom(resultGreetings.encouraging) : accuracy <= 80 ? randomFrom(resultGreetings.strong) : randomFrom(resultGreetings.excellent);
-  if (accuracy < 50) {
-    $greetingTitle.text(resultGreeting);
-    if ($resultImg.length) {
-      var cur = String($resultImg.attr("src") || "");
-      if (cur.includes("trophy.svg")) $resultImg.attr("src", cur.replace("trophy.svg", "plant.svg"));
-    }
-  } else {
-    $greetingTitle.text(resultGreeting);
-    if ($resultImg.length) {
-      var _cur = String($resultImg.attr("src") || "");
-      if (_cur.includes("plant.svg")) $resultImg.attr("src", _cur.replace("plant.svg", "trophy.svg"));
-    }
-  }
+  // Keep the existing accuracy bands consistent across every game.
+  var tier = accuracy < 50 ? "encouraging" : accuracy <= 80 ? "strong" : "excellent";
+  var messages = {
+    excellent: "A little practice. A lot to celebrate.",
+    strong: "You're finding your rhythm. Keep it going!",
+    encouraging: "One note at a time. Every try helps you grow."
+  };
+  $greetingTitle.text(randomFrom(resultGreetings[tier]));
+  $finalOverlay.attr("data-result-tier", tier);
+  $finalOverlay.attr("data-result-variant", (0,_resultVariants_js__WEBPACK_IMPORTED_MODULE_0__.chooseResultVariant)(tier));
+  $finalOverlay.find("#result-message").text(messages[tier]);
   $settingsBonus.toggle(!!settingsBonus);
   $finalOverlay.show();
-  var Confetti = ((_window2 = window) === null || _window2 === void 0 ? void 0 : _window2.Confetti) || ((_window3 = window) === null || _window3 === void 0 ? void 0 : _window3.confetti);
-  if (typeof Confetti === "function") {
+  (_$greetingTitle$ = $greetingTitle[0]) === null || _$greetingTitle$ === void 0 || _$greetingTitle$.focus({
+    preventScroll: true
+  });
+  var Confetti = ((_window3 = window) === null || _window3 === void 0 ? void 0 : _window3.Confetti) || ((_window4 = window) === null || _window4 === void 0 ? void 0 : _window4.confetti);
+  if (!reducedMotion && tier === "excellent" && typeof Confetti === "function") {
     Confetti({
       particleCount: 100,
       spread: 70,
@@ -5154,7 +5156,9 @@ function renderFinalResultsOverlay(_ref2) {
       zIndex: 1001
     });
   }
-  if (typeof animateMetrics === "function") animateMetrics();else setMetricAnimationDelays();
+  if (!reducedMotion) {
+    if (typeof animateMetrics === "function") animateMetrics();else setMetricAnimationDelays();
+  }
   countTo('span[name="rounds"]', rounds);
   countTo('span[name="score"]', score);
   countTo('span[name="accuracy"]', accuracy, {
@@ -5552,6 +5556,44 @@ function detectPlayedNotePitch(buffer, sampleRate) {
   return {
     frequency: frequency
   };
+}
+
+/***/ },
+
+/***/ "./resources/js/music/games/shared/resultVariants.js"
+/*!***********************************************************!*\
+  !*** ./resources/js/music/games/shared/resultVariants.js ***!
+  \***********************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   chooseResultVariant: () => (/* binding */ chooseResultVariant)
+/* harmony export */ });
+var lastVariants = new Map();
+
+// Remember each result band separately, including across Play again page reloads.
+function chooseResultVariant(tier) {
+  var count = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 5;
+  var key = "musicGames.resultVariant.".concat(tier);
+  var previous = lastVariants.get(tier);
+  try {
+    var saved = window.sessionStorage.getItem(key);
+    if (saved !== null && /^\d+$/.test(saved)) previous = Number(saved);
+  } catch (_) {
+    // Storage may be unavailable in a private or restricted browser session.
+  }
+  var hasPrevious = Number.isInteger(previous) && previous >= 0 && previous < count;
+  var choices = count - (hasPrevious && count > 1 ? 1 : 0);
+  var next = Math.floor(Math.random() * choices);
+  if (hasPrevious && count > 1 && next >= previous) next += 1;
+  lastVariants.set(tier, next);
+  try {
+    window.sessionStorage.setItem(key, String(next));
+  } catch (_) {
+    // The in-memory fallback still prevents repeats during this page's lifetime.
+  }
+  return next;
 }
 
 /***/ },

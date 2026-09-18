@@ -1,3 +1,5 @@
+import { chooseResultVariant } from "./resultVariants.js";
+
 export const DEFAULT_FINAL_RESULTS_REVEAL_DELAY_MS = 1600;
 
 export function queueFinalResultsReveal({
@@ -31,7 +33,8 @@ export function renderFinalResultsOverlay({
   if (!$finalOverlay || !$finalOverlay.length) return;
 
   const CountUpCtor = window?.CountUp?.CountUp;
-  const DURATION = 3.5;
+  const reducedMotion = !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  const DURATION = 1.4;
 
   if (typeof clearCountupTimers === "function") clearCountupTimers();
 
@@ -76,7 +79,7 @@ export function renderFinalResultsOverlay({
       return;
     }
 
-    if (!CountUpCtor) {
+    if (!CountUpCtor || reducedMotion) {
       $finalPoints.text(String(Math.round(finalPoints)));
       return;
     }
@@ -148,7 +151,7 @@ export function renderFinalResultsOverlay({
     if (!el) return;
 
     const startCount = () => {
-      if (!CountUpCtor) {
+      if (!CountUpCtor || reducedMotion) {
         el.textContent =
           String(opts.formattingFn ? opts.formattingFn(endVal) : endVal) + (opts.suffix || "");
         return;
@@ -156,11 +159,12 @@ export function renderFinalResultsOverlay({
 
       const c = new CountUpCtor(el, endVal, { duration: DURATION, ...opts });
       if (!c.error) c.start();
+      else el.textContent = String(opts.formattingFn ? opts.formattingFn(endVal) : endVal) + (opts.suffix || "");
     };
 
     const $box = $(el).closest("#metrics-boxes > div");
     const rawDelay = $box.length ? parseFloat($box[0].style.animationDelay || "0") : 0;
-    const delayMs = Number.isFinite(rawDelay) ? Math.max(0, rawDelay) : 0;
+    const delayMs = !reducedMotion && Number.isFinite(rawDelay) ? Math.max(0, rawDelay) : 0;
     if (delayMs <= 0) {
       startCount();
       return;
@@ -173,7 +177,6 @@ export function renderFinalResultsOverlay({
   const $greeting = $finalOverlay.find("#result-greeting");
   const $greetingTitle = $greeting.find("h1");
   const $settingsBonus = $finalOverlay.find("#settings-bonus-earned");
-  const $resultImg = $finalOverlay.find("img").first();
   const resultGreetings = {
     encouraging: [
       "Keep going!",
@@ -213,32 +216,24 @@ export function renderFinalResultsOverlay({
     ],
   };
   const randomFrom = (items) => items[Math.floor(Math.random() * items.length)];
-  const resultGreeting =
-    accuracy < 50
-      ? randomFrom(resultGreetings.encouraging)
-      : accuracy <= 80
-        ? randomFrom(resultGreetings.strong)
-        : randomFrom(resultGreetings.excellent);
-
-  if (accuracy < 50) {
-    $greetingTitle.text(resultGreeting);
-    if ($resultImg.length) {
-      const cur = String($resultImg.attr("src") || "");
-      if (cur.includes("trophy.svg")) $resultImg.attr("src", cur.replace("trophy.svg", "plant.svg"));
-    }
-  } else {
-    $greetingTitle.text(resultGreeting);
-    if ($resultImg.length) {
-      const cur = String($resultImg.attr("src") || "");
-      if (cur.includes("plant.svg")) $resultImg.attr("src", cur.replace("plant.svg", "trophy.svg"));
-    }
-  }
+  // Keep the existing accuracy bands consistent across every game.
+  const tier = accuracy < 50 ? "encouraging" : accuracy <= 80 ? "strong" : "excellent";
+  const messages = {
+    excellent: "A little practice. A lot to celebrate.",
+    strong: "You're finding your rhythm. Keep it going!",
+    encouraging: "One note at a time. Every try helps you grow.",
+  };
+  $greetingTitle.text(randomFrom(resultGreetings[tier]));
+  $finalOverlay.attr("data-result-tier", tier);
+  $finalOverlay.attr("data-result-variant", chooseResultVariant(tier));
+  $finalOverlay.find("#result-message").text(messages[tier]);
 
   $settingsBonus.toggle(!!settingsBonus);
   $finalOverlay.show();
+  $greetingTitle[0]?.focus({ preventScroll: true });
 
   const Confetti = window?.Confetti || window?.confetti;
-  if (typeof Confetti === "function") {
+  if (!reducedMotion && tier === "excellent" && typeof Confetti === "function") {
     Confetti({
       particleCount: 100,
       spread: 70,
@@ -247,8 +242,10 @@ export function renderFinalResultsOverlay({
     });
   }
 
-  if (typeof animateMetrics === "function") animateMetrics();
-  else setMetricAnimationDelays();
+  if (!reducedMotion) {
+    if (typeof animateMetrics === "function") animateMetrics();
+    else setMetricAnimationDelays();
+  }
 
   countTo('span[name="rounds"]', rounds);
   countTo('span[name="score"]', score);

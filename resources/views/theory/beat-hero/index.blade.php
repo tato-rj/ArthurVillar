@@ -227,13 +227,13 @@
       @include('theory.components.counter')
     </div>
 
-    <div class="col-lg-8 col-md-10 col-11 mx-auto text-center position-relative">
+    <div class="col-lg-8 col-md-10 col-11 mx-auto text-center position-relative mb-5">
       <div class="beat-hero-game w-100 mx-auto">
         <div id="sequence-dots" class="sequence-dots" aria-label="Rhythm sequence progress"></div>
 
         @include('theory.components.instructions', ['instructionId' => 'sequence-status'])
 
-        <div id="rhythm-card-grid" class="rhythm-card-grid mb-4" aria-label="Rhythm cards"></div>
+        <div id="rhythm-card-grid" class="rhythm-card-grid" aria-label="Rhythm cards"></div>
 
         {{-- @include('theory.components.play') --}}
       </div>
