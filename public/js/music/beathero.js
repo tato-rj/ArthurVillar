@@ -17,6 +17,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_GameCountdown_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/GameCountdown.js */ "./resources/js/music/games/shared/GameCountdown.js");
 /* harmony import */ var _shared_tempo_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/tempo.js */ "./resources/js/music/games/shared/tempo.js");
 /* harmony import */ var _rhythmNotation_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./rhythmNotation.js */ "./resources/js/music/games/beathero/rhythmNotation.js");
+/* harmony import */ var _beatHeroSequence_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./beatHeroSequence.js */ "./resources/js/music/games/beathero/beatHeroSequence.js");
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
 function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
@@ -36,6 +37,7 @@ function _createClass(e, r, t) { return r && _defineProperties(e.prototype, r), 
 function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
 function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
 function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+
 
 
 
@@ -81,6 +83,7 @@ var BeatHero = /*#__PURE__*/function () {
     this._playbackRun = 0;
     this._cards = [];
     this._answer = [];
+    this._previousAnswerIds = [];
     this._selection = [];
     this._round = 1;
     this._roundHadMistake = false;
@@ -183,6 +186,7 @@ var BeatHero = /*#__PURE__*/function () {
       this._correctTaps = 0;
       this._wrongTaps = 0;
       this._madeAnyMistake = false;
+      this._previousAnswerIds = [];
       this._startedAt = Date.now();
       $("#timer").hide();
       $("#feedback-success").hide();
@@ -210,11 +214,17 @@ var BeatHero = /*#__PURE__*/function () {
         return _this3.opts.figures.includes(figure.id);
       });
       this._cards = this._shuffle(pool);
-      var sequence = [];
-      while (sequence.length < this.opts.numOfCards) {
-        sequence.push.apply(sequence, _toConsumableArray(this._shuffle(pool)));
-      }
-      this._answer = sequence.slice(0, this.opts.numOfCards);
+      this._answer = (0,_beatHeroSequence_js__WEBPACK_IMPORTED_MODULE_5__.buildBeatHeroSequence)({
+        pool: pool,
+        count: this.opts.numOfCards,
+        shuffle: function shuffle(figures) {
+          return _this3._shuffle(figures);
+        },
+        previousIds: this._previousAnswerIds
+      });
+      this._previousAnswerIds = this._answer.map(function (figure) {
+        return figure.id;
+      });
       this._renderCards();
       this.$dots.attr("aria-label", "".concat(this.opts.numOfCards, "-card sequence progress")).html(this._answer.map(function (_, index) {
         return "\n        <span class=\"sequence-dot\" aria-hidden=\"true\">".concat(_this3._dotNumberMarkup(index), "</span>\n      ");
@@ -879,6 +889,52 @@ _defineProperty(BeatHero, "FIGURES", [{
     dotted: true
   }]
 }]);
+
+/***/ },
+
+/***/ "./resources/js/music/games/beathero/beatHeroSequence.js"
+/*!***************************************************************!*\
+  !*** ./resources/js/music/games/beathero/beatHeroSequence.js ***!
+  \***************************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   buildBeatHeroSequence: () => (/* binding */ buildBeatHeroSequence)
+/* harmony export */ });
+function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
+function _arrayWithoutHoles(r) { if (Array.isArray(r)) return _arrayLikeToArray(r); }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function buildBeatHeroSequence() {
+  var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+    pool = _ref.pool,
+    count = _ref.count,
+    shuffle = _ref.shuffle,
+    _ref$previousIds = _ref.previousIds,
+    previousIds = _ref$previousIds === void 0 ? [] : _ref$previousIds;
+  var figures = Array.isArray(pool) ? pool : [];
+  var targetCount = Math.max(0, Math.floor(Number(count) || 0));
+  if (!figures.length || !targetCount) return [];
+  var sequence = [];
+  while (sequence.length < targetCount) sequence.push.apply(sequence, _toConsumableArray(shuffle(figures)));
+  var answer = sequence.slice(0, targetCount);
+  var repeatsPrevious = answer.length === previousIds.length && answer.every(function (figure, index) {
+    return figure.id === previousIds[index];
+  });
+
+  // Figure settings always contain at least two unique choices, and each
+  // shuffled block starts with unique figures. Swapping these two preserves
+  // the generated material while guaranteeing a different sequence order.
+  if (repeatsPrevious && answer.length > 1) {
+    var _ref2 = [answer[1], answer[0]];
+    answer[0] = _ref2[0];
+    answer[1] = _ref2[1];
+  }
+  return answer;
+}
 
 /***/ },
 

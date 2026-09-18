@@ -6,6 +6,7 @@ import { GameAudio } from "../shared/GameAudio.js";
 import { GameCountdown } from "../shared/GameCountdown.js";
 import { beatMsForBpm, normalizeMetronomeBpm } from "../shared/tempo.js";
 import { rhythmNotationSvg } from "./rhythmNotation.js";
+import { buildBeatHeroSequence } from "./beatHeroSequence.js";
 
 export class BeatHero {
   static MIN_CHALLENGES = 2;
@@ -109,6 +110,7 @@ export class BeatHero {
 
     this._cards = [];
     this._answer = [];
+    this._previousAnswerIds = [];
     this._selection = [];
     this._round = 1;
     this._roundHadMistake = false;
@@ -219,6 +221,7 @@ export class BeatHero {
     this._correctTaps = 0;
     this._wrongTaps = 0;
     this._madeAnyMistake = false;
+    this._previousAnswerIds = [];
     this._startedAt = Date.now();
 
     $("#timer").hide();
@@ -244,11 +247,13 @@ export class BeatHero {
 
     const pool = BeatHero.FIGURES.filter((figure) => this.opts.figures.includes(figure.id));
     this._cards = this._shuffle(pool);
-    const sequence = [];
-    while (sequence.length < this.opts.numOfCards) {
-      sequence.push(...this._shuffle(pool));
-    }
-    this._answer = sequence.slice(0, this.opts.numOfCards);
+    this._answer = buildBeatHeroSequence({
+      pool,
+      count: this.opts.numOfCards,
+      shuffle: (figures) => this._shuffle(figures),
+      previousIds: this._previousAnswerIds,
+    });
+    this._previousAnswerIds = this._answer.map((figure) => figure.id);
 
     this._renderCards();
     this.$dots
