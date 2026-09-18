@@ -39,7 +39,7 @@ export class NotePythonMusic {
     this._voices = {
       lead: this._synth("triangle", -23, 0.07),
       bass: this._synth("triangle", -16, 0.06),
-      arp: this._synth("square", -34),
+      arp: this._synth("square", -30),
       keys: new window.Tone.PolySynth(window.Tone.Synth, {
         oscillator: { type: "triangle" },
         envelope: { attack: 0.008, decay: 0.12, sustain: 0.2, release: 0.09 },
@@ -75,37 +75,51 @@ export class NotePythonMusic {
     const step = this._step++;
     const slot = step % 8;
     const bar = SONG[Math.floor(step / 8) % SONG.length];
-    const lively = snakeLength >= 3;
-    const busy = snakeLength >= 5;
-    const wild = snakeLength >= 8;
+    // A normal four-round game starts at length 2 and finishes at 6. Make
+    // every pickup audible, reaching the frantic arrangement before the win.
+    const growth = Math.max(0, Math.min(6, Math.floor(snakeLength) - 2));
+    const lively = growth >= 1;
+    const driving = growth >= 2;
+    const frantic = growth >= 3;
     const { lead, bass, arp, keys, kick, snare, hats } = this._voices;
 
-    // A complete groove is present even for a tiny snake. Energy comes from
-    // rhythmic density, with the melody and accompaniment kept an octave lower.
-    if (bar.melody[slot]) {
-      lead.triggerAttackRelease(downOctave(bar.melody[slot]), this._eighth * 0.7, time, 0.55);
+    // Keep the warm register, but leave space at the start. Increase rhythmic
+    // subdivisions and accents as the snake grows, never the underlying BPM.
+    if (bar.melody[slot] && (lively || slot % 2 === 0)) {
+      lead.triggerAttackRelease(downOctave(bar.melody[slot]), this._eighth * (frantic ? 0.45 : 0.85), time, 0.5 + growth * 0.015);
     }
-    if (slot % 2 === 0 || busy || (lively && slot === 7)) {
+    if (slot % (lively ? 2 : 4) === 0 || frantic || (driving && slot === 7)) {
       const note = slot % 4 >= 2 ? bar.fifth : bar.bass;
-      bass.triggerAttackRelease(note, this._eighth * (busy ? 0.55 : 0.85), time, slot % 2 === 0 ? 0.85 : 0.55);
+      bass.triggerAttackRelease(note, this._eighth * (frantic ? 0.45 : 1.3), time, slot % 2 === 0 ? 0.7 + growth * 0.025 : 0.65);
     }
-    if (slot === 0 || slot === 3 || slot === 6) {
+    if (growth >= 5 && slot % 4 === 3) {
+      bass.triggerAttackRelease(bar.fifth, this._eighth * 0.25, time + this._eighth / 2, 0.5);
+    }
+    const playChord = frantic ? slot % 2 === 1 || (growth >= 4 && slot % 4 === 0)
+      : driving ? slot === 0 || slot === 3 || slot === 6
+        : lively ? slot % 4 === 0 : slot === 0;
+    if (playChord) {
       const chord = bar.chord.slice(0, 3).map((note) => downOctave(downOctave(note)));
-      keys.triggerAttackRelease(chord, this._eighth * 0.8, time, slot === 0 ? 0.65 : 0.45);
+      keys.triggerAttackRelease(chord, this._eighth * (frantic ? 0.4 : 1.5), time, lively ? 0.6 : 0.4);
     }
-    if (wild) {
-      arp.triggerAttackRelease(downOctave(bar.chord[(slot + 2) % 4]), this._eighth * 0.3, time, 0.4);
+    if (driving && (frantic || slot % 2 === 1)) {
+      const subdivisions = growth >= 6 && slot >= 6 ? 4 : frantic ? 2 : 1;
+      for (let part = 0; part < subdivisions; part++) {
+        const offset = frantic ? part / subdivisions : 0.5;
+        const note = downOctave(bar.chord[(slot + part) % 4]);
+        arp.triggerAttackRelease(note, this._eighth * 0.18, time + offset * this._eighth, frantic ? 0.6 : 0.4);
+      }
     }
-    if (busy || (lively ? slot % 2 === 1 : slot % 4 === 1)) {
-      arp.triggerAttackRelease(downOctave(bar.chord[slot % 4]), this._eighth * 0.3, time + this._eighth / 2, 0.4);
+    if (slot % (driving ? 2 : 4) === 0 || (frantic && slot === 7)) {
+      kick.triggerAttackRelease("C1", 0.06, time, lively ? 0.85 : 0.6);
     }
-    if (slot % 4 === 0 || (busy && slot === 3) || (wild && slot === 7)) {
-      kick.triggerAttackRelease("C1", 0.06, time, slot % 4 === 0 ? 0.85 : 0.55);
-    }
-    if (slot % 4 === 2) snare.triggerAttackRelease(0.045, time, 0.6);
-    if (wild && slot === 7) snare.triggerAttackRelease(0.025, time + this._eighth / 2, 0.3);
-    if (busy || slot % 2 === 1) {
+    if (lively ? slot % 4 === 2 : slot === 6) snare.triggerAttackRelease(0.045, time, lively ? 0.7 : 0.35);
+    if (growth >= 4 && slot === 7) snare.triggerAttackRelease(0.025, time + this._eighth / 2, 0.45);
+    if (driving || (lively && slot % 2 === 1)) {
       hats.triggerAttackRelease(0.01, time, slot % 2 === 1 ? 0.3 : 0.18);
+    }
+    if (growth >= 4 || (frantic && slot % 2 === 1)) {
+      hats.triggerAttackRelease(0.008, time + this._eighth / 2, 0.25);
     }
   }
 

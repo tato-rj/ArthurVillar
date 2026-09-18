@@ -41,7 +41,7 @@ test('the whole composition stays on the selected BPM at slow and fast settings'
         const eighth = 30 / bpm;
         music.start(bpm);
         for (let step = 0; step < 128; step++) {
-            music.playStep(8);
+            music.playStep(5);
             advance(eighth);
         }
         const arpeggio = voices[2].notes;
@@ -49,7 +49,7 @@ test('the whole composition stays on the selected BPM at slow and fast settings'
         arpeggio.forEach((note, index) => {
             assert.ok(Math.abs(note.time - (10 + index * eighth / 2)) < 0.00001);
         });
-        assert.equal(voices[1].notes.length, 128, 'the largest snake gets an eighth-note bass groove');
+        assert.equal(voices[1].notes.length, 128, 'the final playable stage of a standard game gets an eighth-note bass groove');
     }
 });
 
@@ -60,23 +60,21 @@ test('growth adds activity and shrinking removes it using current length', () =>
         for (let i = 0; i < 8; i++) { music.playStep(length); advance(0.5); }
         return voices.map((voice) => voice.notes.length);
     }
-    const calm = phrase(2), lively = phrase(3), busy = phrase(5), wild = phrase(8);
-    assert.ok(calm.every((count) => count > 0), 'even the smallest snake starts with a full instrumental groove');
-    assert.ok(lively[1] > calm[1]);
-    assert.ok(lively[2] > calm[2]);
-    assert.equal(busy[2], 8);
-    assert.equal(wild[2], 16);
+    const stages = [2, 3, 4, 5, 6, 7, 8].map(phrase);
+    const totals = stages.map((counts) => counts.reduce((sum, count) => sum + count, 0));
+    assert.ok(stages[0][1] > 0 && stages[0][3] > 0 && stages[0][4] > 0, 'the opening retains bass, warm harmony, and a gentle kick');
+    assert.equal(stages[0][2], 0, 'fast arpeggios leave room at the start');
+    assert.equal(stages[0][6], 0, 'hi-hats enter after growth');
+    totals.slice(1).forEach((total, index) => assert.ok(total > totals[index], 'every added segment increases rhythmic activity'));
+    assert.ok(totals[3] >= totals[0] * 3, 'a standard four-round game must reach a distinctly busier arrangement before ending');
+    assert.equal(stages[3][2], 16, 'sixteenth-note arpeggios arrive at length five');
     const { music, voices, advance } = setup();
     music.start(60);
     music.playStep(8);
     const arpCount = voices[2].notes.length;
-    advance(1);
-    music.playStep(2); // A quiet offbeat still has one accompaniment note.
-    const quietCount = voices[2].notes.length;
     advance(0.5);
     music.playStep(2);
-    assert.equal(quietCount, arpCount + 1);
-    assert.equal(voices[2].notes.length, quietCount, 'shrinking removes the continuous sixteenth-note layer');
+    assert.equal(voices[2].notes.length, arpCount, 'shrinking immediately removes the fast layer');
 });
 
 test('pause cancels all background voices and resume creates only one fresh set', () => {
