@@ -33,7 +33,7 @@
 						<label class="form-check-label" for="calendar-event-type-google">Google events</label>
 					</div>
 					<div class="form-check calendar-calendar-filter-option">
-						<input class="form-check-input" type="checkbox" id="calendar-event-type-football" value="football" data-calendar-event-type-filter checked>
+						<input class="form-check-input" type="checkbox" id="calendar-event-type-football" value="football" data-calendar-event-type-filter>
 						<label class="form-check-label" for="calendar-event-type-football">Football events</label>
 					</div>
 				</div>
