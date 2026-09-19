@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Calendar\ConflictException;
+use App\Models\User;
 use Tests\BaseTest;
 
 class ConflictExceptionTest extends BaseTest
@@ -46,7 +47,7 @@ class ConflictExceptionTest extends BaseTest
     }
 
     /** @test */
-    public function one_user_cannot_remove_another_users_conflict_exception()
+    public function a_scheduler_user_cannot_remove_arthurs_conflict_exception()
     {
         $owner = $this->signIn();
         [$firstEventKey, $secondEventKey] = ConflictException::normalizedPair(
@@ -60,13 +61,12 @@ class ConflictExceptionTest extends BaseTest
             'second_event_key' => $secondEventKey,
         ]);
 
-        $this->logout();
-        $this->signIn();
+        $this->actingAs(User::factory()->create());
 
         $this->deleteJson(route('calendar.conflict-exceptions.destroy'), [
             'event_key' => 'general-event:34',
             'conflicting_event_keys' => ['single-lesson-plan:9'],
-        ])->assertOk();
+        ])->assertForbidden();
 
         $this->assertDatabaseHas('calendar_conflict_exceptions', [
             'user_id' => $owner->id,

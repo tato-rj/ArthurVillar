@@ -27,7 +27,7 @@
 
             <p class="text-center mt-3 mb-0">
                 Already have an account?
-                <a href="{{ url('/login') }}">Log in</a>
+                <a href="{{ url('/login') }}" class="text-red">Log in</a>
             </p>
         </div>
     </div>

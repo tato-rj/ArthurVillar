@@ -3,17 +3,19 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\External\Scheduler;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use NotificationChannels\WebPush\HasPushSubscriptions;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Models\External\Scheduler;
 
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, HasPushSubscriptions, Notifiable;
+
+    public const ARTHUR_EMAIL = 'arthurvillar@gmail.com';
 
     /**
      * The attributes that are mass assignable.
@@ -48,5 +50,16 @@ class User extends Authenticatable
     public function schedulers(): HasMany
     {
         return $this->hasMany(Scheduler::class);
+    }
+
+    public function isArthur(): bool
+    {
+        return $this->email === self::ARTHUR_EMAIL;
+    }
+
+    public function canAccessHost(string $host): bool
+    {
+        return $this->isArthur()
+            || $host === 'scheduler.'.config('app.domain');
     }
 }

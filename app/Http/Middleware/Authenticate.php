@@ -2,10 +2,23 @@
 
 namespace App\Http\Middleware;
 
+use Closure;
 use Illuminate\Auth\Middleware\Authenticate as Middleware;
 
 class Authenticate extends Middleware
 {
+    public function handle($request, Closure $next, ...$guards)
+    {
+        return parent::handle($request, function ($request) use ($next) {
+            abort_unless(
+                $request->user()->canAccessHost($request->getHost()),
+                403
+            );
+
+            return $next($request);
+        }, ...$guards);
+    }
+
     /**
      * Get the path the user should be redirected to when they are not authenticated.
      *

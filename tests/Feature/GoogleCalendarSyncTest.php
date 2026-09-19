@@ -6,6 +6,7 @@ use App\Calendar\Scheduler;
 use App\Models\Calendar\GoogleCalendarConnection;
 use App\Models\Calendar\GoogleCalendarEvent;
 use App\Models\Calendar\Settings;
+use App\Models\User;
 use App\Services\GoogleCalendarSync;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
@@ -96,7 +97,7 @@ class GoogleCalendarSyncTest extends BaseTest
     }
 
     /** @test */
-    public function it_does_not_allow_a_user_to_respond_to_another_users_google_invitation()
+    public function a_scheduler_user_cannot_respond_to_arthurs_google_invitation()
     {
         $owner = $this->signIn();
         $connection = GoogleCalendarConnection::create([
@@ -107,11 +108,11 @@ class GoogleCalendarSyncTest extends BaseTest
         ]);
         $event = $connection->events()->create($this->storedMeetingAttributes('private-event'));
 
-        $this->signIn();
+        $this->actingAs(User::factory()->create());
 
         $this->patchJson(route('calendar.google-calendar.events.respond', $event), [
             'response_status' => 'declined',
-        ])->assertNotFound();
+        ])->assertForbidden();
 
         Http::assertNothingSent();
     }
@@ -562,7 +563,7 @@ class GoogleCalendarSyncTest extends BaseTest
             'calendar_name' => 'Second calendar',
             'access_token' => 'second-access-token',
         ]);
-        $otherUser = $this->signIn(null, null);
+        $otherUser = User::factory()->create();
         $otherConnection = GoogleCalendarConnection::create([
             'user_id' => $otherUser->id,
             'calendar_id' => 'other@example.com',

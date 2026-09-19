@@ -15,7 +15,9 @@ class BaseTest extends TestCase
 
     protected function signIn($role = null, $user = null)
     {
-        $user = $user ?? User::factory()->create();
+        $user = $user ?? User::factory()->create([
+            'email' => User::ARTHUR_EMAIL,
+        ]);
 
         $this->actingAs($user);
 

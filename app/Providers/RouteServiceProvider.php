@@ -66,6 +66,12 @@ class RouteServiceProvider extends ServiceProvider
                 ->name('scheduler.')
                 ->group(base_path('routes/scheduler.php'));
 
+            Route::middleware(['web', 'auth', 'arthur'])
+                ->domain('users.'.config('app.domain'))
+                ->namespace($this->namespace)
+                ->name('users.')
+                ->group(base_path('routes/users.php'));
+
             Route::middleware('web')
                 ->domain('calendar.'.config('app.domain'))
                 ->namespace($this->namespace.'\\Calendar')
