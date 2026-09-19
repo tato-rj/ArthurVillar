@@ -65,17 +65,20 @@ class FootballEventSyncTest extends BaseTest
             'away_team_name' => 'Argentina',
         ]);
 
-        Http::assertSent(function (Request $request) {
-            parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
+        foreach ([124, 6] as $teamId) {
+            Http::assertSent(function (Request $request) use ($teamId) {
+                parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
 
-            return $request->hasHeader('x-apisports-key', 'football-key')
-                && $request->url() === 'https://v3.football.api-sports.io/fixtures?'.http_build_query($query)
-                && in_array((int) ($query['team'] ?? 0), [124, 6], true)
-                && ($query['from'] ?? null) === '2026-09-18'
-                && ($query['to'] ?? null) === '2027-09-18'
-                && ! array_key_exists('next', $query)
-                && ($query['timezone'] ?? null) === 'UTC';
-        });
+                return $request->hasHeader('x-apisports-key', 'football-key')
+                    && $request->url() === 'https://v3.football.api-sports.io/fixtures?'.http_build_query($query)
+                    && (int) ($query['team'] ?? 0) === $teamId
+                    && (int) ($query['season'] ?? 0) === 2026
+                    && ($query['from'] ?? null) === '2026-09-18'
+                    && ($query['to'] ?? null) === '2026-12-31'
+                    && ($query['timezone'] ?? null) === 'UTC';
+            });
+        }
+
         Http::assertSentCount(2);
         Http::assertNotSent(function (Request $request) {
             parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);

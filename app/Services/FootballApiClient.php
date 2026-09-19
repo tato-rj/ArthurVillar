@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
 
@@ -15,7 +16,13 @@ class FootballApiClient
     public function upcomingFixtures(int $teamId): array
     {
         $from = now('UTC')->startOfDay();
-        $to = $from->copy()->addDays(max(1, (int) config('calendar.football.lookahead_days', 365)));
+        $to = $from->copy()->endOfYear();
+
+        return $this->fixtures($teamId, $from->year, $from, $to);
+    }
+
+    private function fixtures(int $teamId, int $season, Carbon $from, Carbon $to): array
+    {
         $response = Http::baseUrl(rtrim(config('services.api_football.base_url'), '/'))
             ->acceptJson()
             ->withHeaders(['x-apisports-key' => config('services.api_football.key')])
@@ -23,6 +30,7 @@ class FootballApiClient
             ->timeout(20)
             ->get('fixtures', [
                 'team' => $teamId,
+                'season' => $season,
                 'from' => $from->toDateString(),
                 'to' => $to->toDateString(),
                 'timezone' => 'UTC',
