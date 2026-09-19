@@ -12,7 +12,6 @@ class UsersController extends Controller
 {
     public function index()
     {
-        return User::all();
         $users = User::query()
             ->where('email', '!=', User::ARTHUR_EMAIL)
             ->withCount('schedulers')
