@@ -103,6 +103,7 @@ class FootballEventSyncTest extends BaseTest
         $this->assertSame('18:30', $event['starts_at']);
         $this->assertSame('20:30', $event['ends_at']);
         $this->assertSame('football', $event['external_provider']);
+        $this->assertNull($event['notes']);
         $this->assertSame('NONE', $event['travel_mode']);
         $this->assertTrue($event['read_only']);
         $this->assertTrue($event['ignore_conflicts']);

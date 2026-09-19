@@ -20,7 +20,6 @@ class FootballEvent extends BaseModel
             $end = $start->copy()->setTime(23, 45);
         }
 
-        $details = collect([$this->league_name, $this->league_round])->filter()->implode(' · ');
         $location = collect([$this->venue_name, $this->venue_city])->filter()->implode(', ');
 
         return [
@@ -29,7 +28,7 @@ class FootballEvent extends BaseModel
             'scheduled_date' => $start->toDateString(),
             'starts_at' => $start->format('H:i'),
             'ends_at' => $end->format('H:i'),
-            'notes' => $details ?: null,
+            'notes' => null,
             'notification_minutes_before' => null,
             'canceled_at' => null,
             'type' => 'general-event',
