@@ -6,11 +6,12 @@ use App\Calendar\Traits\Holidays;
 use App\Models\Calendar\ConflictException;
 use App\Models\Calendar\EarlyPayment;
 use App\Models\Calendar\Event;
+use App\Models\Calendar\FootballEvent;
 use App\Models\Calendar\GoogleCalendarEvent;
 use App\Models\Calendar\LessonPlan;
 use App\Models\Calendar\Recital;
-use App\Models\Calendar\SingleLessonPlan;
 use App\Models\Calendar\Settings;
+use App\Models\Calendar\SingleLessonPlan;
 use App\Models\Calendar\Student;
 use App\Models\Calendar\TeachingBreak;
 use Carbon\Carbon;
@@ -25,6 +26,7 @@ class Scheduler
     public function payload(Request $request)
     {
         $range = $this->range($request);
+
         return [
             'plannedLessons' => $this->plannedLessons($range),
             'singleLessonPlans' => $this->singleLessonPlans($range),
@@ -386,13 +388,19 @@ class Scheduler
             ->get()
             ->map(fn (Event $event) => $event->calendarPayload());
 
-        if (! $userId) {
-            return $localEvents->values();
-        }
-
         $timezone = config('calendar.timezone');
         $rangeStart = Carbon::parse($range['start'], $timezone)->startOfDay();
         $rangeEnd = Carbon::parse($range['end'], $timezone)->endOfDay();
+        $footballEvents = FootballEvent::query()
+            ->whereBetween('starts_at', [$rangeStart->copy()->utc(), $rangeEnd->copy()->utc()])
+            ->orderBy('starts_at')
+            ->get()
+            ->map(fn (FootballEvent $event) => $event->calendarPayload());
+
+        if (! $userId) {
+            return $localEvents->concat($footballEvents)->values();
+        }
+
         $googleEvents = GoogleCalendarEvent::query()
             ->with('calendarConnection')
             ->whereHas('calendarConnection', fn ($query) => $query->where('user_id', $userId))
@@ -415,6 +423,7 @@ class Scheduler
 
         return $localEvents
             ->concat($googleEvents)
+            ->concat($footballEvents)
             ->sortBy(fn ($event) => ($event['scheduled_date'] ?? '').' '.($event['starts_at'] ?? ''))
             ->values();
     }

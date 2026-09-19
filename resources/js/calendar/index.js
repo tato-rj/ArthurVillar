@@ -22,7 +22,7 @@ const state = {
     teachingBreaks: [],
     recitals: [],
     generalEvents: [],
-    selectedEventTypes: ['recurring', 'single', 'general', 'google'],
+    selectedEventTypes: ['recurring', 'single', 'general', 'google', 'football'],
     studentSearch: '',
     loadedRange: null,
     pendingRangeKey: null,
@@ -121,7 +121,7 @@ const calendarRequestTimeoutMilliseconds = 20 * 1000;
 const calendarStaleAfterMilliseconds = 5 * 60 * 1000;
 
 const scheduleGridViews = ['day', '2-days', 'week'];
-const calendarEventTypes = ['recurring', 'single', 'general', 'google', 'canceled'];
+const calendarEventTypes = ['recurring', 'single', 'general', 'google', 'football', 'canceled'];
 
 const createLocalDate = function(year, month, day) {
     return new Date(year, month, day, 12, 0, 0, 0);
@@ -215,13 +215,16 @@ const getUrlState = function() {
             return calendarEventTypes.includes(type) && types.indexOf(type) === index;
         })
         : null;
-    const usesGoogleEventFilter = params.get('event_filter_version') === '2';
+    const eventFilterVersion = Number(params.get('event_filter_version') || 0);
 
     if (eventTypes
-        && !usesGoogleEventFilter
+        && eventFilterVersion < 2
         && eventTypes.includes('general')
         && !eventTypes.includes('google')) {
         eventTypes.push('google');
+    }
+    if (eventTypes && eventFilterVersion < 3 && !eventTypes.includes('football')) {
+        eventTypes.push('football');
     }
     const locationIds = params.has('location_ids')
         ? params.get('location_ids').split(',').map(normalizeLocationId).filter(function(id, index, ids) {
@@ -249,7 +252,7 @@ const updateCalendarUrl = function() {
         url.searchParams.delete('window_start');
     }
     url.searchParams.set('event_types', state.selectedEventTypes.join(','));
-    url.searchParams.set('event_filter_version', '2');
+    url.searchParams.set('event_filter_version', '3');
     url.searchParams.set('location_ids', state.selectedLocationIds.join(','));
     window.history.replaceState({
         calendarView: state.view,
@@ -2330,6 +2333,7 @@ const getGeneralEvent = function(generalEvent) {
         location: generalEvent.location || '',
         allDay,
         readOnly: Boolean(generalEvent.read_only),
+        ignoreConflicts: Boolean(generalEvent.ignore_conflicts),
         calendarStatus: status,
         lessonStatus: status,
         'data-lesson-status': status,
@@ -2344,7 +2348,9 @@ const getGeneralEventCalendarEvents = function() {
             }
 
             const isGoogleEvent = generalEvent.external_provider === 'google';
-            const eventType = isGoogleEvent ? 'google' : 'general';
+            const eventType = ['google', 'football'].includes(generalEvent.external_provider)
+                ? generalEvent.external_provider
+                : 'general';
 
             if (isGoogleEvent && !['accepted', 'needsAction'].includes(generalEvent.response_status)) {
                 return false;
@@ -3763,7 +3769,7 @@ const getScheduleTravelConflictPairs = function(schedule) {
             : '';
         const duration = Number(extension.dataset.travelDurationMinutes || 0);
 
-        if (!owner || !ownerEvent || !ownerDate || duration <= 0) {
+        if (!owner || !ownerEvent || ownerEvent.ignoreConflicts || !ownerDate || duration <= 0) {
             return;
         }
 
@@ -3793,6 +3799,7 @@ const getScheduleTravelConflictPairs = function(schedule) {
                 : eventEnd === ownerStart;
 
             if (!event
+                || event.ignoreConflicts
                 || isCanceledCalendarEvent(event)
                 || event.allDay
                 || date !== ownerDate
@@ -3946,6 +3953,7 @@ const findPreviousScheduleItem = function(item, event, route) {
             const candidateEnd = candidateEvent ? getTimeMinutes(candidateEvent.end) : -1;
 
             return candidateEvent
+                && !candidateEvent.ignoreConflicts
                 && !isCanceledCalendarEvent(candidateEvent)
                 && !candidateEvent.allDay
                 && candidateDate === visibleDate
@@ -4006,6 +4014,7 @@ const isLastScheduleItemOfDay = function(item, event) {
                 : '';
 
             return candidateEvent
+                && !candidateEvent.ignoreConflicts
                 && !isCanceledCalendarEvent(candidateEvent)
                 && !candidateEvent.allDay
                 && candidateDate === visibleDate;
@@ -4779,7 +4788,7 @@ const openGeneralEventModal = function(event, options) {
 
     setCalendarEventModalType(modal, 'general');
     resetGeneralEventModalState(modal);
-    setCalendarEventModalExpandAvailable(modal, event.externalProvider !== 'google');
+    setCalendarEventModalExpandAvailable(modal, !event.readOnly && !event.externalProvider);
     setCalendarEventModalExpanded(modal, Boolean(settings.openReschedule && !event.readOnly && !hasEnded));
     modal.updatedScheduleItem = settings.updatedItem || null;
     modal.generalEvent = event;
@@ -5501,6 +5510,7 @@ const isConflictEligibleTimedEvent = function(event) {
         && event.guid
         && !event.isHoliday
         && !event.isBreak
+        && !event.ignoreConflicts
         && !event.allDay
         && !isCanceledCalendarEvent(event)
         && event.start
@@ -7965,7 +7975,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        const defaultEventTypes = ['recurring', 'single', 'general', 'google'];
+        const defaultEventTypes = ['recurring', 'single', 'general', 'google', 'football'];
         const eventTypeFilterIsActive = state.selectedEventTypes.includes('canceled')
             || defaultEventTypes.some(function(type) {
                 return !state.selectedEventTypes.includes(type);
@@ -8017,7 +8027,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (eventTypeFilters) {
             eventTypeFilters.querySelectorAll('input[data-calendar-event-type-filter]').forEach(function(input) {
-                input.checked = ['recurring', 'single', 'general', 'google'].includes(input.value);
+                input.checked = ['recurring', 'single', 'general', 'google', 'football'].includes(input.value);
             });
             syncEventTypeFilterState();
         }

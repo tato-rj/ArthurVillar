@@ -1157,6 +1157,14 @@ button.setting-undo {
     }
 }
 
+#calendar .calendar-calendar-general-event[data-external-provider="football"],
+#calendar .calendar-month-event-general[data-external-provider="football"],
+#calendar .calendar-schedule-event-general[data-external-provider="football"],
+.calendar-month-day-events-modal-list .calendar-month-event-general[data-external-provider="football"] {
+    background: var(--calendar-football-event-color, #009c3b);
+    color: white;
+}
+
 #calendar .calendar-month-event-general {
     border-radius: $calendar-item-border-radius;
     display: grid;
@@ -1178,6 +1186,13 @@ button.setting-undo {
 #calendar .calendar-schedule-event-general[data-external-provider="google"]:hover,
 .calendar-month-day-events-modal-list .calendar-month-event-general[data-external-provider="google"]:hover {
     background: var(--calendar-google-event-color, #4285F4);
+}
+
+#calendar .calendar-calendar-general-event[data-external-provider="football"]:hover,
+#calendar .calendar-month-event-general[data-external-provider="football"]:hover,
+#calendar .calendar-schedule-event-general[data-external-provider="football"]:hover,
+.calendar-month-day-events-modal-list .calendar-month-event-general[data-external-provider="football"]:hover {
+    background: var(--calendar-football-event-color, #009c3b);
 }
 
 #calendar .calendar-calendar-general-event[data-external-provider="google"][data-response-status="accepted"],

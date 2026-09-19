@@ -23,6 +23,7 @@ window.calendarThemePreference = @json($selectedAppearanceTheme);
     --calendar-canceled-lesson-color: {{$canceledLessonColor}};
     --calendar-general-event-color: {{$generalEventColor}};
     --calendar-google-event-color: {{$googleEventColor}};
+    --calendar-football-event-color: #009c3b;
 }
 
 .calendar-calendar-main {

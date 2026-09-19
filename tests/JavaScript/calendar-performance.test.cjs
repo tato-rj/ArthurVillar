@@ -135,3 +135,13 @@ test('overlap detection handles unsorted nested events and excludes touching or 
     assert.equal(pairs.length, 2);
     assert.deepEqual(Array.from(pairs, pair => Array.from(pair, event => event.guid).sort().join(':')).sort(), ['early:long', 'late:long']);
 });
+
+test('football events are excluded from calendar conflict detection', () => {
+    const h = setup();
+    const pairs = h.getOverlappingTimedEventPairs([
+        { guid: 'lesson', start: '19:00', end: '20:00', lessonStatus: 'unpaid' },
+        { guid: 'football', start: '19:30', end: '21:30', ignoreConflicts: true },
+    ]);
+
+    assert.equal(pairs.length, 0);
+});

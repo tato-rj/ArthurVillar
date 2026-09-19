@@ -4762,7 +4762,7 @@ var state = {
   teachingBreaks: [],
   recitals: [],
   generalEvents: [],
-  selectedEventTypes: ['recurring', 'single', 'general', 'google'],
+  selectedEventTypes: ['recurring', 'single', 'general', 'google', 'football'],
   studentSearch: '',
   loadedRange: null,
   pendingRangeKey: null,
@@ -4852,7 +4852,7 @@ var dayMilliseconds = 24 * 60 * 60 * 1000;
 var calendarRequestTimeoutMilliseconds = 20 * 1000;
 var calendarStaleAfterMilliseconds = 5 * 60 * 1000;
 var scheduleGridViews = ['day', '2-days', 'week'];
-var calendarEventTypes = ['recurring', 'single', 'general', 'google', 'canceled'];
+var calendarEventTypes = ['recurring', 'single', 'general', 'google', 'football', 'canceled'];
 var createLocalDate = function createLocalDate(year, month, day) {
   return new Date(year, month, day, 12, 0, 0, 0);
 };
@@ -4917,9 +4917,12 @@ var getUrlState = function getUrlState() {
   var eventTypes = params.has('event_types') ? params.get('event_types').split(',').filter(function (type, index, types) {
     return calendarEventTypes.includes(type) && types.indexOf(type) === index;
   }) : null;
-  var usesGoogleEventFilter = params.get('event_filter_version') === '2';
-  if (eventTypes && !usesGoogleEventFilter && eventTypes.includes('general') && !eventTypes.includes('google')) {
+  var eventFilterVersion = Number(params.get('event_filter_version') || 0);
+  if (eventTypes && eventFilterVersion < 2 && eventTypes.includes('general') && !eventTypes.includes('google')) {
     eventTypes.push('google');
+  }
+  if (eventTypes && eventFilterVersion < 3 && !eventTypes.includes('football')) {
+    eventTypes.push('football');
   }
   var locationIds = params.has('location_ids') ? params.get('location_ids').split(',').map(normalizeLocationId).filter(function (id, index, ids) {
     return id && ids.indexOf(id) === index;
@@ -4942,7 +4945,7 @@ var updateCalendarUrl = function updateCalendarUrl() {
     url.searchParams["delete"]('window_start');
   }
   url.searchParams.set('event_types', state.selectedEventTypes.join(','));
-  url.searchParams.set('event_filter_version', '2');
+  url.searchParams.set('event_filter_version', '3');
   url.searchParams.set('location_ids', state.selectedLocationIds.join(','));
   window.history.replaceState({
     calendarView: state.view,
@@ -6609,6 +6612,7 @@ var getGeneralEvent = function getGeneralEvent(generalEvent) {
     location: generalEvent.location || '',
     allDay: allDay,
     readOnly: Boolean(generalEvent.read_only),
+    ignoreConflicts: Boolean(generalEvent.ignore_conflicts),
     calendarStatus: status,
     lessonStatus: status,
     'data-lesson-status': status
@@ -6620,7 +6624,7 @@ var getGeneralEventCalendarEvents = function getGeneralEventCalendarEvents() {
       return state.selectedEventTypes.includes('canceled');
     }
     var isGoogleEvent = generalEvent.external_provider === 'google';
-    var eventType = isGoogleEvent ? 'google' : 'general';
+    var eventType = ['google', 'football'].includes(generalEvent.external_provider) ? generalEvent.external_provider : 'general';
     if (isGoogleEvent && !['accepted', 'needsAction'].includes(generalEvent.response_status)) {
       return false;
     }
@@ -7682,7 +7686,7 @@ var getScheduleTravelConflictPairs = function getScheduleTravelConflictPairs(sch
     var ownerCell = owner ? owner.closest('td[data-date]') : null;
     var ownerDate = ownerCell ? ownerCell.getAttribute('data-real-date') || ownerCell.getAttribute('data-date') : '';
     var duration = Number(extension.dataset.travelDurationMinutes || 0);
-    if (!owner || !ownerEvent || !ownerDate || duration <= 0) {
+    if (!owner || !ownerEvent || ownerEvent.ignoreConflicts || !ownerDate || duration <= 0) {
       return;
     }
     var ownerStart = getTimeMinutes(ownerEvent.start);
@@ -7699,7 +7703,7 @@ var getScheduleTravelConflictPairs = function getScheduleTravelConflictPairs(sch
       var eventStart = event ? getTimeMinutes(event.start) : 0;
       var eventEnd = event ? getTimeMinutes(event.end) : 0;
       var touchesOwnerBoundary = extension.dataset.travelPosition === 'after' ? eventStart === ownerEnd : eventEnd === ownerStart;
-      if (!event || isCanceledCalendarEvent(event) || event.allDay || date !== ownerDate || eventStart >= travelEnd || eventEnd <= travelStart) {
+      if (!event || event.ignoreConflicts || isCanceledCalendarEvent(event) || event.allDay || date !== ownerDate || eventStart >= travelEnd || eventEnd <= travelStart) {
         return;
       }
       pairs.push({
@@ -7804,7 +7808,7 @@ var findPreviousScheduleItem = function findPreviousScheduleItem(item, event, ro
     var candidateCell = candidate.closest('td[data-date]');
     var candidateDate = candidateCell ? candidateCell.getAttribute('data-real-date') || candidateCell.getAttribute('data-date') : '';
     var candidateEnd = candidateEvent ? getTimeMinutes(candidateEvent.end) : -1;
-    return candidateEvent && !isCanceledCalendarEvent(candidateEvent) && !candidateEvent.allDay && candidateDate === visibleDate && candidateEnd <= currentStart;
+    return candidateEvent && !candidateEvent.ignoreConflicts && !isCanceledCalendarEvent(candidateEvent) && !candidateEvent.allDay && candidateDate === visibleDate && candidateEnd <= currentStart;
   }).sort(function (a, b) {
     return getTimeMinutes(getEventByScheduleItem(b).end) - getTimeMinutes(getEventByScheduleItem(a).end);
   });
@@ -7848,7 +7852,7 @@ var isLastScheduleItemOfDay = function isLastScheduleItemOfDay(item, event) {
     var candidateEvent = getEventByScheduleItem(candidate);
     var candidateCell = candidate.closest('td[data-date]');
     var candidateDate = candidateCell ? candidateCell.getAttribute('data-real-date') || candidateCell.getAttribute('data-date') : '';
-    return candidateEvent && !isCanceledCalendarEvent(candidateEvent) && !candidateEvent.allDay && candidateDate === visibleDate;
+    return candidateEvent && !candidateEvent.ignoreConflicts && !isCanceledCalendarEvent(candidateEvent) && !candidateEvent.allDay && candidateDate === visibleDate;
   }).sort(function (a, b) {
     var eventA = getEventByScheduleItem(a);
     var eventB = getEventByScheduleItem(b);
@@ -8416,7 +8420,7 @@ var openGeneralEventModal = function openGeneralEventModal(event, options) {
   var canEditNotes = !event.readOnly && !event.externalProvider && Boolean(event.notesUpdateUrl);
   setCalendarEventModalType(modal, 'general');
   resetGeneralEventModalState(modal);
-  setCalendarEventModalExpandAvailable(modal, event.externalProvider !== 'google');
+  setCalendarEventModalExpandAvailable(modal, !event.readOnly && !event.externalProvider);
   setCalendarEventModalExpanded(modal, Boolean(settings.openReschedule && !event.readOnly && !hasEnded));
   modal.updatedScheduleItem = settings.updatedItem || null;
   modal.generalEvent = event;
@@ -9000,7 +9004,7 @@ var isCanceledCalendarEvent = function isCanceledCalendarEvent(event) {
   return event && (event.lessonStatus === 'canceled' || event.calendarStatus === 'canceled' || event['data-lesson-status'] === 'canceled');
 };
 var isConflictEligibleTimedEvent = function isConflictEligibleTimedEvent(event) {
-  return event && event.guid && !event.isHoliday && !event.isBreak && !event.allDay && !isCanceledCalendarEvent(event) && event.start && event.end;
+  return event && event.guid && !event.isHoliday && !event.isBreak && !event.ignoreConflicts && !event.allDay && !isCanceledCalendarEvent(event) && event.start && event.end;
 };
 var getConflictEventKey = function getConflictEventKey(event) {
   if (!event) {
@@ -10913,7 +10917,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!calendarFilter) {
       return;
     }
-    var defaultEventTypes = ['recurring', 'single', 'general', 'google'];
+    var defaultEventTypes = ['recurring', 'single', 'general', 'google', 'football'];
     var eventTypeFilterIsActive = state.selectedEventTypes.includes('canceled') || defaultEventTypes.some(function (type) {
       return !state.selectedEventTypes.includes(type);
     });
@@ -10951,7 +10955,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     if (eventTypeFilters) {
       eventTypeFilters.querySelectorAll('input[data-calendar-event-type-filter]').forEach(function (input) {
-        input.checked = ['recurring', 'single', 'general', 'google'].includes(input.value);
+        input.checked = ['recurring', 'single', 'general', 'google', 'football'].includes(input.value);
       });
       syncEventTypeFilterState();
     }

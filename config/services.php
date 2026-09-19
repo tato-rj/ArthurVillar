@@ -37,4 +37,9 @@ return [
         'redirect_uri' => env('GOOGLE_CALENDAR_REDIRECT_URI'),
     ],
 
+    'api_football' => [
+        'key' => env('API_FOOTBALL_KEY'),
+        'base_url' => env('API_FOOTBALL_BASE_URL', 'https://v3.football.api-sports.io'),
+    ],
+
 ];
