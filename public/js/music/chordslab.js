@@ -3296,16 +3296,16 @@ var GameAudio = /*#__PURE__*/function () {
                   });
                 },
                 notePythonVictory: function notePythonVictory() {
-                  var brass = GameAudio._getPreviewSynth("notePythonVictoryBrass", function () {
-                    return new Tone.PolySynth(Tone.Synth, {
+                  var lead = GameAudio._getPreviewSynth("notePythonVictoryLead", function () {
+                    return new Tone.Synth({
                       oscillator: {
-                        type: "square"
+                        type: "triangle"
                       },
                       envelope: {
-                        attack: 0.012,
-                        decay: 0.12,
-                        sustain: 0.5,
-                        release: 0.35
+                        attack: 0.004,
+                        decay: 0.06,
+                        sustain: 0.3,
+                        release: 0.07
                       },
                       volume: -23
                     }).toDestination();
@@ -3319,21 +3319,20 @@ var GameAudio = /*#__PURE__*/function () {
                         attack: 0.004,
                         decay: 0.06,
                         sustain: 0.3,
-                        release: 0.4
+                        release: 0.06
                       },
-                      volume: -17
+                      volume: -16
                     }).toDestination();
                   });
                   var now = Tone.now();
-                  [[0, 0.18, ["C4", "E4", "G4"]], [0.25, 0.18, ["C4", "E4", "G4"]], [0.5, 0.38, ["D4", "G4", "B4"]], [1, 0.8, ["C4", "E4", "G4", "C5"]]].forEach(function (_ref3) {
+                  [[0, 0.09, "E4"], [0.125, 0.09, "G4"], [0.25, 0.175, "C5"]].forEach(function (_ref3) {
                     var _ref4 = _slicedToArray(_ref3, 3),
                       offset = _ref4[0],
                       duration = _ref4[1],
-                      notes = _ref4[2];
-                    brass.triggerAttackRelease(notes, duration, now + offset, GameAudio.scale("notePythonVictory", 0.7));
+                      note = _ref4[2];
+                    lead.triggerAttackRelease(note, duration, now + offset, GameAudio.scale("notePythonVictory", GameAudio.scale("notePythonMelody", 0.5)));
                   });
-                  bass.triggerAttackRelease("G2", 0.4, now + 0.5, GameAudio.scale("notePythonVictory", 0.8));
-                  bass.triggerAttackRelease("C2", 0.8, now + 1, GameAudio.scale("notePythonVictory", 0.85));
+                  bass.triggerAttackRelease("C2", 0.175, now + 0.25, GameAudio.scale("notePythonVictory", GameAudio.scale("notePythonLowEnd", 0.7)));
                 }
               };
               (_previewers$soundId = previewers[soundId]) === null || _previewers$soundId === void 0 || _previewers$soundId.call(previewers);
@@ -3794,7 +3793,7 @@ _defineProperty(GameAudio, "SOUND_LIBRARY", [{
   id: "notePythonVictory",
   label: "Note Python Victory",
   volumeKey: "notePythonVictory",
-  description: "Majestic fanfare at the end of a Note Python game."
+  description: "Brief three-note victory cue at the Note Python soundtrack volume."
 }]);
 _defineProperty(GameAudio, "_previewSynths", {});
 

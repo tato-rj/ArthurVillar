@@ -181,7 +181,7 @@ export class GameAudio {
       id: "notePythonVictory",
       label: "Note Python Victory",
       volumeKey: "notePythonVictory",
-      description: "Majestic fanfare at the end of a Note Python game.",
+      description: "Brief three-note victory cue at the Note Python soundtrack volume.",
     },
   ];
 
@@ -464,27 +464,25 @@ export class GameAudio {
         });
       },
       notePythonVictory: () => {
-        const brass = GameAudio._getPreviewSynth("notePythonVictoryBrass", () => new Tone.PolySynth(Tone.Synth, {
-          oscillator: { type: "square" },
-          envelope: { attack: 0.012, decay: 0.12, sustain: 0.5, release: 0.35 },
+        const lead = GameAudio._getPreviewSynth("notePythonVictoryLead", () => new Tone.Synth({
+          oscillator: { type: "triangle" },
+          envelope: { attack: 0.004, decay: 0.06, sustain: 0.3, release: 0.07 },
           volume: -23,
         }).toDestination());
         const bass = GameAudio._getPreviewSynth("notePythonVictoryBass", () => new Tone.Synth({
           oscillator: { type: "triangle" },
-          envelope: { attack: 0.004, decay: 0.06, sustain: 0.3, release: 0.4 },
-          volume: -17,
+          envelope: { attack: 0.004, decay: 0.06, sustain: 0.3, release: 0.06 },
+          volume: -16,
         }).toDestination());
         const now = Tone.now();
         [
-          [0, 0.18, ["C4", "E4", "G4"]],
-          [0.25, 0.18, ["C4", "E4", "G4"]],
-          [0.5, 0.38, ["D4", "G4", "B4"]],
-          [1, 0.8, ["C4", "E4", "G4", "C5"]],
-        ].forEach(([offset, duration, notes]) => {
-          brass.triggerAttackRelease(notes, duration, now + offset, GameAudio.scale("notePythonVictory", 0.7));
+          [0, 0.09, "E4"],
+          [0.125, 0.09, "G4"],
+          [0.25, 0.175, "C5"],
+        ].forEach(([offset, duration, note]) => {
+          lead.triggerAttackRelease(note, duration, now + offset, GameAudio.scale("notePythonVictory", GameAudio.scale("notePythonMelody", 0.5)));
         });
-        bass.triggerAttackRelease("G2", 0.4, now + 0.5, GameAudio.scale("notePythonVictory", 0.8));
-        bass.triggerAttackRelease("C2", 0.8, now + 1, GameAudio.scale("notePythonVictory", 0.85));
+        bass.triggerAttackRelease("C2", 0.175, now + 0.25, GameAudio.scale("notePythonVictory", GameAudio.scale("notePythonLowEnd", 0.7)));
       },
     };
 

@@ -144,26 +144,21 @@ export class NotePythonMusic {
     if (!window.Tone) return;
     const beat = beatMsForBpm(bpm) / 1000;
     const start = window.Tone.now();
-    const brass = new window.Tone.PolySynth(window.Tone.Synth, {
-      oscillator: { type: "square" },
-      envelope: { attack: 0.012, decay: 0.12, sustain: 0.5, release: 0.35 },
-      volume: -23,
-    }).toDestination();
-    const bass = this._synth("triangle", -17, 0.4);
-    this._victoryVoices = [brass, bass];
+    const lead = this._synth("triangle", -23, 0.07);
+    const bass = this._synth("triangle", -16, 0.06);
+    this._victoryVoices = [lead, bass];
 
-    // A short heraldic call, dominant lift, then a broad tonic resolution.
+    // A brief resolution at the gameplay instruments' levels, ending before
+    // the separate final-results reveal music starts.
     [
-      [0, 0.35, ["C4", "E4", "G4"]],
-      [0.5, 0.35, ["C4", "E4", "G4"]],
-      [1, 0.75, ["D4", "G4", "B4"]],
-      [2, 1.6, ["C4", "E4", "G4", "C5"]],
-    ].forEach(([offset, duration, notes]) => {
-      brass.triggerAttackRelease(notes, duration * beat, start + offset * beat, GameAudio.scale("notePythonVictory", 0.7));
+      [0, 0.18, "E4"],
+      [0.25, 0.18, "G4"],
+      [0.5, 0.35, "C5"],
+    ].forEach(([offset, duration, note]) => {
+      lead.triggerAttackRelease(note, duration * beat, start + offset * beat, GameAudio.scale("notePythonVictory", GameAudio.scale("notePythonMelody", 0.5)));
     });
-    bass.triggerAttackRelease("G2", beat * 0.8, start + beat, GameAudio.scale("notePythonVictory", 0.8));
-    bass.triggerAttackRelease("C2", beat * 1.6, start + 2 * beat, GameAudio.scale("notePythonVictory", 0.85));
-    this._victoryTimer = setTimeout(() => this._stopVictory(), (4 * beat + 0.6) * 1000);
+    bass.triggerAttackRelease("C2", beat * 0.35, start + 0.5 * beat, GameAudio.scale("notePythonVictory", GameAudio.scale("notePythonLowEnd", 0.7)));
+    this._victoryTimer = setTimeout(() => this._stopVictory(), (0.85 * beat + 0.15) * 1000);
   }
 
   _stopVictory() {

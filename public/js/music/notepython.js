@@ -3769,34 +3769,23 @@ var NotePythonMusic = /*#__PURE__*/function () {
       if (!window.Tone) return;
       var beat = (0,_shared_tempo_js__WEBPACK_IMPORTED_MODULE_0__.beatMsForBpm)(bpm) / 1000;
       var start = window.Tone.now();
-      var brass = new window.Tone.PolySynth(window.Tone.Synth, {
-        oscillator: {
-          type: "square"
-        },
-        envelope: {
-          attack: 0.012,
-          decay: 0.12,
-          sustain: 0.5,
-          release: 0.35
-        },
-        volume: -23
-      }).toDestination();
-      var bass = this._synth("triangle", -17, 0.4);
-      this._victoryVoices = [brass, bass];
+      var lead = this._synth("triangle", -23, 0.07);
+      var bass = this._synth("triangle", -16, 0.06);
+      this._victoryVoices = [lead, bass];
 
-      // A short heraldic call, dominant lift, then a broad tonic resolution.
-      [[0, 0.35, ["C4", "E4", "G4"]], [0.5, 0.35, ["C4", "E4", "G4"]], [1, 0.75, ["D4", "G4", "B4"]], [2, 1.6, ["C4", "E4", "G4", "C5"]]].forEach(function (_ref) {
+      // A brief resolution at the gameplay instruments' levels, ending before
+      // the separate final-results reveal music starts.
+      [[0, 0.18, "E4"], [0.25, 0.18, "G4"], [0.5, 0.35, "C5"]].forEach(function (_ref) {
         var _ref2 = _slicedToArray(_ref, 3),
           offset = _ref2[0],
           duration = _ref2[1],
-          notes = _ref2[2];
-        brass.triggerAttackRelease(notes, duration * beat, start + offset * beat, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_1__.GameAudio.scale("notePythonVictory", 0.7));
+          note = _ref2[2];
+        lead.triggerAttackRelease(note, duration * beat, start + offset * beat, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_1__.GameAudio.scale("notePythonVictory", _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_1__.GameAudio.scale("notePythonMelody", 0.5)));
       });
-      bass.triggerAttackRelease("G2", beat * 0.8, start + beat, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_1__.GameAudio.scale("notePythonVictory", 0.8));
-      bass.triggerAttackRelease("C2", beat * 1.6, start + 2 * beat, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_1__.GameAudio.scale("notePythonVictory", 0.85));
+      bass.triggerAttackRelease("C2", beat * 0.35, start + 0.5 * beat, _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_1__.GameAudio.scale("notePythonVictory", _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_1__.GameAudio.scale("notePythonLowEnd", 0.7)));
       this._victoryTimer = setTimeout(function () {
         return _this._stopVictory();
-      }, (4 * beat + 0.6) * 1000);
+      }, (0.85 * beat + 0.15) * 1000);
     }
   }, {
     key: "_stopVictory",
@@ -4270,16 +4259,16 @@ var GameAudio = /*#__PURE__*/function () {
                   });
                 },
                 notePythonVictory: function notePythonVictory() {
-                  var brass = GameAudio._getPreviewSynth("notePythonVictoryBrass", function () {
-                    return new Tone.PolySynth(Tone.Synth, {
+                  var lead = GameAudio._getPreviewSynth("notePythonVictoryLead", function () {
+                    return new Tone.Synth({
                       oscillator: {
-                        type: "square"
+                        type: "triangle"
                       },
                       envelope: {
-                        attack: 0.012,
-                        decay: 0.12,
-                        sustain: 0.5,
-                        release: 0.35
+                        attack: 0.004,
+                        decay: 0.06,
+                        sustain: 0.3,
+                        release: 0.07
                       },
                       volume: -23
                     }).toDestination();
@@ -4293,21 +4282,20 @@ var GameAudio = /*#__PURE__*/function () {
                         attack: 0.004,
                         decay: 0.06,
                         sustain: 0.3,
-                        release: 0.4
+                        release: 0.06
                       },
-                      volume: -17
+                      volume: -16
                     }).toDestination();
                   });
                   var now = Tone.now();
-                  [[0, 0.18, ["C4", "E4", "G4"]], [0.25, 0.18, ["C4", "E4", "G4"]], [0.5, 0.38, ["D4", "G4", "B4"]], [1, 0.8, ["C4", "E4", "G4", "C5"]]].forEach(function (_ref3) {
+                  [[0, 0.09, "E4"], [0.125, 0.09, "G4"], [0.25, 0.175, "C5"]].forEach(function (_ref3) {
                     var _ref4 = _slicedToArray(_ref3, 3),
                       offset = _ref4[0],
                       duration = _ref4[1],
-                      notes = _ref4[2];
-                    brass.triggerAttackRelease(notes, duration, now + offset, GameAudio.scale("notePythonVictory", 0.7));
+                      note = _ref4[2];
+                    lead.triggerAttackRelease(note, duration, now + offset, GameAudio.scale("notePythonVictory", GameAudio.scale("notePythonMelody", 0.5)));
                   });
-                  bass.triggerAttackRelease("G2", 0.4, now + 0.5, GameAudio.scale("notePythonVictory", 0.8));
-                  bass.triggerAttackRelease("C2", 0.8, now + 1, GameAudio.scale("notePythonVictory", 0.85));
+                  bass.triggerAttackRelease("C2", 0.175, now + 0.25, GameAudio.scale("notePythonVictory", GameAudio.scale("notePythonLowEnd", 0.7)));
                 }
               };
               (_previewers$soundId = previewers[soundId]) === null || _previewers$soundId === void 0 || _previewers$soundId.call(previewers);
@@ -4768,7 +4756,7 @@ _defineProperty(GameAudio, "SOUND_LIBRARY", [{
   id: "notePythonVictory",
   label: "Note Python Victory",
   volumeKey: "notePythonVictory",
-  description: "Majestic fanfare at the end of a Note Python game."
+  description: "Brief three-note victory cue at the Note Python soundtrack volume."
 }]);
 _defineProperty(GameAudio, "_previewSynths", {});
 

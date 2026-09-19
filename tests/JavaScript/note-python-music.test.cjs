@@ -137,8 +137,8 @@ test('victory replaces the music with a finite tempo-matched cadence and cleans 
     music.playVictory(60);
     const fanfare = voices[background.length];
     assert.ok(background.every((voice) => voice.disposed));
-    assert.deepEqual(fanfare.notes.map((note) => note.time), [10, 10.5, 11, 12]);
-    assert.equal(fanfare.notes.at(-1).duration, 1.6);
+    assert.deepEqual(fanfare.notes.map((note) => note.time), [10, 10.25, 10.5]);
+    assert.equal(fanfare.notes.at(-1).duration, 0.35);
     music.stop(); // Showing the results must not cut off the cadence.
     assert.equal(fanfare.disposed, false);
     assert.equal(timers.size, 1);
