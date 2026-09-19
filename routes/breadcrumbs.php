@@ -52,6 +52,20 @@ Breadcrumbs::for('calendar.invitations.edit', function (BreadcrumbTrail $trail, 
     $trail->push('Edit Invitation', route('calendar.invitations.edit', $invitation));
 });
 
+Breadcrumbs::for('scheduler.schedulers.index', function (BreadcrumbTrail $trail) {
+    $trail->push('Invitations', route('scheduler.schedulers.index'));
+});
+
+Breadcrumbs::for('scheduler.schedulers.create', function (BreadcrumbTrail $trail) {
+    $trail->parent('scheduler.schedulers.index');
+    $trail->push('New Invitation', route('scheduler.schedulers.create'));
+});
+
+Breadcrumbs::for('scheduler.schedulers.edit', function (BreadcrumbTrail $trail, $scheduler) {
+    $trail->parent('scheduler.schedulers.index');
+    $trail->push('Edit Invitation', route('scheduler.schedulers.edit', $scheduler));
+});
+
 Breadcrumbs::for('calendar.lesson-plans.index', function (BreadcrumbTrail $trail) {
     $trail->parent('calendar.home');
     $trail->push('Lesson Plans', route('calendar.lesson-plans.index'));

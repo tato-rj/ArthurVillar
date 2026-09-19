@@ -1,0 +1,361 @@
+@import "../bootstrap/setup";
+
+$calendar-item-border-radius: 12px;
+
+.invitation-duration-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .65rem;
+}
+
+.invitation-duration-option {
+    @extend .btn, .btn-wide;
+}
+
+.invitation-duration-option:not(:hover):not(.active) {
+    @extend .btn-outline-secondary;
+}
+
+.invitation-duration-option:hover,
+.invitation-duration-option.active {
+    @extend .btn-secondary;
+}
+
+.invitation-custom-duration {
+    align-items: center;
+    display: flex;
+    gap: .5rem;
+    max-width: 260px;
+}
+
+.invitation-calendar-toolbar {
+    align-items: center;
+    display: flex;
+    gap: .65rem;
+}
+
+.invitation-calendar-nav {
+    height: 38px;
+    position: relative;
+    width: 38px;
+}
+
+.invitation-overflow-count {
+    background: #111;
+    border: 2px solid #fff;
+    border-radius: 999px;
+    color: #fff;
+    font-size: .75rem;
+    font-weight: 700;
+    height: 25px;
+    line-height: 21px;
+    min-width: 25px;
+    padding: 0 5px;
+    position: absolute;
+    right: -10px;
+    text-align: center;
+    top: -10px;
+    z-index: 10;
+}
+
+.invitation-calendar-label {
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0 0 0 .6rem;
+}
+
+.invitation-calendar-shell {
+    background: #fff;
+    border: 1px solid #e1e4e8;
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+}
+
+.invitation-calendar-overlays {
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    position: absolute;
+    z-index: 8;
+}
+
+.invitation-offscreen-indicator {
+    @extend .btn, .btn-white, .shadow;
+    height: 38px;
+    padding: 0;
+    pointer-events: auto;
+    position: absolute;
+    transform: translateX(-50%);
+    width: 38px;
+}
+
+.invitation-offscreen-indicator .invitation-overflow-count {
+    right: -12px;
+    top: -11px;
+}
+
+#invitation-calendar {
+    --lm-main-color: #07883a;
+    --lm-main-color-deep: #07883a;
+    --lm-border-outline: #0d6efd;
+}
+
+#invitation-calendar .lm-schedule {
+    max-height: 640px;
+    min-height: 520px;
+}
+
+#invitation-calendar .lm-schedule thead td {
+    font-size: 1.8em;
+    padding-bottom: 14px;
+    padding-top: 14px;
+}
+
+#invitation-calendar .lm-schedule thead td[data-weekday],
+#invitation-calendar .lm-schedule tbody td[data-date] {
+    border-left: 1px solid #dfe3e8;
+}
+
+#invitation-calendar .lm-schedule tbody tr.lm-schedule-hour > td {
+    border-top: 1px solid #d8dde3;
+}
+
+#invitation-calendar .lm-schedule tbody tr:nth-child(4n + 3) > td {
+    border-top: 1px dashed #e1e5ea;
+}
+
+#invitation-calendar .lm-schedule tbody td.invitation-past-slot {
+    background: #eceeef;
+    cursor: not-allowed;
+}
+
+#invitation-calendar .lm-schedule-pointer,
+#invitation-calendar .lm-schedule-pointer:before {
+    background-color: #07883a;
+}
+
+#invitation-calendar .lm-schedule-item {
+    --lm-schedule-background: #07883a;
+    align-items: center;
+    border: 2px solid #fff;
+    border-radius: $calendar-item-border-radius;
+    cursor: grab;
+    justify-content: center;
+    padding: 4px 30px 4px 7px;
+}
+
+#invitation-calendar .lm-schedule-item:active {
+    cursor: grabbing;
+}
+
+#invitation-calendar .lm-schedule-item:before {
+    display: none;
+}
+
+#invitation-calendar .lm-schedule-item:after {
+    content: attr(data-start) ' – ' attr(data-end);
+    font-size: .82rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+#invitation-calendar .invitation-option-delete {
+    background: rgba(0, 0, 0, .2);
+    border: 0;
+    border-radius: 50%;
+    color: #fff;
+    height: 23px;
+    line-height: 23px;
+    padding: 0;
+    position: absolute;
+    right: 5px;
+    top: 4px;
+    width: 23px;
+    z-index: 2;
+}
+
+#invitation-calendar .invitation-option-delete:hover {
+    background: rgba(0, 0, 0, .42);
+}
+
+.invitation-calendar-help {
+    color: #6c757d;
+    font-size: .92rem;
+}
+
+.invitation-calendar-error {
+    display: none;
+}
+
+.invitation-calendar-error.is-visible {
+    display: block;
+}
+
+@media (max-width: 767.98px) {
+    .invitation-calendar-toolbar {
+        flex-wrap: wrap;
+    }
+
+    .invitation-calendar-label {
+        margin: .25rem 0 0;
+        width: 100%;
+    }
+
+    .invitation-calendar-shell {
+        overflow-x: auto;
+    }
+
+    #invitation-calendar {
+        min-width: 820px;
+    }
+}
+
+input[name="name"] {
+    border-bottom: 1px solid lightgrey;
+    border-left: 0;
+    border-right: 0;
+    border-top: 0;
+    font-size: 1.1rem;
+}
+
+.invitation-response-option {
+    align-items: center;
+    background: #f8f9fa;
+    border: 1px solid #d8dce1;
+    cursor: pointer;
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: 52px minmax(180px, 1fr) auto;
+    transition: background-color .15s ease, border-color .15s ease;
+}
+
+.invitation-response-option[data-state="yes"] {
+    background: #dcf8df;
+    border-color: #addbb7;
+}
+
+.invitation-response-option[data-state="maybe"] {
+    background: #fff6cf;
+    border-color: #e2cd77;
+}
+
+.invitation-response-choice {
+    background: #fff;
+    border: 2px solid #6c757d;
+    color: #6c757d;
+    font-size: 1rem;
+    height: 32px;
+    padding: 0;
+    width: 32px;
+}
+
+.invitation-response-choice .fa-xmark,
+.invitation-instructions-option[data-state="blank"] {
+    opacity: .3;
+}
+
+.invitation-response-option[data-state="yes"] .invitation-response-choice,
+.invitation-instructions-option[data-state="yes"] {
+    background: #087457;
+    border-color: #087457;
+    color: #fff;
+}
+
+.invitation-response-option[data-state="maybe"] .invitation-response-choice,
+.invitation-instructions-option[data-state="maybe"] {
+    background: #f2c94c;
+    border-color: #c99700;
+    color: #4a3a00;
+}
+
+.invitation-response-time {
+    font-size: 1.15rem;
+    font-weight: 700;
+}
+
+.invitation-response-summary {
+    background: transparent;
+    border: 0;
+    color: #0b62c4;
+    cursor: pointer;
+    font-weight: 600;
+    padding: .35rem .5rem;
+    white-space: nowrap;
+}
+
+.invitation-response-summary:hover,
+.invitation-response-summary:focus {
+    color: #074b95;
+    text-decoration: underline;
+}
+
+.invitation-responder-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.invitation-responder-list li {
+    align-items: center;
+    border: 0 !important;
+    display: flex;
+    justify-content: left !important;
+    padding: .65rem 0;
+}
+
+.invitation-responder-list li:before {
+    @extend .rounded, .mr-2;
+    content: '';
+    height: 8px;
+    width: 8px;
+}
+
+.invitation-responder-list li:last-child {
+    border-bottom: 0;
+}
+
+ul.invitation-responder-list[data-response="yes"] li:before {
+    @extend .bg-green;
+}
+
+ul.invitation-responder-list[data-response="maybe"] li:before {
+    @extend .bg-yellow;
+}
+
+@media (max-width: 575.98px) {
+    .invitation-response-option {
+        gap: .75rem;
+        grid-template-columns: 42px 1fr auto;
+        padding: .85rem;
+    }
+
+    .invitation-response-summary {
+        font-size: .82rem;
+    }
+}
+
+.invitation-instructions-option {
+    border: 1px solid;
+    font-size: .8rem;
+    height: 22px;
+    width: 22px;
+}
+
+#invitation-responses-content h5 {
+    font-size: 100%;
+}
+
+.invitation-result[data-status="winner"] {
+    border-color: #58cc02 !important;
+    border-top: 6px solid;
+}
+
+.invitation-result[data-status="second-best"] {
+    border-color: #ffc800 !important;
+    border-top: 6px solid;
+}
+
+.invitation-result-name {
+    display: inline-block;
+}

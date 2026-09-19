@@ -1,16 +1,21 @@
 @extends('layouts.app', ['title' => $invitation ? 'Edit Invitation' : 'New Invitation'])
 
+@php
+    $invitationRoutePrefix = $invitationRoutePrefix ?? 'calendar.invitations';
+    $invitationStylesheet = $invitationStylesheet ?? 'css/calendar.css';
+@endphp
+
 @push('header')
 <link href="/css/vendor/calendarjs.css" rel="stylesheet">
-<link href="{{ mix('css/calendar.css') }}" rel="stylesheet">
+<link href="{{ mix($invitationStylesheet) }}" rel="stylesheet">
 @endpush
 
 @section('content')
 <section class="container py-5">
     @if($invitation)
-        {{ Breadcrumbs::render('calendar.invitations.edit', $invitation) }}
+        {{ Breadcrumbs::render($invitationRoutePrefix.'.edit', $invitation) }}
     @else
-        {{ Breadcrumbs::render('calendar.invitations.create') }}
+        {{ Breadcrumbs::render($invitationRoutePrefix.'.create') }}
     @endif
 
     <div class="row mb-4">
@@ -26,7 +31,7 @@
         $selectedDuration = (int) old('duration_minutes', $invitation?->duration_minutes ?? 60);
     @endphp
 
-    <form id="invitation-form" method="POST" action="{{ $invitation ? route('calendar.invitations.update', $invitation) : route('calendar.invitations.store') }}">
+    <form id="invitation-form" method="POST" action="{{ $invitation ? route($invitationRoutePrefix.'.update', $invitation) : route($invitationRoutePrefix.'.store') }}">
         @csrf
         @if($invitation)
             @method('PATCH')

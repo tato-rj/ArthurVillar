@@ -25,6 +25,8 @@ import {
  * - Answer checking is pitch-only for those notes (enharmonic spellings are accepted).
  */
 export class ChordDetective extends BaseStaffGame {
+  static BASS_MIN_STEP = 4; // Third line of the bass staff (D3).
+
   static TRIAD_QUALITY_FULL_NAME_MAP = {
     major: "major",
     minor: "minor",
@@ -91,6 +93,7 @@ export class ChordDetective extends BaseStaffGame {
     this.$playWrap = null;
     this.$playPlayBtn = null;
     this.$playStopBtn = null;
+    this._hasPlayedThisRound = false;
   }
 
   // ------------------------ lifecycle ------------------------
@@ -120,17 +123,26 @@ export class ChordDetective extends BaseStaffGame {
         e.preventDefault();
         this._stopDictationPlayback();
         this._setPlayButtons(false);
+        this._setInstructions("Press Play whenever you’d like to hear it again.");
       });
+
+    this.$staffEl
+      .off(`staff:userNoteAdded._answerControls.${this.ns} staff:userNotesChanged._answerControls.${this.ns}`)
+      .on(
+        `staff:userNoteAdded._answerControls.${this.ns} staff:userNotesChanged._answerControls.${this.ns}`,
+        (e, data) => this._syncAnswerControls(Number(data?.count)),
+      );
 
     // Ensure Play is shown on Continue (new round).
     $("#continue button")
       .off(`click.${this.ns}ShowPlay`)
       .on(`click.${this.ns}ShowPlay`, () => {
-        if (this.$playWrap?.length) this.$playWrap.show();
         this._setPlayButtons(false);
+        this._syncAnswerControls(0);
       });
 
     this._setPlayButtons(false);
+    this._syncAnswerControls();
   }
 
   // ------------------------ play/stop UI ------------------------
@@ -140,6 +152,47 @@ export class ChordDetective extends BaseStaffGame {
     if (this.$playStopBtn?.length) this.$playStopBtn.toggle(!!isPlaying);
   }
 
+  _setInstructions(message) {
+    this.instructionsUi.show().setHtml(message, { animate: false });
+  }
+
+  _removeInstructions() {
+    this.$instructions.show();
+    this._instructionsRemoved = true;
+  }
+
+  _restoreInstructions() {
+    this.$instructions.show();
+    this._instructionsRemoved = false;
+  }
+
+  _syncAnswerControls(count = this._currentUserNoteCount()) {
+    const userNoteCount = Number.isFinite(count) ? count : this._currentUserNoteCount();
+    const hasAnswer = userNoteCount >= this._checkAfterUserNotes();
+    const roundControlsHidden =
+      this.$staffEl?.attr?.("aria-disabled") === "true" ||
+      $("#continue").is(":visible") ||
+      $("#final-overlay").is(":visible");
+    const showPlay = !roundControlsHidden && !hasAnswer;
+    const showCheck = !roundControlsHidden && hasAnswer;
+
+    if (showCheck) {
+      this._stopDictationPlayback();
+      this._setPlayButtons(false);
+    }
+
+    this.$playWrap?.toggle?.(showPlay);
+    this.$checkWrap?.toggle?.(showCheck).toggleClass?.("invisible", !showCheck);
+
+    if (!roundControlsHidden) {
+      let message = "Press Play when you’re ready.";
+      if (hasAnswer) message = "When you’re ready, check your answer.";
+      else if (userNoteCount === 1) message = "Add one more note.";
+      else if (this._hasPlayedThisRound) message = "Add the two notes you heard.";
+      this._setInstructions(message);
+    }
+  }
+
   // ------------------------ dictation playback ------------------------
 
   playDictation() {
@@ -147,6 +200,8 @@ export class ChordDetective extends BaseStaffGame {
 
     this._stopDictationPlayback();
     this._setPlayButtons(true);
+    this._hasPlayedThisRound = true;
+    this._setInstructions("Listen closely…");
 
     const firstMidi =
       this.staff._stepToMidi(this._expectedFirst.step) +
@@ -167,6 +222,7 @@ export class ChordDetective extends BaseStaffGame {
         // eslint-disable-next-line no-console
         console.log("Dictation: user can now write the chord tones on the staff.");
         this._setPlayButtons(false);
+        this._setInstructions("Add the two notes you heard.");
       }, 5200),
     );
   }
@@ -333,10 +389,13 @@ export class ChordDetective extends BaseStaffGame {
   _pickFixedNote() {
     const fixedList = toArrayMaybe(this.opts.fixedNotes).filter(Boolean);
     if (fixedList.length) {
-      const chosen = pickOne(fixedList);
-      return this._normalizeInitialNoteAccidental(
-        fixedNoteToStaffPosition(this.staff, chosen),
-      );
+      const eligibleFixedNotes = fixedList
+        .map((note) => this._normalizeInitialNoteAccidental(
+          fixedNoteToStaffPosition(this.staff, note),
+        ))
+        .filter((note) => note && this._isChallengeStepAllowed(note.step));
+
+      if (eligibleFixedNotes.length) return pickOne(eligibleFixedNotes);
     }
 
     return {
@@ -346,9 +405,22 @@ export class ChordDetective extends BaseStaffGame {
   }
 
   _randomFixedStep() {
-    const min = this.staff.minStepAllowed();
-    const max = this.staff.maxStepAllowed();
+    const { min, max } = this._challengeStepBounds();
     return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  _challengeStepBounds() {
+    const staffMin = this.staff.minStepAllowed();
+    const min = this.staff.getClef() === "bass"
+      ? Math.max(staffMin, ChordDetective.BASS_MIN_STEP)
+      : staffMin;
+
+    return { min, max: this.staff.maxStepAllowed() };
+  }
+
+  _isChallengeStepAllowed(step) {
+    const { min, max } = this._challengeStepBounds();
+    return Number.isFinite(step) && step >= min && step <= max;
   }
 
   // ------------------------ triad math ------------------------
@@ -380,8 +452,7 @@ export class ChordDetective extends BaseStaffGame {
     if (!expected) return null;
 
     const dir = this._directionValue(direction);
-    const minStep = this.staff.minStepAllowed();
-    const maxStep = this.staff.maxStepAllowed();
+    const { min: minStep, max: maxStep } = this._challengeStepBounds();
     const roles = [
       { stepOffset: 2, semis: expected[0] },
       { stepOffset: 4, semis: expected[1] },
@@ -418,8 +489,7 @@ export class ChordDetective extends BaseStaffGame {
 
     const step = rootStep + role.stepOffset + (7 * octaveShift);
     const semis = role.semis + (12 * octaveShift);
-    const minStep = this.staff.minStepAllowed();
-    const maxStep = this.staff.maxStepAllowed();
+    const { min: minStep, max: maxStep } = this._challengeStepBounds();
     if (step < minStep || step > maxStep) return null;
 
     const accidentalClass = this._toneAccidentalClass(rootMidi, step, semis);
@@ -530,8 +600,9 @@ export class ChordDetective extends BaseStaffGame {
   // ------------------------ game flow ------------------------
 
   newChallenge() {
-    if (this.$playWrap?.length) this.$playWrap.show();
+    this._hasPlayedThisRound = false;
     this._setPlayButtons(false);
+    this._syncAnswerControls(0);
 
     this.$helpBtn.hide();
     this._fixedState = null;
@@ -635,6 +706,16 @@ export class ChordDetective extends BaseStaffGame {
     }));
   }
 
+  _showHintNote() {
+    super._showHintNote();
+    this._setInstructions("Here’s a hint—watch the correct notes.");
+  }
+
+  _showTimeUpMessage() {
+    super._showTimeUpMessage();
+    this._setInstructions("Time’s up. Let’s try another one.");
+  }
+
   // ------------------------ evaluation ------------------------
 
   _onCheck() {
@@ -655,6 +736,7 @@ export class ChordDetective extends BaseStaffGame {
       this._shakeWrongUserStaffNotes();
       this._failAnimation(this.$checkWrap);
       this.$helpBtn.show();
+      this._setInstructions("Not quite—adjust the notes and try again.");
       return;
     }
 
@@ -665,6 +747,7 @@ export class ChordDetective extends BaseStaffGame {
       this._shakeWrongUserStaffNotes();
       this._failAnimation(this.$checkWrap);
       this.$helpBtn.show();
+      this._setInstructions("Not quite—adjust the notes and try again.");
       return;
     }
 
@@ -690,12 +773,14 @@ export class ChordDetective extends BaseStaffGame {
         $prompt: this.prompt.$root,
         $extraHide: this.$playWrap,
       });
+      this._setInstructions("You got it! Continue when you’re ready.");
     } else {
       this._madeAnyMistake = true;
       this._madeMistakeThisRound = true;
       this._shakeWrongUserStaffNotes();
       this._failAnimation(this.$checkWrap);
       this.$helpBtn.show();
+      this._setInstructions("Not quite—adjust the notes and try again.");
     }
   }
 }

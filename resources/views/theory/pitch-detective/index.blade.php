@@ -25,10 +25,6 @@
 #interval label {
   top: -4px !important;
 }
-
-#play {
-  height: 66.4px;
-}
 </style>
 @endpush
 
@@ -42,17 +38,20 @@
       @include('theory.components.timer')
     </div>
 
+    <div class="col-lg-8 col-md-10 col-11 mx-auto text-center">
+      @include('theory.components.instructions', ['instructionContent' => 'Press Play when you’re ready.'])
+    </div>
+
     <div class="col-11 mx-auto mb-3">
       <div id="staff-wrapper" class="text-center mx-auto position-relative prevent-select">
         @include('theory.components.accidentals')
         <div id="staff"></div>
         @include('theory.components.feedback')
-        @include('theory.components.play')
       </div>
     </div>
 
     <div class="col-lg-6 col-md-8 col-11 mx-auto">
-      @include('theory.components.controls', ['instructions' => 'Tap on the staff to add a note 👆'])
+      @include('theory.components.controls', ['type' => 'play-check'])
       @include('theory.pitch-detective.settings')
       @include('theory.components.leaderboard.show')
       @include('theory.components.preferences')

@@ -1,5 +1,5 @@
 {
-    "/js/app.js": "/js/app.js?id=0a3ca3158a94780ed31eafffd3e3239a",
+    "/js/app.js": "/js/app.js?id=1b4562450d8e18318da65a52a1e69afd",
     "/js/offline.js": "/js/offline.js?id=1c14c55e3782f8d8c503823d6dd8bd50",
     "/js/calendar/index.js": "/js/calendar/index.js?id=3e6c2fc82f6ee338995507cd38794ecf",
     "/js/pianoatlas/action.js": "/js/pianoatlas/action.js?id=302864f2e8a8364f4c7ed93ce5486fbc",
@@ -8,9 +8,9 @@
     "/js/music/admin-soundeffects.js": "/js/music/admin-soundeffects.js?id=dbd0a968e3a473934faf74f0145d9011",
     "/js/music/intervalslab.js": "/js/music/intervalslab.js?id=730f745a01b6af5e1db8f27e1a840563",
     "/js/music/chordslab.js": "/js/music/chordslab.js?id=c6e1b412f6f7a5a33e50b0acd6ba9284",
-    "/js/music/pitchdetective.js": "/js/music/pitchdetective.js?id=eb1a89c78e715a3e0aa81dd093382d93",
-    "/js/music/chorddetective.js": "/js/music/chorddetective.js?id=38caa62b8c03d6c6ce6baedf06a9787c",
-    "/js/music/tonetrek.js": "/js/music/tonetrek.js?id=38de952ca97ffb5e864cb4439ec6a6c0",
+    "/js/music/pitchdetective.js": "/js/music/pitchdetective.js?id=437d8917fb5cbc668187a30bc3807d07",
+    "/js/music/chorddetective.js": "/js/music/chorddetective.js?id=ba8fedc427e2199447552e944aded305",
+    "/js/music/tonetrek.js": "/js/music/tonetrek.js?id=43320a73d0784b5bbfb6d37641434170",
     "/js/music/notepython.js": "/js/music/notepython.js?id=1252087364bbde96f1c2f9a14d67dc22",
     "/js/music/keyslab.js": "/js/music/keyslab.js?id=96763c9635ddfa451ca32715350c6162",
     "/js/music/notenest.js": "/js/music/notenest.js?id=51bc0b0e54737f3acff3d63dd7f9f5b2",
@@ -18,7 +18,7 @@
     "/js/music/memorywizard.js": "/js/music/memorywizard.js?id=e5d665e717357b4002d9072d310dd546",
     "/js/music/openstaff.js": "/js/music/openstaff.js?id=c0389e34507fb87623001c0519c93676",
     "/js/music/beathero.js": "/js/music/beathero.js?id=0171acff53fffbf1d65845774129318e",
-    "/css/schedule.css": "/css/schedule.css?id=55d4806e4b00f1996f010bd8f94259d2",
+    "/css/external/scheduler.css": "/css/external/scheduler.css?id=885d79b020a03cd3d86706562e100466",
     "/fonts/vendor/@fortawesome/fontawesome-free/webfa-brands-400.woff2?c210719e60948b211a1260f79812efe5": "/fonts/vendor/@fortawesome/fontawesome-free/webfa-brands-400.woff2?c210719e60948b211a1260f79812efe5?id=552e767fb6056f7f34a4783c2933556e",
     "/fonts/vendor/@fortawesome/fontawesome-free/webfa-brands-400.ttf?1815e00441357e01619e5793e1caa78a": "/fonts/vendor/@fortawesome/fontawesome-free/webfa-brands-400.ttf?1815e00441357e01619e5793e1caa78a?id=7c8d1eaa468e8de72642d3fc43ee5ed2",
     "/fonts/vendor/@fortawesome/fontawesome-free/webfa-regular-400.woff2?89999bdf5d835c0120257222e5568fec": "/fonts/vendor/@fortawesome/fontawesome-free/webfa-regular-400.woff2?89999bdf5d835c0120257222e5568fec?id=25bde24dc00e5dce8f1bfa8164b3b7b1",
@@ -570,6 +570,7 @@
     "/css/calendar.css": "/css/calendar.css?id=edb4355adcc43231e0d7fc216f479b85",
     "/css/app.css": "/css/app.css?id=6199c1c7a70deda5e158d617066ddd3d",
     "/css/musicgames.css": "/css/musicgames.css?id=12c677788bcdb39489f2584b51b05ab7",
+    "/css/schedule.css": "/css/schedule.css?id=55d4806e4b00f1996f010bd8f94259d2",
     "/css/pianoatlas.css": "/css/pianoatlas.css?id=21a0e7ecea6ba812eaefa47414a53959",
     "/css/offline.css": "/css/offline.css?id=32cf1de737cdecf3cc4e42d4da6c5180"
 }

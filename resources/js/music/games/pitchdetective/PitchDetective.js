@@ -26,6 +26,7 @@ import {
  */
 export class PitchDetective extends BaseStaffGame {
   static INTERVALS_DEFAULT = ["M2", "m3", "M3", "P5", "P8"];
+  static BASS_MIN_STEP = 4; // Third line of the bass staff (D3).
 
   constructor(options = {}) {
     const defaults = {
@@ -79,6 +80,7 @@ export class PitchDetective extends BaseStaffGame {
     this.$playWrap = null;
     this.$playPlayBtn = null;
     this.$playStopBtn = null;
+    this._hasPlayedThisRound = false;
   }
 
   // ------------------------ lifecycle ------------------------
@@ -108,17 +110,26 @@ export class PitchDetective extends BaseStaffGame {
         e.preventDefault();
         this._stopDictationPlayback();
         this._setPlayButtons(false);
+        this._setInstructions("Press Play whenever you’d like to hear it again.");
       });
+
+    this.$staffEl
+      .off(`staff:userNoteAdded._answerControls.${this.ns} staff:userNotesChanged._answerControls.${this.ns}`)
+      .on(
+        `staff:userNoteAdded._answerControls.${this.ns} staff:userNotesChanged._answerControls.${this.ns}`,
+        (e, data) => this._syncAnswerControls(Number(data?.count)),
+      );
 
     // Ensure Play is shown on Continue (new round).
     $("#continue button")
       .off(`click.${this.ns}ShowPlay`)
       .on(`click.${this.ns}ShowPlay`, () => {
-        if (this.$playWrap?.length) this.$playWrap.show();
         this._setPlayButtons(false);
+        this._syncAnswerControls(0);
       });
 
     this._setPlayButtons(false);
+    this._syncAnswerControls();
   }
 
   // ------------------------ play/stop UI ------------------------
@@ -128,6 +139,49 @@ export class PitchDetective extends BaseStaffGame {
     if (this.$playStopBtn?.length) this.$playStopBtn.toggle(!!isPlaying);
   }
 
+  _setInstructions(message) {
+    this.instructionsUi.show().setHtml(message, { animate: false });
+  }
+
+  _removeInstructions() {
+    this.$instructions.show();
+    this._instructionsRemoved = true;
+  }
+
+  _restoreInstructions() {
+    this.$instructions.show();
+    this._instructionsRemoved = false;
+  }
+
+  _syncAnswerControls(count = this._currentUserNoteCount()) {
+    const userNoteCount = Number.isFinite(count) ? count : this._currentUserNoteCount();
+    const hasAnswer = userNoteCount >= this._checkAfterUserNotes();
+    const roundControlsHidden =
+      this.$staffEl?.attr?.("aria-disabled") === "true" ||
+      $("#continue").is(":visible") ||
+      $("#final-overlay").is(":visible");
+    const showPlay = !roundControlsHidden && !hasAnswer;
+    const showCheck = !roundControlsHidden && hasAnswer;
+
+    if (showCheck) {
+      this._stopDictationPlayback();
+      this._setPlayButtons(false);
+    }
+
+    this.$playWrap?.toggle?.(showPlay);
+    this.$checkWrap?.toggle?.(showCheck).toggleClass?.("invisible", !showCheck);
+
+    if (!roundControlsHidden) {
+      this._setInstructions(
+        hasAnswer
+          ? "When you’re ready, check your answer."
+          : (this._hasPlayedThisRound
+            ? "Add the note you heard."
+            : "Press Play when you’re ready."),
+      );
+    }
+  }
+
   // ------------------------ dictation playback ------------------------
 
   playDictation() {
@@ -135,6 +189,8 @@ export class PitchDetective extends BaseStaffGame {
 
     this._stopDictationPlayback();
     this._setPlayButtons(true);
+    this._hasPlayedThisRound = true;
+    this._setInstructions("Listen closely…");
 
     const firstMidi =
       this.staff._stepToMidi(this._expectedFirst.step) +
@@ -154,6 +210,7 @@ export class PitchDetective extends BaseStaffGame {
         // eslint-disable-next-line no-console
         console.log("Dictation: user can now write the note on the staff.");
         this._setPlayButtons(false);
+        this._setInstructions("Add the note you heard.");
       }, 3000),
     );
   }
@@ -272,8 +329,11 @@ export class PitchDetective extends BaseStaffGame {
   _pickFixedNote() {
     const fixedList = toArrayMaybe(this.opts.fixedNotes).filter(Boolean);
     if (fixedList.length) {
-      const chosen = pickOne(fixedList);
-      return fixedNoteToStaffPosition(this.staff, chosen);
+      const eligibleFixedNotes = fixedList
+        .map((note) => fixedNoteToStaffPosition(this.staff, note))
+        .filter((note) => note && this._isChallengeStepAllowed(note.step));
+
+      if (eligibleFixedNotes.length) return pickOne(eligibleFixedNotes);
     }
 
     const w = this.opts.accidentalWeights || {};
@@ -287,9 +347,22 @@ export class PitchDetective extends BaseStaffGame {
   }
 
   _randomFixedStep() {
-    const min = this.staff.minStepAllowed();
-    const max = this.staff.maxStepAllowed();
+    const { min, max } = this._challengeStepBounds();
     return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  _challengeStepBounds() {
+    const staffMin = this.staff.minStepAllowed();
+    const min = this.staff.getClef() === "bass"
+      ? Math.max(staffMin, PitchDetective.BASS_MIN_STEP)
+      : staffMin;
+
+    return { min, max: this.staff.maxStepAllowed() };
+  }
+
+  _isChallengeStepAllowed(step) {
+    const { min, max } = this._challengeStepBounds();
+    return Number.isFinite(step) && step >= min && step <= max;
   }
 
   // ------------------------ interval math ------------------------
@@ -331,8 +404,7 @@ export class PitchDetective extends BaseStaffGame {
 
     const semitones = baseSemiSimple + 12 * octaves;
 
-    const minStep = this.staff.minStepAllowed();
-    const maxStep = this.staff.maxStepAllowed();
+    const { min: minStep, max: maxStep } = this._challengeStepBounds();
 
     const build = (dir) => {
       const targetStep = fixedStep + dir * diatonicSteps;
@@ -357,8 +429,9 @@ export class PitchDetective extends BaseStaffGame {
   // ------------------------ game flow ------------------------
 
   newChallenge() {
-    if (this.$playWrap?.length) this.$playWrap.show();
+    this._hasPlayedThisRound = false;
     this._setPlayButtons(false);
+    this._syncAnswerControls(0);
 
     this.$helpBtn.hide();
     this._fixedState = null;
@@ -443,6 +516,16 @@ export class PitchDetective extends BaseStaffGame {
     };
   }
 
+  _showHintNote() {
+    super._showHintNote();
+    this._setInstructions("Here’s a hint—watch the correct note.");
+  }
+
+  _showTimeUpMessage() {
+    super._showTimeUpMessage();
+    this._setInstructions("Time’s up. Let’s try another one.");
+  }
+
   // ------------------------ evaluation ------------------------
 
   _onCheck() {
@@ -463,6 +546,7 @@ export class PitchDetective extends BaseStaffGame {
       this._shakeWrongUserStaffNotes();
       this._failAnimation(this.$checkWrap);
       this.$helpBtn.show();
+      this._setInstructions("Not quite—adjust the note and try again.");
       return;
     }
 
@@ -473,6 +557,7 @@ export class PitchDetective extends BaseStaffGame {
       this._shakeWrongUserStaffNotes();
       this._failAnimation(this.$checkWrap);
       this.$helpBtn.show();
+      this._setInstructions("Not quite—adjust the note and try again.");
       return;
     }
 
@@ -491,12 +576,14 @@ export class PitchDetective extends BaseStaffGame {
         $prompt: this.prompt.$root,
         $extraHide: this.$playWrap,
       });
+      this._setInstructions("You got it! Continue when you’re ready.");
     } else {
       this._madeAnyMistake = true;
       this._madeMistakeThisRound = true;
       this._shakeWrongUserStaffNotes();
       this._failAnimation(this.$checkWrap);
       this.$helpBtn.show();
+      this._setInstructions("Not quite—adjust the note and try again.");
     }
   }
 }

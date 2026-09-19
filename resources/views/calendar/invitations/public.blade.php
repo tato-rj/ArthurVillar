@@ -1,8 +1,15 @@
 @extends('layouts.app', ['title' => $invitation->title, 'noMenu' => true])
 
+@php
+    $invitationVoteClass = $invitationVoteClass ?? \App\Models\Calendar\InvitationVote::class;
+    $invitationStylesheet = $invitationStylesheet ?? 'css/calendar.css';
+@endphp
+
 @push('header')
+@unless(isset($invitationHideScheduleStylesheet))
 <link href="{{ mix('css/schedule.css') }}" rel="stylesheet">
-<link href="{{ mix('css/calendar.css') }}" rel="stylesheet">
+@endunless
+<link href="{{ mix($invitationStylesheet) }}" rel="stylesheet">
 @endpush
 
 @section('content')
@@ -55,8 +62,8 @@
                                     @php
                                         $state = old("responses.{$option->id}", $responses->get($option->id, 'no'));
                                         $duration = $invitation->duration_minutes;
-                                        $yesResponses = $option->votes->where('status', \App\Models\Calendar\InvitationVote::YES);
-                                        $maybeResponses = $option->votes->where('status', \App\Models\Calendar\InvitationVote::MAYBE);
+                                        $yesResponses = $option->votes->where('status', $invitationVoteClass::YES);
+                                        $maybeResponses = $option->votes->where('status', $invitationVoteClass::MAYBE);
                                         $endsAt = $option->starts_at->copy()->addMinutes($duration);
                                     @endphp
 

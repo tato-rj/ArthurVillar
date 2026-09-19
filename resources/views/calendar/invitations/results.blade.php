@@ -1,3 +1,8 @@
+@php
+    $invitationRoutePrefix = $invitationRoutePrefix ?? 'calendar.invitations';
+    $invitationVoteClass = $invitationVoteClass ?? \App\Models\Calendar\InvitationVote::class;
+@endphp
+
 @modal(['title' => $invitation->title, 'id' => 'invitation-results-modal'])
     <div class="mb-4 invitation-results-response-count">
         <strong>@fa(['icon' => 'users']){{ $invitation->participants_count }}</strong>
@@ -10,8 +15,8 @@
 
             @foreach($options as $option)
                 @php
-                    $yesResponses = $option->votes->where('status', \App\Models\Calendar\InvitationVote::YES);
-                    $maybeResponses = $option->votes->where('status', \App\Models\Calendar\InvitationVote::MAYBE);
+                    $yesResponses = $option->votes->where('status', $invitationVoteClass::YES);
+                    $maybeResponses = $option->votes->where('status', $invitationVoteClass::MAYBE);
                     $endsAt = $option->starts_at->copy()->addMinutes($invitation->duration_minutes);
                     $resultStatus = in_array($option->id, $winnerOptionIds, true)
                         ? 'winner'
@@ -56,7 +61,7 @@
                 <li class="d-apart py-2 {{ $loop->last ? '' : 'border-bottom' }}">
                     <span class="mr-3">{{ $participant->name }}</span>
 
-                    <form method="POST" action="{{ route('calendar.invitations.participants.destroy', [$invitation, $participant]) }}" confirm class="mb-0">
+                    <form method="POST" action="{{ route($invitationRoutePrefix.'.participants.destroy', [$invitation, $participant]) }}" confirm class="mb-0">
                         @csrf
                         @method('DELETE')
                         <button

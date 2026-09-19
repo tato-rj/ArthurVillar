@@ -2036,6 +2036,7 @@ var ChordDetective = /*#__PURE__*/function (_BaseStaffGame) {
     _this.$playWrap = null;
     _this.$playPlayBtn = null;
     _this.$playStopBtn = null;
+    _this._hasPlayedThisRound = false;
     return _this;
   }
 
@@ -2064,15 +2065,19 @@ var ChordDetective = /*#__PURE__*/function (_BaseStaffGame) {
         e.preventDefault();
         _this2._stopDictationPlayback();
         _this2._setPlayButtons(false);
+        _this2._setInstructions("Press Play whenever you’d like to hear it again.");
+      });
+      this.$staffEl.off("staff:userNoteAdded._answerControls.".concat(this.ns, " staff:userNotesChanged._answerControls.").concat(this.ns)).on("staff:userNoteAdded._answerControls.".concat(this.ns, " staff:userNotesChanged._answerControls.").concat(this.ns), function (e, data) {
+        return _this2._syncAnswerControls(Number(data === null || data === void 0 ? void 0 : data.count));
       });
 
       // Ensure Play is shown on Continue (new round).
       $("#continue button").off("click.".concat(this.ns, "ShowPlay")).on("click.".concat(this.ns, "ShowPlay"), function () {
-        var _this2$$playWrap;
-        if ((_this2$$playWrap = _this2.$playWrap) !== null && _this2$$playWrap !== void 0 && _this2$$playWrap.length) _this2.$playWrap.show();
         _this2._setPlayButtons(false);
+        _this2._syncAnswerControls(0);
       });
       this._setPlayButtons(false);
+      this._syncAnswerControls();
     }
 
     // ------------------------ play/stop UI ------------------------
@@ -2083,6 +2088,47 @@ var ChordDetective = /*#__PURE__*/function (_BaseStaffGame) {
       if ((_this$$playPlayBtn = this.$playPlayBtn) !== null && _this$$playPlayBtn !== void 0 && _this$$playPlayBtn.length) this.$playPlayBtn.toggle(!isPlaying);
       if ((_this$$playStopBtn = this.$playStopBtn) !== null && _this$$playStopBtn !== void 0 && _this$$playStopBtn.length) this.$playStopBtn.toggle(!!isPlaying);
     }
+  }, {
+    key: "_setInstructions",
+    value: function _setInstructions(message) {
+      this.instructionsUi.show().setHtml(message, {
+        animate: false
+      });
+    }
+  }, {
+    key: "_removeInstructions",
+    value: function _removeInstructions() {
+      this.$instructions.show();
+      this._instructionsRemoved = true;
+    }
+  }, {
+    key: "_restoreInstructions",
+    value: function _restoreInstructions() {
+      this.$instructions.show();
+      this._instructionsRemoved = false;
+    }
+  }, {
+    key: "_syncAnswerControls",
+    value: function _syncAnswerControls() {
+      var _this$$staffEl, _this$$staffEl$attr, _this$$playWrap, _this$$playWrap$toggl, _this$$checkWrap, _this$$checkWrap$togg, _this$$checkWrap$togg2, _this$$checkWrap$togg3;
+      var count = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this._currentUserNoteCount();
+      var userNoteCount = Number.isFinite(count) ? count : this._currentUserNoteCount();
+      var hasAnswer = userNoteCount >= this._checkAfterUserNotes();
+      var roundControlsHidden = ((_this$$staffEl = this.$staffEl) === null || _this$$staffEl === void 0 || (_this$$staffEl$attr = _this$$staffEl.attr) === null || _this$$staffEl$attr === void 0 ? void 0 : _this$$staffEl$attr.call(_this$$staffEl, "aria-disabled")) === "true" || $("#continue").is(":visible") || $("#final-overlay").is(":visible");
+      var showPlay = !roundControlsHidden && !hasAnswer;
+      var showCheck = !roundControlsHidden && hasAnswer;
+      if (showCheck) {
+        this._stopDictationPlayback();
+        this._setPlayButtons(false);
+      }
+      (_this$$playWrap = this.$playWrap) === null || _this$$playWrap === void 0 || (_this$$playWrap$toggl = _this$$playWrap.toggle) === null || _this$$playWrap$toggl === void 0 || _this$$playWrap$toggl.call(_this$$playWrap, showPlay);
+      (_this$$checkWrap = this.$checkWrap) === null || _this$$checkWrap === void 0 || (_this$$checkWrap$togg = _this$$checkWrap.toggle) === null || _this$$checkWrap$togg === void 0 || (_this$$checkWrap$togg2 = (_this$$checkWrap$togg3 = _this$$checkWrap$togg.call(_this$$checkWrap, showCheck)).toggleClass) === null || _this$$checkWrap$togg2 === void 0 || _this$$checkWrap$togg2.call(_this$$checkWrap$togg3, "invisible", !showCheck);
+      if (!roundControlsHidden) {
+        var message = "Press Play when you’re ready.";
+        if (hasAnswer) message = "When you’re ready, check your answer.";else if (userNoteCount === 1) message = "Add one more note.";else if (this._hasPlayedThisRound) message = "Add the two notes you heard.";
+        this._setInstructions(message);
+      }
+    }
 
     // ------------------------ dictation playback ------------------------
   }, {
@@ -2092,6 +2138,8 @@ var ChordDetective = /*#__PURE__*/function (_BaseStaffGame) {
       if (!this._expectedFirst || !this._expectedChordNotes.length) return;
       this._stopDictationPlayback();
       this._setPlayButtons(true);
+      this._hasPlayedThisRound = true;
+      this._setInstructions("Listen closely…");
       var firstMidi = this.staff._stepToMidi(this._expectedFirst.step) + (this.staff._accidentalClassToOffset(this._expectedFirst.accidentalClass) || 0);
       var chordMidis = [firstMidi].concat(_toConsumableArray(this._expectedChordNotes.map(function (note) {
         return note.midi;
@@ -2114,6 +2162,7 @@ var ChordDetective = /*#__PURE__*/function (_BaseStaffGame) {
         // eslint-disable-next-line no-console
         console.log("Dictation: user can now write the chord tones on the staff.");
         _this3._setPlayButtons(false);
+        _this3._setInstructions("Add the two notes you heard.");
       }, 5200));
     }
   }, {
@@ -2305,10 +2354,15 @@ var ChordDetective = /*#__PURE__*/function (_BaseStaffGame) {
   }, {
     key: "_pickFixedNote",
     value: function _pickFixedNote() {
+      var _this7 = this;
       var fixedList = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.toArrayMaybe)(this.opts.fixedNotes).filter(Boolean);
       if (fixedList.length) {
-        var chosen = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.pickOne)(fixedList);
-        return this._normalizeInitialNoteAccidental((0,_shared_challengeUtils_js__WEBPACK_IMPORTED_MODULE_3__.fixedNoteToStaffPosition)(this.staff, chosen));
+        var eligibleFixedNotes = fixedList.map(function (note) {
+          return _this7._normalizeInitialNoteAccidental((0,_shared_challengeUtils_js__WEBPACK_IMPORTED_MODULE_3__.fixedNoteToStaffPosition)(_this7.staff, note));
+        }).filter(function (note) {
+          return note && _this7._isChallengeStepAllowed(note.step);
+        });
+        if (eligibleFixedNotes.length) return (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.pickOne)(eligibleFixedNotes);
       }
       return {
         step: this._randomFixedStep(),
@@ -2318,9 +2372,28 @@ var ChordDetective = /*#__PURE__*/function (_BaseStaffGame) {
   }, {
     key: "_randomFixedStep",
     value: function _randomFixedStep() {
-      var min = this.staff.minStepAllowed();
-      var max = this.staff.maxStepAllowed();
+      var _this$_challengeStepB = this._challengeStepBounds(),
+        min = _this$_challengeStepB.min,
+        max = _this$_challengeStepB.max;
       return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+  }, {
+    key: "_challengeStepBounds",
+    value: function _challengeStepBounds() {
+      var staffMin = this.staff.minStepAllowed();
+      var min = this.staff.getClef() === "bass" ? Math.max(staffMin, ChordDetective.BASS_MIN_STEP) : staffMin;
+      return {
+        min: min,
+        max: this.staff.maxStepAllowed()
+      };
+    }
+  }, {
+    key: "_isChallengeStepAllowed",
+    value: function _isChallengeStepAllowed(step) {
+      var _this$_challengeStepB2 = this._challengeStepBounds(),
+        min = _this$_challengeStepB2.min,
+        max = _this$_challengeStepB2.max;
+      return Number.isFinite(step) && step >= min && step <= max;
     }
 
     // ------------------------ triad math ------------------------
@@ -2352,8 +2425,9 @@ var ChordDetective = /*#__PURE__*/function (_BaseStaffGame) {
       var expected = this._triadExpectedSemisForQuality(quality);
       if (!expected) return null;
       var dir = this._directionValue(direction);
-      var minStep = this.staff.minStepAllowed();
-      var maxStep = this.staff.maxStepAllowed();
+      var _this$_challengeStepB3 = this._challengeStepBounds(),
+        minStep = _this$_challengeStepB3.min,
+        maxStep = _this$_challengeStepB3.max;
       var roles = [{
         stepOffset: 2,
         semis: expected[0]
@@ -2405,8 +2479,9 @@ var ChordDetective = /*#__PURE__*/function (_BaseStaffGame) {
       if (!role) return null;
       var step = rootStep + role.stepOffset + 7 * octaveShift;
       var semis = role.semis + 12 * octaveShift;
-      var minStep = this.staff.minStepAllowed();
-      var maxStep = this.staff.maxStepAllowed();
+      var _this$_challengeStepB4 = this._challengeStepBounds(),
+        minStep = _this$_challengeStepB4.min,
+        maxStep = _this$_challengeStepB4.max;
       if (step < minStep || step > maxStep) return null;
       var accidentalClass = this._toneAccidentalClass(rootMidi, step, semis);
       if (accidentalClass == null && semis !== 0) return null;
@@ -2447,7 +2522,7 @@ var ChordDetective = /*#__PURE__*/function (_BaseStaffGame) {
   }, {
     key: "_pickInvertedVoicingFromFixed",
     value: function _pickInvertedVoicingFromFixed(quality, fixed, direction) {
-      var _this7 = this;
+      var _this8 = this;
       var expected = this._triadExpectedSemisForQuality(quality);
       if (!expected || !fixed) return null;
       var roleSpecs = this._triadRoleSpecs(expected);
@@ -2459,10 +2534,10 @@ var ChordDetective = /*#__PURE__*/function (_BaseStaffGame) {
         var _voicing$chordNotes;
         var rootStep = anchor.step - role.stepOffset;
         var rootMidi = fixedMidi - role.semis;
-        var rootOff = rootMidi - _this7.staff._stepToMidi(rootStep);
+        var rootOff = rootMidi - _this8.staff._stepToMidi(rootStep);
         var rootAccidentalClass = (0,_shared_challengeUtils_js__WEBPACK_IMPORTED_MODULE_3__.accidentalClassFromOffset)(rootOff);
         if (rootAccidentalClass == null && rootOff !== 0) return;
-        var voicing = _this7._computeChordVoicingFromRoot(quality, rootStep, rootMidi, direction, inversion);
+        var voicing = _this8._computeChordVoicingFromRoot(quality, rootStep, rootMidi, direction, inversion);
         if (!(voicing !== null && voicing !== void 0 && (_voicing$chordNotes = voicing.chordNotes) !== null && _voicing$chordNotes !== void 0 && _voicing$chordNotes.length)) return;
         candidates.push({
           inversion: inversion,
@@ -2504,9 +2579,10 @@ var ChordDetective = /*#__PURE__*/function (_BaseStaffGame) {
   }, {
     key: "newChallenge",
     value: function newChallenge() {
-      var _this$$playWrap, _this$$doublePoints, _this$$doublePoints$h, _chordNotes2;
-      if ((_this$$playWrap = this.$playWrap) !== null && _this$$playWrap !== void 0 && _this$$playWrap.length) this.$playWrap.show();
+      var _this$$doublePoints, _this$$doublePoints$h, _chordNotes2;
+      this._hasPlayedThisRound = false;
       this._setPlayButtons(false);
+      this._syncAnswerControls(0);
       this.$helpBtn.hide();
       this._fixedState = null;
       this._clearInitialNoteFlicker();
@@ -2574,13 +2650,13 @@ var ChordDetective = /*#__PURE__*/function (_BaseStaffGame) {
   }, {
     key: "_notesOnStaffOrdered",
     value: function _notesOnStaffOrdered() {
-      var _this8 = this;
+      var _this9 = this;
       var $notes = this.$staffEl.find(".note").not(".preview").not(".hint");
       var notes = $notes.toArray().map(function (el) {
         var id = el.getAttribute("data-note-id");
-        var step = _this8.staff._stepOfNoteEl(el);
-        var accCls = _this8.staff._getAttachedAccidentalClass(id);
-        var accOff = _this8.staff._accidentalClassToOffset(accCls) || 0;
+        var step = _this9.staff._stepOfNoteEl(el);
+        var accCls = _this9.staff._getAttachedAccidentalClass(id);
+        var accOff = _this9.staff._accidentalClassToOffset(accCls) || 0;
         var fixed = el.classList.contains("fixed");
         return {
           id: id,
@@ -2605,12 +2681,24 @@ var ChordDetective = /*#__PURE__*/function (_BaseStaffGame) {
         };
       });
     }
+  }, {
+    key: "_showHintNote",
+    value: function _showHintNote() {
+      _superPropGet(ChordDetective, "_showHintNote", this, 3)([]);
+      this._setInstructions("Here’s a hint—watch the correct notes.");
+    }
+  }, {
+    key: "_showTimeUpMessage",
+    value: function _showTimeUpMessage() {
+      _superPropGet(ChordDetective, "_showTimeUpMessage", this, 3)([]);
+      this._setInstructions("Time’s up. Let’s try another one.");
+    }
 
     // ------------------------ evaluation ------------------------
   }, {
     key: "_onCheck",
     value: function _onCheck() {
-      var _this9 = this;
+      var _this0 = this;
       this._stopDictationPlayback();
       this._setPlayButtons(false);
       var notes = this._notesOnStaffOrdered();
@@ -2625,6 +2713,7 @@ var ChordDetective = /*#__PURE__*/function (_BaseStaffGame) {
         this._shakeWrongUserStaffNotes();
         this._failAnimation(this.$checkWrap);
         this.$helpBtn.show();
+        this._setInstructions("Not quite—adjust the notes and try again.");
         return;
       }
       var userNotes = notes.filter(function (n) {
@@ -2636,6 +2725,7 @@ var ChordDetective = /*#__PURE__*/function (_BaseStaffGame) {
         this._shakeWrongUserStaffNotes();
         this._failAnimation(this.$checkWrap);
         this.$helpBtn.show();
+        this._setInstructions("Not quite—adjust the notes and try again.");
         return;
       }
 
@@ -2646,7 +2736,7 @@ var ChordDetective = /*#__PURE__*/function (_BaseStaffGame) {
         return a - b;
       });
       var userMidis = userNotes.map(function (note) {
-        return _this9.staff._stepToMidi(note.step) + (note.accOff || 0);
+        return _this0.staff._stepToMidi(note.step) + (note.accOff || 0);
       }).sort(function (a, b) {
         return a - b;
       });
@@ -2665,16 +2755,20 @@ var ChordDetective = /*#__PURE__*/function (_BaseStaffGame) {
           $prompt: this.prompt.$root,
           $extraHide: this.$playWrap
         });
+        this._setInstructions("You got it! Continue when you’re ready.");
       } else {
         this._madeAnyMistake = true;
         this._madeMistakeThisRound = true;
         this._shakeWrongUserStaffNotes();
         this._failAnimation(this.$checkWrap);
         this.$helpBtn.show();
+        this._setInstructions("Not quite—adjust the notes and try again.");
       }
     }
   }]);
 }(_base_BaseStaffGame_js__WEBPACK_IMPORTED_MODULE_0__.BaseStaffGame);
+_defineProperty(ChordDetective, "BASS_MIN_STEP", 4);
+// Third line of the bass staff (D3).
 _defineProperty(ChordDetective, "TRIAD_QUALITY_FULL_NAME_MAP", {
   major: "major",
   minor: "minor",

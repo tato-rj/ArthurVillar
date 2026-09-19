@@ -110,7 +110,9 @@ class InvitationsController extends Controller
             $this->syncOptions($invitation, $data['options']);
         });
 
-        return back()->with('success', 'The invitation was successfully updated');
+        return redirect()
+            ->route('calendar.invitations.index')
+            ->with('success', 'The invitation was successfully updated');
     }
 
     public function destroy(Invitation $invitation)

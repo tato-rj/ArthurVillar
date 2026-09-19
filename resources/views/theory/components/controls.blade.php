@@ -6,11 +6,15 @@
       @include('theory.components.play', ['playLabel' => $playLabel ?? 'Play'])
     {{-- </div> --}}
     @else
-      @isset($instructions)
       <div class="position-relative">
+        @if(isset($type) && $type == 'play-check')
+        @include('theory.components.play', ['playLabel' => $playLabel ?? 'Play'])
+        @endif
+        @isset($instructions)
         @if(!empty($instructions))
         @include('theory.components.instructions', ['instructionContent' => $instructions])
         @endif
+        @endisset
         <div id="check" class="btn-floating w-100 invisible mb-3" style="display: none">
           <button state="waiting" class="btn w-100"></button>
         </div>
@@ -24,9 +28,6 @@
           <button class="btn btn-blue w-100">@fa(['icon' => 'microphone'])Tap here and play the note</button>
         </div>
       </div>
-
-
-      @endisset
     @endif
 
     <div id="continue" class="btn-floating w-100 mb-3" style="display: none;">

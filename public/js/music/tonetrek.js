@@ -4709,7 +4709,6 @@ var ToneTrek = /*#__PURE__*/function () {
         return _this._revealTimeouts.push(id);
       }
     });
-    this._instructionsDismissed = false;
     this._correctionMode = false;
     this._wrongEditableIndexes = new Set();
     this._finalStartMs = Date.now();
@@ -4801,7 +4800,8 @@ var ToneTrek = /*#__PURE__*/function () {
       this.$skipWrap.hide();
       this.$continueWrap.hide();
       this.$feedback.hide();
-      this.$checkWrap.show().removeClass("invisible");
+      this.$checkWrap.hide().addClass("invisible");
+      this._setInstructions("Tap an interval to hear it, then add the next note.");
       this._armUiSfxOnFirstGesture();
       this._syncKeyboardLabels();
       this._hideTimeUpMessage();
@@ -5175,12 +5175,14 @@ var ToneTrek = /*#__PURE__*/function () {
       this._renderBlockCheckMarks(evalResult);
       var isComplete = this._areAllBlockInputsFilled();
       if (!isComplete) {
+        this._syncBlocksCompletionUi(false);
         this._failAnimation();
         this._clearCorrectStreak();
         this._playFailSfx();
         this.$helpBtn.show();
         this._madeAnyMistake = true;
         this._madeMistakeThisRound = true;
+        this._setInstructions("Add each missing note before checking your answer.");
         return;
       }
       this._recordRoundCheck(evalResult);
@@ -5208,6 +5210,7 @@ var ToneTrek = /*#__PURE__*/function () {
           this._playSuccessSfxBasic();
         }
         this._showSuccessAnimation();
+        this._setInstructions("You got it! Continue when you’re ready.");
         this._updateProgressBar();
         this._roundLocked = true;
         this.$table.find('td.block input[name="note"]').prop("disabled", true);
@@ -5244,6 +5247,7 @@ var ToneTrek = /*#__PURE__*/function () {
       this._failAnimation();
       this._playFailSfx();
       this.$helpBtn.show();
+      this._setInstructions("Not quite—adjust the marked notes and try again.");
     }
   }, {
     key: "_onHelp",
@@ -5267,6 +5271,7 @@ var ToneTrek = /*#__PURE__*/function () {
         $input.val(note).trigger("input");
       });
       this.$helpBtn.hide();
+      this._setInstructions("Here’s the completed path. Check it when you’re ready.");
     }
   }, {
     key: "_areAllBlockInputsFilled",
@@ -5799,6 +5804,7 @@ var ToneTrek = /*#__PURE__*/function () {
     key: "_showTimeUpMessage",
     value: function _showTimeUpMessage() {
       var _this$$timeupMessage2;
+      this._setInstructions("Time’s up. Let’s try another path.");
       if (!((_this$$timeupMessage2 = this.$timeupMessage) !== null && _this$$timeupMessage2 !== void 0 && _this$$timeupMessage2.length)) return;
       this.$timeupMessage.show();
       this.$timeupMessage.removeClass("animate__animated animate__flash");
@@ -6107,13 +6113,15 @@ var ToneTrek = /*#__PURE__*/function () {
     key: "_syncBlocksCompletionUi",
     value: function _syncBlocksCompletionUi(allFilled) {
       if (this._roundLocked) return;
-      if (allFilled) {
-        this._instructionsDismissed = true;
-        $("#instructions").remove();
-        $("#check").show().removeClass("invisible");
-        return;
-      }
-      $("#check").show().removeClass("invisible");
+      this.$checkWrap.toggle(!!allFilled).toggleClass("invisible", !allFilled);
+      this._setInstructions(allFilled ? "When you’re ready, check your answer." : "Tap an interval to hear it, then add the next note.");
+    }
+  }, {
+    key: "_setInstructions",
+    value: function _setInstructions(message) {
+      this.instructionsUi.show().setHtml(message, {
+        animate: false
+      });
     }
   }, {
     key: "_setActiveBlockInput",

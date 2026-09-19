@@ -1,19 +1,26 @@
 @extends('layouts.app', ['title' => 'Invitations'])
 
+@php
+    $invitationRoutePrefix = $invitationRoutePrefix ?? 'calendar.invitations';
+    $invitationTableRoute = $invitationTableRoute ?? 'calendar.tables.invitations';
+    $invitationRouteParameter = $invitationRouteParameter ?? 'invitation';
+    $invitationStylesheet = $invitationStylesheet ?? 'css/calendar.css';
+@endphp
+
 @push('header')
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
-<link href="{{ mix('css/calendar.css') }}" rel="stylesheet">
+<link href="{{ mix($invitationStylesheet) }}" rel="stylesheet">
 @endpush
 
 @section('content')
 <section class="container py-5">
-    {{ Breadcrumbs::render('calendar.invitations.index') }}
+    {{ Breadcrumbs::render($invitationRoutePrefix.'.index') }}
 
     <div class="row mb-4">
         @pagetitle([
             'label' => 'Invitations',
             'link' => [
-                'url' => route('calendar.invitations.create'),
+                'url' => route($invitationRoutePrefix.'.create'),
                 'icon' => 'plus',
                 'label' => 'New invitation',
             ],
@@ -84,7 +91,7 @@ $(function() {
                 next: '<i class="fas fa-angle-right mr-0"></i>',
             },
         },
-        ajax: @json(route('calendar.tables.invitations')),
+        ajax: @json(route($invitationTableRoute)),
         columns: [
             {
                 data: 'created_at',
@@ -110,9 +117,9 @@ $(function() {
                 searchable: false,
                 className: 'text-right',
                 render: function(data, type, row) {
-                    const editUrl = @json(route('calendar.invitations.edit', ['invitation' => '__invitation__'])).replace('__invitation__', data);
-                    const resultsUrl = @json(route('calendar.invitations.results', ['invitation' => '__invitation__'])).replace('__invitation__', data);
-                    const deleteUrl = @json(route('calendar.invitations.destroy', ['invitation' => '__invitation__'])).replace('__invitation__', data);
+                    const editUrl = @json(route($invitationRoutePrefix.'.edit', [$invitationRouteParameter => '__invitation__'])).replace('__invitation__', data);
+                    const resultsUrl = @json(route($invitationRoutePrefix.'.results', [$invitationRouteParameter => '__invitation__'])).replace('__invitation__', data);
+                    const deleteUrl = @json(route($invitationRoutePrefix.'.destroy', [$invitationRouteParameter => '__invitation__'])).replace('__invitation__', data);
                     const resultsButton = Number(row.participants_count) > 0
                         ? `<button type="button" class="btn btn-sm btn-primary rounded js-view-invitation-results" data-url="${resultsUrl}" title="View responses" aria-label="View responses">@fa(['icon' => 'chart-bar', 'mr' => 0])</button>`
                         : `<button type="button" class="btn btn-sm btn-primary rounded" title="No responses yet" aria-label="No responses yet" disabled aria-disabled="true">@fa(['icon' => 'chart-bar', 'mr' => 0])</button>`;

@@ -95,7 +95,6 @@ export class ToneTrek {
       $keyboard: this.$musicKeyboard,
       pushTimeout: (id) => this._revealTimeouts.push(id),
     });
-    this._instructionsDismissed = false;
     this._correctionMode = false;
     this._wrongEditableIndexes = new Set();
     this._finalStartMs = Date.now();
@@ -182,7 +181,8 @@ export class ToneTrek {
     this.$skipWrap.hide();
     this.$continueWrap.hide();
     this.$feedback.hide();
-    this.$checkWrap.show().removeClass("invisible");
+    this.$checkWrap.hide().addClass("invisible");
+    this._setInstructions("Tap an interval to hear it, then add the next note.");
     this._armUiSfxOnFirstGesture();
     this._syncKeyboardLabels();
     this._hideTimeUpMessage();
@@ -579,12 +579,14 @@ export class ToneTrek {
 
     const isComplete = this._areAllBlockInputsFilled();
     if (!isComplete) {
+      this._syncBlocksCompletionUi(false);
       this._failAnimation();
       this._clearCorrectStreak();
       this._playFailSfx();
       this.$helpBtn.show();
       this._madeAnyMistake = true;
       this._madeMistakeThisRound = true;
+      this._setInstructions("Add each missing note before checking your answer.");
       return;
     }
 
@@ -609,6 +611,7 @@ export class ToneTrek {
         this._playSuccessSfxBasic();
       }
       this._showSuccessAnimation();
+      this._setInstructions("You got it! Continue when you’re ready.");
       this._updateProgressBar();
       this._roundLocked = true;
       this.$table.find('td.block input[name="note"]').prop("disabled", true);
@@ -642,6 +645,7 @@ export class ToneTrek {
     this._failAnimation();
     this._playFailSfx();
     this.$helpBtn.show();
+    this._setInstructions("Not quite—adjust the marked notes and try again.");
   }
 
   _onHelp() {
@@ -666,6 +670,7 @@ export class ToneTrek {
     });
 
     this.$helpBtn.hide();
+    this._setInstructions("Here’s the completed path. Check it when you’re ready.");
   }
 
   _areAllBlockInputsFilled() {
@@ -1139,6 +1144,7 @@ export class ToneTrek {
   }
 
   _showTimeUpMessage() {
+    this._setInstructions("Time’s up. Let’s try another path.");
     if (!this.$timeupMessage?.length) return;
     this.$timeupMessage.show();
     this.$timeupMessage.removeClass("animate__animated animate__flash");
@@ -1433,14 +1439,18 @@ export class ToneTrek {
 
   _syncBlocksCompletionUi(allFilled) {
     if (this._roundLocked) return;
-    if (allFilled) {
-      this._instructionsDismissed = true;
-      $("#instructions").remove();
-      $("#check").show().removeClass("invisible");
-      return;
-    }
+    this.$checkWrap
+      .toggle(!!allFilled)
+      .toggleClass("invisible", !allFilled);
+    this._setInstructions(
+      allFilled
+        ? "When you’re ready, check your answer."
+        : "Tap an interval to hear it, then add the next note.",
+    );
+  }
 
-    $("#check").show().removeClass("invisible");
+  _setInstructions(message) {
+    this.instructionsUi.show().setHtml(message, { animate: false });
   }
 
   _setActiveBlockInput($input) {

@@ -146,6 +146,11 @@ td {
       @include('theory.components.counter')
       @include('theory.components.timer')
     </div>
+
+    <div class="col-lg-8 col-md-10 col-11 mx-auto text-center">
+      @include('theory.components.instructions', ['instructionContent' => 'Tap an interval to hear it, then add the next note.'])
+    </div>
+
     <div class="col-11 mx-auto mb-3 position-relative">
       <div id="blocks-wrapper" class="text-center mx-auto position-relative">
         <div id="blocks" class="my-4">
@@ -156,11 +161,7 @@ td {
     </div>
 
     <div class="col-lg-6 col-md-8 col-11 mx-auto">
-      @component('theory.components.controls', compact('settings'))
-        @slot('instructions')
-        Tap <img src="{{asset('images/tone-trek help.png')}}" width="35"> and write the note that completes the interval
-        @endslot
-      @endcomponent
+      @include('theory.components.controls')
       @include('theory.tone-trek.settings')
       @include('theory.components.leaderboard.show')
       @include('theory.components.preferences')
