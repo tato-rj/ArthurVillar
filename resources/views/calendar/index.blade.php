@@ -23,9 +23,8 @@ window.calendarThemePreference = @json($selectedAppearanceTheme);
     --calendar-canceled-lesson-color: {{$canceledLessonColor}};
     --calendar-general-event-color: {{$generalEventColor}};
     --calendar-google-event-color: {{$googleEventColor}};
-    --calendar-football-event-color: #7a1f3d;
-    --calendar-football-event-hover-color: #8d2949;
-    --calendar-football-event-green: #006b3c;
+    --calendar-football-event-color: #7d2b2e;
+    --calendar-football-event-green: #2b4e45;
     --calendar-football-event-white: #fff;
 }
 

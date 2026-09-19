@@ -32868,9 +32868,9 @@ button.setting-undo:hover {
 #calendar .calendar-month-event-general[data-external-provider=football],
 #calendar .calendar-schedule-event-general[data-external-provider=football],
 .calendar-month-day-events-modal-list .calendar-month-event-general[data-external-provider=football] {
-  background: linear-gradient(90deg, var(--calendar-football-event-green, #006b3c) 0, var(--calendar-football-event-green, #006b3c) 0.3rem, var(--calendar-football-event-white, #fff) 0.3rem, var(--calendar-football-event-white, #fff) 0.48rem, var(--calendar-football-event-color, #7a1f3d) 0.48rem, var(--calendar-football-event-color, #7a1f3d) 100%);
+  background: repeating-linear-gradient(90deg, var(--calendar-football-event-green, #2b4e45) 0, var(--calendar-football-event-green, #2b4e45) 1.5rem, var(--calendar-football-event-white, #fff) 1.5rem, var(--calendar-football-event-white, #fff) 1.8rem, var(--calendar-football-event-color, #7d2b2e) 1.8rem, var(--calendar-football-event-color, #7d2b2e) 3.3rem, var(--calendar-football-event-white, #fff) 3.3rem, var(--calendar-football-event-white, #fff) 3.6rem);
   color: white;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.95), 0 0 3px rgba(0, 0, 0, 0.85);
 }
 
 #calendar .calendar-month-event-general {
@@ -32900,7 +32900,7 @@ button.setting-undo:hover {
 #calendar .calendar-month-event-general[data-external-provider=football]:hover,
 #calendar .calendar-schedule-event-general[data-external-provider=football]:hover,
 .calendar-month-day-events-modal-list .calendar-month-event-general[data-external-provider=football]:hover {
-  background: linear-gradient(90deg, var(--calendar-football-event-green, #006b3c) 0, var(--calendar-football-event-green, #006b3c) 0.3rem, var(--calendar-football-event-white, #fff) 0.3rem, var(--calendar-football-event-white, #fff) 0.48rem, var(--calendar-football-event-hover-color, #8d2949) 0.48rem, var(--calendar-football-event-hover-color, #8d2949) 100%);
+  background: linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)), repeating-linear-gradient(90deg, var(--calendar-football-event-green, #2b4e45) 0, var(--calendar-football-event-green, #2b4e45) 1.5rem, var(--calendar-football-event-white, #fff) 1.5rem, var(--calendar-football-event-white, #fff) 1.8rem, var(--calendar-football-event-color, #7d2b2e) 1.8rem, var(--calendar-football-event-color, #7d2b2e) 3.3rem, var(--calendar-football-event-white, #fff) 3.3rem, var(--calendar-football-event-white, #fff) 3.6rem);
 }
 
 #calendar .calendar-calendar-general-event[data-external-provider=google][data-response-status=accepted],
