@@ -14,7 +14,7 @@ class SettingsTest extends BaseTest
 
         $this->get(route('calendar.home'))
             ->assertOk()
-            ->assertSeeInOrder(['View options', 'Show calendar insights', 'Show holidays', 'Show travel times', 'Show cancelled lessons', 'Calendar options', 'fa-desktop', 'fa-mobile', 'Week starts on', 'Appearance', 'Theme', 'Device settings', 'Unconfirmed lessons'])
+            ->assertSeeInOrder(['View options', 'Show calendar insights', 'Show holidays', 'Show travel times', 'Animate events', 'Show cancelled lessons', 'Calendar options', 'fa-desktop', 'fa-mobile', 'Week starts on', 'Appearance', 'Theme', 'Device settings', 'Unconfirmed lessons'])
             ->assertDontSee('Display options')
             ->assertSee('fa-desktop', false)
             ->assertSee('fa-mobile', false)
@@ -46,6 +46,7 @@ class SettingsTest extends BaseTest
             ->assertSee('View options')
             ->assertSee('Show holidays')
             ->assertSee('Show travel times')
+            ->assertSee('Animate events')
             ->assertSee('Show cancelled lessons')
             ->assertSee('Add transparency to past events')
             ->assertSee('Highlight conflicting events')
@@ -106,6 +107,7 @@ class SettingsTest extends BaseTest
                 'calendar_show_insights' => false,
                 'calendar_show_holidays' => false,
                 'calendar_show_travel_times' => false,
+                'calendar_animate_events' => false,
                 'calendar_default_desktop_view' => 'month',
                 'calendar_default_mobile_view' => 'day',
                 'calendar_week_starts_on' => 'monday',
@@ -137,6 +139,11 @@ class SettingsTest extends BaseTest
         ]);
         $this->assertDatabaseHas('settings', [
             'key' => 'calendar.show_travel_times',
+            'value' => 'false',
+            'type' => Settings::TYPE_BOOLEAN,
+        ]);
+        $this->assertDatabaseHas('settings', [
+            'key' => 'calendar.animate_events',
             'value' => 'false',
             'type' => Settings::TYPE_BOOLEAN,
         ]);
@@ -353,6 +360,37 @@ class SettingsTest extends BaseTest
         $this->get(route('calendar.home'))
             ->assertOk()
             ->assertSee('window.calendarShowTravelTimes = false;', false);
+    }
+
+    /** @test */
+    public function event_animations_follow_the_calendar_view_preference()
+    {
+        $this->signIn();
+
+        $response = $this->get(route('calendar.home'));
+
+        $response
+            ->assertOk()
+            ->assertSee('window.calendarAnimateEvents = true;', false)
+            ->assertSee('id="calendar-animate-events"', false)
+            ->assertSee('name="calendar_animate_events"', false);
+        $this->assertMatchesRegularExpression(
+            '/<input(?=[^>]*id="calendar-animate-events")(?=[^>]*\bchecked\b)[^>]*>/',
+            $response->getContent()
+        );
+
+        Settings::setValue('calendar.animate_events', false, Settings::TYPE_BOOLEAN);
+
+        $response = $this->get(route('calendar.home'));
+
+        $response
+            ->assertOk()
+            ->assertSee('window.calendarAnimateEvents = false;', false)
+            ->assertSee('id="calendar-animate-events"', false);
+        $this->assertDoesNotMatchRegularExpression(
+            '/<input(?=[^>]*id="calendar-animate-events")(?=[^>]*\bchecked\b)[^>]*>/',
+            $response->getContent()
+        );
     }
 
     /** @test */

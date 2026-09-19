@@ -82,6 +82,7 @@ window.calendarSingleLessonPlanEditUrlTemplate = @json(route('calendar.single-le
 window.calendarCalendarRange = @json($calendarRange);
 window.calendarBirthdayWindow = @json($birthdayWindow);
 window.calendarShowHolidays = @json($showHolidays);
+window.calendarAnimateEvents = @json($animateCalendarEvents);
 window.calendarDefaultDesktopCalendarView = @json($defaultDesktopCalendarView);
 window.calendarDefaultMobileCalendarView = @json($defaultMobileCalendarView);
 window.calendarWeekStartDay = @json(['sunday' => 0, 'monday' => 1, 'saturday' => 6][$selectedCalendarWeekStart] ?? 0);

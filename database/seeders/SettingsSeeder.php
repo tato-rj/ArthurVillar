@@ -39,6 +39,14 @@ class SettingsSeeder extends Seeder
         );
 
         Settings::query()->firstOrCreate(
+            ['key' => 'calendar.animate_events'],
+            [
+                'value' => 'true',
+                'type' => Settings::TYPE_BOOLEAN,
+            ]
+        );
+
+        Settings::query()->firstOrCreate(
             ['key' => 'calendar.default_desktop_view'],
             [
                 'value' => 'week',

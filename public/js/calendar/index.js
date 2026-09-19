@@ -4783,6 +4783,7 @@ var state = {
   calendarFetchId: 0,
   didAutoNowScroll: false,
   birthdayWindow: 5,
+  animateEvents: window.calendarAnimateEvents !== false,
   calendarRenderMode: 'animated',
   centerInitialScheduleDate: false,
   lessonActionAvailabilityTimer: null,
@@ -6377,9 +6378,11 @@ var patchScheduleItems = function patchScheduleItems(calendar) {
   });
 };
 var animateCalendarLessonItems = function animateCalendarLessonItems(calendar) {
-  if (state.calendarRenderMode === 'discreet') {
+  if (!state.animateEvents || state.calendarRenderMode === 'discreet') {
     calendar.querySelectorAll('.lm-schedule-item, .calendar-month-event, .calendar-schedule-event').forEach(function (item) {
       item.dataset.lessonStaggerShown = 'true';
+      item.classList.remove('calendar-calendar-lesson-stagger-show');
+      item.style.removeProperty('--calendar-lesson-show-delay');
     });
     return;
   }

@@ -15,6 +15,7 @@ class SettingsController extends Controller
             'calendar_show_insights' => ['required', 'boolean'],
             'calendar_show_holidays' => ['required', 'boolean'],
             'calendar_show_travel_times' => ['required', 'boolean'],
+            'calendar_animate_events' => ['required', 'boolean'],
             'calendar_default_desktop_view' => ['required', Rule::in(['schedule', 'day', '2-days', 'week', 'month'])],
             'calendar_default_mobile_view' => ['required', Rule::in(['schedule', 'day', '2-days', 'week', 'month'])],
             'calendar_week_starts_on' => ['required', Rule::in(['saturday', 'sunday', 'monday'])],
@@ -49,6 +50,12 @@ class SettingsController extends Controller
         Settings::setValue(
             'calendar.show_travel_times',
             $request->boolean('calendar_show_travel_times'),
+            Settings::TYPE_BOOLEAN
+        );
+
+        Settings::setValue(
+            'calendar.animate_events',
+            $request->boolean('calendar_animate_events'),
             Settings::TYPE_BOOLEAN
         );
 
