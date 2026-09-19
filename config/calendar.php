@@ -8,7 +8,7 @@ return [
             ['id' => (int) env('API_FOOTBALL_FLUMINENSE_TEAM_ID', 124), 'name' => 'Fluminense'],
             ['id' => (int) env('API_FOOTBALL_BRAZIL_TEAM_ID', 6), 'name' => 'Brazil'],
         ],
-        'fixtures_per_team' => (int) env('API_FOOTBALL_FIXTURES_PER_TEAM', 50),
+        'lookahead_days' => (int) env('API_FOOTBALL_LOOKAHEAD_DAYS', 365),
         'duration_minutes' => 120,
     ],
     'google_places' => [

@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Calendar\Scheduler;
 use App\Models\Calendar\FootballEvent;
 use App\Services\FootballEventSync;
+use Carbon\Carbon;
 use Illuminate\Http\Client\Request;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
@@ -16,6 +17,8 @@ class FootballEventSyncTest extends BaseTest
     {
         parent::setUp();
 
+        Carbon::setTestNow('2026-09-18 12:00:00');
+
         config([
             'services.api_football.key' => 'football-key',
             'services.api_football.base_url' => 'https://v3.football.api-sports.io',
@@ -25,6 +28,13 @@ class FootballEventSyncTest extends BaseTest
             ],
             'calendar.timezone' => 'America/New_York',
         ]);
+    }
+
+    public function tearDown(): void
+    {
+        Carbon::setTestNow();
+
+        parent::tearDown();
     }
 
     /** @test */
@@ -61,8 +71,16 @@ class FootballEventSyncTest extends BaseTest
             return $request->hasHeader('x-apisports-key', 'football-key')
                 && $request->url() === 'https://v3.football.api-sports.io/fixtures?'.http_build_query($query)
                 && in_array((int) ($query['team'] ?? 0), [124, 6], true)
-                && (int) ($query['next'] ?? 0) === 50
+                && ($query['from'] ?? null) === '2026-09-18'
+                && ($query['to'] ?? null) === '2027-09-18'
+                && ! array_key_exists('next', $query)
                 && ($query['timezone'] ?? null) === 'UTC';
+        });
+        Http::assertSentCount(2);
+        Http::assertNotSent(function (Request $request) {
+            parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
+
+            return array_key_exists('next', $query);
         });
     }
 

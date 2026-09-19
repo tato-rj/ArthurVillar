@@ -14,6 +14,8 @@ class FootballApiClient
 
     public function upcomingFixtures(int $teamId): array
     {
+        $from = now('UTC')->startOfDay();
+        $to = $from->copy()->addDays(max(1, (int) config('calendar.football.lookahead_days', 365)));
         $response = Http::baseUrl(rtrim(config('services.api_football.base_url'), '/'))
             ->acceptJson()
             ->withHeaders(['x-apisports-key' => config('services.api_football.key')])
@@ -21,7 +23,8 @@ class FootballApiClient
             ->timeout(20)
             ->get('fixtures', [
                 'team' => $teamId,
-                'next' => config('calendar.football.fixtures_per_team', 50),
+                'from' => $from->toDateString(),
+                'to' => $to->toDateString(),
                 'timezone' => 'UTC',
             ])
             ->throw()
