@@ -18,6 +18,13 @@
                 </div>
                 <button type="submit" class="btn btn-primary w-100">Login</button>
             </form>
+
+            @if(subdomain('scheduler'))
+                <p class="text-center mt-3 mb-0">
+                    New to Scheduler?
+                    <a href="{{ url('/register') }}">Create an account</a>
+                </p>
+            @endif
         </div>
     </div>
 </section>

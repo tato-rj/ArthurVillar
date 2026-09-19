@@ -20,5 +20,11 @@ class UserSeeder extends Seeder
             'email' => 'arthurvillar@gmail.com',
             'password' => '$2y$10$JyVLTCENCpzgI85JERAdBehQ.iuR9l/dnRzGgSG.g2IjbRT3B0Gh6'
         ]);
+
+        User::create([
+            'name' => 'John Doe',
+            'email' => 'doe@gmail.com',
+            'password' => '$2y$10$JyVLTCENCpzgI85JERAdBehQ.iuR9l/dnRzGgSG.g2IjbRT3B0Gh6'
+        ]);
     }
 }

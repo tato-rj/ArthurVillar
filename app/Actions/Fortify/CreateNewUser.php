@@ -19,6 +19,11 @@ class CreateNewUser implements CreatesNewUsers
      */
     public function create(array $input): User
     {
+        abort_unless(
+            request()->getHost() === 'scheduler.'.config('app.domain'),
+            404
+        );
+
         Validator::make($input, [
             'name' => ['required', 'string', 'max:255'],
             'email' => [

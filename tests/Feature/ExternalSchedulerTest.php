@@ -12,6 +12,58 @@ use Tests\BaseTest;
 class ExternalSchedulerTest extends BaseTest
 {
     /** @test */
+    public function guests_can_register_only_from_the_scheduler_domain()
+    {
+        $schedulerRegisterUrl = 'http://scheduler.'.config('app.domain').'/register';
+
+        $this->get($schedulerRegisterUrl)
+            ->assertOk()
+            ->assertSee('Register')
+            ->assertSee('action="'.$schedulerRegisterUrl.'"', false)
+            ->assertSee('Already have an account?');
+
+        $this->post($schedulerRegisterUrl, [
+            'name' => 'Scheduler User',
+            'email' => 'scheduler@example.com',
+            'password' => 'Scheduler-password-123',
+            'password_confirmation' => 'Scheduler-password-123',
+        ])->assertRedirect(route('scheduler.home'));
+
+        $user = User::where('email', 'scheduler@example.com')->firstOrFail();
+
+        $this->assertAuthenticatedAs($user);
+
+        auth()->logout();
+
+        $mainRegisterUrl = rtrim(config('app.url'), '/').'/register';
+
+        $this->get($mainRegisterUrl)->assertNotFound();
+        $this->post($mainRegisterUrl, [
+            'name' => 'Main Site User',
+            'email' => 'main@example.com',
+            'password' => 'Main-password-123',
+            'password_confirmation' => 'Main-password-123',
+        ])->assertNotFound();
+
+        $this->assertDatabaseMissing('users', ['email' => 'main@example.com']);
+    }
+
+    /** @test */
+    public function the_scheduler_login_page_links_to_registration()
+    {
+        $schedulerLoginUrl = 'http://scheduler.'.config('app.domain').'/login';
+
+        $this->get($schedulerLoginUrl)
+            ->assertOk()
+            ->assertSee('Create an account')
+            ->assertSee('http://scheduler.'.config('app.domain').'/register', false);
+
+        $this->get(rtrim(config('app.url'), '/').'/login')
+            ->assertOk()
+            ->assertDontSee('Create an account');
+    }
+
+    /** @test */
     public function the_scheduler_domain_requires_an_account_to_manage_schedulers()
     {
         $this->get(route('scheduler.home'))
