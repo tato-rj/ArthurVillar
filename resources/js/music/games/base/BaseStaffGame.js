@@ -1,6 +1,11 @@
 // resources/js/music/games/base/BaseStaffGame.js
 import { Staff } from "../../staff/Staff.js";
-import { pickOne, spellNoteFromState, stepToLetterOctave } from "../../staff/staffUtils.js";
+import {
+  pickOne,
+  spellNoteFromState,
+  spellNoteTextFromState,
+  stepToLetterOctave,
+} from "../../staff/staffUtils.js";
 import {
   renderFinalResultsOverlay,
   queueFinalResultsReveal,
@@ -343,11 +348,10 @@ export class BaseStaffGame {
     return this.keyboard._noteNameFromMidi?.(midi) || "";
   }
 
-  _keyboardMarkerLabelForNoteName(noteName) {
+  _keyboardMarkerLabelForState(step, accidentalClass) {
     if (!this.showNoteNames) return "";
-    const raw = String(noteName || "").trim();
-    const match = raw.match(/^([A-G][#b]?)-?\d+$/);
-    return this._toDisplayNoteName(match ? match[1] : raw);
+    const spelledNote = spellNoteTextFromState(this.staff, step, accidentalClass);
+    return this._toDisplayNoteName(spelledNote.replace(/-?\d+$/, ""));
   }
 
   _syncPianoKeyboardMarkerFromStaff() {
@@ -373,7 +377,7 @@ export class BaseStaffGame {
         const noteName = this._keyboardNoteNameForState(note.step, note.accidentalClass);
         return {
           noteName,
-          markerLabel: this._keyboardMarkerLabelForNoteName(noteName),
+          markerLabel: this._keyboardMarkerLabelForState(note.step, note.accidentalClass),
           tone: note.fixed ? "secondary" : "primary",
           $key: note.noteId === primary.noteId ? keys[0] : null,
         };
@@ -442,7 +446,10 @@ export class BaseStaffGame {
         );
         return {
           noteName,
-          markerLabel: this._keyboardMarkerLabelForNoteName(noteName),
+          markerLabel: this._keyboardMarkerLabelForState(
+            note.step,
+            note.noteId === noteId ? previewAccidentalClass : note.accidentalClass,
+          ),
           tone: note.fixed ? "secondary" : "primary",
           $key: note.noteId === primary.noteId ? keys[0] : null,
         };

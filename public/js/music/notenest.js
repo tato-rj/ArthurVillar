@@ -361,12 +361,11 @@ var BaseStaffGame = /*#__PURE__*/function () {
       return ((_this$keyboard$_noteN = (_this$keyboard = this.keyboard)._noteNameFromMidi) === null || _this$keyboard$_noteN === void 0 ? void 0 : _this$keyboard$_noteN.call(_this$keyboard, midi)) || "";
     }
   }, {
-    key: "_keyboardMarkerLabelForNoteName",
-    value: function _keyboardMarkerLabelForNoteName(noteName) {
+    key: "_keyboardMarkerLabelForState",
+    value: function _keyboardMarkerLabelForState(step, accidentalClass) {
       if (!this.showNoteNames) return "";
-      var raw = String(noteName || "").trim();
-      var match = raw.match(/^([A-G][#b]?)-?\d+$/);
-      return this._toDisplayNoteName(match ? match[1] : raw);
+      var spelledNote = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_1__.spellNoteTextFromState)(this.staff, step, accidentalClass);
+      return this._toDisplayNoteName(spelledNote.replace(/-?\d+$/, ""));
     }
   }, {
     key: "_syncPianoKeyboardMarkerFromStaff",
@@ -387,7 +386,7 @@ var BaseStaffGame = /*#__PURE__*/function () {
         var noteName = _this5._keyboardNoteNameForState(note.step, note.accidentalClass);
         return {
           noteName: noteName,
-          markerLabel: _this5._keyboardMarkerLabelForNoteName(noteName),
+          markerLabel: _this5._keyboardMarkerLabelForState(note.step, note.accidentalClass),
           tone: note.fixed ? "secondary" : "primary",
           $key: note.noteId === primary.noteId ? keys[0] : null
         };
@@ -448,7 +447,7 @@ var BaseStaffGame = /*#__PURE__*/function () {
         var noteName = _this6._keyboardNoteNameForState(note.step, note.noteId === noteId ? previewAccidentalClass : note.accidentalClass);
         return {
           noteName: noteName,
-          markerLabel: _this6._keyboardMarkerLabelForNoteName(noteName),
+          markerLabel: _this6._keyboardMarkerLabelForState(note.step, note.noteId === noteId ? previewAccidentalClass : note.accidentalClass),
           tone: note.fixed ? "secondary" : "primary",
           $key: note.noteId === primary.noteId ? keys[0] : null
         };
@@ -6980,6 +6979,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   ACCIDENTAL_CLASSES: () => (/* binding */ ACCIDENTAL_CLASSES),
 /* harmony export */   CLEF_LAYOUT_VARS: () => (/* binding */ CLEF_LAYOUT_VARS),
+/* harmony export */   accidentalClassToSymbol: () => (/* binding */ accidentalClassToSymbol),
 /* harmony export */   accidentalClassToText: () => (/* binding */ accidentalClassToText),
 /* harmony export */   getPointerId: () => (/* binding */ getPointerId),
 /* harmony export */   getPointerPageXY: () => (/* binding */ getPointerPageXY),
@@ -6991,6 +6991,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   pxFromCss: () => (/* binding */ pxFromCss),
 /* harmony export */   randomInt: () => (/* binding */ randomInt),
 /* harmony export */   spellNoteFromState: () => (/* binding */ spellNoteFromState),
+/* harmony export */   spellNoteTextFromState: () => (/* binding */ spellNoteTextFromState),
 /* harmony export */   stepToLetterOctave: () => (/* binding */ stepToLetterOctave),
 /* harmony export */   toArrayMaybe: () => (/* binding */ toArrayMaybe),
 /* harmony export */   toolTypeFromEl: () => (/* binding */ toolTypeFromEl)
@@ -7113,6 +7114,14 @@ function accidentalClassToText(cls) {
   if (cls.includes("music-font__flat")) return "<span class='flat-symbol'>♭</span>";
   return "";
 }
+function accidentalClassToSymbol(cls) {
+  if (!cls) return "";
+  if (cls.includes("music-font__doublesharp")) return "𝄪";
+  if (cls.includes("music-font__sharp")) return "♯";
+  if (cls.includes("music-font__doubleflat")) return "𝄫";
+  if (cls.includes("music-font__flat")) return "♭";
+  return "";
+}
 function stepToLetterOctave(staff, step) {
   var letters = ["C", "D", "E", "F", "G", "A", "B"];
   var baseC;
@@ -7151,6 +7160,13 @@ function spellNoteFromState(staff, step, accidentalClass) {
     letter = _stepToLetterOctave.letter,
     octave = _stepToLetterOctave.octave;
   var acc = accidentalClassToText(accidentalClass);
+  return "".concat(letter).concat(acc).concat(octave);
+}
+function spellNoteTextFromState(staff, step, accidentalClass) {
+  var _stepToLetterOctave2 = stepToLetterOctave(staff, step),
+    letter = _stepToLetterOctave2.letter,
+    octave = _stepToLetterOctave2.octave;
+  var acc = accidentalClassToSymbol(accidentalClass);
   return "".concat(letter).concat(acc).concat(octave);
 }
 

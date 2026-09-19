@@ -130,6 +130,15 @@ export function accidentalClassToText(cls) {
   return "";
 }
 
+export function accidentalClassToSymbol(cls) {
+  if (!cls) return "";
+  if (cls.includes("music-font__doublesharp")) return "𝄪";
+  if (cls.includes("music-font__sharp")) return "♯";
+  if (cls.includes("music-font__doubleflat")) return "𝄫";
+  if (cls.includes("music-font__flat")) return "♭";
+  return "";
+}
+
 export function stepToLetterOctave(staff, step) {
   const letters = ["C", "D", "E", "F", "G", "A", "B"];
 
@@ -160,5 +169,11 @@ export function stepToLetterOctave(staff, step) {
 export function spellNoteFromState(staff, step, accidentalClass) {
   const { letter, octave } = stepToLetterOctave(staff, step);
   const acc = accidentalClassToText(accidentalClass);
+  return `${letter}${acc}${octave}`;
+}
+
+export function spellNoteTextFromState(staff, step, accidentalClass) {
+  const { letter, octave } = stepToLetterOctave(staff, step);
+  const acc = accidentalClassToSymbol(accidentalClass);
   return `${letter}${acc}${octave}`;
 }
