@@ -1072,7 +1072,7 @@ export class NotePython {
       if (!this._isPracticeMode() && this._roundsCompleted >= (Number(this.opts.numOfChallenges) || 4)) {
         this._isGameOver = true;
         this._stopLoop();
-        this._playFinalSfx();
+        this._playVictorySfx();
         this._animateSnakeFinalCelebrate();
         this._stats.finishedAtMs = Date.now();
         if (this._finalResultsTimeoutId != null) clearTimeout(this._finalResultsTimeoutId);
@@ -1325,6 +1325,7 @@ export class NotePython {
     if (perfectGame) {
       const tid = setTimeout(() => {
         this.$doublePoints?.show?.();
+        this._playPerfectGameBonusSfx();
       }, 1750);
       this._countdownTimeouts.push(tid);
     } else {
@@ -1350,6 +1351,7 @@ export class NotePython {
       clearCountupTimers: () => this._clearFinalCountupTimers(),
       countupTimers: this._finalCountupTimeouts,
       animateMetrics: () => this._animateFinalMetricsWithSfx(),
+      playFinalSfx: () => this._playFinalSfx(),
     });
   }
 
@@ -1399,8 +1401,16 @@ export class NotePython {
     return BaseStaffGame.prototype._playFailSfx.call(this);
   }
 
-  _playFinalSfx() {
+  _playVictorySfx() {
     if (this._isSoundEnabled()) this._music.playVictory(this.opts.bpm);
+  }
+
+  _playFinalSfx() {
+    return BaseStaffGame.prototype._playFinalSfx.call(this);
+  }
+
+  _playPerfectGameBonusSfx() {
+    return BaseStaffGame.prototype._playPerfectGameBonusSfx.call(this);
   }
 
   _hasCompletedRounds() {
@@ -1408,8 +1418,8 @@ export class NotePython {
       && this._roundsCompleted >= (Number(this.opts.numOfChallenges) || 4);
   }
 
-  _playFinalMetricPopSfx() {
-    // Let the victory cadence ring out beneath the animated results.
+  _playFinalMetricPopSfx(index) {
+    return BaseStaffGame.prototype._playFinalMetricPopSfx.call(this, index);
   }
 
   _clearFinalMetricsSfxTimers() {

@@ -3046,7 +3046,7 @@ var NotePython = /*#__PURE__*/function () {
         if (!this._isPracticeMode() && this._roundsCompleted >= (Number(this.opts.numOfChallenges) || 4)) {
           this._isGameOver = true;
           this._stopLoop();
-          this._playFinalSfx();
+          this._playVictorySfx();
           this._animateSnakeFinalCelebrate();
           this._stats.finishedAtMs = Date.now();
           if (this._finalResultsTimeoutId != null) clearTimeout(this._finalResultsTimeoutId);
@@ -3354,6 +3354,7 @@ var NotePython = /*#__PURE__*/function () {
         var tid = setTimeout(function () {
           var _this19$$doublePoints, _this19$$doublePoints2;
           (_this19$$doublePoints = _this19.$doublePoints) === null || _this19$$doublePoints === void 0 || (_this19$$doublePoints2 = _this19$$doublePoints.show) === null || _this19$$doublePoints2 === void 0 || _this19$$doublePoints2.call(_this19$$doublePoints);
+          _this19._playPerfectGameBonusSfx();
         }, 1750);
         this._countdownTimeouts.push(tid);
       } else {
@@ -3381,6 +3382,9 @@ var NotePython = /*#__PURE__*/function () {
         countupTimers: this._finalCountupTimeouts,
         animateMetrics: function animateMetrics() {
           return _this19._animateFinalMetricsWithSfx();
+        },
+        playFinalSfx: function playFinalSfx() {
+          return _this19._playFinalSfx();
         }
       });
     }
@@ -3442,9 +3446,19 @@ var NotePython = /*#__PURE__*/function () {
       return _base_BaseStaffGame_js__WEBPACK_IMPORTED_MODULE_0__.BaseStaffGame.prototype._playFailSfx.call(this);
     }
   }, {
+    key: "_playVictorySfx",
+    value: function _playVictorySfx() {
+      if (this._isSoundEnabled()) this._music.playVictory(this.opts.bpm);
+    }
+  }, {
     key: "_playFinalSfx",
     value: function _playFinalSfx() {
-      if (this._isSoundEnabled()) this._music.playVictory(this.opts.bpm);
+      return _base_BaseStaffGame_js__WEBPACK_IMPORTED_MODULE_0__.BaseStaffGame.prototype._playFinalSfx.call(this);
+    }
+  }, {
+    key: "_playPerfectGameBonusSfx",
+    value: function _playPerfectGameBonusSfx() {
+      return _base_BaseStaffGame_js__WEBPACK_IMPORTED_MODULE_0__.BaseStaffGame.prototype._playPerfectGameBonusSfx.call(this);
     }
   }, {
     key: "_hasCompletedRounds",
@@ -3453,8 +3467,8 @@ var NotePython = /*#__PURE__*/function () {
     }
   }, {
     key: "_playFinalMetricPopSfx",
-    value: function _playFinalMetricPopSfx() {
-      // Let the victory cadence ring out beneath the animated results.
+    value: function _playFinalMetricPopSfx(index) {
+      return _base_BaseStaffGame_js__WEBPACK_IMPORTED_MODULE_0__.BaseStaffGame.prototype._playFinalMetricPopSfx.call(this, index);
     }
   }, {
     key: "_clearFinalMetricsSfxTimers",

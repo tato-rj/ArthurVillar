@@ -28,7 +28,7 @@ function setup(random = 0) {
         'utf8',
     ).replace(/^export /gm, '');
     vm.runInContext(`${source}\nglobalThis.GameAudio = GameAudio;`, context);
-    return { GameAudio: context.GameAudio, synths };
+    return { GameAudio: context.GameAudio, synths, context };
 }
 
 test('the shared final-results sound plays the full fanfare', () => {
@@ -56,3 +56,54 @@ test('the Audio Control final preview delegates to the shared sound', async () =
     assert.equal(calls, 1);
     assert.ok(synths[0].notes.length > 0);
 });
+
+for (const sound of [true, false]) {
+    test(`Note Python results reveal, metric, and bonus sounds respect sound=${sound}`, async () => {
+        const { context, synths } = setup();
+        const timers = [];
+        let overlay;
+        context.setTimeout = (callback, delay) => { timers.push({ callback, delay }); return timers.length; };
+        context.renderFinalResultsOverlay = (options) => { overlay = options; };
+        context.Tone.Frequency = (midi) => midi;
+        for (const file of ['base/BaseStaffGame.js', 'notepython/NotePython.js']) {
+            const source = fs.readFileSync(path.join(__dirname, '../../resources/js/music/games', file), 'utf8')
+                .replace(/^import\s[\s\S]*?;\n/gm, '').replace(/^export /gm, '');
+            vm.runInContext(source, context);
+        }
+        const game = vm.runInContext('Object.create(NotePython.prototype)', context);
+        const uiNotes = [];
+        Object.assign(game, {
+            opts: { sound, bpm: 80, numOfChallenges: 4 },
+            _stats: { checksTotal: 4, checksCorrect: 4, finishedAtMs: Date.now() },
+            _finalStartMs: Date.now() - 10000,
+            _pointsValue: 12,
+            _madeAnyMistake: false,
+            _countdownTimeouts: [],
+            _finalCountupTimeouts: [],
+            _stopLoop() {},
+            _ensureUiSfxAudio: async () => {},
+            _uiSfxReady: true,
+            _uiSfxSynth: {
+                get: () => ({ envelope: {}, oscillator: { type: 'triangle' } }),
+                set() {},
+                triggerAttackRelease: (...args) => uiNotes.push(args),
+            },
+            _music: { playVictory() { assert.fail('the results reveal must not replay the victory cue'); } },
+        });
+
+        game._showFinalResults();
+        assert.equal(synths.length, 0, 'wait until the overlay invokes its reveal callback');
+        overlay.playFinalSfx();
+        await Promise.resolve();
+        assert.equal(synths.length, sound ? 1 : 0);
+        if (sound) assert.ok(synths[0].notes.length > 0, 'play the shared results fanfare');
+
+        game._playFinalMetricPopSfx(2);
+        const metricNotes = uiNotes.length;
+        assert.equal(metricNotes > 0, sound, 'metric boxes play their shared pop sounds');
+
+        timers.find(({ delay }) => delay === 1750).callback();
+        await Promise.resolve();
+        assert.equal(uiNotes.length > metricNotes, sound, 'the perfect-game bonus has its shared sound');
+    });
+}
