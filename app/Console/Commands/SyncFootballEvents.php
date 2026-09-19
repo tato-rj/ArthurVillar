@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Services\FootballApiClient;
+use App\Services\FootballDataClient;
 use App\Services\FootballEventSync;
 use Illuminate\Console\Command;
 use Throwable;
@@ -11,12 +11,12 @@ class SyncFootballEvents extends Command
 {
     protected $signature = 'calendar:sync-football';
 
-    protected $description = 'Import upcoming Fluminense and Brazil football fixtures';
+    protected $description = 'Import upcoming Fluminense Serie A fixtures';
 
-    public function handle(FootballApiClient $client, FootballEventSync $sync): int
+    public function handle(FootballDataClient $client, FootballEventSync $sync): int
     {
         if (! $client->isConfigured()) {
-            $this->warn('API-Football is not configured; set API_FOOTBALL_KEY to enable syncing.');
+            $this->warn('football-data.org is not configured; set FOOTBALL_DATA_API_TOKEN to enable syncing.');
 
             return self::SUCCESS;
         }

@@ -20,12 +20,10 @@ class FootballEventSyncTest extends BaseTest
         Carbon::setTestNow('2026-09-18 12:00:00');
 
         config([
-            'services.api_football.key' => 'football-key',
-            'services.api_football.base_url' => 'https://v3.football.api-sports.io',
-            'calendar.football.teams' => [
-                ['id' => 124, 'name' => 'Fluminense'],
-                ['id' => 6, 'name' => 'Brazil'],
-            ],
+            'services.football_data.token' => 'football-data-token',
+            'services.football_data.base_url' => 'https://api.football-data.org/v4',
+            'calendar.football.competition' => 'BSA',
+            'calendar.football.team_tla' => 'FLU',
             'calendar.timezone' => 'America/New_York',
         ]);
     }
@@ -38,53 +36,42 @@ class FootballEventSyncTest extends BaseTest
     }
 
     /** @test */
-    public function it_imports_upcoming_fixtures_for_fluminense_and_brazil()
+    public function it_imports_upcoming_fluminense_serie_a_fixtures()
     {
-        Http::fake(function (Request $request) {
-            parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
-            $fixture = (int) $query['team'] === 124
-                ? $this->fixture(9001, '2026-09-20T22:30:00+00:00', 124, 'Fluminense', 127, 'Flamengo', 'Serie A')
-                : $this->fixture(9002, '2026-09-24T00:00:00+00:00', 6, 'Brazil', 26, 'Argentina', 'Friendlies');
-
-            return Http::response([
-                'errors' => [],
-                'response' => [$fixture],
-            ]);
-        });
+        Http::fake([
+            'https://api.football-data.org/v4/*' => Http::response([
+                'matches' => [
+                    $this->fixture(9001, '2026-09-20T22:30:00Z', 124, 'Fluminense FC', 'FLU', 127, 'CR Flamengo', 'FLA'),
+                    $this->fixture(9002, '2026-09-24T00:00:00Z', 131, 'SC Corinthians Paulista', 'COR', 124, 'Fluminense FC', 'FLU'),
+                    $this->fixture(9003, '2026-09-27T19:00:00Z', 133, 'SE Palmeiras', 'PAL', 134, 'Santos FC', 'SAN'),
+                ],
+            ]),
+        ]);
 
         $this->assertSame(2, app(FootballEventSync::class)->sync());
         $this->assertDatabaseHas('football_events', [
             'api_fixture_id' => 9001,
-            'home_team_name' => 'Fluminense',
-            'away_team_name' => 'Flamengo',
-            'league_name' => 'Serie A',
+            'home_team_name' => 'Fluminense FC',
+            'away_team_name' => 'CR Flamengo',
+            'league_name' => 'Campeonato Brasileiro Série A',
+            'league_round' => 'Matchday 25',
         ]);
         $this->assertDatabaseHas('football_events', [
             'api_fixture_id' => 9002,
-            'home_team_name' => 'Brazil',
-            'away_team_name' => 'Argentina',
+            'home_team_name' => 'SC Corinthians Paulista',
+            'away_team_name' => 'Fluminense FC',
         ]);
+        $this->assertDatabaseMissing('football_events', ['api_fixture_id' => 9003]);
 
-        foreach ([124, 6] as $teamId) {
-            Http::assertSent(function (Request $request) use ($teamId) {
-                parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
-
-                return $request->hasHeader('x-apisports-key', 'football-key')
-                    && $request->url() === 'https://v3.football.api-sports.io/fixtures?'.http_build_query($query)
-                    && (int) ($query['team'] ?? 0) === $teamId
-                    && (int) ($query['season'] ?? 0) === 2026
-                    && ($query['from'] ?? null) === '2026-09-18'
-                    && ($query['to'] ?? null) === '2026-12-31'
-                    && ($query['timezone'] ?? null) === 'UTC';
-            });
-        }
-
-        Http::assertSentCount(2);
-        Http::assertNotSent(function (Request $request) {
+        Http::assertSent(function (Request $request) {
             parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
 
-            return array_key_exists('next', $query);
+            return $request->hasHeader('X-Auth-Token', 'football-data-token')
+                && parse_url($request->url(), PHP_URL_PATH) === '/v4/competitions/BSA/matches'
+                && ($query['dateFrom'] ?? null) === '2026-09-18'
+                && ($query['dateTo'] ?? null) === '2026-12-31';
         });
+        Http::assertSentCount(1);
     }
 
     /** @test */
@@ -93,14 +80,14 @@ class FootballEventSyncTest extends BaseTest
         FootballEvent::create([
             'api_fixture_id' => 9001,
             'starts_at' => '2026-09-20 22:30:00',
-            'status' => 'NS',
+            'status' => 'TIMED',
             'home_team_id' => 124,
             'home_team_name' => 'Fluminense',
             'away_team_id' => 127,
             'away_team_name' => 'Flamengo',
-            'league_id' => 71,
-            'league_name' => 'Serie A',
-            'league_round' => 'Regular Season - 25',
+            'league_id' => 2013,
+            'league_name' => 'Campeonato Brasileiro Série A',
+            'league_round' => 'Matchday 25',
             'venue_name' => 'Maracana',
             'venue_city' => 'Rio de Janeiro',
         ]);
@@ -133,30 +120,25 @@ class FootballEventSyncTest extends BaseTest
             'away_team_name' => 'Opponent',
         ]);
 
-        Http::fake(function (Request $request) {
-            parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
-
-            return (int) ($query['team'] ?? 0) === 124
-                ? Http::response(['errors' => [], 'response' => [$this->fixture(9001, '2026-09-20T22:30:00+00:00', 124, 'Fluminense', 127, 'Flamengo', 'Serie A')]])
-                : Http::response([], 500);
-        });
+        Http::fake([
+            'https://api.football-data.org/v4/*' => Http::response([], 500),
+        ]);
 
         try {
             app(FootballEventSync::class)->sync();
             $this->fail('The failed API response should throw an exception.');
         } catch (RequestException $exception) {
             $this->assertDatabaseHas('football_events', ['api_fixture_id' => 8999]);
-            $this->assertDatabaseMissing('football_events', ['api_fixture_id' => 9001]);
         }
     }
 
     /** @test */
-    public function the_sync_command_is_a_safe_noop_without_an_api_key()
+    public function the_sync_command_is_a_safe_noop_without_an_api_token()
     {
-        config(['services.api_football.key' => null]);
+        config(['services.football_data.token' => null]);
 
         $this->artisan('calendar:sync-football')
-            ->expectsOutput('API-Football is not configured; set API_FOOTBALL_KEY to enable syncing.')
+            ->expectsOutput('football-data.org is not configured; set FOOTBALL_DATA_API_TOKEN to enable syncing.')
             ->assertSuccessful();
     }
 
@@ -165,25 +147,33 @@ class FootballEventSyncTest extends BaseTest
         string $date,
         int $homeId,
         string $homeName,
+        string $homeTla,
         int $awayId,
         string $awayName,
-        string $league
+        string $awayTla
     ): array {
         return [
-            'fixture' => [
-                'id' => $id,
-                'date' => $date,
-                'status' => ['short' => 'NS'],
-                'venue' => ['name' => 'Maracana', 'city' => 'Rio de Janeiro'],
+            'id' => $id,
+            'utcDate' => $date,
+            'status' => 'TIMED',
+            'matchday' => 25,
+            'stage' => 'REGULAR_SEASON',
+            'competition' => [
+                'id' => 2013,
+                'name' => 'Campeonato Brasileiro Série A',
+                'code' => 'BSA',
             ],
-            'league' => [
-                'id' => 71,
-                'name' => $league,
-                'round' => 'Regular Season - 25',
+            'homeTeam' => [
+                'id' => $homeId,
+                'name' => $homeName,
+                'tla' => $homeTla,
+                'crest' => "https://crests.football-data.org/{$homeId}.png",
             ],
-            'teams' => [
-                'home' => ['id' => $homeId, 'name' => $homeName, 'logo' => "https://media.api-sports.io/football/teams/{$homeId}.png"],
-                'away' => ['id' => $awayId, 'name' => $awayName, 'logo' => "https://media.api-sports.io/football/teams/{$awayId}.png"],
+            'awayTeam' => [
+                'id' => $awayId,
+                'name' => $awayName,
+                'tla' => $awayTla,
+                'crest' => "https://crests.football-data.org/{$awayId}.png",
             ],
         ];
     }

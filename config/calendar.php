@@ -4,10 +4,8 @@ return [
     'timezone' => env('CALENDAR_TIMEZONE', 'America/New_York'),
     'google_calendar_start_date' => '2026-07-01',
     'football' => [
-        'teams' => [
-            ['id' => (int) env('API_FOOTBALL_FLUMINENSE_TEAM_ID', 124), 'name' => 'Fluminense'],
-            ['id' => (int) env('API_FOOTBALL_BRAZIL_TEAM_ID', 6), 'name' => 'Brazil'],
-        ],
+        'competition' => env('FOOTBALL_DATA_COMPETITION', 'BSA'),
+        'team_tla' => env('FOOTBALL_DATA_TEAM_TLA', 'FLU'),
         'duration_minutes' => 120,
     ],
     'google_places' => [
