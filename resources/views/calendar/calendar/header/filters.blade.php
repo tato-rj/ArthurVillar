@@ -9,7 +9,7 @@
 				</div>
 				<div data-calendar-location-filters></div>
 
-				<div class="small fw-bold opacity-4 mt-3 mb-2">SHOW</div>
+				<div class="small fw-bold opacity-4 mt-3 mb-2">LESSONS</div>
 				<div data-calendar-event-type-filters>
 					<div class="form-check calendar-calendar-filter-option">
 						<input class="form-check-input" type="checkbox" id="calendar-event-type-recurring" value="recurring" data-calendar-event-type-filter checked>
@@ -19,6 +19,11 @@
 						<input class="form-check-input" type="checkbox" id="calendar-event-type-single" value="single" data-calendar-event-type-filter checked>
 						<label class="form-check-label" for="calendar-event-type-single">Single lessons</label>
 					</div>
+					<div class="form-check calendar-calendar-filter-option">
+						<input class="form-check-input" type="checkbox" id="calendar-event-type-canceled" value="canceled" data-calendar-event-type-filter>
+						<label class="form-check-label" for="calendar-event-type-canceled">Cancelations</label>
+					</div>
+					<div class="small fw-bold opacity-4 mt-3 mb-2">EVENTS</div>
 					<div class="form-check calendar-calendar-filter-option">
 						<input class="form-check-input" type="checkbox" id="calendar-event-type-general" value="general" data-calendar-event-type-filter checked>
 						<label class="form-check-label" for="calendar-event-type-general">General events</label>
@@ -30,10 +35,6 @@
 					<div class="form-check calendar-calendar-filter-option">
 						<input class="form-check-input" type="checkbox" id="calendar-event-type-football" value="football" data-calendar-event-type-filter checked>
 						<label class="form-check-label" for="calendar-event-type-football">Football events</label>
-					</div>
-					<div class="form-check calendar-calendar-filter-option">
-						<input class="form-check-input" type="checkbox" id="calendar-event-type-canceled" value="canceled" data-calendar-event-type-filter>
-						<label class="form-check-label" for="calendar-event-type-canceled">Cancelations</label>
 					</div>
 				</div>
 			</div>
