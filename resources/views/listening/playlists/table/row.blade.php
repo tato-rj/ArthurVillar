@@ -22,9 +22,7 @@
       ])
 
       @if($playlist->recordings()->exists())
-      <form class="d-inline-block" method="POST" target="_blank" action="{{route('listening.url', $playlist->recordings->first())}}">
-        @csrf
-
+      <form class="d-inline-block" method="GET" target="_blank" action="{{route('listening.url', $playlist->recordings->first())}}">
         <input type="hidden" name="playlist_id" value="{{$playlist->id}}">
 
         <button class="btn btn-sm btn-secondary" type="submit">@fa(['icon' => 'play', 'mr' => 0])</button>
