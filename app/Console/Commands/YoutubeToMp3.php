@@ -20,7 +20,7 @@ class YoutubeToMp3 extends Command
      *
      * @var string
      */
-    protected $description = 'Convert a youtube link to mp3';
+    protected $description = 'Convert a YouTube link to MP3';
 
     /**
      * Execute the console command.
@@ -33,102 +33,181 @@ class YoutubeToMp3 extends Command
         $filename = $basename . '.mp3';
         $directory = $this->directory();
         $filepath = $directory . '/' . $filename;
+
         $start = $this->argument('start');
         $end = $this->argument('end');
 
+        $ytDlpPath = env('YT_PATH', '/usr/local/bin/yt-dlp');
+        $ffmpegPath = env('FFMPEG_PATH', '/usr/bin/ffmpeg');
+        $denoPath = env('DENO_PATH', '/usr/bin/deno');
+        $cookiesPath = env(
+            'YT_COOKIES_PATH',
+            '/var/tmp/youtube-cookies.txt'
+        );
+
         $arguments = [
-            env('YT_PATH', 'yt-dlp'),
-            '--ffmpeg-location', env('FFMPEG_PATH'),
-            '--extractor-args', 'youtube:player_client=web_safari,web',
+            $ytDlpPath,
+
+            '--ffmpeg-location',
+            $ffmpegPath,
+
+            '--cookies',
+            $cookiesPath,
+
+            '--js-runtimes',
+            'deno:' . $denoPath,
+
+            '--remote-components',
+            'ejs:npm',
+
             '--no-playlist',
+
+            '-f',
+            'bestaudio/best',
+
             '-x',
-            '--audio-format', 'mp3',
-            '-o', $directory . '/' . $basename . '.%(ext)s',
+
+            '--audio-format',
+            'mp3',
+
+            '-o',
+            $directory . '/' . $basename . '.%(ext)s',
         ];
 
-        if ($this->supportsJsRuntimes()) {
-            array_splice($arguments, 3, 0, [
-                '--js-runtimes',
-                'deno:' . env('DENO_PATH', 'deno'),
-            ]);
-        }
-
-        if ($cookiesPath = env('YT_COOKIES_PATH')) {
-            $arguments[] = '--cookies';
-            $arguments[] = $cookiesPath;
-        }
-
+        /*
+         * If start and end times are supplied, download only
+         * the requested section of the YouTube video.
+         */
         if ($start && $end) {
-            $section = '*'.$start.'-'.$end;
             $arguments[] = '--download-sections';
-            $arguments[] = $section;
+            $arguments[] = '*' . $start . '-' . $end;
         }
 
+        /*
+         * Add the YouTube URL as the final argument.
+         */
         $arguments[] = $this->url();
 
-        $process = new Process($arguments, null, $this->processEnvironment());
-
-        $process->setWorkingDirectory($directory);
+        /*
+         * Run yt-dlp.
+         */
+        $process = new Process(
+            $arguments,
+            $directory,
+            $this->processEnvironment()
+        );
 
         $process->setTimeout(600);
 
         try {
             $process->mustRun();
+
+            /*
+             * Apply the fade-in/fade-out after yt-dlp has
+             * successfully created the MP3.
+             */
             $this->applyFade($filepath);
 
-            return $this->info($this->argument('folder') . '/' . $filename);
+            $this->info(
+                $this->argument('folder') . '/' . $filename
+            );
+
+            return 0;
+
         } catch (ProcessFailedException $exception) {
-            $message = trim($process->getErrorOutput() ?: $process->getOutput() ?: $exception->getMessage());
+
+            $message = trim(
+                $process->getErrorOutput()
+                ?: $process->getOutput()
+                ?: $exception->getMessage()
+            );
+
             $this->error($message);
-            
+
             return 1;
         }
     }
 
+    /**
+     * Generate a unique filename.
+     */
     public function basename()
     {
         return \Str::uuid()->toString();
     }
 
+    /**
+     * Get/create the destination directory.
+     */
     public function directory()
     {
-        $directory = \Storage::disk('public')->path($this->argument('folder'));
+        $directory = \Storage::disk('public')
+            ->path($this->argument('folder'));
 
-        \File::makeDirectory($directory, 0755, true, true);
+        \File::makeDirectory(
+            $directory,
+            0755,
+            true,
+            true
+        );
 
         return $directory;
     }
 
+    /**
+     * Environment used by yt-dlp, ffmpeg and Deno.
+     */
     public function processEnvironment()
     {
+        $ytPath = env(
+            'YT_PATH',
+            '/usr/local/bin/yt-dlp'
+        );
+
+        $ffmpegPath = env(
+            'FFMPEG_PATH',
+            '/usr/bin/ffmpeg'
+        );
+
+        $denoPath = env(
+            'DENO_PATH',
+            '/usr/bin/deno'
+        );
+
         $paths = array_filter([
-            dirname(env('YT_PATH', '')),
-            dirname(env('FFMPEG_PATH', '')),
-            dirname(env('DENO_PATH', '')),
-            '/opt/homebrew/bin',
-            '/usr/bin',
+            dirname($ytPath),
+            dirname($ffmpegPath),
+            dirname($denoPath),
             '/usr/local/bin',
+            '/usr/bin',
+            '/bin',
             getenv('PATH'),
         ]);
 
-        return ['PATH' => implode(PATH_SEPARATOR, array_unique($paths))];
+        return [
+            'PATH' => implode(
+                PATH_SEPARATOR,
+                array_unique($paths)
+            ),
+
+            /*
+             * Give yt-dlp a writable cache location when
+             * Laravel is running as www-data.
+             */
+            'HOME' => '/var/www',
+            'XDG_CACHE_HOME' => '/var/www/.cache',
+        ];
     }
 
-    public function supportsJsRuntimes()
-    {
-        $process = new Process([
-            env('YT_PATH', 'yt-dlp'),
-            '--help',
-        ], null, $this->processEnvironment());
-
-        $process->setTimeout(30);
-        $process->run();
-
-        return $process->isSuccessful() && strpos($process->getOutput(), '--js-runtimes') !== false;
-    }
-
+    /**
+     * Apply a short fade-in and fade-out to the MP3.
+     */
     public function applyFade($filepath)
     {
+        if (!file_exists($filepath)) {
+            return;
+        }
+
         $duration = $this->duration($filepath);
 
         if ($duration <= 0) {
@@ -137,66 +216,116 @@ class YoutubeToMp3 extends Command
 
         $fadeInDuration = min(1, $duration);
         $fadeOutDuration = min(2, $duration);
-        $fadeOutStart = max(0, $duration - $fadeOutDuration);
+
+        $fadeOutStart = max(
+            0,
+            $duration - $fadeOutDuration
+        );
+
         $fadedPath = $filepath . '.faded.mp3';
 
-        $process = new Process([
-            env('FFMPEG_PATH', 'ffmpeg'),
-            '-y',
-            '-i', $filepath,
-            '-af', sprintf(
-                'afade=t=in:st=0:d=%s,afade=t=out:st=%s:d=%s',
-                $fadeInDuration,
-                $fadeOutStart,
-                $fadeOutDuration
-            ),
-            $fadedPath,
-        ], null, $this->processEnvironment());
+        $process = new Process(
+            [
+                env(
+                    'FFMPEG_PATH',
+                    '/usr/bin/ffmpeg'
+                ),
+
+                '-y',
+
+                '-i',
+                $filepath,
+
+                '-af',
+                sprintf(
+                    'afade=t=in:st=0:d=%s,afade=t=out:st=%s:d=%s',
+                    $fadeInDuration,
+                    $fadeOutStart,
+                    $fadeOutDuration
+                ),
+
+                $fadedPath,
+            ],
+            null,
+            $this->processEnvironment()
+        );
 
         $process->setTimeout(600);
+
         $process->mustRun();
 
-        \File::move($fadedPath, $filepath);
+        \File::move(
+            $fadedPath,
+            $filepath
+        );
     }
 
+    /**
+     * Get MP3 duration using ffprobe.
+     */
     public function duration($filepath)
     {
-        $ffprobePath = dirname(env('FFMPEG_PATH', 'ffmpeg')) . '/ffprobe';
+        $ffmpegPath = env(
+            'FFMPEG_PATH',
+            '/usr/bin/ffmpeg'
+        );
 
-        $process = new Process([
-            $ffprobePath,
-            '-v', 'error',
-            '-show_entries', 'format=duration',
-            '-of', 'default=noprint_wrappers=1:nokey=1',
-            $filepath,
-        ], null, $this->processEnvironment());
+        $ffprobePath =
+            dirname($ffmpegPath) . '/ffprobe';
+
+        $process = new Process(
+            [
+                $ffprobePath,
+
+                '-v',
+                'error',
+
+                '-show_entries',
+                'format=duration',
+
+                '-of',
+                'default=noprint_wrappers=1:nokey=1',
+
+                $filepath,
+            ],
+            null,
+            $this->processEnvironment()
+        );
 
         $process->setTimeout(60);
+
         $process->mustRun();
 
-        return (float) trim($process->getOutput());
+        return (float) trim(
+            $process->getOutput()
+        );
     }
 
+    /**
+     * Normalize YouTube Shorts URLs.
+     */
     public function url()
     {
         $url = $this->argument('url');
 
         if (strpos($url, '/shorts/') !== false) {
-            // Extract the video ID from the Shorts URL
-            preg_match('/\/shorts\/([^?]+)/', $url, $matches);
+
+            preg_match(
+                '/\/shorts\/([^?]+)/',
+                $url,
+                $matches
+            );
 
             if (isset($matches[1])) {
+
                 $videoId = $matches[1];
 
-                // Create the standard watch URL
-                $watchUrl = "https://youtube.com/watch?v={$videoId}";
-
-                return $watchUrl;
-            } else {
-                abort('Not a valid youtube link');
+                return "https://youtube.com/watch?v={$videoId}";
             }
+
+            abort(400, 'Not a valid YouTube link');
         }
-        
+
         return $url;
     }
 }
