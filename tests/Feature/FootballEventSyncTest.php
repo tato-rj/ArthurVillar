@@ -110,6 +110,37 @@ class FootballEventSyncTest extends BaseTest
     }
 
     /** @test */
+    public function the_calendar_omits_football_events_after_they_end()
+    {
+        Carbon::setTestNow('2026-09-20 23:00:00 UTC');
+
+        FootballEvent::create([
+            'api_fixture_id' => 9000,
+            'starts_at' => '2026-09-20 20:00:00',
+            'home_team_id' => 124,
+            'home_team_name' => 'Fluminense',
+            'away_team_id' => 1,
+            'away_team_name' => 'Past opponent',
+        ]);
+        FootballEvent::create([
+            'api_fixture_id' => 9001,
+            'starts_at' => '2026-09-20 22:30:00',
+            'home_team_id' => 124,
+            'home_team_name' => 'Fluminense',
+            'away_team_id' => 2,
+            'away_team_name' => 'Current opponent',
+        ]);
+
+        $footballEvents = app(Scheduler::class)->generalEvents([
+            'start' => '2026-09-20',
+            'end' => '2026-09-20',
+        ])->where('external_provider', 'football');
+
+        $this->assertCount(1, $footballEvents);
+        $this->assertSame('Fluminense vs Current opponent', $footballEvents->first()['name']);
+    }
+
+    /** @test */
     public function a_failed_download_does_not_delete_the_last_successful_fixture_set()
     {
         FootballEvent::create([

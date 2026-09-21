@@ -3,6 +3,7 @@
 namespace App\Models\Calendar;
 
 use App\Models\BaseModel;
+use Carbon\Carbon;
 
 class FootballEvent extends BaseModel
 {
@@ -14,11 +15,7 @@ class FootballEvent extends BaseModel
     public function calendarPayload(): array
     {
         $start = $this->starts_at->copy()->setTimezone(config('calendar.timezone'));
-        $end = $start->copy()->addMinutes(config('calendar.football.duration_minutes', 120));
-
-        if (! $end->isSameDay($start)) {
-            $end = $start->copy()->setTime(23, 45);
-        }
+        $end = $this->calendarEndsAt();
 
         $location = collect([$this->venue_name, $this->venue_city])->filter()->implode(', ');
 
@@ -51,5 +48,15 @@ class FootballEvent extends BaseModel
             'read_only' => true,
             'ignore_conflicts' => true,
         ];
+    }
+
+    public function calendarEndsAt(): Carbon
+    {
+        $start = $this->starts_at->copy()->setTimezone(config('calendar.timezone'));
+        $end = $start->copy()->addMinutes(config('calendar.football.duration_minutes', 120));
+
+        return $end->isSameDay($start)
+            ? $end
+            : $start->copy()->setTime(23, 45);
     }
 }

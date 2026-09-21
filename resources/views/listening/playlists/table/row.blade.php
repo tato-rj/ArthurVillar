@@ -22,11 +22,10 @@
       ])
 
       @if($playlist->recordings()->exists())
-      <form class="d-inline-block" method="GET" target="_blank" action="{{route('listening.url', $playlist->recordings->first())}}">
-        <input type="hidden" name="playlist_id" value="{{$playlist->id}}">
-
-        <button class="btn btn-sm btn-secondary" type="submit">@fa(['icon' => 'play', 'mr' => 0])</button>
-      </form>
+      <a class="btn btn-sm btn-secondary" target="_blank" href="{{route('listening.url', [
+        'recording' => $playlist->recordings->first(),
+        'playlist_id' => $playlist->id,
+      ])}}">@fa(['icon' => 'play', 'mr' => 0])</a>
       @endif
 
       <a class="btn btn-sm btn-secondary" href="{{route('listening.playlists.recordings', $playlist)}}">@fa(['icon' => 'list', 'mr' => 0])</a>

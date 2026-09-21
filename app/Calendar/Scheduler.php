@@ -391,10 +391,14 @@ class Scheduler
         $timezone = config('calendar.timezone');
         $rangeStart = Carbon::parse($range['start'], $timezone)->startOfDay();
         $rangeEnd = Carbon::parse($range['end'], $timezone)->endOfDay();
+        $footballVisibilityCutoff = now('UTC')
+            ->subMinutes(config('calendar.football.duration_minutes', 120));
         $footballEvents = FootballEvent::query()
             ->whereBetween('starts_at', [$rangeStart->copy()->utc(), $rangeEnd->copy()->utc()])
+            ->where('starts_at', '>', $footballVisibilityCutoff)
             ->orderBy('starts_at')
             ->get()
+            ->filter(fn (FootballEvent $event) => $event->calendarEndsAt()->isFuture())
             ->map(fn (FootballEvent $event) => $event->calendarPayload());
 
         if (! $userId) {
