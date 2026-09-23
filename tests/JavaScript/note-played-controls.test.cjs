@@ -16,11 +16,13 @@ function control() {
         visible: true,
         classes: new Set(),
         value: '',
+        prependHtml: '',
         show() { this.visible = true; return this; },
         hide() { this.visible = false; return this; },
         addClass(names) { names.split(' ').forEach(name => this.classes.add(name)); return this; },
         removeClass(names) { names.split(' ').forEach(name => this.classes.delete(name)); return this; },
-        text(value) { this.value = value; return this; },
+        text(value) { this.value = value; this.prependHtml = ''; return this; },
+        prepend(markup) { this.prependHtml = markup; return this; },
         html(value) { if (value === undefined) return this.value; this.value = value; return this; },
     };
 }
@@ -28,12 +30,14 @@ function control() {
 function loadGame(type = 'NoteNest') {
     const check = control();
     const timers = [];
-    class BaseStaffGame {}
+    class BaseStaffGame {
+        _restoreInstructions() { this.$instructions.show(); }
+    }
     const context = vm.createContext({
         BaseStaffGame,
         $: selector => selector === '#check' ? check : control(),
         createStablePitchState: () => ({}),
-        setTimeout: callback => { timers.push(callback); return timers.length; },
+        setTimeout: (callback, delay) => { timers.push({ callback, delay }); return timers.length; },
         requestAnimationFrame: () => 1,
     });
     vm.runInContext(`${nestSource}\n${matchSource}\nglobalThis.Game = ${type};`, context);
@@ -43,6 +47,7 @@ function loadGame(type = 'NoteNest') {
     game.$playNoteStart = control();
     game.$playNoteStatus = control();
     game.$playNoteBtn = control();
+    game.$instructions = control();
     game._playNoteButtonDefaultHtml = 'Tap here and play the note';
     game._requiresPlayedNote = () => true;
     game._currentUserNoteCount = () => 1;
@@ -57,12 +62,15 @@ for (const type of ['NoteNest', 'NoteMatch']) {
         game._handlePlayedNoteHeard(60, 'C4', 261.6);
 
         assert.equal(game.$playNoteStatus.value, 'Note heard!');
+        assert.match(game.$playNoteStatus.prependHtml, /fa-circle-check text-green/);
+        assert.doesNotMatch(game.$playNoteStatus.prependHtml, /fa-microphone-lines/);
         assert.ok(game.$playNoteStatus.classes.has('bg-green-lighter'));
         assert.equal(game.$playNoteStatus.visible, true);
         assert.equal(game.$playNoteStart.visible, false);
         assert.equal(check.visible, false);
 
-        timers[0]();
+        assert.equal(timers[0].delay, 1500);
+        timers[0].callback();
         assert.equal(game._playedNoteConfirmed, true);
         assert.equal(game.$playNoteStatus.visible, false);
         assert.equal(check.visible, true);
@@ -81,11 +89,33 @@ test('starting detection shows the connecting state in the button slot', () => {
     assert.equal(game._lastPlayedNote, null);
     assert.equal(game._playedNoteConfirmed, false);
     assert.equal(game.$playNoteStatus.value, 'Connecting to the mic...');
+    assert.equal(game.$playNoteStatus.prependHtml, '');
     assert.ok(game.$playNoteStatus.classes.has('bg-grey-lighter'));
     assert.equal(game.$playNoteStatus.visible, true);
     assert.equal(game.$playNoteStart.visible, false);
+    assert.equal(game.$instructions.visible, false);
     assert.equal(check.visible, false);
 });
+
+for (const type of ['NoteNest', 'NoteMatch']) {
+    test(`${type} keeps instructions hidden through the microphone flow`, () => {
+        const { game } = loadGame(type);
+        game._setPlayFeedbackState = () => {};
+        game._beginPitchRecording();
+
+        assert.equal(game.$instructions.visible, false);
+        game._restoreInstructions();
+        assert.equal(game.$instructions.visible, false);
+        if (type === 'NoteMatch') {
+            game._removeInstructions();
+            assert.equal(game.$instructions.visible, false);
+        }
+
+        game._hideInstructionsForMic = false;
+        game._restoreInstructions();
+        assert.equal(game.$instructions.visible, true);
+    });
+}
 
 test('microphone access changes the status to yellow listening', async () => {
     const { game, context } = loadGame();
@@ -106,6 +136,8 @@ test('microphone access changes the status to yellow listening', async () => {
     await game._startPitchInput();
 
     assert.equal(game.$playNoteStatus.value, "Go ahead, I'm listening");
+    assert.match(game.$playNoteStatus.prependHtml, /fa-microphone-lines text-yellow/);
+    assert.match(game.$playNoteStatus.prependHtml, /aria-hidden="true"/);
     assert.ok(game.$playNoteStatus.classes.has('bg-yellow-lighter'));
     assert.equal(game.$playNoteStart.visible, false);
     assert.equal(game.$playNoteStatus.visible, true);

@@ -35,8 +35,13 @@ export class NoteMatch extends NoteNest {
   }
 
   _removeInstructions() {
-    this.$instructions.show();
-    this._instructionsRemoved = false;
+    if (this._hideInstructionsForMic) {
+      this.$instructions.hide();
+      this._instructionsRemoved = true;
+    } else {
+      this.$instructions.show();
+      this._instructionsRemoved = false;
+    }
   }
 
   _renderTargetNote(target) {

@@ -31390,10 +31390,8 @@ body {
 
 .game-instructions {
   margin: 0 0 16px;
-  color: #6b7680;
   font-family: inherit;
   font-size: 1rem;
-  font-weight: 700;
   line-height: 1.4;
   text-align: center;
 }

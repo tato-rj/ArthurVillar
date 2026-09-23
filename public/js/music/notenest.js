@@ -2019,6 +2019,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
     _this._pitchRequestId = 0;
     _this._pitchInputStarting = false;
     _this._pitchInputUnavailable = false;
+    _this._hideInstructionsForMic = false;
     _this._stablePitch = (0,_shared_playedNotePitch_js__WEBPACK_IMPORTED_MODULE_3__.createStablePitchState)();
     _this._ignoreAppAudioUntil = 0;
     return _this;
@@ -2047,6 +2048,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
     key: "_resetPlayedNote",
     value: function _resetPlayedNote() {
       this._stopPitchInput();
+      this._hideInstructionsForMic = false;
       this._lastPlayedNote = null;
       this._playedNoteConfirmed = false;
       this._setPlayFeedbackState("idle");
@@ -2119,6 +2121,11 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
     key: "_showPlayNoteStatus",
     value: function _showPlayNoteStatus(color, message) {
       this.$playNoteStatus.removeClass("bg-grey-lighter bg-yellow-lighter bg-green-lighter").addClass("bg-".concat(color, "-lighter")).text(message);
+      if (color === "yellow") {
+        this.$playNoteStatus.prepend('<i class="fas fa-microphone-lines text-yellow me-2" aria-hidden="true"></i>');
+      } else if (color === "green") {
+        this.$playNoteStatus.prepend('<i class="fas fa-circle-check text-green me-2" aria-hidden="true"></i>');
+      }
       this.$checkWrap.hide().addClass("invisible");
       this.$playNoteStart.hide();
       this.$playNoteStatus.show();
@@ -2265,6 +2272,12 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       this._syncPlayedNoteGate();
     }
   }, {
+    key: "_restoreInstructions",
+    value: function _restoreInstructions() {
+      if (this._hideInstructionsForMic) return;
+      _superPropGet(NoteNest, "_restoreInstructions", this, 3)([]);
+    }
+  }, {
     key: "_displayNameForLetter",
     value: function _displayNameForLetter(letter) {
       var clean = String(letter || "").trim().toUpperCase();
@@ -2289,13 +2302,15 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
         _this3._playedNoteConfirmed = true;
         _this3._setPlayNoteButtonLabel("tryAgain");
         _this3._syncPlayedNoteGate();
-      }, 650);
+      }, 1500);
     }
   }, {
     key: "_beginPitchRecording",
     value: function _beginPitchRecording() {
       var _this4 = this;
       this._stopPitchInput();
+      this._hideInstructionsForMic = true;
+      this.$instructions.hide();
       this._lastPlayedNote = null;
       this._playedNoteConfirmed = false;
       this._setPlayFeedbackState("idle");

@@ -65,6 +65,7 @@ export class NoteNest extends BaseStaffGame {
     this._pitchRequestId = 0;
     this._pitchInputStarting = false;
     this._pitchInputUnavailable = false;
+    this._hideInstructionsForMic = false;
     this._stablePitch = createStablePitchState();
     this._ignoreAppAudioUntil = 0;
   }
@@ -87,6 +88,7 @@ export class NoteNest extends BaseStaffGame {
 
   _resetPlayedNote() {
     this._stopPitchInput();
+    this._hideInstructionsForMic = false;
     this._lastPlayedNote = null;
     this._playedNoteConfirmed = false;
     this._setPlayFeedbackState("idle");
@@ -166,6 +168,11 @@ export class NoteNest extends BaseStaffGame {
       .removeClass("bg-grey-lighter bg-yellow-lighter bg-green-lighter")
       .addClass(`bg-${color}-lighter`)
       .text(message);
+    if (color === "yellow") {
+      this.$playNoteStatus.prepend('<i class="fas fa-microphone-lines text-yellow me-2" aria-hidden="true"></i>');
+    } else if (color === "green") {
+      this.$playNoteStatus.prepend('<i class="fas fa-circle-check text-green me-2" aria-hidden="true"></i>');
+    }
     this.$checkWrap.hide().addClass("invisible");
     this.$playNoteStart.hide();
     this.$playNoteStatus.show();
@@ -305,6 +312,11 @@ export class NoteNest extends BaseStaffGame {
     this._syncPlayedNoteGate();
   }
 
+  _restoreInstructions() {
+    if (this._hideInstructionsForMic) return;
+    super._restoreInstructions();
+  }
+
   _displayNameForLetter(letter) {
     const clean = String(letter || "").trim().toUpperCase();
     if (this._showSolfegeNoteNames()) return NoteNest.LETTER_TO_SOLFEGE[clean] || clean;
@@ -322,11 +334,13 @@ export class NoteNest extends BaseStaffGame {
       this._playedNoteConfirmed = true;
       this._setPlayNoteButtonLabel("tryAgain");
       this._syncPlayedNoteGate();
-    }, 650);
+    }, 1500);
   }
 
   _beginPitchRecording() {
     this._stopPitchInput();
+    this._hideInstructionsForMic = true;
+    this.$instructions.hide();
     this._lastPlayedNote = null;
     this._playedNoteConfirmed = false;
     this._setPlayFeedbackState("idle");
