@@ -31,7 +31,7 @@
   @component('theory.components.settings.bonus')
     @include('theory.components.settings.toggle', ['label' => 'Show bombs', 'name' => 'showBombs', 'icon' => 'bomb'])
     @include('theory.components.settings.toggle', ['label' => 'Real walls', 'name' => 'realWalls', 'icon' => 'square'])
-    @include('theory.components.settings.toggle', ['label' => 'Speed up 10 BPM each round (max 160)', 'name' => 'speedUpEachRound', 'icon' => 'gauge-high'])
+    @include('theory.components.settings.toggle', ['label' => 'Speed up each round', 'name' => 'speedUpEachRound', 'icon' => 'gauge-high'])
   @endcomponent
 
   <button type="submit" class="btn btn-primary w-100">Start new game</button>
