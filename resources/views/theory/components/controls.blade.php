@@ -24,8 +24,12 @@
         <div id="skip" class="btn-floating w-100 mb-3" style="display: none;">
           <button class="btn btn-red w-100">Next round</button>
         </div>
-        <div id="play-note" class="btn-floating w-100 invisible mb-3" style="display: none">
-          <button class="btn btn-blue w-100">@fa(['icon' => 'microphone'])Tap here and play the note</button>
+        <div id="play-note" class="w-100 invisible mb-3" style="display: none">
+          <div id="play-note-status" class="rounded border w-100 mb-3 text-center" role="status" aria-live="polite" style="display: none; padding: .375rem .75rem">
+          </div>
+          <div id="play-note-start" class="btn-floating w-100">
+            <button type="button" class="btn btn-blue w-100">@fa(['icon' => 'microphone'])Tap here and play the note</button>
+          </div>
         </div>
       </div>
     @endif

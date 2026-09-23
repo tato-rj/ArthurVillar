@@ -22,11 +22,6 @@
     display: none;
   }
 
-  #play-feedback.saved {
-    background: lightgrey;
-    opacity: .8;
-  }
-
   #play-feedback.wrong {
     background: rgba(255,75,75,.15);
     color: #ff4b4b;
@@ -64,7 +59,6 @@
 </section>
 
 @include('theory.components.results.overlay')
-@include('theory.components.play.modal')
 @endsection
 
 @push('scripts')

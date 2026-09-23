@@ -32781,26 +32781,6 @@ button.game-countdown-step-pop {
   opacity: 1;
 }
 
-#play-icon {
-  opacity: 0.1;
-}
-
-#play-icon.listening {
-  animation: playSoundIconPulse 0.55s ease-in-out infinite alternate;
-}
-
-#play-icon.heard {
-  opacity: 1;
-}
-
-@keyframes playSoundIconPulse {
-  from {
-    opacity: 0.2;
-  }
-  to {
-    opacity: 1;
-  }
-}
 #leaderboard-modal .leaderboard-player {
   opacity: 0;
   transform: translateY(8px);

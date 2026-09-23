@@ -22,6 +22,7 @@ export class NoteMatch extends NoteNest {
     if (!this.$playNoteWrap?.length) return;
 
     this.$playNoteWrap.show().removeClass("invisible");
+    this._showPlayNoteActions();
     if (this._lastPlayedNote && this._playedNoteConfirmed) {
       $("#check").show().removeClass("invisible");
     } else {
@@ -55,7 +56,6 @@ export class NoteMatch extends NoteNest {
 
     this._madeMistakeThisRound = false;
     this._usedHintThisRound = false;
-    this._stopPitchInput();
     this._resetPlayedNote();
 
     this._clearBlockMarker();
@@ -119,7 +119,6 @@ export class NoteMatch extends NoteNest {
       this._pauseGameTimer();
       this._stopPitchInput();
       this.$playNoteWrap?.hide?.().addClass?.("invisible");
-      this._hideConfirmSoundButton();
       this._setPlayFeedbackState("idle");
 
       const { earned, bonusEarned } = this._awardPointsForCorrect();
@@ -137,9 +136,8 @@ export class NoteMatch extends NoteNest {
     this._lastPlayedNote = null;
     this._playedNoteConfirmed = false;
     this._setPlayNoteButtonLabel("tryAgain");
-    this._hideRecordedSoundActions();
     this.$helpBtn.hide();
     this._syncPlayedNoteGate();
-    this._failAnimation(this.$playNoteWrap);
+    this._failAnimation(this.$playNoteStart);
   }
 }

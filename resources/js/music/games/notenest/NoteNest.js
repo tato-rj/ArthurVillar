@@ -46,18 +46,13 @@ export class NoteNest extends BaseStaffGame {
     this._blockMarkerClass = "block-marker";
     this._lastPlayedNote = null;
     this.$playNoteWrap = $("#play-note");
-    this.$playNoteBtn = this.$playNoteWrap.find("button");
+    this.$playNoteStart = this.$playNoteWrap.find("#play-note-start");
+    this.$playNoteBtn = this.$playNoteStart.find("button");
+    this.$playNoteStatus = this.$playNoteWrap.find("#play-note-status");
     this._playNoteButtonDefaultHtml = this.$playNoteBtn.html();
-    this.$playSoundModal = $("#play-sound-modal");
-    this.$playIcon = $("#play-icon");
-    this.$playSoundStatus = $("#play-sound-status");
-    this.$playSoundDetected = $("#play-sound-detected");
+    if (this._requiresPlayedNote()) this.$playNoteStatus.after(this.$checkWrap);
     this.$playFeedback = $("#play-feedback");
     this.$playFeedbackText = this.$playFeedback.find(".play-feedback-text");
-    this.$confirmSoundWrap = this.$playSoundModal.find("#confirm-sound");
-    this.$confirmSoundBtn = this.$confirmSoundWrap.find("button");
-    this.$retrySoundWrap = this.$playSoundModal.find("#retry");
-    this.$retrySoundBtn = this.$retrySoundWrap.find("button");
     this._playedNoteConfirmed = false;
     this._pitchAudioContext = null;
     this._pitchStream = null;
@@ -66,8 +61,10 @@ export class NoteNest extends BaseStaffGame {
     this._pitchData = null;
     this._pitchFrame = null;
     this._pitchStartFrame = null;
-    this._pitchOpenStartTimer = null;
+    this._heardStatusTimer = null;
+    this._pitchRequestId = 0;
     this._pitchInputStarting = false;
+    this._pitchInputUnavailable = false;
     this._stablePitch = createStablePitchState();
     this._ignoreAppAudioUntil = 0;
   }
@@ -89,32 +86,22 @@ export class NoteNest extends BaseStaffGame {
   }
 
   _resetPlayedNote() {
+    this._stopPitchInput();
     this._lastPlayedNote = null;
     this._playedNoteConfirmed = false;
-    this._hideRecordedSoundActions();
     this._setPlayFeedbackState("idle");
     this._setPlayNoteButtonLabel("default");
+    this._showPlayNoteActions();
   }
 
   _setPlayFeedbackState(state = "idle", detail = "") {
     const $feedback = this.$playFeedback;
     if (!$feedback?.length) return;
 
-    $feedback.removeClass("saved wrong animate__animated animate__heartBeat animate__flash");
+    $feedback.removeClass("wrong animate__animated animate__heartBeat animate__flash");
     $feedback.find(".play-feedback-note-name, .play-feedback-wrong-note").remove();
     this.$playFeedbackText?.empty?.();
     this._setPlayFeedbackIcon(state);
-
-    if (state === "saved") {
-      $feedback.css("display", "inline-block").addClass("saved");
-      if (detail) {
-        const $target = this.$playFeedbackText?.length ? this.$playFeedbackText : $feedback.find(".d-center").first();
-        const $detail = $('<span class="play-feedback-note-name ml-2 small"></span>').text(detail);
-        if (this.$playFeedbackText?.length) $target.text(detail);
-        else ($target.length ? $target : $feedback).append($detail);
-      }
-      return;
-    }
 
     if (state === "wrong") {
       $feedback.css("display", "inline-block").addClass("wrong");
@@ -174,58 +161,23 @@ export class NoteNest extends BaseStaffGame {
     this.$playNoteBtn.html(this._playNoteButtonDefaultHtml);
   }
 
-  _setPlaySoundModalStatus(status, detected = "") {
-    this.$playSoundStatus?.text?.(status);
-    this.$playSoundDetected?.text?.(detected);
+  _showPlayNoteStatus(color, message) {
+    this.$playNoteStatus
+      .removeClass("bg-grey-lighter bg-yellow-lighter bg-green-lighter")
+      .addClass(`bg-${color}-lighter`)
+      .text(message);
+    this.$checkWrap.hide().addClass("invisible");
+    this.$playNoteStart.hide();
+    this.$playNoteStatus.show();
   }
 
-  _setPlayIconState(state = "idle") {
-    const $icon = this.$playIcon;
-    if (!$icon?.length) return;
-
-    $icon.removeClass("listening heard text-yellow text-green animate__animated animate__tada");
-    this._setPlayIconGraphic(state !== "idle");
-
-    if (state === "listening") {
-      $icon.addClass("listening text-yellow");
+  _showPlayNoteActions() {
+    if (this._pitchInputUnavailable) {
+      this.$playNoteStart.hide();
       return;
     }
-
-    if (state === "heard") {
-      $icon.addClass("heard text-green animate__animated animate__tada");
-    }
-  }
-
-  _setPlayIconGraphic(enabled) {
-    const activeIcon = "microphone-lines";
-    const inactiveIcon = "microphone-lines-slash";
-    const fromIcon = enabled ? inactiveIcon : activeIcon;
-    const toIcon = enabled ? activeIcon : inactiveIcon;
-    const $iconEl = this.$playIcon.find(`[data-icon="${fromIcon}"], .fa-${fromIcon}`);
-
-    $iconEl.attr("data-icon", toIcon);
-    $iconEl.removeClass(`fa-${fromIcon}`).addClass(`fa-${toIcon}`);
-  }
-
-  _hideConfirmSoundButton() {
-    this.$confirmSoundWrap?.hide?.().addClass?.("invisible");
-  }
-
-  _showConfirmSoundButton() {
-    this.$confirmSoundWrap?.show?.().removeClass?.("invisible");
-  }
-
-  _hideRetrySoundButton() {
-    this.$retrySoundWrap?.hide?.().addClass?.("invisible");
-  }
-
-  _showRetrySoundButton() {
-    this.$retrySoundWrap?.show?.().removeClass?.("invisible");
-  }
-
-  _hideRecordedSoundActions() {
-    this._hideConfirmSoundButton();
-    this._hideRetrySoundButton();
+    this.$playNoteStatus.hide();
+    this.$playNoteStart.show();
   }
 
   _hasEnoughUserNotesForCheck(count = this._currentUserNoteCount()) {
@@ -238,7 +190,6 @@ export class NoteNest extends BaseStaffGame {
 
     if (!this._requiresPlayedNote()) {
       this.$playNoteWrap.hide().addClass("invisible");
-      this._hideRecordedSoundActions();
       return;
     }
 
@@ -247,73 +198,12 @@ export class NoteNest extends BaseStaffGame {
 
     if (readyForPlayedNote) {
       this.$playNoteWrap.show().removeClass("invisible");
+      this._showPlayNoteActions();
       if (this._lastPlayedNote && this._playedNoteConfirmed) {
         $("#check").show().removeClass("invisible");
       }
     } else {
       this.$playNoteWrap.hide().addClass("invisible");
-    }
-  }
-
-  _showPlaySoundModal() {
-    if (!this.$playSoundModal?.length) return;
-
-    this._setPlaySoundModalStatus("Connecting...", "Getting the microphone ready.");
-    this._hideRecordedSoundActions();
-    this._setPlayIconState("idle");
-
-    const el = this.$playSoundModal[0];
-    if (window.bootstrap?.Modal?.getOrCreateInstance) {
-      window.bootstrap.Modal.getOrCreateInstance(el).show();
-      return;
-    }
-
-    if (typeof this.$playSoundModal.modal === "function") {
-      this.$playSoundModal.modal("show");
-    }
-  }
-
-  _beginPitchRecordingAfterModalOpen() {
-    if (!this.$playSoundModal?.length) {
-      this._beginPitchRecording();
-      return;
-    }
-
-    if (this._pitchOpenStartTimer) {
-      clearTimeout(this._pitchOpenStartTimer);
-      this._pitchOpenStartTimer = null;
-    }
-
-    let started = false;
-    const start = () => {
-      if (started) return;
-      started = true;
-      if (this._pitchOpenStartTimer) {
-        clearTimeout(this._pitchOpenStartTimer);
-        this._pitchOpenStartTimer = null;
-      }
-      this.$playSoundModal.off(`shown.bs.modal.${this.ns}.playedNoteStart`);
-      this._beginPitchRecording();
-    };
-
-    this.$playSoundModal
-      .off(`shown.bs.modal.${this.ns}.playedNoteStart`)
-      .one(`shown.bs.modal.${this.ns}.playedNoteStart`, start);
-
-    this._pitchOpenStartTimer = setTimeout(start, 350);
-  }
-
-  _hidePlaySoundModal() {
-    if (!this.$playSoundModal?.length) return;
-
-    const el = this.$playSoundModal[0];
-    if (window.bootstrap?.Modal?.getOrCreateInstance) {
-      window.bootstrap.Modal.getOrCreateInstance(el).hide();
-      return;
-    }
-
-    if (typeof this.$playSoundModal.modal === "function") {
-      this.$playSoundModal.modal("hide");
     }
   }
 
@@ -406,31 +296,7 @@ export class NoteNest extends BaseStaffGame {
       ?.off?.(`click.${this.ns}.playedNote`)
       ?.on?.(`click.${this.ns}.playedNote`, (e) => {
         e.preventDefault();
-        this._showPlaySoundModal();
-        this._beginPitchRecordingAfterModalOpen();
-      });
-
-    this.$confirmSoundBtn
-      ?.off?.(`click.${this.ns}.playedNote`)
-      ?.on?.(`click.${this.ns}.playedNote`, (e) => {
-        e.preventDefault();
-        if (!this._lastPlayedNote) return;
-        this._playedNoteConfirmed = true;
-        this._hidePlaySoundModal();
-        this._syncPlayedNoteGate();
-      });
-
-    this.$retrySoundBtn
-      ?.off?.(`click.${this.ns}.playedNote`)
-      ?.on?.(`click.${this.ns}.playedNote`, (e) => {
-        e.preventDefault();
         this._beginPitchRecording();
-      });
-
-    this.$playSoundModal
-      ?.off?.(`hidden.bs.modal.${this.ns}.playedNote`)
-      ?.on?.(`hidden.bs.modal.${this.ns}.playedNote`, () => {
-        this._stopPitchInput();
       });
   }
 
@@ -448,22 +314,23 @@ export class NoteNest extends BaseStaffGame {
   _handlePlayedNoteHeard(midi, noteName, frequency) {
     this._lastPlayedNote = { midi, noteName, frequency };
     this._playedNoteConfirmed = false;
-    this._stopPitchInput({ keepIconState: true });
-    this._setPlayIconState("heard");
-    this._setPlaySoundModalStatus("Note heard", "Got it! Click confirm to continue.");
-    this._setPlayNoteButtonLabel("default");
-    this._setPlayFeedbackState("saved", "Your note was saved");
-    this._showConfirmSoundButton();
-    this._showRetrySoundButton();
+    this._stopPitchInput();
+    this._showPlayNoteStatus("green", "Note heard!");
+    this._heardStatusTimer = setTimeout(() => {
+      this._heardStatusTimer = null;
+      if (!this._lastPlayedNote) return;
+      this._playedNoteConfirmed = true;
+      this._setPlayNoteButtonLabel("tryAgain");
+      this._syncPlayedNoteGate();
+    }, 650);
   }
 
   _beginPitchRecording() {
     this._stopPitchInput();
     this._lastPlayedNote = null;
     this._playedNoteConfirmed = false;
-    this._hideRecordedSoundActions();
-    this._setPlaySoundModalStatus("Connecting...", "Getting the microphone ready.");
-    this._setPlayIconState("idle");
+    this._setPlayFeedbackState("idle");
+    this._showPlayNoteStatus("grey", "Connecting to the mic...");
     this._stablePitch = createStablePitchState();
     if (this._pitchStartFrame) cancelAnimationFrame(this._pitchStartFrame);
     this._pitchStartFrame = requestAnimationFrame(() => {
@@ -476,27 +343,24 @@ export class NoteNest extends BaseStaffGame {
     if (this._pitchInputStarting || this._pitchAnalyser) return Promise.resolve();
 
     if (!window.isSecureContext) {
-      this._setPlayIconState("idle");
-      this._setPlaySoundModalStatus("Microphone unavailable", "Use HTTPS or localhost to enable listening.");
+      this._showPitchInputError("Mic unavailable. Use HTTPS or localhost.");
       return Promise.resolve();
     }
 
     if (!navigator.mediaDevices?.getUserMedia) {
-      this._setPlayIconState("idle");
-      this._setPlaySoundModalStatus("Microphone unavailable", "This browser cannot access microphone input.");
+      this._showPitchInputError("This browser can't access the mic.");
       return Promise.resolve();
     }
 
     const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
     if (!AudioContextCtor) {
-      this._setPlayIconState("idle");
-      this._setPlaySoundModalStatus("Microphone unavailable", "This browser cannot analyze live audio.");
+      this._showPitchInputError("This browser can't analyze mic audio.");
       return Promise.resolve();
     }
 
     this._pitchInputStarting = true;
     this._stablePitch = createStablePitchState();
-    this._setPlaySoundModalStatus("Connecting...", "Getting the microphone ready.");
+    const requestId = this._pitchRequestId;
 
     return navigator.mediaDevices.getUserMedia({
       audio: {
@@ -505,29 +369,38 @@ export class NoteNest extends BaseStaffGame {
         autoGainControl: true,
       },
     }).then((stream) => {
+      if (requestId !== this._pitchRequestId) {
+        stream.getTracks().forEach((track) => track.stop());
+        return;
+      }
+      this._pitchStream = stream;
       this._pitchAudioContext = new AudioContextCtor();
       this._pitchAudioContext.resume?.();
-      this._pitchStream = stream;
       this._pitchSource = this._pitchAudioContext.createMediaStreamSource(stream);
       this._pitchAnalyser = this._pitchAudioContext.createAnalyser();
       this._pitchAnalyser.fftSize = 8192;
       this._pitchData = new Float32Array(this._pitchAnalyser.fftSize);
       this._pitchSource.connect(this._pitchAnalyser);
       this._pitchInputStarting = false;
-      this._setPlaySoundModalStatus("Listening...", "Play or sing one clear note.");
-      this._setPlayIconState("listening");
+      this._showPlayNoteStatus("yellow", "Go ahead, I'm listening");
       this._listenForPitch();
     }).catch(() => {
-      this._pitchInputStarting = false;
-      this._setPlayIconState("idle");
-      this._setPlaySoundModalStatus("Microphone blocked", "Allow microphone access, then try again.");
+      if (requestId !== this._pitchRequestId) return;
+      this._stopPitchInput();
+      this._showPitchInputError("Mic blocked. Allow access, then refresh the page.");
     });
   }
 
-  _stopPitchInput({ keepIconState = false } = {}) {
-    if (this._pitchOpenStartTimer) {
-      clearTimeout(this._pitchOpenStartTimer);
-      this._pitchOpenStartTimer = null;
+  _showPitchInputError(message) {
+    this._pitchInputUnavailable = true;
+    this._showPlayNoteStatus("grey", message);
+  }
+
+  _stopPitchInput() {
+    this._pitchRequestId += 1;
+    if (this._heardStatusTimer) {
+      clearTimeout(this._heardStatusTimer);
+      this._heardStatusTimer = null;
     }
 
     if (this._pitchFrame) {
@@ -548,7 +421,6 @@ export class NoteNest extends BaseStaffGame {
     this._pitchData = null;
     this._pitchInputStarting = false;
     this._stablePitch = createStablePitchState();
-    if (!keepIconState) this._setPlayIconState("idle");
   }
 
   _listenForPitch() {
@@ -565,7 +437,6 @@ export class NoteNest extends BaseStaffGame {
     const frequency = pitch?.frequency;
 
     if (Number.isFinite(frequency)) {
-      this._setPlaySoundModalStatus("Listening...", "Keep holding the note.");
       this._stablePitch = updateStablePitchState(this._stablePitch, frequency);
 
       if (this._stablePitch.count >= PLAYED_NOTE_STABLE_FRAME_COUNT) {
@@ -778,7 +649,6 @@ export class NoteNest extends BaseStaffGame {
 
     this._madeMistakeThisRound = false;
     this._usedHintThisRound = false;
-    this._stopPitchInput();
     this._resetPlayedNote();
 
     this._clearBlockMarker();
@@ -876,7 +746,6 @@ export class NoteNest extends BaseStaffGame {
       this._pauseGameTimer();
       this._stopPitchInput();
       this.$playNoteWrap?.hide?.().addClass?.("invisible");
-      this._hideConfirmSoundButton();
       this._setPlayFeedbackState("idle");
 
       const { earned, bonusEarned } = this._awardPointsForCorrect();
@@ -895,10 +764,9 @@ export class NoteNest extends BaseStaffGame {
       this._lastPlayedNote = null;
       this._playedNoteConfirmed = false;
       this._setPlayNoteButtonLabel("tryAgain");
-      this._hideRecordedSoundActions();
       this.$helpBtn.hide();
       this._syncPlayedNoteGate();
-      this._failAnimation(this.$playNoteWrap);
+      this._failAnimation(this.$playNoteStart);
       return;
     }
     this._shakeWrongUserStaffNotes();
