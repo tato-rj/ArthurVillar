@@ -2003,6 +2003,7 @@ var NotePython = /*#__PURE__*/function () {
     this.opts = _objectSpread(_objectSpread({}, defaults), options || {});
     this.opts.bpm = (0,_shared_tempo_js__WEBPACK_IMPORTED_MODULE_9__.normalizeMetronomeBpm)(this.opts.bpm);
     this._currentBpm = this.opts.bpm;
+    this._pendingBpm = null;
     this.ns = this.opts.namespace || "notePython";
     this.$board = $(this.opts.boardEl).first();
     this.$playWrap = $("#play");
@@ -2113,12 +2114,12 @@ var NotePython = /*#__PURE__*/function () {
   }, {
     key: "_advanceRoundTempo",
     value: function _advanceRoundTempo() {
+      var _this$_pendingBpm;
       if (!this._normalizeOnOff(this.opts.speedUpEachRound)) return;
-      var nextBpm = (0,_shared_tempo_js__WEBPACK_IMPORTED_MODULE_9__.normalizeMetronomeBpm)(this._currentBpm + 10);
+      var nextBpm = (0,_shared_tempo_js__WEBPACK_IMPORTED_MODULE_9__.normalizeMetronomeBpm)(((_this$_pendingBpm = this._pendingBpm) !== null && _this$_pendingBpm !== void 0 ? _this$_pendingBpm : this._currentBpm) + 10);
       if (nextBpm === this._currentBpm) return;
-      this._currentBpm = nextBpm;
-      // A paused game resumes at the new BPM when its modal closes.
-      if (this._tickTimer != null) this._startLoop();
+      // Finish the current eighth note before changing both clocks together.
+      if (this._tickTimer != null) this._pendingBpm = nextBpm;else this._currentBpm = nextBpm;
     }
   }, {
     key: "_wrapCell",
@@ -2673,7 +2674,7 @@ var NotePython = /*#__PURE__*/function () {
     value: function _snakeHopStyle(cell, index, now) {
       var hop = this._snakeHop;
       if (!hop) return "";
-      var step = this._snakeSpeedMs();
+      var step = hop.stepMs;
       var elapsed = now - hop.startedAt;
       var duration = step * 0.68;
       var delay = Math.min(index * step * 0.055, step * 0.24);
@@ -3055,7 +3056,8 @@ var NotePython = /*#__PURE__*/function () {
       var willGrow = !!isCorrectFood;
       this._snakeHop = {
         from: this._snake.slice(),
-        startedAt: performance.now()
+        startedAt: performance.now(),
+        stepMs: this._snakeSpeedMs()
       };
       this._snake.unshift(next);
       if (!willGrow) {
@@ -3136,12 +3138,16 @@ var NotePython = /*#__PURE__*/function () {
     key: "_stopLoop",
     value: function _stopLoop() {
       var _this$$board1, _this$$board1$find;
+      if (this._pendingBpm != null) {
+        this._currentBpm = this._pendingBpm;
+        this._pendingBpm = null;
+      }
       this._snakeHop = null;
       // Settle before pause, crash, or victory animations take over the cells.
       (_this$$board1 = this.$board) === null || _this$$board1 === void 0 || (_this$$board1$find = _this$$board1.find) === null || _this$$board1$find === void 0 || _this$$board1$find.call(_this$$board1, ".snake-hopping").removeClass("snake-hopping");
       this._music.stop();
       if (this._tickTimer != null) {
-        clearInterval(this._tickTimer);
+        clearTimeout(this._tickTimer);
         this._tickTimer = null;
       }
     }
@@ -3242,11 +3248,22 @@ var NotePython = /*#__PURE__*/function () {
         this._music.start(this._currentBpm);
         this._music.playStep(this._snake.length);
       }
-      this._tickTimer = setInterval(function () {
+      var nextTickAt = performance.now() + this._snakeSpeedMs();
+      var _tick = function tick() {
+        var tickStartedAt = performance.now();
+        if (_this17._pendingBpm != null) {
+          _this17._currentBpm = _this17._pendingBpm;
+          _this17._pendingBpm = null;
+          _this17._music.setTempo(_this17._currentBpm);
+        }
         _this17._advanceSnake();
         if (_this17._isGameOver || _this17._tickTimer == null) return;
         _this17._music.playStep(_this17._snake.length);
-      }, this._snakeSpeedMs());
+        // Include rendering time in the beat, and avoid catch-up bursts after a stall.
+        nextTickAt = Math.max(nextTickAt, tickStartedAt) + _this17._snakeSpeedMs();
+        _this17._tickTimer = setTimeout(_tick, Math.max(0, nextTickAt - performance.now()));
+      };
+      this._tickTimer = setTimeout(_tick, this._snakeSpeedMs());
     }
   }, {
     key: "_showStandardGameUi",
@@ -3687,7 +3704,7 @@ var NotePythonMusic = /*#__PURE__*/function () {
     value: function start(bpm) {
       this.stop();
       if (!window.Tone) return;
-      this._eighth = (0,_shared_tempo_js__WEBPACK_IMPORTED_MODULE_0__.beatMsForBpm)(bpm) / 2000;
+      this.setTempo(bpm);
       this._nextTime = window.Tone.now();
       this._voices = {
         lead: this._synth("triangle", -23, 0.07),
@@ -3744,6 +3761,14 @@ var NotePythonMusic = /*#__PURE__*/function () {
           volume: -38
         }).toDestination()
       };
+    }
+
+    // Change spacing at an eighth-note boundary without cutting off voices or
+    // moving the already scheduled boundary in _nextTime.
+  }, {
+    key: "setTempo",
+    value: function setTempo(bpm) {
+      this._eighth = (0,_shared_tempo_js__WEBPACK_IMPORTED_MODULE_0__.beatMsForBpm)(bpm) / 2000;
     }
 
     // Called on the same eighth-note tick that moves the snake. Schedule extra

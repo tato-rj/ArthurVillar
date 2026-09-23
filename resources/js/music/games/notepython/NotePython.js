@@ -90,6 +90,7 @@ export class NotePython {
     this.opts = { ...defaults, ...(options || {}) };
     this.opts.bpm = normalizeMetronomeBpm(this.opts.bpm);
     this._currentBpm = this.opts.bpm;
+    this._pendingBpm = null;
     this.ns = this.opts.namespace || "notePython";
     this.$board = $(this.opts.boardEl).first();
     this.$playWrap = $("#play");
@@ -205,11 +206,11 @@ export class NotePython {
 
   _advanceRoundTempo() {
     if (!this._normalizeOnOff(this.opts.speedUpEachRound)) return;
-    const nextBpm = normalizeMetronomeBpm(this._currentBpm + 10);
+    const nextBpm = normalizeMetronomeBpm((this._pendingBpm ?? this._currentBpm) + 10);
     if (nextBpm === this._currentBpm) return;
-    this._currentBpm = nextBpm;
-    // A paused game resumes at the new BPM when its modal closes.
-    if (this._tickTimer != null) this._startLoop();
+    // Finish the current eighth note before changing both clocks together.
+    if (this._tickTimer != null) this._pendingBpm = nextBpm;
+    else this._currentBpm = nextBpm;
   }
 
   _wrapCell({ r, c }) {
@@ -666,7 +667,7 @@ export class NotePython {
   _snakeHopStyle(cell, index, now) {
     const hop = this._snakeHop;
     if (!hop) return "";
-    const step = this._snakeSpeedMs();
+    const step = hop.stepMs;
     const elapsed = now - hop.startedAt;
     const duration = step * 0.68;
     const delay = Math.min(index * step * 0.055, step * 0.24);
@@ -1074,7 +1075,11 @@ export class NotePython {
     );
     const willGrow = !!isCorrectFood;
 
-    this._snakeHop = { from: this._snake.slice(), startedAt: performance.now() };
+    this._snakeHop = {
+      from: this._snake.slice(),
+      startedAt: performance.now(),
+      stepMs: this._snakeSpeedMs(),
+    };
     this._snake.unshift(next);
 
     if (!willGrow) {
@@ -1156,12 +1161,16 @@ export class NotePython {
   }
 
   _stopLoop() {
+    if (this._pendingBpm != null) {
+      this._currentBpm = this._pendingBpm;
+      this._pendingBpm = null;
+    }
     this._snakeHop = null;
     // Settle before pause, crash, or victory animations take over the cells.
     this.$board?.find?.(".snake-hopping").removeClass("snake-hopping");
     this._music.stop();
     if (this._tickTimer != null) {
-      clearInterval(this._tickTimer);
+      clearTimeout(this._tickTimer);
       this._tickTimer = null;
     }
   }
@@ -1233,12 +1242,23 @@ export class NotePython {
       this._music.start(this._currentBpm);
       this._music.playStep(this._snake.length);
     }
-    this._tickTimer = setInterval(() => {
+    let nextTickAt = performance.now() + this._snakeSpeedMs();
+    const tick = () => {
+      const tickStartedAt = performance.now();
+      if (this._pendingBpm != null) {
+        this._currentBpm = this._pendingBpm;
+        this._pendingBpm = null;
+        this._music.setTempo(this._currentBpm);
+      }
       this._advanceSnake();
       if (this._isGameOver || this._tickTimer == null) return;
 
       this._music.playStep(this._snake.length);
-    }, this._snakeSpeedMs());
+      // Include rendering time in the beat, and avoid catch-up bursts after a stall.
+      nextTickAt = Math.max(nextTickAt, tickStartedAt) + this._snakeSpeedMs();
+      this._tickTimer = setTimeout(tick, Math.max(0, nextTickAt - performance.now()));
+    };
+    this._tickTimer = setTimeout(tick, this._snakeSpeedMs());
   }
 
   _showStandardGameUi() {

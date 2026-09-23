@@ -38,7 +38,7 @@ export class NotePythonMusic {
   start(bpm) {
     this.stop();
     if (!window.Tone) return;
-    this._eighth = beatMsForBpm(bpm) / 2000;
+    this.setTempo(bpm);
     this._nextTime = window.Tone.now();
     this._voices = {
       lead: this._synth("triangle", -23, 0.07),
@@ -67,6 +67,12 @@ export class NotePythonMusic {
         volume: -38,
       }).toDestination(),
     };
+  }
+
+  // Change spacing at an eighth-note boundary without cutting off voices or
+  // moving the already scheduled boundary in _nextTime.
+  setTempo(bpm) {
+    this._eighth = beatMsForBpm(bpm) / 2000;
   }
 
   // Called on the same eighth-note tick that moves the snake. Schedule extra

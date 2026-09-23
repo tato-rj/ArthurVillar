@@ -14,7 +14,7 @@ function setup(bpm = 80) {
     const game = vm.runInContext('Object.create(NotePython.prototype)', context);
     game.opts = { bpm };
     game._currentBpm = bpm;
-    game._snakeHop = { from: [{ r: 1, c: 4 }, { r: 0, c: 4 }], startedAt: 1000 };
+    game._snakeHop = { from: [{ r: 1, c: 4 }, { r: 0, c: 4 }], startedAt: 1000, stepMs: game._snakeSpeedMs() };
     return game;
 }
 
@@ -56,6 +56,13 @@ test('food redraws retain the hop phase and growth starts at the old tail', () =
     const tail = values(game._snakeHopStyle({ r: 0, c: 4 }, 2, 1000));
     assert.equal(tail['--hop-x'], 0);
     assert.equal(tail['--hop-y'], 0);
+});
+
+test('a tempo change cannot reshape a hop that is already in progress', () => {
+    const game = setup();
+    const before = game._snakeHopStyle({ r: 1, c: 4 }, 1, 1100);
+    game._currentBpm = 90;
+    assert.equal(game._snakeHopStyle({ r: 1, c: 4 }, 1, 1100), before);
 });
 
 test('edge wrapping bounces in place and stopping clears pending hops', () => {
