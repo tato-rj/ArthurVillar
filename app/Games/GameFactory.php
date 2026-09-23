@@ -39,9 +39,13 @@ abstract class GameFactory
         return true;
     }
 
-    public function leaderboard()
+    public function leaderboard($limit = null)
     {
-        return Player::byGame($this->gameName())->range(request()->range)->orderBy('finalScore', 'DESC')->get();
+        $query = Player::byGame($this->gameName())->range(request()->range)->orderBy('finalScore', 'DESC');
+
+        return $limit ? 
+                $query->take($limit)->get() : 
+                $query->get();
     }
 
     public function gameSlug()

@@ -6,7 +6,7 @@
 	</div>
 
 	<div style="max-height: 600px; overflow-y: scroll;" class="p-2 leaderboard-players">
-		@include('theory.components.leaderboard.list', ['leaderboard' => $settings->leaderboard()])
+		@include('theory.components.leaderboard.list', ['leaderboard' => $settings->leaderboard(20)])
 	</div>
 </div>
 @endmodal
