@@ -45,6 +45,7 @@ export class MemoryWizard extends BaseStaffGame {
     this.$playStopBtn = null;
     this._roundPrepared = false;
     this._previewPlaybackActive = false;
+    this._hasPlayedThisRound = false;
     this._staffPlayStepOriginal = null;
   }
 
@@ -71,7 +72,14 @@ export class MemoryWizard extends BaseStaffGame {
         this._stopPreparedRoundPlayback();
       });
 
-    this._showPlayPrompt();
+    this.$staffEl
+      .off(`staff:userNoteAdded._answerControls.${this.ns} staff:userNotesChanged._answerControls.${this.ns}`)
+      .on(
+        `staff:userNoteAdded._answerControls.${this.ns} staff:userNotesChanged._answerControls.${this.ns}`,
+        (e, data) => this._syncAnswerControls(Number(data?.count)),
+      );
+
+    this._syncAnswerControls();
   }
 
   _displayNameForLetter(letter) {
@@ -127,6 +135,7 @@ export class MemoryWizard extends BaseStaffGame {
     this._pendingRoundTimerStart = false;
     this._roundPrepared = false;
     this._previewPlaybackActive = false;
+    this._hasPlayedThisRound = false;
   }
 
   _clearPendingPreviewTimeouts() {
@@ -168,14 +177,50 @@ export class MemoryWizard extends BaseStaffGame {
     if (this.$playStopBtn?.length) this.$playStopBtn.toggle(!!isPlaying);
   }
 
-  _showPlayPrompt() {
-    if (this.$playWrap?.length) this.$playWrap.show();
-    this._setPlayButtons(false);
+  _checkAfterUserNotes() {
+    return this._targetSequence.length || 1;
   }
 
-  _hidePlayPrompt() {
-    this.$playWrap?.hide?.();
-    this._setPlayButtons(false);
+  _setInstructions(message) {
+    this.instructionsUi.show().setHtml(message, { animate: false });
+  }
+
+  _removeInstructions() {
+    this.$instructions.show();
+    this._instructionsRemoved = true;
+  }
+
+  _restoreInstructions() {
+    this.$instructions.show();
+    this._instructionsRemoved = false;
+  }
+
+  _syncAnswerControls(count = this._currentUserNoteCount()) {
+    const userNoteCount = Number.isFinite(count) ? count : this._currentUserNoteCount();
+    const hasAnswer = userNoteCount >= this._checkAfterUserNotes();
+    const roundControlsHidden =
+      $("#continue").is(":visible") ||
+      $("#final-overlay").is(":visible");
+    const showPlay = !roundControlsHidden && !hasAnswer;
+    const showCheck = !roundControlsHidden && hasAnswer;
+
+    this.$playWrap?.toggle?.(showPlay);
+    this.$checkWrap?.toggle?.(showCheck).toggleClass?.("invisible", !showCheck);
+
+    if (!roundControlsHidden) {
+      const remaining = this._checkAfterUserNotes() - userNoteCount;
+      this._setInstructions(
+        hasAnswer
+          ? "When you’re ready, check your answer."
+          : this._previewPlaybackActive
+            ? "Listen closely…"
+            : !this._hasPlayedThisRound
+              ? "Press Play when you’re ready."
+              : remaining === 1
+                ? "Add the note you heard."
+                : `Add the ${remaining} notes you heard in order.`,
+      );
+    }
   }
 
   _setPreviewInteractionDisabled(disabled) {
@@ -184,6 +229,7 @@ export class MemoryWizard extends BaseStaffGame {
       this._previewPlaybackActive = false;
       this._setPlayButtons(false);
       this._startPendingRoundTimerIfNeeded();
+      this._syncAnswerControls();
     }
   }
 
@@ -231,10 +277,12 @@ export class MemoryWizard extends BaseStaffGame {
   _stopPreparedRoundPlayback() {
     this._clearPendingPreviewTimeouts();
     this._previewPlaybackActive = false;
+    this._hasPlayedThisRound = false;
     this._pendingRoundTimerStart = false;
     this.staff.clearNotes();
     this._setPreviewInteractionDisabled(true);
-    this._showPlayPrompt();
+    this._setPlayButtons(false);
+    this._syncAnswerControls(0);
   }
 
   _playTargetSound(target) {
@@ -282,6 +330,7 @@ export class MemoryWizard extends BaseStaffGame {
     this._previewPlaybackActive = true;
     this._setPlayButtons(true);
     this._setPreviewInteractionDisabled(true);
+    this._syncAnswerControls(0);
     this._clearPendingPreviewTimeouts();
 
     const showAtIndex = (index) => {
@@ -317,7 +366,7 @@ export class MemoryWizard extends BaseStaffGame {
     this.staff.clearNotes();
     this.maxUserNotes = this._targetSequence.length;
     if (this._isTimerEnabled()) this._pendingRoundTimerStart = true;
-    this._showPlayPrompt();
+    this._hasPlayedThisRound = true;
     this._showTargetPreviewSequence();
   }
 
@@ -416,10 +465,11 @@ export class MemoryWizard extends BaseStaffGame {
     this._lastTargetSignature = this._targetSignature(nextTarget);
     this.maxUserNotes = 0;
     this._roundPrepared = true;
-    this._showPlayPrompt();
+    this._hasPlayedThisRound = false;
 
-    $("#check").hide().addClass("invisible");
     $("#continue").hide();
+    this._setPlayButtons(false);
+    this._syncAnswerControls(0);
   }
 
   _collectUserNotes() {

@@ -1999,6 +1999,7 @@ var MemoryWizard = /*#__PURE__*/function (_BaseStaffGame) {
     _this.$playStopBtn = null;
     _this._roundPrepared = false;
     _this._previewPlaybackActive = false;
+    _this._hasPlayedThisRound = false;
     _this._staffPlayStepOriginal = null;
     return _this;
   }
@@ -2021,7 +2022,10 @@ var MemoryWizard = /*#__PURE__*/function (_BaseStaffGame) {
         e.preventDefault();
         _this2._stopPreparedRoundPlayback();
       });
-      this._showPlayPrompt();
+      this.$staffEl.off("staff:userNoteAdded._answerControls.".concat(this.ns, " staff:userNotesChanged._answerControls.").concat(this.ns)).on("staff:userNoteAdded._answerControls.".concat(this.ns, " staff:userNotesChanged._answerControls.").concat(this.ns), function (e, data) {
+        return _this2._syncAnswerControls(Number(data === null || data === void 0 ? void 0 : data.count));
+      });
+      this._syncAnswerControls();
     }
   }, {
     key: "_displayNameForLetter",
@@ -2084,6 +2088,7 @@ var MemoryWizard = /*#__PURE__*/function (_BaseStaffGame) {
       this._pendingRoundTimerStart = false;
       this._roundPrepared = false;
       this._previewPlaybackActive = false;
+      this._hasPlayedThisRound = false;
     }
   }, {
     key: "_clearPendingPreviewTimeouts",
@@ -2138,18 +2143,45 @@ var MemoryWizard = /*#__PURE__*/function (_BaseStaffGame) {
       if ((_this$$playStopBtn = this.$playStopBtn) !== null && _this$$playStopBtn !== void 0 && _this$$playStopBtn.length) this.$playStopBtn.toggle(!!isPlaying);
     }
   }, {
-    key: "_showPlayPrompt",
-    value: function _showPlayPrompt() {
-      var _this$$playWrap;
-      if ((_this$$playWrap = this.$playWrap) !== null && _this$$playWrap !== void 0 && _this$$playWrap.length) this.$playWrap.show();
-      this._setPlayButtons(false);
+    key: "_checkAfterUserNotes",
+    value: function _checkAfterUserNotes() {
+      return this._targetSequence.length || 1;
     }
   }, {
-    key: "_hidePlayPrompt",
-    value: function _hidePlayPrompt() {
-      var _this$$playWrap2, _this$$playWrap2$hide;
-      (_this$$playWrap2 = this.$playWrap) === null || _this$$playWrap2 === void 0 || (_this$$playWrap2$hide = _this$$playWrap2.hide) === null || _this$$playWrap2$hide === void 0 || _this$$playWrap2$hide.call(_this$$playWrap2);
-      this._setPlayButtons(false);
+    key: "_setInstructions",
+    value: function _setInstructions(message) {
+      this.instructionsUi.show().setHtml(message, {
+        animate: false
+      });
+    }
+  }, {
+    key: "_removeInstructions",
+    value: function _removeInstructions() {
+      this.$instructions.show();
+      this._instructionsRemoved = true;
+    }
+  }, {
+    key: "_restoreInstructions",
+    value: function _restoreInstructions() {
+      this.$instructions.show();
+      this._instructionsRemoved = false;
+    }
+  }, {
+    key: "_syncAnswerControls",
+    value: function _syncAnswerControls() {
+      var _this$$playWrap, _this$$playWrap$toggl, _this$$checkWrap, _this$$checkWrap$togg, _this$$checkWrap$togg2, _this$$checkWrap$togg3;
+      var count = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this._currentUserNoteCount();
+      var userNoteCount = Number.isFinite(count) ? count : this._currentUserNoteCount();
+      var hasAnswer = userNoteCount >= this._checkAfterUserNotes();
+      var roundControlsHidden = $("#continue").is(":visible") || $("#final-overlay").is(":visible");
+      var showPlay = !roundControlsHidden && !hasAnswer;
+      var showCheck = !roundControlsHidden && hasAnswer;
+      (_this$$playWrap = this.$playWrap) === null || _this$$playWrap === void 0 || (_this$$playWrap$toggl = _this$$playWrap.toggle) === null || _this$$playWrap$toggl === void 0 || _this$$playWrap$toggl.call(_this$$playWrap, showPlay);
+      (_this$$checkWrap = this.$checkWrap) === null || _this$$checkWrap === void 0 || (_this$$checkWrap$togg = _this$$checkWrap.toggle) === null || _this$$checkWrap$togg === void 0 || (_this$$checkWrap$togg2 = (_this$$checkWrap$togg3 = _this$$checkWrap$togg.call(_this$$checkWrap, showCheck)).toggleClass) === null || _this$$checkWrap$togg2 === void 0 || _this$$checkWrap$togg2.call(_this$$checkWrap$togg3, "invisible", !showCheck);
+      if (!roundControlsHidden) {
+        var remaining = this._checkAfterUserNotes() - userNoteCount;
+        this._setInstructions(hasAnswer ? "When you’re ready, check your answer." : this._previewPlaybackActive ? "Listen closely…" : !this._hasPlayedThisRound ? "Press Play when you’re ready." : remaining === 1 ? "Add the note you heard." : "Add the ".concat(remaining, " notes you heard in order."));
+      }
     }
   }, {
     key: "_setPreviewInteractionDisabled",
@@ -2159,6 +2191,7 @@ var MemoryWizard = /*#__PURE__*/function (_BaseStaffGame) {
         this._previewPlaybackActive = false;
         this._setPlayButtons(false);
         this._startPendingRoundTimerIfNeeded();
+        this._syncAnswerControls();
       }
     }
   }, {
@@ -2215,10 +2248,12 @@ var MemoryWizard = /*#__PURE__*/function (_BaseStaffGame) {
     value: function _stopPreparedRoundPlayback() {
       this._clearPendingPreviewTimeouts();
       this._previewPlaybackActive = false;
+      this._hasPlayedThisRound = false;
       this._pendingRoundTimerStart = false;
       this.staff.clearNotes();
       this._setPreviewInteractionDisabled(true);
-      this._showPlayPrompt();
+      this._setPlayButtons(false);
+      this._syncAnswerControls(0);
     }
   }, {
     key: "_playTargetSound",
@@ -2264,6 +2299,7 @@ var MemoryWizard = /*#__PURE__*/function (_BaseStaffGame) {
       this._previewPlaybackActive = true;
       this._setPlayButtons(true);
       this._setPreviewInteractionDisabled(true);
+      this._syncAnswerControls(0);
       this._clearPendingPreviewTimeouts();
       var _showAtIndex = function showAtIndex(index) {
         var target = _this4._targetSequence[index];
@@ -2293,7 +2329,7 @@ var MemoryWizard = /*#__PURE__*/function (_BaseStaffGame) {
       this.staff.clearNotes();
       this.maxUserNotes = this._targetSequence.length;
       if (this._isTimerEnabled()) this._pendingRoundTimerStart = true;
-      this._showPlayPrompt();
+      this._hasPlayedThisRound = true;
       this._showTargetPreviewSequence();
     }
   }, {
@@ -2377,9 +2413,10 @@ var MemoryWizard = /*#__PURE__*/function (_BaseStaffGame) {
       this._lastTargetSignature = this._targetSignature(nextTarget);
       this.maxUserNotes = 0;
       this._roundPrepared = true;
-      this._showPlayPrompt();
-      $("#check").hide().addClass("invisible");
+      this._hasPlayedThisRound = false;
       $("#continue").hide();
+      this._setPlayButtons(false);
+      this._syncAnswerControls(0);
     }
   }, {
     key: "_collectUserNotes",

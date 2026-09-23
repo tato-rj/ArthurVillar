@@ -13,6 +13,7 @@ function setup(bpm = 80) {
     vm.runInContext(`${tempo}\n${source}`, context);
     const game = vm.runInContext('Object.create(NotePython.prototype)', context);
     game.opts = { bpm };
+    game._currentBpm = bpm;
     game._snakeHop = { from: [{ r: 1, c: 4 }, { r: 0, c: 4 }], startedAt: 1000 };
     return game;
 }

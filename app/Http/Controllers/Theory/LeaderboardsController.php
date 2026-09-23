@@ -44,7 +44,11 @@ class LeaderboardsController extends Controller
 
     public function show(Request $request)
     {
-        $leaderboard = Player::byGame($request->game)->range($request->range)->orderBy('finalScore', 'DESC')->get();
+        $leaderboard = Player::byGame($request->game)
+                             ->range($request->range)
+                             ->orderBy('finalScore', 'DESC')
+                             ->take(20)
+                             ->get();
 
         return view('theory.components.leaderboard.list', compact('leaderboard'))->render();
     }

@@ -1995,12 +1995,14 @@ var NotePython = /*#__PURE__*/function () {
       strictDirection: false,
       showBombs: false,
       realWalls: false,
+      speedUpEachRound: false,
       successPhrases: ["Awesome", "Nicely done", "Well done", "Great job", "Hooray", "Fantastic", "Nice work", "Looks good", "Good one", "Splendid", "Way to go", "Nailed it", "Brilliant", "Excellent", "Superb", "Right on", "You got it", "Perfect", "Spot on", "Impressive", "Top notch", "That’s it"],
       intervals: Object.keys(NotePython.INTERVAL_FULL_NAME_MAP),
       namespace: "notePython"
     };
     this.opts = _objectSpread(_objectSpread({}, defaults), options || {});
     this.opts.bpm = (0,_shared_tempo_js__WEBPACK_IMPORTED_MODULE_9__.normalizeMetronomeBpm)(this.opts.bpm);
+    this._currentBpm = this.opts.bpm;
     this.ns = this.opts.namespace || "notePython";
     this.$board = $(this.opts.boardEl).first();
     this.$playWrap = $("#play");
@@ -2101,12 +2103,22 @@ var NotePython = /*#__PURE__*/function () {
   }, {
     key: "_snakeSpeedMs",
     value: function _snakeSpeedMs() {
-      return (0,_shared_tempo_js__WEBPACK_IMPORTED_MODULE_9__.eighthNoteMsForBpm)(this.opts.bpm);
+      return (0,_shared_tempo_js__WEBPACK_IMPORTED_MODULE_9__.eighthNoteMsForBpm)(this._currentBpm);
     }
   }, {
     key: "_beatMs",
     value: function _beatMs() {
-      return (0,_shared_tempo_js__WEBPACK_IMPORTED_MODULE_9__.beatMsForBpm)(this.opts.bpm);
+      return (0,_shared_tempo_js__WEBPACK_IMPORTED_MODULE_9__.beatMsForBpm)(this._currentBpm);
+    }
+  }, {
+    key: "_advanceRoundTempo",
+    value: function _advanceRoundTempo() {
+      if (!this._normalizeOnOff(this.opts.speedUpEachRound)) return;
+      var nextBpm = (0,_shared_tempo_js__WEBPACK_IMPORTED_MODULE_9__.normalizeMetronomeBpm)(this._currentBpm + 10);
+      if (nextBpm === this._currentBpm) return;
+      this._currentBpm = nextBpm;
+      // A paused game resumes at the new BPM when its modal closes.
+      if (this._tickTimer != null) this._startLoop();
     }
   }, {
     key: "_wrapCell",
@@ -3103,6 +3115,7 @@ var NotePython = /*#__PURE__*/function () {
             _this14._spawnBombs(1);
             _this14._ensureTargetFoodPresent();
             _this14._renderEntities();
+            _this14._advanceRoundTempo();
           }
         });
         return;
@@ -3226,7 +3239,7 @@ var NotePython = /*#__PURE__*/function () {
       if (this._pausedByModal) return;
       this._stopLoop();
       if (this._isSoundEnabled()) {
-        this._music.start(this.opts.bpm);
+        this._music.start(this._currentBpm);
         this._music.playStep(this._snake.length);
       }
       this._tickTimer = setInterval(function () {
@@ -3274,6 +3287,7 @@ var NotePython = /*#__PURE__*/function () {
         _this$$board11$remove;
       this._stopLoop();
       this._music.reset();
+      this._currentBpm = this.opts.bpm;
       $(window).off("pagehide.".concat(this.ns, "Music")).on("pagehide.".concat(this.ns, "Music"), function () {
         _this18._stopLoop();
         _this18._music.reset();
@@ -3487,7 +3501,7 @@ var NotePython = /*#__PURE__*/function () {
   }, {
     key: "_playVictorySfx",
     value: function _playVictorySfx() {
-      if (this._isSoundEnabled()) this._music.playVictory(this.opts.bpm);
+      if (this._isSoundEnabled()) this._music.playVictory(this._currentBpm);
     }
   }, {
     key: "_playFinalSfx",

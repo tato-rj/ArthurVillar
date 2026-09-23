@@ -4,7 +4,7 @@ namespace App\Games;
 
 class NotePythonSettings extends GameFactory
 {   
-    protected array $bonusPoints = ['showBombs', 'realWalls'];
+    protected array $bonusPoints = ['showBombs', 'realWalls', 'speedUpEachRound'];
     protected array $categories = ['harmony'];
 
     public function gameName(): string
@@ -39,7 +39,7 @@ class NotePythonSettings extends GameFactory
 
     protected function requiredToggleKeys(): array
     {
-        return ['sound', 'solfege', 'allowAccidentals', 'strictDirection', 'showBombs'];
+        return ['sound', 'solfege', 'allowAccidentals', 'strictDirection', 'showBombs', 'speedUpEachRound'];
     }
 
     protected function defaults(): array
@@ -58,6 +58,7 @@ class NotePythonSettings extends GameFactory
             'strictDirection' => false,
             'showBombs' => false,
             'realWalls' => false,
+            'speedUpEachRound' => false,
         ];
     }
 

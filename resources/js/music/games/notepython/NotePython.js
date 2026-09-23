@@ -58,6 +58,7 @@ export class NotePython {
       strictDirection: false,
       showBombs: false,
       realWalls: false,
+      speedUpEachRound: false,
       successPhrases: [
         "Awesome",
         "Nicely done",
@@ -88,6 +89,7 @@ export class NotePython {
 
     this.opts = { ...defaults, ...(options || {}) };
     this.opts.bpm = normalizeMetronomeBpm(this.opts.bpm);
+    this._currentBpm = this.opts.bpm;
     this.ns = this.opts.namespace || "notePython";
     this.$board = $(this.opts.boardEl).first();
     this.$playWrap = $("#play");
@@ -194,11 +196,20 @@ export class NotePython {
   }
 
   _snakeSpeedMs() {
-    return eighthNoteMsForBpm(this.opts.bpm);
+    return eighthNoteMsForBpm(this._currentBpm);
   }
 
   _beatMs() {
-    return beatMsForBpm(this.opts.bpm);
+    return beatMsForBpm(this._currentBpm);
+  }
+
+  _advanceRoundTempo() {
+    if (!this._normalizeOnOff(this.opts.speedUpEachRound)) return;
+    const nextBpm = normalizeMetronomeBpm(this._currentBpm + 10);
+    if (nextBpm === this._currentBpm) return;
+    this._currentBpm = nextBpm;
+    // A paused game resumes at the new BPM when its modal closes.
+    if (this._tickTimer != null) this._startLoop();
   }
 
   _wrapCell({ r, c }) {
@@ -1125,6 +1136,7 @@ export class NotePython {
           this._spawnBombs(1);
           this._ensureTargetFoodPresent();
           this._renderEntities();
+          this._advanceRoundTempo();
         },
       });
       return;
@@ -1218,7 +1230,7 @@ export class NotePython {
     if (this._pausedByModal) return;
     this._stopLoop();
     if (this._isSoundEnabled()) {
-      this._music.start(this.opts.bpm);
+      this._music.start(this._currentBpm);
       this._music.playStep(this._snake.length);
     }
     this._tickTimer = setInterval(() => {
@@ -1254,6 +1266,7 @@ export class NotePython {
   start() {
     this._stopLoop();
     this._music.reset();
+    this._currentBpm = this.opts.bpm;
     $(window).off(`pagehide.${this.ns}Music`).on(`pagehide.${this.ns}Music`, () => {
       this._stopLoop();
       this._music.reset();
@@ -1435,7 +1448,7 @@ export class NotePython {
   }
 
   _playVictorySfx() {
-    if (this._isSoundEnabled()) this._music.playVictory(this.opts.bpm);
+    if (this._isSoundEnabled()) this._music.playVictory(this._currentBpm);
   }
 
   _playFinalSfx() {
