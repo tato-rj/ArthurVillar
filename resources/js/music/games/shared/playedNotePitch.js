@@ -1,8 +1,12 @@
 export function createStablePitchState() {
-  return { midi: null, frequency: null, count: 0 };
+  return { midi: null, frequency: null, count: 0, samples: [], settled: false };
 }
 
-export const PLAYED_NOTE_STABLE_FRAME_COUNT = 5;
+export const PLAYED_NOTE_STABLE_DURATION_MS = 700;
+const MIN_STABLE_SAMPLES = 5;
+const MAX_SAMPLE_GAP_MS = 250;
+const MAX_PITCH_SPREAD_CENTS = 70;
+const MAX_PITCH_DRIFT_CENTS = 25;
 
 export function isLikelyMobileDevice() {
   return window.matchMedia?.("(pointer: coarse)")?.matches ||
@@ -13,23 +17,62 @@ export function frequencyToMidi(frequency) {
   return Math.round(69 + (12 * Math.log2(frequency / 440)));
 }
 
-export function updateStablePitchState(stablePitch, frequency) {
-  const midi = frequencyToMidi(frequency);
-  const current = stablePitch || createStablePitchState();
-  const semitoneDistance = Number.isFinite(current.frequency)
-    ? Math.abs(12 * Math.log2(frequency / current.frequency))
-    : Infinity;
-
-  if (midi === current.midi || semitoneDistance <= 0.45) {
-    const smoothedFrequency = ((current.frequency * 0.75) + (frequency * 0.25));
-    return {
-      midi: frequencyToMidi(smoothedFrequency),
-      frequency: smoothedFrequency,
-      count: current.count + 1,
-    };
+export function updateStablePitchState(stablePitch, frequency, timestamp = performance.now()) {
+  if (!Number.isFinite(frequency) || frequency <= 0 || !Number.isFinite(timestamp)) {
+    return createStablePitchState();
   }
 
-  return { midi, frequency, count: 1 };
+  const current = stablePitch || createStablePitchState();
+  const previousSamples = current.samples || [];
+  const lastSample = previousSamples[previousSamples.length - 1];
+  if (lastSample?.timestamp === timestamp) return current;
+  const gap = lastSample ? timestamp - lastSample.timestamp : Infinity;
+  const samples = gap > 0 && gap <= MAX_SAMPLE_GAP_MS ? [...previousSamples] : [];
+  samples.push({ cents: 1200 * Math.log2(frequency / 440), timestamp });
+
+  // Keep one sample at the start of the time window, independent of frame rate.
+  while (samples.length > MIN_STABLE_SAMPLES && timestamp - samples[1].timestamp >= PLAYED_NOTE_STABLE_DURATION_MS) {
+    samples.shift();
+  }
+  // A changed note or a wide glide starts a fresh settling window.
+  while (samples.length > 1) {
+    const pitches = samples.map(sample => sample.cents);
+    if (Math.max(...pitches) - Math.min(...pitches) <= MAX_PITCH_SPREAD_CENTS) break;
+    samples.shift();
+  }
+
+  const sortedPitches = samples.map(sample => sample.cents).sort((a, b) => a - b);
+  const middle = Math.floor(sortedPitches.length / 2);
+  const medianCents = sortedPitches.length % 2
+    ? sortedPitches[middle]
+    : (sortedPitches[middle - 1] + sortedPitches[middle]) / 2;
+  const settledFrequency = 440 * (2 ** (medianCents / 1200));
+  const duration = timestamp - samples[0].timestamp;
+  let settled = duration >= PLAYED_NOTE_STABLE_DURATION_MS && samples.length >= MIN_STABLE_SAMPLES;
+
+  if (settled) {
+    // A narrow range alone can still be a slow slide. Measure its overall drift
+    // while allowing small oscillations (such as vibrato) around a steady note.
+    const meanTime = samples.reduce((sum, sample) => sum + sample.timestamp - samples[0].timestamp, 0) / samples.length;
+    const meanPitch = samples.reduce((sum, sample) => sum + sample.cents, 0) / samples.length;
+    let covariance = 0;
+    let timeVariance = 0;
+    for (const sample of samples) {
+      const timeOffset = sample.timestamp - samples[0].timestamp - meanTime;
+      covariance += timeOffset * (sample.cents - meanPitch);
+      timeVariance += timeOffset ** 2;
+    }
+    const drift = timeVariance > 0 ? (covariance / timeVariance) * duration : Infinity;
+    settled = Math.abs(drift) <= MAX_PITCH_DRIFT_CENTS;
+  }
+
+  return {
+    midi: frequencyToMidi(settledFrequency),
+    frequency: settledFrequency,
+    count: samples.length,
+    samples,
+    settled,
+  };
 }
 
 export function detectPlayedNotePitch(buffer, sampleRate, { isMobile = isLikelyMobileDevice() } = {}) {

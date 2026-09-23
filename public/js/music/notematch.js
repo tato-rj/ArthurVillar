@@ -2605,8 +2605,8 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       var pitch = this._detectPitch(this._pitchData, this._pitchAudioContext.sampleRate);
       var frequency = pitch === null || pitch === void 0 ? void 0 : pitch.frequency;
       if (Number.isFinite(frequency)) {
-        this._stablePitch = (0,_shared_playedNotePitch_js__WEBPACK_IMPORTED_MODULE_3__.updateStablePitchState)(this._stablePitch, frequency);
-        if (this._stablePitch.count >= _shared_playedNotePitch_js__WEBPACK_IMPORTED_MODULE_3__.PLAYED_NOTE_STABLE_FRAME_COUNT) {
+        this._stablePitch = (0,_shared_playedNotePitch_js__WEBPACK_IMPORTED_MODULE_3__.updateStablePitchState)(this._stablePitch, frequency, this._pitchAudioContext.currentTime * 1000);
+        if (this._stablePitch.settled) {
           var stableMidi = this._frequencyToMidi(this._stablePitch.frequency);
           this._handlePlayedNoteHeard(stableMidi, this._midiToNoteName(stableMidi), this._stablePitch.frequency);
           return;
@@ -5474,21 +5474,34 @@ function naturalMidiFromNoteName(noteName) {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   PLAYED_NOTE_STABLE_FRAME_COUNT: () => (/* binding */ PLAYED_NOTE_STABLE_FRAME_COUNT),
+/* harmony export */   PLAYED_NOTE_STABLE_DURATION_MS: () => (/* binding */ PLAYED_NOTE_STABLE_DURATION_MS),
 /* harmony export */   createStablePitchState: () => (/* binding */ createStablePitchState),
 /* harmony export */   detectPlayedNotePitch: () => (/* binding */ detectPlayedNotePitch),
 /* harmony export */   frequencyToMidi: () => (/* binding */ frequencyToMidi),
 /* harmony export */   isLikelyMobileDevice: () => (/* binding */ isLikelyMobileDevice),
 /* harmony export */   updateStablePitchState: () => (/* binding */ updateStablePitchState)
 /* harmony export */ });
+function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
+function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
+function _arrayWithoutHoles(r) { if (Array.isArray(r)) return _arrayLikeToArray(r); }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
 function createStablePitchState() {
   return {
     midi: null,
     frequency: null,
-    count: 0
+    count: 0,
+    samples: [],
+    settled: false
   };
 }
-var PLAYED_NOTE_STABLE_FRAME_COUNT = 5;
+var PLAYED_NOTE_STABLE_DURATION_MS = 700;
+var MIN_STABLE_SAMPLES = 5;
+var MAX_SAMPLE_GAP_MS = 250;
+var MAX_PITCH_SPREAD_CENTS = 70;
+var MAX_PITCH_DRIFT_CENTS = 25;
 function isLikelyMobileDevice() {
   var _window$matchMedia, _window, _window$navigator;
   return ((_window$matchMedia = (_window = window).matchMedia) === null || _window$matchMedia === void 0 || (_window$matchMedia = _window$matchMedia.call(_window, "(pointer: coarse)")) === null || _window$matchMedia === void 0 ? void 0 : _window$matchMedia.matches) || /Android|iPhone|iPad|iPod/i.test(((_window$navigator = window.navigator) === null || _window$navigator === void 0 ? void 0 : _window$navigator.userAgent) || "");
@@ -5497,21 +5510,77 @@ function frequencyToMidi(frequency) {
   return Math.round(69 + 12 * Math.log2(frequency / 440));
 }
 function updateStablePitchState(stablePitch, frequency) {
-  var midi = frequencyToMidi(frequency);
+  var timestamp = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : performance.now();
+  if (!Number.isFinite(frequency) || frequency <= 0 || !Number.isFinite(timestamp)) {
+    return createStablePitchState();
+  }
   var current = stablePitch || createStablePitchState();
-  var semitoneDistance = Number.isFinite(current.frequency) ? Math.abs(12 * Math.log2(frequency / current.frequency)) : Infinity;
-  if (midi === current.midi || semitoneDistance <= 0.45) {
-    var smoothedFrequency = current.frequency * 0.75 + frequency * 0.25;
-    return {
-      midi: frequencyToMidi(smoothedFrequency),
-      frequency: smoothedFrequency,
-      count: current.count + 1
-    };
+  var previousSamples = current.samples || [];
+  var lastSample = previousSamples[previousSamples.length - 1];
+  if ((lastSample === null || lastSample === void 0 ? void 0 : lastSample.timestamp) === timestamp) return current;
+  var gap = lastSample ? timestamp - lastSample.timestamp : Infinity;
+  var samples = gap > 0 && gap <= MAX_SAMPLE_GAP_MS ? _toConsumableArray(previousSamples) : [];
+  samples.push({
+    cents: 1200 * Math.log2(frequency / 440),
+    timestamp: timestamp
+  });
+
+  // Keep one sample at the start of the time window, independent of frame rate.
+  while (samples.length > MIN_STABLE_SAMPLES && timestamp - samples[1].timestamp >= PLAYED_NOTE_STABLE_DURATION_MS) {
+    samples.shift();
+  }
+  // A changed note or a wide glide starts a fresh settling window.
+  while (samples.length > 1) {
+    var pitches = samples.map(function (sample) {
+      return sample.cents;
+    });
+    if (Math.max.apply(Math, _toConsumableArray(pitches)) - Math.min.apply(Math, _toConsumableArray(pitches)) <= MAX_PITCH_SPREAD_CENTS) break;
+    samples.shift();
+  }
+  var sortedPitches = samples.map(function (sample) {
+    return sample.cents;
+  }).sort(function (a, b) {
+    return a - b;
+  });
+  var middle = Math.floor(sortedPitches.length / 2);
+  var medianCents = sortedPitches.length % 2 ? sortedPitches[middle] : (sortedPitches[middle - 1] + sortedPitches[middle]) / 2;
+  var settledFrequency = 440 * Math.pow(2, medianCents / 1200);
+  var duration = timestamp - samples[0].timestamp;
+  var settled = duration >= PLAYED_NOTE_STABLE_DURATION_MS && samples.length >= MIN_STABLE_SAMPLES;
+  if (settled) {
+    // A narrow range alone can still be a slow slide. Measure its overall drift
+    // while allowing small oscillations (such as vibrato) around a steady note.
+    var meanTime = samples.reduce(function (sum, sample) {
+      return sum + sample.timestamp - samples[0].timestamp;
+    }, 0) / samples.length;
+    var meanPitch = samples.reduce(function (sum, sample) {
+      return sum + sample.cents;
+    }, 0) / samples.length;
+    var covariance = 0;
+    var timeVariance = 0;
+    var _iterator = _createForOfIteratorHelper(samples),
+      _step;
+    try {
+      for (_iterator.s(); !(_step = _iterator.n()).done;) {
+        var sample = _step.value;
+        var timeOffset = sample.timestamp - samples[0].timestamp - meanTime;
+        covariance += timeOffset * (sample.cents - meanPitch);
+        timeVariance += Math.pow(timeOffset, 2);
+      }
+    } catch (err) {
+      _iterator.e(err);
+    } finally {
+      _iterator.f();
+    }
+    var drift = timeVariance > 0 ? covariance / timeVariance * duration : Infinity;
+    settled = Math.abs(drift) <= MAX_PITCH_DRIFT_CENTS;
   }
   return {
-    midi: midi,
-    frequency: frequency,
-    count: 1
+    midi: frequencyToMidi(settledFrequency),
+    frequency: settledFrequency,
+    count: samples.length,
+    samples: samples,
+    settled: settled
   };
 }
 function detectPlayedNotePitch(buffer, sampleRate) {
