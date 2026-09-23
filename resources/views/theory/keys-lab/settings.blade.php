@@ -23,7 +23,7 @@
 
   @component('theory.components.settings.bonus')
     @include('theory.components.settings.toggle', ['label' => 'Time limit', 'name' => 'timer', 'icon' => 'stopwatch'])
-    @include('theory.components.settings.toggle', ['label' => 'Play with Greek Modes', 'name' => 'modes', 'icon' => 'music'])
+    @include('theory.components.settings.toggle', ['label' => 'Greek Modes', 'name' => 'modes', 'icon' => 'music'])
   @endcomponent
 
   <button type="submit" class="btn btn-primary w-100">Start new game</button>

@@ -2280,6 +2280,9 @@ var ChordDetective = /*#__PURE__*/function (_BaseStaffGame) {
       var startId = setTimeout(function () {
         var $note = _this6._initialNoteEl();
         if (!$note.length) return;
+        if (!$note.find(".note-playback-icon").length) {
+          $note.append('<i class="fa-solid fa-volume-high note-playback-icon" aria-hidden="true"></i>');
+        }
         $note.addClass("flickering");
         var endId = setTimeout(function () {
           $note.removeClass("flickering");

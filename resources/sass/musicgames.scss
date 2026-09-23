@@ -562,19 +562,24 @@ button.game-countdown-step-pop {
   z-index: 10;
 }
 
-.note.flickering {
-  border: 4px dotted yellow;
-  // animation: borderFlicker 1s infinite;
+.note .note-playback-icon {
+  display: none;
+  position: absolute;
+  inset: 0;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: calc(var(--note-height) * 0.55);
+  transform: rotate(calc(-1 * var(--note-rotate)));
+  pointer-events: none;
 }
 
-/* Animation */
-@keyframes borderFlicker {
-  0%   { border-color: white; }
-  20%  { border-color: yellow; }
-  40%  { border-color: white; }
-  60%  { border-color: yellow; }
-  80%  { border-color: white; }
-  100% { border-color: yellow; }
+.note.flickering .note-playback-icon {
+  display: flex;
+}
+
+.note.flickering .lettername {
+  visibility: hidden;
 }
 
 .note.fixed {
