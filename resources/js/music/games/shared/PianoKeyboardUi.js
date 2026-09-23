@@ -7,6 +7,7 @@ import {
   naturalMidiFromNoteName,
   naturalNoteNameFromMidi,
   noteNameFromMidi,
+  displayNoteName,
 } from "./noteNames.js";
 
 export class PianoKeyboardUi {
@@ -560,7 +561,7 @@ export class PianoKeyboardUi {
 
   _markerLabelFromNoteName(noteName) {
     const match = String(noteName || "").trim().match(/^([A-G][#b]?)-?\d+$/);
-    return match ? match[1] : String(noteName || "").trim();
+    return displayNoteName(match ? match[1] : String(noteName || "").trim());
   }
 
   _applyMarkerTone($marker, tone, color = "") {

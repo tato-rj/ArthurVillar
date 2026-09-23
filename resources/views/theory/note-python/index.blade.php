@@ -27,12 +27,13 @@
     width: calc(var(--note-python-board-size) + calc(var(--note-python-border-width) * 2));
     height: calc(var(--note-python-board-size) + calc(var(--note-python-border-width) * 2));
     background: white;
-    border: var(--note-python-border-width) dashed rgba(0,0,0,0.1);
+    border: var(--note-python-border-width) dashed rgba(0,0,0,0.05);
+    border-radius: 24px;
   }
 
   #board.walled {
-    border-color: black;
-    border-style: solid;
+    border-color: firebrick;
+    border-style: double;
   }
 
   @keyframes greenBoard {
@@ -71,19 +72,79 @@
   }
 
   .snake {
-    background: #ffe54c;
-    border-radius: 4px;
-    border: .5px solid black;
-    transform: scale(.8);
+    position: relative;
+    z-index: 1;
   }
 
   .snake-head {
-    position: relative;
-    z-index: 1;
+    z-index: 2;
+  }
+
+  .snake-hop, .snake-segment {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .snake-segment {
+    --segment-scale: .8;
     background: #ffe54c;
     border: .5px solid black;
+    border-radius: 24px;
+    transform: scale(var(--segment-scale));
+    transform-origin: 50% 80%;
+  }
+
+  .snake-head .snake-segment {
+    --segment-scale: 1;
     border-radius: 12px;
-    transform: scale(1);
+  }
+
+  .snake-shadow {
+    position: absolute;
+    left: 18%;
+    bottom: 0;
+    width: 64%;
+    height: 15%;
+    border-radius: 50%;
+    background: #38331e;
+    opacity: .2;
+    pointer-events: none;
+  }
+
+  .snake-hopping {
+    animation: snake-hop-travel var(--hop-duration) linear both;
+    animation-delay: var(--hop-delay);
+  }
+
+  .snake-hopping .snake-segment {
+    animation: snake-hop-bounce var(--hop-duration) ease-in-out both;
+    animation-delay: var(--hop-delay);
+  }
+
+  .snake-hopping .snake-shadow {
+    animation: snake-hop-shadow var(--hop-duration) ease-in-out both;
+    animation-delay: var(--hop-delay);
+  }
+
+  @keyframes snake-hop-travel {
+    0%, 12% {
+      transform: translate(calc(var(--hop-x) * var(--note-python-cell-size)), calc(var(--hop-y) * var(--note-python-cell-size)));
+    }
+    82%, 100% { transform: translate(0, 0); }
+  }
+
+  @keyframes snake-hop-bounce {
+    0%, 100% { transform: scale(var(--segment-scale)); }
+    12% { transform: scale(var(--segment-scale)) scale(1.14, .83); }
+    46% { transform: translateY(-13px) scale(var(--segment-scale)) scale(.92, 1.12) rotate(-4deg); }
+    82% { transform: scale(var(--segment-scale)) scale(1.18, .8) rotate(2deg); }
+  }
+
+  @keyframes snake-hop-shadow {
+    0%, 100% { transform: scale(1); opacity: .2; }
+    12%, 82% { transform: scale(1.15, .85); opacity: .26; }
+    46% { transform: scale(.65, .7); opacity: .1; }
   }
 
   .snake-face {
@@ -93,28 +154,92 @@
     pointer-events: none;
   }
 
-  .snake-face::before,
-  .snake-face::after {
-    content: "";
+  .snake-face-bob {
+    position: absolute;
+    inset: 0;
+    transform-origin: 50% 35%;
+    animation: snake-head-bob 840ms ease-in-out infinite;
+    animation-delay: var(--snake-motion-time, 0ms);
+  }
+
+  .snake-eye {
     position: absolute;
     top: -9%;
     width: 34%;
     height: 36%;
     border: 1.5px solid #292820;
     border-radius: 50%;
-    background: radial-gradient(circle at 55% 35%, #292820 0 23%, transparent 26%), #fff;
+    background: #fff;
     box-shadow: 0 2px 0 rgba(0, 0, 0, .12);
+    overflow: hidden;
+    transform-origin: 50% 90%;
+    animation: snake-eye-wobble 610ms ease-in-out infinite;
+    animation-delay: var(--snake-motion-time, 0ms);
   }
 
-  .snake-face::before {
+  .snake-eye-left {
     left: 9%;
   }
 
-  .snake-face::after {
+  .snake-eye-right {
     right: 9%;
     top: -13%;
     height: 40%;
-    background-position: -1px 2px;
+    animation-duration: 730ms;
+    animation-direction: reverse;
+  }
+
+  .snake-pupil {
+    position: absolute;
+    top: 27%;
+    left: 29%;
+    width: 43%;
+    height: 43%;
+    border-radius: 50%;
+    background: #292820;
+    animation: snake-pupil-rattle 470ms ease-in-out infinite;
+    animation-delay: var(--snake-motion-time, 0ms);
+  }
+
+  .snake-pupil::after {
+    content: "";
+    position: absolute;
+    top: 16%;
+    right: 18%;
+    width: 25%;
+    height: 25%;
+    border-radius: 50%;
+    background: white;
+  }
+
+  .snake-eye-right .snake-pupil {
+    animation-duration: 590ms;
+    animation-direction: reverse;
+  }
+
+  @keyframes snake-head-bob {
+    0%, 100% { transform: rotate(-3deg) translateY(0); }
+    50% { transform: rotate(3deg) translateY(-1px); }
+  }
+
+  @keyframes snake-eye-wobble {
+    0%, 100% { transform: rotate(-9deg) scale(1.04, .96); }
+    35% { transform: translateY(-2px) rotate(8deg) scale(.94, 1.07); }
+    65% { transform: translateY(1px) rotate(-4deg) scale(1.06, .94); }
+  }
+
+  @keyframes snake-pupil-rattle {
+    0%, 100% { transform: translate(-35%, -25%); }
+    30% { transform: translate(35%, 10%); }
+    55% { transform: translate(10%, 40%); }
+    80% { transform: translate(-25%, 15%); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .snake-face-bob, .snake-eye, .snake-pupil,
+    .snake-hopping, .snake-hopping .snake-segment, .snake-hopping .snake-shadow {
+      animation: none;
+    }
   }
 
   .food {

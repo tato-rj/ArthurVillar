@@ -12,6 +12,18 @@ export const NATURAL_PITCH_CLASS = {
 
 export const PITCH_CLASS_TO_NOTE = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 
+// Keep ASCII spellings for pitch calculations and input values; use these only
+// when showing a note name to a player.
+export function displayAccidental(offset) {
+  return { 2: "𝄪", 1: "♯", [-1]: "♭", [-2]: "𝄫" }[offset] || "";
+}
+
+export function displayNoteName(noteName) {
+  const raw = String(noteName ?? "");
+  return raw.replace(/^((?:Do|Re|Mi|Fa|Sol|La|Si|[A-G]))(##|bb|#|b)(?=$|-?\d+$)/i,
+    (_, base, accidental) => `${base}${{ "##": "𝄪", bb: "𝄫", "#": "♯", b: "♭" }[accidental]}`);
+}
+
 export function pitchClassFromMidi(midi) {
   if (!Number.isFinite(midi)) return null;
   return ((midi % 12) + 12) % 12;

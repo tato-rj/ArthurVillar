@@ -1,6 +1,6 @@
 import { BaseStaffGame } from "../base/BaseStaffGame.js";
 import { normalizeClefPool, pickChallengeClef } from "../shared/challengeUtils.js";
-import { noteNameFromMidi } from "../shared/noteNames.js";
+import { displayNoteName, noteNameFromMidi } from "../shared/noteNames.js";
 import {
   createStablePitchState,
   detectPlayedNotePitch,
@@ -330,7 +330,7 @@ export class NoteNest extends BaseStaffGame {
     const base = this._showSolfegeNoteNames()
       ? (NoteNest.LETTER_TO_SOLFEGE[letter] || letter)
       : letter;
-    return `${base}${accidental}${octave}`;
+    return displayNoteName(`${base}${accidental}${octave}`);
   }
 
   _playedNoteFeedbackNameWithoutOctave(midi) {
@@ -342,7 +342,7 @@ export class NoteNest extends BaseStaffGame {
     const base = this._showSolfegeNoteNames()
       ? (NoteNest.LETTER_TO_SOLFEGE[letter] || letter)
       : letter;
-    return `${base}${accidental}`;
+    return displayNoteName(`${base}${accidental}`);
   }
 
   _playedNoteWrongFeedbackText() {

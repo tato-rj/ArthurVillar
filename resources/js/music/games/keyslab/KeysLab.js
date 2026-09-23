@@ -1,6 +1,7 @@
 import { BaseStaffGame } from "../base/BaseStaffGame.js";
 import { playSmokePuffAtElement } from "../shared/mojsEffects.js";
 import { normalizeClefPool, pickChallengeClef } from "../shared/challengeUtils.js";
+import { displayNoteName } from "../shared/noteNames.js";
 
 export class KeysLab extends BaseStaffGame {
   static MAJOR_KEYS = ["C", "G", "D", "A", "E", "B", "F#", "C#", "F", "Bb", "Eb", "Ab", "Db", "Gb", "Cb"];
@@ -9,6 +10,10 @@ export class KeysLab extends BaseStaffGame {
   static FLAT_MAJOR_ORDER = ["F", "Bb", "Eb", "Ab", "Db", "Gb", "Cb"];
   static SHARP_MINOR_ORDER = ["E", "B", "F#", "C#", "G#", "D#", "A#"];
   static FLAT_MINOR_ORDER = ["D", "G", "C", "F", "Bb", "Eb", "Ab"];
+  static NOTE_LETTERS = ["C", "D", "E", "F", "G", "A", "B"];
+  static SHARP_NOTE_ORDER = ["F", "C", "G", "D", "A", "E", "B"];
+  static FLAT_NOTE_ORDER = ["B", "E", "A", "D", "G", "C", "F"];
+  static MODES = ["ionian", "dorian", "phrygian", "lydian", "mixolydian", "aeolian", "locrian"];
   static KEYSIG_STEPS = {
     treble: {
       sharp: [8, 5, 9, 6, 3, 7, 4],
@@ -29,7 +34,8 @@ export class KeysLab extends BaseStaffGame {
       clefUrls: null,
       sound: true,
       keyQualities: ["major", "minor"],
-      numberOfAccidentals: 0,
+      numberOfAccidentals: 2,
+      modes: false,
       namespace: "keysLab",
     };
 
@@ -74,8 +80,16 @@ export class KeysLab extends BaseStaffGame {
   }
 
   _pickKeyPrompt() {
-    const qualities = this._normalizeKeyQualities();
+    const qualities = this._normalizeOnOff(this.opts.modes)
+      ? KeysLab.MODES
+      : this._normalizeKeyQualities();
     const quality = qualities[Math.floor(Math.random() * qualities.length)];
+    if (KeysLab.MODES.includes(quality)) {
+      const parents = this._filterKeysByAccidentalLimit(KeysLab.MAJOR_KEYS, "major");
+      const parentMajor = parents[Math.floor(Math.random() * parents.length)];
+      const tonic = this._modeTonicFromMajor(parentMajor, KeysLab.MODES.indexOf(quality));
+      return { tonic, quality, parentMajor, full: `${tonic} ${quality}` };
+    }
     const pool = this._filterKeysByAccidentalLimit(
       quality === "minor" ? KeysLab.MINOR_KEYS : KeysLab.MAJOR_KEYS,
       quality,
@@ -85,37 +99,31 @@ export class KeysLab extends BaseStaffGame {
     return { tonic, quality, full };
   }
 
+  _modeTonicFromMajor(parentMajor, degree) {
+    const firstLetter = String(parentMajor || "").charAt(0);
+    const start = KeysLab.NOTE_LETTERS.indexOf(firstLetter);
+    if (start < 0) return "";
+    const letter = KeysLab.NOTE_LETTERS[(start + degree) % 7];
+    const signature = this._signatureForKey(parentMajor, "major");
+    const order = signature.type === "sharp" ? KeysLab.SHARP_NOTE_ORDER : KeysLab.FLAT_NOTE_ORDER;
+    const accidental = signature.type && order.slice(0, signature.count).includes(letter)
+      ? (signature.type === "sharp" ? "#" : "b")
+      : "";
+    return `${letter}${accidental}`;
+  }
+
   _maxAllowedAccidentals() {
-    const raw = Number(this.opts.numberOfAccidentals);
-    const level = Number.isFinite(raw) ? Math.trunc(raw) : 0;
-    if (level <= 0) return 2;
-    if (level === 1) return 4;
-    return 7;
+    const limit = Number(this.opts.numberOfAccidentals);
+    return Number.isInteger(limit) ? Math.max(1, Math.min(7, limit)) : 2;
+  }
+
+  _checkAfterUserNotes() {
+    // A natural key signature is a complete answer with an empty staff.
+    return 0;
   }
 
   _signatureCountForKey(tonic, quality) {
-    const cleanTonic = String(tonic || "").trim();
-    const cleanQuality = String(quality || "").trim().toLowerCase();
-
-    if (cleanQuality === "major") {
-      if (cleanTonic === "C") return 0;
-      const sharpIndex = KeysLab.SHARP_MAJOR_ORDER.indexOf(cleanTonic);
-      if (sharpIndex >= 0) return sharpIndex + 1;
-      const flatIndex = KeysLab.FLAT_MAJOR_ORDER.indexOf(cleanTonic);
-      if (flatIndex >= 0) return flatIndex + 1;
-      return 0;
-    }
-
-    if (cleanQuality === "minor") {
-      if (cleanTonic === "A") return 0;
-      const sharpIndex = KeysLab.SHARP_MINOR_ORDER.indexOf(cleanTonic);
-      if (sharpIndex >= 0) return sharpIndex + 1;
-      const flatIndex = KeysLab.FLAT_MINOR_ORDER.indexOf(cleanTonic);
-      if (flatIndex >= 0) return flatIndex + 1;
-      return 0;
-    }
-
-    return 0;
+    return this._signatureForKey(tonic, quality).count;
   }
 
   _filterKeysByAccidentalLimit(keys, quality) {
@@ -129,29 +137,35 @@ export class KeysLab extends BaseStaffGame {
   _renderKeyPrompt() {
     const picked = this._pickKeyPrompt();
     this._currentKeyPrompt = picked;
-    this.prompt.setShort(picked.full);
-    this.prompt.setLong(`Key of ${picked.full}`);
+    const visibleName = `${displayNoteName(picked.tonic)} ${picked.quality}`;
+    this.prompt.setShort(visibleName);
+    this.prompt.setLong(`Key of ${visibleName}`);
   }
 
   _expectedSignatureForPrompt() {
     const prompt = this._currentKeyPrompt || this._pickKeyPrompt();
-    const tonic = String(prompt.tonic || "").trim();
-    const quality = String(prompt.quality || "").trim().toLowerCase();
+    return this._signatureForKey(prompt.parentMajor || prompt.tonic,
+      prompt.parentMajor ? "major" : prompt.quality);
+  }
 
-    if (quality === "major") {
-      if (tonic === "C") return { type: null, count: 0 };
-      const s = KeysLab.SHARP_MAJOR_ORDER.indexOf(tonic);
+  _signatureForKey(tonic, quality) {
+    const cleanTonic = String(tonic || "").trim();
+    const cleanQuality = String(quality || "").trim().toLowerCase();
+
+    if (cleanQuality === "major") {
+      if (cleanTonic === "C") return { type: null, count: 0 };
+      const s = KeysLab.SHARP_MAJOR_ORDER.indexOf(cleanTonic);
       if (s >= 0) return { type: "sharp", count: s + 1 };
-      const f = KeysLab.FLAT_MAJOR_ORDER.indexOf(tonic);
+      const f = KeysLab.FLAT_MAJOR_ORDER.indexOf(cleanTonic);
       if (f >= 0) return { type: "flat", count: f + 1 };
       return { type: null, count: 0 };
     }
 
-    if (quality === "minor") {
-      if (tonic === "A") return { type: null, count: 0 };
-      const s = KeysLab.SHARP_MINOR_ORDER.indexOf(tonic);
+    if (cleanQuality === "minor") {
+      if (cleanTonic === "A") return { type: null, count: 0 };
+      const s = KeysLab.SHARP_MINOR_ORDER.indexOf(cleanTonic);
       if (s >= 0) return { type: "sharp", count: s + 1 };
-      const f = KeysLab.FLAT_MINOR_ORDER.indexOf(tonic);
+      const f = KeysLab.FLAT_MINOR_ORDER.indexOf(cleanTonic);
       if (f >= 0) return { type: "flat", count: f + 1 };
       return { type: null, count: 0 };
     }

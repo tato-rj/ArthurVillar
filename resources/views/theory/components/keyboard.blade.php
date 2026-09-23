@@ -27,7 +27,7 @@
 			<div class="d-flex justify-content-between flex-wrap">
 				<div class="btn-floating-group m-1">
 					<div class="btn-floating">
-						<button class="rounded btn btn-white text-dark" data-accidental="sharp" type="button">#</button>
+						<button class="rounded btn btn-white text-dark" data-accidental="sharp" type="button">♯</button>
 					</div>
 					<div class="btn-floating">
 						<button class="rounded btn btn-white text-dark" data-accidental="flat" type="button">♭</button>

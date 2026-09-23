@@ -20,6 +20,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../shared/GameAudio.js */ "./resources/js/music/games/shared/GameAudio.js");
 /* harmony import */ var _shared_PianoKeyboardUi_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../shared/PianoKeyboardUi.js */ "./resources/js/music/games/shared/PianoKeyboardUi.js");
 /* harmony import */ var _shared_InstructionsUi_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../shared/InstructionsUi.js */ "./resources/js/music/games/shared/InstructionsUi.js");
+/* harmony import */ var _shared_noteNames_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../shared/noteNames.js */ "./resources/js/music/games/shared/noteNames.js");
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
@@ -40,6 +41,7 @@ function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object
 function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
 function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
 // resources/js/music/games/base/BaseStaffGame.js
+
 
 
 
@@ -547,13 +549,13 @@ var BaseStaffGame = /*#__PURE__*/function () {
     value: function _toDisplayNoteName(letterWithAccidentals) {
       var raw = String(letterWithAccidentals || "").trim();
       if (!raw) return raw;
-      if (!this._showSolfegeNoteNames()) return raw;
+      if (!this._showSolfegeNoteNames()) return (0,_shared_noteNames_js__WEBPACK_IMPORTED_MODULE_7__.displayNoteName)(raw);
       var m = raw.match(/^([A-G])(.*)$/i);
       if (!m) return raw;
       var letter = String(m[1] || "").toUpperCase();
       var acc = String(m[2] || "");
       var sol = BaseStaffGame.LETTER_TO_SOLFEGE[letter] || letter;
-      return "".concat(sol).concat(acc);
+      return (0,_shared_noteNames_js__WEBPACK_IMPORTED_MODULE_7__.displayNoteName)("".concat(sol).concat(acc));
     }
   }, {
     key: "_normalizeNumOfChallenges",
@@ -1949,7 +1951,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_GameCountdown_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../shared/GameCountdown.js */ "./resources/js/music/games/shared/GameCountdown.js");
 /* harmony import */ var _shared_InstructionsUi_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../shared/InstructionsUi.js */ "./resources/js/music/games/shared/InstructionsUi.js");
 /* harmony import */ var _NotePythonMusic_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./NotePythonMusic.js */ "./resources/js/music/games/notepython/NotePythonMusic.js");
-/* harmony import */ var _shared_tempo_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../shared/tempo.js */ "./resources/js/music/games/shared/tempo.js");
+/* harmony import */ var _shared_noteNames_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../shared/noteNames.js */ "./resources/js/music/games/shared/noteNames.js");
+/* harmony import */ var _shared_tempo_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../shared/tempo.js */ "./resources/js/music/games/shared/tempo.js");
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
 function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
@@ -1963,6 +1966,7 @@ function _createClass(e, r, t) { return r && _defineProperties(e.prototype, r), 
 function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
 function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
 function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+
 
 
 
@@ -1996,7 +2000,7 @@ var NotePython = /*#__PURE__*/function () {
       namespace: "notePython"
     };
     this.opts = _objectSpread(_objectSpread({}, defaults), options || {});
-    this.opts.bpm = (0,_shared_tempo_js__WEBPACK_IMPORTED_MODULE_8__.normalizeMetronomeBpm)(this.opts.bpm);
+    this.opts.bpm = (0,_shared_tempo_js__WEBPACK_IMPORTED_MODULE_9__.normalizeMetronomeBpm)(this.opts.bpm);
     this.ns = this.opts.namespace || "notePython";
     this.$board = $(this.opts.boardEl).first();
     this.$playWrap = $("#play");
@@ -2097,12 +2101,12 @@ var NotePython = /*#__PURE__*/function () {
   }, {
     key: "_snakeSpeedMs",
     value: function _snakeSpeedMs() {
-      return (0,_shared_tempo_js__WEBPACK_IMPORTED_MODULE_8__.eighthNoteMsForBpm)(this.opts.bpm);
+      return (0,_shared_tempo_js__WEBPACK_IMPORTED_MODULE_9__.eighthNoteMsForBpm)(this.opts.bpm);
     }
   }, {
     key: "_beatMs",
     value: function _beatMs() {
-      return (0,_shared_tempo_js__WEBPACK_IMPORTED_MODULE_8__.beatMsForBpm)(this.opts.bpm);
+      return (0,_shared_tempo_js__WEBPACK_IMPORTED_MODULE_9__.beatMsForBpm)(this.opts.bpm);
     }
   }, {
     key: "_wrapCell",
@@ -2222,8 +2226,7 @@ var NotePython = /*#__PURE__*/function () {
       var L = String(letter || "").toUpperCase();
       var base = this._isSolfege() ? NotePython.LETTER_TO_SOLFEGE[L] || L : L;
       var off = Number(accOffset) || 0;
-      var accText = off === 2 ? "##" : off === 1 ? "#" : off === -1 ? "b" : off === -2 ? "bb" : "";
-      return "".concat(base).concat(accText);
+      return "".concat(base).concat((0,_shared_noteNames_js__WEBPACK_IMPORTED_MODULE_8__.displayAccidental)(off));
     }
   }, {
     key: "_noteObj",
@@ -2373,6 +2376,7 @@ var NotePython = /*#__PURE__*/function () {
   }, {
     key: "_placeInitialSnake",
     value: function _placeInitialSnake() {
+      this._snakeHop = null;
       var centerCol = Math.floor(this._cols / 2);
       var startRow = Math.min(1, this._rows - 1); // second row from top
       var head = {
@@ -2653,10 +2657,29 @@ var NotePython = /*#__PURE__*/function () {
       }
     }
   }, {
+    key: "_snakeHopStyle",
+    value: function _snakeHopStyle(cell, index, now) {
+      var hop = this._snakeHop;
+      if (!hop) return "";
+      var step = this._snakeSpeedMs();
+      var elapsed = now - hop.startedAt;
+      var duration = step * 0.68;
+      var delay = Math.min(index * step * 0.055, step * 0.24);
+      if (elapsed >= duration + delay) return "";
+      var from = hop.from[Math.min(index, hop.from.length - 1)];
+      if (!from) return "";
+      var dc = from.c - cell.c;
+      var dr = from.r - cell.r;
+      // Wrapping across an edge should bounce into place, never fly across the board.
+      var wrapped = Math.abs(dc) > 1 || Math.abs(dr) > 1;
+      return "--hop-x: ".concat(wrapped ? 0 : dc, "; --hop-y: ").concat(wrapped ? 0 : dr, "; --hop-duration: ").concat(duration, "ms; --hop-delay: ").concat(delay - elapsed, "ms;");
+    }
+  }, {
     key: "_renderEntities",
     value: function _renderEntities() {
       var _this6 = this;
       if (!this.$board.length) return;
+      var now = performance.now();
       var $cells = this.$board.find(".board-cell");
       $cells.removeClass("snake snake-head food bomb animate__animated animate__rubberBand").html("");
       this._snake.forEach(function (cell, i) {
@@ -2664,12 +2687,20 @@ var NotePython = /*#__PURE__*/function () {
         var $cell = _this6.$board.find(selector);
         if (!$cell.length) return;
         $cell.addClass("snake");
+        var hopStyle = _this6._snakeHopStyle(cell, i, now);
+        var $hop = $("<span class=\"snake-hop".concat(hopStyle ? " snake-hopping" : "", "\" style=\"").concat(hopStyle, "\"></span>"));
+        $hop.append('<span class="snake-shadow" aria-hidden="true"></span>');
+        var $segment = $('<span class="snake-segment"></span>');
+        $hop.append($segment);
+        $cell.append($hop);
         if (i === 0) {
           var _this6$_headNote;
           $cell.addClass("snake-head");
-          if ((_this6$_headNote = _this6._headNote) !== null && _this6$_headNote !== void 0 && _this6$_headNote.display) $cell.html("<span class=\"food-note\">".concat(_this6._headNote.display, "</span>"));
+          if ((_this6$_headNote = _this6._headNote) !== null && _this6$_headNote !== void 0 && _this6$_headNote.display) $segment.html("<span class=\"food-note\">".concat(_this6._headNote.display, "</span>"));
           var facing = _this6._direction.dc === 1 ? 90 : _this6._direction.dr === 1 ? 180 : _this6._direction.dc === -1 ? 270 : 0;
-          $cell.append("<span class=\"snake-face\" aria-hidden=\"true\" style=\"--snake-facing: ".concat(facing, "deg\"></span>"));
+          // Carry the animation phase across cell redraws, even at the fastest tempo.
+          var motionTime = -now;
+          $segment.append("\n          <span class=\"snake-face\" aria-hidden=\"true\" style=\"--snake-facing: ".concat(facing, "deg; --snake-motion-time: ").concat(motionTime, "ms\">\n            <span class=\"snake-face-bob\">\n              <span class=\"snake-eye snake-eye-left\"><span class=\"snake-pupil\"></span></span>\n              <span class=\"snake-eye snake-eye-right\"><span class=\"snake-pupil\"></span></span>\n            </span>\n          </span>\n        "));
         }
       });
       this._foods.forEach(function (food, i) {
@@ -3010,6 +3041,10 @@ var NotePython = /*#__PURE__*/function () {
       }).filter(Boolean));
       var isCorrectFood = !!(eatenFood && validTargets.has(String(((_eatenFood$note = eatenFood.note) === null || _eatenFood$note === void 0 ? void 0 : _eatenFood$note.canonical) || "").trim()));
       var willGrow = !!isCorrectFood;
+      this._snakeHop = {
+        from: this._snake.slice(),
+        startedAt: performance.now()
+      };
       this._snake.unshift(next);
       if (!willGrow) {
         this._snake.pop();
@@ -3087,6 +3122,10 @@ var NotePython = /*#__PURE__*/function () {
   }, {
     key: "_stopLoop",
     value: function _stopLoop() {
+      var _this$$board1, _this$$board1$find;
+      this._snakeHop = null;
+      // Settle before pause, crash, or victory animations take over the cells.
+      (_this$$board1 = this.$board) === null || _this$$board1 === void 0 || (_this$$board1$find = _this$$board1.find) === null || _this$$board1$find === void 0 || _this$$board1$find.call(_this$$board1, ".snake-hopping").removeClass("snake-hopping");
       this._music.stop();
       if (this._tickTimer != null) {
         clearInterval(this._tickTimer);
@@ -3199,12 +3238,12 @@ var NotePython = /*#__PURE__*/function () {
   }, {
     key: "_showStandardGameUi",
     value: function _showStandardGameUi() {
-      var _this$$board1, _this$$board1$toggleC, _this$$interval, _this$$interval$show;
+      var _this$$board10, _this$$board10$toggle, _this$$interval, _this$$interval$show;
       if (typeof this._syncKeyboardLabels === "function") this._syncKeyboardLabels();
       this.instructionsUi.show().replay();
       $("#controls").show();
       $("#board-wrapper").show();
-      (_this$$board1 = this.$board) === null || _this$$board1 === void 0 || (_this$$board1$toggleC = _this$$board1.toggleClass) === null || _this$$board1$toggleC === void 0 || _this$$board1$toggleC.call(_this$$board1, "walled", this._useRealWalls());
+      (_this$$board10 = this.$board) === null || _this$$board10 === void 0 || (_this$$board10$toggle = _this$$board10.toggleClass) === null || _this$$board10$toggle === void 0 || _this$$board10$toggle.call(_this$$board10, "walled", this._useRealWalls());
       (_this$$interval = this.$interval) === null || _this$$interval === void 0 || (_this$$interval$show = _this$$interval.show) === null || _this$$interval$show === void 0 || _this$$interval$show.call(_this$$interval);
       if (!this._currentIntervalAbbr) {
         this._setIntervalUIWithDirection(this._pickInterval(), this._pickIntervalDirection());
@@ -3231,8 +3270,8 @@ var NotePython = /*#__PURE__*/function () {
         _this$$feedback$hide,
         _this$$restart3,
         _this$$restart3$hide,
-        _this$$board10,
-        _this$$board10$remove;
+        _this$$board11,
+        _this$$board11$remove;
       this._stopLoop();
       this._music.reset();
       $(window).off("pagehide.".concat(this.ns, "Music")).on("pagehide.".concat(this.ns, "Music"), function () {
@@ -3279,7 +3318,7 @@ var NotePython = /*#__PURE__*/function () {
       this._syncPracticeUi();
       (_this$$feedback = this.$feedback) === null || _this$$feedback === void 0 || (_this$$feedback$hide = _this$$feedback.hide) === null || _this$$feedback$hide === void 0 || _this$$feedback$hide.call(_this$$feedback);
       (_this$$restart3 = this.$restart) === null || _this$$restart3 === void 0 || (_this$$restart3$hide = _this$$restart3.hide) === null || _this$$restart3$hide === void 0 || _this$$restart3$hide.call(_this$$restart3);
-      (_this$$board10 = this.$board) === null || _this$$board10 === void 0 || (_this$$board10$remove = _this$$board10.removeClass) === null || _this$$board10$remove === void 0 || _this$$board10$remove.call(_this$$board10, "failed");
+      (_this$$board11 = this.$board) === null || _this$$board11 === void 0 || (_this$$board11$remove = _this$$board11.removeClass) === null || _this$$board11$remove === void 0 || _this$$board11$remove.call(_this$$board11, "failed");
       this.$points.text("0");
       this.$progressBar.data("progress", 0).css({
         width: "0%"
@@ -5707,7 +5746,7 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
     key: "_markerLabelFromNoteName",
     value: function _markerLabelFromNoteName(noteName) {
       var match = String(noteName || "").trim().match(/^([A-G][#b]?)-?\d+$/);
-      return match ? match[1] : String(noteName || "").trim();
+      return (0,_noteNames_js__WEBPACK_IMPORTED_MODULE_1__.displayNoteName)(match ? match[1] : String(noteName || "").trim());
     }
   }, {
     key: "_applyMarkerTone",
@@ -6371,6 +6410,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   NATURAL_NOTE_ORDER: () => (/* binding */ NATURAL_NOTE_ORDER),
 /* harmony export */   NATURAL_PITCH_CLASS: () => (/* binding */ NATURAL_PITCH_CLASS),
 /* harmony export */   PITCH_CLASS_TO_NOTE: () => (/* binding */ PITCH_CLASS_TO_NOTE),
+/* harmony export */   displayAccidental: () => (/* binding */ displayAccidental),
+/* harmony export */   displayNoteName: () => (/* binding */ displayNoteName),
 /* harmony export */   naturalMidiFromLetterOctave: () => (/* binding */ naturalMidiFromLetterOctave),
 /* harmony export */   naturalMidiFromNoteName: () => (/* binding */ naturalMidiFromNoteName),
 /* harmony export */   naturalNoteNameFromMidi: () => (/* binding */ naturalNoteNameFromMidi),
@@ -6378,6 +6419,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   octaveFromMidi: () => (/* binding */ octaveFromMidi),
 /* harmony export */   pitchClassFromMidi: () => (/* binding */ pitchClassFromMidi)
 /* harmony export */ });
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
 var NATURAL_NOTE_ORDER = ["C", "D", "E", "F", "G", "A", "B"];
 var NATURAL_PITCH_CLASS = {
   C: 0,
@@ -6389,6 +6434,26 @@ var NATURAL_PITCH_CLASS = {
   B: 11
 };
 var PITCH_CLASS_TO_NOTE = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+
+// Keep ASCII spellings for pitch calculations and input values; use these only
+// when showing a note name to a player.
+function displayAccidental(offset) {
+  return _defineProperty(_defineProperty({
+    2: "𝄪",
+    1: "♯"
+  }, -1, "♭"), -2, "𝄫")[offset] || "";
+}
+function displayNoteName(noteName) {
+  var raw = String(noteName !== null && noteName !== void 0 ? noteName : "");
+  return raw.replace(/^((?:Do|Re|Mi|Fa|Sol|La|Si|[A-G]))(##|bb|#|b)(?=$|-?\d+$)/i, function (_, base, accidental) {
+    return "".concat(base).concat({
+      "##": "𝄪",
+      bb: "𝄫",
+      "#": "♯",
+      b: "♭"
+    }[accidental]);
+  });
+}
 function pitchClassFromMidi(midi) {
   if (!Number.isFinite(midi)) return null;
   return (midi % 12 + 12) % 12;

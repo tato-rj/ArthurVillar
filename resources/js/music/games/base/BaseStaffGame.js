@@ -14,6 +14,7 @@ import { PromptUi } from "../shared/PromptUi.js";
 import { GameAudio } from "../shared/GameAudio.js";
 import { PianoKeyboardUi } from "../shared/PianoKeyboardUi.js";
 import { InstructionsUi } from "../shared/InstructionsUi.js";
+import { displayNoteName } from "../shared/noteNames.js";
 
 export const PAGE_OPENED_AT_MS = Date.now();
 
@@ -557,7 +558,7 @@ export class BaseStaffGame {
   _toDisplayNoteName(letterWithAccidentals) {
     const raw = String(letterWithAccidentals || "").trim();
     if (!raw) return raw;
-    if (!this._showSolfegeNoteNames()) return raw;
+    if (!this._showSolfegeNoteNames()) return displayNoteName(raw);
 
     const m = raw.match(/^([A-G])(.*)$/i);
     if (!m) return raw;
@@ -565,7 +566,7 @@ export class BaseStaffGame {
     const letter = String(m[1] || "").toUpperCase();
     const acc = String(m[2] || "");
     const sol = BaseStaffGame.LETTER_TO_SOLFEGE[letter] || letter;
-    return `${sol}${acc}`;
+    return displayNoteName(`${sol}${acc}`);
   }
 
   _normalizeNumOfChallenges(raw) {

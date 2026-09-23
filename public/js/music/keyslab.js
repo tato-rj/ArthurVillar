@@ -20,6 +20,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../shared/GameAudio.js */ "./resources/js/music/games/shared/GameAudio.js");
 /* harmony import */ var _shared_PianoKeyboardUi_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../shared/PianoKeyboardUi.js */ "./resources/js/music/games/shared/PianoKeyboardUi.js");
 /* harmony import */ var _shared_InstructionsUi_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../shared/InstructionsUi.js */ "./resources/js/music/games/shared/InstructionsUi.js");
+/* harmony import */ var _shared_noteNames_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../shared/noteNames.js */ "./resources/js/music/games/shared/noteNames.js");
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
@@ -40,6 +41,7 @@ function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object
 function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
 function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
 // resources/js/music/games/base/BaseStaffGame.js
+
 
 
 
@@ -547,13 +549,13 @@ var BaseStaffGame = /*#__PURE__*/function () {
     value: function _toDisplayNoteName(letterWithAccidentals) {
       var raw = String(letterWithAccidentals || "").trim();
       if (!raw) return raw;
-      if (!this._showSolfegeNoteNames()) return raw;
+      if (!this._showSolfegeNoteNames()) return (0,_shared_noteNames_js__WEBPACK_IMPORTED_MODULE_7__.displayNoteName)(raw);
       var m = raw.match(/^([A-G])(.*)$/i);
       if (!m) return raw;
       var letter = String(m[1] || "").toUpperCase();
       var acc = String(m[2] || "");
       var sol = BaseStaffGame.LETTER_TO_SOLFEGE[letter] || letter;
-      return "".concat(sol).concat(acc);
+      return (0,_shared_noteNames_js__WEBPACK_IMPORTED_MODULE_7__.displayNoteName)("".concat(sol).concat(acc));
     }
   }, {
     key: "_normalizeNumOfChallenges",
@@ -1944,6 +1946,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _base_BaseStaffGame_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../base/BaseStaffGame.js */ "./resources/js/music/games/base/BaseStaffGame.js");
 /* harmony import */ var _shared_mojsEffects_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../shared/mojsEffects.js */ "./resources/js/music/games/shared/mojsEffects.js");
 /* harmony import */ var _shared_challengeUtils_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/challengeUtils.js */ "./resources/js/music/games/shared/challengeUtils.js");
+/* harmony import */ var _shared_noteNames_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/noteNames.js */ "./resources/js/music/games/shared/noteNames.js");
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
 function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
@@ -1963,6 +1966,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
 
 
 
+
 var KeysLab = /*#__PURE__*/function (_BaseStaffGame) {
   function KeysLab() {
     var _this;
@@ -1976,7 +1980,8 @@ var KeysLab = /*#__PURE__*/function (_BaseStaffGame) {
       clefUrls: null,
       sound: true,
       keyQualities: ["major", "minor"],
-      numberOfAccidentals: 0,
+      numberOfAccidentals: 2,
+      modes: false,
       namespace: "keysLab"
     };
     var merged = _objectSpread(_objectSpread({}, defaults), options || {});
@@ -2022,8 +2027,19 @@ var KeysLab = /*#__PURE__*/function (_BaseStaffGame) {
   }, {
     key: "_pickKeyPrompt",
     value: function _pickKeyPrompt() {
-      var qualities = this._normalizeKeyQualities();
+      var qualities = this._normalizeOnOff(this.opts.modes) ? KeysLab.MODES : this._normalizeKeyQualities();
       var quality = qualities[Math.floor(Math.random() * qualities.length)];
+      if (KeysLab.MODES.includes(quality)) {
+        var parents = this._filterKeysByAccidentalLimit(KeysLab.MAJOR_KEYS, "major");
+        var parentMajor = parents[Math.floor(Math.random() * parents.length)];
+        var _tonic = this._modeTonicFromMajor(parentMajor, KeysLab.MODES.indexOf(quality));
+        return {
+          tonic: _tonic,
+          quality: quality,
+          parentMajor: parentMajor,
+          full: "".concat(_tonic, " ").concat(quality)
+        };
+      }
       var pool = this._filterKeysByAccidentalLimit(quality === "minor" ? KeysLab.MINOR_KEYS : KeysLab.MAJOR_KEYS, quality);
       var tonic = pool[Math.floor(Math.random() * pool.length)];
       var full = "".concat(tonic, " ").concat(quality);
@@ -2034,36 +2050,33 @@ var KeysLab = /*#__PURE__*/function (_BaseStaffGame) {
       };
     }
   }, {
+    key: "_modeTonicFromMajor",
+    value: function _modeTonicFromMajor(parentMajor, degree) {
+      var firstLetter = String(parentMajor || "").charAt(0);
+      var start = KeysLab.NOTE_LETTERS.indexOf(firstLetter);
+      if (start < 0) return "";
+      var letter = KeysLab.NOTE_LETTERS[(start + degree) % 7];
+      var signature = this._signatureForKey(parentMajor, "major");
+      var order = signature.type === "sharp" ? KeysLab.SHARP_NOTE_ORDER : KeysLab.FLAT_NOTE_ORDER;
+      var accidental = signature.type && order.slice(0, signature.count).includes(letter) ? signature.type === "sharp" ? "#" : "b" : "";
+      return "".concat(letter).concat(accidental);
+    }
+  }, {
     key: "_maxAllowedAccidentals",
     value: function _maxAllowedAccidentals() {
-      var raw = Number(this.opts.numberOfAccidentals);
-      var level = Number.isFinite(raw) ? Math.trunc(raw) : 0;
-      if (level <= 0) return 2;
-      if (level === 1) return 4;
-      return 7;
+      var limit = Number(this.opts.numberOfAccidentals);
+      return Number.isInteger(limit) ? Math.max(1, Math.min(7, limit)) : 2;
+    }
+  }, {
+    key: "_checkAfterUserNotes",
+    value: function _checkAfterUserNotes() {
+      // A natural key signature is a complete answer with an empty staff.
+      return 0;
     }
   }, {
     key: "_signatureCountForKey",
     value: function _signatureCountForKey(tonic, quality) {
-      var cleanTonic = String(tonic || "").trim();
-      var cleanQuality = String(quality || "").trim().toLowerCase();
-      if (cleanQuality === "major") {
-        if (cleanTonic === "C") return 0;
-        var sharpIndex = KeysLab.SHARP_MAJOR_ORDER.indexOf(cleanTonic);
-        if (sharpIndex >= 0) return sharpIndex + 1;
-        var flatIndex = KeysLab.FLAT_MAJOR_ORDER.indexOf(cleanTonic);
-        if (flatIndex >= 0) return flatIndex + 1;
-        return 0;
-      }
-      if (cleanQuality === "minor") {
-        if (cleanTonic === "A") return 0;
-        var _sharpIndex = KeysLab.SHARP_MINOR_ORDER.indexOf(cleanTonic);
-        if (_sharpIndex >= 0) return _sharpIndex + 1;
-        var _flatIndex = KeysLab.FLAT_MINOR_ORDER.indexOf(cleanTonic);
-        if (_flatIndex >= 0) return _flatIndex + 1;
-        return 0;
-      }
-      return 0;
+      return this._signatureForKey(tonic, quality).count;
     }
   }, {
     key: "_filterKeysByAccidentalLimit",
@@ -2080,26 +2093,32 @@ var KeysLab = /*#__PURE__*/function (_BaseStaffGame) {
     value: function _renderKeyPrompt() {
       var picked = this._pickKeyPrompt();
       this._currentKeyPrompt = picked;
-      this.prompt.setShort(picked.full);
-      this.prompt.setLong("Key of ".concat(picked.full));
+      var visibleName = "".concat((0,_shared_noteNames_js__WEBPACK_IMPORTED_MODULE_3__.displayNoteName)(picked.tonic), " ").concat(picked.quality);
+      this.prompt.setShort(visibleName);
+      this.prompt.setLong("Key of ".concat(visibleName));
     }
   }, {
     key: "_expectedSignatureForPrompt",
     value: function _expectedSignatureForPrompt() {
       var prompt = this._currentKeyPrompt || this._pickKeyPrompt();
-      var tonic = String(prompt.tonic || "").trim();
-      var quality = String(prompt.quality || "").trim().toLowerCase();
-      if (quality === "major") {
-        if (tonic === "C") return {
+      return this._signatureForKey(prompt.parentMajor || prompt.tonic, prompt.parentMajor ? "major" : prompt.quality);
+    }
+  }, {
+    key: "_signatureForKey",
+    value: function _signatureForKey(tonic, quality) {
+      var cleanTonic = String(tonic || "").trim();
+      var cleanQuality = String(quality || "").trim().toLowerCase();
+      if (cleanQuality === "major") {
+        if (cleanTonic === "C") return {
           type: null,
           count: 0
         };
-        var s = KeysLab.SHARP_MAJOR_ORDER.indexOf(tonic);
+        var s = KeysLab.SHARP_MAJOR_ORDER.indexOf(cleanTonic);
         if (s >= 0) return {
           type: "sharp",
           count: s + 1
         };
-        var f = KeysLab.FLAT_MAJOR_ORDER.indexOf(tonic);
+        var f = KeysLab.FLAT_MAJOR_ORDER.indexOf(cleanTonic);
         if (f >= 0) return {
           type: "flat",
           count: f + 1
@@ -2109,17 +2128,17 @@ var KeysLab = /*#__PURE__*/function (_BaseStaffGame) {
           count: 0
         };
       }
-      if (quality === "minor") {
-        if (tonic === "A") return {
+      if (cleanQuality === "minor") {
+        if (cleanTonic === "A") return {
           type: null,
           count: 0
         };
-        var _s = KeysLab.SHARP_MINOR_ORDER.indexOf(tonic);
+        var _s = KeysLab.SHARP_MINOR_ORDER.indexOf(cleanTonic);
         if (_s >= 0) return {
           type: "sharp",
           count: _s + 1
         };
-        var _f = KeysLab.FLAT_MINOR_ORDER.indexOf(tonic);
+        var _f = KeysLab.FLAT_MINOR_ORDER.indexOf(cleanTonic);
         if (_f >= 0) return {
           type: "flat",
           count: _f + 1
@@ -2680,6 +2699,10 @@ _defineProperty(KeysLab, "SHARP_MAJOR_ORDER", ["G", "D", "A", "E", "B", "F#", "C
 _defineProperty(KeysLab, "FLAT_MAJOR_ORDER", ["F", "Bb", "Eb", "Ab", "Db", "Gb", "Cb"]);
 _defineProperty(KeysLab, "SHARP_MINOR_ORDER", ["E", "B", "F#", "C#", "G#", "D#", "A#"]);
 _defineProperty(KeysLab, "FLAT_MINOR_ORDER", ["D", "G", "C", "F", "Bb", "Eb", "Ab"]);
+_defineProperty(KeysLab, "NOTE_LETTERS", ["C", "D", "E", "F", "G", "A", "B"]);
+_defineProperty(KeysLab, "SHARP_NOTE_ORDER", ["F", "C", "G", "D", "A", "E", "B"]);
+_defineProperty(KeysLab, "FLAT_NOTE_ORDER", ["B", "E", "A", "D", "G", "C", "F"]);
+_defineProperty(KeysLab, "MODES", ["ionian", "dorian", "phrygian", "lydian", "mixolydian", "aeolian", "locrian"]);
 _defineProperty(KeysLab, "KEYSIG_STEPS", {
   treble: {
     sharp: [8, 5, 9, 6, 3, 7, 4],
@@ -4365,7 +4388,7 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
     key: "_markerLabelFromNoteName",
     value: function _markerLabelFromNoteName(noteName) {
       var match = String(noteName || "").trim().match(/^([A-G][#b]?)-?\d+$/);
-      return match ? match[1] : String(noteName || "").trim();
+      return (0,_noteNames_js__WEBPACK_IMPORTED_MODULE_1__.displayNoteName)(match ? match[1] : String(noteName || "").trim());
     }
   }, {
     key: "_applyMarkerTone",
@@ -5134,6 +5157,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   NATURAL_NOTE_ORDER: () => (/* binding */ NATURAL_NOTE_ORDER),
 /* harmony export */   NATURAL_PITCH_CLASS: () => (/* binding */ NATURAL_PITCH_CLASS),
 /* harmony export */   PITCH_CLASS_TO_NOTE: () => (/* binding */ PITCH_CLASS_TO_NOTE),
+/* harmony export */   displayAccidental: () => (/* binding */ displayAccidental),
+/* harmony export */   displayNoteName: () => (/* binding */ displayNoteName),
 /* harmony export */   naturalMidiFromLetterOctave: () => (/* binding */ naturalMidiFromLetterOctave),
 /* harmony export */   naturalMidiFromNoteName: () => (/* binding */ naturalMidiFromNoteName),
 /* harmony export */   naturalNoteNameFromMidi: () => (/* binding */ naturalNoteNameFromMidi),
@@ -5141,6 +5166,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   octaveFromMidi: () => (/* binding */ octaveFromMidi),
 /* harmony export */   pitchClassFromMidi: () => (/* binding */ pitchClassFromMidi)
 /* harmony export */ });
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
 var NATURAL_NOTE_ORDER = ["C", "D", "E", "F", "G", "A", "B"];
 var NATURAL_PITCH_CLASS = {
   C: 0,
@@ -5152,6 +5181,26 @@ var NATURAL_PITCH_CLASS = {
   B: 11
 };
 var PITCH_CLASS_TO_NOTE = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+
+// Keep ASCII spellings for pitch calculations and input values; use these only
+// when showing a note name to a player.
+function displayAccidental(offset) {
+  return _defineProperty(_defineProperty({
+    2: "𝄪",
+    1: "♯"
+  }, -1, "♭"), -2, "𝄫")[offset] || "";
+}
+function displayNoteName(noteName) {
+  var raw = String(noteName !== null && noteName !== void 0 ? noteName : "");
+  return raw.replace(/^((?:Do|Re|Mi|Fa|Sol|La|Si|[A-G]))(##|bb|#|b)(?=$|-?\d+$)/i, function (_, base, accidental) {
+    return "".concat(base).concat({
+      "##": "𝄪",
+      bb: "𝄫",
+      "#": "♯",
+      b: "♭"
+    }[accidental]);
+  });
+}
 function pitchClassFromMidi(midi) {
   if (!Number.isFinite(midi)) return null;
   return (midi % 12 + 12) % 12;

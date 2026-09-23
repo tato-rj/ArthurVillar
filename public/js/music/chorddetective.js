@@ -20,6 +20,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../shared/GameAudio.js */ "./resources/js/music/games/shared/GameAudio.js");
 /* harmony import */ var _shared_PianoKeyboardUi_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../shared/PianoKeyboardUi.js */ "./resources/js/music/games/shared/PianoKeyboardUi.js");
 /* harmony import */ var _shared_InstructionsUi_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../shared/InstructionsUi.js */ "./resources/js/music/games/shared/InstructionsUi.js");
+/* harmony import */ var _shared_noteNames_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../shared/noteNames.js */ "./resources/js/music/games/shared/noteNames.js");
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
@@ -40,6 +41,7 @@ function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object
 function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
 function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
 // resources/js/music/games/base/BaseStaffGame.js
+
 
 
 
@@ -547,13 +549,13 @@ var BaseStaffGame = /*#__PURE__*/function () {
     value: function _toDisplayNoteName(letterWithAccidentals) {
       var raw = String(letterWithAccidentals || "").trim();
       if (!raw) return raw;
-      if (!this._showSolfegeNoteNames()) return raw;
+      if (!this._showSolfegeNoteNames()) return (0,_shared_noteNames_js__WEBPACK_IMPORTED_MODULE_7__.displayNoteName)(raw);
       var m = raw.match(/^([A-G])(.*)$/i);
       if (!m) return raw;
       var letter = String(m[1] || "").toUpperCase();
       var acc = String(m[2] || "");
       var sol = BaseStaffGame.LETTER_TO_SOLFEGE[letter] || letter;
-      return "".concat(sol).concat(acc);
+      return (0,_shared_noteNames_js__WEBPACK_IMPORTED_MODULE_7__.displayNoteName)("".concat(sol).concat(acc));
     }
   }, {
     key: "_normalizeNumOfChallenges",
@@ -4450,7 +4452,7 @@ var PianoKeyboardUi = /*#__PURE__*/function () {
     key: "_markerLabelFromNoteName",
     value: function _markerLabelFromNoteName(noteName) {
       var match = String(noteName || "").trim().match(/^([A-G][#b]?)-?\d+$/);
-      return match ? match[1] : String(noteName || "").trim();
+      return (0,_noteNames_js__WEBPACK_IMPORTED_MODULE_1__.displayNoteName)(match ? match[1] : String(noteName || "").trim());
     }
   }, {
     key: "_applyMarkerTone",
@@ -5219,6 +5221,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   NATURAL_NOTE_ORDER: () => (/* binding */ NATURAL_NOTE_ORDER),
 /* harmony export */   NATURAL_PITCH_CLASS: () => (/* binding */ NATURAL_PITCH_CLASS),
 /* harmony export */   PITCH_CLASS_TO_NOTE: () => (/* binding */ PITCH_CLASS_TO_NOTE),
+/* harmony export */   displayAccidental: () => (/* binding */ displayAccidental),
+/* harmony export */   displayNoteName: () => (/* binding */ displayNoteName),
 /* harmony export */   naturalMidiFromLetterOctave: () => (/* binding */ naturalMidiFromLetterOctave),
 /* harmony export */   naturalMidiFromNoteName: () => (/* binding */ naturalMidiFromNoteName),
 /* harmony export */   naturalNoteNameFromMidi: () => (/* binding */ naturalNoteNameFromMidi),
@@ -5226,6 +5230,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   octaveFromMidi: () => (/* binding */ octaveFromMidi),
 /* harmony export */   pitchClassFromMidi: () => (/* binding */ pitchClassFromMidi)
 /* harmony export */ });
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
 var NATURAL_NOTE_ORDER = ["C", "D", "E", "F", "G", "A", "B"];
 var NATURAL_PITCH_CLASS = {
   C: 0,
@@ -5237,6 +5245,26 @@ var NATURAL_PITCH_CLASS = {
   B: 11
 };
 var PITCH_CLASS_TO_NOTE = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+
+// Keep ASCII spellings for pitch calculations and input values; use these only
+// when showing a note name to a player.
+function displayAccidental(offset) {
+  return _defineProperty(_defineProperty({
+    2: "𝄪",
+    1: "♯"
+  }, -1, "♭"), -2, "𝄫")[offset] || "";
+}
+function displayNoteName(noteName) {
+  var raw = String(noteName !== null && noteName !== void 0 ? noteName : "");
+  return raw.replace(/^((?:Do|Re|Mi|Fa|Sol|La|Si|[A-G]))(##|bb|#|b)(?=$|-?\d+$)/i, function (_, base, accidental) {
+    return "".concat(base).concat({
+      "##": "𝄪",
+      bb: "𝄫",
+      "#": "♯",
+      b: "♭"
+    }[accidental]);
+  });
+}
 function pitchClassFromMidi(midi) {
   if (!Number.isFinite(midi)) return null;
   return (midi % 12 + 12) % 12;

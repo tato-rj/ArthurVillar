@@ -10,6 +10,7 @@ import { GameAudio } from "../shared/GameAudio.js";
 import { GameCountdown } from "../shared/GameCountdown.js";
 import { InstructionsUi } from "../shared/InstructionsUi.js";
 import { NotePythonMusic } from "./NotePythonMusic.js";
+import { displayAccidental } from "../shared/noteNames.js";
 import {
   beatMsForBpm,
   eighthNoteMsForBpm,
@@ -301,13 +302,7 @@ export class NotePython {
       ? (NotePython.LETTER_TO_SOLFEGE[L] || L)
       : L;
     const off = Number(accOffset) || 0;
-    const accText =
-      off === 2 ? "##" :
-      off === 1 ? "#" :
-      off === -1 ? "b" :
-      off === -2 ? "bb" :
-      "";
-    return `${base}${accText}`;
+    return `${base}${displayAccidental(off)}`;
   }
 
   _noteObj(letter, accOffset = 0) {
@@ -429,6 +424,7 @@ export class NotePython {
   }
 
   _placeInitialSnake() {
+    this._snakeHop = null;
     const centerCol = Math.floor(this._cols / 2);
     const startRow = Math.min(1, this._rows - 1); // second row from top
     const head = { r: startRow, c: centerCol };
@@ -656,8 +652,26 @@ export class NotePython {
     }
   }
 
+  _snakeHopStyle(cell, index, now) {
+    const hop = this._snakeHop;
+    if (!hop) return "";
+    const step = this._snakeSpeedMs();
+    const elapsed = now - hop.startedAt;
+    const duration = step * 0.68;
+    const delay = Math.min(index * step * 0.055, step * 0.24);
+    if (elapsed >= duration + delay) return "";
+    const from = hop.from[Math.min(index, hop.from.length - 1)];
+    if (!from) return "";
+    const dc = from.c - cell.c;
+    const dr = from.r - cell.r;
+    // Wrapping across an edge should bounce into place, never fly across the board.
+    const wrapped = Math.abs(dc) > 1 || Math.abs(dr) > 1;
+    return `--hop-x: ${wrapped ? 0 : dc}; --hop-y: ${wrapped ? 0 : dr}; --hop-duration: ${duration}ms; --hop-delay: ${delay - elapsed}ms;`;
+  }
+
   _renderEntities() {
     if (!this.$board.length) return;
+    const now = performance.now();
     const $cells = this.$board.find(".board-cell");
     $cells.removeClass("snake snake-head food bomb animate__animated animate__rubberBand").html("");
 
@@ -666,13 +680,28 @@ export class NotePython {
       const $cell = this.$board.find(selector);
       if (!$cell.length) return;
       $cell.addClass("snake");
+      const hopStyle = this._snakeHopStyle(cell, i, now);
+      const $hop = $(`<span class="snake-hop${hopStyle ? " snake-hopping" : ""}" style="${hopStyle}"></span>`);
+      $hop.append('<span class="snake-shadow" aria-hidden="true"></span>');
+      const $segment = $('<span class="snake-segment"></span>');
+      $hop.append($segment);
+      $cell.append($hop);
       if (i === 0) {
         $cell.addClass("snake-head");
-        if (this._headNote?.display) $cell.html(`<span class="food-note">${this._headNote.display}</span>`);
+        if (this._headNote?.display) $segment.html(`<span class="food-note">${this._headNote.display}</span>`);
         const facing = this._direction.dc === 1 ? 90
           : this._direction.dr === 1 ? 180
             : this._direction.dc === -1 ? 270 : 0;
-        $cell.append(`<span class="snake-face" aria-hidden="true" style="--snake-facing: ${facing}deg"></span>`);
+        // Carry the animation phase across cell redraws, even at the fastest tempo.
+        const motionTime = -now;
+        $segment.append(`
+          <span class="snake-face" aria-hidden="true" style="--snake-facing: ${facing}deg; --snake-motion-time: ${motionTime}ms">
+            <span class="snake-face-bob">
+              <span class="snake-eye snake-eye-left"><span class="snake-pupil"></span></span>
+              <span class="snake-eye snake-eye-right"><span class="snake-pupil"></span></span>
+            </span>
+          </span>
+        `);
       }
     });
 
@@ -1034,6 +1063,7 @@ export class NotePython {
     );
     const willGrow = !!isCorrectFood;
 
+    this._snakeHop = { from: this._snake.slice(), startedAt: performance.now() };
     this._snake.unshift(next);
 
     if (!willGrow) {
@@ -1114,6 +1144,9 @@ export class NotePython {
   }
 
   _stopLoop() {
+    this._snakeHop = null;
+    // Settle before pause, crash, or victory animations take over the cells.
+    this.$board?.find?.(".snake-hopping").removeClass("snake-hopping");
     this._music.stop();
     if (this._tickTimer != null) {
       clearInterval(this._tickTimer);

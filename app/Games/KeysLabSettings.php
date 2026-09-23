@@ -4,7 +4,7 @@ namespace App\Games;
 
 class KeysLabSettings extends GameFactory
 {   
-    protected array $bonusPoints = ['timer'];
+    protected array $bonusPoints = ['timer', 'modes'];
     protected array $categories = ['reading'];
 
     public function gameName(): string 
@@ -39,7 +39,7 @@ class KeysLabSettings extends GameFactory
 
     protected function requiredToggleKeys(): array
     {
-        return ['sound'];
+        return ['sound', 'modes'];
     }
 
     protected function defaults(): array
@@ -50,7 +50,8 @@ class KeysLabSettings extends GameFactory
             'timer' => false,
             'numOfChallenges' => 4,
             'keyQualities' => ['major', 'minor'],
-            'numberOfAccidentals' => 0,
+            'numberOfAccidentals' => 2,
+            'modes' => false,
             'clefs' => ['treble', 'bass'],
             'sound' => true
         ];
@@ -59,6 +60,8 @@ class KeysLabSettings extends GameFactory
     public function options($key = null)
     {
         $options = $this->applyUserPreferences();
+        $limit = filter_var($options['numberOfAccidentals'], FILTER_VALIDATE_INT);
+        $options['numberOfAccidentals'] = $limit === false ? 2 : max(1, min(7, $limit));
 
         $array = $this->buildOptions($options);
 
