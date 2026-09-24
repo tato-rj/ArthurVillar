@@ -75,7 +75,7 @@ img {
 
 @media (max-width: 991.98px) {
   .playback-modes {
-    justify-content: center;
+    justify-content: start;
   }
 }
 </style>
