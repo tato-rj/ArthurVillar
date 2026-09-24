@@ -17,11 +17,6 @@
 			<div class="offcanvas-title mb-4">
 	  			<h5 class="mb-0 mr-2 text-truncate">{{$playlist->name}}</h5>
 	  			<div class="small fw-bold opacity-6">{{$playlist->recordings->count()}} pieces</div>
-				<div class="playback-modes mt-3" role="group" aria-label="Automatic playback mode">
-					<button type="button" class="playback-mode" data-playback-mode="shuffle" aria-label="Shuffle remaining pieces" aria-pressed="false" title="Shuffle remaining pieces">@fa(['icon' => 'shuffle', 'mr' => 0])</button>
-					<button type="button" class="playback-mode" data-playback-mode="repeat" aria-label="Repeat current piece" aria-pressed="false" title="Repeat current piece">@fa(['icon' => 'repeat', 'mr' => 0])</button>
-					<button type="button" class="playback-mode" data-playback-mode="infinite" aria-label="Play playlist continuously" aria-pressed="false" title="Play playlist continuously">@fa(['icon' => 'infinity', 'mr' => 0])</button>
-				</div>
 	  		</div>
 		    @foreach($playlist->recordings as $recording)
 					@include('listening.components.playlist.track')

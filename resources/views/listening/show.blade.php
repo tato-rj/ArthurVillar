@@ -50,33 +50,15 @@ section {
 
 .playback-modes {
   display: flex;
-  justify-content: center;
-  gap: 8px;
+  gap: 6px;
+  margin-left: auto;
 }
 
 .playback-mode {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 56px;
-  height: 38px;
-  border: 0;
-  border-radius: 999px;
-  background: #6e6a63;
-  color: #fff;
-  font-size: 19px;
-  cursor: pointer;
-}
-
-.playback-mode[aria-pressed="true"] {
-  background: #eee7d7;
-  color: #565149;
-  box-shadow: inset 0 0 0 1px #d8cfbf;
-}
-
-.playback-mode:focus-visible {
-  outline: 3px solid #278ddd;
-  outline-offset: 2px;
+  min-width: 36px;
 }
 
 img {
@@ -124,10 +106,19 @@ img {
       </audio>
       <p id="autoplay-error" role="status" class="small text-muted mt-2 mb-0"></p>
     </div>
-    <div class="d-flex">
-      <button id="player-about" data-bs-toggle="modal" data-bs-target="#recording-{{$recording->id}}-about-modal" class="btn btn-sm btn-outline-secondary mr-2">About</button>
-      <button id="player-composer-button" data-bs-toggle="modal" data-bs-target="#recording-{{$recording->id}}-composer-modal" class="btn btn-sm btn-outline-secondary mr-2">Composer</button>
-      <a id="player-youtube" href="{{$recording->source_url}}" target="_blank" class="btn btn-sm btn-outline-secondary">Youtube</a>
+    <div class="d-flex flex-wrap align-items-center gap-2">
+      <div class="d-flex">
+        <button id="player-about" data-bs-toggle="modal" data-bs-target="#recording-{{$recording->id}}-about-modal" class="btn btn-sm btn-outline-secondary mr-2">About</button>
+        <button id="player-composer-button" data-bs-toggle="modal" data-bs-target="#recording-{{$recording->id}}-composer-modal" class="btn btn-sm btn-outline-secondary mr-2">Composer</button>
+        <a id="player-youtube" href="{{$recording->source_url}}" target="_blank" class="btn btn-sm btn-outline-secondary">Youtube</a>
+      </div>
+      @isset($playlist)
+      <div class="playback-modes" role="group" aria-label="Automatic playback mode">
+        <button type="button" class="btn btn-sm btn-outline-secondary playback-mode" data-playback-mode="shuffle" aria-label="Shuffle remaining pieces" aria-pressed="false" title="Shuffle remaining pieces">@fa(['icon' => 'shuffle', 'mr' => 0])</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary playback-mode" data-playback-mode="repeat" aria-label="Repeat current piece" aria-pressed="false" title="Repeat current piece">@fa(['icon' => 'repeat', 'mr' => 0])</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary playback-mode" data-playback-mode="infinite" aria-label="Play playlist continuously" aria-pressed="false" title="Play playlist continuously">@fa(['icon' => 'infinity', 'mr' => 0])</button>
+      </div>
+      @endisset
     </div>
   </div>
 </section>
@@ -181,7 +172,10 @@ $(document).ready(function() {
   function setMode(mode) {
     activeMode = mode;
     modeButtons.forEach(button => {
-      button.setAttribute('aria-pressed', String(button.dataset.playbackMode === mode));
+      const selected = button.dataset.playbackMode === mode;
+      button.setAttribute('aria-pressed', String(selected));
+      button.classList.toggle('btn-secondary', selected);
+      button.classList.toggle('btn-outline-secondary', !selected);
     });
   }
 

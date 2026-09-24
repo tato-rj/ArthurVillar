@@ -141,7 +141,9 @@ test('selecting another icon clears the previous selection', () => {
   const page = setup({ mode: 'shuffle' });
   page.modeButtons[1].listeners.click();
   assert.equal(page.modeButtons[0]['aria-pressed'], 'false');
+  assert.equal(page.modeButtons[0].classList.contains('btn-outline-secondary'), true);
   assert.equal(page.modeButtons[1]['aria-pressed'], 'true');
+  assert.equal(page.modeButtons[1].classList.contains('btn-secondary'), true);
 });
 
 test('a blocked automatic start leaves a clear manual play instruction', async () => {
