@@ -68,6 +68,16 @@ img {
 #options {
 
 }
+
+.playback-modes {
+  justify-content: end;
+}
+
+@media (max-width: 991.98px) {
+  .playback-modes {
+    justify-content: center;
+  }
+}
 </style>
 @endpush
 
