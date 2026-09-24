@@ -63,11 +63,11 @@ img {
 @if(request()->qrcode)
 <div class="position-absolute top-o left-0 w-100 mt-3 animate__animated animate__fadeInLeft">
   <div class="mb-2">
-    <a href="{{route('listening.recordings.qrcode', ['recording' => $recording, 'url' => url()->current()])}}" class="btn btn-sm btn-secondary">@fa(['icon' => 'qrcode'])Make QRCode</a>
+    <a id="qrcode-link" href="{{route('listening.recordings.qrcode', ['recording' => $recording, 'url' => url()->current()])}}" class="btn btn-sm btn-secondary">@fa(['icon' => 'qrcode'])Make QRCode</a>
   </div>
 
   <div>
-    <a href="{{url()->current()}}" target="_blank" class="btn btn-sm btn-secondary">@fa(['icon' => 'link'])Public link</a>
+    <a id="public-link" href="{{url()->current()}}" target="_blank" class="btn btn-sm btn-secondary">@fa(['icon' => 'link'])Public link</a>
   </div>
 </div>
 @endif
@@ -76,24 +76,27 @@ img {
   <div id="player-container" class="animate__animated animate__fadeIn animate__slower p-4" style="width: 600px; display: none;">
     <div class="mb-3 p-1 w-100">
       <div class="d-apart mb-1">
-        @include('components.period', ['period' => $recording->period])
+        <div id="player-period" class="badge bg-{{$recording->period->color}} rounded-pill py-0 mb-1">{{$recording->period->name}}</div>
         @if($recording->composed_in)
-        <h6 class="small m-0 opacity-4">Composed in {{$recording->composed_in}}</h6>
+        <h6 id="player-composed-in" class="small m-0 opacity-4">Composed in {{$recording->composed_in}}</h6>
+        @else
+        <h6 id="player-composed-in" class="small m-0 opacity-4 d-none"></h6>
         @endif
       </div>
-      <h2 class="mb-2 lh-1">{{$recording->name}}</h2>
-      <h6 class="mb-1">{{$recording->composer->name}}</h6>
-      <h6 class="opacity-4">{{$recording->artist}}</h6>
+      <h2 id="player-title" class="mb-2 lh-1">{{$recording->name}}</h2>
+      <h6 id="player-composer" class="mb-1">{{$recording->composer->name}}</h6>
+      <h6 id="player-artist" class="opacity-4">{{$recording->artist}}</h6>
     </div>
     <div class="mb-4">
       <audio id="player" controls>
         <source src="{{$recording->storage('audio_path')}}" type="audio/mp3" />
       </audio>
+      <p id="autoplay-error" role="status" class="small text-muted mt-2 mb-0"></p>
     </div>
     <div class="d-flex">
-      <button data-bs-toggle="modal" data-bs-target="#recording-{{$recording->id}}-about-modal" class="btn btn-sm btn-outline-secondary mr-2">About</button>
-      <button data-bs-toggle="modal" data-bs-target="#recording-{{$recording->id}}-composer-modal" class="btn btn-sm btn-outline-secondary mr-2">Composer</button>
-      <a href="{{$recording->source_url}}" target="_blank" class="btn btn-sm btn-outline-secondary">Youtube</a>
+      <button id="player-about" data-bs-toggle="modal" data-bs-target="#recording-{{$recording->id}}-about-modal" class="btn btn-sm btn-outline-secondary mr-2">About</button>
+      <button id="player-composer-button" data-bs-toggle="modal" data-bs-target="#recording-{{$recording->id}}-composer-modal" class="btn btn-sm btn-outline-secondary mr-2">Composer</button>
+      <a id="player-youtube" href="{{$recording->source_url}}" target="_blank" class="btn btn-sm btn-outline-secondary">Youtube</a>
     </div>
   </div>
 </section>
@@ -103,6 +106,12 @@ img {
 
 @isset($playlist)
 @include('listening.components.playlist.show')
+@foreach($playlist->recordings as $playlistRecording)
+  @unless($playlistRecording->is($recording))
+    @include('listening.components.composer', ['recording' => $playlistRecording])
+    @include('listening.components.about', ['recording' => $playlistRecording])
+  @endunless
+@endforeach
 @endisset
 @endsection
 
@@ -114,24 +123,140 @@ $(document).ready(function() {
   $('#player-container').show();
   $('#playlist-container').show();
 
-  $('.track-container[submit]').click(function() {
+  $('#offcanvasBottom').on('click', '.track-container[submit]', function() {
     $(this).closest('form').submit();
   });
 
   const player = new Plyr('#player', {
-    title: '{{$recording->name}}',
+    title: document.getElementById('player-title').textContent,
     controls: ['play', 'progress', 'current-time', 'airplay']
   });
 
-  // Fade in the volume when audio starts
   player.on('play', function() {
-    $('.playing-bars').addClass('wave-animation');
+    $('.playing-bars:not(.d-none)').addClass('wave-animation');
+    document.getElementById('autoplay-error').textContent = '';
   });
 
-
-  // Reset volume when track ends
   player.on('ended pause', function() {
     $('.playing-bars').removeClass('wave-animation');
+  });
+
+  const autoplayToggle = document.getElementById('autoplay-next');
+  if (!autoplayToggle) return;
+
+  const preferenceKey = 'listening.autoplayNext';
+  const modeKey = 'listening.playbackMode';
+  const modeInputs = Array.from(document.querySelectorAll('input[name="playback-mode"]'));
+  try {
+    autoplayToggle.checked = localStorage.getItem(preferenceKey) === 'true';
+    const savedMode = localStorage.getItem(modeKey);
+    const modeInput = modeInputs.find(input => input.value === savedMode);
+    if (modeInput) modeInput.checked = true;
+  } catch (error) {
+    // Playback still works when browser storage is unavailable.
+  }
+
+  autoplayToggle.addEventListener('change', function() {
+    try {
+      localStorage.setItem(preferenceKey, String(autoplayToggle.checked));
+    } catch (error) {
+      // Keep the choice active for this page.
+    }
+  });
+
+  const tracks = Array.from(document.querySelectorAll('#offcanvasBottom form[data-recording-id]'));
+  let currentIndex = tracks.findIndex(track => track.dataset.recordingId === @json((string) $recording->id));
+  let shuffleRemaining = [];
+  let shuffleStarted = false;
+
+  function startPlayback() {
+    const playback = player.play();
+    if (playback && typeof playback.catch === 'function') {
+      playback.catch(() => {
+        document.getElementById('autoplay-error').textContent = 'Automatic playback was blocked. Press play to continue.';
+      });
+    }
+  }
+
+  modeInputs.forEach(input => input.addEventListener('change', function() {
+    shuffleRemaining = [];
+    shuffleStarted = false;
+    if (!input.checked) return;
+    try {
+      localStorage.setItem(modeKey, input.value);
+    } catch (error) {
+      // Keep the mode active for this page.
+    }
+  }));
+
+  player.on('ended', function() {
+    if (!autoplayToggle.checked) return;
+
+    const mode = modeInputs.find(input => input.checked).value;
+    if (mode === 'repeat') {
+      player.currentTime = 0;
+      startPlayback();
+      return;
+    }
+
+    let nextIndex;
+    if (mode === 'shuffle') {
+      if (!shuffleStarted) {
+        shuffleStarted = true;
+        shuffleRemaining = tracks
+          .map((track, index) => track.dataset.audioUrl && index !== currentIndex ? index : -1)
+          .filter(index => index !== -1);
+        for (let index = shuffleRemaining.length - 1; index > 0; index--) {
+          const randomIndex = Math.floor(Math.random() * (index + 1));
+          [shuffleRemaining[index], shuffleRemaining[randomIndex]] = [shuffleRemaining[randomIndex], shuffleRemaining[index]];
+        }
+      }
+      nextIndex = shuffleRemaining.pop() ?? -1;
+    } else {
+      nextIndex = tracks.findIndex((track, index) => index > currentIndex && track.dataset.audioUrl);
+    }
+    if (nextIndex === -1) return;
+
+    const previous = tracks[currentIndex];
+    const next = tracks[nextIndex];
+
+    if (previous) {
+      previous.querySelector('.track-container').setAttribute('submit', '');
+      previous.querySelector('.playing-bars').classList.add('d-none');
+      previous.querySelector('.track-play-button').classList.remove('d-none');
+    }
+
+    next.querySelector('.track-container').removeAttribute('submit');
+    next.querySelector('.playing-bars').classList.remove('d-none');
+    next.querySelector('.track-play-button').classList.add('d-none');
+    currentIndex = nextIndex;
+
+    const details = next.dataset;
+    document.getElementById('player-title').textContent = details.title;
+    document.getElementById('player-composer').textContent = details.composer;
+    document.getElementById('player-artist').textContent = details.artist;
+    const composedIn = document.getElementById('player-composed-in');
+    composedIn.textContent = details.composedIn ? 'Composed in ' + details.composedIn : '';
+    composedIn.classList.toggle('d-none', !details.composedIn);
+    const period = document.getElementById('player-period');
+    period.className = 'badge bg-' + details.periodColor + ' rounded-pill py-0 mb-1';
+    period.textContent = details.periodName;
+    document.getElementById('player-about').setAttribute('data-bs-target', '#recording-' + details.recordingId + '-about-modal');
+    document.getElementById('player-composer-button').setAttribute('data-bs-target', '#recording-' + details.recordingId + '-composer-modal');
+    document.getElementById('player-youtube').href = details.sourceUrl;
+
+    const publicLink = document.getElementById('public-link');
+    if (publicLink) publicLink.href = details.playUrl;
+    const qrcodeLink = document.getElementById('qrcode-link');
+    if (qrcodeLink) qrcodeLink.href = details.qrcodeUrl;
+    history.replaceState(history.state, '', details.playUrl);
+
+    player.source = {
+      type: 'audio',
+      title: details.title,
+      sources: [{ src: details.audioUrl, type: 'audio/mp3' }]
+    };
+    startPlayback();
   });
 });
 </script>

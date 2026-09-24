@@ -40,8 +40,9 @@ class PlayerController extends Controller
     {
         $request = Token::read($token);
 
-        $recording = Recording::find($request['recording_id']);
-        $playlist = Playlist::find($request['playlist_id'] ?? null);
+        $recording = Recording::with(['composer.country', 'period'])->find($request['recording_id']);
+        $playlist = Playlist::with(['recordings.composer.country', 'recordings.period'])
+            ->find($request['playlist_id'] ?? null);
 
         return view('listening.show', compact(['recording', 'playlist']));
     }
