@@ -48,6 +48,37 @@ section {
   padding: 0 !important;
 }
 
+.playback-modes {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.playback-mode {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 38px;
+  border: 0;
+  border-radius: 999px;
+  background: #6e6a63;
+  color: #fff;
+  font-size: 19px;
+  cursor: pointer;
+}
+
+.playback-mode[aria-pressed="true"] {
+  background: #eee7d7;
+  color: #565149;
+  box-shadow: inset 0 0 0 1px #d8cfbf;
+}
+
+.playback-mode:focus-visible {
+  outline: 3px solid #278ddd;
+  outline-offset: 2px;
+}
+
 img {
   border-radius: 12px !important;
 }
@@ -141,28 +172,25 @@ $(document).ready(function() {
     $('.playing-bars').removeClass('wave-animation');
   });
 
-  const autoplayToggle = document.getElementById('autoplay-next');
-  if (!autoplayToggle) return;
+  const modeButtons = Array.from(document.querySelectorAll('[data-playback-mode]'));
+  if (!modeButtons.length) return;
 
-  const preferenceKey = 'listening.autoplayNext';
-  const modeKey = 'listening.playbackMode';
-  const modeInputs = Array.from(document.querySelectorAll('input[name="playback-mode"]'));
+  const modeKey = 'listening.playbackModeV2';
+  let activeMode = null;
+
+  function setMode(mode) {
+    activeMode = mode;
+    modeButtons.forEach(button => {
+      button.setAttribute('aria-pressed', String(button.dataset.playbackMode === mode));
+    });
+  }
+
   try {
-    autoplayToggle.checked = localStorage.getItem(preferenceKey) === 'true';
     const savedMode = localStorage.getItem(modeKey);
-    const modeInput = modeInputs.find(input => input.value === savedMode);
-    if (modeInput) modeInput.checked = true;
+    if (modeButtons.some(button => button.dataset.playbackMode === savedMode)) setMode(savedMode);
   } catch (error) {
     // Playback still works when browser storage is unavailable.
   }
-
-  autoplayToggle.addEventListener('change', function() {
-    try {
-      localStorage.setItem(preferenceKey, String(autoplayToggle.checked));
-    } catch (error) {
-      // Keep the choice active for this page.
-    }
-  });
 
   const tracks = Array.from(document.querySelectorAll('#offcanvasBottom form[data-recording-id]'));
   let currentIndex = tracks.findIndex(track => track.dataset.recordingId === @json((string) $recording->id));
@@ -178,29 +206,28 @@ $(document).ready(function() {
     }
   }
 
-  modeInputs.forEach(input => input.addEventListener('change', function() {
+  modeButtons.forEach(button => button.addEventListener('click', function() {
+    setMode(activeMode === button.dataset.playbackMode ? null : button.dataset.playbackMode);
     shuffleRemaining = [];
     shuffleStarted = false;
-    if (!input.checked) return;
     try {
-      localStorage.setItem(modeKey, input.value);
+      localStorage.setItem(modeKey, activeMode || '');
     } catch (error) {
       // Keep the mode active for this page.
     }
   }));
 
   player.on('ended', function() {
-    if (!autoplayToggle.checked) return;
+    if (!activeMode) return;
 
-    const mode = modeInputs.find(input => input.checked).value;
-    if (mode === 'repeat') {
+    if (activeMode === 'repeat') {
       player.currentTime = 0;
       startPlayback();
       return;
     }
 
     let nextIndex;
-    if (mode === 'shuffle') {
+    if (activeMode === 'shuffle') {
       if (!shuffleStarted) {
         shuffleStarted = true;
         shuffleRemaining = tracks
@@ -214,8 +241,15 @@ $(document).ready(function() {
       nextIndex = shuffleRemaining.pop() ?? -1;
     } else {
       nextIndex = tracks.findIndex((track, index) => index > currentIndex && track.dataset.audioUrl);
+      if (nextIndex === -1) nextIndex = tracks.findIndex(track => track.dataset.audioUrl);
     }
     if (nextIndex === -1) return;
+
+    if (nextIndex === currentIndex) {
+      player.currentTime = 0;
+      startPlayback();
+      return;
+    }
 
     const previous = tracks[currentIndex];
     const next = tracks[nextIndex];

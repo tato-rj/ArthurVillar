@@ -28,21 +28,11 @@ function element(extra = {}) {
   };
 }
 
-function setup({ count = 3, preference = false, mode = 'all' } = {}) {
-  const storage = new Map([
-    ['listening.autoplayNext', String(preference)],
-    ['listening.playbackMode', mode]
-  ]);
-  const toggle = element({ checked: false });
-  const modes = ['all', 'shuffle', 'repeat'].map(value => element({ value }));
-  modes.forEach(input => Object.defineProperty(input, 'checked', {
-    get() { return !!this._checked; },
-    set(value) {
-      if (value) modes.forEach(other => { other._checked = false; });
-      this._checked = value;
-    }
+function setup({ count = 3, mode = null } = {}) {
+  const storage = new Map([['listening.playbackModeV2', mode || '']]);
+  const modeButtons = ['shuffle', 'repeat', 'infinite'].map(playbackMode => element({
+    dataset: { playbackMode }, 'aria-pressed': 'false'
   }));
-  modes[0].checked = true;
   const trackRows = Array.from({ length: count }, (_, index) => {
     const container = element(index === 0 ? {} : { submit: '' });
     const bars = element();
@@ -60,14 +50,13 @@ function setup({ count = 3, preference = false, mode = 'all' } = {}) {
     });
   });
   const ids = new Map([
-    ['autoplay-next', toggle],
     ...['player-title', 'player-composer', 'player-artist', 'player-composed-in', 'autoplay-error',
       'player-period', 'player-about', 'player-composer-button', 'player-youtube']
       .map(id => [id, element()])
   ]);
   const document = {
     getElementById: id => ids.get(id) || null,
-    querySelectorAll: selector => selector === 'input[name="playback-mode"]' ? modes : trackRows
+    querySelectorAll: selector => selector === '[data-playback-mode]' ? modeButtons : trackRows
   };
   const history = { url: null, state: null, replaceState(state, title, url) { this.url = url; } };
   let player;
@@ -88,16 +77,17 @@ function setup({ count = 3, preference = false, mode = 'all' } = {}) {
       getItem: key => storage.get(key), setItem: (key, value) => storage.set(key, value)
     }, Math, Array
   });
-  return { player, toggle, modes, trackRows, ids, history, storage };
+  return { player, modeButtons, trackRows, ids, history, storage };
 }
 
-test('play all is opt-in and stops after the final piece', () => {
+test('no mode stops after the current piece; infinite wraps to the first piece', () => {
   const page = setup();
   page.player.emit('ended');
   assert.equal(page.player.playCount, 0);
 
-  page.toggle.checked = true;
-  page.toggle.listeners.change();
+  page.modeButtons[2].listeners.click();
+  assert.equal(page.modeButtons[2]['aria-pressed'], 'true');
+  assert.equal(page.storage.get('listening.playbackModeV2'), 'infinite');
   page.player.emit('ended');
   assert.equal(page.player.source.sources[0].src, '/audio/2.mp3');
   assert.equal(page.player.playCount, 1);
@@ -107,11 +97,12 @@ test('play all is opt-in and stops after the final piece', () => {
   page.player.emit('ended');
   assert.equal(page.player.source.sources[0].src, '/audio/3.mp3');
   page.player.emit('ended');
-  assert.equal(page.player.playCount, 2);
+  assert.equal(page.player.source.sources[0].src, '/audio/1.mp3');
+  assert.equal(page.player.playCount, 3);
 });
 
 test('shuffle visits each other piece once before stopping', () => {
-  const page = setup({ count: 4, preference: true, mode: 'shuffle' });
+  const page = setup({ count: 4, mode: 'shuffle' });
   const played = [];
   for (let index = 0; index < 4; index++) {
     page.player.emit('ended');
@@ -122,7 +113,7 @@ test('shuffle visits each other piece once before stopping', () => {
 });
 
 test('repeat restarts the current piece without changing its details or URL', () => {
-  const page = setup({ preference: true, mode: 'repeat' });
+  const page = setup({ mode: 'repeat' });
   page.player.emit('ended');
   assert.equal(page.player.currentTime, 0);
   assert.equal(page.player.playCount, 1);
@@ -130,8 +121,31 @@ test('repeat restarts the current piece without changing its details or URL', ()
   assert.equal(page.history.url, null);
 });
 
+test('infinite restarts a playlist containing one piece', () => {
+  const page = setup({ count: 1, mode: 'infinite' });
+  page.player.emit('ended');
+  assert.equal(page.player.currentTime, 0);
+  assert.equal(page.player.playCount, 1);
+});
+
+test('clicking the active mode turns automatic playback off', () => {
+  const page = setup({ mode: 'repeat' });
+  page.modeButtons[1].listeners.click();
+  assert.equal(page.modeButtons[1]['aria-pressed'], 'false');
+  assert.equal(page.storage.get('listening.playbackModeV2'), '');
+  page.player.emit('ended');
+  assert.equal(page.player.playCount, 0);
+});
+
+test('selecting another icon clears the previous selection', () => {
+  const page = setup({ mode: 'shuffle' });
+  page.modeButtons[1].listeners.click();
+  assert.equal(page.modeButtons[0]['aria-pressed'], 'false');
+  assert.equal(page.modeButtons[1]['aria-pressed'], 'true');
+});
+
 test('a blocked automatic start leaves a clear manual play instruction', async () => {
-  const page = setup({ preference: true });
+  const page = setup({ mode: 'infinite' });
   page.player.play = () => Promise.reject(new Error('NotAllowedError'));
   page.player.emit('ended');
   await Promise.resolve();
