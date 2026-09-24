@@ -106,14 +106,14 @@ img {
       </audio>
       <p id="autoplay-error" role="status" class="small text-muted mt-2 mb-0"></p>
     </div>
-    <div class="d-flex flex-wrap align-items-center gap-2">
-      <div class="d-flex">
+    <div class="row">
+      <div class="col-lg-6 col-12 d-flex">
         <button id="player-about" data-bs-toggle="modal" data-bs-target="#recording-{{$recording->id}}-about-modal" class="btn btn-sm btn-outline-secondary mr-2">About</button>
         <button id="player-composer-button" data-bs-toggle="modal" data-bs-target="#recording-{{$recording->id}}-composer-modal" class="btn btn-sm btn-outline-secondary mr-2">Composer</button>
         <a id="player-youtube" href="{{$recording->source_url}}" target="_blank" class="btn btn-sm btn-outline-secondary">Youtube</a>
       </div>
       @isset($playlist)
-      <div class="playback-modes" role="group" aria-label="Automatic playback mode">
+      <div class="playback-modes col-lg-6 col-12" role="group" aria-label="Automatic playback mode">
         <button type="button" class="btn btn-sm btn-outline-secondary playback-mode" data-playback-mode="shuffle" aria-label="Shuffle remaining pieces" aria-pressed="false" title="Shuffle remaining pieces">@fa(['icon' => 'shuffle', 'mr' => 0])</button>
         <button type="button" class="btn btn-sm btn-outline-secondary playback-mode" data-playback-mode="repeat" aria-label="Repeat current piece" aria-pressed="false" title="Repeat current piece">@fa(['icon' => 'repeat', 'mr' => 0])</button>
         <button type="button" class="btn btn-sm btn-outline-secondary playback-mode" data-playback-mode="infinite" aria-label="Play playlist continuously" aria-pressed="false" title="Play playlist continuously">@fa(['icon' => 'infinity', 'mr' => 0])</button>
