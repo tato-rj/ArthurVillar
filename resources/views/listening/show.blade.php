@@ -125,9 +125,9 @@ img {
       @isset($playlist)
       <div class="col-lg-6 col-12 order-lg-2 order-1 mb-3">
       <div class="playback-modes w-100" role="group" aria-label="Automatic playback mode">
-        <button type="button" class="btn btn-sm btn-outline-secondary playback-mode" data-playback-mode="shuffle" aria-label="Shuffle remaining pieces" aria-pressed="false" title="Shuffle remaining pieces">@fa(['icon' => 'shuffle', 'mr' => 0])</button>
-        <button type="button" class="btn btn-sm btn-outline-secondary playback-mode" data-playback-mode="repeat" aria-label="Repeat current piece" aria-pressed="false" title="Repeat current piece">@fa(['icon' => 'repeat', 'mr' => 0])</button>
-        <button type="button" class="btn btn-sm btn-outline-secondary playback-mode" data-playback-mode="infinite" aria-label="Play playlist continuously" aria-pressed="false" title="Play playlist continuously">@fa(['icon' => 'infinity', 'mr' => 0])</button>
+        <button type="button" class="btn btn-outline-secondary playback-mode" data-playback-mode="shuffle" aria-label="Shuffle remaining pieces" aria-pressed="false" title="Shuffle remaining pieces">@fa(['icon' => 'shuffle', 'mr' => 0])</button>
+        <button type="button" class="btn btn-outline-secondary playback-mode" data-playback-mode="repeat" aria-label="Repeat current piece" aria-pressed="false" title="Repeat current piece">@fa(['icon' => 'repeat', 'mr' => 0])</button>
+        <button type="button" class="btn btn-outline-secondary playback-mode" data-playback-mode="infinite" aria-label="Play playlist continuously" aria-pressed="false" title="Play playlist continuously">@fa(['icon' => 'infinity', 'mr' => 0])</button>
       </div>
       @endisset
     </div>
