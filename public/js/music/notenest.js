@@ -1996,7 +1996,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
     })]);
     _this._clefPool = clefPool;
     _this._targetNote = null;
-    _this._lastTargetSignature = null;
+    _this._lastTargetName = null;
     _this._blockMarkerClass = "block-marker";
     _this._lastPlayedNote = null;
     _this.$playNoteWrap = $("#play-note");
@@ -2586,39 +2586,39 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       // this.prompt.setLong("Find this note on the staff");
     }
   }, {
-    key: "_targetSignature",
-    value: function _targetSignature(target) {
+    key: "_targetName",
+    value: function _targetName(target) {
       if (!target) return "";
-      return [String(target.letter || ""), String(target.accidentalClass || ""), String(target.step), String(target.octave)].join("|");
+      return [String(target.letter || ""), String(target.accidentalClass || "")].join("|");
     }
   }, {
     key: "_pickTargetNote",
     value: function _pickTargetNote() {
+      var _this8 = this;
       var maxAttempts = 24;
-      for (var attempt = 0; attempt < maxAttempts; attempt += 1) {
-        var step = this._pickTargetStep();
-        var noteState = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_4__.stepToLetterOctave)(this.staff, step);
-        var target = {
+      var validTarget = function validTarget(target) {
+        return _this8._targetName(target) !== _this8._lastTargetName && (!_this8._isBlockNoteEnabled() || _this8._alternateStepsForTarget(target).length > 0);
+      };
+      var targetAt = function targetAt(step) {
+        var noteState = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_4__.stepToLetterOctave)(_this8.staff, step);
+        return {
           step: step,
           letter: noteState.letter,
           octave: noteState.octave,
-          accidentalClass: this._targetAccidentalClass()
+          accidentalClass: _this8._targetAccidentalClass()
         };
-        if (this._isBlockNoteEnabled() && !this._alternateStepsForTarget(target).length) {
-          continue;
-        }
-        if (this._targetSignature(target) !== this._lastTargetSignature) {
-          return target;
-        }
-      }
-      var fallbackStep = this._pickTargetStep();
-      var fallbackState = (0,_staff_staffUtils_js__WEBPACK_IMPORTED_MODULE_4__.stepToLetterOctave)(this.staff, fallbackStep);
-      return {
-        step: fallbackStep,
-        letter: fallbackState.letter,
-        octave: fallbackState.octave,
-        accidentalClass: this._targetAccidentalClass()
       };
+      for (var attempt = 0; attempt < maxAttempts; attempt += 1) {
+        var target = targetAt(this._pickTargetStep());
+        if (validTarget(target)) return target;
+      }
+
+      // A stuck random source must not repeat the previous prompt.
+      for (var step = 0; step <= 8; step += 1) {
+        var _target = targetAt(step);
+        if (validTarget(_target)) return _target;
+      }
+      throw new Error("Note Nest has no different note available");
     }
   }, {
     key: "newChallenge",
@@ -2636,7 +2636,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       this.$bonusBadge.hide();
       (_this$$doublePoints = this.$doublePoints) === null || _this$$doublePoints === void 0 || (_this$$doublePoints$h = _this$$doublePoints.hide) === null || _this$$doublePoints$h === void 0 || _this$$doublePoints$h.call(_this$$doublePoints);
       this._targetNote = this._pickTargetNote();
-      this._lastTargetSignature = this._targetSignature(this._targetNote);
+      this._lastTargetName = this._targetName(this._targetNote);
       this.prompt.show();
       this._setPromptForTarget(this._targetNote);
       this._renderBlockMarker(this._targetNote);
@@ -2647,15 +2647,15 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
   }, {
     key: "_collectUserNotes",
     value: function _collectUserNotes() {
-      var _this8 = this;
+      var _this9 = this;
       return this.$staffEl.find(".note").toArray().map(function (el) {
-        var _this8$staff$_getAtta, _this8$staff;
+        var _this9$staff$_getAtta, _this9$staff;
         var $note = $(el);
         var noteId = String($note.attr("data-note-id") || "");
-        if (!noteId || _this8.staff.isNoteFixed(noteId)) return null;
+        if (!noteId || _this9.staff.isNoteFixed(noteId)) return null;
         var top = parseFloat($note.css("top"));
-        var step = Number.isFinite(top) ? _this8.staff.yToStep(top) : null;
-        var accidentalClass = ((_this8$staff$_getAtta = (_this8$staff = _this8.staff)._getAttachedAccidentalClass) === null || _this8$staff$_getAtta === void 0 ? void 0 : _this8$staff$_getAtta.call(_this8$staff, noteId)) || null;
+        var step = Number.isFinite(top) ? _this9.staff.yToStep(top) : null;
+        var accidentalClass = ((_this9$staff$_getAtta = (_this9$staff = _this9.staff)._getAttachedAccidentalClass) === null || _this9$staff$_getAtta === void 0 ? void 0 : _this9$staff$_getAtta.call(_this9$staff, noteId)) || null;
         return {
           noteId: noteId,
           step: step,

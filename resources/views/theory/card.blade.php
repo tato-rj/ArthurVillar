@@ -1,4 +1,4 @@
-<div class="col-lg-3 col-md-6 col-12 g-3">
+<div class="game-card col-lg-3 col-md-6 col-11 g-3">
     <div class="mb-4 bg-white border border-dark p-3 rounded h-100 d-flex flex-column justify-content-between">
         <div>
             <div class="d-flex justify-content-between">

@@ -3055,6 +3055,10 @@ __webpack_require__(/*! ./extensions */ "./resources/js/extensions/index.js");
 __webpack_require__(/*! ./components */ "./resources/js/components/index.js");
 __webpack_require__(/*! ./utilities */ "./resources/js/utilities/index.js");
 __webpack_require__(/*! ./web-push */ "./resources/js/web-push.js");
+var _require = __webpack_require__(/*! ./music/leaderboardProfile */ "./resources/js/music/leaderboardProfile.js"),
+  rememberLeaderboardProfile = _require.rememberLeaderboardProfile,
+  renderLeaderboardAvatar = _require.renderLeaderboardAvatar,
+  leaderboardProfileKey = _require.STORAGE_KEY;
 document.addEventListener("touchstart", function () {}, {
   passive: true
 });
@@ -3062,6 +3066,21 @@ $(window).on('load', function () {
   $('.modal.modal-autoshow').modal('show');
 });
 $(function () {
+  document.querySelectorAll('form[data-leaderboard-profile]').forEach(function (form) {
+    return rememberLeaderboardProfile(form);
+  });
+  var userAvatar = document.getElementById('user-avatar');
+  if (userAvatar) {
+    var refreshAvatar = function refreshAvatar() {
+      if (userAvatar.getAttribute('aria-expanded') === 'true') $(userAvatar).dropdown('hide');
+      renderLeaderboardAvatar(userAvatar);
+    };
+    refreshAvatar();
+    window.addEventListener('pageshow', refreshAvatar);
+    window.addEventListener('storage', function (event) {
+      if (event.key === leaderboardProfileKey || event.key === null) refreshAvatar();
+    });
+  }
   $('.leaderboard-modal').on('show.bs.modal', function () {
     var $players = $(this).find('.leaderboard-player');
     $players.stop(true, true).css({
@@ -4872,6 +4891,134 @@ window.onClickOutside = function (element, callback) {
 window.goTo = function (url) {
   window.location.href = url;
 };
+
+/***/ },
+
+/***/ "./resources/js/music/leaderboardProfile.js"
+/*!**************************************************!*\
+  !*** ./resources/js/music/leaderboardProfile.js ***!
+  \**************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   STORAGE_KEY: () => (/* binding */ STORAGE_KEY),
+/* harmony export */   rememberLeaderboardProfile: () => (/* binding */ rememberLeaderboardProfile),
+/* harmony export */   renderLeaderboardAvatar: () => (/* binding */ renderLeaderboardAvatar),
+/* harmony export */   renderLeaderboardScores: () => (/* binding */ renderLeaderboardScores)
+/* harmony export */ });
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
+function _arrayWithoutHoles(r) { if (Array.isArray(r)) return _arrayLikeToArray(r); }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+var STORAGE_KEY = 'theory.leaderboard.profile.v1';
+function savedGames(saved) {
+  return Array.isArray(saved === null || saved === void 0 ? void 0 : saved.games) ? saved.games.filter(function (game) {
+    return game && typeof game.name === 'string' && Number.isFinite(game.score) && game.score >= 0;
+  }).slice(0, 50) : [];
+}
+function renderLeaderboardScores(menu, saved) {
+  var name = typeof (saved === null || saved === void 0 ? void 0 : saved.name) === 'string' ? saved.name : '';
+  menu.querySelector('[data-profile-name]').textContent = name;
+  menu.querySelector('[data-profile-name]').title = name;
+  var games = savedGames(saved);
+  var count = 0;
+  menu.querySelectorAll('[data-profile-game]').forEach(function (row) {
+    var result = games.find(function (game) {
+      return game.name === row.dataset.profileGame;
+    });
+    row.hidden = !result;
+    row.querySelector('[data-profile-score]').textContent = result ? Math.round(result.score).toLocaleString() : '';
+    if (result) count++;
+  });
+  menu.querySelector('[data-profile-empty]').hidden = count > 0;
+}
+function renderLeaderboardAvatar(button) {
+  var _saved, _button$parentElement;
+  var getStorage = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : function () {
+    return window.localStorage;
+  };
+  var saved;
+  try {
+    saved = JSON.parse(getStorage().getItem(STORAGE_KEY));
+  } catch (_) {/* Use the default icon. */}
+  var image = button.querySelector('[data-saved-avatar]');
+  var placeholder = button.querySelector('[data-avatar-placeholder]');
+  var valid = typeof ((_saved = saved) === null || _saved === void 0 ? void 0 : _saved.avatar) === 'string' && /^avatar-([1-9]|[1-6][0-9]|7[0-8])$/.test(saved.avatar);
+  if (valid) image.src = "".concat(button.dataset.avatarBase).concat(saved.avatar, ".svg");
+  image.hidden = !valid;
+  placeholder.hidden = valid;
+  button.disabled = !valid;
+  button.setAttribute('aria-label', valid && typeof saved.name === 'string' && saved.name.trim() ? "".concat(saved.name, "'s avatar") : 'Your avatar');
+  var menu = (_button$parentElement = button.parentElement) === null || _button$parentElement === void 0 ? void 0 : _button$parentElement.querySelector('[data-profile-menu]');
+  if (menu) renderLeaderboardScores(menu, valid ? saved : null);
+}
+function rememberLeaderboardProfile(form) {
+  var getStorage = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : function () {
+    return window.localStorage;
+  };
+  var username = form.elements.namedItem('username');
+  var avatars = _toConsumableArray(form.querySelectorAll('input[name="avatar_url"]'));
+  var storage;
+  var saved;
+  try {
+    storage = getStorage();
+    saved = JSON.parse(storage.getItem(STORAGE_KEY));
+  } catch (_) {/* Remembering a player is optional when storage is unavailable. */}
+
+  // These attributes exist only after the server has successfully posted a score.
+  var postedAvatar = avatars.find(function (avatar) {
+    return avatar.value === form.dataset.postedAvatar;
+  });
+  if (form.dataset.postedName && postedAvatar) {
+    var _form$dataset$postedS;
+    var games = savedGames(saved);
+    var game = form.dataset.postedGame;
+    var score = Number(form.dataset.postedScore);
+    if (game && (_form$dataset$postedS = form.dataset.postedScore) !== null && _form$dataset$postedS !== void 0 && _form$dataset$postedS.trim() && Number.isFinite(score) && score >= 0) {
+      var previous = games.find(function (result) {
+        return result.name === game;
+      });
+      if (previous) previous.score = Math.max(previous.score, score);else games.push({
+        name: game,
+        score: score
+      });
+    }
+    saved = _objectSpread({
+      name: form.dataset.postedName,
+      avatar: postedAvatar.id
+    }, games.length ? {
+      games: games.slice(-50)
+    } : {});
+    try {
+      var _storage;
+      (_storage = storage) === null || _storage === void 0 || _storage.setItem(STORAGE_KEY, JSON.stringify(saved));
+    } catch (_) {/* Keep play available. */}
+  }
+  if (!saved || typeof saved.name !== 'string' || !saved.name.trim()) return;
+  var avatar = avatars.find(function (option) {
+    return option.id === saved.avatar;
+  });
+  if (!avatar) return;
+  if (!username.value) username.value = saved.name;
+  if (!avatars.some(function (option) {
+    return option.checked;
+  })) {
+    avatar.checked = true;
+    avatars.forEach(function (option) {
+      option.closest('.avatar-option').querySelector('.player-avatar').classList.toggle('opacity-2', option !== avatar);
+    });
+  }
+}
 
 /***/ },
 

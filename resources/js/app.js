@@ -4,6 +4,7 @@ require('./extensions');
 require('./components');
 require('./utilities');
 require('./web-push');
+const { rememberLeaderboardProfile, renderLeaderboardAvatar, STORAGE_KEY: leaderboardProfileKey } = require('./music/leaderboardProfile');
 
 document.addEventListener("touchstart", () => {}, { passive: true });
 
@@ -12,6 +13,20 @@ $(window).on('load', function() {
 });
 
 $(function () {
+    document.querySelectorAll('form[data-leaderboard-profile]').forEach(form => rememberLeaderboardProfile(form));
+    const userAvatar = document.getElementById('user-avatar');
+    if (userAvatar) {
+        const refreshAvatar = () => {
+            if (userAvatar.getAttribute('aria-expanded') === 'true') $(userAvatar).dropdown('hide');
+            renderLeaderboardAvatar(userAvatar);
+        };
+        refreshAvatar();
+        window.addEventListener('pageshow', refreshAvatar);
+        window.addEventListener('storage', event => {
+            if (event.key === leaderboardProfileKey || event.key === null) refreshAvatar();
+        });
+    }
+
     $('.leaderboard-modal').on('show.bs.modal', function () {
         var $players = $(this).find('.leaderboard-player');
 

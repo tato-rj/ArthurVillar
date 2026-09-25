@@ -11,7 +11,14 @@
     <p class="m-0 fst-italic text-muted small">@fa(['icon' => 'lightbulb', 'fa_color' => 'yellow'])<strong>How is this calculated?</strong> Higher score, better accuracy, more rounds, faster time, and bonus settings will all increase your final points.</p>
 </div>
 
-<form method="POST" action="{{route('theory.leaderboard.store')}}">
+<form method="POST" action="{{route('theory.leaderboard.store')}}" data-leaderboard-profile
+    @if(session('newPlayer'))
+        data-posted-name="{{session('newPlayer')->username}}"
+        data-posted-avatar="{{session('newPlayer')->avatar_url}}"
+        data-posted-game="{{session('newPlayer')->game}}"
+        data-posted-score="{{session('newPlayer')->finalScore}}"
+    @endif
+>
     @csrf
 
     <input type="hidden" name="game" value="{{$settings->gameName()}}">

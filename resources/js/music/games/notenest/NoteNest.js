@@ -41,7 +41,7 @@ export class NoteNest extends BaseStaffGame {
 
     this._clefPool = clefPool;
     this._targetNote = null;
-    this._lastTargetSignature = null;
+    this._lastTargetName = null;
     this._blockMarkerClass = "block-marker";
     this._lastPlayedNote = null;
     this.$playNoteWrap = $("#play-note");
@@ -614,46 +614,43 @@ export class NoteNest extends BaseStaffGame {
     // this.prompt.setLong("Find this note on the staff");
   }
 
-  _targetSignature(target) {
+  _targetName(target) {
     if (!target) return "";
     return [
       String(target.letter || ""),
       String(target.accidentalClass || ""),
-      String(target.step),
-      String(target.octave),
     ].join("|");
   }
 
   _pickTargetNote() {
     const maxAttempts = 24;
 
-    for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
-      const step = this._pickTargetStep();
+    const validTarget = target =>
+      this._targetName(target) !== this._lastTargetName &&
+      (!this._isBlockNoteEnabled() || this._alternateStepsForTarget(target).length > 0);
+
+    const targetAt = step => {
       const noteState = stepToLetterOctave(this.staff, step);
-      const target = {
+      return {
         step,
         letter: noteState.letter,
         octave: noteState.octave,
         accidentalClass: this._targetAccidentalClass(),
       };
+    };
 
-      if (this._isBlockNoteEnabled() && !this._alternateStepsForTarget(target).length) {
-        continue;
-      }
-
-      if (this._targetSignature(target) !== this._lastTargetSignature) {
-        return target;
-      }
+    for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+      const target = targetAt(this._pickTargetStep());
+      if (validTarget(target)) return target;
     }
 
-    const fallbackStep = this._pickTargetStep();
-    const fallbackState = stepToLetterOctave(this.staff, fallbackStep);
-    return {
-      step: fallbackStep,
-      letter: fallbackState.letter,
-      octave: fallbackState.octave,
-      accidentalClass: this._targetAccidentalClass(),
-    };
+    // A stuck random source must not repeat the previous prompt.
+    for (let step = 0; step <= 8; step += 1) {
+      const target = targetAt(step);
+      if (validTarget(target)) return target;
+    }
+
+    throw new Error("Note Nest has no different note available");
   }
 
   newChallenge() {
@@ -672,7 +669,7 @@ export class NoteNest extends BaseStaffGame {
     this.$doublePoints?.hide?.();
 
     this._targetNote = this._pickTargetNote();
-    this._lastTargetSignature = this._targetSignature(this._targetNote);
+    this._lastTargetName = this._targetName(this._targetNote);
 
     this.prompt.show();
     this._setPromptForTarget(this._targetNote);
