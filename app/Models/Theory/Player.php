@@ -18,13 +18,13 @@ class Player extends BaseModel
     public function scopeRange($query, $range = null)
     {
         switch ($range) {
-            case 'week':
+            case 'all':
+                return $query;
+            default:
                 return $query->whereBetween('created_at', [
                     now()->subDays(7),
                     now()
                 ]);
-            default:
-                return $query;
         }
     }
 
