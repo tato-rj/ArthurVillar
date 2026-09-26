@@ -4,7 +4,7 @@
 		<img data-saved-avatar hidden alt="" width="52" height="52" class="w-100 h-100 rounded-circle">
 	</button>
     <div id="user-avatar-menu" class="dropdown-menu dropdown-menu-end bg-white border border-dark rounded shadow-sm p-4" data-profile-menu aria-labelledby="user-avatar" style="width: 320px; max-width: calc(100vw - 32px);">
-        <p class="small text-muted mb-0" data-profile-intro>Post a score on a leaderboard to choose your avatar and start tracking your scores.</p>
+        <p class="small text-muted mb-0" data-profile-intro>Post a score on a leaderboard to choose an avatar and start tracking your scores.</p>
         <div data-profile-details hidden>
             <div class="mb-3">
                 <div class="fw-bold fs-5 text-truncate" data-profile-name></div>
