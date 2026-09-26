@@ -17,13 +17,14 @@
                                 </div>
 
                                 <div class="text-center mb-3">
-                                        @include('theory.components.leaderboard.nav', ['name' => $game->gameName()])
+                                        @include('theory.components.leaderboard.nav', ['name' => $game->gameName(), 'adminLeaderboard' => auth()->check()])
                                 </div>
 
                                 <div style="max-height: 400px; overflow-y: scroll;" class="leaderboard-players">
                                         @include('theory.components.leaderboard.list', [
                                                 'leaderboard' => $game->leaderboard(), 
-                                                'settings' => $game
+                                                'settings' => $game,
+                                                'adminLeaderboard' => auth()->check()
                                                 ])
 {{--                                         @forelse($game->leaderboard() as $player)
                                                 @include('admin.leaderboards.entry')

@@ -1,31 +1,10 @@
-
-	<div class="leaderboard-player mb-2 {{$loop->last ? null : 'border-bottom'}} d-flex justify-content-between pb-2">
-		<div class="d-flex align-items-center">
-			<div class="mr-3">
-				<div style="width: 28px; height: 28px" class="{{$player->is(session('newPlayer')) ? 'bg-primary border-primary shadow' : 'bg-white'}} {{$loop->iteration <=3 ? 'border rounded-circle' : 'opacity-4'}} d-center small">{{$loop->iteration}}</div>
-			</div>
-			<div class="d-flex align-items-center mr-1">
-				<img class="mr-2 player-avatar" src="{{$player->avatar_url}}">
-				<div>
-					<div class="d-flex my-1 flex-wrap" style="font-size: 60%;">
-						<div class=" mr-2 text-orange">@fa(['icon' => 'gamepad', 'mr' => 1]){{$player->rounds}}</div>
-						<div class=" mr-2 text-purple">@fa(['icon' => 'bolt', 'mr' => 1]){{$player->score}}</div>
-						<div class=" mr-2 text-green">@fa(['icon' => 'bullseye', 'mr' => 1]){{$player->accuracyForHumans}}</div>
-						<div class=" mr-2 text-blue">@fa(['icon' => 'clock', 'mr' => 1]){{$player->durationForHumans}}</div>
-					</div>
-					<h6 class="mb-0 fw-bold">{{$player->username}}</h6>
-					<p class="m-0 text-grey">{{$player->finalScore}} pts</p>
-				</div>
-			</div>
-		</div>
-		<div class="text-right mt-1">
-			<p class="text-grey mb-2 text-nowrap" style="font-size: 70%;">{{$player->created_at->diffForHumans()}}</p>
-			@if($loop->iteration == 1)
-			<div style="color: #FFD700">@fa(['icon' => 'medal', 'fa_size' => 'xl', 'mr' => 0])</div>
-			@elseif($loop->iteration == 2)
-			<div style="color: #C0C0C0">@fa(['icon' => 'medal', 'fa_size' => 'xl', 'mr' => 0])</div>
-			@elseif($loop->iteration == 3)
-			<div style="color: #CD7F32">@fa(['icon' => 'medal', 'fa_size' => 'xl', 'mr' => 0])</div>
-			@endif
-		</div>
-	</div>
+@php($isNewPlayer = $player->is(session('newPlayer')))
+<li class="leaderboard-player leaderboard-row {{$isNewPlayer ? 'is-you' : ''}}">
+    <span class="leaderboard-row__rank" aria-label="Rank {{$rank}}">{{$rank}}</span>
+    <img class="leaderboard-row__avatar" src="{{$player->avatar_url}}" alt="" width="36" height="36" loading="lazy">
+    <span class="leaderboard-row__identity">
+        <strong class="leaderboard-row__name" title="{{$player->username}}">{{$player->username}}</strong>
+        @if($isNewPlayer)<span class="leaderboard-you">You</span>@endif
+    </span>
+    <span class="leaderboard-row__score">{{number_format($player->finalScore)}} <small>pts</small></span>
+</li>

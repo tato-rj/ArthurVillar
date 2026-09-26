@@ -1,10 +1,38 @@
-@forelse($leaderboard as $player)
-	@include(auth()->check() ? 'theory.leaderboards.entry' : 'theory.components.leaderboard.player')
-@empty
-
-<div class="p-5 d-center">
-	<div>
-		<p class=" fst-italic text-grey opacity-6 fw-bold">No players yet...</p>
-	</div>
-</div>
-@endforelse
+@if(($adminLeaderboard ?? false) && auth()->check())
+    @forelse($leaderboard as $player)
+        @include('theory.leaderboards.entry')
+    @empty
+        <div class="leaderboard-empty">No scores yet. Be the first!</div>
+    @endforelse
+@elseif($leaderboard->isEmpty())
+    <div class="leaderboard-empty">
+        <span class="leaderboard-empty__icon" aria-hidden="true">@fa(['icon' => 'ranking-star', 'mr' => 0])</span>
+        <p>No scores yet. Be the first!</p>
+    </div>
+@else
+    <ol class="leaderboard-podium" aria-label="Top three">
+        @foreach($leaderboard->take(3) as $player)
+            @php($rank = $loop->iteration)
+            @php($isNewPlayer = $player->is(session('newPlayer')))
+            <li class="leaderboard-podium__player leaderboard-podium__player--{{$rank}} {{$isNewPlayer ? 'is-you' : ''}}" aria-label="Rank {{$rank}}: {{$player->username}}, {{$player->finalScore}} points">
+                <div class="leaderboard-podium__portrait">
+                    @if($rank === 1)
+                        <span class="leaderboard-podium__crown" aria-hidden="true">@fa(['icon' => 'crown', 'mr' => 0])</span>
+                    @endif
+                    <img src="{{$player->avatar_url}}" alt="" width="88" height="88">
+                    <span class="leaderboard-podium__rank" aria-hidden="true">{{$rank}}</span>
+                </div>
+                <strong class="leaderboard-podium__name" title="{{$player->username}}">{{$player->username}}</strong>
+                <span class="leaderboard-podium__score">{{number_format($player->finalScore)}} <small>pts</small></span>
+                @if($isNewPlayer)<span class="leaderboard-you">You</span>@endif
+            </li>
+        @endforeach
+    </ol>
+    @if($leaderboard->count() > 3)
+        <ol class="leaderboard-ranks" start="4" aria-label="More scores">
+            @foreach($leaderboard->skip(3) as $player)
+                @include('theory.components.leaderboard.player', ['rank' => $loop->iteration + 3])
+            @endforeach
+        </ol>
+    @endif
+@endif

@@ -50,7 +50,9 @@ class LeaderboardsController extends Controller
                              ->take(20)
                              ->get();
 
-        return view('theory.components.leaderboard.list', compact('leaderboard'))->render();
+        $adminLeaderboard = auth()->check() && $request->boolean('admin');
+
+        return view('theory.components.leaderboard.list', compact('leaderboard', 'adminLeaderboard'))->render();
     }
 
     public function finalPoints(Request $request)

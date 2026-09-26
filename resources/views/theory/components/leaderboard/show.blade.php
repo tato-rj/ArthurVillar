@@ -2,10 +2,11 @@
 
 <div class="leaderboard-wrapper">
 	<div class="text-center mb-3">
+		<div class="leaderboard-game">{{$settings->gameName()}}</div>
 		@include('theory.components.leaderboard.nav', ['name' => $settings->gameName()])
 	</div>
 
-	<div style="max-height: 600px; overflow-y: scroll;" class="p-2 leaderboard-players">
+	<div class="leaderboard-players">
 		@include('theory.components.leaderboard.list', ['leaderboard' => $settings->leaderboard(20)])
 	</div>
 </div>
