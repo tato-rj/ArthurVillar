@@ -1,4 +1,34 @@
+import { GAME_SETTINGS_KEY } from './gameSettingsMemory';
+
 export const STORAGE_KEY = 'theory.leaderboard.profile.v1';
+
+export function deleteLeaderboardProfile(getStorage = () => window.localStorage) {
+    try {
+        const storage = getStorage();
+        [STORAGE_KEY, GAME_SETTINGS_KEY, 'theory.note-python.wardrobe.v1'].forEach(key => storage.removeItem(key));
+        return true;
+    } catch (_) {
+        return false;
+    }
+}
+
+export function postSavedLeaderboardScore(form, getStorage = () => window.localStorage) {
+    if (form.dataset.profilePosting === 'true') return true;
+    let saved;
+    try { saved = JSON.parse(getStorage().getItem(STORAGE_KEY)); } catch (_) { return false; }
+    if (typeof saved?.name !== 'string' || !saved.name.trim()) return false;
+    const avatars = [...form.querySelectorAll('input[name="avatar_url"]')];
+    const avatar = avatars.find(option => option.id === saved.avatar);
+    if (!avatar) return false;
+    if (['game', 'rounds', 'score', 'accuracy', 'duration'].some(name => !form.elements.namedItem(name)?.value.trim())) return false;
+
+    form.elements.namedItem('username').value = saved.name;
+    avatars.forEach(option => { option.checked = option === avatar; });
+    if (!form.checkValidity()) return false;
+    form.dataset.profilePosting = 'true';
+    form.requestSubmit();
+    return true;
+}
 
 function savedGames(saved) {
     return Array.isArray(saved?.games) ? saved.games.filter(game =>
@@ -7,6 +37,8 @@ function savedGames(saved) {
 }
 
 export function renderLeaderboardScores(menu, saved) {
+    menu.querySelector('[data-profile-details]').hidden = !saved;
+    menu.querySelector('[data-profile-intro]').hidden = !!saved;
     const name = typeof saved?.name === 'string' ? saved.name : '';
     menu.querySelector('[data-profile-name]').textContent = name;
     menu.querySelector('[data-profile-name]').title = name;
@@ -23,17 +55,25 @@ export function renderLeaderboardScores(menu, saved) {
 
 export function renderLeaderboardAvatar(button, getStorage = () => window.localStorage) {
     let saved;
-    try { saved = JSON.parse(getStorage().getItem(STORAGE_KEY)); } catch (_) { /* Use the default icon. */ }
+    let hasSettings = false;
+    try {
+        const storage = getStorage();
+        hasSettings = !!storage.getItem(GAME_SETTINGS_KEY);
+        saved = JSON.parse(storage.getItem(STORAGE_KEY));
+    } catch (_) { /* Use the default icon. */ }
     const image = button.querySelector('[data-saved-avatar]');
     const placeholder = button.querySelector('[data-avatar-placeholder]');
     const valid = typeof saved?.avatar === 'string' && /^avatar-([1-9]|[1-6][0-9]|7[0-8])$/.test(saved.avatar);
     if (valid) image.src = `${button.dataset.avatarBase}${saved.avatar}.svg`;
     image.hidden = !valid;
     placeholder.hidden = valid;
-    button.disabled = !valid;
     button.setAttribute('aria-label', valid && typeof saved.name === 'string' && saved.name.trim() ? `${saved.name}'s avatar` : 'Your avatar');
     const menu = button.parentElement?.querySelector('[data-profile-menu]');
-    if (menu) renderLeaderboardScores(menu, valid ? saved : null);
+    if (menu) {
+        renderLeaderboardScores(menu, valid ? saved : null);
+        const reset = menu.querySelector('[data-profile-reset]');
+        if (reset) reset.hidden = !saved && !hasSettings;
+    }
 }
 
 export function rememberLeaderboardProfile(form, getStorage = () => window.localStorage) {

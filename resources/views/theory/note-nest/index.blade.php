@@ -8,7 +8,7 @@
 <link href="{{ mix('css/musicgames.css') }}" rel="stylesheet">
 
 <script>
-  window.__challengeOptions = @json($settings->options());
+  window.__challengeOptions = @json($settings->browserOptions());
   window.__clefUrls = {
     treble: "{{ asset('images/clefs/treble-clef.svg') }}",
     bass:   "{{ asset('images/clefs/bass-clef.svg') }}",

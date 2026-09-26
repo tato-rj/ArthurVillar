@@ -218,15 +218,10 @@ export function renderFinalResultsOverlay({
   const randomFrom = (items) => items[Math.floor(Math.random() * items.length)];
   // Keep the existing accuracy bands consistent across every game.
   const tier = accuracy < 50 ? "encouraging" : accuracy <= 80 ? "strong" : "excellent";
-  const messages = {
-    excellent: "A little practice. A lot to celebrate.",
-    strong: "You're finding your rhythm. Keep it going!",
-    encouraging: "One note at a time. Every try helps you grow.",
-  };
-  $greetingTitle.text(randomFrom(resultGreetings[tier]));
+  $greetingTitle.text(accuracy >= 100 ? "Perfect run!" : randomFrom(resultGreetings[tier]));
   $finalOverlay.attr("data-result-tier", tier);
   $finalOverlay.attr("data-result-variant", chooseResultVariant(tier));
-  $finalOverlay.find("#result-message").text(messages[tier]);
+  $finalOverlay[0]?.style.setProperty("--result-score-digits", String(Math.max(3, String(Math.round(Number(score) || 0)).length)));
 
   $settingsBonus.toggle(!!settingsBonus);
   $finalOverlay.show();
@@ -239,6 +234,7 @@ export function renderFinalResultsOverlay({
       spread: 70,
       origin: { y: 0.6 },
       zIndex: 1001,
+      colors: ["#ffe54c", "#55b9ac", "#b18ce8", "#f49236"],
     });
   }
 

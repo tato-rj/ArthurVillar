@@ -4,7 +4,8 @@ require('./extensions');
 require('./components');
 require('./utilities');
 require('./web-push');
-const { rememberLeaderboardProfile, renderLeaderboardAvatar, STORAGE_KEY: leaderboardProfileKey } = require('./music/leaderboardProfile');
+const { rememberLeaderboardProfile, renderLeaderboardAvatar, deleteLeaderboardProfile, postSavedLeaderboardScore, STORAGE_KEY: leaderboardProfileKey } = require('./music/leaderboardProfile');
+const { rememberGameSettings, refreshGameCards, GAME_SETTINGS_KEY } = require('./music/gameSettingsMemory');
 
 document.addEventListener("touchstart", () => {}, { passive: true });
 
@@ -13,7 +14,30 @@ $(window).on('load', function() {
 });
 
 $(function () {
+    const gameSettings = document.querySelector('[data-game-settings]');
+    if (gameSettings) {
+        try { rememberGameSettings(gameSettings.dataset.gameSettings, JSON.parse(gameSettings.dataset.gameOptions)); } catch (_) { /* Keep play available without saved settings. */ }
+    }
+    refreshGameCards();
+    window.addEventListener('pageshow', () => refreshGameCards());
+    window.addEventListener('storage', event => {
+        if (event.key === GAME_SETTINGS_KEY || event.key === null) refreshGameCards();
+    });
     document.querySelectorAll('form[data-leaderboard-profile]').forEach(form => rememberLeaderboardProfile(form));
+    const joinLeaderboard = document.querySelector('[data-join-leaderboard]');
+    const scoreForm = document.querySelector('#save-results-modal form[data-leaderboard-profile]');
+    if (joinLeaderboard && scoreForm) {
+        $(scoreForm.closest('.modal')).on('show.bs.modal.leaderboardProfile', event => {
+            if (event.relatedTarget !== joinLeaderboard) return;
+            if (!postSavedLeaderboardScore(scoreForm)) return;
+            event.preventDefault();
+            joinLeaderboard.disabled = true;
+        });
+        window.addEventListener('pageshow', () => {
+            delete scoreForm.dataset.profilePosting;
+            joinLeaderboard.disabled = false;
+        });
+    }
     const userAvatar = document.getElementById('user-avatar');
     if (userAvatar) {
         const refreshAvatar = () => {
@@ -21,9 +45,17 @@ $(function () {
             renderLeaderboardAvatar(userAvatar);
         };
         refreshAvatar();
+        userAvatar.parentElement.querySelector('[data-profile-delete]').addEventListener('click', () => {
+            if (!window.confirm('Reset your name, avatar, scores and all game settings on this browser?')) return;
+            if (deleteLeaderboardProfile()) {
+                refreshGameCards();
+                refreshAvatar();
+            }
+            else window.alert('Could not delete your records. Please try again.');
+        });
         window.addEventListener('pageshow', refreshAvatar);
         window.addEventListener('storage', event => {
-            if (event.key === leaderboardProfileKey || event.key === null) refreshAvatar();
+            if (event.key === leaderboardProfileKey || event.key === GAME_SETTINGS_KEY || event.key === null) refreshAvatar();
         });
     }
 

@@ -4975,7 +4975,7 @@ function queueFinalResultsReveal() {
   }, delay);
 }
 function renderFinalResultsOverlay(_ref2) {
-  var _window, _window$matchMedia, _window2, _$greetingTitle$, _window3, _window4;
+  var _window, _window$matchMedia, _window2, _$finalOverlay$, _$greetingTitle$, _window3, _window4;
   var $finalOverlay = _ref2.$finalOverlay,
     _ref2$rounds = _ref2.rounds,
     rounds = _ref2$rounds === void 0 ? 0 : _ref2$rounds,
@@ -5131,15 +5131,10 @@ function renderFinalResultsOverlay(_ref2) {
   };
   // Keep the existing accuracy bands consistent across every game.
   var tier = accuracy < 50 ? "encouraging" : accuracy <= 80 ? "strong" : "excellent";
-  var messages = {
-    excellent: "A little practice. A lot to celebrate.",
-    strong: "You're finding your rhythm. Keep it going!",
-    encouraging: "One note at a time. Every try helps you grow."
-  };
-  $greetingTitle.text(randomFrom(resultGreetings[tier]));
+  $greetingTitle.text(accuracy >= 100 ? "Perfect run!" : randomFrom(resultGreetings[tier]));
   $finalOverlay.attr("data-result-tier", tier);
   $finalOverlay.attr("data-result-variant", (0,_resultVariants_js__WEBPACK_IMPORTED_MODULE_0__.chooseResultVariant)(tier));
-  $finalOverlay.find("#result-message").text(messages[tier]);
+  (_$finalOverlay$ = $finalOverlay[0]) === null || _$finalOverlay$ === void 0 || _$finalOverlay$.style.setProperty("--result-score-digits", String(Math.max(3, String(Math.round(Number(score) || 0)).length)));
   $settingsBonus.toggle(!!settingsBonus);
   $finalOverlay.show();
   (_$greetingTitle$ = $greetingTitle[0]) === null || _$greetingTitle$ === void 0 || _$greetingTitle$.focus({
@@ -5153,7 +5148,8 @@ function renderFinalResultsOverlay(_ref2) {
       origin: {
         y: 0.6
       },
-      zIndex: 1001
+      zIndex: 1001,
+      colors: ["#ffe54c", "#55b9ac", "#b18ce8", "#f49236"]
     });
   }
   if (!reducedMotion) {

@@ -2,8 +2,8 @@ const assert = require('node:assert/strict');
 const { test } = require('node:test');
 const fs = require('node:fs');
 const vm = require('node:vm');
-const source = fs.readFileSync(require('node:path').join(__dirname, '../../resources/js/music/leaderboardProfile.js'), 'utf8').replace(/^export /gm, '');
-const context = vm.createContext({});
+const source = fs.readFileSync(require('node:path').join(__dirname, '../../resources/js/music/leaderboardProfile.js'), 'utf8').replace(/^import .*;\n/gm, '').replace(/^export /gm, '');
+const context = vm.createContext({GAME_SETTINGS_KEY: 'theory.game.settings.v1'});
 vm.runInContext(`${source}\nglobalThis.remember = rememberLeaderboardProfile;`, context);
 
 function form(dataset = {}, order = [1, 2]) {
@@ -18,6 +18,28 @@ function storage() {
     let value = null;
     return {getItem: () => value, setItem: (_, next) => { value = next; }};
 }
+
+test('reset removes the profile and all saved game settings while preserving unrelated browser data', () => {
+    const values = new Map([
+        ['theory.leaderboard.profile.v1', JSON.stringify({name: 'Chosen', avatar: 'avatar-2', games: [{name: 'Note Nest', score: 120}]})],
+        ['theory.game.settings.v1', JSON.stringify({'note-nest': {numOfChallenges: 8}, 'beat-hero': {bpm: 90}})],
+        ['theory.note-python.wardrobe.v1', '{"selected":"pickle"}'],
+        ['other-setting', 'keep'],
+    ]);
+    const saved = {getItem: key => values.get(key) ?? null, removeItem: key => values.delete(key)};
+    assert.equal(context.deleteLeaderboardProfile(() => saved), true);
+    assert.equal(saved.getItem('theory.leaderboard.profile.v1'), null);
+    assert.equal(saved.getItem('theory.game.settings.v1'), null);
+    assert.equal(saved.getItem('theory.note-python.wardrobe.v1'), null);
+    assert.equal(saved.getItem('other-setting'), 'keep');
+    const button = avatarButton(), menu = scoreMenu();
+    button.parentElement = {querySelector: () => menu};
+    context.renderLeaderboardAvatar(button, () => saved);
+    assert.equal(button.placeholder.hidden, false);
+    assert.equal(menu.intro.hidden, false);
+    assert.equal(menu.details.hidden, true);
+    assert.equal(context.deleteLeaderboardProfile(() => { throw Error('blocked'); }), false);
+});
 
 test('only a successful post saves the chosen name and avatar, then restores them across games', () => {
     const saved = storage();
@@ -66,6 +88,56 @@ function avatarButton() {
     };
 }
 
+function scoreForm() {
+    const result = form();
+    result.metrics = {game: {value: 'Note Nest'}, rounds: {value: '4'}, score: {value: '30'}, accuracy: {value: '90%'}, duration: {value: '00:40'}};
+    result.elements.namedItem = name => name === 'username' ? result.username : result.metrics[name];
+    result.checkValidity = () => !!result.username.value && result.avatars.some(avatar => avatar.checked);
+    result.submissions = 0;
+    result.requestSubmit = () => result.submissions++;
+    return result;
+}
+
+test('a saved profile posts the completed results once using the latest saved name and avatar', () => {
+    const result = scoreForm();
+    const saved = storage();
+    saved.setItem('', JSON.stringify({name: 'Latest name', avatar: 'avatar-2'}));
+    result.username.value = 'Old name';
+    result.avatars[0].checked = true;
+    const metrics = JSON.stringify(result.metrics);
+    assert.equal(context.postSavedLeaderboardScore(result, () => saved), true);
+    assert.equal(result.username.value, 'Latest name');
+    assert.equal(result.avatars[0].checked, false);
+    assert.equal(result.avatars[1].checked, true);
+    assert.equal(JSON.stringify(result.metrics), metrics);
+    assert.equal(result.submissions, 1);
+    assert.equal(context.postSavedLeaderboardScore(result, () => saved), true);
+    assert.equal(result.submissions, 1);
+});
+
+test('first-time, deleted, invalid or unavailable profiles keep the normal leaderboard modal', () => {
+    for (const value of [null, '{broken', '{"name":"","avatar":"avatar-1"}', '{"name":"Chosen","avatar":"unknown"}']) {
+        const result = scoreForm();
+        assert.equal(context.postSavedLeaderboardScore(result, () => ({getItem: () => value})), false);
+        assert.equal(result.submissions, 0);
+    }
+    const result = scoreForm();
+    assert.equal(context.postSavedLeaderboardScore(result, () => { throw Error('blocked'); }), false);
+    assert.equal(result.submissions, 0);
+});
+
+test('saved profiles cannot post missing results or an invalid form', () => {
+    const saved = {getItem: () => '{"name":"Chosen","avatar":"avatar-2"}'};
+    const missing = scoreForm();
+    missing.metrics.score.value = '';
+    assert.equal(context.postSavedLeaderboardScore(missing, () => saved), false);
+    assert.equal(missing.submissions, 0);
+    const invalid = scoreForm();
+    invalid.checkValidity = () => false;
+    assert.equal(context.postSavedLeaderboardScore(invalid, () => saved), false);
+    assert.equal(invalid.submissions, 0);
+});
+
 test('the profile icon shows the last successfully posted avatar and changes with a new score', () => {
     const saved = storage(), button = avatarButton();
     context.renderLeaderboardAvatar(button, () => saved);
@@ -109,10 +181,30 @@ test('posted scores keep one best per game through name and avatar changes', () 
 });
 
 function scoreMenu() {
-    const name = {}, empty = {};
+    const name = {}, empty = {}, details = {}, intro = {};
     const rows = ['Note Nest', 'Beat Hero'].map(game => ({dataset: {profileGame: game}, score: {}, querySelector() { return this.score; }}));
-    return {name, empty, rows, querySelector: selector => selector === '[data-profile-name]' ? name : empty, querySelectorAll: () => rows};
+    const elements = {'[data-profile-name]': name, '[data-profile-empty]': empty, '[data-profile-details]': details, '[data-profile-intro]': intro};
+    return {name, empty, details, intro, rows, querySelector: selector => elements[selector], querySelectorAll: () => rows};
 }
+
+test('the default avatar opens an introduction until a profile is saved, and after it is cleared', () => {
+    const menu = scoreMenu(), button = avatarButton(), saved = storage();
+    button.parentElement = {querySelector: () => menu};
+    context.renderLeaderboardAvatar(button, () => saved);
+    assert.notEqual(button.disabled, true);
+    assert.equal(menu.intro.hidden, false);
+    assert.equal(menu.details.hidden, true);
+    context.remember(form({postedName: 'Chosen', postedAvatar: 'https://theory.test/images/avatars/avatar-2.svg'}), () => saved);
+    context.renderLeaderboardAvatar(button, () => saved);
+    assert.equal(menu.intro.hidden, true);
+    assert.equal(menu.details.hidden, false);
+    assert.equal(menu.name.textContent, 'Chosen');
+    saved.setItem('', null);
+    context.renderLeaderboardAvatar(button, () => saved);
+    assert.notEqual(button.disabled, true);
+    assert.equal(menu.intro.hidden, false);
+    assert.equal(menu.details.hidden, true);
+});
 
 test('the dropdown shows only played games and handles existing profiles without scores', () => {
     const menu = scoreMenu();
@@ -128,4 +220,19 @@ test('the dropdown shows only played games and handles existing profiles without
     context.renderLeaderboardScores(menu, {games: [null, {name: 'Beat Hero', score: 'broken'}]});
     assert.equal(menu.empty.hidden, false);
     assert.equal(menu.name.textContent, '');
+});
+
+test('reset remains available with saved settings even before a profile is created', () => {
+    const menu = scoreMenu(), button = avatarButton(), reset = {};
+    const query = menu.querySelector;
+    menu.querySelector = selector => selector === '[data-profile-reset]' ? reset : query(selector);
+    button.parentElement = {querySelector: () => menu};
+    const values = new Map([['theory.game.settings.v1', '{"note-nest":{"numOfChallenges":8}}']]);
+    const saved = {getItem: key => values.get(key) ?? null, removeItem: key => values.delete(key)};
+    context.renderLeaderboardAvatar(button, () => saved);
+    assert.equal(menu.intro.hidden, false);
+    assert.equal(reset.hidden, false);
+    context.deleteLeaderboardProfile(() => saved);
+    context.renderLeaderboardAvatar(button, () => saved);
+    assert.equal(reset.hidden, true);
 });

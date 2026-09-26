@@ -53,6 +53,23 @@ abstract class GameFactory
         return str_slug($this->gameName());
     }
 
+    public function replayOptions(): array
+    {
+        return array_intersect_key($this->browserOptions(), $this->defaults());
+    }
+
+    public function browserOptions(): array
+    {
+        $options = $this->options();
+        foreach ($this->defaults() as $key => $default) {
+            if (is_bool($default)) {
+                $options[$key] = filter_var($options[$key], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? (bool) $options[$key];
+            }
+        }
+
+        return $options;
+    }
+
     protected function requiredToggleKeys(): array
     {
         return [];
