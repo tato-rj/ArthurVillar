@@ -4649,13 +4649,16 @@ function getPointerId(e) {
   return oe && oe.pointerId != null ? oe.pointerId : null;
 }
 function randomInt(min, maxInclusive) {
-  return Math.floor(Math.random() * (maxInclusive - min + 1)) + min;
+  var random = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : Math.random;
+  return Math.floor(random() * (maxInclusive - min + 1)) + min;
 }
 function pickOne(arr) {
+  var random = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : Math.random;
   if (!Array.isArray(arr) || !arr.length) return null;
-  return arr[Math.floor(Math.random() * arr.length)];
+  return arr[Math.floor(random() * arr.length)];
 }
 function pickWeighted(items) {
+  var random = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : Math.random;
   var list = Array.isArray(items) ? items.filter(function (x) {
     return x && Number.isFinite(x.weight) && x.weight > 0;
   }) : [];
@@ -4663,7 +4666,7 @@ function pickWeighted(items) {
   var total = list.reduce(function (sum, x) {
     return sum + x.weight;
   }, 0);
-  var r = Math.random() * total;
+  var r = random() * total;
   for (var i = 0; i < list.length; i++) {
     r -= list[i].weight;
     if (r <= 0) return list[i].value;
@@ -4775,7 +4778,7 @@ function spellNoteTextFromState(staff, step, accidentalClass) {
 /************************************************************************/
 /******/ 	// The module cache
 /******/ 	var __webpack_module_cache__ = {};
-/******/ 	
+/******/
 /******/ 	// The require function
 /******/ 	function __webpack_require__(moduleId) {
 /******/ 		// Check if module is in cache
@@ -4795,14 +4798,14 @@ function spellNoteTextFromState(staff, step, accidentalClass) {
 /******/ 			// no module.loaded needed
 /******/ 			exports: {}
 /******/ 		};
-/******/ 	
+/******/
 /******/ 		// Execute the module function
 /******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
-/******/ 	
+/******/
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
 /******/ 	}
-/******/ 	
+/******/
 /************************************************************************/
 /******/ 	/* webpack/runtime/define property getters */
 /******/ 	(() => {
@@ -4815,12 +4818,12 @@ function spellNoteTextFromState(staff, step, accidentalClass) {
 /******/ 			}
 /******/ 		};
 /******/ 	})();
-/******/ 	
+/******/
 /******/ 	/* webpack/runtime/hasOwnProperty shorthand */
 /******/ 	(() => {
 /******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
 /******/ 	})();
-/******/ 	
+/******/
 /******/ 	/* webpack/runtime/make namespace object */
 /******/ 	(() => {
 /******/ 		// define __esModule on exports
@@ -4831,7 +4834,7 @@ function spellNoteTextFromState(staff, step, accidentalClass) {
 /******/ 			Object.defineProperty(exports, '__esModule', { value: true });
 /******/ 		};
 /******/ 	})();
-/******/ 	
+/******/
 /************************************************************************/
 var __webpack_exports__ = {};
 // This entry needs to be wrapped in an IIFE because it needs to be isolated against other modules in the chunk.

@@ -2,6 +2,10 @@
 
 namespace App\Providers;
 
+use App\Theory\Duels\Duel;
+use App\Theory\Duels\DuelService;
+use App\Theory\Duels\GameRegistry;
+
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -82,6 +86,18 @@ class AppServiceProvider extends ServiceProvider
                     ->orderBy('last_name')
                     ->get()
             ]);
+        });
+
+        \View::composer('theory.*.index', function ($view) {
+            if (! request()->filled('duel') || ! isset($view->settings)) {
+                return;
+            }
+            $duel = Duel::findOrFail(request('duel'));
+            $service = app(DuelService::class);
+            $state = $service->state(request(), $duel);
+            abort_unless($duel->game === $view->settings->gameSlug(), 409, 'Open the correct Duel game page.');
+            $view->with('settings', GameRegistry::settings($duel->game, $duel->settings));
+            $view->with('duelState', $state);
         });
 
         \View::composer(['theory.leaderboards.index', 'theory.index'], function($view) {

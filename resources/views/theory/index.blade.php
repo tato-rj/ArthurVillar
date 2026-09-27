@@ -46,8 +46,11 @@
             <div class="game-header mb-4 px-4 position-relative">
                 <h1>Music Theory Challenges</h1>
                 <p>Interactive games for practicing core music theory skills</p>
-                <a href="{{route('theory.open-staff.play')}}" class="btn btn-outline-secondary">@fa(['icon' => 'chalkboard'])Open Staff</a>
+                <div>
+                    <a href="{{route('theory.open-staff.play')}}" class="btn btn-outline-secondary">@fa(['icon' => 'chalkboard'])Open Staff</a>
+                </div>
 
+                <button type="button" data-duel-join class="btn btn-primary mt-2">@fa(['icon' => 'bolt'])Join a Duel</button>
                 @include('theory.profile.avatar')
             </div>
 

@@ -11,12 +11,11 @@ class Expense extends BaseModel
         'monthly' => 'Monthly',
     ];
 
-    protected $dates = [
-        'starts_on',
-        'ends_on',
-    ];
+
 
     protected $casts = [
+        'starts_on' => 'datetime',
+        'ends_on' => 'datetime',
         'amount' => 'integer',
     ];
 

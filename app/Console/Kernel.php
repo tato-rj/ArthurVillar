@@ -14,6 +14,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
+        $schedule->command('theory:cleanup-duels')->everyMinute()->withoutOverlapping();
         $schedule->command('calendar:send-event-reminders')->everyMinute()->withoutOverlapping();
         $schedule->command('calendar:sync-google')->everyFiveMinutes()->withoutOverlapping();
         $schedule->command('calendar:sync-football')

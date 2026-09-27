@@ -64,6 +64,10 @@
 
         @yield('content')
 
+        @if(subdomain() === 'theory')
+            @include('theory.components.duel')
+        @endif
+
         @include('layouts.alerts')
 
         <script src="{{ mix('js/app.js') }}"></script>

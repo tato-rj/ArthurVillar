@@ -57,3 +57,14 @@ Route::prefix('leaderboard')->name('leaderboard.')->group(function() {
 	
 	Route::post('', 'LeaderboardsController@store')->name('store');
 });
+
+// Anonymous Duel endpoints use the web session and CSRF protection, not auth middleware.
+Route::prefix('duels')->name('duels.')->group(function () {
+    Route::post('', 'DuelController@store')->middleware('throttle:10,1,duel-create:')->block(10, 10)->name('store');
+    Route::post('join', 'DuelController@join')->middleware('throttle:15,1,duel-join:')->block(10, 10)->name('join');
+    Route::post('broadcast-auth', 'DuelController@authorizeChannel')->middleware('throttle:60,1,duel-auth:')->name('broadcast-auth');
+    Route::get('{duel}', 'DuelController@show')->middleware('throttle:120,1,duel-state:')->name('show');
+    Route::post('{duel}/answer', 'DuelController@answer')->middleware('throttle:120,1,duel-answer:')->name('answer');
+    Route::post('{duel}/{action}', 'DuelController@update')
+        ->where('action', 'ready|progress|finish|cancel|leave|heartbeat|connect|depart')->middleware('throttle:120,1,duel-update:')->name('update');
+});

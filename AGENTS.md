@@ -4,7 +4,7 @@ This file applies to the entire repository. Add a more specific `AGENTS.md` insi
 
 ## Working in this repository
 
-- This is a Laravel 9 application with frontend assets built by Laravel Mix.
+- This is a Laravel 12 application (PHP 8.3+) with frontend assets built by Laravel Mix.
 - Treat `resources/` as the source of truth. Files under `public/js` and `public/css` are generated assets, but they are committed and must be rebuilt when their sources change.
 - Preserve unrelated work in the working tree. Before editing, run `git status --short` and inspect overlapping diffs. Do not clean up or rewrite files outside the requested scope.
 - Keep controller responses and their browser consumers in sync. JSON mutation endpoints should return every value the browser needs to update the affected view without fetching the whole page again.

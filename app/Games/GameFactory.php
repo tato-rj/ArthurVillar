@@ -3,6 +3,7 @@
 namespace App\Games;
 
 use App\Models\Theory\Player;
+use Illuminate\Validation\Rule;
 
 abstract class GameFactory 
 {
@@ -32,6 +33,33 @@ abstract class GameFactory
     public function __construct(array $request = [])
     {
         $this->request = $this->normalizeRequest($request);
+    }
+
+    public function duelRules(): array
+    {
+        $rules = [];
+        foreach ($this->defaults() as $key => $default) {
+            $rules[$key] = is_bool($default) ? 'sometimes|boolean' :
+                (is_array($default) ? 'sometimes|array|max:32' :
+                (is_numeric($default) ? 'sometimes|integer|min:0|max:600' : 'sometimes|string|max:64'));
+            if (is_array($default)) {
+                $rules[$key.'.*'] = 'string|max:32';
+            }
+        }
+        if (isset($rules['numOfChallenges'])) {
+            $rules['numOfChallenges'] = 'sometimes|integer|min:2|max:12';
+        }
+        if (isset($rules['bpm'])) {
+            $rules['bpm'] = 'sometimes|integer|min:50|max:160';
+        }
+        foreach (['intervals' => $this->intervals, 'clefs' => $this->clefs, 'triadQualities' => $this->triadQualities, 'keyQualities' => $this->keyQualities] as $key => $values) {
+            if (isset($rules[$key])) {
+                $rules[$key] = 'sometimes|array|min:1|max:32';
+                $rules[$key.'.*'] = Rule::in($values);
+            }
+        }
+
+        return $rules;
     }
 
     public function public()

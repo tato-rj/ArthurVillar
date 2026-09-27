@@ -102,7 +102,7 @@ export class ChordsLab extends BaseStaffGame {
 
   _pickChordDirection() {
     if (!this._isStrictDirection()) return 1;
-    return Math.random() < 0.5 ? -1 : 1;
+    return (this._duelRandom?.() ?? Math.random()) < 0.5 ? -1 : 1;
   }
 
 /**
@@ -380,7 +380,7 @@ _formatShortLabelHtml(shortLabel) {
         });
       }
 
-      if (viable.length) return pickOne(viable);
+      if (viable.length) return pickOne(viable, this._duelRandom);
       // fall through to standard path
     }
 
@@ -395,18 +395,18 @@ _formatShortLabelHtml(shortLabel) {
     let bassRole = 0;
 
     if (!allowInv) {
-      rootStep = randomInt(rootMin, rootMax);
+      rootStep = randomInt(rootMin, rootMax, this._duelRandom);
     } else {
       const roles = expected.length === 3 ? [0, 1, 2, 3] : [0, 1, 2];
-      rootStep = randomInt(rootMin, rootMax);
-      bassRole = pickOne(roles);
+      rootStep = randomInt(rootMin, rootMax, this._duelRandom);
+      bassRole = pickOne(roles, this._duelRandom);
     }
     const w = this.opts.accidentalWeights || {};
     const rootAccClass = pickWeighted([
       { value: null, weight: Number(w.natural) || 0 },
       { value: "music-font__sharp", weight: Number(w.sharp) || 0 },
       { value: "music-font__flat", weight: Number(w.flat) || 0 },
-    ]);
+    ], this._duelRandom);
 
     const rootMidi =
       this.staff._stepToMidi(rootStep) + this.staff._accidentalClassToOffset(rootAccClass);
@@ -447,7 +447,7 @@ _formatShortLabelHtml(shortLabel) {
     this._fixedState = null;
     this._resetTriadContext();
 
-    const clef = pickChallengeClef(this._clefPool);
+    const clef = pickChallengeClef(this._clefPool, this._duelRandom);
     if (clef && clef !== this.staff.getClef()) this.staff.setClef(clef);
 
     this._madeMistakeThisRound = false;
@@ -582,11 +582,11 @@ _pickChordSpec() {
 
   const pool = poolRaw.length ? poolRaw : ["major", "minor", "diminished", "augmented"];
 
-  const quality = pool[Math.floor(Math.random() * pool.length)];
+  const quality = pool[Math.floor((this._duelRandom?.() ?? Math.random()) * pool.length)];
 
-  if (quality === "major") return { quality, seventhType: pickOne(["7", "maj7"]) };
+  if (quality === "major") return { quality, seventhType: pickOne(["7", "maj7"], this._duelRandom) };
   if (quality === "minor") return { quality, seventhType: "7" };
-  if (quality === "diminished") return { quality, seventhType: pickOne(["7", "dim7"]) };
+  if (quality === "diminished") return { quality, seventhType: pickOne(["7", "dim7"], this._duelRandom) };
   if (quality === "augmented") return { quality, seventhType: "7" };
 
   // Fallback: treat anything unexpected as a triad.
@@ -605,7 +605,7 @@ _requiredUserNotesForChord(seventhType) {
       Array.isArray(this.opts.triadQualities) && this.opts.triadQualities.length
         ? this.opts.triadQualities
         : ["major"];
-    return pool[Math.floor(Math.random() * pool.length)];
+    return pool[Math.floor((this._duelRandom?.() ?? Math.random()) * pool.length)];
   }
 
   // ------------------------ fixed note selection ------------------------
@@ -613,7 +613,7 @@ _requiredUserNotesForChord(seventhType) {
   _pickFixedNote() {
     const fixedList = toArrayMaybe(this.opts.fixedNotes).filter(Boolean);
     if (fixedList.length) {
-      const chosen = pickOne(fixedList);
+      const chosen = pickOne(fixedList, this._duelRandom);
       return fixedNoteToStaffPosition(this.staff, chosen);
     }
 
@@ -622,7 +622,7 @@ _requiredUserNotesForChord(seventhType) {
       { value: null, weight: Number(w.natural) || 0 },
       { value: "music-font__sharp", weight: Number(w.sharp) || 0 },
       { value: "music-font__flat", weight: Number(w.flat) || 0 },
-    ]);
+    ], this._duelRandom);
 
     return { step: this._randomFixedStep(), accidentalClass };
   }
@@ -630,7 +630,7 @@ _requiredUserNotesForChord(seventhType) {
   _randomFixedStep() {
     const min = 0;
     const max = 8;
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+    return Math.floor((this._duelRandom?.() ?? Math.random()) * (max - min + 1)) + min;
   }
 
   // ------------------------ evaluation ------------------------

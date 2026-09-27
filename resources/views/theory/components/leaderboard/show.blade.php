@@ -2,7 +2,7 @@
 
 <div class="leaderboard-wrapper">
 	<div class="text-center mb-3">
-		<div class="leaderboard-game">{{$settings->gameName()}}</div>
+		<h6 class="leaderboard-game">{{$settings->gameName()}}</h6>
 		@include('theory.components.leaderboard.nav', ['name' => $settings->gameName()])
 	</div>
 

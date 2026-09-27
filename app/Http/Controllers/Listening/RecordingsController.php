@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\Listening\{Recording, Period, Composer, Playlist};
 use App\Tools\Cropper\ImageUpload;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class RecordingsController extends Controller
 {

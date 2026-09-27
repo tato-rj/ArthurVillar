@@ -16,3 +16,6 @@ use Illuminate\Support\Facades\Broadcast;
 Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
     return (int) $user->id === (int) $id;
 });
+
+// theory.duel.* is authorized exclusively by Theory\DuelController@authorizeChannel.
+// The four-digit code and the normal Laravel user guard cannot grant membership.

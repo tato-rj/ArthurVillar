@@ -1,11 +1,10 @@
+import { bootGame } from "../duel/DuelClient.js";
 import { ChordsLab } from "./chordslab/ChordsLab.js";
 
 const options = readGlobal("__challengeOptions") || {};
 const clefUrls = readGlobal("__clefUrls") || null;
 
-const game = new ChordsLab({
-  ...options,
+bootGame((duelOptions) => new ChordsLab({
+  ...(duelOptions || options),
   clefUrls,
-});
-
-game.start();
+}));

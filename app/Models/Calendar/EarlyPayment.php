@@ -6,9 +6,10 @@ use App\Models\BaseModel;
 
 class EarlyPayment extends BaseModel
 {
-    protected $dates = [
-        'scheduled_date',
+    protected $casts = [
+        'scheduled_date' => 'datetime',
     ];
+
 
     public function lessonPlan()
     {

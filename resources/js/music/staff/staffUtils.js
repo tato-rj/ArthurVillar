@@ -53,23 +53,23 @@ export function getPointerId(e) {
   return oe && oe.pointerId != null ? oe.pointerId : null;
 }
 
-export function randomInt(min, maxInclusive) {
-  return Math.floor(Math.random() * (maxInclusive - min + 1)) + min;
+export function randomInt(min, maxInclusive, random = Math.random) {
+  return Math.floor(random() * (maxInclusive - min + 1)) + min;
 }
 
-export function pickOne(arr) {
+export function pickOne(arr, random = Math.random) {
   if (!Array.isArray(arr) || !arr.length) return null;
-  return arr[Math.floor(Math.random() * arr.length)];
+  return arr[Math.floor(random() * arr.length)];
 }
 
-export function pickWeighted(items) {
+export function pickWeighted(items, random = Math.random) {
   const list = Array.isArray(items)
     ? items.filter((x) => x && Number.isFinite(x.weight) && x.weight > 0)
     : [];
   if (!list.length) return null;
 
   const total = list.reduce((sum, x) => sum + x.weight, 0);
-  let r = Math.random() * total;
+  let r = random() * total;
 
   for (let i = 0; i < list.length; i++) {
     r -= list[i].weight;

@@ -1,11 +1,10 @@
+import { bootGame } from "../duel/DuelClient.js";
 import { MemoryWizard } from "./memorywizard/MemoryWizard.js";
 
 const options = readGlobal("__challengeOptions") || {};
 const clefUrls = readGlobal("__clefUrls") || null;
 
-const game = new MemoryWizard({
-  ...options,
+bootGame((duelOptions) => new MemoryWizard({
+  ...(duelOptions || options),
   clefUrls,
-});
-
-game.start?.();
+}));

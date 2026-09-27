@@ -17,10 +17,10 @@ export function normalizeClefPool(clefsOrSingle) {
   return uniq.length ? uniq : ["treble", "bass"];
 }
 
-export function pickChallengeClef(clefPool) {
+export function pickChallengeClef(clefPool, random = Math.random) {
   const pool = Array.isArray(clefPool) && clefPool.length ? clefPool : ["treble", "bass"];
   if (pool.length === 1) return pool[0];
-  return pool[Math.floor(Math.random() * pool.length)];
+  return pool[Math.floor(random() * pool.length)];
 }
 
 export function accidentalClassFromOffset(off) {

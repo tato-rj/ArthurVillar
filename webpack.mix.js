@@ -38,3 +38,24 @@ mix.js('resources/js/app.js', 'public/js')
     .sass('resources/sass/schedule.scss', 'public/css')
     .sass('resources/sass/musicgames.scss', 'public/css')
     .version();
+
+// Webpack adds trailing tabs to runtime chunks. Normalize the changed game bundles
+// before Mix computes version hashes so generated assets also pass diff --check.
+mix.webpackConfig({
+    plugins: [{
+        apply(compiler) {
+            compiler.hooks.thisCompilation.tap('GameBundleWhitespace', compilation => {
+                compilation.hooks.processAssets.tap({
+                    name: 'GameBundleWhitespace',
+                    stage: compiler.webpack.Compilation.PROCESS_ASSETS_STAGE_OPTIMIZE_TRANSFER,
+                }, assets => {
+                    for (const [name, asset] of Object.entries(assets)) {
+                        if (!/^\/?js\/(app\.js|music\/(?!admin-)[^/]+\.js)$/.test(name)) continue;
+                        const normalized = asset.source().toString().replace(/[ \t]+$/gm, '');
+                        compilation.updateAsset(name, new compiler.webpack.sources.RawSource(normalized));
+                    }
+                });
+            });
+        },
+    }],
+});

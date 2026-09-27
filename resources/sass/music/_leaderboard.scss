@@ -5,7 +5,6 @@
   .modal-title { color: $dark-color !important; font-size: 20px; }
   .modal-body { padding: 16px 20px 20px; }
 }
-.leaderboard-game { margin-bottom: 14px; color: $dark-color; font-size: 13px; }
 .leaderboard-players { max-height: min(600px, 70vh); overflow-y: auto; overscroll-behavior: contain; }
 .leaderboard-podium {
   display: grid;

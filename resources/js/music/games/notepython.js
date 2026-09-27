@@ -1,10 +1,9 @@
+import { bootGame } from "../duel/DuelClient.js";
 import { NotePython } from "./notepython/NotePython.js";
 
 const options = readGlobal("__challengeOptions") || {};
 
-const game = new NotePython({
-  ...options,
-});
-
-game.start?.();
+bootGame((duelOptions) => new NotePython({
+  ...(duelOptions || options),
+}));
 

@@ -7,15 +7,16 @@ use App\Models\Traits\NullsPaymentExemptFees;
 
 class Lesson extends BaseModel
 {
+    protected $casts = [
+        'canceled_at' => 'datetime',
+        'paid_at' => 'datetime',
+        'starts_at' => 'datetime',
+        'ends_at' => 'datetime',
+        'scheduled_date' => 'datetime',
+    ];
     use NullsPaymentExemptFees;
 
-    protected $dates = [
-        'canceled_at',
-        'paid_at',
-        'starts_at',
-        'ends_at',
-        'scheduled_date',
-    ];
+
 
     public function student()
     {

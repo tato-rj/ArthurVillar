@@ -30,6 +30,11 @@ export function renderFinalResultsOverlay({
   animateMetrics = null,
   playFinalSfx = null,
 }) {
+  if (window.__activeDuel) {
+    clearCountupTimers?.();
+    window.__activeDuel.finished({ score, accuracy });
+    return;
+  }
   if (!$finalOverlay || !$finalOverlay.length) return;
 
   const CountUpCtor = window?.CountUp?.CountUp;

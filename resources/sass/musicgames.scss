@@ -860,3 +860,32 @@ button.game-countdown-step-pop {
   touch-action: manipulation;
   // transition: border-color .15s ease, background-color .15s ease, box-shadow .15s ease, transform .12s ease;
 }
+
+// Shares the games' button, progress, typography, and Bootstrap modal conventions.
+.duel-hud { width: min(880px, 94%); margin-bottom: 1.25rem; }
+.duel-match-status { color: #777; font-size: .75rem; }
+.duel-match-status.is-playing { animation: duel-match-blink 3s ease-in-out infinite; }
+@keyframes duel-match-blink { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+.duel-player-row { display: grid; grid-template-columns: 90px minmax(60px, 1fr) 58px 64px; align-items: center; gap: .8rem; margin-bottom: .65rem; }
+.duel-player-row .progress { height: 20px; border-radius: 2rem; background: #f2f2f2; }
+.duel-player-row .progress-bar { background: #1cb0f6; transition: width .4s ease; }
+.duel-player-row--opponent { color: #777; }
+.duel-player-row--opponent .progress { height: 16px; }
+.duel-player-row--opponent .progress-bar { background: #ff4b4b; opacity: .75; }
+.duel-code { font-size: 2.6rem; letter-spacing: .35em; font-weight: bold; padding: 1rem; }
+.duel-dialog { padding: .5rem; min-height: 170px; }
+.duel-countdown { font-size: 4rem; font-weight: bold; color: #1cb0f6; }
+.duel-results { background: #f7f7f7; border-radius: 1rem; padding: 1rem; }
+body.duel-mode #progress-bar { visibility: hidden; }
+body.duel-mode #progress-bar { transition: none; }
+body.duel-mode #final-overlay { display: none !important; }
+body.duel-mode [data-duel-create], body.duel-mode [data-duel-join] { display: none; }
+body.duel-mode [data-duel-settings] { opacity: .5; }
+body.duel-mode #controls { margin-bottom: 1rem !important; }
+@media (max-width: 575.98px) {
+    .duel-player-row { grid-template-columns: 68px minmax(45px, 1fr) 45px 42px; gap: .4rem; font-size: .8rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .duel-player-row .progress-bar { transition: none; }
+    .duel-match-status.is-playing { animation: none; }
+}

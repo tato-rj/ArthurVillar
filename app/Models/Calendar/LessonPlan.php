@@ -10,6 +10,12 @@ use InvalidArgumentException;
 
 class LessonPlan extends BaseModel
 {
+    protected $casts = [
+        'starts_on' => 'datetime',
+        'ends_on' => 'datetime',
+        'canceled_from' => 'datetime',
+        'canceled_at' => 'datetime',
+    ];
     use Holidays, NullsPaymentExemptFees;
 
     public const WEEKDAYS = [
@@ -22,12 +28,7 @@ class LessonPlan extends BaseModel
         7 => 'saturday',
     ];
 
-    protected $dates = [
-        'starts_on',
-        'ends_on',
-        'canceled_from',
-        'canceled_at',
-    ];
+
 
     protected $appends = ['recurrence', 'status', 'weekdayName'];
 

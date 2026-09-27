@@ -667,7 +667,7 @@ export class BeatHero {
   _shuffle(items) {
     const shuffled = [...items];
     for (let index = shuffled.length - 1; index > 0; index -= 1) {
-      const other = Math.floor(Math.random() * (index + 1));
+      const other = Math.floor((this._duelRandom?.() ?? Math.random()) * (index + 1));
       [shuffled[index], shuffled[other]] = [shuffled[other], shuffled[index]];
     }
     return shuffled;

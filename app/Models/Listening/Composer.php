@@ -7,9 +7,13 @@ use App\Models\Traits\HasFilesInStorage;
 
 class Composer extends BaseModel
 {
+    protected $casts = [
+        'born_in' => 'datetime',
+        'died_in' => 'datetime',
+    ];
     use HasFilesInStorage;
 
-    protected $dates = ['born_in', 'died_in'];
+
 
     protected static function boot()
     {

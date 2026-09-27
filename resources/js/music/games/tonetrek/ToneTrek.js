@@ -266,8 +266,8 @@ export class ToneTrek {
 
           const localAttempts = Math.max(8, intervalPool.length * 3);
           for (let t = 0; t < localAttempts; t += 1) {
-            const interval = intervalPool[Math.floor(Math.random() * intervalPool.length)];
-            const dir = Math.random() < 0.5 ? -1 : 1;
+            const interval = intervalPool[Math.floor((this._duelRandom?.() ?? Math.random()) * intervalPool.length)];
+            const dir = (this._duelRandom?.() ?? Math.random()) < 0.5 ? -1 : 1;
             const candidate = this._spelledIntervalTarget(prevExpected, interval, dir);
             if (!candidate) continue;
             pickedInterval = interval;
@@ -368,7 +368,7 @@ export class ToneTrek {
     ];
 
     for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
-      const startCol = Math.floor(Math.random() * colCount);
+      const startCol = Math.floor((this._duelRandom?.() ?? Math.random()) * colCount);
       const path = [{ r: 0, c: startCol }];
       const occupied = new Set([`0,${startCol}`]);
 
@@ -407,7 +407,7 @@ export class ToneTrek {
 
         if (!candidates.length) break;
 
-        const picked = candidates[Math.floor(Math.random() * candidates.length)];
+        const picked = candidates[Math.floor((this._duelRandom?.() ?? Math.random()) * candidates.length)];
         path.push({ r: picked.r, c: picked.c });
         occupied.add(`${picked.r},${picked.c}`);
 
@@ -452,7 +452,7 @@ export class ToneTrek {
       ? this.opts.intervals.filter(Boolean)
       : [];
     const pool = fromOptions.length ? fromOptions : ToneTrek.INTERVALS_FALLBACK;
-    return String(pool[Math.floor(Math.random() * pool.length)] || "M2");
+    return String(pool[Math.floor((this._duelRandom?.() ?? Math.random()) * pool.length)] || "M2");
   }
 
   _arrowClassForNextStep(cur, next) {
@@ -472,13 +472,13 @@ export class ToneTrek {
       : [];
     const fallback = ["C", "D", "E", "F", "G", "A", "B"];
     const pool = fromOptions.length ? fromOptions : fallback;
-    const picked = String(pool[Math.floor(Math.random() * pool.length)] || "E");
+    const picked = String(pool[Math.floor((this._duelRandom?.() ?? Math.random()) * pool.length)] || "E");
     const parsed = this._parseSpelledNote(picked) || this._parseSpelledNote("E");
     if (!parsed) return "E";
     if (!this._allowsInitialAccidentals()) return `${parsed.letter}`;
 
     const accidentalChoices = [0, 0, 0, 1, -1];
-    const off = accidentalChoices[Math.floor(Math.random() * accidentalChoices.length)] || 0;
+    const off = accidentalChoices[Math.floor((this._duelRandom?.() ?? Math.random()) * accidentalChoices.length)] || 0;
     const acc = off === 1 ? "#" : off === -1 ? "b" : "";
     return `${parsed.letter}${acc}`;
   }

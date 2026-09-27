@@ -9,11 +9,12 @@ use InvalidArgumentException;
 
 class SingleLessonPlan extends BaseModel
 {
+    protected $casts = [
+        'scheduled_date' => 'datetime',
+    ];
     use NullsPaymentExemptFees;
 
-    protected $dates = [
-        'scheduled_date',
-    ];
+
 
     public function student()
     {

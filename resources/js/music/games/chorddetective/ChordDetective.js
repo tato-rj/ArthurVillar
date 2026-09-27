@@ -338,7 +338,7 @@ export class ChordDetective extends BaseStaffGame {
       Array.isArray(this.opts.triadQualities) && this.opts.triadQualities.length
         ? this.opts.triadQualities
         : Object.keys(ChordDetective.TRIAD_QUALITY_FULL_NAME_MAP);
-    return pool[Math.floor(Math.random() * pool.length)];
+    return pool[Math.floor((this._duelRandom?.() ?? Math.random()) * pool.length)];
   }
 
   _directionPool() {
@@ -356,7 +356,7 @@ export class ChordDetective extends BaseStaffGame {
   }
 
   _pickDirection() {
-    return pickOne(this._directionPool());
+    return pickOne(this._directionPool(), this._duelRandom);
   }
 
   _directionValue(direction) {
@@ -375,7 +375,7 @@ export class ChordDetective extends BaseStaffGame {
       { value: null, weight: Number(w.natural) || 0 },
       { value: "music-font__sharp", weight: Number(w.sharp) || 0 },
       { value: "music-font__flat", weight: Number(w.flat) || 0 },
-    ]);
+    ], this._duelRandom);
   }
 
   _normalizeInitialNoteAccidental(note) {
@@ -398,7 +398,7 @@ export class ChordDetective extends BaseStaffGame {
         ))
         .filter((note) => note && this._isChallengeStepAllowed(note.step));
 
-      if (eligibleFixedNotes.length) return pickOne(eligibleFixedNotes);
+      if (eligibleFixedNotes.length) return pickOne(eligibleFixedNotes, this._duelRandom);
     }
 
     return {
@@ -409,7 +409,7 @@ export class ChordDetective extends BaseStaffGame {
 
   _randomFixedStep() {
     const { min, max } = this._challengeStepBounds();
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+    return Math.floor((this._duelRandom?.() ?? Math.random()) * (max - min + 1)) + min;
   }
 
   _challengeStepBounds() {
@@ -563,7 +563,7 @@ export class ChordDetective extends BaseStaffGame {
       });
     });
 
-    return candidates.length ? pickOne(candidates) : null;
+    return candidates.length ? pickOne(candidates, this._duelRandom) : null;
   }
 
   _pickRandomInvertedVoicing(quality, direction) {
@@ -574,12 +574,12 @@ export class ChordDetective extends BaseStaffGame {
     const maxStep = this.staff.maxStepAllowed();
 
     for (let i = 0; i < 80; i += 1) {
-      const rootStep = randomInt(minStep, maxStep);
+      const rootStep = randomInt(minStep, maxStep, this._duelRandom);
       const rootAccidentalClass = this._pickInitialAccidentalClass();
       const rootMidi =
         this.staff._stepToMidi(rootStep) +
         (this.staff._accidentalClassToOffset(rootAccidentalClass) || 0);
-      const inversion = pickOne([0, 1, 2]);
+      const inversion = pickOne([0, 1, 2], this._duelRandom);
       const voicing = this._computeChordVoicingFromRoot(
         quality,
         rootStep,
@@ -615,7 +615,7 @@ export class ChordDetective extends BaseStaffGame {
     this._currentTriadQuality = null;
     this._currentChordInversion = 0;
 
-    const clef = pickChallengeClef(this._clefPool);
+    const clef = pickChallengeClef(this._clefPool, this._duelRandom);
     if (clef && clef !== this.staff.getClef()) this.staff.setClef(clef);
 
     this._madeMistakeThisRound = false;

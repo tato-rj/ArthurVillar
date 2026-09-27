@@ -1,0 +1,130 @@
+import { DuelTransport } from './transport';
+import { dialog, closeDialog } from './dialog';
+import { DuelPresence } from './presence';
+import { DuelIdle } from './idle';
+
+const ROOM_KEY = 'theory.duel.waiting';
+function saveRoom(id) { try { sessionStorage.setItem(ROOM_KEY, id); } catch (_) {} }
+function forgetRoom() { try { sessionStorage.removeItem(ROOM_KEY); } catch (_) {} }
+function savedRoom() { try { return sessionStorage.getItem(ROOM_KEY); } catch (_) { return null; } }
+
+export function serializeSettings(form) {
+    const settings = {};
+    for (const input of form.elements) {
+        const name = input.name?.replace(/\[\]$/, '');
+        if (!name || input.type === 'submit' || input.type === 'button') continue;
+        if (input.name.endsWith('[]')) {
+            settings[name] ||= [];
+            if (input.checked) settings[name].push(input.value);
+        } else if (input.type === 'checkbox') settings[name] = input.checked;
+        else if (input.type === 'radio') { if (input.checked) settings[name] = input.value; }
+        else settings[name] = input.type === 'number' || input.type === 'range' ? Number(input.value) : input.value;
+    }
+    return settings;
+}
+
+$(function () {
+    if (!window.__duelConfig || window.__duelState) return;
+    const transport = new DuelTransport();
+    let room = null;
+    let pending = false;
+    let navigating = false;
+    let expiryTimer = null;
+    let presence = null;
+    let idle = null;
+
+    const showError = error => {
+        document.querySelector('[data-duel-error]').textContent = error.message;
+    };
+    const receive = state => {
+        if (!room || state.id !== room.id || state.revision < room.revision) return;
+        room = { ...room, ...state };
+        if (room.status === 'waiting_for_opponent') return;
+        if (['expired', 'cancelled'].includes(room.status)) {
+            idle?.stop();
+            presence?.stop();
+            forgetRoom(); clearTimeout(expiryTimer);
+            dialog({ message: `This Duel has ${room.status === 'expired' ? 'expired' : 'been cancelled'}.`, exit: true });
+            return;
+        }
+        if (navigating) return;
+        navigating = true;
+        idle?.stop();
+        presence?.stop();
+        forgetRoom(); clearTimeout(expiryTimer);
+        dialog({ message: 'Opponent joined ✓ Opening your game…' });
+        setTimeout(() => { location.href = room.game_url; }, 500);
+    };
+    const waitForOpponent = state => {
+        room = state;
+        saveRoom(room.id);
+        dialog({ message: 'Your duel code is · Waiting for opponent…', code: room.code, cancel: true });
+        idle?.stop();
+        idle = new DuelIdle({ onExpire: () => {
+            navigating = true;
+            presence?.stop();
+            clearTimeout(expiryTimer); forgetRoom();
+            transport.leaveOnExit(room.id);
+            transport.echo?.disconnect();
+            location.href = window.__duelConfig.home;
+        }, onResume: () => dialog({ message: 'Your duel code is · Waiting for opponent…', code: room.code, cancel: true }) }).start();
+        presence?.stop();
+        presence = new DuelPresence(transport, room.id, state => {
+            // Membership transitions still arrive through Reverb, not heartbeat polling.
+            if (['expired', 'cancelled'].includes(state.status)) receive(state);
+        }, showError);
+        presence.start();
+        // No waiting-room polling: the initial subscription read closes the join/subscribe race.
+        transport.subscribe(room.id, {
+            update: receive,
+            connected: () => transport.request(`/${room.id}`).then(receive).catch(showError),
+            disconnected: () => showError(new Error('Reconnecting to the Duel server…')),
+            error: () => showError(new Error('Could not connect to multiplayer. Check the Reverb server.')),
+        });
+        expiryTimer = setTimeout(() => transport.request(`/${room.id}`).then(receive).catch(showError),
+            Math.max(0, Date.parse(room.expires_at) - Date.now() - transport.offset) + 50);
+    };
+
+    document.addEventListener('click', async event => {
+        const create = event.target.closest('[data-duel-create]');
+        const join = event.target.closest('[data-duel-join]');
+        if (join) {
+            dialog({ join: true });
+            $('#duel-modal').one('shown.bs.modal', () => document.getElementById('duel-join-code').focus());
+        }
+        if (!create || pending) return;
+        pending = true; create.disabled = true;
+        try {
+            const form = create.closest('form');
+            const state = await transport.request('', { game: create.dataset.duelCreate, settings: serializeSettings(form) });
+            $(form.closest('.modal')).modal('hide');
+            waitForOpponent(state);
+        } catch (error) { dialog({ join: false, error: error.message, exit: true }); }
+        finally { pending = false; create.disabled = false; }
+    });
+    const input = document.getElementById('duel-join-code');
+    input.addEventListener('input', () => { input.value = input.value.replace(/\D/g, '').slice(0, 4); });
+    document.querySelector('[data-duel-join-form]').addEventListener('submit', async event => {
+        event.preventDefault();
+        if (pending || !/^\d{4}$/.test(input.value)) return;
+        pending = true;
+        const button = event.target.querySelector('button'); button.disabled = true;
+        try {
+            const state = await transport.request('/join', { code: input.value });
+            forgetRoom(); location.href = state.game_url;
+        } catch (error) { showError(error); }
+        finally { pending = false; button.disabled = false; }
+    });
+    document.querySelector('[data-duel-cancel]').addEventListener('click', async () => {
+        if (pending || !room) return;
+        pending = true;
+        try { receive(await transport.request(`/${room.id}/cancel`, {})); forgetRoom(); closeDialog(); transport.echo?.disconnect(); }
+        catch (error) { showError(error); }
+        finally { pending = false; }
+    });
+    const previous = savedRoom();
+    if (previous) transport.request(`/${previous}`).then(state => {
+        if (state.status === 'waiting_for_opponent') waitForOpponent(state);
+        else { room = state; receive(state); }
+    }).catch(forgetRoom);
+});

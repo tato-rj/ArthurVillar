@@ -115,16 +115,16 @@ export class MemoryWizard extends BaseStaffGame {
         { value: null, weight: Number.isFinite(naturalWeight) ? naturalWeight : 0 },
         { value: "music-font__sharp", weight: Number.isFinite(sharpWeight) ? sharpWeight : 0 },
         { value: "music-font__flat", weight: Number.isFinite(flatWeight) ? flatWeight : 0 },
-      ]);
+      ], this._duelRandom);
     }
 
-    return Math.random() < 0.5 ? "music-font__sharp" : "music-font__flat";
+    return (this._duelRandom?.() ?? Math.random()) < 0.5 ? "music-font__sharp" : "music-font__flat";
   }
 
   _pickTargetStep() {
     const minStep = 0;
     const maxStep = 8;
-    return Math.floor(Math.random() * (maxStep - minStep + 1)) + minStep;
+    return Math.floor((this._duelRandom?.() ?? Math.random()) * (maxStep - minStep + 1)) + minStep;
   }
 
   _resetSequenceState() {
@@ -444,7 +444,7 @@ export class MemoryWizard extends BaseStaffGame {
 
   newChallenge() {
     if (!this._targetSequence.length) {
-      const clef = pickChallengeClef(this._clefPool);
+      const clef = pickChallengeClef(this._clefPool, this._duelRandom);
       if (clef && clef !== this.staff.getClef()) this.staff.setClef(clef);
     }
 

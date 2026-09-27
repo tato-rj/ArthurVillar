@@ -83,10 +83,10 @@ export class KeysLab extends BaseStaffGame {
     const qualities = this._normalizeOnOff(this.opts.modes)
       ? KeysLab.MODES
       : this._normalizeKeyQualities();
-    const quality = qualities[Math.floor(Math.random() * qualities.length)];
+    const quality = qualities[Math.floor((this._duelRandom?.() ?? Math.random()) * qualities.length)];
     if (KeysLab.MODES.includes(quality)) {
       const parents = this._filterKeysByAccidentalLimit(KeysLab.MAJOR_KEYS, "major");
-      const parentMajor = parents[Math.floor(Math.random() * parents.length)];
+      const parentMajor = parents[Math.floor((this._duelRandom?.() ?? Math.random()) * parents.length)];
       const tonic = this._modeTonicFromMajor(parentMajor, KeysLab.MODES.indexOf(quality));
       return { tonic, quality, parentMajor, full: `${tonic} ${quality}` };
     }
@@ -94,7 +94,7 @@ export class KeysLab extends BaseStaffGame {
       quality === "minor" ? KeysLab.MINOR_KEYS : KeysLab.MAJOR_KEYS,
       quality,
     );
-    const tonic = pool[Math.floor(Math.random() * pool.length)];
+    const tonic = pool[Math.floor((this._duelRandom?.() ?? Math.random()) * pool.length)];
     const full = `${tonic} ${quality}`;
     return { tonic, quality, full };
   }
@@ -294,7 +294,7 @@ export class KeysLab extends BaseStaffGame {
   }
 
   newChallenge() {
-    const clef = pickChallengeClef(this._clefPool);
+    const clef = pickChallengeClef(this._clefPool, this._duelRandom);
     if (clef && clef !== this.staff.getClef()) this.staff.setClef(clef);
 
     this._activeClef = this.staff.getClef();

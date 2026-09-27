@@ -6,10 +6,11 @@ use App\Models\BaseModel;
 
 class TeachingBreak extends BaseModel
 {
-    protected $dates = [
-        'starts_on',
-        'ends_on',
+    protected $casts = [
+        'starts_on' => 'datetime',
+        'ends_on' => 'datetime',
     ];
+
 
     public function locations()
     {

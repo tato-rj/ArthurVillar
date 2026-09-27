@@ -487,10 +487,10 @@ export class NoteNest extends BaseStaffGame {
         { value: null, weight: Number.isFinite(naturalWeight) ? naturalWeight : 0 },
         { value: "music-font__sharp", weight: Number.isFinite(sharpWeight) ? sharpWeight : 0 },
         { value: "music-font__flat", weight: Number.isFinite(flatWeight) ? flatWeight : 0 },
-      ]);
+      ], this._duelRandom);
     }
 
-    return Math.random() < 0.5 ? "music-font__sharp" : "music-font__flat";
+    return (this._duelRandom?.() ?? Math.random()) < 0.5 ? "music-font__sharp" : "music-font__flat";
   }
 
   _isBlockNoteEnabled() {
@@ -541,7 +541,7 @@ export class NoteNest extends BaseStaffGame {
 
   _pickHintStepForTarget(target) {
     const alternates = this._alternateStepsForTarget(target);
-    if (alternates.length) return alternates[Math.floor(Math.random() * alternates.length)];
+    if (alternates.length) return alternates[Math.floor((this._duelRandom?.() ?? Math.random()) * alternates.length)];
     return target?.step ?? null;
   }
 
@@ -604,7 +604,7 @@ export class NoteNest extends BaseStaffGame {
   _pickTargetStep() {
     const minStep = 0;
     const maxStep = 8;
-    return Math.floor(Math.random() * (maxStep - minStep + 1)) + minStep;
+    return Math.floor((this._duelRandom?.() ?? Math.random()) * (maxStep - minStep + 1)) + minStep;
   }
 
   _setPromptForTarget(target) {
@@ -654,7 +654,7 @@ export class NoteNest extends BaseStaffGame {
   }
 
   newChallenge() {
-    const clef = pickChallengeClef(this._clefPool);
+    const clef = pickChallengeClef(this._clefPool, this._duelRandom);
     if (clef && clef !== this.staff.getClef()) this.staff.setClef(clef);
 
     this._madeMistakeThisRound = false;

@@ -3,3 +3,5 @@
   </div>
   <label class="prevent-select small fw-bold text-uppercase">{{$settings->gameName()}}</label>
 </div>
+
+@include('theory.components.duel-progress')

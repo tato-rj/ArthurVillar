@@ -267,7 +267,7 @@ export class NotePython {
 
   _pickInterval() {
     const pool = this._intervalPool();
-    return pool[Math.floor(Math.random() * pool.length)] || "M3";
+    return pool[Math.floor((this._duelChallengeRandom?.() ?? Math.random()) * pool.length)] || "M3";
   }
 
   _setIntervalUI(intervalAbbr) {
@@ -305,7 +305,7 @@ export class NotePython {
 
   _pickIntervalDirection() {
     if (!this._isStrictDirection()) return 1;
-    return Math.random() < 0.5 ? -1 : 1;
+    return (this._duelChallengeRandom?.() ?? Math.random()) < 0.5 ? -1 : 1;
   }
 
   _noteDisplay({ letter, accOffset = 0 } = {}) {
@@ -385,9 +385,9 @@ export class NotePython {
 
   _randomNoteObj() {
     const letters = ["C", "D", "E", "F", "G", "A", "B"];
-    const letter = letters[Math.floor(Math.random() * letters.length)];
+    const letter = letters[Math.floor((this._duelChallengeRandom?.() ?? Math.random()) * letters.length)];
     const accPool = [0, 0, 0, 0, 1, -1];
-    const off = accPool[Math.floor(Math.random() * accPool.length)];
+    const off = accPool[Math.floor((this._duelChallengeRandom?.() ?? Math.random()) * accPool.length)];
     return this._noteObj(letter, off);
   }
 
@@ -587,7 +587,7 @@ export class NotePython {
         return;
       }
 
-      const pick = free[Math.floor(Math.random() * free.length)];
+      const pick = free[Math.floor((this._duelRandom?.() ?? Math.random()) * free.length)];
       this._foods.push({
         id: this._foodIdCounter++,
         r: pick.r,
@@ -631,7 +631,7 @@ export class NotePython {
         return;
       }
 
-      const pick = free[Math.floor(Math.random() * free.length)];
+      const pick = free[Math.floor((this._duelRandom?.() ?? Math.random()) * free.length)];
       this._bombs.push({ r: pick.r, c: pick.c });
     }
   }
@@ -658,8 +658,8 @@ export class NotePython {
     for (let attempt = 0; attempt < 3; attempt += 1) {
       const has = this._foods.some((f) => valid.has(String(f.note?.canonical || "").trim()));
       if (has) return;
-      const idx = Math.floor(Math.random() * this._foods.length);
-      const pick = this._targetNotes[Math.floor(Math.random() * this._targetNotes.length)];
+      const idx = Math.floor((this._duelRandom?.() ?? Math.random()) * this._foods.length);
+      const pick = this._targetNotes[Math.floor((this._duelRandom?.() ?? Math.random()) * this._targetNotes.length)];
       this._foods[idx].note = this._cloneNote(pick);
     }
   }

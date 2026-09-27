@@ -25,5 +25,6 @@
   @endcomponent
 
   <button type="submit" class="btn btn-primary w-100">Start new game</button>
+  @include('theory.components.settings.duel')
 </form>
 @endmodal

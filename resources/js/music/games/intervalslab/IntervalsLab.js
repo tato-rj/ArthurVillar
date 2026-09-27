@@ -124,7 +124,7 @@ export class IntervalsLab extends BaseStaffGame {
 
   _pickIntervalDirection() {
     if (!this._isStrictDirection()) return 1;
-    return Math.random() < 0.5 ? -1 : 1;
+    return (this._duelRandom?.() ?? Math.random()) < 0.5 ? -1 : 1;
   }
 
   _fixedToState(fixed) {
@@ -196,7 +196,7 @@ export class IntervalsLab extends BaseStaffGame {
     this.$helpBtn.hide();
     this._fixedState = null;
 
-    const clef = pickChallengeClef(this._clefPool);
+    const clef = pickChallengeClef(this._clefPool, this._duelRandom);
     if (clef && clef !== this.staff.getClef()) this.staff.setClef(clef);
 
     this._madeMistakeThisRound = false;
@@ -240,13 +240,13 @@ export class IntervalsLab extends BaseStaffGame {
       Array.isArray(this.opts.intervals) && this.opts.intervals.length
         ? this.opts.intervals
         : ["M3"];
-    return pool[Math.floor(Math.random() * pool.length)];
+    return pool[Math.floor((this._duelRandom?.() ?? Math.random()) * pool.length)];
   }
 
   _pickFixedNote() {
     const fixedList = toArrayMaybe(this.opts.fixedNotes).filter(Boolean);
     if (fixedList.length) {
-      const chosen = pickOne(fixedList);
+      const chosen = pickOne(fixedList, this._duelRandom);
       return fixedNoteToStaffPosition(this.staff, chosen);
     }
 
@@ -255,7 +255,7 @@ export class IntervalsLab extends BaseStaffGame {
       { value: null, weight: Number(w.natural) || 0 },
       { value: "music-font__sharp", weight: Number(w.sharp) || 0 },
       { value: "music-font__flat", weight: Number(w.flat) || 0 },
-    ]);
+    ], this._duelRandom);
 
     return { step: this._randomFixedStep(), accidentalClass };
   }
@@ -263,7 +263,7 @@ export class IntervalsLab extends BaseStaffGame {
   _randomFixedStep() {
     const min = 0;
     const max = 8;
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+    return Math.floor((this._duelRandom?.() ?? Math.random()) * (max - min + 1)) + min;
   }
 
   // ------------------------ evaluation ------------------------

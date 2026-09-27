@@ -304,7 +304,7 @@ export class PitchDetective extends BaseStaffGame {
       Array.isArray(this.opts.intervals) && this.opts.intervals.length
         ? this.opts.intervals
         : PitchDetective.INTERVALS_DEFAULT;
-    return pool[Math.floor(Math.random() * pool.length)];
+    return pool[Math.floor((this._duelRandom?.() ?? Math.random()) * pool.length)];
   }
 
   _directionPool() {
@@ -322,7 +322,7 @@ export class PitchDetective extends BaseStaffGame {
   }
 
   _pickDirection() {
-    return pickOne(this._directionPool());
+    return pickOne(this._directionPool(), this._duelRandom);
   }
 
   _directionValue(direction) {
@@ -336,7 +336,7 @@ export class PitchDetective extends BaseStaffGame {
         .map((note) => fixedNoteToStaffPosition(this.staff, note))
         .filter((note) => note && this._isChallengeStepAllowed(note.step));
 
-      if (eligibleFixedNotes.length) return pickOne(eligibleFixedNotes);
+      if (eligibleFixedNotes.length) return pickOne(eligibleFixedNotes, this._duelRandom);
     }
 
     const w = this.opts.accidentalWeights || {};
@@ -344,14 +344,14 @@ export class PitchDetective extends BaseStaffGame {
       { value: null, weight: Number(w.natural) || 0 },
       { value: "music-font__sharp", weight: Number(w.sharp) || 0 },
       { value: "music-font__flat", weight: Number(w.flat) || 0 },
-    ]);
+    ], this._duelRandom);
 
     return { step: this._randomFixedStep(), accidentalClass };
   }
 
   _randomFixedStep() {
     const { min, max } = this._challengeStepBounds();
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+    return Math.floor((this._duelRandom?.() ?? Math.random()) * (max - min + 1)) + min;
   }
 
   _challengeStepBounds() {
@@ -442,7 +442,7 @@ export class PitchDetective extends BaseStaffGame {
     this._expectedFirst = null;
     this._expectedSecond = null;
 
-    const clef = pickChallengeClef(this._clefPool);
+    const clef = pickChallengeClef(this._clefPool, this._duelRandom);
     if (clef && clef !== this.staff.getClef()) this.staff.setClef(clef);
 
     this._madeMistakeThisRound = false;

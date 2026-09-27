@@ -1381,7 +1381,7 @@ export class BaseStaffGame {
 
   _randomFixedStep() {
     const { min, max } = this._fixedStepBounds();
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+    return Math.floor((this._duelRandom?.() ?? Math.random()) * (max - min + 1)) + min;
   }
 
   // ------------------------ hints ------------------------
@@ -1791,7 +1791,7 @@ export class BaseStaffGame {
     const accuracy = total ? Math.round((correct / total) * 100) : 0;
 
     const endMs = this._stats.finishedAtMs ?? Date.now();
-    const totalSeconds = Math.max(0, Math.floor((endMs - PAGE_OPENED_AT_MS) / 1000));
+    const totalSeconds = Math.max(0, Math.floor((endMs - (window.__activeDuel ? Date.parse(window.__activeDuel.state.starts_at) : PAGE_OPENED_AT_MS)) / 1000));
 
     const perfectGame = total > 0 && !this._madeAnyMistake;
     const scoreSummary = this._buildFinalScoreSummary({

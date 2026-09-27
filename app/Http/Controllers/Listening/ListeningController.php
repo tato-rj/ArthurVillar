@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers\Listening;
 
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Models\Listening\{Recording, Period, Composer, Playlist};
-use App\Tools\Cropper\ImageUpload;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use App\Models\Listening\Recording;
+use BaconQrCode\Renderer\Image\ImagickImageBackEnd;
+use BaconQrCode\Renderer\ImageRenderer;
+use BaconQrCode\Renderer\RendererStyle\RendererStyle;
+use BaconQrCode\Writer;
+use Illuminate\Http\Request;
 
 class ListeningController extends Controller
 {
@@ -20,9 +22,9 @@ class ListeningController extends Controller
         $filename = str_slug($recording->nameWithComposer).'.png';
 
         return response()->streamDownload(function () use ($request) {
-            $qrcode = QrCode::size(500)->format('png')->margin(1)->errorCorrection('M');
+            $qrcode = new Writer(new ImageRenderer(new RendererStyle(500, 1), new ImagickImageBackEnd('png')));
 
-            echo $qrcode->generate($request->url);
+            echo $qrcode->writeString($request->url);
         }, $filename, ['Content-Type' => 'image/png']);
     }
 }

@@ -8,9 +8,11 @@ class Student extends BaseModel
 {
     protected $birthdayWindow = 5; //in before and after days
 
-    protected $dates = ['date_of_birth', 'archived_at'];
+
 
     protected $casts = [
+        'date_of_birth' => 'datetime',
+        'archived_at' => 'datetime',
         'is_adult' => 'boolean',
         'payment_exempt' => 'boolean',
         'archived_at' => 'datetime',

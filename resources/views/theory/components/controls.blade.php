@@ -38,6 +38,7 @@
       <button class="btn btn-green w-100">Continue</button>
     </div>
 
+    @unless(isset($duelState))
     <div class="d-flex">
       @unless($settings->gameName() == 'Open Staff')
       <div class="btn-floating mr-1 w-100">
@@ -45,9 +46,16 @@
       </div>
       @endunless
 
-      <div class="btn-floating ml-1 w-100">
-        <button data-bs-toggle="modal" data-bs-target="#{{str_slug($settings->gameName())}}-settings-modal" class="btn btn-white w-100">@fa(['icon' => 'gear'])Settings</button>
+      <div class="btn-floating ml-1 w-100" data-duel-settings>
+        <button data-bs-toggle="modal" data-bs-target="#{{str_slug($settings->gameName())}}-settings-modal" class="btn btn-white w-100" @disabled(isset($duelState))>@fa(['icon' => 'gear'])Settings</button>
       </div>
     </div>
+    <button type="button" data-duel-join class="btn btn-white w-100 mt-3">Join a Duel</button>
+    @endunless
   </div>
 </div>
+@isset($duelState)
+
+  <button type="button" data-duel-leave class="btn-raw text-danger w-100">@fa(['icon' => 'arrow-right-from-bracket'])Leave Duel</button>
+
+@endisset
