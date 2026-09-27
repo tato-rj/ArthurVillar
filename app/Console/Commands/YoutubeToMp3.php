@@ -3,8 +3,10 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
+use Symfony\Component\Process\ExecutableFinder;
 use Symfony\Component\Process\Process;
-use Symfony\Component\Process\Exception\ProcessFailedException;
+use Symfony\Component\Process\Exception\ExceptionInterface;
 
 class YoutubeToMp3 extends Command
 {
@@ -37,69 +39,98 @@ class YoutubeToMp3 extends Command
         $start = $this->argument('start');
         $end = $this->argument('end');
 
-        $ytDlpPath = env('YT_PATH', '/usr/local/bin/yt-dlp');
-        $ffmpegPath = env('FFMPEG_PATH', '/usr/bin/ffmpeg');
-        $denoPath = env('DENO_PATH', '/usr/bin/deno');
-        $cookiesPath = env(
-            'YT_COOKIES_PATH',
-            '/var/tmp/youtube-cookies.txt'
-        );
-
-        $arguments = [
-            $ytDlpPath,
-
-            '--ffmpeg-location',
-            $ffmpegPath,
-
-            '--cookies',
-            $cookiesPath,
-
-            '--js-runtimes',
-            'deno:' . $denoPath,
-
-            '--remote-components',
-            'ejs:npm',
-
-            '--no-playlist',
-
-            '-f',
-            'bestaudio/best',
-
-            '-x',
-
-            '--audio-format',
-            'mp3',
-
-            '-o',
-            $directory . '/' . $basename . '.%(ext)s',
-        ];
-
-        /*
-         * If start and end times are supplied, download only
-         * the requested section of the YouTube video.
-         */
-        if ($start && $end) {
-            $arguments[] = '--download-sections';
-            $arguments[] = '*' . $start . '-' . $end;
-        }
-
-        /*
-         * Add the YouTube URL as the final argument.
-         */
-        $arguments[] = $this->url();
-
-        /*
-         * Run yt-dlp.
-         */
-        $process = new Process(
-            $arguments,
-            $directory,
-            $this->processEnvironment()
-        );
-
-        $process->setTimeout(600);
+        $ytDlpPath = config('youtube.yt_dlp_path');
+        $ffmpegPath = config('youtube.ffmpeg_path');
+        $denoPath = config('youtube.deno_path');
+        $cookiesPath = config('youtube.cookies_path');
+        $temporaryCookies = null;
 
         try {
+            // PHP-FPM may have a different PATH from an interactive SSH shell.
+            $denoPath = str_contains($denoPath, DIRECTORY_SEPARATOR)
+                ? (is_file($denoPath) && is_executable($denoPath) ? $denoPath : null)
+                : (new ExecutableFinder)->find($denoPath, null, explode(PATH_SEPARATOR, $this->processEnvironment()['PATH']));
+            if (!$denoPath) {
+                throw new \RuntimeException('YouTube conversion requires Deno 2.3 or newer. Install Deno, set DENO_PATH to its executable, and rebuild the Laravel configuration cache.');
+            }
+
+            $runtime = new Process([$denoPath, '--version'], null, $this->processEnvironment());
+            $runtime->setTimeout(15);
+            $runtime->mustRun();
+            if (!preg_match('/deno (\d+\.\d+\.\d+)/', $runtime->getOutput(), $version)
+                || version_compare($version[1], '2.3.0', '<')) {
+                throw new \RuntimeException('YouTube conversion requires Deno 2.3 or newer. Update the executable configured in DENO_PATH.');
+            }
+
+            if ($cookiesPath) {
+                if (!is_file($cookiesPath) || !is_readable($cookiesPath)) {
+                    throw new \RuntimeException('The server cannot read the YouTube cookies file. Check YT_COOKIES_PATH and its permissions, then rebuild the Laravel configuration cache.');
+                }
+
+                // yt-dlp writes its cookie jar on exit. Keep the source private and
+                // unchanged, and avoid concurrent downloads sharing a writable jar.
+                $temporaryCookies = tempnam(sys_get_temp_dir(), 'youtube-cookies-');
+                if ($temporaryCookies === false || !copy($cookiesPath, $temporaryCookies)) {
+                    throw new \RuntimeException('The server could not prepare the YouTube cookies file. Check the server temporary directory permissions.');
+                }
+            }
+
+            $arguments = [
+                $ytDlpPath,
+
+                '--ffmpeg-location',
+                $ffmpegPath,
+
+                '--js-runtimes',
+                'deno:' . $denoPath,
+
+                '--remote-components',
+                'ejs:npm',
+
+                '--no-playlist',
+
+                '-f',
+                'bestaudio/best',
+
+                '-x',
+
+                '--audio-format',
+                'mp3',
+
+                '-o',
+                $directory . '/' . $basename . '.%(ext)s',
+            ];
+
+            if ($temporaryCookies) {
+                $arguments[] = '--cookies';
+                $arguments[] = $temporaryCookies;
+            }
+
+            /*
+             * If start and end times are supplied, download only
+             * the requested section of the YouTube video.
+             */
+            if ($start && $end) {
+                $arguments[] = '--download-sections';
+                $arguments[] = '*' . $start . '-' . $end;
+            }
+
+            /*
+             * Add the YouTube URL as the final argument.
+             */
+            $arguments[] = $this->url();
+
+            /*
+             * Run yt-dlp.
+             */
+            $process = new Process(
+                $arguments,
+                $directory,
+                $this->processEnvironment()
+            );
+
+            $process->setTimeout(600);
+
             $process->mustRun();
 
             /*
@@ -114,17 +145,27 @@ class YoutubeToMp3 extends Command
 
             return 0;
 
-        } catch (ProcessFailedException $exception) {
+        } catch (ExceptionInterface|\RuntimeException $exception) {
+            // This may be the downloader, ffprobe or fade process that failed.
+            $failedProcess = method_exists($exception, 'getProcess') ? $exception->getProcess() : null;
+            $message = trim($failedProcess
+                ? ($failedProcess->getErrorOutput() ?: $failedProcess->getOutput() ?: $exception->getMessage())
+                : $exception->getMessage());
 
-            $message = trim(
-                $process->getErrorOutput()
-                ?: $process->getOutput()
-                ?: $exception->getMessage()
-            );
+            Log::warning('YouTube MP3 conversion failed', ['details' => $message]);
+
+            if (str_contains($message, 'Sign in to confirm you’re not a bot')
+                || str_contains($message, "Sign in to confirm you're not a bot")) {
+                $message = 'YouTube blocked this download with a bot check. Refresh the server’s YouTube cookies and verify YT_COOKIES_PATH. The server IP may still be blocked; see docs/youtube-mp3.md for troubleshooting.';
+            }
 
             $this->error($message);
 
             return 1;
+        } finally {
+            if ($temporaryCookies && is_file($temporaryCookies)) {
+                unlink($temporaryCookies);
+            }
         }
     }
 
@@ -159,20 +200,9 @@ class YoutubeToMp3 extends Command
      */
     public function processEnvironment()
     {
-        $ytPath = env(
-            'YT_PATH',
-            '/usr/local/bin/yt-dlp'
-        );
-
-        $ffmpegPath = env(
-            'FFMPEG_PATH',
-            '/usr/bin/ffmpeg'
-        );
-
-        $denoPath = env(
-            'DENO_PATH',
-            '/usr/bin/deno'
-        );
+        $ytPath = config('youtube.yt_dlp_path');
+        $ffmpegPath = config('youtube.ffmpeg_path');
+        $denoPath = config('youtube.deno_path');
 
         $paths = array_filter([
             dirname($ytPath),
@@ -194,8 +224,8 @@ class YoutubeToMp3 extends Command
              * Give yt-dlp a writable cache location when
              * Laravel is running as www-data.
              */
-            'HOME' => '/var/www',
-            'XDG_CACHE_HOME' => '/var/www/.cache',
+            'XDG_CACHE_HOME' => storage_path('app/youtube-cache'),
+            'DENO_DIR' => storage_path('app/youtube-cache/deno'),
         ];
     }
 
@@ -226,10 +256,7 @@ class YoutubeToMp3 extends Command
 
         $process = new Process(
             [
-                env(
-                    'FFMPEG_PATH',
-                    '/usr/bin/ffmpeg'
-                ),
+                config('youtube.ffmpeg_path'),
 
                 '-y',
 
@@ -265,10 +292,7 @@ class YoutubeToMp3 extends Command
      */
     public function duration($filepath)
     {
-        $ffmpegPath = env(
-            'FFMPEG_PATH',
-            '/usr/bin/ffmpeg'
-        );
+        $ffmpegPath = config('youtube.ffmpeg_path');
 
         $ffprobePath =
             dirname($ffmpegPath) . '/ffprobe';
