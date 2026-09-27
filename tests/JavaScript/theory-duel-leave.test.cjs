@@ -5,16 +5,17 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 function setup() {
-    const dialogs = []; const feedback = []; const buttons = [{ disabled: false }, { disabled: false }];
+    const dialogs = []; const feedback = []; const renderedResults = []; const buttons = [{ disabled: false }, { disabled: false }];
     const results = { hidden: false };
     const hud = { querySelector: selector => selector === '[data-duel-results]' ? results : {} };
     const window = { location: { href: '/duel' }, __duelConfig: { home: '/games' } };
     const context = vm.createContext({ Date, Promise, setTimeout, clearInterval, window,
-        document: { body: { classList: { add() {} } }, getElementById: () => hud,
+        document: { body: { classList: { add() {}, remove() {} } }, getElementById: () => hud,
             querySelector: () => undefined, querySelectorAll: () => buttons, addEventListener() {} },
         $: () => ({ attr() {}, show() {} }),
         dialog: options => { dialogs.push(options); return { querySelector: () => ({ classList: { add() {} } }) }; },
         closeDialog() {},
+        renderDuelResults: (root, state) => { root.hidden = false; renderedResults.push(state.status); },
         animateAnswerFeedback: (label, correct) => { feedback.push(correct); return () => {}; },
         DuelTransport: class { constructor() { this.offset = 0; } },
     });
@@ -27,8 +28,28 @@ function setup() {
     let creates = 0;
     const client = new context.Client(state, () => { creates++; });
     client.render = () => {};
-    return { client, state, dialogs, feedback, buttons, results, window, creates: () => creates };
+    return { client, state, dialogs, feedback, buttons, results, renderedResults, window, creates: () => creates };
 }
+
+test('refreshing a completed Duel renders saved results without starting a game or opening a connection', () => {
+    const { client, renderedResults, results, creates } = setup();
+    client.state.status = 'finished';
+    client.transport.subscribe = () => assert.fail('finished results need no connection');
+    client.begin();
+    assert.deepEqual(renderedResults, ['finished']);
+    assert.equal(results.hidden, false);
+    assert.equal(client.hud.hidden, true);
+    assert.equal(creates(), 0);
+});
+
+test('opponent leaving while the first finisher waits hides the results and shows the departure', () => {
+    const { client, state, results, dialogs } = setup();
+    client.showResults();
+    assert.equal(results.hidden, false);
+    client.receive({ ...state, revision: 2, status: 'cancelled', left_by: 'guest' });
+    assert.equal(results.hidden, true);
+    assert.equal(dialogs.at(-1).message, 'Opponent left the Duel.');
+});
 
 test('remote departure stops gameplay, explains who left, and blocks further gameplay mutations', () => {
     const { client, state, dialogs, results } = setup();

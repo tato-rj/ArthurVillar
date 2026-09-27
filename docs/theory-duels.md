@@ -19,6 +19,7 @@ New packages: `laravel/reverb ^1.0` (1.12.0), `laravel-echo ^2.5.0` (2.5.0), `pu
 - Exact private channel `private-theory.duel.<uuid>` is signed only after validating that session's participant secret. Standard authenticated broadcasting remains separate.
 - Codes expire after 15 minutes. The unique `join_code` is released on joining/cancellation/expiration; historical codes are never authorization. Join/cancel/ready/progress/finish use room locks; guest claiming also uses a conditional atomic update. Request retries are idempotent.
 - `resources/js/music/duel`: lobby, Echo transport, authoritative countdown, reconnect, mutation retry queue, status/results UI, seeded RNG and four engine adapters. The 11 game entry points call `bootGame`; ordinary single-player still constructs and starts immediately.
+- Duel results reuse the regular results score card, animated music characters, and buttons in a full-screen comparison. Final points determine the winner; accuracy breaks tied scores, and equal scores/accuracy produce a draw. Finish time is displayed but does not break ties. Both browsers derive the same outcome from saved server results. The first finisher sees a waiting screen until both results arrive; refreshing restores the comparison. Winner confetti respects reduced-motion preferences and does not repeat on duplicate state updates.
 - Server timestamps plus measured HTTP round-trip midpoint compensate browser clock differences. Laravel must confirm `playing` before gameplay unlocks.
 - Progress advances one round and sequence number at a time, never backwards or past the configured total. Scores are bounded per round and final bonuses bounded to 4×. Gameplay answer checking remains in the existing browser engines: this is **not cheat-proof server verification of answers**. It blocks impossible jumps and impersonation, but a modified client can still falsify plausible round completions. No competitive rankings are added.
 - Reverb reconnects automatically and subscription success refetches authoritative state. Shared browser presence in both the lobby and gameplay sends authenticated HTTP heartbeats every 15 seconds, independently of Reverb. Page exit sends a CSRF-protected beacon, shows the opponent as disconnected, and becomes Leave Duel after a 30-second return grace period (normally detected within 30–45 seconds by the surviving heartbeat). Refresh or back-forward restoration registers a new connection marker, clears departure, and ignores late signals from the previous page. Without an exit signal, two minutes without a heartbeat counts as leaving. The scheduled cleanup also closes rooms if both browsers disappear. Browser/mobile background throttling or prolonged network loss can reach this timeout; browser shutdown notification itself is best effort. Persistent state remains server-side.
@@ -151,15 +152,23 @@ Waiting/ready rooms expire after 15 minutes, abandoned active rooms after one da
 
 ## Deployment
 
-Back up the production database before the framework upgrade. Verify the web server and every CLI/supervised process use PHP 8.3+. Install Composer dependencies from the committed lock file and deploy the rebuilt assets:
+Back up the production database before the framework upgrade. Verify the web server and every CLI/supervised process use PHP 8.3+.
+
+Build frontend assets on the local Mac and deploy the generated assets with the PHP source. Node/npm are build tools, not production runtime requirements; Reverb runs in PHP. With the existing local dependencies and static assets, run this from the project root:
+
+```bash
+npm --ignore-scripts run production
+```
+
+This runs the Mix production compiler without the static-copy pre-script, which replaces the generated images/vendor directories and would remove the existing local synced duplicates. Deploy the generated JavaScript/CSS, emitted build files, and `public/mix-manifest.json` together. Preserve the server's `.env`, uploads, and storage files. Do not upload `node_modules`. For a clean build machine, `npm ci` installs the locked frontend dependencies; building on the server is also valid but optional. Do not use `npm ci --omit=dev` on the build machine, because Mix, Echo, and other required build dependencies are in devDependencies.
+
+On the server, install Composer dependencies from the committed lock file and apply the scoped migrations:
 
 Production has tables created manually and older migrations still recorded as pending. Do not run an unrestricted `php artisan migrate --force` on that database. Some older migrations change existing records or drop columns. The commands below select only the three additive Duel migrations. Check `php artisan migrate:status` and whether the Duel tables already exist first; if they were created manually, compare their actual schema before running these migrations or recording them as applied. Do not blindly mark all historical migrations as run. Reconcile the historical schema and migration records separately.
 
 ```bash
 composer install --no-dev --prefer-dist --optimize-autoloader
 composer check-platform-reqs --no-dev
-npm ci
-npm run production
 php artisan migrate --force \
   --path=database/migrations/2026_09_26_200000_create_theory_duels.php \
   --path=database/migrations/2026_09_26_220000_add_left_by_to_theory_duels.php \

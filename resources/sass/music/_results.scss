@@ -217,8 +217,39 @@
   .results-actions .btn { padding: 10px 12px; font-size: 14px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  #final-overlay *, #final-overlay *::before, #final-overlay *::after {
+  #final-overlay *, #final-overlay *::before, #final-overlay *::after,
+  #duel-results-overlay *, #duel-results-overlay *::before, #duel-results-overlay *::after {
     animation: none !important;
     transition: none !important;
+  }
+}
+
+body.duel-results-open { overflow: hidden; }
+#duel-results-overlay {
+  position: fixed;
+  inset: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  background: #f7f7f7;
+  z-index: 1000;
+  &[hidden] { display: none; }
+  .results-sheet { width: min(720px, calc(100% - 32px)); }
+  .duel-result-outcome { margin-bottom: 10px; font-size: 13px; color: #777; }
+  &[data-outcome="win"] .duel-result-outcome { color: #58cc02; }
+  .duel-result-greeting h1 { margin-bottom: 12px; }
+  .duel-result-greeting > p:last-child { max-width: 490px; margin: 0 auto 24px; font-size: 15px; line-height: 1.5; }
+  .duel-comparison { margin-top: 16px; padding: 12px 20px; }
+  table { width: 100%; table-layout: fixed; font-size: 15px; }
+  th, td { padding: 10px 4px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+  thead th { border-bottom: 1px solid rgba($dark-color, .15); }
+  tbody th { text-align: left; font-size: 13px; font-weight: 500; }
+  td { font-weight: 700; }
+  td:last-child, thead th:last-child { color: #777; }
+  .duel-result-rule { font-size: 12px; margin: 14px 0 0; }
+  .duel-result-actions { grid-template-columns: 1fr; }
+  @media (max-width: 480px) {
+    .duel-comparison { padding: 10px; }
+    table { font-size: 13px; }
+    .duel-result-greeting > p:last-child { font-size: 14px; }
   }
 }

@@ -19,6 +19,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _answerFeedback__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./answerFeedback */ "./resources/js/music/duel/answerFeedback.js");
 /* harmony import */ var _presence__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./presence */ "./resources/js/music/duel/presence.js");
 /* harmony import */ var _idle__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./idle */ "./resources/js/music/duel/idle.js");
+/* harmony import */ var _results__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./results */ "./resources/js/music/duel/results.js");
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
@@ -45,6 +46,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
 
 
 
+
 var DuelClient = /*#__PURE__*/function () {
   function DuelClient(state, createGame) {
     _classCallCheck(this, DuelClient);
@@ -61,6 +63,7 @@ var DuelClient = /*#__PURE__*/function () {
     this.leaving = false;
     this.answerIds = new Set();
     this.hud = document.getElementById('duel-hud');
+    this.results = this.hud.querySelector('[data-duel-results]');
   }
   return _createClass(DuelClient, [{
     key: "you",
@@ -228,7 +231,8 @@ var DuelClient = /*#__PURE__*/function () {
         (_this$game3 = this.game) === null || _this$game3 === void 0 || (_this$game3$_cancelTi = _this$game3._cancelTimers) === null || _this$game3$_cancelTi === void 0 || _this$game3$_cancelTi.call(_this$game3);
         (_this$game4 = this.game) === null || _this$game4 === void 0 || (_this$game4$_cancelCa = _this$game4._cancelCardAudition) === null || _this$game4$_cancelCa === void 0 || _this$game4$_cancelCa.call(_this$game4);
         (_this$presence = this.presence) === null || _this$presence === void 0 || _this$presence.stop();
-        this.hud.querySelector('[data-duel-results]').hidden = true;
+        this.results.hidden = true;
+        document.body.classList.remove('duel-results-open');
         $('#page-wrapper').attr('inert', '');
         var message = this.state.left_by ? this.state.left_by === this.state.role ? 'You left the Duel.' : 'Opponent left the Duel.' : "This Duel is ".concat(this.state.status, ".");
         (0,_dialog__WEBPACK_IMPORTED_MODULE_1__.dialog)({
@@ -607,34 +611,10 @@ var DuelClient = /*#__PURE__*/function () {
   }, {
     key: "showResults",
     value: function showResults() {
-      var result = this.hud.querySelector('[data-duel-results]');
-      result.hidden = false;
-      result.replaceChildren();
-      var title = document.createElement('h5');
-      title.textContent = this.state.status === 'finished' ? 'Duel results' : 'You finished ✓ Waiting for opponent…';
-      result.append(title);
-      for (var _i2 = 0, _arr2 = [['You', this.you()], ['Opponent', this.opponent()]]; _i2 < _arr2.length; _i2++) {
-        var _arr2$_i = _slicedToArray(_arr2[_i2], 2),
-          label = _arr2$_i[0],
-          player = _arr2$_i[1];
-        var row = document.createElement('p');
-        row.textContent = "".concat(label, ": ").concat((player === null || player === void 0 ? void 0 : player.progress) || 0, " / ").concat(this.state.total, " \xB7 ").concat((player === null || player === void 0 ? void 0 : player.score) || 0, " points").concat(player !== null && player !== void 0 && player.result ? " \xB7 ".concat(player.result.accuracy, "% accuracy") : '');
-        result.append(row);
-      }
-      if (this.state.status === 'finished') {
-        var link = document.createElement('a');
-        link.href = window.__duelConfig.home;
-        link.className = 'btn btn-white';
-        link.textContent = 'All games';
-        result.append(link);
-      } else {
-        var leave = document.createElement('button');
-        leave.type = 'button';
-        leave.className = 'btn btn-white text-danger';
-        leave.dataset.duelLeave = '';
-        leave.textContent = 'Leave Duel';
-        result.append(leave);
-      }
+      if (['cancelled', 'expired'].includes(this.state.status)) return;
+      $('#page-wrapper').attr('inert', '');
+      (0,_results__WEBPACK_IMPORTED_MODULE_6__.renderDuelResults)(this.results, this.state);
+      this.hud.hidden = true;
     }
   }, {
     key: "error",
@@ -1301,6 +1281,159 @@ function seededRandom(seed) {
     value ^= value + Math.imul(value ^ value >>> 7, 61 | value);
     return ((value ^ value >>> 14) >>> 0) / 4294967296;
   };
+}
+
+/***/ },
+
+/***/ "./resources/js/music/duel/results.js"
+/*!********************************************!*\
+  !*** ./resources/js/music/duel/results.js ***!
+  \********************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   duelDuration: () => (/* binding */ duelDuration),
+/* harmony export */   duelOutcome: () => (/* binding */ duelOutcome),
+/* harmony export */   renderDuelResults: () => (/* binding */ renderDuelResults)
+/* harmony export */ });
+/* harmony import */ var _games_shared_resultVariants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../games/shared/resultVariants */ "./resources/js/music/games/shared/resultVariants.js");
+function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
+function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+
+
+// Both browsers use the same saved results. Finishing first never decides the winner.
+function duelOutcome(state) {
+  if (state.status !== 'finished' || state.players.length !== 2 || state.players.some(function (player) {
+    return !player.finished_at || !player.result;
+  })) {
+    return {
+      kind: 'waiting',
+      winner: null,
+      reason: null
+    };
+  }
+  var _state$players = _slicedToArray(state.players, 2),
+    a = _state$players[0],
+    b = _state$players[1];
+  var points = a.score - b.score;
+  var accuracy = a.result.accuracy - b.result.accuracy;
+  var difference = points || accuracy;
+  var winner = difference > 0 ? a.role : difference < 0 ? b.role : null;
+  return {
+    kind: winner ? winner === state.role ? 'win' : 'loss' : 'draw',
+    winner: winner,
+    reason: points ? 'points' : accuracy ? 'accuracy' : 'draw'
+  };
+}
+function duelDuration(startsAt, finishedAt) {
+  if (!startsAt || !finishedAt) return '—';
+  var seconds = Math.max(0, Math.floor((Date.parse(finishedAt) - Date.parse(startsAt)) / 1000));
+  if (!Number.isFinite(seconds)) return '—';
+  return "".concat(String(Math.floor(seconds / 60)).padStart(2, '0'), ":").concat(String(seconds % 60).padStart(2, '0'));
+}
+var greetings = {
+  win: {
+    tier: 'excellent',
+    label: 'Duel champion',
+    title: 'You won!!!',
+    message: 'YES! You did it! Take a bow — that victory is yours! ✨'
+  },
+  loss: {
+    tier: 'encouraging',
+    label: 'Opponent won this round',
+    title: 'Your comeback starts here!',
+    message: 'This one went to your opponent. Keep playing, keep learning — your next win is waiting.'
+  },
+  draw: {
+    tier: 'strong',
+    label: 'A shared victory',
+    title: 'It’s a draw!',
+    message: 'Same points. Same accuracy. Two musicians, one brilliant match!'
+  },
+  waiting: {
+    tier: 'strong',
+    label: 'Your part is done ✓',
+    title: 'Beautiful finish!',
+    message: 'Your opponent is still playing. Stay here for the final results!'
+  }
+};
+function renderDuelResults(root, state) {
+  if (!root) return;
+  var outcome = duelOutcome(state);
+  var greeting = greetings[outcome.kind];
+  var changed = root.dataset.outcome !== outcome.kind;
+  // The game wrapper is inert after finishing. Mount outside it so result actions work.
+  if (root.parentElement !== document.body) document.body.append(root);
+  root.hidden = false;
+  document.body.classList.add('duel-results-open');
+  var text = function text(selector, value) {
+    root.querySelector(selector).textContent = value;
+  };
+  if (changed) {
+    var _window$matchMedia, _window;
+    root.dataset.outcome = outcome.kind;
+    root.dataset.resultTier = greeting.tier;
+    root.dataset.resultVariant = (0,_games_shared_resultVariants__WEBPACK_IMPORTED_MODULE_0__.chooseResultVariant)(greeting.tier);
+    text('[data-duel-outcome]', greeting.label);
+    text('[data-duel-result-title]', greeting.title);
+    text('[data-duel-result-message]', greeting.message);
+    root.querySelector('[data-duel-result-title]').focus({
+      preventScroll: true
+    });
+    root.scrollTop = 0;
+    var reducedMotion = (_window$matchMedia = (_window = window).matchMedia) === null || _window$matchMedia === void 0 ? void 0 : _window$matchMedia.call(_window, '(prefers-reduced-motion: reduce)').matches;
+    var confetti = window.Confetti || window.confetti;
+    if (outcome.kind === 'win' && !reducedMotion && typeof confetti === 'function') {
+      confetti({
+        particleCount: 150,
+        spread: 85,
+        origin: {
+          y: .6
+        },
+        zIndex: 1001,
+        colors: ['#ffe54c', '#55b9ac', '#b18ce8', '#f49236']
+      });
+    }
+  }
+  var you = state.players.find(function (player) {
+    return player.role === state.role;
+  });
+  text('span[name="score"]', you.score);
+  root.style.setProperty('--result-score-digits', String(Math.max(3, String(you.score).length)));
+  var _iterator = _createForOfIteratorHelper(state.players),
+    _step;
+  try {
+    for (_iterator.s(); !(_step = _iterator.n()).done;) {
+      var player = _step.value;
+      var row = player.role === state.role ? 'you' : 'opponent';
+      for (var _i = 0, _Object$entries = Object.entries({
+          score: player.score,
+          accuracy: player.result ? "".concat(player.result.accuracy, "%") : 'Still playing…',
+          rounds: "".concat(player.progress, " / ").concat(state.total),
+          time: duelDuration(state.starts_at, player.finished_at)
+        }); _i < _Object$entries.length; _i++) {
+        var _Object$entries$_i = _slicedToArray(_Object$entries[_i], 2),
+          metric = _Object$entries$_i[0],
+          value = _Object$entries$_i[1];
+        text("[data-duel-metric=\"".concat(row, "-").concat(metric, "\"]"), value);
+      }
+    }
+  } catch (err) {
+    _iterator.e(err);
+  } finally {
+    _iterator.f();
+  }
+  var waiting = outcome.kind === 'waiting';
+  text('[data-duel-result-rule]', waiting ? 'The winner is revealed when you both finish.' : outcome.reason === 'accuracy' ? 'Points tied — higher accuracy wins.' : outcome.reason === 'draw' ? 'Equal points and accuracy. You share the honors!' : 'Highest final score wins. Accuracy breaks a tie.');
+  root.querySelector('[data-duel-result-home]').hidden = waiting;
+  root.querySelector('[data-duel-result-leave]').hidden = !waiting;
 }
 
 /***/ },

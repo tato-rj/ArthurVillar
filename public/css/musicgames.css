@@ -32162,11 +32162,94 @@ button.game-countdown-step-pop {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  #final-overlay *, #final-overlay *::before, #final-overlay *::after {
+  #final-overlay *, #final-overlay *::before, #final-overlay *::after,
+  #duel-results-overlay *, #duel-results-overlay *::before, #duel-results-overlay *::after {
     animation: none !important;
     transition: none !important;
   }
 }
+body.duel-results-open {
+  overflow: hidden;
+}
+
+#duel-results-overlay {
+  position: fixed;
+  inset: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  background: #f7f7f7;
+  z-index: 1000;
+}
+#duel-results-overlay[hidden] {
+  display: none;
+}
+#duel-results-overlay .results-sheet {
+  width: min(720px, 100% - 32px);
+}
+#duel-results-overlay .duel-result-outcome {
+  margin-bottom: 10px;
+  font-size: 13px;
+  color: #777;
+}
+#duel-results-overlay[data-outcome=win] .duel-result-outcome {
+  color: #58cc02;
+}
+#duel-results-overlay .duel-result-greeting h1, #duel-results-overlay .duel-result-greeting .h1 {
+  margin-bottom: 12px;
+}
+#duel-results-overlay .duel-result-greeting > p:last-child {
+  max-width: 490px;
+  margin: 0 auto 24px;
+  font-size: 15px;
+  line-height: 1.5;
+}
+#duel-results-overlay .duel-comparison {
+  margin-top: 16px;
+  padding: 12px 20px;
+}
+#duel-results-overlay table {
+  width: 100%;
+  table-layout: fixed;
+  font-size: 15px;
+}
+#duel-results-overlay th, #duel-results-overlay td {
+  padding: 10px 4px;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+#duel-results-overlay thead th {
+  border-bottom: 1px solid rgba(55, 65, 81, 0.15);
+}
+#duel-results-overlay tbody th {
+  text-align: left;
+  font-size: 13px;
+  font-weight: 500;
+}
+#duel-results-overlay td {
+  font-weight: 700;
+}
+#duel-results-overlay td:last-child, #duel-results-overlay thead th:last-child {
+  color: #777;
+}
+#duel-results-overlay .duel-result-rule {
+  font-size: 12px;
+  margin: 14px 0 0;
+}
+#duel-results-overlay .duel-result-actions {
+  grid-template-columns: 1fr;
+}
+@media (max-width: 480px) {
+  #duel-results-overlay .duel-comparison {
+    padding: 10px;
+  }
+  #duel-results-overlay table {
+    font-size: 13px;
+  }
+  #duel-results-overlay .duel-result-greeting > p:last-child {
+    font-size: 14px;
+  }
+}
+
 .leaderboard-modal .modal-dialog {
   max-width: 520px;
 }

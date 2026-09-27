@@ -9,5 +9,5 @@
     </div>
     @endforeach
     <p class="small text-muted text-center mt-2" data-duel-connection aria-live="polite" hidden></p>
-    <div data-duel-results class="duel-results text-center" hidden></div>
+    @include('theory.components.results.duel')
 </section>

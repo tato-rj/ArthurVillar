@@ -4,6 +4,7 @@ import { connectGame } from './adapters';
 import { animateAnswerFeedback } from './answerFeedback';
 import { DuelPresence } from './presence';
 import { DuelIdle } from './idle';
+import { renderDuelResults } from './results';
 
 export class DuelClient {
     constructor(state, createGame) {
@@ -20,6 +21,7 @@ export class DuelClient {
         this.leaving = false;
         this.answerIds = new Set();
         this.hud = document.getElementById('duel-hud');
+        this.results = this.hud.querySelector('[data-duel-results]');
     }
     you() { return this.state.players.find(player => player.role === this.state.role); }
     opponent() { return this.state.players.find(player => player.role !== this.state.role); }
@@ -80,7 +82,8 @@ export class DuelClient {
             this.game?._cancelTimers?.();
             this.game?._cancelCardAudition?.();
             this.presence?.stop();
-            this.hud.querySelector('[data-duel-results]').hidden = true;
+            this.results.hidden = true;
+            document.body.classList.remove('duel-results-open');
             $('#page-wrapper').attr('inert', '');
             const message = this.state.left_by ? (this.state.left_by === this.state.role ? 'You left the Duel.' : 'Opponent left the Duel.') : `This Duel is ${this.state.status}.`;
             dialog({ message, exit: true });
@@ -245,20 +248,10 @@ export class DuelClient {
         connection.hidden = !connection.textContent;
     }
     showResults() {
-        const result = this.hud.querySelector('[data-duel-results]');
-        result.hidden = false;
-        result.replaceChildren();
-        const title = document.createElement('h5'); title.textContent = this.state.status === 'finished' ? 'Duel results' : 'You finished ✓ Waiting for opponent…'; result.append(title);
-        for (const [label, player] of [['You', this.you()], ['Opponent', this.opponent()]]) {
-            const row = document.createElement('p');
-            row.textContent = `${label}: ${player?.progress || 0} / ${this.state.total} · ${player?.score || 0} points${player?.result ? ` · ${player.result.accuracy}% accuracy` : ''}`;
-            result.append(row);
-        }
-        if (this.state.status === 'finished') {
-            const link = document.createElement('a'); link.href = window.__duelConfig.home; link.className = 'btn btn-white'; link.textContent = 'All games'; result.append(link);
-        } else {
-            const leave = document.createElement('button'); leave.type = 'button'; leave.className = 'btn btn-white text-danger'; leave.dataset.duelLeave = ''; leave.textContent = 'Leave Duel'; result.append(leave);
-        }
+        if (['cancelled', 'expired'].includes(this.state.status)) return;
+        $('#page-wrapper').attr('inert', '');
+        renderDuelResults(this.results, this.state);
+        this.hud.hidden = true;
     }
     error(error) {
         document.querySelector('[data-duel-error]').textContent = error.message;
