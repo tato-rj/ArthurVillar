@@ -83,6 +83,13 @@ img {
 
 @section('content')
 
+@auth
+<form method="GET" action="{{route('listening.qrcode')}}">
+  @csrf
+  <button class="btn-raw">@fa(['icon' => 'qrcode', 'mr' => 0, 'fa_size' => 'xl'])</button>
+</form>
+@endauth
+
 @if(request()->qrcode)
 <div class="position-absolute top-o left-0 w-100 mt-3 animate__animated animate__fadeInLeft">
   <div class="mb-2">
