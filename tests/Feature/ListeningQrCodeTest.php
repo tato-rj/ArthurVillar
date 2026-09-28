@@ -35,8 +35,10 @@ class ListeningQrCodeTest extends BaseTest
         $response = $this->get($downloadUrl);
 
         $response->assertOk()
-            ->assertHeader('Content-Type', 'image/svg+xml')
-            ->assertDownload('cello-suite-by-johann-sebastian-bach.svg');
-        $this->assertStringContainsString('<svg', $response->streamedContent());
+            ->assertHeader('Content-Type', 'image/png')
+            ->assertDownload('cello-suite-by-johann-sebastian-bach.png');
+        $image = $response->streamedContent();
+        $this->assertStringStartsWith("\x89PNG\r\n\x1a\n", $image);
+        $this->assertSame(IMAGETYPE_PNG, getimagesizefromstring($image)[2]);
     }
 }
