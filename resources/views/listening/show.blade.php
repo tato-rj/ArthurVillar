@@ -83,7 +83,7 @@ img {
 
 @section('content')
 
-@if(request()->qrcode)
+{{-- @if(request()->qrcode) --}}
 <div class="position-absolute top-o left-0 w-100 mt-3 animate__animated animate__fadeInLeft">
   <div class="mb-2">
     <a id="qrcode-link" href="{{route('listening.recordings.qrcode', ['recording' => $recording, 'url' => url()->current()])}}" class="btn btn-sm btn-secondary">@fa(['icon' => 'qrcode'])Make QRCode</a>
@@ -93,7 +93,7 @@ img {
     <a id="public-link" href="{{url()->current()}}" target="_blank" class="btn btn-sm btn-secondary">@fa(['icon' => 'link'])Public link</a>
   </div>
 </div>
-@endif
+{{-- @endif --}}
 
 <section class="d-center w-100" style="height: 80vh;">
   <div id="player-container" class="animate__animated animate__fadeIn animate__slower p-4" style="width: 600px; display: none;">
