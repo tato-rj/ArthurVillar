@@ -35,7 +35,14 @@
     </div>
     <textarea style="display: none" name="description">{!!old('description')!!}</textarea>
 
-	@input(['placeholder' => 'Youtube url', 'name' => 'youtube_url', 'type' => 'url', 'required' => true, 'value' => old('youtube_url')])
+	@input(['placeholder' => 'YouTube URL (if not uploading an MP3)', 'name' => 'youtube_url', 'type' => 'url', 'value' => old('youtube_url')])
+
+	<div class="form-group">
+		<label for="recording-audio">MP3 file (optional)</label>
+		<input id="recording-audio" class="form-control @error('audio') is-invalid @enderror" name="audio" type="file" accept=".mp3,audio/mpeg">
+		@error('audio')<div class="invalid-feedback">{{$message}}</div>@enderror
+		<small class="text-muted">Upload an MP3 instead of converting the YouTube URL.</small>
+	</div>
 
 	<div class="row">
 		@input(['placeholder' => 'Start', 'grid' => 'col', 'name' => 'start_time', 'value' => old('start_time')])

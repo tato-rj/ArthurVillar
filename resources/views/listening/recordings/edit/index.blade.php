@@ -63,20 +63,15 @@
 
                 @input(['label' => 'Source URL', 'name' => 'source_url', 'type' => 'url', 'value' => $recording->source_url])
 
-                <div class="d-flex align-items-center form-group">
-                    @if($audioUrl = $recording->storage('audio_path'))
-                    <div class="mr-2">
-                        <a href="{{$audioUrl}}" class="btn btn-primary form-control" download>@fa(['icon' => 'download', 'mr' => 0])</a>
+                <div class="form-group">
+                    <label for="recording-audio">Replace MP3 (optional)</label>
+                    <div class="d-flex align-items-center">
+                        @if($recording->audio_path)
+                        <a href="{{$recording->storage('audio_path')}}" class="btn btn-primary mr-2" download aria-label="Download current MP3">@fa(['icon' => 'download', 'mr' => 0])</a>
+                        @endif
+                        <input id="recording-audio" class="form-control @error('audio') is-invalid @enderror" name="audio" type="file" accept=".mp3,audio/mpeg">
                     </div>
-                    @endif
-                    <label class="input-file cursor-pointer w-100 text-truncate">
-                        <input style="display: none" name="audio" data-accept="mp3" type="file">
-                        <div class="form-control text-truncate">
-                            <span class="default text-truncate">
-                                @fa(['icon' => 'cloud-arrow-up'])<small>{{$recording->audio_path ?? 'Select mp3'}}</small>
-                            </span>
-                        </div>
-                    </label>
+                    @error('audio')<div class="text-danger small">{{$message}}</div>@enderror
                 </div>
 
             	@submit(['label' => 'Save changes', 'theme' => 'primary'])

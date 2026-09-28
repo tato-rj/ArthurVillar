@@ -22,14 +22,17 @@ class RecordingsController extends Controller
         $request->validate([
             'name' => 'required',
             'cover' => 'sometimes|mimes:jpg,jpeg,png|max:500',
-            'youtube_url' => 'required|url',
+            'youtube_url' => 'required_without:audio|nullable|url',
+            'audio' => 'nullable|file|mimes:mp3',
             'start_time' => 'nullable|string',
             'end_time' => 'nullable|string',
             'period_id' => 'required',
             'composer_id' => 'required'
         ]);
 
-        $audioPath = $this->convertYoutubeToMp3($request);
+        $audioPath = $request->hasFile('audio')
+            ? $request->file('audio')->store('recordings/audio', 'public')
+            : $this->convertYoutubeToMp3($request);
 
         $recording = Recording::create([
             'name' => $request->name,
@@ -83,7 +86,7 @@ class RecordingsController extends Controller
         $request->validate([
             'name' => 'required',
             'cover' => 'sometimes|mimes:jpg,jpeg,png|max:500',
-            'audio' => 'sometimes|mimes:mp3',
+            'audio' => 'nullable|file|mimes:mp3',
             'period_id' => 'required',
             'composer_id' => 'required'
         ]);
@@ -99,7 +102,7 @@ class RecordingsController extends Controller
             'period_id' => $request->period_id,
         ]);
 
-        if ($file = $request->file('audio'))
+        if ($request->hasFile('audio'))
             $recording->update([
                 'audio_path' => $request->file('audio')->store('recordings/audio', 'public')
             ]);

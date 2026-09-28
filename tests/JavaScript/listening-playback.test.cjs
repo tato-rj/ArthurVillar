@@ -156,3 +156,12 @@ test('a blocked automatic start leaves a clear manual play instruction', async (
   await Promise.resolve();
   assert.match(page.ids.get('autoplay-error').textContent, /Press play to continue/);
 });
+
+test('a manually uploaded piece without a source URL hides the YouTube button', () => {
+  const page = setup({ mode: 'infinite' });
+  page.trackRows[1].dataset.sourceUrl = '';
+  page.player.emit('ended');
+
+  assert.equal(page.ids.get('player-youtube').href, '');
+  assert.equal(page.ids.get('player-youtube').classList.contains('d-none'), true);
+});

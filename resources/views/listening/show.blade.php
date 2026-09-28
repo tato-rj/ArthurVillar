@@ -128,7 +128,7 @@ img {
       <div class="col-lg-6 col-12 order-lg-1 order-2 d-flex mb-3">
         <button id="player-about" data-bs-toggle="modal" data-bs-target="#recording-{{$recording->id}}-about-modal" class="btn btn-sm btn-outline-secondary mr-2">About</button>
         <button id="player-composer-button" data-bs-toggle="modal" data-bs-target="#recording-{{$recording->id}}-composer-modal" class="btn btn-sm btn-outline-secondary mr-2">Composer</button>
-        <a id="player-youtube" href="{{$recording->source_url}}" target="_blank" class="btn btn-sm btn-outline-secondary">Youtube</a>
+        <a id="player-youtube" href="{{$recording->source_url}}" target="_blank" class="btn btn-sm btn-outline-secondary {{$recording->source_url ? '' : 'd-none'}}">Youtube</a>
       </div>
       @isset($playlist)
       <div class="col-lg-6 col-12 order-lg-2 order-1 mb-3">
@@ -290,7 +290,9 @@ $(document).ready(function() {
     period.textContent = details.periodName;
     document.getElementById('player-about').setAttribute('data-bs-target', '#recording-' + details.recordingId + '-about-modal');
     document.getElementById('player-composer-button').setAttribute('data-bs-target', '#recording-' + details.recordingId + '-composer-modal');
-    document.getElementById('player-youtube').href = details.sourceUrl;
+    const youtubeLink = document.getElementById('player-youtube');
+    youtubeLink.href = details.sourceUrl;
+    youtubeLink.classList.toggle('d-none', !details.sourceUrl);
 
     const publicLink = document.getElementById('public-link');
     if (publicLink) publicLink.href = details.playUrl;
