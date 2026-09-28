@@ -40,7 +40,8 @@ function setup({ count = 3, mode = null } = {}) {
     return element({
       dataset: {
         recordingId: String(index + 1), audioUrl: `/audio/${index + 1}.mp3`,
-        playUrl: `/piece/${index + 1}`, title: `Piece ${index + 1}`,
+        playUrl: `/piece/${index + 1}`, qrcodeUrl: `/qrcode/${index + 1}`,
+        title: `Piece ${index + 1}`,
         composer: `Composer ${index + 1}`, artist: 'Artist', composedIn: '1700',
         periodColor: 'primary', periodName: 'Baroque', sourceUrl: '/youtube'
       },
@@ -51,7 +52,7 @@ function setup({ count = 3, mode = null } = {}) {
   });
   const ids = new Map([
     ...['player-title', 'player-composer', 'player-artist', 'player-composed-in', 'autoplay-error',
-      'player-period', 'player-about', 'player-composer-button', 'player-youtube']
+      'player-period', 'player-about', 'player-composer-button', 'player-youtube', 'qrcode']
       .map(id => [id, element()])
   ]);
   const document = {
@@ -93,12 +94,14 @@ test('no mode stops after the current piece; infinite wraps to the first piece',
   assert.equal(page.player.playCount, 1);
   assert.equal(page.ids.get('player-title').textContent, 'Piece 2');
   assert.equal(page.history.url, '/piece/2');
+  assert.equal(page.ids.get('qrcode').action, '/qrcode/2');
 
   page.player.emit('ended');
   assert.equal(page.player.source.sources[0].src, '/audio/3.mp3');
   page.player.emit('ended');
   assert.equal(page.player.source.sources[0].src, '/audio/1.mp3');
   assert.equal(page.player.playCount, 3);
+  assert.equal(page.ids.get('qrcode').action, '/qrcode/1');
 });
 
 test('shuffle visits each other piece once before stopping', () => {

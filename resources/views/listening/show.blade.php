@@ -84,10 +84,9 @@ img {
 @section('content')
 
 @auth
-<div class="position-absolute" style="top: 10px; right: 10px">
-  <form method="GET" action="{{route('listening.qrcode')}}">
-    @csrf
-    <button class="btn-raw">@fa(['icon' => 'qrcode', 'mr' => 0, 'fa_size' => 'xl'])</button>
+<div class="position-absolute" style="top: 20px; right: 20px">
+  <form id="qrcode" method="GET" action="{{route('listening.qrcode', ['token' => request()->route('token')])}}">
+    <button class="btn-raw" aria-label="Download QR code for this piece" title="Download QR code">@fa(['icon' => 'qrcode', 'mr' => 0, 'fa_size' => 'xl'])</button>
   </form>
 </div>
 @endauth
@@ -95,7 +94,7 @@ img {
 @if(request()->qrcode)
 <div class="position-absolute top-o left-0 w-100 mt-3 animate__animated animate__fadeInLeft">
   <div class="mb-2">
-    <a id="qrcode-link" href="{{route('listening.recordings.qrcode', ['recording' => $recording, 'url' => url()->current()])}}" class="btn btn-sm btn-secondary">@fa(['icon' => 'qrcode'])Make QRCode</a>
+    <a id="qrcode-link" href="{{route('listening.qrcode', ['token' => request()->route('token')])}}" class="btn btn-sm btn-secondary">@fa(['icon' => 'qrcode'])Make QRCode</a>
   </div>
 
   <div>
@@ -297,6 +296,8 @@ $(document).ready(function() {
     if (publicLink) publicLink.href = details.playUrl;
     const qrcodeLink = document.getElementById('qrcode-link');
     if (qrcodeLink) qrcodeLink.href = details.qrcodeUrl;
+    const qrcodeForm = document.getElementById('qrcode');
+    if (qrcodeForm) qrcodeForm.action = details.qrcodeUrl;
     history.replaceState(history.state, '', details.playUrl);
 
     player.source = {

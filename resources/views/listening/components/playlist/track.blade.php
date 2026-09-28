@@ -1,4 +1,5 @@
-@php($playUrl = route('listening.show', ['token' => \App\Token\Token::generate($recording->id, $playlist)]))
+@php($playToken = \App\Token\Token::generate($recording->id, $playlist))
+@php($playUrl = route('listening.show', ['token' => $playToken]))
 <form method="GET" action="{{route('listening.url', $recording)}}"
 	data-recording-id="{{$recording->id}}"
 	data-audio-url="{{$recording->audio_path ? $recording->storage('audio_path') : ''}}"
@@ -10,9 +11,7 @@
 	data-period-name="{{$recording->period->name}}"
 	data-period-color="{{$recording->period->color}}"
 	data-source-url="{{$recording->source_url}}"
-	@if(request()->qrcode)
-	data-qrcode-url="{{route('listening.recordings.qrcode', ['recording' => $recording, 'url' => $playUrl])}}"
-	@endif>
+	data-qrcode-url="{{route('listening.qrcode', ['token' => $playToken])}}">
 	@csrf
 	<input type="hidden" name="token" value="{{request()->token}}">
 	<div {{$recording->is($playingRecording) ? null : 'submit'}} class="track-container d-apart {{$loop->last ? null : 'border-bottom mb-2 pb-2'}}">

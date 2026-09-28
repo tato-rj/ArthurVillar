@@ -54,7 +54,6 @@ Route::middleware('auth')->group(function() {
 
 Route::get('url/{recording}', 'PlayerController@url')->name('url');
 
-Route::get('qrcode', 'PlayerController@qrcode')->name('qrcode');
+Route::middleware(['auth', 'token.play'])->get('qrcode/{token}', 'ListeningController@qrcode')->name('qrcode');
 
 Route::middleware('token.play')->get('{token}', 'PlayerController@show')->name('show');
-
