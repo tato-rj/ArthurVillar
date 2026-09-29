@@ -15,7 +15,7 @@ Route::middleware('auth')->group(function() {
 
 	Route::get('stats', 'TheoryController@home')->name('stats.index');
 
-	Route::prefix('mic')->name('mic.')->group(function() {
+	Route::prefix('mic')->name('mic.')->middleware('arthur')->group(function() {
 		Route::get('', 'MicrophoneController@index')->name('index');
 
 		Route::patch('', 'MicrophoneController@update')->name('update');

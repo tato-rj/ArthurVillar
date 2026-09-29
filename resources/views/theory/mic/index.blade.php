@@ -4,7 +4,7 @@
 <section class="container py-5" style="max-width: 760px" id="microphone-page">
     @pagetitle(['label' => 'Microphone'])
 
-    <p class="text-center mb-4">Set your phone or tablet where you play, then test a note at your normal volume. Changes take effect in the test immediately; save them when they feel right.</p>
+    <p class="text-center mb-4">Set your phone or tablet where you play, then test a note at your normal volume. Changes take effect in the test immediately; saved settings apply to every player in all microphone games.</p>
 
     <form id="microphone-settings" data-save-url="{{ route('theory.mic.update') }}">
         <div class="card p-4 mb-4">

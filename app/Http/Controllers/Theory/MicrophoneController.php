@@ -8,10 +8,10 @@ use Illuminate\Http\Request;
 
 class MicrophoneController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
         return view('theory.mic.index', [
-            'microphoneSettings' => MicrophoneSettings::forUser($request->user()),
+            'microphoneSettings' => MicrophoneSettings::current(),
         ]);
     }
 
@@ -22,8 +22,8 @@ class MicrophoneController extends Controller
             'settleMs' => ['required', 'integer', 'between:300,2500'],
         ]);
 
-        $request->user()->update(['microphone_settings' => $settings]);
+        MicrophoneSettings::save($settings);
 
-        return response()->json(['settings' => MicrophoneSettings::forUser($request->user())]);
+        return response()->json(['settings' => MicrophoneSettings::current()]);
     }
 }

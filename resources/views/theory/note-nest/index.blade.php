@@ -9,7 +9,7 @@
 
 <script>
   window.__challengeOptions = @json($settings->browserOptions());
-  window.__microphoneSettings = @json(\App\Games\MicrophoneSettings::forUser(auth()->user()));
+  window.__microphoneSettings = @json(\App\Games\MicrophoneSettings::current());
   window.__clefUrls = {
     treble: "{{ asset('images/clefs/treble-clef.svg') }}",
     bass:   "{{ asset('images/clefs/bass-clef.svg') }}",
