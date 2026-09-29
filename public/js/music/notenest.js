@@ -3613,6 +3613,7 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
     _this._hideInstructionsForMic = false;
     _this._stablePitch = (0,_shared_playedNotePitch_js__WEBPACK_IMPORTED_MODULE_3__.createStablePitchState)();
     _this._ignoreAppAudioUntil = 0;
+    _this._microphoneSettings = merged.microphoneSettings || {};
     return _this;
   }
   _inherits(NoteNest, _BaseStaffGame);
@@ -3629,11 +3630,6 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
     key: "_requiresPlayedNote",
     value: function _requiresPlayedNote() {
       return this._normalizeOnOff(this.opts.requirePlayedNote);
-    }
-  }, {
-    key: "_isLikelyMobileDevice",
-    value: function _isLikelyMobileDevice() {
-      return (0,_shared_playedNotePitch_js__WEBPACK_IMPORTED_MODULE_3__.isLikelyMobileDevice)();
     }
   }, {
     key: "_resetPlayedNote",
@@ -4017,7 +4013,8 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
       var pitch = this._detectPitch(this._pitchData, this._pitchAudioContext.sampleRate);
       var frequency = pitch === null || pitch === void 0 ? void 0 : pitch.frequency;
       if (Number.isFinite(frequency)) {
-        this._stablePitch = (0,_shared_playedNotePitch_js__WEBPACK_IMPORTED_MODULE_3__.updateStablePitchState)(this._stablePitch, frequency, this._pitchAudioContext.currentTime * 1000);
+        var _this$_microphoneSett;
+        this._stablePitch = (0,_shared_playedNotePitch_js__WEBPACK_IMPORTED_MODULE_3__.updateStablePitchState)(this._stablePitch, frequency, this._pitchAudioContext.currentTime * 1000, (_this$_microphoneSett = this._microphoneSettings) === null || _this$_microphoneSett === void 0 ? void 0 : _this$_microphoneSett.settleMs);
         if (this._stablePitch.settled) {
           var stableMidi = this._frequencyToMidi(this._stablePitch.frequency);
           this._handlePlayedNoteHeard(stableMidi, this._midiToNoteName(stableMidi), this._stablePitch.frequency);
@@ -4038,8 +4035,9 @@ var NoteNest = /*#__PURE__*/function (_BaseStaffGame) {
   }, {
     key: "_detectPitch",
     value: function _detectPitch(buffer, sampleRate) {
+      var _this$_microphoneSett2;
       return (0,_shared_playedNotePitch_js__WEBPACK_IMPORTED_MODULE_3__.detectPlayedNotePitch)(buffer, sampleRate, {
-        isMobile: this._isLikelyMobileDevice()
+        sensitivity: (_this$_microphoneSett2 = this._microphoneSettings) === null || _this$_microphoneSett2 === void 0 ? void 0 : _this$_microphoneSett2.sensitivity
       });
     }
   }, {
@@ -6902,11 +6900,12 @@ function naturalMidiFromNoteName(noteName) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   DEFAULT_MIC_SENSITIVITY: () => (/* binding */ DEFAULT_MIC_SENSITIVITY),
 /* harmony export */   PLAYED_NOTE_STABLE_DURATION_MS: () => (/* binding */ PLAYED_NOTE_STABLE_DURATION_MS),
 /* harmony export */   createStablePitchState: () => (/* binding */ createStablePitchState),
 /* harmony export */   detectPlayedNotePitch: () => (/* binding */ detectPlayedNotePitch),
 /* harmony export */   frequencyToMidi: () => (/* binding */ frequencyToMidi),
-/* harmony export */   isLikelyMobileDevice: () => (/* binding */ isLikelyMobileDevice),
+/* harmony export */   inputLevel: () => (/* binding */ inputLevel),
 /* harmony export */   updateStablePitchState: () => (/* binding */ updateStablePitchState)
 /* harmony export */ });
 function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
@@ -6926,23 +6925,22 @@ function createStablePitchState() {
   };
 }
 var PLAYED_NOTE_STABLE_DURATION_MS = 700;
+var DEFAULT_MIC_SENSITIVITY = 65;
 var MIN_STABLE_SAMPLES = 5;
 var MAX_SAMPLE_GAP_MS = 250;
 var MAX_PITCH_SPREAD_CENTS = 70;
 var MAX_PITCH_DRIFT_CENTS = 25;
-function isLikelyMobileDevice() {
-  var _window$matchMedia, _window, _window$navigator;
-  return ((_window$matchMedia = (_window = window).matchMedia) === null || _window$matchMedia === void 0 || (_window$matchMedia = _window$matchMedia.call(_window, "(pointer: coarse)")) === null || _window$matchMedia === void 0 ? void 0 : _window$matchMedia.matches) || /Android|iPhone|iPad|iPod/i.test(((_window$navigator = window.navigator) === null || _window$navigator === void 0 ? void 0 : _window$navigator.userAgent) || "");
-}
 function frequencyToMidi(frequency) {
   return Math.round(69 + 12 * Math.log2(frequency / 440));
 }
 function updateStablePitchState(stablePitch, frequency) {
   var timestamp = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : performance.now();
+  var settleMs = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : PLAYED_NOTE_STABLE_DURATION_MS;
   if (!Number.isFinite(frequency) || frequency <= 0 || !Number.isFinite(timestamp)) {
     return createStablePitchState();
   }
   var current = stablePitch || createStablePitchState();
+  var stableDuration = Number.isFinite(settleMs) ? Math.max(300, Math.min(2500, settleMs)) : PLAYED_NOTE_STABLE_DURATION_MS;
   var previousSamples = current.samples || [];
   var lastSample = previousSamples[previousSamples.length - 1];
   if ((lastSample === null || lastSample === void 0 ? void 0 : lastSample.timestamp) === timestamp) return current;
@@ -6954,7 +6952,7 @@ function updateStablePitchState(stablePitch, frequency) {
   });
 
   // Keep one sample at the start of the time window, independent of frame rate.
-  while (samples.length > MIN_STABLE_SAMPLES && timestamp - samples[1].timestamp >= PLAYED_NOTE_STABLE_DURATION_MS) {
+  while (samples.length > MIN_STABLE_SAMPLES && timestamp - samples[1].timestamp >= stableDuration) {
     samples.shift();
   }
   // A changed note or a wide glide starts a fresh settling window.
@@ -6974,7 +6972,7 @@ function updateStablePitchState(stablePitch, frequency) {
   var medianCents = sortedPitches.length % 2 ? sortedPitches[middle] : (sortedPitches[middle - 1] + sortedPitches[middle]) / 2;
   var settledFrequency = 440 * Math.pow(2, medianCents / 1200);
   var duration = timestamp - samples[0].timestamp;
-  var settled = duration >= PLAYED_NOTE_STABLE_DURATION_MS && samples.length >= MIN_STABLE_SAMPLES;
+  var settled = duration >= stableDuration && samples.length >= MIN_STABLE_SAMPLES;
   if (settled) {
     // A narrow range alone can still be a slow slide. Measure its overall drift
     // while allowing small oscillations (such as vibrato) around a steady note.
@@ -7011,14 +7009,7 @@ function updateStablePitchState(stablePitch, frequency) {
     settled: settled
   };
 }
-function detectPlayedNotePitch(buffer, sampleRate) {
-  var _ref = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
-    _ref$isMobile = _ref.isMobile,
-    isMobile = _ref$isMobile === void 0 ? isLikelyMobileDevice() : _ref$isMobile;
-  var minRms = isMobile ? 0.0035 : 0.014;
-  var minPeak = isMobile ? 0.012 : 0.045;
-  var trimThreshold = isMobile ? 0.02 : 0.06;
-  var minConfidence = isMobile ? 0.18 : 0.24;
+function inputLevel(buffer) {
   var rms = 0;
   var peak = 0;
   for (var i = 0; i < buffer.length; i += 1) {
@@ -7027,18 +7018,36 @@ function detectPlayedNotePitch(buffer, sampleRate) {
     if (sample > peak) peak = sample;
   }
   rms = Math.sqrt(rms / buffer.length);
+  return {
+    rms: rms,
+    peak: peak
+  };
+}
+function detectPlayedNotePitch(buffer, sampleRate) {
+  var _ref = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
+    _ref$sensitivity = _ref.sensitivity,
+    sensitivity = _ref$sensitivity === void 0 ? DEFAULT_MIC_SENSITIVITY : _ref$sensitivity;
+  var level = Number.isFinite(sensitivity) ? Math.max(0, Math.min(100, sensitivity)) : DEFAULT_MIC_SENSITIVITY;
+  var thresholdScale = Math.pow(4, (50 - level) / 50);
+  var minRms = 0.0008 * thresholdScale;
+  var minPeak = 0.003 * thresholdScale;
+  var trimThreshold = minPeak * 0.75;
+  var minConfidence = 0.18;
+  var _inputLevel = inputLevel(buffer),
+    rms = _inputLevel.rms,
+    peak = _inputLevel.peak;
   if (rms < minRms || peak < minPeak) return null;
   var start = 0;
   var end = buffer.length - 1;
-  for (var _i = 0; _i < buffer.length / 2; _i += 1) {
-    if (Math.abs(buffer[_i]) < trimThreshold) {
-      start = _i;
+  for (var i = 0; i < buffer.length / 2; i += 1) {
+    if (Math.abs(buffer[i]) < trimThreshold) {
+      start = i;
       break;
     }
   }
-  for (var _i2 = 1; _i2 < buffer.length / 2; _i2 += 1) {
-    if (Math.abs(buffer[buffer.length - _i2]) < trimThreshold) {
-      end = buffer.length - _i2;
+  for (var _i = 1; _i < buffer.length / 2; _i += 1) {
+    if (Math.abs(buffer[buffer.length - _i]) < trimThreshold) {
+      end = buffer.length - _i;
       break;
     }
   }
@@ -7049,21 +7058,21 @@ function detectPlayedNotePitch(buffer, sampleRate) {
   var maxLag = Math.min(trimmedSize - 1, Math.ceil(sampleRate / 40));
   var correlations = new Array(maxLag + 1).fill(0);
   var zeroLag = 0;
-  for (var _i3 = 0; _i3 < trimmedSize; _i3 += 1) {
-    zeroLag += trimmed[_i3] * trimmed[_i3];
+  for (var _i2 = 0; _i2 < trimmedSize; _i2 += 1) {
+    zeroLag += trimmed[_i2] * trimmed[_i2];
   }
   if (zeroLag <= 0) return null;
   for (var lag = minLag; lag <= maxLag; lag += 1) {
-    for (var _i4 = 0; _i4 < trimmedSize - lag; _i4 += 1) {
-      correlations[lag] += trimmed[_i4] * trimmed[_i4 + lag];
+    for (var _i3 = 0; _i3 < trimmedSize - lag; _i3 += 1) {
+      correlations[lag] += trimmed[_i3] * trimmed[_i3 + lag];
     }
   }
   var maxValue = -Infinity;
   var maxPosition = -1;
-  for (var _i5 = minLag; _i5 <= maxLag; _i5 += 1) {
-    if (correlations[_i5] > maxValue) {
-      maxValue = correlations[_i5];
-      maxPosition = _i5;
+  for (var _i4 = minLag; _i4 <= maxLag; _i4 += 1) {
+    if (correlations[_i4] > maxValue) {
+      maxValue = correlations[_i4];
+      maxPosition = _i4;
     }
   }
   if (maxPosition <= 0) return null;
@@ -13975,7 +13984,8 @@ var options = readGlobal("__challengeOptions") || {};
 var clefUrls = readGlobal("__clefUrls") || null;
 (0,_duel_DuelClient_js__WEBPACK_IMPORTED_MODULE_0__.bootGame)(function (duelOptions) {
   return new _notenest_NoteNest_js__WEBPACK_IMPORTED_MODULE_1__.NoteNest(_objectSpread(_objectSpread({}, duelOptions || options), {}, {
-    clefUrls: clefUrls
+    clefUrls: clefUrls,
+    microphoneSettings: readGlobal("__microphoneSettings")
   }));
 });
 })();

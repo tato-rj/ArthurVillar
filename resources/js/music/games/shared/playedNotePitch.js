@@ -3,26 +3,23 @@ export function createStablePitchState() {
 }
 
 export const PLAYED_NOTE_STABLE_DURATION_MS = 700;
+export const DEFAULT_MIC_SENSITIVITY = 65;
 const MIN_STABLE_SAMPLES = 5;
 const MAX_SAMPLE_GAP_MS = 250;
 const MAX_PITCH_SPREAD_CENTS = 70;
 const MAX_PITCH_DRIFT_CENTS = 25;
 
-export function isLikelyMobileDevice() {
-  return window.matchMedia?.("(pointer: coarse)")?.matches ||
-    /Android|iPhone|iPad|iPod/i.test(window.navigator?.userAgent || "");
-}
-
 export function frequencyToMidi(frequency) {
   return Math.round(69 + (12 * Math.log2(frequency / 440)));
 }
 
-export function updateStablePitchState(stablePitch, frequency, timestamp = performance.now()) {
+export function updateStablePitchState(stablePitch, frequency, timestamp = performance.now(), settleMs = PLAYED_NOTE_STABLE_DURATION_MS) {
   if (!Number.isFinite(frequency) || frequency <= 0 || !Number.isFinite(timestamp)) {
     return createStablePitchState();
   }
 
   const current = stablePitch || createStablePitchState();
+  const stableDuration = Number.isFinite(settleMs) ? Math.max(300, Math.min(2500, settleMs)) : PLAYED_NOTE_STABLE_DURATION_MS;
   const previousSamples = current.samples || [];
   const lastSample = previousSamples[previousSamples.length - 1];
   if (lastSample?.timestamp === timestamp) return current;
@@ -31,7 +28,7 @@ export function updateStablePitchState(stablePitch, frequency, timestamp = perfo
   samples.push({ cents: 1200 * Math.log2(frequency / 440), timestamp });
 
   // Keep one sample at the start of the time window, independent of frame rate.
-  while (samples.length > MIN_STABLE_SAMPLES && timestamp - samples[1].timestamp >= PLAYED_NOTE_STABLE_DURATION_MS) {
+  while (samples.length > MIN_STABLE_SAMPLES && timestamp - samples[1].timestamp >= stableDuration) {
     samples.shift();
   }
   // A changed note or a wide glide starts a fresh settling window.
@@ -48,7 +45,7 @@ export function updateStablePitchState(stablePitch, frequency, timestamp = perfo
     : (sortedPitches[middle - 1] + sortedPitches[middle]) / 2;
   const settledFrequency = 440 * (2 ** (medianCents / 1200));
   const duration = timestamp - samples[0].timestamp;
-  let settled = duration >= PLAYED_NOTE_STABLE_DURATION_MS && samples.length >= MIN_STABLE_SAMPLES;
+  let settled = duration >= stableDuration && samples.length >= MIN_STABLE_SAMPLES;
 
   if (settled) {
     // A narrow range alone can still be a slow slide. Measure its overall drift
@@ -75,11 +72,7 @@ export function updateStablePitchState(stablePitch, frequency, timestamp = perfo
   };
 }
 
-export function detectPlayedNotePitch(buffer, sampleRate, { isMobile = isLikelyMobileDevice() } = {}) {
-  const minRms = isMobile ? 0.0035 : 0.014;
-  const minPeak = isMobile ? 0.012 : 0.045;
-  const trimThreshold = isMobile ? 0.02 : 0.06;
-  const minConfidence = isMobile ? 0.18 : 0.24;
+export function inputLevel(buffer) {
   let rms = 0;
   let peak = 0;
 
@@ -90,6 +83,17 @@ export function detectPlayedNotePitch(buffer, sampleRate, { isMobile = isLikelyM
   }
 
   rms = Math.sqrt(rms / buffer.length);
+  return { rms, peak };
+}
+
+export function detectPlayedNotePitch(buffer, sampleRate, { sensitivity = DEFAULT_MIC_SENSITIVITY } = {}) {
+  const level = Number.isFinite(sensitivity) ? Math.max(0, Math.min(100, sensitivity)) : DEFAULT_MIC_SENSITIVITY;
+  const thresholdScale = 4 ** ((50 - level) / 50);
+  const minRms = 0.0008 * thresholdScale;
+  const minPeak = 0.003 * thresholdScale;
+  const trimThreshold = minPeak * 0.75;
+  const minConfidence = 0.18;
+  const { rms, peak } = inputLevel(buffer);
   if (rms < minRms || peak < minPeak) return null;
 
   let start = 0;

@@ -7,4 +7,5 @@ const clefUrls = readGlobal("__clefUrls") || null;
 bootGame((duelOptions) => new NoteMatch({
   ...(duelOptions || options),
   clefUrls,
+  microphoneSettings: readGlobal("__microphoneSettings"),
 }));

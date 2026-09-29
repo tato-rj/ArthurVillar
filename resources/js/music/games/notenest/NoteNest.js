@@ -5,7 +5,6 @@ import {
   createStablePitchState,
   detectPlayedNotePitch,
   frequencyToMidi,
-  isLikelyMobileDevice,
   updateStablePitchState,
 } from "../shared/playedNotePitch.js";
 import { accidentalClassToText, pickWeighted, stepToLetterOctave } from "../../staff/staffUtils.js";
@@ -67,6 +66,7 @@ export class NoteNest extends BaseStaffGame {
     this._hideInstructionsForMic = false;
     this._stablePitch = createStablePitchState();
     this._ignoreAppAudioUntil = 0;
+    this._microphoneSettings = merged.microphoneSettings || {};
   }
 
   start() {
@@ -79,10 +79,6 @@ export class NoteNest extends BaseStaffGame {
 
   _requiresPlayedNote() {
     return this._normalizeOnOff(this.opts.requirePlayedNote);
-  }
-
-  _isLikelyMobileDevice() {
-    return isLikelyMobileDevice();
   }
 
   _resetPlayedNote() {
@@ -450,7 +446,7 @@ export class NoteNest extends BaseStaffGame {
     const frequency = pitch?.frequency;
 
     if (Number.isFinite(frequency)) {
-      this._stablePitch = updateStablePitchState(this._stablePitch, frequency, this._pitchAudioContext.currentTime * 1000);
+      this._stablePitch = updateStablePitchState(this._stablePitch, frequency, this._pitchAudioContext.currentTime * 1000, this._microphoneSettings?.settleMs);
 
       if (this._stablePitch.settled) {
         const stableMidi = this._frequencyToMidi(this._stablePitch.frequency);
@@ -470,7 +466,7 @@ export class NoteNest extends BaseStaffGame {
 
   _detectPitch(buffer, sampleRate) {
     return detectPlayedNotePitch(buffer, sampleRate, {
-      isMobile: this._isLikelyMobileDevice(),
+      sensitivity: this._microphoneSettings?.sensitivity,
     });
   }
 

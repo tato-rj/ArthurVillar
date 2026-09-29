@@ -10,7 +10,7 @@ const source = fs.readFileSync(
 ).replace(/^export /gm, '');
 const context = vm.createContext({});
 vm.runInContext(source, context);
-const { createStablePitchState, updateStablePitchState } = context;
+const { createStablePitchState, detectPlayedNotePitch, updateStablePitchState } = context;
 const frequencyAt = cents => 440 * 2 ** (cents / 1200);
 
 function firstSettled(pitchAt, step = 20, end = 2000) {
@@ -76,6 +76,27 @@ test('repeated readings of the same audio timestamp do not add stability', () =>
     const state = updateStablePitchState(createStablePitchState(), 440, 0);
     assert.equal(updateStablePitchState(state, 440, 0), state);
     assert.equal(state.settled, false);
+});
+
+test('normal quiet piano input is detected and sensitivity controls the volume gate', () => {
+    const sampleRate = 48000;
+    const buffer = Float32Array.from({ length: 8192 }, (_, i) =>
+        0.002 * Math.sin(2 * Math.PI * 440 * i / sampleRate));
+    const normal = detectPlayedNotePitch(buffer, sampleRate);
+    assert.ok(normal, 'the default should hear a quiet note');
+    assert.ok(Math.abs(normal.frequency - 440) < 1);
+    assert.equal(detectPlayedNotePitch(buffer, sampleRate, { sensitivity: 0 }), null);
+    assert.ok(detectPlayedNotePitch(buffer, sampleRate, { sensitivity: 100 }));
+});
+
+test('capture time can be lengthened for a singing voice', () => {
+    let state = createStablePitchState();
+    for (let time = 0; time <= 1600; time += 20) {
+        state = updateStablePitchState(state, 440, time, 1500);
+        if (time < 1500) assert.equal(state.settled, false);
+    }
+    assert.equal(state.settled, true);
+    assert.equal(state.midi, 69);
 });
 
 test('the game records only after stable audio time, restarting the hold after silence', () => {

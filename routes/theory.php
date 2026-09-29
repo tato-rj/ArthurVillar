@@ -15,6 +15,12 @@ Route::middleware('auth')->group(function() {
 
 	Route::get('stats', 'TheoryController@home')->name('stats.index');
 
+	Route::prefix('mic')->name('mic.')->group(function() {
+		Route::get('', 'MicrophoneController@index')->name('index');
+
+		Route::patch('', 'MicrophoneController@update')->name('update');
+	});
+
 	Route::prefix('leaderboard')->name('leaderboard.')->group(function() {
 		Route::get('', 'LeaderboardsController@index')->name('index');
 
