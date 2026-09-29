@@ -4,6 +4,11 @@ export function createStablePitchState() {
 
 export const PLAYED_NOTE_STABLE_DURATION_MS = 700;
 export const DEFAULT_MIC_SENSITIVITY = 65;
+const MIN_PITCH_HZ = 40;
+const MAX_PITCH_HZ = 4300;
+const PITCH_REFERENCE_HZ = 261.6256; // Middle C
+const MIN_PITCH_LEVEL_SCALE = 0.02;
+const MAX_PITCH_LEVEL_SCALE = 3;
 const MIN_STABLE_SAMPLES = 5;
 const MAX_SAMPLE_GAP_MS = 250;
 const MAX_PITCH_SPREAD_CENTS = 70;
@@ -100,11 +105,22 @@ export function microphoneThresholds(sensitivity = DEFAULT_MIC_SENSITIVITY) {
   };
 }
 
+export function pitchLevelScale(frequency) {
+  return Math.max(MIN_PITCH_LEVEL_SCALE, Math.min(MAX_PITCH_LEVEL_SCALE, (PITCH_REFERENCE_HZ / frequency) ** 2));
+}
+
 export function detectPlayedNotePitch(buffer, sampleRate, { sensitivity = DEFAULT_MIC_SENSITIVITY } = {}) {
   const { minRms, minPeak, minConfidence } = microphoneThresholds(sensitivity);
-  const trimThreshold = minPeak * 0.75;
+  const trimThreshold = minPeak * MIN_PITCH_LEVEL_SCALE * 0.75;
   const { rms, peak } = inputLevel(buffer);
-  if (rms < minRms || peak < minPeak) return null;
+  const levelRatio = Math.min(rms / minRms, peak / minPeak);
+  if (levelRatio < MIN_PITCH_LEVEL_SCALE) return null;
+
+  // Quiet input can only qualify if it is high pitched. Limit the lag search
+  // accordingly so room noise does not require a full autocorrelation scan.
+  const lowestEligibleFrequency = levelRatio >= MAX_PITCH_LEVEL_SCALE
+    ? MIN_PITCH_HZ
+    : Math.max(MIN_PITCH_HZ, PITCH_REFERENCE_HZ / Math.sqrt(levelRatio));
 
   let start = 0;
   let end = buffer.length - 1;
@@ -127,35 +143,41 @@ export function detectPlayedNotePitch(buffer, sampleRate, { sensitivity = DEFAUL
   const trimmedSize = trimmed.length;
   if (trimmedSize < 32) return null;
 
-  const minLag = Math.max(1, Math.floor(sampleRate / 2000));
-  const maxLag = Math.min(trimmedSize - 1, Math.ceil(sampleRate / 40));
-  const correlations = new Array(maxLag + 1).fill(0);
-  let zeroLag = 0;
-
+  const minLag = Math.max(1, Math.floor(sampleRate / MAX_PITCH_HZ));
+  const maxLag = Math.min(trimmedSize - 1, Math.ceil(sampleRate / lowestEligibleFrequency));
+  if (maxLag < minLag) return null;
+  const correlations = new Float64Array(maxLag + 2);
+  const energy = new Float64Array(trimmedSize + 1);
   for (let i = 0; i < trimmedSize; i += 1) {
-    zeroLag += trimmed[i] * trimmed[i];
+    energy[i + 1] = energy[i] + (trimmed[i] * trimmed[i]);
   }
+  if (energy[trimmedSize] <= 0) return null;
 
-  if (zeroLag <= 0) return null;
-
-  for (let lag = minLag; lag <= maxLag; lag += 1) {
+  // Normalize for overlap length, otherwise the shortest lag can win simply
+  // because it contains more samples than the actual note period.
+  for (let lag = Math.max(1, minLag - 1); lag <= Math.min(trimmedSize - 1, maxLag + 1); lag += 1) {
+    let correlation = 0;
     for (let i = 0; i < trimmedSize - lag; i += 1) {
-      correlations[lag] += trimmed[i] * trimmed[i + lag];
+      correlation += trimmed[i] * trimmed[i + lag];
     }
+    const leftEnergy = energy[trimmedSize - lag];
+    const rightEnergy = energy[trimmedSize] - energy[lag];
+    correlations[lag] = leftEnergy > 0 && rightEnergy > 0
+      ? correlation / Math.sqrt(leftEnergy * rightEnergy)
+      : 0;
   }
 
-  let maxValue = -Infinity;
-  let maxPosition = -1;
-  for (let i = minLag; i <= maxLag; i += 1) {
-    if (correlations[i] > maxValue) {
-      maxValue = correlations[i];
-      maxPosition = i;
+  const peaks = [];
+  for (let lag = minLag; lag <= maxLag; lag += 1) {
+    if (correlations[lag] > correlations[lag - 1] && correlations[lag] >= correlations[lag + 1]) {
+      peaks.push(lag);
     }
   }
-
-  if (maxPosition <= 0) return null;
-  const confidence = maxValue / zeroLag;
-  if (confidence < minConfidence) return null;
+  if (!peaks.length) return null;
+  const strongest = Math.max(...peaks.map(lag => correlations[lag]));
+  if (strongest < minConfidence) return null;
+  const maxPosition = peaks.find(lag => correlations[lag] >= strongest * 0.92);
+  const confidence = correlations[maxPosition];
 
   const x1 = correlations[maxPosition - 1] || 0;
   const x2 = correlations[maxPosition] || 0;
@@ -164,7 +186,8 @@ export function detectPlayedNotePitch(buffer, sampleRate, { sensitivity = DEFAUL
   const shift = divisor ? (x3 - x1) / (2 * divisor) : 0;
   const frequency = sampleRate / (maxPosition + shift);
 
-  if (!Number.isFinite(frequency) || frequency < 40 || frequency > 2000) return null;
+  if (!Number.isFinite(frequency) || frequency < MIN_PITCH_HZ || frequency > MAX_PITCH_HZ) return null;
+  if (levelRatio < pitchLevelScale(frequency)) return null;
 
   return { frequency };
 }

@@ -34,7 +34,7 @@
             <div class="progress mb-2" role="progressbar" aria-label="Sound level relative to the selected sensitivity" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="mic-level-meter" style="height: 12px">
                 <div class="progress-bar" id="mic-level-bar" style="width: 0%"></div>
             </div>
-            <p class="small text-muted mb-3">A full bar means the sound is loud enough for this setting. A steady musical pitch is also required.</p>
+            <p class="small text-muted mb-3">The bar shows the raw input level. Higher notes can register below a full bar; lower notes need a stronger signal. A steady musical pitch is also required.</p>
             <div>Current pitch: <strong id="mic-current-note">—</strong></div>
             <div>Last captured note: <strong id="mic-captured-note">—</strong></div>
         </div>

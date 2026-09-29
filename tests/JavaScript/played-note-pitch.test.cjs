@@ -89,11 +89,11 @@ test('normal quiet piano input is detected and sensitivity controls the volume g
     assert.ok(detectPlayedNotePitch(buffer, sampleRate, { sensitivity: 100 }));
 });
 
-test('minimum sensitivity needs a very loud tone and rejects a loud cough-like burst', () => {
+test('minimum sensitivity rejects a weak midrange tone and a loud cough-like burst', () => {
     const sampleRate = 48000;
     const tone = amplitude => Float32Array.from({ length: 8192 }, (_, i) =>
         amplitude * Math.sin(2 * Math.PI * 440 * i / sampleRate));
-    assert.equal(detectPlayedNotePitch(tone(0.08), sampleRate, { sensitivity: 0 }), null);
+    assert.equal(detectPlayedNotePitch(tone(0.02), sampleRate, { sensitivity: 0 }), null);
     assert.ok(detectPlayedNotePitch(tone(0.2), sampleRate, { sensitivity: 0 }));
 
     let seed = 7;
@@ -103,6 +103,25 @@ test('minimum sensitivity needs a very loud tone and rejects a loud cough-like b
         return (seed / 0x100000000 * 2 - 1) * 0.2 * envelope;
     });
     assert.equal(detectPlayedNotePitch(burst, sampleRate, { sensitivity: 0 }), null);
+});
+
+test('high notes get a lower volume gate without admitting weaker low notes', () => {
+    const sampleRate = 48000;
+    const tone = (frequency, amplitude) => Float32Array.from({ length: 8192 }, (_, i) =>
+        amplitude * Math.sin(2 * Math.PI * frequency * i / sampleRate));
+
+    assert.equal(detectPlayedNotePitch(tone(220, 0.08), sampleRate, { sensitivity: 0 }), null);
+    const high = detectPlayedNotePitch(tone(1760, 0.004), sampleRate, { sensitivity: 0 });
+    assert.ok(high, 'a much quieter high note should pass at the same sensitivity');
+    assert.ok(Math.abs(high.frequency - 1760) < 2);
+
+    const lowerNote = detectPlayedNotePitch(tone(110, 0.1), sampleRate, { sensitivity: 65 });
+    assert.ok(lowerNote);
+    assert.ok(Math.abs(lowerNote.frequency - 110) < 1);
+
+    const topPianoNote = detectPlayedNotePitch(tone(4186, 0.003), sampleRate, { sensitivity: 65 });
+    assert.ok(topPianoNote);
+    assert.ok(Math.abs(topPianoNote.frequency - 4186) < 5);
 });
 
 test('capture time can be lengthened for a singing voice', () => {

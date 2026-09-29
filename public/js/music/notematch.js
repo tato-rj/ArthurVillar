@@ -7087,6 +7087,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   frequencyToMidi: () => (/* binding */ frequencyToMidi),
 /* harmony export */   inputLevel: () => (/* binding */ inputLevel),
 /* harmony export */   microphoneThresholds: () => (/* binding */ microphoneThresholds),
+/* harmony export */   pitchLevelScale: () => (/* binding */ pitchLevelScale),
 /* harmony export */   updateStablePitchState: () => (/* binding */ updateStablePitchState)
 /* harmony export */ });
 function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
@@ -7107,6 +7108,11 @@ function createStablePitchState() {
 }
 var PLAYED_NOTE_STABLE_DURATION_MS = 700;
 var DEFAULT_MIC_SENSITIVITY = 65;
+var MIN_PITCH_HZ = 40;
+var MAX_PITCH_HZ = 4300;
+var PITCH_REFERENCE_HZ = 261.6256; // Middle C
+var MIN_PITCH_LEVEL_SCALE = 0.02;
+var MAX_PITCH_LEVEL_SCALE = 3;
 var MIN_STABLE_SAMPLES = 5;
 var MAX_SAMPLE_GAP_MS = 250;
 var MAX_PITCH_SPREAD_CENTS = 70;
@@ -7216,6 +7222,9 @@ function microphoneThresholds() {
     minConfidence: 0.18 + 0.52 * Math.max(0, (DEFAULT_MIC_SENSITIVITY - level) / DEFAULT_MIC_SENSITIVITY)
   };
 }
+function pitchLevelScale(frequency) {
+  return Math.max(MIN_PITCH_LEVEL_SCALE, Math.min(MAX_PITCH_LEVEL_SCALE, Math.pow(PITCH_REFERENCE_HZ / frequency, 2)));
+}
 function detectPlayedNotePitch(buffer, sampleRate) {
   var _ref = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
     _ref$sensitivity = _ref.sensitivity,
@@ -7224,11 +7233,16 @@ function detectPlayedNotePitch(buffer, sampleRate) {
     minRms = _microphoneThresholds.minRms,
     minPeak = _microphoneThresholds.minPeak,
     minConfidence = _microphoneThresholds.minConfidence;
-  var trimThreshold = minPeak * 0.75;
+  var trimThreshold = minPeak * MIN_PITCH_LEVEL_SCALE * 0.75;
   var _inputLevel = inputLevel(buffer),
     rms = _inputLevel.rms,
     peak = _inputLevel.peak;
-  if (rms < minRms || peak < minPeak) return null;
+  var levelRatio = Math.min(rms / minRms, peak / minPeak);
+  if (levelRatio < MIN_PITCH_LEVEL_SCALE) return null;
+
+  // Quiet input can only qualify if it is high pitched. Limit the lag search
+  // accordingly so room noise does not require a full autocorrelation scan.
+  var lowestEligibleFrequency = levelRatio >= MAX_PITCH_LEVEL_SCALE ? MIN_PITCH_HZ : Math.max(MIN_PITCH_HZ, PITCH_REFERENCE_HZ / Math.sqrt(levelRatio));
   var start = 0;
   var end = buffer.length - 1;
   for (var i = 0; i < buffer.length / 2; i += 1) {
@@ -7246,37 +7260,50 @@ function detectPlayedNotePitch(buffer, sampleRate) {
   var trimmed = buffer.slice(start, end);
   var trimmedSize = trimmed.length;
   if (trimmedSize < 32) return null;
-  var minLag = Math.max(1, Math.floor(sampleRate / 2000));
-  var maxLag = Math.min(trimmedSize - 1, Math.ceil(sampleRate / 40));
-  var correlations = new Array(maxLag + 1).fill(0);
-  var zeroLag = 0;
+  var minLag = Math.max(1, Math.floor(sampleRate / MAX_PITCH_HZ));
+  var maxLag = Math.min(trimmedSize - 1, Math.ceil(sampleRate / lowestEligibleFrequency));
+  if (maxLag < minLag) return null;
+  var correlations = new Float64Array(maxLag + 2);
+  var energy = new Float64Array(trimmedSize + 1);
   for (var _i2 = 0; _i2 < trimmedSize; _i2 += 1) {
-    zeroLag += trimmed[_i2] * trimmed[_i2];
+    energy[_i2 + 1] = energy[_i2] + trimmed[_i2] * trimmed[_i2];
   }
-  if (zeroLag <= 0) return null;
-  for (var lag = minLag; lag <= maxLag; lag += 1) {
+  if (energy[trimmedSize] <= 0) return null;
+
+  // Normalize for overlap length, otherwise the shortest lag can win simply
+  // because it contains more samples than the actual note period.
+  for (var lag = Math.max(1, minLag - 1); lag <= Math.min(trimmedSize - 1, maxLag + 1); lag += 1) {
+    var correlation = 0;
     for (var _i3 = 0; _i3 < trimmedSize - lag; _i3 += 1) {
-      correlations[lag] += trimmed[_i3] * trimmed[_i3 + lag];
+      correlation += trimmed[_i3] * trimmed[_i3 + lag];
+    }
+    var leftEnergy = energy[trimmedSize - lag];
+    var rightEnergy = energy[trimmedSize] - energy[lag];
+    correlations[lag] = leftEnergy > 0 && rightEnergy > 0 ? correlation / Math.sqrt(leftEnergy * rightEnergy) : 0;
+  }
+  var peaks = [];
+  for (var _lag = minLag; _lag <= maxLag; _lag += 1) {
+    if (correlations[_lag] > correlations[_lag - 1] && correlations[_lag] >= correlations[_lag + 1]) {
+      peaks.push(_lag);
     }
   }
-  var maxValue = -Infinity;
-  var maxPosition = -1;
-  for (var _i4 = minLag; _i4 <= maxLag; _i4 += 1) {
-    if (correlations[_i4] > maxValue) {
-      maxValue = correlations[_i4];
-      maxPosition = _i4;
-    }
-  }
-  if (maxPosition <= 0) return null;
-  var confidence = maxValue / zeroLag;
-  if (confidence < minConfidence) return null;
+  if (!peaks.length) return null;
+  var strongest = Math.max.apply(Math, _toConsumableArray(peaks.map(function (lag) {
+    return correlations[lag];
+  })));
+  if (strongest < minConfidence) return null;
+  var maxPosition = peaks.find(function (lag) {
+    return correlations[lag] >= strongest * 0.92;
+  });
+  var confidence = correlations[maxPosition];
   var x1 = correlations[maxPosition - 1] || 0;
   var x2 = correlations[maxPosition] || 0;
   var x3 = correlations[maxPosition + 1] || 0;
   var divisor = 2 * x2 - x1 - x3;
   var shift = divisor ? (x3 - x1) / (2 * divisor) : 0;
   var frequency = sampleRate / (maxPosition + shift);
-  if (!Number.isFinite(frequency) || frequency < 40 || frequency > 2000) return null;
+  if (!Number.isFinite(frequency) || frequency < MIN_PITCH_HZ || frequency > MAX_PITCH_HZ) return null;
+  if (levelRatio < pitchLevelScale(frequency)) return null;
   return {
     frequency: frequency
   };
