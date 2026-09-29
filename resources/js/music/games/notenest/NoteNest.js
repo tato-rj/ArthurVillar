@@ -375,7 +375,7 @@ export class NoteNest extends BaseStaffGame {
       audio: {
         echoCancellation: false,
         noiseSuppression: false,
-        autoGainControl: true,
+        autoGainControl: false,
       },
     }).then((stream) => {
       if (requestId !== this._pitchRequestId) {

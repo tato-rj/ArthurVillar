@@ -89,6 +89,22 @@ test('normal quiet piano input is detected and sensitivity controls the volume g
     assert.ok(detectPlayedNotePitch(buffer, sampleRate, { sensitivity: 100 }));
 });
 
+test('minimum sensitivity needs a very loud tone and rejects a loud cough-like burst', () => {
+    const sampleRate = 48000;
+    const tone = amplitude => Float32Array.from({ length: 8192 }, (_, i) =>
+        amplitude * Math.sin(2 * Math.PI * 440 * i / sampleRate));
+    assert.equal(detectPlayedNotePitch(tone(0.08), sampleRate, { sensitivity: 0 }), null);
+    assert.ok(detectPlayedNotePitch(tone(0.2), sampleRate, { sensitivity: 0 }));
+
+    let seed = 7;
+    const burst = Float32Array.from({ length: 8192 }, (_, i) => {
+        seed = (seed * 1664525 + 1013904223) >>> 0;
+        const envelope = i < 4800 ? Math.sin(Math.PI * i / 4800) : 0;
+        return (seed / 0x100000000 * 2 - 1) * 0.2 * envelope;
+    });
+    assert.equal(detectPlayedNotePitch(burst, sampleRate, { sensitivity: 0 }), null);
+});
+
 test('capture time can be lengthened for a singing voice', () => {
     let state = createStablePitchState();
     for (let time = 0; time <= 1600; time += 20) {

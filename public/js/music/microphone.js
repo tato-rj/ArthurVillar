@@ -16,6 +16,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   detectPlayedNotePitch: () => (/* binding */ detectPlayedNotePitch),
 /* harmony export */   frequencyToMidi: () => (/* binding */ frequencyToMidi),
 /* harmony export */   inputLevel: () => (/* binding */ inputLevel),
+/* harmony export */   microphoneThresholds: () => (/* binding */ microphoneThresholds),
 /* harmony export */   updateStablePitchState: () => (/* binding */ updateStablePitchState)
 /* harmony export */ });
 function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
@@ -133,16 +134,27 @@ function inputLevel(buffer) {
     peak: peak
   };
 }
+function microphoneThresholds() {
+  var sensitivity = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : DEFAULT_MIC_SENSITIVITY;
+  var level = Number.isFinite(sensitivity) ? Math.max(0, Math.min(100, sensitivity)) : DEFAULT_MIC_SENSITIVITY;
+  // The low end deliberately requires a loud, nearby source. Keep the default
+  // sensitive enough for a piano on a stand, and reserve the high end for soft notes.
+  var thresholdScale = level <= DEFAULT_MIC_SENSITIVITY ? Math.pow(50, (DEFAULT_MIC_SENSITIVITY - level) / DEFAULT_MIC_SENSITIVITY) : Math.pow(8, (DEFAULT_MIC_SENSITIVITY - level) / (100 - DEFAULT_MIC_SENSITIVITY));
+  return {
+    minRms: 0.0008 * thresholdScale,
+    minPeak: 0.0018 * thresholdScale,
+    minConfidence: 0.18 + 0.52 * Math.max(0, (DEFAULT_MIC_SENSITIVITY - level) / DEFAULT_MIC_SENSITIVITY)
+  };
+}
 function detectPlayedNotePitch(buffer, sampleRate) {
   var _ref = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
     _ref$sensitivity = _ref.sensitivity,
     sensitivity = _ref$sensitivity === void 0 ? DEFAULT_MIC_SENSITIVITY : _ref$sensitivity;
-  var level = Number.isFinite(sensitivity) ? Math.max(0, Math.min(100, sensitivity)) : DEFAULT_MIC_SENSITIVITY;
-  var thresholdScale = Math.pow(4, (50 - level) / 50);
-  var minRms = 0.0008 * thresholdScale;
-  var minPeak = 0.003 * thresholdScale;
+  var _microphoneThresholds = microphoneThresholds(sensitivity),
+    minRms = _microphoneThresholds.minRms,
+    minPeak = _microphoneThresholds.minPeak,
+    minConfidence = _microphoneThresholds.minConfidence;
   var trimThreshold = minPeak * 0.75;
-  var minConfidence = 0.18;
   var _inputLevel = inputLevel(buffer),
     rms = _inputLevel.rms,
     peak = _inputLevel.peak;
@@ -334,8 +346,12 @@ if (form) {
     if (!analyser || !context) return;
     analyser.getFloatTimeDomainData(data);
     var _inputLevel = (0,_games_shared_playedNotePitch_js__WEBPACK_IMPORTED_MODULE_0__.inputLevel)(data),
-      rms = _inputLevel.rms;
-    var level = Math.min(100, Math.round(rms * 10000));
+      rms = _inputLevel.rms,
+      peak = _inputLevel.peak;
+    var _microphoneThresholds = (0,_games_shared_playedNotePitch_js__WEBPACK_IMPORTED_MODULE_0__.microphoneThresholds)(Number(sensitivity.value)),
+      minRms = _microphoneThresholds.minRms,
+      minPeak = _microphoneThresholds.minPeak;
+    var level = Math.min(100, Math.round(Math.min(rms / minRms, peak / minPeak) * 100));
     levelBar.style.width = "".concat(level, "%");
     levelMeter.setAttribute("aria-valuenow", String(level));
     var pitch = (0,_games_shared_playedNotePitch_js__WEBPACK_IMPORTED_MODULE_0__.detectPlayedNotePitch)(data, context.sampleRate, {
@@ -387,7 +403,7 @@ if (form) {
             audio: {
               echoCancellation: false,
               noiseSuppression: false,
-              autoGainControl: true
+              autoGainControl: false
             }
           });
         case 4:

@@ -86,13 +86,23 @@ export function inputLevel(buffer) {
   return { rms, peak };
 }
 
-export function detectPlayedNotePitch(buffer, sampleRate, { sensitivity = DEFAULT_MIC_SENSITIVITY } = {}) {
+export function microphoneThresholds(sensitivity = DEFAULT_MIC_SENSITIVITY) {
   const level = Number.isFinite(sensitivity) ? Math.max(0, Math.min(100, sensitivity)) : DEFAULT_MIC_SENSITIVITY;
-  const thresholdScale = 4 ** ((50 - level) / 50);
-  const minRms = 0.0008 * thresholdScale;
-  const minPeak = 0.003 * thresholdScale;
+  // The low end deliberately requires a loud, nearby source. Keep the default
+  // sensitive enough for a piano on a stand, and reserve the high end for soft notes.
+  const thresholdScale = level <= DEFAULT_MIC_SENSITIVITY
+    ? 50 ** ((DEFAULT_MIC_SENSITIVITY - level) / DEFAULT_MIC_SENSITIVITY)
+    : 8 ** ((DEFAULT_MIC_SENSITIVITY - level) / (100 - DEFAULT_MIC_SENSITIVITY));
+  return {
+    minRms: 0.0008 * thresholdScale,
+    minPeak: 0.0018 * thresholdScale,
+    minConfidence: 0.18 + (0.52 * Math.max(0, (DEFAULT_MIC_SENSITIVITY - level) / DEFAULT_MIC_SENSITIVITY)),
+  };
+}
+
+export function detectPlayedNotePitch(buffer, sampleRate, { sensitivity = DEFAULT_MIC_SENSITIVITY } = {}) {
+  const { minRms, minPeak, minConfidence } = microphoneThresholds(sensitivity);
   const trimThreshold = minPeak * 0.75;
-  const minConfidence = 0.18;
   const { rms, peak } = inputLevel(buffer);
   if (rms < minRms || peak < minPeak) return null;
 

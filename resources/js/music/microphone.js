@@ -3,6 +3,7 @@ import {
   detectPlayedNotePitch,
   frequencyToMidi,
   inputLevel,
+  microphoneThresholds,
   updateStablePitchState,
 } from "./games/shared/playedNotePitch.js";
 
@@ -64,8 +65,9 @@ if (form) {
   const listen = () => {
     if (!analyser || !context) return;
     analyser.getFloatTimeDomainData(data);
-    const { rms } = inputLevel(data);
-    const level = Math.min(100, Math.round(rms * 10000));
+    const { rms, peak } = inputLevel(data);
+    const { minRms, minPeak } = microphoneThresholds(Number(sensitivity.value));
+    const level = Math.min(100, Math.round(Math.min(rms / minRms, peak / minPeak) * 100));
     levelBar.style.width = `${level}%`;
     levelMeter.setAttribute("aria-valuenow", String(level));
 
@@ -103,7 +105,7 @@ if (form) {
     status.textContent = "Connecting to the microphone…";
     try {
       const opened = await navigator.mediaDevices.getUserMedia({
-        audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: true },
+        audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
       });
       if (id !== requestId) {
         opened.getTracks().forEach(track => track.stop());

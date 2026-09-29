@@ -120,6 +120,7 @@ for (const type of ['NoteNest', 'NoteMatch']) {
 test('microphone access changes the status to yellow listening', async () => {
     const { game, context } = loadGame();
     const analyser = { fftSize: 0 };
+    let requestedAudio;
     context.window = {
         isSecureContext: true,
         AudioContext: class {
@@ -129,7 +130,10 @@ test('microphone access changes the status to yellow listening', async () => {
         },
     };
     context.navigator = {
-        mediaDevices: { getUserMedia: async () => ({ getTracks: () => [] }) },
+        mediaDevices: { getUserMedia: async constraints => {
+            requestedAudio = constraints.audio;
+            return { getTracks: () => [] };
+        } },
     };
     game._pitchRequestId = 1;
     game._listenForPitch = () => {};
@@ -141,6 +145,7 @@ test('microphone access changes the status to yellow listening', async () => {
     assert.ok(game.$playNoteStatus.classes.has('bg-yellow-lighter'));
     assert.equal(game.$playNoteStart.visible, false);
     assert.equal(game.$playNoteStatus.visible, true);
+    assert.equal(requestedAudio.autoGainControl, false);
 });
 
 for (const type of ['NoteNest', 'NoteMatch']) {
