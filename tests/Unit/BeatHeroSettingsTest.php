@@ -7,6 +7,16 @@ use PHPUnit\Framework\TestCase;
 
 class BeatHeroSettingsTest extends TestCase
 {
+    public function test_half_notes_and_triplets_survive_settings_and_replay_links()
+    {
+        $settings = new BeatHeroSettings(['figures' => ['half', 'triplets']]);
+
+        $this->assertSame(['half', 'triplets'], $settings->options('figures'));
+        $this->assertSame(['half', 'triplets'], $settings->replayOptions()['figures']);
+        $this->assertArrayHasKey('half', $settings->figureChoices());
+        $this->assertArrayHasKey('triplets', $settings->figureChoices());
+    }
+
     public function test_legacy_game_links_default_sound_effects_to_on()
     {
         $options = (new BeatHeroSettings([

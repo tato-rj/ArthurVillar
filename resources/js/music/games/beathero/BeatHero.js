@@ -20,50 +20,73 @@ export class BeatHero {
 
   static FIGURES = [
     {
+      id: "half",
+      label: "Half note",
+      beats: 2,
+      events: [0],
+      notes: [{ value: 2 }],
+    },
+    {
       id: "quarter",
       label: "Quarter note",
+      beats: 1,
       events: [0],
       notes: [{ value: 4 }],
     },
     {
       id: "two-eighths",
       label: "Two eighth notes",
+      beats: 1,
       events: [0, 0.5],
       notes: [{ value: 8 }, { value: 8 }],
     },
     {
+      id: "triplets",
+      label: "Eighth-note triplets",
+      beats: 1,
+      events: [0, 1 / 3, 2 / 3],
+      notes: [{ value: 8 }, { value: 8 }, { value: 8 }],
+      tuplet: { num_notes: 3, notes_occupied: 2 },
+    },
+    {
       id: "eighth-two-sixteenths",
       label: "Eighth note, two sixteenth notes",
+      beats: 1,
       events: [0, 0.5, 0.75],
       notes: [{ value: 8 }, { value: 16 }, { value: 16 }],
     },
     {
       id: "sixteenth-eighth-sixteenth",
       label: "Sixteenth note, eighth note, sixteenth note",
+      beats: 1,
       events: [0, 0.25, 0.75],
       notes: [{ value: 16 }, { value: 8 }, { value: 16 }],
     },
     {
       id: "two-sixteenths-eighth",
       label: "Two sixteenth notes, eighth note",
+      beats: 1,
       events: [0, 0.25, 0.5],
       notes: [{ value: 16 }, { value: 16 }, { value: 8 }],
     },
     {
       id: "four-sixteenths",
       label: "Four sixteenth notes",
+      beats: 1,
       events: [0, 0.25, 0.5, 0.75],
       notes: [{ value: 16 }, { value: 16 }, { value: 16 }, { value: 16 }],
     },
     {
       id: "dotted-eighth-sixteenth",
       label: "Dotted eighth note, sixteenth note",
+      beats: 1,
       events: [0, 0.75],
       notes: [{ value: 8, dotted: true }, { value: 16 }],
     },
     {
       id: "sixteenth-dotted-eighth",
       label: "Sixteenth note, dotted eighth note",
+      beats: 1,
       events: [0, 0.25],
       notes: [{ value: 16 }, { value: 8, dotted: true }],
     },
@@ -307,17 +330,18 @@ export class BeatHero {
     if (this._state !== "playing" || playbackRun !== this._playbackRun) return;
 
     const beatMs = this._beatMs();
-    const slotMs = beatMs;
     const countInMs = this._countdown.start({ beatMs });
     this._setTimer(() => {
       this._setStatus("Listen carefully…");
     }, countInMs);
 
+    let endsAt = countInMs;
     this._answer.forEach((figure, index) => {
-      const startsAt = countInMs + (index * slotMs);
+      const startsAt = endsAt;
+      endsAt += figure.beats * beatMs;
       this._setTimer(() => this._activateDot(index), startsAt);
       this._scheduleFigureAudio(figure, startsAt);
-      this._setTimer(() => this._completeDot(index), startsAt + beatMs);
+      this._setTimer(() => this._completeDot(index), endsAt);
     });
 
     this._setTimer(() => {
@@ -326,7 +350,7 @@ export class BeatHero {
       this._setPlayButtons(false);
       this._resetDots();
       this._setStatus(`Now tap the ${this.opts.numOfCards} cards you heard, in order.`);
-    }, countInMs + (this._answer.length * slotMs) + 120);
+    }, endsAt + 120);
   }
 
   _stopChallenge() {
@@ -357,7 +381,7 @@ export class BeatHero {
       this._setStatus(this._readyInstructions());
       this._setAuditionTimer(() => {
         cardElement.classList.remove("is-previewing");
-      }, this._beatMs());
+      }, figure.beats * this._beatMs());
       return;
     }
 

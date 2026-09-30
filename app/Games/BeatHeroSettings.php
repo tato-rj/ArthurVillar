@@ -5,8 +5,10 @@ namespace App\Games;
 class BeatHeroSettings extends GameFactory
 {
     private const FIGURE_CHOICES = [
+        'half' => 'Half note',
         'quarter' => 'Quarter note',
         'two-eighths' => 'Two eighth notes',
+        'triplets' => 'Eighth-note triplets',
         'eighth-two-sixteenths' => 'Eighth note, two sixteenth notes',
         'sixteenth-eighth-sixteenth' => 'Sixteenth note, eighth note, sixteenth note',
         'two-sixteenths-eighth' => 'Two sixteenth notes, eighth note',

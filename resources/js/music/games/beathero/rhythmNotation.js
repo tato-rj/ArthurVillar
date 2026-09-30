@@ -1,8 +1,8 @@
-import { Beam, Dot, Formatter, Renderer, Stave, StaveNote, Stem, Voice } from "vexflow/bravura";
+import { Beam, Dot, Formatter, Renderer, Stave, StaveNote, Stem, Tuplet, Voice } from "vexflow/bravura";
 
 const figures = new Map();
 
-// Engrave each one-beat figure once; both cards and thumbnails reuse the SVG.
+// Engrave each figure once; both cards and thumbnails reuse the SVG.
 export function rhythmNotationSvg(figure) {
   if (figures.has(figure.id)) return figures.get(figure.id);
 
@@ -22,18 +22,26 @@ export function rhythmNotationSvg(figure) {
     return note;
   });
 
-  // A single beam group is exactly one beat; VexFlow handles secondary hooks.
+  // VexFlow handles secondary hooks and the triplet's rhythmic tick adjustment.
   const beam = notes.length > 1 ? new Beam(notes) : null;
   if (beam) beam.setStyle({ fillStyle: "currentColor", strokeStyle: "currentColor" });
-  const voice = new Voice({ num_beats: 1, beat_value: 4 }).addTickables(notes);
+  const tuplet = figure.tuplet ? new Tuplet(notes, figure.tuplet) : null;
+  const voice = new Voice({ num_beats: figure.beats, beat_value: 4 }).addTickables(notes);
   new Formatter().joinVoices([voice]).format([voice], notes.length * 26);
   voice.draw(context, stave);
   if (beam) beam.setContext(context).draw();
+  if (tuplet) {
+    context.save();
+    context.setFillStyle("currentColor");
+    context.setStrokeStyle("currentColor");
+    tuplet.setContext(context).draw();
+    context.restore();
+  }
 
   const bounds = notes.map((note) => note.getBoundingBox());
   const left = Math.min(...bounds.map((box) => box.getX()));
   const right = Math.max(...bounds.map((box) => box.getX() + box.getW()));
-  const top = Math.min(...bounds.map((box) => box.getY()));
+  const top = Math.min(...bounds.map((box) => box.getY()), tuplet ? tuplet.getYPosition() - 12 : Infinity);
   const bottom = Math.max(...bounds.map((box) => box.getY() + box.getH()));
   const svg = container.querySelector("svg");
   // Shared viewport dimensions preserve the same engraving scale on every card.

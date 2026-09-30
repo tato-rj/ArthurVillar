@@ -1841,7 +1841,7 @@ var BeatHero = /*#__PURE__*/function () {
     value: function () {
       var _playChallenge2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
         var _this5 = this;
-        var playbackRun, beatMs, slotMs, countInMs;
+        var playbackRun, beatMs, countInMs, endsAt;
         return _regenerator().w(function (_context) {
           while (1) switch (_context.n) {
             case 0:
@@ -1870,22 +1870,23 @@ var BeatHero = /*#__PURE__*/function () {
               return _context.a(2);
             case 3:
               beatMs = this._beatMs();
-              slotMs = beatMs;
               countInMs = this._countdown.start({
                 beatMs: beatMs
               });
               this._setTimer(function () {
                 _this5._setStatus("Listen carefully…");
               }, countInMs);
+              endsAt = countInMs;
               this._answer.forEach(function (figure, index) {
-                var startsAt = countInMs + index * slotMs;
+                var startsAt = endsAt;
+                endsAt += figure.beats * beatMs;
                 _this5._setTimer(function () {
                   return _this5._activateDot(index);
                 }, startsAt);
                 _this5._scheduleFigureAudio(figure, startsAt);
                 _this5._setTimer(function () {
                   return _this5._completeDot(index);
-                }, startsAt + beatMs);
+                }, endsAt);
               });
               this._setTimer(function () {
                 _this5._state = "answering";
@@ -1893,7 +1894,7 @@ var BeatHero = /*#__PURE__*/function () {
                 _this5._setPlayButtons(false);
                 _this5._resetDots();
                 _this5._setStatus("Now tap the ".concat(_this5.opts.numOfCards, " cards you heard, in order."));
-              }, countInMs + this._answer.length * slotMs + 120);
+              }, endsAt + 120);
             case 4:
               return _context.a(2);
           }
@@ -1958,7 +1959,7 @@ var BeatHero = /*#__PURE__*/function () {
               this._setStatus(this._readyInstructions());
               this._setAuditionTimer(function () {
                 cardElement.classList.remove("is-previewing");
-              }, this._beatMs());
+              }, figure.beats * this._beatMs());
               return _context2.a(2);
             case 5:
               if (!(this._state !== "answering")) {
@@ -2393,8 +2394,17 @@ _defineProperty(BeatHero, "MIN_CHALLENGES", 2);
 _defineProperty(BeatHero, "MAX_CHALLENGES", 12);
 _defineProperty(BeatHero, "DEFAULT_FIGURE_IDS", ["quarter", "two-eighths", "four-sixteenths", "eighth-two-sixteenths"]);
 _defineProperty(BeatHero, "FIGURES", [{
+  id: "half",
+  label: "Half note",
+  beats: 2,
+  events: [0],
+  notes: [{
+    value: 2
+  }]
+}, {
   id: "quarter",
   label: "Quarter note",
+  beats: 1,
   events: [0],
   notes: [{
     value: 4
@@ -2402,6 +2412,7 @@ _defineProperty(BeatHero, "FIGURES", [{
 }, {
   id: "two-eighths",
   label: "Two eighth notes",
+  beats: 1,
   events: [0, 0.5],
   notes: [{
     value: 8
@@ -2409,8 +2420,25 @@ _defineProperty(BeatHero, "FIGURES", [{
     value: 8
   }]
 }, {
+  id: "triplets",
+  label: "Eighth-note triplets",
+  beats: 1,
+  events: [0, 1 / 3, 2 / 3],
+  notes: [{
+    value: 8
+  }, {
+    value: 8
+  }, {
+    value: 8
+  }],
+  tuplet: {
+    num_notes: 3,
+    notes_occupied: 2
+  }
+}, {
   id: "eighth-two-sixteenths",
   label: "Eighth note, two sixteenth notes",
+  beats: 1,
   events: [0, 0.5, 0.75],
   notes: [{
     value: 8
@@ -2422,6 +2450,7 @@ _defineProperty(BeatHero, "FIGURES", [{
 }, {
   id: "sixteenth-eighth-sixteenth",
   label: "Sixteenth note, eighth note, sixteenth note",
+  beats: 1,
   events: [0, 0.25, 0.75],
   notes: [{
     value: 16
@@ -2433,6 +2462,7 @@ _defineProperty(BeatHero, "FIGURES", [{
 }, {
   id: "two-sixteenths-eighth",
   label: "Two sixteenth notes, eighth note",
+  beats: 1,
   events: [0, 0.25, 0.5],
   notes: [{
     value: 16
@@ -2444,6 +2474,7 @@ _defineProperty(BeatHero, "FIGURES", [{
 }, {
   id: "four-sixteenths",
   label: "Four sixteenth notes",
+  beats: 1,
   events: [0, 0.25, 0.5, 0.75],
   notes: [{
     value: 16
@@ -2457,6 +2488,7 @@ _defineProperty(BeatHero, "FIGURES", [{
 }, {
   id: "dotted-eighth-sixteenth",
   label: "Dotted eighth note, sixteenth note",
+  beats: 1,
   events: [0, 0.75],
   notes: [{
     value: 8,
@@ -2467,6 +2499,7 @@ _defineProperty(BeatHero, "FIGURES", [{
 }, {
   id: "sixteenth-dotted-eighth",
   label: "Sixteenth note, dotted eighth note",
+  beats: 1,
   events: [0, 0.25],
   notes: [{
     value: 16
@@ -2546,7 +2579,7 @@ function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length)
 
 var figures = new Map();
 
-// Engrave each one-beat figure once; both cards and thumbnails reuse the SVG.
+// Engrave each figure once; both cards and thumbnails reuse the SVG.
 function rhythmNotationSvg(figure) {
   if (figures.has(figure.id)) return figures.get(figure.id);
   var container = document.createElement("div");
@@ -2570,19 +2603,27 @@ function rhythmNotationSvg(figure) {
     return note;
   });
 
-  // A single beam group is exactly one beat; VexFlow handles secondary hooks.
+  // VexFlow handles secondary hooks and the triplet's rhythmic tick adjustment.
   var beam = notes.length > 1 ? new vexflow_bravura__WEBPACK_IMPORTED_MODULE_0__.Beam(notes) : null;
   if (beam) beam.setStyle({
     fillStyle: "currentColor",
     strokeStyle: "currentColor"
   });
+  var tuplet = figure.tuplet ? new vexflow_bravura__WEBPACK_IMPORTED_MODULE_0__.Tuplet(notes, figure.tuplet) : null;
   var voice = new vexflow_bravura__WEBPACK_IMPORTED_MODULE_0__.Voice({
-    num_beats: 1,
+    num_beats: figure.beats,
     beat_value: 4
   }).addTickables(notes);
   new vexflow_bravura__WEBPACK_IMPORTED_MODULE_0__.Formatter().joinVoices([voice]).format([voice], notes.length * 26);
   voice.draw(context, stave);
   if (beam) beam.setContext(context).draw();
+  if (tuplet) {
+    context.save();
+    context.setFillStyle("currentColor");
+    context.setStrokeStyle("currentColor");
+    tuplet.setContext(context).draw();
+    context.restore();
+  }
   var bounds = notes.map(function (note) {
     return note.getBoundingBox();
   });
@@ -2594,7 +2635,7 @@ function rhythmNotationSvg(figure) {
   })));
   var top = Math.min.apply(Math, _toConsumableArray(bounds.map(function (box) {
     return box.getY();
-  })));
+  })).concat([tuplet ? tuplet.getYPosition() - 12 : Infinity]));
   var bottom = Math.max.apply(Math, _toConsumableArray(bounds.map(function (box) {
     return box.getY() + box.getH();
   })));
