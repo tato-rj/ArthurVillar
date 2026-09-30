@@ -52,3 +52,30 @@ test('long sequences keep their requested length when a repeat is prevented', ()
     assert.equal(answer.length, 6);
     assert.notDeepEqual(ids(answer), previousIds);
 });
+
+test('half notes use two card slots without overflowing the requested round length', () => {
+    const pool = [{ id: 'half', beats: 2 }, { id: 'triplets', beats: 1 }];
+    for (let count = 2; count <= 6; count += 1) {
+        for (const shuffle of [unchanged, items => [...items].reverse()]) {
+            const answer = build({ pool, count, shuffle });
+            assert.equal(answer.reduce((total, figure) => total + figure.beats, 0), count);
+            assert.ok(answer.every(figure => pool.includes(figure)));
+        }
+    }
+    assert.deepEqual(ids(build({ pool, count: 2, shuffle: unchanged })), ['half']);
+    assert.deepEqual(ids(build({ pool, count: 3, shuffle: unchanged })), ['half', 'triplets']);
+});
+
+test('a two-card half-note round can alternate with two one-beat figures', () => {
+    const pool = [{ id: 'half', beats: 2 }, { id: 'quarter', beats: 1 }];
+    const answer = build({ pool, count: 2, shuffle: unchanged, previousIds: ['half'] });
+    assert.deepEqual(ids(answer), ['quarter', 'quarter']);
+    assert.deepEqual(ids(build({ pool, count: 2, shuffle: unchanged, previousIds: ids(answer) })), ['half']);
+});
+
+test('a half note is excluded when only one card slot remains', () => {
+    const pool = [{ id: 'quarter', beats: 1 }, { id: 'half', beats: 2 }];
+    assert.deepEqual(ids(build({ pool, count: 2, shuffle: unchanged })), ['quarter', 'quarter']);
+    const answer = build({ pool, count: 4, shuffle: unchanged });
+    assert.deepEqual(ids(answer), ['quarter', 'half', 'quarter']);
+});

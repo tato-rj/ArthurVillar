@@ -1608,6 +1608,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _rhythmNotation_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./rhythmNotation.js */ "./resources/js/music/games/beathero/rhythmNotation.js");
 /* harmony import */ var _beatHeroSequence_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./beatHeroSequence.js */ "./resources/js/music/games/beathero/beatHeroSequence.js");
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _regeneratorValues(e) { if (null != e) { var t = e["function" == typeof Symbol && Symbol.iterator || "@@iterator"], r = 0; if (t) return t.call(e); if ("function" == typeof e.next) return e; if (!isNaN(e.length)) return { next: function next() { return e && r >= e.length && (e = void 0), { value: e && e[r++], done: !e }; } }; } throw new TypeError(_typeof(e) + " is not iterable"); }
 function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
 function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
 function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
@@ -1815,7 +1816,9 @@ var BeatHero = /*#__PURE__*/function () {
         return figure.id;
       });
       this._renderCards();
-      this.$dots.attr("aria-label", "".concat(this.opts.numOfCards, "-card sequence progress")).html(this._answer.map(function (_, index) {
+      this.$dots.attr("aria-label", "".concat(this.opts.numOfCards, "-card sequence progress")).html(Array.from({
+        length: this.opts.numOfCards
+      }, function (_, index) {
         return "\n        <span class=\"sequence-dot\" aria-hidden=\"true\">".concat(_this3._dotNumberMarkup(index), "</span>\n      ");
       }).join(""));
       this._resetDots();
@@ -1827,7 +1830,7 @@ var BeatHero = /*#__PURE__*/function () {
     value: function _renderCards() {
       var _this4 = this;
       var html = this._cards.map(function (figure, index) {
-        return "\n      <button\n        type=\"button\"\n        class=\"rhythm-card\"\n        data-figure-id=\"".concat(figure.id, "\"\n        aria-label=\"Card ").concat(index + 1, ": ").concat(figure.label, "\"\n      >\n        <span class=\"rhythm-card__number\" aria-hidden=\"true\"></span>\n        <span class=\"rhythm-card__figure\" aria-hidden=\"true\">\n          ").concat(_this4._figureSvg(figure), "\n        </span>\n      </button>\n    ");
+        return "\n      <button\n        type=\"button\"\n        class=\"rhythm-card\"\n        data-figure-id=\"".concat(figure.id, "\"\n        aria-label=\"Card ").concat(index + 1, ": ").concat(figure.label).concat(figure.beats > 1 ? " (".concat(figure.beats, " cards)") : "", "\"\n      >\n        <span class=\"rhythm-card__number\" aria-hidden=\"true\"></span>\n        <span class=\"rhythm-card__figure\" aria-hidden=\"true\">\n          ").concat(_this4._figureSvg(figure), "\n        </span>\n      </button>\n    ");
       }).join("");
       this.$grid.attr("data-card-count", this._cards.length).html(html);
     }
@@ -1841,15 +1844,15 @@ var BeatHero = /*#__PURE__*/function () {
     value: function () {
       var _playChallenge2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
         var _this5 = this;
-        var playbackRun, beatMs, countInMs, endsAt;
-        return _regenerator().w(function (_context) {
-          while (1) switch (_context.n) {
+        var playbackRun, beatMs, countInMs, endsAt, _loop, index;
+        return _regenerator().w(function (_context2) {
+          while (1) switch (_context2.n) {
             case 0:
               if (!(this._state === "playing" || this._state === "complete")) {
-                _context.n = 1;
+                _context2.n = 1;
                 break;
               }
-              return _context.a(2);
+              return _context2.a(2);
             case 1:
               this._cancelTimers();
               this._clearSelectionMarks();
@@ -1860,14 +1863,14 @@ var BeatHero = /*#__PURE__*/function () {
               this._setStatus("Get ready…");
               this._setPlayButtons(true);
               playbackRun = this._playbackRun;
-              _context.n = 2;
+              _context2.n = 2;
               return this._ensureAudio();
             case 2:
               if (!(this._state !== "playing" || playbackRun !== this._playbackRun)) {
-                _context.n = 3;
+                _context2.n = 3;
                 break;
               }
-              return _context.a(2);
+              return _context2.a(2);
             case 3:
               beatMs = this._beatMs();
               countInMs = this._countdown.start({
@@ -1877,26 +1880,47 @@ var BeatHero = /*#__PURE__*/function () {
                 _this5._setStatus("Listen carefully…");
               }, countInMs);
               endsAt = countInMs;
-              this._answer.forEach(function (figure, index) {
+              this._answer.forEach(function (figure) {
                 var startsAt = endsAt;
                 endsAt += figure.beats * beatMs;
-                _this5._setTimer(function () {
-                  return _this5._activateDot(index);
-                }, startsAt);
                 _this5._scheduleFigureAudio(figure, startsAt);
-                _this5._setTimer(function () {
-                  return _this5._completeDot(index);
-                }, endsAt);
               });
+              _loop = /*#__PURE__*/_regenerator().m(function _loop(index) {
+                return _regenerator().w(function (_context) {
+                  while (1) switch (_context.n) {
+                    case 0:
+                      _this5._setTimer(function () {
+                        return _this5._activateDot(index);
+                      }, countInMs + index * beatMs);
+                      _this5._setTimer(function () {
+                        return _this5._completeDot(index);
+                      }, countInMs + (index + 1) * beatMs);
+                    case 1:
+                      return _context.a(2);
+                  }
+                }, _loop);
+              });
+              index = 0;
+            case 4:
+              if (!(index < this.opts.numOfCards)) {
+                _context2.n = 6;
+                break;
+              }
+              return _context2.d(_regeneratorValues(_loop(index)), 5);
+            case 5:
+              index += 1;
+              _context2.n = 4;
+              break;
+            case 6:
               this._setTimer(function () {
                 _this5._state = "answering";
                 _this5._inputLocked = false;
                 _this5._setPlayButtons(false);
                 _this5._resetDots();
-                _this5._setStatus("Now tap the ".concat(_this5.opts.numOfCards, " cards you heard, in order."));
+                _this5._setStatus("Fill the ".concat(_this5.opts.numOfCards, " cards in order.").concat(_this5._halfNoteHint()));
               }, endsAt + 120);
-            case 4:
-              return _context.a(2);
+            case 7:
+              return _context2.a(2);
           }
         }, _callee, this);
       }));
@@ -1921,38 +1945,38 @@ var BeatHero = /*#__PURE__*/function () {
     value: function () {
       var _handleCardTap2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee2(cardElement) {
         var _this6 = this;
-        var figure, auditionRun, answerIndex, expected, badge, resetDelay;
-        return _regenerator().w(function (_context2) {
-          while (1) switch (_context2.n) {
+        var figure, auditionRun, answerIndex, expected, badge, cardNumbers, resetDelay;
+        return _regenerator().w(function (_context3) {
+          while (1) switch (_context3.n) {
             case 0:
               if (!(this._inputLocked || this._state === "playing" || this._state === "complete")) {
-                _context2.n = 1;
+                _context3.n = 1;
                 break;
               }
-              return _context2.a(2);
+              return _context3.a(2);
             case 1:
               figure = this._cards.find(function (item) {
                 return item.id === cardElement.dataset.figureId;
               });
               if (figure) {
-                _context2.n = 2;
+                _context3.n = 2;
                 break;
               }
-              return _context2.a(2);
+              return _context3.a(2);
             case 2:
               auditionRun = this._cancelCardAudition();
               if (!(this._state === "ready")) {
-                _context2.n = 5;
+                _context3.n = 5;
                 break;
               }
-              _context2.n = 3;
+              _context3.n = 3;
               return this._ensureAudio();
             case 3:
               if (!(this._state !== "ready" || auditionRun !== this._auditionRun)) {
-                _context2.n = 4;
+                _context3.n = 4;
                 break;
               }
-              return _context2.a(2);
+              return _context3.a(2);
             case 4:
               this._scheduleFigureAudio(figure, 0, cardElement);
               cardElement.classList.add("is-previewing");
@@ -1960,20 +1984,22 @@ var BeatHero = /*#__PURE__*/function () {
               this._setAuditionTimer(function () {
                 cardElement.classList.remove("is-previewing");
               }, figure.beats * this._beatMs());
-              return _context2.a(2);
+              return _context3.a(2);
             case 5:
               if (!(this._state !== "answering")) {
-                _context2.n = 6;
+                _context3.n = 6;
                 break;
               }
-              return _context2.a(2);
+              return _context3.a(2);
             case 6:
               this._scheduleFigureAudio(figure, 0, cardElement);
-              answerIndex = this._selection.length;
-              expected = this._answer[answerIndex];
+              answerIndex = this._selection.reduce(function (total, item) {
+                return total + item.beats;
+              }, 0);
+              expected = this._answer[this._selection.length];
               this._activateDot(answerIndex);
               if (!(expected && expected.id === figure.id)) {
-                _context2.n = 8;
+                _context3.n = 8;
                 break;
               }
               this._correctTaps += 1;
@@ -1981,17 +2007,18 @@ var BeatHero = /*#__PURE__*/function () {
               cardElement.classList.remove("is-wrong");
               cardElement.classList.add("is-correct");
               badge = cardElement.querySelector(".rhythm-card__number");
-              badge.textContent = [badge.textContent, answerIndex + 1].filter(Boolean).join(", ");
+              cardNumbers = figure.beats > 1 ? "".concat(answerIndex + 1, "\u2013").concat(answerIndex + figure.beats) : answerIndex + 1;
+              badge.textContent = [badge.textContent, cardNumbers].filter(Boolean).join(", ");
               this._chooseDot(answerIndex, figure);
               if (!(this._selection.length === this._answer.length)) {
-                _context2.n = 7;
+                _context3.n = 7;
                 break;
               }
               this._finishRound();
-              return _context2.a(2);
+              return _context3.a(2);
             case 7:
-              this._setStatus("Great \u2014 now choose card ".concat(answerIndex + 2, " of ").concat(this.opts.numOfCards, "."));
-              return _context2.a(2);
+              this._setStatus("Great \u2014 now choose card ".concat(answerIndex + figure.beats + 1, " of ").concat(this.opts.numOfCards, "."));
+              return _context3.a(2);
             case 8:
               this._inputLocked = true;
               this._wrongTaps += 1;
@@ -2010,7 +2037,7 @@ var BeatHero = /*#__PURE__*/function () {
                 _this6._inputLocked = false;
               }, resetDelay);
             case 9:
-              return _context2.a(2);
+              return _context3.a(2);
           }
         }, _callee2, this);
       }));
@@ -2143,20 +2170,20 @@ var BeatHero = /*#__PURE__*/function () {
     value: function () {
       var _ensureAudio2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee3() {
         var _t;
-        return _regenerator().w(function (_context3) {
-          while (1) switch (_context3.p = _context3.n) {
+        return _regenerator().w(function (_context4) {
+          while (1) switch (_context4.p = _context4.n) {
             case 0:
               if (window.Tone) {
-                _context3.n = 1;
+                _context4.n = 1;
                 break;
               }
-              return _context3.a(2);
+              return _context4.a(2);
             case 1:
-              _context3.p = 1;
-              _context3.n = 2;
+              _context4.p = 1;
+              _context4.n = 2;
               return Tone.start();
             case 2:
-              _context3.n = 3;
+              _context4.n = 3;
               return _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_1__.GameAudio.ensureMetronomeAudio();
             case 3:
               if (!this._rhythmSynth) {
@@ -2180,14 +2207,14 @@ var BeatHero = /*#__PURE__*/function () {
                 this._uiNoise = _shared_GameAudio_js__WEBPACK_IMPORTED_MODULE_1__.GameAudio.createUiNoiseSynth();
                 this._audioReady = true;
               }
-              _context3.n = 5;
+              _context4.n = 5;
               break;
             case 4:
-              _context3.p = 4;
-              _t = _context3.v;
+              _context4.p = 4;
+              _t = _context4.v;
               this._setStatus("Audio could not start. Check your browser sound settings.");
             case 5:
-              return _context3.a(2);
+              return _context4.a(2);
           }
         }, _callee3, this, [[1, 4]]);
       }));
@@ -2246,11 +2273,14 @@ var BeatHero = /*#__PURE__*/function () {
   }, {
     key: "_chooseDot",
     value: function _chooseDot(index, figure) {
-      var dot = this.$dots.find(".sequence-dot").get(index);
-      if (!dot || !figure) return;
-      dot.classList.remove("is-active", "is-wrong");
-      dot.classList.add("is-chosen");
-      dot.innerHTML = "<span class=\"sequence-dot__figure\">".concat(this._figureSvg(figure), "</span>");
+      if (!figure) return;
+      for (var beat = 0; beat < figure.beats; beat += 1) {
+        var dot = this.$dots.find(".sequence-dot").get(index + beat);
+        if (!dot) continue;
+        dot.classList.remove("is-active", "is-wrong");
+        dot.classList.add("is-chosen");
+        dot.innerHTML = beat === 0 ? "<span class=\"sequence-dot__figure\">".concat(this._figureSvg(figure), "</span>") : "<span class=\"sequence-dot__hold\">\u2014</span>";
+      }
     }
   }, {
     key: "_wrongDot",
@@ -2294,8 +2324,12 @@ var BeatHero = /*#__PURE__*/function () {
   }, {
     key: "_readyInstructions",
     value: function _readyInstructions() {
-      var repeatHint = this.opts.numOfCards > this.opts.figures.length ? " Rhythms can repeat; tap the same card again when needed." : "";
-      return "Press Play, listen to the ".concat(this.opts.numOfCards, " rhythms, then tap their cards in the same order.").concat(repeatHint);
+      return "Press Play, listen to the ".concat(this.opts.numOfCards, " beats, then fill their cards in order. Rhythms can repeat.").concat(this._halfNoteHint());
+    }
+  }, {
+    key: "_halfNoteHint",
+    value: function _halfNoteHint() {
+      return this.opts.figures.includes("half") ? " Tap a half note once to fill two cards; the second card holds the note." : "";
     }
   }, {
     key: "_beatMs",
@@ -2524,9 +2558,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
 function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
 function _iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
 function _arrayWithoutHoles(r) { if (Array.isArray(r)) return _arrayLikeToArray(r); }
+function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
 function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
 function buildBeatHeroSequence() {
   var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
@@ -2538,20 +2573,62 @@ function buildBeatHeroSequence() {
   var figures = Array.isArray(pool) ? pool : [];
   var targetCount = Math.max(0, Math.floor(Number(count) || 0));
   if (!figures.length || !targetCount) return [];
-  var sequence = [];
-  while (sequence.length < targetCount) sequence.push.apply(sequence, _toConsumableArray(shuffle(figures)));
-  var answer = sequence.slice(0, targetCount);
+  var beats = function beats(figure) {
+    var _figure$beats;
+    return (_figure$beats = figure.beats) !== null && _figure$beats !== void 0 ? _figure$beats : 1;
+  };
+  var answer = [];
+  var remaining = targetCount;
+  var available = [];
+  while (remaining > 0) {
+    available = available.filter(function (figure) {
+      return beats(figure) <= remaining;
+    });
+    if (!available.length) available = shuffle(figures.filter(function (figure) {
+      return beats(figure) <= remaining;
+    }));
+    if (!available.length) return [];
+    var figure = available.shift();
+    answer.push(figure);
+    remaining -= beats(figure);
+  }
   var repeatsPrevious = answer.length === previousIds.length && answer.every(function (figure, index) {
     return figure.id === previousIds[index];
   });
-
-  // Figure settings always contain at least two unique choices, and each
-  // shuffled block starts with unique figures. Swapping these two preserves
-  // the generated material while guaranteeing a different sequence order.
-  if (repeatsPrevious && answer.length > 1) {
-    var _ref2 = [answer[1], answer[0]];
-    answer[0] = _ref2[0];
-    answer[1] = _ref2[1];
+  if (repeatsPrevious) {
+    var differentIndex = answer.findIndex(function (figure) {
+      return figure.id !== answer[0].id;
+    });
+    if (differentIndex > 0) {
+      var _ref2 = [answer[differentIndex], answer[0]];
+      answer[0] = _ref2[0];
+      answer[differentIndex] = _ref2[1];
+    } else {
+      // A two-card round can be a single half note. Find another exact fit
+      // rather than repeating it or exceeding the selected number of beats.
+      var _alternative = function alternative(slots) {
+        var sequence = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+        if (!slots) return sequence.length !== previousIds.length || sequence.some(function (figure, index) {
+          return figure.id !== previousIds[index];
+        }) ? sequence : null;
+        var _iterator = _createForOfIteratorHelper(figures),
+          _step;
+        try {
+          for (_iterator.s(); !(_step = _iterator.n()).done;) {
+            var _figure = _step.value;
+            if (beats(_figure) > slots) continue;
+            var result = _alternative(slots - beats(_figure), [].concat(_toConsumableArray(sequence), [_figure]));
+            if (result) return result;
+          }
+        } catch (err) {
+          _iterator.e(err);
+        } finally {
+          _iterator.f();
+        }
+        return null;
+      };
+      return _alternative(targetCount) || answer;
+    }
   }
   return answer;
 }

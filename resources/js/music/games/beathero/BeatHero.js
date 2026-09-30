@@ -281,7 +281,7 @@ export class BeatHero {
     this._renderCards();
     this.$dots
       .attr("aria-label", `${this.opts.numOfCards}-card sequence progress`)
-      .html(this._answer.map((_, index) => `
+      .html(Array.from({ length: this.opts.numOfCards }, (_, index) => `
         <span class="sequence-dot" aria-hidden="true">${this._dotNumberMarkup(index)}</span>
       `).join(""));
     this._resetDots();
@@ -295,7 +295,7 @@ export class BeatHero {
         type="button"
         class="rhythm-card"
         data-figure-id="${figure.id}"
-        aria-label="Card ${index + 1}: ${figure.label}"
+        aria-label="Card ${index + 1}: ${figure.label}${figure.beats > 1 ? ` (${figure.beats} cards)` : ""}"
       >
         <span class="rhythm-card__number" aria-hidden="true"></span>
         <span class="rhythm-card__figure" aria-hidden="true">
@@ -336,20 +336,22 @@ export class BeatHero {
     }, countInMs);
 
     let endsAt = countInMs;
-    this._answer.forEach((figure, index) => {
+    this._answer.forEach((figure) => {
       const startsAt = endsAt;
       endsAt += figure.beats * beatMs;
-      this._setTimer(() => this._activateDot(index), startsAt);
       this._scheduleFigureAudio(figure, startsAt);
-      this._setTimer(() => this._completeDot(index), endsAt);
     });
+    for (let index = 0; index < this.opts.numOfCards; index += 1) {
+      this._setTimer(() => this._activateDot(index), countInMs + index * beatMs);
+      this._setTimer(() => this._completeDot(index), countInMs + (index + 1) * beatMs);
+    }
 
     this._setTimer(() => {
       this._state = "answering";
       this._inputLocked = false;
       this._setPlayButtons(false);
       this._resetDots();
-      this._setStatus(`Now tap the ${this.opts.numOfCards} cards you heard, in order.`);
+      this._setStatus(`Fill the ${this.opts.numOfCards} cards in order.${this._halfNoteHint()}`);
     }, endsAt + 120);
   }
 
@@ -388,8 +390,8 @@ export class BeatHero {
     if (this._state !== "answering") return;
 
     this._scheduleFigureAudio(figure, 0, cardElement);
-    const answerIndex = this._selection.length;
-    const expected = this._answer[answerIndex];
+    const answerIndex = this._selection.reduce((total, item) => total + item.beats, 0);
+    const expected = this._answer[this._selection.length];
     this._activateDot(answerIndex);
 
     if (expected && expected.id === figure.id) {
@@ -398,7 +400,8 @@ export class BeatHero {
       cardElement.classList.remove("is-wrong");
       cardElement.classList.add("is-correct");
       const badge = cardElement.querySelector(".rhythm-card__number");
-      badge.textContent = [badge.textContent, answerIndex + 1].filter(Boolean).join(", ");
+      const cardNumbers = figure.beats > 1 ? `${answerIndex + 1}–${answerIndex + figure.beats}` : answerIndex + 1;
+      badge.textContent = [badge.textContent, cardNumbers].filter(Boolean).join(", ");
       this._chooseDot(answerIndex, figure);
 
       if (this._selection.length === this._answer.length) {
@@ -406,7 +409,7 @@ export class BeatHero {
         return;
       }
 
-      this._setStatus(`Great — now choose card ${answerIndex + 2} of ${this.opts.numOfCards}.`);
+      this._setStatus(`Great — now choose card ${answerIndex + figure.beats + 1} of ${this.opts.numOfCards}.`);
       return;
     }
 
@@ -605,12 +608,16 @@ export class BeatHero {
   }
 
   _chooseDot(index, figure) {
-    const dot = this.$dots.find(".sequence-dot").get(index);
-    if (!dot || !figure) return;
-
-    dot.classList.remove("is-active", "is-wrong");
-    dot.classList.add("is-chosen");
-    dot.innerHTML = `<span class="sequence-dot__figure">${this._figureSvg(figure)}</span>`;
+    if (!figure) return;
+    for (let beat = 0; beat < figure.beats; beat += 1) {
+      const dot = this.$dots.find(".sequence-dot").get(index + beat);
+      if (!dot) continue;
+      dot.classList.remove("is-active", "is-wrong");
+      dot.classList.add("is-chosen");
+      dot.innerHTML = beat === 0
+        ? `<span class="sequence-dot__figure">${this._figureSvg(figure)}</span>`
+        : `<span class="sequence-dot__hold">—</span>`;
+    }
   }
 
   _wrongDot(index) {
@@ -650,10 +657,11 @@ export class BeatHero {
   }
 
   _readyInstructions() {
-    const repeatHint = this.opts.numOfCards > this.opts.figures.length
-      ? " Rhythms can repeat; tap the same card again when needed."
-      : "";
-    return `Press Play, listen to the ${this.opts.numOfCards} rhythms, then tap their cards in the same order.${repeatHint}`;
+    return `Press Play, listen to the ${this.opts.numOfCards} beats, then fill their cards in order. Rhythms can repeat.${this._halfNoteHint()}`;
+  }
+
+  _halfNoteHint() {
+    return this.opts.figures.includes("half") ? " Tap a half note once to fill two cards; the second card holds the note." : "";
   }
 
   _beatMs() {
