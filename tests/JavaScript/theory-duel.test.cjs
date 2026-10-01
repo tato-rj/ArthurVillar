@@ -63,6 +63,26 @@ test('a refreshed player and an uninterrupted opponent generate the same next ro
     assert.equal(refreshed.challenge, uninterrupted.challenge);
 });
 
+test('rematches clear score, accuracy and sequence history and start at round zero with the new seed', async () => {
+    const game = makeGame(); const duel = makeDuel();
+    game._targetSequence = [];
+    context.connectGame(game, duel);
+    game.points = 12; game._stats.checksTotal = 4; game._stats.checksCorrect = 3;
+    game._targetSequence.push('C4'); game._updateProgressBar();
+    await new Promise(resolve => queueMicrotask(resolve));
+    duel.state.seed = 'rematch-seed';
+    game._restartDuel();
+    assert.equal(game.points, 0);
+    assert.equal(game._stats.checksTotal, 0);
+    assert.equal(game._targetSequence.length, 0);
+    assert.equal(game.$progressBar.data('progress'), 0);
+    assert.equal(game.challenge, random('rematch-seed', 0)());
+    game.points = 3; game._updateProgressBar();
+    await new Promise(resolve => queueMicrotask(resolve));
+    assert.equal(duel.updates.at(-1)[0], 1);
+    assert.equal(duel.updates.at(-1)[1], 3);
+});
+
 test('refresh between the last round and results reuses engine scoring without starting another round', () => {
     const game = makeGame(); const duel = makeDuel(4, 12);
     duel.state.checkpoint = { _stats: { checksTotal: 4, checksCorrect: 4 }, _madeAnyMistake: false };
@@ -96,6 +116,12 @@ test('Note Python crash restarts preserve completed rounds, earned score and acc
     assert.equal(game._roundsCompleted, 2);
     assert.equal(game._stats.checksCorrect, 2);
     assert.equal(game.$progressBar.data('progress'), 50);
+    duel.state.seed = 'new-python-match';
+    game._restartDuel();
+    assert.equal(game._pointsValue, 0);
+    assert.equal(game._roundsCompleted, 0);
+    assert.equal(game._stats.checksCorrect, 0);
+    assert.equal(game.$progressBar.data('progress'), 0);
 });
 
 test('Tone Trek skipped rounds advance Duel progress so a timed run can finish', async () => {
@@ -112,6 +138,13 @@ test('Tone Trek skipped rounds advance Duel progress so a timed run can finish',
     assert.deepEqual(duel.updates.map(update => update[0]), [1, 2, 3, 4]);
     assert.equal(duel.updates[3][2]._madeAnyMistake, true);
     assert.equal(game.$progressBar.data('progress'), 100);
+    duel.state.seed = 'new-trek-match';
+    game._restartDuel();
+    assert.equal(game._currentRound, 1);
+    assert.equal(game._points, 0);
+    assert.equal(game.$progressBar.data('progress'), 0);
+    game._finishRoundAsTimedOut(); await new Promise(resolve => queueMicrotask(resolve));
+    assert.equal(duel.updates.at(-1)[0], 1);
 });
 
 const helpers = vm.createContext({ Math });

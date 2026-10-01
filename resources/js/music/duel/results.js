@@ -1,4 +1,5 @@
 import { chooseResultVariant } from '../games/shared/resultVariants';
+import { GameAudio } from '../games/shared/GameAudio';
 
 // Both browsers use the same saved results. Finishing first never decides the winner.
 export function duelOutcome(state) {
@@ -39,6 +40,9 @@ export function renderDuelResults(root, state) {
     document.body.classList.add('duel-results-open');
     const text = (selector, value) => { root.querySelector(selector).textContent = value; };
     if (changed) {
+        if (root.dataset.outcome === 'waiting' && outcome.kind !== 'waiting' && state.options?.sound !== false) {
+            try { GameAudio.playFinalResults(); } catch (_) {}
+        }
         root.dataset.outcome = outcome.kind;
         root.dataset.resultTier = greeting.tier;
         root.dataset.resultVariant = chooseResultVariant(greeting.tier);
@@ -73,4 +77,8 @@ export function renderDuelResults(root, state) {
         'Highest final score wins. Accuracy breaks a tie.');
     root.querySelector('[data-duel-result-home]').hidden = waiting;
     root.querySelector('[data-duel-result-leave]').hidden = !waiting;
+    root.querySelector('[data-duel-result-rematch]').hidden = waiting;
+    root.querySelector('[data-duel-rematch]').disabled = !!you.rematch;
+    text('[data-duel-rematch-label]', you.rematch ? 'Waiting for opponent…' :
+        state.players.some(player => player.role !== state.role && player.rematch) ? 'Opponent wants to play again · Play again' : 'Play again');
 }

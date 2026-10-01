@@ -93,6 +93,31 @@ class DuelService
             $duel = Duel::whereKey($id)->lockForUpdate()->firstOrFail();
             $player = $this->participant($request, $duel);
             $this->advance($duel);
+            if ($action === 'rematch') {
+                // A retry from the previous match must never request another rematch.
+                if ($data['seed'] !== $duel->seed) {
+                    return $duel;
+                }
+                abort_unless($duel->status === Duel::FINISHED, 409, 'Both players must finish before playing again.');
+                if ($player->rematch_at) {
+                    return $duel;
+                }
+                $player->update(['rematch_at' => now(), 'last_seen_at' => now()]);
+                if ($duel->players()->whereNotNull('rematch_at')->count() === 2) {
+                    $duel->update(['seed' => bin2hex(random_bytes(16)), 'status' => Duel::COUNTDOWN,
+                        'starts_at' => now()->addSeconds(4), 'finished_at' => null, 'expires_at' => now()->addMinutes(15)]);
+                    $duel->players()->update(['ready_at' => now(), 'progress' => 0, 'score' => 0, 'sequence' => 0,
+                        'checkpoint' => null, 'result' => null, 'finished_at' => null, 'rematch_at' => null,
+                        'departed_at' => null, 'last_seen_at' => now()]);
+                }
+                $this->publish($duel, 'rematch');
+
+                return $duel;
+            }
+            if (isset($data['seed'])) {
+                abort_unless($data['seed'] === $duel->seed, 409, 'This update belongs to an earlier match.');
+                unset($data['seed']);
+            }
             if (in_array($action, ['connect', 'depart', 'heartbeat'])) {
                 if (in_array($duel->status, [Duel::CANCELLED, Duel::EXPIRED, Duel::FINISHED])) {
                     return $duel;
@@ -217,7 +242,8 @@ class DuelService
         return ['id' => $duel->id, 'revision' => $duel->revision, 'status' => $duel->status, 'left_by' => $duel->left_by, 'starts_at' => $duel->starts_at?->toISOString(),
             'server_now' => now()->toISOString(), 'players' => $duel->players()->orderBy('role')->get()->map(fn ($p) => [
                 'role' => $p->role, 'ready' => (bool) $p->ready_at, 'progress' => $p->progress, 'score' => $p->score,
-                'finished_at' => $p->finished_at?->toISOString(), 'last_seen_at' => $p->last_seen_at?->toISOString(), 'disconnected' => (bool) $p->departed_at, 'result' => $p->result,
+                'finished_at' => $p->finished_at?->toISOString(), 'rematch' => (bool) $p->rematch_at,
+                'last_seen_at' => $p->last_seen_at?->toISOString(), 'disconnected' => (bool) $p->departed_at, 'result' => $p->result,
             ])->all()];
     }
 
@@ -245,6 +271,9 @@ class DuelService
     {
         $duel->increment('revision');
         $payload = $this->publicState($duel);
+        if ($change === 'rematch') {
+            $payload += ['seed' => $duel->seed, 'sequence' => 0, 'checkpoint' => null];
+        }
         // Commit first. A reconnect/state read repairs missed notifications if transport fails.
         DB::afterCommit(function () use ($payload, $change) {
             try {

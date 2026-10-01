@@ -61,6 +61,8 @@ var DuelClient = /*#__PURE__*/function () {
     this.sequence = state.sequence;
     this.finishPending = false;
     this.leaving = false;
+    this.rematching = false;
+    this.gameNeedsRestart = false;
     this.answerIds = new Set();
     this.hud = document.getElementById('duel-hud');
     this.results = this.hud.querySelector('[data-duel-results]');
@@ -94,12 +96,14 @@ var DuelClient = /*#__PURE__*/function () {
       this.render();
       document.addEventListener('click', function (event) {
         if (event.target.closest('[data-duel-leave]')) _this3.leave();
+        if (event.target.closest('[data-duel-rematch]')) _this3.rematch();
       });
-      if (['cancelled', 'expired', 'finished'].includes(this.state.status)) {
+      if (['cancelled', 'expired'].includes(this.state.status)) {
         this.receive(this.state);
         return;
       }
-      (0,_dialog__WEBPACK_IMPORTED_MODULE_1__.dialog)({
+      if (this.state.status !== 'finished') (0,_dialog__WEBPACK_IMPORTED_MODULE_1__.dialog)({
+        phase: 'connecting',
         message: 'Connecting to your Duel…',
         leave: true
       });
@@ -119,7 +123,7 @@ var DuelClient = /*#__PURE__*/function () {
       }, function (error) {
         return _this3.error(error);
       });
-      this.presence.start();
+      if (this.state.status !== 'finished') this.presence.start();else this.idle.stop();
       this.transport.subscribe(this.state.id, {
         update: function update(state) {
           return _this3.receive(state);
@@ -166,11 +170,12 @@ var DuelClient = /*#__PURE__*/function () {
       });
       document.querySelector('[data-duel-ready]').addEventListener('click', /*#__PURE__*/function () {
         var _ref = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee2(event) {
-          var _window$Tone, _window$Tone$start, _t3, _t4, _t5;
+          var button, _window$Tone, _window$Tone$start, _t3, _t4, _t5;
           return _regenerator().w(function (_context2) {
             while (1) switch (_context2.p = _context2.n) {
               case 0:
-                event.target.disabled = true;
+                button = event.currentTarget;
+                button.disabled = true;
                 // Ready is also an audio-unlock gesture for browser autoplay policies.
                 _context2.p = 1;
                 _context2.n = 2;
@@ -185,7 +190,9 @@ var DuelClient = /*#__PURE__*/function () {
                 _context2.p = 4;
                 _t4 = _this3;
                 _context2.n = 5;
-                return _this3.transport.request("/".concat(_this3.state.id, "/ready"), {});
+                return _this3.transport.request("/".concat(_this3.state.id, "/ready"), {
+                  seed: _this3.state.seed
+                });
               case 5:
                 _t4.receive.call(_t4, _context2.v);
                 _context2.n = 7;
@@ -193,7 +200,7 @@ var DuelClient = /*#__PURE__*/function () {
               case 6:
                 _context2.p = 6;
                 _t5 = _context2.v;
-                event.target.disabled = false;
+                button.disabled = false;
                 _this3.error(_t5);
               case 7:
                 return _context2.a(2);
@@ -218,33 +225,63 @@ var DuelClient = /*#__PURE__*/function () {
   }, {
     key: "receive",
     value: function receive(state) {
-      var _this$idle2, _this$idle3;
+      var _this4 = this,
+        _this$idle4,
+        _this$idle5;
       if (state.id !== this.state.id || state.revision < this.state.revision) return;
+      var newMatch = state.seed && state.seed !== this.state.seed;
       this.state = _objectSpread(_objectSpread({}, this.state), state);
+      if (newMatch) {
+        var _this$clearAnswerFeed, _this$idle, _this$idle2, _this$presence;
+        this.localProgress = this.you().progress;
+        this.sequence = this.state.sequence || 0;
+        this.finishPending = false;
+        this.queue = Promise.resolve();
+        this.answerIds.clear();
+        (_this$clearAnswerFeed = this.clearAnswerFeedback) === null || _this$clearAnswerFeed === void 0 || _this$clearAnswerFeed.call(this);
+        this.gameNeedsRestart = !!this.game;
+        this.results.hidden = true;
+        delete this.results.dataset.outcome;
+        document.body.classList.remove('duel-results-open');
+        this.hud.hidden = false;
+        (_this$idle = this.idle) === null || _this$idle === void 0 || _this$idle.stop();
+        (_this$idle2 = this.idle) === null || _this$idle2 === void 0 || _this$idle2.start();
+        (_this$presence = this.presence) === null || _this$presence === void 0 || _this$presence.stop();
+        this.presence = new _presence__WEBPACK_IMPORTED_MODULE_4__.DuelPresence(this.transport, this.state.id, function (next) {
+          return _this4.receive(next);
+        }, function (error) {
+          return _this4.error(error);
+        });
+        this.presence.start();
+      }
       this.render();
       if (['cancelled', 'expired'].includes(this.state.status)) {
-        var _this$idle, _this$clearAnswerFeed, _this$game, _this$game$_stopLoop, _this$game2, _this$game2$_stopGame, _this$game3, _this$game3$_cancelTi, _this$game4, _this$game4$_cancelCa, _this$presence;
-        (_this$idle = this.idle) === null || _this$idle === void 0 || _this$idle.stop();
-        (_this$clearAnswerFeed = this.clearAnswerFeedback) === null || _this$clearAnswerFeed === void 0 || _this$clearAnswerFeed.call(this);
+        var _this$idle3, _this$clearAnswerFeed2, _this$game, _this$game$_stopLoop, _this$game2, _this$game2$_stopGame, _this$game3, _this$game3$_cancelTi, _this$game4, _this$game4$_cancelCa, _this$presence2;
+        (_this$idle3 = this.idle) === null || _this$idle3 === void 0 || _this$idle3.stop();
+        (_this$clearAnswerFeed2 = this.clearAnswerFeedback) === null || _this$clearAnswerFeed2 === void 0 || _this$clearAnswerFeed2.call(this);
         (_this$game = this.game) === null || _this$game === void 0 || (_this$game$_stopLoop = _this$game._stopLoop) === null || _this$game$_stopLoop === void 0 || _this$game$_stopLoop.call(_this$game);
         (_this$game2 = this.game) === null || _this$game2 === void 0 || (_this$game2$_stopGame = _this$game2._stopGameTimer) === null || _this$game2$_stopGame === void 0 || _this$game2$_stopGame.call(_this$game2);
         (_this$game3 = this.game) === null || _this$game3 === void 0 || (_this$game3$_cancelTi = _this$game3._cancelTimers) === null || _this$game3$_cancelTi === void 0 || _this$game3$_cancelTi.call(_this$game3);
         (_this$game4 = this.game) === null || _this$game4 === void 0 || (_this$game4$_cancelCa = _this$game4._cancelCardAudition) === null || _this$game4$_cancelCa === void 0 || _this$game4$_cancelCa.call(_this$game4);
-        (_this$presence = this.presence) === null || _this$presence === void 0 || _this$presence.stop();
+        (_this$presence2 = this.presence) === null || _this$presence2 === void 0 || _this$presence2.stop();
         this.results.hidden = true;
         document.body.classList.remove('duel-results-open');
         $('#page-wrapper').attr('inert', '');
         var message = this.state.left_by ? this.state.left_by === this.state.role ? 'You left the Duel.' : 'Opponent left the Duel.' : "This Duel is ".concat(this.state.status, ".");
         (0,_dialog__WEBPACK_IMPORTED_MODULE_1__.dialog)({
+          phase: this.state.left_by ? this.state.left_by === this.state.role ? 'you-left' : 'opponent-left' : this.state.status,
           message: message,
           exit: true
         });
         return;
       }
-      if (this.state.status === 'finished') (_this$idle2 = this.idle) === null || _this$idle2 === void 0 || _this$idle2.stop();
-      if ((_this$idle3 = this.idle) !== null && _this$idle3 !== void 0 && _this$idle3.warning) return;
+      if (this.state.status === 'finished') (_this$idle4 = this.idle) === null || _this$idle4 === void 0 || _this$idle4.stop();
+      if ((_this$idle5 = this.idle) !== null && _this$idle5 !== void 0 && _this$idle5.warning) return;
       if (this.state.status === 'ready') {
+        var _this$opponent;
         (0,_dialog__WEBPACK_IMPORTED_MODULE_1__.dialog)({
+          phase: this.you().ready ? 'waiting-ready' : 'ready',
+          opponentReady: (_this$opponent = this.opponent()) === null || _this$opponent === void 0 ? void 0 : _this$opponent.ready,
           message: this.you().ready ? '✓ You are ready · Waiting for opponent…' : 'Opponent connected ✓',
           ready: !this.you().ready,
           leave: true
@@ -252,8 +289,8 @@ var DuelClient = /*#__PURE__*/function () {
       }
       if (this.you().finished_at) (0,_dialog__WEBPACK_IMPORTED_MODULE_1__.closeDialog)();
       if (this.state.status === 'finished') {
-        var _this$presence2;
-        (_this$presence2 = this.presence) === null || _this$presence2 === void 0 || _this$presence2.stop();
+        var _this$presence3;
+        (_this$presence3 = this.presence) === null || _this$presence3 === void 0 || _this$presence3.stop();
         (0,_dialog__WEBPACK_IMPORTED_MODULE_1__.closeDialog)();
         this.showResults();
       }
@@ -262,14 +299,14 @@ var DuelClient = /*#__PURE__*/function () {
     key: "tick",
     value: function () {
       var _tick = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee3() {
-        var _this$idle4,
-          _this4 = this;
-        var remaining, root, _this$idle5, state, countdown, _t6;
+        var _this$idle6,
+          _this5 = this;
+        var remaining, _this$idle7, state, _t6;
         return _regenerator().w(function (_context3) {
           while (1) switch (_context3.p = _context3.n) {
             case 0:
               this.renderConnection();
-              if (!((_this$idle4 = this.idle) !== null && _this$idle4 !== void 0 && _this$idle4.warning)) {
+              if (!((_this$idle6 = this.idle) !== null && _this$idle6 !== void 0 && _this$idle6.warning)) {
                 _context3.n = 1;
                 break;
               }
@@ -286,14 +323,14 @@ var DuelClient = /*#__PURE__*/function () {
                 _context3.n = 3;
                 break;
               }
-              root = (0,_dialog__WEBPACK_IMPORTED_MODULE_1__.dialog)({
+              (0,_dialog__WEBPACK_IMPORTED_MODULE_1__.dialog)({
+                phase: 'countdown',
                 message: String(Math.min(3, Math.ceil(remaining / 1000))),
                 leave: true
               });
-              root.querySelector('[data-duel-message]').classList.add('duel-countdown');
               return _context3.a(2);
             case 3:
-              if (!(this.game || this.starting || this.leaving || this.you().finished_at)) {
+              if (!(this.game && !this.gameNeedsRestart || this.starting || this.leaving || this.you().finished_at)) {
                 _context3.n = 4;
                 break;
               }
@@ -306,46 +343,54 @@ var DuelClient = /*#__PURE__*/function () {
             case 6:
               state = _context3.v;
               this.receive(state);
-              if (!(this.state.status !== 'playing' || this.leaving || (_this$idle5 = this.idle) !== null && _this$idle5 !== void 0 && _this$idle5.warning)) {
+              if (!(this.state.status !== 'playing' || this.leaving || (_this$idle7 = this.idle) !== null && _this$idle7 !== void 0 && _this$idle7.warning)) {
                 _context3.n = 7;
                 break;
               }
               return _context3.a(2);
             case 7:
-              countdown = (0,_dialog__WEBPACK_IMPORTED_MODULE_1__.dialog)({
+              (0,_dialog__WEBPACK_IMPORTED_MODULE_1__.dialog)({
+                phase: 'go',
                 message: 'GO!'
               });
-              countdown.querySelector('[data-duel-message]').classList.add('duel-countdown');
               setTimeout(function () {
-                var _this4$idle;
-                if (_this4.state.status === 'playing' && !((_this4$idle = _this4.idle) !== null && _this4$idle !== void 0 && _this4$idle.warning)) (0,_dialog__WEBPACK_IMPORTED_MODULE_1__.closeDialog)();
+                var _this5$idle;
+                if (_this5.state.status === 'playing' && !((_this5$idle = _this5.idle) !== null && _this5$idle !== void 0 && _this5$idle.warning)) (0,_dialog__WEBPACK_IMPORTED_MODULE_1__.closeDialog)();
               }, 350);
               $('#page-wrapper').removeAttr('inert');
               window.__activeDuel = this;
-              if (!(this.you().progress === this.state.total)) {
+              if (!this.gameNeedsRestart) {
                 _context3.n = 8;
+                break;
+              }
+              this.gameNeedsRestart = false;
+              this.game._restartDuel();
+              return _context3.a(2);
+            case 8:
+              if (!(this.you().progress === this.state.total)) {
+                _context3.n = 9;
                 break;
               }
               this.game = (0,_adapters__WEBPACK_IMPORTED_MODULE_2__.connectGame)(this.createGame(this.state.options), this, {
                 finishOnly: true
               });
               return _context3.a(2);
-            case 8:
-              this.game = (0,_adapters__WEBPACK_IMPORTED_MODULE_2__.connectGame)(this.createGame(this.state.options), this);
-              _context3.n = 10;
-              break;
             case 9:
-              _context3.p = 9;
-              _t6 = _context3.v;
-              this.error(_t6);
+              this.game = (0,_adapters__WEBPACK_IMPORTED_MODULE_2__.connectGame)(this.createGame(this.state.options), this);
+              _context3.n = 11;
+              break;
             case 10:
               _context3.p = 10;
-              this.starting = false;
-              return _context3.f(10);
+              _t6 = _context3.v;
+              this.error(_t6);
             case 11:
+              _context3.p = 11;
+              this.starting = false;
+              return _context3.f(11);
+            case 12:
               return _context3.a(2);
           }
-        }, _callee3, this, [[5, 9, 10, 11]]);
+        }, _callee3, this, [[5, 10, 11, 12]]);
       }));
       function tick() {
         return _tick.apply(this, arguments);
@@ -355,7 +400,10 @@ var DuelClient = /*#__PURE__*/function () {
   }, {
     key: "enqueue",
     value: function enqueue(action, data) {
-      var _this5 = this;
+      var _this6 = this;
+      data = _objectSpread(_objectSpread({}, data), {}, {
+        seed: this.state.seed
+      });
       var work = /*#__PURE__*/function () {
         var _ref2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee4() {
           var _loop, _ret, attempt;
@@ -367,7 +415,7 @@ var DuelClient = /*#__PURE__*/function () {
                   return _regenerator().w(function (_context4) {
                     while (1) switch (_context4.p = _context4.n) {
                       case 0:
-                        if (!(_this5.leaving || ['cancelled', 'expired', 'finished'].includes(_this5.state.status))) {
+                        if (!(data.seed !== _this6.state.seed || _this6.leaving || ['cancelled', 'expired', 'finished'].includes(_this6.state.status))) {
                           _context4.n = 1;
                           break;
                         }
@@ -377,18 +425,18 @@ var DuelClient = /*#__PURE__*/function () {
                       case 1:
                         _context4.p = 1;
                         _context4.n = 2;
-                        return _this5.transport.request("/".concat(_this5.state.id, "/").concat(action), data);
+                        return _this6.transport.request("/".concat(_this6.state.id, "/").concat(action), data);
                       case 2:
                         state = _context4.v;
-                        _this5.receive(state);
-                        $('[data-duel-error]').text('').hide();
+                        _this6.receive(state);
+                        $('[data-duel-error]').text('').prop('hidden', true).hide();
                         return _context4.a(2, {
                           v: void 0
                         });
                       case 3:
                         _context4.p = 3;
                         _t7 = _context4.v;
-                        if (!(_this5.leaving || ['cancelled', 'expired'].includes(_this5.state.status))) {
+                        if (!(data.seed !== _this6.state.seed || _this6.leaving || ['cancelled', 'expired'].includes(_this6.state.status))) {
                           _context4.n = 4;
                           break;
                         }
@@ -396,7 +444,7 @@ var DuelClient = /*#__PURE__*/function () {
                           v: void 0
                         });
                       case 4:
-                        _this5.error(_t7);
+                        _this6.error(_t7);
                         if (!(_t7.status && _t7.status < 500 && _t7.status !== 429)) {
                           _context4.n = 5;
                           break;
@@ -438,9 +486,10 @@ var DuelClient = /*#__PURE__*/function () {
       this.queue = this.queue.then(work);
       // Keep the queue rejected on invalid transitions so finishing cannot bypass progress.
       this.queue["catch"](function () {
-        if (_this5.leaving || ['cancelled', 'expired'].includes(_this5.state.status)) return;
+        if (data.seed !== _this6.state.seed || _this6.leaving || ['cancelled', 'expired'].includes(_this6.state.status)) return;
         $('#page-wrapper').attr('inert', '');
         (0,_dialog__WEBPACK_IMPORTED_MODULE_1__.dialog)({
+          phase: 'error',
           message: 'Your game needs to reconnect. Refresh to restore the last saved round.',
           leave: true,
           exit: true
@@ -460,8 +509,8 @@ var DuelClient = /*#__PURE__*/function () {
   }, {
     key: "receiveAnswer",
     value: function receiveAnswer(event) {
-      var _this$opponent;
-      if (this.leaving || !['playing', 'finished'].includes(this.state.status) || event.duel_id !== this.state.id || event.role !== ((_this$opponent = this.opponent()) === null || _this$opponent === void 0 ? void 0 : _this$opponent.role) || typeof event.correct !== 'boolean' || this.answerIds.has(event.id)) return;
+      var _this$opponent2;
+      if (this.leaving || !['playing', 'finished'].includes(this.state.status) || event.duel_id !== this.state.id || event.role !== ((_this$opponent2 = this.opponent()) === null || _this$opponent2 === void 0 ? void 0 : _this$opponent2.role) || typeof event.correct !== 'boolean' || this.answerIds.has(event.id)) return;
       this.answerIds.add(event.id);
       if (this.answerIds.size > 100) this.answerIds["delete"](this.answerIds.values().next().value);
       this.clearAnswerFeedback = (0,_answerFeedback__WEBPACK_IMPORTED_MODULE_3__.animateAnswerFeedback)(this.hud.querySelector('[data-duel-row="opponent"] [data-duel-name]'), event.correct);
@@ -481,7 +530,7 @@ var DuelClient = /*#__PURE__*/function () {
   }, {
     key: "finished",
     value: function finished(result) {
-      var _this6 = this;
+      var _this7 = this;
       if (this.finishPending || this.you().finished_at || this.leaving || this.state.status !== 'playing') return;
       this.finishPending = true;
       $('#page-wrapper').attr('inert', '');
@@ -489,23 +538,23 @@ var DuelClient = /*#__PURE__*/function () {
         score: Math.round(result.score),
         accuracy: Math.round(result.accuracy)
       }).then(function () {
-        if (_this6.you().finished_at && !['cancelled', 'expired'].includes(_this6.state.status)) _this6.showResults();
+        if (_this7.you().finished_at && !['cancelled', 'expired'].includes(_this7.state.status)) _this7.showResults();
       })["catch"](function () {});
     }
   }, {
     key: "leave",
     value: function () {
       var _leave = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee5() {
-        var _this$idle6, _this$clearAnswerFeed2;
+        var _this$idle8, _this$clearAnswerFeed3;
         var _ref3,
           _ref3$automatic,
           automatic,
           buttons,
-          _this$presence3,
-          _this$transport$echo,
           _this$presence4,
+          _this$transport$echo,
+          _this$presence5,
           _this$transport$echo2,
-          _this$idle7,
+          _this$idle9,
           _args6 = arguments,
           _t8,
           _t9;
@@ -520,8 +569,8 @@ var DuelClient = /*#__PURE__*/function () {
               return _context6.a(2);
             case 1:
               this.leaving = true;
-              (_this$idle6 = this.idle) === null || _this$idle6 === void 0 || _this$idle6.stop();
-              (_this$clearAnswerFeed2 = this.clearAnswerFeedback) === null || _this$clearAnswerFeed2 === void 0 || _this$clearAnswerFeed2.call(this);
+              (_this$idle8 = this.idle) === null || _this$idle8 === void 0 || _this$idle8.stop();
+              (_this$clearAnswerFeed3 = this.clearAnswerFeedback) === null || _this$clearAnswerFeed3 === void 0 || _this$clearAnswerFeed3.call(this);
               $('#page-wrapper').attr('inert', '');
               buttons = document.querySelectorAll('[data-duel-leave]');
               buttons.forEach(function (button) {
@@ -531,7 +580,7 @@ var DuelClient = /*#__PURE__*/function () {
                 _context6.n = 2;
                 break;
               }
-              (_this$presence3 = this.presence) === null || _this$presence3 === void 0 || _this$presence3.stop();
+              (_this$presence4 = this.presence) === null || _this$presence4 === void 0 || _this$presence4.stop();
               this.transport.leaveOnExit(this.state.id);
               (_this$transport$echo = this.transport.echo) === null || _this$transport$echo === void 0 || _this$transport$echo.disconnect();
               window.location.href = window.__duelConfig.home;
@@ -543,7 +592,7 @@ var DuelClient = /*#__PURE__*/function () {
               return this.transport.request("/".concat(this.state.id, "/leave"), {});
             case 3:
               _t8.receive.call(_t8, _context6.v);
-              (_this$presence4 = this.presence) === null || _this$presence4 === void 0 || _this$presence4.stop();
+              (_this$presence5 = this.presence) === null || _this$presence5 === void 0 || _this$presence5.stop();
               (_this$transport$echo2 = this.transport.echo) === null || _this$transport$echo2 === void 0 || _this$transport$echo2.disconnect();
               window.location.href = window.__duelConfig.home;
               _context6.n = 5;
@@ -552,12 +601,13 @@ var DuelClient = /*#__PURE__*/function () {
               _context6.p = 4;
               _t9 = _context6.v;
               this.leaving = false;
-              (_this$idle7 = this.idle) === null || _this$idle7 === void 0 || _this$idle7.start();
+              (_this$idle9 = this.idle) === null || _this$idle9 === void 0 || _this$idle9.start();
               buttons.forEach(function (button) {
                 button.disabled = false;
               });
               this.error(_t9);
               (0,_dialog__WEBPACK_IMPORTED_MODULE_1__.dialog)({
+                phase: 'error',
                 message: 'Could not leave the Duel. Try again or return to all games.',
                 leave: true,
                 exit: true,
@@ -572,6 +622,65 @@ var DuelClient = /*#__PURE__*/function () {
         return _leave.apply(this, arguments);
       }
       return leave;
+    }()
+  }, {
+    key: "rematch",
+    value: function () {
+      var _rematch = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee6() {
+        var button, errorMessage, _window$Tone2, _window$Tone2$start, _t0, _t1, _t10;
+        return _regenerator().w(function (_context7) {
+          while (1) switch (_context7.p = _context7.n) {
+            case 0:
+              if (!(this.rematching || this.leaving || this.state.status !== 'finished' || this.you().rematch)) {
+                _context7.n = 1;
+                break;
+              }
+              return _context7.a(2);
+            case 1:
+              this.rematching = true;
+              button = this.results.querySelector('[data-duel-rematch]');
+              errorMessage = this.results.querySelector('[data-duel-rematch-error]');
+              button.disabled = true;
+              errorMessage.hidden = true;
+              _context7.p = 2;
+              _context7.p = 3;
+              _context7.n = 4;
+              return (_window$Tone2 = window.Tone) === null || _window$Tone2 === void 0 || (_window$Tone2$start = _window$Tone2.start) === null || _window$Tone2$start === void 0 ? void 0 : _window$Tone2$start.call(_window$Tone2);
+            case 4:
+              _context7.n = 6;
+              break;
+            case 5:
+              _context7.p = 5;
+              _t0 = _context7.v;
+            case 6:
+              _t1 = this;
+              _context7.n = 7;
+              return this.transport.request("/".concat(this.state.id, "/rematch"), {
+                seed: this.state.seed
+              });
+            case 7:
+              _t1.receive.call(_t1, _context7.v);
+              _context7.n = 9;
+              break;
+            case 8:
+              _context7.p = 8;
+              _t10 = _context7.v;
+              errorMessage.textContent = _t10.message;
+              errorMessage.hidden = false;
+            case 9:
+              _context7.p = 9;
+              this.rematching = false;
+              button.disabled = !!this.you().rematch;
+              return _context7.f(9);
+            case 10:
+              return _context7.a(2);
+          }
+        }, _callee6, this, [[3, 5], [2, 8, 9, 10]]);
+      }));
+      function rematch() {
+        return _rematch.apply(this, arguments);
+      }
+      return rematch;
     }()
   }, {
     key: "render",
@@ -619,7 +728,7 @@ var DuelClient = /*#__PURE__*/function () {
   }, {
     key: "error",
     value: function error(_error) {
-      $('[data-duel-error]').text(_error.message).show();
+      $('[data-duel-error]').text(_error.message).prop('hidden', false).show();
       var connection = this.hud.querySelector('[data-duel-connection]');
       connection.textContent = _error.message;
       connection.hidden = false;
@@ -705,6 +814,11 @@ function connectGame(game, duel) {
   var earnedScore = initial.score;
   var initialized = false;
   var history = duel.state.checkpoint || {};
+  var freshHistory = JSON.parse(JSON.stringify(Object.fromEntries(HISTORY_FIELDS.filter(function (key) {
+    return key in game;
+  }).map(function (key) {
+    return [key, game[key]];
+  }))));
   var checkpoint = function checkpoint() {
     var _game$staff;
     return JSON.parse(JSON.stringify(_objectSpread(_objectSpread({}, Object.fromEntries(HISTORY_FIELDS.filter(function (key) {
@@ -740,12 +854,6 @@ function connectGame(game, duel) {
     game._finalStartMs = Date.parse(duel.state.starts_at);
     game._startedAt = Date.parse(duel.state.starts_at);
   };
-  if (finishOnly) {
-    restore();
-    // Reuse the engine's accuracy and bonus calculation if refresh interrupted results.
-    game._showFinalResults();
-    return game;
-  }
   var checkMethod = duel.state.game === 'beat-hero' ? '_handleCardTap' : duel.state.game === 'note-python' ? '_advanceSnake' : '_onCheck';
   if (typeof game[checkMethod] === 'function') {
     var check = game[checkMethod].bind(game);
@@ -830,7 +938,22 @@ function connectGame(game, duel) {
       game._startLoop();
     };
   }
-  game.start();
+  game._restartDuel = function () {
+    var _game$$doublePoints, _game$$doublePoints$h, _game$$bonusBadge, _game$$bonusBadge$hid;
+    completed = 0;
+    earnedScore = 0;
+    initialized = false;
+    history = {};
+    Object.assign(game, JSON.parse(JSON.stringify(freshHistory)));
+    (_game$$doublePoints = game.$doublePoints) === null || _game$$doublePoints === void 0 || (_game$$doublePoints$h = _game$$doublePoints.hide) === null || _game$$doublePoints$h === void 0 || _game$$doublePoints$h.call(_game$$doublePoints);
+    (_game$$bonusBadge = game.$bonusBadge) === null || _game$$bonusBadge === void 0 || (_game$$bonusBadge$hid = _game$$bonusBadge.hide) === null || _game$$bonusBadge$hid === void 0 || _game$$bonusBadge$hid.call(_game$$bonusBadge);
+    game.start();
+  };
+  if (finishOnly) {
+    restore();
+    // Reuse the engine's accuracy and bonus calculation if refresh interrupted results.
+    game._showFinalResults();
+  } else game.start();
   return game;
 }
 
@@ -901,10 +1024,106 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   closeDialog: () => (/* binding */ closeDialog),
 /* harmony export */   dialog: () => (/* binding */ dialog)
 /* harmony export */ });
+function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+var phases = {
+  connecting: {
+    label: 'Finding the beat',
+    title: 'Connecting your duel…',
+    description: 'We’re linking you with your opponent. Your game will open here.',
+    icon: 'link'
+  },
+  ready: {
+    label: 'Opponent connected',
+    title: 'Ready to face the music?',
+    description: 'Tap “I’m ready” below. When you’re both ready, a countdown starts the same game for both of you.',
+    icon: 'bolt'
+  },
+  'waiting-ready': {
+    label: 'You’re ready',
+    title: 'One musician to go…',
+    description: 'Your opponent still needs to tap “I’m ready”. Stay here — the countdown will start automatically.',
+    icon: 'circle-check'
+  },
+  countdown: {
+    label: 'Both players ready',
+    title: 'Get ready to play!',
+    description: 'Same challenge. Same starting line. Let’s see what you’ve got!',
+    icon: 'music'
+  },
+  go: {
+    label: 'The duel is on',
+    title: 'Let’s play!',
+    description: 'Make every note count.',
+    icon: 'bolt'
+  },
+  'opponent-left': {
+    label: 'Duel ended',
+    title: 'Your opponent left',
+    description: 'They’ve left this match, so the duel has ended. Head back to the games to play solo or challenge someone else.',
+    icon: 'door-open'
+  },
+  'you-left': {
+    label: 'Duel ended',
+    title: 'You’ve left the duel',
+    description: 'This match has ended. Choose another game whenever you’re ready.',
+    icon: 'door-open'
+  },
+  expired: {
+    label: 'Time’s up',
+    title: 'This duel has expired',
+    description: 'This room is no longer available. Head back to the games to start a fresh duel and share a new code.',
+    icon: 'hourglass-end'
+  },
+  cancelled: {
+    label: 'Duel ended',
+    title: 'This duel was cancelled',
+    description: 'This match is no longer active. You can start another duel or enjoy a solo game.',
+    icon: 'flag-checkered'
+  },
+  idle: {
+    label: 'Quick check-in',
+    title: 'Still with us?',
+    description: 'Keep the music going! Confirm before the timer reaches zero, or you’ll leave this duel and return to the games.',
+    icon: 'hand'
+  },
+  lobby: {
+    label: 'Your stage is set',
+    title: 'Invite your opponent',
+    description: 'Share this four-digit code. Your friend can choose “Join a Duel” and enter it. We’ll open the game as soon as they join.',
+    icon: 'user-group'
+  },
+  joined: {
+    label: 'Opponent connected',
+    title: 'You’ve got a challenger!',
+    description: 'Opening your game… Next, you’ll both choose when you’re ready.',
+    icon: 'bolt'
+  },
+  join: {
+    label: 'Challenge accepted',
+    title: 'Join your friend’s duel',
+    description: 'Enter the four-digit code they shared with you. You’ll play their game with the same settings.',
+    icon: 'gamepad'
+  },
+  error: {
+    label: 'Let’s get you back',
+    title: 'A little out of tune',
+    description: 'Try again, or head back to the games for a fresh start.',
+    icon: 'arrows-rotate'
+  }
+};
 function dialog() {
   var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
     _ref$message = _ref.message,
     message = _ref$message === void 0 ? '' : _ref$message,
+    _ref$phase = _ref.phase,
+    phase = _ref$phase === void 0 ? '' : _ref$phase,
+    _ref$opponentReady = _ref.opponentReady,
+    opponentReady = _ref$opponentReady === void 0 ? false : _ref$opponentReady,
     _ref$code = _ref.code,
     code = _ref$code === void 0 ? '' : _ref$code,
     _ref$join = _ref.join,
@@ -924,10 +1143,36 @@ function dialog() {
     _ref$error = _ref.error,
     error = _ref$error === void 0 ? '' : _ref$error;
   var root = document.getElementById('duel-modal');
-  root.querySelector('[data-duel-message]').textContent = message;
-  root.querySelector('[data-duel-message]').classList.remove('duel-countdown');
+  phase || (phase = join ? 'join' : idle ? 'idle' : code ? 'lobby' : error ? 'error' : 'connecting');
+  var copy = phases[phase] || {
+    label: 'Multiplayer duel',
+    title: message,
+    description: '',
+    icon: 'music'
+  };
+  root.dataset.duelPhase = phase;
+  root.querySelector('[data-duel-label]').textContent = copy.label;
+  root.querySelector('[data-duel-message]').textContent = copy.title;
+  var description = phase === 'error' && message ? message : copy.description;
+  root.querySelector('[data-duel-description]').textContent = description;
+  root.querySelector('[data-duel-description]').hidden = !description;
+  root.querySelector('[data-duel-symbol]').className = "fa-solid fa-".concat(copy.icon);
   root.querySelector('[data-duel-code]').textContent = code;
   root.querySelector('[data-duel-code]').hidden = !code;
+  var participants = root.querySelector('[data-duel-participants]');
+  participants.hidden = !['ready', 'waiting-ready', 'countdown'].includes(phase);
+  for (var _i = 0, _arr = [['you', phase !== 'ready'], ['opponent', opponentReady || phase === 'countdown']]; _i < _arr.length; _i++) {
+    var _arr$_i = _slicedToArray(_arr[_i], 2),
+      role = _arr$_i[0],
+      isReady = _arr$_i[1];
+    var card = root.querySelector("[data-duel-participant=\"".concat(role, "\"]"));
+    card.dataset.ready = String(isReady);
+    card.querySelector('[data-duel-participant-status]').textContent = isReady ? 'Ready ✓' : 'Getting ready';
+  }
+  var countdown = root.querySelector('[data-duel-countdown]');
+  countdown.hidden = phase !== 'countdown';
+  var value = root.querySelector('[data-duel-countdown-value]');
+  if (value.textContent !== message) value.textContent = message;
   root.querySelector('[data-duel-join-form]').hidden = !join;
   root.querySelector('[data-duel-ready]').hidden = !ready;
   root.querySelector('[data-duel-cancel]').hidden = !cancel;
@@ -936,13 +1181,28 @@ function dialog() {
   root.querySelector('[data-duel-idle]').hidden = !idle;
   root.querySelector('[data-duel-idle-count]').textContent = String(seconds);
   root.querySelector('[data-duel-active]').hidden = !idle;
-  $(root.querySelector('[data-duel-error]')).text(error).toggle(Boolean(error));
+  root.querySelector('[data-duel-actions]').hidden = !(ready || cancel || leave || exit || idle);
+  var errorElement = root.querySelector('[data-duel-error]');
+  errorElement.hidden = !error;
+  $(errorElement).text(error).toggle(Boolean(error));
   root.querySelector('.btn-close').hidden = !join;
+  // Escape, backdrop clicks and dismiss controls must not strand an ended game.
+  $(root).off('hide.bs.modal.duelExit').on('hide.bs.modal.duelExit', function (event) {
+    if (['opponent-left', 'you-left', 'cancelled', 'expired'].includes(phase) && !root.dataset.duelClosing) {
+      event.preventDefault();
+    }
+  });
   $(root).modal('show');
   return root;
 }
 function closeDialog() {
-  $('#duel-modal').modal('hide');
+  var root = document.getElementById('duel-modal');
+  root.dataset.duelClosing = 'true';
+  try {
+    $(root).modal('hide');
+  } finally {
+    delete root.dataset.duelClosing;
+  }
 }
 
 /***/ },
@@ -1299,6 +1559,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   renderDuelResults: () => (/* binding */ renderDuelResults)
 /* harmony export */ });
 /* harmony import */ var _games_shared_resultVariants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../games/shared/resultVariants */ "./resources/js/music/games/shared/resultVariants.js");
+/* harmony import */ var _games_shared_GameAudio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../games/shared/GameAudio */ "./resources/js/music/games/shared/GameAudio.js");
 function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
@@ -1306,6 +1567,7 @@ function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) 
 function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
 function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
 function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+
 
 
 // Both browsers use the same saved results. Finishing first never decides the winner.
@@ -1377,7 +1639,12 @@ function renderDuelResults(root, state) {
     root.querySelector(selector).textContent = value;
   };
   if (changed) {
-    var _window$matchMedia, _window;
+    var _state$options, _window$matchMedia, _window;
+    if (root.dataset.outcome === 'waiting' && outcome.kind !== 'waiting' && ((_state$options = state.options) === null || _state$options === void 0 ? void 0 : _state$options.sound) !== false) {
+      try {
+        _games_shared_GameAudio__WEBPACK_IMPORTED_MODULE_1__.GameAudio.playFinalResults();
+      } catch (_) {}
+    }
     root.dataset.outcome = outcome.kind;
     root.dataset.resultTier = greeting.tier;
     root.dataset.resultVariant = (0,_games_shared_resultVariants__WEBPACK_IMPORTED_MODULE_0__.chooseResultVariant)(greeting.tier);
@@ -1434,6 +1701,11 @@ function renderDuelResults(root, state) {
   text('[data-duel-result-rule]', waiting ? 'The winner is revealed when you both finish.' : outcome.reason === 'accuracy' ? 'Points tied — higher accuracy wins.' : outcome.reason === 'draw' ? 'Equal points and accuracy. You share the honors!' : 'Highest final score wins. Accuracy breaks a tie.');
   root.querySelector('[data-duel-result-home]').hidden = waiting;
   root.querySelector('[data-duel-result-leave]').hidden = !waiting;
+  root.querySelector('[data-duel-result-rematch]').hidden = waiting;
+  root.querySelector('[data-duel-rematch]').disabled = !!you.rematch;
+  text('[data-duel-rematch-label]', you.rematch ? 'Waiting for opponent…' : state.players.some(function (player) {
+    return player.role !== state.role && player.rematch;
+  }) ? 'Opponent wants to play again · Play again' : 'Play again');
 }
 
 /***/ },

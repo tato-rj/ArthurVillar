@@ -40,8 +40,12 @@ class DuelController extends Controller
             'heartbeat' => $request->validate(['connection_id' => ['sometimes', 'string', 'regex:/^[0-9a-f]{32}$/D']]),
             'progress' => $request->validate(['sequence' => 'required|integer|min:1|max:100', 'progress' => 'required|integer|min:1|max:12', 'score' => 'required|integer|min:0|max:10000', 'checkpoint' => 'sometimes|array|max:16']),
             'finish' => $request->validate(['score' => 'required|integer|min:0|max:10000', 'accuracy' => 'required|integer|min:0|max:100']),
+            'rematch' => $request->validate(['seed' => 'required|string|size:32']),
             default => [],
         };
+        if (in_array($action, ['ready', 'progress', 'finish'])) {
+            $data += $request->validate(['seed' => 'sometimes|string|size:32']);
+        }
 
         return $this->response($request, $this->duels->mutate($request, $duel, $action, $data));
     }

@@ -37,7 +37,7 @@ $(function () {
     let idle = null;
 
     const showError = error => {
-        $('[data-duel-error]').text(error.message).show();
+        $('[data-duel-error]').text(error.message).prop('hidden', false).show();
     };
     const receive = state => {
         if (!room || state.id !== room.id || state.revision < room.revision) return;
@@ -47,7 +47,7 @@ $(function () {
             idle?.stop();
             presence?.stop();
             forgetRoom(); clearTimeout(expiryTimer);
-            dialog({ message: `This Duel has ${room.status === 'expired' ? 'expired' : 'been cancelled'}.`, exit: true });
+            dialog({ phase: room.left_by ? 'opponent-left' : room.status, message: `This Duel has ${room.status === 'expired' ? 'expired' : 'been cancelled'}.`, exit: true });
             return;
         }
         if (navigating) return;
@@ -55,7 +55,7 @@ $(function () {
         idle?.stop();
         presence?.stop();
         forgetRoom(); clearTimeout(expiryTimer);
-        dialog({ message: 'Opponent joined ✓ Opening your game…' });
+        dialog({ phase: 'joined', message: 'Opponent joined ✓ Opening your game…' });
         setTimeout(() => { location.href = room.game_url; }, 500);
     };
     const waitForOpponent = state => {

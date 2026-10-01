@@ -25,6 +25,7 @@ class TheoryDuelConcurrencyTest extends TestCase
         $migration->up();
         (require database_path('migrations/2026_09_26_220000_add_left_by_to_theory_duels.php'))->up();
         (require database_path('migrations/2026_09_27_000000_add_browser_presence_to_theory_duel_players.php'))->up();
+        (require database_path('migrations/2026_10_01_000000_add_rematch_to_theory_duel_players.php'))->up();
         $request = Request::create('/', 'POST');
         $request->setLaravelSession(new Store('host', new ArraySessionHandler(120)));
         $room = app(DuelService::class)->create($request, 'intervals-lab', ['numOfChallenges' => 2]);

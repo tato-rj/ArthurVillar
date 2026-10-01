@@ -20,6 +20,7 @@ New packages: `laravel/reverb ^1.0` (1.12.0), `laravel-echo ^2.5.0` (2.5.0), `pu
 - Codes expire after 15 minutes. The unique `join_code` is released on joining/cancellation/expiration; historical codes are never authorization. Join/cancel/ready/progress/finish use room locks; guest claiming also uses a conditional atomic update. Request retries are idempotent.
 - `resources/js/music/duel`: lobby, Echo transport, authoritative countdown, reconnect, mutation retry queue, status/results UI, seeded RNG and four engine adapters. The 11 game entry points call `bootGame`; ordinary single-player still constructs and starts immediately.
 - Duel results reuse the regular results score card, animated music characters, and buttons in a full-screen comparison. Final points determine the winner; accuracy breaks tied scores, and equal scores/accuracy produce a draw. Finish time is displayed but does not break ties. Both browsers derive the same outcome from saved server results. The first finisher sees a waiting screen until both results arrive; refreshing restores the comparison. Winner confetti respects reduced-motion preferences and does not repeat on duplicate state updates.
+- The waiting results screen plays the final-results cue once when the opponent finishes, respecting the sound setting. Both completed players can choose **Play again**. Once both accept, the same room, credentials, settings, and WebSocket subscription start a fresh countdown and seeded run in place. Scores, checkpoints, and game history reset. The seed identifies gameplay requests so delayed updates and rematch retries cannot affect a later run. Completed pages stay subscribed for rematches, including after refresh.
 - Server timestamps plus measured HTTP round-trip midpoint compensate browser clock differences. Laravel must confirm `playing` before gameplay unlocks.
 - Progress advances one round and sequence number at a time, never backwards or past the configured total. Scores are bounded per round and final bonuses bounded to 4×. Gameplay answer checking remains in the existing browser engines: this is **not cheat-proof server verification of answers**. It blocks impossible jumps and impersonation, but a modified client can still falsify plausible round completions. No competitive rankings are added.
 - Reverb reconnects automatically and subscription success refetches authoritative state. Shared browser presence in both the lobby and gameplay sends authenticated HTTP heartbeats every 15 seconds, independently of Reverb. Page exit sends a CSRF-protected beacon, shows the opponent as disconnected, and becomes Leave Duel after a 30-second return grace period (normally detected within 30–45 seconds by the surviving heartbeat). Refresh or back-forward restoration registers a new connection marker, clears departure, and ignores late signals from the previous page. Without an exit signal, two minutes without a heartbeat counts as leaving. The scheduled cleanup also closes rooms if both browsers disappear. Browser/mobile background throttling or prolonged network loss can reach this timeout; browser shutdown notification itself is best effort. Persistent state remains server-side.
@@ -164,7 +165,7 @@ This runs the Mix production compiler without the static-copy pre-script, which 
 
 On the server, install Composer dependencies from the committed lock file and apply the scoped migrations:
 
-Production has tables created manually and older migrations still recorded as pending. Do not run an unrestricted `php artisan migrate --force` on that database. Some older migrations change existing records or drop columns. The commands below select only the three additive Duel migrations. Check `php artisan migrate:status` and whether the Duel tables already exist first; if they were created manually, compare their actual schema before running these migrations or recording them as applied. Do not blindly mark all historical migrations as run. Reconcile the historical schema and migration records separately.
+Production has tables created manually and older migrations still recorded as pending. Do not run an unrestricted `php artisan migrate --force` on that database. Some older migrations change existing records or drop columns. The commands below select only the additive Duel migrations. Check `php artisan migrate:status` and whether the Duel tables already exist first; if they were created manually, compare their actual schema before running these migrations or recording them as applied. Do not blindly mark all historical migrations as run. Reconcile the historical schema and migration records separately.
 
 ```bash
 composer install --no-dev --prefer-dist --optimize-autoloader
@@ -172,7 +173,8 @@ composer check-platform-reqs --no-dev
 php artisan migrate --force \
   --path=database/migrations/2026_09_26_200000_create_theory_duels.php \
   --path=database/migrations/2026_09_26_220000_add_left_by_to_theory_duels.php \
-  --path=database/migrations/2026_09_27_000000_add_browser_presence_to_theory_duel_players.php
+  --path=database/migrations/2026_09_27_000000_add_browser_presence_to_theory_duel_players.php \
+  --path=database/migrations/2026_10_01_000000_add_rematch_to_theory_duel_players.php
 php artisan optimize:clear
 php artisan config:cache
 php artisan view:cache
@@ -203,11 +205,11 @@ The original Laravel 9 checkout already has 12 failing backend tests (calendar p
 1. Host configures a game and clicks **Start Multiplayer Duel**.
 2. Guest clicks **Join a Duel**, pastes the four-digit code, then joins.
 3. Host receives the join immediately; both navigate to the same game.
-4. Guest clicks **START DUEL** and remains blocked waiting for host.
-5. Host clicks **START DUEL**; both see 3, 2, 1, GO and begin together.
+4. Guest clicks **I’m ready** and sees each player’s readiness while waiting for host.
+5. Host clicks **I’m ready**; both see 3, 2, 1 and begin together.
 6. Complete a round on A; its progress appears on B. Repeat from B to A.
 7. Finish A; B sees “Opponent finished” and can continue.
-8. Finish B; both show the two results.
+8. Finish B; both show the two results and A hears the completion cue if sound is enabled. Click **Play again** on A, then B; both start a fresh countdown with the same settings and connection. Repeat a match and verify scores and accuracy reset.
 9. Repeat with refresh while waiting, ready, during countdown and after a completed round.
 10. Close/reopen one browser; confirm disconnect indication and recovery.
 11. Try a wrong/expired/full code, a third browser, and cancellation while waiting.

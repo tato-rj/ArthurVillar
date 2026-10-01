@@ -72,5 +72,5 @@ Route::prefix('duels')->name('duels.')->group(function () {
     Route::get('{duel}', 'DuelController@show')->middleware('throttle:120,1,duel-state:')->name('show');
     Route::post('{duel}/answer', 'DuelController@answer')->middleware('throttle:120,1,duel-answer:')->name('answer');
     Route::post('{duel}/{action}', 'DuelController@update')
-        ->where('action', 'ready|progress|finish|cancel|leave|heartbeat|connect|depart')->middleware('throttle:120,1,duel-update:')->name('update');
+        ->where('action', 'ready|progress|finish|rematch|cancel|leave|heartbeat|connect|depart')->middleware('throttle:120,1,duel-update:')->name('update');
 });

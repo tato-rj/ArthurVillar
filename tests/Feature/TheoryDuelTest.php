@@ -309,6 +309,56 @@ class TheoryDuelTest extends TestCase
         $this->getJson(route('theory.duels.show', $room['id']))->assertOk()->assertJsonPath('status', 'playing');
     }
 
+    public function test_rematch_requires_both_finished_players_and_reuses_room_settings_and_credentials(): void
+    {
+        [$room, $host, $guest] = $this->playing();
+        $this->mutate($room, 'rematch', ['seed' => $room['seed']])->assertConflict();
+        $credentials = DuelPlayer::orderBy('role')->pluck('token_hash', 'role')->all();
+        foreach ([$host, $guest] as $session) {
+            $this->switchSession($session);
+            $this->mutate($room, 'connect', ['connection_id' => str_repeat($session === $host ? 'a' : 'b', 32)])->assertOk();
+            for ($round = 1; $round <= 2; $round++) {
+                $this->mutate($room, 'progress', ['sequence' => $round, 'progress' => $round, 'score' => $round * 3,
+                    'checkpoint' => ['_stats' => ['checksTotal' => $round]]])->assertOk();
+            }
+            $this->mutate($room, 'finish', ['score' => 12, 'accuracy' => 100])->assertOk();
+        }
+        $connections = DuelPlayer::orderBy('role')->pluck('connection_id', 'role')->all();
+        $accepted = $this->mutate($room, 'rematch', ['seed' => $room['seed']])->assertOk()->assertJsonPath('status', 'finished')->json();
+        $this->assertTrue(collect($accepted['players'])->firstWhere('role', 'guest')['rematch']);
+        $this->assertSame(12, collect($accepted['players'])->firstWhere('role', 'guest')['score']);
+        $this->mutate($room, 'rematch', ['seed' => $room['seed']])->assertOk()->assertJsonPath('revision', $accepted['revision']);
+        $this->switchSession($host);
+        $next = $this->mutate($room, 'rematch', ['seed' => $room['seed']])->assertOk()->assertJsonPath('status', 'countdown')->json();
+        $this->assertSame($room['id'], $next['id']);
+        $this->assertSame($room['settings'], $next['settings']);
+        $this->assertSame($room['game_url'], $next['game_url']);
+        $this->assertNotSame($room['seed'], $next['seed']);
+        $this->assertSame($credentials, DuelPlayer::orderBy('role')->pluck('token_hash', 'role')->all());
+        $this->assertSame($connections, DuelPlayer::orderBy('role')->pluck('connection_id', 'role')->all());
+        $this->assertNull(Duel::find($room['id'])->join_code);
+        foreach ($next['players'] as $player) {
+            $this->assertSame(0, $player['progress']);
+            $this->assertSame(0, $player['score']);
+            $this->assertNull($player['result']);
+            $this->assertNull($player['finished_at']);
+            $this->assertFalse($player['rematch']);
+        }
+        $this->assertSame(0, $next['sequence']);
+        $this->assertNull($next['checkpoint']);
+        $this->auth($room)->assertOk();
+        // Lost responses and delayed gameplay from the previous run cannot alter this run.
+        $this->mutate($room, 'rematch', ['seed' => $room['seed']])->assertOk()->assertJsonPath('seed', $next['seed']);
+        $this->travel(5)->seconds();
+        $this->mutate($room, 'progress', ['seed' => $room['seed'], 'sequence' => 1, 'progress' => 1, 'score' => 3])->assertConflict();
+        $this->mutate($room, 'progress', ['seed' => $next['seed'], 'sequence' => 1, 'progress' => 1, 'score' => 3])->assertOk();
+        $this->switchSession($guest);
+        $this->getJson(route('theory.duels.show', $room['id']))->assertOk()->assertJsonPath('seed', $next['seed'])->assertJsonPath('role', 'guest');
+        $this->switchSession();
+        $this->mutate($room, 'rematch', ['seed' => $next['seed']])->assertForbidden();
+        Event::assertDispatched(DuelUpdated::class, fn ($event) => $event->change === 'rematch' && $event->state['seed'] === $next['seed']);
+    }
+
     public function test_progress_is_authorized_bounded_monotonic_and_idempotent(): void
     {
         [$room, $host] = $this->playing();

@@ -12,5 +12,5 @@ class DuelPlayer extends Model
 
     protected $hidden = ['token_hash', 'connection_id'];
 
-    protected $casts = ['ready_at' => 'datetime', 'finished_at' => 'datetime', 'last_seen_at' => 'datetime', 'departed_at' => 'datetime', 'result' => 'array', 'checkpoint' => 'array'];
+    protected $casts = ['ready_at' => 'datetime', 'rematch_at' => 'datetime', 'finished_at' => 'datetime', 'last_seen_at' => 'datetime', 'departed_at' => 'datetime', 'result' => 'array', 'checkpoint' => 'array'];
 }

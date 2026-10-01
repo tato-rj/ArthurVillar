@@ -5030,7 +5030,7 @@ $(function () {
   var presence = null;
   var idle = null;
   var showError = function showError(error) {
-    $('[data-duel-error]').text(error.message).show();
+    $('[data-duel-error]').text(error.message).prop('hidden', false).show();
   };
   var receive = function receive(state) {
     var _idle2, _presence2;
@@ -5044,6 +5044,7 @@ $(function () {
       forgetRoom();
       clearTimeout(expiryTimer);
       (0,_dialog__WEBPACK_IMPORTED_MODULE_1__.dialog)({
+        phase: room.left_by ? 'opponent-left' : room.status,
         message: "This Duel has ".concat(room.status === 'expired' ? 'expired' : 'been cancelled', "."),
         exit: true
       });
@@ -5056,6 +5057,7 @@ $(function () {
     forgetRoom();
     clearTimeout(expiryTimer);
     (0,_dialog__WEBPACK_IMPORTED_MODULE_1__.dialog)({
+      phase: 'joined',
       message: 'Opponent joined ✓ Opening your game…'
     });
     setTimeout(function () {
@@ -5349,10 +5351,106 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   closeDialog: () => (/* binding */ closeDialog),
 /* harmony export */   dialog: () => (/* binding */ dialog)
 /* harmony export */ });
+function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+var phases = {
+  connecting: {
+    label: 'Finding the beat',
+    title: 'Connecting your duel…',
+    description: 'We’re linking you with your opponent. Your game will open here.',
+    icon: 'link'
+  },
+  ready: {
+    label: 'Opponent connected',
+    title: 'Ready to face the music?',
+    description: 'Tap “I’m ready” below. When you’re both ready, a countdown starts the same game for both of you.',
+    icon: 'bolt'
+  },
+  'waiting-ready': {
+    label: 'You’re ready',
+    title: 'One musician to go…',
+    description: 'Your opponent still needs to tap “I’m ready”. Stay here — the countdown will start automatically.',
+    icon: 'circle-check'
+  },
+  countdown: {
+    label: 'Both players ready',
+    title: 'Get ready to play!',
+    description: 'Same challenge. Same starting line. Let’s see what you’ve got!',
+    icon: 'music'
+  },
+  go: {
+    label: 'The duel is on',
+    title: 'Let’s play!',
+    description: 'Make every note count.',
+    icon: 'bolt'
+  },
+  'opponent-left': {
+    label: 'Duel ended',
+    title: 'Your opponent left',
+    description: 'They’ve left this match, so the duel has ended. Head back to the games to play solo or challenge someone else.',
+    icon: 'door-open'
+  },
+  'you-left': {
+    label: 'Duel ended',
+    title: 'You’ve left the duel',
+    description: 'This match has ended. Choose another game whenever you’re ready.',
+    icon: 'door-open'
+  },
+  expired: {
+    label: 'Time’s up',
+    title: 'This duel has expired',
+    description: 'This room is no longer available. Head back to the games to start a fresh duel and share a new code.',
+    icon: 'hourglass-end'
+  },
+  cancelled: {
+    label: 'Duel ended',
+    title: 'This duel was cancelled',
+    description: 'This match is no longer active. You can start another duel or enjoy a solo game.',
+    icon: 'flag-checkered'
+  },
+  idle: {
+    label: 'Quick check-in',
+    title: 'Still with us?',
+    description: 'Keep the music going! Confirm before the timer reaches zero, or you’ll leave this duel and return to the games.',
+    icon: 'hand'
+  },
+  lobby: {
+    label: 'Your stage is set',
+    title: 'Invite your opponent',
+    description: 'Share this four-digit code. Your friend can choose “Join a Duel” and enter it. We’ll open the game as soon as they join.',
+    icon: 'user-group'
+  },
+  joined: {
+    label: 'Opponent connected',
+    title: 'You’ve got a challenger!',
+    description: 'Opening your game… Next, you’ll both choose when you’re ready.',
+    icon: 'bolt'
+  },
+  join: {
+    label: 'Challenge accepted',
+    title: 'Join your friend’s duel',
+    description: 'Enter the four-digit code they shared with you. You’ll play their game with the same settings.',
+    icon: 'gamepad'
+  },
+  error: {
+    label: 'Let’s get you back',
+    title: 'A little out of tune',
+    description: 'Try again, or head back to the games for a fresh start.',
+    icon: 'arrows-rotate'
+  }
+};
 function dialog() {
   var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
     _ref$message = _ref.message,
     message = _ref$message === void 0 ? '' : _ref$message,
+    _ref$phase = _ref.phase,
+    phase = _ref$phase === void 0 ? '' : _ref$phase,
+    _ref$opponentReady = _ref.opponentReady,
+    opponentReady = _ref$opponentReady === void 0 ? false : _ref$opponentReady,
     _ref$code = _ref.code,
     code = _ref$code === void 0 ? '' : _ref$code,
     _ref$join = _ref.join,
@@ -5372,10 +5470,36 @@ function dialog() {
     _ref$error = _ref.error,
     error = _ref$error === void 0 ? '' : _ref$error;
   var root = document.getElementById('duel-modal');
-  root.querySelector('[data-duel-message]').textContent = message;
-  root.querySelector('[data-duel-message]').classList.remove('duel-countdown');
+  phase || (phase = join ? 'join' : idle ? 'idle' : code ? 'lobby' : error ? 'error' : 'connecting');
+  var copy = phases[phase] || {
+    label: 'Multiplayer duel',
+    title: message,
+    description: '',
+    icon: 'music'
+  };
+  root.dataset.duelPhase = phase;
+  root.querySelector('[data-duel-label]').textContent = copy.label;
+  root.querySelector('[data-duel-message]').textContent = copy.title;
+  var description = phase === 'error' && message ? message : copy.description;
+  root.querySelector('[data-duel-description]').textContent = description;
+  root.querySelector('[data-duel-description]').hidden = !description;
+  root.querySelector('[data-duel-symbol]').className = "fa-solid fa-".concat(copy.icon);
   root.querySelector('[data-duel-code]').textContent = code;
   root.querySelector('[data-duel-code]').hidden = !code;
+  var participants = root.querySelector('[data-duel-participants]');
+  participants.hidden = !['ready', 'waiting-ready', 'countdown'].includes(phase);
+  for (var _i = 0, _arr = [['you', phase !== 'ready'], ['opponent', opponentReady || phase === 'countdown']]; _i < _arr.length; _i++) {
+    var _arr$_i = _slicedToArray(_arr[_i], 2),
+      role = _arr$_i[0],
+      isReady = _arr$_i[1];
+    var card = root.querySelector("[data-duel-participant=\"".concat(role, "\"]"));
+    card.dataset.ready = String(isReady);
+    card.querySelector('[data-duel-participant-status]').textContent = isReady ? 'Ready ✓' : 'Getting ready';
+  }
+  var countdown = root.querySelector('[data-duel-countdown]');
+  countdown.hidden = phase !== 'countdown';
+  var value = root.querySelector('[data-duel-countdown-value]');
+  if (value.textContent !== message) value.textContent = message;
   root.querySelector('[data-duel-join-form]').hidden = !join;
   root.querySelector('[data-duel-ready]').hidden = !ready;
   root.querySelector('[data-duel-cancel]').hidden = !cancel;
@@ -5384,13 +5508,28 @@ function dialog() {
   root.querySelector('[data-duel-idle]').hidden = !idle;
   root.querySelector('[data-duel-idle-count]').textContent = String(seconds);
   root.querySelector('[data-duel-active]').hidden = !idle;
-  $(root.querySelector('[data-duel-error]')).text(error).toggle(Boolean(error));
+  root.querySelector('[data-duel-actions]').hidden = !(ready || cancel || leave || exit || idle);
+  var errorElement = root.querySelector('[data-duel-error]');
+  errorElement.hidden = !error;
+  $(errorElement).text(error).toggle(Boolean(error));
   root.querySelector('.btn-close').hidden = !join;
+  // Escape, backdrop clicks and dismiss controls must not strand an ended game.
+  $(root).off('hide.bs.modal.duelExit').on('hide.bs.modal.duelExit', function (event) {
+    if (['opponent-left', 'you-left', 'cancelled', 'expired'].includes(phase) && !root.dataset.duelClosing) {
+      event.preventDefault();
+    }
+  });
   $(root).modal('show');
   return root;
 }
 function closeDialog() {
-  $('#duel-modal').modal('hide');
+  var root = document.getElementById('duel-modal');
+  root.dataset.duelClosing = 'true';
+  try {
+    $(root).modal('hide');
+  } finally {
+    delete root.dataset.duelClosing;
+  }
 }
 
 /***/ },

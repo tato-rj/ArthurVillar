@@ -968,7 +968,61 @@ button.game-countdown-step-pop {
     font-size: 1.75rem;
     font-weight: 700;
 }
-.duel-dialog { padding: .5rem; min-height: 170px; }
+#duel-modal {
+    --duel-accent: #a87613;
+    --duel-tint: #fff8dd;
+    [hidden] { display: none !important; }
+    .modal-dialog { max-width: 480px; }
+    .modal-content { overflow: hidden; border-radius: 24px !important; box-shadow: 0 16px 60px rgba(23, 30, 47, .18); }
+    .modal-header { padding: 20px 24px 0; }
+    .modal-title { font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: #757982 !important; }
+    #header-buttons:empty { display: none; }
+    .modal-body { padding: 22px 24px 24px; }
+    .modal-footer:empty { display: none; }
+    &[data-duel-phase="waiting-ready"] { --duel-accent: #58a82c; --duel-tint: #eef9e8; }
+    &[data-duel-phase="countdown"], &[data-duel-phase="go"] { --duel-accent: #168ac0; --duel-tint: #e9f7ff; }
+    &[data-duel-phase="opponent-left"], &[data-duel-phase="you-left"], &[data-duel-phase="cancelled"] { --duel-accent: #8b72b5; --duel-tint: #f3eefb; }
+    &[data-duel-phase="idle"], &[data-duel-phase="error"], &[data-duel-phase="expired"] { --duel-accent: #c96926; --duel-tint: #fff1e5; }
+    .duel-dialog { display: flex; flex-direction: column; gap: 20px; padding: 0; min-height: 0; }
+    .duel-dialog-hero { display: flex; flex-direction: column; align-items: center; }
+    .duel-dialog-emblem {
+        position: relative; display: grid; place-items: center; width: 72px; height: 72px; margin-bottom: 18px;
+        border-radius: 24px; color: var(--duel-accent); background: var(--duel-tint); font-size: 29px; transform: rotate(-7deg);
+        i { transform: rotate(7deg); }
+    }
+    .duel-dialog-spark { position: absolute; top: -6px; right: -11px; font-size: 23px; color: #efb32d; }
+    .duel-dialog-note { position: absolute; bottom: -7px; left: -14px; font-size: 24px; color: #42a9b0; transform: rotate(-12deg); }
+    .duel-dialog-label { margin: 0 0 9px; color: var(--duel-accent); font-size: 11px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+    [data-duel-message] { margin: 0; font-size: clamp(23px, 5vw, 29px); font-weight: 800; line-height: 1.15; color: #272a35; }
+    .duel-dialog-description { max-width: 365px; margin: 12px 0 0; font-size: 14px; line-height: 1.6; color: #6d7280; }
+    .duel-dialog-players { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .duel-dialog-player {
+        display: flex; align-items: center; gap: 9px; padding: 12px; border: 1px solid #e5e7ee; border-radius: 15px; text-align: left; background: #fafbfc;
+        strong { display: block; font-size: 13px; color: #353947; }
+        [data-duel-participant-status] { display: block; margin-top: 2px; font-size: 11px; color: #7c8290; }
+        &[data-ready="true"] { background: #f4fbef; border-color: #d5e9c9; [data-duel-participant-status] { color: #458b25; } }
+    }
+    .duel-dialog-avatar { display: grid; place-items: center; flex: 0 0 33px; height: 33px; border-radius: 11px; background: #ffe76b; color: #393b45; font-size: 24px; }
+    [data-duel-participant="opponent"] .duel-dialog-avatar { background: #dcd2fa; }
+    .duel-dialog-countdown { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    [data-duel-countdown-value] { display: grid; place-items: center; width: 94px; height: 94px; border-radius: 50%; border: 5px solid #cceafa; background: #eef9ff; color: #168ac0; font-size: 54px; font-weight: 800; line-height: 1; animation: duelCountdownBeat 1s ease-out infinite; }
+    .duel-dialog-countdown-caption { font-size: 11px; font-weight: 700; color: #6d7280; }
+    .duel-dialog-idle { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 14px; border-radius: 16px; background: var(--duel-tint); font-size: 12px; color: #8c572e; }
+    [data-duel-idle-count] { font-size: 30px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+    .duel-dialog-error { margin: 0; padding: 12px; border-radius: 12px; background: #fff1ee; color: #b64436; font-size: 13px; }
+    .duel-dialog-actions { display: flex; flex-direction: column; gap: 10px; margin: 0; }
+    .duel-dialog-actions .btn, [data-duel-join-form] > .btn { min-height: 47px; padding: 12px 16px; border-radius: 14px !important; font-size: 14px; font-weight: 700; margin-bottom: 0 !important; }
+    [data-duel-leave] { color: #757b88; border-color: #e0e3eb !important; font-weight: 500 !important; }
+    [data-duel-leave]:hover { color: #b64a48; background: #fff4f2; }
+    .duel-code { margin: 0; padding: 14px; border-radius: 16px; background: var(--duel-tint); font-size: 38px; letter-spacing: .2em; text-indent: .2em; }
+    @media (max-width: 400px) {
+        .modal-header { padding: 18px 18px 0; }
+        .modal-body { padding: 20px 18px 18px; }
+        .duel-dialog-player { padding: 10px 8px; gap: 7px; }
+    }
+    @media (prefers-reduced-motion: reduce) { [data-duel-countdown-value] { animation: none; } }
+}
+@keyframes duelCountdownBeat { from { transform: scale(.94); box-shadow: 0 0 0 0 rgba(28, 176, 246, .17); } to { transform: scale(1); box-shadow: 0 0 0 12px rgba(28, 176, 246, 0); } }
 .duel-create-tip {
     display: flex;
     align-items: flex-start;
@@ -994,7 +1048,6 @@ button.game-countdown-step-pop {
     h5 { margin: 0 0 .25rem; font-size: 1rem; }
     p { margin: 0; font-size: .875rem; line-height: 1.5; }
 }
-.duel-countdown { font-size: 4rem; font-weight: bold; color: #1cb0f6; }
 .duel-results { background: #f7f7f7; border-radius: 1rem; padding: 1rem; }
 body.duel-mode #progress-bar { visibility: hidden; }
 body.duel-mode #progress-bar { transition: none; }

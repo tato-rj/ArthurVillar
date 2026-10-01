@@ -17,6 +17,9 @@ export function connectGame(game, duel, { finishOnly = false } = {}) {
     let earnedScore = initial.score;
     let initialized = false;
     let history = duel.state.checkpoint || {};
+    const freshHistory = JSON.parse(JSON.stringify(Object.fromEntries(
+        HISTORY_FIELDS.filter(key => key in game).map(key => [key, game[key]])
+    )));
     const checkpoint = () => JSON.parse(JSON.stringify({
         ...Object.fromEntries(HISTORY_FIELDS.filter(key => key in game).map(key => [key, game[key]])),
         ...(game.staff?.getClef ? { _duelClef: game.staff.getClef() } : {}),
@@ -33,13 +36,6 @@ export function connectGame(game, duel, { finishOnly = false } = {}) {
         game._finalStartMs = Date.parse(duel.state.starts_at);
         game._startedAt = Date.parse(duel.state.starts_at);
     };
-
-    if (finishOnly) {
-        restore();
-        // Reuse the engine's accuracy and bonus calculation if refresh interrupted results.
-        game._showFinalResults();
-        return game;
-    }
 
     const checkMethod = duel.state.game === 'beat-hero' ? '_handleCardTap' : duel.state.game === 'note-python' ? '_advanceSnake' : '_onCheck';
     if (typeof game[checkMethod] === 'function') {
@@ -117,6 +113,20 @@ export function connectGame(game, duel, { finishOnly = false } = {}) {
             game._startLoop();
         };
     }
-    game.start();
+    game._restartDuel = () => {
+        completed = 0;
+        earnedScore = 0;
+        initialized = false;
+        history = {};
+        Object.assign(game, JSON.parse(JSON.stringify(freshHistory)));
+        game.$doublePoints?.hide?.();
+        game.$bonusBadge?.hide?.();
+        game.start();
+    };
+    if (finishOnly) {
+        restore();
+        // Reuse the engine's accuracy and bonus calculation if refresh interrupted results.
+        game._showFinalResults();
+    } else game.start();
     return game;
 }
