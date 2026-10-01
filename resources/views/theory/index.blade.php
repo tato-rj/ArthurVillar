@@ -50,9 +50,10 @@
                     <a href="{{route('theory.open-staff.play')}}" class="btn btn-outline-secondary">@fa(['icon' => 'chalkboard'])Open Staff</a>
                 </div>
 
-                <button type="button" data-duel-join class="btn btn-primary mt-2">@fa(['icon' => 'bolt'])Join a Duel</button>
                 @include('theory.profile.avatar')
             </div>
+
+            @include('theory.components.duel-banner')
 
             <div class="text-right">
                 @if($category = request('category'))

@@ -381,7 +381,7 @@ var DuelClient = /*#__PURE__*/function () {
                       case 2:
                         state = _context4.v;
                         _this5.receive(state);
-                        document.querySelector('[data-duel-error]').textContent = '';
+                        $('[data-duel-error]').text('').hide();
                         return _context4.a(2, {
                           v: void 0
                         });
@@ -619,7 +619,7 @@ var DuelClient = /*#__PURE__*/function () {
   }, {
     key: "error",
     value: function error(_error) {
-      document.querySelector('[data-duel-error]').textContent = _error.message;
+      $('[data-duel-error]').text(_error.message).show();
       var connection = this.hud.querySelector('[data-duel-connection]');
       connection.textContent = _error.message;
       connection.hidden = false;
@@ -936,7 +936,7 @@ function dialog() {
   root.querySelector('[data-duel-idle]').hidden = !idle;
   root.querySelector('[data-duel-idle-count]').textContent = String(seconds);
   root.querySelector('[data-duel-active]').hidden = !idle;
-  root.querySelector('[data-duel-error]').textContent = error;
+  $(root.querySelector('[data-duel-error]')).text(error).toggle(Boolean(error));
   root.querySelector('.btn-close').hidden = !join;
   $(root).modal('show');
   return root;

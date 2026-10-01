@@ -12,7 +12,7 @@ export function dialog({ message = '', code = '', join = false, ready = false, c
     root.querySelector('[data-duel-idle]').hidden = !idle;
     root.querySelector('[data-duel-idle-count]').textContent = String(seconds);
     root.querySelector('[data-duel-active]').hidden = !idle;
-    root.querySelector('[data-duel-error]').textContent = error;
+    $(root.querySelector('[data-duel-error]')).text(error).toggle(Boolean(error));
     root.querySelector('.btn-close').hidden = !join;
     $(root).modal('show');
     return root;

@@ -139,7 +139,7 @@ export class DuelClient {
                 try {
                     const state = await this.transport.request(`/${this.state.id}/${action}`, data);
                     this.receive(state);
-                    document.querySelector('[data-duel-error]').textContent = '';
+                    $('[data-duel-error]').text('').hide();
                     return;
                 } catch (error) {
                     if (this.leaving || ['cancelled', 'expired'].includes(this.state.status)) return;
@@ -254,7 +254,7 @@ export class DuelClient {
         this.hud.hidden = true;
     }
     error(error) {
-        document.querySelector('[data-duel-error]').textContent = error.message;
+        $('[data-duel-error]').text(error.message).show();
         const connection = this.hud.querySelector('[data-duel-connection]');
         connection.textContent = error.message;
         connection.hidden = false;

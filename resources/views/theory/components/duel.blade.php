@@ -9,16 +9,27 @@ $duelConfig = config('theory-duels.client') + [
 window.__duelConfig = @json($duelConfig);
 window.__duelState = @json($duelState ?? null);
 </script>
-@modal(['title' => 'Multiplayer Duel', 'id' => 'duel-modal', 'data' => ['bs-backdrop' => 'static', 'bs-keyboard' => 'false']])
+@modal(['title' => 'Multiplayer Duel', 'id' => 'duel-modal'])
 <div class="duel-dialog text-center" aria-live="polite">
     <div data-duel-message></div>
     <div data-duel-code class="duel-code" hidden></div>
     <form data-duel-join-form hidden>
-        <label for="duel-join-code" class="mb-3">Enter your duel code</label>
-        <input id="duel-join-code" name="code" type="text" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="one-time-code" class="form-control duel-code text-center" required aria-describedby="duel-error">
+        <label id="duel-code-label" for="duel-join-code" class="mb-3">Enter your duel code</label>
+        <div class="duel-code-inputs" role="group" aria-labelledby="duel-code-label">
+            @for($digit = 0; $digit < 4; $digit++)
+            <input id="{{ $digit === 0 ? 'duel-join-code' : 'duel-join-digit-'.($digit + 1) }}" data-duel-digit type="text" inputmode="numeric" pattern="[0-9]" maxlength="1" autocomplete="{{ $digit === 0 ? 'one-time-code' : 'off' }}" class="form-control duel-code-input" required aria-label="Digit {{ $digit + 1 }} of 4" aria-describedby="duel-error">
+            @endfor
+        </div>
         <button type="submit" class="btn btn-primary w-100 mt-3">Join</button>
+        <section class="duel-create-tip" aria-labelledby="duel-create-tip-title">
+            <span class="duel-create-tip__icon" aria-hidden="true">@fa(['icon' => 'gear', 'mr' => 0])</span>
+            <div>
+                <h5 id="duel-create-tip-title">Want to create a duel?</h5>
+                <p>Open the settings menu in any game, then choose <strong>“Start Multiplayer Duel”</strong>.</p>
+            </div>
+        </section>
     </form>
-    <p id="duel-error" data-duel-error class="text-danger mt-3" role="alert"></p>
+    <p id="duel-error" data-duel-error class="text-danger mt-3 m-0" role="alert"></p>
     <div data-duel-idle class="mb-3" hidden>
         <p class="mb-2">Confirm to stay in the Duel. Otherwise, you’ll return to all games.</p>
         <span data-duel-idle-count class="fs-2 fw-bold text-danger">10</span>

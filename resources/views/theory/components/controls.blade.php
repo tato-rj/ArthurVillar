@@ -47,10 +47,12 @@
       @endunless
 
       <div class="btn-floating ml-1 w-100" data-duel-settings>
-        <button data-bs-toggle="modal" data-bs-target="#{{str_slug($settings->gameName())}}-settings-modal" class="btn btn-white w-100" @disabled(isset($duelState))>@fa(['icon' => 'gear'])Settings</button>
+          <button data-bs-toggle="modal" data-bs-target="#{{str_slug($settings->gameName())}}-settings-modal" class="btn btn-white w-100" @disabled(isset($duelState))>@fa(['icon' => 'gear'])Settings</button>
+        </div>
       </div>
-    </div>
-    <button type="button" data-duel-join class="btn btn-white w-100 mt-3">Join a Duel</button>
+      @unless($settings->gameName() == 'Open Staff')
+      <button type="button" data-duel-join class="btn btn-white w-100 mt-3">Join a Duel</button>
+      @endunless
     @endunless
   </div>
 </div>

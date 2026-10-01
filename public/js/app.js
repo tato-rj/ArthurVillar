@@ -4957,6 +4957,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _dialog__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./dialog */ "./resources/js/music/duel/dialog.js");
 /* harmony import */ var _presence__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./presence */ "./resources/js/music/duel/presence.js");
 /* harmony import */ var _idle__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./idle */ "./resources/js/music/duel/idle.js");
+/* harmony import */ var _codeInputs__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./codeInputs */ "./resources/js/music/duel/codeInputs.js");
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
 function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
@@ -4970,6 +4971,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
 function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
 function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
 function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+
 
 
 
@@ -5019,6 +5021,8 @@ function serializeSettings(form) {
 $(function () {
   if (!window.__duelConfig || window.__duelState) return;
   var transport = new _transport__WEBPACK_IMPORTED_MODULE_0__.DuelTransport();
+  var joinForm = document.querySelector('[data-duel-join-form]');
+  var codeInputs = (0,_codeInputs__WEBPACK_IMPORTED_MODULE_4__.bindDuelCodeInputs)(joinForm);
   var room = null;
   var pending = false;
   var navigating = false;
@@ -5026,7 +5030,7 @@ $(function () {
   var presence = null;
   var idle = null;
   var showError = function showError(error) {
-    document.querySelector('[data-duel-error]').textContent = error.message;
+    $('[data-duel-error]').text(error.message).show();
   };
   var receive = function receive(state) {
     var _idle2, _presence2;
@@ -5119,11 +5123,11 @@ $(function () {
             create = event.target.closest('[data-duel-create]');
             join = event.target.closest('[data-duel-join]');
             if (join) {
+              $('#duel-modal').one('shown.bs.modal', function () {
+                return codeInputs.focus();
+              });
               (0,_dialog__WEBPACK_IMPORTED_MODULE_1__.dialog)({
                 join: true
-              });
-              $('#duel-modal').one('shown.bs.modal', function () {
-                return document.getElementById('duel-join-code').focus();
               });
             }
             if (!(!create || pending)) {
@@ -5169,18 +5173,15 @@ $(function () {
       return _ref.apply(this, arguments);
     };
   }());
-  var input = document.getElementById('duel-join-code');
-  input.addEventListener('input', function () {
-    input.value = input.value.replace(/\D/g, '').slice(0, 4);
-  });
-  document.querySelector('[data-duel-join-form]').addEventListener('submit', /*#__PURE__*/function () {
+  joinForm.addEventListener('submit', /*#__PURE__*/function () {
     var _ref2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee2(event) {
-      var button, state, _t2;
+      var code, button, state, _t2;
       return _regenerator().w(function (_context2) {
         while (1) switch (_context2.p = _context2.n) {
           case 0:
             event.preventDefault();
-            if (!(pending || !/^\d{4}$/.test(input.value))) {
+            code = codeInputs.value();
+            if (!(pending || !/^\d{4}$/.test(code))) {
               _context2.n = 1;
               break;
             }
@@ -5192,7 +5193,7 @@ $(function () {
             _context2.p = 2;
             _context2.n = 3;
             return transport.request('/join', {
-              code: input.value
+              code: code
             });
           case 3:
             state = _context2.v;
@@ -5265,6 +5266,77 @@ $(function () {
 
 /***/ },
 
+/***/ "./resources/js/music/duel/codeInputs.js"
+/*!***********************************************!*\
+  !*** ./resources/js/music/duel/codeInputs.js ***!
+  \***********************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   bindDuelCodeInputs: () => (/* binding */ bindDuelCodeInputs)
+/* harmony export */ });
+function bindDuelCodeInputs(form) {
+  var inputs = Array.from(form.querySelectorAll('[data-duel-digit]'));
+  var _focus = function focus(index) {
+    inputs[index].focus();
+    inputs[index].select();
+  };
+  var insert = function insert(index, text) {
+    var digits = text.replace(/\D/g, '').slice(0, inputs.length);
+    if (!digits) return;
+    // A complete pasted or autofilled code replaces the whole code.
+    var start = digits.length === inputs.length ? 0 : index;
+    var count = Math.min(digits.length, inputs.length - start);
+    for (var offset = 0; offset < count; offset++) {
+      inputs[start + offset].value = digits[offset];
+    }
+    _focus(Math.min(start + count, inputs.length - 1));
+  };
+  inputs.forEach(function (input, index) {
+    input.addEventListener('focus', function () {
+      return input.select();
+    });
+    input.addEventListener('input', function () {
+      var text = input.value;
+      input.value = '';
+      insert(index, text);
+    });
+    input.addEventListener('paste', function (event) {
+      event.preventDefault();
+      insert(index, event.clipboardData.getData('text'));
+    });
+    input.addEventListener('keydown', function (event) {
+      if (event.key === 'Backspace' && !input.value && index > 0) {
+        event.preventDefault();
+        inputs[index - 1].value = '';
+        _focus(index - 1);
+      } else if (event.key === 'ArrowLeft' && index > 0) {
+        event.preventDefault();
+        _focus(index - 1);
+      } else if (event.key === 'ArrowRight' && index < inputs.length - 1) {
+        event.preventDefault();
+        _focus(index + 1);
+      }
+    });
+  });
+  return {
+    value: function value() {
+      return inputs.map(function (input) {
+        return input.value;
+      }).join('');
+    },
+    focus: function focus() {
+      return _focus(Math.max(0, inputs.findIndex(function (input) {
+        return !input.value;
+      })));
+    }
+  };
+}
+
+/***/ },
+
 /***/ "./resources/js/music/duel/dialog.js"
 /*!*******************************************!*\
   !*** ./resources/js/music/duel/dialog.js ***!
@@ -5312,7 +5384,7 @@ function dialog() {
   root.querySelector('[data-duel-idle]').hidden = !idle;
   root.querySelector('[data-duel-idle-count]').textContent = String(seconds);
   root.querySelector('[data-duel-active]').hidden = !idle;
-  root.querySelector('[data-duel-error]').textContent = error;
+  $(root.querySelector('[data-duel-error]')).text(error).toggle(Boolean(error));
   root.querySelector('.btn-close').hidden = !join;
   $(root).modal('show');
   return root;

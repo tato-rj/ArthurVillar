@@ -2,6 +2,7 @@ import { DuelTransport } from './transport';
 import { dialog, closeDialog } from './dialog';
 import { DuelPresence } from './presence';
 import { DuelIdle } from './idle';
+import { bindDuelCodeInputs } from './codeInputs';
 
 const ROOM_KEY = 'theory.duel.waiting';
 function saveRoom(id) { try { sessionStorage.setItem(ROOM_KEY, id); } catch (_) {} }
@@ -26,6 +27,8 @@ export function serializeSettings(form) {
 $(function () {
     if (!window.__duelConfig || window.__duelState) return;
     const transport = new DuelTransport();
+    const joinForm = document.querySelector('[data-duel-join-form]');
+    const codeInputs = bindDuelCodeInputs(joinForm);
     let room = null;
     let pending = false;
     let navigating = false;
@@ -34,7 +37,7 @@ $(function () {
     let idle = null;
 
     const showError = error => {
-        document.querySelector('[data-duel-error]').textContent = error.message;
+        $('[data-duel-error]').text(error.message).show();
     };
     const receive = state => {
         if (!room || state.id !== room.id || state.revision < room.revision) return;
@@ -89,8 +92,8 @@ $(function () {
         const create = event.target.closest('[data-duel-create]');
         const join = event.target.closest('[data-duel-join]');
         if (join) {
+            $('#duel-modal').one('shown.bs.modal', () => codeInputs.focus());
             dialog({ join: true });
-            $('#duel-modal').one('shown.bs.modal', () => document.getElementById('duel-join-code').focus());
         }
         if (!create || pending) return;
         pending = true; create.disabled = true;
@@ -102,15 +105,14 @@ $(function () {
         } catch (error) { dialog({ join: false, error: error.message, exit: true }); }
         finally { pending = false; create.disabled = false; }
     });
-    const input = document.getElementById('duel-join-code');
-    input.addEventListener('input', () => { input.value = input.value.replace(/\D/g, '').slice(0, 4); });
-    document.querySelector('[data-duel-join-form]').addEventListener('submit', async event => {
+    joinForm.addEventListener('submit', async event => {
         event.preventDefault();
-        if (pending || !/^\d{4}$/.test(input.value)) return;
+        const code = codeInputs.value();
+        if (pending || !/^\d{4}$/.test(code)) return;
         pending = true;
         const button = event.target.querySelector('button'); button.disabled = true;
         try {
-            const state = await transport.request('/join', { code: input.value });
+            const state = await transport.request('/join', { code });
             forgetRoom(); location.href = state.game_url;
         } catch (error) { showError(error); }
         finally { pending = false; button.disabled = false; }

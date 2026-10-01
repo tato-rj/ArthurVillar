@@ -1,4 +1,4 @@
-<div class="game-card col-lg-4 col-md-6 col-11 g-3" data-game-card="{{$settings->gameSlug()}}" data-game-url="{{$settings->gameUrl()}}" data-game-defaults="{{json_encode($settings->replayOptions())}}">
+<div class="game-card col-lg-4 col-md-6 col-12 g-3" data-game-card="{{$settings->gameSlug()}}" data-game-url="{{$settings->gameUrl()}}" data-game-defaults="{{json_encode($settings->replayOptions())}}">
     <div class="mb-4 bg-white border border-dark p-3 rounded h-100 d-flex flex-column justify-content-between">
         <div>
             <div class="d-flex justify-content-between">
