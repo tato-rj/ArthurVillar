@@ -46,9 +46,9 @@
             <div class="game-header mb-4 px-4 position-relative">
                 <h1>Music Theory Challenges</h1>
                 <p>Interactive games for practicing core music theory skills</p>
-                <div>
+{{--                 <div>
                     <a href="{{route('theory.open-staff.play')}}" class="btn btn-outline-secondary">@fa(['icon' => 'chalkboard'])Open Staff</a>
-                </div>
+                </div> --}}
 
                 @include('theory.profile.avatar')
             </div>
