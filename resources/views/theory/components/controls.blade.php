@@ -50,9 +50,9 @@
           <button data-bs-toggle="modal" data-bs-target="#{{str_slug($settings->gameName())}}-settings-modal" class="btn btn-white w-100" @disabled(isset($duelState))>@fa(['icon' => 'gear'])Settings</button>
         </div>
       </div>
-      @unless($settings->gameName() == 'Open Staff')
+{{--       @unless($settings->gameName() == 'Open Staff')
       <button type="button" data-duel-join class="btn btn-white w-100 mt-3">Join a Duel</button>
-      @endunless
+      @endunless --}}
     @endunless
   </div>
 </div>
