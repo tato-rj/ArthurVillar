@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Listening;
 
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use App\Http\Controllers\Controller;
 use App\Models\Listening\{Recording, Period, Composer, Playlist};
 use App\Tools\Cropper\ImageUpload;
@@ -28,7 +29,7 @@ class RecordingsController extends Controller
             'end_time' => 'nullable|string',
             'period_id' => 'required',
             'composer_id' => 'required'
-        ]);
+        ], ['audio.uploaded' => $this->audioUploadError($request)]);
 
         $audioPath = $request->hasFile('audio')
             ? $request->file('audio')->store('recordings/audio', 'public')
@@ -89,7 +90,7 @@ class RecordingsController extends Controller
             'audio' => 'nullable|file|mimes:mp3',
             'period_id' => 'required',
             'composer_id' => 'required'
-        ]);
+        ], ['audio.uploaded' => $this->audioUploadError($request)]);
 
         $recording->update([
             'name' => $request->name,
@@ -115,6 +116,17 @@ class RecordingsController extends Controller
                                                        ->upload()]);
 
         return back()->with('success', 'The recording was successully updated');
+    }
+
+    private function audioUploadError(Request $request): string
+    {
+        $file = $request->file('audio');
+
+        return match ($file instanceof UploadedFile ? $file->getError() : null) {
+            UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => 'The MP3 exceeds the server upload limit of ' . formatBytes(UploadedFile::getMaxFilesize()) . '. Please choose a smaller file or increase the server upload limit.',
+            UPLOAD_ERR_PARTIAL => 'The MP3 upload was interrupted. Please select the file and try again.',
+            default => 'The server could not receive the MP3. Please select the file and try again.',
+        };
     }
 
     public function syncPlaylists(Request $request, Recording $recording)
