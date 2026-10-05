@@ -15,11 +15,11 @@ class TheoryMicrophoneTest extends TestCase
         $user = User::factory()->create(['email' => User::ARTHUR_EMAIL]);
         $this->actingAs($user);
 
-        $this->get(route('theory.mic.index'))->assertOk()
+        $this->get(route('admin.theory.mic.index'))->assertOk()
             ->assertSee('value="65"', false)
             ->assertSee('value="700"', false);
 
-        $this->patchJson(route('theory.mic.update'), [
+        $this->patchJson(route('admin.theory.mic.update'), [
             'sensitivity' => 83,
             'settleMs' => 1500,
         ])->assertOk()->assertJsonPath('settings.sensitivity', 83)
@@ -49,16 +49,16 @@ class TheoryMicrophoneTest extends TestCase
 
     public function test_settings_are_private_and_invalid_values_are_rejected(): void
     {
-        $this->get(route('theory.mic.index'))->assertRedirect();
-        $this->patchJson(route('theory.mic.update'), ['sensitivity' => 100, 'settleMs' => 700])->assertUnauthorized();
+        $this->get(route('admin.theory.mic.index'))->assertRedirect();
+        $this->patchJson(route('admin.theory.mic.update'), ['sensitivity' => 100, 'settleMs' => 700])->assertUnauthorized();
 
-        $this->actingAs(User::factory()->create())->patchJson(route('theory.mic.update'), [
+        $this->actingAs(User::factory()->create())->patchJson(route('admin.theory.mic.update'), [
             'sensitivity' => 90,
             'settleMs' => 1400,
         ])->assertForbidden();
 
         $user = User::factory()->create(['email' => User::ARTHUR_EMAIL]);
-        $this->actingAs($user)->patchJson(route('theory.mic.update'), [
+        $this->actingAs($user)->patchJson(route('admin.theory.mic.update'), [
             'sensitivity' => 101,
             'settleMs' => 100,
         ])->assertUnprocessable()->assertJsonValidationErrors(['sensitivity', 'settleMs']);

@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
 
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -18,7 +20,7 @@ class UsersController extends Controller
             ->latest()
             ->paginate(20);
 
-        return view('external.users.index', compact('users'));
+        return view('admin.users.index', compact('users'));
     }
 
     public function show(User $user)
@@ -33,14 +35,14 @@ class UsersController extends Controller
             },
         ]);
 
-        return view('external.users.show', compact('user'));
+        return view('admin.users.show', compact('user'));
     }
 
     public function edit(User $user)
     {
         $this->ensureManageable($user);
 
-        return view('external.users.edit', compact('user'));
+        return view('admin.users.edit', compact('user'));
     }
 
     public function update(Request $request, User $user)
@@ -68,7 +70,7 @@ class UsersController extends Controller
         $user->update($data);
 
         return redirect()
-            ->route('users.accounts.show', $user)
+            ->route('admin.users.accounts.show', $user)
             ->with('success', 'The account was successfully updated');
     }
 
@@ -79,7 +81,7 @@ class UsersController extends Controller
         $user->delete();
 
         return redirect()
-            ->route('users.home')
+            ->route('admin.users.index')
             ->with('success', 'The account was successfully deleted');
     }
 

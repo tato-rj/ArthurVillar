@@ -7,12 +7,12 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Tests\BaseTest;
 
-class ExternalUsersTest extends BaseTest
+class AdminUsersTest extends BaseTest
 {
     /** @test */
-    public function the_users_domain_has_login_but_not_registration()
+    public function the_admin_domain_has_login_but_not_registration()
     {
-        $usersUrl = 'http://users.'.config('app.domain');
+        $usersUrl = 'http://admin.'.config('app.domain');
 
         $this->get($usersUrl.'/login')
             ->assertOk()
@@ -44,7 +44,7 @@ class ExternalUsersTest extends BaseTest
             'password' => 'Scheduler-password-123',
         ];
 
-        $this->post('http://users.'.config('app.domain').'/login', $credentials)
+        $this->post('http://admin.'.config('app.domain').'/login', $credentials)
             ->assertSessionHasErrors('email');
         $this->assertGuest();
 
@@ -58,9 +58,9 @@ class ExternalUsersTest extends BaseTest
     }
 
     /** @test */
-    public function arthur_can_log_in_on_the_users_domain_and_scheduler_users_cannot_access_it()
+    public function arthur_can_log_in_on_the_admin_domain_and_scheduler_users_cannot_access_it()
     {
-        $usersUrl = 'http://users.'.config('app.domain');
+        $usersUrl = 'http://admin.'.config('app.domain');
         $schedulerUser = User::factory()->create();
 
         $this->actingAs($schedulerUser)
@@ -80,15 +80,15 @@ class ExternalUsersTest extends BaseTest
         $this->post($usersUrl.'/login', [
             'email' => $arthur->email,
             'password' => 'Arthur-password-123',
-        ])->assertRedirect(route('users.home'));
+        ])->assertRedirect(route('admin.home'));
 
         $this->assertAuthenticatedAs($arthur);
     }
 
     /** @test */
-    public function guests_are_redirected_to_the_users_domain_login_page()
+    public function guests_are_redirected_to_the_admin_domain_login_page()
     {
-        $usersUrl = 'http://users.'.config('app.domain');
+        $usersUrl = 'http://admin.'.config('app.domain');
 
         $this->get($usersUrl)
             ->assertRedirect($usersUrl.'/login');
@@ -116,36 +116,36 @@ class ExternalUsersTest extends BaseTest
 
         $this->actingAs($arthur);
 
-        $this->get(route('users.home'))
+        $this->get(route('admin.users.index'))
             ->assertOk()
             ->assertSee('Scheduler Person')
             ->assertSee('person@example.com')
             ->assertDontSee(User::ARTHUR_EMAIL);
 
-        $this->get(route('users.accounts.show', $user))
+        $this->get(route('admin.users.accounts.show', $user))
             ->assertOk()
             ->assertSee('Scheduler Person')
             ->assertSee('Weekend plans');
 
-        $this->get(route('users.accounts.edit', $user))
+        $this->get(route('admin.users.accounts.edit', $user))
             ->assertOk()
             ->assertSee('Edit account')
             ->assertSee('person@example.com');
 
-        $this->patch(route('users.accounts.update', $user), [
+        $this->patch(route('admin.users.accounts.update', $user), [
             'name' => 'Updated Person',
             'email' => 'updated@example.com',
             'password' => 'Updated-password-123',
             'password_confirmation' => 'Updated-password-123',
-        ])->assertRedirect(route('users.accounts.show', $user));
+        ])->assertRedirect(route('admin.users.accounts.show', $user));
 
         $user->refresh();
         $this->assertSame('Updated Person', $user->name);
         $this->assertSame('updated@example.com', $user->email);
         $this->assertTrue(Hash::check('Updated-password-123', $user->password));
 
-        $this->delete(route('users.accounts.destroy', $user))
-            ->assertRedirect(route('users.home'));
+        $this->delete(route('admin.users.accounts.destroy', $user))
+            ->assertRedirect(route('admin.users.index'));
 
         $this->assertDatabaseMissing('users', ['id' => $user->id]);
         $this->assertDatabaseMissing('schedulers', ['id' => $scheduler->id]);
@@ -153,7 +153,7 @@ class ExternalUsersTest extends BaseTest
     }
 
     /** @test */
-    public function the_arthur_account_cannot_be_managed_from_the_users_area()
+    public function the_arthur_account_cannot_be_managed_from_the_admin_area()
     {
         $arthur = User::factory()->create([
             'email' => User::ARTHUR_EMAIL,
@@ -161,13 +161,13 @@ class ExternalUsersTest extends BaseTest
 
         $this->actingAs($arthur);
 
-        $this->get(route('users.accounts.show', $arthur))->assertForbidden();
-        $this->get(route('users.accounts.edit', $arthur))->assertForbidden();
-        $this->patch(route('users.accounts.update', $arthur), [
+        $this->get(route('admin.users.accounts.show', $arthur))->assertForbidden();
+        $this->get(route('admin.users.accounts.edit', $arthur))->assertForbidden();
+        $this->patch(route('admin.users.accounts.update', $arthur), [
             'name' => 'Changed',
             'email' => 'changed@example.com',
         ])->assertForbidden();
-        $this->delete(route('users.accounts.destroy', $arthur))->assertForbidden();
+        $this->delete(route('admin.users.accounts.destroy', $arthur))->assertForbidden();
 
         $this->assertDatabaseHas('users', [
             'id' => $arthur->id,

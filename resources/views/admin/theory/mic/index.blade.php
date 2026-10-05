@@ -6,7 +6,7 @@
 
     <p class="text-center mb-4">Set your phone or tablet where you play, then test a note at your normal volume. Changes take effect in the test immediately; saved settings apply to every player in all microphone games.</p>
 
-    <form id="microphone-settings" data-save-url="{{ route('theory.mic.update') }}">
+    <form id="microphone-settings" data-save-url="{{ route('admin.theory.mic.update') }}">
         <div class="card p-4 mb-4">
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <label for="mic-sensitivity" class="fw-bold mb-0">Sensitivity</label>

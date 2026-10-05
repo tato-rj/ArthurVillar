@@ -29,9 +29,9 @@
                         <td>{{ $user->schedulers_count }}</td>
                         <td>{{ $user->created_at->format('M j, Y') }}</td>
                         <td class="text-end pe-3 text-nowrap">
-                            <a class="btn btn-sm btn-outline-dark" href="{{ route('users.accounts.show', $user) }}">View</a>
-                            <a class="btn btn-sm btn-outline-dark" href="{{ route('users.accounts.edit', $user) }}">Edit</a>
-                            <form class="d-inline" method="POST" action="{{ route('users.accounts.destroy', $user) }}" onsubmit="return confirm('Delete this account and all of its invitations?')">
+                            <a class="btn btn-sm btn-outline-dark" href="{{ route('admin.users.accounts.show', $user) }}">View</a>
+                            <a class="btn btn-sm btn-outline-dark" href="{{ route('admin.users.accounts.edit', $user) }}">Edit</a>
+                            <form class="d-inline" method="POST" action="{{ route('admin.users.accounts.destroy', $user) }}" onsubmit="return confirm('Delete this account and all of its invitations?')">
                                 @csrf
                                 @method('DELETE')
                                 <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>

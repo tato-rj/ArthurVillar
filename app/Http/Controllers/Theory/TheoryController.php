@@ -14,11 +14,6 @@ class TheoryController extends Controller
         return view('theory.index');
     }
 
-    public function audio()
-    {
-        return view('theory.audio.index');
-    }
-
     public function intervalsLab(Request $request)
     {
         $settings = new IntervalsLabSettings($request->all());

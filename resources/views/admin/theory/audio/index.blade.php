@@ -9,7 +9,7 @@
         @pagetitle(['label' => 'Audio Control'])
 
         <div class="row" id="sound-effects-list">
-                @include('theory.audio.control')
+                @include('admin.theory.audio.control')
         </div>
 </section>
 @endsection

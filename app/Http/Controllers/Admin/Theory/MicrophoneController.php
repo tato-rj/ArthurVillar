@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Theory;
+namespace App\Http\Controllers\Admin\Theory;
 
 use App\Games\MicrophoneSettings;
 use App\Http\Controllers\Controller;
@@ -10,7 +10,7 @@ class MicrophoneController extends Controller
 {
     public function index()
     {
-        return view('theory.mic.index', [
+        return view('admin.theory.mic.index', [
             'microphoneSettings' => MicrophoneSettings::current(),
         ]);
     }

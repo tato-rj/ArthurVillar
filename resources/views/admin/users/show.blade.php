@@ -4,13 +4,13 @@
 <section class="container py-5">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
         <div>
-            <a class="small" href="{{ route('users.home') }}">&larr; All users</a>
+            <a class="small" href="{{ route('admin.users.index') }}">&larr; All users</a>
             <h1 class="mt-2 mb-1">{{ $user->name }}</h1>
             <a href="mailto:{{ $user->email }}">{{ $user->email }}</a>
         </div>
         <div>
-            <a class="btn btn-outline-dark" href="{{ route('users.accounts.edit', $user) }}">Edit account</a>
-            <form class="d-inline" method="POST" action="{{ route('users.accounts.destroy', $user) }}" onsubmit="return confirm('Delete this account and all of its invitations?')">
+            <a class="btn btn-outline-dark" href="{{ route('admin.users.accounts.edit', $user) }}">Edit account</a>
+            <form class="d-inline" method="POST" action="{{ route('admin.users.accounts.destroy', $user) }}" onsubmit="return confirm('Delete this account and all of its invitations?')">
                 @csrf
                 @method('DELETE')
                 <button class="btn btn-danger" type="submit">Delete account</button>

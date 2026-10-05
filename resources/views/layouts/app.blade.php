@@ -41,7 +41,7 @@
         
         <link href="{{ mix('css/app.css') }}" rel="stylesheet">
 
-        @if(in_array(subdomain(), ['calendar', 'theory'], true))
+        @if(subdomain(['calendar', 'theory']))
             <link href="{{ mix('css/offline.css') }}" rel="stylesheet">
         @endif
 
@@ -50,17 +50,17 @@
     <body class="antialiased">
         @include('layouts.overlay')
 
-        @if(in_array(subdomain(), ['calendar', 'theory'], true))
+        @if(subdomain(['calendar', 'theory']))
             @include('layouts.offline')
         @endif
 
-        @unless(isset($noMenu))
+        @if(subdomain(['calendar', 'listening', 'admin']))
         <div class="app-menu-container position-absolute top-0 right-0 py-4 pr-4 pl-2 z-10">
             @auth
             @includeIf('layouts.menu.'.subdomain())
             @endauth
         </div>
-        @endunless
+        @endif
 
         @yield('content')
 
@@ -72,7 +72,7 @@
 
         <script src="{{ mix('js/app.js') }}"></script>
 
-        @if(in_array(subdomain(), ['calendar', 'theory'], true))
+        @if(subdomain(['calendar', 'theory']))
             <script src="{{ mix('js/offline.js') }}"></script>
         @endif
 

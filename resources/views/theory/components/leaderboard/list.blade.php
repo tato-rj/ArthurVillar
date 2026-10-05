@@ -1,10 +1,4 @@
-@if(($adminLeaderboard ?? false) && auth()->check())
-    @forelse($leaderboard as $player)
-        @include('theory.leaderboards.entry')
-    @empty
-        <div class="leaderboard-empty">No scores yet. Be the first!</div>
-    @endforelse
-@elseif($leaderboard->isEmpty())
+@if($leaderboard->isEmpty())
     <div class="leaderboard-empty">
         <span class="leaderboard-empty__icon" aria-hidden="true">@fa(['icon' => 'ranking-star', 'mr' => 0])</span>
         <p>No scores yet. Be the first!</p>

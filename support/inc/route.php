@@ -10,7 +10,7 @@ function subdomain($current = null)
 	$subdomain = array_first(explode('.', request()->getHost()));
 
 	if ($current)
-		return $subdomain == $current;
+		return in_array($subdomain, (array) $current);
 
 	return $subdomain;
 }

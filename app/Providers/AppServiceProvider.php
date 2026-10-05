@@ -100,7 +100,7 @@ class AppServiceProvider extends ServiceProvider
             $view->with('duelState', $state);
         });
 
-        \View::composer(['theory.leaderboards.index', 'theory.index'], function($view) {
+        \View::composer(['admin.theory.leaderboards.index', 'theory.index'], function($view) {
             $view->with([
                 'games' => collect([
                     new \App\Games\IntervalsLabSettings,

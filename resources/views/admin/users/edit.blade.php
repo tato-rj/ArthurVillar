@@ -4,10 +4,10 @@
 <section class="container py-5">
     <div class="row">
         <div class="col-lg-6 col-xl-5 mx-auto">
-            <a class="small" href="{{ route('users.accounts.show', $user) }}">&larr; Back to account</a>
+            <a class="small" href="{{ route('admin.users.accounts.show', $user) }}">&larr; Back to account</a>
             <h1 class="mt-2 mb-4">Edit account</h1>
 
-            <form method="POST" action="{{ route('users.accounts.update', $user) }}">
+            <form method="POST" action="{{ route('admin.users.accounts.update', $user) }}">
                 @csrf
                 @method('PATCH')
 

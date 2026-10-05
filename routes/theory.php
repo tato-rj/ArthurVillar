@@ -8,26 +8,6 @@ Route::get('/_connectivity', function () {
 		->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
 })->name('connectivity');
 
-Route::middleware('auth')->group(function() {
-	Route::get('audio', 'TheoryController@audio')->name('audio.index');
-
-	Route::get('tournaments', 'TheoryController@home')->name('tournaments.index');
-
-	Route::get('stats', 'TheoryController@home')->name('stats.index');
-
-	Route::prefix('mic')->name('mic.')->middleware('arthur')->group(function() {
-		Route::get('', 'MicrophoneController@index')->name('index');
-
-		Route::patch('', 'MicrophoneController@update')->name('update');
-	});
-
-	Route::prefix('leaderboard')->name('leaderboard.')->group(function() {
-		Route::get('', 'LeaderboardsController@index')->name('index');
-
-		Route::delete('{player}', 'LeaderboardsController@destroy')->name('destroy');
-	});
-});
-
 Route::get('', 'TheoryController@home')->name('home');
 
 Route::get('open-staff', 'TheoryController@openStaff')->name('open-staff.play');
