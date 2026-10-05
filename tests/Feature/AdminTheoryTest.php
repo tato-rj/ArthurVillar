@@ -16,6 +16,7 @@ class AdminTheoryTest extends TestCase
             'admin.theory.mic.index',
             'admin.theory.audio.index',
             'admin.theory.leaderboard.index',
+            'admin.theory.duels.index',
             'admin.theory.leaderboard.show',
             'admin.theory.tournaments.index',
             'admin.theory.stats.index',

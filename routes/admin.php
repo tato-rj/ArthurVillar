@@ -20,6 +20,15 @@ Route::prefix('theory')->name('theory.')->namespace('Theory')->group(function ()
     Route::get('tournaments', 'TheoryController@tournaments')->name('tournaments.index');
     Route::get('stats', 'TheoryController@stats')->name('stats.index');
 
+    Route::prefix('duels')->name('duels.')->group(function () {
+        Route::get('', 'DuelsController@index')->name('index');
+        Route::get('table', 'DuelsController@table')->name('table');
+        Route::get('history/{archive}', 'DuelsController@showArchive')->name('history.show');
+        Route::delete('history/{archive}', 'DuelsController@destroyArchive')->name('history.destroy');
+        Route::get('{duel}', 'DuelsController@show')->name('show');
+        Route::delete('{duel}', 'DuelsController@destroy')->name('destroy');
+    });
+
     Route::prefix('mic')->name('mic.')->group(function () {
         Route::get('', 'MicrophoneController@index')->name('index');
         Route::patch('', 'MicrophoneController@update')->name('update');

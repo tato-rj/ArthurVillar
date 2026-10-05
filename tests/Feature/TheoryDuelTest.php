@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Events\Theory\DuelAnswerSubmitted;
 use App\Events\Theory\DuelUpdated;
 use App\Theory\Duels\Duel;
+use App\Theory\Duels\DuelArchive;
 use App\Theory\Duels\DuelPlayer;
 use App\Theory\Duels\GameRegistry;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -330,6 +331,15 @@ class TheoryDuelTest extends TestCase
         $this->mutate($room, 'rematch', ['seed' => $room['seed']])->assertOk()->assertJsonPath('revision', $accepted['revision']);
         $this->switchSession($host);
         $next = $this->mutate($room, 'rematch', ['seed' => $room['seed']])->assertOk()->assertJsonPath('status', 'countdown')->json();
+        $archive = DuelArchive::sole();
+        $this->assertSame($room['id'], $archive->duel_id);
+        $this->assertSame($room['seed'], $archive->seed);
+        $this->assertSame('finished', $archive->status);
+        $this->assertSame([12, 12], collect($archive->snapshot['players'])->pluck('score')->all());
+        $this->assertSame([100, 100], collect($archive->snapshot['players'])->pluck('result.accuracy')->all());
+        $this->assertNotNull($archive->snapshot['finished_at']);
+        $this->assertStringNotContainsString('token_hash', json_encode($archive->snapshot));
+        $this->assertStringNotContainsString('connection_id', json_encode($archive->snapshot));
         $this->assertSame($room['id'], $next['id']);
         $this->assertSame($room['settings'], $next['settings']);
         $this->assertSame($room['game_url'], $next['game_url']);
@@ -349,6 +359,7 @@ class TheoryDuelTest extends TestCase
         $this->auth($room)->assertOk();
         // Lost responses and delayed gameplay from the previous run cannot alter this run.
         $this->mutate($room, 'rematch', ['seed' => $room['seed']])->assertOk()->assertJsonPath('seed', $next['seed']);
+        $this->assertSame(1, DuelArchive::count());
         $this->travel(5)->seconds();
         $this->mutate($room, 'progress', ['seed' => $room['seed'], 'sequence' => 1, 'progress' => 1, 'score' => 3])->assertConflict();
         $this->mutate($room, 'progress', ['seed' => $next['seed'], 'sequence' => 1, 'progress' => 1, 'score' => 3])->assertOk();
@@ -405,7 +416,8 @@ class TheoryDuelTest extends TestCase
         $this->assertNull(Duel::find($room['id'])->join_code);
         $this->travel(8)->days();
         $this->artisan('theory:cleanup-duels')->assertExitCode(0);
-        $this->assertSame(0, Duel::count());
+        $this->assertSame(2, Duel::count());
+        $this->assertSame(0, Duel::whereNotIn('status', [Duel::CANCELLED, Duel::EXPIRED])->count());
     }
 
     public function test_either_player_can_leave_and_the_opponent_is_notified(): void

@@ -104,6 +104,14 @@ class DuelService
                 }
                 $player->update(['rematch_at' => now(), 'last_seen_at' => now()]);
                 if ($duel->players()->whereNotNull('rematch_at')->count() === 2) {
+                    // Snapshot the finished match before resetting the shared room.
+                    // Player serialization excludes credentials and connection identifiers.
+                    DuelArchive::create([
+                        'id' => (string) Str::uuid(), 'duel_id' => $duel->id,
+                        'game' => $duel->game, 'status' => $duel->status, 'seed' => $duel->seed,
+                        'played_at' => $duel->starts_at ?? $duel->created_at,
+                        'snapshot' => $duel->load('players')->toArray(),
+                    ]);
                     $duel->update(['seed' => bin2hex(random_bytes(16)), 'status' => Duel::COUNTDOWN,
                         'starts_at' => now()->addSeconds(4), 'finished_at' => null, 'expires_at' => now()->addMinutes(15)]);
                     $duel->players()->update(['ready_at' => now(), 'progress' => 0, 'score' => 0, 'sequence' => 0,
@@ -315,9 +323,8 @@ class DuelService
                 $count++;
             });
         });
-        // Abandoned active games retain their state for a day; finished records for seven days.
+        // Close abandoned games after a day, retaining all records for Admin history.
         Duel::whereIn('status', [Duel::COUNTDOWN, Duel::PLAYING])->where('updated_at', '<', now()->subDay())->update(['status' => Duel::EXPIRED, 'join_code' => null, 'finished_at' => now()]);
-        Duel::whereIn('status', [Duel::FINISHED, Duel::CANCELLED, Duel::EXPIRED])->where('finished_at', '<', now()->subDays(7))->delete();
 
         return $count;
     }
