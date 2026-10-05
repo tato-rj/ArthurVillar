@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin\Theory;
 use App\Http\Controllers\Controller;
 use App\Theory\Duels\Duel;
 use App\Theory\Duels\DuelArchive;
+use App\Theory\Duels\DuelDetails;
 use App\Theory\Duels\GameRegistry;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -79,29 +80,71 @@ class DuelsController extends Controller
     private function details(Duel $duel, bool $archived = false)
     {
         $game = $this->games()[$duel->game] ?? str($duel->game)->headline()->toString();
+        $gameSettings = isset(GameRegistry::GAMES[$duel->game]) ? GameRegistry::settings($duel->game) : null;
+        $gameIcon = $gameSettings?->gameIcon() ?? 'gamepad';
+        $gameTheme = $gameSettings?->gameTheme() ?? 'blue';
         $status = $this->statusLabel($duel->status);
+        $terminal = in_array($duel->status, [Duel::FINISHED, Duel::CANCELLED, Duel::EXPIRED]);
         $timezone = config('calendar.timezone');
-        $formatTime = fn ($time) => $time?->copy()->timezone($timezone)->format('M j, Y, g:i:s A') ?? '—';
+        $day = ($duel->starts_at ?? $duel->created_at)->copy()->timezone($timezone);
+        $formatTime = function ($time) use ($day, $timezone) {
+            if (! $time) {
+                return '—';
+            }
+            $local = $time->copy()->timezone($timezone);
+            $format = $local->isSameDay($day) ? 'g:i:s A'
+                : ($local->year === $day->year ? 'M j, g:i:s A' : 'M j, Y, g:i:s A');
+
+            return $local->format($format);
+        };
         $duration = function ($finishedAt) use ($duel) {
             if (! $duel->starts_at || ! $finishedAt) {
                 return '—';
             }
             $seconds = max(0, (int) floor(($finishedAt->getTimestampMs() - $duel->starts_at->getTimestampMs()) / 1000));
 
-            return sprintf('%02d:%02d', intdiv($seconds, 60), $seconds % 60);
+            if ($seconds < 60) {
+                return $seconds.' sec';
+            }
+            if ($seconds < 3600) {
+                return intdiv($seconds, 60).' min'.($seconds % 60 ? ' '.($seconds % 60).' sec' : '');
+            }
+
+            return intdiv($seconds, 3600).' hr'.(intdiv($seconds % 3600, 60) ? ' '.intdiv($seconds % 3600, 60).' min' : '');
         };
-        $outcome = 'Not completed';
+        $winner = null;
+        $outcome = $duel->status === Duel::FINISHED ? 'Completed' : 'Not completed';
+        $outcomeNote = match ($duel->status) {
+            Duel::WAITING => 'Waiting for an opponent to join.',
+            Duel::READY => 'Both players joined. The game has not started yet.',
+            Duel::COUNTDOWN => 'Both players are getting ready to play.',
+            Duel::PLAYING => 'The duel is still in progress.',
+            Duel::CANCELLED => $duel->left_by ? ucfirst($duel->left_by).' left before the duel was completed.' : 'This duel was cancelled.',
+            Duel::EXPIRED => 'This duel expired before both players finished.',
+            default => 'Results were not recorded for both players.',
+        };
         if ($duel->status === Duel::FINISHED && $duel->players->count() === 2
             && $duel->players->every(fn ($player) => $player->finished_at && isset($player->result['accuracy']))) {
             $host = $duel->players->firstWhere('role', 'host');
             $guest = $duel->players->firstWhere('role', 'guest');
             if ($host && $guest) {
                 $difference = ($host->score - $guest->score) ?: ($host->result['accuracy'] - $guest->result['accuracy']);
-                $outcome = $difference > 0 ? 'Host won' : ($difference < 0 ? 'Guest won' : 'Draw');
+                $winner = $difference > 0 ? 'host' : ($difference < 0 ? 'guest' : null);
+                $outcome = $winner ? ucfirst($winner).' won' : 'Draw';
+                $points = abs($host->score - $guest->score);
+                $outcomeNote = $points ? 'A lead of '.$points.' '.str('point')->plural($points).'.'
+                    : ($winner ? 'Same score — higher accuracy broke the tie.' : 'Both players earned the same score and accuracy.');
             }
         }
 
-        return view('admin.theory.duels.show', compact('duel', 'game', 'status', 'timezone', 'formatTime', 'duration', 'outcome', 'archived'));
+        $settingFields = DuelDetails::fields($duel->settings ?? [], $formatTime);
+        $activityFields = $duel->players->mapWithKeys(fn ($player) => [$player->role => [
+            'result' => DuelDetails::fields(array_diff_key($player->result ?? [], array_flip(['score', 'accuracy'])), $formatTime),
+            'checkpoint' => DuelDetails::fields($player->checkpoint ?? [], $formatTime),
+        ]]);
+
+        return view('admin.theory.duels.show', compact('duel', 'game', 'gameIcon', 'gameTheme', 'status', 'timezone',
+            'day', 'formatTime', 'duration', 'outcome', 'outcomeNote', 'winner', 'settingFields', 'activityFields', 'archived', 'terminal'));
     }
 
     public function destroy(Request $request, Duel $duel)

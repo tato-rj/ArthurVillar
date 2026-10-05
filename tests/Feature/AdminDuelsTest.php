@@ -134,12 +134,51 @@ class AdminDuelsTest extends TestCase
         foreach ([route('admin.theory.duels.show', $duel), route('admin.theory.duels.history.show', $archive)] as $url) {
             $this->get($url)->assertOk()->assertViewIs('admin.theory.duels.show')
                 ->assertSee('duel-info-modal')->assertSee('Host won')->assertSee('100%')->assertSee('80%')
-                ->assertSee('01:30')->assertSee('10:00:00 AM')->assertSee('Number of rounds')->assertSee('Sound')
-                ->assertSee('checksCorrect')->assertDontSee(str_repeat('a', 64))->assertDontSee(str_repeat('c', 32))
+                ->assertSee('1 min 30 sec')->assertSee('10:00:00 AM')->assertSee('Number of rounds')->assertSee('Sound')
+                ->assertSee('Correct answers')->assertSee('higher accuracy broke the tie')
+                ->assertDontSee(str_repeat('a', 64))->assertDontSee(str_repeat('c', 32))
                 ->assertDontSee('token_hash')->assertDontSee('connection_id');
         }
         $this->get(route('admin.theory.duels.show', $this->duel(['status' => Duel::WAITING, 'starts_at' => null, 'finished_at' => null])))
             ->assertOk()->assertSee('Not joined')->assertSee('Not completed');
+    }
+
+    public function test_details_use_one_date_and_readable_escaped_nested_values(): void
+    {
+        $duel = $this->duel([
+            'starts_at' => '2026-10-05 14:00:00', 'finished_at' => '2026-10-05 14:01:30',
+            'created_at' => '2026-10-05 13:59:00', 'updated_at' => '2026-10-05 14:01:30',
+            'expires_at' => '2026-10-05 14:15:00',
+            'settings' => ['numOfChallenges' => 5, 'clefs' => ['treble', 'bass'], 'intervals' => ['m2', 'M2'],
+                'timer' => true, 'sound' => false, 'timeLimit' => 20, 'fixedNotes' => [],
+                'customSettings' => ['message' => '<script>alert(1)</script>', 'value' => null]],
+        ]);
+        $duel->players()->create([
+            'role' => 'host', 'token_hash' => str_repeat('a', 64), 'score' => 10, 'progress' => 2,
+            'created_at' => '2026-10-05 13:59:00', 'updated_at' => '2026-10-05 14:01:30',
+            'checkpoint' => ['_stats' => ['checksTotal' => 3, 'checksCorrect' => 2],
+                '_targetSequence' => [['name' => 'C4'], ['name' => 'D4']],
+                'finishedAtMs' => \Carbon\Carbon::parse('2026-10-05 14:01:30', 'UTC')->getTimestampMs()],
+        ]);
+        $this->signIn();
+        $response = $this->get(route('admin.theory.duels.show', $duel))->assertOk()
+            ->assertSee('Monday, Oct 5, 2026')->assertSee('10:00:00 AM')->assertSee('10:01:30 AM')
+            ->assertSee('Treble')->assertSee('Bass')->assertSee('Minor 2nd')->assertSee('Major 2nd')
+            ->assertSee('20 sec')->assertSee('Random notes')->assertSee('Yes')->assertSee('No')
+            ->assertSee('Custom Settings')->assertSee('Not recorded')->assertSee('<script>alert(1)</script>')
+            ->assertDontSee('<script>alert(1)</script>', false)->assertDontSee('[&quot;treble&quot;', false)
+            ->assertSee('Attempts')->assertSee('Correct answers')->assertSee('Note sequence')->assertSee('C4')->assertSee('D4')
+            ->assertSee('points so far')->assertSee('Did not finish')->assertDontSee('Host won');
+        $this->assertSame(1, substr_count($response->getContent(), 'Oct 5, 2026'));
+    }
+
+    public function test_details_keep_the_date_when_an_event_crosses_midnight(): void
+    {
+        $duel = $this->duel(['starts_at' => '2026-10-06 03:59:00', 'finished_at' => '2026-10-06 04:01:00']);
+        $this->signIn();
+        $this->get(route('admin.theory.duels.show', $duel))->assertOk()
+            ->assertSee('Monday, Oct 5, 2026')->assertSee('11:59:00 PM')->assertSee('Oct 6, 12:01:00 AM')
+            ->assertSee('2 min');
     }
 
     public function test_deleting_a_match_removes_its_players_but_preserves_other_history(): void
