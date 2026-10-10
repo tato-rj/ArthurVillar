@@ -126,7 +126,7 @@ img {
     </div>
     <div class="row">
       <div class="col-lg-6 col-12 order-lg-1 order-2 d-flex mb-3">
-        <button id="player-about" data-bs-toggle="modal" data-bs-target="#recording-{{$recording->id}}-about-modal" class="btn btn-sm btn-outline-secondary mr-2">About</button>
+        {{-- <button id="player-about" data-bs-toggle="modal" data-bs-target="#recording-{{$recording->id}}-about-modal" class="btn btn-sm btn-outline-secondary mr-2">About</button> --}}
         <button id="player-composer-button" data-bs-toggle="modal" data-bs-target="#recording-{{$recording->id}}-composer-modal" class="btn btn-sm btn-outline-secondary mr-2">Composer</button>
         <a id="player-youtube" href="{{$recording->source_url}}" target="_blank" class="btn btn-sm btn-outline-secondary {{$recording->source_url ? '' : 'd-none'}}">Youtube</a>
       </div>
