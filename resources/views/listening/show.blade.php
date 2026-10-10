@@ -143,7 +143,7 @@ img {
 </section>
 
 @include('listening.components.composer')
-@include('listening.components.about')
+{{-- @include('listening.components.about') --}}
 
 @isset($playlist)
 @include('listening.components.playlist.show')
