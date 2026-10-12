@@ -7,7 +7,7 @@
     <div class="row mb-4">
         @pagetitle([
             'label' => 'Holidays',
-            'subtitle' => 'Choose which holidays block lessons on the calendar.'
+            'subtitle' => 'Choose which holidays block lessons. Holidays stay visible on the calendar.'
         ])
     </div>
 

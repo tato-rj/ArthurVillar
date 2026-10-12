@@ -5,9 +5,10 @@ namespace App\Calendar\Traits;
 use App\Models\Calendar\Holiday;
 
 trait Holidays {
-    private function nationalHolidays(int $year)
+    private function nationalHolidays(int $year, bool $observedOnly = true)
     {
-        return Holiday::observed()
+        return Holiday::query()
+            ->when($observedOnly, fn ($query) => $query->observed())
             ->orderBy('month')
             ->orderBy('day')
             ->orderBy('week_number')

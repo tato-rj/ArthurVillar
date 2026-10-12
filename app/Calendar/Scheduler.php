@@ -532,14 +532,14 @@ class Scheduler
         return ($time->hour * 60) + $time->minute;
     }
 
-    public function holidays(array $range)
+    public function holidays(array $range, bool $observedOnly = false)
     {
         $start = Carbon::parse($range['start'])->startOfDay();
         $end = Carbon::parse($range['end'])->startOfDay();
         $holidays = collect();
 
         for ($year = $start->year - 1; $year <= $end->year + 1; $year++) {
-            foreach ($this->nationalHolidays($year) as $holiday) {
+            foreach ($this->nationalHolidays($year, $observedOnly) as $holiday) {
                 if (! $holiday['date']->betweenIncluded($start, $end)) {
                     continue;
                 }
@@ -560,7 +560,7 @@ class Scheduler
 
     private function holidayDates(array $range)
     {
-        return $this->holidays($range)
+        return $this->holidays($range, true)
             ->mapWithKeys(fn ($holiday) => [$holiday['date'] => true]);
     }
 
