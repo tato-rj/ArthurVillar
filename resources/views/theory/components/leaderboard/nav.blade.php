@@ -1,4 +1,4 @@
-@php($leaderboardRange = request('range') === 'all' ? 'all' : 'week')
+@php($leaderboardRange = request('range') === 'week' ? 'week' : 'all')
 <div class="btn-group" role="group" aria-label="Leaderboard period">
     @foreach(['week' => 'Last 7 days', 'all' => 'All time'] as $range => $label)
         <div>
