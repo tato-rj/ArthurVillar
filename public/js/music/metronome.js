@@ -965,6 +965,7 @@ var beatInputs = document.querySelectorAll('[name="metronome-beats"]');
 var typeInputs = document.querySelectorAll('[name="metronome-type"]');
 var colorInput = document.querySelector('[data-settings-color]');
 var colorValue = document.querySelector('[data-color-value]');
+var colorReset = document.querySelector('[data-settings-color-reset]');
 var soundInput = document.querySelector('[data-settings-sound]');
 var conductorSvg = document.querySelector('[data-conductor]');
 var conductor = new _metronome_conductor__WEBPACK_IMPORTED_MODULE_3__.ConductorView(conductorSvg);
@@ -1230,6 +1231,11 @@ typeInputs.forEach(function (input) {
 colorInput.addEventListener('input', function () {
   return applySettings(_objectSpread(_objectSpread({}, settings), {}, {
     color: colorInput.value
+  }));
+});
+colorReset.addEventListener('click', function () {
+  return applySettings(_objectSpread(_objectSpread({}, settings), {}, {
+    color: _metronome_settings__WEBPACK_IMPORTED_MODULE_2__.DEFAULT_SETTINGS.color
   }));
 });
 soundInput.addEventListener('change', function () {

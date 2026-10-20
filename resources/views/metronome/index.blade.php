@@ -87,7 +87,10 @@
                         <label for="metronome-color">Color</label>
                         <p class="settings-color-value" data-color-value>#155EEF</p>
                     </div>
-                    <input id="metronome-color" type="color" value="#155eef" data-settings-color>
+                    <div class="settings-color-controls">
+                        <button class="settings-color-reset" type="button" data-settings-color-reset aria-label="Reset color to original blue">Reset</button>
+                        <input id="metronome-color" type="color" value="#155eef" data-settings-color>
+                    </div>
                 </div>
                 <div class="settings-field">
                     <label for="metronome-sound">Sound</label>

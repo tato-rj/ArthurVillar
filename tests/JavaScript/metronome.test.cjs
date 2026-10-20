@@ -254,6 +254,7 @@ function setupPage(savedSettings = null, { reducedMotion = false } = {}) {
     const typeInputs = ['classic', 'conductor'].map(value => element({ value }));
     const colorInput = element();
     const colorValue = element();
+    const colorReset = element();
     const soundInput = element();
     const conductorParts = Object.fromEntries(['path', 'dot', 'halo', 'markers'].map(name => [name, element()]));
     conductorParts.markers.querySelectorAll = () => [];
@@ -274,6 +275,7 @@ function setupPage(savedSettings = null, { reducedMotion = false } = {}) {
             '[data-metronome]': surface, '[data-tempo]': number, '[data-metronome-message]': message,
             '[data-settings-open]': settingsButton, '[data-settings-dialog]': settingsDialog,
             '[data-settings-color]': colorInput, '[data-color-value]': colorValue,
+            '[data-settings-color-reset]': colorReset,
             '[data-settings-sound]': soundInput, '[data-conductor]': svg, 'meta[name="theme-color"]': theme,
         })[selector],
         addEventListener: (name, callback) => { documentListeners[name] = callback; },

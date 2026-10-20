@@ -408,6 +408,27 @@ body {
   border-radius: 10px;
 }
 
+.settings-color-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.settings-color-reset {
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--metronome-settings-border);
+  border-radius: 10px;
+  background: var(--metronome-settings-background);
+  color: var(--metronome-settings-ink);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.settings-color-reset:hover {
+  background: var(--metronome-settings-hover);
+}
+
 .settings-color-value {
   margin: 0;
   color: var(--metronome-settings-ink);

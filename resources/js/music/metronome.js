@@ -14,6 +14,7 @@ const beatInputs = document.querySelectorAll('[name="metronome-beats"]');
 const typeInputs = document.querySelectorAll('[name="metronome-type"]');
 const colorInput = document.querySelector('[data-settings-color]');
 const colorValue = document.querySelector('[data-color-value]');
+const colorReset = document.querySelector('[data-settings-color-reset]');
 const soundInput = document.querySelector('[data-settings-sound]');
 const conductorSvg = document.querySelector('[data-conductor]');
 const conductor = new ConductorView(conductorSvg);
@@ -231,6 +232,7 @@ typeInputs.forEach(input => input.addEventListener('change', () => {
     if (input.checked) applySettings({ ...settings, type: input.value });
 }));
 colorInput.addEventListener('input', () => applySettings({ ...settings, color: colorInput.value }));
+colorReset.addEventListener('click', () => applySettings({ ...settings, color: DEFAULT_SETTINGS.color }));
 soundInput.addEventListener('change', () => applySettings({ ...settings, sound: soundInput.value }));
 reducedMotion.addEventListener('change', () => {
     if (reducedMotion.matches) {
