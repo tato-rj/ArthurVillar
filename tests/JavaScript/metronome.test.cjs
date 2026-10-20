@@ -64,7 +64,7 @@ function setup({ deferredResume = false, resumeError = false } = {}) {
         requestAnimationFrame() { return ++timerId; },
         cancelAnimationFrame() {},
     });
-    vm.runInContext(`${source}\nglobalThis.api = { TempoGesture, MetronomeClock, normalizeSettings, loadSettings, colorPalette, conductorPoint, conductorPreparationPoint, conductorPreparationBeats, CONDUCTING_PATTERNS };`, context);
+    vm.runInContext(`${source}\nglobalThis.api = { TempoGesture, MetronomeClock, normalizeSettings, loadSettings, loadTempo, colorPalette, conductorPoint, conductorPreparationPoint, conductorPreparationBeats, CONDUCTING_PATTERNS };`, context);
     const clock = new context.api.MetronomeClock({
         createContext: () => audio,
         onStateChange: value => states.push(value),
@@ -182,7 +182,7 @@ test('a stalled scheduler resumes without a burst of missed beats', async () => 
     assert.equal(page.oscillators[1].startTime, 10.01);
 });
 
-function setupPage(savedSettings = null, { reducedMotion = false } = {}) {
+function setupPage(savedSettings = null, { reducedMotion = false, savedTempo = null } = {}) {
     const page = setup();
     const listeners = {};
     const attributes = {};
@@ -263,6 +263,7 @@ function setupPage(savedSettings = null, { reducedMotion = false } = {}) {
     });
     const theme = element();
     const storage = new Map(savedSettings ? [['metronome.settings.v1', savedSettings]] : []);
+    if (savedTempo !== null) storage.set('metronome.tempo.v1', savedTempo);
     page.context.document = {
         documentElement: element(),
         querySelectorAll: selector => ({
@@ -614,6 +615,75 @@ test('settings apply immediately, stay readable for light colors, and persist ac
     assert.equal(next.surface.dataset.mode, 'conductor');
     assert.equal(next.soundInput.value, 'cowbell');
     assert.equal(next.colorInput.value, '#ffffff');
+});
+
+test('tempo saves after five unchanged seconds, restarts the delay on edits, and restores on reopening', () => {
+    const key = 'metronome.tempo.v1';
+    const page = setupPage(null, { savedTempo: '90' });
+    assert.equal(page.number.textContent, '90');
+    assert.equal(vm.runInContext('clock.tempo', page.context), 90);
+    page.edge(1, 'click', { detail: 0 });
+    page.tick(4999);
+    assert.equal(page.storage.get(key), '90');
+    page.edge(1, 'click', { detail: 0 });
+    page.tick(4999);
+    assert.equal(page.storage.get(key), '90', 'A new edit must restart the full five-second delay.');
+    assert.equal(setupPage(null, { savedTempo: page.storage.get(key) }).number.textContent, '90');
+    page.tick(1);
+    assert.equal(page.storage.get(key), '92');
+    const restored = setupPage(null, { savedTempo: page.storage.get(key) });
+    assert.equal(restored.number.textContent, '92');
+    assert.equal(restored.attributes['aria-label'], 'Start metronome. 92 beats per minute.');
+    assert.equal(vm.runInContext('clock.tempo', restored.context), 92);
+    assert.equal(vm.runInContext('clock.running', restored.context), false);
+});
+
+test('settings edits and playback controls preserve the tempo save deadline', async () => {
+    const page = setupPage(null, { savedTempo: '90' });
+    page.edge(1, 'click', { detail: 0 });
+    page.click();
+    await new Promise(setImmediate);
+    page.tick(3000);
+    page.colorInput.value = '#601c8e';
+    page.colorInput.listeners.input();
+    page.click();
+    assert.equal(page.storage.get('metronome.tempo.v1'), '90');
+    assert.equal(JSON.parse(page.storage.get('metronome.settings.v1')).color, '#601c8e');
+    page.tick(1999);
+    assert.equal(page.storage.get('metronome.tempo.v1'), '90');
+    page.tick(1);
+    assert.equal(page.storage.get('metronome.tempo.v1'), '91');
+    const restored = setupPage(page.storage.get('metronome.settings.v1'), {
+        savedTempo: page.storage.get('metronome.tempo.v1'),
+    });
+    assert.equal(restored.number.textContent, '91');
+    assert.equal(restored.colorInput.value, '#601c8e');
+});
+
+test('tempo persistence ignores unchanged values at the limit and tolerates unavailable storage', () => {
+    const page = setupPage(null, { savedTempo: '299' });
+    page.edge(1, 'click', { detail: 0 });
+    page.tick(3000);
+    page.edge(1, 'click', { detail: 0 });
+    page.tick(2000);
+    assert.equal(page.number.textContent, '300');
+    assert.equal(page.storage.get('metronome.tempo.v1'), '300');
+
+    const blocked = setupPage();
+    blocked.context.window.localStorage.setItem = () => { throw new Error('Blocked'); };
+    blocked.edge(1, 'click', { detail: 0 });
+    assert.doesNotThrow(() => blocked.tick(5000));
+    assert.equal(blocked.number.textContent, '121');
+});
+
+test('missing, corrupt, or out-of-range saved tempos fall back to 120 BPM', () => {
+    for (const savedTempo of [null, '', '{invalid', 'null', '"150"', 'true', '{}', '[]', '19', '301', '120.5']) {
+        assert.equal(setupPage(null, { savedTempo }).number.textContent, '120');
+    }
+    for (const savedTempo of ['20', '300']) {
+        assert.equal(setupPage(null, { savedTempo }).number.textContent, savedTempo);
+    }
+    assert.equal(setup().context.api.loadTempo({ getItem() { throw new Error('Blocked'); } }), 120);
 });
 
 test('invalid or unavailable saved settings fall back to usable defaults', () => {

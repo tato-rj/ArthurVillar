@@ -1,3 +1,5 @@
+import { DEFAULT_TEMPO, MIN_TEMPO, MAX_TEMPO } from './gesture';
+
 export const SOUND_PROFILES = {
     click: { type: 'triangle', frequency: 1400, end: 0.5, duration: 0.035, volume: 0.4, ratios: [1] },
     woodblock: { type: 'sine', frequency: 800, end: 0.92, duration: 0.065, volume: 0.45, ratios: [1, 2.76] },
@@ -7,6 +9,17 @@ export const SOUND_PROFILES = {
 
 export const DEFAULT_SETTINGS = { beats: 1, color: '#155eef', sound: 'click', type: 'classic' };
 export const SETTINGS_KEY = 'metronome.settings.v1';
+export const TEMPO_KEY = 'metronome.tempo.v1';
+
+export function loadTempo(storage) {
+    try {
+        const value = JSON.parse(storage.getItem(TEMPO_KEY));
+        return Number.isInteger(value) && value >= MIN_TEMPO && value <= MAX_TEMPO
+            ? value : DEFAULT_TEMPO;
+    } catch (error) {
+        return DEFAULT_TEMPO;
+    }
+}
 
 export function normalizeSettings(value) {
     const input = value && typeof value === 'object' ? value : {};

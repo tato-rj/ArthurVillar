@@ -712,16 +712,20 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   DEFAULT_SETTINGS: () => (/* binding */ DEFAULT_SETTINGS),
 /* harmony export */   SETTINGS_KEY: () => (/* binding */ SETTINGS_KEY),
 /* harmony export */   SOUND_PROFILES: () => (/* binding */ SOUND_PROFILES),
+/* harmony export */   TEMPO_KEY: () => (/* binding */ TEMPO_KEY),
 /* harmony export */   colorPalette: () => (/* binding */ colorPalette),
 /* harmony export */   loadSettings: () => (/* binding */ loadSettings),
+/* harmony export */   loadTempo: () => (/* binding */ loadTempo),
 /* harmony export */   normalizeSettings: () => (/* binding */ normalizeSettings)
 /* harmony export */ });
+/* harmony import */ var _gesture__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./gesture */ "./resources/js/music/metronome/gesture.js");
 function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
 function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
 function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
 function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
 function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+
 var SOUND_PROFILES = {
   click: {
     type: 'triangle',
@@ -763,6 +767,15 @@ var DEFAULT_SETTINGS = {
   type: 'classic'
 };
 var SETTINGS_KEY = 'metronome.settings.v1';
+var TEMPO_KEY = 'metronome.tempo.v1';
+function loadTempo(storage) {
+  try {
+    var value = JSON.parse(storage.getItem(TEMPO_KEY));
+    return Number.isInteger(value) && value >= _gesture__WEBPACK_IMPORTED_MODULE_0__.MIN_TEMPO && value <= _gesture__WEBPACK_IMPORTED_MODULE_0__.MAX_TEMPO ? value : _gesture__WEBPACK_IMPORTED_MODULE_0__.DEFAULT_TEMPO;
+  } catch (error) {
+    return _gesture__WEBPACK_IMPORTED_MODULE_0__.DEFAULT_TEMPO;
+  }
+}
 function normalizeSettings(value) {
   var input = value && _typeof(value) === 'object' ? value : {};
   return {
@@ -907,6 +920,7 @@ var soundInput = document.querySelector('[data-settings-sound]');
 var conductorSvg = document.querySelector('[data-conductor]');
 var conductor = new _metronome_conductor__WEBPACK_IMPORTED_MODULE_3__.ConductorView(conductorSvg);
 var tempo = _metronome_gesture__WEBPACK_IMPORTED_MODULE_1__.DEFAULT_TEMPO;
+var tempoSaveTimer = null;
 var gesture = null;
 var pointerId = null;
 var suppressClick = false;
@@ -921,6 +935,7 @@ var settingsClosing = false;
 var settings = _objectSpread({}, _metronome_settings__WEBPACK_IMPORTED_MODULE_2__.DEFAULT_SETTINGS);
 try {
   settings = (0,_metronome_settings__WEBPACK_IMPORTED_MODULE_2__.loadSettings)(window.localStorage);
+  tempo = (0,_metronome_settings__WEBPACK_IMPORTED_MODULE_2__.loadTempo)(window.localStorage);
 } catch (error) {
   // Private browsing can make storage unavailable; all controls still work.
 }
@@ -983,6 +998,7 @@ function updateLabel() {
   });
 }
 function setTempo(value) {
+  var previousTempo = tempo;
   tempo = Math.round((0,_metronome_gesture__WEBPACK_IMPORTED_MODULE_1__.clampTempo)(value));
   number.textContent = String(tempo);
   if (backgroundPulse && backgroundPulse.playState === 'running') {
@@ -991,6 +1007,19 @@ function setTempo(value) {
   }
   clock.setTempo(tempo);
   updateLabel();
+  if (tempo !== previousTempo) {
+    clearTimeout(tempoSaveTimer);
+    // Only save a tempo that has settled; settings edits and playback
+    // controls must not save an intermediate swipe value early.
+    tempoSaveTimer = setTimeout(function () {
+      tempoSaveTimer = null;
+      try {
+        window.localStorage.setItem(_metronome_settings__WEBPACK_IMPORTED_MODULE_2__.TEMPO_KEY, JSON.stringify(tempo));
+      } catch (error) {
+        // Tempo controls remain usable when storage is unavailable.
+      }
+    }, 5000);
+  }
 }
 function toggle() {
   if (settingsDialog.open) return;
@@ -1284,7 +1313,7 @@ window.addEventListener('pagehide', function () {
   clock.stop();
 });
 applySettings(settings, false);
-updateLabel();
+setTempo(tempo);
 })();
 
 /******/ })()

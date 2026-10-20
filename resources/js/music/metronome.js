@@ -1,6 +1,6 @@
 import { MetronomeClock } from './metronome/clock';
 import { clampTempo, DEFAULT_TEMPO, TempoGesture } from './metronome/gesture';
-import { colorPalette, DEFAULT_SETTINGS, loadSettings, normalizeSettings, SETTINGS_KEY } from './metronome/settings';
+import { colorPalette, DEFAULT_SETTINGS, loadSettings, loadTempo, normalizeSettings, SETTINGS_KEY, TEMPO_KEY } from './metronome/settings';
 import { conductorPreparationBeats, ConductorView } from './metronome/conductor';
 
 const surface = document.querySelector('[data-metronome]');
@@ -20,6 +20,7 @@ const conductorSvg = document.querySelector('[data-conductor]');
 const conductor = new ConductorView(conductorSvg);
 
 let tempo = DEFAULT_TEMPO;
+let tempoSaveTimer = null;
 let gesture = null;
 let pointerId = null;
 let suppressClick = false;
@@ -34,6 +35,7 @@ let settingsClosing = false;
 let settings = { ...DEFAULT_SETTINGS };
 try {
     settings = loadSettings(window.localStorage);
+    tempo = loadTempo(window.localStorage);
 } catch (error) {
     // Private browsing can make storage unavailable; all controls still work.
 }
@@ -87,6 +89,7 @@ function updateLabel() {
 }
 
 function setTempo(value) {
+    const previousTempo = tempo;
     tempo = Math.round(clampTempo(value));
     number.textContent = String(tempo);
     if (backgroundPulse && backgroundPulse.playState === 'running') {
@@ -95,6 +98,19 @@ function setTempo(value) {
     }
     clock.setTempo(tempo);
     updateLabel();
+    if (tempo !== previousTempo) {
+        clearTimeout(tempoSaveTimer);
+        // Only save a tempo that has settled; settings edits and playback
+        // controls must not save an intermediate swipe value early.
+        tempoSaveTimer = setTimeout(() => {
+            tempoSaveTimer = null;
+            try {
+                window.localStorage.setItem(TEMPO_KEY, JSON.stringify(tempo));
+            } catch (error) {
+                // Tempo controls remain usable when storage is unavailable.
+            }
+        }, 5000);
+    }
 }
 
 function toggle() {
@@ -345,4 +361,4 @@ window.addEventListener('pagehide', () => {
     clock.stop();
 });
 applySettings(settings, false);
-updateLabel();
+setTempo(tempo);
