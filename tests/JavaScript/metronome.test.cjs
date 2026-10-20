@@ -459,11 +459,11 @@ test('a tempo edit before the first click keeps that first click immediate', asy
     assert.equal(page.oscillators.at(-1).startTime, 0.02);
 });
 
-test('conducting paths meet exactly at each beat and the four-beat pattern goes down, left, right, up', () => {
+test('conductor playback stays continuous at beat boundaries and completes one path per bar', () => {
     const { conductorPoint, CONDUCTING_PATTERNS } = setup().context.api;
     for (const count of [1, 2, 3, 4]) {
+        assert.deepEqual(Array.from(conductorPoint(count, 0, 0)), Array.from(CONDUCTING_PATTERNS[count][0].point));
         for (let beat = 0; beat < count; beat++) {
-            assert.deepEqual(Array.from(conductorPoint(count, beat, 0)), Array.from(CONDUCTING_PATTERNS[count][beat].point));
             assert.deepEqual(Array.from(conductorPoint(count, beat, 1)), Array.from(conductorPoint(count, (beat + 1) % count, 0)));
         }
     }
@@ -565,7 +565,7 @@ test('conductor lead-in is silent and tempo edits keep the first click aligned w
     assert.equal(page.clock.getBeatPosition().progress, 0);
 });
 
-test('the conductor dot waits at the last beat and returns there when stopped', async () => {
+test('the conductor dot waits at the top and returns there when stopped', async () => {
     for (const count of [1, 2, 3, 4]) {
         const page = setupPage(JSON.stringify({ beats: count, type: 'conductor' }));
         const clock = vm.runInContext('clock', page.context);
@@ -659,18 +659,21 @@ function conductorTravel(pointAt, from, to) {
     return distance;
 }
 
-test('equal time intervals cover equal path distances throughout every beat, including curve joins', () => {
+test('travel speed stays constant across all loops, beats, and the bar boundary', () => {
     const { conductorPoint } = setup().context.api;
     for (const count of [1, 2, 3, 4]) {
-        for (let beat = 0; beat < count; beat++) {
-            const pointAt = progress => conductorPoint(count, beat, progress);
-            const distances = Array.from({ length: 10 }, (_, index) =>
-                conductorTravel(pointAt, index / 10, (index + 1) / 10));
-            const average = distances.reduce((sum, value) => sum + value, 0) / distances.length;
-            for (const distance of distances) {
-                assert.ok(Math.abs(distance / average - 1) < 0.01,
-                    `Pattern ${count}, beat ${beat + 1}: curves must not cause speed surges or pauses.`);
-            }
+        const pointAt = phase => conductorPoint(count, Math.floor(phase), phase - Math.floor(phase));
+        const distances = Array.from({ length: count * 10 }, (_, index) =>
+            conductorTravel(pointAt, index / 10, (index + 1) / 10));
+        const average = distances.reduce((sum, value) => sum + value, 0) / distances.length;
+        for (const distance of distances) {
+            assert.ok(Math.abs(distance / average - 1) < 0.01,
+                `Pattern ${count}: a longer loop must not make the ball travel faster.`);
+        }
+        for (let beat = 0; beat <= count; beat++) {
+            const crossing = conductorTravel(pointAt, beat - 0.025, beat + 0.025);
+            assert.ok(Math.abs(crossing / (average / 2) - 1) < 0.01,
+                `Pattern ${count}, boundary ${beat}: crossing a beat must not change speed.`);
         }
     }
 });
@@ -689,7 +692,7 @@ test('opening drops start at the top and travel at a steady speed matching the r
         const duration = conductorPreparationBeats(count);
         for (const progress of [0.1, 0.5, 0.9]) {
             const running = conductorPoint(count, count - 1, 1 - duration + duration * progress);
-            assert.deepEqual(Array.from(pointAt(progress)), Array.from(running));
+            pointAt(progress).forEach((value, axis) => assert.ok(Math.abs(value - running[axis]) < 0.000001));
         }
     }
 });

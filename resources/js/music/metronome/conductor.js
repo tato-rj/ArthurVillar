@@ -1,5 +1,5 @@
 // Traced from the four supplied conducting-pattern screenshots.
-// Each point marks a beat; its curves lead to the next beat.
+// Reference landmarks define the shape; playback advances uniformly around it.
 // The four-beat side loops mirror each other around the center downstroke.
 export const CONDUCTING_PATTERNS = {
     1: [
@@ -110,18 +110,17 @@ function measureStroke(segment) {
 }
 
 const conductingMotion = Object.fromEntries(Object.entries(CONDUCTING_PATTERNS)
-    .map(([beats, pattern]) => [beats, pattern.map(measureStroke)]));
+    .map(([beats, pattern]) => [beats, {
+        beats: Number(beats),
+        ...measureStroke({
+            point: pattern[0].point,
+            curves: pattern.flatMap(segment => segment.curves),
+        }),
+    }]));
 
-export function conductorPoint(beats, beat, progress) {
-    const pattern = conductingMotion[beats] || conductingMotion[1];
-    const index = ((beat % pattern.length) + pattern.length) % pattern.length;
-    const { samples, length } = pattern[index];
-    const t = Math.min(1, Math.max(0, progress));
-    if (t === 0 || length === 0) return samples[0].point;
-    if (t === 1) return samples[samples.length - 1].point;
-
-    // One uninterrupted distance ramp per beat, including every curve join.
-    const distance = t * length;
+function pointAtDistance({ samples, length }, distance) {
+    if (distance <= 0 || length === 0) return samples[0].point;
+    if (distance >= length) return samples[samples.length - 1].point;
     let low = 1;
     let high = samples.length - 1;
     while (low < high) {
@@ -131,21 +130,33 @@ export function conductorPoint(beats, beat, progress) {
     }
     const before = samples[low - 1];
     const after = samples[low];
+    if (distance === after.distance) return after.point;
     const fraction = (distance - before.distance) / (after.distance - before.distance);
     return before.point.map((value, axis) => value + (after.point[axis] - value) * fraction);
 }
 
+export function conductorPoint(beats, beat, progress) {
+    const motion = conductingMotion[beats] || conductingMotion[1];
+    const index = ((beat % motion.beats) + motion.beats) % motion.beats;
+    const t = Math.min(1, Math.max(0, progress));
+    // Use one distance ramp for the entire bar. Longer loops take their share
+    // of the bar instead of forcing the ball to speed up for a single beat.
+    return pointAtDistance(motion, (index + t) / motion.beats * motion.length);
+}
+
 export function conductorPreparationPoint(beats, progress) {
-    const duration = conductorPreparationBeats(beats);
-    return conductorPoint(beats, beats - 1, 1 - duration + duration * progress);
+    const motion = conductingMotion[beats] || conductingMotion[1];
+    const from = motion.curveEnds[motion.curveEnds.length - 2];
+    const t = Math.min(1, Math.max(0, progress));
+    return pointAtDistance(motion, from + (motion.length - from) * t);
 }
 
 export function conductorPreparationBeats(beats) {
-    if (beats !== 1) return 1;
-    // A single beat includes both the rebound and drop. Its opening drop uses
-    // the same share of distance and time as the repeating stroke.
-    const { length, curveEnds } = conductingMotion[1][0];
-    return (length - curveEnds[curveEnds.length - 2]) / length;
+    const motion = conductingMotion[beats] || conductingMotion[1];
+    const from = motion.curveEnds[motion.curveEnds.length - 2];
+    // Release from the top at the running speed and reach the bottom exactly
+    // on the first click, even when the drop occupies less than one beat.
+    return motion.beats * (motion.length - from) / motion.length;
 }
 
 export class ConductorView {

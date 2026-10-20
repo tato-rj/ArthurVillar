@@ -368,6 +368,9 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
 function _classCallCheck(a, n) { if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function"); }
 function _defineProperties(e, r) { for (var t = 0; t < r.length; t++) { var o = r[t]; o.enumerable = o.enumerable || !1, o.configurable = !0, "value" in o && (o.writable = !0), Object.defineProperty(e, _toPropertyKey(o.key), o); } }
 function _createClass(e, r, t) { return r && _defineProperties(e.prototype, r), t && _defineProperties(e, t), Object.defineProperty(e, "prototype", { writable: !1 }), e; }
+function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
 function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
 function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
@@ -378,7 +381,7 @@ function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol
 function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
 function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
 // Traced from the four supplied conducting-pattern screenshots.
-// Each point marks a beat; its curves lead to the next beat.
+// Reference landmarks define the shape; playback advances uniformly around it.
 // The four-beat side loops mirror each other around the center downstroke.
 var CONDUCTING_PATTERNS = {
   1: [{
@@ -538,20 +541,20 @@ var conductingMotion = Object.fromEntries(Object.entries(CONDUCTING_PATTERNS).ma
   var _ref2 = _slicedToArray(_ref, 2),
     beats = _ref2[0],
     pattern = _ref2[1];
-  return [beats, pattern.map(measureStroke)];
+  return [beats, _objectSpread({
+    beats: Number(beats)
+  }, measureStroke({
+    point: pattern[0].point,
+    curves: pattern.flatMap(function (segment) {
+      return segment.curves;
+    })
+  }))];
 }));
-function conductorPoint(beats, beat, progress) {
-  var pattern = conductingMotion[beats] || conductingMotion[1];
-  var index = (beat % pattern.length + pattern.length) % pattern.length;
-  var _pattern$index = pattern[index],
-    samples = _pattern$index.samples,
-    length = _pattern$index.length;
-  var t = Math.min(1, Math.max(0, progress));
-  if (t === 0 || length === 0) return samples[0].point;
-  if (t === 1) return samples[samples.length - 1].point;
-
-  // One uninterrupted distance ramp per beat, including every curve join.
-  var distance = t * length;
+function pointAtDistance(_ref3, distance) {
+  var samples = _ref3.samples,
+    length = _ref3.length;
+  if (distance <= 0 || length === 0) return samples[0].point;
+  if (distance >= length) return samples[samples.length - 1].point;
   var low = 1;
   var high = samples.length - 1;
   while (low < high) {
@@ -560,23 +563,32 @@ function conductorPoint(beats, beat, progress) {
   }
   var before = samples[low - 1];
   var after = samples[low];
+  if (distance === after.distance) return after.point;
   var fraction = (distance - before.distance) / (after.distance - before.distance);
   return before.point.map(function (value, axis) {
     return value + (after.point[axis] - value) * fraction;
   });
 }
+function conductorPoint(beats, beat, progress) {
+  var motion = conductingMotion[beats] || conductingMotion[1];
+  var index = (beat % motion.beats + motion.beats) % motion.beats;
+  var t = Math.min(1, Math.max(0, progress));
+  // Use one distance ramp for the entire bar. Longer loops take their share
+  // of the bar instead of forcing the ball to speed up for a single beat.
+  return pointAtDistance(motion, (index + t) / motion.beats * motion.length);
+}
 function conductorPreparationPoint(beats, progress) {
-  var duration = conductorPreparationBeats(beats);
-  return conductorPoint(beats, beats - 1, 1 - duration + duration * progress);
+  var motion = conductingMotion[beats] || conductingMotion[1];
+  var from = motion.curveEnds[motion.curveEnds.length - 2];
+  var t = Math.min(1, Math.max(0, progress));
+  return pointAtDistance(motion, from + (motion.length - from) * t);
 }
 function conductorPreparationBeats(beats) {
-  if (beats !== 1) return 1;
-  // A single beat includes both the rebound and drop. Its opening drop uses
-  // the same share of distance and time as the repeating stroke.
-  var _conductingMotion$1$ = conductingMotion[1][0],
-    length = _conductingMotion$1$.length,
-    curveEnds = _conductingMotion$1$.curveEnds;
-  return (length - curveEnds[curveEnds.length - 2]) / length;
+  var motion = conductingMotion[beats] || conductingMotion[1];
+  var from = motion.curveEnds[motion.curveEnds.length - 2];
+  // Release from the top at the running speed and reach the bottom exactly
+  // on the first click, even when the drop occupies less than one beat.
+  return motion.beats * (motion.length - from) / motion.length;
 }
 var ConductorView = /*#__PURE__*/function () {
   function ConductorView(svg) {
@@ -613,10 +625,10 @@ var ConductorView = /*#__PURE__*/function () {
     }
   }, {
     key: "position",
-    value: function position(_ref3) {
-      var _ref4 = _slicedToArray(_ref3, 2),
-        x = _ref4[0],
-        y = _ref4[1];
+    value: function position(_ref4) {
+      var _ref5 = _slicedToArray(_ref4, 2),
+        x = _ref5[0],
+        y = _ref5[1];
       for (var _i = 0, _arr = [this.dot, this.halo]; _i < _arr.length; _i++) {
         var element = _arr[_i];
         element.setAttribute('cx', x);
