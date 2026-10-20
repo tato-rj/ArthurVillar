@@ -1,7 +1,7 @@
 :root {
   color-scheme: light;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: #3f84e5;
+  background: #155eef;
 }
 
 * {
@@ -32,7 +32,7 @@ body {
   -webkit-appearance: none;
      -moz-appearance: none;
           appearance: none;
-  background: #3f84e5;
+  background: #155eef;
   color: #fff;
   font: inherit;
   cursor: pointer;
@@ -60,9 +60,49 @@ body {
   font-size: min(27vw, 43dvh, 280px);
   font-weight: 200;
   font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: -0.05em;
   line-height: 1;
   opacity: 0.88;
   pointer-events: none;
+}
+
+.metronome__edge {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  z-index: 1;
+  width: clamp(64px, 16vw, 112px);
+  height: 100%;
+  height: 100dvh;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  -webkit-appearance: none;
+     -moz-appearance: none;
+          appearance: none;
+  background: transparent;
+  cursor: pointer;
+  touch-action: none;
+  -moz-user-select: none;
+       user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.metronome__edge--left {
+  left: 0;
+  width: max(clamp(64px, 16vw, 112px), env(safe-area-inset-left) + 48px);
+}
+.metronome__edge--right {
+  right: 0;
+  width: max(clamp(64px, 16vw, 112px), env(safe-area-inset-right) + 48px);
+}
+.metronome__edge:focus {
+  outline: none;
+}
+.metronome__edge:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.8);
+  outline-offset: -8px;
 }
 
 .metronome__message {

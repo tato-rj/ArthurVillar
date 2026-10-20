@@ -34,8 +34,8 @@ const clock = new MetronomeClock({
         if (backgroundPulse) backgroundPulse.cancel();
         backgroundPulseTempo = tempo;
         backgroundPulse = surface.animate([
-            { backgroundColor: '#2f6dc2' },
-            { backgroundColor: '#3f84e5' },
+            { backgroundColor: '#1048c6' },
+            { backgroundColor: '#155eef' },
         ], { duration: 60000 / tempo, easing: 'ease-out' });
         if (pulse) pulse.cancel();
         pulse = number.animate([

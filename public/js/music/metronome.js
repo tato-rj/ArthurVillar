@@ -374,6 +374,7 @@ __webpack_require__.r(__webpack_exports__);
 var surface = document.querySelector('[data-metronome]');
 var number = document.querySelector('[data-tempo]');
 var message = document.querySelector('[data-metronome-message]');
+var edgeButtons = document.querySelectorAll('[data-tempo-step]');
 var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 var tempo = _metronome_gesture__WEBPACK_IMPORTED_MODULE_1__.DEFAULT_TEMPO;
 var gesture = null;
@@ -382,6 +383,8 @@ var suppressClick = false;
 var pulse = null;
 var backgroundPulse = null;
 var backgroundPulseTempo = _metronome_gesture__WEBPACK_IMPORTED_MODULE_1__.DEFAULT_TEMPO;
+var edgePress = null;
+var edgeRepeatTimer = null;
 var clock = new _metronome_clock__WEBPACK_IMPORTED_MODULE_0__.MetronomeClock({
   createContext: function createContext() {
     var AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -401,9 +404,9 @@ var clock = new _metronome_clock__WEBPACK_IMPORTED_MODULE_0__.MetronomeClock({
     if (backgroundPulse) backgroundPulse.cancel();
     backgroundPulseTempo = tempo;
     backgroundPulse = surface.animate([{
-      backgroundColor: '#2f6dc2'
+      backgroundColor: '#1048c6'
     }, {
-      backgroundColor: '#3f84e5'
+      backgroundColor: '#155eef'
     }], {
       duration: 60000 / tempo,
       easing: 'ease-out'
@@ -427,6 +430,10 @@ var clock = new _metronome_clock__WEBPACK_IMPORTED_MODULE_0__.MetronomeClock({
 });
 function updateLabel() {
   surface.setAttribute('aria-label', "".concat(clock.running ? 'Stop' : 'Start', " metronome. ").concat(tempo, " beats per minute."));
+  edgeButtons.forEach(function (button) {
+    var action = Number(button.dataset.tempoStep) > 0 ? 'Increase' : 'Decrease';
+    button.setAttribute('aria-label', "".concat(action, " tempo by 1. ").concat(tempo, " beats per minute."));
+  });
 }
 function setTempo(value) {
   tempo = Math.round((0,_metronome_gesture__WEBPACK_IMPORTED_MODULE_1__.clampTempo)(value));
@@ -443,7 +450,7 @@ function toggle() {
   if (clock.running) clock.stop();else clock.start();
 }
 surface.addEventListener('pointerdown', function (event) {
-  if (!event.isPrimary || event.button !== 0 || pointerId !== null) return;
+  if (!event.isPrimary || event.button !== 0 || pointerId !== null || edgePress) return;
   pointerId = event.pointerId;
   suppressClick = false;
   gesture = new _metronome_gesture__WEBPACK_IMPORTED_MODULE_1__.TempoGesture(tempo, event.clientX, event.clientY, event.timeStamp);
@@ -480,20 +487,67 @@ surface.addEventListener('click', function (event) {
   }
   toggle();
 });
+function stopEdgeRepeat() {
+  clearTimeout(edgeRepeatTimer);
+  edgeRepeatTimer = null;
+  edgePress = null;
+}
+function repeatEdgeStep() {
+  if (!edgePress) return;
+  setTempo(tempo + edgePress.step);
+  edgeRepeatTimer = setTimeout(repeatEdgeStep, 75);
+}
+edgeButtons.forEach(function (button) {
+  var step = Number(button.dataset.tempoStep);
+  button.addEventListener('pointerdown', function (event) {
+    if (!event.isPrimary || event.button !== 0 || pointerId !== null || edgePress) return;
+    edgePress = {
+      button: button,
+      pointerId: event.pointerId,
+      step: step
+    };
+    button.setPointerCapture(event.pointerId);
+    setTempo(tempo + step);
+    edgeRepeatTimer = setTimeout(repeatEdgeStep, 350);
+  });
+  var release = function release(event) {
+    if (edgePress && edgePress.button === button && edgePress.pointerId === event.pointerId) {
+      stopEdgeRepeat();
+    }
+  };
+  button.addEventListener('pointerup', release);
+  button.addEventListener('pointercancel', release);
+  button.addEventListener('lostpointercapture', release);
+  button.addEventListener('contextmenu', function (event) {
+    return event.preventDefault();
+  });
+  button.addEventListener('click', function (event) {
+    // Pointer presses already step immediately; keep native keyboard/AT clicks.
+    if (event.detail === 0) setTempo(tempo + step);
+  });
+});
 document.addEventListener('keydown', function (event) {
   if (event.altKey || event.ctrlKey || event.metaKey) return;
   if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
     event.preventDefault();
     setTempo(tempo + (event.key === 'ArrowUp' ? 1 : -1) * (event.shiftKey ? 10 : 1));
   } else if (event.code === 'Space' || event.key === 'Enter') {
+    var _event$target;
+    if ((_event$target = event.target) !== null && _event$target !== void 0 && _event$target.closest('[data-tempo-step]')) return;
     event.preventDefault();
     if (!event.repeat) toggle();
   } else if (event.key === 'Escape') {
+    stopEdgeRepeat();
     clock.stop();
   }
 });
+window.addEventListener('blur', stopEdgeRepeat);
+document.addEventListener('visibilitychange', function () {
+  if (document.hidden) stopEdgeRepeat();
+});
 window.addEventListener('pagehide', function () {
-  return clock.stop();
+  stopEdgeRepeat();
+  clock.stop();
 });
 updateLabel();
 })();

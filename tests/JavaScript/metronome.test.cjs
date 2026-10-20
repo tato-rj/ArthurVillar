@@ -12,6 +12,8 @@ const source = `${read('metronome/gesture.js')}\n${read('metronome/clock.js')}`;
 
 function setup({ deferredResume = false, resumeError = false } = {}) {
     const timers = new Map();
+    const timeouts = new Map();
+    let wallTime = 0;
     let timerId = 0;
     const oscillators = [];
     const states = [];
@@ -53,6 +55,11 @@ function setup({ deferredResume = false, resumeError = false } = {}) {
     const context = vm.createContext({
         setInterval(fn) { timers.set(++timerId, fn); return timerId; },
         clearInterval(id) { timers.delete(id); },
+        setTimeout(fn, delay) {
+            timeouts.set(++timerId, { fn, at: wallTime + delay });
+            return timerId;
+        },
+        clearTimeout(id) { timeouts.delete(id); },
     });
     vm.runInContext(`${source}\nglobalThis.api = { TempoGesture, MetronomeClock };`, context);
     const clock = new context.api.MetronomeClock({
@@ -65,6 +72,17 @@ function setup({ deferredResume = false, resumeError = false } = {}) {
         context, clock, audio, timers, oscillators, states, errors,
         get beatCount() { return beatCount; },
         resume: () => resolveResume(),
+        tick(milliseconds) {
+            const until = wallTime + milliseconds;
+            while (timeouts.size) {
+                const [id, timeout] = [...timeouts].sort((a, b) => a[1].at - b[1].at)[0];
+                if (timeout.at > until) break;
+                wallTime = timeout.at;
+                timeouts.delete(id);
+                timeout.fn();
+            }
+            wallTime = until;
+        },
         advance(time) {
             audio.currentTime = time;
             for (const tick of timers.values()) tick();
@@ -166,7 +184,9 @@ function setupPage() {
     const listeners = {};
     const attributes = {};
     const classes = new Set();
+    const animate = () => ({ cancel() {}, updatePlaybackRate() {}, playState: 'running' });
     const surface = {
+        animate,
         setAttribute: (name, value) => { attributes[name] = value; },
         setPointerCapture() {},
         addEventListener: (name, callback) => { listeners[name] = callback; },
@@ -175,11 +195,20 @@ function setupPage() {
             remove: name => classes.delete(name),
         },
     };
-    const number = { textContent: '120', animate: () => ({ cancel() {} }) };
+    const edges = [-1, 1].map(step => ({
+        dataset: { tempoStep: String(step) },
+        listeners: {},
+        setAttribute() {},
+        setPointerCapture() {},
+        closest: selector => selector === '[data-tempo-step]',
+        addEventListener(name, callback) { this.listeners[name] = callback; },
+    }));
+    const number = { textContent: '120', animate };
     const message = { hidden: true };
     const documentListeners = {};
     const windowListeners = {};
     page.context.document = {
+        querySelectorAll: selector => selector === '[data-tempo-step]' ? edges : [],
         querySelector: selector => ({
             '[data-metronome]': surface, '[data-tempo]': number, '[data-metronome-message]': message,
         })[selector],
@@ -195,7 +224,11 @@ function setupPage() {
         pointerId: 1, isPrimary: true, button: 0, clientX: x, clientY: y, timeStamp: time, ...extra,
     });
     const click = () => listeners.click({ detail: 1, preventDefault() {} });
-    return { ...page, attributes, number, pointer, click, listeners, documentListeners, windowListeners };
+    const edge = (index, type, extra = {}) => edges[index].listeners[type]({
+        pointerId: 1, isPrimary: true, button: 0, detail: 1, target: edges[index],
+        preventDefault() {}, ...extra,
+    });
+    return { ...page, edges, edge, attributes, number, pointer, click, listeners, documentListeners, windowListeners };
 }
 
 test('taps toggle playback and releasing a swipe does not toggle it', async () => {
@@ -232,4 +265,78 @@ test('canceled gestures do not toggle playback; keyboard remains usable', () => 
     assert.equal(page.attributes['aria-pressed'], 'true');
     key('Escape');
     assert.equal(page.attributes['aria-pressed'], 'false');
+});
+
+test('edge taps step once without toggling playback or repeating after release', async () => {
+    const page = setupPage();
+    page.edge(0, 'pointerdown');
+    assert.equal(page.number.textContent, '119');
+    page.edge(0, 'pointerup');
+    page.edge(0, 'click');
+    page.tick(1000);
+    assert.equal(page.number.textContent, '119');
+    assert.equal(page.attributes['aria-pressed'], undefined);
+
+    page.click();
+    await Promise.resolve();
+    page.edge(1, 'pointerdown');
+    page.edge(1, 'pointerup');
+    page.edge(1, 'click');
+    assert.equal(page.number.textContent, '120');
+    assert.equal(page.attributes['aria-pressed'], 'true');
+});
+
+test('holding an edge repeats after a delay and release stops further changes', () => {
+    const page = setupPage();
+    page.edge(1, 'pointerdown');
+    assert.equal(page.number.textContent, '121');
+    page.tick(300);
+    assert.equal(page.number.textContent, '121');
+    page.tick(500);
+    assert.ok(Number(page.number.textContent) > 125);
+    page.edge(1, 'pointerup');
+    page.edge(1, 'click');
+    const releasedTempo = page.number.textContent;
+    page.tick(2000);
+    assert.equal(page.number.textContent, releasedTempo);
+});
+
+test('edge holds stop on cancellation, capture loss, window blur, hiding, or navigation', () => {
+    for (const interrupt of [
+        page => page.edge(1, 'pointercancel'),
+        page => page.edge(1, 'lostpointercapture'),
+        page => page.windowListeners.blur(),
+        page => { page.context.document.hidden = true; page.documentListeners.visibilitychange(); },
+        page => page.windowListeners.pagehide(),
+    ]) {
+        const page = setupPage();
+        page.edge(1, 'pointerdown');
+        page.tick(500);
+        interrupt(page);
+        const stoppedTempo = page.number.textContent;
+        page.tick(2000);
+        assert.equal(page.number.textContent, stoppedTempo);
+    }
+});
+
+test('edge controls respect tempo limits, ignore secondary pointers, and support keyboard clicks', () => {
+    const page = setupPage();
+    page.edge(0, 'pointerdown', { isPrimary: false, pointerId: 2 });
+    page.tick(1000);
+    assert.equal(page.number.textContent, '120');
+    page.edge(0, 'pointerdown');
+    page.tick(30000);
+    assert.equal(page.number.textContent, '20');
+    page.edge(0, 'pointerup');
+    page.edge(1, 'pointerdown');
+    page.tick(30000);
+    assert.equal(page.number.textContent, '300');
+    page.edge(1, 'pointerup');
+    page.documentListeners.keydown({
+        key: 'Enter', target: page.edges[0],
+        preventDefault() { assert.fail('Native edge activation should be allowed.'); },
+    });
+    page.edge(0, 'click', { detail: 0 });
+    assert.equal(page.number.textContent, '299');
+    assert.equal(page.attributes['aria-pressed'], undefined);
 });
