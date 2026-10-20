@@ -1,0 +1,92 @@
+$metronome-blue: #3f84e5;
+
+:root {
+    color-scheme: light;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: $metronome-blue;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+    overscroll-behavior: none;
+}
+
+.metronome {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    height: 100dvh;
+    margin: 0;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    border: 0;
+    border-radius: 0;
+    appearance: none;
+    background: $metronome-blue;
+    color: #fff;
+    font: inherit;
+    cursor: pointer;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+
+    &:focus {
+        outline: none;
+    }
+
+    &:focus-visible {
+        outline: 3px solid rgba(255, 255, 255, 0.8);
+        outline-offset: -12px;
+    }
+
+    &.is-dragging {
+        cursor: ns-resize;
+    }
+}
+
+.metronome__tempo {
+    display: block;
+    font-size: min(27vw, 43vh, 280px);
+    font-size: min(27vw, 43dvh, 280px);
+    font-weight: 200;
+    font-variant-numeric: tabular-nums lining-nums;
+    letter-spacing: -0.05em;
+    line-height: 1;
+    opacity: 0.88;
+    pointer-events: none;
+}
+
+.metronome__message {
+    position: fixed;
+    right: 24px;
+    bottom: max(24px, env(safe-area-inset-bottom));
+    left: 24px;
+    margin: 0;
+    color: #fff;
+    font-size: 14px;
+    text-align: center;
+    pointer-events: none;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}

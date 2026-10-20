@@ -54,6 +54,12 @@ class RouteServiceProvider extends ServiceProvider
                 ->name('pianoatlas.')
                 ->group(base_path('routes/pianoatlas.php'));
 
+            Route::middleware('web')
+                ->domain('metronome.'.config('app.domain'))
+                ->namespace($this->namespace.'\\Metronome')
+                ->name('metronome.')
+                ->group(base_path('routes/metronome.php'));
+
             Route::middleware(['web', 'auth'])
                 ->domain('reminders.'.config('app.domain'))
                 ->namespace($this->namespace.'\\Reminders')
