@@ -3,6 +3,7 @@
     "scripts": {
         "assets": "node scripts/copy-static-assets.js",
         "icons:calendar": "node scripts/build-calendar-icons.js",
+        "icons:metronome": "node scripts/build-metronome-icons.js",
         "predevelopment": "npm run assets",
         "dev": "npm run development",
         "development": "NODE_OPTIONS=--max-old-space-size=8192 mix",

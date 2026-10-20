@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="64 64 384 384">
+  <title>Metronome</title>
+  <rect width="512" height="512" fill="#155eef"/>
+  <g fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M142 348 194 106Q196 96 206 96H274Q284 96 286 106L338 348"/>
+    <path d="M240 132V348M220 156H260M220 232H260M220 308H260"/>
+    <path d="M268 348 338 204"/>
+    <circle cx="350" cy="180" r="27"/>
+    <path d="M142 348H338L350 406Q352 416 340 416H140Q128 416 130 406Z" fill="#fff" stroke="none"/>
+  </g>
+</svg>

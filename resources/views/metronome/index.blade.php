@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#155EEF">
     <meta name="description" content="A simple metronome. Tap to play, swipe to find your tempo.">
     <title>Metronome | Arthur Villar</title>
-    <link href="{{ asset('/favicon/favicon.ico') }}" rel="icon" type="image/x-icon">
+    @include('layouts.favicon.metronome')
     <link href="{{ mix('css/metronome.css') }}" rel="stylesheet">
     <script src="{{ mix('js/music/metronome.js') }}" defer></script>
 </head>
