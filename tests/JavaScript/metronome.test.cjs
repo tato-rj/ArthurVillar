@@ -814,57 +814,29 @@ function conductorTravel(pointAt, from, to) {
     return distance;
 }
 
-test('one-, two-, and four-beat patterns keep constant speed before the final drop', () => {
+test('every pattern travels at constant speed through loops, drops, and beat boundaries', () => {
     const { conductorPoint, conductorPreparationBeats } = setup().context.api;
-    for (const count of [1, 2, 4]) {
+    for (const count of [1, 2, 3, 4]) {
         const pointAt = phase => conductorPoint(count, Math.floor(phase), phase - Math.floor(phase));
-        const dropStart = count - conductorPreparationBeats(count);
-        const window = dropStart / (count * 10);
-        const distances = Array.from({ length: count * 10 }, (_, index) =>
+        const window = 0.05;
+        const distances = Array.from({ length: count * 20 }, (_, index) =>
             conductorTravel(pointAt, index * window, (index + 1) * window));
         const average = distances.reduce((sum, value) => sum + value, 0) / distances.length;
         for (const distance of distances) {
             assert.ok(Math.abs(distance / average - 1) < 0.01,
-                `Pattern ${count}: a longer loop must not make the ball travel faster.`);
+                `Pattern ${count}: equal time windows must cover equal path distances.`);
         }
-        for (let beat = 1; beat < dropStart; beat++) {
-            const crossing = conductorTravel(pointAt, beat - 0.025, beat + 0.025);
-            assert.ok(Math.abs(crossing / (average * 0.05 / window) - 1) < 0.01,
-                `Pattern ${count}, boundary ${beat}: crossing a beat must not change speed.`);
+        const boundaries = [count - conductorPreparationBeats(count),
+            ...Array.from({ length: count + 1 }, (_, beat) => beat)];
+        for (const boundary of boundaries) {
+            const crossing = conductorTravel(pointAt, boundary - window / 2, boundary + window / 2);
+            assert.ok(Math.abs(crossing / average - 1) < 0.01,
+                `Pattern ${count}, boundary ${boundary}: changing direction or crossing a beat must not change speed.`);
         }
     }
 });
 
-test('the three-beat right loop gently slows uphill and gains momentum downhill without speed jumps', () => {
-    const { conductorPoint, conductorPreparationBeats } = setup().context.api;
-    const pointAt = phase => conductorPoint(3, Math.floor(phase), phase - Math.floor(phase));
-    const speedAt = phase => conductorTravel(pointAt, phase - 0.001, phase + 0.001) / 0.002;
-    const baseline = speedAt(0.1);
-    const dropStart = 3 - conductorPreparationBeats(3);
-    const uphill = [];
-    const downhill = [];
-    let previousSpeed = 1;
-    for (let phase = 0.005; phase < dropStart - 0.005; phase += 0.005) {
-        const point = pointAt(phase);
-        const speed = speedAt(phase) / baseline;
-        if (point[0] < 300) {
-            assert.ok(Math.abs(speed - 1) < 0.01, 'The rest of the pattern keeps its steady speed.');
-        }
-        if (point[0] > 310) {
-            const rising = pointAt(phase + 0.001)[1] < pointAt(phase - 0.001)[1];
-            (rising ? uphill : downhill).push(speed);
-            assert.ok(Math.abs(speed - previousSpeed) < 0.03, 'The loop must change speed gradually.');
-        }
-        previousSpeed = speed;
-    }
-    assert.ok(uphill.length > 10 && downhill.length > 10);
-    assert.ok(Math.min(...uphill) < 0.97, 'The climb should feel slightly slower.');
-    assert.ok(uphill.every(speed => speed > 0.85 && speed < 1.01));
-    assert.ok(Math.max(...downhill) > 1.05, 'The descent should pick up some momentum.');
-    assert.ok(downhill.every(speed => speed > 0.99 && speed < 1.2));
-});
-
-test('final drops accelerate like a fall, matching the opening stroke and landing on beat one', () => {
+test('opening drops keep the full pattern speed and arrive exactly on beat one', () => {
     const { conductorPoint, conductorPreparationPoint, conductorPreparationBeats, CONDUCTING_PATTERNS } = setup().context.api;
     for (const count of [1, 2, 3, 4]) {
         const pointAt = progress => conductorPreparationPoint(count, progress);
@@ -872,15 +844,15 @@ test('final drops accelerate like a fall, matching the opening stroke and landin
         assert.ok(Math.abs(first[1] - 36) < 0.000001);
         const distances = Array.from({ length: 10 }, (_, index) =>
             conductorTravel(pointAt, index / 10, (index + 1) / 10));
-        for (let index = 1; index < distances.length; index++) {
-            assert.ok(distances[index] > distances[index - 1],
-                `Pattern ${count}: the falling ball must gain speed toward beat one.`);
-        }
-        const accelerations = distances.slice(1).map((distance, index) => distance - distances[index]);
-        const averageAcceleration = accelerations.reduce((sum, value) => sum + value, 0) / accelerations.length;
-        accelerations.forEach(acceleration => assert.ok(Math.abs(acceleration / averageAcceleration - 1) < 0.01));
+        const average = distances.reduce((sum, value) => sum + value, 0) / distances.length;
+        distances.forEach(distance => assert.ok(Math.abs(distance / average - 1) < 0.01,
+            `Pattern ${count}: the opening stroke must keep a steady speed.`));
         assert.deepEqual(Array.from(pointAt(1)), Array.from(CONDUCTING_PATTERNS[count][0].point));
         const duration = conductorPreparationBeats(count);
+        const openingSpeed = average * 10 / duration;
+        const runningSpeed = conductorTravel(progress => conductorPoint(count, 0, progress), 0, 0.1) / 0.1;
+        assert.ok(Math.abs(openingSpeed / runningSpeed - 1) < 0.01,
+            `Pattern ${count}: starting playback must not introduce a different speed.`);
         for (const progress of [0.1, 0.5, 0.9]) {
             const running = conductorPoint(count, count - 1, 1 - duration + duration * progress);
             pointAt(progress).forEach((value, axis) => assert.ok(Math.abs(value - running[axis]) < 0.000001));

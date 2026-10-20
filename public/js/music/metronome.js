@@ -381,7 +381,7 @@ function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol
 function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
 function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
 // Traced from the four supplied conducting-pattern screenshots.
-// The three-beat right loop has a subtle swing; the final downstroke accelerates.
+// All patterns use constant travel speed, including the opening downstroke.
 // The four-beat side loops mirror each other around the center downstroke.
 var CONDUCTING_PATTERNS = {
   1: [{
@@ -541,40 +541,18 @@ function measureStroke(segment) {
     length: length
   };
 }
-function addSwingTiming(motion) {
-  var _motion$curveEnds$sli = motion.curveEnds.slice(1, 4),
-    _motion$curveEnds$sli2 = _slicedToArray(_motion$curveEnds$sli, 3),
-    start = _motion$curveEnds$sli2[0],
-    crest = _motion$curveEnds$sli2[1],
-    end = _motion$curveEnds$sli2[2];
-  var delay = Math.min(crest - start, end - crest) * 0.08;
-  return _objectSpread(_objectSpread({}, motion), {}, {
-    samples: motion.samples.map(function (sample) {
-      if (sample.distance <= start || sample.distance >= end) return sample;
-      var progress = sample.distance <= crest ? (sample.distance - start) / (crest - start) : (end - sample.distance) / (end - crest);
-      // Delay the climb, then recover that time on the descent. A quintic
-      // ramp joins the surrounding motion with continuous speed and
-      // acceleration, keeping the loop's total duration unchanged.
-      var ease = Math.pow(progress, 3) * (progress * (progress * 6 - 15) + 10);
-      return _objectSpread(_objectSpread({}, sample), {}, {
-        distance: sample.distance + delay * ease
-      });
-    })
-  });
-}
 var conductingMotion = Object.fromEntries(Object.entries(CONDUCTING_PATTERNS).map(function (_ref) {
   var _ref2 = _slicedToArray(_ref, 2),
     beats = _ref2[0],
     pattern = _ref2[1];
-  var motion = _objectSpread({
+  return [beats, _objectSpread({
     beats: Number(beats)
   }, measureStroke({
     point: pattern[0].point,
     curves: pattern.flatMap(function (segment) {
       return segment.curves;
     })
-  }));
-  return [beats, motion.beats === 3 ? addSwingTiming(motion) : motion];
+  }))];
 }));
 function pointAtDistance(_ref3, distance) {
   var samples = _ref3.samples,
@@ -595,34 +573,25 @@ function pointAtDistance(_ref3, distance) {
     return value + (after.point[axis] - value) * fraction;
   });
 }
-function downstrokePoint(motion, progress) {
-  var from = motion.curveEnds[motion.curveEnds.length - 2];
-  var t = Math.min(1, Math.max(0, progress));
-  // A falling body's distance grows with time squared. Apply this only to
-  // the descent from the top, keeping its arrival on the downbeat unchanged.
-  return pointAtDistance(motion, from + (motion.length - from) * Math.pow(t, 2));
-}
 function conductorPoint(beats, beat, progress) {
   var motion = conductingMotion[beats] || conductingMotion[1];
   var index = (beat % motion.beats + motion.beats) % motion.beats;
   var t = Math.min(1, Math.max(0, progress));
-  // The cached map adds only the three-beat swing to the uniform distance
-  // ramp. The final descent accelerates over its existing time window.
+  // One linear arc-length ramp covers the whole bar, so loops, downstrokes,
+  // and beat boundaries all share the same travel speed.
   var distance = (index + t) / motion.beats * motion.length;
-  var dropStart = motion.curveEnds[motion.curveEnds.length - 2];
-  if (distance > dropStart) {
-    return downstrokePoint(motion, (distance - dropStart) / (motion.length - dropStart));
-  }
   return pointAtDistance(motion, distance);
 }
 function conductorPreparationPoint(beats, progress) {
   var motion = conductingMotion[beats] || conductingMotion[1];
-  return downstrokePoint(motion, progress);
+  var from = motion.curveEnds[motion.curveEnds.length - 2];
+  var t = Math.min(1, Math.max(0, progress));
+  return pointAtDistance(motion, from + (motion.length - from) * t);
 }
 function conductorPreparationBeats(beats) {
   var motion = conductingMotion[beats] || conductingMotion[1];
   var from = motion.curveEnds[motion.curveEnds.length - 2];
-  // Give the opening fall the same duration as the repeating downstroke,
+  // Give the opening stroke the same speed as the repeating downstroke,
   // reaching the bottom exactly on the first click.
   return motion.beats * (motion.length - from) / motion.length;
 }
