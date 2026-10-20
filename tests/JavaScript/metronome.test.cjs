@@ -182,7 +182,7 @@ test('a stalled scheduler resumes without a burst of missed beats', async () => 
     assert.equal(page.oscillators[1].startTime, 10.01);
 });
 
-function setupPage(savedSettings = null) {
+function setupPage(savedSettings = null, { reducedMotion = false } = {}) {
     const page = setup();
     const listeners = {};
     const attributes = {};
@@ -223,10 +223,31 @@ function setupPage(savedSettings = null) {
     const documentListeners = {};
     const windowListeners = {};
     const settingsButton = element();
+    const settingsAnimations = [];
+    const motionPreference = {
+        matches: reducedMotion,
+        addEventListener(name, handler) { this.onchange = handler; },
+    };
     const settingsDialog = element({
         open: false,
         showModal() { this.open = true; },
         close() { this.open = false; this.listeners.close(); },
+        getBoundingClientRect() { return { top: 80 }; },
+        animate(keyframes, options) {
+            let timer;
+            const animation = {
+                keyframes, options, canceled: false, onfinish: null,
+                cancel() { this.canceled = true; page.context.clearTimeout(timer); },
+                finish() {
+                    if (this.canceled) return;
+                    page.context.clearTimeout(timer);
+                    if (this.onfinish) this.onfinish();
+                },
+            };
+            timer = page.context.setTimeout(() => animation.finish(), options.duration);
+            settingsAnimations.push(animation);
+            return animation;
+        },
     });
     const closeButton = element();
     const beatInputs = [1, 2, 3, 4].map(value => element({ value: String(value) }));
@@ -259,10 +280,11 @@ function setupPage(savedSettings = null) {
     };
     page.context.window = {
         AudioContext: function () { return page.audio; },
-        matchMedia: () => ({ matches: false, addEventListener() {} }),
+        matchMedia: () => motionPreference,
         localStorage: { getItem: key => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, value) },
         addEventListener: (name, callback) => { windowListeners[name] = callback; },
     };
+    page.context.getComputedStyle = () => ({ transform: 'matrix(1, 0, 0, 1, 0, 120)' });
     vm.runInContext(read('metronome.js'), page.context);
     const pointer = (type, x, y, time, extra = {}) => listeners[type]({
         pointerId: 1, isPrimary: true, button: 0, clientX: x, clientY: y, timeStamp: time, ...extra,
@@ -274,7 +296,7 @@ function setupPage(savedSettings = null) {
     });
     return { ...page, edges, edge, attributes, number, pointer, click, listeners, documentListeners, windowListeners,
         settingsButton, settingsDialog, closeButton, beatInputs, typeInputs, colorInput, soundInput, storage, surface,
-        conductorParts, theme };
+        conductorParts, theme, settingsAnimations, motionPreference };
 }
 
 test('taps toggle playback and releasing a swipe does not toggle it', async () => {
@@ -488,8 +510,86 @@ test('settings isolate keyboard and edge controls from playback and tempo', asyn
     assert.equal(page.number.textContent, '120');
     assert.equal(page.attributes['aria-pressed'], 'true');
     page.closeButton.listeners.click();
+    assert.equal(page.settingsDialog.open, true, 'The modal remains active during its exit.');
+    page.tick(300);
     assert.equal(page.settingsDialog.open, false);
     assert.equal(page.attributes['aria-pressed'], 'true');
+});
+
+test('settings dismissals wait for the exit animation and reject duplicate closes', () => {
+    const page = setupPage();
+    page.settingsButton.listeners.click();
+    assert.equal(page.settingsDialog.dataset.phase, 'opening');
+    page.tick(400);
+    assert.equal(page.settingsDialog.dataset.phase, 'open');
+    page.closeButton.listeners.click();
+    page.closeButton.listeners.click();
+    assert.equal(page.settingsAnimations.length, 2);
+    assert.equal(page.settingsDialog.open, true);
+    assert.equal(page.settingsButton.attributes['aria-expanded'], 'true');
+    assert.equal(page.settingsDialog.dataset.phase, 'closing');
+    page.click();
+    page.documentListeners.keydown({ key: 'ArrowUp', preventDefault() { assert.fail('Exit keeps dialog keys isolated.'); } });
+    assert.equal(page.number.textContent, '120');
+    assert.equal(page.clock.running, false);
+    page.tick(300);
+    assert.equal(page.settingsDialog.open, false);
+    assert.equal(page.settingsButton.attributes['aria-expanded'], 'false');
+    page.settingsButton.listeners.click();
+    page.tick(400);
+    let prevented = false;
+    page.settingsDialog.listeners.cancel({ preventDefault() { prevented = true; } });
+    assert.equal(prevented, true);
+    assert.equal(page.settingsDialog.open, true);
+    page.tick(300);
+    assert.equal(page.settingsDialog.open, false);
+});
+
+test('closing during the entrance starts from the current position and stale animations cannot affect a reopened sheet', () => {
+    const page = setupPage();
+    page.settingsButton.listeners.click();
+    const entrance = page.settingsAnimations[0];
+    page.tick(80);
+    page.closeButton.listeners.click();
+    assert.equal(entrance.canceled, true);
+    assert.equal(page.settingsAnimations[1].keyframes[0].transform, 'matrix(1, 0, 0, 1, 0, 120)');
+    page.tick(200);
+    assert.equal(page.settingsDialog.open, false);
+    page.settingsButton.listeners.click();
+    entrance.onfinish();
+    assert.equal(page.settingsDialog.open, true);
+    assert.equal(page.settingsDialog.dataset.phase, 'opening');
+    page.tick(400);
+    assert.equal(page.settingsDialog.dataset.phase, 'open');
+});
+
+test('tapping above the sheet dismisses it while blank space inside leaves it open', () => {
+    const page = setupPage();
+    page.settingsButton.listeners.click();
+    page.tick(400);
+    page.settingsDialog.listeners.click({ target: page.settingsDialog, clientY: 200 });
+    assert.equal(page.settingsDialog.dataset.phase, 'open');
+    page.settingsDialog.listeners.click({ target: page.settingsDialog, clientY: 40 });
+    assert.equal(page.settingsDialog.dataset.phase, 'closing');
+    page.tick(300);
+    assert.equal(page.settingsDialog.open, false);
+    assert.equal(page.clock.running, false);
+});
+
+test('reduced motion skips sheet animations and finishes an active exit immediately when enabled', () => {
+    const reduced = setupPage(null, { reducedMotion: true });
+    reduced.settingsButton.listeners.click();
+    assert.equal(reduced.settingsDialog.dataset.phase, 'open');
+    assert.equal(reduced.settingsAnimations.length, 0);
+    reduced.closeButton.listeners.click();
+    assert.equal(reduced.settingsDialog.open, false);
+    const page = setupPage();
+    page.settingsButton.listeners.click();
+    page.tick(400);
+    page.closeButton.listeners.click();
+    page.motionPreference.matches = true;
+    page.motionPreference.onchange();
+    assert.equal(page.settingsDialog.open, false);
 });
 
 test('settings apply immediately, stay readable for light colors, and persist across visits', () => {
@@ -512,6 +612,59 @@ test('settings apply immediately, stay readable for light colors, and persist ac
     assert.equal(next.surface.dataset.mode, 'conductor');
     assert.equal(next.soundInput.value, 'cowbell');
     assert.equal(next.colorInput.value, '#ffffff');
+});
+
+test('settings palettes stay tinted and readable across light, dark, and saturated colors', () => {
+    const { colorPalette } = setup().context.api;
+    const rgb = color => color.slice(1).match(/../g).map(channel => parseInt(channel, 16));
+    const light = color => rgb(color).reduce((sum, channel, index) => {
+        const value = channel / 255;
+        const linear = value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+        return sum + linear * [0.2126, 0.7152, 0.0722][index];
+    }, 0);
+    const contrast = (a, b) => (Math.max(light(a), light(b)) + 0.05) / (Math.min(light(a), light(b)) + 0.05);
+    for (const red of [0, 51, 102, 153, 204, 255]) {
+        for (const green of [0, 51, 102, 153, 204, 255]) {
+            for (const blue of [0, 51, 102, 153, 204, 255]) {
+                const color = '#' + [red, green, blue].map(channel => channel.toString(16).padStart(2, '0')).join('');
+                const palette = colorPalette(color).settings;
+                assert.ok(rgb(palette.background).every((channel, index) => channel >= rgb(color)[index]));
+                assert.ok(rgb(palette.accent).every((channel, index) => channel <= rgb(color)[index]));
+                for (const [foreground, background] of [
+                    ['ink', 'background'], ['ink', 'hover'],
+                    ['on-accent', 'accent'], ['on-accent-hover', 'accent-hover'],
+                ]) {
+                    assert.ok(contrast(palette[foreground], palette[background]) >= 4.5,
+                        `${color}: ${foreground} must remain readable on ${background}.`);
+                }
+            }
+        }
+    }
+    assert.equal(colorPalette('#155eef').settings['on-accent'], '#ffffff');
+    assert.equal(colorPalette('#ffff80').settings['on-accent'], '#112037');
+    assert.equal(colorPalette('#ffffff').settings['on-accent'], '#112037');
+    assert.equal(colorPalette('#000000').settings['on-accent'], '#ffffff');
+});
+
+test('the open settings modal updates its theme live and restores the selected palette on reload', () => {
+    const page = setupPage();
+    page.settingsButton.listeners.click();
+    let previousBackground;
+    for (const color of ['#ffff80', '#155eef', '#601c8e']) {
+        page.colorInput.value = color;
+        page.colorInput.listeners.input();
+        const palette = page.context.api.colorPalette(color).settings;
+        const style = page.context.document.documentElement.style;
+        for (const [name, value] of Object.entries(palette)) {
+            assert.equal(style[`--metronome-settings-${name}`], value);
+        }
+        assert.notEqual(palette.background, previousBackground);
+        assert.equal(page.settingsDialog.open, true);
+        const restored = setupPage(page.storage.get('metronome.settings.v1'));
+        assert.equal(restored.context.document.documentElement.style['--metronome-settings-background'], palette.background);
+        assert.equal(restored.context.document.documentElement.style['--metronome-settings-on-accent'], palette['on-accent']);
+        previousBackground = palette.background;
+    }
 });
 
 test('invalid or unavailable saved settings fall back to usable defaults', () => {
@@ -659,26 +812,57 @@ function conductorTravel(pointAt, from, to) {
     return distance;
 }
 
-test('travel speed stays constant across all loops, beats, and the bar boundary', () => {
-    const { conductorPoint } = setup().context.api;
-    for (const count of [1, 2, 3, 4]) {
+test('one-, two-, and four-beat patterns keep constant speed before the final drop', () => {
+    const { conductorPoint, conductorPreparationBeats } = setup().context.api;
+    for (const count of [1, 2, 4]) {
         const pointAt = phase => conductorPoint(count, Math.floor(phase), phase - Math.floor(phase));
+        const dropStart = count - conductorPreparationBeats(count);
+        const window = dropStart / (count * 10);
         const distances = Array.from({ length: count * 10 }, (_, index) =>
-            conductorTravel(pointAt, index / 10, (index + 1) / 10));
+            conductorTravel(pointAt, index * window, (index + 1) * window));
         const average = distances.reduce((sum, value) => sum + value, 0) / distances.length;
         for (const distance of distances) {
             assert.ok(Math.abs(distance / average - 1) < 0.01,
                 `Pattern ${count}: a longer loop must not make the ball travel faster.`);
         }
-        for (let beat = 0; beat <= count; beat++) {
+        for (let beat = 1; beat < dropStart; beat++) {
             const crossing = conductorTravel(pointAt, beat - 0.025, beat + 0.025);
-            assert.ok(Math.abs(crossing / (average / 2) - 1) < 0.01,
+            assert.ok(Math.abs(crossing / (average * 0.05 / window) - 1) < 0.01,
                 `Pattern ${count}, boundary ${beat}: crossing a beat must not change speed.`);
         }
     }
 });
 
-test('opening drops start at the top and travel at a steady speed matching the running stroke', () => {
+test('the three-beat right loop gently slows uphill and gains momentum downhill without speed jumps', () => {
+    const { conductorPoint, conductorPreparationBeats } = setup().context.api;
+    const pointAt = phase => conductorPoint(3, Math.floor(phase), phase - Math.floor(phase));
+    const speedAt = phase => conductorTravel(pointAt, phase - 0.001, phase + 0.001) / 0.002;
+    const baseline = speedAt(0.1);
+    const dropStart = 3 - conductorPreparationBeats(3);
+    const uphill = [];
+    const downhill = [];
+    let previousSpeed = 1;
+    for (let phase = 0.005; phase < dropStart - 0.005; phase += 0.005) {
+        const point = pointAt(phase);
+        const speed = speedAt(phase) / baseline;
+        if (point[0] < 300) {
+            assert.ok(Math.abs(speed - 1) < 0.01, 'The rest of the pattern keeps its steady speed.');
+        }
+        if (point[0] > 310) {
+            const rising = pointAt(phase + 0.001)[1] < pointAt(phase - 0.001)[1];
+            (rising ? uphill : downhill).push(speed);
+            assert.ok(Math.abs(speed - previousSpeed) < 0.03, 'The loop must change speed gradually.');
+        }
+        previousSpeed = speed;
+    }
+    assert.ok(uphill.length > 10 && downhill.length > 10);
+    assert.ok(Math.min(...uphill) < 0.97, 'The climb should feel slightly slower.');
+    assert.ok(uphill.every(speed => speed > 0.85 && speed < 1.01));
+    assert.ok(Math.max(...downhill) > 1.05, 'The descent should pick up some momentum.');
+    assert.ok(downhill.every(speed => speed > 0.99 && speed < 1.2));
+});
+
+test('final drops accelerate like a fall, matching the opening stroke and landing on beat one', () => {
     const { conductorPoint, conductorPreparationPoint, conductorPreparationBeats, CONDUCTING_PATTERNS } = setup().context.api;
     for (const count of [1, 2, 3, 4]) {
         const pointAt = progress => conductorPreparationPoint(count, progress);
@@ -686,8 +870,13 @@ test('opening drops start at the top and travel at a steady speed matching the r
         assert.ok(Math.abs(first[1] - 36) < 0.000001);
         const distances = Array.from({ length: 10 }, (_, index) =>
             conductorTravel(pointAt, index / 10, (index + 1) / 10));
-        const average = distances.reduce((sum, value) => sum + value, 0) / distances.length;
-        distances.forEach(distance => assert.ok(Math.abs(distance / average - 1) < 0.01));
+        for (let index = 1; index < distances.length; index++) {
+            assert.ok(distances[index] > distances[index - 1],
+                `Pattern ${count}: the falling ball must gain speed toward beat one.`);
+        }
+        const accelerations = distances.slice(1).map((distance, index) => distance - distances[index]);
+        const averageAcceleration = accelerations.reduce((sum, value) => sum + value, 0) / accelerations.length;
+        accelerations.forEach(acceleration => assert.ok(Math.abs(acceleration / averageAcceleration - 1) < 0.01));
         assert.deepEqual(Array.from(pointAt(1)), Array.from(CONDUCTING_PATTERNS[count][0].point));
         const duration = conductorPreparationBeats(count);
         for (const progress of [0.1, 0.5, 0.9]) {

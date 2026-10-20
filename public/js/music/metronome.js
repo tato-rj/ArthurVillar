@@ -381,7 +381,7 @@ function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol
 function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
 function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
 // Traced from the four supplied conducting-pattern screenshots.
-// Reference landmarks define the shape; playback advances uniformly around it.
+// The three-beat right loop has a subtle swing; the final downstroke accelerates.
 // The four-beat side loops mirror each other around the center downstroke.
 var CONDUCTING_PATTERNS = {
   1: [{
@@ -402,12 +402,14 @@ var CONDUCTING_PATTERNS = {
   }],
   2: [{
     point: [200, 540],
-    curves: [{
-      to: [262.14, 327.55],
-      controls: [[312.81, 572.13], [277.43, 381.03]]
+    curves: [
+    // Match the three-beat turn's rounded, horizontal crest.
+    {
+      to: [247, 343],
+      controls: [[312.81, 572.13], [301, 343]]
     }, {
       to: [178.55, 416.85],
-      controls: [[265.41, 373.54], [239.55, 434.83]]
+      controls: [[212.81, 343], [239.55, 434.83]]
     }, {
       to: [218.96, 256.19],
       controls: [[216.22, 388.02], [218.96, 301.19]]
@@ -430,15 +432,17 @@ var CONDUCTING_PATTERNS = {
     }, {
       to: [304.96, 450.7],
       controls: [[226.88, 326.33], [261.71, 450.7]]
-    }, {
-      to: [371.43, 283.11],
-      controls: [[349.3, 450.7], [366.48, 315.1]]
+    },
+    // A shared horizontal tangent rounds the right-hand reversal.
+    {
+      to: [354, 299],
+      controls: [[349.3, 450.7], [402, 299]]
     }]
   }, {
-    point: [371.43, 283.11],
+    point: [354, 299],
     curves: [{
       to: [306.18, 406.25],
-      controls: [[365.15, 308.08], [337.04, 406.25]]
+      controls: [[313.64, 299], [337.04, 406.25]]
     }, {
       to: [200, 36],
       controls: [[215.55, 406.25], [197.12, 94.21]]
@@ -537,18 +541,40 @@ function measureStroke(segment) {
     length: length
   };
 }
+function addSwingTiming(motion) {
+  var _motion$curveEnds$sli = motion.curveEnds.slice(1, 4),
+    _motion$curveEnds$sli2 = _slicedToArray(_motion$curveEnds$sli, 3),
+    start = _motion$curveEnds$sli2[0],
+    crest = _motion$curveEnds$sli2[1],
+    end = _motion$curveEnds$sli2[2];
+  var delay = Math.min(crest - start, end - crest) * 0.08;
+  return _objectSpread(_objectSpread({}, motion), {}, {
+    samples: motion.samples.map(function (sample) {
+      if (sample.distance <= start || sample.distance >= end) return sample;
+      var progress = sample.distance <= crest ? (sample.distance - start) / (crest - start) : (end - sample.distance) / (end - crest);
+      // Delay the climb, then recover that time on the descent. A quintic
+      // ramp joins the surrounding motion with continuous speed and
+      // acceleration, keeping the loop's total duration unchanged.
+      var ease = Math.pow(progress, 3) * (progress * (progress * 6 - 15) + 10);
+      return _objectSpread(_objectSpread({}, sample), {}, {
+        distance: sample.distance + delay * ease
+      });
+    })
+  });
+}
 var conductingMotion = Object.fromEntries(Object.entries(CONDUCTING_PATTERNS).map(function (_ref) {
   var _ref2 = _slicedToArray(_ref, 2),
     beats = _ref2[0],
     pattern = _ref2[1];
-  return [beats, _objectSpread({
+  var motion = _objectSpread({
     beats: Number(beats)
   }, measureStroke({
     point: pattern[0].point,
     curves: pattern.flatMap(function (segment) {
       return segment.curves;
     })
-  }))];
+  }));
+  return [beats, motion.beats === 3 ? addSwingTiming(motion) : motion];
 }));
 function pointAtDistance(_ref3, distance) {
   var samples = _ref3.samples,
@@ -569,25 +595,35 @@ function pointAtDistance(_ref3, distance) {
     return value + (after.point[axis] - value) * fraction;
   });
 }
+function downstrokePoint(motion, progress) {
+  var from = motion.curveEnds[motion.curveEnds.length - 2];
+  var t = Math.min(1, Math.max(0, progress));
+  // A falling body's distance grows with time squared. Apply this only to
+  // the descent from the top, keeping its arrival on the downbeat unchanged.
+  return pointAtDistance(motion, from + (motion.length - from) * Math.pow(t, 2));
+}
 function conductorPoint(beats, beat, progress) {
   var motion = conductingMotion[beats] || conductingMotion[1];
   var index = (beat % motion.beats + motion.beats) % motion.beats;
   var t = Math.min(1, Math.max(0, progress));
-  // Use one distance ramp for the entire bar. Longer loops take their share
-  // of the bar instead of forcing the ball to speed up for a single beat.
-  return pointAtDistance(motion, (index + t) / motion.beats * motion.length);
+  // The cached map adds only the three-beat swing to the uniform distance
+  // ramp. The final descent accelerates over its existing time window.
+  var distance = (index + t) / motion.beats * motion.length;
+  var dropStart = motion.curveEnds[motion.curveEnds.length - 2];
+  if (distance > dropStart) {
+    return downstrokePoint(motion, (distance - dropStart) / (motion.length - dropStart));
+  }
+  return pointAtDistance(motion, distance);
 }
 function conductorPreparationPoint(beats, progress) {
   var motion = conductingMotion[beats] || conductingMotion[1];
-  var from = motion.curveEnds[motion.curveEnds.length - 2];
-  var t = Math.min(1, Math.max(0, progress));
-  return pointAtDistance(motion, from + (motion.length - from) * t);
+  return downstrokePoint(motion, progress);
 }
 function conductorPreparationBeats(beats) {
   var motion = conductingMotion[beats] || conductingMotion[1];
   var from = motion.curveEnds[motion.curveEnds.length - 2];
-  // Release from the top at the running speed and reach the bottom exactly
-  // on the first click, even when the drop occupies less than one beat.
+  // Give the opening fall the same duration as the repeating downstroke,
+  // reaching the bottom exactly on the first click.
   return motion.beats * (motion.length - from) / motion.length;
 }
 var ConductorView = /*#__PURE__*/function () {
@@ -774,20 +810,56 @@ function loadSettings(storage) {
     return _objectSpread({}, DEFAULT_SETTINGS);
   }
 }
-function colorPalette(color) {
-  var channels = color.slice(1).match(/../g).map(function (channel) {
-    return parseInt(channel, 16);
-  });
+function luminance(channels) {
   var linear = channels.map(function (channel) {
     var value = channel / 255;
     return value <= 0.04045 ? value / 12.92 : Math.pow((value + 0.055) / 1.055, 2.4);
   });
-  var luminance = linear[0] * 0.2126 + linear[1] * 0.7152 + linear[2] * 0.0722;
+  return linear[0] * 0.2126 + linear[1] * 0.7152 + linear[2] * 0.0722;
+}
+function hexColor(channels) {
+  return "#".concat(channels.map(function (channel) {
+    return channel.toString(16).padStart(2, '0');
+  }).join(''));
+}
+function mixColor(from, to, amount) {
+  return from.map(function (channel, index) {
+    return Math.round(channel + (to[index] - channel) * amount);
+  });
+}
+function buttonInk(channels) {
+  var light = luminance(channels);
+  if (1.05 / (light + 0.05) >= 4.5) return '#ffffff';
+  return (light + 0.05) / (luminance([17, 32, 55]) + 0.05) >= 4.5 ? '#112037' : '#000000';
+}
+function colorPalette(color) {
+  var channels = color.slice(1).match(/../g).map(function (channel) {
+    return parseInt(channel, 16);
+  });
+  var background = mixColor(channels, [255, 255, 255], 0.88);
+  var accent = mixColor(channels, [0, 0, 0], 0.18);
+  var accentHover = mixColor(accent, [0, 0, 0], 0.08);
+  var hover = mixColor(background, accent, 0.07);
+  var text = accent;
+  // Bright hues need a deeper shade for readable text on the pale tint.
+  while ((luminance(hover) + 0.05) / (luminance(text) + 0.05) < 4.5) {
+    text = text.map(function (channel) {
+      return Math.floor(channel * 0.95);
+    });
+  }
   return {
-    pulse: "#".concat(channels.map(function (channel) {
-      return Math.round(channel * 0.78).toString(16).padStart(2, '0');
-    }).join('')),
-    ink: luminance > 0.4 ? '#112037' : '#ffffff'
+    pulse: hexColor(mixColor(channels, [0, 0, 0], 0.22)),
+    ink: luminance(channels) > 0.4 ? '#112037' : '#ffffff',
+    settings: {
+      background: hexColor(background),
+      ink: hexColor(text),
+      accent: hexColor(accent),
+      'on-accent': buttonInk(accent),
+      'accent-hover': hexColor(accentHover),
+      'on-accent-hover': buttonInk(accentHover),
+      hover: hexColor(hover),
+      border: hexColor(mixColor(background, text, 0.23))
+    }
   };
 }
 
@@ -867,6 +939,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _metronome_settings__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./metronome/settings */ "./resources/js/music/metronome/settings.js");
 /* harmony import */ var _metronome_conductor__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./metronome/conductor */ "./resources/js/music/metronome/conductor.js");
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
 function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
 function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
 function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
@@ -900,6 +978,8 @@ var backgroundPulseTempo = _metronome_gesture__WEBPACK_IMPORTED_MODULE_1__.DEFAU
 var edgePress = null;
 var edgeRepeatTimer = null;
 var conductorFrame = null;
+var settingsAnimation = null;
+var settingsClosing = false;
 var settings = _objectSpread({}, _metronome_settings__WEBPACK_IMPORTED_MODULE_2__.DEFAULT_SETTINGS);
 try {
   settings = (0,_metronome_settings__WEBPACK_IMPORTED_MODULE_2__.loadSettings)(window.localStorage);
@@ -1003,6 +1083,12 @@ function applySettings(value) {
   if (previous.color !== settings.color && backgroundPulse) backgroundPulse.cancel();
   document.documentElement.style.setProperty('--metronome-color', settings.color);
   document.documentElement.style.setProperty('--metronome-ink', palette.ink);
+  for (var _i = 0, _Object$entries = Object.entries(palette.settings); _i < _Object$entries.length; _i++) {
+    var _Object$entries$_i = _slicedToArray(_Object$entries[_i], 2),
+      name = _Object$entries$_i[0],
+      color = _Object$entries$_i[1];
+    document.documentElement.style.setProperty("--metronome-settings-".concat(name), color);
+  }
   document.querySelector('meta[name="theme-color"]').setAttribute('content', settings.color);
   surface.dataset.mode = settings.type;
   clock.setBeats(settings.beats);
@@ -1026,21 +1112,104 @@ function applySettings(value) {
     }
   }
 }
+function animateSettings(keyframes, duration, onFinish) {
+  if (settingsAnimation) settingsAnimation.cancel();
+  settingsAnimation = null;
+  if (reducedMotion.matches) {
+    onFinish();
+    return;
+  }
+  var animation = settingsDialog.animate(keyframes, {
+    duration: duration,
+    fill: 'both'
+  });
+  settingsAnimation = animation;
+  animation.onfinish = function () {
+    if (settingsAnimation !== animation) return;
+    settingsAnimation = null;
+    onFinish();
+    animation.cancel();
+  };
+}
+function closeSettings() {
+  if (!settingsDialog.open || settingsClosing) return;
+  var opening = settingsDialog.dataset.phase === 'opening';
+  var transform = settingsAnimation ? getComputedStyle(settingsDialog).transform : 'translateY(0)';
+  settingsClosing = true;
+  settingsDialog.dataset.phase = 'closing';
+  // An interrupted entrance exits from its current position without
+  // first jumping to the fully open panel's anticipation movement.
+  var keyframes = opening ? [{
+    transform: transform,
+    easing: 'ease-in'
+  }, {
+    transform: 'translateY(110%)'
+  }] : [{
+    transform: transform,
+    offset: 0,
+    easing: 'ease-out'
+  }, {
+    transform: 'translateY(-6px)',
+    offset: 0.18,
+    easing: 'cubic-bezier(.55, 0, .9, .35)'
+  }, {
+    transform: 'translateY(112%)',
+    offset: 0.9,
+    easing: 'ease-out'
+  }, {
+    transform: 'translateY(110%)',
+    offset: 1
+  }];
+  animateSettings(keyframes, opening ? 180 : 280, function () {
+    return settingsDialog.close();
+  });
+}
 settingsButton.addEventListener('click', function () {
+  if (settingsDialog.open) return;
   stopEdgeRepeat();
   gesture = null;
   pointerId = null;
   surface.classList.remove('is-dragging');
   settingsDialog.showModal();
+  settingsDialog.dataset.phase = 'opening';
   settingsButton.setAttribute('aria-expanded', 'true');
   syncConductor();
-});
-document.querySelectorAll('[data-settings-close]').forEach(function (button) {
-  button.addEventListener('click', function () {
-    return settingsDialog.close();
+  animateSettings([{
+    transform: 'translateY(110%)',
+    offset: 0,
+    easing: 'cubic-bezier(.16, 1, .3, 1)'
+  }, {
+    transform: 'translateY(-10px)',
+    offset: 0.73,
+    easing: 'ease-in-out'
+  }, {
+    transform: 'translateY(3px)',
+    offset: 0.88,
+    easing: 'ease-out'
+  }, {
+    transform: 'translateY(0)',
+    offset: 1
+  }], 340, function () {
+    settingsDialog.dataset.phase = 'open';
   });
 });
+document.querySelectorAll('[data-settings-close]').forEach(function (button) {
+  button.addEventListener('click', closeSettings);
+});
+settingsDialog.addEventListener('cancel', function (event) {
+  event.preventDefault();
+  closeSettings();
+});
+settingsDialog.addEventListener('click', function (event) {
+  if (event.target === settingsDialog && event.clientY < settingsDialog.getBoundingClientRect().top) {
+    closeSettings();
+  }
+});
 settingsDialog.addEventListener('close', function () {
+  if (settingsAnimation) settingsAnimation.cancel();
+  settingsAnimation = null;
+  settingsClosing = false;
+  delete settingsDialog.dataset.phase;
   settingsButton.setAttribute('aria-expanded', 'false');
   syncConductor();
 });
@@ -1072,6 +1241,7 @@ reducedMotion.addEventListener('change', function () {
   if (reducedMotion.matches) {
     if (pulse) pulse.cancel();
     if (backgroundPulse) backgroundPulse.cancel();
+    if (settingsAnimation) settingsAnimation.finish();
   }
   syncConductor();
 });

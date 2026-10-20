@@ -28,6 +28,8 @@ let backgroundPulseTempo = DEFAULT_TEMPO;
 let edgePress = null;
 let edgeRepeatTimer = null;
 let conductorFrame = null;
+let settingsAnimation = null;
+let settingsClosing = false;
 let settings = { ...DEFAULT_SETTINGS };
 try {
     settings = loadSettings(window.localStorage);
@@ -125,6 +127,9 @@ function applySettings(value, persist = true) {
     if (previous.color !== settings.color && backgroundPulse) backgroundPulse.cancel();
     document.documentElement.style.setProperty('--metronome-color', settings.color);
     document.documentElement.style.setProperty('--metronome-ink', palette.ink);
+    for (const [name, color] of Object.entries(palette.settings)) {
+        document.documentElement.style.setProperty(`--metronome-settings-${name}`, color);
+    }
     document.querySelector('meta[name="theme-color"]').setAttribute('content', settings.color);
     surface.dataset.mode = settings.type;
     clock.setBeats(settings.beats);
@@ -145,19 +150,77 @@ function applySettings(value, persist = true) {
     }
 }
 
+function animateSettings(keyframes, duration, onFinish) {
+    if (settingsAnimation) settingsAnimation.cancel();
+    settingsAnimation = null;
+    if (reducedMotion.matches) {
+        onFinish();
+        return;
+    }
+    const animation = settingsDialog.animate(keyframes, { duration, fill: 'both' });
+    settingsAnimation = animation;
+    animation.onfinish = () => {
+        if (settingsAnimation !== animation) return;
+        settingsAnimation = null;
+        onFinish();
+        animation.cancel();
+    };
+}
+
+function closeSettings() {
+    if (!settingsDialog.open || settingsClosing) return;
+    const opening = settingsDialog.dataset.phase === 'opening';
+    const transform = settingsAnimation ? getComputedStyle(settingsDialog).transform : 'translateY(0)';
+    settingsClosing = true;
+    settingsDialog.dataset.phase = 'closing';
+    // An interrupted entrance exits from its current position without
+    // first jumping to the fully open panel's anticipation movement.
+    const keyframes = opening ? [
+        { transform, easing: 'ease-in' },
+        { transform: 'translateY(110%)' },
+    ] : [
+        { transform, offset: 0, easing: 'ease-out' },
+        { transform: 'translateY(-6px)', offset: 0.18, easing: 'cubic-bezier(.55, 0, .9, .35)' },
+        { transform: 'translateY(112%)', offset: 0.9, easing: 'ease-out' },
+        { transform: 'translateY(110%)', offset: 1 },
+    ];
+    animateSettings(keyframes, opening ? 180 : 280, () => settingsDialog.close());
+}
+
 settingsButton.addEventListener('click', () => {
+    if (settingsDialog.open) return;
     stopEdgeRepeat();
     gesture = null;
     pointerId = null;
     surface.classList.remove('is-dragging');
     settingsDialog.showModal();
+    settingsDialog.dataset.phase = 'opening';
     settingsButton.setAttribute('aria-expanded', 'true');
     syncConductor();
+    animateSettings([
+        { transform: 'translateY(110%)', offset: 0, easing: 'cubic-bezier(.16, 1, .3, 1)' },
+        { transform: 'translateY(-10px)', offset: 0.73, easing: 'ease-in-out' },
+        { transform: 'translateY(3px)', offset: 0.88, easing: 'ease-out' },
+        { transform: 'translateY(0)', offset: 1 },
+    ], 340, () => { settingsDialog.dataset.phase = 'open'; });
 });
 document.querySelectorAll('[data-settings-close]').forEach(button => {
-    button.addEventListener('click', () => settingsDialog.close());
+    button.addEventListener('click', closeSettings);
+});
+settingsDialog.addEventListener('cancel', event => {
+    event.preventDefault();
+    closeSettings();
+});
+settingsDialog.addEventListener('click', event => {
+    if (event.target === settingsDialog && event.clientY < settingsDialog.getBoundingClientRect().top) {
+        closeSettings();
+    }
 });
 settingsDialog.addEventListener('close', () => {
+    if (settingsAnimation) settingsAnimation.cancel();
+    settingsAnimation = null;
+    settingsClosing = false;
+    delete settingsDialog.dataset.phase;
     settingsButton.setAttribute('aria-expanded', 'false');
     syncConductor();
 });
@@ -173,6 +236,7 @@ reducedMotion.addEventListener('change', () => {
     if (reducedMotion.matches) {
         if (pulse) pulse.cancel();
         if (backgroundPulse) backgroundPulse.cancel();
+        if (settingsAnimation) settingsAnimation.finish();
     }
     syncConductor();
 });

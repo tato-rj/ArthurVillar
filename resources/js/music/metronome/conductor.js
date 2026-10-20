@@ -1,5 +1,5 @@
 // Traced from the four supplied conducting-pattern screenshots.
-// Reference landmarks define the shape; playback advances uniformly around it.
+// The three-beat right loop has a subtle swing; the final downstroke accelerates.
 // The four-beat side loops mirror each other around the center downstroke.
 export const CONDUCTING_PATTERNS = {
     1: [
@@ -17,8 +17,9 @@ export const CONDUCTING_PATTERNS = {
         {
             point: [200, 540],
             curves: [
-                { to: [262.14, 327.55], controls: [[312.81, 572.13], [277.43, 381.03]] },
-                { to: [178.55, 416.85], controls: [[265.41, 373.54], [239.55, 434.83]] },
+                // Match the three-beat turn's rounded, horizontal crest.
+                { to: [247, 343], controls: [[312.81, 572.13], [301, 343]] },
+                { to: [178.55, 416.85], controls: [[212.81, 343], [239.55, 434.83]] },
                 { to: [218.96, 256.19], controls: [[216.22, 388.02], [218.96, 301.19]] },
                 { to: [200, 36], controls: [[218.96, 183.16], [211.01, 108.19]] },
             ],
@@ -34,13 +35,14 @@ export const CONDUCTING_PATTERNS = {
             curves: [
                 { to: [203.83, 326.33], controls: [[175.99, 514.59], [162.56, 326.33]] },
                 { to: [304.96, 450.7], controls: [[226.88, 326.33], [261.71, 450.7]] },
-                { to: [371.43, 283.11], controls: [[349.3, 450.7], [366.48, 315.1]] },
+                // A shared horizontal tangent rounds the right-hand reversal.
+                { to: [354, 299], controls: [[349.3, 450.7], [402, 299]] },
             ],
         },
         {
-            point: [371.43, 283.11],
+            point: [354, 299],
             curves: [
-                { to: [306.18, 406.25], controls: [[365.15, 308.08], [337.04, 406.25]] },
+                { to: [306.18, 406.25], controls: [[313.64, 299], [337.04, 406.25]] },
                 { to: [200, 36], controls: [[215.55, 406.25], [197.12, 94.21]] },
             ],
         },
@@ -109,14 +111,36 @@ function measureStroke(segment) {
     return { samples, curveEnds, length };
 }
 
-const conductingMotion = Object.fromEntries(Object.entries(CONDUCTING_PATTERNS)
-    .map(([beats, pattern]) => [beats, {
-        beats: Number(beats),
-        ...measureStroke({
-            point: pattern[0].point,
-            curves: pattern.flatMap(segment => segment.curves),
+function addSwingTiming(motion) {
+    const [start, crest, end] = motion.curveEnds.slice(1, 4);
+    const delay = Math.min(crest - start, end - crest) * 0.08;
+    return {
+        ...motion,
+        samples: motion.samples.map(sample => {
+            if (sample.distance <= start || sample.distance >= end) return sample;
+            const progress = sample.distance <= crest
+                ? (sample.distance - start) / (crest - start)
+                : (end - sample.distance) / (end - crest);
+            // Delay the climb, then recover that time on the descent. A quintic
+            // ramp joins the surrounding motion with continuous speed and
+            // acceleration, keeping the loop's total duration unchanged.
+            const ease = progress ** 3 * (progress * (progress * 6 - 15) + 10);
+            return { ...sample, distance: sample.distance + delay * ease };
         }),
-    }]));
+    };
+}
+
+const conductingMotion = Object.fromEntries(Object.entries(CONDUCTING_PATTERNS)
+    .map(([beats, pattern]) => {
+        const motion = {
+            beats: Number(beats),
+            ...measureStroke({
+                point: pattern[0].point,
+                curves: pattern.flatMap(segment => segment.curves),
+            }),
+        };
+        return [beats, motion.beats === 3 ? addSwingTiming(motion) : motion];
+    }));
 
 function pointAtDistance({ samples, length }, distance) {
     if (distance <= 0 || length === 0) return samples[0].point;
@@ -135,27 +159,38 @@ function pointAtDistance({ samples, length }, distance) {
     return before.point.map((value, axis) => value + (after.point[axis] - value) * fraction);
 }
 
+function downstrokePoint(motion, progress) {
+    const from = motion.curveEnds[motion.curveEnds.length - 2];
+    const t = Math.min(1, Math.max(0, progress));
+    // A falling body's distance grows with time squared. Apply this only to
+    // the descent from the top, keeping its arrival on the downbeat unchanged.
+    return pointAtDistance(motion, from + (motion.length - from) * t ** 2);
+}
+
 export function conductorPoint(beats, beat, progress) {
     const motion = conductingMotion[beats] || conductingMotion[1];
     const index = ((beat % motion.beats) + motion.beats) % motion.beats;
     const t = Math.min(1, Math.max(0, progress));
-    // Use one distance ramp for the entire bar. Longer loops take their share
-    // of the bar instead of forcing the ball to speed up for a single beat.
-    return pointAtDistance(motion, (index + t) / motion.beats * motion.length);
+    // The cached map adds only the three-beat swing to the uniform distance
+    // ramp. The final descent accelerates over its existing time window.
+    const distance = (index + t) / motion.beats * motion.length;
+    const dropStart = motion.curveEnds[motion.curveEnds.length - 2];
+    if (distance > dropStart) {
+        return downstrokePoint(motion, (distance - dropStart) / (motion.length - dropStart));
+    }
+    return pointAtDistance(motion, distance);
 }
 
 export function conductorPreparationPoint(beats, progress) {
     const motion = conductingMotion[beats] || conductingMotion[1];
-    const from = motion.curveEnds[motion.curveEnds.length - 2];
-    const t = Math.min(1, Math.max(0, progress));
-    return pointAtDistance(motion, from + (motion.length - from) * t);
+    return downstrokePoint(motion, progress);
 }
 
 export function conductorPreparationBeats(beats) {
     const motion = conductingMotion[beats] || conductingMotion[1];
     const from = motion.curveEnds[motion.curveEnds.length - 2];
-    // Release from the top at the running speed and reach the bottom exactly
-    // on the first click, even when the drop occupies less than one beat.
+    // Give the opening fall the same duration as the repeating downstroke,
+    // reaching the bottom exactly on the first click.
     return motion.beats * (motion.length - from) / motion.length;
 }
 
