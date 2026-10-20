@@ -180,18 +180,6 @@ body {
   opacity: 0.22;
 }
 
-.conductor-markers {
-  fill: currentColor;
-  font-size: 17px;
-  font-weight: 400;
-}
-.conductor-markers g {
-  opacity: 0.35;
-}
-.conductor-markers .is-active {
-  opacity: 1;
-}
-
 .conductor-dot,
 .conductor-halo {
   fill: currentColor;

@@ -1,13 +1,15 @@
-// Each point is a beat. Curves describe the rebound toward the next beat;
-// `at` is the fraction of that beat's duration at the end of each curve.
-const BASE_CONDUCTING_PATTERNS = {
+// Traced from the four supplied conducting-pattern screenshots.
+// Each point marks a beat; its curves lead to the next beat.
+// The four-beat side loops mirror each other around the center downstroke.
+export const CONDUCTING_PATTERNS = {
     1: [
         {
             point: [200, 540],
             curves: [
-                { to: [235, 220], controls: [[157, 510], [250, 350]], at: 0.28 },
-                { to: [200, 36], controls: [[232, 155], [209, 72]], at: 0.5 },
-                { to: [200, 540], controls: [[213, 195], [215, 402]], at: 1 },
+                { to: [208.85, 384.54], controls: [[173.1, 508.74], [200.34, 423.2]] },
+                { to: [235.85, 210.89], controls: [[221.33, 327.78], [235.85, 270.11]] },
+                { to: [200.83, 36], controls: [[235.85, 153.6], [211.94, 91.77]] },
+                { to: [200, 540], controls: [[215, 204.22], [213.91, 372.13]] },
             ],
         },
     ],
@@ -15,142 +17,68 @@ const BASE_CONDUCTING_PATTERNS = {
         {
             point: [200, 540],
             curves: [
-                { to: [262, 328], controls: [[306, 580], [280, 411]], at: 0.35 },
-                { to: [178, 418], controls: [[268, 411], [213, 438]], at: 0.55 },
-                { to: [200, 36], controls: [[248, 365], [215, 115]], at: 1 },
+                { to: [262.14, 327.55], controls: [[312.81, 572.13], [277.43, 381.03]] },
+                { to: [178.55, 416.85], controls: [[265.41, 373.54], [239.55, 434.83]] },
+                { to: [218.96, 256.19], controls: [[216.22, 388.02], [218.96, 301.19]] },
+                { to: [200, 36], controls: [[218.96, 183.16], [211.01, 108.19]] },
             ],
         },
         {
-            point: [200, 36], label: [174, 42],
-            curves: [{ to: [200, 540], controls: [[200, 204], [200, 372]], at: 1 }],
+            point: [200, 36],
+            curves: [{ to: [200, 540], controls: [[200, 204], [200, 372]] }],
         },
     ],
     3: [
         {
             point: [200, 540],
             curves: [
-                { to: [200, 328], controls: [[157, 451], [177, 314]], at: 0.35 },
-                { to: [372, 284], controls: [[251, 313], [307, 610]], at: 1 },
+                { to: [203.83, 326.33], controls: [[175.99, 514.59], [162.56, 326.33]] },
+                { to: [304.96, 450.7], controls: [[226.88, 326.33], [261.71, 450.7]] },
+                { to: [371.43, 283.11], controls: [[349.3, 450.7], [366.48, 315.1]] },
             ],
         },
         {
-            point: [372, 284], label: [392, 290],
-            curves: [{ to: [200, 36], controls: [[304, 534], [217, 446]], at: 1 }],
+            point: [371.43, 283.11],
+            curves: [
+                { to: [306.18, 406.25], controls: [[365.15, 308.08], [337.04, 406.25]] },
+                { to: [200, 36], controls: [[215.55, 406.25], [197.12, 94.21]] },
+            ],
         },
         {
-            point: [200, 36], label: [174, 42],
-            curves: [{ to: [200, 540], controls: [[200, 204], [200, 372]], at: 1 }],
+            point: [200, 36],
+            curves: [{ to: [200, 540], controls: [[200, 204], [200, 372]] }],
         },
     ],
     4: [
         {
             point: [200, 540],
             curves: [
-                { to: [200, 307], controls: [[222, 400], [223, 307]], at: 0.45 },
-                { to: [61, 467], controls: [[176, 307], [95, 467]], at: 1 },
+                { to: [208.28, 402.99], controls: [[200, 481.8], [202.76, 453.12]] },
+                { to: [200.57, 305.53], controls: [[209.56, 391.32], [223.13, 305.53]] },
+                { to: [63.15, 464.16], controls: [[171.7, 305.53], [96.35, 464.16]] },
             ],
         },
         {
-            point: [61, 467], label: [37, 483],
+            point: [63.15, 464.16],
             curves: [
-                { to: [77, 303], controls: [[14, 467], [27, 315]], at: 7 / 15 },
-                { to: [285, 455], controls: [[122, 280], [252, 455]], at: 1 },
+                { to: [79.46, 303.09], controls: [[17.47, 464.16], [32.63, 303.09]] },
+                { to: [336.85, 464.16], controls: [[129.84, 303.09], [303.65, 464.16]] },
             ],
         },
         {
-            point: [285, 455], label: [309, 471],
+            point: [336.85, 464.16],
             curves: [
-                { to: [362, 278], controls: [[330, 455], [350, 340]], at: 0.2 },
-                { to: [200, 36], controls: [[315, 446], [224, 446]], at: 1 },
+                { to: [320.54, 303.09], controls: [[382.53, 464.16], [367.37, 303.09]] },
+                { to: [235, 384], controls: [[270.16, 303.09], [255, 384]] },
+                { to: [200, 36], controls: [[210, 384], [204.69, 88.9]] },
             ],
         },
         {
-            point: [200, 36], label: [174, 42],
-            curves: [{ to: [200, 540], controls: [[200, 204], [200, 372]], at: 1 }],
+            point: [200, 36],
+            curves: [{ to: [200, 540], controls: [[200, 204], [200, 372]] }],
         },
     ],
 };
-
-const interpolatePoint = (a, b, t) => a.map((value, axis) => value + (b[axis] - value) * t);
-const pointDistance = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
-const unitVector = vector => {
-    const length = Math.hypot(...vector);
-    return length ? vector.map(value => value / length) : [0, 0];
-};
-
-function splitCurve(start, curve, t) {
-    const a = interpolatePoint(start, curve.controls[0], t);
-    const b = interpolatePoint(curve.controls[0], curve.controls[1], t);
-    const c = interpolatePoint(curve.controls[1], curve.to, t);
-    const d = interpolatePoint(a, b, t);
-    const e = interpolatePoint(b, c, t);
-    const point = interpolatePoint(d, e, t);
-    return [
-        { controls: [a, d], to: point },
-        { controls: [e, c], to: curve.to },
-    ];
-}
-
-function roundPattern(pattern) {
-    const joins = [];
-    const rounded = pattern.map(segment => {
-        let start = segment.point;
-        let from = 0;
-        const curves = segment.curves.flatMap(curve => {
-            const duration = curve.at - from;
-            const [first, rest] = splitCurve(start, curve, 0.2);
-            const [middle, last] = splitCurve(first.to, rest, 0.75);
-            first.at = from + duration * 0.2;
-            middle.at = from + duration * 0.8;
-            last.at = curve.at;
-            joins.push({ start, curve, first, last, duration });
-            start = curve.to;
-            from = curve.at;
-            return [first, middle, last];
-        });
-        return { ...segment, curves };
-    });
-
-    joins.forEach((incoming, index) => {
-        const outgoing = joins[(index + 1) % joins.length];
-        const point = incoming.curve.to;
-        const arrival = point.map((value, axis) => value - incoming.curve.controls[1][axis]);
-        const departure = outgoing.curve.controls[0].map((value, axis) => value - point[axis]);
-        const entry = unitVector(arrival);
-        const exit = unitVector(departure);
-        let direction = unitVector(entry.map((value, axis) => value + exit[axis]));
-
-        // Horizontal tangents round the top and bottom of each gesture.
-        // Vertical tangents round its outer sides.
-        const before = incoming.start;
-        const after = outgoing.curve.to;
-        if ((point[1] - before[1]) * (after[1] - point[1]) < 0) {
-            direction = [Math.sign(direction[0] || after[0] - before[0]) || 1, 0];
-        } else if ((point[0] - before[0]) * (after[0] - point[0]) < 0) {
-            direction = [0, Math.sign(direction[1] || after[1] - before[1]) || -1];
-        }
-
-        const radius = Math.min(30,
-            pointDistance(point, incoming.start) * 0.25,
-            pointDistance(point, outgoing.curve.to) * 0.25);
-        const speed = Math.min(
-            3 * radius / (Math.max(incoming.duration, outgoing.duration) * 0.2),
-            3 * Math.hypot(...arrival) / incoming.duration,
-            3 * Math.hypot(...departure) / outgoing.duration,
-        );
-        // Match velocity, including the duration of each side, at every join.
-        // The middle of each curve retains the original reference shape.
-        incoming.last.controls[1] = point.map((value, axis) =>
-            value - direction[axis] * speed * incoming.duration * 0.2 / 3);
-        outgoing.first.controls[0] = point.map((value, axis) =>
-            value + direction[axis] * speed * outgoing.duration * 0.2 / 3);
-    });
-    return rounded;
-}
-
-export const CONDUCTING_PATTERNS = Object.fromEntries(
-    Object.entries(BASE_CONDUCTING_PATTERNS).map(([beats, pattern]) => [beats, roundPattern(pattern)])
-);
 
 function curvePoint(start, curve, progress) {
     const t = Math.min(1, Math.max(0, progress));
@@ -160,19 +88,51 @@ function curvePoint(start, curve, progress) {
         + 3 * u * t ** 2 * curve.controls[1][axis] + t ** 3 * curve.to[axis]);
 }
 
-export function conductorPoint(beats, beat, progress) {
-    const pattern = CONDUCTING_PATTERNS[beats] || CONDUCTING_PATTERNS[1];
-    const index = ((beat % pattern.length) + pattern.length) % pattern.length;
-    const segment = pattern[index];
-    const t = Math.min(1, Math.max(0, progress));
+function measureStroke(segment) {
+    const samples = [{ point: segment.point, distance: 0 }];
+    const curveEnds = [];
     let start = segment.point;
-    let from = 0;
+    let previous = start;
+    let length = 0;
     for (const curve of segment.curves) {
-        if (t <= curve.at) return curvePoint(start, curve, (t - from) / (curve.at - from));
+        // Cache a dense arc-length map once, rather than timing individual
+        // Bézier parameters: equal parameter steps do not cover equal distances.
+        for (let step = 1; step <= 512; step++) {
+            const point = curvePoint(start, curve, step / 512);
+            length += Math.hypot(point[0] - previous[0], point[1] - previous[1]);
+            samples.push({ point, distance: length });
+            previous = point;
+        }
+        curveEnds.push(length);
         start = curve.to;
-        from = curve.at;
     }
-    return start;
+    return { samples, curveEnds, length };
+}
+
+const conductingMotion = Object.fromEntries(Object.entries(CONDUCTING_PATTERNS)
+    .map(([beats, pattern]) => [beats, pattern.map(measureStroke)]));
+
+export function conductorPoint(beats, beat, progress) {
+    const pattern = conductingMotion[beats] || conductingMotion[1];
+    const index = ((beat % pattern.length) + pattern.length) % pattern.length;
+    const { samples, length } = pattern[index];
+    const t = Math.min(1, Math.max(0, progress));
+    if (t === 0 || length === 0) return samples[0].point;
+    if (t === 1) return samples[samples.length - 1].point;
+
+    // One uninterrupted distance ramp per beat, including every curve join.
+    const distance = t * length;
+    let low = 1;
+    let high = samples.length - 1;
+    while (low < high) {
+        const middle = Math.floor((low + high) / 2);
+        if (samples[middle].distance < distance) low = middle + 1;
+        else high = middle;
+    }
+    const before = samples[low - 1];
+    const after = samples[low];
+    const fraction = (distance - before.distance) / (after.distance - before.distance);
+    return before.point.map((value, axis) => value + (after.point[axis] - value) * fraction);
 }
 
 export function conductorPreparationPoint(beats, progress) {
@@ -181,8 +141,11 @@ export function conductorPreparationPoint(beats, progress) {
 }
 
 export function conductorPreparationBeats(beats) {
-    // One beat includes both the rise and fall, so its drop is half a beat.
-    return beats === 1 ? 0.5 : 1;
+    if (beats !== 1) return 1;
+    // A single beat includes both the rebound and drop. Its opening drop uses
+    // the same share of distance and time as the repeating stroke.
+    const { length, curveEnds } = conductingMotion[1][0];
+    return (length - curveEnds[curveEnds.length - 2]) / length;
 }
 
 export class ConductorView {
@@ -191,9 +154,7 @@ export class ConductorView {
         this.path = svg.querySelector('[data-conductor-path]');
         this.dot = svg.querySelector('[data-conductor-dot]');
         this.halo = svg.querySelector('[data-conductor-halo]');
-        this.markers = svg.querySelector('[data-conductor-markers]');
         this.beats = 1;
-        this.activeBeat = null;
         this.setBeats(1);
     }
 
@@ -204,31 +165,21 @@ export class ConductorView {
             `C ${curve.controls[0].join(' ')} ${curve.controls[1].join(' ')} ${curve.to.join(' ')}`
         ));
         this.path.setAttribute('d', `M ${pattern[0].point.join(' ')} ${segments.join(' ')}`);
-        this.markers.innerHTML = pattern.map(({ point, label = [point[0], point[1] + 34] }, index) =>
-            `<g data-conductor-beat="${index}">`
-            + `<text x="${label[0]}" y="${label[1]}" text-anchor="middle">${index + 1}</text></g>`
-        ).join('');
-        this.labels = this.markers.querySelectorAll('[data-conductor-beat]');
-        this.activeBeat = null;
         this.prepare(0);
     }
 
     render(beat, progress) {
-        this.position(conductorPoint(this.beats, beat, progress), beat);
+        this.position(conductorPoint(this.beats, beat, progress));
     }
 
     prepare(progress) {
-        this.position(conductorPreparationPoint(this.beats, progress), this.beats - 1);
+        this.position(conductorPreparationPoint(this.beats, progress));
     }
 
-    position([x, y], beat) {
+    position([x, y]) {
         for (const element of [this.dot, this.halo]) {
             element.setAttribute('cx', x);
             element.setAttribute('cy', y);
-        }
-        if (beat !== this.activeBeat) {
-            this.labels.forEach((label, index) => label.classList.toggle('is-active', index === beat));
-            this.activeBeat = beat;
         }
     }
 }

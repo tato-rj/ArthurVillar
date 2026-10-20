@@ -23,7 +23,6 @@
             <span class="metronome__tempo" data-tempo aria-hidden="true">120</span>
             <svg class="metronome__conductor" data-conductor viewBox="0 0 400 600" aria-hidden="true">
                 <path data-conductor-path class="conductor-path" fill="none"/>
-                <g data-conductor-markers class="conductor-markers"></g>
                 <circle data-conductor-halo class="conductor-halo" r="22"/>
                 <circle data-conductor-dot class="conductor-dot" r="9"/>
             </svg>

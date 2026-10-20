@@ -648,23 +648,48 @@ test('the dot follows scheduled click times between scheduler ticks without paus
     assert.equal(page.clock.getBeatPosition().progress, position.progress);
 });
 
+function conductorTravel(pointAt, from, to) {
+    let previous = pointAt(from);
+    let distance = 0;
+    for (let sample = 1; sample <= 250; sample++) {
+        const point = pointAt(from + (to - from) * sample / 250);
+        distance += Math.hypot(point[0] - previous[0], point[1] - previous[1]);
+        previous = point;
+    }
+    return distance;
+}
 
-test('conductor motion keeps a continuous velocity through every rounded turn and beat', () => {
-    const { conductorPoint, CONDUCTING_PATTERNS } = setup().context.api;
-    const delta = 0.00001;
+test('equal time intervals cover equal path distances throughout every beat, including curve joins', () => {
+    const { conductorPoint } = setup().context.api;
     for (const count of [1, 2, 3, 4]) {
-        CONDUCTING_PATTERNS[count].forEach((segment, beat) => {
-            segment.curves.forEach(curve => {
-                const before = conductorPoint(count, beat, curve.at - delta);
-                const at = conductorPoint(count, beat, curve.at);
-                const after = curve.at === 1
-                    ? conductorPoint(count, (beat + 1) % count, delta)
-                    : conductorPoint(count, beat, curve.at + delta);
-                const velocityChange = Math.hypot(...at.map((value, axis) =>
-                    (after[axis] - 2 * value + before[axis]) / delta));
-                assert.ok(velocityChange < 2,
-                    `Pattern ${count}, beat ${beat + 1}: the ball must not snap to a different velocity at a turn.`);
-            });
-        });
+        for (let beat = 0; beat < count; beat++) {
+            const pointAt = progress => conductorPoint(count, beat, progress);
+            const distances = Array.from({ length: 10 }, (_, index) =>
+                conductorTravel(pointAt, index / 10, (index + 1) / 10));
+            const average = distances.reduce((sum, value) => sum + value, 0) / distances.length;
+            for (const distance of distances) {
+                assert.ok(Math.abs(distance / average - 1) < 0.01,
+                    `Pattern ${count}, beat ${beat + 1}: curves must not cause speed surges or pauses.`);
+            }
+        }
+    }
+});
+
+test('opening drops start at the top and travel at a steady speed matching the running stroke', () => {
+    const { conductorPoint, conductorPreparationPoint, conductorPreparationBeats, CONDUCTING_PATTERNS } = setup().context.api;
+    for (const count of [1, 2, 3, 4]) {
+        const pointAt = progress => conductorPreparationPoint(count, progress);
+        const first = pointAt(0);
+        assert.ok(Math.abs(first[1] - 36) < 0.000001);
+        const distances = Array.from({ length: 10 }, (_, index) =>
+            conductorTravel(pointAt, index / 10, (index + 1) / 10));
+        const average = distances.reduce((sum, value) => sum + value, 0) / distances.length;
+        distances.forEach(distance => assert.ok(Math.abs(distance / average - 1) < 0.01));
+        assert.deepEqual(Array.from(pointAt(1)), Array.from(CONDUCTING_PATTERNS[count][0].point));
+        const duration = conductorPreparationBeats(count);
+        for (const progress of [0.1, 0.5, 0.9]) {
+            const running = conductorPoint(count, count - 1, 1 - duration + duration * progress);
+            assert.deepEqual(Array.from(pointAt(progress)), Array.from(running));
+        }
     }
 });

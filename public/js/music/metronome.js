@@ -368,243 +368,126 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
 function _classCallCheck(a, n) { if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function"); }
 function _defineProperties(e, r) { for (var t = 0; t < r.length; t++) { var o = r[t]; o.enumerable = o.enumerable || !1, o.configurable = !0, "value" in o && (o.writable = !0), Object.defineProperty(e, _toPropertyKey(o.key), o); } }
 function _createClass(e, r, t) { return r && _defineProperties(e.prototype, r), t && _defineProperties(e, t), Object.defineProperty(e, "prototype", { writable: !1 }), e; }
-function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
-function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
-function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
-function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
 function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
 function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
 function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
 function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
-function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
-function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
 function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
-function _iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
-function _arrayWithoutHoles(r) { if (Array.isArray(r)) return _arrayLikeToArray(r); }
 function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
-// Each point is a beat. Curves describe the rebound toward the next beat;
-// `at` is the fraction of that beat's duration at the end of each curve.
-var BASE_CONDUCTING_PATTERNS = {
+// Traced from the four supplied conducting-pattern screenshots.
+// Each point marks a beat; its curves lead to the next beat.
+// The four-beat side loops mirror each other around the center downstroke.
+var CONDUCTING_PATTERNS = {
   1: [{
     point: [200, 540],
     curves: [{
-      to: [235, 220],
-      controls: [[157, 510], [250, 350]],
-      at: 0.28
+      to: [208.85, 384.54],
+      controls: [[173.1, 508.74], [200.34, 423.2]]
     }, {
-      to: [200, 36],
-      controls: [[232, 155], [209, 72]],
-      at: 0.5
+      to: [235.85, 210.89],
+      controls: [[221.33, 327.78], [235.85, 270.11]]
+    }, {
+      to: [200.83, 36],
+      controls: [[235.85, 153.6], [211.94, 91.77]]
     }, {
       to: [200, 540],
-      controls: [[213, 195], [215, 402]],
-      at: 1
+      controls: [[215, 204.22], [213.91, 372.13]]
     }]
   }],
   2: [{
     point: [200, 540],
     curves: [{
-      to: [262, 328],
-      controls: [[306, 580], [280, 411]],
-      at: 0.35
+      to: [262.14, 327.55],
+      controls: [[312.81, 572.13], [277.43, 381.03]]
     }, {
-      to: [178, 418],
-      controls: [[268, 411], [213, 438]],
-      at: 0.55
+      to: [178.55, 416.85],
+      controls: [[265.41, 373.54], [239.55, 434.83]]
+    }, {
+      to: [218.96, 256.19],
+      controls: [[216.22, 388.02], [218.96, 301.19]]
     }, {
       to: [200, 36],
-      controls: [[248, 365], [215, 115]],
-      at: 1
+      controls: [[218.96, 183.16], [211.01, 108.19]]
     }]
   }, {
     point: [200, 36],
-    label: [174, 42],
     curves: [{
       to: [200, 540],
-      controls: [[200, 204], [200, 372]],
-      at: 1
+      controls: [[200, 204], [200, 372]]
     }]
   }],
   3: [{
     point: [200, 540],
     curves: [{
-      to: [200, 328],
-      controls: [[157, 451], [177, 314]],
-      at: 0.35
+      to: [203.83, 326.33],
+      controls: [[175.99, 514.59], [162.56, 326.33]]
     }, {
-      to: [372, 284],
-      controls: [[251, 313], [307, 610]],
-      at: 1
+      to: [304.96, 450.7],
+      controls: [[226.88, 326.33], [261.71, 450.7]]
+    }, {
+      to: [371.43, 283.11],
+      controls: [[349.3, 450.7], [366.48, 315.1]]
     }]
   }, {
-    point: [372, 284],
-    label: [392, 290],
+    point: [371.43, 283.11],
     curves: [{
+      to: [306.18, 406.25],
+      controls: [[365.15, 308.08], [337.04, 406.25]]
+    }, {
       to: [200, 36],
-      controls: [[304, 534], [217, 446]],
-      at: 1
+      controls: [[215.55, 406.25], [197.12, 94.21]]
     }]
   }, {
     point: [200, 36],
-    label: [174, 42],
     curves: [{
       to: [200, 540],
-      controls: [[200, 204], [200, 372]],
-      at: 1
+      controls: [[200, 204], [200, 372]]
     }]
   }],
   4: [{
     point: [200, 540],
     curves: [{
-      to: [200, 307],
-      controls: [[222, 400], [223, 307]],
-      at: 0.45
+      to: [208.28, 402.99],
+      controls: [[200, 481.8], [202.76, 453.12]]
     }, {
-      to: [61, 467],
-      controls: [[176, 307], [95, 467]],
-      at: 1
+      to: [200.57, 305.53],
+      controls: [[209.56, 391.32], [223.13, 305.53]]
+    }, {
+      to: [63.15, 464.16],
+      controls: [[171.7, 305.53], [96.35, 464.16]]
     }]
   }, {
-    point: [61, 467],
-    label: [37, 483],
+    point: [63.15, 464.16],
     curves: [{
-      to: [77, 303],
-      controls: [[14, 467], [27, 315]],
-      at: 7 / 15
+      to: [79.46, 303.09],
+      controls: [[17.47, 464.16], [32.63, 303.09]]
     }, {
-      to: [285, 455],
-      controls: [[122, 280], [252, 455]],
-      at: 1
+      to: [336.85, 464.16],
+      controls: [[129.84, 303.09], [303.65, 464.16]]
     }]
   }, {
-    point: [285, 455],
-    label: [309, 471],
+    point: [336.85, 464.16],
     curves: [{
-      to: [362, 278],
-      controls: [[330, 455], [350, 340]],
-      at: 0.2
+      to: [320.54, 303.09],
+      controls: [[382.53, 464.16], [367.37, 303.09]]
+    }, {
+      to: [235, 384],
+      controls: [[270.16, 303.09], [255, 384]]
     }, {
       to: [200, 36],
-      controls: [[315, 446], [224, 446]],
-      at: 1
+      controls: [[210, 384], [204.69, 88.9]]
     }]
   }, {
     point: [200, 36],
-    label: [174, 42],
     curves: [{
       to: [200, 540],
-      controls: [[200, 204], [200, 372]],
-      at: 1
+      controls: [[200, 204], [200, 372]]
     }]
   }]
 };
-var interpolatePoint = function interpolatePoint(a, b, t) {
-  return a.map(function (value, axis) {
-    return value + (b[axis] - value) * t;
-  });
-};
-var pointDistance = function pointDistance(a, b) {
-  return Math.hypot(a[0] - b[0], a[1] - b[1]);
-};
-var unitVector = function unitVector(vector) {
-  var length = Math.hypot.apply(Math, _toConsumableArray(vector));
-  return length ? vector.map(function (value) {
-    return value / length;
-  }) : [0, 0];
-};
-function splitCurve(start, curve, t) {
-  var a = interpolatePoint(start, curve.controls[0], t);
-  var b = interpolatePoint(curve.controls[0], curve.controls[1], t);
-  var c = interpolatePoint(curve.controls[1], curve.to, t);
-  var d = interpolatePoint(a, b, t);
-  var e = interpolatePoint(b, c, t);
-  var point = interpolatePoint(d, e, t);
-  return [{
-    controls: [a, d],
-    to: point
-  }, {
-    controls: [e, c],
-    to: curve.to
-  }];
-}
-function roundPattern(pattern) {
-  var joins = [];
-  var rounded = pattern.map(function (segment) {
-    var start = segment.point;
-    var from = 0;
-    var curves = segment.curves.flatMap(function (curve) {
-      var duration = curve.at - from;
-      var _splitCurve = splitCurve(start, curve, 0.2),
-        _splitCurve2 = _slicedToArray(_splitCurve, 2),
-        first = _splitCurve2[0],
-        rest = _splitCurve2[1];
-      var _splitCurve3 = splitCurve(first.to, rest, 0.75),
-        _splitCurve4 = _slicedToArray(_splitCurve3, 2),
-        middle = _splitCurve4[0],
-        last = _splitCurve4[1];
-      first.at = from + duration * 0.2;
-      middle.at = from + duration * 0.8;
-      last.at = curve.at;
-      joins.push({
-        start: start,
-        curve: curve,
-        first: first,
-        last: last,
-        duration: duration
-      });
-      start = curve.to;
-      from = curve.at;
-      return [first, middle, last];
-    });
-    return _objectSpread(_objectSpread({}, segment), {}, {
-      curves: curves
-    });
-  });
-  joins.forEach(function (incoming, index) {
-    var outgoing = joins[(index + 1) % joins.length];
-    var point = incoming.curve.to;
-    var arrival = point.map(function (value, axis) {
-      return value - incoming.curve.controls[1][axis];
-    });
-    var departure = outgoing.curve.controls[0].map(function (value, axis) {
-      return value - point[axis];
-    });
-    var entry = unitVector(arrival);
-    var exit = unitVector(departure);
-    var direction = unitVector(entry.map(function (value, axis) {
-      return value + exit[axis];
-    }));
-
-    // Horizontal tangents round the top and bottom of each gesture.
-    // Vertical tangents round its outer sides.
-    var before = incoming.start;
-    var after = outgoing.curve.to;
-    if ((point[1] - before[1]) * (after[1] - point[1]) < 0) {
-      direction = [Math.sign(direction[0] || after[0] - before[0]) || 1, 0];
-    } else if ((point[0] - before[0]) * (after[0] - point[0]) < 0) {
-      direction = [0, Math.sign(direction[1] || after[1] - before[1]) || -1];
-    }
-    var radius = Math.min(30, pointDistance(point, incoming.start) * 0.25, pointDistance(point, outgoing.curve.to) * 0.25);
-    var speed = Math.min(3 * radius / (Math.max(incoming.duration, outgoing.duration) * 0.2), 3 * Math.hypot.apply(Math, _toConsumableArray(arrival)) / incoming.duration, 3 * Math.hypot.apply(Math, _toConsumableArray(departure)) / outgoing.duration);
-    // Match velocity, including the duration of each side, at every join.
-    // The middle of each curve retains the original reference shape.
-    incoming.last.controls[1] = point.map(function (value, axis) {
-      return value - direction[axis] * speed * incoming.duration * 0.2 / 3;
-    });
-    outgoing.first.controls[0] = point.map(function (value, axis) {
-      return value + direction[axis] * speed * outgoing.duration * 0.2 / 3;
-    });
-  });
-  return rounded;
-}
-var CONDUCTING_PATTERNS = Object.fromEntries(Object.entries(BASE_CONDUCTING_PATTERNS).map(function (_ref) {
-  var _ref2 = _slicedToArray(_ref, 2),
-    beats = _ref2[0],
-    pattern = _ref2[1];
-  return [beats, roundPattern(pattern)];
-}));
 function curvePoint(start, curve, progress) {
   var t = Math.min(1, Math.max(0, progress));
   var u = 1 - t;
@@ -612,36 +495,88 @@ function curvePoint(start, curve, progress) {
     return Math.pow(u, 3) * value + 3 * Math.pow(u, 2) * t * curve.controls[0][axis] + 3 * u * Math.pow(t, 2) * curve.controls[1][axis] + Math.pow(t, 3) * curve.to[axis];
   });
 }
-function conductorPoint(beats, beat, progress) {
-  var pattern = CONDUCTING_PATTERNS[beats] || CONDUCTING_PATTERNS[1];
-  var index = (beat % pattern.length + pattern.length) % pattern.length;
-  var segment = pattern[index];
-  var t = Math.min(1, Math.max(0, progress));
+function measureStroke(segment) {
+  var samples = [{
+    point: segment.point,
+    distance: 0
+  }];
+  var curveEnds = [];
   var start = segment.point;
-  var from = 0;
+  var previous = start;
+  var length = 0;
   var _iterator = _createForOfIteratorHelper(segment.curves),
     _step;
   try {
     for (_iterator.s(); !(_step = _iterator.n()).done;) {
       var curve = _step.value;
-      if (t <= curve.at) return curvePoint(start, curve, (t - from) / (curve.at - from));
+      // Cache a dense arc-length map once, rather than timing individual
+      // Bézier parameters: equal parameter steps do not cover equal distances.
+      for (var step = 1; step <= 512; step++) {
+        var point = curvePoint(start, curve, step / 512);
+        length += Math.hypot(point[0] - previous[0], point[1] - previous[1]);
+        samples.push({
+          point: point,
+          distance: length
+        });
+        previous = point;
+      }
+      curveEnds.push(length);
       start = curve.to;
-      from = curve.at;
     }
   } catch (err) {
     _iterator.e(err);
   } finally {
     _iterator.f();
   }
-  return start;
+  return {
+    samples: samples,
+    curveEnds: curveEnds,
+    length: length
+  };
+}
+var conductingMotion = Object.fromEntries(Object.entries(CONDUCTING_PATTERNS).map(function (_ref) {
+  var _ref2 = _slicedToArray(_ref, 2),
+    beats = _ref2[0],
+    pattern = _ref2[1];
+  return [beats, pattern.map(measureStroke)];
+}));
+function conductorPoint(beats, beat, progress) {
+  var pattern = conductingMotion[beats] || conductingMotion[1];
+  var index = (beat % pattern.length + pattern.length) % pattern.length;
+  var _pattern$index = pattern[index],
+    samples = _pattern$index.samples,
+    length = _pattern$index.length;
+  var t = Math.min(1, Math.max(0, progress));
+  if (t === 0 || length === 0) return samples[0].point;
+  if (t === 1) return samples[samples.length - 1].point;
+
+  // One uninterrupted distance ramp per beat, including every curve join.
+  var distance = t * length;
+  var low = 1;
+  var high = samples.length - 1;
+  while (low < high) {
+    var middle = Math.floor((low + high) / 2);
+    if (samples[middle].distance < distance) low = middle + 1;else high = middle;
+  }
+  var before = samples[low - 1];
+  var after = samples[low];
+  var fraction = (distance - before.distance) / (after.distance - before.distance);
+  return before.point.map(function (value, axis) {
+    return value + (after.point[axis] - value) * fraction;
+  });
 }
 function conductorPreparationPoint(beats, progress) {
   var duration = conductorPreparationBeats(beats);
   return conductorPoint(beats, beats - 1, 1 - duration + duration * progress);
 }
 function conductorPreparationBeats(beats) {
-  // One beat includes both the rise and fall, so its drop is half a beat.
-  return beats === 1 ? 0.5 : 1;
+  if (beats !== 1) return 1;
+  // A single beat includes both the rebound and drop. Its opening drop uses
+  // the same share of distance and time as the repeating stroke.
+  var _conductingMotion$1$ = conductingMotion[1][0],
+    length = _conductingMotion$1$.length,
+    curveEnds = _conductingMotion$1$.curveEnds;
+  return (length - curveEnds[curveEnds.length - 2]) / length;
 }
 var ConductorView = /*#__PURE__*/function () {
   function ConductorView(svg) {
@@ -650,9 +585,7 @@ var ConductorView = /*#__PURE__*/function () {
     this.path = svg.querySelector('[data-conductor-path]');
     this.dot = svg.querySelector('[data-conductor-dot]');
     this.halo = svg.querySelector('[data-conductor-halo]');
-    this.markers = svg.querySelector('[data-conductor-markers]');
     this.beats = 1;
-    this.activeBeat = null;
     this.setBeats(1);
   }
   return _createClass(ConductorView, [{
@@ -666,42 +599,28 @@ var ConductorView = /*#__PURE__*/function () {
         });
       });
       this.path.setAttribute('d', "M ".concat(pattern[0].point.join(' '), " ").concat(segments.join(' ')));
-      this.markers.innerHTML = pattern.map(function (_ref3, index) {
-        var point = _ref3.point,
-          _ref3$label = _ref3.label,
-          label = _ref3$label === void 0 ? [point[0], point[1] + 34] : _ref3$label;
-        return "<g data-conductor-beat=\"".concat(index, "\">") + "<text x=\"".concat(label[0], "\" y=\"").concat(label[1], "\" text-anchor=\"middle\">").concat(index + 1, "</text></g>");
-      }).join('');
-      this.labels = this.markers.querySelectorAll('[data-conductor-beat]');
-      this.activeBeat = null;
       this.prepare(0);
     }
   }, {
     key: "render",
     value: function render(beat, progress) {
-      this.position(conductorPoint(this.beats, beat, progress), beat);
+      this.position(conductorPoint(this.beats, beat, progress));
     }
   }, {
     key: "prepare",
     value: function prepare(progress) {
-      this.position(conductorPreparationPoint(this.beats, progress), this.beats - 1);
+      this.position(conductorPreparationPoint(this.beats, progress));
     }
   }, {
     key: "position",
-    value: function position(_ref4, beat) {
-      var _ref5 = _slicedToArray(_ref4, 2),
-        x = _ref5[0],
-        y = _ref5[1];
+    value: function position(_ref3) {
+      var _ref4 = _slicedToArray(_ref3, 2),
+        x = _ref4[0],
+        y = _ref4[1];
       for (var _i = 0, _arr = [this.dot, this.halo]; _i < _arr.length; _i++) {
         var element = _arr[_i];
         element.setAttribute('cx', x);
         element.setAttribute('cy', y);
-      }
-      if (beat !== this.activeBeat) {
-        this.labels.forEach(function (label, index) {
-          return label.classList.toggle('is-active', index === beat);
-        });
-        this.activeBeat = beat;
       }
     }
   }]);
