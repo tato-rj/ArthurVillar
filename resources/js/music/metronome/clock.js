@@ -16,13 +16,14 @@ export class MetronomeClock {
         this.notes = new Set();
         this.beats = [];
         this.beatAnchor = null;
+        this.beatSpan = 1;
         this.beatsPerBar = 1;
         this.sound = 'click';
         this.nextBeatIndex = 0;
         this.lastBeatIndex = null;
     }
 
-    async start({ leadIn = false } = {}) {
+    async start({ leadInBeats = 0 } = {}) {
         if (this.running) return;
         const generation = ++this.generation;
         this.running = true;
@@ -41,10 +42,11 @@ export class MetronomeClock {
             if (this.context.state !== 'running') throw new Error('Audio is unavailable.');
 
             this.ready = true;
-            this.beatAnchor = leadIn ? this.context.currentTime : null;
+            this.beatSpan = leadInBeats || 1;
+            this.beatAnchor = leadInBeats ? this.context.currentTime : null;
             this.nextBeatIndex = 0;
             this.lastBeatIndex = null;
-            this.nextBeatTime = this.context.currentTime + (leadIn ? 60 / this.tempo : 0.02);
+            this.nextBeatTime = this.context.currentTime + (leadInBeats ? leadInBeats * 60 / this.tempo : 0.02);
             this.schedule();
             this.timer = setInterval(() => this.schedule(), 25);
         } catch (error) {
@@ -85,8 +87,8 @@ export class MetronomeClock {
 
         // Preserve the progress through this beat when tempo changes mid-swipe.
         if (this.beatAnchor !== null) {
-            const progress = Math.min(1, Math.max(0, (now - this.beatAnchor) / (60 / previousTempo)));
-            const interval = 60 / tempo;
+            const progress = Math.min(1, Math.max(0, (now - this.beatAnchor) / (this.beatSpan * 60 / previousTempo)));
+            const interval = this.beatSpan * 60 / tempo;
             this.beatAnchor = now - progress * interval;
             this.nextBeatTime = now + (1 - progress) * interval;
         }
@@ -121,11 +123,23 @@ export class MetronomeClock {
     }
 
     getBeatPosition() {
+        const now = this.ready ? this.context.currentTime : 0;
+        let beat = this.lastBeatIndex;
+        let anchor = this.beatAnchor;
+        let span = this.beatSpan;
+        // A click can occur between scheduler ticks. Render from its actual audio
+        // time immediately instead of holding the dot at the end of the stroke.
+        for (const queued of this.beats) {
+            if (queued.time > now) break;
+            beat = queued.index;
+            anchor = queued.time;
+            span = 1;
+        }
         return {
-            beat: this.lastBeatIndex ?? this.beatsPerBar - 1,
-            preparing: this.lastBeatIndex === null,
-            progress: this.ready && this.beatAnchor !== null
-                ? Math.min(1, Math.max(0, (this.context.currentTime - this.beatAnchor) / (60 / this.tempo)))
+            beat: beat ?? this.beatsPerBar - 1,
+            preparing: beat === null,
+            progress: this.ready && anchor !== null
+                ? Math.min(1, Math.max(0, (now - anchor) / (span * 60 / this.tempo)))
                 : 0,
         };
     }
@@ -135,6 +149,7 @@ export class MetronomeClock {
         while (this.beats.length && this.beats[0].time <= now) {
             const beat = this.beats.shift();
             this.beatAnchor = beat.time;
+            this.beatSpan = 1;
             this.lastBeatIndex = beat.index;
             played = true;
         }

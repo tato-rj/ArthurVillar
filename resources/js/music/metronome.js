@@ -1,7 +1,7 @@
 import { MetronomeClock } from './metronome/clock';
 import { clampTempo, DEFAULT_TEMPO, TempoGesture } from './metronome/gesture';
 import { colorPalette, DEFAULT_SETTINGS, loadSettings, normalizeSettings, SETTINGS_KEY } from './metronome/settings';
-import { ConductorView } from './metronome/conductor';
+import { conductorPreparationBeats, ConductorView } from './metronome/conductor';
 
 const surface = document.querySelector('[data-metronome]');
 const number = document.querySelector('[data-tempo]');
@@ -55,12 +55,14 @@ const clock = new MetronomeClock({
             syncConductor();
         }
         if (reducedMotion.matches) return;
-        if (backgroundPulse) backgroundPulse.cancel();
-        backgroundPulseTempo = tempo;
-        backgroundPulse = surface.animate([
-            { backgroundColor: palette.pulse },
-            { backgroundColor: settings.color },
-        ], { duration: 60000 / tempo, easing: 'ease-out' });
+        if (beat === 0) {
+            if (backgroundPulse) backgroundPulse.cancel();
+            backgroundPulseTempo = tempo;
+            backgroundPulse = surface.animate([
+                { backgroundColor: palette.pulse },
+                { backgroundColor: settings.color },
+            ], { duration: 60000 / tempo, easing: 'ease-out' });
+        }
         if (pulse) pulse.cancel();
         pulse = number.animate([
             { transform: 'scale(1.025)', opacity: 1 },
@@ -96,7 +98,7 @@ function toggle() {
     if (settingsDialog.open) return;
     message.hidden = true;
     if (clock.running) clock.stop();
-    else clock.start({ leadIn: settings.type === 'conductor' });
+    else clock.start({ leadInBeats: settings.type === 'conductor' ? conductorPreparationBeats(settings.beats) : 0 });
 }
 
 function drawConductor() {

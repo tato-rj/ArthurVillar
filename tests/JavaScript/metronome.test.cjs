@@ -64,7 +64,7 @@ function setup({ deferredResume = false, resumeError = false } = {}) {
         requestAnimationFrame() { return ++timerId; },
         cancelAnimationFrame() {},
     });
-    vm.runInContext(`${source}\nglobalThis.api = { TempoGesture, MetronomeClock, normalizeSettings, loadSettings, colorPalette, conductorPoint, conductorPreparationPoint, CONDUCTING_PATTERNS };`, context);
+    vm.runInContext(`${source}\nglobalThis.api = { TempoGesture, MetronomeClock, normalizeSettings, loadSettings, colorPalette, conductorPoint, conductorPreparationPoint, conductorPreparationBeats, CONDUCTING_PATTERNS };`, context);
     const clock = new context.api.MetronomeClock({
         createContext: () => audio,
         onStateChange: value => states.push(value),
@@ -543,7 +543,7 @@ test('conductor preparation drops from the top to beat one for every pattern', (
 test('conductor lead-in is silent and tempo edits keep the first click aligned with the drop', async () => {
     const page = setup();
     page.clock.setBeats(4);
-    await page.clock.start({ leadIn: true });
+    await page.clock.start({ leadInBeats: 1 });
     assert.equal(page.clock.getBeatPosition().beat, 3);
     assert.equal(page.clock.getBeatPosition().preparing, true);
     assert.equal(page.oscillators.length, 0);
@@ -569,16 +569,17 @@ test('the conductor dot waits at the last beat and returns there when stopped', 
     for (const count of [1, 2, 3, 4]) {
         const page = setupPage(JSON.stringify({ beats: count, type: 'conductor' }));
         const clock = vm.runInContext('clock', page.context);
-        const { conductorPreparationPoint, conductorPoint } = page.context.api;
+        const { conductorPreparationPoint, conductorPreparationBeats, conductorPoint } = page.context.api;
+        const dropDuration = conductorPreparationBeats(count) * 0.5;
         const position = () => [page.conductorParts.dot.attributes.cx, page.conductorParts.dot.attributes.cy];
         assert.deepEqual(position(), Array.from(conductorPreparationPoint(count, 0)));
         page.click();
         await new Promise(setImmediate);
-        page.advance(0.25);
+        page.advance(dropDuration / 2);
         vm.runInContext('drawConductor()', page.context);
         assert.deepEqual(position(), Array.from(conductorPreparationPoint(count, 0.5)));
-        page.advance(0.45);
-        page.advance(0.5);
+        page.advance(dropDuration - 0.05);
+        page.advance(dropDuration);
         assert.deepEqual(position(), Array.from(conductorPoint(count, 0, 0)));
         page.click();
         assert.equal(clock.running, false);
@@ -587,5 +588,83 @@ test('the conductor dot waits at the last beat and returns there when stopped', 
         await new Promise(setImmediate);
         assert.equal(clock.getBeatPosition().preparing, true);
         assert.deepEqual(position(), Array.from(conductorPreparationPoint(count, 0)));
+    }
+});
+
+
+test('opening drops match the repeating stroke speed at slow, normal, and fast tempos', async () => {
+    for (const count of [1, 2, 3, 4]) {
+        for (const tempo of [40, 120, 240]) {
+            const page = setup();
+            const { conductorPreparationBeats, conductorPreparationPoint, conductorPoint } = page.context.api;
+            const fraction = conductorPreparationBeats(count);
+            const interval = 60 / tempo;
+            page.clock.setBeats(count);
+            page.clock.setTempo(tempo);
+            await page.clock.start({ leadInBeats: fraction });
+            for (let step = 0; step < 10; step++) {
+                const elapsed = step / 10 * fraction * interval;
+                page.advance(elapsed);
+                const position = page.clock.getBeatPosition();
+                const opening = conductorPreparationPoint(count, position.progress);
+                const repeating = conductorPoint(count, count - 1, 1 - fraction + elapsed / interval);
+                opening.forEach((value, axis) => assert.ok(Math.abs(value - repeating[axis]) < 0.000001));
+            }
+            page.advance(fraction * interval - 0.05);
+            const first = page.oscillators[0];
+            assert.ok(Math.abs(first.startTime - fraction * interval) < 0.000001);
+        }
+    }
+});
+
+test('changing tempo during a half-beat drop preserves its phase and then resumes full beats', async () => {
+    const page = setup();
+    await page.clock.start({ leadInBeats: 0.5 });
+    page.advance(0.125);
+    page.clock.setTempo(60);
+    assert.equal(page.clock.getBeatPosition().progress, 0.5);
+    page.advance(0.3);
+    assert.equal(page.oscillators[0].startTime, 0.375);
+    page.advance(0.375);
+    assert.equal(page.clock.getBeatPosition().progress, 0);
+    assert.equal(page.clock.getBeatPosition().preparing, false);
+    page.advance(1.3);
+    assert.equal(page.oscillators[1].startTime, 1.375);
+});
+
+test('the dot follows scheduled click times between scheduler ticks without pausing at the beat', async () => {
+    const page = setup();
+    page.clock.setBeats(4);
+    await page.clock.start({ leadInBeats: 1 });
+    page.advance(0.45);
+    page.audio.currentTime = 0.51;
+    const position = page.clock.getBeatPosition();
+    assert.equal(position.beat, 0);
+    assert.equal(position.preparing, false);
+    assert.ok(Math.abs(position.progress - 0.02) < 0.000001);
+    assert.equal(page.beatCount, 0, 'Reading the animation position does not fire beat callbacks.');
+    page.advance(0.51);
+    assert.equal(page.beatCount, 1);
+    assert.equal(page.clock.getBeatPosition().progress, position.progress);
+});
+
+
+test('conductor motion keeps a continuous velocity through every rounded turn and beat', () => {
+    const { conductorPoint, CONDUCTING_PATTERNS } = setup().context.api;
+    const delta = 0.00001;
+    for (const count of [1, 2, 3, 4]) {
+        CONDUCTING_PATTERNS[count].forEach((segment, beat) => {
+            segment.curves.forEach(curve => {
+                const before = conductorPoint(count, beat, curve.at - delta);
+                const at = conductorPoint(count, beat, curve.at);
+                const after = curve.at === 1
+                    ? conductorPoint(count, (beat + 1) % count, delta)
+                    : conductorPoint(count, beat, curve.at + delta);
+                const velocityChange = Math.hypot(...at.map((value, axis) =>
+                    (after[axis] - 2 * value + before[axis]) / delta));
+                assert.ok(velocityChange < 2,
+                    `Pattern ${count}, beat ${beat + 1}: the ball must not snap to a different velocity at a turn.`);
+            });
+        });
     }
 });

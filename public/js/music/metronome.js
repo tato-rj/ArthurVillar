@@ -49,6 +49,7 @@ var MetronomeClock = /*#__PURE__*/function () {
     this.notes = new Set();
     this.beats = [];
     this.beatAnchor = null;
+    this.beatSpan = 1;
     this.beatsPerBar = 1;
     this.sound = 'click';
     this.nextBeatIndex = 0;
@@ -60,15 +61,15 @@ var MetronomeClock = /*#__PURE__*/function () {
       var _start = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
         var _this = this;
         var _ref2,
-          _ref2$leadIn,
-          leadIn,
+          _ref2$leadInBeats,
+          leadInBeats,
           generation,
           _args = arguments,
           _t;
         return _regenerator().w(function (_context) {
           while (1) switch (_context.p = _context.n) {
             case 0:
-              _ref2 = _args.length > 0 && _args[0] !== undefined ? _args[0] : {}, _ref2$leadIn = _ref2.leadIn, leadIn = _ref2$leadIn === void 0 ? false : _ref2$leadIn;
+              _ref2 = _args.length > 0 && _args[0] !== undefined ? _args[0] : {}, _ref2$leadInBeats = _ref2.leadInBeats, leadInBeats = _ref2$leadInBeats === void 0 ? 0 : _ref2$leadInBeats;
               if (!this.running) {
                 _context.n = 1;
                 break;
@@ -101,10 +102,11 @@ var MetronomeClock = /*#__PURE__*/function () {
               throw new Error('Audio is unavailable.');
             case 5:
               this.ready = true;
-              this.beatAnchor = leadIn ? this.context.currentTime : null;
+              this.beatSpan = leadInBeats || 1;
+              this.beatAnchor = leadInBeats ? this.context.currentTime : null;
               this.nextBeatIndex = 0;
               this.lastBeatIndex = null;
-              this.nextBeatTime = this.context.currentTime + (leadIn ? 60 / this.tempo : 0.02);
+              this.nextBeatTime = this.context.currentTime + (leadInBeats ? leadInBeats * 60 / this.tempo : 0.02);
               this.schedule();
               this.timer = setInterval(function () {
                 return _this.schedule();
@@ -185,8 +187,8 @@ var MetronomeClock = /*#__PURE__*/function () {
 
       // Preserve the progress through this beat when tempo changes mid-swipe.
       if (this.beatAnchor !== null) {
-        var progress = Math.min(1, Math.max(0, (now - this.beatAnchor) / (60 / previousTempo)));
-        var interval = 60 / tempo;
+        var progress = Math.min(1, Math.max(0, (now - this.beatAnchor) / (this.beatSpan * 60 / previousTempo)));
+        var interval = this.beatSpan * 60 / tempo;
         this.beatAnchor = now - progress * interval;
         this.nextBeatTime = now + (1 - progress) * interval;
       }
@@ -234,11 +236,31 @@ var MetronomeClock = /*#__PURE__*/function () {
   }, {
     key: "getBeatPosition",
     value: function getBeatPosition() {
-      var _this$lastBeatIndex;
+      var now = this.ready ? this.context.currentTime : 0;
+      var beat = this.lastBeatIndex;
+      var anchor = this.beatAnchor;
+      var span = this.beatSpan;
+      // A click can occur between scheduler ticks. Render from its actual audio
+      // time immediately instead of holding the dot at the end of the stroke.
+      var _iterator4 = _createForOfIteratorHelper(this.beats),
+        _step4;
+      try {
+        for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
+          var queued = _step4.value;
+          if (queued.time > now) break;
+          beat = queued.index;
+          anchor = queued.time;
+          span = 1;
+        }
+      } catch (err) {
+        _iterator4.e(err);
+      } finally {
+        _iterator4.f();
+      }
       return {
-        beat: (_this$lastBeatIndex = this.lastBeatIndex) !== null && _this$lastBeatIndex !== void 0 ? _this$lastBeatIndex : this.beatsPerBar - 1,
-        preparing: this.lastBeatIndex === null,
-        progress: this.ready && this.beatAnchor !== null ? Math.min(1, Math.max(0, (this.context.currentTime - this.beatAnchor) / (60 / this.tempo))) : 0
+        beat: beat !== null && beat !== void 0 ? beat : this.beatsPerBar - 1,
+        preparing: beat === null,
+        progress: this.ready && anchor !== null ? Math.min(1, Math.max(0, (now - anchor) / (span * 60 / this.tempo))) : 0
       };
     }
   }, {
@@ -248,6 +270,7 @@ var MetronomeClock = /*#__PURE__*/function () {
       while (this.beats.length && this.beats[0].time <= now) {
         var beat = this.beats.shift();
         this.beatAnchor = beat.time;
+        this.beatSpan = 1;
         this.lastBeatIndex = beat.index;
         played = true;
       }
@@ -338,24 +361,32 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   CONDUCTING_PATTERNS: () => (/* binding */ CONDUCTING_PATTERNS),
 /* harmony export */   ConductorView: () => (/* binding */ ConductorView),
 /* harmony export */   conductorPoint: () => (/* binding */ conductorPoint),
+/* harmony export */   conductorPreparationBeats: () => (/* binding */ conductorPreparationBeats),
 /* harmony export */   conductorPreparationPoint: () => (/* binding */ conductorPreparationPoint)
 /* harmony export */ });
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _classCallCheck(a, n) { if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function"); }
+function _defineProperties(e, r) { for (var t = 0; t < r.length; t++) { var o = r[t]; o.enumerable = o.enumerable || !1, o.configurable = !0, "value" in o && (o.writable = !0), Object.defineProperty(e, _toPropertyKey(o.key), o); } }
+function _createClass(e, r, t) { return r && _defineProperties(e.prototype, r), t && _defineProperties(e, t), Object.defineProperty(e, "prototype", { writable: !1 }), e; }
+function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
+function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
 function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
 function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
-function _classCallCheck(a, n) { if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function"); }
-function _defineProperties(e, r) { for (var t = 0; t < r.length; t++) { var o = r[t]; o.enumerable = o.enumerable || !1, o.configurable = !0, "value" in o && (o.writable = !0), Object.defineProperty(e, _toPropertyKey(o.key), o); } }
-function _createClass(e, r, t) { return r && _defineProperties(e.prototype, r), t && _defineProperties(e, t), Object.defineProperty(e, "prototype", { writable: !1 }), e; }
-function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
-function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
-function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
+function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
 function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
+function _arrayWithoutHoles(r) { if (Array.isArray(r)) return _arrayLikeToArray(r); }
 function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
 // Each point is a beat. Curves describe the rebound toward the next beat;
 // `at` is the fraction of that beat's duration at the end of each curve.
-var CONDUCTING_PATTERNS = {
+var BASE_CONDUCTING_PATTERNS = {
   1: [{
     point: [200, 540],
     curves: [{
@@ -432,7 +463,7 @@ var CONDUCTING_PATTERNS = {
       at: 0.45
     }, {
       to: [61, 467],
-      controls: [[176, 307], [95, 488]],
+      controls: [[176, 307], [95, 467]],
       at: 1
     }]
   }, {
@@ -440,21 +471,21 @@ var CONDUCTING_PATTERNS = {
     label: [37, 483],
     curves: [{
       to: [77, 303],
-      controls: [[14, 500], [27, 315]],
-      at: 0.35
+      controls: [[14, 467], [27, 315]],
+      at: 7 / 15
     }, {
       to: [285, 455],
-      controls: [[122, 280], [252, 460]],
-      at: 0.75
-    }, {
-      to: [362, 278],
-      controls: [[330, 450], [350, 340]],
+      controls: [[122, 280], [252, 455]],
       at: 1
     }]
   }, {
-    point: [362, 278],
-    label: [386, 284],
+    point: [285, 455],
+    label: [309, 471],
     curves: [{
+      to: [362, 278],
+      controls: [[330, 455], [350, 340]],
+      at: 0.2
+    }, {
       to: [200, 36],
       controls: [[315, 446], [224, 446]],
       at: 1
@@ -469,6 +500,111 @@ var CONDUCTING_PATTERNS = {
     }]
   }]
 };
+var interpolatePoint = function interpolatePoint(a, b, t) {
+  return a.map(function (value, axis) {
+    return value + (b[axis] - value) * t;
+  });
+};
+var pointDistance = function pointDistance(a, b) {
+  return Math.hypot(a[0] - b[0], a[1] - b[1]);
+};
+var unitVector = function unitVector(vector) {
+  var length = Math.hypot.apply(Math, _toConsumableArray(vector));
+  return length ? vector.map(function (value) {
+    return value / length;
+  }) : [0, 0];
+};
+function splitCurve(start, curve, t) {
+  var a = interpolatePoint(start, curve.controls[0], t);
+  var b = interpolatePoint(curve.controls[0], curve.controls[1], t);
+  var c = interpolatePoint(curve.controls[1], curve.to, t);
+  var d = interpolatePoint(a, b, t);
+  var e = interpolatePoint(b, c, t);
+  var point = interpolatePoint(d, e, t);
+  return [{
+    controls: [a, d],
+    to: point
+  }, {
+    controls: [e, c],
+    to: curve.to
+  }];
+}
+function roundPattern(pattern) {
+  var joins = [];
+  var rounded = pattern.map(function (segment) {
+    var start = segment.point;
+    var from = 0;
+    var curves = segment.curves.flatMap(function (curve) {
+      var duration = curve.at - from;
+      var _splitCurve = splitCurve(start, curve, 0.2),
+        _splitCurve2 = _slicedToArray(_splitCurve, 2),
+        first = _splitCurve2[0],
+        rest = _splitCurve2[1];
+      var _splitCurve3 = splitCurve(first.to, rest, 0.75),
+        _splitCurve4 = _slicedToArray(_splitCurve3, 2),
+        middle = _splitCurve4[0],
+        last = _splitCurve4[1];
+      first.at = from + duration * 0.2;
+      middle.at = from + duration * 0.8;
+      last.at = curve.at;
+      joins.push({
+        start: start,
+        curve: curve,
+        first: first,
+        last: last,
+        duration: duration
+      });
+      start = curve.to;
+      from = curve.at;
+      return [first, middle, last];
+    });
+    return _objectSpread(_objectSpread({}, segment), {}, {
+      curves: curves
+    });
+  });
+  joins.forEach(function (incoming, index) {
+    var outgoing = joins[(index + 1) % joins.length];
+    var point = incoming.curve.to;
+    var arrival = point.map(function (value, axis) {
+      return value - incoming.curve.controls[1][axis];
+    });
+    var departure = outgoing.curve.controls[0].map(function (value, axis) {
+      return value - point[axis];
+    });
+    var entry = unitVector(arrival);
+    var exit = unitVector(departure);
+    var direction = unitVector(entry.map(function (value, axis) {
+      return value + exit[axis];
+    }));
+
+    // Horizontal tangents round the top and bottom of each gesture.
+    // Vertical tangents round its outer sides.
+    var before = incoming.start;
+    var after = outgoing.curve.to;
+    if ((point[1] - before[1]) * (after[1] - point[1]) < 0) {
+      direction = [Math.sign(direction[0] || after[0] - before[0]) || 1, 0];
+    } else if ((point[0] - before[0]) * (after[0] - point[0]) < 0) {
+      direction = [0, Math.sign(direction[1] || after[1] - before[1]) || -1];
+    }
+    var radius = Math.min(30, pointDistance(point, incoming.start) * 0.25, pointDistance(point, outgoing.curve.to) * 0.25);
+    var speed = Math.min(3 * radius / (Math.max(incoming.duration, outgoing.duration) * 0.2), 3 * Math.hypot.apply(Math, _toConsumableArray(arrival)) / incoming.duration, 3 * Math.hypot.apply(Math, _toConsumableArray(departure)) / outgoing.duration);
+    // Match velocity, including the duration of each side, at every join.
+    // The middle of each curve retains the original reference shape.
+    incoming.last.controls[1] = point.map(function (value, axis) {
+      return value - direction[axis] * speed * incoming.duration * 0.2 / 3;
+    });
+    outgoing.first.controls[0] = point.map(function (value, axis) {
+      return value + direction[axis] * speed * outgoing.duration * 0.2 / 3;
+    });
+  });
+  return rounded;
+}
+var CONDUCTING_PATTERNS = Object.fromEntries(Object.entries(BASE_CONDUCTING_PATTERNS).map(function (_ref) {
+  var _ref2 = _slicedToArray(_ref, 2),
+    beats = _ref2[0],
+    pattern = _ref2[1];
+  return [beats, roundPattern(pattern)];
+}));
 function curvePoint(start, curve, progress) {
   var t = Math.min(1, Math.max(0, progress));
   var u = 1 - t;
@@ -500,10 +636,12 @@ function conductorPoint(beats, beat, progress) {
   return start;
 }
 function conductorPreparationPoint(beats, progress) {
-  if (beats !== 1) return conductorPoint(beats, beats - 1, progress);
-  // A one-beat pattern still prepares at the top of its rebound.
-  var curves = CONDUCTING_PATTERNS[1][0].curves;
-  return curvePoint(curves[curves.length - 2].to, curves[curves.length - 1], progress);
+  var duration = conductorPreparationBeats(beats);
+  return conductorPoint(beats, beats - 1, 1 - duration + duration * progress);
+}
+function conductorPreparationBeats(beats) {
+  // One beat includes both the rise and fall, so its drop is half a beat.
+  return beats === 1 ? 0.5 : 1;
 }
 var ConductorView = /*#__PURE__*/function () {
   function ConductorView(svg) {
@@ -528,11 +666,11 @@ var ConductorView = /*#__PURE__*/function () {
         });
       });
       this.path.setAttribute('d', "M ".concat(pattern[0].point.join(' '), " ").concat(segments.join(' ')));
-      this.markers.innerHTML = pattern.map(function (_ref, index) {
-        var point = _ref.point,
-          _ref$label = _ref.label,
-          label = _ref$label === void 0 ? [point[0], point[1] + 34] : _ref$label;
-        return "<g data-conductor-beat=\"".concat(index, "\"><circle cx=\"").concat(point[0], "\" cy=\"").concat(point[1], "\" r=\"4\"/>") + "<text x=\"".concat(label[0], "\" y=\"").concat(label[1], "\" text-anchor=\"middle\">").concat(index + 1, "</text></g>");
+      this.markers.innerHTML = pattern.map(function (_ref3, index) {
+        var point = _ref3.point,
+          _ref3$label = _ref3.label,
+          label = _ref3$label === void 0 ? [point[0], point[1] + 34] : _ref3$label;
+        return "<g data-conductor-beat=\"".concat(index, "\">") + "<text x=\"".concat(label[0], "\" y=\"").concat(label[1], "\" text-anchor=\"middle\">").concat(index + 1, "</text></g>");
       }).join('');
       this.labels = this.markers.querySelectorAll('[data-conductor-beat]');
       this.activeBeat = null;
@@ -550,10 +688,10 @@ var ConductorView = /*#__PURE__*/function () {
     }
   }, {
     key: "position",
-    value: function position(_ref2, beat) {
-      var _ref3 = _slicedToArray(_ref2, 2),
-        x = _ref3[0],
-        y = _ref3[1];
+    value: function position(_ref4, beat) {
+      var _ref5 = _slicedToArray(_ref4, 2),
+        x = _ref5[0],
+        y = _ref5[1];
       for (var _i = 0, _arr = [this.dot, this.halo]; _i < _arr.length; _i++) {
         var element = _arr[_i];
         element.setAttribute('cx', x);
@@ -859,16 +997,18 @@ var clock = new _metronome_clock__WEBPACK_IMPORTED_MODULE_0__.MetronomeClock({
       syncConductor();
     }
     if (reducedMotion.matches) return;
-    if (backgroundPulse) backgroundPulse.cancel();
-    backgroundPulseTempo = tempo;
-    backgroundPulse = surface.animate([{
-      backgroundColor: palette.pulse
-    }, {
-      backgroundColor: settings.color
-    }], {
-      duration: 60000 / tempo,
-      easing: 'ease-out'
-    });
+    if (beat === 0) {
+      if (backgroundPulse) backgroundPulse.cancel();
+      backgroundPulseTempo = tempo;
+      backgroundPulse = surface.animate([{
+        backgroundColor: palette.pulse
+      }, {
+        backgroundColor: settings.color
+      }], {
+        duration: 60000 / tempo,
+        easing: 'ease-out'
+      });
+    }
     if (pulse) pulse.cancel();
     pulse = number.animate([{
       transform: 'scale(1.025)',
@@ -907,7 +1047,7 @@ function toggle() {
   if (settingsDialog.open) return;
   message.hidden = true;
   if (clock.running) clock.stop();else clock.start({
-    leadIn: settings.type === 'conductor'
+    leadInBeats: settings.type === 'conductor' ? (0,_metronome_conductor__WEBPACK_IMPORTED_MODULE_3__.conductorPreparationBeats)(settings.beats) : 0
   });
 }
 function drawConductor() {
