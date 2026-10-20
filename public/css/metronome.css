@@ -1,7 +1,9 @@
 :root {
+  --metronome-color: #155eef;
+  --metronome-ink: #fff;
   color-scheme: light;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: #155eef;
+  background: var(--metronome-color);
 }
 
 * {
@@ -32,8 +34,8 @@ body {
   -webkit-appearance: none;
      -moz-appearance: none;
           appearance: none;
-  background: #155eef;
-  color: #fff;
+  background: var(--metronome-color);
+  color: var(--metronome-ink);
   font: inherit;
   cursor: pointer;
   touch-action: none;
@@ -47,7 +49,7 @@ body {
   outline: none;
 }
 .metronome:focus-visible {
-  outline: 3px solid rgba(255, 255, 255, 0.8);
+  outline: 3px solid currentColor;
   outline-offset: -12px;
 }
 .metronome.is-dragging {
@@ -81,6 +83,7 @@ body {
      -moz-appearance: none;
           appearance: none;
   background: transparent;
+  color: var(--metronome-ink);
   cursor: pointer;
   touch-action: none;
   -moz-user-select: none;
@@ -101,7 +104,7 @@ body {
   outline: none;
 }
 .metronome__edge:focus-visible {
-  outline: 2px solid rgba(255, 255, 255, 0.8);
+  outline: 2px solid currentColor;
   outline-offset: -8px;
 }
 
@@ -111,10 +114,293 @@ body {
   bottom: max(24px, env(safe-area-inset-bottom));
   left: 24px;
   margin: 0;
-  color: #fff;
+  color: var(--metronome-ink);
   font-size: 14px;
   text-align: center;
   pointer-events: none;
+}
+
+.metronome__settings-button {
+  position: fixed;
+  right: max(14px, env(safe-area-inset-right));
+  bottom: max(16px, env(safe-area-inset-bottom));
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  padding: 12px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--metronome-ink);
+  cursor: pointer;
+  opacity: 0.8;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.metronome__settings-button svg {
+  width: 26px;
+  height: 26px;
+  pointer-events: none;
+}
+.metronome__settings-button:hover, .metronome__settings-button:focus-visible {
+  opacity: 1;
+}
+.metronome__settings-button:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.metronome__conductor {
+  display: none;
+  width: min(88vw, 48vh, 460px);
+  width: min(88vw, 48dvh, 460px);
+  overflow: visible;
+  pointer-events: none;
+}
+
+.metronome[data-mode=conductor] .metronome__tempo {
+  position: absolute;
+  bottom: max(36px, env(safe-area-inset-bottom) + 24px);
+  left: 50%;
+  translate: -50% 0;
+  font-size: clamp(40px, 9vw, 76px);
+}
+.metronome[data-mode=conductor] .metronome__conductor {
+  display: block;
+  margin-bottom: 40px;
+}
+
+.conductor-path {
+  stroke: currentColor;
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.22;
+}
+
+.conductor-markers {
+  fill: currentColor;
+  font-size: 17px;
+  font-weight: 400;
+}
+.conductor-markers g {
+  opacity: 0.35;
+}
+.conductor-markers .is-active {
+  opacity: 1;
+}
+
+.conductor-dot,
+.conductor-halo {
+  fill: currentColor;
+}
+
+.conductor-halo {
+  opacity: 0.13;
+}
+
+.metronome-settings {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: max(28px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) max(28px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 0;
+  border-radius: 0;
+  background: #fff;
+  color: #17191c;
+  font-family: inherit;
+}
+.metronome-settings::backdrop {
+  background: #fff;
+}
+.metronome-settings button:focus-visible,
+.metronome-settings select:focus-visible,
+.metronome-settings input[type=color]:focus-visible {
+  outline: 2px solid #17191c;
+  outline-offset: 4px;
+}
+
+.metronome-settings__content {
+  width: min(100%, 480px);
+  margin: 0 auto;
+}
+
+.metronome-settings__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: clamp(32px, 6vh, 48px);
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e5e5e5;
+}
+.metronome-settings__header h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 300;
+  letter-spacing: -0.035em;
+}
+
+.settings-close {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-right: -10px;
+  padding: 10px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.settings-close svg {
+  width: 24px;
+  height: 24px;
+}
+.settings-close:hover {
+  color: #737373;
+}
+
+.metronome-settings__fields {
+  display: grid;
+  gap: 28px;
+}
+
+.settings-field {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.settings-field > label,
+.settings-field legend {
+  display: block;
+  margin-bottom: 12px;
+  padding: 0;
+  font-size: 14px;
+  font-weight: 400;
+}
+.settings-field select {
+  width: 100%;
+  min-height: 52px;
+  padding: 12px 14px;
+  border: 1px solid #d6d6d6;
+  border-radius: 0;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+  font-size: 16px;
+}
+
+.settings-segments {
+  display: flex;
+  border: 1px solid #d6d6d6;
+}
+.settings-segments label {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+}
+.settings-segments label + label {
+  border-left: 1px solid #d6d6d6;
+}
+.settings-segments input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+.settings-segments span {
+  display: grid;
+  min-height: 50px;
+  place-items: center;
+  padding: 10px 8px;
+  color: #646464;
+  font-size: 15px;
+  font-weight: 400;
+}
+.settings-segments label:hover span {
+  background: #f5f5f5;
+}
+.settings-segments input:checked + span {
+  background: #17191c;
+  color: #fff;
+}
+.settings-segments input:focus-visible + span {
+  outline: 2px solid #17191c;
+  outline-offset: 4px;
+}
+
+.settings-segments--beats span {
+  font-size: 18px;
+}
+
+.settings-field--color {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.settings-field--color > div > label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 14px;
+  font-weight: 400;
+}
+.settings-field--color input[type=color] {
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  border: 1px solid #d6d6d6;
+  border-radius: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.settings-field--color input[type=color]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+.settings-field--color input[type=color]::-webkit-color-swatch {
+  border: 0;
+  border-radius: 0;
+}
+.settings-field--color input[type=color]::-moz-color-swatch {
+  border: 0;
+  border-radius: 0;
+}
+
+.settings-color-value {
+  margin: 0;
+  color: #737373;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.settings-done {
+  width: 100%;
+  min-height: 52px;
+  margin-top: 40px;
+  padding: 14px;
+  border: 1px solid #17191c;
+  border-radius: 0;
+  background: #17191c;
+  color: #fff;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 400;
+  cursor: pointer;
+}
+.settings-done:hover {
+  background: #343638;
 }
 
 .sr-only {

@@ -21,6 +21,12 @@
             aria-describedby="metronome-instructions"
         >
             <span class="metronome__tempo" data-tempo aria-hidden="true">120</span>
+            <svg class="metronome__conductor" data-conductor viewBox="0 0 400 600" aria-hidden="true">
+                <path data-conductor-path class="conductor-path" fill="none"/>
+                <g data-conductor-markers class="conductor-markers"></g>
+                <circle data-conductor-halo class="conductor-halo" r="22"/>
+                <circle data-conductor-dot class="conductor-dot" r="9"/>
+            </svg>
         </button>
         <button
             class="metronome__edge metronome__edge--left"
@@ -29,6 +35,13 @@
             aria-label="Decrease tempo by 1. 120 beats per minute."
             aria-describedby="metronome-instructions"
         ></button>
+        <button class="metronome__settings-button" type="button" data-settings-open
+            aria-label="Settings" aria-haspopup="dialog" aria-controls="metronome-settings" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="m9.5 3-.6 2.4-1.8 1-2.4-.6-2.5 4.4 1.8 1.7v2.2l-1.8 1.7 2.5 4.4 2.4-.6 1.8 1 .6 2.4h5l.6-2.4 1.8-1 2.4.6 2.5-4.4-1.8-1.7v-2.2l1.8-1.7-2.5-4.4-2.4.6-1.8-1L14.5 3z" transform="translate(1 0) scale(.92)"/>
+                <circle cx="12" cy="12" r="3.3"/>
+            </svg>
+        </button>
         <button
             class="metronome__edge metronome__edge--right"
             type="button"
@@ -48,5 +61,60 @@
         <p class="metronome__message" data-metronome-message role="status" hidden></p>
         <noscript><p class="metronome__message">Enable JavaScript to use the metronome.</p></noscript>
     </main>
+    <dialog class="metronome-settings" id="metronome-settings" data-settings-dialog aria-labelledby="settings-title">
+        <div class="metronome-settings__content">
+            <header class="metronome-settings__header">
+                <h1 id="settings-title">Settings</h1>
+                <button class="settings-close" type="button" data-settings-close aria-label="Close settings" autofocus>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true">
+                        <path d="m6 6 12 12M18 6 6 18"/>
+                    </svg>
+                </button>
+            </header>
+            <div class="metronome-settings__fields">
+                <fieldset class="settings-field">
+                    <legend>Beats</legend>
+                    <div class="settings-segments settings-segments--beats">
+                        @foreach([1, 2, 3, 4] as $beats)
+                            <label>
+                                <input type="radio" name="metronome-beats" value="{{ $beats }}" @checked($beats === 1)>
+                                <span>{{ $beats }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                </fieldset>
+                <div class="settings-field settings-field--color">
+                    <div>
+                        <label for="metronome-color">Color</label>
+                        <p class="settings-color-value" data-color-value>#155EEF</p>
+                    </div>
+                    <input id="metronome-color" type="color" value="#155eef" data-settings-color>
+                </div>
+                <div class="settings-field">
+                    <label for="metronome-sound">Sound</label>
+                    <select id="metronome-sound" data-settings-sound>
+                        <option value="click">Classic click</option>
+                        <option value="woodblock">Woodblock</option>
+                        <option value="beep">Beep</option>
+                        <option value="cowbell">Cowbell</option>
+                    </select>
+                </div>
+                <fieldset class="settings-field">
+                    <legend>Type</legend>
+                    <div class="settings-segments">
+                        <label>
+                            <input type="radio" name="metronome-type" value="classic" checked>
+                            <span>Classic</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="metronome-type" value="conductor">
+                            <span>Conductor</span>
+                        </label>
+                    </div>
+                </fieldset>
+            </div>
+            <button class="settings-done" type="button" data-settings-close>Done</button>
+        </div>
+    </dialog>
 </body>
 </html>

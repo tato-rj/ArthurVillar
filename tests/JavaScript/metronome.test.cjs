@@ -8,7 +8,7 @@ const root = path.join(__dirname, '../../resources/js/music');
 const read = name => fs.readFileSync(path.join(root, name), 'utf8')
     .replace(/^import .*;\n/gm, '')
     .replace(/^export /gm, '');
-const source = `${read('metronome/gesture.js')}\n${read('metronome/clock.js')}`;
+const source = ['gesture', 'settings', 'conductor', 'clock'].map(name => read(`metronome/${name}.js`)).join('\n');
 
 function setup({ deferredResume = false, resumeError = false } = {}) {
     const timers = new Map();
@@ -18,10 +18,11 @@ function setup({ deferredResume = false, resumeError = false } = {}) {
     const oscillators = [];
     const states = [];
     const errors = [];
+    const beatIndices = [];
     let beatCount = 0;
     let resolveResume;
     const audioParam = () => ({
-        setValueAtTime() {},
+        setValueAtTime(value, time) { this.value = value; this.time = time; },
         linearRampToValueAtTime() {},
         exponentialRampToValueAtTime() {},
     });
@@ -60,16 +61,18 @@ function setup({ deferredResume = false, resumeError = false } = {}) {
             return timerId;
         },
         clearTimeout(id) { timeouts.delete(id); },
+        requestAnimationFrame() { return ++timerId; },
+        cancelAnimationFrame() {},
     });
-    vm.runInContext(`${source}\nglobalThis.api = { TempoGesture, MetronomeClock };`, context);
+    vm.runInContext(`${source}\nglobalThis.api = { TempoGesture, MetronomeClock, normalizeSettings, loadSettings, colorPalette, conductorPoint, conductorPreparationPoint, CONDUCTING_PATTERNS };`, context);
     const clock = new context.api.MetronomeClock({
         createContext: () => audio,
         onStateChange: value => states.push(value),
-        onBeat: () => beatCount++,
+        onBeat: index => { beatCount++; beatIndices.push(index); },
         onError: error => errors.push(error),
     });
     return {
-        context, clock, audio, timers, oscillators, states, errors,
+        context, clock, audio, timers, oscillators, states, errors, beatIndices,
         get beatCount() { return beatCount; },
         resume: () => resolveResume(),
         tick(milliseconds) {
@@ -179,13 +182,25 @@ test('a stalled scheduler resumes without a burst of missed beats', async () => 
     assert.equal(page.oscillators[1].startTime, 10.01);
 });
 
-function setupPage() {
+function setupPage(savedSettings = null) {
     const page = setup();
     const listeners = {};
     const attributes = {};
     const classes = new Set();
     const animate = () => ({ cancel() {}, updatePlaybackRate() {}, playState: 'running' });
+    function element(extra = {}) {
+        const attrs = {};
+        return {
+            listeners: {}, dataset: {}, attributes: attrs, value: '', checked: false,
+            classList: { toggle() {}, remove() {} },
+            style: { setProperty(name, value) { this[name] = value; } },
+            setAttribute: (name, value) => { attrs[name] = value; },
+            addEventListener(name, handler) { this.listeners[name] = handler; },
+            ...extra,
+        };
+    }
     const surface = {
+        dataset: {},
         animate,
         setAttribute: (name, value) => { attributes[name] = value; },
         setPointerCapture() {},
@@ -200,23 +215,52 @@ function setupPage() {
         listeners: {},
         setAttribute() {},
         setPointerCapture() {},
-        closest: selector => selector === '[data-tempo-step]',
+        closest: selector => selector.includes('[data-tempo-step]'),
         addEventListener(name, callback) { this.listeners[name] = callback; },
     }));
     const number = { textContent: '120', animate };
     const message = { hidden: true };
     const documentListeners = {};
     const windowListeners = {};
+    const settingsButton = element();
+    const settingsDialog = element({
+        open: false,
+        showModal() { this.open = true; },
+        close() { this.open = false; this.listeners.close(); },
+    });
+    const closeButton = element();
+    const beatInputs = [1, 2, 3, 4].map(value => element({ value: String(value) }));
+    const typeInputs = ['classic', 'conductor'].map(value => element({ value }));
+    const colorInput = element();
+    const colorValue = element();
+    const soundInput = element();
+    const conductorParts = Object.fromEntries(['path', 'dot', 'halo', 'markers'].map(name => [name, element()]));
+    conductorParts.markers.querySelectorAll = () => [];
+    const svg = element({
+        querySelector: selector => conductorParts[selector.replace('[data-conductor-', '').replace(']', '')],
+    });
+    const theme = element();
+    const storage = new Map(savedSettings ? [['metronome.settings.v1', savedSettings]] : []);
     page.context.document = {
-        querySelectorAll: selector => selector === '[data-tempo-step]' ? edges : [],
+        documentElement: element(),
+        querySelectorAll: selector => ({
+            '[data-tempo-step]': edges,
+            '[name="metronome-beats"]': beatInputs,
+            '[name="metronome-type"]': typeInputs,
+            '[data-settings-close]': [closeButton],
+        })[selector] || [],
         querySelector: selector => ({
             '[data-metronome]': surface, '[data-tempo]': number, '[data-metronome-message]': message,
+            '[data-settings-open]': settingsButton, '[data-settings-dialog]': settingsDialog,
+            '[data-settings-color]': colorInput, '[data-color-value]': colorValue,
+            '[data-settings-sound]': soundInput, '[data-conductor]': svg, 'meta[name="theme-color"]': theme,
         })[selector],
         addEventListener: (name, callback) => { documentListeners[name] = callback; },
     };
     page.context.window = {
         AudioContext: function () { return page.audio; },
-        matchMedia: () => ({ matches: false }),
+        matchMedia: () => ({ matches: false, addEventListener() {} }),
+        localStorage: { getItem: key => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, value) },
         addEventListener: (name, callback) => { windowListeners[name] = callback; },
     };
     vm.runInContext(read('metronome.js'), page.context);
@@ -228,7 +272,9 @@ function setupPage() {
         pointerId: 1, isPrimary: true, button: 0, detail: 1, target: edges[index],
         preventDefault() {}, ...extra,
     });
-    return { ...page, edges, edge, attributes, number, pointer, click, listeners, documentListeners, windowListeners };
+    return { ...page, edges, edge, attributes, number, pointer, click, listeners, documentListeners, windowListeners,
+        settingsButton, settingsDialog, closeButton, beatInputs, typeInputs, colorInput, soundInput, storage, surface,
+        conductorParts, theme };
 }
 
 test('taps toggle playback and releasing a swipe does not toggle it', async () => {
@@ -339,4 +385,207 @@ test('edge controls respect tempo limits, ignore secondary pointers, and support
     page.edge(0, 'click', { detail: 0 });
     assert.equal(page.number.textContent, '299');
     assert.equal(page.attributes['aria-pressed'], undefined);
+});
+
+test('each beat group plays a normal first beat and lower remaining beats, then repeats', async () => {
+    for (const count of [1, 2, 3, 4]) {
+        const page = setup();
+        page.clock.setBeats(count);
+        await page.clock.start();
+        for (let i = 1; i < count * 2; i++) page.advance(i * 0.5 - 0.05);
+        const frequencies = page.oscillators.map(oscillator => oscillator.frequency.value);
+        assert.deepEqual(frequencies, Array.from({ length: count * 2 }, (_, i) => i % count === 0 ? 1400 : 1400 * 0.82));
+        page.clock.stop();
+        await page.clock.start();
+        assert.equal(page.oscillators.at(-1).frequency.value, 1400);
+    }
+});
+
+test('all four sound options produce distinct voices and preserve the lower beat pitch', async () => {
+    const signatures = new Set();
+    for (const sound of ['click', 'woodblock', 'beep', 'cowbell']) {
+        const page = setup();
+        page.clock.setSound(sound);
+        page.clock.setBeats(2);
+        await page.clock.start();
+        const first = page.oscillators.slice();
+        signatures.add(first.map(voice => `${voice.type}:${voice.frequency.value}`).join(','));
+        page.advance(0.45);
+        page.oscillators.slice(first.length).forEach((voice, i) => {
+            assert.ok(Math.abs(voice.frequency.value / first[i].frequency.value - 0.82) < 0.00001);
+        });
+        page.clock.stop();
+        assert.ok(page.oscillators.every(voice => voice.disconnected));
+    }
+    assert.equal(signatures.size, 4);
+});
+
+test('changing beat groups or sounds replaces queued audio and begins the new group on a normal beat', async () => {
+    const page = setup();
+    page.clock.setBeats(4);
+    await page.clock.start();
+    page.advance(0.45);
+    const queued = page.oscillators[1];
+    page.clock.setBeats(3);
+    assert.equal(queued.disconnected, true);
+    assert.equal(page.oscillators.at(-1).startTime, 0.52);
+    assert.equal(page.oscillators.at(-1).frequency.value, 1400);
+    const replacement = page.oscillators.at(-1);
+    page.clock.setSound('beep');
+    assert.equal(replacement.disconnected, true);
+    assert.equal(page.oscillators.at(-1).startTime, 0.52);
+    assert.equal(page.oscillators.at(-1).frequency.value, 1000);
+});
+
+test('tempo edits preserve beat grouping and conductor progress', async () => {
+    const page = setup();
+    page.clock.setBeats(3);
+    await page.clock.start();
+    page.advance(0.27);
+    assert.equal(page.clock.getBeatPosition().beat, 0);
+    assert.equal(page.clock.getBeatPosition().progress, 0.5);
+    page.clock.setTempo(60);
+    assert.equal(page.clock.getBeatPosition().progress, 0.5);
+    page.advance(0.7);
+    assert.equal(page.oscillators.at(-1).frequency.value, 1400 * 0.82);
+    page.advance(0.8);
+    assert.equal(page.clock.getBeatPosition().beat, 1);
+});
+
+test('a tempo edit before the first click keeps that first click immediate', async () => {
+    const page = setup();
+    await page.clock.start();
+    page.clock.setTempo(80);
+    assert.equal(page.oscillators.at(-1).startTime, 0.02);
+});
+
+test('conducting paths meet exactly at each beat and the four-beat pattern goes down, left, right, up', () => {
+    const { conductorPoint, CONDUCTING_PATTERNS } = setup().context.api;
+    for (const count of [1, 2, 3, 4]) {
+        for (let beat = 0; beat < count; beat++) {
+            assert.deepEqual(Array.from(conductorPoint(count, beat, 0)), Array.from(CONDUCTING_PATTERNS[count][beat].point));
+            assert.deepEqual(Array.from(conductorPoint(count, beat, 1)), Array.from(conductorPoint(count, (beat + 1) % count, 0)));
+        }
+    }
+    const points = CONDUCTING_PATTERNS[4].map(segment => segment.point);
+    assert.ok(points[0][1] > points[1][1] && points[0][1] > points[2][1]);
+    assert.ok(points[1][0] < points[0][0] && points[2][0] > points[0][0]);
+    assert.ok(points[3][1] < points[0][1]);
+});
+
+test('settings isolate keyboard and edge controls from playback and tempo', async () => {
+    const page = setupPage();
+    page.click();
+    await Promise.resolve();
+    page.settingsButton.listeners.click();
+    assert.equal(page.settingsDialog.open, true);
+    for (const key of ['ArrowUp', 'ArrowDown', 'Enter', 'Escape']) {
+        page.documentListeners.keydown({ key, preventDefault() { assert.fail('Dialog keys should keep their native behavior.'); } });
+    }
+    page.edge(0, 'pointerdown');
+    page.edge(0, 'click', { detail: 0 });
+    page.tick(1000);
+    assert.equal(page.number.textContent, '120');
+    assert.equal(page.attributes['aria-pressed'], 'true');
+    page.closeButton.listeners.click();
+    assert.equal(page.settingsDialog.open, false);
+    assert.equal(page.attributes['aria-pressed'], 'true');
+});
+
+test('settings apply immediately, stay readable for light colors, and persist across visits', () => {
+    const page = setupPage();
+    page.beatInputs[3].checked = true;
+    page.beatInputs[3].listeners.change();
+    page.typeInputs[1].checked = true;
+    page.typeInputs[1].listeners.change();
+    page.colorInput.value = '#ffffff';
+    page.colorInput.listeners.input();
+    page.soundInput.value = 'cowbell';
+    page.soundInput.listeners.change();
+    assert.equal(page.surface.dataset.mode, 'conductor');
+    assert.equal(page.context.document.documentElement.style['--metronome-ink'], '#112037');
+    assert.equal(page.theme.attributes.content, '#ffffff');
+    const saved = page.storage.get('metronome.settings.v1');
+    assert.deepEqual(JSON.parse(saved), { beats: 4, color: '#ffffff', sound: 'cowbell', type: 'conductor' });
+    const next = setupPage(saved);
+    assert.equal(next.beatInputs[3].checked, true);
+    assert.equal(next.surface.dataset.mode, 'conductor');
+    assert.equal(next.soundInput.value, 'cowbell');
+    assert.equal(next.colorInput.value, '#ffffff');
+});
+
+test('invalid or unavailable saved settings fall back to usable defaults', () => {
+    const { normalizeSettings, loadSettings } = setup().context.api;
+    const defaults = { beats: 1, color: '#155eef', sound: 'click', type: 'classic' };
+    assert.deepEqual(JSON.parse(JSON.stringify(normalizeSettings({ beats: 99, color: 'invalid', sound: 'toString', type: 'unknown' }))), defaults);
+    assert.deepEqual(JSON.parse(JSON.stringify(loadSettings({ getItem() { throw new Error('Blocked'); } }))), defaults);
+    assert.equal(setupPage('{invalid json').surface.dataset.mode, 'classic');
+});
+
+
+test('conductor preparation drops from the top to beat one for every pattern', () => {
+    const { conductorPreparationPoint, conductorPoint, CONDUCTING_PATTERNS } = setup().context.api;
+    for (const count of [1, 2, 3, 4]) {
+        const start = conductorPreparationPoint(count, 0);
+        const end = conductorPreparationPoint(count, 1);
+        assert.ok(start[1] < end[1]);
+        assert.deepEqual(Array.from(end), Array.from(conductorPoint(count, 0, 0)));
+        if (count > 1) assert.deepEqual(Array.from(start), Array.from(CONDUCTING_PATTERNS[count][count - 1].point));
+        let previousY = start[1];
+        for (let step = 1; step <= 20; step++) {
+            const position = conductorPreparationPoint(count, step / 20);
+            assert.ok(position[1] > previousY, 'The preparation stroke should descend without reversing.');
+            previousY = position[1];
+        }
+    }
+});
+
+test('conductor lead-in is silent and tempo edits keep the first click aligned with the drop', async () => {
+    const page = setup();
+    page.clock.setBeats(4);
+    await page.clock.start({ leadIn: true });
+    assert.equal(page.clock.getBeatPosition().beat, 3);
+    assert.equal(page.clock.getBeatPosition().preparing, true);
+    assert.equal(page.oscillators.length, 0);
+    page.advance(0.25);
+    assert.equal(page.clock.getBeatPosition().progress, 0.5);
+    page.clock.setTempo(60);
+    assert.equal(page.clock.getBeatPosition().progress, 0.5);
+    page.advance(0.7);
+    assert.equal(page.oscillators[0].startTime, 0.75);
+    assert.equal(page.beatCount, 0);
+    page.advance(0.75);
+    assert.equal(page.clock.getBeatPosition().preparing, false);
+    assert.equal(page.clock.getBeatPosition().beat, 0);
+    assert.equal(page.clock.getBeatPosition().progress, 0);
+    assert.deepEqual(page.beatIndices, [0]);
+    assert.equal(page.oscillators[0].frequency.value, 1400);
+    page.clock.stop();
+    assert.equal(page.clock.getBeatPosition().preparing, true);
+    assert.equal(page.clock.getBeatPosition().progress, 0);
+});
+
+test('the conductor dot waits at the last beat and returns there when stopped', async () => {
+    for (const count of [1, 2, 3, 4]) {
+        const page = setupPage(JSON.stringify({ beats: count, type: 'conductor' }));
+        const clock = vm.runInContext('clock', page.context);
+        const { conductorPreparationPoint, conductorPoint } = page.context.api;
+        const position = () => [page.conductorParts.dot.attributes.cx, page.conductorParts.dot.attributes.cy];
+        assert.deepEqual(position(), Array.from(conductorPreparationPoint(count, 0)));
+        page.click();
+        await new Promise(setImmediate);
+        page.advance(0.25);
+        vm.runInContext('drawConductor()', page.context);
+        assert.deepEqual(position(), Array.from(conductorPreparationPoint(count, 0.5)));
+        page.advance(0.45);
+        page.advance(0.5);
+        assert.deepEqual(position(), Array.from(conductorPoint(count, 0, 0)));
+        page.click();
+        assert.equal(clock.running, false);
+        assert.deepEqual(position(), Array.from(conductorPreparationPoint(count, 0)));
+        page.click();
+        await new Promise(setImmediate);
+        assert.equal(clock.getBeatPosition().preparing, true);
+        assert.deepEqual(position(), Array.from(conductorPreparationPoint(count, 0)));
+    }
 });

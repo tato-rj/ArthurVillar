@@ -1,4 +1,5 @@
 import { clampTempo, DEFAULT_TEMPO } from './gesture';
+import { SOUND_PROFILES } from './settings';
 
 export class MetronomeClock {
     constructor({ createContext, onStateChange, onBeat, onError }) {
@@ -15,9 +16,13 @@ export class MetronomeClock {
         this.notes = new Set();
         this.beats = [];
         this.beatAnchor = null;
+        this.beatsPerBar = 1;
+        this.sound = 'click';
+        this.nextBeatIndex = 0;
+        this.lastBeatIndex = null;
     }
 
-    async start() {
+    async start({ leadIn = false } = {}) {
         if (this.running) return;
         const generation = ++this.generation;
         this.running = true;
@@ -36,8 +41,10 @@ export class MetronomeClock {
             if (this.context.state !== 'running') throw new Error('Audio is unavailable.');
 
             this.ready = true;
-            this.beatAnchor = null;
-            this.nextBeatTime = this.context.currentTime + 0.02;
+            this.beatAnchor = leadIn ? this.context.currentTime : null;
+            this.nextBeatIndex = 0;
+            this.lastBeatIndex = null;
+            this.nextBeatTime = this.context.currentTime + (leadIn ? 60 / this.tempo : 0.02);
             this.schedule();
             this.timer = setInterval(() => this.schedule(), 25);
         } catch (error) {
@@ -56,6 +63,7 @@ export class MetronomeClock {
         for (const note of this.notes) this.cancelNote(note);
         this.beats = [];
         this.beatAnchor = null;
+        this.lastBeatIndex = null;
         this.onStateChange(false);
     }
 
@@ -68,10 +76,12 @@ export class MetronomeClock {
 
         const now = this.context.currentTime;
         this.updateBeat(now);
+        if (this.beatAnchor === null && this.beats.length) this.nextBeatTime = this.beats[0].time;
         for (const note of this.notes) {
             if (note.time > now) this.cancelNote(note);
         }
         this.beats = [];
+        this.nextBeatIndex = this.lastBeatIndex === null ? 0 : (this.lastBeatIndex + 1) % this.beatsPerBar;
 
         // Preserve the progress through this beat when tempo changes mid-swipe.
         if (this.beatAnchor !== null) {
@@ -83,13 +93,52 @@ export class MetronomeClock {
         this.schedule();
     }
 
+    setBeats(value) {
+        if (![1, 2, 3, 4].includes(value) || value === this.beatsPerBar) return;
+        this.beatsPerBar = value;
+        this.reschedulePending(true);
+    }
+
+    setSound(value) {
+        if (!Object.prototype.hasOwnProperty.call(SOUND_PROFILES, value) || value === this.sound) return;
+        this.sound = value;
+        this.reschedulePending();
+    }
+
+    reschedulePending(restartBar = false) {
+        if (!this.ready) return;
+        const now = this.context.currentTime;
+        this.updateBeat(now);
+        if (this.beats.length) this.nextBeatTime = this.beats[0].time;
+        for (const note of this.notes) {
+            if (note.time > now) this.cancelNote(note);
+        }
+        this.beats = [];
+        this.nextBeatIndex = restartBar || this.lastBeatIndex === null
+            ? 0 : (this.lastBeatIndex + 1) % this.beatsPerBar;
+        if (restartBar) this.lastBeatIndex = null;
+        this.schedule();
+    }
+
+    getBeatPosition() {
+        return {
+            beat: this.lastBeatIndex ?? this.beatsPerBar - 1,
+            preparing: this.lastBeatIndex === null,
+            progress: this.ready && this.beatAnchor !== null
+                ? Math.min(1, Math.max(0, (this.context.currentTime - this.beatAnchor) / (60 / this.tempo)))
+                : 0,
+        };
+    }
+
     updateBeat(now) {
         let played = false;
-        while (this.beats.length && this.beats[0] <= now) {
-            this.beatAnchor = this.beats.shift();
+        while (this.beats.length && this.beats[0].time <= now) {
+            const beat = this.beats.shift();
+            this.beatAnchor = beat.time;
+            this.lastBeatIndex = beat.index;
             played = true;
         }
-        if (played) this.onBeat();
+        if (played) this.onBeat(this.lastBeatIndex);
     }
 
     schedule() {
@@ -101,38 +150,52 @@ export class MetronomeClock {
         // If a tab was stalled, resume once instead of replaying missed beats.
         if (this.nextBeatTime < now) this.nextBeatTime = now + 0.01;
         while (this.nextBeatTime < now + 0.1) {
-            this.playClick(this.nextBeatTime);
-            this.beats.push(this.nextBeatTime);
+            this.playClick(this.nextBeatTime, this.nextBeatIndex);
+            this.beats.push({ time: this.nextBeatTime, index: this.nextBeatIndex });
+            this.nextBeatIndex = (this.nextBeatIndex + 1) % this.beatsPerBar;
             this.nextBeatTime += 60 / this.tempo;
         }
     }
 
-    playClick(time) {
-        const oscillator = this.context.createOscillator();
+    playClick(time, beatIndex) {
+        const profile = SOUND_PROFILES[this.sound];
+        const pitch = beatIndex === 0 ? 1 : 0.82;
         const gain = this.context.createGain();
-        oscillator.type = 'triangle';
-        oscillator.frequency.setValueAtTime(1400, time);
-        oscillator.frequency.exponentialRampToValueAtTime(700, time + 0.025);
         gain.gain.setValueAtTime(0, time);
-        gain.gain.linearRampToValueAtTime(0.4, time + 0.001);
-        gain.gain.exponentialRampToValueAtTime(0.001, time + 0.03);
-        oscillator.connect(gain);
+        gain.gain.linearRampToValueAtTime(profile.volume / profile.ratios.length, time + 0.001);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + profile.duration - 0.005);
         gain.connect(this.context.destination);
 
-        const note = { oscillator, gain, time };
+        const oscillators = profile.ratios.map(ratio => {
+            const oscillator = this.context.createOscillator();
+            oscillator.type = profile.type;
+            const frequency = profile.frequency * pitch * ratio;
+            oscillator.frequency.setValueAtTime(frequency, time);
+            oscillator.frequency.exponentialRampToValueAtTime(frequency * profile.end, time + profile.duration - 0.01);
+            oscillator.connect(gain);
+            return oscillator;
+        });
+        const note = { oscillators, gain, time };
         this.notes.add(note);
-        oscillator.onended = () => {
-            oscillator.disconnect();
-            gain.disconnect();
-            this.notes.delete(note);
-        };
-        oscillator.start(time);
-        oscillator.stop(time + 0.035);
+        let remaining = oscillators.length;
+        oscillators.forEach(oscillator => {
+            oscillator.onended = () => {
+                oscillator.disconnect();
+                if (--remaining === 0) {
+                    gain.disconnect();
+                    this.notes.delete(note);
+                }
+            };
+            oscillator.start(time);
+            oscillator.stop(time + profile.duration);
+        });
     }
 
     cancelNote(note) {
-        note.oscillator.stop();
-        note.oscillator.disconnect();
+        note.oscillators.forEach(oscillator => {
+            oscillator.stop();
+            oscillator.disconnect();
+        });
         note.gain.disconnect();
         this.notes.delete(note);
     }
