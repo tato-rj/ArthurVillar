@@ -56,6 +56,11 @@
             <span id="lesson-recurrence"></span>
         </div>
 
+        <div class="calendar-modal-detail" data-event-modal-section="lesson" data-lesson-birth-date-section hidden>
+            @fa(['icon' => 'cake-candles', 'mr' => 0, 'classes' => 'calendar-modal-detail-icon'])
+            <span data-lesson-birth-date></span>
+        </div>
+
         <div class="calendar-modal-detail" data-event-modal-section="general" data-general-event-type-section hidden>
             <i id="general-event-type-icon" class="fas calendar-modal-detail-icon" aria-hidden="true"></i>
             <span id="general-event-type"></span>

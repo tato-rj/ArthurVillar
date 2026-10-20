@@ -7050,6 +7050,8 @@ var populateLessonModal = function populateLessonModal(modal, event) {
   var recurrence = modal.querySelector('#lesson-recurrence');
   var birthday = modal.querySelector('#lesson-birthday');
   var birthdayLabel = birthday ? birthday.querySelector('[data-lesson-birthday-label]') : null;
+  var birthDateSection = modal.querySelector('[data-lesson-birth-date-section]');
+  var birthDateLabel = modal.querySelector('[data-lesson-birth-date]');
   var lessonLocation = modal.querySelector('[data-event-modal-location-section]');
   var lessonLocationContent = lessonLocation ? lessonLocation.querySelector('[data-event-modal-location]') : null;
   var lessonLocationIcon = lessonLocation ? lessonLocation.querySelector('[data-event-modal-location-icon]') : null;
@@ -7110,6 +7112,10 @@ var populateLessonModal = function populateLessonModal(modal, event) {
       birthday.style.display = 'none';
       birthdayLabel.textContent = '';
     }
+  }
+  if (birthDateSection && birthDateLabel) {
+    birthDateLabel.textContent = getStudentBirthDateLabel(event && event.studentDateOfBirth);
+    birthDateSection.hidden = !birthDateLabel.textContent;
   }
   if (lessonLocation && lessonLocationContent) {
     var hasLocation = !isHomeCalendarLocation(event && event.location) && renderEventLocation(lessonLocationContent, lessonLocationIcon, event && event.location);
@@ -9321,6 +9327,19 @@ var getStudentName = function getStudentName(student) {
 var getStudentFirstName = function getStudentFirstName(student) {
   return student && student.first_name ? String(student.first_name).trim() : '';
 };
+var getStudentBirthDateLabel = function getStudentBirthDateLabel(dateOfBirth) {
+  var birthDate = parseUrlDate(String(dateOfBirth || '').substring(0, 10));
+  var today = getTodayDate();
+  if (!birthDate || birthDate > today) {
+    return '';
+  }
+  var age = today.getFullYear() - birthDate.getFullYear();
+  var birthdayThisYear = createLocalDate(today.getFullYear(), birthDate.getMonth(), birthDate.getDate());
+  if (today < birthdayThisYear) {
+    age--;
+  }
+  return "".concat(compactDayFormatter.format(birthDate), " (").concat(age, " ").concat(age === 1 ? 'year' : 'years', " old)");
+};
 var studentHasBirthdayInWeek = function studentHasBirthdayInWeek(student, dateString) {
   if (!student || !student.date_of_birth || !isDateString(dateString)) {
     return false;
@@ -9531,6 +9550,7 @@ var getPlannedLessonEvents = function getPlannedLessonEvents(range) {
           notesUrl: occurrence.notes_url || lesson.notes_url || '',
           travelMode: occurrence.travel_mode || 'TRANSIT',
           studentFirstName: getStudentFirstName(lesson.student),
+          studentDateOfBirth: lesson.student && lesson.student.date_of_birth || '',
           hasBirthdayThisWeek: studentHasBirthdayInWeek(lesson.student, dateString),
           hasBirthdayNearEvent: studentHasBirthdayNearEvent(lesson.student, dateString),
           birthdayModalLabel: getStudentBirthdayModalLabel(lesson.student, dateString)
@@ -9598,6 +9618,7 @@ var getPlannedLessonEvents = function getPlannedLessonEvents(range) {
         meetingUrl: lesson.meeting_url || '',
         notesUrl: lesson.notes_url || '',
         studentFirstName: getStudentFirstName(lesson.student),
+        studentDateOfBirth: lesson.student && lesson.student.date_of_birth || '',
         hasBirthdayThisWeek: studentHasBirthdayInWeek(lesson.student, dateString),
         hasBirthdayNearEvent: studentHasBirthdayNearEvent(lesson.student, dateString),
         birthdayModalLabel: getStudentBirthdayModalLabel(lesson.student, dateString)
