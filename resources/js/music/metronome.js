@@ -68,7 +68,7 @@ const clock = new MetronomeClock({
         }
         if (pulse) pulse.cancel();
         pulse = number.animate([
-            { transform: 'scale(1.025)', opacity: 1 },
+            { transform: 'scale(1.1)', opacity: 1 },
             { transform: 'scale(1)', opacity: 0.88 },
         ], { duration: 180, easing: 'ease-out' });
     },
@@ -128,9 +128,6 @@ function applySettings(value, persist = true) {
     if (previous.color !== settings.color && backgroundPulse) backgroundPulse.cancel();
     document.documentElement.style.setProperty('--metronome-color', settings.color);
     document.documentElement.style.setProperty('--metronome-ink', palette.ink);
-    for (const [name, color] of Object.entries(palette.settings)) {
-        document.documentElement.style.setProperty(`--metronome-settings-${name}`, color);
-    }
     document.querySelector('meta[name="theme-color"]').setAttribute('content', settings.color);
     surface.dataset.mode = settings.type;
     clock.setBeats(settings.beats);

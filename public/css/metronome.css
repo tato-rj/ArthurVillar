@@ -177,7 +177,7 @@ body {
   stroke-width: 4;
   stroke-linecap: round;
   stroke-linejoin: round;
-  opacity: 0.07;
+  opacity: 0.1;
 }
 
 .conductor-dot,
@@ -190,6 +190,14 @@ body {
 }
 
 .metronome-settings {
+  --metronome-settings-background: #fff;
+  --metronome-settings-ink: #000;
+  --metronome-settings-accent: #000;
+  --metronome-settings-on-accent: #fff;
+  --metronome-settings-accent-hover: #1a1a1a;
+  --metronome-settings-on-accent-hover: #fff;
+  --metronome-settings-hover: #f5f5f5;
+  --metronome-settings-border: #e5e5e5;
   position: fixed;
   inset: 10vh 0 -16px;
   inset: 10dvh 0 -16px;
@@ -262,8 +270,6 @@ body {
   align-items: center;
   justify-content: space-between;
   margin-bottom: clamp(32px, 6vh, 48px);
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--metronome-settings-border);
 }
 .metronome-settings__header h1 {
   margin: 0;

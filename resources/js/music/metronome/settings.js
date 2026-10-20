@@ -43,35 +43,10 @@ function mixColor(from, to, amount) {
     return from.map((channel, index) => Math.round(channel + (to[index] - channel) * amount));
 }
 
-function buttonInk(channels) {
-    const light = luminance(channels);
-    if (1.05 / (light + 0.05) >= 4.5) return '#ffffff';
-    return (light + 0.05) / (luminance([17, 32, 55]) + 0.05) >= 4.5 ? '#112037' : '#000000';
-}
-
 export function colorPalette(color) {
     const channels = color.slice(1).match(/../g).map(channel => parseInt(channel, 16));
-    const background = mixColor(channels, [255, 255, 255], 0.88);
-    const accent = mixColor(channels, [0, 0, 0], 0.18);
-    const accentHover = mixColor(accent, [0, 0, 0], 0.08);
-    const hover = mixColor(background, accent, 0.07);
-    let text = accent;
-    // Bright hues need a deeper shade for readable text on the pale tint.
-    while ((luminance(hover) + 0.05) / (luminance(text) + 0.05) < 4.5) {
-        text = text.map(channel => Math.floor(channel * 0.95));
-    }
     return {
-        pulse: hexColor(mixColor(channels, [0, 0, 0], 0.22)),
+        pulse: hexColor(mixColor(channels, [0, 0, 0], 0.42)),
         ink: luminance(channels) > 0.4 ? '#112037' : '#ffffff',
-        settings: {
-            background: hexColor(background),
-            ink: hexColor(text),
-            accent: hexColor(accent),
-            'on-accent': buttonInk(accent),
-            'accent-hover': hexColor(accentHover),
-            'on-accent-hover': buttonInk(accentHover),
-            hover: hexColor(hover),
-            border: hexColor(mixColor(background, text, 0.23)),
-        },
     };
 }

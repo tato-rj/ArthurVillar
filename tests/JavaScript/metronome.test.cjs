@@ -616,59 +616,6 @@ test('settings apply immediately, stay readable for light colors, and persist ac
     assert.equal(next.colorInput.value, '#ffffff');
 });
 
-test('settings palettes stay tinted and readable across light, dark, and saturated colors', () => {
-    const { colorPalette } = setup().context.api;
-    const rgb = color => color.slice(1).match(/../g).map(channel => parseInt(channel, 16));
-    const light = color => rgb(color).reduce((sum, channel, index) => {
-        const value = channel / 255;
-        const linear = value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
-        return sum + linear * [0.2126, 0.7152, 0.0722][index];
-    }, 0);
-    const contrast = (a, b) => (Math.max(light(a), light(b)) + 0.05) / (Math.min(light(a), light(b)) + 0.05);
-    for (const red of [0, 51, 102, 153, 204, 255]) {
-        for (const green of [0, 51, 102, 153, 204, 255]) {
-            for (const blue of [0, 51, 102, 153, 204, 255]) {
-                const color = '#' + [red, green, blue].map(channel => channel.toString(16).padStart(2, '0')).join('');
-                const palette = colorPalette(color).settings;
-                assert.ok(rgb(palette.background).every((channel, index) => channel >= rgb(color)[index]));
-                assert.ok(rgb(palette.accent).every((channel, index) => channel <= rgb(color)[index]));
-                for (const [foreground, background] of [
-                    ['ink', 'background'], ['ink', 'hover'],
-                    ['on-accent', 'accent'], ['on-accent-hover', 'accent-hover'],
-                ]) {
-                    assert.ok(contrast(palette[foreground], palette[background]) >= 4.5,
-                        `${color}: ${foreground} must remain readable on ${background}.`);
-                }
-            }
-        }
-    }
-    assert.equal(colorPalette('#155eef').settings['on-accent'], '#ffffff');
-    assert.equal(colorPalette('#ffff80').settings['on-accent'], '#112037');
-    assert.equal(colorPalette('#ffffff').settings['on-accent'], '#112037');
-    assert.equal(colorPalette('#000000').settings['on-accent'], '#ffffff');
-});
-
-test('the open settings modal updates its theme live and restores the selected palette on reload', () => {
-    const page = setupPage();
-    page.settingsButton.listeners.click();
-    let previousBackground;
-    for (const color of ['#ffff80', '#155eef', '#601c8e']) {
-        page.colorInput.value = color;
-        page.colorInput.listeners.input();
-        const palette = page.context.api.colorPalette(color).settings;
-        const style = page.context.document.documentElement.style;
-        for (const [name, value] of Object.entries(palette)) {
-            assert.equal(style[`--metronome-settings-${name}`], value);
-        }
-        assert.notEqual(palette.background, previousBackground);
-        assert.equal(page.settingsDialog.open, true);
-        const restored = setupPage(page.storage.get('metronome.settings.v1'));
-        assert.equal(restored.context.document.documentElement.style['--metronome-settings-background'], palette.background);
-        assert.equal(restored.context.document.documentElement.style['--metronome-settings-on-accent'], palette['on-accent']);
-        previousBackground = palette.background;
-    }
-});
-
 test('invalid or unavailable saved settings fall back to usable defaults', () => {
     const { normalizeSettings, loadSettings } = setup().context.api;
     const defaults = { beats: 1, color: '#155eef', sound: 'click', type: 'classic' };
