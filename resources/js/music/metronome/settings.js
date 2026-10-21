@@ -1,10 +1,10 @@
 import { DEFAULT_TEMPO, MIN_TEMPO, MAX_TEMPO } from './gesture';
 
 export const SOUND_PROFILES = {
-    click: { type: 'triangle', frequency: 1400, end: 0.5, duration: 0.035, volume: 0.4, ratios: [1] },
-    woodblock: { type: 'sine', frequency: 800, end: 0.92, duration: 0.065, volume: 0.45, ratios: [1, 2.76] },
-    beep: { type: 'sine', frequency: 1000, end: 1, duration: 0.075, volume: 0.32, ratios: [1] },
-    cowbell: { type: 'square', frequency: 540, end: 1, duration: 0.09, volume: 0.14, ratios: [1, 1.48] },
+    click: { type: 'triangle', frequency: 1400, end: 0.5, duration: 0.035, volume: 0.95, ratios: [1] },
+    woodblock: { type: 'sine', frequency: 800, end: 0.92, duration: 0.065, volume: 0.95, ratios: [1, 2.76] },
+    beep: { type: 'sine', frequency: 1000, end: 1, duration: 0.075, volume: 0.9, ratios: [1] },
+    cowbell: { type: 'square', frequency: 540, end: 1, duration: 0.09, volume: 0.8, ratios: [1, 1.48] },
 };
 
 export const DEFAULT_SETTINGS = { beats: 1, color: '#155eef', sound: 'click', type: 'classic' };

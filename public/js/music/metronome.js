@@ -307,9 +307,16 @@ var MetronomeClock = /*#__PURE__*/function () {
       var profile = _settings__WEBPACK_IMPORTED_MODULE_1__.SOUND_PROFILES[this.sound];
       var pitch = beatIndex === 0 ? 1 : 0.82;
       var gain = this.context.createGain();
+      // Share the available headroom between voices. A short full-level body
+      // makes the count carry on phone speakers instead of fading immediately
+      // after its attack; the final ramp still brings the waveform to zero.
+      var peak = profile.volume / profile.ratios.length;
       gain.gain.setValueAtTime(0, time);
-      gain.gain.linearRampToValueAtTime(profile.volume / profile.ratios.length, time + 0.001);
-      gain.gain.exponentialRampToValueAtTime(0.001, time + profile.duration - 0.005);
+      gain.gain.linearRampToValueAtTime(peak, time + 0.001);
+      gain.gain.setValueAtTime(peak, time + 0.006);
+      gain.gain.exponentialRampToValueAtTime(peak * 0.18, time + profile.duration * 0.65);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + profile.duration - 0.003);
+      gain.gain.linearRampToValueAtTime(0, time + profile.duration);
       gain.connect(this.context.destination);
       var oscillators = profile.ratios.map(function (ratio) {
         var oscillator = _this2.context.createOscillator();
@@ -950,7 +957,7 @@ var SOUND_PROFILES = {
     frequency: 1400,
     end: 0.5,
     duration: 0.035,
-    volume: 0.4,
+    volume: 0.95,
     ratios: [1]
   },
   woodblock: {
@@ -958,7 +965,7 @@ var SOUND_PROFILES = {
     frequency: 800,
     end: 0.92,
     duration: 0.065,
-    volume: 0.45,
+    volume: 0.95,
     ratios: [1, 2.76]
   },
   beep: {
@@ -966,7 +973,7 @@ var SOUND_PROFILES = {
     frequency: 1000,
     end: 1,
     duration: 0.075,
-    volume: 0.32,
+    volume: 0.9,
     ratios: [1]
   },
   cowbell: {
@@ -974,7 +981,7 @@ var SOUND_PROFILES = {
     frequency: 540,
     end: 1,
     duration: 0.09,
-    volume: 0.14,
+    volume: 0.8,
     ratios: [1, 1.48]
   }
 };

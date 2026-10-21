@@ -178,9 +178,16 @@ export class MetronomeClock {
         const profile = SOUND_PROFILES[this.sound];
         const pitch = beatIndex === 0 ? 1 : 0.82;
         const gain = this.context.createGain();
+        // Share the available headroom between voices. A short full-level body
+        // makes the count carry on phone speakers instead of fading immediately
+        // after its attack; the final ramp still brings the waveform to zero.
+        const peak = profile.volume / profile.ratios.length;
         gain.gain.setValueAtTime(0, time);
-        gain.gain.linearRampToValueAtTime(profile.volume / profile.ratios.length, time + 0.001);
-        gain.gain.exponentialRampToValueAtTime(0.001, time + profile.duration - 0.005);
+        gain.gain.linearRampToValueAtTime(peak, time + 0.001);
+        gain.gain.setValueAtTime(peak, time + 0.006);
+        gain.gain.exponentialRampToValueAtTime(peak * 0.18, time + profile.duration * 0.65);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + profile.duration - 0.003);
+        gain.gain.linearRampToValueAtTime(0, time + profile.duration);
         gain.connect(this.context.destination);
 
         const oscillators = profile.ratios.map(ratio => {
