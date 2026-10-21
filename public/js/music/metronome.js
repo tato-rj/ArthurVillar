@@ -307,15 +307,14 @@ var MetronomeClock = /*#__PURE__*/function () {
       var profile = _settings__WEBPACK_IMPORTED_MODULE_1__.SOUND_PROFILES[this.sound];
       var pitch = beatIndex === 0 ? 1 : 0.82;
       var gain = this.context.createGain();
-      // Share the available headroom between voices. A short full-level body
-      // makes the count carry on phone speakers instead of fading immediately
-      // after its attack; the final ramp still brings the waveform to zero.
+      // Percussive sounds decay immediately after a crisp attack. Only the
+      // electronic beep holds its tone; high peaks retain the louder count
+      // without stretching the ticks or clipping the combined voices.
       var peak = profile.volume / profile.ratios.length;
       gain.gain.setValueAtTime(0, time);
-      gain.gain.linearRampToValueAtTime(peak, time + 0.001);
-      gain.gain.setValueAtTime(peak, time + 0.006);
-      gain.gain.exponentialRampToValueAtTime(peak * 0.18, time + profile.duration * 0.65);
-      gain.gain.exponentialRampToValueAtTime(0.001, time + profile.duration - 0.003);
+      gain.gain.linearRampToValueAtTime(peak, time + profile.attack);
+      if (profile.hold) gain.gain.setValueAtTime(peak, time + profile.attack + profile.hold);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + profile.duration - 0.002);
       gain.gain.linearRampToValueAtTime(0, time + profile.duration);
       gain.connect(this.context.destination);
       var oscillators = profile.ratios.map(function (ratio) {
@@ -323,7 +322,6 @@ var MetronomeClock = /*#__PURE__*/function () {
         oscillator.type = profile.type;
         var frequency = profile.frequency * pitch * ratio;
         oscillator.frequency.setValueAtTime(frequency, time);
-        oscillator.frequency.exponentialRampToValueAtTime(frequency * profile.end, time + profile.duration - 0.01);
         oscillator.connect(gain);
         return oscillator;
       });
@@ -955,33 +953,34 @@ var SOUND_PROFILES = {
   click: {
     type: 'triangle',
     frequency: 1400,
-    end: 0.5,
-    duration: 0.035,
+    attack: 0.0005,
+    duration: 0.03,
     volume: 0.95,
     ratios: [1]
   },
   woodblock: {
     type: 'sine',
     frequency: 800,
-    end: 0.92,
-    duration: 0.065,
+    attack: 0.0005,
+    duration: 0.06,
     volume: 0.95,
     ratios: [1, 2.76]
   },
   beep: {
     type: 'sine',
     frequency: 1000,
-    end: 1,
-    duration: 0.075,
-    volume: 0.9,
+    attack: 0.002,
+    hold: 0.025,
+    duration: 0.06,
+    volume: 0.85,
     ratios: [1]
   },
   cowbell: {
     type: 'square',
     frequency: 540,
-    end: 1,
-    duration: 0.09,
-    volume: 0.8,
+    attack: 0.0005,
+    duration: 0.07,
+    volume: 0.7,
     ratios: [1, 1.48]
   }
 };

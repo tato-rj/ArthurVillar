@@ -178,15 +178,14 @@ export class MetronomeClock {
         const profile = SOUND_PROFILES[this.sound];
         const pitch = beatIndex === 0 ? 1 : 0.82;
         const gain = this.context.createGain();
-        // Share the available headroom between voices. A short full-level body
-        // makes the count carry on phone speakers instead of fading immediately
-        // after its attack; the final ramp still brings the waveform to zero.
+        // Percussive sounds decay immediately after a crisp attack. Only the
+        // electronic beep holds its tone; high peaks retain the louder count
+        // without stretching the ticks or clipping the combined voices.
         const peak = profile.volume / profile.ratios.length;
         gain.gain.setValueAtTime(0, time);
-        gain.gain.linearRampToValueAtTime(peak, time + 0.001);
-        gain.gain.setValueAtTime(peak, time + 0.006);
-        gain.gain.exponentialRampToValueAtTime(peak * 0.18, time + profile.duration * 0.65);
-        gain.gain.exponentialRampToValueAtTime(0.001, time + profile.duration - 0.003);
+        gain.gain.linearRampToValueAtTime(peak, time + profile.attack);
+        if (profile.hold) gain.gain.setValueAtTime(peak, time + profile.attack + profile.hold);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + profile.duration - 0.002);
         gain.gain.linearRampToValueAtTime(0, time + profile.duration);
         gain.connect(this.context.destination);
 
@@ -195,7 +194,6 @@ export class MetronomeClock {
             oscillator.type = profile.type;
             const frequency = profile.frequency * pitch * ratio;
             oscillator.frequency.setValueAtTime(frequency, time);
-            oscillator.frequency.exponentialRampToValueAtTime(frequency * profile.end, time + profile.duration - 0.01);
             oscillator.connect(gain);
             return oscillator;
         });
