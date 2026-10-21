@@ -21,6 +21,15 @@ body {
     overscroll-behavior: none;
 }
 
+@media (display-mode: standalone) {
+    html,
+    body {
+        // Keep the page canvas tall enough for the extended pulse as well.
+        min-height: 100vh;
+        min-height: 100lvh;
+    }
+}
+
 .metronome {
     position: fixed;
     isolation: isolate;
@@ -62,6 +71,11 @@ body {
 .metronome__pulse {
     position: absolute;
     inset: 0;
+    // Home Screen Safari can make 100dvh shorter than the physical screen.
+    // Let the pulse cover the large viewport too, including the bottom strip,
+    // while the controls keep using the visible viewport and safe-area padding.
+    min-height: 100vh;
+    min-height: 100lvh;
     z-index: -1;
     background: var(--metronome-pulse);
     opacity: 0;

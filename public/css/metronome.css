@@ -19,6 +19,13 @@ body {
   overscroll-behavior: none;
 }
 
+@media (display-mode: standalone) {
+  html,
+  body {
+    min-height: 100vh;
+    min-height: 100lvh;
+  }
+}
 .metronome {
   position: fixed;
   isolation: isolate;
@@ -60,6 +67,8 @@ body {
 .metronome__pulse {
   position: absolute;
   inset: 0;
+  min-height: 100vh;
+  min-height: 100lvh;
   z-index: -1;
   background: var(--metronome-pulse);
   opacity: 0;
