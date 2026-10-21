@@ -372,15 +372,15 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
 function _classCallCheck(a, n) { if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function"); }
 function _defineProperties(e, r) { for (var t = 0; t < r.length; t++) { var o = r[t]; o.enumerable = o.enumerable || !1, o.configurable = !0, "value" in o && (o.writable = !0), Object.defineProperty(e, _toPropertyKey(o.key), o); } }
 function _createClass(e, r, t) { return r && _defineProperties(e.prototype, r), t && _defineProperties(e, t), Object.defineProperty(e, "prototype", { writable: !1 }), e; }
-function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
-function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function _iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
-function _arrayWithoutHoles(r) { if (Array.isArray(r)) return _arrayLikeToArray(r); }
 function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
 function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
 function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
 function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
 function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
+function _arrayWithoutHoles(r) { if (Array.isArray(r)) return _arrayLikeToArray(r); }
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
 function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
@@ -389,7 +389,8 @@ function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol
 function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
 function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
 // Traced from the four supplied conducting-pattern screenshots.
-// All patterns use constant travel speed, including the opening downstroke.
+// Motion follows the reference video's flowing half-beat gestures: ease through
+// turns, carry momentum between them, and soften the top/bottom reversals.
 // The four-beat side loops mirror each other around the center downstroke.
 var CONDUCTING_PATTERNS = {
   1: [{
@@ -510,6 +511,7 @@ function curvePoint(start, curve, progress) {
     return Math.pow(u, 3) * value + 3 * Math.pow(u, 2) * t * curve.controls[0][axis] + 3 * u * Math.pow(t, 2) * curve.controls[1][axis] + Math.pow(t, 3) * curve.to[axis];
   });
 }
+var ARC_SAMPLES = 1024;
 function measureStroke(segment) {
   var samples = [{
     point: segment.point,
@@ -526,12 +528,15 @@ function measureStroke(segment) {
       var curve = _step.value;
       // Cache a dense arc-length map once, rather than timing individual
       // Bézier parameters: equal parameter steps do not cover equal distances.
-      for (var step = 1; step <= 512; step++) {
-        var point = curvePoint(start, curve, step / 512);
+      for (var step = 1; step <= ARC_SAMPLES; step++) {
+        var point = curvePoint(start, curve, step / ARC_SAMPLES);
         length += Math.hypot(point[0] - previous[0], point[1] - previous[1]);
         samples.push({
           point: point,
-          distance: length
+          distance: length,
+          start: start,
+          curve: curve,
+          parameter: step / ARC_SAMPLES
         });
         previous = point;
       }
@@ -549,22 +554,72 @@ function measureStroke(segment) {
     length: length
   };
 }
+
+// Each pair marks the curve ending a half-beat gesture and its through-speed.
+// Construction joins along a stroke do not get their own timing or easing.
+// Zero is reserved for sharp reversals; rounded turns keep moving.
+var FLOW_GESTURES = {
+  1: [[2, 0], [3, 0]],
+  2: [[0, 0.5], [1, 0], [3, 0], [4, 0]],
+  3: [[0, 0.5], [1, 0.65], [2, 0.5], [3, 0.65], [4, 0], [5, 0]],
+  4: [[1, 0.5], [2, 0.65], [3, 0.65], [4, 0.65], [5, 0.5], [6, 0.65], [7, 0], [8, 0]]
+};
 var conductingMotion = Object.fromEntries(Object.entries(CONDUCTING_PATTERNS).map(function (_ref) {
   var _ref2 = _slicedToArray(_ref, 2),
     beats = _ref2[0],
     pattern = _ref2[1];
-  return [beats, _objectSpread({
-    beats: Number(beats)
-  }, measureStroke({
+  var motion = measureStroke({
     point: pattern[0].point,
     curves: pattern.flatMap(function (segment) {
       return segment.curves;
     })
-  }))];
+  });
+  var timing = [{
+    time: 0,
+    distance: 0,
+    speed: 0
+  }].concat(_toConsumableArray(FLOW_GESTURES[beats].map(function (_ref3, index) {
+    var _ref4 = _slicedToArray(_ref3, 2),
+      curve = _ref4[0],
+      speed = _ref4[1];
+    return {
+      time: (index + 1) / 2,
+      distance: motion.curveEnds[curve],
+      speed: speed
+    };
+  })));
+  timing.forEach(function (knot, index) {
+    if (!knot.speed) return;
+    var before = timing[index - 1];
+    var after = timing[index + 1];
+    var incoming = (knot.distance - before.distance) / (knot.time - before.time);
+    var outgoing = (after.distance - knot.distance) / (after.time - knot.time);
+    // A limited harmonic-mean tangent keeps distance monotonic and
+    // shares exactly the same velocity on both sides of each turn.
+    knot.speed *= 2 * incoming * outgoing / (incoming + outgoing);
+  });
+  return [beats, _objectSpread(_objectSpread({
+    beats: Number(beats)
+  }, motion), {}, {
+    timing: timing
+  })];
 }));
-function pointAtDistance(_ref3, distance) {
-  var samples = _ref3.samples,
-    length = _ref3.length;
+function distanceAtTime(motion, time) {
+  if (time <= 0) return 0;
+  if (time >= motion.beats) return motion.length;
+  var index = Math.min(Math.floor(time * 2), motion.timing.length - 2);
+  var start = motion.timing[index];
+  var end = motion.timing[index + 1];
+  var duration = end.time - start.time;
+  var t = (time - start.time) / duration;
+  // Cubic Hermite interpolation eases distance, not the Bézier parameter.
+  // Unlike separate ease-in/out animations, rounded joins never stop or
+  // restart; both adjacent gestures use the same tangent speed.
+  return (2 * Math.pow(t, 3) - 3 * Math.pow(t, 2) + 1) * start.distance + (Math.pow(t, 3) - 2 * Math.pow(t, 2) + t) * duration * start.speed + (-2 * Math.pow(t, 3) + 3 * Math.pow(t, 2)) * end.distance + (Math.pow(t, 3) - Math.pow(t, 2)) * duration * end.speed;
+}
+function pointAtDistance(_ref5, distance) {
+  var samples = _ref5.samples,
+    length = _ref5.length;
   if (distance <= 0 || length === 0) return samples[0].point;
   if (distance >= length) return samples[samples.length - 1].point;
   var low = 1;
@@ -577,36 +632,32 @@ function pointAtDistance(_ref3, distance) {
   var after = samples[low];
   if (distance === after.distance) return after.point;
   var fraction = (distance - before.distance) / (after.distance - before.distance);
-  return before.point.map(function (value, axis) {
-    return value + (after.point[axis] - value) * fraction;
-  });
+  // Use the length map to recover a parameter, then evaluate the actual
+  // curve. Interpolating the sample positions instead creates tiny straight
+  // chords and a small direction change at every sample boundary.
+  return curvePoint(after.start, after.curve, after.parameter - (1 - fraction) / ARC_SAMPLES);
 }
 function conductorPoint(beats, beat, progress) {
   var motion = conductingMotion[beats] || conductingMotion[1];
   var index = (beat % motion.beats + motion.beats) % motion.beats;
   var t = Math.min(1, Math.max(0, progress));
-  // One linear arc-length ramp covers the whole bar, so loops, downstrokes,
-  // and beat boundaries all share the same travel speed.
-  var distance = (index + t) / motion.beats * motion.length;
+  var distance = distanceAtTime(motion, index + t);
   return pointAtDistance(motion, distance);
 }
 function conductorPreparationPoint(beats, progress) {
   var motion = conductingMotion[beats] || conductingMotion[1];
-  var from = motion.curveEnds[motion.curveEnds.length - 2];
   var t = Math.min(1, Math.max(0, progress));
-  return pointAtDistance(motion, from + (motion.length - from) * t);
+  return pointAtDistance(motion, distanceAtTime(motion, motion.beats - 0.5 + t * 0.5));
 }
-function conductorPreparationBeats(beats) {
-  var motion = conductingMotion[beats] || conductingMotion[1];
-  var from = motion.curveEnds[motion.curveEnds.length - 2];
-  // Give the opening stroke the same speed as the repeating downstroke,
-  // reaching the bottom exactly on the first click.
-  return motion.beats * (motion.length - from) / motion.length;
+function conductorPreparationBeats() {
+  // The reference uses half a beat for the top-to-bottom gesture. Starting
+  // playback uses that same gesture, reaching the bottom on the first click.
+  return 0.5;
 }
-function ballTransform(_ref4) {
-  var _ref5 = _slicedToArray(_ref4, 2),
-    x = _ref5[0],
-    y = _ref5[1];
+function ballTransform(_ref6) {
+  var _ref7 = _slicedToArray(_ref6, 2),
+    x = _ref7[0],
+    y = _ref7[1];
   // The HTML ball is 44 viewBox units wide (11% of the 400-unit stage).
   // Percentage transforms keep it aligned with the SVG at any screen size,
   // without measuring layout when the viewport or device orientation changes.
@@ -616,20 +667,15 @@ var motionKeyframes = new Map();
 function conductorKeyframes(beats) {
   if (!motionKeyframes.has(beats)) {
     var motion = conductingMotion[beats];
-    var steps = Math.ceil(motion.length / 2);
-    // Sample by distance, retaining every curve junction. Linear timing
-    // therefore preserves the existing constant speed around the whole bar.
-    var distances = _toConsumableArray(new Set([].concat(_toConsumableArray(Array.from({
+    // Bake the flow into one continuous compositor animation. Sampling
+    // in time retains the shared turn velocities without per-beat seeks.
+    var steps = 2048;
+    motionKeyframes.set(beats, Array.from({
       length: steps + 1
     }, function (_, step) {
-      return step / steps * motion.length;
-    })), _toConsumableArray(motion.curveEnds)))).sort(function (a, b) {
-      return a - b;
-    });
-    motionKeyframes.set(beats, distances.map(function (distance) {
       return {
-        transform: ballTransform(pointAtDistance(motion, distance)),
-        offset: distance / motion.length
+        transform: ballTransform(pointAtDistance(motion, distanceAtTime(motion, step / steps * motion.beats))),
+        offset: step / steps
       };
     }));
   }
@@ -671,10 +717,10 @@ var ConductorView = /*#__PURE__*/function () {
     }
   }, {
     key: "position",
-    value: function position(_ref6) {
-      var _ref7 = _slicedToArray(_ref6, 2),
-        x = _ref7[0],
-        y = _ref7[1];
+    value: function position(_ref8) {
+      var _ref9 = _slicedToArray(_ref8, 2),
+        x = _ref9[0],
+        y = _ref9[1];
       this.ball.style.transform = ballTransform([x, y]);
     }
   }, {

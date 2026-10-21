@@ -1,5 +1,6 @@
 // Traced from the four supplied conducting-pattern screenshots.
-// All patterns use constant travel speed, including the opening downstroke.
+// Motion follows the reference video's flowing half-beat gestures: ease through
+// turns, carry momentum between them, and soften the top/bottom reversals.
 // The four-beat side loops mirror each other around the center downstroke.
 export const CONDUCTING_PATTERNS = {
     1: [
@@ -90,6 +91,8 @@ function curvePoint(start, curve, progress) {
         + 3 * u * t ** 2 * curve.controls[1][axis] + t ** 3 * curve.to[axis]);
 }
 
+const ARC_SAMPLES = 1024;
+
 function measureStroke(segment) {
     const samples = [{ point: segment.point, distance: 0 }];
     const curveEnds = [];
@@ -99,10 +102,10 @@ function measureStroke(segment) {
     for (const curve of segment.curves) {
         // Cache a dense arc-length map once, rather than timing individual
         // Bézier parameters: equal parameter steps do not cover equal distances.
-        for (let step = 1; step <= 512; step++) {
-            const point = curvePoint(start, curve, step / 512);
+        for (let step = 1; step <= ARC_SAMPLES; step++) {
+            const point = curvePoint(start, curve, step / ARC_SAMPLES);
             length += Math.hypot(point[0] - previous[0], point[1] - previous[1]);
-            samples.push({ point, distance: length });
+            samples.push({ point, distance: length, start, curve, parameter: step / ARC_SAMPLES });
             previous = point;
         }
         curveEnds.push(length);
@@ -111,14 +114,55 @@ function measureStroke(segment) {
     return { samples, curveEnds, length };
 }
 
+// Each pair marks the curve ending a half-beat gesture and its through-speed.
+// Construction joins along a stroke do not get their own timing or easing.
+// Zero is reserved for sharp reversals; rounded turns keep moving.
+const FLOW_GESTURES = {
+    1: [[2, 0], [3, 0]],
+    2: [[0, 0.5], [1, 0], [3, 0], [4, 0]],
+    3: [[0, 0.5], [1, 0.65], [2, 0.5], [3, 0.65], [4, 0], [5, 0]],
+    4: [[1, 0.5], [2, 0.65], [3, 0.65], [4, 0.65], [5, 0.5], [6, 0.65], [7, 0], [8, 0]],
+};
+
 const conductingMotion = Object.fromEntries(Object.entries(CONDUCTING_PATTERNS)
-    .map(([beats, pattern]) => [beats, {
-        beats: Number(beats),
-        ...measureStroke({
+    .map(([beats, pattern]) => {
+        const motion = measureStroke({
             point: pattern[0].point,
             curves: pattern.flatMap(segment => segment.curves),
-        }),
-    }]));
+        });
+        const timing = [{ time: 0, distance: 0, speed: 0 },
+            ...FLOW_GESTURES[beats].map(([curve, speed], index) => ({
+                time: (index + 1) / 2, distance: motion.curveEnds[curve], speed,
+            }))];
+        timing.forEach((knot, index) => {
+            if (!knot.speed) return;
+            const before = timing[index - 1];
+            const after = timing[index + 1];
+            const incoming = (knot.distance - before.distance) / (knot.time - before.time);
+            const outgoing = (after.distance - knot.distance) / (after.time - knot.time);
+            // A limited harmonic-mean tangent keeps distance monotonic and
+            // shares exactly the same velocity on both sides of each turn.
+            knot.speed *= 2 * incoming * outgoing / (incoming + outgoing);
+        });
+        return [beats, { beats: Number(beats), ...motion, timing }];
+    }));
+
+function distanceAtTime(motion, time) {
+    if (time <= 0) return 0;
+    if (time >= motion.beats) return motion.length;
+    const index = Math.min(Math.floor(time * 2), motion.timing.length - 2);
+    const start = motion.timing[index];
+    const end = motion.timing[index + 1];
+    const duration = end.time - start.time;
+    const t = (time - start.time) / duration;
+    // Cubic Hermite interpolation eases distance, not the Bézier parameter.
+    // Unlike separate ease-in/out animations, rounded joins never stop or
+    // restart; both adjacent gestures use the same tangent speed.
+    return (2 * t ** 3 - 3 * t ** 2 + 1) * start.distance
+        + (t ** 3 - 2 * t ** 2 + t) * duration * start.speed
+        + (-2 * t ** 3 + 3 * t ** 2) * end.distance
+        + (t ** 3 - t ** 2) * duration * end.speed;
+}
 
 function pointAtDistance({ samples, length }, distance) {
     if (distance <= 0 || length === 0) return samples[0].point;
@@ -134,32 +178,30 @@ function pointAtDistance({ samples, length }, distance) {
     const after = samples[low];
     if (distance === after.distance) return after.point;
     const fraction = (distance - before.distance) / (after.distance - before.distance);
-    return before.point.map((value, axis) => value + (after.point[axis] - value) * fraction);
+    // Use the length map to recover a parameter, then evaluate the actual
+    // curve. Interpolating the sample positions instead creates tiny straight
+    // chords and a small direction change at every sample boundary.
+    return curvePoint(after.start, after.curve, after.parameter - (1 - fraction) / ARC_SAMPLES);
 }
 
 export function conductorPoint(beats, beat, progress) {
     const motion = conductingMotion[beats] || conductingMotion[1];
     const index = ((beat % motion.beats) + motion.beats) % motion.beats;
     const t = Math.min(1, Math.max(0, progress));
-    // One linear arc-length ramp covers the whole bar, so loops, downstrokes,
-    // and beat boundaries all share the same travel speed.
-    const distance = (index + t) / motion.beats * motion.length;
+    const distance = distanceAtTime(motion, index + t);
     return pointAtDistance(motion, distance);
 }
 
 export function conductorPreparationPoint(beats, progress) {
     const motion = conductingMotion[beats] || conductingMotion[1];
-    const from = motion.curveEnds[motion.curveEnds.length - 2];
     const t = Math.min(1, Math.max(0, progress));
-    return pointAtDistance(motion, from + (motion.length - from) * t);
+    return pointAtDistance(motion, distanceAtTime(motion, motion.beats - 0.5 + t * 0.5));
 }
 
-export function conductorPreparationBeats(beats) {
-    const motion = conductingMotion[beats] || conductingMotion[1];
-    const from = motion.curveEnds[motion.curveEnds.length - 2];
-    // Give the opening stroke the same speed as the repeating downstroke,
-    // reaching the bottom exactly on the first click.
-    return motion.beats * (motion.length - from) / motion.length;
+export function conductorPreparationBeats() {
+    // The reference uses half a beat for the top-to-bottom gesture. Starting
+    // playback uses that same gesture, reaching the bottom on the first click.
+    return 0.5;
 }
 
 function ballTransform([x, y]) {
@@ -173,16 +215,12 @@ const motionKeyframes = new Map();
 function conductorKeyframes(beats) {
     if (!motionKeyframes.has(beats)) {
         const motion = conductingMotion[beats];
-        const steps = Math.ceil(motion.length / 2);
-        // Sample by distance, retaining every curve junction. Linear timing
-        // therefore preserves the existing constant speed around the whole bar.
-        const distances = [...new Set([
-            ...Array.from({ length: steps + 1 }, (_, step) => step / steps * motion.length),
-            ...motion.curveEnds,
-        ])].sort((a, b) => a - b);
-        motionKeyframes.set(beats, distances.map(distance => ({
-            transform: ballTransform(pointAtDistance(motion, distance)),
-            offset: distance / motion.length,
+        // Bake the flow into one continuous compositor animation. Sampling
+        // in time retains the shared turn velocities without per-beat seeks.
+        const steps = 2048;
+        motionKeyframes.set(beats, Array.from({ length: steps + 1 }, (_, step) => ({
+            transform: ballTransform(pointAtDistance(motion, distanceAtTime(motion, step / steps * motion.beats))),
+            offset: step / steps,
         })));
     }
     return motionKeyframes.get(beats);
