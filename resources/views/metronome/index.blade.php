@@ -29,6 +29,7 @@
                 <span class="conductor-ball" data-conductor-ball>
                     <span class="conductor-halo"></span>
                     <span class="conductor-dot"></span>
+                    {!! file_get_contents(resource_path('artwork/metronome/conductor-hand.svg')) !!}
                 </span>
             </span>
         </button>
@@ -119,10 +120,25 @@
                         </label>
                     </div>
                 </fieldset>
-                <label class="settings-switch" for="metronome-path">
-                    <span>Show conductor path</span>
-                    <input id="metronome-path" type="checkbox" role="switch" data-settings-path checked>
-                </label>
+                <div class="settings-conductor-options" data-conductor-options hidden>
+                    <fieldset class="settings-field">
+                        <legend>Indicator</legend>
+                        <div class="settings-segments">
+                            <label>
+                                <input type="radio" name="metronome-marker" value="dot" checked>
+                                <span>Dot</span>
+                            </label>
+                            <label>
+                                <input type="radio" name="metronome-marker" value="hand">
+                                <span>Hand</span>
+                            </label>
+                        </div>
+                    </fieldset>
+                    <label class="settings-switch" for="metronome-path">
+                        <span>Show conductor path</span>
+                        <input id="metronome-path" type="checkbox" role="switch" data-settings-path>
+                    </label>
+                </div>
             </div>
             <button class="settings-done" type="button" data-settings-close>Done</button>
         </div>

@@ -13,6 +13,8 @@ const settingsButton = document.querySelector('[data-settings-open]');
 const settingsDialog = document.querySelector('[data-settings-dialog]');
 const beatInputs = document.querySelectorAll('[name="metronome-beats"]');
 const typeInputs = document.querySelectorAll('[name="metronome-type"]');
+const markerInputs = document.querySelectorAll('[name="metronome-marker"]');
+const conductorOptions = document.querySelector('[data-conductor-options]');
 const colorInput = document.querySelector('[data-settings-color]');
 const colorValue = document.querySelector('[data-color-value]');
 const colorReset = document.querySelector('[data-settings-color-reset]');
@@ -148,11 +150,14 @@ function applySettings(value, persist = true) {
     document.querySelector('meta[name="theme-color"]').setAttribute('content', settings.color);
     surface.dataset.mode = settings.type;
     surface.dataset.showPath = String(settings.showPath);
+    surface.dataset.conductorMarker = settings.conductorMarker;
     clock.setBeats(settings.beats);
     clock.setSound(settings.sound);
     if (conductor.beats !== settings.beats) conductor.setBeats(settings.beats);
     beatInputs.forEach(input => { input.checked = Number(input.value) === settings.beats; });
     typeInputs.forEach(input => { input.checked = input.value === settings.type; });
+    markerInputs.forEach(input => { input.checked = input.value === settings.conductorMarker; });
+    conductorOptions.hidden = settings.type !== 'conductor';
     colorInput.value = settings.color;
     colorValue.textContent = settings.color.toUpperCase();
     soundInput.value = settings.sound;
@@ -246,6 +251,9 @@ beatInputs.forEach(input => input.addEventListener('change', () => {
 }));
 typeInputs.forEach(input => input.addEventListener('change', () => {
     if (input.checked) applySettings({ ...settings, type: input.value });
+}));
+markerInputs.forEach(input => input.addEventListener('change', () => {
+    if (input.checked) applySettings({ ...settings, conductorMarker: input.value });
 }));
 colorInput.addEventListener('input', () => applySettings({ ...settings, color: colorInput.value }));
 colorReset.addEventListener('click', () => applySettings({ ...settings, color: DEFAULT_SETTINGS.color }));

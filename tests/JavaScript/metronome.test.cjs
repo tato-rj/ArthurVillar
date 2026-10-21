@@ -268,6 +268,8 @@ function setupPage(savedSettings = null, { reducedMotion = false, savedTempo = n
     const closeButton = element();
     const beatInputs = [1, 2, 3, 4].map(value => element({ value: String(value) }));
     const typeInputs = ['classic', 'conductor'].map(value => element({ value }));
+    const markerInputs = ['dot', 'hand'].map(value => element({ value }));
+    const conductorOptions = element({ hidden: true });
     const colorInput = element();
     const colorValue = element();
     const colorReset = element();
@@ -292,6 +294,7 @@ function setupPage(savedSettings = null, { reducedMotion = false, savedTempo = n
             '[data-tempo-step]': edges,
             '[name="metronome-beats"]': beatInputs,
             '[name="metronome-type"]': typeInputs,
+            '[name="metronome-marker"]': markerInputs,
             '[data-settings-close]': [closeButton],
         })[selector] || [],
         querySelector: selector => ({
@@ -302,6 +305,7 @@ function setupPage(savedSettings = null, { reducedMotion = false, savedTempo = n
             '[data-settings-color-reset]': colorReset,
             '[data-settings-sound]': soundInput, '[data-conductor]': svg, 'meta[name="theme-color"]': theme,
             '[data-settings-path]': pathInput,
+            '[data-conductor-options]': conductorOptions,
         })[selector],
         addEventListener: (name, callback) => { documentListeners[name] = callback; },
     };
@@ -322,7 +326,8 @@ function setupPage(savedSettings = null, { reducedMotion = false, savedTempo = n
         preventDefault() {}, ...extra,
     });
     return { ...page, edges, edge, attributes, number, pointer, click, listeners, documentListeners, windowListeners,
-        settingsButton, settingsDialog, closeButton, beatInputs, typeInputs, colorInput, soundInput, pathInput, storage, surface,
+        settingsButton, settingsDialog, closeButton, beatInputs, typeInputs, markerInputs, conductorOptions,
+        colorInput, soundInput, pathInput, storage, surface,
         conductorParts, conductorAnimations, animations, pulseLayer, theme, settingsAnimations, motionPreference };
 }
 
@@ -654,11 +659,15 @@ test('settings apply immediately, stay readable for light colors, and persist ac
     page.soundInput.listeners.change();
     page.pathInput.checked = false;
     page.pathInput.listeners.change();
+    page.markerInputs[1].checked = true;
+    page.markerInputs[1].listeners.change();
     assert.equal(page.surface.dataset.mode, 'conductor');
     assert.equal(page.context.document.documentElement.style['--metronome-ink'], '#112037');
     assert.equal(page.theme.attributes.content, '#ffffff');
     const saved = page.storage.get('metronome.settings.v1');
-    assert.deepEqual(JSON.parse(saved), { beats: 4, color: '#ffffff', sound: 'cowbell', type: 'conductor', showPath: false });
+    assert.deepEqual(JSON.parse(saved), {
+        beats: 4, color: '#ffffff', sound: 'cowbell', type: 'conductor', showPath: false, conductorMarker: 'hand',
+    });
     const next = setupPage(saved);
     assert.equal(next.beatInputs[3].checked, true);
     assert.equal(next.surface.dataset.mode, 'conductor');
@@ -666,29 +675,63 @@ test('settings apply immediately, stay readable for light colors, and persist ac
     assert.equal(next.colorInput.value, '#ffffff');
     assert.equal(next.pathInput.checked, false);
     assert.equal(next.surface.dataset.showPath, 'false');
+    assert.equal(next.markerInputs[1].checked, true);
+    assert.equal(next.surface.dataset.conductorMarker, 'hand');
 });
 
-test('path visibility defaults on for existing settings and toggling it keeps the ball moving', async () => {
+test('conductor indicator choices appear only in conductor mode and changing them preserves motion', async () => {
+    const page = setupPage();
+    assert.equal(page.conductorOptions.hidden, true);
+    assert.equal(page.markerInputs[0].checked, true);
+    page.typeInputs[1].checked = true;
+    page.typeInputs[1].listeners.change();
+    assert.equal(page.conductorOptions.hidden, false);
+    page.click();
+    await new Promise(setImmediate);
+    page.advance(0.2);
+    page.advance(0.26);
+    page.advance(0.6);
+    const animation = page.conductorAnimations.at(-1);
+    const position = animatedBallPoint(page);
+    page.markerInputs[1].checked = true;
+    page.markerInputs[1].listeners.change();
+    assert.equal(page.surface.dataset.conductorMarker, 'hand');
+    assert.equal(page.conductorAnimations.at(-1), animation);
+    assert.equal(animation.canceled, false);
+    assert.deepEqual(animatedBallPoint(page), position);
+    page.advance(0.7);
+    assert.notDeepEqual(animatedBallPoint(page), position);
+    page.markerInputs[0].checked = true;
+    page.markerInputs[0].listeners.change();
+    assert.equal(page.surface.dataset.conductorMarker, 'dot');
+    assert.equal(page.conductorAnimations.at(-1), animation);
+    page.typeInputs[0].checked = true;
+    page.typeInputs[0].listeners.change();
+    assert.equal(page.conductorOptions.hidden, true);
+});
+
+test('path visibility defaults off for existing settings and toggling it keeps the ball moving', async () => {
     const page = setupPage(JSON.stringify({ type: 'conductor', beats: 4 }));
-    assert.equal(page.pathInput.checked, true);
-    assert.equal(page.surface.dataset.showPath, 'true');
+    assert.equal(page.pathInput.checked, false);
+    assert.equal(page.surface.dataset.showPath, 'false');
     page.click();
     await new Promise(setImmediate);
     page.advance(0.6);
     const animation = page.conductorAnimations.at(-1);
     const before = animatedBallPoint(page);
-    page.pathInput.checked = false;
-    page.pathInput.listeners.change();
-    assert.equal(page.surface.dataset.showPath, 'false');
-    assert.equal(animation.canceled, false);
-    assert.equal(page.conductorAnimations.at(-1), animation);
-    page.advance(0.7);
-    assert.notDeepEqual(animatedBallPoint(page), before);
     page.pathInput.checked = true;
     page.pathInput.listeners.change();
     assert.equal(page.surface.dataset.showPath, 'true');
     assert.equal(animation.canceled, false);
-    assert.equal(JSON.parse(page.storage.get('metronome.settings.v1')).showPath, true);
+    assert.equal(page.conductorAnimations.at(-1), animation);
+    assert.equal(setupPage(page.storage.get('metronome.settings.v1')).pathInput.checked, true);
+    page.advance(0.7);
+    assert.notDeepEqual(animatedBallPoint(page), before);
+    page.pathInput.checked = false;
+    page.pathInput.listeners.change();
+    assert.equal(page.surface.dataset.showPath, 'false');
+    assert.equal(animation.canceled, false);
+    assert.equal(JSON.parse(page.storage.get('metronome.settings.v1')).showPath, false);
 });
 
 test('tempo saves after five unchanged seconds, restarts the delay on edits, and restores on reopening', () => {
@@ -762,7 +805,9 @@ test('missing, corrupt, or out-of-range saved tempos fall back to 120 BPM', () =
 
 test('invalid or unavailable saved settings fall back to usable defaults', () => {
     const { normalizeSettings, loadSettings } = setup().context.api;
-    const defaults = { beats: 1, color: '#155eef', sound: 'click', type: 'classic', showPath: true };
+    const defaults = {
+        beats: 1, color: '#155eef', sound: 'click', type: 'classic', showPath: false, conductorMarker: 'dot',
+    };
     assert.deepEqual(JSON.parse(JSON.stringify(normalizeSettings({ beats: 99, color: 'invalid', sound: 'toString', type: 'unknown' }))), defaults);
     assert.deepEqual(JSON.parse(JSON.stringify(loadSettings({ getItem() { throw new Error('Blocked'); } }))), defaults);
     assert.equal(setupPage('{invalid json').surface.dataset.mode, 'classic');

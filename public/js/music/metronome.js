@@ -989,7 +989,8 @@ var DEFAULT_SETTINGS = {
   color: '#155eef',
   sound: 'click',
   type: 'classic',
-  showPath: true
+  showPath: false,
+  conductorMarker: 'dot'
 };
 var SETTINGS_KEY = 'metronome.settings.v1';
 var TEMPO_KEY = 'metronome.tempo.v1';
@@ -1008,7 +1009,8 @@ function normalizeSettings(value) {
     color: typeof input.color === 'string' && /^#[0-9a-f]{6}$/i.test(input.color) ? input.color.toLowerCase() : DEFAULT_SETTINGS.color,
     sound: Object.prototype.hasOwnProperty.call(SOUND_PROFILES, input.sound) ? input.sound : DEFAULT_SETTINGS.sound,
     type: input.type === 'conductor' ? 'conductor' : 'classic',
-    showPath: typeof input.showPath === 'boolean' ? input.showPath : DEFAULT_SETTINGS.showPath
+    showPath: typeof input.showPath === 'boolean' ? input.showPath : DEFAULT_SETTINGS.showPath,
+    conductorMarker: input.conductorMarker === 'hand' ? 'hand' : 'dot'
   };
 }
 function loadSettings(storage) {
@@ -1140,6 +1142,8 @@ var settingsButton = document.querySelector('[data-settings-open]');
 var settingsDialog = document.querySelector('[data-settings-dialog]');
 var beatInputs = document.querySelectorAll('[name="metronome-beats"]');
 var typeInputs = document.querySelectorAll('[name="metronome-type"]');
+var markerInputs = document.querySelectorAll('[name="metronome-marker"]');
+var conductorOptions = document.querySelector('[data-conductor-options]');
 var colorInput = document.querySelector('[data-settings-color]');
 var colorValue = document.querySelector('[data-color-value]');
 var colorReset = document.querySelector('[data-settings-color-reset]');
@@ -1288,6 +1292,7 @@ function applySettings(value) {
   document.querySelector('meta[name="theme-color"]').setAttribute('content', settings.color);
   surface.dataset.mode = settings.type;
   surface.dataset.showPath = String(settings.showPath);
+  surface.dataset.conductorMarker = settings.conductorMarker;
   clock.setBeats(settings.beats);
   clock.setSound(settings.sound);
   if (conductor.beats !== settings.beats) conductor.setBeats(settings.beats);
@@ -1297,6 +1302,10 @@ function applySettings(value) {
   typeInputs.forEach(function (input) {
     input.checked = input.value === settings.type;
   });
+  markerInputs.forEach(function (input) {
+    input.checked = input.value === settings.conductorMarker;
+  });
+  conductorOptions.hidden = settings.type !== 'conductor';
   colorInput.value = settings.color;
   colorValue.textContent = settings.color.toUpperCase();
   soundInput.value = settings.sound;
@@ -1422,6 +1431,13 @@ typeInputs.forEach(function (input) {
   return input.addEventListener('change', function () {
     if (input.checked) applySettings(_objectSpread(_objectSpread({}, settings), {}, {
       type: input.value
+    }));
+  });
+});
+markerInputs.forEach(function (input) {
+  return input.addEventListener('change', function () {
+    if (input.checked) applySettings(_objectSpread(_objectSpread({}, settings), {}, {
+      conductorMarker: input.value
     }));
   });
 });

@@ -237,6 +237,25 @@ body {
   opacity: 0.13;
 }
 
+.conductor-hand {
+  display: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 175%;
+  height: auto;
+  overflow: visible;
+  transform: translate(-4.7034764826%, -5.7082452431%);
+}
+
+.metronome[data-conductor-marker=hand] .conductor-hand {
+  display: block;
+}
+.metronome[data-conductor-marker=hand] .conductor-dot,
+.metronome[data-conductor-marker=hand] .conductor-halo {
+  display: none;
+}
+
 .metronome-settings {
   --metronome-settings-background: #fff;
   --metronome-settings-ink: #000;
@@ -350,6 +369,11 @@ body {
 }
 
 .metronome-settings__fields {
+  display: grid;
+  gap: 28px;
+}
+
+.settings-conductor-options:not([hidden]) {
   display: grid;
   gap: 28px;
 }

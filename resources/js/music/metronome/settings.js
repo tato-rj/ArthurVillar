@@ -7,7 +7,9 @@ export const SOUND_PROFILES = {
     cowbell: { type: 'square', frequency: 540, attack: 0.0005, duration: 0.07, volume: 0.7, ratios: [1, 1.48] },
 };
 
-export const DEFAULT_SETTINGS = { beats: 1, color: '#155eef', sound: 'click', type: 'classic', showPath: true };
+export const DEFAULT_SETTINGS = {
+    beats: 1, color: '#155eef', sound: 'click', type: 'classic', showPath: false, conductorMarker: 'dot',
+};
 export const SETTINGS_KEY = 'metronome.settings.v1';
 export const TEMPO_KEY = 'metronome.tempo.v1';
 
@@ -30,6 +32,7 @@ export function normalizeSettings(value) {
         sound: Object.prototype.hasOwnProperty.call(SOUND_PROFILES, input.sound) ? input.sound : DEFAULT_SETTINGS.sound,
         type: input.type === 'conductor' ? 'conductor' : 'classic',
         showPath: typeof input.showPath === 'boolean' ? input.showPath : DEFAULT_SETTINGS.showPath,
+        conductorMarker: input.conductorMarker === 'hand' ? 'hand' : 'dot',
     };
 }
 
