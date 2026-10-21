@@ -2,11 +2,12 @@ import { clampTempo, DEFAULT_TEMPO } from './gesture';
 import { SOUND_PROFILES } from './settings';
 
 export class MetronomeClock {
-    constructor({ createContext, onStateChange, onBeat, onError }) {
+    constructor({ createContext, onStateChange, onBeat, onError, onReady = () => {} }) {
         this.createContext = createContext;
         this.onStateChange = onStateChange;
         this.onBeat = onBeat;
         this.onError = onError;
+        this.onReady = onReady;
         this.tempo = DEFAULT_TEMPO;
         this.running = false;
         this.ready = false;
@@ -49,6 +50,7 @@ export class MetronomeClock {
             this.nextBeatTime = this.context.currentTime + (leadInBeats ? leadInBeats * 60 / this.tempo : 0.02);
             this.schedule();
             this.timer = setInterval(() => this.schedule(), 25);
+            this.onReady();
         } catch (error) {
             if (generation !== this.generation) return;
             this.stop();

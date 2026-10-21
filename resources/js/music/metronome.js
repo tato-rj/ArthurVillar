@@ -4,6 +4,7 @@ import { colorPalette, DEFAULT_SETTINGS, loadSettings, loadTempo, normalizeSetti
 import { conductorPreparationBeats, ConductorView } from './metronome/conductor';
 
 const surface = document.querySelector('[data-metronome]');
+const pulseLayer = document.querySelector('[data-metronome-pulse]');
 const number = document.querySelector('[data-tempo]');
 const message = document.querySelector('[data-metronome-message]');
 const edgeButtons = document.querySelectorAll('[data-tempo-step]');
@@ -16,8 +17,7 @@ const colorInput = document.querySelector('[data-settings-color]');
 const colorValue = document.querySelector('[data-color-value]');
 const colorReset = document.querySelector('[data-settings-color-reset]');
 const soundInput = document.querySelector('[data-settings-sound]');
-const conductorSvg = document.querySelector('[data-conductor]');
-const conductor = new ConductorView(conductorSvg);
+const conductor = new ConductorView(document.querySelector('[data-conductor]'));
 
 let tempo = DEFAULT_TEMPO;
 let tempoSaveTimer = null;
@@ -29,7 +29,6 @@ let backgroundPulse = null;
 let backgroundPulseTempo = DEFAULT_TEMPO;
 let edgePress = null;
 let edgeRepeatTimer = null;
-let conductorFrame = null;
 let settingsAnimation = null;
 let settingsClosing = false;
 let settings = { ...DEFAULT_SETTINGS };
@@ -55,17 +54,14 @@ const clock = new MetronomeClock({
         syncConductor();
     },
     onBeat: beat => {
-        if (settings.type === 'conductor') {
-            conductor.render(beat, 0);
-            syncConductor();
-        }
+        if (settings.type === 'conductor') syncConductor();
         if (reducedMotion.matches) return;
         if (beat === 0) {
             if (backgroundPulse) backgroundPulse.cancel();
             backgroundPulseTempo = tempo;
-            backgroundPulse = surface.animate([
-                { backgroundColor: palette.pulse },
-                { backgroundColor: settings.color },
+            backgroundPulse = pulseLayer.animate([
+                { opacity: 1 },
+                { opacity: 0 },
             ], { duration: 60000 / tempo, easing: 'ease-out' });
         }
         if (pulse) pulse.cancel();
@@ -74,6 +70,7 @@ const clock = new MetronomeClock({
             { transform: 'scale(1)', opacity: 0.88 },
         ], { duration: 180, easing: 'ease-out' });
     },
+    onReady: () => syncConductor(true),
     onError: () => {
         message.textContent = 'Sound couldn’t start. Tap to try again.';
         message.hidden = false;
@@ -97,6 +94,7 @@ function setTempo(value) {
         backgroundPulse.updatePlaybackRate(tempo / backgroundPulseTempo);
     }
     clock.setTempo(tempo);
+    if (tempo !== previousTempo) syncConductor(true);
     updateLabel();
     if (tempo !== previousTempo) {
         clearTimeout(tempoSaveTimer);
@@ -120,21 +118,15 @@ function toggle() {
     else clock.start({ leadInBeats: settings.type === 'conductor' ? conductorPreparationBeats(settings.beats) : 0 });
 }
 
-function drawConductor() {
-    conductorFrame = null;
-    const position = clock.getBeatPosition();
-    const progress = reducedMotion.matches ? 0 : position.progress;
-    if (position.preparing) conductor.prepare(progress);
-    else conductor.render(position.beat, progress);
-    if (clock.running && settings.type === 'conductor' && !settingsDialog.open && !document.hidden && !reducedMotion.matches) {
-        conductorFrame = requestAnimationFrame(drawConductor);
+function syncConductor(force = false) {
+    if (settings.type !== 'conductor') {
+        conductor.stop();
+        return;
     }
-}
-
-function syncConductor() {
-    if (conductorFrame !== null) cancelAnimationFrame(conductorFrame);
-    conductorFrame = null;
-    if (settings.type === 'conductor') drawConductor();
+    const position = clock.getBeatPosition();
+    if (reducedMotion.matches) position.progress = 0;
+    const animate = clock.ready && !settingsDialog.open && !document.hidden && !reducedMotion.matches;
+    conductor.sync(position, tempo, animate, force);
 }
 
 function applySettings(value, persist = true) {
@@ -143,6 +135,7 @@ function applySettings(value, persist = true) {
     palette = colorPalette(settings.color);
     if (previous.color !== settings.color && backgroundPulse) backgroundPulse.cancel();
     document.documentElement.style.setProperty('--metronome-color', settings.color);
+    document.documentElement.style.setProperty('--metronome-pulse', palette.pulse);
     document.documentElement.style.setProperty('--metronome-ink', palette.ink);
     document.querySelector('meta[name="theme-color"]').setAttribute('content', settings.color);
     surface.dataset.mode = settings.type;

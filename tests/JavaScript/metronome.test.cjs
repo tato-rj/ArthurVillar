@@ -187,7 +187,13 @@ function setupPage(savedSettings = null, { reducedMotion = false, savedTempo = n
     const listeners = {};
     const attributes = {};
     const classes = new Set();
-    const animate = () => ({ cancel() {}, updatePlaybackRate() {}, playState: 'running' });
+    const animations = [];
+    const animate = function (keyframes, options) {
+        const animation = { target: this, keyframes, options, canceled: false,
+            cancel() { this.canceled = true; }, updatePlaybackRate() {}, playState: 'running' };
+        animations.push(animation);
+        return animation;
+    };
     function element(extra = {}) {
         const attrs = {};
         return {
@@ -219,6 +225,7 @@ function setupPage(savedSettings = null, { reducedMotion = false, savedTempo = n
         addEventListener(name, callback) { this.listeners[name] = callback; },
     }));
     const number = { textContent: '120', animate };
+    const pulseLayer = element({ animate });
     const message = { hidden: true };
     const documentListeners = {};
     const windowListeners = {};
@@ -256,8 +263,21 @@ function setupPage(savedSettings = null, { reducedMotion = false, savedTempo = n
     const colorValue = element();
     const colorReset = element();
     const soundInput = element();
-    const conductorParts = Object.fromEntries(['path', 'dot', 'halo', 'markers'].map(name => [name, element()]));
-    conductorParts.markers.querySelectorAll = () => [];
+    const conductorAnimations = [];
+    const conductorParts = Object.fromEntries(['path', 'ball'].map(name => [name, element()]));
+    conductorParts.ball.animate = (keyframes, options) => {
+        let anchor = page.audio.currentTime * 1000;
+        let offset = 0;
+        const animation = {
+            keyframes, options: { ...options }, canceled: false, seeks: 0,
+            get currentTime() { return offset + page.audio.currentTime * 1000 - anchor; },
+            set currentTime(value) { offset = value; anchor = page.audio.currentTime * 1000; this.seeks++; },
+            cancel() { this.canceled = true; },
+            effect: { updateTiming(timing) { Object.assign(animation.options, timing); } },
+        };
+        conductorAnimations.push(animation);
+        return animation;
+    };
     const svg = element({
         querySelector: selector => conductorParts[selector.replace('[data-conductor-', '').replace(']', '')],
     });
@@ -274,6 +294,7 @@ function setupPage(savedSettings = null, { reducedMotion = false, savedTempo = n
         })[selector] || [],
         querySelector: selector => ({
             '[data-metronome]': surface, '[data-tempo]': number, '[data-metronome-message]': message,
+            '[data-metronome-pulse]': pulseLayer,
             '[data-settings-open]': settingsButton, '[data-settings-dialog]': settingsDialog,
             '[data-settings-color]': colorInput, '[data-color-value]': colorValue,
             '[data-settings-color-reset]': colorReset,
@@ -299,7 +320,30 @@ function setupPage(savedSettings = null, { reducedMotion = false, savedTempo = n
     });
     return { ...page, edges, edge, attributes, number, pointer, click, listeners, documentListeners, windowListeners,
         settingsButton, settingsDialog, closeButton, beatInputs, typeInputs, colorInput, soundInput, storage, surface,
-        conductorParts, theme, settingsAnimations, motionPreference };
+        conductorParts, conductorAnimations, animations, pulseLayer, theme, settingsAnimations, motionPreference };
+}
+
+function ballPoint(transform) {
+    return transform.match(/[-\d.]+(?=%)/g).map(value => (Number(value) / 100 + 0.5) * 44);
+}
+
+function animatedBallPoint(page) {
+    const animation = page.conductorAnimations.at(-1);
+    if (!animation || animation.canceled) return ballPoint(page.conductorParts.ball.style.transform);
+    const { duration } = animation.options;
+    const phase = (animation.currentTime % duration) / duration;
+    const afterIndex = animation.keyframes.findIndex(frame => frame.offset > phase);
+    const before = animation.keyframes[afterIndex - 1];
+    const after = animation.keyframes[afterIndex];
+    const t = (phase - before.offset) / (after.offset - before.offset);
+    const from = ballPoint(before.transform);
+    const to = ballPoint(after.transform);
+    return from.map((value, axis) => value + (to[axis] - value) * t);
+}
+
+function assertBallNear(actual, expected) {
+    assert.ok(Math.hypot(actual[0] - expected[0], actual[1] - expected[1]) < 0.1,
+        `Expected ball at ${expected}, received ${actual}`);
 }
 
 test('taps toggle playback and releasing a swipe does not toggle it', async () => {
@@ -743,23 +787,22 @@ test('the conductor dot waits at the top and returns there when stopped', async 
         const clock = vm.runInContext('clock', page.context);
         const { conductorPreparationPoint, conductorPreparationBeats, conductorPoint } = page.context.api;
         const dropDuration = conductorPreparationBeats(count) * 0.5;
-        const position = () => [page.conductorParts.dot.attributes.cx, page.conductorParts.dot.attributes.cy];
-        assert.deepEqual(position(), Array.from(conductorPreparationPoint(count, 0)));
+        const position = () => animatedBallPoint(page);
+        assertBallNear(position(), conductorPreparationPoint(count, 0));
         page.click();
         await new Promise(setImmediate);
         page.advance(dropDuration / 2);
-        vm.runInContext('drawConductor()', page.context);
-        assert.deepEqual(position(), Array.from(conductorPreparationPoint(count, 0.5)));
+        assertBallNear(position(), conductorPreparationPoint(count, 0.5));
         page.advance(dropDuration - 0.05);
         page.advance(dropDuration);
-        assert.deepEqual(position(), Array.from(conductorPoint(count, 0, 0)));
+        assertBallNear(position(), conductorPoint(count, 0, 0));
         page.click();
         assert.equal(clock.running, false);
-        assert.deepEqual(position(), Array.from(conductorPreparationPoint(count, 0)));
+        assertBallNear(position(), conductorPreparationPoint(count, 0));
         page.click();
         await new Promise(setImmediate);
         assert.equal(clock.getBeatPosition().preparing, true);
-        assert.deepEqual(position(), Array.from(conductorPreparationPoint(count, 0)));
+        assertBallNear(position(), conductorPreparationPoint(count, 0));
     }
 });
 
@@ -874,5 +917,113 @@ test('opening drops keep the full pattern speed and arrive exactly on beat one',
             const running = conductorPoint(count, count - 1, 1 - duration + duration * progress);
             pointAt(progress).forEach((value, axis) => assert.ok(Math.abs(value - running[axis]) < 0.000001));
         }
+    }
+});
+
+test('browser motion follows every pattern without per-frame JavaScript or beat restarts', async () => {
+    for (const count of [1, 2, 3, 4]) {
+        const page = setupPage(JSON.stringify({ beats: count, type: 'conductor' }));
+        const { conductorPoint, conductorPreparationBeats } = page.context.api;
+        page.click();
+        await new Promise(setImmediate);
+        const animation = page.conductorAnimations[0];
+        const drop = conductorPreparationBeats(count) * 0.5;
+        assert.equal(animation.options.iterations, Infinity);
+        assert.equal(animation.options.easing, 'linear');
+        // The browser timeline advances even when no JS frame or scheduler runs.
+        for (let frame = 0; frame <= 240; frame++) {
+            const phase = count * frame / 240;
+            page.audio.currentTime = drop + phase * 0.5;
+            assertBallNear(animatedBallPoint(page), conductorPoint(count, Math.floor(phase), phase % 1));
+        }
+
+        page.click();
+        page.click();
+        await new Promise(setImmediate);
+        const restarted = page.conductorAnimations.at(-1);
+        const start = page.audio.currentTime;
+        for (let tick = 1; tick <= 200; tick++) page.advance(start + tick * 0.025);
+        assert.equal(page.conductorAnimations.length, 2, 'Ordinary clicks keep the same looping animation.');
+        assert.equal(restarted.seeks, 1, 'Audio scheduler rounding must not seek on each click.');
+    }
+});
+
+test('tempo changes retime the opening drop and repeating animation without moving the ball', async () => {
+    const page = setupPage(JSON.stringify({ beats: 4, type: 'conductor' }));
+    const clock = vm.runInContext('clock', page.context);
+    const { conductorPoint, conductorPreparationPoint } = page.context.api;
+    page.click();
+    await new Promise(setImmediate);
+    for (const [time, tempo] of [[0.1, 60], [1.1, 240], [1.3, 40], [2.5, 180]]) {
+        while (page.audio.currentTime + 0.025 < time) page.advance(page.audio.currentTime + 0.025);
+        page.advance(time);
+        const before = animatedBallPoint(page);
+        vm.runInContext(`setTempo(${tempo})`, page.context);
+        assertBallNear(animatedBallPoint(page), before);
+        assert.equal(page.conductorAnimations.length, 1);
+        assert.equal(page.conductorAnimations[0].options.duration, 4 * 60000 / tempo);
+        page.audio.currentTime += 0.04;
+        const position = clock.getBeatPosition();
+        const expected = position.preparing ? conductorPreparationPoint(4, position.progress)
+            : conductorPoint(4, position.beat, position.progress);
+        assertBallNear(animatedBallPoint(page), expected);
+    }
+});
+
+test('hidden pages, settings, reduced motion, and classic mode cancel continuous motion and resume in phase', async () => {
+    const page = setupPage(JSON.stringify({ beats: 3, type: 'conductor' }));
+    const clock = vm.runInContext('clock', page.context);
+    page.click();
+    await new Promise(setImmediate);
+    const current = () => page.conductorAnimations.at(-1);
+    page.context.document.hidden = true;
+    page.documentListeners.visibilitychange();
+    assert.equal(current().canceled, true);
+    for (let tick = 1; tick <= 80; tick++) page.advance(tick * 0.025);
+    page.context.document.hidden = false;
+    page.documentListeners.visibilitychange();
+    assert.equal(current().canceled, false);
+    const position = clock.getBeatPosition();
+    assertBallNear(animatedBallPoint(page), page.context.api.conductorPoint(3, position.beat, position.progress));
+    page.settingsButton.listeners.click();
+    assert.equal(current().canceled, true);
+    page.tick(400);
+    page.closeButton.listeners.click();
+    page.tick(300);
+    assert.equal(current().canceled, false);
+    page.motionPreference.matches = true;
+    page.motionPreference.onchange();
+    assert.equal(current().canceled, true);
+    page.motionPreference.matches = false;
+    page.motionPreference.onchange();
+    assert.equal(current().canceled, false);
+    page.typeInputs[0].checked = true;
+    page.typeInputs[0].listeners.change();
+    assert.equal(current().canceled, true);
+});
+
+test('a stalled audio scheduler re-aligns the continuous motion with the recovered clicks', async () => {
+    const page = setupPage(JSON.stringify({ beats: 4, type: 'conductor' }));
+    const clock = vm.runInContext('clock', page.context);
+    page.click();
+    await new Promise(setImmediate);
+    page.advance(10);
+    page.advance(10.025);
+    const position = clock.getBeatPosition();
+    assertBallNear(animatedBallPoint(page), page.context.api.conductorPoint(4, position.beat, position.progress));
+    assert.equal(page.conductorAnimations.length, 1);
+});
+
+test('downbeat darkening animates only the background layer opacity for every beat group', async () => {
+    for (const count of [1, 2, 3, 4]) {
+        const page = setupPage(JSON.stringify({ beats: count }));
+        page.click();
+        await new Promise(setImmediate);
+        for (let tick = 1; tick <= count * 20; tick++) page.advance(tick * 0.025);
+        const pulses = page.animations.filter(animation => animation.target === page.pulseLayer);
+        assert.equal(pulses.length, 1);
+        assert.deepEqual(JSON.parse(JSON.stringify(pulses[0].keyframes)), [{ opacity: 1 }, { opacity: 0 }]);
+        assert.equal(pulses[0].options.duration, 500);
+        assert.equal(page.animations.some(animation => animation.target === page.surface), false);
     }
 });

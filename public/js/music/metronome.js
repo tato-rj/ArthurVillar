@@ -34,12 +34,15 @@ var MetronomeClock = /*#__PURE__*/function () {
     var createContext = _ref.createContext,
       onStateChange = _ref.onStateChange,
       onBeat = _ref.onBeat,
-      onError = _ref.onError;
+      onError = _ref.onError,
+      _ref$onReady = _ref.onReady,
+      onReady = _ref$onReady === void 0 ? function () {} : _ref$onReady;
     _classCallCheck(this, MetronomeClock);
     this.createContext = createContext;
     this.onStateChange = onStateChange;
     this.onBeat = onBeat;
     this.onError = onError;
+    this.onReady = onReady;
     this.tempo = _gesture__WEBPACK_IMPORTED_MODULE_0__.DEFAULT_TEMPO;
     this.running = false;
     this.ready = false;
@@ -111,6 +114,7 @@ var MetronomeClock = /*#__PURE__*/function () {
               this.timer = setInterval(function () {
                 return _this.schedule();
               }, 25);
+              this.onReady();
               _context.n = 8;
               break;
             case 6:
@@ -368,6 +372,10 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
 function _classCallCheck(a, n) { if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function"); }
 function _defineProperties(e, r) { for (var t = 0; t < r.length; t++) { var o = r[t]; o.enumerable = o.enumerable || !1, o.configurable = !0, "value" in o && (o.writable = !0), Object.defineProperty(e, _toPropertyKey(o.key), o); } }
 function _createClass(e, r, t) { return r && _defineProperties(e.prototype, r), t && _defineProperties(e, t), Object.defineProperty(e, "prototype", { writable: !1 }), e; }
+function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
+function _arrayWithoutHoles(r) { if (Array.isArray(r)) return _arrayLikeToArray(r); }
 function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
 function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
 function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
@@ -595,19 +603,52 @@ function conductorPreparationBeats(beats) {
   // reaching the bottom exactly on the first click.
   return motion.beats * (motion.length - from) / motion.length;
 }
+function ballTransform(_ref4) {
+  var _ref5 = _slicedToArray(_ref4, 2),
+    x = _ref5[0],
+    y = _ref5[1];
+  // The HTML ball is 44 viewBox units wide (11% of the 400-unit stage).
+  // Percentage transforms keep it aligned with the SVG at any screen size,
+  // without measuring layout when the viewport or device orientation changes.
+  return "translate3d(".concat((x / 44 - 0.5) * 100, "%, ").concat((y / 44 - 0.5) * 100, "%, 0)");
+}
+var motionKeyframes = new Map();
+function conductorKeyframes(beats) {
+  if (!motionKeyframes.has(beats)) {
+    var motion = conductingMotion[beats];
+    var steps = Math.ceil(motion.length / 2);
+    // Sample by distance, retaining every curve junction. Linear timing
+    // therefore preserves the existing constant speed around the whole bar.
+    var distances = _toConsumableArray(new Set([].concat(_toConsumableArray(Array.from({
+      length: steps + 1
+    }, function (_, step) {
+      return step / steps * motion.length;
+    })), _toConsumableArray(motion.curveEnds)))).sort(function (a, b) {
+      return a - b;
+    });
+    motionKeyframes.set(beats, distances.map(function (distance) {
+      return {
+        transform: ballTransform(pointAtDistance(motion, distance)),
+        offset: distance / motion.length
+      };
+    }));
+  }
+  return motionKeyframes.get(beats);
+}
 var ConductorView = /*#__PURE__*/function () {
-  function ConductorView(svg) {
+  function ConductorView(stage) {
     _classCallCheck(this, ConductorView);
-    this.svg = svg;
-    this.path = svg.querySelector('[data-conductor-path]');
-    this.dot = svg.querySelector('[data-conductor-dot]');
-    this.halo = svg.querySelector('[data-conductor-halo]');
+    this.path = stage.querySelector('[data-conductor-path]');
+    this.ball = stage.querySelector('[data-conductor-ball]');
+    this.animation = null;
+    this.duration = null;
     this.beats = 1;
     this.setBeats(1);
   }
   return _createClass(ConductorView, [{
     key: "setBeats",
     value: function setBeats(beats) {
+      this.stop();
       this.beats = beats;
       var pattern = CONDUCTING_PATTERNS[beats];
       var segments = pattern.flatMap(function (segment) {
@@ -630,15 +671,53 @@ var ConductorView = /*#__PURE__*/function () {
     }
   }, {
     key: "position",
-    value: function position(_ref4) {
-      var _ref5 = _slicedToArray(_ref4, 2),
-        x = _ref5[0],
-        y = _ref5[1];
-      for (var _i = 0, _arr = [this.dot, this.halo]; _i < _arr.length; _i++) {
-        var element = _arr[_i];
-        element.setAttribute('cx', x);
-        element.setAttribute('cy', y);
+    value: function position(_ref6) {
+      var _ref7 = _slicedToArray(_ref6, 2),
+        x = _ref7[0],
+        y = _ref7[1];
+      this.ball.style.transform = ballTransform([x, y]);
+    }
+  }, {
+    key: "stop",
+    value: function stop() {
+      if (this.animation) this.animation.cancel();
+      this.animation = null;
+      this.duration = null;
+    }
+  }, {
+    key: "sync",
+    value: function sync(position, tempo, animate) {
+      var force = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
+      if (!animate) {
+        this.stop();
+        if (position.preparing) this.prepare(position.progress);else this.render(position.beat, position.progress);
+        return;
       }
+      var duration = this.beats * 60000 / tempo;
+      var phase = position.preparing ? 1 - conductorPreparationBeats(this.beats) / this.beats * (1 - position.progress) : (position.beat + position.progress) / this.beats;
+      var elapsed = phase % 1 * duration;
+      var retime = force || this.duration !== duration;
+      if (!this.animation) {
+        // One browser-managed transform animation continues through beats
+        // and bars, independently of JavaScript's 25ms audio scheduler.
+        this.animation = this.ball.animate(conductorKeyframes(this.beats), {
+          duration: duration,
+          iterations: Infinity,
+          easing: 'linear'
+        });
+      } else if (this.duration !== duration) {
+        this.animation.effect.updateTiming({
+          duration: duration
+        });
+      }
+      this.duration = duration;
+      var current = (this.animation.currentTime || 0) % duration;
+      var difference = Math.abs(current - elapsed);
+      var drift = Math.min(difference, duration - difference);
+      // Ignore normal audio-block/frame rounding. Seeking on every click
+      // would put the scheduler's jitter back into the otherwise smooth motion.
+      // A real stall or a tempo edit still re-aligns with the audio clock.
+      if (retime || drift > 80) this.animation.currentTime = elapsed;
     }
   }]);
 }();
@@ -905,6 +984,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
 
 
 var surface = document.querySelector('[data-metronome]');
+var pulseLayer = document.querySelector('[data-metronome-pulse]');
 var number = document.querySelector('[data-tempo]');
 var message = document.querySelector('[data-metronome-message]');
 var edgeButtons = document.querySelectorAll('[data-tempo-step]');
@@ -917,8 +997,7 @@ var colorInput = document.querySelector('[data-settings-color]');
 var colorValue = document.querySelector('[data-color-value]');
 var colorReset = document.querySelector('[data-settings-color-reset]');
 var soundInput = document.querySelector('[data-settings-sound]');
-var conductorSvg = document.querySelector('[data-conductor]');
-var conductor = new _metronome_conductor__WEBPACK_IMPORTED_MODULE_3__.ConductorView(conductorSvg);
+var conductor = new _metronome_conductor__WEBPACK_IMPORTED_MODULE_3__.ConductorView(document.querySelector('[data-conductor]'));
 var tempo = _metronome_gesture__WEBPACK_IMPORTED_MODULE_1__.DEFAULT_TEMPO;
 var tempoSaveTimer = null;
 var gesture = null;
@@ -929,7 +1008,6 @@ var backgroundPulse = null;
 var backgroundPulseTempo = _metronome_gesture__WEBPACK_IMPORTED_MODULE_1__.DEFAULT_TEMPO;
 var edgePress = null;
 var edgeRepeatTimer = null;
-var conductorFrame = null;
 var settingsAnimation = null;
 var settingsClosing = false;
 var settings = _objectSpread({}, _metronome_settings__WEBPACK_IMPORTED_MODULE_2__.DEFAULT_SETTINGS);
@@ -956,18 +1034,15 @@ var clock = new _metronome_clock__WEBPACK_IMPORTED_MODULE_0__.MetronomeClock({
     syncConductor();
   },
   onBeat: function onBeat(beat) {
-    if (settings.type === 'conductor') {
-      conductor.render(beat, 0);
-      syncConductor();
-    }
+    if (settings.type === 'conductor') syncConductor();
     if (reducedMotion.matches) return;
     if (beat === 0) {
       if (backgroundPulse) backgroundPulse.cancel();
       backgroundPulseTempo = tempo;
-      backgroundPulse = surface.animate([{
-        backgroundColor: palette.pulse
+      backgroundPulse = pulseLayer.animate([{
+        opacity: 1
       }, {
-        backgroundColor: settings.color
+        opacity: 0
       }], {
         duration: 60000 / tempo,
         easing: 'ease-out'
@@ -984,6 +1059,9 @@ var clock = new _metronome_clock__WEBPACK_IMPORTED_MODULE_0__.MetronomeClock({
       duration: 180,
       easing: 'ease-out'
     });
+  },
+  onReady: function onReady() {
+    return syncConductor(true);
   },
   onError: function onError() {
     message.textContent = 'Sound couldn’t start. Tap to try again.';
@@ -1006,6 +1084,7 @@ function setTempo(value) {
     backgroundPulse.updatePlaybackRate(tempo / backgroundPulseTempo);
   }
   clock.setTempo(tempo);
+  if (tempo !== previousTempo) syncConductor(true);
   updateLabel();
   if (tempo !== previousTempo) {
     clearTimeout(tempoSaveTimer);
@@ -1028,19 +1107,16 @@ function toggle() {
     leadInBeats: settings.type === 'conductor' ? (0,_metronome_conductor__WEBPACK_IMPORTED_MODULE_3__.conductorPreparationBeats)(settings.beats) : 0
   });
 }
-function drawConductor() {
-  conductorFrame = null;
-  var position = clock.getBeatPosition();
-  var progress = reducedMotion.matches ? 0 : position.progress;
-  if (position.preparing) conductor.prepare(progress);else conductor.render(position.beat, progress);
-  if (clock.running && settings.type === 'conductor' && !settingsDialog.open && !document.hidden && !reducedMotion.matches) {
-    conductorFrame = requestAnimationFrame(drawConductor);
-  }
-}
 function syncConductor() {
-  if (conductorFrame !== null) cancelAnimationFrame(conductorFrame);
-  conductorFrame = null;
-  if (settings.type === 'conductor') drawConductor();
+  var force = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+  if (settings.type !== 'conductor') {
+    conductor.stop();
+    return;
+  }
+  var position = clock.getBeatPosition();
+  if (reducedMotion.matches) position.progress = 0;
+  var animate = clock.ready && !settingsDialog.open && !document.hidden && !reducedMotion.matches;
+  conductor.sync(position, tempo, animate, force);
 }
 function applySettings(value) {
   var persist = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
@@ -1049,6 +1125,7 @@ function applySettings(value) {
   palette = (0,_metronome_settings__WEBPACK_IMPORTED_MODULE_2__.colorPalette)(settings.color);
   if (previous.color !== settings.color && backgroundPulse) backgroundPulse.cancel();
   document.documentElement.style.setProperty('--metronome-color', settings.color);
+  document.documentElement.style.setProperty('--metronome-pulse', palette.pulse);
   document.documentElement.style.setProperty('--metronome-ink', palette.ink);
   document.querySelector('meta[name="theme-color"]').setAttribute('content', settings.color);
   surface.dataset.mode = settings.type;

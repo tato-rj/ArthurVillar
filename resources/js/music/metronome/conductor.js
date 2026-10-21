@@ -162,17 +162,44 @@ export function conductorPreparationBeats(beats) {
     return motion.beats * (motion.length - from) / motion.length;
 }
 
+function ballTransform([x, y]) {
+    // The HTML ball is 44 viewBox units wide (11% of the 400-unit stage).
+    // Percentage transforms keep it aligned with the SVG at any screen size,
+    // without measuring layout when the viewport or device orientation changes.
+    return `translate3d(${(x / 44 - 0.5) * 100}%, ${(y / 44 - 0.5) * 100}%, 0)`;
+}
+
+const motionKeyframes = new Map();
+function conductorKeyframes(beats) {
+    if (!motionKeyframes.has(beats)) {
+        const motion = conductingMotion[beats];
+        const steps = Math.ceil(motion.length / 2);
+        // Sample by distance, retaining every curve junction. Linear timing
+        // therefore preserves the existing constant speed around the whole bar.
+        const distances = [...new Set([
+            ...Array.from({ length: steps + 1 }, (_, step) => step / steps * motion.length),
+            ...motion.curveEnds,
+        ])].sort((a, b) => a - b);
+        motionKeyframes.set(beats, distances.map(distance => ({
+            transform: ballTransform(pointAtDistance(motion, distance)),
+            offset: distance / motion.length,
+        })));
+    }
+    return motionKeyframes.get(beats);
+}
+
 export class ConductorView {
-    constructor(svg) {
-        this.svg = svg;
-        this.path = svg.querySelector('[data-conductor-path]');
-        this.dot = svg.querySelector('[data-conductor-dot]');
-        this.halo = svg.querySelector('[data-conductor-halo]');
+    constructor(stage) {
+        this.path = stage.querySelector('[data-conductor-path]');
+        this.ball = stage.querySelector('[data-conductor-ball]');
+        this.animation = null;
+        this.duration = null;
         this.beats = 1;
         this.setBeats(1);
     }
 
     setBeats(beats) {
+        this.stop();
         this.beats = beats;
         const pattern = CONDUCTING_PATTERNS[beats];
         const segments = pattern.flatMap(segment => segment.curves.map(curve =>
@@ -191,9 +218,46 @@ export class ConductorView {
     }
 
     position([x, y]) {
-        for (const element of [this.dot, this.halo]) {
-            element.setAttribute('cx', x);
-            element.setAttribute('cy', y);
+        this.ball.style.transform = ballTransform([x, y]);
+    }
+
+    stop() {
+        if (this.animation) this.animation.cancel();
+        this.animation = null;
+        this.duration = null;
+    }
+
+    sync(position, tempo, animate, force = false) {
+        if (!animate) {
+            this.stop();
+            if (position.preparing) this.prepare(position.progress);
+            else this.render(position.beat, position.progress);
+            return;
         }
+
+        const duration = this.beats * 60000 / tempo;
+        const phase = position.preparing
+            ? 1 - conductorPreparationBeats(this.beats) / this.beats * (1 - position.progress)
+            : (position.beat + position.progress) / this.beats;
+        const elapsed = (phase % 1) * duration;
+        const retime = force || this.duration !== duration;
+        if (!this.animation) {
+            // One browser-managed transform animation continues through beats
+            // and bars, independently of JavaScript's 25ms audio scheduler.
+            this.animation = this.ball.animate(conductorKeyframes(this.beats), {
+                duration, iterations: Infinity, easing: 'linear',
+            });
+        } else if (this.duration !== duration) {
+            this.animation.effect.updateTiming({ duration });
+        }
+        this.duration = duration;
+
+        const current = (this.animation.currentTime || 0) % duration;
+        const difference = Math.abs(current - elapsed);
+        const drift = Math.min(difference, duration - difference);
+        // Ignore normal audio-block/frame rounding. Seeking on every click
+        // would put the scheduler's jitter back into the otherwise smooth motion.
+        // A real stall or a tempo edit still re-aligns with the audio clock.
+        if (retime || drift > 80) this.animation.currentTime = elapsed;
     }
 }

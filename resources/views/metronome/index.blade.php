@@ -20,12 +20,17 @@
             aria-pressed="false"
             aria-describedby="metronome-instructions"
         >
+            <span class="metronome__pulse" data-metronome-pulse aria-hidden="true"></span>
             <span class="metronome__tempo" data-tempo aria-hidden="true">120</span>
-            <svg class="metronome__conductor" data-conductor viewBox="0 0 400 600" aria-hidden="true">
-                <path data-conductor-path class="conductor-path" fill="none"/>
-                <circle data-conductor-halo class="conductor-halo" r="22"/>
-                <circle data-conductor-dot class="conductor-dot" r="9"/>
-            </svg>
+            <span class="metronome__conductor" data-conductor aria-hidden="true">
+                <svg viewBox="0 0 400 600">
+                    <path data-conductor-path class="conductor-path" fill="none"/>
+                </svg>
+                <span class="conductor-ball" data-conductor-ball>
+                    <span class="conductor-halo"></span>
+                    <span class="conductor-dot"></span>
+                </span>
+            </span>
         </button>
         <button
             class="metronome__edge metronome__edge--left"
