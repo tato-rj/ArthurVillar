@@ -17,6 +17,7 @@ const colorInput = document.querySelector('[data-settings-color]');
 const colorValue = document.querySelector('[data-color-value]');
 const colorReset = document.querySelector('[data-settings-color-reset]');
 const soundInput = document.querySelector('[data-settings-sound]');
+const pathInput = document.querySelector('[data-settings-path]');
 const conductor = new ConductorView(document.querySelector('[data-conductor]'), { pulseLayer, number });
 
 let tempo = DEFAULT_TEMPO;
@@ -146,6 +147,7 @@ function applySettings(value, persist = true) {
     document.documentElement.style.setProperty('--metronome-ink', palette.ink);
     document.querySelector('meta[name="theme-color"]').setAttribute('content', settings.color);
     surface.dataset.mode = settings.type;
+    surface.dataset.showPath = String(settings.showPath);
     clock.setBeats(settings.beats);
     clock.setSound(settings.sound);
     if (conductor.beats !== settings.beats) conductor.setBeats(settings.beats);
@@ -154,6 +156,7 @@ function applySettings(value, persist = true) {
     colorInput.value = settings.color;
     colorValue.textContent = settings.color.toUpperCase();
     soundInput.value = settings.sound;
+    pathInput.checked = settings.showPath;
     syncConductor();
     if (persist) {
         try {
@@ -247,6 +250,7 @@ typeInputs.forEach(input => input.addEventListener('change', () => {
 colorInput.addEventListener('input', () => applySettings({ ...settings, color: colorInput.value }));
 colorReset.addEventListener('click', () => applySettings({ ...settings, color: DEFAULT_SETTINGS.color }));
 soundInput.addEventListener('change', () => applySettings({ ...settings, sound: soundInput.value }));
+pathInput.addEventListener('change', () => applySettings({ ...settings, showPath: pathInput.checked }));
 reducedMotion.addEventListener('change', () => {
     if (reducedMotion.matches) {
         if (pulse) pulse.cancel();

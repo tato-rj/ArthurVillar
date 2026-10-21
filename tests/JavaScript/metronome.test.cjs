@@ -272,6 +272,7 @@ function setupPage(savedSettings = null, { reducedMotion = false, savedTempo = n
     const colorValue = element();
     const colorReset = element();
     const soundInput = element();
+    const pathInput = element();
     const conductorAnimations = [];
     const conductorParts = Object.fromEntries(['path', 'ball'].map(name => [name, element()]));
     conductorParts.ball.animate = (keyframes, options) => {
@@ -300,6 +301,7 @@ function setupPage(savedSettings = null, { reducedMotion = false, savedTempo = n
             '[data-settings-color]': colorInput, '[data-color-value]': colorValue,
             '[data-settings-color-reset]': colorReset,
             '[data-settings-sound]': soundInput, '[data-conductor]': svg, 'meta[name="theme-color"]': theme,
+            '[data-settings-path]': pathInput,
         })[selector],
         addEventListener: (name, callback) => { documentListeners[name] = callback; },
     };
@@ -320,7 +322,7 @@ function setupPage(savedSettings = null, { reducedMotion = false, savedTempo = n
         preventDefault() {}, ...extra,
     });
     return { ...page, edges, edge, attributes, number, pointer, click, listeners, documentListeners, windowListeners,
-        settingsButton, settingsDialog, closeButton, beatInputs, typeInputs, colorInput, soundInput, storage, surface,
+        settingsButton, settingsDialog, closeButton, beatInputs, typeInputs, colorInput, soundInput, pathInput, storage, surface,
         conductorParts, conductorAnimations, animations, pulseLayer, theme, settingsAnimations, motionPreference };
 }
 
@@ -650,16 +652,43 @@ test('settings apply immediately, stay readable for light colors, and persist ac
     page.colorInput.listeners.input();
     page.soundInput.value = 'cowbell';
     page.soundInput.listeners.change();
+    page.pathInput.checked = false;
+    page.pathInput.listeners.change();
     assert.equal(page.surface.dataset.mode, 'conductor');
     assert.equal(page.context.document.documentElement.style['--metronome-ink'], '#112037');
     assert.equal(page.theme.attributes.content, '#ffffff');
     const saved = page.storage.get('metronome.settings.v1');
-    assert.deepEqual(JSON.parse(saved), { beats: 4, color: '#ffffff', sound: 'cowbell', type: 'conductor' });
+    assert.deepEqual(JSON.parse(saved), { beats: 4, color: '#ffffff', sound: 'cowbell', type: 'conductor', showPath: false });
     const next = setupPage(saved);
     assert.equal(next.beatInputs[3].checked, true);
     assert.equal(next.surface.dataset.mode, 'conductor');
     assert.equal(next.soundInput.value, 'cowbell');
     assert.equal(next.colorInput.value, '#ffffff');
+    assert.equal(next.pathInput.checked, false);
+    assert.equal(next.surface.dataset.showPath, 'false');
+});
+
+test('path visibility defaults on for existing settings and toggling it keeps the ball moving', async () => {
+    const page = setupPage(JSON.stringify({ type: 'conductor', beats: 4 }));
+    assert.equal(page.pathInput.checked, true);
+    assert.equal(page.surface.dataset.showPath, 'true');
+    page.click();
+    await new Promise(setImmediate);
+    page.advance(0.6);
+    const animation = page.conductorAnimations.at(-1);
+    const before = animatedBallPoint(page);
+    page.pathInput.checked = false;
+    page.pathInput.listeners.change();
+    assert.equal(page.surface.dataset.showPath, 'false');
+    assert.equal(animation.canceled, false);
+    assert.equal(page.conductorAnimations.at(-1), animation);
+    page.advance(0.7);
+    assert.notDeepEqual(animatedBallPoint(page), before);
+    page.pathInput.checked = true;
+    page.pathInput.listeners.change();
+    assert.equal(page.surface.dataset.showPath, 'true');
+    assert.equal(animation.canceled, false);
+    assert.equal(JSON.parse(page.storage.get('metronome.settings.v1')).showPath, true);
 });
 
 test('tempo saves after five unchanged seconds, restarts the delay on edits, and restores on reopening', () => {
@@ -733,7 +762,7 @@ test('missing, corrupt, or out-of-range saved tempos fall back to 120 BPM', () =
 
 test('invalid or unavailable saved settings fall back to usable defaults', () => {
     const { normalizeSettings, loadSettings } = setup().context.api;
-    const defaults = { beats: 1, color: '#155eef', sound: 'click', type: 'classic' };
+    const defaults = { beats: 1, color: '#155eef', sound: 'click', type: 'classic', showPath: true };
     assert.deepEqual(JSON.parse(JSON.stringify(normalizeSettings({ beats: 99, color: 'invalid', sound: 'toString', type: 'unknown' }))), defaults);
     assert.deepEqual(JSON.parse(JSON.stringify(loadSettings({ getItem() { throw new Error('Blocked'); } }))), defaults);
     assert.equal(setupPage('{invalid json').surface.dataset.mode, 'classic');

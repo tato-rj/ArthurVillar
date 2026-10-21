@@ -119,6 +119,10 @@
                         </label>
                     </div>
                 </fieldset>
+                <label class="settings-switch" for="metronome-path">
+                    <span>Show conductor path</span>
+                    <input id="metronome-path" type="checkbox" role="switch" data-settings-path checked>
+                </label>
             </div>
             <button class="settings-done" type="button" data-settings-close>Done</button>
         </div>

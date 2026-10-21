@@ -208,6 +208,10 @@ body {
   opacity: 0.1;
 }
 
+.metronome[data-show-path=false] .conductor-path {
+  visibility: hidden;
+}
+
 .conductor-ball {
   position: absolute;
   top: 0;
@@ -271,13 +275,15 @@ body {
 .metronome-settings button,
 .metronome-settings .settings-segments,
 .metronome-settings select,
-.metronome-settings input[type=color] {
+.metronome-settings input[type=color],
+.metronome-settings input[role=switch] {
   box-shadow: 0 5px 12px rgba(0, 0, 0, 0.05);
 }
 .metronome-settings button:focus-visible,
 .metronome-settings .settings-segments:focus-visible,
 .metronome-settings select:focus-visible,
-.metronome-settings input[type=color]:focus-visible {
+.metronome-settings input[type=color]:focus-visible,
+.metronome-settings input[role=switch]:focus-visible {
   outline: 2px solid var(--metronome-settings-ink);
   outline-offset: 4px;
 }
@@ -425,6 +431,54 @@ body {
   font-size: 18px;
 }
 
+.settings-switch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  min-height: 44px;
+  font-size: 14px;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.settings-switch input {
+  flex: 0 0 52px;
+  width: 52px;
+  height: 32px;
+  margin: 0;
+  padding: 4px;
+  border: 0;
+  border-radius: 999px;
+  -webkit-appearance: none;
+     -moz-appearance: none;
+          appearance: none;
+  background: var(--metronome-settings-border);
+  cursor: pointer;
+  transition: background-color 160ms ease;
+}
+.settings-switch input::before {
+  content: "";
+  display: block;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--metronome-settings-background);
+  transition: transform 160ms ease;
+}
+.settings-switch input:checked {
+  background: var(--metronome-settings-accent);
+}
+.settings-switch input:checked::before {
+  transform: translateX(20px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .settings-switch input,
+  .settings-switch input::before {
+    transition: none;
+  }
+}
 .settings-field--color {
   display: flex;
   align-items: center;

@@ -988,7 +988,8 @@ var DEFAULT_SETTINGS = {
   beats: 1,
   color: '#155eef',
   sound: 'click',
-  type: 'classic'
+  type: 'classic',
+  showPath: true
 };
 var SETTINGS_KEY = 'metronome.settings.v1';
 var TEMPO_KEY = 'metronome.tempo.v1';
@@ -1006,7 +1007,8 @@ function normalizeSettings(value) {
     beats: [1, 2, 3, 4].includes(Number(input.beats)) ? Number(input.beats) : DEFAULT_SETTINGS.beats,
     color: typeof input.color === 'string' && /^#[0-9a-f]{6}$/i.test(input.color) ? input.color.toLowerCase() : DEFAULT_SETTINGS.color,
     sound: Object.prototype.hasOwnProperty.call(SOUND_PROFILES, input.sound) ? input.sound : DEFAULT_SETTINGS.sound,
-    type: input.type === 'conductor' ? 'conductor' : 'classic'
+    type: input.type === 'conductor' ? 'conductor' : 'classic',
+    showPath: typeof input.showPath === 'boolean' ? input.showPath : DEFAULT_SETTINGS.showPath
   };
 }
 function loadSettings(storage) {
@@ -1142,6 +1144,7 @@ var colorInput = document.querySelector('[data-settings-color]');
 var colorValue = document.querySelector('[data-color-value]');
 var colorReset = document.querySelector('[data-settings-color-reset]');
 var soundInput = document.querySelector('[data-settings-sound]');
+var pathInput = document.querySelector('[data-settings-path]');
 var conductor = new _metronome_conductor__WEBPACK_IMPORTED_MODULE_3__.ConductorView(document.querySelector('[data-conductor]'), {
   pulseLayer: pulseLayer,
   number: number
@@ -1284,6 +1287,7 @@ function applySettings(value) {
   document.documentElement.style.setProperty('--metronome-ink', palette.ink);
   document.querySelector('meta[name="theme-color"]').setAttribute('content', settings.color);
   surface.dataset.mode = settings.type;
+  surface.dataset.showPath = String(settings.showPath);
   clock.setBeats(settings.beats);
   clock.setSound(settings.sound);
   if (conductor.beats !== settings.beats) conductor.setBeats(settings.beats);
@@ -1296,6 +1300,7 @@ function applySettings(value) {
   colorInput.value = settings.color;
   colorValue.textContent = settings.color.toUpperCase();
   soundInput.value = settings.sound;
+  pathInput.checked = settings.showPath;
   syncConductor();
   if (persist) {
     try {
@@ -1433,6 +1438,11 @@ colorReset.addEventListener('click', function () {
 soundInput.addEventListener('change', function () {
   return applySettings(_objectSpread(_objectSpread({}, settings), {}, {
     sound: soundInput.value
+  }));
+});
+pathInput.addEventListener('change', function () {
+  return applySettings(_objectSpread(_objectSpread({}, settings), {}, {
+    showPath: pathInput.checked
   }));
 });
 reducedMotion.addEventListener('change', function () {

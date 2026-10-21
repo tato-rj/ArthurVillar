@@ -224,6 +224,10 @@ body {
     opacity: 0.1;
 }
 
+.metronome[data-show-path="false"] .conductor-path {
+    visibility: hidden;
+}
+
 .conductor-ball {
     position: absolute;
     top: 0;
@@ -288,7 +292,8 @@ body {
     button,
     .settings-segments,
     select,
-    input[type="color"] {
+    input[type="color"],
+    input[role="switch"] {
         box-shadow: 0 5px 12px rgba(0, 0, 0, 0.05);
 
         &:focus-visible {
@@ -433,6 +438,55 @@ body {
 }
 
 .settings-segments--beats span { font-size: 18px; }
+
+.settings-switch {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    min-height: 44px;
+    font-size: 14px;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+
+    input {
+        flex: 0 0 52px;
+        width: 52px;
+        height: 32px;
+        margin: 0;
+        padding: 4px;
+        border: 0;
+        border-radius: 999px;
+        appearance: none;
+        background: var(--metronome-settings-border);
+        cursor: pointer;
+        transition: background-color 160ms ease;
+
+        &::before {
+            content: "";
+            display: block;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--metronome-settings-background);
+            transition: transform 160ms ease;
+        }
+
+        &:checked {
+            background: var(--metronome-settings-accent);
+
+            &::before { transform: translateX(20px); }
+        }
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .settings-switch input,
+    .settings-switch input::before {
+        transition: none;
+    }
+}
 
 .settings-field--color {
     display: flex;
