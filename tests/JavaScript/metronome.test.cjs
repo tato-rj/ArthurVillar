@@ -189,7 +189,16 @@ function setupPage(savedSettings = null, { reducedMotion = false, savedTempo = n
     const classes = new Set();
     const animations = [];
     const animate = function (keyframes, options) {
-        const animation = { target: this, keyframes, options, canceled: false,
+        let startTime = page.audio.currentTime * 1000;
+        const animation = { target: this, keyframes, options: { ...options }, canceled: false, seeks: 0,
+            get startTime() { return startTime; },
+            set startTime(value) { startTime = value; },
+            get currentTime() { return page.audio.currentTime * 1000 - startTime; },
+            set currentTime(value) { startTime = page.audio.currentTime * 1000 - value; this.seeks++; },
+            effect: {
+                updateTiming(timing) { Object.assign(animation.options, timing); },
+                setKeyframes(frames) { animation.keyframes = frames; },
+            },
             cancel() { this.canceled = true; }, updatePlaybackRate() {}, playState: 'running' };
         animations.push(animation);
         return animation;
@@ -266,15 +275,7 @@ function setupPage(savedSettings = null, { reducedMotion = false, savedTempo = n
     const conductorAnimations = [];
     const conductorParts = Object.fromEntries(['path', 'ball'].map(name => [name, element()]));
     conductorParts.ball.animate = (keyframes, options) => {
-        let anchor = page.audio.currentTime * 1000;
-        let offset = 0;
-        const animation = {
-            keyframes, options: { ...options }, canceled: false, seeks: 0,
-            get currentTime() { return offset + page.audio.currentTime * 1000 - anchor; },
-            set currentTime(value) { offset = value; anchor = page.audio.currentTime * 1000; this.seeks++; },
-            cancel() { this.canceled = true; },
-            effect: { updateTiming(timing) { Object.assign(animation.options, timing); } },
-        };
+        const animation = animate.call(conductorParts.ball, keyframes, options);
         conductorAnimations.push(animation);
         return animation;
     };
@@ -1040,4 +1041,98 @@ test('downbeat darkening animates only the background layer opacity for every be
         assert.equal(pulses[0].options.duration, 500);
         assert.equal(page.animations.some(animation => animation.target === page.surface), false);
     }
+});
+
+function visualPhase(animation) {
+    const elapsed = animation.currentTime - (animation.options.delay || 0);
+    return elapsed < 0 ? null : (elapsed % animation.options.duration) / animation.options.duration;
+}
+
+test('the conductor downbeat flash and number pulse reach the bottom on the same frame without waiting for a timer callback', async () => {
+    for (const count of [1, 2, 3, 4]) {
+        const page = setupPage(JSON.stringify({ beats: count, type: 'conductor' }));
+        const clock = vm.runInContext('clock', page.context);
+        page.click();
+        await new Promise(setImmediate);
+        const ball = page.conductorAnimations[0];
+        const background = page.animations.find(animation => animation.target === page.pulseLayer);
+        const number = page.animations.find(animation => animation.target === page.number);
+        assert.equal(background.startTime, ball.startTime);
+        assert.equal(number.startTime, ball.startTime);
+        page.advance(0.2); // Audio is scheduled, but its visual callback has not run.
+        page.audio.currentTime = 0.249;
+        assert.equal(visualPhase(background), null, 'The opening drop must not flash early.');
+        page.audio.currentTime = 0.25;
+        assert.equal(clock.lastBeatIndex, null, 'The scheduler has not delivered the beat callback yet.');
+        assertBallNear(animatedBallPoint(page), [200, 540]);
+        assert.equal(visualPhase(background), 0);
+        assert.equal(visualPhase(number), 0);
+
+        // Check another bar with a callback deliberately delayed by 20ms.
+        const downbeat = 0.25 + count * 0.5;
+        for (let time = 0.275; time < downbeat - 0.02; time += 0.025) page.advance(time);
+        page.audio.currentTime = downbeat;
+        assertBallNear(animatedBallPoint(page), [200, 540]);
+        assert.ok(visualPhase(background) < 0.000001);
+        assert.ok(visualPhase(number) < 0.000001);
+        assert.equal(page.animations.length, 3, 'Beats reuse the three continuous visual effects.');
+    }
+});
+
+test('conductor flashes only on beat one while the number pulses on every beat', async () => {
+    const page = setupPage(JSON.stringify({ beats: 4, type: 'conductor' }));
+    page.click();
+    await new Promise(setImmediate);
+    const background = page.animations.find(animation => animation.target === page.pulseLayer);
+    const number = page.animations.find(animation => animation.target === page.number);
+    for (let beat = 1; beat <= 3; beat++) {
+        page.audio.currentTime = 0.25 + beat * 0.5;
+        assert.equal(visualPhase(background), beat / 4);
+        assert.equal(visualPhase(number), 0);
+        const restingFrames = background.keyframes.filter(frame => frame.offset >= 1 / 4);
+        assert.ok(restingFrames.every(frame => frame.opacity === 0));
+    }
+});
+
+test('tempo edits, recovered stalls, and reopened settings keep all conductor effects on one timeline', async () => {
+    const page = setupPage(JSON.stringify({ beats: 4, type: 'conductor' }));
+    page.click();
+    await new Promise(setImmediate);
+    const live = target => page.animations.filter(animation => animation.target === target && !animation.canceled).at(-1);
+    const check = () => {
+        const ball = page.conductorAnimations.at(-1);
+        const background = live(page.pulseLayer);
+        const number = live(page.number);
+        assert.equal(background.startTime, ball.startTime);
+        assert.equal(number.startTime, ball.startTime);
+        assert.equal(background.options.duration, ball.options.duration);
+        assert.equal(number.options.duration, ball.options.duration / 4);
+        assert.ok(Math.abs(number.keyframes[1].offset * number.options.duration - 180) < 0.000001);
+    };
+    page.advance(0.1);
+    vm.runInContext('setTempo(80)', page.context);
+    check();
+    page.advance(0.5);
+    vm.runInContext('setTempo(240)', page.context);
+    check();
+    page.advance(10);
+    page.advance(10.025);
+    check();
+    page.settingsButton.listeners.click();
+    assert.equal(live(page.pulseLayer), undefined);
+    assert.equal(live(page.number), undefined);
+    page.tick(400);
+    page.closeButton.listeners.click();
+    page.tick(300);
+    check();
+    page.motionPreference.matches = true;
+    page.motionPreference.onchange();
+    assert.equal(live(page.pulseLayer), undefined);
+    assert.equal(live(page.number), undefined);
+    page.motionPreference.matches = false;
+    page.motionPreference.onchange();
+    check();
+    page.click();
+    assert.equal(live(page.pulseLayer), undefined);
+    assert.equal(live(page.number), undefined);
 });

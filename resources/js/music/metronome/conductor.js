@@ -227,10 +227,14 @@ function conductorKeyframes(beats) {
 }
 
 export class ConductorView {
-    constructor(stage) {
+    constructor(stage, { pulseLayer, number }) {
         this.path = stage.querySelector('[data-conductor-path]');
         this.ball = stage.querySelector('[data-conductor-ball]');
+        this.pulseLayer = pulseLayer;
+        this.number = number;
         this.animation = null;
+        this.pulseAnimations = [];
+        this.pulseTiming = null;
         this.duration = null;
         this.beats = 1;
         this.setBeats(1);
@@ -261,8 +265,53 @@ export class ConductorView {
 
     stop() {
         if (this.animation) this.animation.cancel();
+        this.pulseAnimations.forEach(animation => animation.cancel());
         this.animation = null;
+        this.pulseAnimations = [];
+        this.pulseTiming = null;
         this.duration = null;
+    }
+
+    syncPulses(duration, preparing) {
+        const interval = duration / this.beats;
+        // Suppress the tail of the imaginary previous bar during the opening
+        // drop. The first pulse starts exactly at the ball's first bottom hit.
+        const delay = preparing ? duration : 0;
+        const changed = !this.pulseTiming || this.pulseTiming.duration !== duration || this.pulseTiming.delay !== delay;
+        const numberFrames = [
+            { transform: 'scale(1.1)', opacity: 1, offset: 0, easing: 'ease-out' },
+            { transform: 'scale(1)', opacity: 0.88, offset: 180 / interval },
+            { transform: 'scale(1)', opacity: 0.88, offset: 1 },
+        ];
+        if (!this.pulseAnimations.length) {
+            const backgroundFrames = [
+                { opacity: 1, offset: 0, easing: 'ease-out' },
+                { opacity: 0, offset: 1 / this.beats },
+            ];
+            if (this.beats > 1) backgroundFrames.push({ opacity: 0, offset: 1 });
+            this.pulseAnimations = [
+                this.pulseLayer.animate(backgroundFrames, { duration, delay, iterations: Infinity }),
+                this.number.animate(numberFrames, { duration: interval, delay, iterations: Infinity }),
+            ];
+        } else if (changed) {
+            this.pulseAnimations[0].effect.updateTiming({ duration, delay });
+            this.pulseAnimations[1].effect.setKeyframes(numberFrames);
+            this.pulseAnimations[1].effect.updateTiming({ duration: interval, delay });
+        }
+        this.pulseTiming = { duration, delay };
+
+        for (const animation of this.pulseAnimations) {
+            if (this.animation.startTime !== null) {
+                // All three effects use the exact same document-timeline
+                // origin, including after tempo edits and drift corrections.
+                // No timer callback is needed to start a downbeat flash.
+                if (animation.startTime !== this.animation.startTime) animation.startTime = this.animation.startTime;
+            } else {
+                // Newly created animations resolve their pending start on the
+                // same frame; give them identical elapsed time in the meantime.
+                animation.currentTime = this.animation.currentTime;
+            }
+        }
     }
 
     sync(position, tempo, animate, force = false) {
@@ -297,5 +346,6 @@ export class ConductorView {
         // would put the scheduler's jitter back into the otherwise smooth motion.
         // A real stall or a tempo edit still re-aligns with the audio clock.
         if (retime || drift > 80) this.animation.currentTime = elapsed;
+        this.syncPulses(duration, position.preparing);
     }
 }

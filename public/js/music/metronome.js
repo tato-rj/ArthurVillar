@@ -682,11 +682,17 @@ function conductorKeyframes(beats) {
   return motionKeyframes.get(beats);
 }
 var ConductorView = /*#__PURE__*/function () {
-  function ConductorView(stage) {
+  function ConductorView(stage, _ref8) {
+    var pulseLayer = _ref8.pulseLayer,
+      number = _ref8.number;
     _classCallCheck(this, ConductorView);
     this.path = stage.querySelector('[data-conductor-path]');
     this.ball = stage.querySelector('[data-conductor-ball]');
+    this.pulseLayer = pulseLayer;
+    this.number = number;
     this.animation = null;
+    this.pulseAnimations = [];
+    this.pulseTiming = null;
     this.duration = null;
     this.beats = 1;
     this.setBeats(1);
@@ -717,18 +723,104 @@ var ConductorView = /*#__PURE__*/function () {
     }
   }, {
     key: "position",
-    value: function position(_ref8) {
-      var _ref9 = _slicedToArray(_ref8, 2),
-        x = _ref9[0],
-        y = _ref9[1];
+    value: function position(_ref9) {
+      var _ref0 = _slicedToArray(_ref9, 2),
+        x = _ref0[0],
+        y = _ref0[1];
       this.ball.style.transform = ballTransform([x, y]);
     }
   }, {
     key: "stop",
     value: function stop() {
       if (this.animation) this.animation.cancel();
+      this.pulseAnimations.forEach(function (animation) {
+        return animation.cancel();
+      });
       this.animation = null;
+      this.pulseAnimations = [];
+      this.pulseTiming = null;
       this.duration = null;
+    }
+  }, {
+    key: "syncPulses",
+    value: function syncPulses(duration, preparing) {
+      var interval = duration / this.beats;
+      // Suppress the tail of the imaginary previous bar during the opening
+      // drop. The first pulse starts exactly at the ball's first bottom hit.
+      var delay = preparing ? duration : 0;
+      var changed = !this.pulseTiming || this.pulseTiming.duration !== duration || this.pulseTiming.delay !== delay;
+      var numberFrames = [{
+        transform: 'scale(1.1)',
+        opacity: 1,
+        offset: 0,
+        easing: 'ease-out'
+      }, {
+        transform: 'scale(1)',
+        opacity: 0.88,
+        offset: 180 / interval
+      }, {
+        transform: 'scale(1)',
+        opacity: 0.88,
+        offset: 1
+      }];
+      if (!this.pulseAnimations.length) {
+        var backgroundFrames = [{
+          opacity: 1,
+          offset: 0,
+          easing: 'ease-out'
+        }, {
+          opacity: 0,
+          offset: 1 / this.beats
+        }];
+        if (this.beats > 1) backgroundFrames.push({
+          opacity: 0,
+          offset: 1
+        });
+        this.pulseAnimations = [this.pulseLayer.animate(backgroundFrames, {
+          duration: duration,
+          delay: delay,
+          iterations: Infinity
+        }), this.number.animate(numberFrames, {
+          duration: interval,
+          delay: delay,
+          iterations: Infinity
+        })];
+      } else if (changed) {
+        this.pulseAnimations[0].effect.updateTiming({
+          duration: duration,
+          delay: delay
+        });
+        this.pulseAnimations[1].effect.setKeyframes(numberFrames);
+        this.pulseAnimations[1].effect.updateTiming({
+          duration: interval,
+          delay: delay
+        });
+      }
+      this.pulseTiming = {
+        duration: duration,
+        delay: delay
+      };
+      var _iterator2 = _createForOfIteratorHelper(this.pulseAnimations),
+        _step2;
+      try {
+        for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+          var animation = _step2.value;
+          if (this.animation.startTime !== null) {
+            // All three effects use the exact same document-timeline
+            // origin, including after tempo edits and drift corrections.
+            // No timer callback is needed to start a downbeat flash.
+            if (animation.startTime !== this.animation.startTime) animation.startTime = this.animation.startTime;
+          } else {
+            // Newly created animations resolve their pending start on the
+            // same frame; give them identical elapsed time in the meantime.
+            animation.currentTime = this.animation.currentTime;
+          }
+        }
+      } catch (err) {
+        _iterator2.e(err);
+      } finally {
+        _iterator2.f();
+      }
     }
   }, {
     key: "sync",
@@ -764,6 +856,7 @@ var ConductorView = /*#__PURE__*/function () {
       // would put the scheduler's jitter back into the otherwise smooth motion.
       // A real stall or a tempo edit still re-aligns with the audio clock.
       if (retime || drift > 80) this.animation.currentTime = elapsed;
+      this.syncPulses(duration, position.preparing);
     }
   }]);
 }();
@@ -1043,7 +1136,10 @@ var colorInput = document.querySelector('[data-settings-color]');
 var colorValue = document.querySelector('[data-color-value]');
 var colorReset = document.querySelector('[data-settings-color-reset]');
 var soundInput = document.querySelector('[data-settings-sound]');
-var conductor = new _metronome_conductor__WEBPACK_IMPORTED_MODULE_3__.ConductorView(document.querySelector('[data-conductor]'));
+var conductor = new _metronome_conductor__WEBPACK_IMPORTED_MODULE_3__.ConductorView(document.querySelector('[data-conductor]'), {
+  pulseLayer: pulseLayer,
+  number: number
+});
 var tempo = _metronome_gesture__WEBPACK_IMPORTED_MODULE_1__.DEFAULT_TEMPO;
 var tempoSaveTimer = null;
 var gesture = null;
@@ -1080,7 +1176,10 @@ var clock = new _metronome_clock__WEBPACK_IMPORTED_MODULE_0__.MetronomeClock({
     syncConductor();
   },
   onBeat: function onBeat(beat) {
-    if (settings.type === 'conductor') syncConductor();
+    if (settings.type === 'conductor') {
+      syncConductor();
+      return;
+    }
     if (reducedMotion.matches) return;
     if (beat === 0) {
       if (backgroundPulse) backgroundPulse.cancel();
@@ -1169,6 +1268,10 @@ function applySettings(value) {
   var previous = settings;
   settings = (0,_metronome_settings__WEBPACK_IMPORTED_MODULE_2__.normalizeSettings)(value);
   palette = (0,_metronome_settings__WEBPACK_IMPORTED_MODULE_2__.colorPalette)(settings.color);
+  if (previous.type !== settings.type) {
+    if (pulse) pulse.cancel();
+    if (backgroundPulse) backgroundPulse.cancel();
+  }
   if (previous.color !== settings.color && backgroundPulse) backgroundPulse.cancel();
   document.documentElement.style.setProperty('--metronome-color', settings.color);
   document.documentElement.style.setProperty('--metronome-pulse', palette.pulse);

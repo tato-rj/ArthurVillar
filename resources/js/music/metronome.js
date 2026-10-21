@@ -17,7 +17,7 @@ const colorInput = document.querySelector('[data-settings-color]');
 const colorValue = document.querySelector('[data-color-value]');
 const colorReset = document.querySelector('[data-settings-color-reset]');
 const soundInput = document.querySelector('[data-settings-sound]');
-const conductor = new ConductorView(document.querySelector('[data-conductor]'));
+const conductor = new ConductorView(document.querySelector('[data-conductor]'), { pulseLayer, number });
 
 let tempo = DEFAULT_TEMPO;
 let tempoSaveTimer = null;
@@ -54,7 +54,10 @@ const clock = new MetronomeClock({
         syncConductor();
     },
     onBeat: beat => {
-        if (settings.type === 'conductor') syncConductor();
+        if (settings.type === 'conductor') {
+            syncConductor();
+            return;
+        }
         if (reducedMotion.matches) return;
         if (beat === 0) {
             if (backgroundPulse) backgroundPulse.cancel();
@@ -133,6 +136,10 @@ function applySettings(value, persist = true) {
     const previous = settings;
     settings = normalizeSettings(value);
     palette = colorPalette(settings.color);
+    if (previous.type !== settings.type) {
+        if (pulse) pulse.cancel();
+        if (backgroundPulse) backgroundPulse.cancel();
+    }
     if (previous.color !== settings.color && backgroundPulse) backgroundPulse.cancel();
     document.documentElement.style.setProperty('--metronome-color', settings.color);
     document.documentElement.style.setProperty('--metronome-pulse', palette.pulse);
