@@ -1,6 +1,7 @@
 import { spring } from 'motion';
 import { animate } from 'motion/mini';
 import { bindCalendarNavigationMenu } from './navigation-menu';
+import { bindLessonConfirmation } from './lesson-confirmation';
 
 const DOMPurify = require('dompurify');
 const calendarjs = window.calendarjs;
@@ -47,6 +48,7 @@ const state = {
     calendarRenderMode: 'animated',
     centerInitialScheduleDate: false,
     lessonActionAvailabilityTimer: null,
+    cancelLessonConfirmation: null,
     pendingLessonMutations: new Set(),
     scheduleWindowStart: null,
     pendingScheduleScrollTop: null,
@@ -2682,6 +2684,7 @@ const resetLessonModalState = function(modal) {
         return;
     }
 
+    if (state.cancelLessonConfirmation) state.cancelLessonConfirmation();
     setLessonMutationBusy(modal, false);
     resetLessonModalButtons(modal);
     if (state.lessonActionAvailabilityTimer !== null) {
@@ -2717,6 +2720,7 @@ const setCalendarEventModalType = function(modal, type) {
         return;
     }
 
+    if (state.cancelLessonConfirmation) state.cancelLessonConfirmation();
     if (type !== 'lesson' && state.lessonActionAvailabilityTimer !== null) {
         window.clearTimeout(state.lessonActionAvailabilityTimer);
         state.lessonActionAvailabilityTimer = null;
@@ -2848,10 +2852,17 @@ const canUseLessonActionButtons = function(event) {
     return startsAt ? startsAt <= new Date() : false;
 };
 
+const canConfirmLessonAndPayment = function(event) {
+    return Boolean(event && (event.lessonPlanId || event.singleLessonPlanId)
+        && event.lessonStatus === 'unconfirmed' && !event.paymentExempt
+        && !event.earlyPaymentId && canUseLessonActionButtons(event));
+};
+
 const updateLessonTimeDependentControls = function(modal, event) {
     const taught = modal.querySelector('#lesson-taught');
     const confirmPayment = modal.querySelector('#confirm-payment');
     const earlyPayment = modal.querySelector('#early-payment');
+    const holdHint = modal.querySelector('#lesson-confirm-hold-hint');
     const hasLessonSource = !!(event && (event.lessonPlanId || event.singleLessonPlanId));
     const canUseActions = canUseLessonActionButtons(event);
 
@@ -2859,8 +2870,15 @@ const updateLessonTimeDependentControls = function(modal, event) {
         preserveButtonLabel(taught);
         taught.disabled = !event || !hasLessonSource;
         taught.style.display = canUseActions ? '' : 'none';
+        if (canConfirmLessonAndPayment(event)) {
+            taught.setAttribute('aria-describedby', 'lesson-confirm-hold-hint');
+        } else {
+            taught.removeAttribute('aria-describedby');
+        }
         restoreButtonLabel(taught);
     }
+
+    if (holdHint) holdHint.hidden = !canConfirmLessonAndPayment(event);
 
     if (confirmPayment) {
         preserveButtonLabel(confirmPayment);
@@ -5220,11 +5238,16 @@ const storeEarlyPayment = function(button, refreshCalendar) {
     return submitLessonAction(button, refreshCalendar, getLessonOccurrencePayload(modal), 'Unable to record the early payment.');
 };
 
-const storeTaughtLesson = function(button, refreshCalendar) {
+const storeTaughtLesson = function(button, refreshCalendar, confirmPayment = false) {
     const modal = button.closest('#calendar-event-modal');
     if (!modal || (!modal.dataset.lessonPlanId && !modal.dataset.singleLessonPlanId)) return;
 
-    return submitLessonAction(button, refreshCalendar, getLessonOccurrencePayload(modal), 'Unable to confirm lesson.');
+    const payload = getLessonOccurrencePayload(modal);
+    if (confirmPayment && canConfirmLessonAndPayment(getEventByGuid(modal.dataset.eventGuid))) {
+        payload.confirm_payment = true;
+    }
+
+    return submitLessonAction(button, refreshCalendar, payload, 'Unable to confirm lesson.');
 };
 
 const confirmLessonPayment = function(button, refreshCalendar) {
@@ -9009,9 +9032,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const lessonTaught = document.getElementById('lesson-taught');
 
     if (lessonTaught) {
-        lessonTaught.addEventListener('click', function(e) {
-            e.preventDefault();
-            storeTaughtLesson(lessonTaught, refreshCalendarAfterLessonMutation);
+        state.cancelLessonConfirmation = bindLessonConfirmation(lessonTaught, function() {
+            const modal = lessonTaught.closest('#calendar-event-modal');
+            const guid = modal.dataset.eventGuid;
+            return modal.dataset.eventModalType === 'lesson' && modal.classList.contains('show')
+                && !state.pendingLessonMutations.has(guid)
+                && canConfirmLessonAndPayment(getEventByGuid(guid)) ? guid : null;
+        }, function(confirmPayment) {
+            return storeTaughtLesson(lessonTaught, refreshCalendarAfterLessonMutation, confirmPayment);
         });
     }
 

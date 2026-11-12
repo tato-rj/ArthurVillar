@@ -19,7 +19,6 @@ mix.js('resources/js/app.js', 'public/js')
     .js('resources/js/pianoatlas/upright/index.js', 'public/js/pianoatlas/upright.js')
     .js('resources/js/music/admin-soundeffects.js', 'public/js/music')
     .js('resources/js/music/microphone.js', 'public/js/music')
-    .js('resources/js/music/metronome.js', 'public/js/music')
     .js('resources/js/music/games/intervalslab.js', 'public/js/music')
     .js('resources/js/music/games/chordslab.js', 'public/js/music')
     .js('resources/js/music/games/pitchdetective.js', 'public/js/music')
@@ -39,7 +38,6 @@ mix.js('resources/js/app.js', 'public/js')
     .sass('resources/sass/pianoatlas.scss', 'public/css/pianoatlas.css')
     .sass('resources/sass/schedule.scss', 'public/css')
     .sass('resources/sass/musicgames.scss', 'public/css')
-    .sass('resources/sass/metronome.scss', 'public/css')
     .version();
 
 // Webpack adds trailing tabs to runtime chunks. Normalize the changed game bundles

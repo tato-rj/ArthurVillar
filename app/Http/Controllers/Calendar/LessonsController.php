@@ -28,6 +28,8 @@ class LessonsController extends Controller
 
     public function store(Request $request)
     {
+        $request->validate(['confirm_payment' => ['sometimes', 'boolean']]);
+
         $result = DB::transaction(function () use ($request) {
             $lesson = $this->lessonFromRequest($request);
             $earlyPayment = EarlyPayment::query()
@@ -42,7 +44,7 @@ class LessonsController extends Controller
 
             $paymentExempt = (bool) $lesson['model']->student?->payment_exempt;
 
-            if ($earlyPayment || $paymentExempt) {
+            if ($earlyPayment || $paymentExempt || $request->boolean('confirm_payment')) {
                 $lesson['model']->pay();
 
                 if ($earlyPayment) {

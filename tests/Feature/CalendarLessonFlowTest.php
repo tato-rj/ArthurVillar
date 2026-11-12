@@ -16,6 +16,90 @@ use Tests\BaseTest;
 class CalendarLessonFlowTest extends BaseTest
 {
     /** @test */
+    public function attendance_can_confirm_payment_in_the_same_request_for_recurring_and_single_lessons()
+    {
+        $location = Location::factory()->create(['tax_withheld_percentage' => 25]);
+        $this->signIn();
+
+        foreach ([LessonPlan::class, SingleLessonPlan::class] as $planClass) {
+            $plan = $planClass::factory()->create([
+                'location_id' => $location->id,
+                'fee_amount' => 8000,
+                'payment_method' => 'Venmo',
+            ]);
+            $planField = $planClass === LessonPlan::class ? 'lesson_plan_id' : 'single_lesson_plan_id';
+            $payload = [
+                $planField => $plan->id,
+                'date' => '2026-07-15',
+                'start' => '15:30',
+                'end' => '16:15',
+                'scheduled_date' => '2026-07-15',
+                'scheduled_start_time' => '15:30',
+                'confirm_payment' => true,
+            ];
+
+            $response = $this->postJson(route('calendar.lessons.store'), $payload)
+                ->assertOk()
+                ->assertJsonPath('status', 'paid')
+                ->assertJsonPath('fee_amount', 6000)
+                ->assertJsonPath('payment_exempt', false)
+                ->assertJsonPath('early_payment_consumed', false);
+
+            $lesson = Lesson::findOrFail($response->json('lesson_id'));
+            $this->assertNotNull($lesson->paid_at);
+            $this->assertSame('Venmo', $lesson->payment_method);
+            $response->assertJsonPath('edit_url', route('calendar.lessons.edit', $lesson))
+                ->assertJsonPath('payment_url', $lesson->paymentUrl);
+
+            // Retrying the combined action must retain the same occurrence record.
+            $this->postJson(route('calendar.lessons.store'), $payload)
+                ->assertOk()
+                ->assertJsonPath('lesson_id', $lesson->id)
+                ->assertJsonPath('status', 'paid');
+
+            $this->postJson(route('calendar.lessons.revert'), ['lesson_id' => $lesson->id])
+                ->assertOk()
+                ->assertJsonPath('status', 'unpaid');
+        }
+
+        $this->assertDatabaseCount('lessons', 2);
+    }
+
+    /** @test */
+    public function attendance_with_payment_confirmation_disabled_leaves_the_lesson_unpaid()
+    {
+        $plan = LessonPlan::factory()->create();
+        $this->signIn();
+
+        $response = $this->postJson(route('calendar.lessons.store'), [
+            'lesson_plan_id' => $plan->id,
+            'date' => '2026-07-15',
+            'start' => '15:30',
+            'end' => '16:15',
+            'confirm_payment' => false,
+        ])->assertOk()->assertJsonPath('status', 'unpaid');
+
+        $this->assertNull(Lesson::findOrFail($response->json('lesson_id'))->paid_at);
+    }
+
+    /** @test */
+    public function invalid_payment_confirmation_does_not_record_attendance()
+    {
+        $plan = LessonPlan::factory()->create();
+        $this->signIn();
+
+        $this->postJson(route('calendar.lessons.store'), [
+            'lesson_plan_id' => $plan->id,
+            'date' => '2026-07-15',
+            'start' => '15:30',
+            'end' => '16:15',
+            'confirm_payment' => 'invalid',
+        ])->assertUnprocessable()->assertJsonValidationErrors('confirm_payment');
+
+        $this->assertDatabaseCount('lessons', 0);
+    }
+
+    /** @test */
     public function payment_responses_include_the_saved_fee_for_in_place_calendar_totals()
     {
         $location = Location::factory()->create(['tax_withheld_percentage' => 25]);

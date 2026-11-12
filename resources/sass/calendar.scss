@@ -2525,6 +2525,43 @@ button.single-lesson-plan-create[selected] i {
 
 // Lesson modal
 
+#lesson-taught {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-touch-callout: none;
+
+    &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        background: rgba(0, 0, 0, .24);
+        transform: scaleX(0);
+        transform-origin: left;
+        pointer-events: none;
+    }
+
+    &.is-holding::before {
+        animation: lesson-confirm-fill var(--lesson-confirm-hold-duration, 2000ms) linear forwards;
+    }
+
+    &.is-hold-complete::before {
+        transform: scaleX(1);
+    }
+}
+
+#lesson-confirm-hold-hint[hidden] {
+    display: none !important;
+}
+
+@keyframes lesson-confirm-fill {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+}
+
 #lesson-summary i {
     width: 16px;
     margin: 0;

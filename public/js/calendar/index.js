@@ -1,6 +1,109 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
+/***/ "./resources/js/calendar/lesson-confirmation.js"
+/*!******************************************************!*\
+  !*** ./resources/js/calendar/lesson-confirmation.js ***!
+  \******************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   bindLessonConfirmation: () => (/* binding */ bindLessonConfirmation)
+/* harmony export */ });
+var HOLD_DURATION = 2000;
+var bindLessonConfirmation = function bindLessonConfirmation(button, getHoldKey, confirm) {
+  var press = null;
+  var timer = null;
+  var suppressClick = false;
+  button.style.setProperty('--lesson-confirm-hold-duration', "".concat(HOLD_DURATION, "ms"));
+  var cancel = function cancel() {
+    window.clearTimeout(timer);
+    timer = null;
+    var pointerId = press && press.pointerId;
+    press = null;
+    button.classList.remove('is-holding', 'is-hold-complete');
+    if (pointerId !== null && button.hasPointerCapture(pointerId)) {
+      button.releasePointerCapture(pointerId);
+    }
+  };
+  var isCurrentPress = function isCurrentPress() {
+    return press && !button.disabled && getHoldKey() === press.key;
+  };
+  button.addEventListener('pointerdown', function (event) {
+    if (event.button !== 0 || !event.isPrimary) return;
+    cancel();
+    suppressClick = false;
+    var key = !button.disabled && getHoldKey();
+    if (!key) return;
+    suppressClick = true;
+    press = {
+      pointerId: event.pointerId,
+      key: key
+    };
+    button.setPointerCapture(event.pointerId);
+    button.classList.add('is-holding');
+    timer = window.setTimeout(function () {
+      var shouldConfirm = isCurrentPress();
+      cancel();
+      if (!shouldConfirm) return;
+      button.classList.add('is-hold-complete');
+      Promise.resolve(confirm(true))["finally"](function () {
+        button.classList.remove('is-hold-complete');
+      });
+    }, HOLD_DURATION);
+  });
+  button.addEventListener('pointerup', function (event) {
+    if (!press || event.pointerId !== press.pointerId) return;
+    var shouldConfirm = isCurrentPress();
+    cancel();
+    if (shouldConfirm) confirm(false);
+  });
+
+  // Pointer capture also covers touch; moving outside cancels instead of saving.
+  button.addEventListener('pointermove', function (event) {
+    if (!press || event.pointerId !== press.pointerId) return;
+    var rect = button.getBoundingClientRect();
+    if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) cancel();
+  });
+  button.addEventListener('pointerleave', cancel);
+  button.addEventListener('pointercancel', cancel);
+  button.addEventListener('lostpointercapture', function () {
+    if (press) cancel();
+  });
+  button.addEventListener('contextmenu', function (event) {
+    if (press || suppressClick) event.preventDefault();
+  });
+  button.addEventListener('click', function (event) {
+    event.preventDefault();
+    // Consume the click generated after pointerup, even if the request has finished.
+    if (suppressClick || button.disabled) return;
+    confirm(false);
+  });
+  button.addEventListener('keydown', function (event) {
+    if ((event.key === 'Enter' || event.key === ' ') && !event.repeat) {
+      cancel();
+      suppressClick = false;
+    }
+  });
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape') cancel();
+  });
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) cancel();
+  });
+  window.addEventListener('blur', cancel);
+  var modal = button.closest('#calendar-event-modal');
+  modal.addEventListener('hide.bs.modal', cancel);
+  if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
+    window.jQuery(modal).on('hide.bs.modal', cancel);
+  }
+  return cancel;
+};
+
+/***/ },
+
 /***/ "./resources/js/calendar/navigation-menu.js"
 /*!**************************************************!*\
   !*** ./resources/js/calendar/navigation-menu.js ***!
@@ -4736,10 +4839,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var motion__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! motion */ "./node_modules/motion-dom/dist/es/animation/generators/spring.mjs");
 /* harmony import */ var motion_mini__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! motion/mini */ "./node_modules/framer-motion/dist/es/animation/animators/waapi/animate-style.mjs");
 /* harmony import */ var _navigation_menu__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./navigation-menu */ "./resources/js/calendar/navigation-menu.js");
+/* harmony import */ var _lesson_confirmation__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./lesson-confirmation */ "./resources/js/calendar/lesson-confirmation.js");
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
 function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
 function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+
 
 
 
@@ -4787,6 +4892,7 @@ var state = {
   calendarRenderMode: 'animated',
   centerInitialScheduleDate: false,
   lessonActionAvailabilityTimer: null,
+  cancelLessonConfirmation: null,
   pendingLessonMutations: new Set(),
   scheduleWindowStart: null,
   pendingScheduleScrollTop: null,
@@ -6877,6 +6983,7 @@ var resetLessonModalState = function resetLessonModalState(modal) {
   if (!modal) {
     return;
   }
+  if (state.cancelLessonConfirmation) state.cancelLessonConfirmation();
   setLessonMutationBusy(modal, false);
   resetLessonModalButtons(modal);
   if (state.lessonActionAvailabilityTimer !== null) {
@@ -6906,6 +7013,7 @@ var setCalendarEventModalType = function setCalendarEventModalType(modal, type) 
   if (!modal) {
     return;
   }
+  if (state.cancelLessonConfirmation) state.cancelLessonConfirmation();
   if (type !== 'lesson' && state.lessonActionAvailabilityTimer !== null) {
     window.clearTimeout(state.lessonActionAvailabilityTimer);
     state.lessonActionAvailabilityTimer = null;
@@ -6995,18 +7103,28 @@ var canUseLessonActionButtons = function canUseLessonActionButtons(event) {
   var startsAt = getEventStartDateTime(event);
   return startsAt ? startsAt <= new Date() : false;
 };
+var canConfirmLessonAndPayment = function canConfirmLessonAndPayment(event) {
+  return Boolean(event && (event.lessonPlanId || event.singleLessonPlanId) && event.lessonStatus === 'unconfirmed' && !event.paymentExempt && !event.earlyPaymentId && canUseLessonActionButtons(event));
+};
 var updateLessonTimeDependentControls = function updateLessonTimeDependentControls(modal, event) {
   var taught = modal.querySelector('#lesson-taught');
   var confirmPayment = modal.querySelector('#confirm-payment');
   var earlyPayment = modal.querySelector('#early-payment');
+  var holdHint = modal.querySelector('#lesson-confirm-hold-hint');
   var hasLessonSource = !!(event && (event.lessonPlanId || event.singleLessonPlanId));
   var canUseActions = canUseLessonActionButtons(event);
   if (taught) {
     preserveButtonLabel(taught);
     taught.disabled = !event || !hasLessonSource;
     taught.style.display = canUseActions ? '' : 'none';
+    if (canConfirmLessonAndPayment(event)) {
+      taught.setAttribute('aria-describedby', 'lesson-confirm-hold-hint');
+    } else {
+      taught.removeAttribute('aria-describedby');
+    }
     restoreButtonLabel(taught);
   }
+  if (holdHint) holdHint.hidden = !canConfirmLessonAndPayment(event);
   if (confirmPayment) {
     preserveButtonLabel(confirmPayment);
     confirmPayment.style.display = canUseActions ? '' : 'none';
@@ -8783,9 +8901,14 @@ var storeEarlyPayment = function storeEarlyPayment(button, refreshCalendar) {
   return submitLessonAction(button, refreshCalendar, getLessonOccurrencePayload(modal), 'Unable to record the early payment.');
 };
 var storeTaughtLesson = function storeTaughtLesson(button, refreshCalendar) {
+  var confirmPayment = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
   var modal = button.closest('#calendar-event-modal');
   if (!modal || !modal.dataset.lessonPlanId && !modal.dataset.singleLessonPlanId) return;
-  return submitLessonAction(button, refreshCalendar, getLessonOccurrencePayload(modal), 'Unable to confirm lesson.');
+  var payload = getLessonOccurrencePayload(modal);
+  if (confirmPayment && canConfirmLessonAndPayment(getEventByGuid(modal.dataset.eventGuid))) {
+    payload.confirm_payment = true;
+  }
+  return submitLessonAction(button, refreshCalendar, payload, 'Unable to confirm lesson.');
 };
 var confirmLessonPayment = function confirmLessonPayment(button, refreshCalendar) {
   return submitLessonAction(button, refreshCalendar, null, 'Unable to confirm payment.');
@@ -11732,9 +11855,12 @@ document.addEventListener('DOMContentLoaded', function () {
   });
   var lessonTaught = document.getElementById('lesson-taught');
   if (lessonTaught) {
-    lessonTaught.addEventListener('click', function (e) {
-      e.preventDefault();
-      storeTaughtLesson(lessonTaught, refreshCalendarAfterLessonMutation);
+    state.cancelLessonConfirmation = (0,_lesson_confirmation__WEBPACK_IMPORTED_MODULE_3__.bindLessonConfirmation)(lessonTaught, function () {
+      var modal = lessonTaught.closest('#calendar-event-modal');
+      var guid = modal.dataset.eventGuid;
+      return modal.dataset.eventModalType === 'lesson' && modal.classList.contains('show') && !state.pendingLessonMutations.has(guid) && canConfirmLessonAndPayment(getEventByGuid(guid)) ? guid : null;
+    }, function (confirmPayment) {
+      return storeTaughtLesson(lessonTaught, refreshCalendarAfterLessonMutation, confirmPayment);
     });
   }
   var confirmPayment = document.getElementById('confirm-payment');

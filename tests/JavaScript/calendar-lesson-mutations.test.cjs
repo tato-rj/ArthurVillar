@@ -30,7 +30,7 @@ function element(dataset = {}) {
     };
 }
 
-function setup() {
+function setup(fetch) {
     const button = element();
     const error = element();
     const modal = element({ eventModalType: 'lesson', eventGuid: 'planned-lesson-1-2026-07-08-15:30' });
@@ -39,7 +39,7 @@ function setup() {
     const item = element({ eventGuid: modal.dataset.eventGuid });
     const unrelated = element({ eventGuid: 'unrelated' });
     const context = vm.createContext({
-        window: {},
+        window: { calendarCsrfToken: 'test-csrf-token' }, fetch,
         document: {
             addEventListener() {},
             querySelector: () => null,
@@ -48,7 +48,7 @@ function setup() {
         },
         require: () => ({}), console: { error() {} }, Intl, URL, setTimeout, clearTimeout,
     });
-    vm.runInContext(source + '\nglobalThis.api = {state, mutateLesson, updateLessonEventState, getPlannedLessonEvents, getVisibleCalendarEvents};', context);
+    vm.runInContext(source + '\nglobalThis.api = {state, mutateLesson, updateLessonEventState, getPlannedLessonEvents, getVisibleCalendarEvents, canConfirmLessonAndPayment, storeTaughtLesson};', context);
     const api = context.api;
     const event = {
         guid: modal.dataset.eventGuid, lessonPlanId: 1, date: '2026-07-08',
@@ -177,4 +177,55 @@ test('mutations that move or remove occurrences still refresh schedule geometry'
     h.modal.dataset.eventModalType = 'general-event'; // Do not reopen a replaced dialog.
     await h.mutateLesson(h.modal, async () => ({ status: 'unconfirmed', schedule_override_deleted: true }), h.refresh);
     assert.equal(h.refreshes(), 1);
+});
+
+test('a combined confirmation posts once and updates the paid occurrence in place', async () => {
+    for (const confirmPayment of [false, true]) {
+        const requests = [];
+        const status = confirmPayment ? 'paid' : 'unpaid';
+        const h = setup(async (url, options) => {
+            requests.push({ url, ...options });
+            return { ok: true, json: async () => ({ status, lesson_id: 15, fee_amount: 5500,
+                edit_url: '/lessons/15', payment_url: '/lessons/15/payments' }) };
+        });
+        h.event.date = h.occurrence.date = '2000-07-08';
+        Object.assign(h.modal.dataset, { lessonPlanId: '1', eventDate: h.event.date,
+            eventStart: h.event.start, eventEnd: h.event.end });
+        h.button.closest = () => h.modal;
+        h.button.dataset.url = '/lessons';
+
+        await h.storeTaughtLesson(h.button, h.refresh, confirmPayment);
+
+        assert.equal(requests.length, 1);
+        assert.equal(requests[0].url, '/lessons');
+        assert.equal(requests[0].method, 'POST');
+        assert.equal(requests[0].headers.Accept, 'application/json');
+        assert.equal(requests[0].headers['X-Requested-With'], 'XMLHttpRequest');
+        assert.equal(requests[0].headers['X-CSRF-TOKEN'], 'test-csrf-token');
+        const payload = JSON.parse(requests[0].body);
+        assert.equal(payload.confirm_payment, confirmPayment ? true : undefined);
+        assert.equal(payload.lesson_plan_id, '1');
+        assert.equal(payload.date, h.event.date);
+        assert.equal(h.event.lessonStatus, status);
+        assert.equal(h.occurrence.lesson_status, status);
+        assert.equal(h.instanceEvent.lessonStatus, status);
+        assert.equal(h.modal.dataset.lessonStatus, status);
+        assert.equal(h.event.feeAmount, 5500);
+        assert.equal(h.refreshes(), 0);
+        assert.equal(h.button.disabled, false);
+    }
+});
+
+test('holding is offered only when attendance would leave a payment to confirm', () => {
+    const h = setup();
+    const event = { ...h.event, date: '2000-07-08' };
+    assert.equal(h.canConfirmLessonAndPayment(event), true);
+    assert.equal(h.canConfirmLessonAndPayment({ ...event, lessonPlanId: '', singleLessonPlanId: 2 }), true);
+    for (const change of [
+        { paymentExempt: true }, { earlyPaymentId: 5 }, { lessonStatus: 'early-payment' },
+        { lessonStatus: 'paid' }, { lessonStatus: 'unpaid' }, { lessonStatus: 'canceled' },
+        { date: '2999-07-08' }, { lessonPlanId: '' },
+    ]) {
+        assert.equal(h.canConfirmLessonAndPayment({ ...event, ...change }), false);
+    }
 });
