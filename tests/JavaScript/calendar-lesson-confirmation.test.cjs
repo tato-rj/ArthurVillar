@@ -70,11 +70,11 @@ function setup() {
     };
 }
 
-test('releasing a mouse, touch or pen press before two seconds confirms only attendance once', () => {
+test('releasing a mouse, touch or pen press before one second confirms only attendance once', () => {
     for (const pointerType of ['mouse', 'touch', 'pen']) {
         const h = setup();
         h.button.fire('pointerdown', { pointerType });
-        h.tick(1999);
+        h.tick(999);
         assert.deepEqual(h.calls, []);
         assert.ok(h.classes.has('is-holding'));
         h.button.fire('pointerup');
@@ -85,10 +85,10 @@ test('releasing a mouse, touch or pen press before two seconds confirms only att
     }
 });
 
-test('a full hold confirms both while still pressed and consumes the later click', () => {
+test('a one-second hold confirms both while still pressed and consumes the later click', () => {
     const h = setup();
     h.button.fire('pointerdown');
-    h.tick(2000);
+    h.tick(1000);
     assert.deepEqual(h.calls, [true]);
     assert.ok(h.classes.has('is-hold-complete'));
     h.tick(5000);
@@ -112,7 +112,7 @@ test('canceling, leaving the button, hiding the modal or losing focus never conf
     for (const cancel of cancelActions) {
         const h = setup();
         h.button.fire('pointerdown');
-        h.tick(1000);
+        h.tick(500);
         cancel(h);
         h.tick(2000);
         h.button.fire('pointerup');

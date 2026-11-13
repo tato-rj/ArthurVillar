@@ -1,4 +1,4 @@
-const HOLD_DURATION = 2000;
+const HOLD_DURATION = 1000;
 
 export const bindLessonConfirmation = function(button, getHoldKey, confirm) {
     let press = null;

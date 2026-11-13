@@ -2862,7 +2862,6 @@ const updateLessonTimeDependentControls = function(modal, event) {
     const taught = modal.querySelector('#lesson-taught');
     const confirmPayment = modal.querySelector('#confirm-payment');
     const earlyPayment = modal.querySelector('#early-payment');
-    const holdHint = modal.querySelector('#lesson-confirm-hold-hint');
     const hasLessonSource = !!(event && (event.lessonPlanId || event.singleLessonPlanId));
     const canUseActions = canUseLessonActionButtons(event);
 
@@ -2870,15 +2869,8 @@ const updateLessonTimeDependentControls = function(modal, event) {
         preserveButtonLabel(taught);
         taught.disabled = !event || !hasLessonSource;
         taught.style.display = canUseActions ? '' : 'none';
-        if (canConfirmLessonAndPayment(event)) {
-            taught.setAttribute('aria-describedby', 'lesson-confirm-hold-hint');
-        } else {
-            taught.removeAttribute('aria-describedby');
-        }
         restoreButtonLabel(taught);
     }
-
-    if (holdHint) holdHint.hidden = !canConfirmLessonAndPayment(event);
 
     if (confirmPayment) {
         preserveButtonLabel(confirmPayment);

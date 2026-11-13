@@ -12,7 +12,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   bindLessonConfirmation: () => (/* binding */ bindLessonConfirmation)
 /* harmony export */ });
-var HOLD_DURATION = 2000;
+var HOLD_DURATION = 1000;
 var bindLessonConfirmation = function bindLessonConfirmation(button, getHoldKey, confirm) {
   var press = null;
   var timer = null;
@@ -7110,21 +7110,14 @@ var updateLessonTimeDependentControls = function updateLessonTimeDependentContro
   var taught = modal.querySelector('#lesson-taught');
   var confirmPayment = modal.querySelector('#confirm-payment');
   var earlyPayment = modal.querySelector('#early-payment');
-  var holdHint = modal.querySelector('#lesson-confirm-hold-hint');
   var hasLessonSource = !!(event && (event.lessonPlanId || event.singleLessonPlanId));
   var canUseActions = canUseLessonActionButtons(event);
   if (taught) {
     preserveButtonLabel(taught);
     taught.disabled = !event || !hasLessonSource;
     taught.style.display = canUseActions ? '' : 'none';
-    if (canConfirmLessonAndPayment(event)) {
-      taught.setAttribute('aria-describedby', 'lesson-confirm-hold-hint');
-    } else {
-      taught.removeAttribute('aria-describedby');
-    }
     restoreButtonLabel(taught);
   }
-  if (holdHint) holdHint.hidden = !canConfirmLessonAndPayment(event);
   if (confirmPayment) {
     preserveButtonLabel(confirmPayment);
     confirmPayment.style.display = canUseActions ? '' : 'none';

@@ -5,8 +5,8 @@
 
 	<div id="lesson-attendance">
 		<button id="lesson-taught" data-url="{{route('calendar.lessons.store')}}" type="button" class="btn btn-primary w-100">
-			@fa(['icon' => 'calendar-check'])Lesson taught
+			<span class="lesson-taught-label">@fa(['icon' => 'calendar-check'])Lesson taught</span>
+			<span class="lesson-taught-hold-label">Confirm + pay</span>
 		</button>
-		<small id="lesson-confirm-hold-hint" class="d-block text-center text-muted mt-2" hidden>Hold for 2 seconds to confirm lesson and payment</small>
 	</div>
 </div>

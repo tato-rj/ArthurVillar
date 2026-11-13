@@ -2545,16 +2545,26 @@ button.single-lesson-plan-create[selected] i {
     }
 
     &.is-holding::before {
-        animation: lesson-confirm-fill var(--lesson-confirm-hold-duration, 2000ms) linear forwards;
+        animation: lesson-confirm-fill var(--lesson-confirm-hold-duration, 1000ms) linear forwards;
     }
 
     &.is-hold-complete::before {
         transform: scaleX(1);
     }
-}
 
-#lesson-confirm-hold-hint[hidden] {
-    display: none !important;
+    .lesson-taught-hold-label {
+        display: none;
+    }
+
+    &.is-holding, &.is-hold-complete {
+        .lesson-taught-label {
+            display: none;
+        }
+
+        .lesson-taught-hold-label {
+            display: inline;
+        }
+    }
 }
 
 @keyframes lesson-confirm-fill {
