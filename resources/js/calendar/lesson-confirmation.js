@@ -1,3 +1,4 @@
+const HOLD_START_DELAY = 500;
 const HOLD_DURATION = 1000;
 
 export const bindLessonConfirmation = function(button, getHoldKey, confirm) {
@@ -22,6 +23,16 @@ export const bindLessonConfirmation = function(button, getHoldKey, confirm) {
         return press && !button.disabled && getHoldKey() === press.key;
     };
 
+    const completeHold = function() {
+        const shouldConfirm = isCurrentPress();
+        cancel();
+        if (!shouldConfirm) return;
+        button.classList.add('is-hold-complete');
+        Promise.resolve(confirm(true)).finally(function() {
+            button.classList.remove('is-hold-complete');
+        });
+    };
+
     button.addEventListener('pointerdown', function(event) {
         if (event.button !== 0 || !event.isPrimary) return;
         cancel();
@@ -32,16 +43,14 @@ export const bindLessonConfirmation = function(button, getHoldKey, confirm) {
         suppressClick = true;
         press = { pointerId: event.pointerId, key };
         button.setPointerCapture(event.pointerId);
-        button.classList.add('is-holding');
         timer = window.setTimeout(function() {
-            const shouldConfirm = isCurrentPress();
-            cancel();
-            if (!shouldConfirm) return;
-            button.classList.add('is-hold-complete');
-            Promise.resolve(confirm(true)).finally(function() {
-                button.classList.remove('is-hold-complete');
-            });
-        }, HOLD_DURATION);
+            if (!isCurrentPress()) {
+                cancel();
+                return;
+            }
+            button.classList.add('is-holding');
+            timer = window.setTimeout(completeHold, HOLD_DURATION);
+        }, HOLD_START_DELAY);
     });
 
     button.addEventListener('pointerup', function(event) {

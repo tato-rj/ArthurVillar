@@ -70,25 +70,37 @@ function setup() {
     };
 }
 
-test('releasing a mouse, touch or pen press before one second confirms only attendance once', () => {
+test('releasing before the fill starts or finishes confirms only attendance once', () => {
     for (const pointerType of ['mouse', 'touch', 'pen']) {
-        const h = setup();
-        h.button.fire('pointerdown', { pointerType });
-        h.tick(999);
-        assert.deepEqual(h.calls, []);
-        assert.ok(h.classes.has('is-holding'));
-        h.button.fire('pointerup');
-        h.button.fire('click');
-        h.tick(3000);
-        assert.deepEqual(h.calls, [false]);
-        assert.equal(h.classes.has('is-holding'), false);
+        for (const waitForFill of [false, true]) {
+            const h = setup();
+            h.button.fire('pointerdown', { pointerType });
+            h.tick(499);
+            if (waitForFill) {
+                h.tick(1);
+                h.tick(999);
+            }
+            assert.deepEqual(h.calls, []);
+            assert.equal(h.classes.has('is-holding'), waitForFill);
+            h.button.fire('pointerup');
+            h.button.fire('click');
+            h.tick(3000);
+            assert.deepEqual(h.calls, [false]);
+            assert.equal(h.classes.has('is-holding'), false);
+        }
     }
 });
 
-test('a one-second hold confirms both while still pressed and consumes the later click', () => {
+test('the fill starts after half a second and confirms both one second later', () => {
     const h = setup();
     h.button.fire('pointerdown');
-    h.tick(1000);
+    h.tick(499);
+    assert.equal(h.classes.has('is-holding'), false);
+    h.tick(1);
+    assert.ok(h.classes.has('is-holding'));
+    h.tick(999);
+    assert.deepEqual(h.calls, []);
+    h.tick(1);
     assert.deepEqual(h.calls, [true]);
     assert.ok(h.classes.has('is-hold-complete'));
     h.tick(5000);
@@ -110,19 +122,21 @@ test('canceling, leaving the button, hiding the modal or losing focus never conf
         h => h.cancel(),
     ];
     for (const cancel of cancelActions) {
-        const h = setup();
-        h.button.fire('pointerdown');
-        h.tick(500);
-        cancel(h);
-        h.tick(2000);
-        h.button.fire('pointerup');
-        h.button.fire('click');
-        assert.deepEqual(h.calls, []);
-        assert.equal(h.classes.has('is-holding'), false);
-        h.button.fire('pointerdown');
-        h.button.fire('pointerup');
-        h.button.fire('click');
-        assert.deepEqual(h.calls, [false]);
+        for (const elapsed of [250, 500]) {
+            const h = setup();
+            h.button.fire('pointerdown');
+            h.tick(elapsed);
+            cancel(h);
+            h.tick(2000);
+            h.button.fire('pointerup');
+            h.button.fire('click');
+            assert.deepEqual(h.calls, []);
+            assert.equal(h.classes.has('is-holding'), false);
+            h.button.fire('pointerdown');
+            h.button.fire('pointerup');
+            h.button.fire('click');
+            assert.deepEqual(h.calls, [false]);
+        }
     }
 });
 
@@ -177,6 +191,7 @@ test('secondary pointers and non-primary mouse buttons cannot start or finish a 
     assert.deepEqual(h.calls, []);
     h.button.fire('pointerdown');
     h.button.fire('pointerup', { pointerId: 2 });
-    h.tick(2000);
+    h.tick(500);
+    h.tick(1000);
     assert.deepEqual(h.calls, [true]);
 });
