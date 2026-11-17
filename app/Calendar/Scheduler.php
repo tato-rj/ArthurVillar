@@ -130,6 +130,7 @@ class Scheduler
             },
             'scheduleOverrides' => function ($query) use ($range) {
                 $query
+                    ->with('location')
                     ->whereBetween('original_date', [$range['start'], $range['end']])
                     ->orWhereBetween('new_date', [$range['start'], $range['end']]);
             },
@@ -248,9 +249,11 @@ class Scheduler
             ->filter(function ($override) use ($start, $end) {
                 return Carbon::parse($override->new_date)->betweenIncluded($start, $end);
             })
-            ->each(function ($override) use (&$occurrences, $lessonPlan) {
+            ->each(function ($override) use (&$occurrences, $lessonPlan, $lessonsByScheduledOccurrence) {
+                $override->setRelation('lessonPlan', $lessonPlan);
                 $occurrence = Carbon::parse($override->new_date)->startOfDay();
-                $lesson = $this->lessonForOccurrence($lessonPlan, $occurrence, $override->new_start_time);
+                $lesson = $lessonsByScheduledOccurrence->get($this->occurrenceKey($override->original_date, $override->original_start_time))
+                    ?: $this->lessonForOccurrence($lessonPlan, $occurrence, $override->new_start_time);
                 $earlyPayment = $lesson ? null : $this->earlyPaymentForOccurrence(
                     $lessonPlan->earlyPayments,
                     $override->original_date,
@@ -259,6 +262,7 @@ class Scheduler
                 $lessonStatus = $lesson
                     ? $lesson->paymentStatus()
                     : ($lessonPlan->isCanceledOn($override->original_date) ? 'canceled' : ($earlyPayment ? 'early-payment' : 'unconfirmed'));
+                $details = $override->lessonDetails();
 
                 $occurrences[] = [
                     'date' => $override->new_date,
@@ -267,39 +271,50 @@ class Scheduler
                     'original_date' => $override->original_date,
                     'original_start_time' => $override->original_start_time,
                     'schedule_override_id' => $override->id,
+                    'occurrence_edit_url' => route('calendar.lesson-plans.rescheduled.edit', [$lessonPlan, $override->original_date, $override->original_start_time]),
+                    'location_id' => $override->location_id ?? $lessonPlan->location_id,
+                    'location' => $override->location?->toArray(),
                     'lesson_id' => $lesson ? $lesson->id : null,
                     'lesson_status' => $lessonStatus,
                     'early_payment_id' => $earlyPayment ? $earlyPayment->id : null,
-                    'fee_amount' => $lessonPlan->student?->payment_exempt
-                        ? 0
-                        : ($lesson && $lesson->fee_amount ? $lesson->fee_amount : $lessonPlan->netFeeAmount()),
+                    'fee_amount' => $lessonPlan->student?->payment_exempt ? 0 : ($lesson?->fee_amount ?? $override->netFeeAmount() ?? 0),
                     'canceled_by' => $lesson ? $lesson->canceled_by : '',
                     'calendar_status' => $lessonStatus === 'unconfirmed'
                         ? 'rescheduled'
                         : $lessonStatus,
                     'lesson_edit_url' => $lesson ? route('calendar.lessons.edit', $lesson) : '',
                     'lesson_payment_url' => $lesson ? $lesson->paymentUrl : '',
-                    'travel_mode' => $lessonPlan->travel_mode ?: 'TRANSIT',
+                    'travel_mode' => $details['travel_mode'] ?: 'TRANSIT',
+                    'payment_method' => $details['payment_method'],
+                    'meeting_url' => $details['meeting_url'],
+                    'notes_url' => $details['notes_url'],
+                    'notes' => $details['notes'],
                 ];
             });
 
         $lessonPlan->lessons
-            ->filter(function ($lesson) use ($start, $end) {
+            ->filter(function ($lesson) use ($start, $end, $overridesByOriginal) {
                 $lessonDate = Carbon::parse($lesson->starts_at)->startOfDay();
+                $originalDate = $lesson->scheduled_date ?: $lessonDate;
+                $originalStart = $lesson->scheduled_start_time ?: $lesson->starts_at->format('H:i');
 
                 return $lessonDate->betweenIncluded($start, $end)
-                    && ! $this->lessonStartsOnOccurrence($lesson, Carbon::parse($lesson->scheduled_date ?: $lesson->starts_at), $lesson->scheduled_start_time ?: Carbon::parse($lesson->starts_at)->format('H:i'));
+                    && ! $overridesByOriginal->has($this->occurrenceKey($originalDate, $originalStart))
+                    && ! $this->lessonStartsOnOccurrence($lesson, Carbon::parse($originalDate), $originalStart);
             })
             ->each(function ($lesson) use (&$occurrences, $lessonPlan) {
                 $startTime = Carbon::parse($lesson->starts_at)->format('H:i');
                 $endTime = Carbon::parse($lesson->ends_at)->format('H:i');
+                $originalDate = ($lesson->scheduled_date ?: $lesson->starts_at)->toDateString();
+                $originalStart = $lesson->scheduled_start_time ?: LessonPlan::normalizeTime($startTime);
 
                 $occurrences[] = [
                     'date' => Carbon::parse($lesson->starts_at)->toDateString(),
                     'start' => LessonPlan::normalizeTime($startTime),
                     'end' => LessonPlan::normalizeTime($endTime),
-                    'original_date' => $lesson->scheduled_date ?: Carbon::parse($lesson->starts_at)->toDateString(),
-                    'original_start_time' => $lesson->scheduled_start_time ?: LessonPlan::normalizeTime($startTime),
+                    'original_date' => $originalDate,
+                    'original_start_time' => $originalStart,
+                    'occurrence_edit_url' => route('calendar.lesson-plans.rescheduled.edit', [$lessonPlan, $originalDate, $originalStart]),
                     'lesson_id' => $lesson->id,
                     'lesson_status' => $lesson->paymentStatus(),
                     'calendar_status' => $lesson->paymentStatus(),
@@ -442,12 +457,9 @@ class Scheduler
         $locationIds = collect($locationIds)->filter()->map(fn ($id) => (int) $id)->values();
 
         $this->plannedLessons($range, false, false)->each(function ($lessonPlan) use ($lessons, $locationIds) {
-            if ($locationIds->isNotEmpty() && ! $locationIds->contains((int) ($lessonPlan['location_id'] ?? 0))) {
-                return;
-            }
-
-            collect($lessonPlan['occurrences'] ?? [])->each(function ($occurrence) use ($lessonPlan, $lessons) {
-                if (($occurrence['lesson_status'] ?? '') === 'canceled') {
+            collect($lessonPlan['occurrences'] ?? [])->each(function ($occurrence) use ($lessonPlan, $lessons, $locationIds) {
+                $locationId = (int) ($occurrence['location_id'] ?? $lessonPlan['location_id'] ?? 0);
+                if (($occurrence['lesson_status'] ?? '') === 'canceled' || ($locationIds->isNotEmpty() && ! $locationIds->contains($locationId))) {
                     return;
                 }
 
@@ -509,7 +521,8 @@ class Scheduler
         $startMinutes = $this->timeMinutes($startTime);
 
         return $lessonPlan->lessons->first(function ($lesson) use ($occurrence, $startMinutes) {
-            return Carbon::parse($lesson->starts_at)->toDateString() === $occurrence->toDateString()
+            return (! $lesson->scheduled_date || ! $lesson->scheduled_start_time)
+                && Carbon::parse($lesson->starts_at)->toDateString() === $occurrence->toDateString()
                 && $this->timeMinutes(Carbon::parse($lesson->starts_at)->format('H:i')) === $startMinutes;
         });
     }

@@ -2093,6 +2093,134 @@ class CalendarLessonFlowTest extends BaseTest
             ->assertSee('data-single-lesson-plan-form', false);
     }
 
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function editing_a_rescheduled_occurrence_keeps_the_series_values_and_uses_its_own_payment_terms()
+    {
+        $studio = Location::factory()->create(['name' => 'Studio']);
+        $online = Location::factory()->create(['name' => 'Online', 'tax_withheld_percentage' => 25]);
+        $plan = LessonPlan::factory()->create([
+            'weekday' => 4,
+            'starts_on' => '2026-07-01',
+            'ends_on' => '2026-07-31',
+            'recurrence_interval' => 1,
+            'start_time' => '15:30',
+            'duration_minutes' => 45,
+            'location_id' => $studio->id,
+            'fee_amount' => 8000,
+            'payment_method' => 'Cash/check',
+            'notes' => 'Series notes',
+        ]);
+        $this->signIn();
+        $overrideId = $this->postJson(route('calendar.lesson-plans.reschedule'), [
+            'lesson_plan_id' => $plan->id,
+            'original_date' => '2026-07-08',
+            'original_start_time' => '15:30',
+            'date' => '2026-07-09',
+            'start_time' => '16:00',
+            'end_time' => '16:45',
+            'is_permanent' => false,
+        ])->assertOk()->json('schedule_override_id');
+
+        $range = ['start' => '2026-07-08', 'end' => '2026-07-15'];
+        $occurrences = fn () => collect(app(Scheduler::class)->plannedLessons($range)->first()['occurrences'])->keyBy('date');
+        $editUrl = $occurrences()['2026-07-09']['occurrence_edit_url'];
+        $this->get($editUrl)
+            ->assertOk()
+            ->assertSee('Edit rescheduled lesson')
+            ->assertSee('value="2026-07-09"', false)
+            ->assertDontSee('name="repeat"', false);
+
+        $this->patchJson(route('calendar.lesson-plans.rescheduled.update', [$plan, '2026-07-08', '15:30']), [
+            'date' => '2026-07-09',
+            'start_time' => '16:00',
+            'duration_minutes' => 60,
+            'location_id' => $online->id,
+            'fee_amount' => '100.50',
+            'payment_method' => 'Venmo',
+            'meeting_url' => 'https://example.com/meeting',
+            'notes' => 'Makeup lesson',
+            'travel_mode' => 'NONE',
+        ])->assertOk()->assertJsonPath('end_time', '17:00');
+
+        $updated = $occurrences();
+        $this->assertCount(2, $updated);
+        $this->assertSame('17:00', $updated['2026-07-09']['end']);
+        $this->assertSame($online->id, $updated['2026-07-09']['location_id']);
+        $this->assertSame('NONE', $updated['2026-07-09']['travel_mode']);
+        $this->assertSame('https://example.com/meeting', $updated['2026-07-09']['meeting_url']);
+        $this->assertSame('Makeup lesson', $updated['2026-07-09']['notes']);
+        $this->assertSame('16:15', $updated['2026-07-15']['end']);
+        $this->assertDatabaseHas('lesson_plans', [
+            'id' => $plan->id,
+            'duration_minutes' => 45,
+            'location_id' => $studio->id,
+            'fee_amount' => 8000,
+            'payment_method' => 'Cash/check',
+            'notes' => 'Series notes',
+        ]);
+
+        $lessonId = $this->postJson(route('calendar.lessons.store'), [
+            'lesson_plan_id' => $plan->id,
+            'schedule_override_id' => $overrideId,
+            'date' => '2026-07-09',
+            'start' => '16:00',
+            'end' => '17:00',
+            'scheduled_date' => '2026-07-08',
+            'scheduled_start_time' => '15:30',
+            'confirm_payment' => true,
+        ])->assertOk()->assertJsonPath('fee_amount', 7538)->json('lesson_id');
+
+        $this->assertSame('paid', $occurrences()['2026-07-09']['lesson_status']);
+        $this->assertCount(2, $occurrences());
+        $this->assertDatabaseHas('lessons', [
+            'id' => $lessonId,
+            'payment_method' => 'Venmo',
+            'notes' => 'Makeup lesson',
+        ]);
+
+        $this->postJson(route('calendar.lessons.revert'), [
+            'lesson_id' => $lessonId,
+            'schedule_override_id' => $overrideId,
+        ])->assertOk()->assertJsonPath('status', 'unpaid')->assertJsonPath('schedule_override_deleted', false);
+        $this->postJson(route('calendar.lessons.payment.store', $lessonId))
+            ->assertOk()->assertJsonPath('status', 'paid')->assertJsonPath('fee_amount', 7538);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function a_previously_recorded_rescheduled_lesson_can_be_edited_in_place()
+    {
+        $plan = LessonPlan::factory()->create([
+            'weekday' => 4,
+            'starts_on' => '2026-07-01',
+            'start_time' => '15:30',
+            'duration_minutes' => 45,
+        ]);
+        $lesson = Lesson::factory()->lessonPlan($plan)->create([
+            'scheduled_date' => '2026-07-08',
+            'scheduled_start_time' => '15:30',
+            'starts_at' => '2026-07-09 16:00:00',
+            'ends_at' => '2026-07-09 16:45:00',
+            'paid_at' => '2026-07-09 16:45:00',
+        ]);
+        $this->signIn();
+        $range = ['start' => '2026-07-08', 'end' => '2026-07-09'];
+        $occurrences = fn () => app(Scheduler::class)->plannedLessons($range)->first()['occurrences'];
+        $this->get($occurrences()[0]['occurrence_edit_url'])->assertOk();
+
+        $this->patchJson(route('calendar.lesson-plans.rescheduled.update', [$plan, '2026-07-08', '15:30']), [
+            'date' => '2026-07-09',
+            'start_time' => '16:00',
+            'duration_minutes' => 60,
+        ])->assertOk();
+
+        $this->assertSame('2026-07-09 17:00:00', $lesson->refresh()->ends_at->toDateTimeString());
+        $this->assertSame('2026-07-08', $lesson->scheduled_date->toDateString());
+        $this->assertCount(1, $occurrences());
+        $this->assertSame('paid', $occurrences()[0]['lesson_status']);
+        $this->assertSame($lesson->id, $occurrences()[0]['lesson_id']);
+        $this->assertSame(45, (int) $plan->refresh()->duration_minutes);
+    }
+
     /** @test */
     public function calendar_modal_can_cancel_a_lesson_with_json()
     {

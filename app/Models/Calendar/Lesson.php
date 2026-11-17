@@ -47,19 +47,41 @@ class Lesson extends BaseModel
 
     public function pay()
     {
-        $paymentExempt = (bool) $this->student?->payment_exempt;
-
-        return $this->update([
+        return $this->update($this->paymentTerms() + [
             'canceled_by' => null,
             'canceled_at' => null,
             'paid_at' => now(),
-            'payment_method' => $paymentExempt
-                ? null
-                : ($this->lessonPlan ? $this->lessonPlan->payment_method : $this->payment_method),
-            'fee_amount' => $paymentExempt
-                ? null
-                : ($this->lessonPlan ? $this->lessonPlan->netFeeAmount() : $this->fee_amount),
         ]);
+    }
+
+    public function scheduleOverride(): ?ScheduleOverride
+    {
+        if (! $this->lessonPlan || ! $this->scheduled_date || ! $this->scheduled_start_time) {
+            return null;
+        }
+
+        return $this->lessonPlan->scheduleOverrides()
+            ->where('original_date', $this->scheduled_date->toDateString())
+            ->where('original_start_time', $this->scheduled_start_time)
+            ->first()
+            ?->setRelation('lessonPlan', $this->lessonPlan);
+    }
+
+    public function paymentTerms(): array
+    {
+        if ($this->student?->payment_exempt) {
+            return ['fee_amount' => null, 'payment_method' => null];
+        }
+
+        $override = $this->scheduleOverride();
+        if ($override) {
+            return ['fee_amount' => $override->netFeeAmount(), 'payment_method' => $override->lessonDetails()['payment_method']];
+        }
+
+        return [
+            'fee_amount' => $this->lessonPlan ? $this->lessonPlan->netFeeAmount() : $this->fee_amount,
+            'payment_method' => $this->lessonPlan ? $this->lessonPlan->payment_method : $this->payment_method,
+        ];
     }
 
     public function getPaymentUrlAttribute()

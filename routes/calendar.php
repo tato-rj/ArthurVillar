@@ -94,6 +94,14 @@ Route::prefix('lesson-plans')->name('lesson-plans.')->group(function() {
 	Route::prefix('{lessonPlan}')->group(function() {
 		Route::get('edit', 'LessonPlansController@edit')->name('edit');
 
+		Route::prefix('rescheduled/{originalDate}/{originalStartTime}')
+			->where(['originalDate' => '[0-9]{4}-[0-9]{2}-[0-9]{2}', 'originalStartTime' => '[0-9]{2}:[0-9]{2}'])
+			->name('rescheduled.')
+			->group(function () {
+				Route::get('edit', 'ScheduleOverridesController@edit')->name('edit');
+				Route::patch('', 'ScheduleOverridesController@update')->name('update');
+			});
+
 		Route::post('duplicate', 'LessonPlansController@duplicate')->name('duplicate');
 
 		Route::patch('', 'LessonPlansController@update')->name('update');

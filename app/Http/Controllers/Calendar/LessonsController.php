@@ -81,7 +81,7 @@ class LessonsController extends Controller
         ]);
 
         if ($request->filled('single_lesson_plan_id')) {
-            $lesson = $this->lessonFromRequest($request, false);
+            $lesson = $this->lessonFromRequest($request);
             $lesson['model']->cancel(null);
 
             $payload = [
@@ -115,7 +115,7 @@ class LessonsController extends Controller
             $cancelFrom = $data['scheduled_date'] ?? $data['date'];
 
             DB::transaction(function () use ($request, $lessonPlan, $cancelFrom) {
-                $lesson = $this->lessonFromRequest($request, false);
+                $lesson = $this->lessonFromRequest($request);
                 $lesson['model']->cancel(null);
                 $lessonPlan->cancelFrom($cancelFrom);
             });
@@ -135,7 +135,7 @@ class LessonsController extends Controller
             $lessonPlan = LessonPlan::findOrFail($data['lesson_plan_id']);
 
             DB::transaction(function () use ($request, $lessonPlan) {
-                $lesson = $this->lessonFromRequest($request, false);
+                $lesson = $this->lessonFromRequest($request);
                 $lesson['model']->cancel(null);
                 $lessonPlan->cancelFrom($lessonPlan->starts_on);
             });
@@ -151,9 +151,12 @@ class LessonsController extends Controller
             return back()->with('success', 'All lessons in this plan were successfully canceled');
         }
 
-        $lesson = $this->lessonFromRequest($request, false);
+        $lesson = DB::transaction(function () use ($request, $data) {
+            $lesson = $this->lessonFromRequest($request);
+            $lesson['model']->cancel($data['canceled_by']);
 
-        $lesson['model']->cancel($data['canceled_by']);
+            return $lesson;
+        });
 
         $payload = [
             'lesson_id' => $lesson['model']->id,
@@ -204,14 +207,14 @@ class LessonsController extends Controller
             return response()->json($payload);
         }
 
-        if (! empty($data['schedule_override_id'])) {
+        $lesson = empty($data['lesson_id']) ? null : Lesson::findOrFail($data['lesson_id']);
+        if (! empty($data['schedule_override_id']) && (! $lesson || $lesson->canceled_at || ! $lesson->paid_at)) {
             $payload['schedule_override_deleted'] = ScheduleOverride::whereKey($data['schedule_override_id'])->delete() > 0;
         }
 
-        if (! empty($data['lesson_id'])) {
-            $lesson = Lesson::findOrFail($data['lesson_id']);
-
+        if ($lesson) {
             if ($lesson->canceled_at || ! $lesson->paid_at) {
+                $terms = $lesson->paymentTerms();
                 $lesson->delete();
 
                 $payload['lesson_reverted'] = true;
@@ -221,9 +224,7 @@ class LessonsController extends Controller
                 $payload['canceled_by'] = '';
                 $payload['edit_url'] = '';
                 $payload['payment_url'] = '';
-                $payload['fee_amount'] = $lesson->student?->payment_exempt
-                    ? null
-                    : ($lesson->lessonPlan ? $lesson->lessonPlan->netFeeAmount() : $lesson->fee_amount);
+                $payload['fee_amount'] = $terms['fee_amount'];
 
                 $singlePlan = $lesson->lesson_plan_id ? null : SingleLessonPlan::query()
                     ->where('student_id', $lesson->student_id)
@@ -249,9 +250,7 @@ class LessonsController extends Controller
                 $lesson->update([
                     'paid_at' => null,
                     'payment_method' => null,
-                    'fee_amount' => $lesson->student?->payment_exempt
-                        ? null
-                        : ($lesson->lessonPlan ? $lesson->lessonPlan->netFeeAmount() : $lesson->fee_amount),
+                    'fee_amount' => $lesson->paymentTerms()['fee_amount'],
                 ]);
 
                 $payload['lesson_reverted'] = true;
@@ -266,7 +265,7 @@ class LessonsController extends Controller
         return response()->json($payload);
     }
 
-    private function lessonFromRequest(Request $request, bool $deleteScheduleOverride = true)
+    private function lessonFromRequest(Request $request)
     {
         $data = $request->validate([
             'lesson_plan_id' => ['nullable', 'required_without:single_lesson_plan_id', 'exists:lesson_plans,id'],
@@ -283,29 +282,40 @@ class LessonsController extends Controller
             return $this->singleLessonFromRequest($data);
         }
 
-        return $this->recurringLessonFromRequest($data, $deleteScheduleOverride);
+        return $this->recurringLessonFromRequest($data);
     }
 
-    private function recurringLessonFromRequest(array $data, bool $deleteScheduleOverride = true)
+    private function recurringLessonFromRequest(array $data)
     {
-        $lessonPlan = LessonPlan::with(['student', 'location'])->findOrFail($data['lesson_plan_id']);
-        $startsAt = Carbon::createFromFormat('Y-m-d H:i', $data['date'].' '.$data['start']);
-        $endsAt = $data['end']
-            ? Carbon::createFromFormat('Y-m-d H:i', $data['date'].' '.$data['end'])
-            : $startsAt->copy()->addMinutes($lessonPlan->duration_minutes);
+        $lessonPlan = LessonPlan::with(['student', 'location'])->lockForUpdate()->findOrFail($data['lesson_plan_id']);
         $scheduledDate = $data['scheduled_date'] ?? $data['date'];
         $scheduledStartTime = $data['scheduled_start_time'] ?? $data['start'];
+        $override = $lessonPlan->scheduleOverrides()
+            ->where('original_date', $scheduledDate)
+            ->where('original_start_time', $scheduledStartTime)
+            ->first()
+            ?->setRelation('lessonPlan', $lessonPlan);
 
-        $lesson = Lesson::firstOrCreate([
-            'lesson_plan_id' => $lessonPlan->id,
-            'starts_at' => $startsAt,
-        ], [
-            'student_id' => $lessonPlan->student_id,
-            'scheduled_date' => $scheduledDate,
-            'scheduled_start_time' => $scheduledStartTime,
-            'ends_at' => $endsAt,
-            'fee_amount' => $lessonPlan->student?->payment_exempt ? null : $lessonPlan->netFeeAmount(),
-        ]);
+        $date = $override?->new_date ?? $data['date'];
+        $start = $override?->new_start_time ?? $data['start'];
+        $startsAt = Carbon::createFromFormat('!Y-m-d H:i', $date.' '.$start);
+        $endsAt = ! $override && ! empty($data['end'])
+            ? Carbon::createFromFormat('!Y-m-d H:i', $date.' '.$data['end'])
+            : $startsAt->copy()->addMinutes($override?->duration_minutes ?? $lessonPlan->duration_minutes);
+        $details = $override?->lessonDetails();
+        $paymentExempt = (bool) $lessonPlan->student?->payment_exempt;
+
+        $lesson = $lessonPlan->lessonsForScheduledOccurrence($scheduledDate, $scheduledStartTime)->first()
+            ?? $lessonPlan->lessons()->create([
+                'student_id' => $lessonPlan->student_id,
+                'scheduled_date' => $scheduledDate,
+                'scheduled_start_time' => $scheduledStartTime,
+                'starts_at' => $startsAt,
+                'ends_at' => $endsAt,
+                'fee_amount' => $paymentExempt ? null : ($override ? $override->netFeeAmount() : $lessonPlan->netFeeAmount()),
+                'payment_method' => $paymentExempt ? null : ($details['payment_method'] ?? null),
+                'notes' => $details['notes'] ?? null,
+            ]);
 
         if (! $lesson->scheduled_date || ! $lesson->scheduled_start_time) {
             $lesson->update([
@@ -316,17 +326,9 @@ class LessonsController extends Controller
 
         $lesson->setRelation('student', $lessonPlan->student);
         $lesson->setRelation('lessonPlan', $lessonPlan);
-        $scheduleOverrideDeleted = false;
-
-        if ($deleteScheduleOverride && ! empty($data['schedule_override_id'])) {
-            $scheduleOverrideDeleted = ScheduleOverride::where('lesson_plan_id', $lessonPlan->id)
-                ->whereKey($data['schedule_override_id'])
-                ->delete() > 0;
-        }
-
         return [
             'model' => $lesson,
-            'schedule_override_deleted' => $scheduleOverrideDeleted,
+            'schedule_override_deleted' => false,
         ];
     }
 
@@ -400,22 +402,39 @@ class LessonsController extends Controller
             ? ($data['canceled_at'] ?? $lesson->canceled_at ?? now())
             : null;
 
-        $lesson->update([
-            'scheduled_date' => $data['date'],
-            'scheduled_start_time' => $data['start_time'],
-            'starts_at' => $startsAt,
-            'ends_at' => $startsAt->copy()->addMinutes((int) $data['duration_minutes']),
-            'fee_amount' => $lesson->student?->payment_exempt
-                ? null
-                : $this->feeAmount($data['fee_amount'] ?? null),
-            'paid_at' => $paidAt,
-            'payment_method' => $lesson->student?->payment_exempt
-                ? null
-                : ($data['payment_method'] ?? null),
-            'canceled_at' => $canceledAt,
-            'canceled_by' => $status === 'canceled' ? ($data['canceled_by'] ?? null) : null,
-            'notes' => $data['notes'] ?? null,
-        ]);
+        DB::transaction(function () use ($lesson, $data, $startsAt, $status, $paidAt, $canceledAt) {
+            if ($lesson->lesson_plan_id) {
+                $plan = LessonPlan::query()->lockForUpdate()->find($lesson->lesson_plan_id);
+                $lesson->setRelation('lessonPlan', $plan);
+            }
+
+            $override = $lesson->scheduleOverride();
+            $lesson->update([
+                'scheduled_date' => $override?->original_date ?? $data['date'],
+                'scheduled_start_time' => $override?->original_start_time ?? $data['start_time'],
+                'starts_at' => $startsAt,
+                'ends_at' => $startsAt->copy()->addMinutes((int) $data['duration_minutes']),
+                'fee_amount' => $lesson->student?->payment_exempt
+                    ? null
+                    : $this->feeAmount($data['fee_amount'] ?? null),
+                'paid_at' => $paidAt,
+                'payment_method' => $lesson->student?->payment_exempt
+                    ? null
+                    : ($data['payment_method'] ?? null),
+                'canceled_at' => $canceledAt,
+                'canceled_by' => $status === 'canceled' ? ($data['canceled_by'] ?? null) : null,
+                'notes' => $data['notes'] ?? null,
+            ]);
+
+            // The calendar uses 15-minute slots. The record can contain an exact actual duration.
+            $override?->update([
+                'new_date' => $data['date'],
+                'new_start_time' => $data['start_time'],
+                'duration_minutes' => $data['duration_minutes'] % 15 === 0
+                    ? $data['duration_minutes']
+                    : $override->duration_minutes,
+            ]);
+        });
 
         return back()->with('success', 'The lesson record was successfully updated');
     }

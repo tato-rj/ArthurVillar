@@ -126,6 +126,7 @@ class LessonPlansController extends Controller
 
         try {
             $result = DB::transaction(function () use ($lessonPlan, $request, $isPermanent) {
+                $lessonPlan = LessonPlan::query()->lockForUpdate()->findOrFail($lessonPlan->id);
                 $attributes = $request->only([
                     'original_date',
                     'original_start_time',

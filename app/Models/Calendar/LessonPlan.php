@@ -711,7 +711,7 @@ class LessonPlan extends BaseModel
         }
     }
 
-    private function lessonsForScheduledOccurrence($date, $startTime)
+    public function lessonsForScheduledOccurrence($date, $startTime)
     {
         return $this->lessons()
             ->where(function ($query) use ($date, $startTime) {

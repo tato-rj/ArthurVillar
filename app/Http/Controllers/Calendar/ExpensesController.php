@@ -133,12 +133,12 @@ class ExpensesController extends Controller
         return $lessonPlans
             ->concat($singleLessonPlans)
             ->sum(function ($plan) use ($simulation) {
-                $multiplier = $this->incomeSimulationMultiplier($plan, $simulation);
-
-                return collect($plan['occurrences'] ?? [])->sum(function ($occurrence) use ($multiplier) {
+                return collect($plan['occurrences'] ?? [])->sum(function ($occurrence) use ($plan, $simulation) {
                     if (($occurrence['lesson_status'] ?? '') === 'canceled' || ($occurrence['calendar_status'] ?? '') === 'canceled') {
                         return 0;
                     }
+
+                    $multiplier = $this->incomeSimulationMultiplier($occurrence + $plan, $simulation);
 
                     return (int) round(((int) ($occurrence['fee_amount'] ?? 0)) * $multiplier);
                 });

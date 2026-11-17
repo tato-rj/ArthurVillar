@@ -43,8 +43,6 @@ class CalendarTravelOrigin
     private function appendLessons($candidates, $lessonPlans, CarbonImmutable $targetAt, ?array $home): void
     {
         foreach ($lessonPlans as $lessonPlan) {
-            $location = $this->locationPayload($lessonPlan['location'] ?? [], $home);
-
             foreach ($lessonPlan['occurrences'] ?? [] as $occurrence) {
                 if (($occurrence['calendar_status'] ?? $occurrence['lesson_status'] ?? null) === 'canceled') {
                     continue;
@@ -56,6 +54,7 @@ class CalendarTravelOrigin
                     continue;
                 }
 
+                $location = $this->locationPayload($occurrence['location'] ?? $lessonPlan['location'] ?? [], $home);
                 $candidates->push([
                     'address' => $location['address'] ?? ($home['address'] ?? null),
                     'label' => $location['label'] ?? ($home['label'] ?? 'Home'),

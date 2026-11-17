@@ -8711,7 +8711,7 @@ var updateLessonEventState = function updateLessonEventState(event, payload) {
     return String(candidate.id) === String(event.singleLessonPlanId || event.lessonPlanId);
   });
   var occurrence = plan && Array.isArray(plan.occurrences) ? plan.occurrences.find(function (candidate) {
-    return candidate.date === event.date && normalizeTime(candidate.start || plan.start_time) === event.start;
+    return (candidate.original_date || candidate.date) === (event.originalDate || event.date) && normalizeTime(candidate.original_start_time || candidate.start || plan.start_time) === (event.originalStartTime || event.start);
   }) : null;
   event.lessonStatus = payload.status;
   if (payload.schedule_override_deleted) event.scheduleOverrideId = '';
@@ -8892,7 +8892,7 @@ var revertLessonAction = function revertLessonAction(button, refreshCalendar) {
     early_payment_id: modal.dataset.earlyPaymentId
   } : {
     lesson_id: modal.dataset.lessonId || '',
-    schedule_override_id: modal.dataset.scheduleOverrideId || '',
+    schedule_override_id: modal.dataset.lessonStatus === 'paid' ? '' : modal.dataset.scheduleOverrideId || '',
     early_payment_id: ''
   }, 'Unable to revert lesson action.');
 };
@@ -9600,17 +9600,14 @@ var lessonMatchesStudentSearch = function lessonMatchesStudentSearch(lesson) {
   var fullName = [firstName, lastName].filter(Boolean).join(' ');
   return firstName.includes(query) || lastName.includes(query) || fullName.includes(query);
 };
-var lessonMatchesLocationFilter = function lessonMatchesLocationFilter(lesson) {
-  if (!isLocationFilterActive()) {
-    return true;
-  }
-  return locationIsSelected(lesson.location_id);
+var lessonMatchesLocationFilter = function lessonMatchesLocationFilter(locationId) {
+  return !isLocationFilterActive() || locationIsSelected(locationId);
 };
 var getFilteredPlannedLessons = function getFilteredPlannedLessons() {
   return state.plannedLessons.concat(state.singleLessonPlans).filter(function (lesson) {
     var type = lesson.type === 'single-lesson-plan' ? 'single' : 'recurring';
     return state.selectedEventTypes.includes(type) || state.selectedEventTypes.includes('canceled');
-  }).filter(lessonMatchesStudentSearch).filter(lessonMatchesLocationFilter);
+  }).filter(lessonMatchesStudentSearch);
 };
 var lessonOccurrenceMatchesEventTypeFilter = function lessonOccurrenceMatchesEventTypeFilter(type, status) {
   if (status === 'canceled') {
@@ -9630,20 +9627,24 @@ var getPlannedLessonEvents = function getPlannedLessonEvents(range) {
     var isSingleLessonPlan = lesson.type === 'single-lesson-plan';
     if (Array.isArray(lesson.occurrences)) {
       lesson.occurrences.forEach(function (occurrence) {
-        var _ref, _occurrence$fee_amoun;
+        var _occurrence$location_, _occurrence$location, _ref, _occurrence$fee_amoun, _lesson$student;
         var dateString = occurrence.date || '';
         var lessonStatus = occurrence.lesson_status || 'unconfirmed';
-        if (!dateString || !lessonOccurrenceMatchesEventTypeFilter(isSingleLessonPlan ? 'single' : 'recurring', lessonStatus)) {
+        var locationId = (_occurrence$location_ = occurrence.location_id) !== null && _occurrence$location_ !== void 0 ? _occurrence$location_ : lesson.location_id;
+        if (!dateString || !lessonMatchesLocationFilter(locationId) || !lessonOccurrenceMatchesEventTypeFilter(isSingleLessonPlan ? 'single' : 'recurring', lessonStatus)) {
           return;
         }
         var start = normalizeTime(occurrence.start || lesson.start_time);
+        var originalDate = occurrence.original_date || dateString;
+        var originalStartTime = occurrence.original_start_time || start;
+        var location = (_occurrence$location = occurrence.location) !== null && _occurrence$location !== void 0 ? _occurrence$location : lesson.location;
         events.push({
           title: getStudentName(lesson.student),
           date: dateString,
           start: start,
           end: normalizeTime(occurrence.end || addMinutesToTime(lesson.start_time, lesson.duration_minutes)),
           color: '#2fbb7f',
-          guid: "".concat(isSingleLessonPlan ? 'single-lesson-plan' : 'planned-lesson', "-").concat(lesson.id, "-").concat(dateString, "-").concat(start),
+          guid: "".concat(isSingleLessonPlan ? 'single-lesson-plan' : 'planned-lesson', "-").concat(lesson.id, "-").concat(originalDate, "-").concat(originalStartTime),
           lessonPlanId: isSingleLessonPlan ? '' : lesson.id,
           singleLessonPlanId: occurrence.single_lesson_plan_id || (isSingleLessonPlan ? lesson.id : ''),
           lessonId: occurrence.lesson_id || '',
@@ -9653,25 +9654,25 @@ var getPlannedLessonEvents = function getPlannedLessonEvents(range) {
           lessonPlanEndsOn: isSingleLessonPlan ? '' : lesson.ends_on || '',
           lessonPlanOccurrenceCount: isSingleLessonPlan ? null : lesson.projected_occurrence_count,
           isSingleLessonPlan: isSingleLessonPlan,
-          originalDate: occurrence.original_date || dateString,
-          originalStartTime: occurrence.original_start_time || start,
+          originalDate: originalDate,
+          originalStartTime: originalStartTime,
           lessonStatus: lessonStatus,
           calendarStatus: occurrence.calendar_status || lessonStatus,
           'data-lesson-status': occurrence.calendar_status || lessonStatus,
           feeAmount: lesson.student && lesson.student.payment_exempt ? 0 : (_ref = (_occurrence$fee_amoun = occurrence.fee_amount) !== null && _occurrence$fee_amoun !== void 0 ? _occurrence$fee_amoun : lesson.fee_amount) !== null && _ref !== void 0 ? _ref : 0,
           paymentExempt: Boolean(lesson.student && lesson.student.payment_exempt),
           studentId: lesson.student_id || lesson.student && lesson.student.id || '',
-          paymentMethod: lesson.payment_method || lesson.student && lesson.student.payment_method || '',
-          notes: lesson.notes || '',
-          locationId: normalizeLocationId(lesson.location_id),
-          locationName: lesson.location && lesson.location.name ? lesson.location.name : '',
-          location: lesson.location || null,
+          paymentMethod: 'payment_method' in occurrence ? occurrence.payment_method || '' : lesson.payment_method || ((_lesson$student = lesson.student) === null || _lesson$student === void 0 ? void 0 : _lesson$student.payment_method) || '',
+          notes: ('notes' in occurrence ? occurrence.notes : lesson.notes) || '',
+          locationId: normalizeLocationId(locationId),
+          locationName: (location === null || location === void 0 ? void 0 : location.name) || '',
+          location: location || null,
           canceledBy: occurrence.canceled_by || '',
-          calendarEditUrl: getLessonPlanModalEditUrl(isSingleLessonPlan, lesson.id),
+          calendarEditUrl: occurrence.occurrence_edit_url || getLessonPlanModalEditUrl(isSingleLessonPlan, lesson.id),
           lessonEditUrl: occurrence.lesson_edit_url || '',
           paymentUrl: occurrence.lesson_payment_url || occurrence.payment_url || '',
-          meetingUrl: occurrence.meeting_url || lesson.meeting_url || '',
-          notesUrl: occurrence.notes_url || lesson.notes_url || '',
+          meetingUrl: ('meeting_url' in occurrence ? occurrence.meeting_url : lesson.meeting_url) || '',
+          notesUrl: ('notes_url' in occurrence ? occurrence.notes_url : lesson.notes_url) || '',
           travelMode: occurrence.travel_mode || 'TRANSIT',
           studentFirstName: getStudentFirstName(lesson.student),
           studentDateOfBirth: lesson.student && lesson.student.date_of_birth || '',
@@ -9682,7 +9683,7 @@ var getPlannedLessonEvents = function getPlannedLessonEvents(range) {
       });
       return;
     }
-    if (isSingleLessonPlan) {
+    if (isSingleLessonPlan || !lessonMatchesLocationFilter(lesson.location_id)) {
       return;
     }
     var startsOn = parseNullableDateString(lesson.starts_on);
@@ -9998,6 +9999,12 @@ var initializeCalendarEditModal = function initializeCalendarEditModal(modal) {
   }
   initializeSingleLessonPlanForms(modal);
   initializeLessonPlanForms(modal);
+  var overrideForm = modal.querySelector('[data-schedule-override-form]');
+  if (overrideForm) {
+    overrideForm.querySelector('[name="location_id"]').addEventListener('change', function () {
+      setLessonPlanOnlineFields(overrideForm, false);
+    });
+  }
   if (typeof window.initializeEventTimeFields === 'function') {
     window.initializeEventTimeFields(modal);
   }
@@ -10051,9 +10058,13 @@ var initializeCalendarEditModal = function initializeCalendarEditModal(modal) {
 };
 var loadCalendarEditModal = function loadCalendarEditModal(button, sourceModal, container) {
   var url = button ? button.dataset.url : '';
+  var lessonGuid = (sourceModal === null || sourceModal === void 0 ? void 0 : sourceModal.dataset.eventModalType) === 'lesson' ? sourceModal.dataset.eventGuid : '';
   if (!button || !url || !container) {
     return;
   }
+  var isCurrentEvent = function isCurrentEvent() {
+    return !lessonGuid || sourceModal.dataset.eventGuid === lessonGuid;
+  };
   button.disabled = true;
   fetchCalendarResource(url, {
     headers: {
@@ -10066,6 +10077,7 @@ var loadCalendarEditModal = function loadCalendarEditModal(button, sourceModal, 
     }
     return response.text();
   }).then(function (html) {
+    if (!isCurrentEvent()) return;
     var didShow = false;
     container.innerHTML = html;
     var editModal = container.querySelector('.modal');
@@ -10096,6 +10108,7 @@ var loadCalendarEditModal = function loadCalendarEditModal(button, sourceModal, 
     showEditModal();
   })["catch"](function (error) {
     console.error(error);
+    if (!isCurrentEvent()) return;
     button.disabled = false;
     if (sourceModal && sourceModal.dataset.eventModalType === 'lesson') {
       showLessonActionError(sourceModal, error.message);
@@ -10106,9 +10119,10 @@ var loadCalendarEditModal = function loadCalendarEditModal(button, sourceModal, 
 };
 var submitCalendarEditForm = function submitCalendarEditForm(form, refreshCalendar) {
   var modal = form ? form.closest('.modal') : null;
-  if (!form || !form.action || !modal) {
+  if (!form || !form.action || !modal || form.dataset.calendarEditSubmitting === 'true') {
     return;
   }
+  form.dataset.calendarEditSubmitting = 'true';
   setFormSubmitting(form, true);
   requestJson(form.action, {
     method: 'POST',
@@ -10125,6 +10139,7 @@ var submitCalendarEditForm = function submitCalendarEditForm(form, refreshCalend
     console.error(error);
     showCalendarEditError(modal, error.message);
   })["finally"](function () {
+    delete form.dataset.calendarEditSubmitting;
     setFormSubmitting(form, false);
   });
 };
@@ -10901,6 +10916,7 @@ document.addEventListener('DOMContentLoaded', function () {
   var scheduleHeaderRenderTimer = null;
   var scheduleHoldEdgeNavigationDelay = 800;
   var scheduleHoldTouchEdgeInset = 48;
+  var scheduleHoldScrollEdgeInset = 48;
   var isScheduleHoldNavigationSuppressed = function isScheduleHoldNavigationSuppressed() {
     return Boolean(scheduleItemHold && scheduleItemHold.active) || Date.now() < scheduleHoldNavigationSuppressedUntil;
   };
@@ -12261,6 +12277,70 @@ document.addEventListener('DOMContentLoaded', function () {
       updateScheduleHoldTime(hold);
     });
   };
+  var getScheduleHoldTimeBounds = function getScheduleHoldTimeBounds(schedule) {
+    var _schedule$getBounding = schedule.getBoundingClientRect(),
+      top = _schedule$getBounding.top,
+      left = _schedule$getBounding.left,
+      right = _schedule$getBounding.right;
+    var header = schedule.querySelector('thead tr:last-child td');
+    var scrollportTop = top + schedule.clientTop;
+    return {
+      left: left,
+      right: right,
+      top: Math.ceil(Math.max(0, scrollportTop, header ? header.getBoundingClientRect().bottom : 0)),
+      bottom: Math.ceil(Math.min(window.innerHeight, scrollportTop + schedule.clientHeight)) - 1
+    };
+  };
+  var moveScheduleHoldClone = function moveScheduleHoldClone(hold) {
+    var bounds = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : getScheduleHoldTimeBounds(hold.schedule);
+    if (bounds.top > bounds.bottom) {
+      return;
+    }
+    document.dispatchEvent(new MouseEvent('mousemove', {
+      bubbles: true,
+      cancelable: true,
+      view: window,
+      button: 0,
+      buttons: 1,
+      clientX: hold.lastX,
+      clientY: Math.max(bounds.top, Math.min(bounds.bottom, hold.lastY))
+    }));
+    queueScheduleHoldTimeUpdate(hold);
+  };
+  var queueScheduleHoldEdgeScroll = function queueScheduleHoldEdgeScroll(hold) {
+    if (hold.edgeScrollFrame !== null) {
+      return;
+    }
+    var previousTime = null;
+    var _scroll = function scroll(time) {
+      hold.edgeScrollFrame = null;
+      var schedule = hold.schedule;
+      if (hold !== scheduleItemHold || !hold.active || hold.edgeNavigating || hold.nativeDragFinished || !schedule.isConnected) {
+        return;
+      }
+      var bounds = getScheduleHoldTimeBounds(schedule);
+      var inset = Math.min(scheduleHoldScrollEdgeInset, (bounds.bottom - bounds.top) / 2);
+      var distanceFromEdge = Math.min(hold.lastY - bounds.top, bounds.bottom - hold.lastY);
+      if (hold.lastX < bounds.left || hold.lastX >= bounds.right || inset <= 0 || distanceFromEdge >= inset) {
+        return;
+      }
+      var direction = hold.lastY < (bounds.top + bounds.bottom) / 2 ? -1 : 1;
+      var strength = 1 - Math.max(0, distanceFromEdge) / inset;
+      var elapsed = previousTime === null ? 16 : Math.min(time - previousTime, 32);
+      var scrollStep = Math.max(1, Math.round((180 + 540 * strength) * elapsed / 1000));
+      var previousScrollTop = schedule.scrollTop;
+      schedule.scrollTop += direction * scrollStep;
+      if (schedule.scrollTop === previousScrollTop) {
+        return;
+      }
+
+      // The time slot under the pointer changes even when the pointer stays still.
+      moveScheduleHoldClone(hold, bounds);
+      previousTime = time;
+      hold.edgeScrollFrame = window.requestAnimationFrame(_scroll);
+    };
+    hold.edgeScrollFrame = window.requestAnimationFrame(_scroll);
+  };
   var stopScheduleHoldEdgeNavigation = function stopScheduleHoldEdgeNavigation(hold) {
     if (!hold) {
       return;
@@ -12353,16 +12433,7 @@ document.addEventListener('DOMContentLoaded', function () {
       clientX: hold.lastX,
       clientY: hold.lastY
     }));
-    document.dispatchEvent(new MouseEvent('mousemove', {
-      bubbles: true,
-      cancelable: true,
-      view: window,
-      button: 0,
-      buttons: 1,
-      clientX: hold.lastX,
-      clientY: hold.lastY
-    }));
-    queueScheduleHoldTimeUpdate(hold);
+    moveScheduleHoldClone(hold);
     return true;
   };
   var navigateScheduleHoldAtEdge = function navigateScheduleHoldAtEdge(hold, direction) {
@@ -12413,6 +12484,7 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
       }
       updateScheduleHoldEdgeNavigation(hold);
+      queueScheduleHoldEdgeScroll(hold);
     });
   };
   var updateScheduleHoldEdgeNavigation = function updateScheduleHoldEdgeNavigation(hold) {
@@ -12667,6 +12739,9 @@ document.addEventListener('DOMContentLoaded', function () {
       return;
     }
     stopScheduleHoldEdgeNavigation(scheduleItemHold);
+    if (scheduleItemHold.edgeScrollFrame !== null) {
+      window.cancelAnimationFrame(scheduleItemHold.edgeScrollFrame);
+    }
     scheduleItemHold.edgeNavigating = false;
     finishScheduleNativeDrag(scheduleItemHold);
     window.clearTimeout(scheduleItemHold.timer);
@@ -12734,6 +12809,7 @@ document.addEventListener('DOMContentLoaded', function () {
       scheduleTouchAction: '',
       scheduleOverscrollBehavior: '',
       scheduleOverflow: '',
+      edgeScrollFrame: null,
       edgeNavigationDirection: 0,
       edgeNavigationTimer: null,
       edgeNavigating: false,
@@ -12803,18 +12879,14 @@ document.addEventListener('DOMContentLoaded', function () {
       if (scheduleItemHold.pointerType === 'mouse') {
         setScheduleHoldCopyMode(scheduleItemHold, Boolean(scheduleCopyModifierPressed || e.metaKey));
       }
-      if (scheduleItemHold.pointerType !== 'mouse') {
-        document.dispatchEvent(new MouseEvent('mousemove', {
-          bubbles: true,
-          cancelable: true,
-          view: window,
-          button: 0,
-          buttons: 1,
-          clientX: e.clientX,
-          clientY: e.clientY
-        }));
+      if (!scheduleItemHold.edgeNavigating) {
+        if (scheduleItemHold.pointerType === 'mouse') {
+          queueScheduleHoldTimeUpdate(scheduleItemHold);
+        } else {
+          moveScheduleHoldClone(scheduleItemHold);
+        }
+        queueScheduleHoldEdgeScroll(scheduleItemHold);
       }
-      queueScheduleHoldTimeUpdate(scheduleItemHold);
       updateScheduleHoldEdgeNavigation(scheduleItemHold);
       return;
     }
@@ -12824,6 +12896,18 @@ document.addEventListener('DOMContentLoaded', function () {
   }, {
     passive: false
   });
+  document.addEventListener('mousemove', function (e) {
+    var hold = scheduleItemHold;
+    if (!e.isTrusted || !hold || !hold.active || hold.edgeNavigating || hold.nativeDragFinished) {
+      return;
+    }
+    var bounds = getScheduleHoldTimeBounds(hold.schedule);
+    if (e.clientY < bounds.top || e.clientY > bounds.bottom) {
+      // Keep CalendarJS from selecting a time slot behind the sticky header.
+      e.stopImmediatePropagation();
+      moveScheduleHoldClone(hold, bounds);
+    }
+  }, true);
   document.addEventListener('pointerup', function (e) {
     if (scheduleItemHold && scheduleItemHold.pointerId === e.pointerId && scheduleItemHold.active && scheduleItemHold.edgeNavigating) {
       e.preventDefault();

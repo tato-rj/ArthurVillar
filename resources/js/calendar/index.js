@@ -5011,7 +5011,8 @@ const updateLessonEventState = function(event, payload) {
         return String(candidate.id) === String(event.singleLessonPlanId || event.lessonPlanId);
     });
     const occurrence = plan && Array.isArray(plan.occurrences) ? plan.occurrences.find(function(candidate) {
-        return candidate.date === event.date && normalizeTime(candidate.start || plan.start_time) === event.start;
+        return (candidate.original_date || candidate.date) === (event.originalDate || event.date)
+            && normalizeTime(candidate.original_start_time || candidate.start || plan.start_time) === (event.originalStartTime || event.start);
     }) : null;
 
     event.lessonStatus = payload.status;
@@ -5218,7 +5219,7 @@ const revertLessonAction = function(button, refreshCalendar) {
         early_payment_id: modal.dataset.earlyPaymentId,
     } : {
         lesson_id: modal.dataset.lessonId || '',
-        schedule_override_id: modal.dataset.scheduleOverrideId || '',
+        schedule_override_id: modal.dataset.lessonStatus === 'paid' ? '' : (modal.dataset.scheduleOverrideId || ''),
         early_payment_id: '',
     }, 'Unable to revert lesson action.');
 };
@@ -6184,12 +6185,8 @@ const lessonMatchesStudentSearch = function(lesson) {
     return firstName.includes(query) || lastName.includes(query) || fullName.includes(query);
 };
 
-const lessonMatchesLocationFilter = function(lesson) {
-    if (!isLocationFilterActive()) {
-        return true;
-    }
-
-    return locationIsSelected(lesson.location_id);
+const lessonMatchesLocationFilter = function(locationId) {
+    return !isLocationFilterActive() || locationIsSelected(locationId);
 };
 
 const getFilteredPlannedLessons = function() {
@@ -6199,8 +6196,7 @@ const getFilteredPlannedLessons = function() {
 
             return state.selectedEventTypes.includes(type) || state.selectedEventTypes.includes('canceled');
         })
-        .filter(lessonMatchesStudentSearch)
-        .filter(lessonMatchesLocationFilter);
+        .filter(lessonMatchesStudentSearch);
 };
 
 const lessonOccurrenceMatchesEventTypeFilter = function(type, status) {
@@ -6229,12 +6225,17 @@ const getPlannedLessonEvents = function(range) {
             lesson.occurrences.forEach(function(occurrence) {
                 const dateString = occurrence.date || '';
                 const lessonStatus = occurrence.lesson_status || 'unconfirmed';
+                const locationId = occurrence.location_id ?? lesson.location_id;
 
-                if (!dateString || !lessonOccurrenceMatchesEventTypeFilter(isSingleLessonPlan ? 'single' : 'recurring', lessonStatus)) {
+                if (!dateString || !lessonMatchesLocationFilter(locationId)
+                    || !lessonOccurrenceMatchesEventTypeFilter(isSingleLessonPlan ? 'single' : 'recurring', lessonStatus)) {
                     return;
                 }
 
                 const start = normalizeTime(occurrence.start || lesson.start_time);
+                const originalDate = occurrence.original_date || dateString;
+                const originalStartTime = occurrence.original_start_time || start;
+                const location = occurrence.location ?? lesson.location;
 
                 events.push({
                     title: getStudentName(lesson.student),
@@ -6242,7 +6243,7 @@ const getPlannedLessonEvents = function(range) {
                     start,
                     end: normalizeTime(occurrence.end || addMinutesToTime(lesson.start_time, lesson.duration_minutes)),
                     color: '#2fbb7f',
-                    guid: `${isSingleLessonPlan ? 'single-lesson-plan' : 'planned-lesson'}-${lesson.id}-${dateString}-${start}`,
+                    guid: `${isSingleLessonPlan ? 'single-lesson-plan' : 'planned-lesson'}-${lesson.id}-${originalDate}-${originalStartTime}`,
                     lessonPlanId: isSingleLessonPlan ? '' : lesson.id,
                     singleLessonPlanId: occurrence.single_lesson_plan_id || (isSingleLessonPlan ? lesson.id : ''),
                     lessonId: occurrence.lesson_id || '',
@@ -6252,25 +6253,27 @@ const getPlannedLessonEvents = function(range) {
                     lessonPlanEndsOn: isSingleLessonPlan ? '' : (lesson.ends_on || ''),
                     lessonPlanOccurrenceCount: isSingleLessonPlan ? null : lesson.projected_occurrence_count,
                     isSingleLessonPlan,
-                    originalDate: occurrence.original_date || dateString,
-                    originalStartTime: occurrence.original_start_time || start,
+                    originalDate,
+                    originalStartTime,
                     lessonStatus,
                     calendarStatus: occurrence.calendar_status || lessonStatus,
                     'data-lesson-status': occurrence.calendar_status || lessonStatus,
                     feeAmount: lesson.student && lesson.student.payment_exempt ? 0 : (occurrence.fee_amount ?? lesson.fee_amount ?? 0),
                     paymentExempt: Boolean(lesson.student && lesson.student.payment_exempt),
                     studentId: lesson.student_id || (lesson.student && lesson.student.id) || '',
-                    paymentMethod: lesson.payment_method || (lesson.student && lesson.student.payment_method) || '',
-                    notes: lesson.notes || '',
-                    locationId: normalizeLocationId(lesson.location_id),
-                    locationName: lesson.location && lesson.location.name ? lesson.location.name : '',
-                    location: lesson.location || null,
+                    paymentMethod: 'payment_method' in occurrence
+                        ? (occurrence.payment_method || '')
+                        : (lesson.payment_method || lesson.student?.payment_method || ''),
+                    notes: ('notes' in occurrence ? occurrence.notes : lesson.notes) || '',
+                    locationId: normalizeLocationId(locationId),
+                    locationName: location?.name || '',
+                    location: location || null,
                     canceledBy: occurrence.canceled_by || '',
-                    calendarEditUrl: getLessonPlanModalEditUrl(isSingleLessonPlan, lesson.id),
+                    calendarEditUrl: occurrence.occurrence_edit_url || getLessonPlanModalEditUrl(isSingleLessonPlan, lesson.id),
                     lessonEditUrl: occurrence.lesson_edit_url || '',
                     paymentUrl: occurrence.lesson_payment_url || occurrence.payment_url || '',
-                    meetingUrl: occurrence.meeting_url || lesson.meeting_url || '',
-                    notesUrl: occurrence.notes_url || lesson.notes_url || '',
+                    meetingUrl: ('meeting_url' in occurrence ? occurrence.meeting_url : lesson.meeting_url) || '',
+                    notesUrl: ('notes_url' in occurrence ? occurrence.notes_url : lesson.notes_url) || '',
                     travelMode: occurrence.travel_mode || 'TRANSIT',
                     studentFirstName: getStudentFirstName(lesson.student),
                     studentDateOfBirth: lesson.student && lesson.student.date_of_birth || '',
@@ -6283,7 +6286,7 @@ const getPlannedLessonEvents = function(range) {
             return;
         }
 
-        if (isSingleLessonPlan) {
+        if (isSingleLessonPlan || !lessonMatchesLocationFilter(lesson.location_id)) {
             return;
         }
 
@@ -6676,6 +6679,12 @@ const initializeCalendarEditModal = function(modal) {
 
     initializeSingleLessonPlanForms(modal);
     initializeLessonPlanForms(modal);
+    const overrideForm = modal.querySelector('[data-schedule-override-form]');
+    if (overrideForm) {
+        overrideForm.querySelector('[name="location_id"]').addEventListener('change', function() {
+            setLessonPlanOnlineFields(overrideForm, false);
+        });
+    }
     if (typeof window.initializeEventTimeFields === 'function') {
         window.initializeEventTimeFields(modal);
     }
@@ -6746,10 +6755,15 @@ const initializeCalendarEditModal = function(modal) {
 
 const loadCalendarEditModal = function(button, sourceModal, container) {
     const url = button ? button.dataset.url : '';
+    const lessonGuid = sourceModal?.dataset.eventModalType === 'lesson' ? sourceModal.dataset.eventGuid : '';
 
     if (!button || !url || !container) {
         return;
     }
+
+    const isCurrentEvent = function() {
+        return !lessonGuid || sourceModal.dataset.eventGuid === lessonGuid;
+    };
 
     button.disabled = true;
 
@@ -6767,6 +6781,7 @@ const loadCalendarEditModal = function(button, sourceModal, container) {
             return response.text();
         })
         .then(function(html) {
+            if (!isCurrentEvent()) return;
             let didShow = false;
 
             container.innerHTML = html;
@@ -6801,6 +6816,7 @@ const loadCalendarEditModal = function(button, sourceModal, container) {
         })
         .catch(function(error) {
             console.error(error);
+            if (!isCurrentEvent()) return;
             button.disabled = false;
 
             if (sourceModal && sourceModal.dataset.eventModalType === 'lesson') {
@@ -6814,10 +6830,11 @@ const loadCalendarEditModal = function(button, sourceModal, container) {
 const submitCalendarEditForm = function(form, refreshCalendar) {
     const modal = form ? form.closest('.modal') : null;
 
-    if (!form || !form.action || !modal) {
+    if (!form || !form.action || !modal || form.dataset.calendarEditSubmitting === 'true') {
         return;
     }
 
+    form.dataset.calendarEditSubmitting = 'true';
     setFormSubmitting(form, true);
 
     requestJson(form.action, {
@@ -6838,6 +6855,7 @@ const submitCalendarEditForm = function(form, refreshCalendar) {
             showCalendarEditError(modal, error.message);
         })
         .finally(function() {
+            delete form.dataset.calendarEditSubmitting;
             setFormSubmitting(form, false);
         });
 };
@@ -7813,6 +7831,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let scheduleHeaderRenderTimer = null;
     const scheduleHoldEdgeNavigationDelay = 800;
     const scheduleHoldTouchEdgeInset = 48;
+    const scheduleHoldScrollEdgeInset = 48;
 
     const isScheduleHoldNavigationSuppressed = function() {
         return Boolean(scheduleItemHold && scheduleItemHold.active)
@@ -9527,6 +9546,79 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     };
 
+    const getScheduleHoldTimeBounds = function(schedule) {
+        const { top, left, right } = schedule.getBoundingClientRect();
+        const header = schedule.querySelector('thead tr:last-child td');
+        const scrollportTop = top + schedule.clientTop;
+
+        return {
+            left,
+            right,
+            top: Math.ceil(Math.max(0, scrollportTop, header ? header.getBoundingClientRect().bottom : 0)),
+            bottom: Math.ceil(Math.min(window.innerHeight, scrollportTop + schedule.clientHeight)) - 1,
+        };
+    };
+
+    const moveScheduleHoldClone = function(hold, bounds = getScheduleHoldTimeBounds(hold.schedule)) {
+        if (bounds.top > bounds.bottom) {
+            return;
+        }
+
+        document.dispatchEvent(new MouseEvent('mousemove', {
+            bubbles: true,
+            cancelable: true,
+            view: window,
+            button: 0,
+            buttons: 1,
+            clientX: hold.lastX,
+            clientY: Math.max(bounds.top, Math.min(bounds.bottom, hold.lastY)),
+        }));
+        queueScheduleHoldTimeUpdate(hold);
+    };
+
+    const queueScheduleHoldEdgeScroll = function(hold) {
+        if (hold.edgeScrollFrame !== null) {
+            return;
+        }
+
+        let previousTime = null;
+        const scroll = function(time) {
+            hold.edgeScrollFrame = null;
+            const schedule = hold.schedule;
+
+            if (hold !== scheduleItemHold || !hold.active || hold.edgeNavigating
+                || hold.nativeDragFinished || !schedule.isConnected) {
+                return;
+            }
+
+            const bounds = getScheduleHoldTimeBounds(schedule);
+            const inset = Math.min(scheduleHoldScrollEdgeInset, (bounds.bottom - bounds.top) / 2);
+            const distanceFromEdge = Math.min(hold.lastY - bounds.top, bounds.bottom - hold.lastY);
+
+            if (hold.lastX < bounds.left || hold.lastX >= bounds.right || inset <= 0 || distanceFromEdge >= inset) {
+                return;
+            }
+
+            const direction = hold.lastY < (bounds.top + bounds.bottom) / 2 ? -1 : 1;
+            const strength = 1 - Math.max(0, distanceFromEdge) / inset;
+            const elapsed = previousTime === null ? 16 : Math.min(time - previousTime, 32);
+            const scrollStep = Math.max(1, Math.round((180 + 540 * strength) * elapsed / 1000));
+            const previousScrollTop = schedule.scrollTop;
+
+            schedule.scrollTop += direction * scrollStep;
+            if (schedule.scrollTop === previousScrollTop) {
+                return;
+            }
+
+            // The time slot under the pointer changes even when the pointer stays still.
+            moveScheduleHoldClone(hold, bounds);
+            previousTime = time;
+            hold.edgeScrollFrame = window.requestAnimationFrame(scroll);
+        };
+
+        hold.edgeScrollFrame = window.requestAnimationFrame(scroll);
+    };
+
     const stopScheduleHoldEdgeNavigation = function(hold) {
         if (!hold) {
             return;
@@ -9643,16 +9735,7 @@ document.addEventListener('DOMContentLoaded', function() {
             clientX: hold.lastX,
             clientY: hold.lastY,
         }));
-        document.dispatchEvent(new MouseEvent('mousemove', {
-            bubbles: true,
-            cancelable: true,
-            view: window,
-            button: 0,
-            buttons: 1,
-            clientX: hold.lastX,
-            clientY: hold.lastY,
-        }));
-        queueScheduleHoldTimeUpdate(hold);
+        moveScheduleHoldClone(hold);
 
         return true;
     };
@@ -9716,6 +9799,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             updateScheduleHoldEdgeNavigation(hold);
+            queueScheduleHoldEdgeScroll(hold);
         });
     };
 
@@ -10033,6 +10117,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         stopScheduleHoldEdgeNavigation(scheduleItemHold);
+        if (scheduleItemHold.edgeScrollFrame !== null) {
+            window.cancelAnimationFrame(scheduleItemHold.edgeScrollFrame);
+        }
         scheduleItemHold.edgeNavigating = false;
         finishScheduleNativeDrag(scheduleItemHold);
         window.clearTimeout(scheduleItemHold.timer);
@@ -10112,6 +10199,7 @@ document.addEventListener('DOMContentLoaded', function() {
             scheduleTouchAction: '',
             scheduleOverscrollBehavior: '',
             scheduleOverflow: '',
+            edgeScrollFrame: null,
             edgeNavigationDirection: 0,
             edgeNavigationTimer: null,
             edgeNavigating: false,
@@ -10191,18 +10279,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     Boolean(scheduleCopyModifierPressed || e.metaKey)
                 );
             }
-            if (scheduleItemHold.pointerType !== 'mouse') {
-                document.dispatchEvent(new MouseEvent('mousemove', {
-                    bubbles: true,
-                    cancelable: true,
-                    view: window,
-                    button: 0,
-                    buttons: 1,
-                    clientX: e.clientX,
-                    clientY: e.clientY,
-                }));
+            if (!scheduleItemHold.edgeNavigating) {
+                if (scheduleItemHold.pointerType === 'mouse') {
+                    queueScheduleHoldTimeUpdate(scheduleItemHold);
+                } else {
+                    moveScheduleHoldClone(scheduleItemHold);
+                }
+                queueScheduleHoldEdgeScroll(scheduleItemHold);
             }
-            queueScheduleHoldTimeUpdate(scheduleItemHold);
             updateScheduleHoldEdgeNavigation(scheduleItemHold);
             return;
         }
@@ -10211,6 +10295,21 @@ document.addEventListener('DOMContentLoaded', function() {
             clearScheduleItemHold(e.pointerId);
         }
     }, { passive: false });
+
+    document.addEventListener('mousemove', function(e) {
+        const hold = scheduleItemHold;
+
+        if (!e.isTrusted || !hold || !hold.active || hold.edgeNavigating || hold.nativeDragFinished) {
+            return;
+        }
+
+        const bounds = getScheduleHoldTimeBounds(hold.schedule);
+        if (e.clientY < bounds.top || e.clientY > bounds.bottom) {
+            // Keep CalendarJS from selecting a time slot behind the sticky header.
+            e.stopImmediatePropagation();
+            moveScheduleHoldClone(hold, bounds);
+        }
+    }, true);
 
     document.addEventListener('pointerup', function(e) {
         if (scheduleItemHold

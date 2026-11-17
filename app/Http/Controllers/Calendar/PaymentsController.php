@@ -3,14 +3,23 @@
 namespace App\Http\Controllers\Calendar;
 
 use App\Models\Calendar\Lesson;
+use App\Models\Calendar\LessonPlan;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 
 class PaymentsController extends Controller
 {
     public function store(Request $request, Lesson $lesson)
     {
-        $lesson->pay();
+        DB::transaction(function () use ($lesson) {
+            if ($lesson->lesson_plan_id) {
+                LessonPlan::query()->lockForUpdate()->find($lesson->lesson_plan_id);
+                $lesson->refresh();
+            }
+
+            $lesson->pay();
+        });
 
         return response()->json([
             'status' => $lesson->paymentStatus(),

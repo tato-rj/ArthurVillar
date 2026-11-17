@@ -48,6 +48,7 @@ function setup(fetch) {
         },
         require: () => ({}), console: { error() {} }, Intl, URL, setTimeout, clearTimeout,
     });
+    context.window.calendarLessonPlanEditUrlTemplate = '/lesson-plans/__lesson_plan__/edit';
     vm.runInContext(source + '\nglobalThis.api = {state, mutateLesson, updateLessonEventState, getPlannedLessonEvents, getVisibleCalendarEvents, canConfirmLessonAndPayment, storeTaughtLesson};', context);
     const api = context.api;
     const event = {
@@ -125,6 +126,29 @@ test('reverting early payment on a rescheduled occurrence retains rescheduled st
     assert.equal(h.refreshes(), 0);
 });
 
+test('overlapping recurring lessons keep their own edit targets, locations and status', () => {
+    const h = setup();
+    Object.assign(h.state.plannedLessons[0], { location_id: 3, location: { name: 'Studio' } });
+    Object.assign(h.occurrence, {
+        date: h.otherOccurrence.date,
+        original_date: '2026-07-08',
+        original_start_time: '15:30',
+        location_id: 4,
+        location: { name: 'Online' },
+        occurrence_edit_url: '/lesson-plans/1/rescheduled/2026-07-08/15:30/edit',
+    });
+    const [moved, regular] = h.getPlannedLessonEvents({});
+    assert.equal(moved.calendarEditUrl, h.occurrence.occurrence_edit_url);
+    assert.equal(regular.calendarEditUrl, '/lesson-plans/1/edit');
+    assert.equal(moved.locationName, 'Online');
+    assert.equal(regular.locationName, 'Studio');
+    assert.notEqual(moved.guid, regular.guid);
+
+    h.updateLessonEventState(moved, { status: 'unpaid' });
+    assert.equal(h.occurrence.lesson_status, 'unpaid');
+    assert.equal(h.otherOccurrence.lesson_status, 'unconfirmed');
+});
+
 test('cancel and undo honor event filters without removing or rebuilding calendar nodes', async () => {
     const h = setup();
     await h.mutateLesson(h.modal, async () => ({ status: 'canceled', lesson_id: 5 }), h.refresh);
@@ -188,7 +212,7 @@ test('a combined confirmation posts once and updates the paid occurrence in plac
             return { ok: true, json: async () => ({ status, lesson_id: 15, fee_amount: 5500,
                 edit_url: '/lessons/15', payment_url: '/lessons/15/payments' }) };
         });
-        h.event.date = h.occurrence.date = '2000-07-08';
+        h.event.originalDate = h.event.date = h.occurrence.date = '2000-07-08';
         Object.assign(h.modal.dataset, { lessonPlanId: '1', eventDate: h.event.date,
             eventStart: h.event.start, eventEnd: h.event.end });
         h.button.closest = () => h.modal;
