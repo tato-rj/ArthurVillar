@@ -6677,29 +6677,9 @@ const initializeCalendarEditModal = function(modal) {
         return;
     }
 
-    initializeSingleLessonPlanForms(modal);
     initializeLessonPlanForms(modal);
-    const overrideForm = modal.querySelector('[data-schedule-override-form]');
-    if (overrideForm) {
-        overrideForm.querySelector('[name="location_id"]').addEventListener('change', function() {
-            setLessonPlanOnlineFields(overrideForm, false);
-        });
-    }
     if (typeof window.initializeEventTimeFields === 'function') {
         window.initializeEventTimeFields(modal);
-    }
-
-    const currencyInputs = modal.querySelectorAll('[data-mask="usd"]');
-
-    if (currencyInputs.length && typeof window.Inputmask === 'function') {
-        new window.Inputmask({
-            alias: 'numeric',
-            groupSeparator: ',',
-            prefix: '$ ',
-            autoGroup: true,
-            digits: 0,
-            rightAlign: false,
-        }).mask(currencyInputs);
     }
 
     const lessonForm = modal.querySelector('[data-single-lesson-plan-form], [data-lesson-plan-form]');
@@ -7441,52 +7421,6 @@ const getSelectedLocationOption = function(form) {
     return locationSelect ? locationSelect.options[locationSelect.selectedIndex] : null;
 };
 
-const singleLessonLocationIsOnline = function(form) {
-    const selectedOption = getSelectedLocationOption(form);
-
-    return selectedOption && selectedOption.dataset.isOnline === '1';
-};
-
-const setSingleLessonOnlineFields = function(form, shouldEmpty) {
-    const fields = form ? Array.from(form.querySelectorAll('.single-lesson-plan-online-field')) : [];
-    const isOnline = singleLessonLocationIsOnline(form);
-
-    fields.forEach(function(field) {
-        const input = field.querySelector('input');
-
-        field.style.display = isOnline ? '' : 'none';
-
-        if (input) {
-            input.disabled = !isOnline;
-
-            if (!isOnline || shouldEmpty) {
-                input.value = '';
-            }
-        }
-    });
-};
-
-const syncSingleLessonFee = function(form) {
-    const selectedOption = getSelectedLocationOption(form);
-    const durationSelect = form ? form.querySelector('select[name="duration_minutes"]') : null;
-    const feeInput = form ? form.querySelector('input[name="fee_amount"]') : null;
-    const hourlyFee = selectedOption ? Number(selectedOption.dataset.feeAmount || 0) : 0;
-    const duration = durationSelect ? Number(durationSelect.value || 0) : 0;
-
-    if (!feeInput) {
-        return;
-    }
-
-    if (!hourlyFee || !duration) {
-        return;
-    }
-
-    const proratedFee = hourlyFee * (duration / 60);
-    const roundedFee = Math.floor(proratedFee / 5) * 5;
-
-    feeInput.value = roundedFee.toFixed(2).replace(/\.00$/, '');
-};
-
 const getSingleLessonPlanDefaultDate = function() {
     if (!state.date) {
         return todayString();
@@ -7499,50 +7433,9 @@ const getSingleLessonPlanDefaultDate = function() {
     return toDateString(getVisibleDateRange().start);
 };
 
-const initializeSingleLessonPlanForms = function(root) {
-    (root || document).querySelectorAll('[data-single-lesson-plan-form]').forEach(function(form) {
-        if (form.dataset.calendarFormInitialized === 'true') {
-            return;
-        }
-
-        form.dataset.calendarFormInitialized = 'true';
-
-        const locationSelect = form.querySelector('select[name="location_id"]');
-        const durationSelect = form.querySelector('select[name="duration_minutes"]');
-        const repeatSelect = form.querySelector('select[name="repeat"]');
-
-        setSingleLessonOnlineFields(form, false);
-        syncLessonRepeatFields(form, false);
-
-        if (locationSelect && durationSelect) {
-            syncSingleLessonFee(form);
-        }
-
-        if (locationSelect) {
-            locationSelect.addEventListener('change', function() {
-                syncSingleLessonFee(form);
-                setSingleLessonOnlineFields(form, true);
-            });
-        }
-
-        if (durationSelect) {
-            durationSelect.addEventListener('change', function() {
-                syncSingleLessonFee(form);
-            });
-        }
-
-        if (repeatSelect) {
-            repeatSelect.addEventListener('change', function() {
-                syncLessonRepeatFields(form, true);
-            });
-        }
-
-    });
-};
-
 const setLessonPlanOnlineFields = function(form, shouldEmpty) {
     const fields = form ? Array.from(form.querySelectorAll('.lesson-plan-online-field')) : [];
-    const isOnline = singleLessonLocationIsOnline(form);
+    const isOnline = getSelectedLocationOption(form)?.dataset.isOnline === '1';
 
     fields.forEach(function(field) {
         const input = field.querySelector('input');
@@ -7600,7 +7493,7 @@ const syncLessonPlanFee = function(form) {
 };
 
 const initializeLessonPlanForms = function(root) {
-    (root || document).querySelectorAll('[data-lesson-plan-form]').forEach(function(form) {
+    (root || document).querySelectorAll('[data-lesson-plan-form], [data-single-lesson-plan-form], [data-schedule-override-form]').forEach(function(form) {
         if (form.dataset.calendarFormInitialized === 'true') {
             return;
         }
@@ -7612,6 +7505,7 @@ const initializeLessonPlanForms = function(root) {
         const repeatSelect = form.querySelector('select[name="repeat"]');
         const groupClass = form.querySelector('[data-group-class]');
         const modal = form.closest('#create-calendar-lesson-plan-modal');
+        const isRescheduledLesson = form.hasAttribute('data-schedule-override-form');
 
         setLessonPlanOnlineFields(form, false);
         syncLessonRepeatFields(form, false);
@@ -7623,18 +7517,20 @@ const initializeLessonPlanForms = function(root) {
             });
         }
 
-        if (locationSelect && durationSelect) {
+        if (modal) {
             syncLessonPlanFee(form);
         }
 
         if (locationSelect) {
             locationSelect.addEventListener('change', function() {
-                syncLessonPlanFee(form);
-                setLessonPlanOnlineFields(form, true);
+                if (!isRescheduledLesson) {
+                    syncLessonPlanFee(form);
+                }
+                setLessonPlanOnlineFields(form, !isRescheduledLesson);
             });
         }
 
-        if (durationSelect) {
+        if (durationSelect && !isRescheduledLesson) {
             durationSelect.addEventListener('change', function() {
                 syncLessonPlanFee(form);
             });
@@ -7839,7 +7735,6 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     initializeStudentComboboxes();
-    initializeSingleLessonPlanForms();
     initializeLessonPlanForms();
 
     if (calendarEventModalExpandToggle) {

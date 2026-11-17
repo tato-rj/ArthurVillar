@@ -9997,27 +9997,9 @@ var initializeCalendarEditModal = function initializeCalendarEditModal(modal) {
   if (!modal) {
     return;
   }
-  initializeSingleLessonPlanForms(modal);
   initializeLessonPlanForms(modal);
-  var overrideForm = modal.querySelector('[data-schedule-override-form]');
-  if (overrideForm) {
-    overrideForm.querySelector('[name="location_id"]').addEventListener('change', function () {
-      setLessonPlanOnlineFields(overrideForm, false);
-    });
-  }
   if (typeof window.initializeEventTimeFields === 'function') {
     window.initializeEventTimeFields(modal);
-  }
-  var currencyInputs = modal.querySelectorAll('[data-mask="usd"]');
-  if (currencyInputs.length && typeof window.Inputmask === 'function') {
-    new window.Inputmask({
-      alias: 'numeric',
-      groupSeparator: ',',
-      prefix: '$ ',
-      autoGroup: true,
-      digits: 0,
-      rightAlign: false
-    }).mask(currencyInputs);
   }
   var lessonForm = modal.querySelector('[data-single-lesson-plan-form], [data-lesson-plan-form]');
   if (lessonForm && lessonForm.dataset.calendarAjaxSubmitInitialized !== 'true') {
@@ -10592,40 +10574,6 @@ var getSelectedLocationOption = function getSelectedLocationOption(form) {
   var locationSelect = form ? form.querySelector('select[name="location_id"]') : null;
   return locationSelect ? locationSelect.options[locationSelect.selectedIndex] : null;
 };
-var singleLessonLocationIsOnline = function singleLessonLocationIsOnline(form) {
-  var selectedOption = getSelectedLocationOption(form);
-  return selectedOption && selectedOption.dataset.isOnline === '1';
-};
-var setSingleLessonOnlineFields = function setSingleLessonOnlineFields(form, shouldEmpty) {
-  var fields = form ? Array.from(form.querySelectorAll('.single-lesson-plan-online-field')) : [];
-  var isOnline = singleLessonLocationIsOnline(form);
-  fields.forEach(function (field) {
-    var input = field.querySelector('input');
-    field.style.display = isOnline ? '' : 'none';
-    if (input) {
-      input.disabled = !isOnline;
-      if (!isOnline || shouldEmpty) {
-        input.value = '';
-      }
-    }
-  });
-};
-var syncSingleLessonFee = function syncSingleLessonFee(form) {
-  var selectedOption = getSelectedLocationOption(form);
-  var durationSelect = form ? form.querySelector('select[name="duration_minutes"]') : null;
-  var feeInput = form ? form.querySelector('input[name="fee_amount"]') : null;
-  var hourlyFee = selectedOption ? Number(selectedOption.dataset.feeAmount || 0) : 0;
-  var duration = durationSelect ? Number(durationSelect.value || 0) : 0;
-  if (!feeInput) {
-    return;
-  }
-  if (!hourlyFee || !duration) {
-    return;
-  }
-  var proratedFee = hourlyFee * (duration / 60);
-  var roundedFee = Math.floor(proratedFee / 5) * 5;
-  feeInput.value = roundedFee.toFixed(2).replace(/\.00$/, '');
-};
 var getSingleLessonPlanDefaultDate = function getSingleLessonPlanDefaultDate() {
   if (!state.date) {
     return todayString();
@@ -10635,41 +10583,10 @@ var getSingleLessonPlanDefaultDate = function getSingleLessonPlanDefaultDate() {
   }
   return toDateString(getVisibleDateRange().start);
 };
-var initializeSingleLessonPlanForms = function initializeSingleLessonPlanForms(root) {
-  (root || document).querySelectorAll('[data-single-lesson-plan-form]').forEach(function (form) {
-    if (form.dataset.calendarFormInitialized === 'true') {
-      return;
-    }
-    form.dataset.calendarFormInitialized = 'true';
-    var locationSelect = form.querySelector('select[name="location_id"]');
-    var durationSelect = form.querySelector('select[name="duration_minutes"]');
-    var repeatSelect = form.querySelector('select[name="repeat"]');
-    setSingleLessonOnlineFields(form, false);
-    syncLessonRepeatFields(form, false);
-    if (locationSelect && durationSelect) {
-      syncSingleLessonFee(form);
-    }
-    if (locationSelect) {
-      locationSelect.addEventListener('change', function () {
-        syncSingleLessonFee(form);
-        setSingleLessonOnlineFields(form, true);
-      });
-    }
-    if (durationSelect) {
-      durationSelect.addEventListener('change', function () {
-        syncSingleLessonFee(form);
-      });
-    }
-    if (repeatSelect) {
-      repeatSelect.addEventListener('change', function () {
-        syncLessonRepeatFields(form, true);
-      });
-    }
-  });
-};
 var setLessonPlanOnlineFields = function setLessonPlanOnlineFields(form, shouldEmpty) {
+  var _getSelectedLocationO;
   var fields = form ? Array.from(form.querySelectorAll('.lesson-plan-online-field')) : [];
-  var isOnline = singleLessonLocationIsOnline(form);
+  var isOnline = ((_getSelectedLocationO = getSelectedLocationOption(form)) === null || _getSelectedLocationO === void 0 ? void 0 : _getSelectedLocationO.dataset.isOnline) === '1';
   fields.forEach(function (field) {
     var input = field.querySelector('input');
     field.style.display = isOnline ? '' : 'none';
@@ -10713,7 +10630,7 @@ var syncLessonPlanFee = function syncLessonPlanFee(form) {
   feeInput.value = roundedFee.toFixed(2).replace(/\.00$/, '');
 };
 var initializeLessonPlanForms = function initializeLessonPlanForms(root) {
-  (root || document).querySelectorAll('[data-lesson-plan-form]').forEach(function (form) {
+  (root || document).querySelectorAll('[data-lesson-plan-form], [data-single-lesson-plan-form], [data-schedule-override-form]').forEach(function (form) {
     if (form.dataset.calendarFormInitialized === 'true') {
       return;
     }
@@ -10723,6 +10640,7 @@ var initializeLessonPlanForms = function initializeLessonPlanForms(root) {
     var repeatSelect = form.querySelector('select[name="repeat"]');
     var groupClass = form.querySelector('[data-group-class]');
     var modal = form.closest('#create-calendar-lesson-plan-modal');
+    var isRescheduledLesson = form.hasAttribute('data-schedule-override-form');
     setLessonPlanOnlineFields(form, false);
     syncLessonRepeatFields(form, false);
     syncGroupClassSelection(form);
@@ -10731,16 +10649,18 @@ var initializeLessonPlanForms = function initializeLessonPlanForms(root) {
         syncGroupClassSelection(form);
       });
     }
-    if (locationSelect && durationSelect) {
+    if (modal) {
       syncLessonPlanFee(form);
     }
     if (locationSelect) {
       locationSelect.addEventListener('change', function () {
-        syncLessonPlanFee(form);
-        setLessonPlanOnlineFields(form, true);
+        if (!isRescheduledLesson) {
+          syncLessonPlanFee(form);
+        }
+        setLessonPlanOnlineFields(form, !isRescheduledLesson);
       });
     }
-    if (durationSelect) {
+    if (durationSelect && !isRescheduledLesson) {
       durationSelect.addEventListener('change', function () {
         syncLessonPlanFee(form);
       });
@@ -10921,7 +10841,6 @@ document.addEventListener('DOMContentLoaded', function () {
     return Boolean(scheduleItemHold && scheduleItemHold.active) || Date.now() < scheduleHoldNavigationSuppressedUntil;
   };
   initializeStudentComboboxes();
-  initializeSingleLessonPlanForms();
   initializeLessonPlanForms();
   if (calendarEventModalExpandToggle) {
     calendarEventModalExpandToggle.addEventListener('click', function () {

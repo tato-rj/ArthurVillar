@@ -228,13 +228,6 @@ class SingleLessonPlansController extends Controller
         return carbon($value)->toDateString();
     }
 
-    private function feeAmount($value)
-    {
-        $value = preg_replace('/[^0-9]/', '', (string) $value);
-
-        return $value === '' ? null : ((int) $value) * 100;
-    }
-
     private function lessonFeeAmount(array $data)
     {
         if (Student::query()
@@ -244,7 +237,7 @@ class SingleLessonPlansController extends Controller
             return null;
         }
 
-        $feeAmount = $this->feeAmount($data['fee_amount'] ?? null);
+        $feeAmount = payment()->cents($data['fee_amount'] ?? null);
 
         if ($feeAmount !== null) {
             return $feeAmount;

@@ -1,4 +1,9 @@
-@extends('layouts.app', ['title' => 'Lesson Records'])
+@php
+    $student = $student ?? null;
+    $title = $student ? $student->first_name."'s lesson records" : 'Lesson Records';
+    $recordsUrl = route('calendar.tables.lesson-records', $student ? ['student_id' => $student->id] : []);
+@endphp
+@extends('layouts.app', ['title' => $title])
 
 @push('header')
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
@@ -10,10 +15,14 @@
     $selectedRecordStatuses = collect(explode(',', request('record_statuses', 'paid,unpaid,canceled')));
 @endphp
 <section class="container py-5">
-    {{ Breadcrumbs::render('calendar.lesson-records.index') }}
+    @if($student)
+        {{ Breadcrumbs::render('calendar.lesson-records.student', $student) }}
+    @else
+        {{ Breadcrumbs::render('calendar.lesson-records.index') }}
+    @endif
 
     <div class="row mb-4">
-        @component('components.pagetitle', ['label' => 'Lesson Records'])
+        @component('components.pagetitle', ['label' => $title])
 
         @slot('subtitle')
         <div class="text-center" id="lesson-records-totals" aria-live="polite" hidden>
@@ -276,7 +285,7 @@ $(function() {
             },
         },
         ajax: {
-            url: @json(route('calendar.tables.lesson-records')),
+            url: @json($recordsUrl),
             data: function(data) {
                 data.scheduled_from = $('#lesson-records-scheduled-from').val();
                 data.scheduled_to = $('#lesson-records-scheduled-to').val();

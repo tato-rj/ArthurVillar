@@ -45,11 +45,11 @@ window.calendarLessonPlanCreateForms = window.calendarLessonPlanCreateForms || (
         return locationSelect ? locationSelect.options[locationSelect.selectedIndex] : null;
     };
 
-    const syncOnlineFields = function(form, selector, shouldEmpty) {
+    const syncOnlineFields = function(form, shouldEmpty) {
         const selectedOption = selectedLocationOption(form);
         const isOnline = selectedOption && selectedOption.dataset.isOnline === '1';
 
-        (form ? form.querySelectorAll(selector) : []).forEach(function(field) {
+        (form ? form.querySelectorAll('.lesson-plan-online-field') : []).forEach(function(field) {
             const input = field.querySelector('input');
 
             field.style.display = isOnline ? '' : 'none';
@@ -259,12 +259,11 @@ window.calendarLessonPlanCreateForms = window.calendarLessonPlanCreateForms || (
             const durationSelect = form.querySelector('select[name="duration_minutes"]');
             const repeatSelect = form.querySelector('select[name="repeat"]');
             const groupClass = form.querySelector('[data-group-class]');
-            const onlineSelector = form.matches('[data-single-lesson-plan-form]')
-                ? '.single-lesson-plan-online-field'
-                : '.lesson-plan-online-field';
 
-            syncOnlineFields(form, onlineSelector, false);
-            syncFee(form);
+            syncOnlineFields(form, false);
+            if (form.closest('#create-calendar-lesson-plan-modal')) {
+                syncFee(form);
+            }
             syncRepeatFields(form, false);
             syncGroupClass(form);
 
@@ -277,7 +276,7 @@ window.calendarLessonPlanCreateForms = window.calendarLessonPlanCreateForms || (
             if (locationSelect) {
                 locationSelect.addEventListener('change', function() {
                     syncFee(form);
-                    syncOnlineFields(form, onlineSelector, true);
+                    syncOnlineFields(form, true);
                 });
             }
 

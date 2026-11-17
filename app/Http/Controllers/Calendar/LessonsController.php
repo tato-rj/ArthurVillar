@@ -416,7 +416,7 @@ class LessonsController extends Controller
                 'ends_at' => $startsAt->copy()->addMinutes((int) $data['duration_minutes']),
                 'fee_amount' => $lesson->student?->payment_exempt
                     ? null
-                    : $this->feeAmount($data['fee_amount'] ?? null),
+                    : payment()->cents($data['fee_amount'] ?? null),
                 'paid_at' => $paidAt,
                 'payment_method' => $lesson->student?->payment_exempt
                     ? null
@@ -444,12 +444,5 @@ class LessonsController extends Controller
         $lesson->delete();
 
         return back()->with('success', 'The lesson record was successfully deleted');
-    }
-
-    private function feeAmount($value)
-    {
-        $value = preg_replace('/[^0-9.]/', '', (string) $value);
-
-        return $value === '' ? null : (int) round(((float) $value) * 100);
     }
 }

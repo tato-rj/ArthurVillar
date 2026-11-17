@@ -13,4 +13,11 @@ class Payment
 	{
 		return '$' . round($cents/100);
 	}
+
+	public function cents($dollars): ?int
+	{
+		$dollars = preg_replace('/[^0-9.]/', '', (string) $dollars);
+
+		return $dollars === '' ? null : (int) round((float) $dollars * 100);
+	}
 }

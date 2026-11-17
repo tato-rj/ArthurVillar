@@ -14,8 +14,6 @@ class LessonRecordsController extends Controller
 
     public function student(Student $student)
     {
-        $student->load('lessonPlans.location');
-
-        return view('calendar.lessons.lessonRecords.student', compact('student'));
+        return view('calendar.lessons.lessonRecords.index', compact('student'));
     }
 }

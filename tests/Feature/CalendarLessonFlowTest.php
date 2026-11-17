@@ -320,6 +320,7 @@ class CalendarLessonFlowTest extends BaseTest
             $this->singleLessonPlanPayload($singleLessonPlan, [
                 'start_time' => '16:00',
                 'duration_minutes' => 15,
+                'fee_amount' => '75.50',
             ])
         )->assertRedirect();
 
@@ -327,6 +328,7 @@ class CalendarLessonFlowTest extends BaseTest
             'id' => $singleLessonPlan->id,
             'start_time' => '16:00',
             'duration_minutes' => 15,
+            'fee_amount' => 7550,
         ]);
     }
 
@@ -2078,19 +2080,42 @@ class CalendarLessonFlowTest extends BaseTest
     /** @test */
     public function calendar_lesson_edit_uses_the_existing_plan_edit_modals()
     {
-        $lessonPlan = LessonPlan::factory()->create();
-        $singleLessonPlan = SingleLessonPlan::factory()->create();
+        $lessonPlan = LessonPlan::factory()->create(['duration_minutes' => 45]);
+        $singleLessonPlan = SingleLessonPlan::factory()->create(['duration_minutes' => 45]);
+        $override = ScheduleOverride::factory()->lessonPlan($lessonPlan)->create(['duration_minutes' => 45]);
+        $lesson = Lesson::factory()->lessonPlan($lessonPlan)->create([
+            'starts_at' => '2026-07-08 15:30:00',
+            'ends_at' => '2026-07-08 16:15:00',
+        ]);
         $this->signIn();
 
-        $this->get(route('calendar.lesson-plans.edit', $lessonPlan))
+        $recurringEdit = $this->get(route('calendar.lesson-plans.edit', $lessonPlan))
             ->assertOk()
             ->assertSee('edit-lessonPlan-'.$lessonPlan->id.'-modal', false)
             ->assertSee('data-lesson-plan-form', false);
 
-        $this->get(route('calendar.single-lesson-plans.edit', $singleLessonPlan))
+        $singleEdit = $this->get(route('calendar.single-lesson-plans.edit', $singleLessonPlan))
             ->assertOk()
             ->assertSee('edit-single-lesson-plan-'.$singleLessonPlan->id.'-modal', false)
             ->assertSee('data-single-lesson-plan-form', false);
+
+        $rescheduledEdit = $this->get(route('calendar.lesson-plans.rescheduled.edit', [
+            $lessonPlan, $override->original_date, $override->original_start_time,
+        ]))->assertOk();
+        $recordEdit = $this->get(route('calendar.lessons.edit', $lesson))->assertOk();
+
+        foreach ([$recurringEdit, $singleEdit, $rescheduledEdit, $recordEdit] as $response) {
+            $document = new \DOMDocument;
+            $document->loadHTML($response->getContent(), LIBXML_NOERROR | LIBXML_NOWARNING);
+            $fields = new \DOMXPath($document);
+            $options = $fields->query('//select[@name="duration_minutes"]/option');
+
+            $this->assertSame(LessonPlan::durationOptions(), array_map(
+                fn (\DOMElement $option) => (int) $option->getAttribute('value'),
+                iterator_to_array($options)
+            ));
+            $this->assertSame('45', $fields->evaluate('string(//select[@name="duration_minutes"]/option[@selected]/@value)'));
+        }
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
@@ -2199,13 +2224,16 @@ class CalendarLessonFlowTest extends BaseTest
             'scheduled_date' => '2026-07-08',
             'scheduled_start_time' => '15:30',
             'starts_at' => '2026-07-09 16:00:00',
-            'ends_at' => '2026-07-09 16:45:00',
-            'paid_at' => '2026-07-09 16:45:00',
+            'ends_at' => '2026-07-09 17:15:00',
+            'paid_at' => '2026-07-09 17:15:00',
         ]);
         $this->signIn();
         $range = ['start' => '2026-07-08', 'end' => '2026-07-09'];
         $occurrences = fn () => app(Scheduler::class)->plannedLessons($range)->first()['occurrences'];
-        $this->get($occurrences()[0]['occurrence_edit_url'])->assertOk();
+        $edit = $this->get($occurrences()[0]['occurrence_edit_url'])->assertOk();
+        $document = new \DOMDocument;
+        $document->loadHTML($edit->getContent(), LIBXML_NOERROR | LIBXML_NOWARNING);
+        $this->assertSame('75', (new \DOMXPath($document))->evaluate('string(//select[@name="duration_minutes"]/option[@selected]/@value)'));
 
         $this->patchJson(route('calendar.lesson-plans.rescheduled.update', [$plan, '2026-07-08', '15:30']), [
             'date' => '2026-07-09',

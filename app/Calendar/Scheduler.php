@@ -396,16 +396,18 @@ class Scheduler
 
     public function generalEvents(array $range, ?int $userId = null)
     {
+        $timezone = config('calendar.timezone');
+        $rangeStart = Carbon::parse($range['start'], $timezone)->startOfDay();
+        $rangeEnd = Carbon::parse($range['end'], $timezone)->endOfDay();
+
         $localEvents = Event::query()
-            ->whereBetween('scheduled_date', [$range['start'], $range['end']])
+            ->where('scheduled_date', '>=', $rangeStart->toDateString())
+            ->where('scheduled_date', '<', $rangeEnd->copy()->addDay()->toDateString())
             ->orderBy('scheduled_date')
             ->orderBy('starts_at')
             ->get()
             ->map(fn (Event $event) => $event->calendarPayload());
 
-        $timezone = config('calendar.timezone');
-        $rangeStart = Carbon::parse($range['start'], $timezone)->startOfDay();
-        $rangeEnd = Carbon::parse($range['end'], $timezone)->endOfDay();
         $footballVisibilityCutoff = now('UTC')
             ->subMinutes(config('calendar.football.duration_minutes', 120));
         $footballEvents = FootballEvent::query()

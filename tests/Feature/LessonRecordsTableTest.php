@@ -189,6 +189,12 @@ class LessonRecordsTableTest extends BaseTest
             'first_name' => 'Route',
             'last_name' => 'Check',
         ]);
+        $otherStudent = Student::factory()->create([
+            'first_name' => 'Route',
+            'last_name' => 'Check',
+        ]);
+        $lesson = Lesson::factory()->create(['student_id' => $student->id]);
+        Lesson::factory()->create(['student_id' => $otherStudent->id]);
 
         $this->signIn();
 
@@ -196,9 +202,15 @@ class LessonRecordsTableTest extends BaseTest
             ->assertOk()
             ->assertSee("Route's lesson records")
             ->assertSee('lesson-records-table', false)
+            ->assertSee('student_id='.$student->id, false)
             ->assertSeeInOrder(['<th>Payment</th>', '<th>Status</th>'], false)
             ->assertSee('<th>Actions</th>', false)
             ->assertDontSee('<th>Fee</th>', false);
+
+        $this->getJson(route('calendar.tables.lesson-records', ['student_id' => $student->id]))
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $lesson->id);
 
         $this->get(route('calendar.lessons.index'))
             ->assertRedirect(route('calendar.lesson-records.index'));

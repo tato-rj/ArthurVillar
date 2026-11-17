@@ -62,7 +62,7 @@ class ScheduleOverridesController extends Controller
 
             $details = Arr::only($data, ScheduleOverride::LESSON_DETAIL_FIELDS);
             if (array_key_exists('fee_amount', $details)) {
-                $details['fee_amount'] = $details['fee_amount'] === null ? null : (int) round($details['fee_amount'] * 100);
+                $details['fee_amount'] = payment()->cents($details['fee_amount']);
             }
 
             if (isset($data['location_id'])) {
