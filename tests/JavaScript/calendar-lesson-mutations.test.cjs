@@ -268,3 +268,36 @@ test('holding is offered only when attendance would leave a payment to confirm',
         assert.equal(h.canConfirmLessonAndPayment({ ...event, ...change }), false);
     }
 });
+
+test('multi-date cancellation locks selected lessons and updates buffered dates without canceling the open lesson', async () => {
+    const h = setup();
+    const selected = {
+        ...h.event, date: '2026-07-15', originalDate: '2026-07-15',
+        guid: 'planned-lesson-1-2026-07-15-15:30',
+    };
+    const buffered = { ...h.otherOccurrence, date: '2026-07-22' };
+    h.state.events.push(selected);
+    h.state.plannedLessons[0].occurrences.push(buffered);
+    const result = [selected.date, buffered.date].map((date, index) => ({
+        date, start: '15:30', original_date: date, original_start_time: '15:30',
+        status: 'canceled', canceled_by: 'teacher', lesson_id: 21 + index,
+    }));
+    let resolve;
+    const pending = h.mutateLesson(h.modal, () => new Promise(done => { resolve = done; }), h.refresh, true,
+        result.map(row => 'planned-lesson-1-' + row.original_date + '-15:30'));
+    h.modal.dataset.eventGuid = selected.guid;
+    let duplicateSent = false;
+    await h.mutateLesson(h.modal, async () => { duplicateSent = true; }, h.refresh);
+    assert.equal(duplicateSent, false);
+    h.modal.dataset.eventGuid = h.event.guid;
+    resolve({ lesson_plan_id: 1, occurrences: result });
+    await pending;
+    assert.equal(h.event.lessonStatus, 'unconfirmed');
+    assert.equal(h.modal.dataset.lessonStatus, 'unconfirmed');
+    assert.equal(selected.lessonStatus, 'canceled');
+    assert.equal(h.otherOccurrence.lesson_id, 21);
+    assert.equal(buffered.lesson_id, 22);
+    assert.equal(h.state.travelRouteDateRevisions.get(buffered.date), 1);
+    assert.equal(h.state.pendingLessonMutations.size, 0);
+    assert.equal(h.refreshes(), 0);
+});

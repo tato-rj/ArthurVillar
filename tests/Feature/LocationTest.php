@@ -161,6 +161,32 @@ class LocationTest extends BaseTest
     }
 
     /** @test */
+    public function it_saves_and_clears_usage_when_editing_a_location()
+    {
+        $location = Location::factory()->create(['usage' => Location::USAGE_TEACHING]);
+        $this->signIn();
+
+        $updateUrl = route('calendar.locations.update', $location);
+
+        $this->patch($updateUrl, [
+            'name' => $location->name,
+            'usage' => Location::USAGE_RECITAL,
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $this->assertSame(Location::USAGE_RECITAL, $location->refresh()->usage);
+
+        $form = $this->get(route('calendar.locations.edit', $location))->assertOk();
+        $this->assertMatchesRegularExpression('/<option value="recital"\s+selected\s*>/', $form->getContent());
+
+        $this->patch($updateUrl, [
+            'name' => $location->name,
+            'usage' => '',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $this->assertNull($location->refresh()->usage);
+    }
+
+    /** @test */
     public function it_discounts_confirmed_lesson_payments_by_location_tax_withheld_percentage()
     {
         $location = Location::factory()->create([

@@ -121,20 +121,7 @@ class Scheduler
     public function plannedLessons(array $range, bool $applyTeachingBreaks = true, bool $includeSummary = true)
     {
         $excludedProjectedDates = $applyTeachingBreaks ? $this->excludedProjectedLessonDates($range) : $this->emptyProjectedLessonExclusions();
-        $lessonPlans = LessonPlan::with([
-            'student',
-            'location',
-            'earlyPayments',
-            'lessons' => function ($query) use ($range) {
-                $query->relevantBetween($range['start'], $range['end']);
-            },
-            'scheduleOverrides' => function ($query) use ($range) {
-                $query
-                    ->with('location')
-                    ->whereBetween('original_date', [$range['start'], $range['end']])
-                    ->orWhereBetween('new_date', [$range['start'], $range['end']]);
-            },
-        ])
+        $lessonPlans = LessonPlan::with($this->lessonPlanRelations($range))
             ->where(function ($query) use ($range) {
                 $query->occurringBetween($range['start'], $range['end']);
             })
@@ -160,6 +147,41 @@ class Scheduler
             ]);
         })
             ->filter(fn ($lessonPlan) => count($lessonPlan['occurrences'] ?? []) > 0)
+            ->values();
+    }
+
+    private function lessonPlanRelations(array $range): array
+    {
+        return [
+            'student',
+            'location',
+            'earlyPayments',
+            'lessons' => function ($query) use ($range) {
+                $query->relevantBetween($range['start'], $range['end']);
+            },
+            'scheduleOverrides' => function ($query) use ($range) {
+                $query->with('location')->where(function ($dates) use ($range) {
+                    $dates->whereBetween('original_date', [$range['start'], $range['end']])
+                        ->orWhereBetween('new_date', [$range['start'], $range['end']]);
+                });
+            },
+        ];
+    }
+
+    public function upcomingLessonOccurrences(LessonPlan $plan, string $month)
+    {
+        $start = Carbon::createFromFormat('!Y-m', $month, config('calendar.timezone'));
+        $now = now(config('calendar.timezone'));
+        $range = ['start' => max($start->toDateString(), $now->toDateString()), 'end' => $start->endOfMonth()->toDateString()];
+        if ($range['start'] > $range['end']) {
+            return collect();
+        }
+
+        $plan->load($this->lessonPlanRelations($range));
+
+        // Use the same scheduled and rescheduled occurrences as the calendar itself.
+        return collect($this->occurrences($plan, $range))
+            ->filter(fn ($occurrence) => $occurrence['date'].' '.$occurrence['start'] > $now->format('Y-m-d H:i'))
             ->values();
     }
 

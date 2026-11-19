@@ -2,6 +2,7 @@ import { spring } from 'motion';
 import { animate } from 'motion/mini';
 import { bindCalendarNavigationMenu } from './navigation-menu';
 import { bindLessonConfirmation } from './lesson-confirmation';
+import { bindLessonCancellationPicker } from './lesson-cancellation-picker';
 
 const DOMPurify = require('dompurify');
 const calendarjs = window.calendarjs;
@@ -49,6 +50,7 @@ const state = {
     centerInitialScheduleDate: false,
     lessonActionAvailabilityTimer: null,
     cancelLessonConfirmation: null,
+    lessonCancellationPicker: null,
     pendingLessonMutations: new Set(),
     scheduleWindowStart: null,
     pendingScheduleScrollTop: null,
@@ -2692,6 +2694,9 @@ const resetLessonModalState = function(modal) {
 
     if (state.cancelLessonConfirmation) state.cancelLessonConfirmation();
     setLessonMutationBusy(modal, false);
+    state.lessonCancellationPicker?.reset();
+    const cancellationNotice = modal.querySelector('[data-lesson-cancellation-notice]');
+    if (cancellationNotice) cancellationNotice.hidden = true;
     resetLessonModalButtons(modal);
     if (state.lessonActionAvailabilityTimer !== null) {
         window.clearTimeout(state.lessonActionAvailabilityTimer);
@@ -2718,6 +2723,8 @@ const showLessonCancelForm = function(modal) {
     }
 
     modal.classList.remove('is-rescheduling');
+    const notice = modal.querySelector('[data-lesson-cancellation-notice]');
+    if (notice) notice.hidden = true;
     modal.classList.add('is-canceling');
 };
 
@@ -5121,6 +5128,8 @@ const updateLessonEventViews = function(event, cancellationChanged) {
 const setLessonMutationBusy = function(modal, busy) {
     if (busy) modal.setAttribute('aria-busy', 'true');
     else modal.removeAttribute('aria-busy');
+    const cancelControls = modal.querySelector('[data-cancel-controls]');
+    if (cancelControls) cancelControls.disabled = busy;
     modal.querySelectorAll('#lesson-taught, #confirm-payment, #early-payment, #lesson-revert, #lesson-edit, #cancel-lesson-button, #reschedule-lesson-button, form button[type="submit"]').forEach(function(button) {
         if (busy) {
             preserveButtonLabel(button);
@@ -5136,12 +5145,42 @@ const setLessonMutationBusy = function(modal, busy) {
     });
 };
 
-const mutateLesson = function(modal, send, refreshCalendar, keepOpen = true) {
+const recurringLessonGuid = (planId, date, start) => `planned-lesson-${planId}-${date}-${start}`;
+
+const finishLessonMutationInModal = function(modal, event, cancellationChanged) {
+    setLessonMutationBusy(modal, false);
+    state.lessonCancellationPicker?.reset();
+    modal.dataset.lessonId = event.lessonId || '';
+    modal.dataset.scheduleOverrideId = event.scheduleOverrideId || '';
+    modal.dataset.earlyPaymentId = event.earlyPaymentId || '';
+    modal.classList.remove('is-canceling', 'is-rescheduling');
+    populateLessonModal(modal, event);
+    updateConflictToggle(modal, event);
+    if (cancellationChanged) loadTravelRoute(modal, event);
+};
+
+const applyMultipleCancellations = function(payload) {
+    for (const row of payload.occurrences) {
+        const guid = recurringLessonGuid(payload.lesson_plan_id, row.original_date, row.original_start_time);
+        const event = getEventByGuid(guid);
+        // A filtered or offscreen lesson may still be in the buffered plan data.
+        updateLessonEventState(event || {
+            guid, lessonPlanId: payload.lesson_plan_id, date: row.date, start: row.start,
+            originalDate: row.original_date, originalStartTime: row.original_start_time,
+            scheduleOverrideId: row.schedule_override_id || '',
+        }, row);
+        if (event) updateLessonEventViews(event, true);
+        else state.travelRouteDateRevisions.set(row.date, (state.travelRouteDateRevisions.get(row.date) || 0) + 1);
+    }
+};
+
+const mutateLesson = function(modal, send, refreshCalendar, keepOpen = true, relatedGuids = []) {
     const guid = modal.dataset.eventGuid;
     const originalEvent = getEventByGuid(guid);
-    if (!originalEvent || state.pendingLessonMutations.has(guid)) return;
+    const lockedGuids = [guid, ...relatedGuids];
+    if (!originalEvent || lockedGuids.some(id => state.pendingLessonMutations.has(id))) return;
 
-    state.pendingLessonMutations.add(guid);
+    lockedGuids.forEach(id => state.pendingLessonMutations.add(id));
     clearLessonActionError(modal);
     setLessonMutationBusy(modal, true);
     const isCurrentLesson = function() {
@@ -5151,6 +5190,21 @@ const mutateLesson = function(modal, send, refreshCalendar, keepOpen = true) {
     return send().then(function(payload) {
         invalidateCalendarDataCache();
         const event = getEventByGuid(guid) || originalEvent;
+        if (Array.isArray(payload.occurrences)) {
+            applyMultipleCancellations(payload);
+            const openGuid = modal.dataset.eventGuid;
+            if (modal.dataset.eventModalType === 'lesson' && lockedGuids.includes(openGuid)) {
+                const openEvent = getEventByGuid(openGuid);
+                if (openEvent) finishLessonMutationInModal(modal, openEvent, true);
+                const notice = modal.querySelector('[data-lesson-cancellation-notice]');
+                if (notice && isCurrentLesson()) {
+                    const count = payload.occurrences.length;
+                    notice.textContent = count === 1 ? '1 lesson canceled.' : `${count} lessons canceled.`;
+                    notice.hidden = false;
+                }
+            }
+            return;
+        }
         // Rescheduling and changes to a whole series can move/add/remove occurrences.
         const movesOccurrence = (payload.schedule_override_deleted && !payload.lesson_id)
             || (payload.lesson_deleted && (
@@ -5162,14 +5216,7 @@ const mutateLesson = function(modal, send, refreshCalendar, keepOpen = true) {
             updateLessonEventState(event, payload);
             updateLessonEventViews(event, cancellationChanged);
             if (isCurrentLesson()) {
-                setLessonMutationBusy(modal, false);
-                modal.dataset.lessonId = event.lessonId || '';
-                modal.dataset.scheduleOverrideId = event.scheduleOverrideId || '';
-                modal.dataset.earlyPaymentId = event.earlyPaymentId || '';
-                modal.classList.remove('is-canceling', 'is-rescheduling');
-                populateLessonModal(modal, event);
-                updateConflictToggle(modal, event);
-                if (cancellationChanged) loadTravelRoute(modal, event);
+                finishLessonMutationInModal(modal, event, cancellationChanged);
             }
             return;
         }
@@ -5187,9 +5234,11 @@ const mutateLesson = function(modal, send, refreshCalendar, keepOpen = true) {
         console.error(error);
         if (isCurrentLesson()) showLessonActionError(modal, error.message);
     }).finally(function() {
-        state.pendingLessonMutations.delete(guid);
+        lockedGuids.forEach(id => state.pendingLessonMutations.delete(id));
         drainTravelRequests();
-        if (isCurrentLesson()) setLessonMutationBusy(modal, false);
+        if (modal.dataset.eventModalType === 'lesson' && lockedGuids.includes(modal.dataset.eventGuid)) {
+            setLessonMutationBusy(modal, false);
+        }
     });
 };
 
@@ -5270,17 +5319,22 @@ const submitLessonModalForm = function(form, refreshCalendar) {
 
     // Capture values before locking controls while the request is in flight.
     const body = new FormData(form);
+    const multiple = !isReschedule && body.get('cancelation_type') === 'multiple';
+    const occurrences = multiple ? state.lessonCancellationPicker.selection() : [];
+    if (multiple && !occurrences.length) return;
+    const relatedGuids = occurrences.map(row => recurringLessonGuid(body.get('lesson_plan_id'), row.original_date, row.original_start_time));
     return mutateLesson(modal, function() {
         return requestJson(form.action, {
             method: String(form.method || 'POST').toUpperCase(),
             headers: {
+                ...(multiple ? { 'Content-Type': 'application/json' } : {}),
                 'Accept': 'application/json',
                 'X-CSRF-TOKEN': window.calendarCsrfToken || '',
                 'X-Requested-With': 'XMLHttpRequest',
             },
-            body,
+            body: multiple ? JSON.stringify({ ...Object.fromEntries(body), occurrences }) : body,
         }, isReschedule ? 'Unable to reschedule lesson.' : 'Unable to cancel lesson.');
-    }, refreshCalendar, !isReschedule);
+    }, refreshCalendar, !isReschedule, relatedGuids);
 };
 
 const patchSchedulePointer = function(calendar) {
@@ -6370,7 +6424,8 @@ const getPlannedLessonEvents = function(range) {
                     start,
                     end: normalizeTime(occurrence.end || addMinutesToTime(lesson.start_time, lesson.duration_minutes)),
                     color: '#2fbb7f',
-                    guid: `${isSingleLessonPlan ? 'single-lesson-plan' : 'planned-lesson'}-${lesson.id}-${originalDate}-${originalStartTime}`,
+                    guid: isSingleLessonPlan ? `single-lesson-plan-${lesson.id}-${originalDate}-${originalStartTime}`
+                        : recurringLessonGuid(lesson.id, originalDate, originalStartTime),
                     lessonPlanId: isSingleLessonPlan ? '' : lesson.id,
                     singleLessonPlanId: occurrence.single_lesson_plan_id || (isSingleLessonPlan ? lesson.id : ''),
                     lessonId: occurrence.lesson_id || '',
@@ -9152,6 +9207,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 e.preventDefault();
                 showLessonRescheduleForm(lessonModal);
             });
+        }
+
+        if (cancelForm) {
+            state.lessonCancellationPicker = bindLessonCancellationPicker(cancelForm, calendarWeekStartDay, requestJson);
         }
 
         [rescheduleForm, cancelForm].filter(Boolean).forEach(function(form) {

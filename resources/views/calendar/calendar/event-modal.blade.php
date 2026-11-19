@@ -24,6 +24,7 @@
     <div data-event-modal-section="lesson" data-event-modal-expanded-content>
         <div id="lesson-status" class="rounded px-2 py-0 alert small mb-3"></div>
         <div class="alert alert-danger small mb-3" data-lesson-action-error hidden></div>
+        <div class="alert alert-success small mb-3" role="status" data-lesson-cancellation-notice hidden></div>
     </div>
 
     <div data-event-modal-section="general" hidden>

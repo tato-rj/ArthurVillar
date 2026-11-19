@@ -49,6 +49,7 @@ class LocationsController extends Controller
                 'max:255',
                 Rule::unique('locations')->ignore($location),
             ],
+            'usage' => ['nullable', 'string', Rule::in(Location::usages())],
             'fee_amount' => ['nullable', 'string'],
             'tax_withheld_percentage' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'address' => ['nullable', 'string', 'max:255'],

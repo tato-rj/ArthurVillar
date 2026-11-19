@@ -1,6 +1,247 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
+/***/ "./resources/js/calendar/lesson-cancellation-picker.js"
+/*!*************************************************************!*\
+  !*** ./resources/js/calendar/lesson-cancellation-picker.js ***!
+  \*************************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   bindLessonCancellationPicker: () => (/* binding */ bindLessonCancellationPicker)
+/* harmony export */ });
+function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
+function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
+function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+// Keep this selection independent of the main calendar's visible range and filters.
+function bindLessonCancellationPicker(form, weekStartDay, requestJson) {
+  var picker = form.querySelector('#multiple-event-picker');
+  var grid = picker.querySelector('[data-cancel-grid]');
+  var status = picker.querySelector('[data-cancel-status]');
+  var retry = picker.querySelector('[data-cancel-retry]');
+  var submit = form.querySelector('button[type="submit"]');
+  var fields = form.elements;
+  var monthFormat = new Intl.DateTimeFormat('en', {
+    month: 'long',
+    year: 'numeric'
+  });
+  var dayFormat = new Intl.DateTimeFormat('en', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric'
+  });
+  var selected = new Map();
+  var byDate = new Map();
+  var month;
+  var request;
+  var message = '';
+  var key = function key(row) {
+    return row.original_date + ' ' + row.original_start_time;
+  };
+  var monthKey = function monthKey() {
+    return month.getFullYear() + '-' + String(month.getMonth() + 1).padStart(2, '0');
+  };
+  var updateSelection = function updateSelection() {
+    var count = selected.size;
+    var summary = count === 1 ? '1 lesson selected to cancel.' : count + ' lessons selected to cancel.';
+    status.textContent = [message, summary].filter(Boolean).join(' ');
+    submit.disabled = !picker.hidden && (count === 0 || !!request);
+  };
+  var renderDays = function renderDays() {
+    grid.replaceChildren();
+    var last = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
+    var opened = fields.scheduled_date.value + ' ' + fields.scheduled_start_time.value;
+    for (var day = 1; day <= last; day++) {
+      var date = monthKey() + '-' + String(day).padStart(2, '0');
+      var rows = byDate.get(date);
+      var cell = document.createElement(rows ? 'label' : 'button');
+      cell.className = 'calendar-cancel-day';
+      cell.textContent = day;
+      if (day === 1) cell.style.gridColumnStart = 1 + (month.getDay() - weekStartDay + 7) % 7;
+      if (rows) {
+        var isOpened = rows.some(function (row) {
+          return key(row) === opened;
+        });
+        cell.classList.toggle('is-opened', isOpened);
+        var checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.dataset.date = date;
+        checkbox.checked = rows.every(function (row) {
+          return !selected.has(key(row));
+        });
+        var label = dayFormat.format(new Date(month.getFullYear(), month.getMonth(), day));
+        checkbox.setAttribute('aria-label', 'Keep ' + rows.map(function (row) {
+          return row.start;
+        }).join(' and ') + ' on ' + label + (isOpened ? ', lesson you opened' : ''));
+        cell.appendChild(checkbox);
+      } else {
+        cell.type = 'button';
+        cell.disabled = true;
+      }
+      grid.appendChild(cell);
+    }
+  };
+  var loadMonth = /*#__PURE__*/function () {
+    var _ref = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
+      var controller, currentMonth, url, payload, available, _iterator, _step, row, _iterator2, _step2, _available$get, _available$get2, _step2$value, id, _row, _t;
+      return _regenerator().w(function (_context) {
+        while (1) switch (_context.p = _context.n) {
+          case 0:
+            if (request) request.abort();
+            controller = new AbortController();
+            request = controller;
+            currentMonth = monthKey();
+            url = form.dataset.occurrencesUrl.replace('__plan__', fields.lesson_plan_id.value);
+            picker.querySelector('[data-cancel-month]').textContent = monthFormat.format(month);
+            picker.querySelector('[data-month-offset="-1"]').disabled = currentMonth <= form.dataset.today.slice(0, 7);
+            byDate = new Map();
+            message = 'Loading dates…';
+            retry.hidden = true;
+            renderDays();
+            updateSelection();
+            _context.p = 1;
+            _context.n = 2;
+            return requestJson(url + '?month=' + currentMonth, {
+              headers: {
+                Accept: 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+              },
+              signal: controller.signal
+            }, 'Unable to load lesson dates.');
+          case 2:
+            payload = _context.v;
+            if (!(request !== controller)) {
+              _context.n = 3;
+              break;
+            }
+            return _context.a(2);
+          case 3:
+            available = new Map();
+            _iterator = _createForOfIteratorHelper(payload.occurrences);
+            try {
+              for (_iterator.s(); !(_step = _iterator.n()).done;) {
+                row = _step.value;
+                if (!byDate.has(row.date)) byDate.set(row.date, []);
+                byDate.get(row.date).push(row);
+                available.set(key(row), row);
+              }
+              // Drop stale selections if a lesson moved while this picker was open.
+            } catch (err) {
+              _iterator.e(err);
+            } finally {
+              _iterator.f();
+            }
+            _iterator2 = _createForOfIteratorHelper(selected);
+            try {
+              for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+                _step2$value = _slicedToArray(_step2.value, 2), id = _step2$value[0], _row = _step2$value[1];
+                if (_row.date.startsWith(currentMonth) && (((_available$get = available.get(id)) === null || _available$get === void 0 ? void 0 : _available$get.date) !== _row.date || ((_available$get2 = available.get(id)) === null || _available$get2 === void 0 ? void 0 : _available$get2.start) !== _row.start)) {
+                  selected["delete"](id);
+                }
+              }
+            } catch (err) {
+              _iterator2.e(err);
+            } finally {
+              _iterator2.f();
+            }
+            message = byDate.size ? '' : 'No upcoming lessons this month.';
+            renderDays();
+            _context.n = 6;
+            break;
+          case 4:
+            _context.p = 4;
+            _t = _context.v;
+            if (!(request !== controller)) {
+              _context.n = 5;
+              break;
+            }
+            return _context.a(2);
+          case 5:
+            message = _t.message || 'Unable to load lesson dates.';
+            retry.hidden = false;
+          case 6:
+            _context.p = 6;
+            if (request === controller) {
+              request = null;
+              updateSelection();
+            }
+            return _context.f(6);
+          case 7:
+            return _context.a(2);
+        }
+      }, _callee, null, [[1, 4, 6, 7]]);
+    }));
+    return function loadMonth() {
+      return _ref.apply(this, arguments);
+    };
+  }();
+  var reset = function reset() {
+    if (request) request.abort();
+    request = null;
+    selected.clear();
+    picker.hidden = true;
+    form.classList.remove('is-multiple');
+    fields.cancelation_type.value = 'current';
+    submit.disabled = false;
+  };
+  form.addEventListener('change', function (event) {
+    if (event.target.name === 'cancelation_type') {
+      if (event.target.value !== 'multiple') {
+        var scope = event.target.value;
+        reset();
+        fields.cancelation_type.value = scope;
+        return;
+      }
+      var firstMonth = [fields.date.value, form.dataset.today].sort().pop().slice(0, 7);
+      month = new Date(firstMonth + '-01T12:00:00');
+      picker.hidden = false;
+      form.classList.add('is-multiple');
+      loadMonth();
+    } else if (event.target.matches('[data-date]') && picker.contains(event.target)) {
+      var _iterator3 = _createForOfIteratorHelper(byDate.get(event.target.dataset.date)),
+        _step3;
+      try {
+        for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+          var row = _step3.value;
+          if (event.target.checked) selected["delete"](key(row));else selected.set(key(row), row);
+        }
+      } catch (err) {
+        _iterator3.e(err);
+      } finally {
+        _iterator3.f();
+      }
+      updateSelection();
+    }
+  });
+  picker.addEventListener('click', function (event) {
+    var nav = event.target.closest('[data-month-offset]');
+    if (nav) {
+      month.setMonth(month.getMonth() + Number(nav.dataset.monthOffset));
+      loadMonth();
+    } else if (event.target === retry) {
+      loadMonth();
+    }
+  });
+  return {
+    reset: reset,
+    selection: function selection() {
+      return Array.from(selected.values());
+    }
+  };
+}
+
+/***/ },
+
 /***/ "./resources/js/calendar/lesson-confirmation.js"
 /*!******************************************************!*\
   !*** ./resources/js/calendar/lesson-confirmation.js ***!
@@ -4848,10 +5089,21 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var motion_mini__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! motion/mini */ "./node_modules/framer-motion/dist/es/animation/animators/waapi/animate-style.mjs");
 /* harmony import */ var _navigation_menu__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./navigation-menu */ "./resources/js/calendar/navigation-menu.js");
 /* harmony import */ var _lesson_confirmation__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./lesson-confirmation */ "./resources/js/calendar/lesson-confirmation.js");
+/* harmony import */ var _lesson_cancellation_picker__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./lesson-cancellation-picker */ "./resources/js/calendar/lesson-cancellation-picker.js");
+function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
+function _arrayWithoutHoles(r) { if (Array.isArray(r)) return _arrayLikeToArray(r); }
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
 function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
 function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+
 
 
 
@@ -4901,6 +5153,7 @@ var state = {
   centerInitialScheduleDate: false,
   lessonActionAvailabilityTimer: null,
   cancelLessonConfirmation: null,
+  lessonCancellationPicker: null,
   pendingLessonMutations: new Set(),
   scheduleWindowStart: null,
   pendingScheduleScrollTop: null,
@@ -6992,11 +7245,13 @@ var renderGeneralEventRescheduleDatePicker = function renderGeneralEventReschedu
   }
 };
 var resetLessonModalState = function resetLessonModalState(modal) {
+  var _state$lessonCancella;
   if (!modal) {
     return;
   }
   if (state.cancelLessonConfirmation) state.cancelLessonConfirmation();
   setLessonMutationBusy(modal, false);
+  (_state$lessonCancella = state.lessonCancellationPicker) === null || _state$lessonCancella === void 0 || _state$lessonCancella.reset();
   resetLessonModalButtons(modal);
   if (state.lessonActionAvailabilityTimer !== null) {
     window.clearTimeout(state.lessonActionAvailabilityTimer);
@@ -8801,6 +9056,8 @@ var updateLessonEventViews = function updateLessonEventViews(event, cancellation
 };
 var setLessonMutationBusy = function setLessonMutationBusy(modal, busy) {
   if (busy) modal.setAttribute('aria-busy', 'true');else modal.removeAttribute('aria-busy');
+  var cancelControls = modal.querySelector('[data-cancel-controls]');
+  if (cancelControls) cancelControls.disabled = busy;
   modal.querySelectorAll('#lesson-taught, #confirm-payment, #early-payment, #lesson-revert, #lesson-edit, #cancel-lesson-button, #reschedule-lesson-button, form button[type="submit"]').forEach(function (button) {
     if (busy) {
       preserveButtonLabel(button);
@@ -8815,12 +9072,59 @@ var setLessonMutationBusy = function setLessonMutationBusy(modal, busy) {
     }
   });
 };
+var recurringLessonGuid = function recurringLessonGuid(planId, date, start) {
+  return "planned-lesson-".concat(planId, "-").concat(date, "-").concat(start);
+};
+var finishLessonMutationInModal = function finishLessonMutationInModal(modal, event, cancellationChanged) {
+  var _state$lessonCancella2;
+  setLessonMutationBusy(modal, false);
+  (_state$lessonCancella2 = state.lessonCancellationPicker) === null || _state$lessonCancella2 === void 0 || _state$lessonCancella2.reset();
+  modal.dataset.lessonId = event.lessonId || '';
+  modal.dataset.scheduleOverrideId = event.scheduleOverrideId || '';
+  modal.dataset.earlyPaymentId = event.earlyPaymentId || '';
+  modal.classList.remove('is-canceling', 'is-rescheduling');
+  populateLessonModal(modal, event);
+  updateConflictToggle(modal, event);
+  if (cancellationChanged) loadTravelRoute(modal, event);
+};
+var applyMultipleCancellations = function applyMultipleCancellations(payload) {
+  var _iterator2 = _createForOfIteratorHelper(payload.occurrences),
+    _step2;
+  try {
+    for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+      var row = _step2.value;
+      var guid = recurringLessonGuid(payload.lesson_plan_id, row.original_date, row.original_start_time);
+      var event = getEventByGuid(guid);
+      // A filtered or offscreen lesson may still be in the buffered plan data.
+      updateLessonEventState(event || {
+        guid: guid,
+        lessonPlanId: payload.lesson_plan_id,
+        date: row.date,
+        start: row.start,
+        originalDate: row.original_date,
+        originalStartTime: row.original_start_time,
+        scheduleOverrideId: row.schedule_override_id || ''
+      }, row);
+      if (event) updateLessonEventViews(event, true);else state.travelRouteDateRevisions.set(row.date, (state.travelRouteDateRevisions.get(row.date) || 0) + 1);
+    }
+  } catch (err) {
+    _iterator2.e(err);
+  } finally {
+    _iterator2.f();
+  }
+};
 var mutateLesson = function mutateLesson(modal, send, refreshCalendar) {
   var keepOpen = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : true;
+  var relatedGuids = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : [];
   var guid = modal.dataset.eventGuid;
   var originalEvent = getEventByGuid(guid);
-  if (!originalEvent || state.pendingLessonMutations.has(guid)) return;
-  state.pendingLessonMutations.add(guid);
+  var lockedGuids = [guid].concat(_toConsumableArray(relatedGuids));
+  if (!originalEvent || lockedGuids.some(function (id) {
+    return state.pendingLessonMutations.has(id);
+  })) return;
+  lockedGuids.forEach(function (id) {
+    return state.pendingLessonMutations.add(id);
+  });
   clearLessonActionError(modal);
   setLessonMutationBusy(modal, true);
   var isCurrentLesson = function isCurrentLesson() {
@@ -8829,6 +9133,15 @@ var mutateLesson = function mutateLesson(modal, send, refreshCalendar) {
   return send().then(function (payload) {
     invalidateCalendarDataCache();
     var event = getEventByGuid(guid) || originalEvent;
+    if (Array.isArray(payload.occurrences)) {
+      applyMultipleCancellations(payload);
+      var openGuid = modal.dataset.eventGuid;
+      if (modal.dataset.eventModalType === 'lesson' && lockedGuids.includes(openGuid)) {
+        var openEvent = getEventByGuid(openGuid);
+        if (openEvent) finishLessonMutationInModal(modal, openEvent, true);
+      }
+      return;
+    }
     // Rescheduling and changes to a whole series can move/add/remove occurrences.
     var movesOccurrence = payload.schedule_override_deleted && !payload.lesson_id || payload.lesson_deleted && (event.date !== (event.originalDate || event.date) || event.start !== (event.originalStartTime || event.start));
     if (payload.status && !movesOccurrence) {
@@ -8836,14 +9149,7 @@ var mutateLesson = function mutateLesson(modal, send, refreshCalendar) {
       updateLessonEventState(event, payload);
       updateLessonEventViews(event, cancellationChanged);
       if (isCurrentLesson()) {
-        setLessonMutationBusy(modal, false);
-        modal.dataset.lessonId = event.lessonId || '';
-        modal.dataset.scheduleOverrideId = event.scheduleOverrideId || '';
-        modal.dataset.earlyPaymentId = event.earlyPaymentId || '';
-        modal.classList.remove('is-canceling', 'is-rescheduling');
-        populateLessonModal(modal, event);
-        updateConflictToggle(modal, event);
-        if (cancellationChanged) loadTravelRoute(modal, event);
+        finishLessonMutationInModal(modal, event, cancellationChanged);
       }
       return;
     }
@@ -8860,9 +9166,13 @@ var mutateLesson = function mutateLesson(modal, send, refreshCalendar) {
     console.error(error);
     if (isCurrentLesson()) showLessonActionError(modal, error.message);
   })["finally"](function () {
-    state.pendingLessonMutations["delete"](guid);
+    lockedGuids.forEach(function (id) {
+      return state.pendingLessonMutations["delete"](id);
+    });
     _drainTravelRequests();
-    if (isCurrentLesson()) setLessonMutationBusy(modal, false);
+    if (modal.dataset.eventModalType === 'lesson' && lockedGuids.includes(modal.dataset.eventGuid)) {
+      setLessonMutationBusy(modal, false);
+    }
   });
 };
 var getLessonOccurrencePayload = function getLessonOccurrencePayload(modal) {
@@ -8932,17 +9242,27 @@ var submitLessonModalForm = function submitLessonModalForm(form, refreshCalendar
 
   // Capture values before locking controls while the request is in flight.
   var body = new FormData(form);
+  var multiple = !isReschedule && body.get('cancelation_type') === 'multiple';
+  var occurrences = multiple ? state.lessonCancellationPicker.selection() : [];
+  if (multiple && !occurrences.length) return;
+  var relatedGuids = occurrences.map(function (row) {
+    return recurringLessonGuid(body.get('lesson_plan_id'), row.original_date, row.original_start_time);
+  });
   return mutateLesson(modal, function () {
     return requestJson(form.action, {
       method: String(form.method || 'POST').toUpperCase(),
-      headers: {
+      headers: _objectSpread(_objectSpread({}, multiple ? {
+        'Content-Type': 'application/json'
+      } : {}), {}, {
         'Accept': 'application/json',
         'X-CSRF-TOKEN': window.calendarCsrfToken || '',
         'X-Requested-With': 'XMLHttpRequest'
-      },
-      body: body
+      }),
+      body: multiple ? JSON.stringify(_objectSpread(_objectSpread({}, Object.fromEntries(body)), {}, {
+        occurrences: occurrences
+      })) : body
     }, isReschedule ? 'Unable to reschedule lesson.' : 'Unable to cancel lesson.');
-  }, refreshCalendar, !isReschedule);
+  }, refreshCalendar, !isReschedule, relatedGuids);
 };
 var patchSchedulePointer = function patchSchedulePointer(calendar) {
   var schedule = calendar.querySelector('.lm-schedule');
@@ -9759,7 +10079,7 @@ var getPlannedLessonEvents = function getPlannedLessonEvents(range) {
           start: start,
           end: normalizeTime(occurrence.end || addMinutesToTime(lesson.start_time, lesson.duration_minutes)),
           color: '#2fbb7f',
-          guid: "".concat(isSingleLessonPlan ? 'single-lesson-plan' : 'planned-lesson', "-").concat(lesson.id, "-").concat(originalDate, "-").concat(originalStartTime),
+          guid: isSingleLessonPlan ? "single-lesson-plan-".concat(lesson.id, "-").concat(originalDate, "-").concat(originalStartTime) : recurringLessonGuid(lesson.id, originalDate, originalStartTime),
           lessonPlanId: isSingleLessonPlan ? '' : lesson.id,
           singleLessonPlanId: occurrence.single_lesson_plan_id || (isSingleLessonPlan ? lesson.id : ''),
           lessonId: occurrence.lesson_id || '',
@@ -11974,6 +12294,9 @@ document.addEventListener('DOMContentLoaded', function () {
         e.preventDefault();
         showLessonRescheduleForm(lessonModal);
       });
+    }
+    if (cancelForm) {
+      state.lessonCancellationPicker = (0,_lesson_cancellation_picker__WEBPACK_IMPORTED_MODULE_4__.bindLessonCancellationPicker)(cancelForm, calendarWeekStartDay, requestJson);
     }
     [rescheduleForm, cancelForm].filter(Boolean).forEach(function (form) {
       form.addEventListener('submit', function (e) {

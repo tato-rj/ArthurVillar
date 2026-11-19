@@ -92,6 +92,7 @@ Route::prefix('lesson-plans')->name('lesson-plans.')->group(function() {
 	Route::post('reschedule', 'LessonPlansController@reschedule')->name('reschedule');
 
 	Route::prefix('{lessonPlan}')->group(function() {
+		Route::get('cancelable-occurrences', 'LessonsController@cancelableOccurrences')->name('cancelable-occurrences');
 		Route::get('edit', 'LessonPlansController@edit')->name('edit');
 
 		Route::prefix('rescheduled/{originalDate}/{originalStartTime}')

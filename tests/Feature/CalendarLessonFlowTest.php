@@ -1292,6 +1292,79 @@ class CalendarLessonFlowTest extends BaseTest
         $this->assertSame('16:00', $earlyPayment->scheduled_start_time);
     }
 
+    public function test_multiple_cancellations_span_months_and_follow_rescheduled_occurrences()
+    {
+        $this->travelTo(Carbon::parse('2026-07-08 15:31', config('calendar.timezone')));
+        $this->signIn();
+        $plan = LessonPlan::factory()->create([
+            'weekday' => 4, 'start_time' => '15:30', 'starts_on' => '2026-07-01',
+            'ends_on' => '2026-08-26', 'canceled_from' => '2026-08-19',
+        ]);
+        $otherPlan = LessonPlan::factory()->create([
+            'student_id' => $plan->student_id, 'weekday' => 4, 'start_time' => '15:30', 'starts_on' => '2026-07-01',
+        ]);
+        $override = $plan->reschedule([
+            'original_date' => '2026-07-29', 'date' => '2026-08-05', 'start_time' => '16:30', 'end_time' => '17:00',
+        ]);
+        $payment = EarlyPayment::factory()->create([
+            'lesson_plan_id' => $plan->id, 'scheduled_date' => '2026-07-15', 'scheduled_start_time' => '15:30',
+        ]);
+        Lesson::factory()->lessonPlan($plan)->create([
+            'scheduled_date' => '2026-08-12', 'scheduled_start_time' => '15:30',
+            'starts_at' => '2026-08-12 15:30', 'ends_at' => '2026-08-12 16:00',
+        ]);
+
+        $dates = fn ($month) => $this->getJson(route('calendar.lesson-plans.cancelable-occurrences', [$plan, 'month' => $month]))
+            ->assertOk()->json('occurrences');
+        $july = $dates('2026-07');
+        $august = $dates('2026-08');
+        $this->assertEqualsCanonicalizing(['2026-07-15', '2026-07-22'], array_column($july, 'date'));
+        $this->assertEqualsCanonicalizing(['2026-08-05', '2026-08-05'], array_column($august, 'date'));
+        $this->assertEqualsCanonicalizing(['2026-07-29', '2026-08-05'], array_column($august, 'original_date'));
+
+        // Keep July 22 (the lesson opened in the modal), cancel an earlier week and both August 5 lessons.
+        $payload = ['lesson_plan_id' => $plan->id, 'cancelation_type' => 'multiple', 'canceled_by' => 'teacher',
+            'occurrences' => array_merge([$july[0]], $august)];
+        $url = route('calendar.lessons.cancel');
+        $result = $this->postJson($url, $payload)->assertOk()->assertJsonCount(3, 'occurrences')->json('occurrences');
+        foreach ($result as $row) {
+            $this->assertSame('canceled', $row['status']);
+            $this->assertSame('teacher', $row['canceled_by']);
+            $this->assertNotEmpty($row['edit_url']);
+        }
+        $this->postJson($url, $payload)->assertOk()->assertJsonPath('occurrences', $result);
+        $this->assertEquals(['2026-07-22'], array_column($dates('2026-07'), 'date'));
+        $this->assertSame([], $dates('2026-08'));
+        $this->assertSame(3, $plan->lessons()->whereNotNull('canceled_at')->count());
+        $this->assertSame(0, $otherPlan->lessons()->count());
+        $this->assertSame('2026-08-19', $plan->fresh()->canceled_from->toDateString());
+        $this->assertModelExists($payment);
+        $this->assertModelExists($override);
+    }
+
+    public function test_multiple_cancellations_roll_back_if_any_selection_is_past_missing_or_has_moved()
+    {
+        $this->travelTo(Carbon::parse('2026-07-08 15:29', config('calendar.timezone')));
+        $this->signIn();
+        $plan = LessonPlan::factory()->create([
+            'weekday' => 4, 'start_time' => '15:30', 'starts_on' => '2026-07-01', 'recurrence_interval' => 1,
+        ]);
+        $select = fn ($date) => ['date' => $date, 'start' => '15:30', 'original_date' => $date, 'original_start_time' => '15:30'];
+        $rows = $this->getJson(route('calendar.lesson-plans.cancelable-occurrences', [$plan, 'month' => '2026-07']))
+            ->assertOk()->json('occurrences');
+        $this->assertContains($select('2026-07-08'), $rows);
+        $plan->reschedule([
+            'original_date' => '2026-07-22', 'date' => '2026-07-23', 'start_time' => '16:30', 'end_time' => '17:00',
+        ]);
+        foreach (['2026-07-01', '2026-07-16', '2026-07-22'] as $unavailable) {
+            $this->postJson(route('calendar.lessons.cancel'), [
+                'lesson_plan_id' => $plan->id, 'cancelation_type' => 'multiple', 'canceled_by' => 'student',
+                'occurrences' => [$select('2026-07-15'), $select($unavailable)],
+            ])->assertUnprocessable()->assertJsonValidationErrors('occurrences');
+            $this->assertSame(0, $plan->lessons()->count());
+        }
+    }
+
     /** @test */
     public function it_cancels_a_lesson_occurrence_with_a_normal_form_post()
     {
