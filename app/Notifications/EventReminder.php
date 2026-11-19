@@ -32,8 +32,8 @@ class EventReminder extends Notification
         return (new WebPushMessage)
             ->title($this->event->name)
             ->body('Starts at '.$time)
-            ->icon('/favicon/calendar/android-icon-192x192.png?v=01a4752081eb')
-            ->badge('/favicon/calendar/android-icon-192x192.png?v=01a4752081eb')
+            ->icon('/favicon/calendar/android-icon-192x192.png?v=146e9186f9b5')
+            ->badge('/favicon/calendar/android-icon-192x192.png?v=146e9186f9b5')
             ->tag('event-reminder-'.$this->event->id)
             ->data(['url' => $url])
             ->options(['TTL' => 3600]);

@@ -7,15 +7,17 @@ const {execFileSync} = require('child_process');
 
 const root = path.resolve(__dirname, '..');
 const master = path.join(root, 'resources/artwork/calendar/icon.png');
+const tabIcon = path.join(root, 'resources/artwork/calendar/favicon-16.svg');
 const output = path.join(root, 'public/favicon/calendar');
 const version = crypto.createHash('sha256')
     .update(fs.readFileSync(master))
+    .update(fs.readFileSync(tabIcon))
     .update(fs.readFileSync(__filename))
     .digest('hex').slice(0, 12);
 const sizes = {
     'android-icon': [36, 48, 72, 96, 144, 192, 512],
     'apple-icon': [57, 60, 72, 76, 114, 120, 144, 152, 167, 180],
-    'favicon': [16, 32, 48, 96],
+    'favicon': [32, 48, 96],
     'ms-icon': [70, 144, 150, 310],
 };
 
@@ -53,10 +55,19 @@ for (const [filename, size] of [['icon.png', 1024], ['apple-icon.png', 192], ['a
     ]);
 }
 
+// The 16px tab icon has its own lettering so the date survives at native size.
+execFileSync('magick', [
+    '-background', 'none', '-density', '768', tabIcon, '-filter', 'Box', '-resize', '16x16',
+    '-depth', '8', '-strip', path.join(output, 'favicon-16x16.png'),
+]);
+
 render(path.join(output, 'favicon.ico'), [
     ...faviconCrop, '-resize', '256x256', '-background', 'none',
     '-gravity', 'center', '-extent', '256x256',
-    '-define', 'icon:auto-resize=256,128,64,48,32,16',
+    '(', '-clone', '0', '-resize', '128x128', ')',
+    '(', '-clone', '0', '-resize', '64x64', ')',
+    ...[48, 32, 16].map(size => path.join(output, `favicon-${size}x${size}.png`)),
+    '-type', 'TrueColorAlpha',
 ]);
 
 // Opaque, separately padded exports for launchers that apply circular or squircle masks.
