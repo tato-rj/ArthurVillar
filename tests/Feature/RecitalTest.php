@@ -3,7 +3,8 @@
 namespace Tests\Feature;
 
 use App\Calendar\Scheduler;
-use App\Models\Calendar\{Location, Recital, Student};
+use App\Models\Calendar\{LessonPlan, Location, Recital, SingleLessonPlan, Student};
+use Carbon\Carbon;
 use Tests\BaseTest;
 
 class RecitalTest extends BaseTest
@@ -155,5 +156,64 @@ class RecitalTest extends BaseTest
             $event['location']['map_url']
         );
         $this->assertSame('Ana Costa', $event['students'][0]['name']);
+    }
+
+    public function test_lesson_students_get_their_next_recital_even_outside_the_calendar_range()
+    {
+        $this->travelTo(Carbon::parse('2026-11-19 12:00', config('calendar.timezone')));
+        [$recurringStudent, $singleStudent, $unrelatedStudent] = Student::factory()->count(3)->create();
+        LessonPlan::factory()->student($recurringStudent)->create([
+            'starts_on' => '2026-11-19',
+            'weekday' => LessonPlan::fromCarbonWeekday(Carbon::THURSDAY),
+        ]);
+        SingleLessonPlan::factory()->student($singleStudent)->create(['scheduled_date' => '2026-11-19']);
+        $venue = Location::factory()->recital()->create(['name' => 'Concert Hall']);
+        Recital::factory()->create(['date' => '2026-11-19', 'start_time' => '11:00'])
+            ->students()->attach($recurringStudent);
+        Recital::factory()->create(['date' => '2026-12-12', 'start_time' => '19:30'])
+            ->students()->attach($recurringStudent);
+        Recital::factory()->create([
+            'name' => 'Winter Recital',
+            'date' => '2026-12-12',
+            'start_time' => '18:00',
+            'location_id' => $venue->id,
+        ])->students()->attach([$recurringStudent->id, $unrelatedStudent->id]);
+        Recital::factory()->create([
+            'name' => 'Studio Recital',
+            'date' => '2026-11-19',
+            'start_time' => '16:30',
+            'location_id' => null,
+        ])->students()->attach($singleStudent);
+
+        $this->signIn();
+        $range = [
+            'view' => 'day',
+            'date' => '2026-11-19',
+            'range_start' => '2026-11-18',
+            'range_end' => '2026-11-20',
+        ];
+        $recitalDetails = [
+            'name' => 'Winter Recital',
+            'date' => '2026-12-12',
+            'start_time' => '18:00',
+            'location_name' => 'Concert Hall',
+        ];
+
+        $page = $this->get(route('calendar.home', $range))
+            ->assertOk()
+            ->assertSee('data-lesson-recital-section', false);
+        $this->assertSame($recitalDetails, $page->viewData('nextRecitalsByStudent')->get($recurringStudent->id));
+
+        $this->getJson(route('calendar.home', $range + ['lesson_plans' => 1]))
+            ->assertOk()
+            ->assertJsonCount(2, 'recitals')
+            ->assertJsonPath('nextRecitalsByStudent.'.$recurringStudent->id, $recitalDetails)
+            ->assertJsonPath('nextRecitalsByStudent.'.$singleStudent->id, [
+                'name' => 'Studio Recital',
+                'date' => '2026-11-19',
+                'start_time' => '16:30',
+                'location_name' => null,
+            ])
+            ->assertJsonMissingPath('nextRecitalsByStudent.'.$unrelatedStudent->id);
     }
 }

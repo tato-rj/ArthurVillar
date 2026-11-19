@@ -11,28 +11,10 @@ class CalendarController extends Controller
 {
     public function index(Request $request, Scheduler $scheduler)
     {
-        [
-            'plannedLessons' => $plannedLessons,
-            'singleLessonPlans' => $singleLessonPlans,
-            'holidays' => $holidays,
-            'teachingBreaks' => $teachingBreaks,
-            'recitals' => $recitals,
-            'generalEvents' => $generalEvents,
-            'ignoredConflicts' => $ignoredConflicts,
-            'calendarRange' => $calendarRange,
-        ] = $scheduler->payload($request);
+        $payload = $scheduler->payload($request);
 
         if ($request->boolean('lesson_plans')) {
-            return response()->json([
-                'plannedLessons' => $plannedLessons,
-                'singleLessonPlans' => $singleLessonPlans,
-                'holidays' => $holidays,
-                'teachingBreaks' => $teachingBreaks,
-                'recitals' => $recitals,
-                'generalEvents' => $generalEvents,
-                'ignoredConflicts' => $ignoredConflicts,
-                'calendarRange' => $calendarRange,
-            ]);
+            return response()->json($payload);
         }
 
         $locations = Location::query()
@@ -45,6 +27,6 @@ class CalendarController extends Controller
             ->first();
         $birthdayWindow = Student::birthdayWindow();
 
-        return view('calendar.index', compact('plannedLessons', 'singleLessonPlans', 'holidays', 'teachingBreaks', 'recitals', 'generalEvents', 'ignoredConflicts', 'calendarRange', 'locations', 'homeLocation', 'birthdayWindow'));
+        return view('calendar.index', $payload + compact('locations', 'homeLocation', 'birthdayWindow'));
     }
 }

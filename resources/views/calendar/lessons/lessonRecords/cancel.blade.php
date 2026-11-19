@@ -42,7 +42,6 @@
 				</div>
 
 				<div class="calendar-date-picker calendar-cancel-picker" id="multiple-event-picker" hidden>
-					<p class="small mb-0">Uncheck a lesson to cancel it. Check a canceled lesson to restore it. Purple marks the lesson you opened.</p>
 					<div class="calendar-date-picker-header">
 						<h3 aria-live="polite" data-cancel-month></h3>
 						<div class="calendar-date-picker-nav">

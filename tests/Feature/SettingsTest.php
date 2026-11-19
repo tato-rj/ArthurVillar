@@ -14,7 +14,7 @@ class SettingsTest extends BaseTest
 
         $this->get(route('calendar.home'))
             ->assertOk()
-            ->assertSeeInOrder(['View options', 'Show calendar insights', 'Show holidays', 'Show travel times', 'Animate events', 'Show cancelled lessons', 'Calendar options', 'fa-desktop', 'fa-mobile', 'Week starts on', 'Appearance', 'Theme', 'Device settings', 'Unconfirmed lessons'])
+            ->assertSeeInOrder(['View options', 'Show calendar insights', 'Show holidays', 'Show travel times', 'Animate events', 'Show canceled events and lessons', 'Calendar options', 'fa-desktop', 'fa-mobile', 'Week starts on', 'Appearance', 'Theme', 'Device settings', 'Unconfirmed lessons'])
             ->assertDontSee('Display options')
             ->assertSee('fa-desktop', false)
             ->assertSee('fa-mobile', false)
@@ -47,7 +47,7 @@ class SettingsTest extends BaseTest
             ->assertSee('Show holidays')
             ->assertSee('Show travel times')
             ->assertSee('Animate events')
-            ->assertSee('Show cancelled lessons')
+            ->assertSee('Show canceled events and lessons')
             ->assertSee('Add transparency to past events')
             ->assertSee('Highlight conflicting events')
             ->assertSee('Notifications default')
@@ -59,6 +59,7 @@ class SettingsTest extends BaseTest
             ->assertSee('6 months from today')
             ->assertSee('12 months from today')
             ->assertDontSee('Import meetings where you are an attendee. Google remains the source of truth.')
+            ->assertSee('window.calendarShowCancellations = false;', false)
             ->assertSee('calendar_show_cancelled', false);
     }
 
@@ -203,6 +204,7 @@ class SettingsTest extends BaseTest
             'type' => Settings::TYPE_BOOLEAN,
         ]);
         $this->assertTrue(Settings::getValue('calendar.show_cancelled'));
+        $this->get(route('calendar.home'))->assertOk()->assertSee('window.calendarShowCancellations = true;', false);
         $this->assertDatabaseHas('settings', [
             'key' => 'calendar.add_transparency_to_past_events',
             'value' => 'false',

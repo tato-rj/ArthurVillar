@@ -7,6 +7,8 @@ import { bindLessonCancellationPicker } from './lesson-cancellation-picker';
 const DOMPurify = require('dompurify');
 const calendarjs = window.calendarjs;
 
+const calendarEventTypes = ['recurring', 'single', 'general', 'google', 'football', 'canceled'];
+
 const state = {
     date: null,
     miniDate: null,
@@ -23,8 +25,9 @@ const state = {
     showHolidays: true,
     teachingBreaks: [],
     recitals: [],
+    nextRecitalsByStudent: {},
     generalEvents: [],
-    selectedEventTypes: ['recurring', 'single', 'general', 'google', 'football'],
+    selectedEventTypes: [...calendarEventTypes],
     studentSearch: '',
     loadedRange: null,
     pendingRangeKey: null,
@@ -108,6 +111,12 @@ const compactDayFormatter = new Intl.DateTimeFormat('en', {
     year: 'numeric',
 });
 
+const recitalDateFormatter = new Intl.DateTimeFormat('en', {
+    month: 'short',
+    day: 'numeric',
+    timeZone: calendarTimeZone,
+});
+
 const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const calendarWeekStartDay = [0, 1, 6].includes(Number(window.calendarWeekStartDay))
     ? Number(window.calendarWeekStartDay)
@@ -126,7 +135,6 @@ const calendarRequestTimeoutMilliseconds = 20 * 1000;
 const calendarStaleAfterMilliseconds = 5 * 60 * 1000;
 
 const scheduleGridViews = ['day', '2-days', 'week'];
-const calendarEventTypes = ['recurring', 'single', 'general', 'google', 'football', 'canceled'];
 
 const createLocalDate = function(year, month, day) {
     return new Date(year, month, day, 12, 0, 0, 0);
@@ -231,6 +239,12 @@ const getUrlState = function() {
     if (eventTypes && eventFilterVersion < 3 && !eventTypes.includes('football')) {
         eventTypes.push('football');
     }
+    // Older calendar URLs omitted cancellations even when all lesson and event types were shown.
+    const usedPreviousDefaults = eventFilterVersion < 4 && eventTypes
+        && ['recurring', 'single', 'general', 'google'].every(type => eventTypes.includes(type));
+    if (eventTypes && (usedPreviousDefaults || !window.calendarShowCancellations) && !eventTypes.includes('canceled')) {
+        eventTypes.push('canceled');
+    }
     const locationIds = params.has('location_ids')
         ? params.get('location_ids').split(',').map(normalizeLocationId).filter(function(id, index, ids) {
             return id && ids.indexOf(id) === index;
@@ -257,7 +271,7 @@ const updateCalendarUrl = function() {
         url.searchParams.delete('window_start');
     }
     url.searchParams.set('event_types', state.selectedEventTypes.join(','));
-    url.searchParams.set('event_filter_version', '3');
+    url.searchParams.set('event_filter_version', '4');
     url.searchParams.set('location_ids', state.selectedLocationIds.join(','));
     window.history.replaceState({
         calendarView: state.view,
@@ -307,6 +321,7 @@ const applyCalendarPayload = function(payload, range, fetchedAt) {
     ['plannedLessons', 'singleLessonPlans', 'holidays', 'teachingBreaks', 'recitals', 'generalEvents'].forEach(function(key) {
         state[key] = Array.isArray(payload[key]) ? payload[key] : [];
     });
+    state.nextRecitalsByStudent = payload.nextRecitalsByStudent || {};
     setIgnoredConflictPairs(payload.ignoredConflicts);
     state.loadedRange = normalizeRange(payload.calendarRange) || normalizeRange(range);
     state.loadedRangeAt = fetchedAt;
@@ -1425,9 +1440,9 @@ const eventMatchesLocationFilter = function(event) {
 const getVisibleCalendarEvents = function() {
     return state.events
         .filter(function(event) {
-            return !isPlannedLessonEvent(event) || lessonOccurrenceMatchesEventTypeFilter(
-                event.singleLessonPlanId ? 'single' : 'recurring', event.lessonStatus, event.date, event.locationId
-            );
+            if (isCanceledCalendarEvent(event)) return showsCalendarCancellations();
+            return !isPlannedLessonEvent(event)
+                || state.selectedEventTypes.includes(event.singleLessonPlanId ? 'single' : 'recurring');
         })
         .filter(isEventInsideScheduleWindow)
         .filter(eventMatchesLocationFilter);
@@ -1977,6 +1992,32 @@ const createCalendarEventIcon = function(event) {
     return element;
 };
 
+const getLessonRecital = function(event) {
+    return state.nextRecitalsByStudent[event?.studentId];
+};
+
+const renderLessonRecitalDate = function(item, event) {
+    const recital = getLessonRecital(event);
+    let date = item.querySelector(':scope > .calendar-lesson-recital-date');
+
+    if (!recital) {
+        date?.remove();
+        return;
+    }
+
+    if (!date) {
+        date = document.createElement('time');
+        date.className = 'calendar-lesson-recital-date';
+        date.innerHTML = '<span class="calendar-piano-icon" aria-hidden="true"></span><span class="visually-hidden">Recital </span><span></span>';
+        item.appendChild(date);
+    }
+
+    if (date.dateTime !== recital.date) {
+        date.dateTime = recital.date;
+        date.lastElementChild.textContent = recitalDateFormatter.format(parseDateString(recital.date));
+    }
+};
+
 const patchScheduleItems = function(calendar) {
     calendar.querySelectorAll('.lm-schedule-item:not([holding-event])').forEach(function(item) {
         const start = item.getAttribute('data-start');
@@ -2017,6 +2058,7 @@ const patchScheduleItems = function(calendar) {
         }
 
         item.classList.toggle('is-short', isShort);
+        item.classList.toggle('is-one-slot', duration === 15);
         item.classList.toggle('calendar-calendar-general-event', Boolean(event && event.isGeneralEvent));
         item.toggleAttribute('data-read-only', Boolean(event && event.readOnly));
         item.toggleAttribute('data-hide-outgoing-directions', String(event && event.travelMode || '').toUpperCase() === 'NONE');
@@ -2029,6 +2071,7 @@ const patchScheduleItems = function(calendar) {
                 : (isShort ? formatEventTime(start) : `${formatEventTime(start)} - ${formatEventTime(end)}`)
         );
         clearScheduleItemBirthdayDecoration(item);
+        renderLessonRecitalDate(item, event);
 
         if (event) {
             item.setAttribute(
@@ -2359,10 +2402,7 @@ const getGeneralEventCalendarEvents = function() {
                 : 'general';
 
             if (generalEvent.canceled_at) {
-                return state.selectedEventTypes.includes('canceled') || (
-                    !generalEvent.ignore_conflicts && state.selectedEventTypes.includes(eventType)
-                    && getDayConflictEvents(String(generalEvent.scheduled_date || '').substring(0, 10)).length > 0
-                );
+                return showsCalendarCancellations();
             }
 
             if (isGoogleEvent && !['accepted', 'needsAction'].includes(generalEvent.response_status)) {
@@ -2937,6 +2977,8 @@ const populateLessonModal = function(modal, event) {
     const lessonPlanSummarySection = modal.querySelector('[data-lesson-plan-summary-section]');
     const time = modal.querySelector('[data-event-modal-time]');
     const recurrence = modal.querySelector('#lesson-recurrence');
+    const recitalSection = modal.querySelector('[data-lesson-recital-section]');
+    const recitalDetails = modal.querySelector('[data-lesson-recital-details]');
     const birthday = modal.querySelector('#lesson-birthday');
     const birthdayLabel = birthday ? birthday.querySelector('[data-lesson-birthday-label]') : null;
     const birthDateSection = modal.querySelector('[data-lesson-birth-date-section]');
@@ -3002,6 +3044,17 @@ const populateLessonModal = function(modal, event) {
         if (recurrence.parentElement) {
             recurrence.parentElement.hidden = !recurrence.textContent;
         }
+    }
+
+    if (recitalSection && recitalDetails) {
+        const recital = getLessonRecital(event);
+        recitalSection.hidden = !recital;
+        recitalDetails.textContent = recital ? [
+            recital.name,
+            dayFormatter.format(parseDateString(recital.date)),
+            formatModalEventTime(recital.start_time),
+            recital.location_name,
+        ].filter(Boolean).join(' · ') : '';
     }
 
     if (birthday && birthdayLabel) {
@@ -5088,7 +5141,7 @@ const updateLessonEventViews = function(event, cancellationChanged) {
     }
 
     const visible = lessonOccurrenceMatchesEventTypeFilter(
-        event.singleLessonPlanId ? 'single' : 'recurring', event.lessonStatus, event.date, event.locationId
+        event.singleLessonPlanId ? 'single' : 'recurring', event.lessonStatus
     );
     getCalendarEventElementsByGuid(event.guid).forEach(function(item) {
         updateCopy(item.event);
@@ -5105,12 +5158,6 @@ const updateLessonEventViews = function(event, cancellationChanged) {
     });
 
     if (cancellationChanged) {
-        const monthDay = document.querySelector(`#calendar .calendar-month-day[data-date="${event.date}"]`);
-        if (monthDay) {
-            const items = getCalendarItemsForDate(parseDateString(event.date));
-            updateMonthConflictAlert(monthDay, getConflictingEventGuids(items, event.date).size > 0);
-        }
-
         state.travelRouteDateRevisions.set(event.date, (state.travelRouteDateRevisions.get(event.date) || 0) + 1);
         // Cancellation also changes conflicts and the neighboring lessons' travel routes.
         state.events.filter(candidate => candidate.date === event.date).forEach(function(candidate) {
@@ -5162,6 +5209,19 @@ const finishLessonMutationInModal = function(modal, event, cancellationChanged) 
     if (cancellationChanged) loadTravelRoute(modal, event);
 };
 
+const refreshLessonDates = function(dates) {
+    const calendar = document.getElementById('calendar');
+    if (!calendar) return;
+    if (state.view === 'month') {
+        dates.forEach(date => {
+            const cell = calendar.querySelector(`.calendar-month-day[data-date="${date}"]`);
+            if (cell) renderMonthDayEvents(cell, date);
+        });
+    } else if (state.view === 'schedule') {
+        renderScheduleAgenda(calendar, dates.filter(date => isEventInsideVisibleRange({ date })).map(parseDateString));
+    }
+};
+
 const applyLessonScheduleChanges = function(payload) {
     if ('projected_occurrence_count' in payload) {
         const samePlan = id => String(id) === String(payload.lesson_plan_id);
@@ -5198,18 +5258,8 @@ const applyLessonScheduleChanges = function(payload) {
         if (event) updateLessonEventViews(event, true);
         else state.travelRouteDateRevisions.set(row.date, (state.travelRouteDateRevisions.get(row.date) || 0) + 1);
     }
-    if (!restored.size) return;
-    const calendar = document.getElementById('calendar');
-    if (!calendar) return;
-    const dates = [...new Set(payload.occurrences.map(row => row.date))];
-    if (state.view === 'month') {
-        dates.forEach(date => {
-            const cell = calendar.querySelector(`.calendar-month-day[data-date="${date}"]`);
-            if (cell) renderMonthDayEvents(cell, date);
-        });
-    } else if (state.view === 'schedule') {
-        renderScheduleAgenda(calendar, dates.filter(date => isEventInsideVisibleRange({ date })).map(parseDateString));
-    } else if (state.instance) {
+    refreshLessonDates([...new Set(payload.occurrences.map(row => row.date))]);
+    if (restored.size && scheduleGridViews.includes(state.view) && state.instance) {
         const existing = new Set(state.instance.getData().map(event => event.guid));
         const additions = getScheduleRenderEvents().filter(event => restored.has(event.guid) && !existing.has(event.guid));
         if (additions.length) state.instance.addEvents(normalizeScheduleEvents(additions));
@@ -5260,6 +5310,7 @@ const mutateLesson = function(modal, send, refreshCalendar, keepOpen = true, rel
             const cancellationChanged = (event.lessonStatus === 'canceled') !== (payload.status === 'canceled');
             updateLessonEventState(event, payload);
             updateLessonEventViews(event, cancellationChanged);
+            if (cancellationChanged) refreshLessonDates([event.date]);
             if (isCurrentLesson()) {
                 finishLessonMutationInModal(modal, event, cancellationChanged);
             }
@@ -5540,7 +5591,7 @@ const syncEvents = function(instance) {
     }
 
     state.customEvents = normalizeScheduleEvents(instance.getData()).filter(function(event) {
-        return !isPlannedLessonEvent(event);
+        return !isPlannedLessonEvent(event) && !event.isGeneralEvent;
     });
 };
 
@@ -6418,19 +6469,17 @@ const getFilteredPlannedLessons = function() {
         .filter(function(lesson) {
             const type = lesson.type === 'single-lesson-plan' ? 'single' : 'recurring';
 
-            return state.selectedEventTypes.includes(type) || state.selectedEventTypes.includes('canceled');
+            return state.selectedEventTypes.includes(type) || showsCalendarCancellations();
         })
         .filter(lessonMatchesStudentSearch);
 };
 
-const lessonOccurrenceMatchesEventTypeFilter = function(type, status, date, locationId) {
-    if (status === 'canceled') {
-        return state.selectedEventTypes.includes('canceled') || (
-            state.selectedEventTypes.includes(type) && getDayConflictEvents(date, locationId).length > 0
-        );
-    }
+const showsCalendarCancellations = function() {
+    return window.calendarShowCancellations === true && state.selectedEventTypes.includes('canceled');
+};
 
-    return state.selectedEventTypes.includes(type);
+const lessonOccurrenceMatchesEventTypeFilter = function(type, status) {
+    return status === 'canceled' ? showsCalendarCancellations() : state.selectedEventTypes.includes(type);
 };
 
 const getFirstOccurrenceDate = function(startsOn, weekday) {
@@ -6454,7 +6503,7 @@ const getPlannedLessonEvents = function(range) {
                 const locationId = occurrence.location_id ?? lesson.location_id;
 
                 if (!dateString || !lessonMatchesLocationFilter(locationId)
-                    || !lessonOccurrenceMatchesEventTypeFilter(isSingleLessonPlan ? 'single' : 'recurring', lessonStatus, dateString, locationId)) {
+                    || !lessonOccurrenceMatchesEventTypeFilter(isSingleLessonPlan ? 'single' : 'recurring', lessonStatus)) {
                     return;
                 }
 
@@ -6550,7 +6599,7 @@ const getPlannedLessonEvents = function(range) {
             const confirmedLesson = getLessonForOccurrence(lesson, dateString, start);
             const lessonStatus = getLessonStatus(confirmedLesson);
 
-            if (!lessonOccurrenceMatchesEventTypeFilter('recurring', lessonStatus, dateString, lesson.location_id)) {
+            if (!lessonOccurrenceMatchesEventTypeFilter('recurring', lessonStatus)) {
                 occurrence = addDays(occurrence, intervalDays);
                 continue;
             }
@@ -6682,6 +6731,7 @@ const createMonthEventElement = function(event, dateString) {
     if (!event.isHoliday && !event.isBreak) item.appendChild(time);
 
     item.appendChild(title);
+    renderLessonRecitalDate(item, event);
 
     return item;
 };
@@ -7332,6 +7382,7 @@ const renderScheduleAgenda = function(calendar, changedDates) {
                 }
 
                 item.appendChild(title);
+                renderLessonRecitalDate(item, event);
                 item.appendChild(time);
             } else {
                 if (event.isBreak || event.isRecital) {
@@ -7992,6 +8043,7 @@ document.addEventListener('DOMContentLoaded', function() {
     state.showHolidays = window.calendarShowHolidays !== false;
     state.teachingBreaks = Array.isArray(window.calendarTeachingBreaks) ? window.calendarTeachingBreaks : [];
     state.recitals = Array.isArray(window.calendarRecitals) ? window.calendarRecitals : [];
+    state.nextRecitalsByStudent = window.calendarNextRecitalsByStudent || {};
     state.generalEvents = Array.isArray(window.calendarGeneralEvents) ? window.calendarGeneralEvents : [];
     setIgnoredConflictPairs(window.calendarIgnoredConflicts);
     state.locations = Array.isArray(window.calendarLocations) ? window.calendarLocations : [];
@@ -8175,11 +8227,9 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        const defaultEventTypes = ['recurring', 'single', 'general', 'google', 'football'];
-        const eventTypeFilterIsActive = state.selectedEventTypes.includes('canceled')
-            || defaultEventTypes.some(function(type) {
-                return !state.selectedEventTypes.includes(type);
-            });
+        const eventTypeFilterIsActive = calendarEventTypes.some(type =>
+            (type !== 'canceled' || window.calendarShowCancellations) && !state.selectedEventTypes.includes(type)
+        );
 
         const filterIsActive = Boolean(isLocationFilterActive() || eventTypeFilterIsActive);
 
@@ -8227,7 +8277,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (eventTypeFilters) {
             eventTypeFilters.querySelectorAll('input[data-calendar-event-type-filter]').forEach(function(input) {
-                input.checked = ['recurring', 'single', 'general', 'google', 'football'].includes(input.value);
+                input.checked = true;
             });
             syncEventTypeFilterState();
         }

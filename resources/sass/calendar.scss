@@ -1328,6 +1328,10 @@ button.setting-undo {
     font-weight: 600;
 }
 
+.calendar-schedule-event:has(> .calendar-lesson-recital-date) {
+    min-height: 5.25rem;
+}
+
 .calendar-schedule-event-holiday {
     background: #0b8043;
     color: #fff;
@@ -1374,6 +1378,10 @@ button.setting-undo {
     grid-template-columns: repeat(7, minmax(0, 1fr));
     grid-template-rows: repeat(6, minmax(6.75rem, 1fr));
     height: calc(100% - 2.5rem);
+}
+
+.calendar-month-grid:has(.calendar-lesson-recital-date) {
+    grid-template-rows: repeat(6, minmax(7.5rem, 1fr));
 }
 
 .calendar-month-day {
@@ -1538,6 +1546,14 @@ button.setting-undo {
 .calendar-month-event-time {
     margin-right: 4px;
     font-weight: 500;
+}
+
+.calendar-month-event:has(> .calendar-lesson-recital-date) {
+    row-gap: 0;
+}
+
+.calendar-month-event > .calendar-lesson-recital-date {
+    grid-column: 1 / -1;
 }
 
 .calendar-month-more {
@@ -2501,6 +2517,63 @@ button.single-lesson-plan-create[selected] i {
 }
 
 // Event markers
+
+.calendar-piano-icon {
+    background-color: currentColor;
+    display: inline-block;
+    height: 1em;
+    mask: url('/images/piano.svg') center / contain no-repeat;
+    width: 1em;
+}
+
+.calendar-lesson-recital-date {
+    align-items: center;
+    display: flex;
+    font-size: .6rem;
+    font-weight: 600;
+    gap: .2rem;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+#calendar .lm-schedule-item:has(> .calendar-lesson-recital-date) {
+    flex-wrap: nowrap;
+
+    &::before {
+        line-height: 1.1;
+        white-space: nowrap;
+    }
+
+    &.is-short {
+        flex-direction: column !important;
+        justify-content: flex-start !important;
+        padding-block: 1px !important;
+    }
+
+    // A single 15-minute slot is only 15px tall in CalendarJS.
+    &.is-one-slot {
+        align-items: center;
+        flex-direction: row !important;
+        gap: .2rem;
+        padding: 0 1.25rem 0 4px !important;
+
+        &::before {
+            font-size: .7rem;
+            padding: 0;
+            width: auto;
+        }
+
+        > .calendar-lesson-recital-date {
+            flex-shrink: 0;
+        }
+
+        > .event-icon {
+            font-size: .7rem;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+    }
+}
 
 #calendar .lm-schedule-item.is-short {
     flex-direction: row !important;

@@ -73,7 +73,7 @@
 						value="1"
 						{{iftrue(old('calendar_show_cancelled', $showCancelledLessons), 'checked')}}
 					>
-					<label class="form-check-label" for="calendar-show-cancelled">Show cancelled lessons</label>
+					<label class="form-check-label" for="calendar-show-cancelled">Show canceled events and lessons</label>
 				</div>
 
 				<input type="hidden" name="calendar_add_transparency_to_past_events" value="0">

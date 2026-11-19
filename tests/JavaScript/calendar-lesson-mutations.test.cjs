@@ -30,7 +30,7 @@ function element(dataset = {}) {
     };
 }
 
-function setup(fetch) {
+function setup(fetch, showCancellations = false) {
     const button = element();
     const error = element();
     const modal = element({ eventModalType: 'lesson', eventGuid: 'planned-lesson-1-2026-07-08-15:30' });
@@ -39,7 +39,7 @@ function setup(fetch) {
     const item = element({ eventGuid: modal.dataset.eventGuid });
     const unrelated = element({ eventGuid: 'unrelated' });
     const context = vm.createContext({
-        window: { calendarCsrfToken: 'test-csrf-token' }, fetch,
+        window: { calendarCsrfToken: 'test-csrf-token', calendarShowCancellations: showCancellations }, fetch,
         document: {
             addEventListener() {},
             querySelector: () => null,
@@ -49,7 +49,7 @@ function setup(fetch) {
         require: () => ({}), console: { error() {} }, Intl, URL, setTimeout, clearTimeout,
     });
     context.window.calendarLessonPlanEditUrlTemplate = '/lesson-plans/__lesson_plan__/edit';
-    vm.runInContext(source + '\nglobalThis.api = {state, mutateLesson, updateLessonEventState, getPlannedLessonEvents, getVisibleCalendarEvents, canConfirmLessonAndPayment, storeTaughtLesson};', context);
+    vm.runInContext(source + '\nglobalThis.api = {state, mutateLesson, updateLessonEventState, getPlannedLessonEvents, getGeneralEventCalendarEvents, getVisibleCalendarEvents, syncEvents, canConfirmLessonAndPayment, storeTaughtLesson};', context);
     const api = context.api;
     const event = {
         guid: modal.dataset.eventGuid, lessonPlanId: 1, date: '2026-07-08',
@@ -164,19 +164,42 @@ test('cancel and undo honor event filters without removing or rebuilding calenda
     assert.equal(h.refreshes(), 0);
 });
 
-test('canceling during a vacation keeps the canceled lesson visible and clears the conflict', async () => {
+for (const showCancellations of [false, true]) {
+    test(`canceled lessons and events follow the saved setting (${showCancellations}) even during a break`, async () => {
+        const h = setup(undefined, showCancellations);
+        h.state.teachingBreaks = [{ id: 1, starts_on: h.event.date, ends_on: h.event.date, locations: [] }];
+        const meeting = { id: 1, scheduled_date: h.event.date, starts_at: '09:00', ends_at: '10:00' };
+        h.state.generalEvents = [meeting, { ...meeting, id: 2, canceled_at: h.event.date }];
+
+        await h.mutateLesson(h.modal, async () => ({ status: 'canceled', lesson_id: 5 }), h.refresh);
+        assert.equal(h.item.hidden, !showCancellations);
+        assert.equal(h.item.hasAttribute('overlapping-event'), false);
+        assert.equal(h.occurrence.lesson_status, 'canceled');
+        assert.equal(h.getPlannedLessonEvents({}).some(event => event.lessonStatus === 'canceled'), showCancellations);
+        assert.equal(h.getVisibleCalendarEvents().length, showCancellations ? 1 : 0);
+        assert.deepEqual(Array.from(h.getGeneralEventCalendarEvents(), event => event.id), showCancellations ? [1, 2] : [1]);
+
+        h.state.selectedEventTypes = ['canceled'];
+        assert.equal(h.getGeneralEventCalendarEvents().length, showCancellations ? 1 : 0);
+        h.state.selectedEventTypes = ['recurring', 'general'];
+        assert.equal(h.getVisibleCalendarEvents().length, 0);
+        assert.equal(h.getGeneralEventCalendarEvents().length, 1);
+
+        await h.mutateLesson(h.modal, async () => ({ status: 'unconfirmed', lesson_deleted: true }), h.refresh);
+        assert.equal(h.item.hidden, false);
+        assert.equal(h.item.hasAttribute('overlapping-event'), true);
+        assert.equal(h.refreshes(), 0);
+    });
+}
+
+test('a schedule grid copy cannot keep a general event visible after it is canceled', () => {
     const h = setup();
-    h.state.teachingBreaks = [{ id: 1, starts_on: h.event.date, ends_on: h.event.date, locations: [] }];
-
-    await h.mutateLesson(h.modal, async () => ({ status: 'canceled', lesson_id: 5 }), h.refresh);
-    assert.equal(h.item.hidden, false);
-    assert.equal(h.item.getAttribute('data-lesson-status'), 'canceled');
-    assert.equal(h.item.hasAttribute('overlapping-event'), false);
-    assert.deepEqual(Array.from(h.getPlannedLessonEvents({}), event => event.lessonStatus), ['canceled', 'unconfirmed']);
-
-    await h.mutateLesson(h.modal, async () => ({ status: 'unconfirmed', lesson_deleted: true }), h.refresh);
-    assert.equal(h.item.hasAttribute('overlapping-event'), true);
-    assert.equal(h.refreshes(), 0);
+    const meeting = { id: 1, scheduled_date: h.event.date, starts_at: '09:00', ends_at: '10:00' };
+    h.state.generalEvents = [meeting];
+    h.syncEvents({ getData: () => h.getGeneralEventCalendarEvents() });
+    meeting.canceled_at = h.event.date;
+    assert.equal(h.state.customEvents.length, 0);
+    assert.equal(h.getGeneralEventCalendarEvents().length, 0);
 });
 
 test('slow requests block repeat actions and failures unlock controls without changing the lesson', async () => {
@@ -315,6 +338,7 @@ test('restoring a previously filtered lesson recovers its original identity and 
                 status: 'early-payment', lesson_deleted: true, early_payment_id: 6, schedule_override_id: 4 },
         ],
     }), h.refresh);
+    assert.equal(h.error.hidden, true, h.error.textContent);
     const [restored] = h.getVisibleCalendarEvents();
     assert.equal(restored.guid, 'planned-lesson-1-2026-07-22-15:30');
     assert.equal(restored.date, '2026-07-15');

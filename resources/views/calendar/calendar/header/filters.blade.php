@@ -19,8 +19,8 @@
 						<input class="form-check-input" type="checkbox" id="calendar-event-type-single" value="single" data-calendar-event-type-filter checked>
 						<label class="form-check-label" for="calendar-event-type-single">Single lessons</label>
 					</div>
-					<div class="form-check calendar-calendar-filter-option">
-						<input class="form-check-input" type="checkbox" id="calendar-event-type-canceled" value="canceled" data-calendar-event-type-filter>
+					<div class="form-check calendar-calendar-filter-option" @if(!$showCancelledLessons) hidden @endif>
+						<input class="form-check-input" type="checkbox" id="calendar-event-type-canceled" value="canceled" data-calendar-event-type-filter checked>
 						<label class="form-check-label" for="calendar-event-type-canceled">All cancellations</label>
 					</div>
 					<div class="small fw-bold opacity-4 mt-3 mb-2">EVENTS</div>

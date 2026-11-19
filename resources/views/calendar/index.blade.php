@@ -73,6 +73,7 @@ window.calendarSingleLessonPlans = @json($singleLessonPlans);
 window.calendarHolidays = @json($holidays);
 window.calendarTeachingBreaks = @json($teachingBreaks);
 window.calendarRecitals = @json($recitals);
+window.calendarNextRecitalsByStudent = @json($nextRecitalsByStudent);
 window.calendarGeneralEvents = @json($generalEvents);
 window.calendarIgnoredConflicts = @json($ignoredConflicts);
 window.calendarConflictExceptionsStoreUrl = @json(route('calendar.conflict-exceptions.store'));
@@ -81,6 +82,7 @@ window.calendarLessonPlanEditUrlTemplate = @json(route('calendar.lesson-plans.ed
 window.calendarSingleLessonPlanEditUrlTemplate = @json(route('calendar.single-lesson-plans.edit', ['singleLessonPlan' => '__single_lesson_plan__']));
 window.calendarCalendarRange = @json($calendarRange);
 window.calendarBirthdayWindow = @json($birthdayWindow);
+window.calendarShowCancellations = @json($showCancelledLessons);
 window.calendarShowHolidays = @json($showHolidays);
 window.calendarAnimateEvents = @json($animateCalendarEvents);
 window.calendarDefaultDesktopCalendarView = @json($defaultDesktopCalendarView);
