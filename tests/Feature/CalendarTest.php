@@ -257,7 +257,7 @@ class CalendarTest extends BaseTest
     }
 
     /** @test */
-    public function teaching_breaks_show_on_the_calendar_and_exclude_projected_lessons_on_those_days()
+    public function teaching_breaks_show_alongside_projected_lessons_on_the_calendar()
     {
         Carbon::setTestNow(Carbon::parse('2026-07-07 12:00:00'));
 
@@ -285,7 +285,9 @@ class CalendarTest extends BaseTest
             'lesson_plans' => 1,
         ]))
             ->assertOk()
-            ->assertJsonCount(0, 'plannedLessons')
+            ->assertJsonCount(1, 'plannedLessons')
+            ->assertJsonPath('plannedLessons.0.occurrences.0.date', '2026-07-08')
+            ->assertJsonPath('plannedLessons.0.occurrences.0.lesson_status', 'unconfirmed')
             ->assertJsonPath('teachingBreaks.0.title', 'Vacation')
             ->assertJsonPath('teachingBreaks.0.impact.lessons_count', 1)
             ->assertJsonPath('teachingBreaks.0.impact.fee_amount', 6000);
@@ -338,7 +340,7 @@ class CalendarTest extends BaseTest
             'lesson_plans' => 1,
         ]))
             ->assertOk()
-            ->assertJsonMissing(['first_name' => 'Blocked'])
+            ->assertJsonFragment(['first_name' => 'Blocked'])
             ->assertJsonFragment(['first_name' => 'Open'])
             ->assertJsonPath('teachingBreaks.0.locations.0.name', 'BKCM')
             ->assertJsonPath('teachingBreaks.0.impact.lessons_count', 1);
@@ -356,7 +358,7 @@ class CalendarTest extends BaseTest
     }
 
     /** @test */
-    public function observed_holidays_exclude_projected_lessons_on_those_days()
+    public function observed_holidays_show_alongside_projected_lessons_on_the_calendar()
     {
         LessonPlan::factory()->student($this->student)->create([
             'weekday' => 6,
@@ -378,8 +380,11 @@ class CalendarTest extends BaseTest
             'lesson_plans' => 1,
         ]))
             ->assertOk()
-            ->assertJsonCount(0, 'plannedLessons')
-            ->assertJsonPath('holidays.0.title', 'Christmas Day');
+            ->assertJsonCount(1, 'plannedLessons')
+            ->assertJsonPath('plannedLessons.0.occurrences.0.date', '2026-12-25')
+            ->assertJsonPath('plannedLessons.0.occurrences.0.lesson_status', 'unconfirmed')
+            ->assertJsonPath('holidays.0.title', 'Christmas Day')
+            ->assertJsonPath('holidays.0.is_observed', true);
     }
 
     /** @test */

@@ -11,7 +11,7 @@ function setup() {
     const requests = [];
     const context = vm.createContext({
         window: { location: { href: 'https://calendar.test/' }, setTimeout, clearTimeout },
-        document: { addEventListener() {}, querySelector: () => null },
+        document: { addEventListener() {}, querySelector: () => null, querySelectorAll: () => [] },
         require: () => ({}), console: { error() {} }, Intl, URL, Date, AbortController,
         fetch(url, options) {
             return new Promise((resolve, reject) => {
@@ -23,7 +23,7 @@ function setup() {
             });
         },
     });
-    vm.runInContext(source + '\nglobalThis.api = {state, isRangeLoaded, fetchPlannedLessons, cacheCalendarPayload, invalidateCalendarDataCache, drainTravelRequests, getOverlappingTimedEventPairs};', context);
+    vm.runInContext(source + '\nglobalThis.api = {state, isRangeLoaded, fetchPlannedLessons, cacheCalendarPayload, invalidateCalendarDataCache, drainTravelRequests, getOverlappingTimedEventPairs, getConflictingEventGuids, getConflictingEvents, getConflictEventKey, setIgnoredConflictPairs};', context);
     context.api.state.view = 'day';
     context.api.state.date = new Date(2026, 8, 16);
     return { ...context.api, requests };
@@ -144,4 +144,40 @@ test('football events are excluded from calendar conflict detection', () => {
     ]);
 
     assert.equal(pairs.length, 0);
+});
+
+test('observed holidays warn even with holiday labels hidden and can be ignored per event', () => {
+    const h = setup();
+    const date = '2026-09-16';
+    h.state.showHolidays = false;
+    h.state.holidays = [
+        { id: 1, date, is_observed: true },
+        { id: 2, date, is_observed: false },
+    ];
+    const lesson = { guid: 'lesson', date, lessonPlanId: 1, start: '09:00', end: '10:00' };
+    const appointment = { guid: 'appointment', date, id: 2, isGeneralEvent: true, allDay: true };
+    const events = [lesson, appointment];
+
+    assert.deepEqual([...h.getConflictingEventGuids(events, date)], ['lesson', 'appointment']);
+    const reasons = h.getConflictingEvents(lesson);
+    assert.deepEqual(Array.from(reasons, h.getConflictEventKey), [`holiday:1:${date}`]);
+
+    h.setIgnoredConflictPairs([[h.getConflictEventKey(lesson), h.getConflictEventKey(reasons[0])]]);
+    assert.deepEqual([...h.getConflictingEventGuids(events, date)], ['appointment']);
+    h.setIgnoredConflictPairs([]);
+    assert.deepEqual([...h.getConflictingEventGuids(events, date)], ['lesson', 'appointment']);
+});
+
+test('a location-specific vacation flags the affected occurrence through its last day', () => {
+    const h = setup();
+    const date = '2026-09-16';
+    h.state.teachingBreaks = [
+        { id: 4, starts_on: '2026-09-15T00:00:00Z', ends_on: `${date}T00:00:00Z`, locations: [{ id: 3 }] },
+    ];
+    const lesson = { guid: 'studio', date, locationId: 3, lessonPlanId: 1, start: '09:00', end: '10:00' };
+    const otherLesson = { ...lesson, guid: 'online', locationId: 5, start: '10:00', end: '11:00' };
+
+    assert.deepEqual([...h.getConflictingEventGuids([lesson, otherLesson], date)], ['studio']);
+    assert.deepEqual(Array.from(h.getConflictingEvents(lesson), h.getConflictEventKey), [`teaching-break:4:${date}`]);
+    assert.equal(h.getConflictingEventGuids([lesson, otherLesson], '2026-09-17').size, 0);
 });

@@ -164,6 +164,21 @@ test('cancel and undo honor event filters without removing or rebuilding calenda
     assert.equal(h.refreshes(), 0);
 });
 
+test('canceling during a vacation keeps the canceled lesson visible and clears the conflict', async () => {
+    const h = setup();
+    h.state.teachingBreaks = [{ id: 1, starts_on: h.event.date, ends_on: h.event.date, locations: [] }];
+
+    await h.mutateLesson(h.modal, async () => ({ status: 'canceled', lesson_id: 5 }), h.refresh);
+    assert.equal(h.item.hidden, false);
+    assert.equal(h.item.getAttribute('data-lesson-status'), 'canceled');
+    assert.equal(h.item.hasAttribute('overlapping-event'), false);
+    assert.deepEqual(Array.from(h.getPlannedLessonEvents({}), event => event.lessonStatus), ['canceled', 'unconfirmed']);
+
+    await h.mutateLesson(h.modal, async () => ({ status: 'unconfirmed', lesson_deleted: true }), h.refresh);
+    assert.equal(h.item.hasAttribute('overlapping-event'), true);
+    assert.equal(h.refreshes(), 0);
+});
+
 test('slow requests block repeat actions and failures unlock controls without changing the lesson', async () => {
     const h = setup();
     let reject;

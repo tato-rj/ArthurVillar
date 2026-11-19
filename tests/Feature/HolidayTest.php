@@ -42,7 +42,7 @@ class HolidayTest extends BaseTest
     }
 
     /** @test */
-    public function holidays_stay_visible_when_lesson_blocking_is_toggled()
+    public function holidays_and_lessons_stay_visible_when_observance_is_toggled()
     {
         $holiday = Holiday::factory()->nthWeekday(10, Carbon::MONDAY, 2)->create([
             'title' => 'Columbus Day',
@@ -65,8 +65,9 @@ class HolidayTest extends BaseTest
 
         $this->getJson($calendarUrl)
             ->assertOk()
-            ->assertJsonCount(0, 'plannedLessons')
-            ->assertJsonPath('holidays.0.title', 'Columbus Day');
+            ->assertJsonPath('plannedLessons.0.id', $lessonPlan->id)
+            ->assertJsonPath('holidays.0.id', $holiday->id)
+            ->assertJsonPath('holidays.0.is_observed', true);
 
         $this->patch(route('calendar.holidays.update', $holiday), [])
             ->assertRedirect();
@@ -75,6 +76,7 @@ class HolidayTest extends BaseTest
             ->assertOk()
             ->assertJsonPath('holidays.0.title', 'Columbus Day')
             ->assertJsonPath('holidays.0.date', '2026-10-12')
+            ->assertJsonPath('holidays.0.is_observed', false)
             ->assertJsonCount(1, 'plannedLessons')
             ->assertJsonPath('plannedLessons.0.id', $lessonPlan->id)
             ->assertJsonPath('plannedLessons.0.occurrences.0.date', '2026-10-12')
@@ -87,8 +89,8 @@ class HolidayTest extends BaseTest
 
         $this->getJson($calendarUrl)
             ->assertOk()
-            ->assertJsonCount(0, 'plannedLessons')
-            ->assertJsonPath('holidays.0.title', 'Columbus Day');
+            ->assertJsonPath('plannedLessons.0.id', $lessonPlan->id)
+            ->assertJsonPath('holidays.0.is_observed', true);
         $this->assertSame(0, $lessonPlan->projectedLessonCount());
         $this->assertCount(1, $lessonPlan->missedLessonDates(Carbon::parse('2026-10-12')));
     }

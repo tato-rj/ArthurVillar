@@ -28,7 +28,7 @@ class Scheduler
         $range = $this->range($request);
 
         return [
-            'plannedLessons' => $this->plannedLessons($range),
+            'plannedLessons' => $this->plannedLessons($range, applyTeachingBreaks: false),
             'singleLessonPlans' => $this->singleLessonPlans($range),
             'holidays' => $this->holidays($range),
             'teachingBreaks' => $this->teachingBreaks($range),
@@ -560,15 +560,17 @@ class Scheduler
                 }
 
                 $holidays->push([
+                    'id' => $holiday['id'],
                     'date' => $holiday['date']->toDateString(),
                     'title' => $holiday['title'],
+                    'is_observed' => $holiday['is_observed'],
                     'type' => 'holiday',
                 ]);
             }
         }
 
         return $holidays
-            ->unique(fn ($holiday) => $holiday['date'].' '.$holiday['title'])
+            ->unique(fn ($holiday) => $holiday['id'].' '.$holiday['date'])
             ->sortBy('date')
             ->values();
     }

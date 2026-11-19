@@ -15,7 +15,10 @@ trait Holidays {
             ->orderBy('title')
             ->get()
             ->flatMap(function (Holiday $holiday) use ($year) {
-                return $holiday->datesForYear($year);
+                return $holiday->datesForYear($year)->map(fn ($date) => $date + [
+                    'id' => $holiday->id,
+                    'is_observed' => $holiday->is_observed,
+                ]);
             })
             ->all();
     }

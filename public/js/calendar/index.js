@@ -6022,7 +6022,7 @@ var eventMatchesLocationFilter = function eventMatchesLocationFilter(event) {
 };
 var getVisibleCalendarEvents = function getVisibleCalendarEvents() {
   return state.events.filter(function (event) {
-    return !isPlannedLessonEvent(event) || lessonOccurrenceMatchesEventTypeFilter(event.singleLessonPlanId ? 'single' : 'recurring', event.lessonStatus);
+    return !isPlannedLessonEvent(event) || lessonOccurrenceMatchesEventTypeFilter(event.singleLessonPlanId ? 'single' : 'recurring', event.lessonStatus, event.date, event.locationId);
   }).filter(isEventInsideScheduleWindow).filter(eventMatchesLocationFilter);
 };
 var getScheduleRenderEvents = function getScheduleRenderEvents() {
@@ -6584,6 +6584,7 @@ var patchScheduleHolidays = function patchScheduleHolidays(calendar) {
       item.textContent = "".concat(formatEventTime(recital.start_time), " ").concat(recital.name);
       item.dataset.eventGuid = "recital-".concat(recital.id, "-").concat(dateString);
       applyDateStatusAttributes(item, dateString);
+      applyEventOverlapAttribute(item, getRecitalEvent(recital));
       cell.appendChild(item);
     });
     googleEvents.forEach(function (event) {
@@ -6597,6 +6598,7 @@ var patchScheduleHolidays = function patchScheduleHolidays(calendar) {
       item.dataset.lessonStatus = event.calendarStatus || 'general-event';
       item.toggleAttribute('data-read-only', Boolean(event.readOnly));
       applyDateStatusAttributes(item, dateString);
+      applyEventOverlapAttribute(item, event);
       cell.appendChild(item);
     });
     row.appendChild(cell);
@@ -6667,6 +6669,7 @@ var getTeachingBreakEventByGuid = function getTeachingBreakEventByGuid(guid) {
   return teachingBreak ? getTeachingBreakEvent(teachingBreak, match[2]) : null;
 };
 var getRecitalEvent = function getRecitalEvent(recital) {
+  var _recital$location;
   var dateString = String(recital.date || '').substring(0, 10);
   return {
     guid: "recital-".concat(recital.id, "-").concat(dateString),
@@ -6675,6 +6678,7 @@ var getRecitalEvent = function getRecitalEvent(recital) {
     date: dateString,
     start: recital.start_time,
     title: recital.name || 'Recital',
+    locationId: normalizeLocationId((_recital$location = recital.location) === null || _recital$location === void 0 ? void 0 : _recital$location.id),
     location: recital.location || null,
     students: Array.isArray(recital.students) ? recital.students : []
   };
@@ -6737,11 +6741,11 @@ var getGeneralEvent = function getGeneralEvent(generalEvent) {
 };
 var getGeneralEventCalendarEvents = function getGeneralEventCalendarEvents() {
   return state.generalEvents.filter(function (generalEvent) {
-    if (generalEvent.canceled_at) {
-      return state.selectedEventTypes.includes('canceled');
-    }
     var isGoogleEvent = generalEvent.external_provider === 'google';
     var eventType = ['google', 'football'].includes(generalEvent.external_provider) ? generalEvent.external_provider : 'general';
+    if (generalEvent.canceled_at) {
+      return state.selectedEventTypes.includes('canceled') || !generalEvent.ignore_conflicts && state.selectedEventTypes.includes(eventType) && getDayConflictEvents(String(generalEvent.scheduled_date || '').substring(0, 10)).length > 0;
+    }
     if (isGoogleEvent && !['accepted', 'needsAction'].includes(generalEvent.response_status)) {
       return false;
     }
@@ -7506,6 +7510,8 @@ var openRecitalModal = function openRecitalModal(event, options) {
       participants.appendChild(row);
     });
   }
+  modal.dataset.eventGuid = event.guid;
+  updateConflictToggle(modal, event);
   loadTravelRoute(modal, event, settings.scheduleItem);
   if (window.bootstrap && window.bootstrap.Modal && typeof window.bootstrap.Modal.getOrCreateInstance === 'function') {
     window.bootstrap.Modal.getOrCreateInstance(modal).show();
@@ -8757,7 +8763,7 @@ var updateLessonEventViews = function updateLessonEventViews(event, cancellation
   if (state.instance && typeof state.instance.getData === 'function') {
     state.instance.getData().forEach(updateCopy);
   }
-  var visible = lessonOccurrenceMatchesEventTypeFilter(event.singleLessonPlanId ? 'single' : 'recurring', event.lessonStatus);
+  var visible = lessonOccurrenceMatchesEventTypeFilter(event.singleLessonPlanId ? 'single' : 'recurring', event.lessonStatus, event.date, event.locationId);
   getCalendarEventElementsByGuid(event.guid).forEach(function (item) {
     updateCopy(item.event);
     item.hidden = !visible;
@@ -8771,6 +8777,11 @@ var updateLessonEventViews = function updateLessonEventViews(event, cancellation
     });
   });
   if (cancellationChanged) {
+    var monthDay = document.querySelector("#calendar .calendar-month-day[data-date=\"".concat(event.date, "\"]"));
+    if (monthDay) {
+      var items = getCalendarItemsForDate(parseDateString(event.date));
+      updateMonthConflictAlert(monthDay, getConflictingEventGuids(items, event.date).size > 0);
+    }
     state.travelRouteDateRevisions.set(event.date, (state.travelRouteDateRevisions.get(event.date) || 0) + 1);
     // Cancellation also changes conflicts and the neighboring lessons' travel routes.
     state.events.filter(function (candidate) {
@@ -9136,12 +9147,50 @@ var applyCalendarItemStatusAttributes = function applyCalendarItemStatusAttribut
 var isCanceledCalendarEvent = function isCanceledCalendarEvent(event) {
   return event && (event.lessonStatus === 'canceled' || event.calendarStatus === 'canceled' || event['data-lesson-status'] === 'canceled');
 };
+var isConflictEligibleEvent = function isConflictEligibleEvent(event) {
+  return event && event.guid && !event.isHoliday && !event.isBreak && !event.ignoreConflicts && !isCanceledCalendarEvent(event);
+};
 var isConflictEligibleTimedEvent = function isConflictEligibleTimedEvent(event) {
-  return event && event.guid && !event.isHoliday && !event.isBreak && !event.ignoreConflicts && !event.allDay && !isCanceledCalendarEvent(event) && event.start && event.end;
+  return isConflictEligibleEvent(event) && !event.allDay && event.start && event.end;
+};
+var getDayConflictEvents = function getDayConflictEvents(dateString, locationId) {
+  var holidays = state.holidays.filter(function (holiday) {
+    return holiday.is_observed && holiday.date === dateString;
+  }).map(function (holiday) {
+    return {
+      isHoliday: true,
+      id: holiday.id,
+      date: dateString
+    };
+  });
+  var breaks = state.teachingBreaks.filter(function (teachingBreak) {
+    var _teachingBreak$locati;
+    return isDateWithinBreak(dateString, teachingBreak) && (!((_teachingBreak$locati = teachingBreak.locations) !== null && _teachingBreak$locati !== void 0 && _teachingBreak$locati.length) || teachingBreak.locations.some(function (location) {
+      return normalizeLocationId(location.id) === normalizeLocationId(locationId);
+    }));
+  }).map(function (teachingBreak) {
+    return {
+      isBreak: true,
+      id: teachingBreak.id,
+      date: dateString
+    };
+  });
+  return holidays.concat(breaks);
+};
+var hasDayConflict = function hasDayConflict(event, dateString) {
+  return isConflictEligibleEvent(event) && getDayConflictEvents(dateString, event.locationId).some(function (blocker) {
+    return !isIgnoredConflictPair(event, blocker);
+  });
 };
 var getConflictEventKey = function getConflictEventKey(event) {
   if (!event) {
     return '';
+  }
+  if (event.isHoliday || event.isBreak) {
+    return "".concat(event.isHoliday ? 'holiday' : 'teaching-break', ":").concat(event.id, ":").concat(event.date);
+  }
+  if (event.isRecital) {
+    return "recital:".concat(event.id);
   }
   if (event.isGeneralEvent) {
     var id = String(event.id || '').replace(/^google-/, '');
@@ -9222,8 +9271,17 @@ var getOverlappingTimedEventGuids = function getOverlappingTimedEventGuids(event
   });
   return guids;
 };
+var getConflictingEventGuids = function getConflictingEventGuids(events, dateString) {
+  var guids = getOverlappingTimedEventGuids(events);
+  events.forEach(function (event) {
+    if (hasDayConflict(event, dateString)) {
+      guids.add(event.guid);
+    }
+  });
+  return guids;
+};
 var getConflictingEvents = function getConflictingEvents(event) {
-  if (!isConflictEligibleTimedEvent(event) || !event.date) {
+  if (!isConflictEligibleEvent(event) || !event.date) {
     return [];
   }
   var date = parseDateString(String(event.date).substring(0, 10));
@@ -9234,6 +9292,10 @@ var getConflictingEvents = function getConflictingEvents(event) {
       conflicts.set(key, conflictingEvent);
     }
   };
+  getDayConflictEvents(event.date, event.locationId).forEach(addConflict);
+  if (!isConflictEligibleTimedEvent(event) || event.externalProvider === 'google') {
+    return Array.from(conflicts.values());
+  }
   getOverlappingTimedEventPairs(getEventsForDate(date)).forEach(function (pair) {
     var conflictingEvent = null;
     if (isSameConflictEvent(pair[0], event)) {
@@ -9258,17 +9320,18 @@ var getConflictingEvents = function getConflictingEvents(event) {
   return Array.from(conflicts.values());
 };
 var updateConflictToggle = function updateConflictToggle(modal, event) {
-  var section = modal ? modal.querySelector('#ignore-conflict') : null;
+  var section = modal ? modal.querySelector('[data-conflict-section]') : null;
   var button = section ? section.querySelector('[data-conflict-toggle]') : null;
   var label = button ? button.querySelector('[data-conflict-toggle-label]') : null;
   var eventKey = getConflictEventKey(event);
   var conflictingEvents = getConflictingEvents(event);
   var conflictingEventKeys = conflictingEvents.map(getConflictEventKey).filter(Boolean);
-  var canToggle = Boolean(eventKey && conflictingEventKeys.length && !(event && event.externalProvider === 'google'));
+  var canToggle = Boolean(eventKey && conflictingEventKeys.length);
   if (!section || !button) {
     return;
   }
   section.hidden = !canToggle;
+  section.toggleAttribute('data-event-modal-expanded-content', !(event !== null && event !== void 0 && event.readOnly));
   if (!canToggle) {
     button.disabled = false;
     delete button.dataset.conflictAction;
@@ -9287,6 +9350,58 @@ var updateConflictToggle = function updateConflictToggle(modal, event) {
     label.textContent = allIgnored ? 'Show conflict' : 'Ignore conflict';
   }
 };
+var bindConflictToggle = function bindConflictToggle(modal, render) {
+  var button = modal === null || modal === void 0 ? void 0 : modal.querySelector('[data-conflict-toggle]');
+  var error = modal === null || modal === void 0 ? void 0 : modal.querySelector('[data-conflict-error]');
+  if (!button || !error) {
+    return;
+  }
+  modal.addEventListener('hide.bs.modal', function () {
+    error.hidden = true;
+  });
+  button.addEventListener('click', function (e) {
+    e.preventDefault();
+    var _button$dataset = button.dataset,
+      conflictAction = _button$dataset.conflictAction,
+      eventKey = _button$dataset.eventKey,
+      conflictingEventKeys = _button$dataset.conflictingEventKeys;
+    var showConflict = conflictAction === 'show';
+    var url = showConflict ? window.calendarConflictExceptionsDestroyUrl : window.calendarConflictExceptionsStoreUrl;
+    if (!url || !eventKey || !conflictingEventKeys) {
+      return;
+    }
+    var eventGuid = modal.dataset.eventGuid;
+    button.disabled = true;
+    error.hidden = true;
+    requestJson(url, {
+      method: showConflict ? 'DELETE' : 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': window.calendarCsrfToken || '',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: JSON.stringify({
+        event_key: eventKey,
+        conflicting_event_keys: JSON.parse(conflictingEventKeys)
+      })
+    }, showConflict ? 'Unable to show this conflict.' : 'Unable to ignore this conflict.').then(function (payload) {
+      invalidateCalendarDataCache();
+      setIgnoredConflictPairs(payload.ignored_conflicts);
+      render({
+        mode: 'discreet'
+      });
+      updateConflictToggle(modal, getEventByGuid(modal.dataset.eventGuid));
+    })["catch"](function (requestError) {
+      console.error(requestError);
+      if (modal.dataset.eventGuid === eventGuid) {
+        button.disabled = false;
+        error.textContent = requestError.message;
+        error.hidden = false;
+      }
+    });
+  });
+};
 var isOverlappingTimedEvent = function isOverlappingTimedEvent(event, visibleDate) {
   var eventDate = visibleDate || event && event.date;
   if (!isConflictEligibleTimedEvent(event) || !eventDate) {
@@ -9300,9 +9415,9 @@ var applyEventOverlapAttribute = function applyEventOverlapAttribute(element, ev
     return;
   }
   var cell = element.closest('td[data-date]');
-  var visibleDate = cell ? cell.getAttribute('data-real-date') || cell.getAttribute('data-date') : '';
+  var visibleDate = cell ? cell.getAttribute('data-real-date') || cell.getAttribute('data-date') : (event === null || event === void 0 ? void 0 : event.scheduleSourceDate) || (event === null || event === void 0 ? void 0 : event.date);
   var isOverlapping = isOverlappingTimedEvent(event, visibleDate);
-  element.toggleAttribute('overlapping-event', isOverlapping);
+  element.toggleAttribute('overlapping-event', isOverlapping || hasDayConflict(event, visibleDate));
   if (isOverlapping && element.classList.contains('lm-schedule-item')) {
     var duration = Math.max(1, getTimeMinutes(event.end) - getTimeMinutes(event.start));
     element.style.setProperty('--calendar-overlap-z-index', String(2000 - Math.min(duration, 1440)));
@@ -9609,9 +9724,9 @@ var getFilteredPlannedLessons = function getFilteredPlannedLessons() {
     return state.selectedEventTypes.includes(type) || state.selectedEventTypes.includes('canceled');
   }).filter(lessonMatchesStudentSearch);
 };
-var lessonOccurrenceMatchesEventTypeFilter = function lessonOccurrenceMatchesEventTypeFilter(type, status) {
+var lessonOccurrenceMatchesEventTypeFilter = function lessonOccurrenceMatchesEventTypeFilter(type, status, date, locationId) {
   if (status === 'canceled') {
-    return state.selectedEventTypes.includes('canceled');
+    return state.selectedEventTypes.includes('canceled') || state.selectedEventTypes.includes(type) && getDayConflictEvents(date, locationId).length > 0;
   }
   return state.selectedEventTypes.includes(type);
 };
@@ -9631,7 +9746,7 @@ var getPlannedLessonEvents = function getPlannedLessonEvents(range) {
         var dateString = occurrence.date || '';
         var lessonStatus = occurrence.lesson_status || 'unconfirmed';
         var locationId = (_occurrence$location_ = occurrence.location_id) !== null && _occurrence$location_ !== void 0 ? _occurrence$location_ : lesson.location_id;
-        if (!dateString || !lessonMatchesLocationFilter(locationId) || !lessonOccurrenceMatchesEventTypeFilter(isSingleLessonPlan ? 'single' : 'recurring', lessonStatus)) {
+        if (!dateString || !lessonMatchesLocationFilter(locationId) || !lessonOccurrenceMatchesEventTypeFilter(isSingleLessonPlan ? 'single' : 'recurring', lessonStatus, dateString, locationId)) {
           return;
         }
         var start = normalizeTime(occurrence.start || lesson.start_time);
@@ -9711,7 +9826,7 @@ var getPlannedLessonEvents = function getPlannedLessonEvents(range) {
       var start = normalizeTime(lesson.start_time);
       var confirmedLesson = getLessonForOccurrence(lesson, dateString, start);
       var lessonStatus = getLessonStatus(confirmedLesson);
-      if (!lessonOccurrenceMatchesEventTypeFilter('recurring', lessonStatus)) {
+      if (!lessonOccurrenceMatchesEventTypeFilter('recurring', lessonStatus, dateString, lesson.location_id)) {
         occurrence = addDays(occurrence, intervalDays);
         continue;
       }
@@ -9781,8 +9896,16 @@ var getCalendarItemsForDate = function getCalendarItemsForDate(date) {
   });
   return holidays.concat(getBreakEventsForDate(date)).concat(getRecitalEventsForDate(date)).concat(getEventsForDate(date));
 };
-var hasOverlappingTimedEvents = function hasOverlappingTimedEvents(events) {
-  return getOverlappingTimedEventGuids(events).size > 0;
+var updateMonthConflictAlert = function updateMonthConflictAlert(cell, hasConflicts) {
+  var existingAlert = cell.querySelector('.calendar-month-overlap-alert');
+  if (hasConflicts && !existingAlert) {
+    var alert = document.createElement('i');
+    alert.className = 'fa-solid fa-circle-exclamation calendar-month-overlap-alert';
+    alert.setAttribute('aria-hidden', 'true');
+    cell.appendChild(alert);
+  } else if (!hasConflicts && existingAlert) {
+    existingAlert.remove();
+  }
 };
 var createMonthEventElement = function createMonthEventElement(event, dateString) {
   var item = document.createElement('span');
@@ -10135,7 +10258,7 @@ var openMonthDayEventsModal = function openMonthDayEventsModal(dateString) {
   var conflict = modal.querySelector('[data-month-day-events-conflict]');
   var date = parseDateString(dateString);
   var events = getCalendarItemsForDate(date);
-  var overlappingEventGuids = getOverlappingTimedEventGuids(events);
+  var overlappingEventGuids = getConflictingEventGuids(events, dateString);
   if (title) {
     title.textContent = dayFormatter.format(date);
   }
@@ -10190,7 +10313,7 @@ var renderMonthCalendar = function renderMonthCalendar(calendar) {
     var cell = document.createElement('div');
     var day = document.createElement('span');
     var list = document.createElement('span');
-    var hasOverlaps = hasOverlappingTimedEvents(events);
+    var conflictingEventGuids = getConflictingEventGuids(events, dateString);
     var visibleEvents = events.slice(0, monthVisibleEventLimit);
     var hiddenEventCount = events.length - visibleEvents.length;
     cell.className = 'calendar-month-day';
@@ -10210,12 +10333,7 @@ var renderMonthCalendar = function renderMonthCalendar(calendar) {
     day.textContent = date.getDate() === 1 ? "".concat(shortMonthFormatter.format(date), " ").concat(date.getDate()) : date.getDate();
     list.className = 'calendar-month-events';
     list.classList.toggle('calendar-month-events-overflowing', hiddenEventCount > 0);
-    if (hasOverlaps) {
-      var alert = document.createElement('i');
-      alert.className = 'fa-solid fa-circle-exclamation calendar-month-overlap-alert';
-      alert.setAttribute('aria-hidden', 'true');
-      cell.appendChild(alert);
-    }
+    updateMonthConflictAlert(cell, conflictingEventGuids.size > 0);
     visibleEvents.forEach(function (event) {
       list.appendChild(createMonthEventElement(event, dateString));
     });
@@ -12048,57 +12166,9 @@ document.addEventListener('DOMContentLoaded', function () {
       });
     }
   }
+  bindConflictToggle(calendarEventModal, _render);
+  bindConflictToggle(document.getElementById('recital-modal'), _render);
   if (calendarEventModal) {
-    var conflictToggleButton = calendarEventModal.querySelector('[data-conflict-toggle]');
-    if (conflictToggleButton) {
-      conflictToggleButton.addEventListener('click', function (e) {
-        e.preventDefault();
-        var action = conflictToggleButton.dataset.conflictAction;
-        var eventKey = conflictToggleButton.dataset.eventKey || '';
-        var conflictingEventKeys = [];
-        try {
-          conflictingEventKeys = JSON.parse(conflictToggleButton.dataset.conflictingEventKeys || '[]');
-        } catch (error) {
-          conflictingEventKeys = [];
-        }
-        var url = action === 'show' ? window.calendarConflictExceptionsDestroyUrl : window.calendarConflictExceptionsStoreUrl;
-        if (!url || !eventKey || !conflictingEventKeys.length) {
-          return;
-        }
-        conflictToggleButton.disabled = true;
-        clearLessonActionError(calendarEventModal);
-        clearGeneralEventActionError(calendarEventModal);
-        requestJson(url, {
-          method: action === 'show' ? 'DELETE' : 'POST',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': window.calendarCsrfToken || '',
-            'X-Requested-With': 'XMLHttpRequest'
-          },
-          body: JSON.stringify({
-            event_key: eventKey,
-            conflicting_event_keys: conflictingEventKeys
-          })
-        }, action === 'show' ? 'Unable to show this conflict.' : 'Unable to ignore this conflict.').then(function (payload) {
-          invalidateCalendarDataCache();
-          setIgnoredConflictPairs(payload.ignored_conflicts);
-          _render({
-            mode: 'discreet'
-          });
-          var event = getEventByGuid(calendarEventModal.dataset.eventGuid);
-          updateConflictToggle(calendarEventModal, event);
-        })["catch"](function (error) {
-          console.error(error);
-          conflictToggleButton.disabled = false;
-          if (calendarEventModal.dataset.eventModalType === 'lesson') {
-            showLessonActionError(calendarEventModal, error.message);
-          } else {
-            showGeneralEventActionError(calendarEventModal, error.message);
-          }
-        });
-      });
-    }
     var resetCalendarEventModal = function resetCalendarEventModal() {
       calendarEventModal.updatedScheduleItem = null;
       calendarEventModal.generalEvent = null;

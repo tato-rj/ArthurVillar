@@ -20,4 +20,6 @@
     <div class="small font-weight-bold opacity-6 mb-2">PARTICIPANTS</div>
     <div id="recital-participants" class="calendar-break-lessons"></div>
 </div>
+
+@include('calendar.calendar.conflict-toggle')
 @endmodal
