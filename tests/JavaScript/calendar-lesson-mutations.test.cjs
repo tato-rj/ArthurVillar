@@ -301,3 +301,27 @@ test('multi-date cancellation locks selected lessons and updates buffered dates 
     assert.equal(h.state.pendingLessonMutations.size, 0);
     assert.equal(h.refreshes(), 0);
 });
+
+test('restoring a previously filtered lesson recovers its original identity and early payment alongside a cancellation', async () => {
+    const h = setup();
+    h.state.date = new Date(2026, 6, 8, 12);
+    Object.assign(h.otherOccurrence, { lesson_status: 'canceled', original_date: '2026-07-22', schedule_override_id: 4 });
+    await h.mutateLesson(h.modal, async () => ({
+        lesson_plan_id: 1,
+        occurrences: [
+            { date: h.event.date, start: '15:30', original_date: h.event.date, original_start_time: '15:30',
+                status: 'canceled', canceled_by: 'teacher', lesson_id: 9 },
+            { date: '2026-07-15', start: '15:30', original_date: '2026-07-22', original_start_time: '15:30',
+                status: 'early-payment', lesson_deleted: true, early_payment_id: 6, schedule_override_id: 4 },
+        ],
+    }), h.refresh);
+    const [restored] = h.getVisibleCalendarEvents();
+    assert.equal(restored.guid, 'planned-lesson-1-2026-07-22-15:30');
+    assert.equal(restored.date, '2026-07-15');
+    assert.equal(restored.lessonStatus, 'early-payment');
+    assert.equal(restored.earlyPaymentId, 6);
+    assert.equal(restored.scheduleOverrideId, 4);
+    assert.equal(h.occurrence.lesson_status, 'canceled');
+    assert.equal(h.otherOccurrence.lesson_id, '');
+    assert.equal(h.refreshes(), 0);
+});

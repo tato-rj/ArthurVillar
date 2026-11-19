@@ -34489,6 +34489,8 @@ button.single-lesson-plan-create[selected] i {
   margin: 0.5rem 0 0.75rem !important;
 }
 
+#cancel-lesson-button:not([data-manage-dates]) [data-manage-label],
+#cancel-lesson-button[data-manage-dates] [data-cancel-label],
 .calendar-cancel-picker[hidden],
 #cancel-lesson form:not(.is-multiple) [data-cancel-multiple-label],
 #cancel-lesson form.is-multiple [data-cancel-single-label] {
@@ -34530,6 +34532,11 @@ button.single-lesson-plan-create[selected] i {
   border-radius: 50%;
   color: #2866aa;
   cursor: pointer;
+}
+.calendar-cancel-day input:indeterminate::after {
+  content: "";
+  width: 0.45rem;
+  border-top: 2px solid currentColor;
 }
 .calendar-cancel-day input:checked {
   background: currentColor;

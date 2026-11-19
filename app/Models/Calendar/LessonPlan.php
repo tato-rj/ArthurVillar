@@ -14,6 +14,7 @@ class LessonPlan extends BaseModel
         'starts_on' => 'datetime',
         'ends_on' => 'datetime',
         'canceled_from' => 'datetime',
+        'restored_dates' => 'array',
         'canceled_at' => 'datetime',
     ];
     use Holidays, NullsPaymentExemptFees;
@@ -29,6 +30,8 @@ class LessonPlan extends BaseModel
     ];
 
 
+
+    protected $hidden = ['restored_dates'];
 
     protected $appends = ['recurrence', 'status', 'weekdayName'];
 
@@ -378,7 +381,11 @@ class LessonPlan extends BaseModel
 
         $this->guardAgainstSameSchedule($originalDate, $originalStartTime, $newDate, $newStartTime);
 
+        $restoredDates = collect($this->restored_dates);
+        $shiftDays = Carbon::parse($originalDate)->diffInDays(Carbon::parse($newDate), false);
         $newLessonPlan = $this->replicate();
+        $newLessonPlan->restored_dates = $restoredDates->filter(fn ($date) => $date >= $originalDate)
+            ->map(fn ($date) => Carbon::parse($date)->addDays($shiftDays)->toDateString())->values()->all();
 
         $newLessonPlan->fill([
             'weekday' => static::fromCarbonWeekday(Carbon::parse($newDate)->dayOfWeek),
@@ -392,6 +399,7 @@ class LessonPlan extends BaseModel
 
         $this->update([
             'ends_on' => $endsOn->toDateString(),
+            'restored_dates' => $restoredDates->filter(fn ($date) => $date < $originalDate)->values()->all(),
         ]);
 
         $intervalDays = max(1, (int) $this->recurrence_interval) * 7;
@@ -519,6 +527,7 @@ class LessonPlan extends BaseModel
         $this->update([
             'canceled_from' => Carbon::parse($date)->toDateString(),
             'canceled_at' => now(),
+            'restored_dates' => null,
         ]);
 
         return $this;
@@ -527,7 +536,8 @@ class LessonPlan extends BaseModel
     public function isCanceledOn($date): bool
     {
         return $this->canceled_from
-            && Carbon::parse($date)->startOfDay()->gte($this->canceled_from->copy()->startOfDay());
+            && Carbon::parse($date)->startOfDay()->gte($this->canceled_from->copy()->startOfDay())
+            && ! in_array(Carbon::parse($date)->toDateString(), $this->restored_dates ?? [], true);
     }
 
     public function scopeOccurringBetween($query, $startDate, $endDate)

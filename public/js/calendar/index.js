@@ -12,6 +12,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   bindLessonCancellationPicker: () => (/* binding */ bindLessonCancellationPicker)
 /* harmony export */ });
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
 function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
 function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
@@ -53,7 +59,12 @@ function bindLessonCancellationPicker(form, weekStartDay, requestJson) {
   };
   var updateSelection = function updateSelection() {
     var count = selected.size;
-    var summary = count === 1 ? '1 lesson selected to cancel.' : count + ' lessons selected to cancel.';
+    var cancelCount = Array.from(selected.values()).filter(function (row) {
+      return row.action === 'cancel';
+    }).length;
+    var restoreCount = count - cancelCount;
+    var summary = [cancelCount && cancelCount + ' to cancel', restoreCount && restoreCount + ' to restore'].filter(Boolean).join(' · ') || 'No changes selected.';
+    form.querySelector('[data-cancel-reason]').hidden = !picker.hidden && !cancelCount;
     status.textContent = [message, summary].filter(Boolean).join(' ');
     submit.disabled = !picker.hidden && (count === 0 || !!request);
   };
@@ -76,9 +87,11 @@ function bindLessonCancellationPicker(form, weekStartDay, requestJson) {
         var checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
         checkbox.dataset.date = date;
-        checkbox.checked = rows.every(function (row) {
-          return !selected.has(key(row));
-        });
+        var kept = rows.filter(function (row) {
+          return selected.has(key(row)) ? selected.get(key(row)).action === 'restore' : !row.canceled;
+        }).length;
+        checkbox.checked = kept === rows.length;
+        checkbox.indeterminate = kept > 0 && kept < rows.length;
         var label = dayFormat.format(new Date(month.getFullYear(), month.getMonth(), day));
         checkbox.setAttribute('aria-label', 'Keep ' + rows.map(function (row) {
           return row.start;
@@ -93,7 +106,7 @@ function bindLessonCancellationPicker(form, weekStartDay, requestJson) {
   };
   var loadMonth = /*#__PURE__*/function () {
     var _ref = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
-      var controller, currentMonth, url, payload, available, _iterator, _step, row, _iterator2, _step2, _available$get, _available$get2, _step2$value, id, _row, _t;
+      var controller, currentMonth, url, payload, available, _iterator, _step, row, _iterator2, _step2, _step2$value, id, _row, current, _t;
       return _regenerator().w(function (_context) {
         while (1) switch (_context.p = _context.n) {
           case 0:
@@ -145,7 +158,8 @@ function bindLessonCancellationPicker(form, weekStartDay, requestJson) {
             try {
               for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
                 _step2$value = _slicedToArray(_step2.value, 2), id = _step2$value[0], _row = _step2$value[1];
-                if (_row.date.startsWith(currentMonth) && (((_available$get = available.get(id)) === null || _available$get === void 0 ? void 0 : _available$get.date) !== _row.date || ((_available$get2 = available.get(id)) === null || _available$get2 === void 0 ? void 0 : _available$get2.start) !== _row.start)) {
+                current = available.get(id);
+                if ((current || _row.date.startsWith(currentMonth)) && (!current || current.date !== _row.date || current.start !== _row.start || current.canceled === (_row.action === 'cancel'))) {
                   selected["delete"](id);
                 }
               }
@@ -186,23 +200,24 @@ function bindLessonCancellationPicker(form, weekStartDay, requestJson) {
     };
   }();
   var reset = function reset() {
+    var scope = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 'current';
     if (request) request.abort();
     request = null;
     selected.clear();
     picker.hidden = true;
+    form.querySelector('[data-cancel-reason]').hidden = Boolean(fields.single_lesson_plan_id.value);
     form.classList.remove('is-multiple');
-    fields.cancelation_type.value = 'current';
+    fields.cancelation_type.value = scope;
     submit.disabled = false;
   };
   form.addEventListener('change', function (event) {
     if (event.target.name === 'cancelation_type') {
       if (event.target.value !== 'multiple') {
-        var scope = event.target.value;
-        reset();
-        fields.cancelation_type.value = scope;
+        reset(event.target.value);
         return;
       }
-      var firstMonth = [fields.date.value, form.dataset.today].sort().pop().slice(0, 7);
+      var firstDate = fields.date.value > form.dataset.today ? fields.date.value : form.dataset.today;
+      var firstMonth = firstDate.slice(0, 7);
       month = new Date(firstMonth + '-01T12:00:00');
       picker.hidden = false;
       form.classList.add('is-multiple');
@@ -213,7 +228,10 @@ function bindLessonCancellationPicker(form, weekStartDay, requestJson) {
       try {
         for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
           var row = _step3.value;
-          if (event.target.checked) selected["delete"](key(row));else selected.set(key(row), row);
+          var cancel = !event.target.checked;
+          if (cancel === row.canceled) selected["delete"](key(row));else selected.set(key(row), _objectSpread(_objectSpread({}, row), {}, {
+            action: cancel ? 'cancel' : 'restore'
+          }));
         }
       } catch (err) {
         _iterator3.e(err);
@@ -5095,6 +5113,10 @@ function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t =
 function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
 function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
 function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
 function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
 function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
 function _iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
@@ -7252,6 +7274,8 @@ var resetLessonModalState = function resetLessonModalState(modal) {
   if (state.cancelLessonConfirmation) state.cancelLessonConfirmation();
   setLessonMutationBusy(modal, false);
   (_state$lessonCancella = state.lessonCancellationPicker) === null || _state$lessonCancella === void 0 || _state$lessonCancella.reset();
+  var cancellationNotice = modal.querySelector('[data-lesson-cancellation-notice]');
+  if (cancellationNotice) cancellationNotice.hidden = true;
   resetLessonModalButtons(modal);
   if (state.lessonActionAvailabilityTimer !== null) {
     window.clearTimeout(state.lessonActionAvailabilityTimer);
@@ -7274,6 +7298,8 @@ var showLessonCancelForm = function showLessonCancelForm(modal) {
     return;
   }
   modal.classList.remove('is-rescheduling');
+  var notice = modal.querySelector('[data-lesson-cancellation-notice]');
+  if (notice) notice.hidden = true;
   modal.classList.add('is-canceling');
 };
 var setCalendarEventModalType = function setCalendarEventModalType(modal, type) {
@@ -7350,7 +7376,9 @@ var updateLessonScheduleControls = function updateLessonScheduleControls(modal, 
   var canReschedule = hasLessonSource && !isConfirmed && !hasCalendarEventEnded(event);
   if (cancelLesson) {
     preserveButtonLabel(cancelLesson);
-    cancelLesson.disabled = !canCancel || isCanceled;
+    var manageDates = isCanceled && event.lessonPlanId && getEventStartDateTime(event) > new Date();
+    cancelLesson.toggleAttribute('data-manage-dates', Boolean(manageDates));
+    cancelLesson.disabled = !canCancel || isCanceled && !manageDates;
     cancelLesson.style.display = canCancel ? '' : 'none';
     restoreButtonLabel(cancelLesson);
   }
@@ -8975,6 +9003,7 @@ var updateLessonEventState = function updateLessonEventState(event, payload) {
     return (candidate.original_date || candidate.date) === (event.originalDate || event.date) && normalizeTime(candidate.original_start_time || candidate.start || plan.start_time) === (event.originalStartTime || event.start);
   }) : null;
   event.lessonStatus = payload.status;
+  if ('schedule_override_id' in payload) event.scheduleOverrideId = payload.schedule_override_id || '';
   if (payload.schedule_override_deleted) event.scheduleOverrideId = '';
   event.calendarStatus = event.scheduleOverrideId && payload.status === 'unconfirmed' ? 'rescheduled' : payload.status;
   event['data-lesson-status'] = event.calendarStatus;
@@ -9087,7 +9116,23 @@ var finishLessonMutationInModal = function finishLessonMutationInModal(modal, ev
   updateConflictToggle(modal, event);
   if (cancellationChanged) loadTravelRoute(modal, event);
 };
-var applyMultipleCancellations = function applyMultipleCancellations(payload) {
+var applyLessonScheduleChanges = function applyLessonScheduleChanges(payload) {
+  if ('projected_occurrence_count' in payload) {
+    var _state$instance, _state$instance$getDa;
+    var samePlan = function samePlan(id) {
+      return String(id) === String(payload.lesson_plan_id);
+    };
+    var plan = state.plannedLessons.find(function (plan) {
+      return samePlan(plan.id);
+    });
+    if (plan) plan.projected_occurrence_count = payload.projected_occurrence_count;
+    var updateCount = function updateCount(event) {
+      if (samePlan(event.lessonPlanId)) event.lessonPlanOccurrenceCount = payload.projected_occurrence_count;
+    };
+    state.events.forEach(updateCount);
+    (_state$instance = state.instance) === null || _state$instance === void 0 || (_state$instance$getDa = _state$instance.getData) === null || _state$instance$getDa === void 0 || _state$instance$getDa.call(_state$instance).forEach(updateCount);
+  }
+  var restored = new Set();
   var _iterator2 = _createForOfIteratorHelper(payload.occurrences),
     _step2;
   try {
@@ -9095,6 +9140,7 @@ var applyMultipleCancellations = function applyMultipleCancellations(payload) {
       var row = _step2.value;
       var guid = recurringLessonGuid(payload.lesson_plan_id, row.original_date, row.original_start_time);
       var event = getEventByGuid(guid);
+      if (row.status !== 'canceled') restored.add(guid);
       // A filtered or offscreen lesson may still be in the buffered plan data.
       updateLessonEventState(event || {
         guid: guid,
@@ -9105,13 +9151,63 @@ var applyMultipleCancellations = function applyMultipleCancellations(payload) {
         originalStartTime: row.original_start_time,
         scheduleOverrideId: row.schedule_override_id || ''
       }, row);
-      if (event) updateLessonEventViews(event, true);else state.travelRouteDateRevisions.set(row.date, (state.travelRouteDateRevisions.get(row.date) || 0) + 1);
     }
   } catch (err) {
     _iterator2.e(err);
   } finally {
     _iterator2.f();
   }
+  var missing = new Set(_toConsumableArray(restored).filter(function (guid) {
+    return !getEventByGuid(guid);
+  }));
+  if (missing.size) {
+    var _state$events;
+    var recovered = getPlannedLessonEvents(getCalendarEventRange()).filter(function (event) {
+      return missing.has(event.guid);
+    });
+    (_state$events = state.events).push.apply(_state$events, _toConsumableArray(recovered));
+    state.visibleEventsByDate = null;
+  }
+  var _iterator3 = _createForOfIteratorHelper(payload.occurrences),
+    _step3;
+  try {
+    for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+      var _row = _step3.value;
+      var _event = getEventByGuid(recurringLessonGuid(payload.lesson_plan_id, _row.original_date, _row.original_start_time));
+      if (_event) updateLessonEventViews(_event, true);else state.travelRouteDateRevisions.set(_row.date, (state.travelRouteDateRevisions.get(_row.date) || 0) + 1);
+    }
+  } catch (err) {
+    _iterator3.e(err);
+  } finally {
+    _iterator3.f();
+  }
+  if (!restored.size) return;
+  var calendar = document.getElementById('calendar');
+  if (!calendar) return;
+  var dates = _toConsumableArray(new Set(payload.occurrences.map(function (row) {
+    return row.date;
+  })));
+  if (state.view === 'month') {
+    dates.forEach(function (date) {
+      var cell = calendar.querySelector(".calendar-month-day[data-date=\"".concat(date, "\"]"));
+      if (cell) renderMonthDayEvents(cell, date);
+    });
+  } else if (state.view === 'schedule') {
+    renderScheduleAgenda(calendar, dates.filter(function (date) {
+      return isEventInsideVisibleRange({
+        date: date
+      });
+    }).map(parseDateString));
+  } else if (state.instance) {
+    var existing = new Set(state.instance.getData().map(function (event) {
+      return event.guid;
+    }));
+    var additions = getScheduleRenderEvents().filter(function (event) {
+      return restored.has(event.guid) && !existing.has(event.guid);
+    });
+    if (additions.length) state.instance.addEvents(normalizeScheduleEvents(additions));
+  }
+  renderCalendarPaymentTotals();
 };
 var mutateLesson = function mutateLesson(modal, send, refreshCalendar) {
   var keepOpen = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : true;
@@ -9134,11 +9230,29 @@ var mutateLesson = function mutateLesson(modal, send, refreshCalendar) {
     invalidateCalendarDataCache();
     var event = getEventByGuid(guid) || originalEvent;
     if (Array.isArray(payload.occurrences)) {
-      applyMultipleCancellations(payload);
+      applyLessonScheduleChanges(payload);
       var openGuid = modal.dataset.eventGuid;
       if (modal.dataset.eventModalType === 'lesson' && lockedGuids.includes(openGuid)) {
         var openEvent = getEventByGuid(openGuid);
         if (openEvent) finishLessonMutationInModal(modal, openEvent, true);
+        var notice = modal.querySelector('[data-lesson-cancellation-notice]');
+        if (notice && isCurrentLesson()) {
+          var canceled = payload.occurrences.filter(function (row) {
+            return row.status === 'canceled';
+          }).length;
+          var restored = payload.occurrences.length - canceled;
+          notice.textContent = [[canceled, 'canceled'], [restored, 'restored']].filter(function (_ref) {
+            var _ref2 = _slicedToArray(_ref, 1),
+              count = _ref2[0];
+            return count;
+          }).map(function (_ref3) {
+            var _ref4 = _slicedToArray(_ref3, 2),
+              count = _ref4[0],
+              verb = _ref4[1];
+            return "".concat(count, " ").concat(count === 1 ? 'lesson' : 'lessons', " ").concat(verb);
+          }).join(', ') + '.';
+          notice.hidden = false;
+        }
       }
       return;
     }
@@ -9261,7 +9375,7 @@ var submitLessonModalForm = function submitLessonModalForm(form, refreshCalendar
       body: multiple ? JSON.stringify(_objectSpread(_objectSpread({}, Object.fromEntries(body)), {}, {
         occurrences: occurrences
       })) : body
-    }, isReschedule ? 'Unable to reschedule lesson.' : 'Unable to cancel lesson.');
+    }, isReschedule ? 'Unable to reschedule lesson.' : multiple ? 'Unable to save lesson changes.' : 'Unable to cancel lesson.');
   }, refreshCalendar, !isReschedule, relatedGuids);
 };
 var patchSchedulePointer = function patchSchedulePointer(calendar) {
@@ -10062,7 +10176,7 @@ var getPlannedLessonEvents = function getPlannedLessonEvents(range) {
     var isSingleLessonPlan = lesson.type === 'single-lesson-plan';
     if (Array.isArray(lesson.occurrences)) {
       lesson.occurrences.forEach(function (occurrence) {
-        var _occurrence$location_, _occurrence$location, _ref, _occurrence$fee_amoun, _lesson$student;
+        var _occurrence$location_, _occurrence$location, _ref5, _occurrence$fee_amoun, _lesson$student;
         var dateString = occurrence.date || '';
         var lessonStatus = occurrence.lesson_status || 'unconfirmed';
         var locationId = (_occurrence$location_ = occurrence.location_id) !== null && _occurrence$location_ !== void 0 ? _occurrence$location_ : lesson.location_id;
@@ -10094,7 +10208,7 @@ var getPlannedLessonEvents = function getPlannedLessonEvents(range) {
           lessonStatus: lessonStatus,
           calendarStatus: occurrence.calendar_status || lessonStatus,
           'data-lesson-status': occurrence.calendar_status || lessonStatus,
-          feeAmount: lesson.student && lesson.student.payment_exempt ? 0 : (_ref = (_occurrence$fee_amoun = occurrence.fee_amount) !== null && _occurrence$fee_amoun !== void 0 ? _occurrence$fee_amoun : lesson.fee_amount) !== null && _ref !== void 0 ? _ref : 0,
+          feeAmount: lesson.student && lesson.student.payment_exempt ? 0 : (_ref5 = (_occurrence$fee_amoun = occurrence.fee_amount) !== null && _occurrence$fee_amoun !== void 0 ? _occurrence$fee_amoun : lesson.fee_amount) !== null && _ref5 !== void 0 ? _ref5 : 0,
           paymentExempt: Boolean(lesson.student && lesson.student.payment_exempt),
           studentId: lesson.student_id || lesson.student && lesson.student.id || '',
           paymentMethod: 'payment_method' in occurrence ? occurrence.payment_method || '' : lesson.payment_method || ((_lesson$student = lesson.student) === null || _lesson$student === void 0 ? void 0 : _lesson$student.payment_method) || '',
@@ -10610,6 +10724,28 @@ var openMonthDayEventsModal = function openMonthDayEventsModal(dateString) {
   if (conflict) conflict.hidden = overlappingEventGuids.size === 0;
   showBootstrapModal(modal);
 };
+var renderMonthDayEvents = function renderMonthDayEvents(cell, dateString) {
+  var events = getCalendarItemsForDate(parseDateString(dateString));
+  var list = cell.querySelector('.calendar-month-events');
+  list.replaceChildren();
+  var conflictingEventGuids = getConflictingEventGuids(events, dateString);
+  var visibleEvents = events.slice(0, monthVisibleEventLimit);
+  var hiddenEventCount = events.length - visibleEvents.length;
+  list.classList.toggle('calendar-month-events-overflowing', hiddenEventCount > 0);
+  updateMonthConflictAlert(cell, conflictingEventGuids.size > 0);
+  visibleEvents.forEach(function (event) {
+    list.appendChild(createMonthEventElement(event, dateString));
+  });
+  if (hiddenEventCount > 0) {
+    var more = document.createElement('span');
+    more.className = 'calendar-month-more';
+    more.dataset.monthMoreDate = dateString;
+    more.setAttribute('role', 'button');
+    more.tabIndex = 0;
+    more.textContent = "".concat(hiddenEventCount, " more");
+    list.appendChild(more);
+  }
+};
 var renderMonthCalendar = function renderMonthCalendar(calendar) {
   var today = todayString();
   var selected = toDateString(state.date);
@@ -10626,16 +10762,12 @@ var renderMonthCalendar = function renderMonthCalendar(calendar) {
     heading.textContent = day;
     weekdaysRow.appendChild(heading);
   });
-  var _loop = function _loop() {
+  for (var i = 0; i < 42; i++) {
     var date = addDays(gridStart, i);
     var dateString = toDateString(date);
-    var events = getCalendarItemsForDate(date);
     var cell = document.createElement('div');
     var day = document.createElement('span');
     var list = document.createElement('span');
-    var conflictingEventGuids = getConflictingEventGuids(events, dateString);
-    var visibleEvents = events.slice(0, monthVisibleEventLimit);
-    var hiddenEventCount = events.length - visibleEvents.length;
     cell.className = 'calendar-month-day';
     cell.dataset.date = dateString;
     cell.setAttribute('role', 'button');
@@ -10652,52 +10784,46 @@ var renderMonthCalendar = function renderMonthCalendar(calendar) {
     day.className = 'calendar-month-day-number';
     day.textContent = date.getDate() === 1 ? "".concat(shortMonthFormatter.format(date), " ").concat(date.getDate()) : date.getDate();
     list.className = 'calendar-month-events';
-    list.classList.toggle('calendar-month-events-overflowing', hiddenEventCount > 0);
-    updateMonthConflictAlert(cell, conflictingEventGuids.size > 0);
-    visibleEvents.forEach(function (event) {
-      list.appendChild(createMonthEventElement(event, dateString));
-    });
-    if (hiddenEventCount > 0) {
-      var more = document.createElement('span');
-      more.className = 'calendar-month-more';
-      more.dataset.monthMoreDate = dateString;
-      more.setAttribute('role', 'button');
-      more.tabIndex = 0;
-      more.textContent = "".concat(hiddenEventCount, " more");
-      list.appendChild(more);
-    }
     cell.appendChild(day);
     cell.appendChild(list);
+    renderMonthDayEvents(cell, dateString);
     grid.appendChild(cell);
-  };
-  for (var i = 0; i < 42; i++) {
-    _loop();
   }
   wrapper.appendChild(weekdaysRow);
   wrapper.appendChild(grid);
   calendar.appendChild(wrapper);
 };
-var renderScheduleAgenda = function renderScheduleAgenda(calendar) {
+var renderScheduleAgenda = function renderScheduleAgenda(calendar, changedDates) {
   var range = getVisibleDateRange();
   var today = todayString();
   var selected = toDateString(state.date);
-  var wrapper = document.createElement('div');
+  var wrapper = changedDates ? calendar.querySelector('.calendar-schedule-agenda') : document.createElement('div');
+  if (!wrapper) return;
   var renderedMonth = '';
   wrapper.className = 'calendar-schedule-agenda';
-  getDateRangeDates(range).forEach(function (date) {
+  (changedDates || getDateRangeDates(range)).forEach(function (date) {
+    var _wrapper$querySelecto;
     var dateString = toDateString(date);
     var items = getCalendarItemsForDate(date);
     var shouldRenderEmpty = dateString === today || dateString === selected;
+    var month = dateString.substring(0, 7);
+    if (changedDates) (_wrapper$querySelecto = wrapper.querySelector(".calendar-schedule-day[data-date=\"".concat(dateString, "\"]"))) === null || _wrapper$querySelecto === void 0 || _wrapper$querySelecto.remove();
     if (!items.length && !shouldRenderEmpty) {
+      if (changedDates && !wrapper.querySelector(".calendar-schedule-day[data-date^=\"".concat(month, "\"]"))) {
+        var _wrapper$querySelecto2;
+        (_wrapper$querySelecto2 = wrapper.querySelector("[data-month=\"".concat(month, "\"]"))) === null || _wrapper$querySelecto2 === void 0 || _wrapper$querySelecto2.remove();
+      }
       return;
     }
-    var month = dateString.substring(0, 7);
-    if (month !== renderedMonth) {
+    var before = changedDates ? Array.from(wrapper.children).find(function (item) {
+      return item.dataset.month ? item.dataset.month > month : item.dataset.date > dateString;
+    }) : null;
+    if (month !== renderedMonth && (!changedDates || !wrapper.querySelector("[data-month=\"".concat(month, "\"]")))) {
       var monthBar = document.createElement('div');
       monthBar.className = 'calendar-schedule-month-bar';
       monthBar.dataset.month = month;
       monthBar.textContent = monthFormatter.format(date).toUpperCase();
-      wrapper.appendChild(monthBar);
+      wrapper.insertBefore(monthBar, before || null);
       renderedMonth = month;
     }
     var day = document.createElement('section');
@@ -10772,9 +10898,9 @@ var renderScheduleAgenda = function renderScheduleAgenda(calendar) {
     });
     day.appendChild(dateRail);
     day.appendChild(list);
-    wrapper.appendChild(day);
+    wrapper.insertBefore(day, before || null);
   });
-  calendar.appendChild(wrapper);
+  if (!changedDates) calendar.appendChild(wrapper);
   return wrapper;
 };
 var cloneDate = function cloneDate(date) {
@@ -12277,6 +12403,9 @@ document.addEventListener('DOMContentLoaded', function () {
     cancelLessonButton.addEventListener('click', function (e) {
       e.preventDefault();
       showLessonCancelForm(lessonModal);
+      if (cancelLessonButton.hasAttribute('data-manage-dates')) {
+        lessonModal.querySelector('#multiple-events').click();
+      }
     });
   }
   if (lessonModal) {

@@ -2840,7 +2840,9 @@ const updateLessonScheduleControls = function(modal, event) {
 
     if (cancelLesson) {
         preserveButtonLabel(cancelLesson);
-        cancelLesson.disabled = !canCancel || isCanceled;
+        const manageDates = isCanceled && event.lessonPlanId && getEventStartDateTime(event) > new Date();
+        cancelLesson.toggleAttribute('data-manage-dates', Boolean(manageDates));
+        cancelLesson.disabled = !canCancel || (isCanceled && !manageDates);
         cancelLesson.style.display = canCancel ? '' : 'none';
         restoreButtonLabel(cancelLesson);
     }
@@ -5031,6 +5033,7 @@ const updateLessonEventState = function(event, payload) {
     }) : null;
 
     event.lessonStatus = payload.status;
+    if ('schedule_override_id' in payload) event.scheduleOverrideId = payload.schedule_override_id || '';
     if (payload.schedule_override_deleted) event.scheduleOverrideId = '';
     event.calendarStatus = event.scheduleOverrideId && payload.status === 'unconfirmed' ? 'rescheduled' : payload.status;
     event['data-lesson-status'] = event.calendarStatus;
@@ -5159,19 +5162,59 @@ const finishLessonMutationInModal = function(modal, event, cancellationChanged) 
     if (cancellationChanged) loadTravelRoute(modal, event);
 };
 
-const applyMultipleCancellations = function(payload) {
+const applyLessonScheduleChanges = function(payload) {
+    if ('projected_occurrence_count' in payload) {
+        const samePlan = id => String(id) === String(payload.lesson_plan_id);
+        const plan = state.plannedLessons.find(plan => samePlan(plan.id));
+        if (plan) plan.projected_occurrence_count = payload.projected_occurrence_count;
+        const updateCount = event => {
+            if (samePlan(event.lessonPlanId)) event.lessonPlanOccurrenceCount = payload.projected_occurrence_count;
+        };
+        state.events.forEach(updateCount);
+        state.instance?.getData?.().forEach(updateCount);
+    }
+    const restored = new Set();
     for (const row of payload.occurrences) {
         const guid = recurringLessonGuid(payload.lesson_plan_id, row.original_date, row.original_start_time);
         const event = getEventByGuid(guid);
+        if (row.status !== 'canceled') restored.add(guid);
         // A filtered or offscreen lesson may still be in the buffered plan data.
         updateLessonEventState(event || {
             guid, lessonPlanId: payload.lesson_plan_id, date: row.date, start: row.start,
             originalDate: row.original_date, originalStartTime: row.original_start_time,
             scheduleOverrideId: row.schedule_override_id || '',
         }, row);
+    }
+
+    const missing = new Set([...restored].filter(guid => !getEventByGuid(guid)));
+    if (missing.size) {
+        const recovered = getPlannedLessonEvents(getCalendarEventRange()).filter(event => missing.has(event.guid));
+        state.events.push(...recovered);
+        state.visibleEventsByDate = null;
+    }
+
+    for (const row of payload.occurrences) {
+        const event = getEventByGuid(recurringLessonGuid(payload.lesson_plan_id, row.original_date, row.original_start_time));
         if (event) updateLessonEventViews(event, true);
         else state.travelRouteDateRevisions.set(row.date, (state.travelRouteDateRevisions.get(row.date) || 0) + 1);
     }
+    if (!restored.size) return;
+    const calendar = document.getElementById('calendar');
+    if (!calendar) return;
+    const dates = [...new Set(payload.occurrences.map(row => row.date))];
+    if (state.view === 'month') {
+        dates.forEach(date => {
+            const cell = calendar.querySelector(`.calendar-month-day[data-date="${date}"]`);
+            if (cell) renderMonthDayEvents(cell, date);
+        });
+    } else if (state.view === 'schedule') {
+        renderScheduleAgenda(calendar, dates.filter(date => isEventInsideVisibleRange({ date })).map(parseDateString));
+    } else if (state.instance) {
+        const existing = new Set(state.instance.getData().map(event => event.guid));
+        const additions = getScheduleRenderEvents().filter(event => restored.has(event.guid) && !existing.has(event.guid));
+        if (additions.length) state.instance.addEvents(normalizeScheduleEvents(additions));
+    }
+    renderCalendarPaymentTotals();
 };
 
 const mutateLesson = function(modal, send, refreshCalendar, keepOpen = true, relatedGuids = []) {
@@ -5191,15 +5234,17 @@ const mutateLesson = function(modal, send, refreshCalendar, keepOpen = true, rel
         invalidateCalendarDataCache();
         const event = getEventByGuid(guid) || originalEvent;
         if (Array.isArray(payload.occurrences)) {
-            applyMultipleCancellations(payload);
+            applyLessonScheduleChanges(payload);
             const openGuid = modal.dataset.eventGuid;
             if (modal.dataset.eventModalType === 'lesson' && lockedGuids.includes(openGuid)) {
                 const openEvent = getEventByGuid(openGuid);
                 if (openEvent) finishLessonMutationInModal(modal, openEvent, true);
                 const notice = modal.querySelector('[data-lesson-cancellation-notice]');
                 if (notice && isCurrentLesson()) {
-                    const count = payload.occurrences.length;
-                    notice.textContent = count === 1 ? '1 lesson canceled.' : `${count} lessons canceled.`;
+                    const canceled = payload.occurrences.filter(row => row.status === 'canceled').length;
+                    const restored = payload.occurrences.length - canceled;
+                    notice.textContent = [[canceled, 'canceled'], [restored, 'restored']].filter(([count]) => count)
+                        .map(([count, verb]) => `${count} ${count === 1 ? 'lesson' : 'lessons'} ${verb}`).join(', ') + '.';
                     notice.hidden = false;
                 }
             }
@@ -5333,7 +5378,7 @@ const submitLessonModalForm = function(form, refreshCalendar) {
                 'X-Requested-With': 'XMLHttpRequest',
             },
             body: multiple ? JSON.stringify({ ...Object.fromEntries(body), occurrences }) : body,
-        }, isReschedule ? 'Unable to reschedule lesson.' : 'Unable to cancel lesson.');
+        }, isReschedule ? 'Unable to reschedule lesson.' : (multiple ? 'Unable to save lesson changes.' : 'Unable to cancel lesson.'));
     }, refreshCalendar, !isReschedule, relatedGuids);
 };
 
@@ -7084,6 +7129,34 @@ const openMonthDayEventsModal = function(dateString) {
     showBootstrapModal(modal);
 };
 
+const renderMonthDayEvents = function(cell, dateString) {
+    const events = getCalendarItemsForDate(parseDateString(dateString));
+    const list = cell.querySelector('.calendar-month-events');
+    list.replaceChildren();
+    const conflictingEventGuids = getConflictingEventGuids(events, dateString);
+    const visibleEvents = events.slice(0, monthVisibleEventLimit);
+    const hiddenEventCount = events.length - visibleEvents.length;
+
+    list.classList.toggle('calendar-month-events-overflowing', hiddenEventCount > 0);
+
+    updateMonthConflictAlert(cell, conflictingEventGuids.size > 0);
+
+    visibleEvents.forEach(function(event) {
+        list.appendChild(createMonthEventElement(event, dateString));
+    });
+
+    if (hiddenEventCount > 0) {
+        const more = document.createElement('span');
+
+        more.className = 'calendar-month-more';
+        more.dataset.monthMoreDate = dateString;
+        more.setAttribute('role', 'button');
+        more.tabIndex = 0;
+        more.textContent = `${hiddenEventCount} more`;
+        list.appendChild(more);
+    }
+};
+
 const renderMonthCalendar = function(calendar) {
     const today = todayString();
     const selected = toDateString(state.date);
@@ -7107,14 +7180,9 @@ const renderMonthCalendar = function(calendar) {
     for (let i = 0; i < 42; i++) {
         const date = addDays(gridStart, i);
         const dateString = toDateString(date);
-        const events = getCalendarItemsForDate(date);
         const cell = document.createElement('div');
         const day = document.createElement('span');
         const list = document.createElement('span');
-        const conflictingEventGuids = getConflictingEventGuids(events, dateString);
-        const visibleEvents = events.slice(0, monthVisibleEventLimit);
-        const hiddenEventCount = events.length - visibleEvents.length;
-
         cell.className = 'calendar-month-day';
         cell.dataset.date = dateString;
         cell.setAttribute('role', 'button');
@@ -7138,27 +7206,9 @@ const renderMonthCalendar = function(calendar) {
             : date.getDate();
 
         list.className = 'calendar-month-events';
-        list.classList.toggle('calendar-month-events-overflowing', hiddenEventCount > 0);
-
-        updateMonthConflictAlert(cell, conflictingEventGuids.size > 0);
-
-        visibleEvents.forEach(function(event) {
-            list.appendChild(createMonthEventElement(event, dateString));
-        });
-
-        if (hiddenEventCount > 0) {
-            const more = document.createElement('span');
-
-            more.className = 'calendar-month-more';
-            more.dataset.monthMoreDate = dateString;
-            more.setAttribute('role', 'button');
-            more.tabIndex = 0;
-            more.textContent = `${hiddenEventCount} more`;
-            list.appendChild(more);
-        }
-
         cell.appendChild(day);
         cell.appendChild(list);
+        renderMonthDayEvents(cell, dateString);
         grid.appendChild(cell);
     }
 
@@ -7167,33 +7217,39 @@ const renderMonthCalendar = function(calendar) {
     calendar.appendChild(wrapper);
 };
 
-const renderScheduleAgenda = function(calendar) {
+const renderScheduleAgenda = function(calendar, changedDates) {
     const range = getVisibleDateRange();
     const today = todayString();
     const selected = toDateString(state.date);
-    const wrapper = document.createElement('div');
+    const wrapper = changedDates ? calendar.querySelector('.calendar-schedule-agenda') : document.createElement('div');
+    if (!wrapper) return;
     let renderedMonth = '';
 
     wrapper.className = 'calendar-schedule-agenda';
 
-    getDateRangeDates(range).forEach(function(date) {
+    (changedDates || getDateRangeDates(range)).forEach(function(date) {
         const dateString = toDateString(date);
         const items = getCalendarItemsForDate(date);
         const shouldRenderEmpty = dateString === today || dateString === selected;
 
+        const month = dateString.substring(0, 7);
+        if (changedDates) wrapper.querySelector(`.calendar-schedule-day[data-date="${dateString}"]`)?.remove();
         if (!items.length && !shouldRenderEmpty) {
+            if (changedDates && !wrapper.querySelector(`.calendar-schedule-day[data-date^="${month}"]`)) {
+                wrapper.querySelector(`[data-month="${month}"]`)?.remove();
+            }
             return;
         }
 
-        const month = dateString.substring(0, 7);
-
-        if (month !== renderedMonth) {
+        const before = changedDates ? Array.from(wrapper.children).find(item => item.dataset.month
+            ? item.dataset.month > month : item.dataset.date > dateString) : null;
+        if (month !== renderedMonth && (!changedDates || !wrapper.querySelector(`[data-month="${month}"]`))) {
             const monthBar = document.createElement('div');
 
             monthBar.className = 'calendar-schedule-month-bar';
             monthBar.dataset.month = month;
             monthBar.textContent = monthFormatter.format(date).toUpperCase();
-            wrapper.appendChild(monthBar);
+            wrapper.insertBefore(monthBar, before || null);
             renderedMonth = month;
         }
 
@@ -7297,10 +7353,10 @@ const renderScheduleAgenda = function(calendar) {
 
         day.appendChild(dateRail);
         day.appendChild(list);
-        wrapper.appendChild(day);
+        wrapper.insertBefore(day, before || null);
     });
 
-    calendar.appendChild(wrapper);
+    if (!changedDates) calendar.appendChild(wrapper);
 
     return wrapper;
 };
@@ -9188,6 +9244,9 @@ document.addEventListener('DOMContentLoaded', function() {
         cancelLessonButton.addEventListener('click', function(e) {
             e.preventDefault();
             showLessonCancelForm(lessonModal);
+            if (cancelLessonButton.hasAttribute('data-manage-dates')) {
+                lessonModal.querySelector('#multiple-events').click();
+            }
         });
     }
 

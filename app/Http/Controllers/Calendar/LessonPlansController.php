@@ -45,6 +45,7 @@ class LessonPlansController extends Controller
     {
         $duplicate = $lessonPlan->replicate();
         $duplicate->fill([
+            'restored_dates' => null,
             'starts_on' => null,
             'ends_on' => null,
         ]);

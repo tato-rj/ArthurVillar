@@ -11,8 +11,8 @@
 		<input type="hidden" name="schedule_override_id">
 
 		<fieldset data-cancel-controls>
-			<div class="my-4 bg-light rounded p-3" data-recurring-cancel-fields>
-				<p class="mb-1">Who is canceling this lesson?</p>
+			<div class="my-4 bg-light rounded p-3" data-recurring-cancel-fields data-cancel-reason>
+				<p class="mb-1">Who is canceling?</p>
 				<div class="form-check">
 				  <input class="form-check-input" type="radio" name="canceled_by" id="canceled_by_radio-1" value="student" checked>
 				  <label class="form-check-label" for="canceled_by_radio-1">
@@ -28,7 +28,7 @@
 			</div>
 
 			<div class="my-4 bg-light rounded p-3" data-recurring-cancel-fields>
-				<p class="mb-1">Delete which event?</p>
+				<p class="mb-1">Which events do you want to change?</p>
 				<div class="form-check">
 				  <input class="form-check-input" type="radio" name="cancelation_type" id="this-event" value="current" checked>
 				  <label class="form-check-label" for="this-event">
@@ -42,7 +42,7 @@
 				</div>
 
 				<div class="calendar-date-picker calendar-cancel-picker" id="multiple-event-picker" hidden>
-					<p class="small mb-0">Uncheck the dates you want to cancel. Purple marks the lesson you opened.</p>
+					<p class="small mb-0">Uncheck a lesson to cancel it. Check a canceled lesson to restore it. Purple marks the lesson you opened.</p>
 					<div class="calendar-date-picker-header">
 						<h3 aria-live="polite" data-cancel-month></h3>
 						<div class="calendar-date-picker-nav">
@@ -80,6 +80,6 @@
 			</div>
 		</fieldset>
 
-		<button type="submit" class="btn btn-primary w-100">@fa(['icon' => 'calendar-xmark'])<span data-cancel-single-label>Cancel lesson</span><span data-cancel-multiple-label>Cancel selected lessons</span></button>
+		<button type="submit" class="btn btn-primary w-100"><span data-cancel-single-label>@fa(['icon' => 'calendar-xmark'])Cancel lesson</span><span data-cancel-multiple-label>@fa(['icon' => 'check'])Save changes</span></button>
 	</form>
 </div>

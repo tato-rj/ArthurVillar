@@ -83,8 +83,9 @@ class LessonsController extends Controller
 
         return response()->json([
             'occurrences' => $scheduler->upcomingLessonOccurrences($lessonPlan, $data['month'])
-                ->whereIn('lesson_status', ['unconfirmed', 'early-payment'])
-                ->map(fn ($occurrence) => Arr::only($occurrence, ['date', 'start', 'original_date', 'original_start_time']))
+                ->whereIn('lesson_status', ['unconfirmed', 'early-payment', 'canceled'])
+                ->map(fn ($occurrence) => Arr::only($occurrence, ['date', 'start', 'original_date', 'original_start_time'])
+                    + ['canceled' => $occurrence['lesson_status'] === 'canceled'])
                 ->values(),
         ]);
     }
@@ -96,7 +97,7 @@ class LessonsController extends Controller
         ]);
 
         if ($request->input('cancelation_type') === 'multiple') {
-            return $this->cancelMultiple($request);
+            return $this->updateMultipleOccurrences($request);
         }
 
         if ($request->filled('single_lesson_plan_id')) {
@@ -184,68 +185,113 @@ class LessonsController extends Controller
         return back()->with('success', 'The lesson was successfully canceled');
     }
 
-    private function cancelMultiple(Request $request)
+    private function updateMultipleOccurrences(Request $request)
     {
         $data = $request->validate([
             'lesson_plan_id' => ['required', 'exists:lesson_plans,id'],
             'single_lesson_plan_id' => ['prohibited'],
-            'canceled_by' => ['required', Rule::in(['teacher', 'student'])],
+            'canceled_by' => ['nullable', Rule::in(['teacher', 'student'])],
             'occurrences' => ['required', 'array', 'list', 'min:1'],
+            'occurrences.*.action' => ['sometimes', 'required', Rule::in(['cancel', 'restore'])],
             'occurrences.*.date' => ['required', 'date_format:Y-m-d'],
             'occurrences.*.start' => ['required', 'date_format:H:i'],
             'occurrences.*.original_date' => ['required', 'date_format:Y-m-d'],
             'occurrences.*.original_start_time' => ['required', 'date_format:H:i'],
         ]);
 
-        $results = DB::transaction(function () use ($data) {
+        $payload = DB::transaction(function () use ($data) {
             $plan = LessonPlan::lockForUpdate()->findOrFail($data['lesson_plan_id']);
             $scheduler = app(Scheduler::class);
             $results = [];
-            $months = collect($data['occurrences'])->groupBy(fn ($row) => substr($row['date'], 0, 7));
+            $changes = collect($data['occurrences']);
+            $key = fn ($row) => $row['original_date'].' '.$row['original_start_time'];
+            if ($changes->duplicates($key)->isNotEmpty()) {
+                throw ValidationException::withMessages(['occurrences' => 'Each lesson can only be changed once.']);
+            }
+            $reason = $data['canceled_by'] ?? null;
+            if (! $reason && $changes->contains(fn ($change) => ($change['action'] ?? 'cancel') === 'cancel')) {
+                throw ValidationException::withMessages(['canceled_by' => 'Choose who is canceling the lesson.']);
+            }
 
-            $occurrenceKey = fn ($row) => $row['original_date'].' '.$row['original_start_time'];
-
-            foreach ($months as $month => $selected) {
-                $upcoming = $scheduler->upcomingLessonOccurrences($plan, $month)->keyBy($occurrenceKey);
-
-                foreach ($selected as $selection) {
-                    $key = $occurrenceKey($selection);
-                    $row = $upcoming->get($key);
-                    // A retry may reach us after the first request already committed.
-                    $alreadyCanceled = $row && $row['lesson_id'] && $row['lesson_status'] === 'canceled'
-                        && $row['canceled_by'] === $data['canceled_by'];
-                    if (! $row || $row['date'] !== $selection['date'] || $row['start'] !== $selection['start']
-                        || (! $alreadyCanceled && ! in_array($row['lesson_status'], ['unconfirmed', 'early-payment'], true))) {
+            foreach ($changes->groupBy(fn ($row) => substr($row['date'], 0, 7)) as $month => $selected) {
+                $upcoming = $scheduler->upcomingLessonOccurrences($plan, $month)->keyBy($key);
+                foreach ($selected as $change) {
+                    $row = $upcoming->get($key($change));
+                    $restore = ($change['action'] ?? 'cancel') === 'restore';
+                    if (! $row || $row['date'] !== $change['date'] || $row['start'] !== $change['start']
+                        || (! $restore && ! in_array($row['lesson_status'], ['unconfirmed', 'early-payment', 'canceled'], true))) {
                         throw ValidationException::withMessages([
                             'occurrences' => 'A selected lesson has changed. Reopen Multiple events to review the available dates.',
                         ]);
                     }
 
-                    if (isset($results[$key])) {
-                        continue;
+                    if ($restore && $row['lesson_status'] === 'canceled') {
+                        $this->restoreOccurrence($plan, $row);
+                    } elseif (! $restore && $row['lesson_status'] !== 'canceled') {
+                        $lesson = $this->recurringLessonFromRequest([
+                            'date' => $row['date'],
+                            'start' => $row['start'],
+                            'end' => $row['end'],
+                            'scheduled_date' => $row['original_date'],
+                            'scheduled_start_time' => $row['original_start_time'],
+                        ], $plan)['model'];
+                        $lesson->cancel($reason);
                     }
+                }
 
-                    $lesson = $this->recurringLessonFromRequest([
-                        'date' => $row['date'],
-                        'start' => $row['start'],
-                        'end' => $row['end'],
-                        'scheduled_date' => $row['original_date'],
-                        'scheduled_start_time' => $row['original_start_time'],
-                    ], $plan)['model'];
-                    if (! $alreadyCanceled) {
-                        $lesson->cancel($data['canceled_by']);
+                // Read the effective status, fee, payment and reschedule information after all edits.
+                $saved = $scheduler->upcomingLessonOccurrences($plan, $month)->keyBy($key);
+                foreach ($selected as $change) {
+                    $row = $saved->get($key($change));
+                    if (! $row) {
+                        throw ValidationException::withMessages(['occurrences' => 'The lesson schedule has changed. Please review the dates again.']);
                     }
-
-                    $results[$key] = $this->cancellationPayload($lesson) + Arr::only($row, [
-                        'date', 'start', 'original_date', 'original_start_time', 'schedule_override_id',
-                    ]);
+                    $results[] = Arr::only($row, ['date', 'start', 'original_date', 'original_start_time', 'schedule_override_id',
+                        'lesson_id', 'fee_amount', 'early_payment_id', 'canceled_by']) + [
+                        'status' => $row['lesson_status'],
+                        'lesson_deleted' => ! $row['lesson_id'],
+                        'edit_url' => $row['lesson_edit_url'],
+                        'payment_url' => $row['lesson_payment_url'],
+                        'payment_exempt' => (bool) $plan->student?->payment_exempt,
+                        'schedule_override_deleted' => false,
+                    ];
                 }
             }
 
-            return array_values($results);
+            return [
+                'lesson_plan_id' => $plan->id,
+                'projected_occurrence_count' => LessonPlan::projectedLessonCounts($plan->newCollection([$plan]))->get($plan->id),
+                'occurrences' => $results,
+            ];
         });
 
-        return response()->json(['lesson_plan_id' => $data['lesson_plan_id'], 'occurrences' => $results]);
+        return response()->json($payload);
+    }
+
+    private function restoreOccurrence(LessonPlan $plan, array $row): void
+    {
+        if ($plan->isCanceledOn($row['original_date'])) {
+            $plan->update(['restored_dates' => [...($plan->restored_dates ?? []), $row['original_date']]]);
+        }
+
+        $lesson = $plan->lessons->find($row['lesson_id']);
+        if (! $lesson) {
+            return;
+        }
+        if ($lesson->paid_at) {
+            $lesson->update(['canceled_at' => null, 'canceled_by' => null]);
+            return;
+        }
+
+        // Older moved lessons can store their entire schedule on the cancellation record.
+        if (empty($row['schedule_override_id']) && ($row['date'] !== $row['original_date'] || $row['start'] !== $row['original_start_time'])) {
+            $plan->scheduleOverrides()->create([
+                'original_date' => $row['original_date'], 'original_start_time' => $row['original_start_time'],
+                'new_date' => $row['date'], 'new_start_time' => $row['start'],
+                'duration_minutes' => $lesson->starts_at->diffInMinutes($lesson->ends_at), 'type' => 'reschedule',
+            ]);
+        }
+        $lesson->delete();
     }
 
     private function cancellationPayload(Lesson $lesson): array

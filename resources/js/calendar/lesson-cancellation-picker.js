@@ -18,7 +18,11 @@ export function bindLessonCancellationPicker(form, weekStartDay, requestJson) {
     const monthKey = () => month.getFullYear() + '-' + String(month.getMonth() + 1).padStart(2, '0');
     const updateSelection = function() {
         const count = selected.size;
-        const summary = count === 1 ? '1 lesson selected to cancel.' : count + ' lessons selected to cancel.';
+        const cancelCount = Array.from(selected.values()).filter(row => row.action === 'cancel').length;
+        const restoreCount = count - cancelCount;
+        const summary = [cancelCount && cancelCount + ' to cancel', restoreCount && restoreCount + ' to restore']
+            .filter(Boolean).join(' · ') || 'No changes selected.';
+        form.querySelector('[data-cancel-reason]').hidden = !picker.hidden && !cancelCount;
         status.textContent = [message, summary].filter(Boolean).join(' ');
         submit.disabled = !picker.hidden && (count === 0 || !!request);
     };
@@ -40,7 +44,7 @@ export function bindLessonCancellationPicker(form, weekStartDay, requestJson) {
                 const checkbox = document.createElement('input');
                 checkbox.type = 'checkbox';
                 checkbox.dataset.date = date;
-                const kept = rows.filter(row => !selected.has(key(row))).length;
+                const kept = rows.filter(row => selected.has(key(row)) ? selected.get(key(row)).action === 'restore' : !row.canceled).length;
                 checkbox.checked = kept === rows.length;
                 checkbox.indeterminate = kept > 0 && kept < rows.length;
                 const label = dayFormat.format(new Date(month.getFullYear(), month.getMonth(), day));
@@ -82,7 +86,9 @@ export function bindLessonCancellationPicker(form, weekStartDay, requestJson) {
             }
             // Drop stale selections if a lesson moved while this picker was open.
             for (const [id, row] of selected) {
-                if (row.date.startsWith(currentMonth) && (available.get(id)?.date !== row.date || available.get(id)?.start !== row.start)) {
+                const current = available.get(id);
+                if ((current || row.date.startsWith(currentMonth))
+                    && (!current || current.date !== row.date || current.start !== row.start || current.canceled === (row.action === 'cancel'))) {
                     selected.delete(id);
                 }
             }
@@ -105,6 +111,7 @@ export function bindLessonCancellationPicker(form, weekStartDay, requestJson) {
         request = null;
         selected.clear();
         picker.hidden = true;
+        form.querySelector('[data-cancel-reason]').hidden = Boolean(fields.single_lesson_plan_id.value);
         form.classList.remove('is-multiple');
         fields.cancelation_type.value = scope;
         submit.disabled = false;
@@ -124,8 +131,9 @@ export function bindLessonCancellationPicker(form, weekStartDay, requestJson) {
             loadMonth();
         } else if (event.target.matches('[data-date]') && picker.contains(event.target)) {
             for (const row of byDate.get(event.target.dataset.date)) {
-                if (event.target.checked) selected.delete(key(row));
-                else selected.set(key(row), row);
+                const cancel = !event.target.checked;
+                if (cancel === row.canceled) selected.delete(key(row));
+                else selected.set(key(row), { ...row, action: cancel ? 'cancel' : 'restore' });
             }
             updateSelection();
         }

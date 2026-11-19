@@ -1317,7 +1317,9 @@ class CalendarLessonFlowTest extends BaseTest
         $dates = fn ($month) => $this->getJson(route('calendar.lesson-plans.cancelable-occurrences', [$plan, 'month' => $month]))
             ->assertOk()->json('occurrences');
         $july = $dates('2026-07');
-        $august = $dates('2026-08');
+        $augustRows = collect($dates('2026-08'));
+        $this->assertEqualsCanonicalizing(['2026-08-19', '2026-08-26'], $augustRows->where('canceled', true)->pluck('date')->all());
+        $august = $augustRows->where('canceled', false)->values()->all();
         $this->assertEqualsCanonicalizing(['2026-07-15', '2026-07-22'], array_column($july, 'date'));
         $this->assertEqualsCanonicalizing(['2026-08-05', '2026-08-05'], array_column($august, 'date'));
         $this->assertEqualsCanonicalizing(['2026-07-29', '2026-08-05'], array_column($august, 'original_date'));
@@ -1333,13 +1335,71 @@ class CalendarLessonFlowTest extends BaseTest
             $this->assertNotEmpty($row['edit_url']);
         }
         $this->postJson($url, $payload)->assertOk()->assertJsonPath('occurrences', $result);
-        $this->assertEquals(['2026-07-22'], array_column($dates('2026-07'), 'date'));
-        $this->assertSame([], $dates('2026-08'));
+        $this->assertEquals(['2026-07-22'], collect($dates('2026-07'))->where('canceled', false)->pluck('date')->all());
+        $this->assertTrue(collect($dates('2026-08'))->every('canceled'));
         $this->assertSame(3, $plan->lessons()->whereNotNull('canceled_at')->count());
         $this->assertSame(0, $otherPlan->lessons()->count());
         $this->assertSame('2026-08-19', $plan->fresh()->canceled_from->toDateString());
         $this->assertModelExists($payment);
         $this->assertModelExists($override);
+
+        // Restore a prepaid lesson, a moved lesson, and one date in the canceled series, while canceling July 22.
+        $mixed = [
+            $july[0] + ['action' => 'restore'],
+            $july[1] + ['action' => 'cancel'],
+            $augustRows->firstWhere('original_date', '2026-07-29') + ['action' => 'restore'],
+            $augustRows->firstWhere('date', '2026-08-19') + ['action' => 'restore'],
+        ];
+        $payload['occurrences'] = $mixed;
+        $response = $this->postJson($url, $payload)->assertOk()
+            ->assertJsonPath('occurrences.0.status', 'early-payment')
+            ->assertJsonPath('occurrences.0.early_payment_id', $payment->id)
+            ->assertJsonPath('occurrences.1.status', 'canceled')
+            ->assertJsonPath('occurrences.2.status', 'unconfirmed')
+            ->assertJsonPath('occurrences.2.schedule_override_id', $override->id)
+            ->assertJsonPath('occurrences.3.status', 'unconfirmed');
+        $this->postJson($url, $payload)->assertOk()->assertJsonPath('occurrences', $response->json('occurrences'));
+        $this->assertSame(['2026-07-15'], collect($dates('2026-07'))->where('canceled', false)->pluck('date')->all());
+        $this->assertEqualsCanonicalizing(['2026-07-29', '2026-08-19'], collect($dates('2026-08'))->where('canceled', false)->pluck('original_date')->all());
+        $this->assertModelExists($override);
+        $this->assertSame($plan->fresh()->projectedLessonCount(), $response->json('projected_occurrence_count'));
+        $this->assertSame('2026-08-19', $plan->fresh()->canceled_from->toDateString());
+    }
+
+    public function test_restoring_canceled_records_preserves_payment_and_a_legacy_move_and_is_atomic()
+    {
+        $this->travelTo(Carbon::parse('2026-07-01 09:00', config('calendar.timezone')));
+        $this->signIn();
+        $plan = LessonPlan::factory()->create([
+            'starts_on' => '2026-07-01', 'weekday' => 4, 'start_time' => '15:30', 'ends_on' => '2026-07-31',
+        ]);
+        $record = fn ($date, $actual, $paid) => Lesson::factory()->lessonPlan($plan)->create([
+            'scheduled_date' => $date, 'scheduled_start_time' => '15:30',
+            'starts_at' => $actual, 'ends_at' => Carbon::parse($actual)->addMinutes(45),
+            'paid_at' => $paid, 'canceled_at' => now(), 'canceled_by' => 'teacher',
+        ]);
+        $moved = $record('2026-07-08', '2026-07-10 16:15', null);
+        $paid = $record('2026-07-15', '2026-07-15 15:30', now());
+        $list = $this->getJson(route('calendar.lesson-plans.cancelable-occurrences', [$plan, 'month' => '2026-07']))
+            ->assertOk()->json('occurrences');
+        $changes = collect($list)->where('canceled', true)->sortBy('date')
+            ->map(fn ($row) => $row + ['action' => 'restore'])->values()->all();
+        $this->assertCount(2, $changes);
+        $post = fn ($items) => $this->postJson(route('calendar.lessons.cancel'), [
+            'cancelation_type' => 'multiple', 'lesson_plan_id' => $plan->id, 'occurrences' => $items,
+        ]);
+        $invalid = array_replace($changes[1], ['date' => '2026-07-17']);
+        $post([$changes[0], $invalid])->assertUnprocessable();
+        $this->assertModelExists($moved);
+        $this->assertDatabaseCount('schedule_overrides', 0);
+
+        $post($changes)->assertOk()->assertJsonPath('occurrences.0.status', 'unconfirmed')
+            ->assertJsonPath('occurrences.1.status', 'paid');
+        $this->assertModelMissing($moved);
+        $this->assertDatabaseHas('schedule_overrides', ['lesson_plan_id' => $plan->id, 'original_date' => '2026-07-08',
+            'new_date' => '2026-07-10', 'new_start_time' => '16:15', 'duration_minutes' => 45]);
+        $this->assertSame($paid->paid_at->toDateTimeString(), $paid->fresh()->paid_at->toDateTimeString());
+        $this->assertNull($paid->fresh()->canceled_at);
     }
 
     public function test_multiple_cancellations_roll_back_if_any_selection_is_past_missing_or_has_moved()
@@ -1352,7 +1412,7 @@ class CalendarLessonFlowTest extends BaseTest
         $select = fn ($date) => ['date' => $date, 'start' => '15:30', 'original_date' => $date, 'original_start_time' => '15:30'];
         $rows = $this->getJson(route('calendar.lesson-plans.cancelable-occurrences', [$plan, 'month' => '2026-07']))
             ->assertOk()->json('occurrences');
-        $this->assertContains($select('2026-07-08'), $rows);
+        $this->assertContains($select('2026-07-08') + ['canceled' => false], $rows);
         $plan->reschedule([
             'original_date' => '2026-07-22', 'date' => '2026-07-23', 'start_time' => '16:30', 'end_time' => '17:00',
         ]);
