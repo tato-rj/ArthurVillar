@@ -36,10 +36,22 @@ function setup(fetch, showCancellations = false) {
     const modal = element({ eventModalType: 'lesson', eventGuid: 'planned-lesson-1-2026-07-08-15:30' });
     modal.querySelector = selector => selector === '[data-lesson-action-error]' ? error : null;
     modal.querySelectorAll = () => [button];
+    const cancelForm = (type = 'current') => {
+        modal.classList.add('show', 'is-canceling');
+        return {
+            action: '/lessons/cancel',
+            closest: selector => selector === '#calendar-event-modal' ? modal : null,
+            fields: [['cancelation_type', type], ['lesson_plan_id', '1']],
+        };
+    };
     const item = element({ eventGuid: modal.dataset.eventGuid });
     const unrelated = element({ eventGuid: 'unrelated' });
     const context = vm.createContext({
-        window: { calendarCsrfToken: 'test-csrf-token', calendarShowCancellations: showCancellations }, fetch,
+        window: {
+            calendarCsrfToken: 'test-csrf-token', calendarShowCancellations: showCancellations,
+            bootstrap: { Modal: { getOrCreateInstance: dialog => ({ hide: () => dialog.classList.remove('show') }) } },
+        },
+        fetch, FormData: function(form) { return new Map(form.fields); },
         document: {
             addEventListener() {},
             querySelector: () => null,
@@ -49,7 +61,7 @@ function setup(fetch, showCancellations = false) {
         require: () => ({}), console: { error() {} }, Intl, URL, setTimeout, clearTimeout,
     });
     context.window.calendarLessonPlanEditUrlTemplate = '/lesson-plans/__lesson_plan__/edit';
-    vm.runInContext(source + '\nglobalThis.api = {state, mutateLesson, updateLessonEventState, getPlannedLessonEvents, getGeneralEventCalendarEvents, getVisibleCalendarEvents, syncEvents, canConfirmLessonAndPayment, storeTaughtLesson};', context);
+    vm.runInContext(source + '\nglobalThis.api = {state, mutateLesson, submitLessonModalForm, updateLessonEventState, getPlannedLessonEvents, getGeneralEventCalendarEvents, getVisibleCalendarEvents, syncEvents, canConfirmLessonAndPayment, storeTaughtLesson};', context);
     const api = context.api;
     const event = {
         guid: modal.dataset.eventGuid, lessonPlanId: 1, date: '2026-07-08',
@@ -66,7 +78,7 @@ function setup(fetch, showCancellations = false) {
     api.state.instance = { getData: () => [instanceEvent] };
     let refreshes = 0;
     const refresh = async () => { refreshes++; };
-    return { ...api, modal, button, error, item, unrelated, event, occurrence, otherOccurrence,
+    return { ...api, modal, cancelForm, button, error, item, unrelated, event, occurrence, otherOccurrence,
         instanceEvent, refresh, refreshes: () => refreshes };
 }
 
@@ -149,14 +161,17 @@ test('overlapping recurring lessons keep their own edit targets, locations and s
     assert.equal(h.otherOccurrence.lesson_status, 'unconfirmed');
 });
 
-test('cancel and undo honor event filters without removing or rebuilding calendar nodes', async () => {
-    const h = setup();
-    await h.mutateLesson(h.modal, async () => ({ status: 'canceled', lesson_id: 5 }), h.refresh);
+test('successful cancellation closes the dialog and cancel and undo update the calendar in place', async () => {
+    const h = setup(async () => ({ ok: true, json: async () => ({ status: 'canceled', lesson_id: 5 }) }));
+    await h.submitLessonModalForm(h.cancelForm(), h.refresh);
+    assert.equal(h.modal.classList.contains('show'), false);
     assert.equal(h.item.hidden, true);
     assert.equal(h.error.hidden, true);
     assert.equal(h.state.travelRouteDateRevisions.get(h.event.date), 1);
     assert.equal(h.getVisibleCalendarEvents().length, 0);
+    h.modal.classList.add('show');
     await h.mutateLesson(h.modal, async () => ({ status: 'unconfirmed', lesson_deleted: true }), h.refresh);
+    assert.equal(h.modal.classList.contains('show'), true);
     assert.equal(h.item.hidden, false);
     assert.equal(h.error.hidden, true);
     assert.equal(h.state.travelRouteDateRevisions.get(h.event.date), 2);
@@ -203,31 +218,33 @@ test('a schedule grid copy cannot keep a general event visible after it is cance
 });
 
 test('slow requests block repeat actions and failures unlock controls without changing the lesson', async () => {
-    const h = setup();
     let reject;
-    const pending = h.mutateLesson(h.modal, () => new Promise((resolve, fail) => { reject = fail; }), h.refresh);
+    const h = setup(() => new Promise((resolve, fail) => { reject = fail; }));
+    const pending = h.submitLessonModalForm(h.cancelForm(), h.refresh);
     assert.equal(h.button.disabled, true);
     let duplicateSent = false;
     await h.mutateLesson(h.modal, async () => { duplicateSent = true; }, h.refresh);
     assert.equal(duplicateSent, false);
-    reject(new Error('Payment could not be saved.'));
+    reject(new Error('Cancellation could not be saved.'));
     await pending;
-    assert.equal(h.error.textContent, 'Payment could not be saved.');
+    assert.equal(h.error.textContent, 'Cancellation could not be saved.');
+    assert.equal(h.modal.classList.contains('show'), true);
     assert.equal(h.button.disabled, false);
     assert.equal(h.event.lessonStatus, 'unconfirmed');
     assert.equal(h.refreshes(), 0);
 });
 
-test('a delayed response updates its original lesson when another lesson dialog is open', async () => {
-    const h = setup();
+test('a delayed cancellation updates its original lesson without closing another lesson dialog', async () => {
     let resolve;
-    const pending = h.mutateLesson(h.modal, () => new Promise(done => { resolve = done; }), h.refresh);
+    const h = setup(() => new Promise(done => { resolve = done; }));
+    const pending = h.submitLessonModalForm(h.cancelForm(), h.refresh);
     h.modal.dataset.eventGuid = 'another-lesson';
     h.modal.dataset.lessonStatus = 'early-payment';
-    resolve({ status: 'paid', fee_amount: 5000 });
+    resolve({ ok: true, json: async () => ({ status: 'canceled', lesson_id: 5 }) });
     await pending;
-    assert.equal(h.event.lessonStatus, 'paid');
-    assert.equal(h.occurrence.fee_amount, 5000);
+    assert.equal(h.event.lessonStatus, 'canceled');
+    assert.equal(h.occurrence.lesson_status, 'canceled');
+    assert.equal(h.modal.classList.contains('show'), true);
     assert.equal(h.modal.dataset.lessonStatus, 'early-payment');
     assert.equal(h.modal.dataset.eventGuid, 'another-lesson');
     assert.equal(h.state.pendingLessonMutations.size, 0);
@@ -239,6 +256,13 @@ test('mutations that move or remove occurrences still refresh schedule geometry'
     h.modal.dataset.eventModalType = 'general-event'; // Do not reopen a replaced dialog.
     await h.mutateLesson(h.modal, async () => ({ status: 'unconfirmed', schedule_override_deleted: true }), h.refresh);
     assert.equal(h.refreshes(), 1);
+});
+
+test('canceling a series refreshes the calendar and closes the dialog', async () => {
+    const h = setup(async () => ({ ok: true, json: async () => ({ lesson_plan_canceled_from: '2026-07-08' }) }));
+    await h.submitLessonModalForm(h.cancelForm('future'), h.refresh);
+    assert.equal(h.refreshes(), 1);
+    assert.equal(h.modal.classList.contains('show'), false);
 });
 
 test('a combined confirmation posts once and updates the paid occurrence in place', async () => {
@@ -292,8 +316,9 @@ test('holding is offered only when attendance would leave a payment to confirm',
     }
 });
 
-test('multi-date cancellation locks selected lessons and updates buffered dates without canceling the open lesson', async () => {
-    const h = setup();
+test('multi-date cancellation closes the dialog, locks selected lessons, and updates buffered dates', async () => {
+    let resolve;
+    const h = setup(() => new Promise(done => { resolve = done; }));
     const selected = {
         ...h.event, date: '2026-07-15', originalDate: '2026-07-15',
         guid: 'planned-lesson-1-2026-07-15-15:30',
@@ -305,18 +330,17 @@ test('multi-date cancellation locks selected lessons and updates buffered dates 
         date, start: '15:30', original_date: date, original_start_time: '15:30',
         status: 'canceled', canceled_by: 'teacher', lesson_id: 21 + index,
     }));
-    let resolve;
-    const pending = h.mutateLesson(h.modal, () => new Promise(done => { resolve = done; }), h.refresh, true,
-        result.map(row => 'planned-lesson-1-' + row.original_date + '-15:30'));
+    h.state.lessonCancellationPicker = { selection: () => result };
+    const pending = h.submitLessonModalForm(h.cancelForm('multiple'), h.refresh);
     h.modal.dataset.eventGuid = selected.guid;
     let duplicateSent = false;
     await h.mutateLesson(h.modal, async () => { duplicateSent = true; }, h.refresh);
     assert.equal(duplicateSent, false);
     h.modal.dataset.eventGuid = h.event.guid;
-    resolve({ lesson_plan_id: 1, occurrences: result });
+    resolve({ ok: true, json: async () => ({ lesson_plan_id: 1, occurrences: result }) });
     await pending;
     assert.equal(h.event.lessonStatus, 'unconfirmed');
-    assert.equal(h.modal.dataset.lessonStatus, 'unconfirmed');
+    assert.equal(h.modal.classList.contains('show'), false);
     assert.equal(selected.lessonStatus, 'canceled');
     assert.equal(h.otherOccurrence.lesson_id, 21);
     assert.equal(buffered.lesson_id, 22);

@@ -2735,8 +2735,8 @@ const resetLessonModalState = function(modal) {
     if (state.cancelLessonConfirmation) state.cancelLessonConfirmation();
     setLessonMutationBusy(modal, false);
     state.lessonCancellationPicker?.reset();
-    const cancellationNotice = modal.querySelector('[data-lesson-cancellation-notice]');
-    if (cancellationNotice) cancellationNotice.hidden = true;
+    const restorationNotice = modal.querySelector('[data-lesson-restoration-notice]');
+    if (restorationNotice) restorationNotice.hidden = true;
     resetLessonModalButtons(modal);
     if (state.lessonActionAvailabilityTimer !== null) {
         window.clearTimeout(state.lessonActionAvailabilityTimer);
@@ -2763,7 +2763,7 @@ const showLessonCancelForm = function(modal) {
     }
 
     modal.classList.remove('is-rescheduling');
-    const notice = modal.querySelector('[data-lesson-cancellation-notice]');
+    const notice = modal.querySelector('[data-lesson-restoration-notice]');
     if (notice) notice.hidden = true;
     modal.classList.add('is-canceling');
 };
@@ -5285,16 +5285,19 @@ const mutateLesson = function(modal, send, refreshCalendar, keepOpen = true, rel
         const event = getEventByGuid(guid) || originalEvent;
         if (Array.isArray(payload.occurrences)) {
             applyLessonScheduleChanges(payload);
+            if (!keepOpen && isCurrentLesson()) {
+                hideLessonModal(modal);
+                return;
+            }
+
             const openGuid = modal.dataset.eventGuid;
             if (modal.dataset.eventModalType === 'lesson' && lockedGuids.includes(openGuid)) {
                 const openEvent = getEventByGuid(openGuid);
                 if (openEvent) finishLessonMutationInModal(modal, openEvent, true);
-                const notice = modal.querySelector('[data-lesson-cancellation-notice]');
-                if (notice && isCurrentLesson()) {
-                    const canceled = payload.occurrences.filter(row => row.status === 'canceled').length;
-                    const restored = payload.occurrences.length - canceled;
-                    notice.textContent = [[canceled, 'canceled'], [restored, 'restored']].filter(([count]) => count)
-                        .map(([count, verb]) => `${count} ${count === 1 ? 'lesson' : 'lessons'} ${verb}`).join(', ') + '.';
+                const notice = modal.querySelector('[data-lesson-restoration-notice]');
+                const restored = payload.occurrences.filter(row => row.status !== 'canceled').length;
+                if (notice && restored && isCurrentLesson()) {
+                    notice.textContent = `${restored} ${restored === 1 ? 'lesson' : 'lessons'} restored.`;
                     notice.hidden = false;
                 }
             }
@@ -5312,7 +5315,8 @@ const mutateLesson = function(modal, send, refreshCalendar, keepOpen = true, rel
             updateLessonEventViews(event, cancellationChanged);
             if (cancellationChanged) refreshLessonDates([event.date]);
             if (isCurrentLesson()) {
-                finishLessonMutationInModal(modal, event, cancellationChanged);
+                if (keepOpen) finishLessonMutationInModal(modal, event, cancellationChanged);
+                else hideLessonModal(modal);
             }
             return;
         }
@@ -5418,6 +5422,7 @@ const submitLessonModalForm = function(form, refreshCalendar) {
     const multiple = !isReschedule && body.get('cancelation_type') === 'multiple';
     const occurrences = multiple ? state.lessonCancellationPicker.selection() : [];
     if (multiple && !occurrences.length) return;
+    const keepOpen = multiple && occurrences.every(row => row.action === 'restore');
     const relatedGuids = occurrences.map(row => recurringLessonGuid(body.get('lesson_plan_id'), row.original_date, row.original_start_time));
     return mutateLesson(modal, function() {
         return requestJson(form.action, {
@@ -5430,7 +5435,7 @@ const submitLessonModalForm = function(form, refreshCalendar) {
             },
             body: multiple ? JSON.stringify({ ...Object.fromEntries(body), occurrences }) : body,
         }, isReschedule ? 'Unable to reschedule lesson.' : (multiple ? 'Unable to save lesson changes.' : 'Unable to cancel lesson.'));
-    }, refreshCalendar, !isReschedule, relatedGuids);
+    }, refreshCalendar, keepOpen, relatedGuids);
 };
 
 const patchSchedulePointer = function(calendar) {
