@@ -568,10 +568,12 @@
     "/images/vendor/flag-icons/flags/1x1/un.svg?61c437d90a5a5757d696234053f46a57": "/images/vendor/flag-icons/flags/1x1/un.svg?61c437d90a5a5757d696234053f46a57?id=beb2701ba8d645844586612fb9ee9518",
     "/images/vendor/flag-icons/flags/4x3/xk.svg?574f9c5bed5f12b51e1f0ae61759da3e": "/images/vendor/flag-icons/flags/4x3/xk.svg?574f9c5bed5f12b51e1f0ae61759da3e?id=13d6a7678c810b9e477d5a633c1afc80",
     "/images/vendor/flag-icons/flags/1x1/xk.svg?2e923b4cb7449d2571906aede00fee91": "/images/vendor/flag-icons/flags/1x1/xk.svg?2e923b4cb7449d2571906aede00fee91?id=bb93418fd2f1a062bd90eb8a13e4b0ee",
-    "/css/calendar.css": "/css/calendar.css?id=ac15f4ebc8f084188d2e10c994cd6deb",
+    "/css/calendar.css": "/css/calendar.css?id=5e8af0e813524431737a5d3de2df1e5b",
+    "/images/vendor/lucide-static/icons/piano.svg?1636d890d2d425bf51a851d5004d665b": "/images/vendor/lucide-static/icons/piano.svg?1636d890d2d425bf51a851d5004d665b?id=80c1d5b9f189fcb59c3d97e6bc2ce7cd",
     "/css/app.css": "/css/app.css?id=9817fce6a70b6c7215440ff320eea981",
     "/css/musicgames.css": "/css/musicgames.css?id=e957f2978715ae5e890274614a1822eb",
     "/css/schedule.css": "/css/schedule.css?id=b0303b45dcef09fda726df187b01fb84",
     "/css/pianoatlas.css": "/css/pianoatlas.css?id=845c534faf27b7fdb66e065ff17f2abb",
-    "/css/offline.css": "/css/offline.css?id=8a00710fde61304be9c27d38bcc67ecd"
+    "/css/offline.css": "/css/offline.css?id=8a00710fde61304be9c27d38bcc67ecd",
+    "/images/vendor/lucide-static/LICENSE": "/images/vendor/lucide-static/LICENSE?id=0ac379ab65904bcb1cf0c068528e82ce"
 }

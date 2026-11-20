@@ -38,6 +38,7 @@ mix.js('resources/js/app.js', 'public/js')
     .sass('resources/sass/pianoatlas.scss', 'public/css/pianoatlas.css')
     .sass('resources/sass/schedule.scss', 'public/css')
     .sass('resources/sass/musicgames.scss', 'public/css')
+    .copy('node_modules/lucide-static/LICENSE', 'public/images/vendor/lucide-static/LICENSE')
     .version();
 
 // Webpack adds trailing tabs to runtime chunks. Normalize the changed game bundles
