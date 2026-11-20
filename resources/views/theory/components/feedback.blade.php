@@ -4,7 +4,7 @@
           <div class="badge rounded-pill bg-primary bonus">+3 BONUS</div>
         </div>
         <div class="message">
-          @fa(['icon' => 'check-circle', 'fa_size' => 'sm'])<span></span>!
+          @icon('circle-check', ['size' => 'sm'])<span></span>!
         </div>
       </div>
     </div>

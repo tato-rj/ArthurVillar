@@ -14,7 +14,7 @@
                     autocomplete="off"
                     placeholder="Search students"
                     data-recital-student-search>
-                @fa(['icon' => 'angle-down', 'mr' => 0, 'fa_color' => 'grey'])
+                @icon('chevron-down', ['mr' => 0, 'color' => 'grey'])
             </div>
 
             <div class="calendar-student-combobox-menu" data-recital-student-menu>

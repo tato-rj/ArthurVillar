@@ -77,8 +77,8 @@ $(function() {
             search: '', searchPlaceholder: 'Search', lengthMenu: 'Show _MENU_ rows',
             info: 'Showing _START_ to _END_ of _TOTAL_', emptyTable: 'No duels yet.',
             paginate: {
-                previous: '<i class="fas fa-angle-left mr-0"></i>',
-                next: '<i class="fas fa-angle-right mr-0"></i>',
+                previous: '@icon('chevron-left', ['mr' => 0])',
+                next: '@icon('chevron-right', ['mr' => 0])',
             },
         },
         ajax: {
@@ -103,8 +103,8 @@ $(function() {
             {data: 'id', name: 'actions', orderable: false, searchable: false, className: 'text-right', render: function(data, type, row) {
                 if (type !== 'display') return data;
                 return `<div class="calendar-table-actions">
-                    <button type="button" class="btn btn-sm btn-primary rounded js-duel-info" data-url="${textRenderer.display(row.info_url)}" aria-label="Duel info" title="Duel info">@fa(['icon' => 'circle-info', 'mr' => 0])</button>
-                    <button type="button" class="btn btn-sm btn-red rounded js-duel-delete" data-url="${textRenderer.display(row.delete_url)}" aria-label="Delete duel" title="Delete duel">@fa(['icon' => 'trash-alt', 'mr' => 0])</button>
+                    <button type="button" class="btn btn-sm btn-primary rounded js-duel-info" data-url="${textRenderer.display(row.info_url)}" aria-label="Duel info" title="Duel info">@icon('info', ['mr' => 0])</button>
+                    <button type="button" class="btn btn-sm btn-red rounded js-duel-delete" data-url="${textRenderer.display(row.delete_url)}" aria-label="Delete duel" title="Delete duel">@icon('trash-2', ['mr' => 0])</button>
                 </div>`;
             }},
         ],

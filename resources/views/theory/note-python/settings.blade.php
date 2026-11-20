@@ -1,4 +1,4 @@
-@modal(['title' => fa('gear').'Game settings', 'id' => str_slug($settings->gameName()).'-settings-modal'])
+@modal(['title' => \App\Support\Icon::render('settings').'Game settings', 'id' => str_slug($settings->gameName()).'-settings-modal'])
 <form id="intervals-settings" method="GET" action="{{ $settings->gameUrl() }}">
   @component('theory.components.settings.section', ['title' => 'SETUP'])
     @include('theory.components.settings.value-range', ['label' => 'Number of rounds', 'name' => 'numOfChallenges', 'min' => 2, 'max' => 12, 'id' => str_slug($settings->gameName()).'-numOfChallenges', 'value' => request('numOfChallenges') ?? $settings->options('numOfChallenges')])
@@ -31,7 +31,7 @@
   @component('theory.components.settings.bonus')
     @include('theory.components.settings.toggle', ['label' => 'Show bombs', 'name' => 'showBombs', 'icon' => 'bomb'])
     @include('theory.components.settings.toggle', ['label' => 'Real walls', 'name' => 'realWalls', 'icon' => 'square'])
-    @include('theory.components.settings.toggle', ['label' => 'Speed up each round', 'name' => 'speedUpEachRound', 'icon' => 'gauge-high'])
+    @include('theory.components.settings.toggle', ['label' => 'Speed up each round', 'name' => 'speedUpEachRound', 'icon' => 'gauge'])
   @endcomponent
 
   <button type="submit" class="btn btn-primary w-100">Start new game</button>

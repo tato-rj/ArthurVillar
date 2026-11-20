@@ -847,7 +847,7 @@ button.setting-undo {
         background: transparent !important;
     }
 
-    .fa {
+    .app-icon {
         opacity: .4;
     }
 
@@ -898,7 +898,7 @@ button.setting-undo {
     &[selected]:focus-within {
         background: #e9eef7 !important;
 
-        i.fa-magnifying-glass {
+        i.icon-search {
             opacity: .4;
         }
     }
@@ -2518,14 +2518,6 @@ button.single-lesson-plan-create[selected] i {
 
 // Event markers
 
-.calendar-piano-icon {
-    background-color: currentColor;
-    display: inline-block;
-    height: 1em;
-    mask: url('~lucide-static/icons/piano.svg') center / contain no-repeat;
-    width: 1em;
-}
-
 .calendar-lesson-recital-date {
     align-items: center;
     display: flex;
@@ -2771,10 +2763,16 @@ button.single-lesson-plan-create[selected] i {
     width: 1.25rem;
 }
 
-.calendar-modal-detail-icon.calendar-piano-icon {
+.calendar-modal-detail-icon.app-icon {
     align-self: start;
+    display: grid;
     height: 1lh;
-    mask-size: 1em 1em;
+    place-items: center;
+
+    > svg {
+        width: 1em;
+        height: 1em;
+    }
 }
 
 .calendar-modal-detail > span,
@@ -3257,7 +3255,7 @@ button.single-lesson-plan-create[selected] i {
         z-index: 6000;
     }
 
-    i.fa-bars, i.fa-ellipsis-vertical {font-size: 110%}
+    i.icon-menu, i.icon-ellipsis-vertical {font-size: 110%}
     .calendar-date-range {width: 100%}
     .calendar-calendar-filter-toggle {min-width: 1rem}
     .calendar-calendar-nav i {font-size: 90%}
@@ -3621,7 +3619,7 @@ input[name="name"] {
     font-size: 1rem;
 }
 
-.invitation-response-choice .fa-xmark, .invitation-instructions-option[data-state="blank"] {
+.invitation-response-choice .icon-x, .invitation-instructions-option[data-state="blank"] {
     opacity: .3;
 }
 

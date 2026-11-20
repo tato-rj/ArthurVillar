@@ -13,7 +13,7 @@
                 <div class="col-lg-4 col-md-6 col-12 g-3">
                         <div class="border rounded p-2 bg-light leaderboard-wrapper">
                                 <div class="text-center border rounded bg-white py-2 mb-2">
-                                        <h6 class="m-0">@fa(['icon' => $game->gameIcon(), 'fa_color' => $game->gameTheme()]){{$game->gameName()}}</h6>
+                                        <h6 class="m-0">@icon($game->gameIcon(), ['color' => $game->gameTheme()]){{$game->gameName()}}</h6>
                                 </div>
 
                                 <div class="text-center mb-3">

@@ -1,20 +1,23 @@
 {
     "private": true,
     "scripts": {
-        "assets": "node scripts/copy-static-assets.js",
+        "assets": "node scripts/copy-static-assets.js && npm run icons",
+        "icons": "node scripts/build-icons.js",
         "icons:calendar": "node scripts/build-calendar-icons.js",
         "predevelopment": "npm run assets",
         "dev": "npm run development",
         "development": "NODE_OPTIONS=--max-old-space-size=8192 mix",
+        "prewatch": "npm run icons",
         "watch": "mix watch",
+        "prewatch-poll": "npm run icons",
         "watch-poll": "mix watch -- --watch-options-poll=1000",
+        "prehot": "npm run icons",
         "hot": "mix watch --hot",
         "preproduction": "npm run assets",
         "prod": "npm run production",
         "production": "NODE_OPTIONS=--max-old-space-size=8192 mix --production"
     },
     "devDependencies": {
-        "@fortawesome/fontawesome-free": "^6.6.0",
         "@popperjs/core": "^2.11.0",
         "axios": "^1.7.7",
         "bootstrap": "^5.3.3",

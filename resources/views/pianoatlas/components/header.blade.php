@@ -18,8 +18,8 @@
             </nav>
             @if ($piano === 'action')
                 <button id="play-assembly" class="atlas-play" aria-label="Play action demonstration" aria-pressed="false" title="Play action demonstration">
-                    <span id="assembly-play-icon" aria-hidden="true">@fa(['icon' => 'play', 'mr' => 0])</span>
-                    <span id="assembly-stop-icon" aria-hidden="true" hidden>@fa(['icon' => 'stop', 'mr' => 0])</span>
+                    <span id="assembly-play-icon" aria-hidden="true">@icon('play', ['mr' => 0])</span>
+                    <span id="assembly-stop-icon" aria-hidden="true" hidden>@icon('square', ['mr' => 0])</span>
                 </button>
                 <span id="assembly-status" class="sr-only" role="status" aria-live="polite"></span>
             @endif

@@ -5,7 +5,7 @@
 
   <div class="form-select-control {{iftrue(isset($icon), 'has-icon')}}">
     @isset($icon)
-      @fa(['icon' => $icon, 'mr' => 0, 'classes' => 'form-select-icon'])
+      @icon($icon, ['mr' => 0, 'classes' => 'form-select-icon'])
     @endisset
 
     <select
@@ -27,7 +27,7 @@
   </div>
   
   @isset($info)
-  <div class="form-text text-white text-left mt-2 fw-bold">@fa(['icon' => 'exclamation-circle']){{$info}}</div>
+  <div class="form-text text-white text-left mt-2 fw-bold">@icon('circle-alert'){{$info}}</div>
   @endisset
 
   @feedback(['input' => $name])

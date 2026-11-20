@@ -19,19 +19,19 @@
     >
 
     <button type="button" class="calendar-date-range-toggle" data-date-range-toggle aria-expanded="false">
-        @fa(['icon' => 'calendar-day', 'mr' => 0])
+        @icon('calendar-1', ['mr' => 0])
         <span data-date-range-label>{{$placeholder ?? 'Select date range'}}</span>
-        @fa(['icon' => 'angle-down', 'mr' => 0])
+        @icon('chevron-down', ['mr' => 0])
     </button>
 
     <div class="calendar-date-range-popover" data-date-range-popover hidden>
         <div class="calendar-date-range-header">
             <button type="button" class="btn-raw calendar-date-range-nav" data-date-range-previous aria-label="Previous month">
-                @fa(['icon' => 'angle-left', 'mr' => 0])
+                @icon('chevron-left', ['mr' => 0])
             </button>
             <strong data-date-range-month></strong>
             <button type="button" class="btn-raw calendar-date-range-nav" data-date-range-next aria-label="Next month">
-                @fa(['icon' => 'angle-right', 'mr' => 0])
+                @icon('chevron-right', ['mr' => 0])
             </button>
         </div>
         <div class="calendar-date-range-weekdays" aria-hidden="true">

@@ -24,13 +24,13 @@
 		
 		<div>
 			<button type="button" class="btn btn-sm rounded btn-warning w-100 mb-2" data-bs-toggle="modal" data-bs-target="#edit-lessonPlan-{{$lessonPlan->id}}-modal">
-				@fa(['icon' => 'pencil', 'mr' => 1])Edit
+				@icon('pencil', ['mr' => 1])Edit
 			</button>
 
 			<form method="POST" action="{{route('calendar.lesson-plans.duplicate', $lessonPlan)}}">
 				@csrf
 				<button type="submit" class="btn btn-sm rounded btn-white w-100 mb-2">
-					@fa(['icon' => 'copy'])Duplicate
+					@icon('copy')Duplicate
 				</button>
 			</form>
 			
@@ -38,7 +38,7 @@
 				@csrf
 				@method('DELETE')
 				<button type="submit" class="btn btn-sm {{$current ? 'btn-red' : 'btn-dark'}} w-100 rounded">
-					@fa(['icon' => 'trash-alt'])Delete
+					@icon('trash-2')Delete
 				</button>
 			</form>
 		</div>

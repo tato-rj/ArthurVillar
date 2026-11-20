@@ -5,7 +5,7 @@
 
 @modal(['title' => $invitation->title, 'id' => 'invitation-results-modal'])
     <div class="mb-4 invitation-results-response-count">
-        <strong>@fa(['icon' => 'users']){{ $invitation->participants_count }}</strong>
+        <strong>@icon('users'){{ $invitation->participants_count }}</strong>
         {{ Str::plural('person', $invitation->participants_count) }} responded
     </div>
 
@@ -30,9 +30,9 @@
                         </h6>
                         <h6 class="mb-0 small">
                             @if($resultStatus === 'winner')
-                                <span class="text-green">@fa(['icon' => 'trophy', 'mr' => 0])</span>
+                                <span class="text-green">@icon('trophy', ['mr' => 0])</span>
                             @elseif($resultStatus === 'second-best')
-                                <span class="text-yellow">@fa(['icon' => 'medal', 'mr' => 0])</span>
+                                <span class="text-yellow">@icon('medal', ['mr' => 0])</span>
                             @endif
                         </h6>
                     </div>
@@ -69,7 +69,7 @@
                             class="btn btn-sm btn-red rounded"
                             title="Delete all responses from {{ $participant->name }}"
                             aria-label="Delete all responses from {{ $participant->name }}">
-                            @fa(['icon' => 'trash-alt'])Delete
+                            @icon('trash-2')Delete
                         </button>
                     </form>
                 </li>

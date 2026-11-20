@@ -18,7 +18,7 @@
             'label' => 'Financial Report',
             'modal' => [
                 'target' => '#simulate-income-modal',
-                'icon' => 'wand-magic-sparkles',
+                'icon' => 'wand-sparkles',
                 'label' => 'Simulate income'
             ]
         ])
@@ -74,7 +74,7 @@
     </div>
 
     <div>
-        <p>@fa(['icon' => 'piggy-bank'])On average, you are making <span class="fw-bold" id="average-income">{{$money($averageIncome)}}</span> and potentially saving <span class="fw-bold" id="average-savings">{{$money($averageSavings)}}</span> each month.</p>
+        <p>@icon('piggy-bank')On average, you are making <span class="fw-bold" id="average-income">{{$money($averageIncome)}}</span> and potentially saving <span class="fw-bold" id="average-savings">{{$money($averageSavings)}}</span> each month.</p>
     </div>
 </section>
 

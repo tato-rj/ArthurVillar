@@ -27,6 +27,6 @@
 			<span style="height: {{rand(8,20)}}px; animation-delay: {{rand(1,100)/100}}s;"></span>
 			@endfor
 		</div>
-		<button class="btn btn-secondary btn-sm text-nowrap track-play-button {{$recording->is($playingRecording) ? 'd-none' : ''}}" type="button">@fa(['icon' => 'play'])Play</button>
+		<button class="btn btn-secondary btn-sm text-nowrap track-play-button {{$recording->is($playingRecording) ? 'd-none' : ''}}" type="button">@icon('play')Play</button>
 	</div>
 </form>

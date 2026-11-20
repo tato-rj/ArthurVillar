@@ -86,7 +86,7 @@ img {
 @auth
 <div class="position-absolute" style="top: 20px; right: 20px">
   <form id="qrcode" method="GET" action="{{route('listening.qrcode', ['token' => request()->route('token')])}}">
-    <button class="btn-raw" aria-label="Download QR code for this piece" title="Download QR code">@fa(['icon' => 'qrcode', 'mr' => 0, 'fa_size' => 'xl'])</button>
+    <button class="btn-raw" aria-label="Download QR code for this piece" title="Download QR code">@icon('qr-code', ['mr' => 0, 'size' => 'xl'])</button>
   </form>
 </div>
 @endauth
@@ -94,11 +94,11 @@ img {
 @if(request()->qrcode)
 <div class="position-absolute top-o left-0 w-100 mt-3 animate__animated animate__fadeInLeft">
   <div class="mb-2">
-    <a id="qrcode-link" href="{{route('listening.qrcode', ['token' => request()->route('token')])}}" class="btn btn-sm btn-secondary">@fa(['icon' => 'qrcode'])Make QRCode</a>
+    <a id="qrcode-link" href="{{route('listening.qrcode', ['token' => request()->route('token')])}}" class="btn btn-sm btn-secondary">@icon('qr-code')Make QRCode</a>
   </div>
 
   <div>
-    <a id="public-link" href="{{url()->current()}}" target="_blank" class="btn btn-sm btn-secondary">@fa(['icon' => 'link'])Public link</a>
+    <a id="public-link" href="{{url()->current()}}" target="_blank" class="btn btn-sm btn-secondary">@icon('link')Public link</a>
   </div>
 </div>
 @endif
@@ -133,9 +133,9 @@ img {
       @isset($playlist)
       <div class="col-lg-6 col-12 order-lg-2 order-1 mb-3">
       <div class="playback-modes w-100" role="group" aria-label="Automatic playback mode">
-        <button type="button" class="btn btn-outline-secondary playback-mode" data-playback-mode="shuffle" aria-label="Shuffle remaining pieces" aria-pressed="false" title="Shuffle remaining pieces">@fa(['icon' => 'shuffle', 'mr' => 0])</button>
-        <button type="button" class="btn btn-outline-secondary playback-mode" data-playback-mode="repeat" aria-label="Repeat current piece" aria-pressed="false" title="Repeat current piece">@fa(['icon' => 'repeat', 'mr' => 0])</button>
-        <button type="button" class="btn btn-outline-secondary playback-mode" data-playback-mode="infinite" aria-label="Play playlist continuously" aria-pressed="false" title="Play playlist continuously">@fa(['icon' => 'infinity', 'mr' => 0])</button>
+        <button type="button" class="btn btn-outline-secondary playback-mode" data-playback-mode="shuffle" aria-label="Shuffle remaining pieces" aria-pressed="false" title="Shuffle remaining pieces">@icon('shuffle', ['mr' => 0])</button>
+        <button type="button" class="btn btn-outline-secondary playback-mode" data-playback-mode="repeat" aria-label="Repeat current piece" aria-pressed="false" title="Repeat current piece">@icon('repeat', ['mr' => 0])</button>
+        <button type="button" class="btn btn-outline-secondary playback-mode" data-playback-mode="infinite" aria-label="Play playlist continuously" aria-pressed="false" title="Play playlist continuously">@icon('infinity', ['mr' => 0])</button>
       </div>
       @endisset
     </div>

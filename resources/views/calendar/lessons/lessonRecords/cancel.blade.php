@@ -51,8 +51,8 @@
 					<div class="calendar-date-picker-header">
 						<h3 aria-live="polite" data-cancel-month></h3>
 						<div class="calendar-date-picker-nav">
-							<button type="button" data-month-offset="-1" aria-label="Previous month">@fa(['icon' => 'chevron-left', 'mr' => 0])</button>
-							<button type="button" data-month-offset="1" aria-label="Next month">@fa(['icon' => 'chevron-right', 'mr' => 0])</button>
+							<button type="button" data-month-offset="-1" aria-label="Previous month">@icon('chevron-left', ['mr' => 0])</button>
+							<button type="button" data-month-offset="1" aria-label="Next month">@icon('chevron-right', ['mr' => 0])</button>
 						</div>
 					</div>
 					<div class="calendar-date-picker-weekdays" aria-hidden="true">
@@ -85,6 +85,6 @@
 			</div>
 		</fieldset>
 
-		<button type="submit" class="btn btn-primary w-100"><span data-cancel-single-label>@fa(['icon' => 'calendar-xmark'])Cancel lesson</span><span data-cancel-multiple-label>@fa(['icon' => 'check'])Save changes</span></button>
+		<button type="submit" class="btn btn-primary w-100"><span data-cancel-single-label>@icon('calendar-x')Cancel lesson</span><span data-cancel-multiple-label>@icon('check')Save changes</span></button>
 	</form>
 </div>

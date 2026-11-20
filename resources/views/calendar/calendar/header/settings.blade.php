@@ -1,6 +1,6 @@
 <div class="calendar-calendar-settings">
 	<button type="button" class="btn-raw calendar-calendar-icon-button calendar-calendar-header-control" data-bs-toggle="modal" data-bs-target="#settings-modal" aria-label="Open settings">
-		@fa(['icon' => 'gear', 'mr' => 0, 'fa_color' => 'black'])
+		@icon('settings', ['mr' => 0, 'color' => 'black'])
 	</button>
 
 	@modal(['title' => 'Settings', 'id' => 'settings-modal'])
@@ -107,20 +107,20 @@
 				<h6 id="settings-calendar-initial-view-title">Calendar options</h6>
 
 				<div class="row"> 
-					@select(['grid' => 'col', 'label' => 'Initial view in desktop', 'icon' => 'desktop', 'name' => 'calendar_default_desktop_view', 'id' => 'calendar-default-desktop-view'])
+					@select(['grid' => 'col', 'label' => 'Initial view in desktop', 'icon' => 'monitor', 'name' => 'calendar_default_desktop_view', 'id' => 'calendar-default-desktop-view'])
 						@foreach($calendarViewOptions as $calendarView => $calendarViewLabel)
 							<option value="{{$calendarView}}" {{iftrue($selectedDesktopCalendarView === $calendarView, 'selected')}}>{{$calendarViewLabel}}</option>
 						@endforeach
 					@endselect
 
-					@select(['grid' => 'col', 'label' => 'Initial view in mobile', 'icon' => 'mobile', 'name' => 'calendar_default_mobile_view', 'id' => 'calendar-default-mobile-view'])
+					@select(['grid' => 'col', 'label' => 'Initial view in mobile', 'icon' => 'smartphone', 'name' => 'calendar_default_mobile_view', 'id' => 'calendar-default-mobile-view'])
 						@foreach($calendarViewOptions as $calendarView => $calendarViewLabel)
 							<option value="{{$calendarView}}" {{iftrue($selectedMobileCalendarView === $calendarView, 'selected')}}>{{$calendarViewLabel}}</option>
 						@endforeach
 					@endselect
 				</div>
 
-				@select(['label' => 'Week starts on', 'icon' => 'calendar-week', 'name' => 'calendar_week_starts_on', 'id' => 'calendar-week-starts-on'])
+				@select(['label' => 'Week starts on', 'icon' => 'calendar-range', 'name' => 'calendar_week_starts_on', 'id' => 'calendar-week-starts-on'])
 					@foreach($calendarWeekStartOptions as $weekStart => $weekStartLabel)
 						<option value="{{$weekStart}}" {{iftrue($selectedCalendarWeekStart === $weekStart, 'selected')}}>{{$weekStartLabel}}</option>
 					@endforeach
@@ -130,7 +130,7 @@
 			<section class="calendar-settings-section" aria-labelledby="settings-appearance-title">
 				<h6 id="settings-appearance-title">Appearance</h6>
 
-				@select(['label' => 'Theme', 'icon' => 'circle-half-stroke', 'name' => 'appearance_theme', 'id' => 'appearance-theme'])
+				@select(['label' => 'Theme', 'icon' => 'contrast', 'name' => 'appearance_theme', 'id' => 'appearance-theme'])
 					<option value="light" {{iftrue($selectedAppearanceTheme === 'light', 'selected')}}>Light</option>
 					<option value="dark" {{iftrue($selectedAppearanceTheme === 'dark', 'selected')}}>Dark</option>
 					<option value="device" {{iftrue($selectedAppearanceTheme === 'device', 'selected')}}>Device settings</option>
@@ -157,7 +157,7 @@
 							data-setting-target="{{$appearanceSetting['id']}}"
 							title="Restore the original color"
 							type="button"
-						>@fa(['icon' => 'redo'])</button>
+						>@icon('redo-2')</button>
 					</div>
 				@endforeach
 			</section>

@@ -7,7 +7,7 @@
 	<div class="form-group text-left">
 
 		@include('calendar.components.sectiontitle', [
-			'icon' => 'children', 
+			'icon' => 'users-round',
 			'label' => 'SIBLING OF',
 			'attr' => ['for' => 'student-sibling-search']
 			])
@@ -24,7 +24,7 @@
 
 				<input type="hidden" data-sibling-combobox-value>
 
-				@fa(['icon' => 'angle-down', 'mr' => 0, 'fa_color' => 'grey'])
+				@icon('chevron-down', ['mr' => 0, 'color' => 'grey'])
 			</div>
 
 			<div class="calendar-student-combobox-menu">

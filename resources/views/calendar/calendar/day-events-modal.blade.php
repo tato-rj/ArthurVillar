@@ -1,7 +1,7 @@
 @modal(['title' => '', 'id' => 'month-day-events-modal'])
 
 <div class="calendar-month-day-events-conflict" data-month-day-events-conflict hidden>
-    @fa(['icon' => 'circle-exclamation'])
+    @icon('circle-alert')
     <span>Conflicting events</span>
 </div>
 

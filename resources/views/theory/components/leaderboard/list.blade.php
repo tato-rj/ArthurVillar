@@ -1,6 +1,6 @@
 @if($leaderboard->isEmpty())
     <div class="leaderboard-empty">
-        <span class="leaderboard-empty__icon" aria-hidden="true">@fa(['icon' => 'ranking-star', 'mr' => 0])</span>
+        <span class="leaderboard-empty__icon" aria-hidden="true">@icon('list-ordered', ['mr' => 0])</span>
         <p>No scores yet. Be the first!</p>
     </div>
 @else
@@ -11,7 +11,7 @@
             <li class="leaderboard-podium__player leaderboard-podium__player--{{$rank}} {{$isNewPlayer ? 'is-you' : ''}}" aria-label="Rank {{$rank}}: {{$player->username}}, {{$player->finalScore}} points">
                 <div class="leaderboard-podium__portrait">
                     @if($rank === 1)
-                        <span class="leaderboard-podium__crown" aria-hidden="true">@fa(['icon' => 'crown', 'mr' => 0])</span>
+                        <span class="leaderboard-podium__crown" aria-hidden="true">@icon('crown', ['mr' => 0])</span>
                     @endif
                     <img src="{{$player->avatar_url}}" alt="" width="88" height="88">
                     <span class="leaderboard-podium__rank" aria-hidden="true">{{$rank}}</span>

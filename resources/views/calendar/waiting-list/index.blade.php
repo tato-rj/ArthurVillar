@@ -119,8 +119,8 @@ $(function() {
             lengthMenu: 'Show _MENU_ rows',
             info: 'Showing _START_ to _END_ of _TOTAL_',
             paginate: {
-                previous: '<i class="fas fa-angle-left mr-0"></i>',
-                next: '<i class="fas fa-angle-right mr-0"></i>',
+                previous: '@icon('chevron-left', ['mr' => 0])',
+                next: '@icon('chevron-right', ['mr' => 0])',
             },
         },
         ajax: @json(route('calendar.tables.waiting-list')),
@@ -167,12 +167,12 @@ $(function() {
 
                     return `
                         <div class="calendar-table-actions">
-                            <button type="button" class="btn btn-sm btn-green rounded js-create-student-from-waiting-list" data-waiting-list="${waitingListEntry}">@fa(['icon' => 'user-plus', 'mr' => 0])</button>
-                            <button type="button" class="btn btn-sm btn-warning rounded js-edit-waiting-list" data-url="${editUrl}">@fa(['icon' => 'pen-to-square', 'mr' => 0])</button>
+                            <button type="button" class="btn btn-sm btn-green rounded js-create-student-from-waiting-list" data-waiting-list="${waitingListEntry}">@icon('user-plus', ['mr' => 0])</button>
+                            <button type="button" class="btn btn-sm btn-warning rounded js-edit-waiting-list" data-url="${editUrl}">@icon('square-pen', ['mr' => 0])</button>
                             <form method="POST" action="${deleteUrl}" confirm>
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn btn-sm btn-red rounded">@fa(['icon' => 'trash-alt', 'mr' => 0])</button>
+                                <button type="submit" class="btn btn-sm btn-red rounded">@icon('trash-2', ['mr' => 0])</button>
                             </form>
                         </div>
                     `;

@@ -754,7 +754,7 @@ export class NotePython {
       if (!$bomb.length) return;
       $bomb
         .addClass("bomb")
-        .html('<div class="bomb"><i class="fa-solid fa-bomb"></i></div>');
+        .html('<div class="bomb"><i class="app-icon icon-bomb"></i></div>');
     });
   }
 

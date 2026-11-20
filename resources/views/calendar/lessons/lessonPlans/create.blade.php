@@ -38,7 +38,7 @@
 					required
 					data-student-combobox-value>
 
-				@fa(['icon' => 'angle-down', 'mr' => 0, 'fa_color' => 'grey'])
+				@icon('chevron-down', ['mr' => 0, 'color' => 'grey'])
 			</div>
 
 			<div class="calendar-student-combobox-menu" data-student-combobox-menu>
@@ -51,7 +51,7 @@
 					<div data-student-combobox-group data-student-location-name="{{$locationName}}" role="group" aria-labelledby="{{$groupLabelId}}">
 						<div id="{{$groupLabelId}}" class="calendar-student-combobox-group-label" data-student-combobox-group-label>
 							@if($groupLocationIcon)
-								@fa(['icon' => $groupLocationIcon, 'mr' => 1])
+								@icon($groupLocationIcon, ['mr' => 1])
 							@endif
 							{{$locationName}}
 						</div>
@@ -92,7 +92,7 @@
 		<label class="form-check-label" for="create-calendar-group-class">This lesson is for a group class</label>
 	</div>
 
-	@include('calendar.components.sectiontitle', ['icon' => 'calendar-day', 'label' => 'SCHEDULE'])
+	@include('calendar.components.sectiontitle', ['icon' => 'calendar-1', 'label' => 'SCHEDULE'])
 
 	@select(['placeholder' => 'Location', 'name' => 'location_id', 'grid' => 'col', 'required' => true])
 		@foreach($locations as $location)
@@ -148,7 +148,7 @@
 	</div>
 
 	<div data-lesson-payment-section {{iftrue(optional($selectedStudent)->payment_exempt, 'hidden')}}>
-		@include('calendar.components.sectiontitle', ['icon' => 'money-bill-wave', 'label' => 'PAYMENT'])
+		@include('calendar.components.sectiontitle', ['icon' => 'banknote', 'label' => 'PAYMENT'])
 		<div class="row">
 			@input(['placeholder' => 'Fee', 'name' => 'fee_amount', 'value' => old('fee_amount'), 'mask' => 'usd', 'grid' => 'col'])
 

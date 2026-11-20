@@ -8,10 +8,10 @@
 				<img class="mr-2 player-avatar rounded-circle" style="width: 42px" src="{{$player->avatar_url}}">
 				<div class="text-left">
 					<div class="d-flex my-1 flex-wrap" style="font-size: 60%;">
-						<div class=" mr-2 text-orange">@fa(['icon' => 'gamepad', 'mr' => 1]){{$player->rounds}}</div>
-						<div class=" mr-2 text-purple">@fa(['icon' => 'bolt', 'mr' => 1]){{$player->score}}</div>
-						<div class=" mr-2 text-green">@fa(['icon' => 'bullseye', 'mr' => 1]){{$player->accuracyForHumans}}</div>
-						<div class=" mr-2 text-blue">@fa(['icon' => 'clock', 'mr' => 1]){{$player->durationForHumans}}</div>
+						<div class=" mr-2 text-orange">@icon('gamepad', ['mr' => 1]){{$player->rounds}}</div>
+						<div class=" mr-2 text-purple">@icon('zap', ['mr' => 1]){{$player->score}}</div>
+						<div class=" mr-2 text-green">@icon('target', ['mr' => 1]){{$player->accuracyForHumans}}</div>
+						<div class=" mr-2 text-blue">@icon('clock', ['mr' => 1]){{$player->durationForHumans}}</div>
 					</div>
 					<h6 class="m-0 fw-bold text-truncate">{{$player->username}}</h6>
 					<p class="m-0 text-grey text-truncate">{{$player->finalScore}} pts</p>
@@ -24,7 +24,7 @@
 				<form method="POST" confirm action="{{route('admin.theory.leaderboard.destroy', $player)}}">
 					@csrf
 					@method('DELETE')
-					<button type="submit" class="btn btn-sm btn-red text-nowrap">@fa(['icon' => 'trash-alt', 'mr' => 0])</button>
+					<button type="submit" class="btn btn-sm btn-red text-nowrap">@icon('trash-2', ['mr' => 0])</button>
 				</form>
 			</div>
 		</div>

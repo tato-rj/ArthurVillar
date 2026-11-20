@@ -2,7 +2,7 @@
     <div class="mb-4 bg-white border border-dark p-3 rounded h-100 d-flex flex-column justify-content-between">
         <div>
             <div class="d-flex justify-content-between">
-                <div class="bg-{{$settings->gameTheme()}} rounded p-2 d-center mb-2" style="width: 40px; height: 40px;transform: rotate(15deg);">@fa(['icon' => $settings->gameIcon(), 'mr' => 0])
+                <div class="bg-{{$settings->gameTheme()}} rounded p-2 d-center mb-2" style="width: 40px; height: 40px;transform: rotate(15deg);">@icon($settings->gameIcon(), ['mr' => 0])
                 </div>
                 <div>
                     <div class="d-flex flex-wrap justify-content-end">
@@ -27,15 +27,15 @@
             <div class="d-flex">
                 <div class="btn-floating w-100 mr-2">
                     <button data-card-setup data-bs-toggle="modal" data-bs-target="#{{str_slug($settings->gameName())}}-settings-modal" class="btn btn-white text-dark w-100 text-nowrap">
-                        @fa(['icon' => 'gear'])Set up game
+                        @icon('settings')Set up game
                     </button>
-                    <a data-card-replay class="btn btn-white text-dark w-100 text-nowrap d-none">@fa(['icon' => 'play'])Play again</a>
+                    <a data-card-replay class="btn btn-white text-dark w-100 text-nowrap d-none">@icon('play')Play again</a>
                 </div>
               <div class="btn-floating mr-2 d-none" data-card-settings>
-                <button type="button" data-bs-toggle="modal" data-bs-target="#{{str_slug($settings->gameName())}}-settings-modal" class="btn btn-white" aria-label="{{$settings->gameName()}} settings">@fa(['icon' => 'gear', 'mr' => 0])</button>
+                <button type="button" data-bs-toggle="modal" data-bs-target="#{{str_slug($settings->gameName())}}-settings-modal" class="btn btn-white" aria-label="{{$settings->gameName()}} settings">@icon('settings', ['mr' => 0])</button>
               </div>
               <div class="btn-floating">
-                <button data-bs-toggle="modal" data-bs-target="#leaderboard-{{str_slug($settings->gameName())}}-modal" class="btn btn-white">@fa(['icon' => 'ranking-star', 'mr' => 0])</button>
+                <button data-bs-toggle="modal" data-bs-target="#leaderboard-{{str_slug($settings->gameName())}}-modal" class="btn btn-white">@icon('list-ordered', ['mr' => 0])</button>
               </div>
             </div>
             @include('theory.components.leaderboard.show')

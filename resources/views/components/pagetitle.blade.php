@@ -7,19 +7,19 @@
 
 	@isset($href)
         <div class="mt-2">
-            <a class="btn  btn-outline-secondary" href="{{$href['url']}}" target="_blank">@fa(['icon' => $href['icon']]){{$href['label']}}</a>
+            <a class="btn  btn-outline-secondary" href="{{$href['url']}}" target="_blank">@icon($href['icon']){{$href['label']}}</a>
         </div>
 	@endisset
 
 	@isset($modal)
         <div class="mt-2">
-            <button class="btn  btn-outline-secondary" data-bs-toggle="modal" data-bs-target="{{$modal['target']}}">@fa(['icon' => $modal['icon']]){{$modal['label']}}</button>
+            <button class="btn  btn-outline-secondary" data-bs-toggle="modal" data-bs-target="{{$modal['target']}}">@icon($modal['icon']){{$modal['label']}}</button>
         </div>
 	@endisset
 
 	@isset($link)
         <div class="mt-2">
-            <a class="btn btn-outline-secondary" href="{{$link['url']}}">@fa(['icon' => $link['icon']]){{$link['label']}}</a>
+            <a class="btn btn-outline-secondary" href="{{$link['url']}}">@icon($link['icon']){{$link['label']}}</a>
         </div>
 	@endisset
 </div>

@@ -18,6 +18,6 @@
 
   @case('actions')
       @include('listening.recordings.edit.playlists')
-      <button class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#addto-playlist-{{$recording->id}}-modal">@fa(['icon' => 'list', 'mr' => 0])</button>
+      <button class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#addto-playlist-{{$recording->id}}-modal">@icon('list', ['mr' => 0])</button>
       @break
 @endswitch

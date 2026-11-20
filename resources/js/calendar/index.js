@@ -1322,7 +1322,7 @@ const patchScheduleTimeLabels = function(calendar) {
             const icon = document.createElement('i');
 
             label.dataset.calendarScheduleBed = isStartBoundary ? 'start' : 'end';
-            icon.className = 'fa-solid fa-bed';
+            icon.className = 'app-icon icon-bed';
             icon.setAttribute('aria-hidden', 'true');
             label.replaceChildren(icon);
             label.setAttribute('aria-label', isStartBoundary ? 'Wake up' : 'End of day');
@@ -1349,7 +1349,7 @@ const patchScheduleTimeLabels = function(calendar) {
         marker.className = 'calendar-schedule-end-boundary-time';
         marker.dataset.calendarScheduleBed = 'end';
         marker.setAttribute('aria-label', 'End of day');
-        icon.className = 'fa-solid fa-bed';
+        icon.className = 'app-icon icon-bed';
         icon.setAttribute('aria-hidden', 'true');
         marker.appendChild(icon);
         gutter.appendChild(marker);
@@ -1967,12 +1967,10 @@ const getCalendarEventIcon = function(event) {
         ? {
             name: event.eventTypeIcon || '',
             title: event.eventType || '',
-            style: event.externalProvider === 'google' ? 'fa-brands' : 'fa-solid',
         }
         : {
             name: event.location && event.location.icon ? event.location.icon : '',
             title: event.locationName || '',
-            style: 'fa-solid',
         };
 };
 
@@ -1987,7 +1985,7 @@ const createCalendarEventIcon = function(event) {
 
     element.className = 'event-icon';
     element.title = icon.title;
-    element.innerHTML = `<i class="${icon.style} fa-${icon.name}" aria-hidden="true"></i>`;
+    element.innerHTML = `<i class="app-icon icon-${icon.name}" aria-hidden="true"></i>`;
 
     return element;
 };
@@ -2008,7 +2006,7 @@ const renderLessonRecitalDate = function(item, event) {
     if (!date) {
         date = document.createElement('time');
         date.className = 'calendar-lesson-recital-date';
-        date.innerHTML = '<span class="calendar-piano-icon" aria-hidden="true"></span><span class="visually-hidden">Recital </span><span></span>';
+        date.innerHTML = '<i class="app-icon icon-piano" aria-hidden="true"></i><span class="visually-hidden">Recital </span><span></span>';
         item.appendChild(date);
     }
 
@@ -2048,12 +2046,14 @@ const patchScheduleItems = function(calendar) {
         } else if (!eventIcon) {
             eventIcon = document.createElement('span');
             eventIcon.className = 'event-icon';
-            eventIcon.innerHTML = '<i class="fa-solid" aria-hidden="true"></i>';
+            eventIcon.innerHTML = '<i class="app-icon" aria-hidden="true"></i>';
             item.appendChild(eventIcon);
         }
 
         if (eventIcon) {
-            eventIcon.querySelector('i').className = `${icon.style} fa-${icon.name}`;
+            const symbol = eventIcon.querySelector('i');
+            const classes = `app-icon icon-${icon.name}`;
+            if (symbol.className !== classes) symbol.className = classes;
             eventIcon.title = icon.title;
         }
 
@@ -3597,8 +3597,8 @@ const setLocationIcon = function(icon, useVideoIcon) {
         return;
     }
 
-    icon.classList.remove('fa-location-dot', 'fa-video');
-    icon.classList.add(useVideoIcon ? 'fa-video' : 'fa-location-dot');
+    icon.classList.remove('icon-map-pin', 'icon-video');
+    icon.classList.add(useVideoIcon ? 'icon-video' : 'icon-map-pin');
 };
 
 const renderEventLocation = function(element, icon, location) {
@@ -4254,8 +4254,8 @@ const renderScheduleItemTravel = function(item, event, route, cacheKey, options)
         (options && options.travelMode) || route.mode || ''
     ).toUpperCase();
     const travelIcon = travelMode === 'TRANSIT'
-        ? 'fa-train-subway'
-        : (travelMode === 'DRIVE' ? 'fa-car' : 'fa-person-walking');
+        ? 'icon-train-front-tunnel'
+        : (travelMode === 'DRIVE' ? 'icon-car' : 'icon-footprints');
 
     clearScheduleItemTravel(item, event, {
         preserveItemState: Boolean(options && options.preserveItemState),
@@ -4299,7 +4299,7 @@ const renderScheduleItemTravel = function(item, event, route, cacheKey, options)
     extension.travelRoute = route;
     extension.title = `${route.origin} to ${route.destination}: ${durationMinutes} min travel time`;
     extension.setAttribute('aria-hidden', 'true');
-    icon.className = `fas ${travelIcon}`;
+    icon.className = `app-icon ${travelIcon}`;
     label.textContent = `${durationMinutes} min travel time`;
     extension.appendChild(icon);
     extension.appendChild(label);
@@ -4443,18 +4443,18 @@ const resetTravelRoute = function(modal) {
 const travelVehicleIcon = function(vehicleType) {
     const type = String(vehicleType || '').toUpperCase();
 
-    if (type.includes('BUS')) return 'fa-bus-simple';
-    if (type.includes('FERRY')) return 'fa-ferry';
-    if (type.includes('SUBWAY') || type.includes('METRO')) return 'fa-train-subway';
-    if (type.includes('RAIL') || type.includes('TRAIN') || type.includes('TRAM')) return 'fa-train';
+    if (type.includes('BUS')) return 'icon-bus-front';
+    if (type.includes('FERRY')) return 'icon-ship';
+    if (type.includes('SUBWAY') || type.includes('METRO')) return 'icon-train-front-tunnel';
+    if (type.includes('RAIL') || type.includes('TRAIN') || type.includes('TRAM')) return 'icon-train-front';
 
-    return 'fa-diamond-turn-right';
+    return 'icon-signpost';
 };
 
 const appendTravelStep = function(container, step, index) {
     if (index > 0) {
         const chevron = document.createElement('i');
-        chevron.className = 'fas fa-chevron-right calendar-travel-route-chevron';
+        chevron.className = 'app-icon icon-chevron-right calendar-travel-route-chevron';
         chevron.setAttribute('aria-hidden', 'true');
         container.appendChild(chevron);
     }
@@ -4465,13 +4465,13 @@ const appendTravelStep = function(container, step, index) {
     item.className = 'calendar-travel-route-step';
 
     if (step.mode === 'WALK' || step.mode === 'DRIVE') {
-        icon.className = step.mode === 'DRIVE' ? 'fas fa-car' : 'fas fa-person-walking';
+        icon.className = step.mode === 'DRIVE' ? 'app-icon icon-car' : 'app-icon icon-footprints';
         item.appendChild(icon);
 
         const minutes = Math.max(1, Math.round(Number(step.duration_seconds || 0) / 60));
         item.appendChild(document.createTextNode(`${minutes} min`));
     } else {
-        icon.className = `fas ${travelVehicleIcon(step.vehicle_type)}`;
+        icon.className = `app-icon ${travelVehicleIcon(step.vehicle_type)}`;
         item.appendChild(icon);
 
         const line = document.createElement('span');
@@ -4526,7 +4526,7 @@ const renderTravelRoute = function(section, route) {
         if (index > 0) {
             const arrow = document.createElement('i');
 
-            arrow.className = 'fa-solid fa-arrow-right-long mx-2';
+            arrow.className = 'app-icon icon-arrow-right mx-2';
             arrow.style.opacity = '.5';
             arrow.setAttribute('aria-hidden', 'true');
             origin.appendChild(arrow);
@@ -4892,8 +4892,7 @@ const openGeneralEventModal = function(event, options) {
             : formatModalEventTime(event.start));
     if (eventType) eventType.textContent = event.eventType || '';
     if (eventTypeIcon) {
-        const eventTypeIconStyle = event.externalProvider === 'google' ? 'fa-brands' : 'fas';
-        eventTypeIcon.className = `${eventTypeIconStyle} calendar-modal-detail-icon${event.eventTypeIcon ? ` fa-${event.eventTypeIcon}` : ''}`;
+        eventTypeIcon.className = `app-icon calendar-modal-detail-icon${event.eventTypeIcon ? ` icon-${event.eventTypeIcon}` : ''}`;
         eventTypeIcon.hidden = !event.eventTypeIcon;
     }
     if (eventTypeSection) eventTypeSection.hidden = !event.eventType;
@@ -6692,7 +6691,7 @@ const updateMonthConflictAlert = function(cell, hasConflicts) {
 
     if (hasConflicts && !existingAlert) {
         const alert = document.createElement('i');
-        alert.className = 'fa-solid fa-circle-exclamation calendar-month-overlap-alert';
+        alert.className = 'app-icon icon-circle-alert calendar-month-overlap-alert';
         alert.setAttribute('aria-hidden', 'true');
         cell.appendChild(alert);
     } else if (!hasConflicts && existingAlert) {
@@ -9411,7 +9410,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     responseButton.disabled = true;
                 });
                 preserveButtonLabel(button);
-                button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2" aria-hidden="true"></i>Saving';
+                button.innerHTML = '<i class="app-icon icon-loader-circle icon-spin mr-2" aria-hidden="true"></i>Saving';
                 clearGeneralEventActionError(generalEventModal);
 
                 requestJson(event.responseUrl, {
@@ -10042,7 +10041,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             indicator.className = 'calendar-schedule-copy-indicator';
             indicator.setAttribute('aria-hidden', 'true');
-            indicator.innerHTML = '<i class="fas fa-copy"></i>';
+            indicator.innerHTML = '<i class="app-icon icon-copy"></i>';
             hold.clone.appendChild(indicator);
         }
 

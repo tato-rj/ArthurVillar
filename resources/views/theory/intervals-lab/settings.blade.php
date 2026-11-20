@@ -1,4 +1,4 @@
-@modal(['title' => fa('gear').'Game settings', 'id' => str_slug($settings->gameName()).'-settings-modal'])
+@modal(['title' => \App\Support\Icon::render('settings').'Game settings', 'id' => str_slug($settings->gameName()).'-settings-modal'])
 <form id="intervals-settings" method="GET" action="{{ $settings->gameUrl() }}">
   @component('theory.components.settings.section', ['title' => 'SETUP'])
     @include('theory.components.settings.value-range', ['label' => 'Number of rounds', 'name' => 'numOfChallenges', 'min' => 2, 'max' => 12, 'id' => str_slug($settings->gameName()).'-numOfChallenges', 'value' => request('numOfChallenges') ?? $settings->options('numOfChallenges')])
@@ -17,9 +17,9 @@
   @endcomponent
 
   @component('theory.components.settings.bonus')
-    @include('theory.components.settings.toggle', ['label' => 'Time limit', 'name' => 'timer', 'icon' => 'stopwatch'])
-    @include('theory.components.settings.toggle', ['label' => 'Allow accidentals', 'name' => 'allowAccidentals', 'icon' => 'hashtag'])
-    @include('theory.components.settings.toggle', ['label' => 'Specify a direction', 'name' => 'strictDirection', 'icon' => 'up-down'])
+    @include('theory.components.settings.toggle', ['label' => 'Time limit', 'name' => 'timer', 'icon' => 'timer'])
+    @include('theory.components.settings.toggle', ['label' => 'Allow accidentals', 'name' => 'allowAccidentals', 'icon' => 'hash'])
+    @include('theory.components.settings.toggle', ['label' => 'Specify a direction', 'name' => 'strictDirection', 'icon' => 'arrow-up-down'])
   @endcomponent
 
   <button type="submit" class="btn btn-primary w-100">Start new game</button>

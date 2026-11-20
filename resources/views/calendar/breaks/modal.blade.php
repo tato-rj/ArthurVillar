@@ -1,17 +1,17 @@
 @modal(['title' => '', 'id' => 'teaching-break-modal', 'data' => ['teaching-break' => 'true']])
 <div>
     <div class="mb-1">
-        @fa(['icon' => 'calendar-day', 'classes' => 'opacity-4'])
+        @icon('calendar-1', ['classes' => 'opacity-4'])
         <span id="teaching-break-dates"></span>
     </div>
 
     <div class="mb-3">
-        @fa(['icon' => 'circle-info', 'classes' => 'opacity-4'])
+        @icon('info', ['classes' => 'opacity-4'])
         <span id="teaching-break-reason"></span>
     </div>
 
     <div class="mb-3">
-        @fa(['icon' => 'location-dot', 'classes' => 'opacity-4'])
+        @icon('map-pin', ['classes' => 'opacity-4'])
         <span id="teaching-break-locations"></span>
     </div>
 

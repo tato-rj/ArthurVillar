@@ -1,6 +1,6 @@
 <div data-timepicker="{{$value ?? null}}" class="timepicker-select col d-flex flex-column">
 
-	<button class="btn-raw" data-target="next" type="button">@fa(['icon' => 'angle-up', 'mr' => 0])</button>
+	<button class="btn-raw" data-target="next" type="button">@icon('chevron-up', ['mr' => 0])</button>
 	
 	<div class="timepicker-times text-noselect text-center">
 		@foreach($options as $time => $date)
@@ -14,6 +14,6 @@
 		@endforeach
 	</div>
 
-	<button class="btn-raw" data-target="prev" type="button">@fa(['icon' => 'angle-down', 'mr' => 0])</button>
+	<button class="btn-raw" data-target="prev" type="button">@icon('chevron-down', ['mr' => 0])</button>
 
 </div>

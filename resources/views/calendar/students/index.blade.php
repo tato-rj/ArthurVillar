@@ -211,8 +211,8 @@ $(function() {
             lengthMenu: 'Show _MENU_ rows',
             info: 'Showing _START_ to _END_ of _TOTAL_',
             paginate: {
-                previous: '<i class="fas fa-angle-left mr-0"></i>',
-                next: '<i class="fas fa-angle-right mr-0"></i>',
+                previous: '@icon('chevron-left', ['mr' => 0])',
+                next: '@icon('chevron-right', ['mr' => 0])',
             },
         },
         ajax: {
@@ -267,7 +267,7 @@ $(function() {
 
                     const location = textRenderer.display(data);
                     const icon = /^[a-z0-9-]+$/.test(row.location_icon || '')
-                        ? `<i class="fas fa-${row.location_icon} mr-2 opacity-6 text-blue" aria-hidden="true"></i>`
+                        ? `<i class="app-icon icon-${row.location_icon} mr-2 opacity-6 text-blue" aria-hidden="true"></i>`
                         : '';
 
                     return `${icon}${location}`;
@@ -331,8 +331,8 @@ $(function() {
 
                     return `
                         <div class="calendar-table-actions">
-                            <a href="${infoUrl}" class="btn btn-sm btn-secondary rounded" aria-label="Student info" title="Student info">@fa(['icon' => 'circle-info', 'mr' => 0])</a>
-                            <button type="button" class="btn btn-sm btn-warning rounded js-edit-student" data-url="${editUrl}" aria-label="Edit student" title="Edit student">@fa(['icon' => 'pen-to-square', 'mr' => 0])</button>
+                            <a href="${infoUrl}" class="btn btn-sm btn-secondary rounded" aria-label="Student info" title="Student info">@icon('info', ['mr' => 0])</a>
+                            <button type="button" class="btn btn-sm btn-warning rounded js-edit-student" data-url="${editUrl}" aria-label="Edit student" title="Edit student">@icon('square-pen', ['mr' => 0])</button>
                         </div>
                     `;
                 },

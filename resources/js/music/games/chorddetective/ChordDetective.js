@@ -317,7 +317,7 @@ export class ChordDetective extends BaseStaffGame {
       if (!$note.length) return;
 
       if (!$note.find(".note-playback-icon").length) {
-        $note.append('<i class="fa-solid fa-volume-high note-playback-icon" aria-hidden="true"></i>');
+        $note.append('<i class="app-icon icon-volume-2 note-playback-icon" aria-hidden="true"></i>');
       }
       $note.addClass("flickering");
 

@@ -14,10 +14,10 @@ class SettingsTest extends BaseTest
 
         $this->get(route('calendar.home'))
             ->assertOk()
-            ->assertSeeInOrder(['View options', 'Show calendar insights', 'Show holidays', 'Show travel times', 'Animate events', 'Show canceled events and lessons', 'Calendar options', 'fa-desktop', 'fa-mobile', 'Week starts on', 'Appearance', 'Theme', 'Device settings', 'Unconfirmed lessons'])
+            ->assertSeeInOrder(['View options', 'Show calendar insights', 'Show holidays', 'Show travel times', 'Animate events', 'Show canceled events and lessons', 'Calendar options', 'icon-monitor', 'icon-smartphone', 'Week starts on', 'Appearance', 'Theme', 'Device settings', 'Unconfirmed lessons'])
             ->assertDontSee('Display options')
-            ->assertSee('fa-desktop', false)
-            ->assertSee('fa-mobile', false)
+            ->assertSee('icon-monitor', false)
+            ->assertSee('icon-smartphone', false)
             ->assertSee('form-select-icon', false)
             ->assertSee('<option value="week" selected>Week</option>', false)
             ->assertSee('<option value="2-days" selected>2 Days</option>', false)

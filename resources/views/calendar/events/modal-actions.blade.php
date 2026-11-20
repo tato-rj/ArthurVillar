@@ -17,10 +17,10 @@
                 <h3 data-general-event-reschedule-datepicker-label></h3>
                 <div class="calendar-date-picker-nav">
                     <button type="button" data-general-event-reschedule-datepicker-prev aria-label="Previous month">
-                        @fa(['icon' => 'chevron-left', 'mr' => 0])
+                        @icon('chevron-left', ['mr' => 0])
                     </button>
                     <button type="button" data-general-event-reschedule-datepicker-next aria-label="Next month">
-                        @fa(['icon' => 'chevron-right', 'mr' => 0])
+                        @icon('chevron-right', ['mr' => 0])
                     </button>
                 </div>
             </div>
@@ -48,6 +48,6 @@
             @endselect
         </div>
 
-        <button type="submit" class="btn btn-primary w-100">@fa(['icon' => 'clock-rotate-left'])Reschedule event</button>
+        <button type="submit" class="btn btn-primary w-100">@icon('history')Reschedule event</button>
     </form>
 </div>

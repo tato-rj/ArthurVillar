@@ -11,6 +11,6 @@
   @endif
 "> 
   {{$column['label']}}
-  @fa(['icon' => $selected && request()->order_by == 'asc' ? 'chevron-up' : 'chevron-down', 'mr' => 0])
+  @icon($selected && request()->order_by == 'asc' ? 'chevron-up' : 'chevron-down', ['mr' => 0])
 </button>
 @endform

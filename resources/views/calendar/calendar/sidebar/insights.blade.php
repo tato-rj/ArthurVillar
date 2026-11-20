@@ -3,7 +3,7 @@
 	<div id="calendar-calendar-insights" class="">
 		<h6 class="mb-3">Calendar insights</h6>
 		<div id="calendar-calendar-insights-birthdays" style="display: none;" class="mb-3 text-blue">
-			@fa(['icon' => 'cake-candles'])<span>Jhon, Mark and Jane</span>
+			@icon('cake')<span>Jhon, Mark and Jane</span>
 		</div>
 
 		<div class="mb-3">

@@ -69,8 +69,8 @@ $(function() {
             search: '', searchPlaceholder: 'Search', lengthMenu: 'Show _MENU_ rows',
             info: 'Showing _START_ to _END_ of _TOTAL_',
             paginate: {
-                previous: '<i class="fas fa-angle-left mr-0"></i>',
-                next: '<i class="fas fa-angle-right mr-0"></i>',
+                previous: '@icon('chevron-left', ['mr' => 0])',
+                next: '@icon('chevron-right', ['mr' => 0])',
             },
         },
         ajax: @json(route('calendar.tables.google-events')),

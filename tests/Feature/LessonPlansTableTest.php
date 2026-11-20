@@ -37,8 +37,8 @@ class LessonPlansTableTest extends BaseTest
         $this->assertSame(1, $xpath->query($modal.'//*[@data-student-location-name="Home"]//*[@data-student-id="'.$homeStudent->id.'"]')->length);
         $this->assertSame(1, $xpath->query($modal.'//*[@data-student-location-name="Online"]//*[@data-student-id="'.$onlineStudent->id.'"]')->length);
         $this->assertSame(0, $xpath->query($modal.'//*[@data-student-location-name="Home"]//*[@data-student-id="'.$onlineStudent->id.'"]')->length);
-        $this->assertSame(1, $xpath->query($modal.'//*[@data-student-location-name="Home"]//*[contains(concat(" ", normalize-space(@class), " "), " fa-house ")]')->length);
-        $this->assertSame(1, $xpath->query($modal.'//*[@data-student-location-name="Online"]//*[contains(concat(" ", normalize-space(@class), " "), " fa-globe ")]')->length);
+        $this->assertSame(1, $xpath->query($modal.'//*[@data-student-location-name="Home"]//*[contains(concat(" ", normalize-space(@class), " "), " icon-house ")]')->length);
+        $this->assertSame(1, $xpath->query($modal.'//*[@data-student-location-name="Online"]//*[contains(concat(" ", normalize-space(@class), " "), " icon-globe ")]')->length);
     }
 
     /** @test */

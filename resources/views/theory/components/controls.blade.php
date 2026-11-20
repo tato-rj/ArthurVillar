@@ -19,7 +19,7 @@
           <button state="waiting" class="btn w-100"></button>
         </div>
         <div id="help" class="btn-floating w-100 mb-3" style="display: none">
-          <button class="btn btn-blue w-100">@fa(['icon' => 'wand-magic-sparkles'])See answer</button>
+          <button class="btn btn-blue w-100">@icon('wand-sparkles')See answer</button>
         </div>
         <div id="skip" class="btn-floating w-100 mb-3" style="display: none;">
           <button class="btn btn-red w-100">Next round</button>
@@ -28,7 +28,7 @@
           <div id="play-note-status" class="rounded border w-100 mb-3 text-center" role="status" aria-live="polite" style="display: none; padding: .375rem .75rem">
           </div>
           <div id="play-note-start" class="btn-floating w-100">
-            <button type="button" class="btn btn-blue w-100">@fa(['icon' => 'microphone'])Tap here and play the note</button>
+            <button type="button" class="btn btn-blue w-100">@icon('mic')Tap here and play the note</button>
           </div>
         </div>
       </div>
@@ -42,12 +42,12 @@
     <div class="d-flex">
       @unless($settings->gameName() == 'Open Staff')
       <div class="btn-floating mr-1 w-100">
-        <button data-bs-toggle="modal" data-bs-target="#leaderboard-{{str_slug($settings->gameName())}}-modal" class="btn btn-white w-100">@fa(['icon' => 'ranking-star'])Leaderboard</button>
+        <button data-bs-toggle="modal" data-bs-target="#leaderboard-{{str_slug($settings->gameName())}}-modal" class="btn btn-white w-100">@icon('list-ordered')Leaderboard</button>
       </div>
       @endunless
 
       <div class="btn-floating ml-1 w-100" data-duel-settings>
-          <button data-bs-toggle="modal" data-bs-target="#{{str_slug($settings->gameName())}}-settings-modal" class="btn btn-white w-100" @disabled(isset($duelState))>@fa(['icon' => 'gear'])Settings</button>
+          <button data-bs-toggle="modal" data-bs-target="#{{str_slug($settings->gameName())}}-settings-modal" class="btn btn-white w-100" @disabled(isset($duelState))>@icon('settings')Settings</button>
         </div>
       </div>
 {{--       @unless($settings->gameName() == 'Open Staff')
@@ -58,6 +58,6 @@
 </div>
 @isset($duelState)
 
-  <button type="button" data-duel-leave class="btn-raw text-danger w-100">@fa(['icon' => 'arrow-right-from-bracket'])Leave Duel</button>
+  <button type="button" data-duel-leave class="btn-raw text-danger w-100">@icon('log-out')Leave Duel</button>
 
 @endisset

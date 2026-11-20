@@ -17,9 +17,9 @@
         'edit' => ['href' => route('listening.recordings.edit', $recording)],
       ])
 
-      <button class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#play-{{$recording->id}}-modal">@fa(['icon' => 'play', 'mr' => 0])</button>
+      <button class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#play-{{$recording->id}}-modal">@icon('play', ['mr' => 0])</button>
       
-      <button class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#addto-playlist-{{$recording->id}}-modal">@fa(['icon' => 'list', 'mr' => 0])</button>
+      <button class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#addto-playlist-{{$recording->id}}-modal">@icon('list', ['mr' => 0])</button>
       
       @endcomponent
 

@@ -25,17 +25,17 @@
                 <div id="invitation-instructions" class="d-center mt-4">
                     <div>
                         <div class="d-flex align-items-center mb-2">
-                            <div class="invitation-instructions-option rounded d-center mr-2" data-state="yes">@fa(['icon' => 'check', 'mr' => 0])</div>
+                            <div class="invitation-instructions-option rounded d-center mr-2" data-state="yes">@icon('check', ['mr' => 0])</div>
                             <div>One click for <strong>YES</strong></div>
                         </div>
 
                         <div class="d-flex align-items-center mb-2">
-                            <div class="invitation-instructions-option rounded d-center mr-2" data-state="maybe">@fa(['icon' => 'minus', 'mr' => 0])</div>
+                            <div class="invitation-instructions-option rounded d-center mr-2" data-state="maybe">@icon('minus', ['mr' => 0])</div>
                             <div>Two clicks for <strong>MAYBE</strong></div>
                         </div>
 
                         <div class="d-flex align-items-center">
-                            <div class="invitation-instructions-option rounded d-center mr-2" data-state="blank">@fa(['icon' => 'xmark', 'mr' => 0])</div>
+                            <div class="invitation-instructions-option rounded d-center mr-2" data-state="blank">@icon('x', ['mr' => 0])</div>
                             <div>Leave blank for <strong>NO</strong></div>
                         </div>
                     </div>
@@ -76,7 +76,7 @@
                                             role="checkbox"
                                             aria-checked="{{ $state === 'maybe' ? 'mixed' : ($state === 'yes' ? 'true' : 'false') }}"
                                             aria-label="{{ $option->starts_at->format('g:i A') }} availability: {{ $state }}">
-                                            <i class="{{ $state === 'no' ? 'fas fa-xmark' : ($state === 'yes' ? 'fas fa-check' : 'fas fa-minus') }}"></i>
+                                            @icon($state === 'no' ? 'x' : ($state === 'yes' ? 'check' : 'minus'), ['mr' => 0])
                                         </button>
 
                                         <input type="hidden" name="responses[{{ $option->id }}]" value="{{ $state }}">
@@ -90,7 +90,7 @@
                                             data-response-summary
                                             data-responses-template="invitation-responses-{{ $option->id }}"
                                             aria-label="Show responses for {{ $option->starts_at->format('g:i A') }}">
-                                            @fa(['icon' => 'users'])
+                                            @icon('users')
                                             {{ $option->yes_responses_count }} yes
                                             @if($option->maybe_responses_count)
                                                 · {{ $option->maybe_responses_count }} maybe
@@ -158,9 +158,9 @@
 <script>
 $(function() {
     const stateIcons = {
-        no: 'fas fa-xmark',
-        yes: 'fas fa-check',
-        maybe: 'fas fa-minus',
+        no: 'app-icon icon-x',
+        yes: 'app-icon icon-check',
+        maybe: 'app-icon icon-minus',
     };
     const nextState = {
         no: 'yes',

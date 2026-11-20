@@ -34,7 +34,7 @@
 					</div>
 				</div>
 				<div class="m-1 btn-floating">
-					<button class="rounded btn btn-white text-dark" data-delete type="button">@fa(['icon' => 'delete-left', 'mr' => 0])</button>
+					<button class="rounded btn btn-white text-dark" data-delete type="button">@icon('delete', ['mr' => 0])</button>
 				</div>
 			</div>
 		</div>

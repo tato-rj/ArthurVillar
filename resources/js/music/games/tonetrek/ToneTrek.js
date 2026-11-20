@@ -254,7 +254,7 @@ export class ToneTrek {
             c: cell.c,
             i,
             cls: "initial-block",
-            html: `<div><span>START HERE</span><input type="text" name="note" value="${this._noteDisplay(initialNote)}" disabled=""><i class="fa-solid ${arrowClass}"></i></div>`,
+            html: `<div><span>START HERE</span><input type="text" name="note" value="${this._noteDisplay(initialNote)}" disabled=""><i class="app-icon ${arrowClass}"></i></div>`,
           });
           continue;
         }
@@ -288,7 +288,7 @@ export class ToneTrek {
             c: cell.c,
             i,
             cls: "interval-block",
-            html: `<div><button type="button" data-interval="${pickedInterval}"><i class="fa-solid fa-volume-up"></i></button><span interval>${pickedInterval}</span><span direction>${pickedDir === -1 ? "DOWN" : "UP"}</span></div>`,
+            html: `<div><button type="button" data-interval="${pickedInterval}"><i class="app-icon icon-volume-2"></i></button><span interval>${pickedInterval}</span><span direction>${pickedDir === -1 ? "DOWN" : "UP"}</span></div>`,
           });
           continue;
         }
@@ -456,14 +456,14 @@ export class ToneTrek {
   }
 
   _arrowClassForNextStep(cur, next) {
-    if (!cur || !next) return "fa-arrow-right";
+    if (!cur || !next) return "icon-arrow-right";
     const dr = next.r - cur.r;
     const dc = next.c - cur.c;
-    if (dr === 1 && dc === 0) return "fa-arrow-down";
-    if (dr === -1 && dc === 0) return "fa-arrow-up";
-    if (dr === 0 && dc === 1) return "fa-arrow-right";
-    if (dr === 0 && dc === -1) return "fa-arrow-left";
-    return "fa-arrow-right";
+    if (dr === 1 && dc === 0) return "icon-arrow-down";
+    if (dr === -1 && dc === 0) return "icon-arrow-up";
+    if (dr === 0 && dc === 1) return "icon-arrow-right";
+    if (dr === 0 && dc === -1) return "icon-arrow-left";
+    return "icon-arrow-right";
   }
 
   _pickInitialNote() {
@@ -782,8 +782,8 @@ export class ToneTrek {
       if (ok) $cell.addClass("animate__animated animate__rubberBand");
 
       const html = ok
-        ? '<span class="block-correct"><i class="fa-solid fa-circle-check"></i></span>'
-        : '<span class="block-wrong"><i class="fa-solid fa-circle-xmark"></i></span>';
+        ? '<span class="block-correct"><i class="app-icon icon-circle-check"></i></span>'
+        : '<span class="block-wrong"><i class="app-icon icon-circle-x"></i></span>';
       $wrap.append(html);
     });
   }

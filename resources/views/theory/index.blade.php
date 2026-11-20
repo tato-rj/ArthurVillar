@@ -47,7 +47,7 @@
                 <h1>Music Theory Challenges</h1>
                 <p>Interactive games for practicing core music theory skills</p>
 {{--                 <div>
-                    <a href="{{route('theory.open-staff.play')}}" class="btn btn-outline-secondary">@fa(['icon' => 'chalkboard'])Open Staff</a>
+                    <a href="{{route('theory.open-staff.play')}}" class="btn btn-outline-secondary">@icon('presentation')Open Staff</a>
                 </div> --}}
 
                 @include('theory.profile.avatar')
@@ -60,7 +60,7 @@
                 <div class="d-inline-block">
                     <a href="{{route('theory.home')}}" class="btn btn-raw">
                     <div class="border rounded border-3 px-2 py-1 small d-center fw-bold text-muted">
-                        @fa(['icon' => 'times']){{$category}}
+                        @icon('x'){{$category}}
                     </div>
                     </a>
                 </div>

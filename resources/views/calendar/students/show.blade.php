@@ -39,13 +39,13 @@
         <div class="row mb-4">
             @if($student->parent_name)
                 <div class="col-md-4 mb-3">
-                    <div class="small opacity-4">@fa(['icon' => 'user-group', 'fa_color' => 'grey'])Parent</div>
+                    <div class="small opacity-4">@icon('users', ['color' => 'grey'])Parent</div>
                     <div class="font-weight-bold">{{$student->parent_name}}</div>
                 </div>
             @endif
             @if($student->notes)
                 <div class="col mb-3">
-                    <div class="small opacity-4">@fa(['icon' => 'note-sticky', 'fa_color' => 'grey'])Notes</div>
+                    <div class="small opacity-4">@icon('sticky-note', ['color' => 'grey'])Notes</div>
                     <div style="white-space: pre-line">{{$student->notes}}</div>
                 </div>
             @endif

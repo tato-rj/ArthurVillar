@@ -11,7 +11,7 @@
             <p data-duel-result-message></p>
         </div>
 
-        @include('theory.components.results.box', ['name' => 'score', 'title' => 'Your final score', 'icon' => 'bolt'])
+        @include('theory.components.results.box', ['name' => 'score', 'title' => 'Your final score', 'icon' => 'zap'])
 
         <div class="result-metric duel-comparison">
             <table aria-label="Duel results comparison">
@@ -26,13 +26,13 @@
         <p class="duel-result-rule text-muted" data-duel-result-rule></p>
         <div class="results-actions duel-result-actions">
             <div class="btn-floating" data-duel-result-rematch hidden>
-                <button type="button" class="btn btn-primary w-100" data-duel-rematch>@fa(['icon' => 'rotate-right'])<span data-duel-rematch-label>Play again</span></button>
+                <button type="button" class="btn btn-primary w-100" data-duel-rematch>@icon('rotate-cw')<span data-duel-rematch-label>Play again</span></button>
             </div>
             <div class="btn-floating" data-duel-result-home hidden>
-                <a href="{{route('theory.home')}}" class="btn btn-white w-100">@fa(['icon' => 'gamepad'])Back to all games</a>
+                <a href="{{route('theory.home')}}" class="btn btn-white w-100">@icon('gamepad')Back to all games</a>
             </div>
             <div class="btn-floating" data-duel-result-leave>
-                <button type="button" class="btn btn-white w-100" data-duel-leave>@fa(['icon' => 'right-from-bracket'])Leave Duel</button>
+                <button type="button" class="btn btn-white w-100" data-duel-leave>@icon('log-out')Leave Duel</button>
             </div>
         </div>
         <p class="text-danger" data-duel-rematch-error role="alert" hidden></p>

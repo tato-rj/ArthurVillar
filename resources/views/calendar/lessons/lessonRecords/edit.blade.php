@@ -12,7 +12,7 @@
         'details' => $lesson,
     ])
 
-    <label class="small fw-bold opacity-6 mb-3">@fa(['icon' => 'money-bill-wave'])STATUS</label>
+    <label class="small fw-bold opacity-6 mb-3">@icon('banknote')STATUS</label>
 
     @select(['label' => 'Status', 'name' => 'status', 'required' => true])
         @option(['name' => 'status', 'label' => 'Unpaid', 'value' => 'unpaid', 'selected' => $lesson->paymentStatus() === 'unpaid'])

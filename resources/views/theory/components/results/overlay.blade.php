@@ -2,7 +2,7 @@
     <div class="results-sheet">
         <div class="results-topline">
             <span class="results-game">{{$settings->gameName()}}</span>
-            <a href="{{route('theory.home')}}" class="btn btn-raw text-muted small">All games @fa(['icon' => 'arrow-up-right-from-square', 'mr' => 0])</a>
+            <a href="{{route('theory.home')}}" class="btn btn-raw text-muted small">All games @icon('external-link', ['mr' => 0])</a>
         </div>
 
         <div id="result-greeting" class="results-greeting">
@@ -10,23 +10,23 @@
         </div>
 
         <div id="metrics-boxes" class="results-metrics" aria-label="Your results">
-            @include('theory.components.results.box', ['name' => 'score', 'title' => 'Your score', 'icon' => 'bolt'])
-            @include('theory.components.results.box', ['name' => 'accuracy', 'title' => 'Accuracy', 'icon' => 'bullseye'])
+            @include('theory.components.results.box', ['name' => 'score', 'title' => 'Your score', 'icon' => 'zap'])
+            @include('theory.components.results.box', ['name' => 'accuracy', 'title' => 'Accuracy', 'icon' => 'target'])
             @include('theory.components.results.box', ['name' => 'rounds', 'title' => 'Rounds', 'icon' => 'gamepad'])
             @include('theory.components.results.box', ['name' => 'duration', 'title' => 'Time', 'icon' => 'clock'])
         </div>
 
         <div class="results-bonuses">
-            <span id="double-points" class="results-bonus results-bonus--perfect" style="display: none">@fa(['icon' => 'star'])Perfect · 2× score</span>
-            <span id="settings-bonus-earned" class="results-bonus" style="display: none">@fa(['icon' => 'gem'])Bonus points earned</span>
+            <span id="double-points" class="results-bonus results-bonus--perfect" style="display: none">@icon('star')Perfect · 2× score</span>
+            <span id="settings-bonus-earned" class="results-bonus" style="display: none">@icon('gem')Bonus points earned</span>
         </div>
 
         <div class="results-actions">
             <div class="btn-floating">
-                <button type="button" onclick="location.reload();" class="btn btn-primary w-100">@fa(['icon' => 'rotate-right'])Play again</button>
+                <button type="button" onclick="location.reload();" class="btn btn-primary w-100">@icon('rotate-cw')Play again</button>
             </div>
             <div class="btn-floating">
-                <button type="button" data-join-leaderboard data-bs-toggle="modal" data-bs-target="#save-results-modal" class="btn btn-white w-100">@fa(['icon' => 'ranking-star'])Join the leaderboard</button>
+                <button type="button" data-join-leaderboard data-bs-toggle="modal" data-bs-target="#save-results-modal" class="btn btn-white w-100">@icon('list-ordered')Join the leaderboard</button>
             </div>
         </div>
     </div>

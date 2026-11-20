@@ -3,7 +3,7 @@
     <div class="text-center">
       <div id="overlay-success" style="font-size: 3rem; display: none;">
         <div class="text-green animate__animated animate__rubberBand animate__slow">
-          @fa(['icon' => 'check', 'mr' => 0])
+          @icon('check', ['mr' => 0])
         </div>
       </div>
       <div id="overlay-spinner" class="spinner-border text-secondary mb-3" style="width: 3rem; height: 3rem;" role="status">

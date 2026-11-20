@@ -1,5 +1,5 @@
 <div class="mb-2 d-flex align-items-center">
-	<a href="{{route('theory.home')}}" class="btn-raw" style="margin-top: 2px;">@fa(['icon' => 'times', 'fa_size' => 'xl'])</a>
+	<a href="{{route('theory.home')}}" class="btn-raw" style="margin-top: 2px;">@icon('x', ['size' => 'xl'])</a>
 
 	<div class="w-100 mr-2">
 		<div class="progress border border-black">
@@ -13,7 +13,7 @@
 
 	<div id="score">
 		<div class="d-center"> 
-			@fa(['icon' => 'bolt', 'mr' => 0, 'fa_color' => 'primary'])
+			@icon('zap', ['mr' => 0, 'color' => 'primary'])
 			<div class="d-flex align-items-baseline">
 				<div class="position-relative h2 m-0">
 					<span id="points" class="fw-bold text-primary">0</span>

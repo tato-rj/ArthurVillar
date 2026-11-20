@@ -12,10 +12,10 @@
 				<h3 data-reschedule-datepicker-label></h3>
 				<div class="calendar-date-picker-nav">
 					<button type="button" data-reschedule-datepicker-prev aria-label="Previous month">
-						@fa(['icon' => 'chevron-left', 'mr' => 0])
+						@icon('chevron-left', ['mr' => 0])
 					</button>
 					<button type="button" data-reschedule-datepicker-next aria-label="Next month">
-						@fa(['icon' => 'chevron-right', 'mr' => 0])
+						@icon('chevron-right', ['mr' => 0])
 					</button>
 				</div>
 			</div>
@@ -59,6 +59,6 @@
 			</div>
 		</div>
 
-		<button type="submit" class="btn btn-primary w-100">@fa(['icon' => 'clock-rotate-left'])Reschedule lesson</button>
+		<button type="submit" class="btn btn-primary w-100">@icon('history')Reschedule lesson</button>
 	</form>
 </div>

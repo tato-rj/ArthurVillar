@@ -22,7 +22,7 @@ class StudentsTableTest extends BaseTest
             ->assertOk()
             ->assertSee('js-edit-student')
             ->assertSee('edit-student-modal-container')
-            ->assertSee('circle-info')
+            ->assertSee('data-lucide-name="info"', false)
             ->assertSee('infoUrl');
 
         $this->get(route('calendar.students.edit', $student))
@@ -132,7 +132,7 @@ class StudentsTableTest extends BaseTest
         $this->get(route('calendar.students.index'))
             ->assertOk()
             ->assertSee('row.location_icon', false)
-            ->assertSee('fa-${row.location_icon}', false);
+            ->assertSee('icon-${row.location_icon}', false);
 
         $this->json('GET', route('calendar.tables.students'), $this->studentTableRequest([
             'student_locations' => 'none',

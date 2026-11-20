@@ -130,16 +130,9 @@ export class NoteNest extends BaseStaffGame {
     if (!$feedback?.length) return;
 
     const useFrown = state === "wrong";
-    const fromIcon = useFrown ? "microphone" : "face-frown";
-    const toIcon = useFrown ? "face-frown" : "microphone";
-    const $icon = $feedback.find(`[data-icon="${fromIcon}"], .fa-${fromIcon}`).first();
-    if (!$icon.length) return;
-
-    $icon.attr("data-icon", toIcon);
-    if ($icon.attr("data-prefix") != null) $icon.attr("data-prefix", "fas");
-    $icon
-      .removeClass(`fa-${fromIcon} far fas`)
-      .addClass(`fa-${toIcon} fas`);
+    $feedback.find("i.app-icon").first()
+      .toggleClass("icon-frown", useFrown)
+      .toggleClass("icon-mic", !useFrown);
   }
 
   _setPlayNoteButtonLabel(state = "default") {
@@ -164,9 +157,9 @@ export class NoteNest extends BaseStaffGame {
       .addClass(`bg-${color}-lighter`)
       .text(message);
     if (color === "yellow") {
-      this.$playNoteStatus.prepend('<i class="fas fa-microphone-lines text-yellow me-2" aria-hidden="true"></i>');
+      this.$playNoteStatus.prepend('<i class="app-icon icon-mic-vocal text-yellow me-2" aria-hidden="true"></i>');
     } else if (color === "green") {
-      this.$playNoteStatus.prepend('<i class="fas fa-circle-check text-green me-2" aria-hidden="true"></i>');
+      this.$playNoteStatus.prepend('<i class="app-icon icon-circle-check text-green me-2" aria-hidden="true"></i>');
     }
     this.$checkWrap.hide().addClass("invisible");
     this.$playNoteStart.hide();
@@ -495,8 +488,8 @@ export class NoteNest extends BaseStaffGame {
 
   _blockIconClassName() {
     const raw = String(this.opts.blockIcon || "").trim();
-    const clean = raw.replace(/^fa-/, "").replace(/[^a-z0-9-]/gi, "");
-    return clean ? `fa-solid fa-${clean}` : "fa-solid fa-lock";
+    const clean = raw.replace(/^(?:fa|icon)-/, "").replace(/[^a-z0-9-]/gi, "");
+    return clean ? `app-icon icon-${clean}` : "app-icon icon-lock";
   }
 
   _blockTooltipNoteName(target) {

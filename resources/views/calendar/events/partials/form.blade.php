@@ -137,7 +137,7 @@
                 for="{{$typeInputId}}"
                 class="btn {{$typeSelected ? 'btn-secondary' : 'btn-outline-secondary'}} btn-sm btn-wide rounded-sm d-center"
                 data-event-type-option>
-                @fa(['icon' => $typeIcon])
+                @icon($typeIcon)
                 <span>{{$typeName}}</span>
             </label>
         @endforeach
@@ -187,7 +187,7 @@
         @endselect
 
         <button type="button" class="btn btn-outline-warning rounded btn-sm" data-enable-push-notifications hidden>
-            @fa(['icon' => 'bell']) Enable notifications on this device
+            @icon('bell') Enable notifications on this device
         </button>
         <div class="form-text mt-2" data-web-push-status hidden></div>
     </div>

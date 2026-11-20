@@ -24,26 +24,26 @@
 
         <div class="d-center">
             <div class="mx-2">
-                <a href="https://youtube.com/pianolit" target="_blank">
-                    @fa(['icon' => 'youtube', 'fa_type' => 'b', 'fa_size' => 'lg', 'mr' => 0])
+                <a href="https://youtube.com/pianolit" aria-label="PianoLIT on YouTube" target="_blank">
+                    @icon('monitor-play', ['size' => 'lg', 'mr' => 0])
                 </a>
             </div>
 {{-- 
             <div class="mx-2">
                 <a href="https://www.instagram.com/piano_with_arthur/" target="_blank">
-                    @fa(['icon' => 'instagram', 'fa_type' => 'b', 'fa_size' => 'lg', 'mr' => 0])
+                    @icon('camera', ['size' => 'lg', 'mr' => 0])
                 </a>
             </div> --}}
 {{-- 
             <div class="mx-2">
                 <a href="https://www.facebook.com/arthur.villar.31" target="_blank">
-                    @fa(['icon' => 'facebook', 'fa_type' => 'b', 'fa_size' => 'lg', 'mr' => 0])
+                    @icon('messages-square', ['size' => 'lg', 'mr' => 0])
                 </a>
             </div> --}}
 
             <div class="mx-2">
-                <a href="mailto:arthurvillar@gmail.com" target="_blank">
-                    @fa(['icon' => 'envelope', 'fa_size' => 'lg', 'mr' => 0])
+                <a href="mailto:arthurvillar@gmail.com" aria-label="Email Arthur Villar" target="_blank">
+                    @icon('mail', ['size' => 'lg', 'mr' => 0])
                 </a>
             </div>
         </div>

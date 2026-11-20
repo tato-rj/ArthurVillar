@@ -319,9 +319,11 @@ mark {
   &.dataTable thead > tr > td.sorting::before,
   &.dataTable thead > tr > td.sorting_asc::before,
   &.dataTable thead > tr > td.sorting_desc::before {
-    content: "\f0d8";
-    font-family: "Font Awesome 6 Free";
-    font-weight: 900;
+    content: "";
+    width: .75em;
+    height: .75em;
+    background: currentColor;
+    mask: url("~lucide-static/icons/chevron-up.svg") center / contain no-repeat;
   }
 
   &.dataTable thead > tr > th.sorting::after,
@@ -330,9 +332,11 @@ mark {
   &.dataTable thead > tr > td.sorting::after,
   &.dataTable thead > tr > td.sorting_asc::after,
   &.dataTable thead > tr > td.sorting_desc::after {
-    content: "\f0d7";
-    font-family: "Font Awesome 6 Free";
-    font-weight: 900;
+    content: "";
+    width: .75em;
+    height: .75em;
+    background: currentColor;
+    mask: url("~lucide-static/icons/chevron-down.svg") center / contain no-repeat;
   }
 
   &.dataTable thead > tr > th.sorting::before,

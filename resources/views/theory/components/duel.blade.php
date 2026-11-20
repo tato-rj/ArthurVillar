@@ -12,7 +12,7 @@ window.__duelState = @json($duelState ?? null);
 @modal(['title' => 'Multiplayer Duel', 'id' => 'duel-modal', 'class' => 'duel'])
 <div class="duel-dialog text-center">
     <div class="duel-dialog-hero">
-        <div class="duel-dialog-emblem" aria-hidden="true"><span class="duel-dialog-spark">✦</span><i data-duel-symbol class="fa-solid fa-music"></i><span class="duel-dialog-note">♪</span></div>
+        <div class="duel-dialog-emblem" aria-hidden="true"><span class="duel-dialog-spark">✦</span>@icon('music', ['mr' => 0, 'data-duel-symbol' => ''])<span class="duel-dialog-note">♪</span></div>
         <p class="duel-dialog-label" data-duel-label></p>
         <h2 data-duel-message aria-live="polite"></h2>
         <p class="duel-dialog-description" data-duel-description></p>
@@ -39,23 +39,23 @@ window.__duelState = @json($duelState ?? null);
             @endfor
         </div>
         <section class="duel-create-tip" aria-labelledby="duel-create-tip-title">
-            <span class="duel-create-tip__icon" aria-hidden="true">@fa(['icon' => 'gear', 'mr' => 0])</span>
+            <span class="duel-create-tip__icon" aria-hidden="true">@icon('settings', ['mr' => 0])</span>
             <div>
                 <h5 id="duel-create-tip-title">Want to create a duel?</h5>
                 <p>Open the settings menu in any game, then choose <strong>“Start Multiplayer Duel”</strong>.</p>
             </div>
         </section>
-        <button type="submit" class="btn btn-primary w-100 mt-3">@fa(['icon' => 'gamepad'])Join duel</button>
+        <button type="submit" class="btn btn-primary w-100 mt-3">@icon('gamepad')Join duel</button>
     </form>
     <div class="duel-dialog-idle" data-duel-idle hidden>
         <span data-duel-idle-count>10</span><span>seconds to stay in the duel</span>
     </div>
     <div class="duel-dialog-actions" data-duel-actions hidden>
-        <button type="button" data-duel-active class="btn btn-primary w-100" hidden>@fa(['icon' => 'check'])Yes, I’m still playing</button>
-        <button type="button" data-duel-ready class="btn btn-primary w-100" hidden>@fa(['icon' => 'bolt'])I’m ready</button>
+        <button type="button" data-duel-active class="btn btn-primary w-100" hidden>@icon('check')Yes, I’m still playing</button>
+        <button type="button" data-duel-ready class="btn btn-primary w-100" hidden>@icon('zap')I’m ready</button>
         <button type="button" data-duel-cancel class="btn btn-white w-100" hidden>Cancel invitation</button>
-        <button type="button" data-duel-leave class="btn btn-white w-100" hidden>@fa(['icon' => 'right-from-bracket'])Leave duel</button>
-        <a data-duel-exit href="{{ route('theory.home') }}" class="btn btn-primary w-100" hidden>@fa(['icon' => 'gamepad'])Back to all games</a>
+        <button type="button" data-duel-leave class="btn btn-white w-100" hidden>@icon('log-out')Leave duel</button>
+        <a data-duel-exit href="{{ route('theory.home') }}" class="btn btn-primary w-100" hidden>@icon('gamepad')Back to all games</a>
     </div>
 </div>
 @endmodal

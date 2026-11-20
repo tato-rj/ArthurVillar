@@ -6,7 +6,7 @@
 	aria-controls="calendar-mini-calendar-offcanvas"
 	aria-label="Show mini calendar"
 >
-	@fa(['icon' => 'calendar-days', 'mr' => 0])
+	@icon('calendar-days', ['mr' => 0])
 </button>
 
 <div

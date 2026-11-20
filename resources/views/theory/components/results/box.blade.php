@@ -9,7 +9,7 @@
         <span class="result-score-spark result-score-spark--one" aria-hidden="true">✦</span>
         <span class="result-score-spark result-score-spark--two" aria-hidden="true">✦</span>
     @endif
-    <div class="result-metric__label"><span class="result-metric__icon" aria-hidden="true">@fa</span>{{$title}}</div>
+    <div class="result-metric__label"><span class="result-metric__icon" aria-hidden="true">@icon($icon, ['mr' => 0])</span>{{$title}}</div>
     <div class="result-metric__value"><span name="{{$name}}">{{$name === 'duration' ? '00:00' : '0'}}{{$name === 'accuracy' ? '%' : ''}}</span></div>
     @if($name === 'score')
         <div class="result-metric__detail">points</div>

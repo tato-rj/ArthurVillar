@@ -5,19 +5,19 @@
   <div class="offcanvas-body pt-0 ps-0">
     <ul class="navbar-nav justify-content-end flex-grow-1 pe-3 calendar-calendar-offcanvas-views">
       <li class="nav-item py-2 mb-2" data-calendar-offcanvas-view="schedule">
-        <button type="button" class="btn btn-raw" data-bs-dismiss="offcanvas">@fa(['icon' => 'list-ol'])Schedule</button>
+        <button type="button" class="btn btn-raw" data-bs-dismiss="offcanvas">@icon('list-ordered')Schedule</button>
       </li>
       <li class="nav-item py-2 mb-2" data-calendar-offcanvas-view="day">
-        <button type="button" class="btn btn-raw" data-bs-dismiss="offcanvas">@fa(['icon' => 'square', 'fa_type' => 'r'])Day</button>
+        <button type="button" class="btn btn-raw" data-bs-dismiss="offcanvas">@icon('square')Day</button>
       </li>
       <li class="nav-item py-2 mb-2" data-calendar-offcanvas-view="2-days">
-        <button type="button" class="btn btn-raw" data-bs-dismiss="offcanvas">@fa(['icon' => 'table-columns'])2 days</button>
+        <button type="button" class="btn btn-raw" data-bs-dismiss="offcanvas">@icon('columns-3')2 days</button>
       </li>
       <li class="nav-item py-2 mb-2" data-calendar-offcanvas-view="week">
-        <button type="button" class="btn btn-raw" data-bs-dismiss="offcanvas">@fa(['icon' => 'table-list'])Week</button>
+        <button type="button" class="btn btn-raw" data-bs-dismiss="offcanvas">@icon('table-rows-split')Week</button>
       </li>
       <li class="nav-item py-2 mb-2" data-calendar-offcanvas-view="month">
-        <button type="button" class="btn btn-raw" data-bs-dismiss="offcanvas">@fa(['icon' => 'table-cells'])Month</button>
+        <button type="button" class="btn btn-raw" data-bs-dismiss="offcanvas">@icon('grid-3x3')Month</button>
       </li>
     </ul>
 

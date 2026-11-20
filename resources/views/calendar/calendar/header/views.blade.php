@@ -8,6 +8,6 @@
 					<option value="week" selected>Week</option>
 					<option value="month">Month</option>
 				</select>
-				<i class="fa-solid fa-caret-down" aria-hidden="true"></i>
+				@icon('chevron-down', ['mr' => 0])
 			</label>
 		</div>

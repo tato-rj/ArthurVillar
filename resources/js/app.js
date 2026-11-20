@@ -2,6 +2,7 @@ require('./bootstrap/setup');
 require('./helpers');
 require('./extensions');
 require('./components');
+require('./components/icons');
 require('./utilities');
 require('./web-push');
 const { rememberLeaderboardProfile, renderLeaderboardAvatar, deleteLeaderboardProfile, postSavedLeaderboardScore, STORAGE_KEY: leaderboardProfileKey } = require('./music/leaderboardProfile');

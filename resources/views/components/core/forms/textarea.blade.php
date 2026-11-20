@@ -5,7 +5,7 @@
 
     <div class="form-control form-control-{{$size ?? null}} {{$classes ?? null}}">
     	@isset($chatgpt)
-		<button id="ask-chatgpt" data-chatgpt="{{$chatgpt['query']}}" data-url="{{$chatgpt['route']}}" type="button" class="w-100 mb-1 btn btn-sm btn-outline-secondary">@fa(['icon' => 'wand-magic-sparkles'])Ask ChatGPT</button>
+		<button id="ask-chatgpt" data-chatgpt="{{$chatgpt['query']}}" data-url="{{$chatgpt['route']}}" type="button" class="w-100 mb-1 btn btn-sm btn-outline-secondary">@icon('wand-sparkles')Ask ChatGPT</button>
 		@endisset
 
 		<textarea class="border-0 w-100 h-100" 

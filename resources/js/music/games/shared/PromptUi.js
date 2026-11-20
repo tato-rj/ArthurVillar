@@ -46,8 +46,8 @@ export class PromptUi {
     if (!this.$direction.length) return this;
     this.$direction
       .show()
-      .removeClass("fa-up-long fa-down-long")
-      .addClass(Number(direction) === -1 ? "fa-down-long" : "fa-up-long");
+      .removeClass("icon-arrow-up icon-arrow-down")
+      .addClass(Number(direction) === -1 ? "icon-arrow-down" : "icon-arrow-up");
     return this;
   }
 

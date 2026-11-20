@@ -1,4 +1,4 @@
-@modal(['title' => fa('gear').'Game settings', 'id' => str_slug($settings->gameName()).'-settings-modal'])
+@modal(['title' => \App\Support\Icon::render('settings').'Game settings', 'id' => str_slug($settings->gameName()).'-settings-modal'])
 <form id="beat-hero-settings" method="GET" action="{{ $settings->gameUrl() }}">
   @component('theory.components.settings.section', ['title' => 'SETUP'])
     @include('theory.components.settings.value-range', ['label' => 'Number of rounds', 'name' => 'numOfChallenges', 'min' => 2, 'max' => 12, 'id' => str_slug($settings->gameName()).'-numOfChallenges', 'value' => request('numOfChallenges') ?? $settings->options('numOfChallenges')])

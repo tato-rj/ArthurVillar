@@ -139,7 +139,9 @@ class AppServiceProvider extends ServiceProvider
 
         \Blade::include('components.core.alert');
         \Blade::include('components.core.btn');
-        \Blade::include('components.core.fontawesome', 'fa');
+        \Blade::directive('icon', function ($expression) {
+            return "<?php echo \\App\\Support\\Icon::render($expression); ?>";
+        });
         \Blade::aliasComponent('components.core.modal');
         \Blade::aliasComponent('components.core.form', 'form');
         \Blade::include('components.core.forms.input');

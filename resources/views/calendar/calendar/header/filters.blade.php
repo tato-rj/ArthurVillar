@@ -1,11 +1,11 @@
 		<div class="calendar-calendar-filter dropdown">
 			<button type="button" class="btn-raw calendar-calendar-icon-button calendar-calendar-filter-toggle calendar-calendar-header-control" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" aria-label="Filter calendar">
-				@fa(['icon' => 'filter', 'mr' => 0, 'fa_color' => 'black'])
+				@icon('filter', ['mr' => 0, 'color' => 'black'])
 			</button>
 			<div class="dropdown-menu dropdown-menu-end calendar-calendar-filter-menu p-3">
 				<div class="d-flex align-items-center justify-content-between mb-2">
 					<div class="small fw-bold opacity-4">LOCATIONS</div>
-					<button type="button" class="btn-raw btn-sm py-0 px-2" data-calendar-filter-reset disabled>@fa(['icon' => 'rotate-right', 'mr' => 0])</button>
+					<button type="button" class="btn-raw btn-sm py-0 px-2" data-calendar-filter-reset disabled>@icon('rotate-cw', ['mr' => 0])</button>
 				</div>
 				<div data-calendar-location-filters></div>
 

@@ -88,8 +88,8 @@ $(function() {
                 search: '', searchPlaceholder: 'Search', lengthMenu: 'Show _MENU_ rows',
                 info: 'Showing _START_ to _END_ of _TOTAL_',
                 paginate: {
-                    previous: '<i class="fas fa-angle-left mr-0"></i>',
-                    next: '<i class="fas fa-angle-right mr-0"></i>',
+                    previous: '@icon('chevron-left', ['mr' => 0])',
+                    next: '@icon('chevron-right', ['mr' => 0])',
                 },
             },
             ajax: {
@@ -109,7 +109,7 @@ $(function() {
 
                         const name = textRenderer.display(data);
                         const icon = /^[a-z0-9-]+$/.test(row.event_type_icon || '')
-                            ? `<i class="fas fa-${row.event_type_icon} mr-2 opacity-6 text-blue" aria-hidden="true"></i>`
+                            ? `<i class="app-icon icon-${row.event_type_icon} mr-2 opacity-6 text-blue" aria-hidden="true"></i>`
                             : '';
 
                         return `${icon}${name}`;
@@ -125,11 +125,11 @@ $(function() {
                         const deleteUrl = @json(route('calendar.events.permanently-destroy', ['event' => '__event__'])).replace('__event__', data);
 
                         return `<div class="calendar-table-actions">
-                            <button type="button" class="btn btn-sm btn-warning rounded js-edit-event" data-url="${editUrl}" aria-label="Edit event">@fa(['icon' => 'pen-to-square', 'mr' => 0])</button>
+                            <button type="button" class="btn btn-sm btn-warning rounded js-edit-event" data-url="${editUrl}" aria-label="Edit event">@icon('square-pen', ['mr' => 0])</button>
                             <form method="POST" action="${deleteUrl}" confirm>
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn btn-sm btn-red rounded" aria-label="Delete event" title="Delete event">@fa(['icon' => 'trash-alt', 'mr' => 0])</button>
+                                <button type="submit" class="btn btn-sm btn-red rounded" aria-label="Delete event" title="Delete event">@icon('trash-2', ['mr' => 0])</button>
                             </form>
                         </div>`;
                     },

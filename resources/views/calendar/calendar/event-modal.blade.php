@@ -10,13 +10,13 @@
 ])
 @slot('headerButtons')
 <span data-event-modal-section="lesson" data-event-modal-expanded-content>
-    <button id="lesson-edit" class="btn btn-raw" type="button">@fa(['icon' => 'pen'])</button>
-    <button id="lesson-revert" class="btn btn-raw" data-url="{{ route('calendar.lessons.revert') }}" type="button">@fa(['icon' => 'rotate-left', 'mr' => 0])</button>
+    <button id="lesson-edit" class="btn btn-raw" type="button">@icon('pen')</button>
+    <button id="lesson-revert" class="btn btn-raw" data-url="{{ route('calendar.lessons.revert') }}" type="button">@icon('rotate-ccw', ['mr' => 0])</button>
 </span>
 <span data-event-modal-section="general" data-event-modal-expanded-content hidden>
-    <button id="event-duplicate" class="btn btn-raw" type="button" aria-label="Duplicate event" title="Duplicate event">@fa(['icon' => 'copy'])</button>
-    <button id="event-edit" class="btn btn-raw" type="button">@fa(['icon' => 'pen'])</button>
-    <button id="event-revert" class="btn btn-raw" type="button" style="display: none">@fa(['icon' => 'rotate-left', 'mr' => 0])</button>
+    <button id="event-duplicate" class="btn btn-raw" type="button" aria-label="Duplicate event" title="Duplicate event">@icon('copy')</button>
+    <button id="event-edit" class="btn btn-raw" type="button">@icon('pen')</button>
+    <button id="event-revert" class="btn btn-raw" type="button" style="display: none">@icon('rotate-ccw', ['mr' => 0])</button>
 </span>
 @endslot
 
@@ -33,72 +33,72 @@
 
     <div class="calendar-modal-details">
         <div id="lesson-birthday" class="calendar-modal-detail text-blue" data-event-modal-section="lesson" style="display: none">
-            @fa(['icon' => 'cake-candles', 'mr' => 0, 'classes' => 'calendar-modal-detail-icon'])
+            @icon('cake', ['mr' => 0, 'classes' => 'calendar-modal-detail-icon'])
             <span>Birthday <span data-lesson-birthday-label></span></span>
         </div>
 
         <div class="calendar-modal-detail">
-            @fa(['icon' => 'calendar-day', 'mr' => 0, 'classes' => 'calendar-modal-detail-icon'])
+            @icon('calendar-1', ['mr' => 0, 'classes' => 'calendar-modal-detail-icon'])
             <span data-event-modal-date></span>
         </div>
 
         <div class="calendar-modal-detail" data-event-modal-section="lesson" data-lesson-plan-summary-section hidden>
-            @fa(['icon' => 'calendar-check', 'mr' => 0, 'classes' => 'calendar-modal-detail-icon'])
+            @icon('calendar-check', ['mr' => 0, 'classes' => 'calendar-modal-detail-icon'])
             <span data-lesson-plan-summary></span>
         </div>
 
         <div class="calendar-modal-detail">
-            @fa(['icon' => 'clock', 'mr' => 0, 'classes' => 'calendar-modal-detail-icon'])
+            @icon('clock', ['mr' => 0, 'classes' => 'calendar-modal-detail-icon'])
             <span data-event-modal-time></span>
         </div>
 
         <div class="calendar-modal-detail" data-event-modal-section="lesson" data-lesson-recurrence-section>
-            @fa(['icon' => 'repeat', 'mr' => 0, 'classes' => 'calendar-modal-detail-icon'])
+            @icon('repeat', ['mr' => 0, 'classes' => 'calendar-modal-detail-icon'])
             <span id="lesson-recurrence"></span>
         </div>
 
         <div class="calendar-modal-detail" data-event-modal-section="lesson" data-lesson-recital-section hidden>
-            <i class="calendar-modal-detail-icon calendar-piano-icon" aria-hidden="true"></i>
+            @icon('piano', ['mr' => 0, 'classes' => 'calendar-modal-detail-icon'])
             <span data-lesson-recital-details></span>
         </div>
 
         <div class="calendar-modal-detail" data-event-modal-section="lesson" data-lesson-birth-date-section hidden>
-            @fa(['icon' => 'cake-candles', 'mr' => 0, 'classes' => 'calendar-modal-detail-icon'])
+            @icon('cake', ['mr' => 0, 'classes' => 'calendar-modal-detail-icon'])
             <span data-lesson-birth-date></span>
         </div>
 
         <div class="calendar-modal-detail" data-event-modal-section="general" data-general-event-type-section hidden>
-            <i id="general-event-type-icon" class="fas calendar-modal-detail-icon" aria-hidden="true"></i>
+            <i id="general-event-type-icon" class="app-icon calendar-modal-detail-icon" aria-hidden="true"></i>
             <span id="general-event-type"></span>
         </div>
 
         <div class="calendar-modal-detail" data-event-modal-section="general" data-general-event-organizer-section hidden>
-            @fa(['icon' => 'user', 'mr' => 0, 'classes' => 'calendar-modal-detail-icon'])
+            @icon('user', ['mr' => 0, 'classes' => 'calendar-modal-detail-icon'])
             <span data-general-event-organizer></span>
         </div>
 
         <div class="calendar-modal-detail" data-event-modal-location-section hidden>
-            <i class="fas fa-location-dot calendar-modal-detail-icon" data-event-modal-location-icon aria-hidden="true"></i>
+            @icon('map-pin', ['mr' => 0, 'classes' => 'calendar-modal-detail-icon', 'data-event-modal-location-icon' => ''])
             <span data-event-modal-location></span>
         </div>
 
         <div class="calendar-modal-detail" data-event-modal-section="general" data-general-event-address-section hidden>
-            @fa(['icon' => 'location-dot', 'mr' => 0, 'classes' => 'calendar-modal-detail-icon'])
+            @icon('map-pin', ['mr' => 0, 'classes' => 'calendar-modal-detail-icon'])
             <span data-general-event-address></span>
         </div>
 
         <div class="calendar-modal-detail" data-event-modal-meeting-section hidden>
-            @fa(['icon' => 'video', 'mr' => 0, 'classes' => 'calendar-modal-detail-icon'])
+            @icon('video', ['mr' => 0, 'classes' => 'calendar-modal-detail-icon'])
             <a data-event-modal-meeting-link target="_blank" rel="noopener">Join the meeting</a>
         </div>
 
         <div id="notes-url" class="calendar-modal-detail" data-event-modal-section="lesson">
-            @fa(['icon' => 'file-pen', 'mr' => 0, 'classes' => 'calendar-modal-detail-icon'])
+            @icon('file-pen', ['mr' => 0, 'classes' => 'calendar-modal-detail-icon'])
             <a target="_blank" rel="noopener">Notes</a>
         </div>
 
         <div class="calendar-modal-detail" data-event-modal-section="general" hidden>
-            @fa(['icon' => 'bell', 'mr' => 0, 'classes' => 'calendar-modal-detail-icon'])
+            @icon('bell', ['mr' => 0, 'classes' => 'calendar-modal-detail-icon'])
             <span id="general-event-notification"></span>
         </div>
     </div>
@@ -113,10 +113,10 @@
         <span class="small font-weight-bold">Going?</span>
         <div class="btn-group" role="group" aria-label="Respond to Google Calendar invitation">
             <button type="button" class="btn btn-sm btn-outline-dark mr-2" data-google-event-response="accepted">
-                @fa(['icon' => 'check'])Yes
+                @icon('check')Yes
             </button>
             <button type="button" class="btn btn-sm btn-outline-dark" data-google-event-response="declined">
-                @fa(['icon' => 'xmark'])No
+                @icon('x')No
             </button>
         </div>
     </div>
@@ -148,7 +148,7 @@
         data-event-modal-expand-toggle
         aria-expanded="false"
     >
-        <i class="fas fa-expand mr-1" data-event-modal-expand-icon aria-hidden="true"></i>
+        @icon('maximize', ['mr' => 1, 'data-event-modal-expand-icon' => ''])
         <span data-event-modal-expand-label>SHOW MORE</span>
     </button>
 </div>

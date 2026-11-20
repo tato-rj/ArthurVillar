@@ -1,4 +1,4 @@
-<button class="navbar-toggler hide-in-webapp" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-label="Toggle navigation">@fa(['icon' => 'bars', 'mr' => 0, 'fa_size' => 'xl'])</button>
+<button class="navbar-toggler hide-in-webapp" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-label="Toggle navigation">@icon('menu', ['mr' => 0, 'size' => 'xl'])</button>
 
 <div class="offcanvas border-0 offcanvas-end" style="width: auto; min-width: 220px;" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
   <div class="offcanvas-header d-apart">
@@ -9,11 +9,11 @@
         <li class="subdomain-option {{$isCurrentSubdomain ? 'is-current' : 'opacity-4'}} small fw-bold">
           @if($isCurrentSubdomain)
           <button type="button" class="subdomain-select-toggle" aria-expanded="false">
-            @fa(['icon' => $subdomain['icon'], 'mr' => 1]){{$subdomain['label']}}
+            @icon($subdomain['icon'], ['mr' => 1]){{$subdomain['label']}}
           </button>
           @else
           <a href="{{$subdomain['url']}}" class="subdomain-select-link">
-            @fa(['icon' => $subdomain['icon'], 'mr' => 1]){{$subdomain['label']}}
+            @icon($subdomain['icon'], ['mr' => 1]){{$subdomain['label']}}
           </a>
           @endif
         </li>
@@ -45,7 +45,7 @@
                 aria-expanded="false"
                 aria-controls="{{ $collapseId }}"
             >
-                {{ str_replace('*', '', $item['label']) }} @fa(['icon' => 'chevron-down', 'mr' => 0, 'fa_size' => 'xs'])
+                {{ str_replace('*', '', $item['label']) }} @icon('chevron-down', ['mr' => 0, 'size' => 'xs'])
             </a>
 
             <ul

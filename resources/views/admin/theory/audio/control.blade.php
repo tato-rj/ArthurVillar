@@ -2,7 +2,7 @@
 	<div class="bg-light rounded p-3 border">
 		<div class="d-apart">
 			<div class="d-center">
-				<button type="button" data-play="sound" class="btn btn-sm btn-primary mr-2 py-0">@fa(['icon' => 'play'])Play</button>
+				<button type="button" data-play="sound" class="btn btn-sm btn-primary mr-2 py-0">@icon('play')Play</button>
 				<label class="sound-name"></label>
 			</div>
 			<label class="fw-bold sound-volume"></label>

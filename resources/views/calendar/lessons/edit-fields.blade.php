@@ -21,7 +21,7 @@
 @include('calendar.components.sectiontitle', ['icon' => 'user', 'label' => 'STUDENT'])
 <div class="font-weight-bold mb-3">{{$student?->full_name ?? 'Group class'}}</div>
 
-@include('calendar.components.sectiontitle', ['icon' => 'calendar-day', 'label' => 'SCHEDULE'])
+@include('calendar.components.sectiontitle', ['icon' => 'calendar-1', 'label' => 'SCHEDULE'])
 
 @isset($locations)
     @select(['placeholder' => 'Location', 'name' => 'location_id', 'required' => true])
@@ -80,7 +80,7 @@
 </div>
 
 <div data-lesson-payment-section {{iftrue($paymentExempt, 'hidden')}}>
-    @include('calendar.components.sectiontitle', ['icon' => 'money-bill-wave', 'label' => 'PAYMENT'])
+    @include('calendar.components.sectiontitle', ['icon' => 'banknote', 'label' => 'PAYMENT'])
 
     <div class="row">
         @input(['label' => 'Fee', 'name' => 'fee_amount', 'type' => 'number', 'value' => $details['fee_amount'] !== null ? $details['fee_amount'] / 100 : null, 'min' => 0, 'max' => '9999.99', 'step' => '0.01', 'grid' => 'col', 'disabled' => $paymentExempt])

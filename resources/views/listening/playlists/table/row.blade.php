@@ -25,10 +25,10 @@
       <a class="btn btn-sm btn-secondary" target="_blank" href="{{route('listening.url', [
         'recording' => $playlist->recordings->first(),
         'playlist_id' => $playlist->id,
-      ])}}">@fa(['icon' => 'play', 'mr' => 0])</a>
+      ])}}">@icon('play', ['mr' => 0])</a>
       @endif
 
-      <a class="btn btn-sm btn-secondary" href="{{route('listening.playlists.recordings', $playlist)}}">@fa(['icon' => 'list', 'mr' => 0])</a>
+      <a class="btn btn-sm btn-secondary" href="{{route('listening.playlists.recordings', $playlist)}}">@icon('list', ['mr' => 0])</a>
       @endcomponent
       @include('listening.playlists.edit', $playlist)
       @break

@@ -279,7 +279,7 @@
       <div id="board-wrapper" style="display: none" class="text-center mx-auto position-relative ">
           <div id="restart" class="position-absolute w-100 h-100">
             <div class="d-center w-100 h-100">
-              <button onclick="window.location.reload();" type="button" class="btn btn-red btn-lg">@fa(['icon' => 'arrow-rotate-right'])RESTART</button>
+              <button onclick="window.location.reload();" type="button" class="btn btn-red btn-lg">@icon('rotate-cw')RESTART</button>
             </div>
           </div>
 

@@ -78,7 +78,7 @@
                     id="show-custom-duration"
                     class="invitation-duration-option {{ !in_array($selectedDuration, [15, 30, 60, 90, 120]) ? 'active' : '' }}"
                     aria-pressed="{{ !in_array($selectedDuration, [15, 30, 60, 90, 120]) ? 'true' : 'false' }}">
-                    @fa(['icon' => 'plus'])Custom
+                    @icon('plus')Custom
                 </button>
             </div>
 
@@ -96,7 +96,7 @@
             </div>
 
             @error('duration_minutes')
-                <div class="text-red mt-2">@fa(['icon' => 'exclamation-circle', 'mr' => 1]){{ $message }}</div>
+                <div class="text-red mt-2">@icon('circle-alert', ['mr' => 1]){{ $message }}</div>
             @enderror
             </div>
         </div>
@@ -105,11 +105,11 @@
             <div class="col-lg-8 col-md-10 col-12 mx-auto">
                 <div class="invitation-calendar-toolbar mb-2">
                 <button type="button" id="invitation-calendar-previous" class="invitation-calendar-nav btn btn-white" aria-label="Previous week">
-                    @fa(['icon' => 'arrow-left', 'mr' => 0])
+                    @icon('arrow-left', ['mr' => 0])
                     <span id="invitation-previous-count" class="invitation-overflow-count" style="display: none;" aria-hidden="true"></span>
                 </button>
                 <button type="button" id="invitation-calendar-next" class="invitation-calendar-nav btn btn-white" aria-label="Next week">
-                    @fa(['icon' => 'arrow-right', 'mr' => 0])
+                    @icon('arrow-right', ['mr' => 0])
                     <span id="invitation-next-count" class="invitation-overflow-count" style="display: none;" aria-hidden="true"></span>
                 </button>
                 <button type="button" id="invitation-calendar-today" class="btn btn-outline-secondary">Today</button>
@@ -128,14 +128,14 @@
                 <div id="invitation-options-inputs"></div>
 
                 <div id="invitation-calendar-error" class="invitation-calendar-error text-red mt-2">
-                    @fa(['icon' => 'exclamation-circle', 'mr' => 1])Add at least one proposed time.
+                    @icon('circle-alert', ['mr' => 1])Add at least one proposed time.
                 </div>
 
                 @error('options')
-                    <div class="text-red mt-2">@fa(['icon' => 'exclamation-circle', 'mr' => 1]){{ $message }}</div>
+                    <div class="text-red mt-2">@icon('circle-alert', ['mr' => 1]){{ $message }}</div>
                 @enderror
                 @error('options.*')
-                    <div class="text-red mt-2">@fa(['icon' => 'exclamation-circle', 'mr' => 1]){{ $message }}</div>
+                    <div class="text-red mt-2">@icon('circle-alert', ['mr' => 1]){{ $message }}</div>
                 @enderror
             </div>
         </div>
@@ -398,8 +398,8 @@ $(function() {
         button.style[direction === 'up' ? 'top' : 'bottom'] = `${edge}px`;
         button.setAttribute('aria-label', `${events.length} selected ${events.length === 1 ? 'time' : 'times'} ${direction === 'up' ? 'above' : 'below'} ${date}`);
         button.innerHTML = direction === 'up'
-            ? '<i class="fas fa-arrow-up"></i>'
-            : '<i class="fas fa-arrow-down"></i>';
+            ? '@icon('arrow-up', ['mr' => 0])'
+            : '@icon('arrow-down', ['mr' => 0])';
 
         count.className = 'invitation-overflow-count';
         count.textContent = `+${events.length}`;

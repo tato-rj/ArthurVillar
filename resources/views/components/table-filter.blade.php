@@ -5,9 +5,9 @@
         data-bs-toggle="dropdown"
         data-bs-auto-close="outside"
         aria-expanded="false">
-        @fa(['icon' => 'filter', 'mr' => 0])
+        @icon('filter', ['mr' => 0])
         <span>{{$placeholder ?? 'Filter rows'}}</span>
-        @fa(['icon' => 'angle-down', 'mr' => 0])
+        @icon('chevron-down', ['mr' => 0])
     </button>
 
     <div class="dropdown-menu p-3">

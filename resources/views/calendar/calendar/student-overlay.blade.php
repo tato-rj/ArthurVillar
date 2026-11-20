@@ -1,7 +1,7 @@
 <button type="button" class="btn-raw mini-calendar-show calendar-student-show"
     data-bs-toggle="offcanvas" data-bs-target="#calendar-student-offcanvas"
     aria-controls="calendar-student-offcanvas" aria-label="Show student lesson plans">
-    @fa(['icon' => 'user', 'mr' => 0])
+    @icon('user', ['mr' => 0])
 </button>
 <div class="offcanvas offcanvas-bottom calendar-student-offcanvas" tabindex="-1"
     id="calendar-student-offcanvas" aria-label="Student lesson plans">
@@ -12,7 +12,7 @@
                     <input class="border-0 w-100 h-100" type="text" autocomplete="off"
                         placeholder="Select a student" aria-label="Search students" data-student-combobox-input>
                     <input type="hidden" data-student-combobox-value>
-                    @fa(['icon' => 'angle-down', 'mr' => 0, 'fa_color' => 'grey'])
+                    @icon('chevron-down', ['mr' => 0, 'color' => 'grey'])
                 </div>
                 <div class="calendar-student-combobox-menu" data-student-combobox-menu>
                     @foreach(collect($students ?? [])->groupBy(fn ($student) => optional($student->location)->name ?: 'No location')->sortKeys(SORT_NATURAL | SORT_FLAG_CASE) as $locationName => $locationStudents)
@@ -24,7 +24,7 @@
                         <div data-student-combobox-group data-student-location-name="{{$locationName}}" role="group" aria-labelledby="{{$groupLabelId}}">
                             <div id="{{$groupLabelId}}" class="calendar-student-combobox-group-label" data-student-combobox-group-label>
                                 @if($groupLocationIcon)
-                                    @fa(['icon' => $groupLocationIcon, 'mr' => 1])
+                                    @icon($groupLocationIcon, ['mr' => 1])
                                 @endif
                                 {{$locationName}}
                             </div>

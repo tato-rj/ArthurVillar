@@ -8,7 +8,7 @@
     <div class="form-control form-control-{{$size ?? null}} d-flex align-items-center {{$classes ?? null}}">
     	<div>
     		@isset($icon)
-    		@fa(['icon' => $icon, 'fa_color' => $fa_color ?? 'grey-light'])	
+		@icon($icon, ['color' => $iconColor ?? 'grey-light'])
     		@endisset
     	</div>
 	<input

@@ -67,7 +67,7 @@
                     <label for="recording-audio">Replace MP3 (optional)</label>
                     <div class="d-flex align-items-center">
                         @if($recording->audio_path)
-                        <a href="{{$recording->storage('audio_path')}}" class="btn btn-primary mr-2" download aria-label="Download current MP3">@fa(['icon' => 'download', 'mr' => 0])</a>
+                        <a href="{{$recording->storage('audio_path')}}" class="btn btn-primary mr-2" download aria-label="Download current MP3">@icon('download', ['mr' => 0])</a>
                         @endif
                         <input id="recording-audio" class="form-control @error('audio') is-invalid @enderror" name="audio" type="file" accept=".mp3,audio/mpeg">
                     </div>

@@ -127,8 +127,8 @@ $(function() {
             lengthMenu: 'Show _MENU_ rows',
             info: 'Showing _START_ to _END_ of _TOTAL_',
             paginate: {
-                previous: '<i class="fas fa-angle-left mr-0"></i>',
-                next: '<i class="fas fa-angle-right mr-0"></i>',
+                previous: '@icon('chevron-left', ['mr' => 0])',
+                next: '@icon('chevron-right', ['mr' => 0])',
             },
         },
         ajax: @json(route('calendar.tables.locations')),
@@ -185,17 +185,17 @@ $(function() {
                     const editUrl = @json(route('calendar.locations.edit', ['location' => '__location__'])).replace('__location__', data);
                     const deleteUrl = @json(route('calendar.locations.destroy', ['location' => '__location__'])).replace('__location__', data);
                     const infoButton = row.usage === 'teaching'
-                        ? `<button type="button" class="btn btn-sm btn-primary rounded js-location-info">@fa(['icon' => 'circle-info', 'mr' => 0])</button>`
+                        ? `<button type="button" class="btn btn-sm btn-primary rounded js-location-info">@icon('info', ['mr' => 0])</button>`
                         : '';
 
                     return `
                         <div class="calendar-table-actions">
                             ${infoButton}
-                            <button type="button" class="btn btn-sm btn-warning rounded js-edit-location" data-url="${editUrl}">@fa(['icon' => 'pen-to-square', 'mr' => 0])</button>
+                            <button type="button" class="btn btn-sm btn-warning rounded js-edit-location" data-url="${editUrl}">@icon('square-pen', ['mr' => 0])</button>
                             <form method="POST" action="${deleteUrl}" confirm>
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn btn-sm btn-red rounded">@fa(['icon' => 'trash-alt', 'mr' => 0])</button>
+                                <button type="submit" class="btn btn-sm btn-red rounded">@icon('trash-2', ['mr' => 0])</button>
                             </form>
                         </div>
                     `;

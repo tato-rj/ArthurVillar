@@ -2,7 +2,7 @@
 <label class="form-label w-100 mb-1 ml-3 text-nowrap {{$classes ?? null}}">
 	<small>
 	@isset($icon)
-	@fa
+	@icon($icon)
 	@endisset
 	{{$label}}
 	@isset($required)
@@ -10,7 +10,7 @@
 	@endisset
 
 	@isset($tippy)
-	<i class="ml-1 fas fa-info-circle text-primary cursor-pointer" data-toggle="tippy" data-tippy-content="{{$tippy}}"></i>
+	@icon('info', ['mr' => 0, 'ml' => 1, 'classes' => 'text-primary cursor-pointer', 'data-toggle' => 'tippy', 'data-tippy-content' => $tippy])
 	@endisset
 	</small>
 </label>

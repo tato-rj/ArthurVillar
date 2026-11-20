@@ -87,8 +87,8 @@ $(function() {
             info: 'Showing _START_ to _END_ of _TOTAL_',
             emptyTable: 'No invitations yet',
             paginate: {
-                previous: '<i class="fas fa-angle-left mr-0"></i>',
-                next: '<i class="fas fa-angle-right mr-0"></i>',
+                previous: '@icon('chevron-left', ['mr' => 0])',
+                next: '@icon('chevron-right', ['mr' => 0])',
             },
         },
         ajax: @json(route($invitationTableRoute)),
@@ -121,18 +121,18 @@ $(function() {
                     const resultsUrl = @json(route($invitationRoutePrefix.'.results', [$invitationRouteParameter => '__invitation__'])).replace('__invitation__', data);
                     const deleteUrl = @json(route($invitationRoutePrefix.'.destroy', [$invitationRouteParameter => '__invitation__'])).replace('__invitation__', data);
                     const resultsButton = Number(row.participants_count) > 0
-                        ? `<button type="button" class="btn btn-sm btn-primary rounded js-view-invitation-results" data-url="${resultsUrl}" title="View responses" aria-label="View responses">@fa(['icon' => 'chart-bar', 'mr' => 0])</button>`
-                        : `<button type="button" class="btn btn-sm btn-primary rounded" title="No responses yet" aria-label="No responses yet" disabled aria-disabled="true">@fa(['icon' => 'chart-bar', 'mr' => 0])</button>`;
+                        ? `<button type="button" class="btn btn-sm btn-primary rounded js-view-invitation-results" data-url="${resultsUrl}" title="View responses" aria-label="View responses">@icon('chart-bar', ['mr' => 0])</button>`
+                        : `<button type="button" class="btn btn-sm btn-primary rounded" title="No responses yet" aria-label="No responses yet" disabled aria-disabled="true">@icon('chart-bar', ['mr' => 0])</button>`;
 
                     return `
                         <div class="calendar-table-actions">
-                            <button type="button" class="btn btn-sm btn-secondary rounded js-copy-invitation-url" data-url="${row.public_url}" title="Copy public link" aria-label="Copy public link">@fa(['icon' => 'copy', 'mr' => 0])</button>
+                            <button type="button" class="btn btn-sm btn-secondary rounded js-copy-invitation-url" data-url="${row.public_url}" title="Copy public link" aria-label="Copy public link">@icon('copy', ['mr' => 0])</button>
                             ${resultsButton}
-                            <a class="btn btn-sm btn-warning rounded" href="${editUrl}" title="Edit invitation" aria-label="Edit invitation">@fa(['icon' => 'pen-to-square', 'mr' => 0])</a>
+                            <a class="btn btn-sm btn-warning rounded" href="${editUrl}" title="Edit invitation" aria-label="Edit invitation">@icon('square-pen', ['mr' => 0])</a>
                             <form method="POST" action="${deleteUrl}" confirm>
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn btn-sm btn-red rounded" title="Delete invitation" aria-label="Delete invitation">@fa(['icon' => 'trash-alt', 'mr' => 0])</button>
+                                <button type="submit" class="btn btn-sm btn-red rounded" title="Delete invitation" aria-label="Delete invitation">@icon('trash-2', ['mr' => 0])</button>
                             </form>
                         </div>
                     `;
@@ -164,7 +164,7 @@ $(function() {
         const originalHtml = button.innerHTML;
 
         copyText(button.dataset.url).then(function() {
-            button.innerHTML = '<i class="fas fa-check mr-0"></i>';
+            button.innerHTML = '@icon('check', ['mr' => 0])';
             button.classList.remove('btn-secondary');
             button.classList.add('btn-green');
 

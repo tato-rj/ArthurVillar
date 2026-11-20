@@ -5,4 +5,4 @@
 	{{$key}}="{{$value}}"
 	@endforeach
 	@endisset
->@fa(['icon' => $icon]){{$label}}</label>
+>@icon($icon){{$label}}</label>

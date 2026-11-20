@@ -1,6 +1,6 @@
 <div class="calendar-calendar-google-accounts hide-in-mobile">
 	<button type="button" class="btn-raw calendar-calendar-icon-button calendar-calendar-header-control" data-bs-toggle="modal" data-bs-target="#google-accounts-modal" aria-label="Open google accounts">
-		@fa(['icon' => 'google', 'mr' => 0, 'fa_color' => 'black', 'fa_type' => '-brands'])
+		@icon('calendar-sync', ['mr' => 0, 'color' => 'black'])
 	</button>
 
 	@modal(['title' => 'Google accounts', 'id' => 'google-accounts-modal'])
@@ -22,7 +22,7 @@
 								>
 							@else
 								<div class="calendar-google-account-avatar calendar-google-account-avatar-fallback rounded-circle mr-3" aria-hidden="true">
-									<i class="fa-brands fa-google"></i>
+									@icon('calendar-sync', ['mr' => 0])
 								</div>
 							@endif
 
@@ -45,7 +45,7 @@
 						<div class="d-flex">
 							<form class="w-100 mr-1" method="POST" action="{{route('calendar.google-calendar.sync', $googleCalendarConnection)}}">
 								@csrf
-								<button class="btn btn-outline-dark btn-sm w-100" type="submit" {{iftrue(! $googleCalendarConfigured, 'disabled')}}>@fa(['icon' => 'rotate'])Sync now</button>
+								<button class="btn btn-outline-dark btn-sm w-100" type="submit" {{iftrue(! $googleCalendarConfigured, 'disabled')}}>@icon('refresh-cw')Sync now</button>
 							</form>
 
 							<form class="w-100 ml-1" method="POST" action="{{route('calendar.google-calendar.disconnect', $googleCalendarConnection)}}">
@@ -59,7 +59,7 @@
 
 				@if($googleCalendarConfigured)
 					<a class="btn btn-outline-dark w-100" href="{{route('calendar.google-calendar.connect')}}">
-						@fa(['icon' => 'calendar-plus']){{$googleCalendarConnections->isEmpty() ? 'Connect Google Calendar' : 'Add or reauthorize account'}}
+						@icon('calendar-plus'){{$googleCalendarConnections->isEmpty() ? 'Connect Google Calendar' : 'Add or reauthorize account'}}
 					</a>
 				@else
 					<div class="alert alert-danger small mb-0">The Google OAuth credentials are missing from the server.</div>

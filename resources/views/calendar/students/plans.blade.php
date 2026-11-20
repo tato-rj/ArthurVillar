@@ -24,7 +24,7 @@
                 @endif
             </div>
             @if($lessonPlan->location)
-            <div class="small mt-1">@fa(['icon' => 'location-dot', 'classes' => 'opacity-4']){{$lessonPlan->location->name}}</div>
+            <div class="small mt-1">@icon('map-pin', ['classes' => 'opacity-4']){{$lessonPlan->location->name}}</div>
             @endif
         </div>
     @endforeach
@@ -47,7 +47,7 @@
                 · {{$lessonPlan->duration_minutes}} minutes
             </div>
             @if($lessonPlan->location)
-            <div class="small mt-1">@fa(['icon' => 'location-dot', 'classes' => 'opacity-4']){{$lessonPlan->location->name}}</div>
+            <div class="small mt-1">@icon('map-pin', ['classes' => 'opacity-4']){{$lessonPlan->location->name}}</div>
             @endif
         </div>
     @endforeach

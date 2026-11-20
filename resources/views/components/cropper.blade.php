@@ -14,17 +14,17 @@
         @endisset
       </div>
       <div id="upload-button">
-        <button type="button" class="text-white btn-raw rounded-circle d-center position-absolute-center opacity-8" style="width: 80px; height: 80px; z-index: 1; font-size: 1.8rem; background: rgba(0,0,0,0.2);">@fa(['icon' => 'camera', 'mr' => 0])
+        <button type="button" class="text-white btn-raw rounded-circle d-center position-absolute-center opacity-8" style="width: 80px; height: 80px; z-index: 1; font-size: 1.8rem; background: rgba(0,0,0,0.2);">@icon('camera', ['mr' => 0])
         </button>
       </div>
     </div>
       
       <div class="controls text-center mt-2">
         <button type="button" id="cancel-button" style="display: none" class="btn btn-sm btn-red py-0">
-          <i class="fas fa-times"></i>
+          @icon('x', ['mr' => 0])
         </button>
         <button type="button" id="confirm-button" style="display: none" class="btn btn-sm btn-green py-0">
-          <i class="fas fa-check"></i>
+          @icon('check', ['mr' => 0])
         </button>
       </div>
     </div>

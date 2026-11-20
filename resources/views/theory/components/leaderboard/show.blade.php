@@ -1,4 +1,4 @@
-@modal(['title' => fa('ranking-star').'Leaderboard', 'class' => 'leaderboard', 'id' => 'leaderboard-'.$settings->gameSlug().'-modal', 'autoshow' => (bool) session('newPlayer')])
+@modal(['title' => \App\Support\Icon::render('list-ordered').'Leaderboard', 'class' => 'leaderboard', 'id' => 'leaderboard-'.$settings->gameSlug().'-modal', 'autoshow' => (bool) session('newPlayer')])
 
 <div class="leaderboard-wrapper">
 	<div class="text-center mb-3">

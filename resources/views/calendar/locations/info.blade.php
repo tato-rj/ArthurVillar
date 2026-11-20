@@ -35,7 +35,7 @@
     </div>
 
     <div class="mb-3">
-        @fa(['icon' => 'percent', 'classes' => 'opacity-4'])
+        @icon('percent', ['classes' => 'opacity-4'])
         <span id="location-info-tax"></span>
     </div>
 

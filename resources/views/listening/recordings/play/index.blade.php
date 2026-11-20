@@ -63,11 +63,11 @@ img {
 @if(request()->qrcode)
 <div class="position-absolute top-o left-0 w-100 mt-3 animate__animated animate__fadeInLeft">
   <div class="mb-2">
-    <a href="{{route('admin.recordings.qrcode', ['recording' => $recording, 'url' => url()->current()])}}" class="btn btn-sm btn-secondary">@fa(['icon' => 'qrcode'])Make QRCode</a>
+    <a href="{{route('admin.recordings.qrcode', ['recording' => $recording, 'url' => url()->current()])}}" class="btn btn-sm btn-secondary">@icon('qr-code')Make QRCode</a>
   </div>
 
   <div>
-    <a href="{{url()->current()}}" target="_blank" class="btn btn-sm btn-secondary">@fa(['icon' => 'link'])Public link</a>
+    <a href="{{url()->current()}}" target="_blank" class="btn btn-sm btn-secondary">@icon('link')Public link</a>
   </div>
 </div>
 @endif

@@ -62,8 +62,8 @@ for (const type of ['NoteNest', 'NoteMatch']) {
         game._handlePlayedNoteHeard(60, 'C4', 261.6);
 
         assert.equal(game.$playNoteStatus.value, 'Note heard!');
-        assert.match(game.$playNoteStatus.prependHtml, /fa-circle-check text-green/);
-        assert.doesNotMatch(game.$playNoteStatus.prependHtml, /fa-microphone-lines/);
+        assert.match(game.$playNoteStatus.prependHtml, /icon-circle-check text-green/);
+        assert.doesNotMatch(game.$playNoteStatus.prependHtml, /icon-mic-vocal/);
         assert.ok(game.$playNoteStatus.classes.has('bg-green-lighter'));
         assert.equal(game.$playNoteStatus.visible, true);
         assert.equal(game.$playNoteStart.visible, false);
@@ -140,7 +140,7 @@ test('microphone access changes the status to yellow listening', async () => {
     await game._startPitchInput();
 
     assert.equal(game.$playNoteStatus.value, "Go ahead, I'm listening");
-    assert.match(game.$playNoteStatus.prependHtml, /fa-microphone-lines text-yellow/);
+    assert.match(game.$playNoteStatus.prependHtml, /icon-mic-vocal text-yellow/);
     assert.match(game.$playNoteStatus.prependHtml, /aria-hidden="true"/);
     assert.ok(game.$playNoteStatus.classes.has('bg-yellow-lighter'));
     assert.equal(game.$playNoteStart.visible, false);
