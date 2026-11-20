@@ -29,6 +29,7 @@
             <option value="">—</option>
             @option(['name' => 'canceled_by', 'label' => 'Student', 'value' => 'student', 'selected' => $lesson->canceled_by === 'student'])
             @option(['name' => 'canceled_by', 'label' => 'Teacher', 'value' => 'teacher', 'selected' => $lesson->canceled_by === 'teacher'])
+            @option(['name' => 'canceled_by', 'label' => 'Holiday', 'value' => 'holiday', 'selected' => $lesson->canceled_by === 'holiday'])
         @endselect
     </div>
 

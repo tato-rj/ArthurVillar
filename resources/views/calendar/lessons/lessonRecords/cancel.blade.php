@@ -25,6 +25,12 @@
 				    Myself
 				  </label>
 				</div>
+				<div class="form-check">
+				  <input class="form-check-input" type="radio" name="canceled_by" id="canceled_by_radio-3" value="holiday">
+				  <label class="form-check-label" for="canceled_by_radio-3">
+				    Holiday
+				  </label>
+				</div>
 			</div>
 
 			<div class="my-4 bg-light rounded p-3" data-recurring-cancel-fields>

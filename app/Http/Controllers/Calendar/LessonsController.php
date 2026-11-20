@@ -19,6 +19,8 @@ use Illuminate\Validation\ValidationException;
 
 class LessonsController extends Controller
 {
+    private const CANCELLATION_REASONS = ['student', 'teacher', 'holiday'];
+
     public function index()
     {
         return redirect()->route('calendar.lesson-records.index');
@@ -127,7 +129,7 @@ class LessonsController extends Controller
             'date' => ['required', 'date_format:Y-m-d'],
             'scheduled_date' => ['nullable', 'date_format:Y-m-d'],
             'cancelation_type' => ['required', Rule::in(['current', 'future', 'all'])],
-            'canceled_by' => ['required_if:cancelation_type,current', 'nullable', Rule::in(['teacher', 'student'])],
+            'canceled_by' => ['required_if:cancelation_type,current', 'nullable', Rule::in(self::CANCELLATION_REASONS)],
         ]);
 
         if ($data['cancelation_type'] === 'future') {
@@ -190,7 +192,7 @@ class LessonsController extends Controller
         $data = $request->validate([
             'lesson_plan_id' => ['required', 'exists:lesson_plans,id'],
             'single_lesson_plan_id' => ['prohibited'],
-            'canceled_by' => ['nullable', Rule::in(['teacher', 'student'])],
+            'canceled_by' => ['nullable', Rule::in(self::CANCELLATION_REASONS)],
             'occurrences' => ['required', 'array', 'list', 'min:1'],
             'occurrences.*.action' => ['sometimes', 'required', Rule::in(['cancel', 'restore'])],
             'occurrences.*.date' => ['required', 'date_format:Y-m-d'],
@@ -523,7 +525,7 @@ class LessonsController extends Controller
             'paid_at' => ['nullable', 'date'],
             'payment_method' => ['nullable', 'string', 'max:255'],
             'canceled_at' => ['nullable', 'date'],
-            'canceled_by' => ['nullable', Rule::in(['student', 'teacher'])],
+            'canceled_by' => ['nullable', Rule::in(self::CANCELLATION_REASONS)],
             'notes' => ['nullable', 'string'],
         ]);
 

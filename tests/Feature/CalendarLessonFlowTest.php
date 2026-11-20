@@ -1351,10 +1351,12 @@ class CalendarLessonFlowTest extends BaseTest
             $augustRows->firstWhere('date', '2026-08-19') + ['action' => 'restore'],
         ];
         $payload['occurrences'] = $mixed;
+        $payload['canceled_by'] = 'holiday';
         $response = $this->postJson($url, $payload)->assertOk()
             ->assertJsonPath('occurrences.0.status', 'early-payment')
             ->assertJsonPath('occurrences.0.early_payment_id', $payment->id)
             ->assertJsonPath('occurrences.1.status', 'canceled')
+            ->assertJsonPath('occurrences.1.canceled_by', 'holiday')
             ->assertJsonPath('occurrences.2.status', 'unconfirmed')
             ->assertJsonPath('occurrences.2.schedule_override_id', $override->id)
             ->assertJsonPath('occurrences.3.status', 'unconfirmed');
@@ -2383,7 +2385,7 @@ class CalendarLessonFlowTest extends BaseTest
     }
 
     /** @test */
-    public function calendar_modal_can_cancel_a_lesson_with_json()
+    public function calendar_modal_can_cancel_a_lesson_for_a_holiday()
     {
         $lessonPlan = LessonPlan::factory()->create([
             'weekday' => 4,
@@ -2394,7 +2396,13 @@ class CalendarLessonFlowTest extends BaseTest
 
         $this->signIn();
 
-        $this->postJson(route('calendar.lessons.cancel'), [
+        $calendar = $this->get(route('calendar.home'))->assertOk();
+        $document = new \DOMDocument;
+        $document->loadHTML($calendar->getContent(), LIBXML_NOERROR | LIBXML_NOWARNING);
+        $fields = new \DOMXPath($document);
+        $this->assertSame('holiday', $fields->evaluate('string(//input[@type="radio" and @name="canceled_by" and @value="holiday"]/@value)'));
+
+        $response = $this->postJson(route('calendar.lessons.cancel'), [
             'lesson_plan_id' => $lessonPlan->id,
             'date' => '2026-07-08',
             'start' => '15:30',
@@ -2402,11 +2410,31 @@ class CalendarLessonFlowTest extends BaseTest
             'scheduled_date' => '2026-07-08',
             'scheduled_start_time' => '15:30',
             'cancelation_type' => 'current',
-            'canceled_by' => 'student',
+            'canceled_by' => 'holiday',
         ])
             ->assertOk()
             ->assertJsonPath('status', 'canceled')
-            ->assertJsonPath('canceled_by', 'student');
+            ->assertJsonPath('canceled_by', 'holiday');
+
+        $lesson = Lesson::findOrFail($response->json('lesson_id'));
+        $this->assertSame('holiday', $lesson->canceled_by);
+
+        $edit = $this->get($response->json('edit_url'))->assertOk();
+        $document->loadHTML($edit->getContent(), LIBXML_NOERROR | LIBXML_NOWARNING);
+        $fields = new \DOMXPath($document);
+        $this->assertSame('holiday', $fields->evaluate('string(//select[@name="canceled_by"]/option[@selected]/@value)'));
+
+        $this->patch(route('calendar.lessons.update', $lesson), [
+            'date' => '2026-07-08',
+            'start_time' => '15:30',
+            'duration_minutes' => 45,
+            'status' => 'canceled',
+            'canceled_by' => 'holiday',
+            'notes' => 'Holiday closure',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $this->assertSame('holiday', $lesson->refresh()->canceled_by);
+        $this->assertSame('Holiday closure', $lesson->notes);
     }
 
     /** @test */
