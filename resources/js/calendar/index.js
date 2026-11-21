@@ -1064,7 +1064,7 @@ const bindScheduleHeaderDrag = function(calendar, navigateByDays) {
         clearDrag(true);
 
         if (offset) {
-            navigateByDays(offset, current.preview);
+            navigateByDays(offset, current.preview, current.inputType);
             return;
         }
 
@@ -8535,7 +8535,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return true;
     };
 
-    const navigateScheduleHeaderByArrow = bindScheduleHeaderDrag(calendar, function(dayOffset, preview) {
+    const navigateScheduleHeaderByArrow = bindScheduleHeaderDrag(calendar, function(dayOffset, preview, inputType) {
         if (!dayOffset || isScheduleHoldNavigationSuppressed()) {
             if (preview) {
                 removeScheduleHeaderDragPreview(preview);
@@ -8552,6 +8552,12 @@ document.addEventListener('DOMContentLoaded', function() {
         state.pendingScheduleHeaderPreview = preview;
         state.pendingScheduleScrollTop = schedule ? schedule.scrollTop : null;
         moveScheduleByDays(dayOffset);
+        if (inputType === 'touch' || window.matchMedia('(pointer: coarse)').matches) {
+            // Replace the grid before the next tap can start on an event from the previous dates.
+            render();
+            return;
+        }
+
         window.clearTimeout(scheduleHeaderRenderTimer);
             scheduleHeaderRenderTimer = window.setTimeout(function() {
                 scheduleHeaderRenderTimer = null;
