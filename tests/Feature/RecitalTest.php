@@ -216,4 +216,78 @@ class RecitalTest extends BaseTest
             ])
             ->assertJsonMissingPath('nextRecitalsByStudent.'.$unrelatedStudent->id);
     }
+
+    public function test_lesson_recital_picker_lists_all_upcoming_recitals_in_schedule_order()
+    {
+        $this->travelTo(Carbon::parse('2026-11-21 12:00', config('calendar.timezone')));
+        $student = Student::factory()->create();
+        $this->signIn();
+        $range = [
+            'view' => 'day',
+            'date' => '2026-11-21',
+            'range_start' => '2026-11-20',
+            'range_end' => '2026-11-22',
+            'lesson_plans' => 1,
+        ];
+        Recital::factory()->create(['date' => '2026-11-21', 'start_time' => '11:00']);
+
+        $this->getJson(route('calendar.home', $range))->assertOk()
+            ->assertJsonPath('hasUpcomingRecitals', false);
+
+        $later = Recital::factory()->create(['date' => '2026-12-28', 'start_time' => '18:00']);
+        $joined = Recital::factory()->create(['date' => '2026-11-21', 'start_time' => '19:00']);
+        $first = Recital::factory()->create(['date' => '2026-11-21', 'start_time' => '15:00']);
+        $joined->students()->attach($student);
+
+        $this->getJson(route('calendar.home', $range))->assertOk()
+            ->assertJsonPath('hasUpcomingRecitals', true)
+            ->assertJsonCount(3, 'recitals');
+        $this->getJson(route('calendar.students.upcoming-recitals', $student))
+            ->assertOk()
+            ->assertJsonCount(3, 'recitals')
+            ->assertJsonPath('recitals.0.id', $first->id)
+            ->assertJsonPath('recitals.0.joined', false)
+            ->assertJsonPath('recitals.1.id', $joined->id)
+            ->assertJsonPath('recitals.1.joined', true)
+            ->assertJsonPath('recitals.2.id', $later->id);
+    }
+
+    public function test_joining_recitals_adds_multiple_assignments_and_can_be_retried()
+    {
+        $this->travelTo(Carbon::parse('2026-11-21 12:00', config('calendar.timezone')));
+        [$student, $otherStudent] = Student::factory()->count(2)->create();
+        $first = Recital::factory()->create(['name' => 'Winter Showcase', 'date' => '2026-12-06', 'start_time' => '17:30']);
+        $second = Recital::factory()->create(['date' => '2026-12-20']);
+        $existing = Recital::factory()->create(['date' => '2026-12-30']);
+        $existing->students()->attach($student);
+        $first->students()->attach($otherStudent);
+        $this->signIn();
+
+        $url = route('calendar.students.upcoming-recitals.update', $student);
+        $selection = ['recital_ids' => [$first->id, $second->id]];
+        $this->patchJson($url, $selection)->assertOk()
+            ->assertJsonPath('student.id', $student->id)
+            ->assertJsonPath('recital_ids', $selection['recital_ids'])
+            ->assertJsonPath('next_recital.name', $first->name)
+            ->assertJsonPath('next_recital.date', '2026-12-06');
+        $this->patchJson($url, $selection)->assertOk();
+
+        $this->assertEqualsCanonicalizing([$first->id, $second->id, $existing->id], $student->recitals()->pluck('recitals.id')->all());
+        $this->assertEqualsCanonicalizing([$student->id, $otherStudent->id], $first->students()->pluck('students.id')->all());
+    }
+
+    public function test_joining_recitals_rejects_a_stale_selection_without_partial_assignments()
+    {
+        $this->travelTo(Carbon::parse('2026-11-21 12:00', config('calendar.timezone')));
+        $student = Student::factory()->create();
+        $past = Recital::factory()->create(['date' => '2026-11-21', 'start_time' => '11:00']);
+        $upcoming = Recital::factory()->create(['date' => '2026-11-21', 'start_time' => '14:00']);
+        $this->signIn();
+
+        $this->patchJson(route('calendar.students.upcoming-recitals.update', $student), [
+            'recital_ids' => [$past->id, $upcoming->id],
+        ])->assertUnprocessable()->assertJsonValidationErrors('recital_ids');
+
+        $this->assertFalse($student->recitals()->exists());
+    }
 }

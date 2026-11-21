@@ -73,6 +73,7 @@ window.calendarSingleLessonPlans = @json($singleLessonPlans);
 window.calendarHolidays = @json($holidays);
 window.calendarTeachingBreaks = @json($teachingBreaks);
 window.calendarRecitals = @json($recitals);
+window.calendarHasUpcomingRecitals = @json($hasUpcomingRecitals);
 window.calendarNextRecitalsByStudent = @json($nextRecitalsByStudent);
 window.calendarGeneralEvents = @json($generalEvents);
 window.calendarIgnoredConflicts = @json($ignoredConflicts);

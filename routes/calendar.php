@@ -62,6 +62,8 @@ Route::prefix('students')->name('students.')->group(function() {
 		Route::get('', 'StudentsController@show')->name('show');
 
 		Route::get('lesson-plans', 'StudentsController@lessonPlans')->name('lesson-plans');
+		Route::get('upcoming-recitals', 'RecitalsController@upcomingForStudent')->name('upcoming-recitals');
+		Route::patch('upcoming-recitals', 'RecitalsController@joinUpcoming')->name('upcoming-recitals.update');
 		Route::get('edit', 'StudentsController@edit')->name('edit');
 
 		Route::patch('', 'StudentsController@update')->name('update');

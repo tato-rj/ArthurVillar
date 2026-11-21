@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers\Calendar;
 
+use App\Calendar\Scheduler;
 use App\Http\Controllers\Controller;
 use App\Models\Calendar\{Event, Location, Recital, Student};
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class RecitalsController extends Controller
 {
@@ -53,9 +56,60 @@ class RecitalsController extends Controller
             'student_ids.*' => ['integer', Rule::exists('students', 'id')],
         ]);
 
-        $recital->students()->sync($data['student_ids'] ?? []);
+        DB::transaction(function () use ($recital, $data) {
+            $lockedRecital = Recital::lockForUpdate()->findOrFail($recital->id);
+            $lockedRecital->students()->sync($data['student_ids'] ?? []);
+        });
 
         return back()->with('success', 'The recital participants were successfully updated');
+    }
+
+    public function upcomingForStudent(Student $student)
+    {
+        $recitals = Recital::upcoming()
+            ->with('location:id,name')
+            ->withExists(['students as joined' => fn ($query) => $query->whereKey($student->id)])
+            ->inScheduleOrder()
+            ->get()
+            ->map(fn (Recital $recital) => [
+                'id' => $recital->id,
+                'name' => $recital->name,
+                'date' => $recital->date->toDateString(),
+                'start_time' => $recital->start_time,
+                'location_name' => $recital->location?->name,
+                'joined' => $recital->joined,
+            ]);
+
+        return response()->json(['recitals' => $recitals]);
+    }
+
+    public function joinUpcoming(Request $request, Student $student, Scheduler $scheduler)
+    {
+        $data = $request->validate([
+            'recital_ids' => ['required', 'array', 'min:1'],
+            'recital_ids.*' => ['required', 'integer', 'distinct'],
+        ]);
+
+        $payload = DB::transaction(function () use ($data, $student, $scheduler) {
+            $recitalIds = Recital::upcoming()->whereKey($data['recital_ids'])
+                ->orderBy('id')->lockForUpdate()->pluck('id');
+
+            if ($recitalIds->count() !== count($data['recital_ids'])) {
+                throw ValidationException::withMessages([
+                    'recital_ids' => 'One or more selected recitals are no longer upcoming.',
+                ]);
+            }
+
+            $student->recitals()->syncWithoutDetaching($recitalIds->all());
+
+            return [
+                'recital_ids' => $recitalIds,
+                'student' => ['id' => $student->id, 'name' => $student->full_name],
+                'next_recital' => $scheduler->nextRecitalsByStudent([$student->id])->get($student->id),
+            ];
+        });
+
+        return response()->json($payload);
     }
 
     public function destroy(Recital $recital)

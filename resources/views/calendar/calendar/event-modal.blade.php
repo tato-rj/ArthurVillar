@@ -131,6 +131,7 @@
         @include('calendar.lessons.lessonRecords.reschedule')
         @include('calendar.lessons.lessonRecords.cancel')
         @include('calendar.lessons.lessonRecords.controls')
+        @include('calendar.lessons.lessonRecords.recitals')
     </div>
 
     <div data-event-modal-section="general" hidden>
@@ -138,7 +139,7 @@
     </div>
 </div>
 
-@include('calendar.calendar.conflict-toggle', ['expandedOnly' => true])
+@include('calendar.calendar.conflict-toggle', ['expandedOnly' => true, 'showRecitalAction' => true])
 
 <div class="px-3 mt-2" data-event-modal-expand-toggle-container>
     <button

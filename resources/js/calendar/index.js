@@ -25,7 +25,10 @@ const state = {
     showHolidays: true,
     teachingBreaks: [],
     recitals: [],
+    hasUpcomingRecitals: false,
     nextRecitalsByStudent: {},
+    lessonRecitalPicker: null,
+    pendingRecitalAssignments: new Set(),
     generalEvents: [],
     selectedEventTypes: [...calendarEventTypes],
     studentSearch: '',
@@ -321,6 +324,7 @@ const applyCalendarPayload = function(payload, range, fetchedAt) {
     ['plannedLessons', 'singleLessonPlans', 'holidays', 'teachingBreaks', 'recitals', 'generalEvents'].forEach(function(key) {
         state[key] = Array.isArray(payload[key]) ? payload[key] : [];
     });
+    state.hasUpcomingRecitals = Boolean(payload.hasUpcomingRecitals);
     state.nextRecitalsByStudent = payload.nextRecitalsByStudent || {};
     setIgnoredConflictPairs(payload.ignoredConflicts);
     state.loadedRange = normalizeRange(payload.calendarRange) || normalizeRange(range);
@@ -2437,12 +2441,13 @@ const getGeneralEventByGuid = function(guid) {
     return generalEvent ? getGeneralEvent(generalEvent) : null;
 };
 
-const getCalendarEventElementsByGuid = function(guid) {
-    if (!guid) {
-        return [];
-    }
+const getCalendarEventElements = function() {
+    return Array.from(document.querySelectorAll('#calendar .lm-schedule-item, #calendar [data-event-guid], #month-day-events-modal [data-event-guid]'));
+};
 
-    return Array.from(document.querySelectorAll('#calendar .lm-schedule-item, #calendar [data-event-guid], #month-day-events-modal [data-event-guid]')).filter(function(item) {
+const getCalendarEventElementsByGuid = function(guid) {
+    if (!guid) return [];
+    return getCalendarEventElements().filter(function(item) {
         return item.id === guid || item.dataset.eventGuid === guid;
     });
 };
@@ -2727,12 +2732,181 @@ const renderGeneralEventRescheduleDatePicker = function(modal) {
     }
 };
 
+const renderLessonModalRecital = function(modal, event) {
+    const section = modal.querySelector('[data-lesson-recital-section]');
+    const details = modal.querySelector('[data-lesson-recital-details]');
+    if (!section || !details) return;
+
+    const recital = getLessonRecital(event);
+    section.hidden = !recital;
+    details.textContent = recital ? [
+        recital.name,
+        dayFormatter.format(parseDateString(recital.date)),
+        formatModalEventTime(recital.start_time),
+        recital.location_name,
+    ].filter(Boolean).join(' · ') : '';
+};
+
+const closeLessonRecitalPicker = function(modal, restoreFocus = false) {
+    if (!state.lessonRecitalPicker) return;
+    state.lessonRecitalPicker = null;
+    modal.classList.remove('is-assigning-recitals');
+    modal.querySelector('#lesson-recital-picker').hidden = true;
+    const button = modal.querySelector('[data-lesson-recital-open]');
+    button.setAttribute('aria-expanded', 'false');
+    if (restoreFocus) button.focus();
+};
+
+const applyRecitalAssignments = function({ student, recital_ids, next_recital }) {
+    invalidateCalendarDataCache();
+    state.nextRecitalsByStudent[student.id] = next_recital;
+    const recitalIds = new Set(recital_ids);
+    state.recitals.forEach(function(recital) {
+        if (!recitalIds.has(recital.id) || recital.students.some(participant => participant.id === student.id)) return;
+        recital.students.push(student);
+        recital.students.sort((a, b) => a.name.localeCompare(b.name));
+    });
+
+    const lessons = new Map(state.events.filter(event => String(event.studentId) === String(student.id))
+        .map(event => [event.guid, event]));
+    getCalendarEventElements().forEach(function(item) {
+        const event = lessons.get(item.dataset.eventGuid || item.id);
+        if (event) renderLessonRecitalDate(item, event);
+    });
+};
+
+const bindLessonRecitalPicker = function(modal, render) {
+    const button = modal.querySelector('[data-lesson-recital-open]');
+    const form = modal.querySelector('#lesson-recital-picker');
+    if (!button || !form) return;
+
+    const fields = form.querySelector('[data-lesson-recital-fields]');
+    const options = form.querySelector('[data-lesson-recital-options]');
+    const template = form.querySelector('[data-lesson-recital-option]');
+    const status = form.querySelector('[data-lesson-recital-status]');
+    const error = form.querySelector('[data-lesson-recital-error]');
+    const cancel = form.querySelector('[data-lesson-recital-cancel]');
+    const save = form.querySelector('button[type="submit"]');
+    const selected = 'input:checked:not(:disabled)';
+    const getLesson = () => modal.dataset.eventModalType === 'lesson' ? getEventByGuid(modal.dataset.eventGuid) : null;
+    const updateSaveButton = () => { save.disabled = !options.querySelector(selected); };
+    const showError = function(message) {
+        error.textContent = message;
+        error.hidden = false;
+    };
+
+    button.addEventListener('click', async function() {
+        const event = getLesson();
+        if (!event?.studentId || state.pendingLessonMutations.has(event.guid)) return;
+        const studentId = String(event.studentId);
+        if (state.pendingRecitalAssignments.has(studentId)) return;
+
+        const picker = { studentId, url: form.dataset.url.replace('__student__', studentId) };
+        state.lessonRecitalPicker = picker;
+        modal.classList.add('is-assigning-recitals');
+        button.setAttribute('aria-expanded', 'true');
+        options.replaceChildren();
+        status.textContent = 'Loading upcoming recitals…';
+        status.hidden = false;
+        error.hidden = true;
+        fields.disabled = false;
+        cancel.disabled = false;
+        save.disabled = true;
+        form.hidden = false;
+        form.querySelector('legend').focus();
+
+        try {
+            const { recitals } = await requestJson(picker.url, {
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            }, 'Unable to load upcoming recitals.');
+            if (state.lessonRecitalPicker !== picker) return;
+
+            recitals.forEach(function(recital) {
+                const row = template.content.cloneNode(true);
+                const checkbox = row.querySelector('input');
+                checkbox.value = recital.id;
+                checkbox.checked = recital.joined;
+                checkbox.disabled = recital.joined;
+                row.querySelector('[data-recital-name]').textContent = recital.name;
+                row.querySelector('[data-recital-details]').textContent = [
+                    dayFormatter.format(parseDateString(recital.date)),
+                    formatModalEventTime(recital.start_time),
+                    recital.location_name,
+                    recital.joined ? 'Already joined' : '',
+                ].filter(Boolean).join(' · ');
+                options.appendChild(row);
+            });
+            status.hidden = recitals.length > 0;
+            status.textContent = 'No upcoming recitals.';
+            if (!recitals.length) {
+                state.hasUpcomingRecitals = false;
+                updateConflictToggle(modal, event);
+            }
+        } catch (requestError) {
+            if (state.lessonRecitalPicker !== picker) return;
+            status.hidden = true;
+            showError(requestError.message);
+        }
+    });
+
+    options.addEventListener('change', updateSaveButton);
+    cancel.addEventListener('click', () => closeLessonRecitalPicker(modal, true));
+    modal.addEventListener('hide.bs.modal', () => closeLessonRecitalPicker(modal));
+
+    form.addEventListener('submit', async function(event) {
+        event.preventDefault();
+        const picker = state.lessonRecitalPicker;
+        if (!picker || state.pendingRecitalAssignments.has(picker.studentId)) return;
+        const recitalIds = Array.from(options.querySelectorAll(selected), input => Number(input.value));
+        if (!recitalIds.length) return;
+
+        state.pendingRecitalAssignments.add(picker.studentId);
+        fields.disabled = true;
+        cancel.disabled = true;
+        save.disabled = true;
+        error.hidden = true;
+
+        let saved = false;
+        try {
+            const payload = await requestJson(picker.url, {
+                method: 'PATCH',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': window.calendarCsrfToken || '',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({ recital_ids: recitalIds }),
+            }, 'Unable to join the selected recitals.');
+            applyRecitalAssignments(payload);
+            if (state.studentSearch.trim()) render({ mode: 'discreet' });
+            saved = true;
+        } catch (requestError) {
+            if (state.lessonRecitalPicker === picker) showError(requestError.message);
+        } finally {
+            state.pendingRecitalAssignments.delete(picker.studentId);
+            const lesson = getLesson();
+            if (String(lesson?.studentId) === picker.studentId) {
+                button.disabled = false;
+                if (saved) renderLessonModalRecital(modal, lesson);
+            }
+            if (state.lessonRecitalPicker === picker) {
+                fields.disabled = false;
+                cancel.disabled = false;
+                updateSaveButton();
+                if (saved) closeLessonRecitalPicker(modal, true);
+            }
+        }
+    });
+};
+
 const resetLessonModalState = function(modal) {
     if (!modal) {
         return;
     }
 
     if (state.cancelLessonConfirmation) state.cancelLessonConfirmation();
+    closeLessonRecitalPicker(modal);
     setLessonMutationBusy(modal, false);
     state.lessonCancellationPicker?.reset();
     const restorationNotice = modal.querySelector('[data-lesson-restoration-notice]');
@@ -2977,8 +3151,6 @@ const populateLessonModal = function(modal, event) {
     const lessonPlanSummarySection = modal.querySelector('[data-lesson-plan-summary-section]');
     const time = modal.querySelector('[data-event-modal-time]');
     const recurrence = modal.querySelector('#lesson-recurrence');
-    const recitalSection = modal.querySelector('[data-lesson-recital-section]');
-    const recitalDetails = modal.querySelector('[data-lesson-recital-details]');
     const birthday = modal.querySelector('#lesson-birthday');
     const birthdayLabel = birthday ? birthday.querySelector('[data-lesson-birthday-label]') : null;
     const birthDateSection = modal.querySelector('[data-lesson-birth-date-section]');
@@ -3046,16 +3218,7 @@ const populateLessonModal = function(modal, event) {
         }
     }
 
-    if (recitalSection && recitalDetails) {
-        const recital = getLessonRecital(event);
-        recitalSection.hidden = !recital;
-        recitalDetails.textContent = recital ? [
-            recital.name,
-            dayFormatter.format(parseDateString(recital.date)),
-            formatModalEventTime(recital.start_time),
-            recital.location_name,
-        ].filter(Boolean).join(' · ') : '';
-    }
+    renderLessonModalRecital(modal, event);
 
     if (birthday && birthdayLabel) {
         if (event && event.birthdayModalLabel) {
@@ -4816,6 +4979,7 @@ const resetGeneralEventModalState = function(modal) {
         return;
     }
 
+    closeLessonRecitalPicker(modal);
     modal.classList.remove('is-canceling', 'is-rescheduling', 'is-drop-rescheduling');
     state.rescheduleAnchor = null;
     clearGeneralEventActionError(modal);
@@ -5932,6 +6096,7 @@ const getConflictingEvents = function(event) {
 const updateConflictToggle = function(modal, event) {
     const section = modal ? modal.querySelector('[data-conflict-section]') : null;
     const button = section ? section.querySelector('[data-conflict-toggle]') : null;
+    const recitalAction = section?.querySelector('[data-lesson-recital-action]');
     const label = button ? button.querySelector('[data-conflict-toggle-label]') : null;
     const eventKey = getConflictEventKey(event);
     const conflictingEvents = getConflictingEvents(event);
@@ -5942,7 +6107,14 @@ const updateConflictToggle = function(modal, event) {
         return;
     }
 
-    section.hidden = !canToggle;
+    const canJoin = Boolean(recitalAction && modal.dataset.eventModalType === 'lesson'
+        && event?.studentId && state.hasUpcomingRecitals);
+    if (recitalAction) {
+        recitalAction.hidden = !canJoin;
+        recitalAction.querySelector('button').disabled = state.pendingRecitalAssignments.has(String(event?.studentId));
+    }
+    section.querySelector('[data-conflict-controls]').hidden = !canToggle;
+    section.hidden = !canToggle && !canJoin;
     section.toggleAttribute('data-event-modal-expanded-content', !event?.readOnly);
 
     if (!canToggle) {
@@ -8047,6 +8219,7 @@ document.addEventListener('DOMContentLoaded', function() {
     state.showHolidays = window.calendarShowHolidays !== false;
     state.teachingBreaks = Array.isArray(window.calendarTeachingBreaks) ? window.calendarTeachingBreaks : [];
     state.recitals = Array.isArray(window.calendarRecitals) ? window.calendarRecitals : [];
+    state.hasUpcomingRecitals = Boolean(window.calendarHasUpcomingRecitals);
     state.nextRecitalsByStudent = window.calendarNextRecitalsByStudent || {};
     state.generalEvents = Array.isArray(window.calendarGeneralEvents) ? window.calendarGeneralEvents : [];
     setIgnoredConflictPairs(window.calendarIgnoredConflicts);
@@ -9561,6 +9734,7 @@ document.addEventListener('DOMContentLoaded', function() {
     bindConflictToggle(document.getElementById('recital-modal'), render);
 
     if (calendarEventModal) {
+        bindLessonRecitalPicker(calendarEventModal, render);
         const resetCalendarEventModal = function() {
             calendarEventModal.updatedScheduleItem = null;
             calendarEventModal.generalEvent = null;

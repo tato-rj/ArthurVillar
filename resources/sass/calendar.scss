@@ -2895,7 +2895,8 @@ button.single-lesson-plan-create[selected] i {
 }
 
 #calendar-event-modal.is-rescheduling,
-#calendar-event-modal.is-canceling {
+#calendar-event-modal.is-canceling,
+#calendar-event-modal.is-assigning-recitals {
     #lesson-primary-controls,
     #lesson-controls,
     #general-event-controls {
@@ -2903,8 +2904,22 @@ button.single-lesson-plan-create[selected] i {
     }
 }
 
+#calendar-event-modal:is(.is-rescheduling, .is-canceling) {
+    [data-lesson-recital-action],
+    [data-conflict-section]:has([data-conflict-controls][hidden]) {
+        display: none;
+    }
+}
+
 #calendar-event-modal.is-rescheduling {
     #header-buttons {
+        display: none;
+    }
+}
+
+#calendar-event-modal.is-assigning-recitals {
+    #header-buttons,
+    [data-conflict-section] {
         display: none;
     }
 }

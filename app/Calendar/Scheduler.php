@@ -38,6 +38,7 @@ class Scheduler
             'holidays' => $this->holidays($range),
             'teachingBreaks' => $this->teachingBreaks($range),
             'recitals' => $this->recitals($range),
+            'hasUpcomingRecitals' => Recital::upcoming()->exists(),
             'nextRecitalsByStudent' => $this->nextRecitalsByStudent($studentIds),
             'generalEvents' => $this->generalEvents($range, $request->user()?->id),
             'ignoredConflicts' => $request->user()
@@ -422,28 +423,18 @@ class Scheduler
             ->values();
     }
 
-    private function nextRecitalsByStudent(array $studentIds)
+    public function nextRecitalsByStudent(array $studentIds)
     {
         if ($studentIds === []) {
             return collect();
         }
 
-        $now = now(config('calendar.timezone'));
-        $today = $now->toDateString();
-
         return Recital::query()
             ->join('recital_student', 'recital_student.recital_id', '=', 'recitals.id')
             ->leftJoin('locations', 'locations.id', '=', 'recitals.location_id')
             ->whereIntegerInRaw('recital_student.student_id', $studentIds)
-            ->where(function ($query) use ($today, $now) {
-                $query->whereDate('recitals.date', '>', $today)
-                    ->orWhere(function ($query) use ($today, $now) {
-                        $query->whereDate('recitals.date', $today)->where('recitals.start_time', '>', $now->toTimeString());
-                    });
-            })
-            ->orderBy('recitals.date')
-            ->orderBy('recitals.start_time')
-            ->orderBy('recitals.id')
+            ->upcoming()
+            ->inScheduleOrder()
             ->get(['recital_student.student_id', 'recitals.name', 'recitals.date', 'recitals.start_time', 'locations.name as location_name'])
             ->unique('student_id')
             ->mapWithKeys(fn (Recital $recital) => [$recital->student_id => [
