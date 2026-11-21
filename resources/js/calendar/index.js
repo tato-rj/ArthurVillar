@@ -138,6 +138,8 @@ const calendarRequestTimeoutMilliseconds = 20 * 1000;
 const calendarStaleAfterMilliseconds = 5 * 60 * 1000;
 
 const scheduleGridViews = ['day', '2-days', 'week'];
+const scheduleItemHoldDelay = 600;
+const scheduleItemMoveTolerance = 8;
 
 const createLocalDate = function(year, month, day) {
     return new Date(year, month, day, 12, 0, 0, 0);
@@ -1266,6 +1268,50 @@ const bindScheduleHeaderDrag = function(calendar, navigateByDays) {
     });
 
     return navigateByArrow;
+};
+
+const bindScheduleEventTap = function(calendar, getItem, openItem) {
+    let tap = null;
+    const isWithinTolerance = function(touch, start) {
+        return touch && touch.identifier === start.identifier
+            && Math.abs(touch.clientX - start.clientX) <= scheduleItemMoveTolerance
+            && Math.abs(touch.clientY - start.clientY) <= scheduleItemMoveTolerance;
+    };
+
+    calendar.addEventListener('touchstart', function(e) {
+        tap = null;
+        if (e.touches.length !== 1) return;
+
+        const touch = e.touches[0];
+        const item = getItem(touch);
+        if (item) tap = { item, touch, startTime: e.timeStamp };
+    }, { passive: true });
+
+    calendar.addEventListener('touchmove', function(e) {
+        if (tap && (e.touches.length !== 1 || !isWithinTolerance(e.touches[0], tap.touch))) tap = null;
+    }, { passive: true });
+
+    calendar.addEventListener('touchcancel', function() {
+        tap = null;
+    });
+
+    calendar.addEventListener('touchend', function(e) {
+        const current = tap;
+        tap = null;
+        if (!current || !current.item.isConnected || !e.cancelable || e.touches.length
+            || e.timeStamp - current.startTime >= scheduleItemHoldDelay) return;
+
+        const touch = e.changedTouches[0];
+        if (!isWithinTolerance(touch, current.touch)) return;
+
+        const { clientX, clientY } = touch;
+        const target = document.elementFromPoint(clientX, clientY);
+        if (!target || getItem({ target, clientX, clientY }) !== current.item) return;
+
+        // Some touch sequences end without a click. Cancel the default to avoid opening twice.
+        e.preventDefault();
+        openItem(current.item);
+    }, { passive: false });
 };
 
 const formatScheduleHour = function(value) {
@@ -10577,7 +10623,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     clientY: e.clientY,
                 }));
                 queueScheduleHoldTimeUpdate(scheduleItemHold);
-            }, 600),
+            }, scheduleItemHoldDelay),
         };
     });
 
@@ -10609,7 +10655,8 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        if (Math.abs(e.clientX - scheduleItemHold.startX) > 8 || Math.abs(e.clientY - scheduleItemHold.startY) > 8) {
+        if (Math.abs(e.clientX - scheduleItemHold.startX) > scheduleItemMoveTolerance
+            || Math.abs(e.clientY - scheduleItemHold.startY) > scheduleItemMoveTolerance) {
             clearScheduleItemHold(e.pointerId);
         }
     }, { passive: false });
@@ -10740,7 +10787,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    const getScheduleItemFromCalendarClick = function(e) {
+    const getScheduleItemAtPoint = function(e) {
         const directItem = e.target.closest('.lm-schedule-item');
 
         if (directItem) {
@@ -10778,42 +10825,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }, null);
     };
 
-    calendar.addEventListener('click', function(e) {
-        if (isScheduleHoldNavigationSuppressed()) {
-            e.preventDefault();
-            e.stopImmediatePropagation();
-            return;
-        }
+    const getCalendarEventItem = function(point) {
+        return point.target.closest('.calendar-month-event, .calendar-schedule-event, .calendar-schedule-break, .calendar-schedule-recital, .calendar-schedule-google-all-day')
+            || getScheduleItemAtPoint(point);
+    };
 
-        const day = e.target.closest('.lm-schedule tbody td[data-date]');
-        const scheduleItem = getScheduleItemFromCalendarClick(e);
+    const isCalendarHolidayItem = function(item) {
+        return item.matches('.calendar-month-event-holiday, .calendar-schedule-event-holiday');
+    };
 
-        if (!day || !['2-days', 'week'].includes(state.view) || scheduleItem) {
-            return;
-        }
-
-        setSelectedDate(parseDateString(day.dataset.realDate || day.dataset.date));
-        state.view = 'day';
-        render();
-    });
-
-    calendar.addEventListener('click', function(e) {
-        const item = e.target.closest('.calendar-month-event, .calendar-schedule-event, .calendar-schedule-break, .calendar-schedule-recital, .calendar-schedule-google-all-day')
-            || getScheduleItemFromCalendarClick(e);
-
-        if (!item || item.classList.contains('calendar-month-event-holiday') || item.classList.contains('calendar-schedule-event-holiday')) {
-            return;
-        }
-
-        if (item.hasAttribute('holding-event')) {
-            e.preventDefault();
-            e.stopPropagation();
-            return;
-        }
-
+    const openCalendarEventItem = function(item) {
         if (item.hasAttribute('data-pending-event-copy')) {
-            e.preventDefault();
-            e.stopPropagation();
             const copiedEvent = getEventByScheduleItem(item);
 
             if (item.dataset.pendingEventCopy === 'lesson') {
@@ -10825,16 +10847,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             return;
         }
-
-        if (item.classList.contains('lm-schedule-item') && suppressedScheduleItemClick === item) {
-            suppressedScheduleItemClick = null;
-            e.preventDefault();
-            e.stopPropagation();
-            return;
-        }
-
-        e.preventDefault();
-        e.stopPropagation();
 
         const event = item.classList.contains('lm-schedule-item')
             ? getEventByScheduleItem(item)
@@ -10867,7 +10879,47 @@ document.addEventListener('DOMContentLoaded', function() {
             updatedItem,
             scheduleItem: item,
         });
+    };
+
+    calendar.addEventListener('click', function(e) {
+        if (isScheduleHoldNavigationSuppressed()) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            return;
+        }
+
+        const item = getCalendarEventItem(e);
+
+        if (item) {
+            if (isCalendarHolidayItem(item)) return;
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (item.hasAttribute('holding-event')) return;
+            if (suppressedScheduleItemClick === item) {
+                suppressedScheduleItemClick = null;
+                return;
+            }
+
+            openCalendarEventItem(item);
+            return;
+        }
+
+        const day = e.target.closest('.lm-schedule tbody td[data-date]');
+        if (!day || !['2-days', 'week'].includes(state.view)) return;
+
+        setSelectedDate(parseDateString(day.dataset.realDate || day.dataset.date));
+        state.view = 'day';
+        render();
     });
+
+    bindScheduleEventTap(calendar, function(point) {
+        if (!scheduleGridViews.includes(state.view) || scheduleItemHold?.active
+            || calendar.classList.contains('calendar-schedule-range-transitioning')) return null;
+
+        const item = getCalendarEventItem(point);
+        return item && !isCalendarHolidayItem(item) && !item.hasAttribute('holding-event') ? item : null;
+    }, openCalendarEventItem);
 
     const monthDayEventsModal = document.getElementById('month-day-events-modal');
 
