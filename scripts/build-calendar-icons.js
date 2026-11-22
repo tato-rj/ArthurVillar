@@ -9,6 +9,7 @@ const root = path.resolve(__dirname, '..');
 const master = path.join(root, 'resources/artwork/calendar/icon.png');
 const tabIcon = path.join(root, 'resources/artwork/calendar/favicon-16.svg');
 const output = path.join(root, 'public/favicon/calendar');
+const fullBleedIcon = path.join(output, 'icon.png');
 const version = crypto.createHash('sha256')
     .update(fs.readFileSync(master))
     .update(fs.readFileSync(tabIcon))
@@ -24,35 +25,39 @@ const sizes = {
 execFileSync('magick', ['-version'], {stdio: 'ignore'});
 fs.mkdirSync(output, {recursive: true});
 
-function render(destination, operations) {
+function render(destination, operations, source = fullBleedIcon) {
     fs.mkdirSync(path.dirname(destination), {recursive: true});
     execFileSync('magick', [
-        master, '-colorspace', 'sRGB', '-filter', 'Lanczos',
+        source, '-colorspace', 'sRGB', '-filter', 'Lanczos',
         ...operations, '-depth', '8', '-strip',
         '-define', 'png:compression-level=9', destination,
     ]);
 }
 
 const opaque = ['-background', 'white', '-alpha', 'remove', '-alpha', 'off'];
-// Remove excess transparent margins only for tiny browser-tab icons.
-const faviconCrop = ['-trim', '+repage', '-bordercolor', 'none', '-border', '32'];
+function mirrorEdges(viewport) {
+    return [
+        '-virtual-pixel', 'mirror', '-filter', 'point',
+        '-define', `distort:viewport=${viewport}`, '-distort', 'SRT', '0',
+        '+repage', '-filter', 'Lanczos',
+    ];
+}
+
+// Keep the lettering and paper inside the rounded face of the master.
+// Mirror its clean outer texture to fill the square, including the corners.
+render(fullBleedIcon, [
+    '-crop', '910x1040+158+100', '+repage',
+    ...mirrorEdges('1110x1110-100-35'), ...opaque, '-resize', '1024x1024',
+], master);
+
 for (const [prefix, dimensions] of Object.entries(sizes)) {
     for (const size of dimensions) {
-        const operations = prefix === 'favicon' ? [...faviconCrop] : [];
-        operations.push('-resize', `${size}x${size}`);
-        if (prefix === 'favicon') {
-            operations.push('-background', 'none', '-gravity', 'center', '-extent', `${size}x${size}`);
-        }
-        if (prefix === 'apple-icon') operations.push(...opaque);
-        render(path.join(output, `${prefix}-${size}x${size}.png`), operations);
+        render(path.join(output, `${prefix}-${size}x${size}.png`), ['-resize', `${size}x${size}`]);
     }
 }
 
-for (const [filename, size] of [['icon.png', 1024], ['apple-icon.png', 192], ['apple-icon-precomposed.png', 192]]) {
-    render(path.join(output, filename), [
-        '-resize', `${size}x${size}`,
-        ...(filename.startsWith('apple-') ? opaque : []),
-    ]);
+for (const filename of ['apple-icon.png', 'apple-icon-precomposed.png']) {
+    render(path.join(output, filename), ['-resize', '192x192']);
 }
 
 // The 16px tab icon has its own lettering so the date survives at native size.
@@ -62,20 +67,17 @@ execFileSync('magick', [
 ]);
 
 render(path.join(output, 'favicon.ico'), [
-    ...faviconCrop, '-resize', '256x256', '-background', 'none',
-    '-gravity', 'center', '-extent', '256x256',
+    '-resize', '256x256',
     '(', '-clone', '0', '-resize', '128x128', ')',
     '(', '-clone', '0', '-resize', '64x64', ')',
     ...[48, 32, 16].map(size => path.join(output, `favicon-${size}x${size}.png`)),
     '-type', 'TrueColorAlpha',
 ]);
 
-// Opaque, separately padded exports for launchers that apply circular or squircle masks.
+// Extend the header and paper so the lettering fits inside the maskable safe zone.
 for (const size of [192, 512]) {
-    const artworkSize = Math.round(size * 0.8);
     render(path.join(output, `maskable-icon-${size}x${size}.png`), [
-        '-resize', `${artworkSize}x${artworkSize}`,
-        '-background', 'white', '-gravity', 'center', '-extent', `${size}x${size}`, ...opaque,
+        ...mirrorEdges('1184x1184-80-80'), '-resize', `${size}x${size}`,
     ]);
 }
 
@@ -94,7 +96,7 @@ for (const [, media, filename] of launches) {
     render(path.join(output, filename), [
         '-resize', `${160 * ratio}x${160 * ratio}`,
         '-background', 'white', '-gravity', 'center', '-extent', `${width}x${height}`, ...opaque,
-    ]);
+    ], master);
 }
 
 const icon = (prefix, size, purpose) => ({

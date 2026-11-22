@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
   <title>JUN 23</title>
-  <rect width="16" height="16" rx="3.5" fill="#f9f8f7"/>
-  <path fill="#f6534b" d="M3.5 0h9A3.5 3.5 0 0 1 16 3.5V6H0V3.5A3.5 3.5 0 0 1 3.5 0Z"/>
+  <rect width="16" height="16" fill="#f9f8f7"/>
+  <rect width="16" height="6" fill="#f6534b"/>
   <!-- Fit the month into four rows of pixels in browser tabs. -->
   <g fill="#fff">
     <path d="M4 1h1v2.5a1.5 1.5 0 0 1-3 0h1a.5.5 0 0 0 1 0Z"/>

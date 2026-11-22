@@ -9,55 +9,55 @@
   "theme_color": "#ffffff",
   "icons": [
     {
-      "src": "android-icon-36x36.png?v=146e9186f9b5",
+      "src": "android-icon-36x36.png?v=f3077e0cc612",
       "sizes": "36x36",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "android-icon-48x48.png?v=146e9186f9b5",
+      "src": "android-icon-48x48.png?v=f3077e0cc612",
       "sizes": "48x48",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "android-icon-72x72.png?v=146e9186f9b5",
+      "src": "android-icon-72x72.png?v=f3077e0cc612",
       "sizes": "72x72",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "android-icon-96x96.png?v=146e9186f9b5",
+      "src": "android-icon-96x96.png?v=f3077e0cc612",
       "sizes": "96x96",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "android-icon-144x144.png?v=146e9186f9b5",
+      "src": "android-icon-144x144.png?v=f3077e0cc612",
       "sizes": "144x144",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "android-icon-192x192.png?v=146e9186f9b5",
+      "src": "android-icon-192x192.png?v=f3077e0cc612",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "android-icon-512x512.png?v=146e9186f9b5",
+      "src": "android-icon-512x512.png?v=f3077e0cc612",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "maskable-icon-192x192.png?v=146e9186f9b5",
+      "src": "maskable-icon-192x192.png?v=f3077e0cc612",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "maskable-icon-512x512.png?v=146e9186f9b5",
+      "src": "maskable-icon-512x512.png?v=f3077e0cc612",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"

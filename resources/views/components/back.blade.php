@@ -1,3 +1,3 @@
 <div class="position-absolute top-0 right-left py-3 pl-4 pr-2 z-10">
-	<a href="{{route($route)}}" class=""><img src="{{asset('images/logos/calendar.png?v=146e9186f9b5')}}" width="20">back to {{$to}}</a>
+	<a href="{{route($route)}}" class=""><img src="{{asset('images/logos/calendar.png?v=f3077e0cc612')}}" width="20">back to {{$to}}</a>
 </div>
