@@ -8,10 +8,12 @@ const source = fs.readFileSync(path.join(__dirname, '../../resources/js/calendar
     .replace(/^import .*;$/gm, '');
 
 function setup(animateEvents, search = '', showCancellations = false) {
+    const location = new URL(`https://calendar.test/${search}`);
     const context = vm.createContext({
         window: {
             calendarAnimateEvents: animateEvents,
-            location: { href: 'https://calendar.test/', search },
+            location,
+            history: { replaceState: (_state, _title, url) => { location.href = url; } },
             calendarShowCancellations: showCancellations,
             matchMedia: () => ({ matches: false }),
         },
@@ -23,7 +25,7 @@ function setup(animateEvents, search = '', showCancellations = false) {
         AbortController,
     });
 
-    vm.runInContext(source + '\nglobalThis.api = {state, animateCalendarLessonItems, getUrlState};', context);
+    vm.runInContext(source + '\nglobalThis.api = {state, animateCalendarLessonItems, calendarValuesMatchSearch, getUrlState, setCalendarSearchQuery, setSelectedDate, updateCalendarUrl};', context);
     context.api.state.view = 'day';
 
     return context.api;
@@ -80,4 +82,32 @@ test('older calendar links pick up the saved preference while current links reta
     assert.deepEqual(fromUrl('recurring', 3, true), ['recurring']);
     assert.ok(!fromUrl(defaults, 4, true).includes('canceled'));
     assert.ok(fromUrl(defaults, 4, false).includes('canceled'));
+});
+
+test('search uses Schedule until cleared and restores the previous calendar view', () => {
+    for (const view of ['day', '2-days', 'week', 'month', 'schedule']) {
+        const calendar = setup(true);
+        const originalDate = new Date(2026, 10, 21, 12);
+        const originalWeekStart = view === 'week' ? new Date(2026, 10, 18, 12) : null;
+        calendar.state.view = view;
+        calendar.setSelectedDate(originalDate);
+        calendar.state.scheduleWindowStart = originalWeekStart;
+
+        calendar.setCalendarSearchQuery('Ali');
+        assert.equal(calendar.state.view, 'schedule');
+        assert.ok(calendar.calendarValuesMatchSearch(['Alice']));
+        assert.ok(!calendar.calendarValuesMatchSearch(['Bob']));
+
+        calendar.setSelectedDate(new Date(2026, 11, 1, 12));
+        calendar.setCalendarSearchQuery('Alice');
+        calendar.updateCalendarUrl();
+        assert.equal(calendar.getUrlState().view, view);
+        assert.deepEqual(calendar.getUrlState().date, originalDate);
+
+        calendar.setCalendarSearchQuery('  ');
+        assert.equal(calendar.state.view, view);
+        assert.deepEqual(calendar.state.date, originalDate);
+        assert.deepEqual(calendar.state.scheduleWindowStart, originalWeekStart);
+        assert.ok(calendar.calendarValuesMatchSearch(['Bob']));
+    }
 });

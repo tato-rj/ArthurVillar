@@ -33,6 +33,7 @@ const state = {
     generalEvents: [],
     selectedEventTypes: [...calendarEventTypes],
     studentSearch: '',
+    calendarBeforeSearch: null,
     loadedRange: null,
     pendingRangeKey: null,
     pendingRangeRequest: null,
@@ -266,11 +267,13 @@ const getUrlState = function() {
 
 const updateCalendarUrl = function() {
     const url = new URL(window.location.href);
+    const { view, date, scheduleWindowStart } = state.calendarBeforeSearch || state;
+    const dateString = toDateString(date);
 
-    url.searchParams.set('view', state.view);
-    url.searchParams.set('date', toDateString(state.date));
-    if (state.view === 'week' && isValidDate(state.scheduleWindowStart)) {
-        url.searchParams.set('window_start', toDateString(state.scheduleWindowStart));
+    url.searchParams.set('view', view);
+    url.searchParams.set('date', dateString);
+    if (view === 'week' && isValidDate(scheduleWindowStart)) {
+        url.searchParams.set('window_start', toDateString(scheduleWindowStart));
     } else {
         url.searchParams.delete('window_start');
     }
@@ -278,8 +281,8 @@ const updateCalendarUrl = function() {
     url.searchParams.set('event_filter_version', '4');
     url.searchParams.set('location_ids', state.selectedLocationIds.join(','));
     window.history.replaceState({
-        calendarView: state.view,
-        calendarDate: toDateString(state.date),
+        calendarView: view,
+        calendarDate: dateString,
         calendarEventTypes: state.selectedEventTypes.slice(),
         calendarLocationIds: state.selectedLocationIds.slice(),
     }, '', url);
@@ -6535,6 +6538,27 @@ const normalizeStudentSearch = function(value) {
     return String(value || '').trim().toLowerCase();
 };
 
+const setCalendarSearchQuery = function(value) {
+    state.studentSearch = value;
+
+    if (normalizeStudentSearch(value)) {
+        if (!state.calendarBeforeSearch) {
+            state.calendarBeforeSearch = {
+                view: state.view,
+                date: state.date,
+                miniDate: state.miniDate,
+                scheduleWindowStart: state.scheduleWindowStart,
+            };
+            state.view = 'schedule';
+            state.scheduleWindowStart = null;
+        }
+    } else if (state.calendarBeforeSearch) {
+        Object.assign(state, state.calendarBeforeSearch);
+        state.calendarBeforeSearch = null;
+        state.didAutoNowScroll = false;
+    }
+};
+
 const calendarValuesMatchSearch = function(values) {
     const query = normalizeStudentSearch(state.studentSearch);
 
@@ -8487,7 +8511,7 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     const setCalendarView = function(nextView) {
-        if (!nextView || nextView === state.view) {
+        if (!nextView || nextView === state.view || state.calendarBeforeSearch) {
             syncViewControls();
             return;
         }
@@ -8581,7 +8605,7 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     const closeCalendarSearch = function(force) {
-        if (!force && studentSearch && studentSearch.value.trim() !== '') {
+        if (!force && normalizeStudentSearch(studentSearch?.value)) {
             return;
         }
 
@@ -8592,16 +8616,16 @@ document.addEventListener('DOMContentLoaded', function() {
         if (calendarToolbar) {
             calendarToolbar.removeAttribute('searching');
         }
-    };
 
-    const clearCalendarSearch = function() {
         if (studentSearch) {
             studentSearch.value = '';
         }
 
-        state.studentSearch = '';
-        closeCalendarSearch();
-        render();
+        const wasSearching = Boolean(state.calendarBeforeSearch);
+        setCalendarSearchQuery('');
+        if (wasSearching) {
+            render();
+        }
     };
 
     const closeCalendarViewsOffcanvas = function() {
@@ -8637,8 +8661,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    if (studentSearch) {
-        state.studentSearch = studentSearch.value;
+    if (normalizeStudentSearch(studentSearch?.value)) {
+        setCalendarSearchQuery(studentSearch.value);
+        openCalendarSearch();
     }
 
     const renderMiniCalendar = function() {
@@ -8708,7 +8733,8 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     const syncScheduleLabelToScroll = function(agenda) {
-        if (state.view !== 'schedule' || !agenda) {
+        if (state.view !== 'schedule' || !agenda?.isConnected
+            || calendar.classList.contains('calendar-schedule-range-transitioning')) {
             return;
         }
 
@@ -9147,7 +9173,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (studentSearch) {
         studentSearch.addEventListener('input', function() {
-            state.studentSearch = this.value;
+            setCalendarSearchQuery(this.value);
             render();
         });
     }
@@ -9190,7 +9216,7 @@ document.addEventListener('DOMContentLoaded', function() {
         calendarSearchClear.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            clearCalendarSearch();
+            closeCalendarSearch(true);
         });
     }
 
@@ -9224,6 +9250,14 @@ document.addEventListener('DOMContentLoaded', function() {
             e.stopPropagation();
         });
 
+        calendarSearch.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && calendarSearch.hasAttribute('selected')) {
+                e.preventDefault();
+                closeCalendarSearch(true);
+                calendarSearchToggle?.focus();
+            }
+        });
+
         document.addEventListener('click', function(e) {
             if (!calendarSearch.contains(e.target)) {
                 closeCalendarSearch();
@@ -9249,7 +9283,7 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     const openMiniCalendarMonth = function() {
-        if (isScheduleHoldNavigationSuppressed()) {
+        if (isScheduleHoldNavigationSuppressed() || state.calendarBeforeSearch) {
             return;
         }
 
