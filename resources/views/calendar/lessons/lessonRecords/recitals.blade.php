@@ -1,6 +1,6 @@
 <form id="lesson-recital-picker" data-url="{{ route('calendar.students.upcoming-recitals', ['student' => '__student__']) }}" hidden>
     <fieldset class="mb-3" data-lesson-recital-fields>
-        <legend class="fs-6 fw-bold mb-3" tabindex="-1">Upcoming recitals</legend>
+        <legend class="float-none fs-6 fw-bold mb-3" tabindex="-1">Upcoming recitals</legend>
         <p class="small mb-0" role="status" data-lesson-recital-status hidden></p>
         <div data-lesson-recital-options></div>
         <template data-lesson-recital-option>

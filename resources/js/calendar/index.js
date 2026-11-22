@@ -1,5 +1,6 @@
 import { spring } from 'motion';
 import { animate } from 'motion/mini';
+import { bindCalendarTap, bindEventModalTaps, tapMovementTolerance, tapHoldDelay } from './touch-activation';
 import { bindCalendarNavigationMenu } from './navigation-menu';
 import { bindLessonConfirmation } from './lesson-confirmation';
 import { bindLessonCancellationPicker } from './lesson-cancellation-picker';
@@ -27,7 +28,7 @@ const state = {
     recitals: [],
     hasUpcomingRecitals: false,
     nextRecitalsByStudent: {},
-    lessonRecitalPicker: null,
+    closeLessonRecitalPicker: null,
     pendingRecitalAssignments: new Set(),
     generalEvents: [],
     selectedEventTypes: [...calendarEventTypes],
@@ -138,8 +139,6 @@ const calendarRequestTimeoutMilliseconds = 20 * 1000;
 const calendarStaleAfterMilliseconds = 5 * 60 * 1000;
 
 const scheduleGridViews = ['day', '2-days', 'week'];
-const scheduleItemHoldDelay = 600;
-const scheduleItemMoveTolerance = 8;
 
 const createLocalDate = function(year, month, day) {
     return new Date(year, month, day, 12, 0, 0, 0);
@@ -1220,14 +1219,15 @@ const bindScheduleHeaderDrag = function(calendar, navigateByDays) {
         const touch = e.changedTouches[0];
         const row = e.target.closest('.lm-schedule thead tr:not(.calendar-schedule-holiday-row)');
 
-        if (!touch || e.touches.length !== 1) {
+        if (!row || !touch || e.touches.length !== 1) {
+            if (drag?.inputType === 'touch') clearDrag();
             return;
         }
 
         beginDrag(row, touch.identifier, touch.clientX, touch.clientY, 'touch');
     }, { passive: true });
 
-    window.addEventListener('touchmove', function(e) {
+    calendar.addEventListener('touchmove', function(e) {
         if (!drag || drag.inputType !== 'touch') {
             return;
         }
@@ -1241,7 +1241,7 @@ const bindScheduleHeaderDrag = function(calendar, navigateByDays) {
         }
     }, { passive: false });
 
-    window.addEventListener('touchend', function(e) {
+    calendar.addEventListener('touchend', function(e) {
         const touch = drag && drag.inputType === 'touch'
             ? Array.from(e.changedTouches).find(function(candidate) {
                 return candidate.identifier === drag.pointerId;
@@ -1252,7 +1252,7 @@ const bindScheduleHeaderDrag = function(calendar, navigateByDays) {
             finishDrag(touch.identifier, 'touch', true);
         }
     });
-    window.addEventListener('touchcancel', function(e) {
+    calendar.addEventListener('touchcancel', function(e) {
         const touch = drag && drag.inputType === 'touch'
             ? Array.from(e.changedTouches).find(function(candidate) {
                 return candidate.identifier === drag.pointerId;
@@ -1268,50 +1268,6 @@ const bindScheduleHeaderDrag = function(calendar, navigateByDays) {
     });
 
     return navigateByArrow;
-};
-
-const bindScheduleEventTap = function(calendar, getItem, openItem) {
-    let tap = null;
-    const isWithinTolerance = function(touch, start) {
-        return touch && touch.identifier === start.identifier
-            && Math.abs(touch.clientX - start.clientX) <= scheduleItemMoveTolerance
-            && Math.abs(touch.clientY - start.clientY) <= scheduleItemMoveTolerance;
-    };
-
-    calendar.addEventListener('touchstart', function(e) {
-        tap = null;
-        if (e.touches.length !== 1) return;
-
-        const touch = e.touches[0];
-        const item = getItem(touch);
-        if (item) tap = { item, touch, startTime: e.timeStamp };
-    }, { passive: true });
-
-    calendar.addEventListener('touchmove', function(e) {
-        if (tap && (e.touches.length !== 1 || !isWithinTolerance(e.touches[0], tap.touch))) tap = null;
-    }, { passive: true });
-
-    calendar.addEventListener('touchcancel', function() {
-        tap = null;
-    });
-
-    calendar.addEventListener('touchend', function(e) {
-        const current = tap;
-        tap = null;
-        if (!current || !current.item.isConnected || !e.cancelable || e.touches.length
-            || e.timeStamp - current.startTime >= scheduleItemHoldDelay) return;
-
-        const touch = e.changedTouches[0];
-        if (!isWithinTolerance(touch, current.touch)) return;
-
-        const { clientX, clientY } = touch;
-        const target = document.elementFromPoint(clientX, clientY);
-        if (!target || getItem({ target, clientX, clientY }) !== current.item) return;
-
-        // Some touch sequences end without a click. Cancel the default to avoid opening twice.
-        e.preventDefault();
-        openItem(current.item);
-    }, { passive: false });
 };
 
 const formatScheduleHour = function(value) {
@@ -2253,7 +2209,7 @@ const patchScheduleHolidays = function(calendar) {
 
             item.type = 'button';
             item.className = 'calendar-schedule-holiday calendar-schedule-recital';
-            item.textContent = `${formatEventTime(recital.start_time)} ${recital.name}`;
+            item.textContent = [formatEventTime(recital.start_time), recital.name].filter(Boolean).join(' ');
             item.dataset.eventGuid = `recital-${recital.id}-${dateString}`;
             applyDateStatusAttributes(item, dateString);
             applyEventOverlapAttribute(item, getRecitalEvent(recital));
@@ -2597,12 +2553,18 @@ const setFormSubmitting = function(form, isSubmitting) {
     });
 };
 
+const lessonMutationControls = [
+    '#lesson-taught', '#confirm-payment', '#early-payment', '#lesson-revert', '#lesson-edit',
+    '#cancel-lesson-button', '#reschedule-lesson-button', '[data-lesson-recital-open]',
+    '#cancel-lesson button[type="submit"]', '#reschedule-lesson button[type="submit"]',
+].join(', ');
+
 const resetLessonModalButtons = function(modal) {
     if (!modal) {
         return;
     }
 
-    modal.querySelectorAll('button, input[type="submit"], input[type="image"]').forEach(function(button) {
+    modal.querySelectorAll(lessonMutationControls).forEach(function(button) {
         button.disabled = false;
         button.removeAttribute('aria-disabled');
         delete button.dataset.calendarDisabledOnSubmit;
@@ -2662,21 +2624,6 @@ const clearLessonActionError = function(modal) {
 
     error.textContent = '';
     error.hidden = true;
-};
-
-const hideLessonModal = function(modal) {
-    if (!modal) {
-        return;
-    }
-
-    if (window.bootstrap && window.bootstrap.Modal && typeof window.bootstrap.Modal.getOrCreateInstance === 'function') {
-        window.bootstrap.Modal.getOrCreateInstance(modal).hide();
-        return;
-    }
-
-    if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
-        window.jQuery(modal).modal('hide');
-    }
 };
 
 const getLessonForOccurrence = function(lessonPlan, dateString, startTime) {
@@ -2793,16 +2740,6 @@ const renderLessonModalRecital = function(modal, event) {
     ].filter(Boolean).join(' · ') : '';
 };
 
-const closeLessonRecitalPicker = function(modal, restoreFocus = false) {
-    if (!state.lessonRecitalPicker) return;
-    state.lessonRecitalPicker = null;
-    modal.classList.remove('is-assigning-recitals');
-    modal.querySelector('#lesson-recital-picker').hidden = true;
-    const button = modal.querySelector('[data-lesson-recital-open]');
-    button.setAttribute('aria-expanded', 'false');
-    if (restoreFocus) button.focus();
-};
-
 const applyRecitalAssignments = function({ student, recital_ids, next_recital }) {
     invalidateCalendarDataCache();
     state.nextRecitalsByStudent[student.id] = next_recital;
@@ -2834,6 +2771,20 @@ const bindLessonRecitalPicker = function(modal, render) {
     const cancel = form.querySelector('[data-lesson-recital-cancel]');
     const save = form.querySelector('button[type="submit"]');
     const selected = 'input:checked:not(:disabled)';
+    let activePicker = null;
+
+    const close = function(restoreFocus = false) {
+        if (!activePicker) return;
+        activePicker = null;
+        form.hidden = true;
+        modal.classList.remove('is-assigning-recitals');
+        button.setAttribute('aria-expanded', 'false');
+        if (restoreFocus) {
+            const target = button.closest('[hidden]') ? modal.querySelector('.btn-close') : button;
+            target.focus({ preventScroll: true });
+        }
+    };
+
     const getLesson = () => modal.dataset.eventModalType === 'lesson' ? getEventByGuid(modal.dataset.eventGuid) : null;
     const updateSaveButton = () => { save.disabled = !options.querySelector(selected); };
     const showError = function(message) {
@@ -2848,7 +2799,7 @@ const bindLessonRecitalPicker = function(modal, render) {
         if (state.pendingRecitalAssignments.has(studentId)) return;
 
         const picker = { studentId, url: form.dataset.url.replace('__student__', studentId) };
-        state.lessonRecitalPicker = picker;
+        activePicker = picker;
         modal.classList.add('is-assigning-recitals');
         button.setAttribute('aria-expanded', 'true');
         options.replaceChildren();
@@ -2865,7 +2816,7 @@ const bindLessonRecitalPicker = function(modal, render) {
             const { recitals } = await requestJson(picker.url, {
                 headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
             }, 'Unable to load upcoming recitals.');
-            if (state.lessonRecitalPicker !== picker) return;
+            if (activePicker !== picker) return;
 
             recitals.forEach(function(recital) {
                 const row = template.content.cloneNode(true);
@@ -2889,19 +2840,19 @@ const bindLessonRecitalPicker = function(modal, render) {
                 updateConflictToggle(modal, event);
             }
         } catch (requestError) {
-            if (state.lessonRecitalPicker !== picker) return;
+            if (activePicker !== picker) return;
             status.hidden = true;
             showError(requestError.message);
         }
     });
 
     options.addEventListener('change', updateSaveButton);
-    cancel.addEventListener('click', () => closeLessonRecitalPicker(modal, true));
-    modal.addEventListener('hide.bs.modal', () => closeLessonRecitalPicker(modal));
+    cancel.addEventListener('click', () => close(true));
+    modal.addEventListener('hide.bs.modal', () => close());
 
     form.addEventListener('submit', async function(event) {
         event.preventDefault();
-        const picker = state.lessonRecitalPicker;
+        const picker = activePicker;
         if (!picker || state.pendingRecitalAssignments.has(picker.studentId)) return;
         const recitalIds = Array.from(options.querySelectorAll(selected), input => Number(input.value));
         if (!recitalIds.length) return;
@@ -2928,22 +2879,23 @@ const bindLessonRecitalPicker = function(modal, render) {
             if (state.studentSearch.trim()) render({ mode: 'discreet' });
             saved = true;
         } catch (requestError) {
-            if (state.lessonRecitalPicker === picker) showError(requestError.message);
+            if (activePicker === picker) showError(requestError.message);
         } finally {
             state.pendingRecitalAssignments.delete(picker.studentId);
             const lesson = getLesson();
             if (String(lesson?.studentId) === picker.studentId) {
-                button.disabled = false;
+                button.disabled = state.pendingLessonMutations.has(lesson.guid);
                 if (saved) renderLessonModalRecital(modal, lesson);
             }
-            if (state.lessonRecitalPicker === picker) {
+            if (activePicker === picker) {
                 fields.disabled = false;
                 cancel.disabled = false;
                 updateSaveButton();
-                if (saved) closeLessonRecitalPicker(modal, true);
+                if (saved) close(true);
             }
         }
     });
+    return close;
 };
 
 const resetLessonModalState = function(modal) {
@@ -2952,7 +2904,6 @@ const resetLessonModalState = function(modal) {
     }
 
     if (state.cancelLessonConfirmation) state.cancelLessonConfirmation();
-    closeLessonRecitalPicker(modal);
     setLessonMutationBusy(modal, false);
     state.lessonCancellationPicker?.reset();
     const restorationNotice = modal.querySelector('[data-lesson-restoration-notice]');
@@ -2999,6 +2950,7 @@ const setCalendarEventModalType = function(modal, type) {
         state.lessonActionAvailabilityTimer = null;
     }
 
+    state.closeLessonRecitalPicker?.();
     modal.dataset.eventModalType = type;
     modal.querySelectorAll('[data-event-modal-section]').forEach(function(section) {
         section.hidden = section.dataset.eventModalSection !== type;
@@ -3480,14 +3432,7 @@ const openLessonModal = function(event, options) {
 
     loadTravelRoute(modal, event, settings.scheduleItem || modal.updatedScheduleItem);
 
-    if (window.bootstrap && window.bootstrap.Modal && typeof window.bootstrap.Modal.getOrCreateInstance === 'function') {
-        window.bootstrap.Modal.getOrCreateInstance(modal).show();
-        return;
-    }
-
-    if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
-        window.jQuery(modal).modal('show');
-    }
+    showBootstrapModal(modal);
 };
 
 const formatBreakDateRange = function(event) {
@@ -3567,14 +3512,7 @@ const openTeachingBreakModal = function(event) {
         });
     }
 
-    if (window.bootstrap && window.bootstrap.Modal && typeof window.bootstrap.Modal.getOrCreateInstance === 'function') {
-        window.bootstrap.Modal.getOrCreateInstance(modal).show();
-        return;
-    }
-
-    if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
-        window.jQuery(modal).modal('show');
-    }
+    showBootstrapModal(modal);
 };
 
 const openRecitalModal = function(event, options) {
@@ -3594,7 +3532,10 @@ const openRecitalModal = function(event, options) {
 
     if (title) title.textContent = event.title || 'Recital';
     if (date) date.textContent = event.date ? modalDateFormatter.format(parseDateString(event.date)) : '';
-    if (time) time.textContent = formatModalEventTime(event.start);
+    if (time) {
+        time.textContent = formatModalEventTime(event.start);
+        time.parentElement.hidden = !event.start;
+    }
     if (location) {
         const locationName = event.location && event.location.name ? event.location.name : 'No location specified';
         const address = event.location && event.location.address ? event.location.address : '';
@@ -3640,14 +3581,7 @@ const openRecitalModal = function(event, options) {
     updateConflictToggle(modal, event);
     loadTravelRoute(modal, event, settings.scheduleItem);
 
-    if (window.bootstrap && window.bootstrap.Modal && typeof window.bootstrap.Modal.getOrCreateInstance === 'function') {
-        window.bootstrap.Modal.getOrCreateInstance(modal).show();
-        return;
-    }
-
-    if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
-        window.jQuery(modal).modal('show');
-    }
+    showBootstrapModal(modal);
 };
 
 const appendTextWithLinks = function(element, text, options) {
@@ -5025,12 +4959,11 @@ const resetGeneralEventModalState = function(modal) {
         return;
     }
 
-    closeLessonRecitalPicker(modal);
     modal.classList.remove('is-canceling', 'is-rescheduling', 'is-drop-rescheduling');
     state.rescheduleAnchor = null;
     clearGeneralEventActionError(modal);
 
-    modal.querySelectorAll('button[type="submit"], input[type="submit"]').forEach(function(submit) {
+    modal.querySelectorAll('[data-event-modal-section="general"] :is(button, input)[type="submit"]').forEach(function(submit) {
         submit.disabled = false;
         restoreButtonLabel(submit);
     });
@@ -5389,7 +5322,7 @@ const setLessonMutationBusy = function(modal, busy) {
     else modal.removeAttribute('aria-busy');
     const cancelControls = modal.querySelector('[data-cancel-controls]');
     if (cancelControls) cancelControls.disabled = busy;
-    modal.querySelectorAll('#lesson-taught, #confirm-payment, #early-payment, #lesson-revert, #lesson-edit, #cancel-lesson-button, #reschedule-lesson-button, form button[type="submit"]').forEach(function(button) {
+    modal.querySelectorAll(lessonMutationControls).forEach(function(button) {
         if (busy) {
             preserveButtonLabel(button);
             if (!('lessonMutationDisabled' in button.dataset)) {
@@ -5495,7 +5428,7 @@ const mutateLesson = function(modal, send, refreshCalendar, keepOpen = true, rel
         if (Array.isArray(payload.occurrences)) {
             applyLessonScheduleChanges(payload);
             if (!keepOpen && isCurrentLesson()) {
-                hideLessonModal(modal);
+                hideBootstrapModal(modal);
                 return;
             }
 
@@ -5525,7 +5458,7 @@ const mutateLesson = function(modal, send, refreshCalendar, keepOpen = true, rel
             if (cancellationChanged) refreshLessonDates([event.date]);
             if (isCurrentLesson()) {
                 if (keepOpen) finishLessonMutationInModal(modal, event, cancellationChanged);
-                else hideLessonModal(modal);
+                else hideBootstrapModal(modal);
             }
             return;
         }
@@ -5536,7 +5469,7 @@ const mutateLesson = function(modal, send, refreshCalendar, keepOpen = true, rel
             if (keepOpen && updatedEvent && modal.classList.contains('show')) {
                 openLessonModal(updatedEvent);
             } else {
-                hideLessonModal(modal);
+                hideBootstrapModal(modal);
             }
         });
     }).catch(function(error) {
@@ -6157,7 +6090,8 @@ const updateConflictToggle = function(modal, event) {
         && event?.studentId && state.hasUpcomingRecitals);
     if (recitalAction) {
         recitalAction.hidden = !canJoin;
-        recitalAction.querySelector('button').disabled = state.pendingRecitalAssignments.has(String(event?.studentId));
+        recitalAction.querySelector('button').disabled = modal.hasAttribute('aria-busy')
+            || state.pendingRecitalAssignments.has(String(event?.studentId));
     }
     section.querySelector('[data-conflict-controls]').hidden = !canToggle;
     section.hidden = !canToggle && !canJoin;
@@ -6950,7 +6884,7 @@ const createMonthEventElement = function(event, dateString) {
         item.appendChild(dot);
     }
 
-    if (!event.isHoliday && !event.isBreak) item.appendChild(time);
+    if (!event.isHoliday && !event.isBreak && (!event.isRecital || event.start)) item.appendChild(time);
 
     item.appendChild(title);
     renderLessonRecitalDate(item, event);
@@ -7613,7 +7547,7 @@ const renderScheduleAgenda = function(calendar, changedDates) {
 
                 item.appendChild(title);
 
-                if (event.isRecital) {
+                if (event.isRecital && event.start) {
                     const time = document.createElement('span');
                     time.className = 'calendar-schedule-event-time';
                     time.textContent = formatAgendaEventTime(event.start);
@@ -8605,10 +8539,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         window.clearTimeout(scheduleHeaderRenderTimer);
-            scheduleHeaderRenderTimer = window.setTimeout(function() {
-                scheduleHeaderRenderTimer = null;
-                render();
-            }, 80);
+        scheduleHeaderRenderTimer = window.setTimeout(function() {
+            scheduleHeaderRenderTimer = null;
+            render();
+        }, 80);
     });
 
     const useScheduleHeaderNavigation = function() {
@@ -9782,23 +9716,24 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    [calendarEventModal, document.getElementById('recital-modal'), document.getElementById('teaching-break-modal')]
+        .filter(Boolean)
+        .forEach(modal => bindEventModalTaps(modal, hideBootstrapModal));
+
     bindConflictToggle(calendarEventModal, render);
     bindConflictToggle(document.getElementById('recital-modal'), render);
 
     if (calendarEventModal) {
-        bindLessonRecitalPicker(calendarEventModal, render);
-        const resetCalendarEventModal = function() {
+        state.closeLessonRecitalPicker = bindLessonRecitalPicker(calendarEventModal, render);
+        calendarEventModal.addEventListener('hidden.bs.modal', function() {
             calendarEventModal.updatedScheduleItem = null;
             calendarEventModal.generalEvent = null;
-            resetLessonModalState(calendarEventModal);
-            resetGeneralEventModalState(calendarEventModal);
-        };
-
-        calendarEventModal.addEventListener('hidden.bs.modal', resetCalendarEventModal);
-
-        if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
-            window.jQuery(calendarEventModal).on('hidden.bs.modal', resetCalendarEventModal);
-        }
+            if (calendarEventModal.dataset.eventModalType === 'lesson') {
+                resetLessonModalState(calendarEventModal);
+            } else {
+                resetGeneralEventModalState(calendarEventModal);
+            }
+        });
     }
 
     if (calendarEditModalContainer) {
@@ -10623,7 +10558,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     clientY: e.clientY,
                 }));
                 queueScheduleHoldTimeUpdate(scheduleItemHold);
-            }, scheduleItemHoldDelay),
+            }, tapHoldDelay),
         };
     });
 
@@ -10655,8 +10590,8 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        if (Math.abs(e.clientX - scheduleItemHold.startX) > scheduleItemMoveTolerance
-            || Math.abs(e.clientY - scheduleItemHold.startY) > scheduleItemMoveTolerance) {
+        if (Math.abs(e.clientX - scheduleItemHold.startX) > tapMovementTolerance
+            || Math.abs(e.clientY - scheduleItemHold.startY) > tapMovementTolerance) {
             clearScheduleItemHold(e.pointerId);
         }
     }, { passive: false });
@@ -10913,7 +10848,7 @@ document.addEventListener('DOMContentLoaded', function() {
         render();
     });
 
-    bindScheduleEventTap(calendar, function(point) {
+    bindCalendarTap(calendar, function(point) {
         if (!scheduleGridViews.includes(state.view) || scheduleItemHold?.active
             || calendar.classList.contains('calendar-schedule-range-transitioning')) return null;
 

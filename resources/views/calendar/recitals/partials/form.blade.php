@@ -15,9 +15,11 @@
         'value' => isset($recital) && $recital->date ? $recital->date->toDateString() : old('date'),
     ])
 
-    @select(['label' => 'Start time', 'name' => 'start_time', 'grid' => 'col', 'required' => true])
+    @php($startTime = old('start_time', substr($recital->start_time ?? '', 0, 5)))
+    @select(['label' => 'Start time (optional)', 'name' => 'start_time', 'grid' => 'col'])
+        <option value="" @selected(!$startTime)>No time specified</option>
         @foreach(\App\Models\Calendar\Event::timeOptions() as $time)
-            @option(['name' => 'start_time', 'label' => \App\Models\Calendar\Event::timeLabel($time), 'value' => $time, 'selected' => isset($recital) && substr($recital->start_time, 0, 5) === $time])
+            <option value="{{ $time }}" @selected($startTime === $time)>{{ \App\Models\Calendar\Event::timeLabel($time) }}</option>
         @endforeach
     @endselect
 </div>

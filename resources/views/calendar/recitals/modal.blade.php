@@ -4,7 +4,7 @@
         @icon('calendar-1', ['classes' => 'opacity-4'])
         <span id="recital-date"></span>
     </div>
-    <div class="mb-2">
+    <div class="mb-2" hidden>
         @icon('clock', ['classes' => 'opacity-4'])
         <span id="recital-time"></span>
     </div>

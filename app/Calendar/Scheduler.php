@@ -398,8 +398,7 @@ class Scheduler
                 $query->orderBy('first_name')->orderBy('last_name');
             }])
             ->whereBetween('date', [$range['start'], $range['end']])
-            ->orderBy('date')
-            ->orderBy('start_time')
+            ->inScheduleOrder()
             ->get()
             ->map(function (Recital $recital) {
                 return [

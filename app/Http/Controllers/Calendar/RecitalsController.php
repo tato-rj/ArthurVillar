@@ -44,7 +44,7 @@ class RecitalsController extends Controller
 
     public function update(Request $request, Recital $recital)
     {
-        $recital->update($this->validatedRecital($request, $recital));
+        $recital->update($this->validatedRecital($request));
 
         return back()->with('success', 'The recital was successfully updated');
     }
@@ -119,12 +119,12 @@ class RecitalsController extends Controller
         return back()->with('success', 'The recital was successfully deleted');
     }
 
-    private function validatedRecital(Request $request, Recital $recital = null)
+    private function validatedRecital(Request $request)
     {
         return $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'date' => ['required', 'date'],
-            'start_time' => ['required', 'date_format:H:i', Rule::in(Event::timeOptions())],
+            'start_time' => ['nullable', 'date_format:H:i', Rule::in(Event::timeOptions())],
             'location_id' => [
                 'nullable',
                 'integer',

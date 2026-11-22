@@ -24,6 +24,7 @@ class RecitalTest extends BaseTest
             ->assertSee('recital-participants-modal', false)
             ->assertDontSee('type="time"', false)
             ->assertSee('name="start_time"', false)
+            ->assertSee('<option value="" selected>No time specified</option>', false)
             ->assertSee('Concert Hall')
             ->assertDontSee('Teaching Studio')
             ->assertSee('Maria Silva');
@@ -60,6 +61,34 @@ class RecitalTest extends BaseTest
 
         $this->delete(route('calendar.recitals.destroy', $recital))->assertRedirect();
         $this->assertDatabaseMissing('recitals', ['id' => $recital->id]);
+    }
+
+    public function test_a_recital_start_time_can_be_omitted_or_cleared()
+    {
+        $this->signIn();
+        $details = ['name' => 'Spring Recital', 'date' => '2026-08-15'];
+
+        $this->post(route('calendar.recitals.store'), $details)
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $recital = Recital::where('name', 'Spring Recital')->firstOrFail();
+        $this->assertNull($recital->start_time);
+
+        $recital->update(['start_time' => '18:30']);
+        $this->get(route('calendar.recitals.edit', $recital))
+            ->assertOk()
+            ->assertSee('<option value="18:30" selected>6:30 PM</option>', false)
+            ->assertDontSee('<option value="" selected>No time specified</option>', false);
+
+        $this->patch(route('calendar.recitals.update', $recital), $details + ['start_time' => ''])
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $this->assertNull($recital->fresh()->start_time);
+        $this->get(route('calendar.recitals.edit', $recital))
+            ->assertOk()
+            ->assertSee('<option value="" selected>No time specified</option>', false);
     }
 
     /** @test */
@@ -109,7 +138,7 @@ class RecitalTest extends BaseTest
     /** @test */
     public function it_serves_recitals_and_participants_to_the_calendar_table()
     {
-        $recital = Recital::factory()->create(['name' => 'Calendar Showcase']);
+        $recital = Recital::factory()->create(['name' => 'Calendar Showcase', 'start_time' => null]);
         $student = Student::factory()->create(['first_name' => 'Maria', 'last_name' => 'Silva']);
         $recital->students()->attach($student);
         $this->signIn();
@@ -118,6 +147,7 @@ class RecitalTest extends BaseTest
             ->firstWhere('id', $recital->id);
 
         $this->assertSame('Calendar Showcase', $row['name']);
+        $this->assertNull($row['start_time']);
         $this->assertSame(1, $row['students_count']);
         $this->assertSame('Maria Silva', $row['students'][0]['name']);
     }
@@ -181,7 +211,7 @@ class RecitalTest extends BaseTest
         Recital::factory()->create([
             'name' => 'Studio Recital',
             'date' => '2026-11-19',
-            'start_time' => '16:30',
+            'start_time' => null,
             'location_id' => null,
         ])->students()->attach($singleStudent);
 
@@ -211,7 +241,7 @@ class RecitalTest extends BaseTest
             ->assertJsonPath('nextRecitalsByStudent.'.$singleStudent->id, [
                 'name' => 'Studio Recital',
                 'date' => '2026-11-19',
-                'start_time' => '16:30',
+                'start_time' => null,
                 'location_name' => null,
             ])
             ->assertJsonMissingPath('nextRecitalsByStudent.'.$unrelatedStudent->id);
@@ -229,6 +259,7 @@ class RecitalTest extends BaseTest
             'range_end' => '2026-11-22',
             'lesson_plans' => 1,
         ];
+        Recital::factory()->create(['date' => '2026-11-20', 'start_time' => null]);
         Recital::factory()->create(['date' => '2026-11-21', 'start_time' => '11:00']);
 
         $this->getJson(route('calendar.home', $range))->assertOk()
@@ -237,19 +268,22 @@ class RecitalTest extends BaseTest
         $later = Recital::factory()->create(['date' => '2026-12-28', 'start_time' => '18:00']);
         $joined = Recital::factory()->create(['date' => '2026-11-21', 'start_time' => '19:00']);
         $first = Recital::factory()->create(['date' => '2026-11-21', 'start_time' => '15:00']);
+        $dateOnly = Recital::factory()->create(['date' => '2026-11-21', 'start_time' => null]);
         $joined->students()->attach($student);
 
         $this->getJson(route('calendar.home', $range))->assertOk()
             ->assertJsonPath('hasUpcomingRecitals', true)
-            ->assertJsonCount(3, 'recitals');
+            ->assertJsonCount(5, 'recitals');
         $this->getJson(route('calendar.students.upcoming-recitals', $student))
             ->assertOk()
-            ->assertJsonCount(3, 'recitals')
+            ->assertJsonCount(4, 'recitals')
             ->assertJsonPath('recitals.0.id', $first->id)
             ->assertJsonPath('recitals.0.joined', false)
             ->assertJsonPath('recitals.1.id', $joined->id)
             ->assertJsonPath('recitals.1.joined', true)
-            ->assertJsonPath('recitals.2.id', $later->id);
+            ->assertJsonPath('recitals.2.id', $dateOnly->id)
+            ->assertJsonPath('recitals.2.start_time', null)
+            ->assertJsonPath('recitals.3.id', $later->id);
     }
 
     public function test_joining_recitals_adds_multiple_assignments_and_can_be_retried()
