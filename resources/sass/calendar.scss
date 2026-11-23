@@ -794,15 +794,14 @@ label.calendar-calendar-header-control:hover {
     z-index: 5;
 }
 
-.calendar-mini-calendar-offcanvas {
+.offcanvas.calendar-mini-calendar-offcanvas {
     --bs-offcanvas-height: auto;
 
-    height: auto;
-    max-height: none;
+    max-height: calc(100% - 3rem);
+    max-height: calc(100dvh - 3rem);
 
     .offcanvas-body {
         flex-grow: 0;
-        overflow: visible;
         width: 100%;
     }
 

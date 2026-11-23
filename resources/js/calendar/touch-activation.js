@@ -46,6 +46,37 @@ export function bindCalendarTap(root, getTarget, activate) {
     }, { passive: false });
 }
 
+export function bindMiniCalendarOverlay(panel, dismiss) {
+    // Bootstrap inserts the backdrop alongside the panel and toggle in this wrapper.
+    const overlay = panel.parentElement;
+    bindCalendarTap(overlay, function({ target }) {
+        const control = target.closest('button, [data-mini-label], .offcanvas-backdrop');
+        return overlay.contains(control) ? control : null;
+    }, function(control) {
+        if (control.classList.contains('offcanvas-backdrop')) {
+            dismiss();
+        } else {
+            control.click();
+        }
+    });
+
+    // Bootstrap's transition callbacks also manage focus, scroll locking, and dialog attributes.
+    // Let the current transition finish before running the opposite action.
+    panel.addEventListener('hide.bs.offcanvas', function(event) {
+        if (panel.classList.contains('showing')) {
+            event.preventDefault();
+            panel.addEventListener('shown.bs.offcanvas', dismiss, { once: true });
+        }
+    });
+    const reopen = () => overlay.querySelector('[data-bs-toggle="offcanvas"]').click();
+    panel.addEventListener('show.bs.offcanvas', function(event) {
+        if (panel.classList.contains('hiding')) {
+            event.preventDefault();
+            panel.addEventListener('hidden.bs.offcanvas', reopen, { once: true });
+        }
+    });
+}
+
 export function bindEventModalTaps(modal, dismiss) {
     const getControl = function({ target }) {
         if (!modal.classList.contains('show') || !modal.contains(target)) return null;

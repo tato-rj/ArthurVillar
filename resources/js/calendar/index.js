@@ -1,6 +1,6 @@
 import { spring } from 'motion';
 import { animate } from 'motion/mini';
-import { bindCalendarTap, bindEventModalTaps, tapMovementTolerance, tapHoldDelay } from './touch-activation';
+import { bindCalendarTap, bindEventModalTaps, bindMiniCalendarOverlay, tapMovementTolerance, tapHoldDelay } from './touch-activation';
 import { bindCalendarNavigationMenu } from './navigation-menu';
 import { bindLessonConfirmation } from './lesson-confirmation';
 import { bindLessonCancellationPicker } from './lesson-cancellation-picker';
@@ -9265,18 +9265,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    const miniCalendarToggle = document.querySelector('[data-bs-target="#calendar-mini-calendar-offcanvas"]');
-    [miniCalendarToggle, miniCalendarOffcanvas].filter(Boolean).forEach(function(root) {
-        bindCalendarTap(root, function({ target }) {
-            const control = target.closest('button, [data-mini-label]');
-            return root.contains(control) ? control : null;
-        }, control => control.click());
-    });
-
     const closeMiniCalendarOffcanvas = function() {
         const Offcanvas = window.bootstrap?.Offcanvas || window.jQuery?.fn.offcanvas?.Constructor;
         Offcanvas?.getInstance(miniCalendarOffcanvas)?.hide();
     };
+
+    if (miniCalendarOffcanvas) {
+        bindMiniCalendarOverlay(miniCalendarOffcanvas, closeMiniCalendarOffcanvas);
+    }
 
     const openMiniCalendarMonth = function() {
         if (isScheduleHoldNavigationSuppressed() || state.calendarBeforeSearch) {
