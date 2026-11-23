@@ -7,7 +7,6 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Query\JoinClause;
-use Illuminate\Support\Facades\DB;
 
 class GoogleCalendarEvent extends BaseModel
 {
@@ -46,26 +45,44 @@ class GoogleCalendarEvent extends BaseModel
         return $this->google_calendar_connection_id.':'.$this->visibilityId();
     }
 
-    public function setHiddenOnCalendar(bool $hidden): void
+    public function calendarStart(): Carbon
     {
-        $key = [
-            'google_calendar_connection_id' => $this->google_calendar_connection_id,
-            'google_event_id' => $this->visibilityId(),
-        ];
-        $preferences = DB::table('hidden_google_calendar_events');
-        if ($hidden) {
-            $preferences->upsert($key, array_keys($key), ['google_event_id']);
-        } else {
-            $preferences->where($key)->delete();
-        }
+        $timezone = config('calendar.timezone');
+        return $this->all_day
+            ? Carbon::parse($this->start_date->toDateString(), $timezone)->startOfDay()
+            : $this->starts_at->copy()->setTimezone($timezone);
     }
 
     public function scopeWithHiddenPreference(Builder $query): Builder
     {
-        return $query->leftJoin('hidden_google_calendar_events as hidden', function (JoinClause $join) {
-            $join->on('hidden.google_calendar_connection_id', '=', 'google_calendar_events.google_calendar_connection_id')
-                ->whereRaw('hidden.google_event_id = COALESCE(google_calendar_events.recurring_event_id, google_calendar_events.google_event_id)');
-        });
+        return $query
+            ->leftJoin('hidden_google_calendar_events as occurrence_hide', function (JoinClause $join) {
+                $join->on('occurrence_hide.google_calendar_connection_id', '=', 'google_calendar_events.google_calendar_connection_id')
+                    ->on('occurrence_hide.google_event_id', '=', 'google_calendar_events.google_event_id');
+            })
+            ->leftJoin('hidden_google_calendar_events as series_hide', function (JoinClause $join) {
+                $join->on('series_hide.google_calendar_connection_id', '=', 'google_calendar_events.google_calendar_connection_id')
+                    ->on('series_hide.google_event_id', '=', 'google_calendar_events.recurring_event_id')
+                    ->where(function ($range) {
+                        $range->whereNull('series_hide.starts_at_utc')
+                            ->orWhereColumn('google_calendar_events.starts_at', '>=', 'series_hide.starts_at_utc')
+                            ->orWhereColumn('google_calendar_events.start_date', '>=', 'series_hide.all_day_from');
+                    });
+            });
+    }
+
+    public function scopeVisibleOnCalendar(Builder $query): Builder
+    {
+        return $query->withHiddenPreference()->whereNull('occurrence_hide.google_event_id')->whereNull('series_hide.google_event_id');
+    }
+
+    public function scopeWithRestoreScope(Builder $query): Builder
+    {
+        return $query->withHiddenPreference()->selectRaw("CASE
+            WHEN series_hide.starts_at_utc IS NOT NULL THEN 'future'
+            WHEN series_hide.google_event_id IS NOT NULL THEN 'all'
+            WHEN occurrence_hide.google_event_id IS NOT NULL THEN 'current'
+            END AS restore_scope");
     }
 
     public static function syncCutoff(): Carbon
@@ -155,9 +172,7 @@ class GoogleCalendarEvent extends BaseModel
             : null;
         $accountEmail = $this->getAttribute('calendar_id') ?: $connection?->calendar_id;
         $calendarName = $this->getAttribute('calendar_name') ?: $connection?->calendar_name;
-        $start = $this->all_day
-            ? Carbon::parse($this->start_date, $timezone)->startOfDay()
-            : $this->starts_at->copy()->setTimezone($timezone);
+        $start = $this->calendarStart();
         $allDayEndDate = $this->end_date
             ?: Carbon::parse($this->start_date, $timezone)->addDay();
         $end = $this->all_day
@@ -188,6 +203,7 @@ class GoogleCalendarEvent extends BaseModel
             'destroy_url' => '',
             'external_provider' => 'google',
             'visibility_url' => route('calendar.google-calendar.events.visibility', $this),
+            'occurrences_url' => $this->recurring_event_id ? route('calendar.google-calendar.events.occurrences', $this) : null,
             'google_visibility_key' => $this->calendarVisibilityKey(),
             'is_recurring' => $this->recurring_event_id !== null,
             'external_url' => $this->safeUrl($this->html_link),

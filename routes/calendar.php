@@ -23,6 +23,7 @@ Route::prefix('google-calendar')->name('google-calendar.')->group(function() {
 	Route::get('callback', 'GoogleCalendarController@callback')->name('callback');
 	Route::patch('events/{event}/response', 'GoogleCalendarController@respond')->name('events.respond');
 	Route::put('events/{event}/visibility', 'GoogleCalendarController@updateVisibility')->name('events.visibility');
+	Route::get('events/{event}/occurrences', 'GoogleCalendarController@occurrenceDates')->name('events.occurrences');
 	Route::post('{connection}/sync', 'GoogleCalendarController@sync')->name('sync');
 	Route::delete('{connection}', 'GoogleCalendarController@disconnect')->name('disconnect');
 });

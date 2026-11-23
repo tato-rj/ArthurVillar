@@ -4,6 +4,7 @@ import { bindCalendarTap, bindCalendarControlTaps, bindCalendarOffcanvas, tapMov
 import { bindCalendarNavigationMenu } from './navigation-menu';
 import { bindLessonConfirmation } from './lesson-confirmation';
 import { bindLessonCancellationPicker } from './lesson-cancellation-picker';
+import { bindGoogleHideForm } from './google-hide-form';
 
 const DOMPurify = require('dompurify');
 const calendarjs = window.calendarjs;
@@ -2392,6 +2393,7 @@ const getGeneralEvent = function(generalEvent) {
         responseStatus: generalEvent.response_status || '',
         responseUrl: generalEvent.response_url || '',
         visibilityUrl: generalEvent.visibility_url || '',
+        occurrencesUrl: generalEvent.occurrences_url || '',
         googleVisibilityKey: generalEvent.google_visibility_key || '',
         isRecurring: Boolean(generalEvent.is_recurring),
         organizerName: generalEvent.organizer_name || '',
@@ -6109,11 +6111,10 @@ const updateConflictToggle = function(modal, event) {
     section.querySelector('[data-conflict-controls]').hidden = !canToggle;
     const hideGoogleEvent = section.querySelector('[data-google-event-hide]');
     if (hideGoogleEvent) {
-        hideGoogleEvent.hidden = !canToggle || event?.externalProvider !== 'google' || !event.visibilityUrl;
-        if (!hideGoogleEvent.hidden) {
-            hideGoogleEvent.disabled = state.pendingGoogleEventHides.has(event.googleVisibilityKey);
-            hideGoogleEvent.querySelector('[data-google-event-hide-label]').textContent = event.isRecurring ? 'Hide all occurrences' : 'Hide event';
-        }
+        const form = section.querySelector('[data-google-hide-form]');
+        if (!canToggle || form.dataset.eventGuid !== event?.guid) form.hidden = true;
+        hideGoogleEvent.hidden = !form.hidden || !canToggle || event?.externalProvider !== 'google' || !event.visibilityUrl;
+        hideGoogleEvent.disabled = state.pendingGoogleEventHides.has(event?.googleVisibilityKey);
     }
     section.hidden = !canToggle && !canJoin;
     section.toggleAttribute('data-event-modal-expanded-content', !event?.readOnly);
@@ -9581,10 +9582,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const googleResponseButtons = Array.from(generalEventModal.querySelectorAll('[data-google-event-response]'));
 
         const hideGoogleEvent = generalEventModal.querySelector('[data-google-event-hide]');
-        hideGoogleEvent.addEventListener('click', async function() {
-            const event = getEventByGuid(generalEventModal.dataset.eventGuid);
+        const submitGoogleHide = async function(event, options) {
             const key = event?.googleVisibilityKey;
-            if (hideGoogleEvent.hidden || !key || !event.visibilityUrl || state.pendingGoogleEventHides.has(key)) return;
+            if (!key || !event.visibilityUrl || state.pendingGoogleEventHides.has(key)) return;
 
             state.pendingGoogleEventHides.add(key);
             hideGoogleEvent.disabled = true;
@@ -9598,25 +9598,45 @@ document.addEventListener('DOMContentLoaded', function() {
                         'X-CSRF-TOKEN': window.calendarCsrfToken || '',
                         'X-Requested-With': 'XMLHttpRequest',
                     },
-                    body: JSON.stringify({ hidden: true }),
+                    body: JSON.stringify({ hidden: true, ...options }),
                 }, 'Unable to hide this Google event.');
-                if (!result.hidden || result.google_visibility_key !== key) throw new Error('Unable to hide this Google event.');
+                if (!result.hidden || result.google_visibility_key !== key || !Array.isArray(result.hidden_ids)) {
+                    throw new Error('Unable to hide this Google event.');
+                }
 
-                if (getEventByGuid(generalEventModal.dataset.eventGuid)?.googleVisibilityKey === key) {
+                const hiddenIds = new Set(result.hidden_ids);
+                const current = getEventByGuid(generalEventModal.dataset.eventGuid);
+                if (current?.guid === event.guid || hiddenIds.has(current?.id)) {
                     hideBootstrapModal(generalEventModal);
                 }
                 invalidateCalendarDataCache();
                 state.travelRouteGeneration += 1;
-                state.generalEvents = state.generalEvents.filter(item => item.google_visibility_key !== key);
+                state.generalEvents = state.generalEvents.filter(item => !hiddenIds.has(item.id));
                 state.pendingScheduleScrollTop = calendar.querySelector('.lm-schedule')?.scrollTop ?? null;
                 render({ mode: 'discreet' });
             } catch (error) {
-                if (getEventByGuid(generalEventModal.dataset.eventGuid)?.googleVisibilityKey === key) {
+                if (generalEventModal.dataset.eventGuid === event.guid) {
                     showGeneralEventActionError(generalEventModal, error.message);
                 }
             } finally {
                 state.pendingGoogleEventHides.delete(key);
                 updateConflictToggle(generalEventModal, getEventByGuid(generalEventModal.dataset.eventGuid));
+            }
+        };
+        const googleHideForm = bindGoogleHideForm(generalEventModal.querySelector('[data-google-hide-form]'),
+            calendarWeekStartDay, requestJson, submitGoogleHide, function() {
+                updateConflictToggle(generalEventModal, getEventByGuid(generalEventModal.dataset.eventGuid));
+                hideGoogleEvent.focus();
+            });
+        generalEventModal.addEventListener('hide.bs.modal', googleHideForm.close);
+        hideGoogleEvent.addEventListener('click', function() {
+            const event = getEventByGuid(generalEventModal.dataset.eventGuid);
+            if (hideGoogleEvent.hidden || hideGoogleEvent.disabled || !event?.visibilityUrl) return;
+            if (event.isRecurring) {
+                hideGoogleEvent.hidden = true;
+                googleHideForm.open(event);
+            } else {
+                submitGoogleHide(event, { scope: 'current' });
             }
         });
 

@@ -693,6 +693,71 @@ class GoogleCalendarSyncTest extends BaseTest
         Http::assertNothingSent();
     }
 
+    public function test_hiding_chosen_series_dates_and_following_occurrences_preserves_earlier_dates()
+    {
+        $user = $this->signIn();
+        $this->travelTo(Carbon::parse('2026-10-20'));
+        $connection = GoogleCalendarConnection::create([
+            'user_id' => $user->id, 'calendar_id' => 'scope@example.com', 'access_token' => 'fixture',
+        ]);
+        $make = function (string $id, string $start, array $overrides = []) use ($connection) {
+            return $connection->events()->create(array_replace($this->storedMeetingAttributes($id), [
+                'recurring_event_id' => 'weekly', 'starts_at' => $start,
+                'ends_at' => Carbon::parse($start)->addMinutes(30),
+            ], $overrides));
+        };
+        $early = $make('first', '2026-10-24 16:00:00');
+        $evening = $make('evening', '2026-11-02 02:00:00'); // November 1 in New York.
+        $morning = $make('morning', '2026-11-09 14:00:00');
+        $anchor = $make('afternoon', '2026-11-09 19:00:00');
+        $allDay = $make('all-day', '2026-11-09', [
+            'all_day' => true, 'start_date' => '2026-11-09', 'end_date' => '2026-11-10', 'starts_at' => null, 'ends_at' => null,
+        ]);
+        $url = fn ($event) => route('calendar.google-calendar.events.visibility', $event);
+        $dates = route('calendar.google-calendar.events.occurrences', $anchor);
+        $this->getJson($dates)->assertOk()->assertExactJson(['dates' => ['2026-10-24', '2026-11-01', '2026-11-09']]);
+        $ids = fn ($response) => $response->assertOk()->json('hidden_ids');
+
+        $this->assertEquals(['google-'.$evening->id], $ids($this->putJson($url($evening), ['hidden' => true, 'scope' => 'current'])));
+        $this->getJson($dates)->assertExactJson(['dates' => ['2026-10-24', '2026-11-09']]);
+        $this->putJson($url($evening), ['hidden' => false, 'scope' => 'current'])->assertOk();
+        $this->putJson($url($anchor), ['hidden' => true, 'scope' => 'multiple', 'dates' => ['2026-10-24', '2026-10-25']])->assertUnprocessable();
+        $this->assertDatabaseCount('hidden_google_calendar_events', 0);
+        $this->assertEqualsCanonicalizing(['google-'.$early->id, 'google-'.$evening->id], $ids($this->putJson($url($anchor), [
+            'hidden' => true, 'scope' => 'multiple', 'dates' => ['2026-10-24', '2026-11-01'],
+        ])));
+        $this->putJson($url($evening), ['hidden' => false, 'scope' => 'current'])->assertOk();
+        $this->assertEqualsCanonicalizing(['google-'.$early->id, 'google-'.$anchor->id], $ids($this->putJson($url($anchor), ['hidden' => true, 'scope' => 'future'])));
+
+        $later = $make('later', '2026-11-10', [
+            'all_day' => true, 'start_date' => '2026-11-10', 'end_date' => '2026-11-11', 'starts_at' => null, 'ends_at' => null,
+        ]);
+        $otherSeries = $make('different-series', '2026-11-10 18:00:00', ['recurring_event_id' => 'unrelated']);
+        $rows = collect($this->getJson(route('calendar.tables.google-events', $this->googleEventTableParameters()))->assertOk()->json('data'))->keyBy('id');
+        $this->assertSame('future', $rows[$later->id]['restore_scope']);
+        $this->assertSame('current', $rows[$early->id]['restore_scope']);
+        foreach ([$allDay, $morning, $evening, $otherSeries] as $visible) {
+            $this->assertEmpty($rows[$visible->id]['restore_url']);
+        }
+        $this->putJson($rows[$later->id]['restore_url'], ['hidden' => false, 'scope' => 'future'])->assertOk();
+        $this->assertDatabaseCount('hidden_google_calendar_events', 1);
+        $this->getJson($dates)->assertExactJson(['dates' => ['2026-11-01', '2026-11-09', '2026-11-10']]);
+        $this->putJson($url($anchor), ['hidden' => true, 'scope' => 'all'])->assertOk();
+        $this->getJson($dates)->assertExactJson(['dates' => []]);
+        $this->putJson($url($later), ['hidden' => false, 'scope' => 'all'])->assertOk();
+        $this->assertDatabaseCount('hidden_google_calendar_events', 0);
+
+        $this->putJson($url($early), ['hidden' => true, 'scope' => 'current'])->assertOk();
+        $this->putJson($url($later), ['hidden' => true, 'scope' => 'current'])->assertOk();
+        $this->putJson($url($anchor), ['hidden' => true, 'scope' => 'future'])->assertOk();
+        $early->update(['starts_at' => '2026-11-12 16:00:00', 'ends_at' => '2026-11-12 16:30:00']);
+        $later->update(['start_date' => '2026-11-08', 'end_date' => '2026-11-09']);
+        $this->putJson($url($anchor), ['hidden' => false, 'scope' => 'future'])->assertOk();
+        $this->assertDatabaseCount('hidden_google_calendar_events', 1);
+        $this->assertDatabaseHas('hidden_google_calendar_events', ['google_event_id' => $later->google_event_id]);
+        Http::assertNothingSent();
+    }
+
     /** @test */
     public function google_events_table_combines_the_signed_in_users_google_calendars_only()
     {

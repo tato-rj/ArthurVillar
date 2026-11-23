@@ -117,7 +117,7 @@ $(function() {
                 data: 'restore_url', name: 'actions', orderable: false, searchable: false, className: 'text-right',
                 render: function(url, type, row) {
                     if (type !== 'display' || !url) return '';
-                    const label = row.recurring_event_id ? 'Show series' : 'Show on calendar';
+                    const label = {all: 'Show series', future: 'Show hidden range'}[row.restore_scope] || 'Show on calendar';
                     return `<div class="calendar-table-actions">
                         <button type="button" class="btn btn-sm btn-warning rounded text-nowrap" data-restore-google-event>@icon('rotate-ccw')${label}</button>
                     </div>`;
@@ -142,7 +142,7 @@ $(function() {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                     'X-Requested-With': 'XMLHttpRequest',
                 },
-                body: JSON.stringify({ hidden: false }),
+                body: JSON.stringify({ hidden: false, scope: row.restore_scope }),
             });
             const result = await response.json();
             if (!response.ok || result.hidden !== false) throw new Error();

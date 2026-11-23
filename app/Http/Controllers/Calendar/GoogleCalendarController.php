@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Calendar;
 
+use App\Calendar\GoogleEventVisibility;
 use App\Http\Controllers\Controller;
 use App\Models\Calendar\GoogleCalendarConnection;
 use App\Models\Calendar\GoogleCalendarEvent;
@@ -125,11 +126,21 @@ class GoogleCalendarController extends Controller
     {
         abort_unless($event->calendarConnection?->user_id === $request->user()->id, 404);
 
-        $request->validate(['hidden' => ['required', 'boolean']]);
-        $hidden = $request->boolean('hidden');
-        $event->setHiddenOnCalendar($hidden);
+        $data = $request->validate([
+            'hidden' => ['required', 'boolean'],
+            'scope' => ['sometimes', 'required', 'in:current,multiple,future,all'],
+            'dates' => ['required_if:scope,multiple', 'array', 'min:1'],
+            'dates.*' => ['required', 'date_format:Y-m-d', 'distinct'],
+        ]);
+        return response()->json((new GoogleEventVisibility($event))->update(
+            $request->boolean('hidden'), $data['scope'] ?? null, $data['dates'] ?? []
+        ));
+    }
 
-        return response()->json(['google_visibility_key' => $event->calendarVisibilityKey(), 'hidden' => $hidden]);
+    public function occurrenceDates(Request $request, GoogleCalendarEvent $event)
+    {
+        abort_unless($event->calendarConnection?->user_id === $request->user()->id && $event->recurring_event_id, 404);
+        return response()->json(['dates' => (new GoogleEventVisibility($event))->availableDates()]);
     }
 
     public function respond(

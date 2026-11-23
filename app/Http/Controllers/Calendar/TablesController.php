@@ -52,18 +52,16 @@ class TablesController extends Controller
                 'google_calendar_events.google_calendar_connection_id'
             )
             ->where('google_calendar_connections.user_id', request()->user()->id)
-            ->withHiddenPreference()
             ->startingOnOrAfterSyncCutoff()
             ->withinRecurringSyncHorizon()
             ->select([
                 'google_calendar_events.*',
                 'google_calendar_connections.calendar_id as calendar_id',
                 'google_calendar_connections.calendar_name as calendar_name',
-                'hidden.google_event_id as hidden_event_id',
-            ]);
+            ])->withRestoreScope();
 
         return DataTables::eloquent($events)
-            ->addColumn('restore_url', fn (GoogleCalendarEvent $event) => $event->hidden_event_id !== null
+            ->addColumn('restore_url', fn (GoogleCalendarEvent $event) => $event->restore_scope !== null
                 ? route('calendar.google-calendar.events.visibility', $event) : null)
             ->addColumn('name', fn (GoogleCalendarEvent $event) => $event->title)
             ->addColumn('scheduled_date', function (GoogleCalendarEvent $event) {
