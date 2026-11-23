@@ -9265,21 +9265,17 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    const miniCalendarToggle = document.querySelector('[data-bs-target="#calendar-mini-calendar-offcanvas"]');
+    [miniCalendarToggle, miniCalendarOffcanvas].filter(Boolean).forEach(function(root) {
+        bindCalendarTap(root, function({ target }) {
+            const control = target.closest('button, [data-mini-label]');
+            return root.contains(control) ? control : null;
+        }, control => control.click());
+    });
+
     const closeMiniCalendarOffcanvas = function() {
-        if (!miniCalendarOffcanvas || !miniCalendarOffcanvas.classList.contains('show')) {
-            return;
-        }
-
-        if (window.bootstrap && window.bootstrap.Offcanvas && typeof window.bootstrap.Offcanvas.getOrCreateInstance === 'function') {
-            window.bootstrap.Offcanvas.getOrCreateInstance(miniCalendarOffcanvas).hide();
-            return;
-        }
-
-        const close = miniCalendarOffcanvas.querySelector('[data-bs-dismiss="offcanvas"]');
-
-        if (close) {
-            close.click();
-        }
+        const Offcanvas = window.bootstrap?.Offcanvas || window.jQuery?.fn.offcanvas?.Constructor;
+        Offcanvas?.getInstance(miniCalendarOffcanvas)?.hide();
     };
 
     const openMiniCalendarMonth = function() {
@@ -9301,20 +9297,20 @@ document.addEventListener('DOMContentLoaded', function() {
         closeMiniCalendarOffcanvas();
     };
 
-    let miniCalendarSwipeClickSuppressedUntil = 0;
-
     miniCalendars.forEach(function(miniCalendar) {
         const miniPrevious = miniCalendar.querySelector('[data-mini-prev]');
         const miniNext = miniCalendar.querySelector('[data-mini-next]');
         const miniLabel = miniCalendar.querySelector('[data-mini-label]');
         const miniGrid = miniCalendar.querySelector('[data-mini-grid]');
         let swipeStart = null;
+        let miniCalendarSwipeClickSuppressedUntil = 0;
 
         miniCalendar.addEventListener('pointerdown', function(e) {
             if (!e.isPrimary || (e.pointerType === 'mouse' && e.button !== 0)) {
                 return;
             }
 
+            miniCalendarSwipeClickSuppressedUntil = 0;
             if (e.target.closest('[data-mini-prev], [data-mini-next]')) {
                 return;
             }

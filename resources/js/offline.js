@@ -54,7 +54,7 @@ const startOfflineDetection = () => {
         }
     };
 
-    const probe = async () => {
+    const probe = async (path, method) => {
         if (!navigator.onLine) {
             return false;
         }
@@ -63,11 +63,13 @@ const startOfflineDetection = () => {
             ? new AbortController()
             : null;
         const timeout = window.setTimeout(() => controller?.abort(), PROBE_TIMEOUT);
-        const url = new URL(PROBE_PATH, window.location.origin);
+        const url = new URL(path, window.location.origin);
         url.searchParams.set('_', Date.now().toString());
 
         try {
-            const response = await window.fetch(url.toString(), {
+            await window.fetch(url.toString(), {
+                method,
+                mode: 'same-origin',
                 cache: 'no-store',
                 credentials: 'same-origin',
                 headers: {
@@ -76,10 +78,11 @@ const startOfflineDetection = () => {
                 signal: controller?.signal,
             });
 
-            return response.status === 204
-                && response.headers.get('X-Connectivity') === 'online';
+            // Even an HTTP error means the browser reached the server.
+            return true;
         } catch (error) {
-            return false;
+            // An expired local deadline tells us nothing about network reachability.
+            return controller?.signal.aborted ? null : false;
         } finally {
             window.clearTimeout(timeout);
         }
@@ -96,15 +99,16 @@ const startOfflineDetection = () => {
         }
 
         activeCheck = (async () => {
-            let isOnline = await probe();
-
-            // Requiring two failed heartbeats avoids covering the page for a
-            // single dropped request on an otherwise usable connection.
-            if (!isOnline && confirmFailure && navigator.onLine) {
-                await delay(CONFIRMATION_DELAY);
-                isOnline = await probe();
+            let reachable = await probe(PROBE_PATH, 'GET');
+            if (reachable !== true && navigator.onLine) {
+                if (confirmFailure) {
+                    await delay(CONFIRMATION_DELAY);
+                }
+                // This asset is served independently of Laravel and HEAD avoids downloading it.
+                reachable = await probe('/images/offline-piano.png', 'HEAD');
             }
 
+            const isOnline = navigator.onLine && reachable !== false;
             setOffline(!isOnline);
 
             if (!isOnline && manual) {
@@ -145,6 +149,7 @@ const startOfflineDetection = () => {
     });
 
     window.addEventListener('online', async () => {
+        await activeCheck;
         await checkConnectivity({ confirmFailure: false });
         scheduleCheck();
     });
