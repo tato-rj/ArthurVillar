@@ -604,7 +604,7 @@ class GoogleCalendarSyncTest extends BaseTest
             ->assertSee('Google Events')
             ->assertSee('google-events-table', false)
             ->assertSee('tables\\/google-events', false)
-            ->assertSee('<th>Response</th>', false)
+            ->assertSeeInOrder(['<th>Response</th>', '<th>Actions</th>'], false)
             ->assertSee('data-restore-google-event', false)
             ->assertSee("status === 'Accepted' ? 'text-green' : 'text-muted'", false)
             ->assertDontSee('aria-label="Event source"', false)
@@ -841,17 +841,17 @@ class GoogleCalendarSyncTest extends BaseTest
             'start' => 0,
             'length' => 10,
             'columns' => [
-                $column('name', 'name'),
                 $column('scheduled_date', 'scheduled_date', false),
+                $column('name', 'name'),
                 $column('starts_at', 'starts_at', false),
                 $column('ends_at', 'ends_at', false),
                 $column('calendar', 'calendar'),
                 $column('organizer', 'organizer'),
                 $column('response_status', 'response_status'),
-                $column('external_url', 'actions', false, false),
+                $column('restore_url', 'actions', false, false),
             ],
             'order' => [
-                ['column' => 1, 'dir' => 'asc'],
+                ['column' => 0, 'dir' => 'asc'],
                 ['column' => 2, 'dir' => 'asc'],
             ],
             'search' => ['value' => '', 'regex' => 'false'],

@@ -27,6 +27,7 @@
                     <th>Calendar</th>
                     <th>Organizer</th>
                     <th>Response</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
         </table>
@@ -82,9 +83,7 @@ $(function() {
                 render: function(data, type, row) {
                     if (type !== 'display') return data;
                     const name = textRenderer.display(data);
-                    if (!row.restore_url) return name;
-                    const label = row.recurring_event_id ? 'Show series' : 'Show on calendar';
-                    return name + '<div class="small text-muted">Hidden · <button type="button" class="btn btn-link btn-sm p-0" data-restore-google-event>' + label + '</button></div>';
+                    return row.restore_url ? name + '<div class="small text-muted">Hidden</div>' : name;
                 },
             },
             {
@@ -112,6 +111,16 @@ $(function() {
 
                     const color = status === 'Accepted' ? 'text-green' : 'text-muted';
                     return `<span class="${color}">${textRenderer.display(status)}</span>`;
+                },
+            },
+            {
+                data: 'restore_url', name: 'actions', orderable: false, searchable: false, className: 'text-right',
+                render: function(url, type, row) {
+                    if (type !== 'display' || !url) return '';
+                    const label = row.recurring_event_id ? 'Show series' : 'Show on calendar';
+                    return `<div class="calendar-table-actions">
+                        <button type="button" class="btn btn-sm btn-warning rounded text-nowrap" data-restore-google-event>@icon('rotate-ccw')${label}</button>
+                    </div>`;
                 },
             },
         ],
