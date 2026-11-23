@@ -6110,13 +6110,14 @@ const updateConflictToggle = function(modal, event) {
     }
     section.querySelector('[data-conflict-controls]').hidden = !canToggle;
     const hideGoogleEvent = section.querySelector('[data-google-event-hide]');
+    const canHideGoogleEvent = Boolean(hideGoogleEvent && event?.externalProvider === 'google' && event.visibilityUrl);
     if (hideGoogleEvent) {
         const form = section.querySelector('[data-google-hide-form]');
-        if (!canToggle || form.dataset.eventGuid !== event?.guid) form.hidden = true;
-        hideGoogleEvent.hidden = !form.hidden || !canToggle || event?.externalProvider !== 'google' || !event.visibilityUrl;
+        if (!canHideGoogleEvent || form.dataset.eventGuid !== event?.guid) form.hidden = true;
+        hideGoogleEvent.hidden = !canHideGoogleEvent || !form.hidden;
         hideGoogleEvent.disabled = state.pendingGoogleEventHides.has(event?.googleVisibilityKey);
     }
-    section.hidden = !canToggle && !canJoin;
+    section.hidden = !canToggle && !canJoin && !canHideGoogleEvent;
     section.toggleAttribute('data-event-modal-expanded-content', !event?.readOnly);
 
     if (!canToggle) {
