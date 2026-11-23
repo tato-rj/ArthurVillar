@@ -1663,6 +1663,12 @@ button.setting-undo {
 }
 
 @media (pointer: coarse) {
+    .calendar-calendar-label,
+    #calendar .lm-schedule thead tr:not(.calendar-schedule-holiday-row) td {
+        user-select: none;
+        -webkit-touch-callout: none;
+    }
+
     #calendar .lm-schedule thead tr:not(.calendar-schedule-holiday-row) td {
         touch-action: none;
     }

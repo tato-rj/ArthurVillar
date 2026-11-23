@@ -397,7 +397,8 @@ class Scheduler
             ->with(['location', 'students' => function ($query) {
                 $query->orderBy('first_name')->orderBy('last_name');
             }])
-            ->whereBetween('date', [$range['start'], $range['end']])
+            ->where('date', '>=', $range['start'])
+            ->where('date', '<', Carbon::parse($range['end'])->addDay()->toDateString())
             ->inScheduleOrder()
             ->get()
             ->map(function (Recital $recital) {

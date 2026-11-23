@@ -171,11 +171,13 @@ class RecitalTest extends BaseTest
         ]);
         $recital->students()->attach($student);
 
+        Recital::factory()->create(['date' => '2026-10-21']);
         $payload = app(Scheduler::class)->payload(request()->merge([
-            'range_start' => '2026-10-01',
-            'range_end' => '2026-10-31',
+            'range_start' => '2026-10-19',
+            'range_end' => '2026-10-20',
         ]));
 
+        $this->assertCount(1, $payload['recitals']);
         $event = collect($payload['recitals'])->firstWhere('id', $recital->id);
 
         $this->assertSame('Fall Recital', $event['name']);

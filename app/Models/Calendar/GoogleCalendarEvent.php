@@ -14,6 +14,7 @@ class GoogleCalendarEvent extends BaseModel
     public const RECURRING_SYNC_MONTH_OPTIONS = [2, 4, 6, 12];
 
     protected $casts = [
+        'organizer_is_self' => 'boolean',
         'all_day' => 'boolean',
         'starts_at' => 'datetime',
         'ends_at' => 'datetime',
@@ -155,7 +156,7 @@ class GoogleCalendarEvent extends BaseModel
             'external_url' => $this->safeUrl($this->html_link),
             'meeting_url' => $this->safeUrl($this->meeting_url),
             'response_status' => $this->response_status,
-            'response_url' => route('calendar.google-calendar.events.respond', $this),
+            'response_url' => $this->organizer_is_self ? null : route('calendar.google-calendar.events.respond', $this),
             'organizer_name' => $this->organizer_name,
             'organizer_email' => $this->organizer_email,
             'location' => $this->location,

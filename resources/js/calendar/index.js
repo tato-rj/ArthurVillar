@@ -1,6 +1,6 @@
 import { spring } from 'motion';
 import { animate } from 'motion/mini';
-import { bindCalendarTap, bindEventModalTaps, bindMiniCalendarOverlay, tapMovementTolerance, tapHoldDelay } from './touch-activation';
+import { bindCalendarTap, bindCalendarControlTaps, bindCalendarOffcanvas, tapMovementTolerance, tapHoldDelay } from './touch-activation';
 import { bindCalendarNavigationMenu } from './navigation-menu';
 import { bindLessonConfirmation } from './lesson-confirmation';
 import { bindLessonCancellationPicker } from './lesson-cancellation-picker';
@@ -5641,7 +5641,8 @@ const patchSchedulePointer = function(calendar) {
     pointer.style.left = `${pointerLeft}px`;
     pointer.style.top = `${cellRect.top - scheduleRect.top + schedule.scrollTop + (cellRect.height * slotOffset)}px`;
     extension.style.width = `${pointerLeft}px`;
-    time.textContent = eventTimeFormatter.format(now).replace(/\s*[ap]\.?m\.?/i, '');
+    const label = eventTimeFormatter.format(now).replace(/\s*[ap]\.?m\.?/i, '');
+    if (time.textContent !== label) time.textContent = label;
 
     if (state.view === 'day') {
         pointer.style.width = `${schedule.clientWidth - (cellRect.left - scheduleRect.left)}px`;
@@ -5687,8 +5688,13 @@ const watchScheduleChanges = function(calendar) {
     }
 
     disconnectScheduleObserver();
-    state.scheduleObserver = new MutationObserver(function() {
-        queueSchedulePatch(calendar);
+    state.scheduleObserver = new MutationObserver(function(records) {
+        // Icon hydration and clock labels also mutate this subtree after a patch.
+        // Rebuild only for CalendarJS grid changes, event moves, and time edits.
+        const gridChanged = records.some(record => record.type === 'attributes'
+            || [...record.addedNodes, ...record.removedNodes].some(node =>
+                node.matches?.('table, thead, tbody, tr, td, .lm-schedule-item')));
+        if (gridChanged) queueSchedulePatch(calendar);
     });
     state.scheduleObserver.observe(schedule, {
         attributes: true,
@@ -8628,27 +8634,18 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    const closeCalendarViewsOffcanvas = function() {
-        if (!offcanvasViews) {
-            return;
-        }
-
-        if (window.bootstrap && window.bootstrap.Offcanvas && typeof window.bootstrap.Offcanvas.getOrCreateInstance === 'function') {
-            window.bootstrap.Offcanvas.getOrCreateInstance(offcanvasViews).hide();
-            return;
-        }
-
-        if (window.bootstrap && window.bootstrap.Offcanvas) {
-            new window.bootstrap.Offcanvas(offcanvasViews).hide();
-            return;
-        }
-
-        const close = offcanvasViews.querySelector('.offcanvas-header [data-bs-dismiss="offcanvas"]');
-
-        if (close) {
-            close.click();
-        }
+    const hideCalendarOffcanvas = function(panel) {
+        const Offcanvas = window.bootstrap?.Offcanvas || window.jQuery?.fn.offcanvas?.Constructor;
+        Offcanvas?.getInstance(panel)?.hide();
     };
+    document.querySelectorAll('[data-bs-toggle="offcanvas"]').forEach(function(toggle) {
+        const panel = document.querySelector(toggle.dataset.bsTarget || toggle.getAttribute('href'));
+        if (panel) bindCalendarOffcanvas(panel, toggle, () => hideCalendarOffcanvas(panel));
+    });
+    bindCalendarControlTaps(document.body, hideBootstrapModal, hideCalendarOffcanvas, function(target) {
+        return (calendarSearch?.hasAttribute('selected') && !calendarSearch.contains(target))
+            || (calendarFilterMenu?.classList.contains('show') && !calendarFilter.contains(target) && !calendarFilterMenu.contains(target));
+    });
 
     syncViewControls();
     syncCalendarInsightsPlacement();
@@ -9167,7 +9164,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             setCalendarView(item.dataset.calendarOffcanvasView);
-            closeCalendarViewsOffcanvas();
+            hideCalendarOffcanvas(offcanvasViews);
         });
     });
 
@@ -9265,15 +9262,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    const closeMiniCalendarOffcanvas = function() {
-        const Offcanvas = window.bootstrap?.Offcanvas || window.jQuery?.fn.offcanvas?.Constructor;
-        Offcanvas?.getInstance(miniCalendarOffcanvas)?.hide();
-    };
-
-    if (miniCalendarOffcanvas) {
-        bindMiniCalendarOverlay(miniCalendarOffcanvas, closeMiniCalendarOffcanvas);
-    }
-
     const openMiniCalendarMonth = function() {
         if (isScheduleHoldNavigationSuppressed() || state.calendarBeforeSearch) {
             return;
@@ -9290,7 +9278,7 @@ document.addEventListener('DOMContentLoaded', function() {
             setCalendarView('month');
         }
 
-        closeMiniCalendarOffcanvas();
+        hideCalendarOffcanvas(miniCalendarOffcanvas);
     };
 
     miniCalendars.forEach(function(miniCalendar) {
@@ -9411,7 +9399,7 @@ document.addEventListener('DOMContentLoaded', function() {
             syncViewControls();
             render();
 
-            closeMiniCalendarOffcanvas();
+            hideCalendarOffcanvas(miniCalendarOffcanvas);
         });
     });
 
@@ -9741,10 +9729,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     }
-
-    [calendarEventModal, document.getElementById('recital-modal'), document.getElementById('teaching-break-modal')]
-        .filter(Boolean)
-        .forEach(modal => bindEventModalTaps(modal, hideBootstrapModal));
 
     bindConflictToggle(calendarEventModal, render);
     bindConflictToggle(document.getElementById('recital-modal'), render);
@@ -10879,8 +10863,12 @@ document.addEventListener('DOMContentLoaded', function() {
             || calendar.classList.contains('calendar-schedule-range-transitioning')) return null;
 
         const item = getCalendarEventItem(point);
-        return item && !isCalendarHolidayItem(item) && !item.hasAttribute('holding-event') ? item : null;
-    }, openCalendarEventItem);
+        if (item) return !isCalendarHolidayItem(item) && !item.hasAttribute('holding-event') ? item : null;
+        return state.view === 'day' ? null : point.target.closest('.lm-schedule tbody td[data-date]');
+    }, function(target) {
+        if (target.matches('td')) target.click();
+        else openCalendarEventItem(target);
+    });
 
     const monthDayEventsModal = document.getElementById('month-day-events-modal');
 

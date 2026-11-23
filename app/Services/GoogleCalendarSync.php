@@ -24,7 +24,10 @@ class GoogleCalendarSync
 
             DB::transaction(function () use ($connection, $events, $nextSyncToken, $recurringThrough) {
                 if (! $connection->sync_token) {
-                    $connection->events()->delete();
+                    // Keep local event IDs used by calendar conflict exceptions.
+                    $missingIds = $connection->events()->pluck('id', 'google_event_id')
+                        ->except(array_column($events, 'id'))->values();
+                    $connection->events()->whereIntegerInRaw('id', $missingIds)->delete();
                 } else {
                     $cutoff = GoogleCalendarEvent::syncCutoff();
 
@@ -118,13 +121,17 @@ class GoogleCalendarSync
         }
 
         $existing = $connection->events()->where('google_event_id', $googleEventId);
-        $selfAttendee = collect($event['attendees'] ?? [])->firstWhere('self', true);
+        $attendees = collect($event['attendees'] ?? []);
+        $selfAttendee = $attendees->firstWhere('self', true);
         $organizerIsSelf = (bool) Arr::get($event, 'organizer.self', false);
-        $responseStatus = $selfAttendee['responseStatus'] ?? null;
+        $isMeeting = $organizerIsSelf
+            ? $attendees->contains(fn (array $attendee) => empty($attendee['self'])
+                && empty($attendee['organizer']) && empty($attendee['resource']))
+            : $selfAttendee !== null;
+        $responseStatus = $selfAttendee['responseStatus'] ?? ($organizerIsSelf ? 'accepted' : null);
 
         if (($event['status'] ?? null) === 'cancelled'
-            || ! $selfAttendee
-            || $organizerIsSelf
+            || ! $isMeeting
             || $responseStatus === 'declined') {
             $existing->delete();
             return;
@@ -135,6 +142,10 @@ class GoogleCalendarSync
         $endsAt = $allDay ? null : $this->parseDateTime(Arr::get($event, 'end.dateTime'));
 
         if ((! $allDay && (! $startsAt || ! $endsAt)) || ($allDay && ! Arr::get($event, 'start.date'))) {
+            if (! $connection->sync_token) {
+                $existing->delete();
+            }
+
             return;
         }
 
@@ -170,6 +181,7 @@ class GoogleCalendarSync
                 'end_date' => $allDay ? Arr::get($event, 'end.date') : null,
                 'organizer_name' => Arr::get($event, 'organizer.displayName'),
                 'organizer_email' => Arr::get($event, 'organizer.email'),
+                'organizer_is_self' => $organizerIsSelf,
                 'attendees' => $event['attendees'] ?? [],
                 'google_updated_at' => $this->parseDateTime($event['updated'] ?? null),
             ]

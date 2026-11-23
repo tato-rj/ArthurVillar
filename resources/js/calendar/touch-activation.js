@@ -46,20 +46,7 @@ export function bindCalendarTap(root, getTarget, activate) {
     }, { passive: false });
 }
 
-export function bindMiniCalendarOverlay(panel, dismiss) {
-    // Bootstrap inserts the backdrop alongside the panel and toggle in this wrapper.
-    const overlay = panel.parentElement;
-    bindCalendarTap(overlay, function({ target }) {
-        const control = target.closest('button, [data-mini-label], .offcanvas-backdrop');
-        return overlay.contains(control) ? control : null;
-    }, function(control) {
-        if (control.classList.contains('offcanvas-backdrop')) {
-            dismiss();
-        } else {
-            control.click();
-        }
-    });
-
+export function bindCalendarOffcanvas(panel, toggle, dismiss) {
     // Bootstrap's transition callbacks also manage focus, scroll locking, and dialog attributes.
     // Let the current transition finish before running the opposite action.
     panel.addEventListener('hide.bs.offcanvas', function(event) {
@@ -68,7 +55,7 @@ export function bindMiniCalendarOverlay(panel, dismiss) {
             panel.addEventListener('shown.bs.offcanvas', dismiss, { once: true });
         }
     });
-    const reopen = () => overlay.querySelector('[data-bs-toggle="offcanvas"]').click();
+    const reopen = () => toggle.click();
     panel.addEventListener('show.bs.offcanvas', function(event) {
         if (panel.classList.contains('hiding')) {
             event.preventDefault();
@@ -77,23 +64,29 @@ export function bindMiniCalendarOverlay(panel, dismiss) {
     });
 }
 
-export function bindEventModalTaps(modal, dismiss) {
+// Delegate on the calendar page so portaled menus and forms loaded later use the same tap handling.
+export function bindCalendarControlTaps(root, dismissModal, dismissOffcanvas, isOutsideOpenPopup) {
     const getControl = function({ target }) {
-        if (!modal.classList.contains('show') || !modal.contains(target)) return null;
-        if (target === modal) return modal;
+        if (target.matches('.modal.show, .offcanvas-backdrop.show, [data-calendar-create-backdrop]')) return target;
 
-        // Text fields and selects need the browser's native editing and picker gestures.
-        const element = target.closest('button, input, label, a[href]');
-        const control = element?.tagName === 'LABEL' ? element.control : element;
-        return control?.matches('button, input[type="checkbox"], input[type="radio"], input[type="submit"], a[href]')
-            && !control.matches(':disabled') ? control : null;
+        const element = target.closest('button, a[href], label, input, select, textarea, [contenteditable], [role="button"], .calendar-month-event, [data-calendar-offcanvas-view]');
+        // The search and filter menus also use clicks on otherwise empty space to dismiss.
+        if (!element) return typeof target.click === 'function' && isOutsideOpenPopup(target) ? target : null;
+        const control = element.tagName === 'LABEL' ? element.control : element;
+        if (!control || control.matches(':disabled, select, textarea, [contenteditable]')) return null;
+        // Leave text entry, native pickers, and range sliders to the browser.
+        if (control.tagName === 'INPUT' && !['checkbox', 'radio', 'submit', 'button', 'reset'].includes(control.type)) return null;
+        return control;
     };
 
-    bindCalendarTap(modal, getControl, function(control) {
-        if (control === modal) {
-            dismiss(modal);
+    bindCalendarTap(root, getControl, function(control) {
+        if (control.matches('.offcanvas-backdrop')) {
+            const panel = control.parentElement.querySelector(':scope > .offcanvas[aria-modal="true"]:not(.hiding)');
+            if (panel && panel.dataset.bsBackdrop !== 'static') dismissOffcanvas(panel);
+        } else if (control.matches('.modal')) {
+            if (control.dataset.bsBackdrop !== 'static') dismissModal(control);
         } else {
-            control.focus({ preventScroll: true });
+            if (control.closest('.modal')) control.focus({ preventScroll: true });
             control.click();
         }
     });

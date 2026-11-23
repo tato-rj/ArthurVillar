@@ -129,6 +129,7 @@ class GoogleCalendarController extends Controller
         $connection = $event->calendarConnection;
 
         abort_unless($connection && $connection->user_id === $request->user()->id, 404);
+        abort_if($event->organizer_is_self, 422, 'This meeting is organized by your Google account.');
 
         $validated = $request->validate([
             'response_status' => ['required', 'in:accepted,declined'],

@@ -236,7 +236,7 @@ class GoogleCalendarSyncTest extends BaseTest
     }
 
     /** @test */
-    public function the_first_sync_imports_only_meetings_created_by_someone_else()
+    public function the_first_sync_imports_invitations_and_excludes_personal_appointments()
     {
         $user = $this->signIn();
         $connection = GoogleCalendarConnection::create([
@@ -257,8 +257,9 @@ class GoogleCalendarSyncTest extends BaseTest
                         'start' => ['dateTime' => '2026-06-30T15:00:00-04:00'],
                         'end' => ['dateTime' => '2026-06-30T16:00:00-04:00'],
                     ]),
-                    array_replace_recursive($this->googleMeeting('my-own-meeting', 'accepted'), [
+                    array_replace($this->googleMeeting('solo-appointment', 'accepted'), [
                         'organizer' => ['email' => 'arthur@example.com', 'self' => true],
+                        'attendees' => [],
                     ]),
                     $this->googleMeeting('declined-meeting', 'declined'),
                 ],
@@ -279,7 +280,7 @@ class GoogleCalendarSyncTest extends BaseTest
             'google_event_id' => 'tentative-meeting',
             'response_status' => 'needsAction',
         ]);
-        $this->assertDatabaseMissing('google_calendar_events', ['google_event_id' => 'my-own-meeting']);
+        $this->assertDatabaseMissing('google_calendar_events', ['google_event_id' => 'solo-appointment']);
         $this->assertDatabaseMissing('google_calendar_events', ['google_event_id' => 'declined-meeting']);
         $this->assertDatabaseMissing('google_calendar_events', ['google_event_id' => 'old-invited-meeting']);
 
@@ -287,6 +288,69 @@ class GoogleCalendarSyncTest extends BaseTest
             return str_contains($request->url(), '/events')
                 && $request['timeMin'] === '2026-07-01T04:00:00+00:00';
         });
+    }
+
+    /** @test */
+    public function a_full_sync_recovers_hosted_meetings_and_preserves_existing_calendar_event_ids()
+    {
+        $user = $this->signIn();
+        $connection = GoogleCalendarConnection::create([
+            'user_id' => $user->id,
+            'calendar_id' => 'arthur@example.com',
+            'access_token' => 'access-token',
+            'token_expires_at' => now()->addHour(),
+        ]);
+        $invitation = $connection->events()->create($this->storedMeetingAttributes('invitation'));
+        $removed = $connection->events()->create($this->storedMeetingAttributes('removed'));
+        $organizer = ['email' => $connection->calendar_id, 'self' => true];
+        $hostAttendee = $organizer + ['organizer' => true, 'responseStatus' => 'accepted'];
+        $guest = ['email' => 'guest@example.com', 'responseStatus' => 'accepted'];
+        $meeting = array_replace($this->googleMeeting('hosted', 'accepted'), [
+            'organizer' => $organizer,
+            'attendees' => [$hostAttendee, $guest],
+            'start' => ['dateTime' => '2026-11-23T14:00:00-05:00'],
+            'end' => ['dateTime' => '2026-11-23T14:45:00-05:00'],
+        ]);
+        Http::fakeSequence()
+            ->push(['items' => [$this->googleMeeting('invitation', 'accepted')], 'nextPageToken' => 'page-2'])
+            ->push(['items' => [
+                $meeting,
+                array_replace($meeting, ['id' => 'host-omitted', 'attendees' => [$guest]]),
+                array_replace($meeting, ['id' => 'solo', 'attendees' => [$hostAttendee]]),
+            ], 'nextSyncToken' => 'incremental-token'])
+            ->push(['items' => [
+                array_replace($meeting, ['attendees' => [$hostAttendee]]),
+            ], 'nextSyncToken' => 'next-token']);
+
+        $this->post(route('calendar.google-calendar.sync', $connection))->assertSessionHas('success');
+
+        $this->assertSame('accepted', $invitation->fresh()->response_status);
+        $this->assertModelMissing($removed);
+        $this->assertDatabaseMissing('google_calendar_events', ['google_event_id' => 'solo']);
+        $hosted = $connection->events()->where('google_event_id', 'hosted')->firstOrFail();
+        $hostOmitted = $connection->events()->where('google_event_id', 'host-omitted')->firstOrFail();
+        $events = app(Scheduler::class)->generalEvents([
+            'start' => '2026-11-23', 'end' => '2026-11-23',
+        ], $user->id);
+        foreach ([$hosted, $hostOmitted] as $event) {
+            $payload = $events->firstWhere('id', 'google-'.$event->id);
+            $this->assertNotNull($payload);
+            $this->assertSame('2026-11-23', $payload['scheduled_date']);
+            $this->assertSame('14:00', $payload['starts_at']);
+            $this->assertSame('14:45', $payload['ends_at']);
+            $this->assertSame('accepted', $payload['response_status']);
+            $this->assertNull($payload['response_url']);
+        }
+        $this->patchJson(route('calendar.google-calendar.events.respond', $hosted), [
+            'response_status' => 'declined',
+        ])->assertUnprocessable();
+        Http::assertSentCount(2);
+
+        app(GoogleCalendarSync::class)->sync($connection->fresh());
+
+        $this->assertModelMissing($hosted);
+        $this->assertModelExists($hostOmitted);
+        $this->assertSame('next-token', $connection->fresh()->sync_token);
     }
 
     /** @test */

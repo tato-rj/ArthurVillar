@@ -1,12 +1,8 @@
 # Google Calendar integration
 
-This integration imports meetings from a user's primary Google Calendar when:
+Studio Calendar imports invitations from the connected primary Google Calendar and meetings the account organizes with at least one other guest. It skips canceled meetings, declined invitations, and personal appointments without guests.
 
-- the signed-in user appears in the Google event's attendee list;
-- another person is the organizer; and
-- the user's response is not `declined`.
-
-Imported events are read-only in Studio Calendar. RSVP changes, edits, and cancellations remain in Google Calendar. One site user can connect multiple Google accounts at the same time. The application performs an incremental sync every five minutes and also exposes a **Sync now** button for each account in Calendar Settings.
+You can respond to incoming invitations in Studio Calendar. Edit or cancel meetings in Google Calendar. Each connected Google account syncs every five minutes and has a **Sync now** button. After the organizer-meeting migration, the next sync also imports previously skipped meetings.
 
 ## Google Cloud setup
 

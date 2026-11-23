@@ -2,7 +2,7 @@
 		<div class="calendar-calendar-toolbar-track">
 			<div class="calendar-calendar-toolbar-pane calendar-calendar-toolbar-pane-controls">
 				<div class="calendar-calendar-view-offcanvas-control">
-					<button data-bs-toggle="offcanvas" href="#calendar-offcanvas-views" class="btn btn-raw calendar-calendar-icon-button calendar-calendar-header-control">
+					<button type="button" data-bs-toggle="offcanvas" data-bs-target="#calendar-offcanvas-views" aria-controls="calendar-offcanvas-views" aria-label="Calendar views" class="btn btn-raw calendar-calendar-icon-button calendar-calendar-header-control">
 						@icon('ellipsis-vertical', ['mr' => 0, 'size' => 'xl'])
 					</button>
 				</div>

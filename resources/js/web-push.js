@@ -27,7 +27,7 @@ if (config) {
 
     const registration = supportsWebPush
         ? navigator.serviceWorker.register(config.serviceWorkerUrl)
-        : Promise.reject(new Error('Web Push is not supported by this browser.'));
+        : null;
 
     const subscriptionPayload = function(subscription) {
         const payload = subscription.toJSON();

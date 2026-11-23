@@ -7,11 +7,11 @@ const vm = require('node:vm');
 const source = fs.readFileSync(path.join(__dirname, '../../resources/js/calendar/touch-activation.js'), 'utf8')
     .replace(/^export /gm, '');
 
-function setup(binding = 'event') {
+function setup(binding = 'event', isOutsideOpenPopup = () => false) {
     const handlers = new Map();
     const opened = [];
     const item = { isConnected: true };
-    const target = { item };
+    const target = { item, matches: () => false };
     let hit = target;
     const root = {
         classList: { contains: name => name === 'show' },
@@ -21,12 +21,13 @@ function setup(binding = 'event') {
     const context = vm.createContext({ document: { elementFromPoint: () => hit } });
     vm.runInContext(source, context);
     const panel = new EventTarget();
-    if (binding === 'mini-calendar') {
-        panel.parentElement = root;
+    if (binding !== 'event') {
         panel.classList = root.classList;
-        context.bindMiniCalendarOverlay(panel, () => opened.push('dismissed'));
-    } else if (binding === 'modal') {
-        context.bindEventModalTaps(root, () => opened.push('dismissed'));
+        panel.dataset = {};
+        const dismiss = () => opened.push('dismissed');
+        const toggle = { click: () => opened.push('reopened') };
+        context.bindCalendarOffcanvas(panel, toggle, dismiss);
+        context.bindCalendarControlTaps(root, dismiss, dismiss, isOutsideOpenPopup);
     } else {
         context.bindCalendarTap(root, point => point.target.item, selected => opened.push(selected));
     }
@@ -103,7 +104,8 @@ test('modal taps activate a checkbox through its label once and respect its disa
     let clicks = 0;
     let disabled = false;
     const checkbox = {
-        isConnected: true, matches: selector => selector === ':disabled' ? disabled : true,
+        isConnected: true, tagName: 'INPUT', type: 'checkbox',
+        matches: selector => disabled && selector.includes(':disabled'), closest: () => h.root,
         focus() {}, click() { clicks++; },
     };
     h.target.closest = () => ({ tagName: 'LABEL', control: checkbox });
@@ -120,6 +122,8 @@ test('modal taps activate a checkbox through its label once and respect its disa
 test('dragging across the modal backdrop leaves it open and a fresh backdrop tap dismisses it', () => {
     const h = setup('modal');
     h.root.isConnected = true;
+    h.root.dataset = {};
+    h.root.matches = selector => selector.includes('.modal');
     h.point.target = h.root;
     h.setHit(h.root);
     h.start();
@@ -133,23 +137,28 @@ test('dragging across the modal backdrop leaves it open and a fresh backdrop tap
 
 test('a mini-calendar backdrop tap dismisses once and a tap on a month control stays inside the picker', () => {
     const h = setup('mini-calendar');
-    const backdrop = { isConnected: true, classList: { contains: name => name === 'offcanvas-backdrop' } };
-    const button = { isConnected: true, classList: { contains: () => false }, click: () => h.opened.push('month') };
-    h.root.contains = control => [backdrop, button].includes(control);
-    h.target.closest = selector => selector.includes('.offcanvas-backdrop') ? backdrop : null;
+    const backdrop = {
+        isConnected: true, matches: selector => selector.includes('.offcanvas-backdrop'),
+        parentElement: { querySelector: () => h.panel },
+    };
+    const button = { isConnected: true, matches: () => false, closest: () => null, click: () => h.opened.push('month') };
+    h.point.target = backdrop;
+    h.setHit(backdrop);
 
     h.start();
     h.touch('touchmove', { touches: [{ ...h.point, clientY: 120 }] });
     assert.equal(h.end().defaultPrevented, false);
     h.start();
-    h.setHit({ closest: selector => selector.includes('button') ? button : null });
+    h.setHit({ matches: () => false, closest: selector => selector.includes('button') ? button : null });
     assert.equal(h.end().defaultPrevented, false);
     assert.deepEqual(h.opened, []);
 
-    h.setHit(h.target);
+    h.setHit(backdrop);
     h.start();
     assert.equal(h.end().defaultPrevented, true);
     assert.equal(h.end().defaultPrevented, false);
+    h.point.target = h.target;
+    h.setHit(h.target);
     h.target.closest = selector => selector.includes('button') ? button : null;
     h.start();
     assert.equal(h.end().defaultPrevented, true);
@@ -173,7 +182,6 @@ test('two dismissals while the mini-calendar is opening close it once after the 
 
 test('reopening a closing mini-calendar waits until Bootstrap has finished dismissing it', () => {
     const h = setup('mini-calendar');
-    h.root.querySelector = () => ({ click: () => h.opened.push('reopened') });
     h.panel.classList = { contains: name => name === 'hiding' };
     assert.equal(h.panel.dispatchEvent(new Event('show.bs.offcanvas', { cancelable: true })), false);
     assert.deepEqual(h.opened, []);
@@ -183,4 +191,35 @@ test('reopening a closing mini-calendar waits until Bootstrap has finished dismi
     assert.equal(h.panel.dispatchEvent(new Event('show.bs.offcanvas', { cancelable: true })), true);
     h.panel.dispatchEvent(new Event('hidden.bs.offcanvas'));
     assert.deepEqual(h.opened, ['reopened']);
+});
+
+test('calendar buttons work after a missing compatibility click while text and native pickers keep their default gestures', () => {
+    const h = setup('controls');
+    const button = { tagName: 'BUTTON', isConnected: true, matches: () => false, closest: () => null, click: () => h.opened.push('tools') };
+    h.target.closest = () => button;
+    h.start();
+    assert.equal(h.end().defaultPrevented, true);
+    assert.deepEqual(h.opened, ['tools']);
+
+    for (const type of ['text', 'search', 'date', 'time', 'color', 'range', 'file']) {
+        h.target.closest = () => ({ ...button, tagName: 'INPUT', type });
+        h.start();
+        assert.equal(h.end().defaultPrevented, false);
+    }
+    assert.deepEqual(h.opened, ['tools']);
+});
+
+test('an empty-space tap dismisses an open toolbar popup while a swipe leaves it open', () => {
+    let open = true;
+    const h = setup('controls', () => open);
+    Object.assign(h.target, { isConnected: true, closest: () => null, click: () => { open = false; } });
+    h.start();
+    h.touch('touchmove', { touches: [{ ...h.point, clientY: 110 }] });
+    assert.equal(h.end().defaultPrevented, false);
+    assert.equal(open, true);
+    h.start();
+    assert.equal(h.end().defaultPrevented, true);
+    assert.equal(open, false);
+    h.start();
+    assert.equal(h.end().defaultPrevented, false);
 });

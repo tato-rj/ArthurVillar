@@ -7,9 +7,10 @@ const vm = require('node:vm');
 const source = fs.readFileSync(path.join(__dirname, '../../resources/js/calendar/index.js'), 'utf8')
     .replace(/^import .*;$/gm, '');
 
-function setup() {
+function setup(browser = {}) {
     const requests = [];
     const context = vm.createContext({
+        ...browser,
         window: { location: { href: 'https://calendar.test/' }, setTimeout, clearTimeout },
         document: { addEventListener() {}, querySelector: () => null, querySelectorAll: () => [] },
         require: () => ({}), console: { error() {} }, Intl, URL, Date, AbortController,
@@ -23,7 +24,7 @@ function setup() {
             });
         },
     });
-    vm.runInContext(source + '\nglobalThis.api = {state, isRangeLoaded, fetchPlannedLessons, cacheCalendarPayload, invalidateCalendarDataCache, drainTravelRequests, getOverlappingTimedEventPairs, getConflictingEventGuids, getConflictingEvents, getConflictEventKey, setIgnoredConflictPairs};', context);
+    vm.runInContext(source + '\nglobalThis.api = {state, watchScheduleChanges, isRangeLoaded, fetchPlannedLessons, cacheCalendarPayload, invalidateCalendarDataCache, drainTravelRequests, getOverlappingTimedEventPairs, getConflictingEventGuids, getConflictingEvents, getConflictEventKey, setIgnoredConflictPairs};', context);
     context.api.state.view = 'day';
     context.api.state.date = new Date(2026, 8, 16);
     return { ...context.api, requests };
@@ -180,4 +181,26 @@ test('a location-specific vacation flags the affected occurrence through its las
     assert.deepEqual([...h.getConflictingEventGuids([lesson, otherLesson], date)], ['studio']);
     assert.deepEqual(Array.from(h.getConflictingEvents(lesson), h.getConflictEventKey), [`teaching-break:4:${date}`]);
     assert.equal(h.getConflictingEventGuids([lesson, otherLesson], '2026-09-17').size, 0);
+});
+
+test('icon hydration and the clock leave an idle grid alone, while CalendarJS moves and time edits still patch it', () => {
+    let notify;
+    let frameCount = 0;
+    const h = setup({
+        MutationObserver: class {
+            constructor(callback) { notify = callback; }
+            observe() {}
+        },
+        requestAnimationFrame: () => ++frameCount,
+        cancelAnimationFrame() {},
+    });
+    h.watchScheduleChanges({ querySelector: () => ({}) });
+    const node = name => ({ matches: selector => selector.split(', ').includes(name) });
+    const childList = (addedNodes, removedNodes = []) => ({ type: 'childList', addedNodes, removedNodes });
+    notify([childList([node('svg')]), childList([node('path')]), childList([{}])]);
+    assert.equal(frameCount, 0);
+    notify([childList([], [node('.lm-schedule-item')])]);
+    notify([childList([node('tr')])]);
+    notify([{ type: 'attributes', attributeName: 'data-start' }]);
+    assert.equal(frameCount, 3);
 });
