@@ -6,6 +6,8 @@ use App\Models\BaseModel;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Query\JoinClause;
+use Illuminate\Support\Facades\DB;
 
 class GoogleCalendarEvent extends BaseModel
 {
@@ -32,6 +34,38 @@ class GoogleCalendarEvent extends BaseModel
     public function setResponseStatusAttribute(?string $value): void
     {
         $this->attributes['response_status'] = $value === 'tentative' ? 'needsAction' : $value;
+    }
+
+    private function visibilityId(): string
+    {
+        return $this->recurring_event_id ?? $this->google_event_id;
+    }
+
+    public function calendarVisibilityKey(): string
+    {
+        return $this->google_calendar_connection_id.':'.$this->visibilityId();
+    }
+
+    public function setHiddenOnCalendar(bool $hidden): void
+    {
+        $key = [
+            'google_calendar_connection_id' => $this->google_calendar_connection_id,
+            'google_event_id' => $this->visibilityId(),
+        ];
+        $preferences = DB::table('hidden_google_calendar_events');
+        if ($hidden) {
+            $preferences->upsert($key, array_keys($key), ['google_event_id']);
+        } else {
+            $preferences->where($key)->delete();
+        }
+    }
+
+    public function scopeWithHiddenPreference(Builder $query): Builder
+    {
+        return $query->leftJoin('hidden_google_calendar_events as hidden', function (JoinClause $join) {
+            $join->on('hidden.google_calendar_connection_id', '=', 'google_calendar_events.google_calendar_connection_id')
+                ->whereRaw('hidden.google_event_id = COALESCE(google_calendar_events.recurring_event_id, google_calendar_events.google_event_id)');
+        });
     }
 
     public static function syncCutoff(): Carbon
@@ -153,6 +187,9 @@ class GoogleCalendarEvent extends BaseModel
             'revert_url' => '',
             'destroy_url' => '',
             'external_provider' => 'google',
+            'visibility_url' => route('calendar.google-calendar.events.visibility', $this),
+            'google_visibility_key' => $this->calendarVisibilityKey(),
+            'is_recurring' => $this->recurring_event_id !== null,
             'external_url' => $this->safeUrl($this->html_link),
             'meeting_url' => $this->safeUrl($this->meeting_url),
             'response_status' => $this->response_status,

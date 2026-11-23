@@ -5,6 +5,11 @@
             <button type="button" class="btn btn-outline-secondary w-100" data-conflict-toggle>
                 @icon('triangle-alert')<span data-conflict-toggle-label>Ignore conflict</span>
             </button>
+            @if($showGoogleHideAction ?? false)
+                <button type="button" class="btn btn-outline-secondary w-100 mt-2" data-google-event-hide hidden>
+                    @icon('eye-off')<span data-google-event-hide-label>Hide event</span>
+                </button>
+            @endif
         </div>
         @if($showRecitalAction ?? false)
             <div data-lesson-recital-action hidden>

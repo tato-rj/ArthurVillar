@@ -595,7 +595,7 @@ class GoogleCalendarSyncTest extends BaseTest
     }
 
     /** @test */
-    public function it_shows_the_read_only_google_events_page()
+    public function it_shows_the_google_events_page_with_visibility_controls()
     {
         $this->signIn();
 
@@ -605,10 +605,92 @@ class GoogleCalendarSyncTest extends BaseTest
             ->assertSee('google-events-table', false)
             ->assertSee('tables\\/google-events', false)
             ->assertSee('<th>Response</th>', false)
+            ->assertSee('data-restore-google-event', false)
             ->assertSee("status === 'Accepted' ? 'text-green' : 'text-muted'", false)
             ->assertDontSee('aria-label="Event source"', false)
             ->assertDontSee('New event')
             ->assertDontSee('create-event-modal', false);
+    }
+
+    public function test_a_hidden_series_stays_listed_and_can_be_restored_from_a_newly_synced_occurrence()
+    {
+        $user = $this->signIn();
+        $this->travelTo(Carbon::parse('2026-08-01'));
+        $connection = GoogleCalendarConnection::create([
+            'user_id' => $user->id, 'calendar_id' => 'studio@example.com',
+            'access_token' => 'test-token', 'token_expires_at' => now()->addHour(),
+        ]);
+        $other = GoogleCalendarConnection::create([
+            'user_id' => $user->id, 'calendar_id' => 'other@example.com', 'access_token' => 'other-token',
+        ]);
+        $series = ['recurring_event_id' => 'studio-series'];
+        $first = $connection->events()->create($this->storedMeetingAttributes('first') + $series);
+        $second = $connection->events()->create($this->storedMeetingAttributes('second') + $series);
+        $single = $connection->events()->create($this->storedMeetingAttributes('single'));
+        $otherEvent = $other->events()->create($this->storedMeetingAttributes('first') + $series);
+
+        $feed = fn () => collect($this->getJson(route('calendar.home', [
+            'lesson_plans' => 1, 'range_start' => '2026-08-01', 'range_end' => '2026-08-31',
+        ]))->assertOk()->json('generalEvents'))->keyBy('id');
+        $table = fn () => collect($this->getJson(route('calendar.tables.google-events', $this->googleEventTableParameters()))
+            ->assertOk()->json('data'))->keyBy('id');
+        $url = $feed()['google-'.$first->id]['visibility_url'];
+        $this->putJson($url, ['hidden' => true])->assertOk()->assertJsonPath('hidden', true);
+        $this->putJson($url, ['hidden' => true])->assertOk();
+        $this->assertDatabaseCount('hidden_google_calendar_events', 1);
+        $this->assertEqualsCanonicalizing(['google-'.$single->id, 'google-'.$otherEvent->id], $feed()->keys()->all());
+        $rows = $table();
+        $this->assertCount(4, $rows);
+        $this->assertNotEmpty($rows[$first->id]['restore_url']);
+        $this->assertNotEmpty($rows[$second->id]['restore_url']);
+        $this->assertEmpty($rows[$single->id]['restore_url']);
+        $this->assertEmpty($rows[$otherEvent->id]['restore_url']);
+
+        Http::fake(['https://www.googleapis.com/calendar/v3/calendars/*/events*' => Http::response([
+            'items' => [
+                $this->googleMeeting('second', 'accepted') + ['recurringEventId' => 'studio-series'],
+                $this->googleMeeting('new', 'accepted') + ['recurringEventId' => 'studio-series'],
+                $this->googleMeeting('single', 'accepted'),
+            ],
+            'nextSyncToken' => 'next',
+        ])]);
+        app(GoogleCalendarSync::class)->sync($connection);
+        $new = $connection->events()->where('google_event_id', 'new')->firstOrFail();
+        $this->assertEqualsCanonicalizing(['google-'.$single->id, 'google-'.$otherEvent->id], $feed()->keys()->all());
+        $this->putJson($table()[$new->id]['restore_url'], ['hidden' => false])->assertOk()->assertJsonPath('hidden', false);
+        $this->assertCount(4, $feed());
+        $this->assertEmpty($table()[$second->id]['restore_url']);
+        Http::assertSentCount(1);
+    }
+
+    public function test_single_event_visibility_is_local_to_its_owner_and_event_id()
+    {
+        $owner = $this->signIn();
+        $connection = GoogleCalendarConnection::create([
+            'user_id' => $owner->id, 'calendar_id' => 'studio@example.com', 'access_token' => 'test-token',
+        ]);
+        $single = $connection->events()->create($this->storedMeetingAttributes('private'));
+        $sameTitle = $connection->events()->create($this->storedMeetingAttributes('another'));
+        $url = route('calendar.google-calendar.events.visibility', $single);
+        $range = ['start' => '2026-08-01', 'end' => '2026-08-31'];
+        $visibleIds = fn () => app(Scheduler::class)->generalEvents($range, $owner->id)->pluck('id')->all();
+
+        $this->putJson($url, [])->assertUnprocessable();
+        $this->putJson($url, ['hidden' => true])->assertOk();
+        $this->assertSame(['google-'.$sameTitle->id], $visibleIds());
+        $this->assertSame('needsAction', $single->fresh()->response_status);
+        $other = User::factory()->create();
+        $foreignConnection = GoogleCalendarConnection::create([
+            'user_id' => $other->id, 'calendar_id' => 'private@example.com', 'access_token' => 'other-token',
+        ]);
+        $foreign = $foreignConnection->events()->create($this->storedMeetingAttributes('private'));
+        foreach ([true, false] as $hidden) {
+            $this->putJson(route('calendar.google-calendar.events.visibility', $foreign), ['hidden' => $hidden])->assertNotFound();
+        }
+        $this->putJson($url, ['hidden' => false])->assertOk();
+        $this->putJson($url, ['hidden' => false])->assertOk();
+        $this->assertEqualsCanonicalizing(['google-'.$single->id, 'google-'.$sameTitle->id], $visibleIds());
+        Http::assertNothingSent();
     }
 
     /** @test */

@@ -139,7 +139,7 @@
     </div>
 </div>
 
-@include('calendar.calendar.conflict-toggle', ['expandedOnly' => true, 'showRecitalAction' => true])
+@include('calendar.calendar.conflict-toggle', ['expandedOnly' => true, 'showRecitalAction' => true, 'showGoogleHideAction' => true])
 
 <div class="px-3 mt-2" data-event-modal-expand-toggle-container>
     <button

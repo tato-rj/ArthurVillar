@@ -121,6 +121,17 @@ class GoogleCalendarController extends Controller
         );
     }
 
+    public function updateVisibility(Request $request, GoogleCalendarEvent $event)
+    {
+        abort_unless($event->calendarConnection?->user_id === $request->user()->id, 404);
+
+        $request->validate(['hidden' => ['required', 'boolean']]);
+        $hidden = $request->boolean('hidden');
+        $event->setHiddenOnCalendar($hidden);
+
+        return response()->json(['google_visibility_key' => $event->calendarVisibilityKey(), 'hidden' => $hidden]);
+    }
+
     public function respond(
         Request $request,
         GoogleCalendarEvent $event,

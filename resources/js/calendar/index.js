@@ -30,6 +30,7 @@ const state = {
     nextRecitalsByStudent: {},
     closeLessonRecitalPicker: null,
     pendingRecitalAssignments: new Set(),
+    pendingGoogleEventHides: new Set(),
     generalEvents: [],
     selectedEventTypes: [...calendarEventTypes],
     studentSearch: '',
@@ -2390,6 +2391,9 @@ const getGeneralEvent = function(generalEvent) {
         meetingUrl: generalEvent.meeting_url || '',
         responseStatus: generalEvent.response_status || '',
         responseUrl: generalEvent.response_url || '',
+        visibilityUrl: generalEvent.visibility_url || '',
+        googleVisibilityKey: generalEvent.google_visibility_key || '',
+        isRecurring: Boolean(generalEvent.is_recurring),
         organizerName: generalEvent.organizer_name || '',
         organizerEmail: generalEvent.organizer_email || '',
         location: generalEvent.location || '',
@@ -6103,6 +6107,14 @@ const updateConflictToggle = function(modal, event) {
             || state.pendingRecitalAssignments.has(String(event?.studentId));
     }
     section.querySelector('[data-conflict-controls]').hidden = !canToggle;
+    const hideGoogleEvent = section.querySelector('[data-google-event-hide]');
+    if (hideGoogleEvent) {
+        hideGoogleEvent.hidden = !canToggle || event?.externalProvider !== 'google' || !event.visibilityUrl;
+        if (!hideGoogleEvent.hidden) {
+            hideGoogleEvent.disabled = state.pendingGoogleEventHides.has(event.googleVisibilityKey);
+            hideGoogleEvent.querySelector('[data-google-event-hide-label]').textContent = event.isRecurring ? 'Hide all occurrences' : 'Hide event';
+        }
+    }
     section.hidden = !canToggle && !canJoin;
     section.toggleAttribute('data-event-modal-expanded-content', !event?.readOnly);
 
@@ -9567,6 +9579,46 @@ document.addEventListener('DOMContentLoaded', function() {
         const rescheduleStartTime = generalEventModal.querySelector('#reschedule-general-event-start-time');
         const rescheduleEndTime = generalEventModal.querySelector('#reschedule-general-event-end-time');
         const googleResponseButtons = Array.from(generalEventModal.querySelectorAll('[data-google-event-response]'));
+
+        const hideGoogleEvent = generalEventModal.querySelector('[data-google-event-hide]');
+        hideGoogleEvent.addEventListener('click', async function() {
+            const event = getEventByGuid(generalEventModal.dataset.eventGuid);
+            const key = event?.googleVisibilityKey;
+            if (hideGoogleEvent.hidden || !key || !event.visibilityUrl || state.pendingGoogleEventHides.has(key)) return;
+
+            state.pendingGoogleEventHides.add(key);
+            hideGoogleEvent.disabled = true;
+            clearGeneralEventActionError(generalEventModal);
+            try {
+                const result = await requestJson(event.visibilityUrl, {
+                    method: 'PUT',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': window.calendarCsrfToken || '',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    body: JSON.stringify({ hidden: true }),
+                }, 'Unable to hide this Google event.');
+                if (!result.hidden || result.google_visibility_key !== key) throw new Error('Unable to hide this Google event.');
+
+                if (getEventByGuid(generalEventModal.dataset.eventGuid)?.googleVisibilityKey === key) {
+                    hideBootstrapModal(generalEventModal);
+                }
+                invalidateCalendarDataCache();
+                state.travelRouteGeneration += 1;
+                state.generalEvents = state.generalEvents.filter(item => item.google_visibility_key !== key);
+                state.pendingScheduleScrollTop = calendar.querySelector('.lm-schedule')?.scrollTop ?? null;
+                render({ mode: 'discreet' });
+            } catch (error) {
+                if (getEventByGuid(generalEventModal.dataset.eventGuid)?.googleVisibilityKey === key) {
+                    showGeneralEventActionError(generalEventModal, error.message);
+                }
+            } finally {
+                state.pendingGoogleEventHides.delete(key);
+                updateConflictToggle(generalEventModal, getEventByGuid(generalEventModal.dataset.eventGuid));
+            }
+        });
 
         googleResponseButtons.forEach(function(button) {
             button.addEventListener('click', function(e) {
