@@ -1,7 +1,7 @@
 <div id="general-event-details">
     <div class="calendar-modal-details">
         <div id="general-event-controls" class="calendar-modal-detail-section d-flex mt-3">
-            <button type="button" id="reschedule-general-event-button" class="btn-raw py-2 text-red w-100">Reschedule</button>
+            <button type="button" id="reschedule-general-event-button" class="btn btn-outline-red w-100">Reschedule</button>
         </div>
     </div>
 </div>
